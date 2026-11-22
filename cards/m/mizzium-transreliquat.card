@@ -1,0 +1,10 @@
+card "Mizzium Transreliquat" {
+  oracle_id a1f73421-cda5-4029-9bcf-f2baee179e5c
+  cost {3}
+  type Artifact
+  activated {3}: this becomes a copy of target artifact until end of turn
+  activated {1}{U}{R}: this becomes a copy of target artifact with exceptions
+  except {
+    activated {1}{U}{R}: this becomes a copy of target artifact with exceptions
+  }
+}

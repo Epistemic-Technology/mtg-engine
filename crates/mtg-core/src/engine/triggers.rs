@@ -535,6 +535,13 @@ impl GameState {
             if let AbilityDef::Triggered(t) = self.pool.ability(ability)
                 && t.trigger.casts_this()
             {
+                // "When you cast this spell while you control a creature":
+                // judged as it triggers (CR 603.2).
+                if let Some(crate::card::Condition::While(i)) = t.condition
+                    && !self.condition_for(self.pool.condition(i), player, spell, Some(spell))
+                {
+                    continue;
+                }
                 fired.push(PendingTrigger {
                     controller: player,
                     ability: StackAbility {
@@ -1908,7 +1915,21 @@ impl GameState {
             &mut self.resolution_number,
             u8::try_from(number).unwrap_or(u8::MAX),
         );
+        // CR 607.2a: what this ability exiles is linked to its source if
+        // the source's card refers to "cards exiled with" it.
+        let links = self
+            .objects
+            .get(sa.source)
+            .map(|o| o.def)
+            .or_else(|| self.lki.get(&sa.source).map(|l| l.object.def))
+            .is_some_and(|d| self.pool.get(d).links_exile);
+        let outer_linking = if links {
+            self.linking.replace(sa.source)
+        } else {
+            self.linking.take()
+        };
         self.apply_effects(&mut ctx, effects, &split);
+        self.linking = outer_linking;
         self.resolution_number = outer_number;
         self.doing_once = doing;
         self.end_this_way(outer);

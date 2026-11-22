@@ -154,6 +154,17 @@ fn format_inner(card: &Card) -> String {
         if x.not_legendary {
             out.push_str("    not legendary\n");
         }
+        if let Some((p, t)) = x.pt {
+            let _ = writeln!(out, "    pt {p}/{t}");
+        }
+        if !x.colors.is_empty() {
+            let cs: Vec<&str> = x
+                .colors
+                .iter()
+                .map(|c| crate::render::color_name(*c))
+                .collect();
+            let _ = writeln!(out, "    colors {}", cs.join(" "));
+        }
         if !x.types.is_empty() {
             let ts: Vec<String> = x.types.iter().map(|t| format!("{t:?}")).collect();
             let _ = writeln!(out, "    types {}", ts.join(" "));
@@ -364,6 +375,25 @@ impl Fmt {
                 Some(f) => format!("each opponent who doesn't control {}", filter(f)),
                 None => "each opponent".to_string(),
             },
+            Recipient::ExiledWith(i) => {
+                let f = self.groups.get(usize::from(i)).cloned().unwrap_or_default();
+                let all = f.all;
+                let g = Filter {
+                    all: false,
+                    all_word: false,
+                    each: false,
+                    ..f
+                };
+                let noun = if g == Filter::default() {
+                    "card".to_string()
+                } else {
+                    format!("{} card", filter(&g))
+                };
+                format!(
+                    "{} {noun} exiled with this",
+                    if all { "all" } else { "each" }
+                )
+            }
             Recipient::RandomOf(i) => match self.groups.get(usize::from(i)) {
                 Some(f) => format!("random {}", filter(f)),
                 None => "random permanent".to_string(),
@@ -1461,10 +1491,26 @@ impl Fmt {
                 }
                 s
             }
-            Effect::BecomeCopy { of, except } => {
-                let mut s = format!("this becomes a copy of {}", self.recipient(*of, t));
+            Effect::BecomeCopy {
+                of,
+                except,
+                who,
+                until,
+            } => {
+                let subject = match who {
+                    Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt => {
+                        "this".to_string()
+                    }
+                    w => self.recipient(*w, t),
+                };
+                let mut s = format!("{subject} becomes a copy of {}", self.recipient(*of, t));
                 if *except {
                     s.push_str(" with exceptions");
+                }
+                match until {
+                    mtg_core::card::CopyUntil::Permanent => {}
+                    mtg_core::card::CopyUntil::EndOfTurn => s.push_str(" until end of turn"),
+                    mtg_core::card::CopyUntil::YourNextTurn => s.push_str(" until your next turn"),
                 }
                 s
             }
@@ -1566,7 +1612,15 @@ impl Fmt {
             } => {
                 let mut s = "cast free ".to_string();
                 if let Some(r) = what {
-                    s.push_str(&self.recipient(*r, t));
+                    let o = self.recipient(*r, t);
+                    // `cast free card exiled with this`: one of them.
+                    let o = match r {
+                        Recipient::ExiledWith(_) => {
+                            o.strip_prefix("each ").unwrap_or(&o).to_string()
+                        }
+                        _ => o,
+                    };
+                    s.push_str(&o);
                 } else {
                     if let Some(f) = f {
                         s.push_str(&filter(f));
@@ -1670,15 +1724,27 @@ impl Fmt {
                 who,
                 filter: f,
                 exile: Some(joined),
-                ..
+                until,
+                and_choose,
+                look,
+                may,
             } => {
                 let what = match f {
                     None => "card".to_string(),
                     Some(f) => format!("{} card", filter(f)),
                 };
-                let split = if *joined { "" } else { " split" };
+                let until = if *until { " until this leaves" } else { "" };
+                if *look {
+                    let may = if *may { "may " } else { "" };
+                    return format!(
+                        "look at hand of {} exiling {may}{what}{until}",
+                        self.recipient(*who, t)
+                    );
+                }
+                let split = if *joined || *and_choose { "" } else { " split" };
+                let and = if *and_choose { "and " } else { "" };
                 format!(
-                    "{} reveals hand exiling {what}{split}",
+                    "{} reveals hand {and}exiling {what}{split}{until}",
                     self.recipient(*who, t)
                 )
             }
@@ -2716,6 +2782,21 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::TimesKicked => "times kicked".to_string(),
         CountExpr::SpentTreasure => "treasure spent".to_string(),
         CountExpr::CardsInOpponentsGraveyards(None) => "opponents graveyards".to_string(),
+        CountExpr::ExiledWith(None) => "exiled with this".to_string(),
+        CountExpr::ExiledWith(Some(f)) => format!("exiled with this {} card", card_filter(f)),
+        CountExpr::CardsInExile { filter, graveyard } => {
+            let mut s = if *graveyard {
+                "exile and graveyard".to_string()
+            } else {
+                "exile".to_string()
+            };
+            if let Some(f) = filter {
+                s.push(' ');
+                s.push_str(&card_filter(f));
+                s.push_str(" card");
+            }
+            s
+        }
         CountExpr::CardsInOpponentsGraveyards(Some(f)) => {
             format!("opponents graveyards {}", card_filter(f))
         }
@@ -4641,6 +4722,8 @@ fn static_cond(c: &StaticCond) -> String {
         }
         StaticCond::MoreCardsInHand => "more cards in hand than each opponent".to_string(),
         StaticCond::OwnCardInExile => "you own card in exile".to_string(),
+        StaticCond::ExiledWith(n) => format!("{n} cards exiled with this"),
+        StaticCond::TypesExiledWith(n) => format!("{n} card types exiled with this"),
         StaticCond::Monarch => "you are monarch".to_string(),
         StaticCond::CompletedDungeon => "completed dungeon".to_string(),
         StaticCond::CityBlessing => "city's blessing".to_string(),
@@ -5436,6 +5519,33 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let mut s = format!("{indent}play from top");
             if *once {
                 s.push_str(" once");
+            }
+            if *lands {
+                s.push_str(" lands");
+            }
+            if let Some(f) = spells {
+                if *lands {
+                    s.push_str(" and");
+                }
+                s.push_str(" spells");
+                if *f != Filter::default() {
+                    let _ = write!(s, " {}", filter(f));
+                }
+            }
+            let _ = writeln!(out, "{s}");
+        }
+        Ability::PlayExiled {
+            lands,
+            spells,
+            your_turn,
+            owned,
+        } => {
+            let mut s = format!("{indent}play exiled");
+            if *your_turn {
+                s.push_str(" your turn");
+            }
+            if *owned {
+                s.push_str(" owned");
             }
             if *lands {
                 s.push_str(" lands");

@@ -1145,6 +1145,24 @@ impl P {
                             except.keywords.extend(self.keyword_list()?);
                             self.end_stmt()?;
                         }
+                        // "it's a 1/1 ..." (CR 707.9b).
+                        Some("pt") => {
+                            self.pos += 1;
+                            match self.next() {
+                                Some(Tok::Pt {
+                                    power,
+                                    toughness,
+                                    signed: false,
+                                }) => except.pt = Some((power, toughness)),
+                                _ => return self.fail("expected power/toughness such as 1/1"),
+                            }
+                            self.end_stmt()?;
+                        }
+                        Some("color" | "colors") => {
+                            self.pos += 1;
+                            except.colors = self.color_list()?;
+                            self.end_stmt()?;
+                        }
                         // "it isn't legendary" (CR 707.9b).
                         Some("not") if self.word_at(1).as_deref() == Some("legendary") => {
                             self.pos += 2;
@@ -1621,6 +1639,31 @@ impl P {
                     lands,
                     spells,
                     once,
+                })
+            }
+            "play" if self.at_words(&["play", "exiled"]) => {
+                self.pos += 2;
+                let your_turn = self.eat_words(&["your", "turn"]);
+                let owned = self.eat_word("owned");
+                let lands = self.eat_word("lands");
+                let spells = if (!lands || self.eat_word("and")) && self.eat_word("spells") {
+                    if self.at_stmt_end() {
+                        Some(Filter::default())
+                    } else {
+                        Some(self.filter()?)
+                    }
+                } else {
+                    None
+                };
+                if !lands && spells.is_none() {
+                    return self.fail("expected `lands` or `spells`".to_string());
+                }
+                self.end_stmt()?;
+                Ok(Ability::PlayExiled {
+                    lands,
+                    spells,
+                    your_turn,
+                    owned,
                 })
             }
             "top" if self.at_words(&["top", "revealed"]) => {
@@ -3669,6 +3712,12 @@ impl P {
         if self.eat_words(&["cards", "in", "your", "graveyard"]) {
             return Ok(StaticCond::CardsInGraveyard(n));
         }
+        if self.eat_words(&["cards", "exiled", "with", "this"]) {
+            return Ok(StaticCond::ExiledWith(n));
+        }
+        if self.eat_words(&["card", "types", "exiled", "with", "this"]) {
+            return Ok(StaticCond::TypesExiledWith(n));
+        }
         if self.eat_words(&["card", "types", "in", "your", "graveyard"]) {
             return Ok(StaticCond::CardTypesInGraveyard(n));
         }
@@ -3991,7 +4040,34 @@ impl P {
     /// After `cast free`: `target ...` (a card), or `[<filter>] spell from
     /// hand [with mana value up to <n>]`; then `exile instead`.
     fn cast_free(&mut self) -> R<Effect> {
-        let (what, filter, max) = if self.at_word("target") {
+        // `cast free card exiled with this`: "you may cast a card exiled
+        // with Krang & Shredder without paying its mana cost" (CR 607.2a).
+        let exiled = (0..8).any(|k| {
+            self.word_at(k).as_deref() == Some("exiled")
+                && self.word_at(k + 1).as_deref() == Some("with")
+                && self.word_at(k + 2).as_deref() == Some("this")
+        }) && !self.at_word("target");
+        let (what, filter, max) = if exiled {
+            let f = if self.eat_word("card") {
+                Filter::default()
+            } else {
+                let f = self.filter()?;
+                self.expect_word("card")?;
+                f
+            };
+            self.expect_words(&["exiled", "with", "this"])?;
+            let i = if let Some(i) = self.groups.iter().position(|g| *g == f) {
+                i
+            } else {
+                self.groups.push(f);
+                self.groups.len() - 1
+            };
+            let i = u16::try_from(i).map_err(|_| ParseError {
+                line: self.line(),
+                message: "too many groups".to_string(),
+            })?;
+            (Some(Recipient::ExiledWith(i)), None, None)
+        } else if self.at_word("target") {
             (Some(self.recipient()?), None, None)
         } else {
             let filter = if self.at_word("spell") {
@@ -5416,9 +5492,12 @@ impl P {
                 if self.eat_word("discarding") {
                     return self.discard_chosen(subject, false);
                 }
+                // "reveals their hand and you choose a nonland card from
+                // it. Exile that card until ..." (Brain Maggot).
+                let and_choose = self.eat_words(&["and", "exiling"]);
                 // "You choose a nonland card from that player's graveyard
                 // or hand and exile it."
-                if self.eat_word("exiling") {
+                if and_choose || self.eat_word("exiling") {
                     let filter = if self.at_word("card") {
                         Filter::default()
                     } else {
@@ -5429,13 +5508,19 @@ impl P {
                     // card."
                     if !self.at_word("from") {
                         let joined = !self.eat_word("split");
+                        let until = self.eat_words(&["until", "this", "leaves"]);
                         return Ok(Effect::DiscardChosen {
                             who: subject,
                             filter: (filter != Filter::default()).then_some(filter),
                             may: false,
                             look: false,
                             exile: Some(joined),
+                            until,
+                            and_choose,
                         });
+                    }
+                    if and_choose {
+                        return self.unexpected("`split` or `until this leaves`");
                     }
                     self.expect_words(&["from", "graveyard", "or", "hand"])?;
                     return Ok(Effect::ExileFromGraveyardOrHand {
@@ -6024,19 +6109,24 @@ impl P {
             "become" | "becomes" => {
                 self.eat_word("a");
                 if self.eat_word("copy") {
-                    // The source becomes the copy (`Effect::BecomeCopy`);
-                    // another subject ("target artifact becomes a copy of
-                    // ...") would be dropped.
-                    if !matches!(
-                        subject,
-                        Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt
-                    ) {
-                        return self.fail("only `this` can become a copy");
-                    }
+                    // The subject becomes the copy (`Effect::BecomeCopy`):
+                    // the source, a target, or a group.
                     self.expect_word("of")?;
                     let of = self.recipient()?;
                     let except = self.except_clause();
-                    return Ok(Effect::BecomeCopy { of, except });
+                    let until = if self.eat_words(&["until", "end", "of", "turn"]) {
+                        mtg_core::card::CopyUntil::EndOfTurn
+                    } else if self.eat_words(&["until", "your", "next", "turn"]) {
+                        mtg_core::card::CopyUntil::YourNextTurn
+                    } else {
+                        mtg_core::card::CopyUntil::Permanent
+                    };
+                    return Ok(Effect::BecomeCopy {
+                        of,
+                        except,
+                        who: subject,
+                        until,
+                    });
                 }
                 // "becomes that type": chosen earlier in the resolution.
                 if self.eat_words(&["that", "type"]) {
@@ -6535,6 +6625,8 @@ impl P {
             may,
             look,
             exile: None,
+            until: false,
+            and_choose: false,
         })
     }
 
@@ -7464,6 +7556,28 @@ impl P {
                 let who = self.recipient()?;
                 if self.eat_word("discarding") {
                     return self.discard_chosen(who, true);
+                }
+                // "Look at target opponent's hand. You may exile a nonland
+                // card from it until this creature leaves the battlefield."
+                if self.eat_word("exiling") {
+                    let may = self.eat_word("may");
+                    let filter = if self.eat_word("card") {
+                        None
+                    } else {
+                        let f = self.filter()?;
+                        self.expect_word("card")?;
+                        Some(f)
+                    };
+                    let until = self.eat_words(&["until", "this", "leaves"]);
+                    return Ok(Effect::DiscardChosen {
+                        who,
+                        filter,
+                        may,
+                        look: true,
+                        exile: Some(false),
+                        until,
+                        and_choose: false,
+                    });
                 }
                 Ok(Effect::LookAtHand { who })
             }
@@ -8674,6 +8788,32 @@ impl P {
             self.pos += 1;
             return Ok(CountExpr::SourceToughness);
         }
+        // "cards exiled with this enchantment" (CR 607.2a), "cards you
+        // own in exile [and in your graveyard]".
+        let exiled_with = self.eat_words(&["exiled", "with", "this"]);
+        let in_exile = !exiled_with && self.eat_word("exile");
+        if exiled_with || in_exile {
+            let graveyard = in_exile && self.eat_words(&["and", "graveyard"]);
+            let f = if self.eat_word("card")
+                || self.at_stmt_end()
+                || !self.word_at(0).is_some_and(|w| {
+                    card_type(&w).is_some() || w.starts_with("non") || color(&w).is_some()
+                }) {
+                None
+            } else {
+                let f = self.filter()?;
+                self.eat_word("card");
+                Some(f)
+            };
+            return Ok(if exiled_with {
+                CountExpr::ExiledWith(f)
+            } else {
+                CountExpr::CardsInExile {
+                    filter: f,
+                    graveyard,
+                }
+            });
+        }
         if self.eat_words(&["opponents", "graveyards"]) {
             let f = if self.at_stmt_end()
                 || !self.word_at(0).is_some_and(|w| {
@@ -9440,6 +9580,8 @@ impl P {
                                 | "dealt"
                                 | "blocked"
                                 | "token"
+                                | "card"
+                                | "exiled"
                         )
                     ) || self.word_at(ws.len()).as_deref() == Some("or")
                         && self.word_at(ws.len() + 1).as_deref() == Some("planeswalker")
@@ -9497,16 +9639,37 @@ impl P {
             // toxic 1`: printed one at a time, "Each other creature ...
             // gains".
             let single = !all && self.eat_word("single");
-            let mut f = self.filter()?;
+            // `all card exiled with this`: any card.
+            let mut f = if self.at_words(&["card", "exiled", "with", "this"]) {
+                self.pos += 1;
+                Filter::default()
+            } else {
+                let f = self.filter()?;
+                if self.at_words(&["card", "exiled", "with", "this"]) {
+                    self.pos += 1;
+                }
+                f
+            };
             f.all |= all;
             f.all_word |= every;
             f.each = single;
+            // `all card exiled with this`: the cards this permanent's
+            // abilities exiled (CR 607.2a).
+            let exiled = self.eat_words(&["exiled", "with", "this"]);
             let i = if let Some(i) = self.groups.iter().position(|g| *g == f) {
                 i
             } else {
                 self.groups.push(f);
                 self.groups.len() - 1
             };
+            if exiled {
+                return Ok(Recipient::ExiledWith(u16::try_from(i).map_err(|_| {
+                    ParseError {
+                        line: self.line(),
+                        message: "too many groups".to_string(),
+                    }
+                })?));
+            }
             return Ok(Recipient::Group(u16::try_from(i).map_err(|_| {
                 ParseError {
                     line: self.line(),

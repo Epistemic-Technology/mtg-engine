@@ -1,0 +1,9 @@
+card "Crackling Drake" {
+  oracle_id c8b4eba6-88ce-42d7-a235-5a4765a4a981
+  cost {U}{U}{R}{R}
+  type Creature — Drake
+  pt */4
+  keywords flying
+  static this: cda power exile and graveyard instant or sorcery card
+  triggered when this enters: draw 1 card
+}

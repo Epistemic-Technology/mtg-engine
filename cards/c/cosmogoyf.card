@@ -1,0 +1,6 @@
+card "Cosmogoyf" {
+  oracle_id 99d8c5f9-ad8f-450e-9a7c-51a4c0ca5043
+  cost {B}{G}
+  type Creature — Elemental Lhurgoyf
+  static this: cda pt exile +1
+}

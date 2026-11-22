@@ -1043,6 +1043,11 @@ impl Compiler<'_> {
                 abilities,
                 not_legendary: x.not_legendary,
                 types: mtg_core::card::TypeSet::of(x.types.iter().copied()),
+                pt: x.pt,
+                colors: x
+                    .colors
+                    .iter()
+                    .fold(mtg_core::mana::ColorSet::default(), |s, c| s.with(*c)),
             });
         }
         if let Some(c) = self.cast_snapshot.take() {
@@ -1644,6 +1649,8 @@ impl Compiler<'_> {
             StaticCond::MoreCardsInHand => StaticCondition::MoreCardsInHand,
             StaticCond::OpponentPoison(n) => StaticCondition::OpponentPoison(*n),
             StaticCond::OwnCardInExile => StaticCondition::OwnCardInExile,
+            StaticCond::ExiledWith(n) => StaticCondition::ExiledWith(*n),
+            StaticCond::TypesExiledWith(n) => StaticCondition::TypesExiledWith(*n),
             StaticCond::Monarch => StaticCondition::Monarch,
             StaticCond::CompletedDungeon => StaticCondition::CompletedDungeon,
             StaticCond::CityBlessing => StaticCondition::CityBlessing,
@@ -1721,6 +1728,11 @@ impl Compiler<'_> {
             A::CardsInOpponentsGraveyards(f) => {
                 C::CardsInOpponentsGraveyards(f.as_ref().map(|f| self.filter(f)))
             }
+            A::ExiledWith(f) => C::ExiledWith(f.as_ref().map(|f| self.filter(f))),
+            A::CardsInExile { filter, graveyard } => C::CardsInExile {
+                filter: filter.as_ref().map(|f| self.filter(f)),
+                graveyard: *graveyard,
+            },
             A::OpponentsAttacked => C::OpponentsAttacked,
             A::AttackedWithThisTurn => C::AttackedWithThisTurn,
             A::AndOr(inner) => self.count_expr(inner),
@@ -1883,6 +1895,7 @@ impl Compiler<'_> {
         match r {
             Recipient::Group(i) => CoreRecipient::Group(groups[usize::from(i)]),
             Recipient::RandomOf(i) => CoreRecipient::RandomOf(groups[usize::from(i)]),
+            Recipient::ExiledWith(i) => CoreRecipient::ExiledWith(groups[usize::from(i)]),
             Recipient::DamagedThisWay => CoreRecipient::DamagedThisWay,
             Recipient::OpponentsWithout(i) => {
                 CoreRecipient::OpponentsWithout(groups[usize::from(i)])
@@ -2338,9 +2351,20 @@ impl Compiler<'_> {
                 new_targets: *new_targets,
                 except: *except,
             }),
-            Effect::BecomeCopy { of, except } => out.push(CoreEffect::BecomeCopy {
+            Effect::BecomeCopy {
+                of,
+                except,
+                who,
+                until,
+            } => out.push(CoreEffect::BecomeCopy {
                 of: r(*of),
                 except: *except,
+                who: (!matches!(
+                    who,
+                    Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt
+                ))
+                .then(|| r(*who)),
+                until: *until,
             }),
             Effect::Counter { to, dest } => out.push(CoreEffect::Counter {
                 to: r(*to),
@@ -2545,6 +2569,7 @@ impl Compiler<'_> {
                 filter,
                 may,
                 exile,
+                until,
                 ..
             } => {
                 let filter = filter.as_ref().map(|f| self.filter(f));
@@ -2553,6 +2578,7 @@ impl Compiler<'_> {
                     filter,
                     optional: *may,
                     exile: exile.is_some(),
+                    until: *until,
                 });
             }
             Effect::Transform { what } => out.push(CoreEffect::Transform { what: r(*what) }),
@@ -4783,6 +4809,17 @@ impl Compiler<'_> {
                 spells: spells.as_ref().map(|f| self.filter(f)),
                 once: *once,
             },
+            Ability::PlayExiled {
+                lands,
+                spells,
+                your_turn,
+                owned,
+            } => AbilityDef::PlayExiled {
+                lands: *lands,
+                spells: spells.as_ref().map(|f| self.filter(f)),
+                your_turn: *your_turn,
+                owned: *owned,
+            },
             Ability::TopRevealed { players } => AbilityDef::TopRevealed { players: *players },
             Ability::MayLook {
                 top,
@@ -5565,6 +5602,12 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
 /// are linked to it: they remember what they exiled.
 fn link_exiles(def: &mut mtg_core::card::CardDef) {
     use mtg_core::card::AbilityDef;
+    // "cards exiled with this artifact", "cards exiled with Rona": every
+    // card its abilities exile is linked to the permanent (the engine
+    // records them as the abilities resolve).
+    if def.oracle_text.contains("exiled with") {
+        def.links_exile = true;
+    }
     let refers = def.abilities.iter().any(|a| {
         a.all_effects().iter().any(|e| {
             matches!(

@@ -57,6 +57,14 @@ wrong thing in some case.
   mana payment:** the engine taps a creature's mana ability to pay a
   cost without activating it as an ability, so it doesn't trigger (CR
   605.3a says it should). No card in the corpus uses the trigger yet.
+- **A copy effect with a duration replaces the definition** (Mirrorweave,
+  Mirage Mirror, Shapesharer): it is undone by restoring the old values
+  when it ends, not as a layer-1 effect with a timestamp (CR 613.2a); a
+  second copy effect on the same permanent before the first ends keeps
+  the first from being undone.
+- **"Exiled with" links whatever its ability moves to exile**: a card
+  exiled by a replacement effect (Rest in Peace) while the ability
+  resolves is linked to the permanent too. No card known to care.
 - **An until-end-of-turn grant of a triggered keyword** ("gains prowess
   until end of turn") may not trigger: only static grants are counted as
   granting abilities. Not reproduced; no such card yet.

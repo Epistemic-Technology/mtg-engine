@@ -194,10 +194,25 @@ fn a_delayed_trigger_about_tokens_cant_watch_the_source() {
 }
 
 #[test]
-fn only_the_source_becomes_a_copy() {
-    let e =
-        spell_error("target artifact you control becomes a copy of target artifact you control");
-    assert!(e.contains("become a copy"), "{e}");
+fn a_target_becomes_a_copy() {
+    // The subject is kept: the target becomes the copy, not the source.
+    let text = "card \"Test\" {\n  cost {1}\n  type Instant\n  spell: target artifact you control becomes a copy of target artifact you control until end of turn\n}\n";
+    let card = parse(text).unwrap().remove(0);
+    let Some(mtg_dsl::ast::Ability::Spell { effects, .. }) = card.abilities.first() else {
+        panic!("a spell");
+    };
+    assert!(
+        matches!(
+            effects.first().and_then(|s| s.effects.first()),
+            Some(mtg_dsl::ast::Effect::BecomeCopy {
+                who: mtg_dsl::ast::Recipient::Target(0),
+                of: mtg_dsl::ast::Recipient::Target(1),
+                until: mtg_core::card::CopyUntil::EndOfTurn,
+                ..
+            })
+        ),
+        "{effects:?}"
+    );
 }
 
 #[test]

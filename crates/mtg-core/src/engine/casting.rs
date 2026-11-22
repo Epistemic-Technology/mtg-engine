@@ -394,6 +394,28 @@ impl GameState {
                 }
             }
         }
+        // CR 607.2a, 601.3: cards exiled with a permanent whose ability
+        // lets its controller play them ("You may cast spells from among
+        // cards exiled with this creature").
+        if !self.linked_exiles.is_empty() {
+            for (card, land_ok, spell_ok) in self.exiled_permissions(p) {
+                let def = self.pool.get(self.objects[card].def);
+                if def.is_land() {
+                    if land_ok
+                        && sorcery_timing
+                        && self.may_play_another_land(p)
+                        && !options.contains(&Choice::PlayLand(card))
+                    {
+                        options.push(Choice::PlayLand(card));
+                    }
+                } else if spell_ok
+                    && !options.contains(&Choice::Cast(card))
+                    && self.castable(p, def, card, sorcery_timing, &sources, &pool, &changers)
+                {
+                    options.push(Choice::Cast(card));
+                }
+            }
+        }
         // CR 601.3, 305.1: the top card of the library, by a permanent's
         // permission ("You may cast creature spells from the top of your
         // library").
@@ -729,6 +751,10 @@ impl GameState {
         let you = ctx.controller;
         let n = match expr {
             CountExpr::Times(k, inner) => return k.saturating_mul(self.eval_count(inner, ctx)),
+            CountExpr::ExiledWith(f) => self.count_exiled_with(ctx.source, f.as_ref(), you),
+            CountExpr::CardsInExile { filter, graveyard } => {
+                self.owned_in_exile(you, filter.as_ref(), *graveyard)
+            }
             CountExpr::Permanents(f) => {
                 let f = &*self.chosen_filter(f, ctx);
                 let host = f.attached_to.map(|a| self.attached_host(ctx, a));
@@ -2634,6 +2660,54 @@ impl GameState {
         out
     }
 
+    /// CR 607.2a, 601.3: the cards exiled with permanents `p` controls
+    /// that those permanents let `p` play (`AbilityDef::PlayExiled`): each
+    /// (card, as a land, as a spell).
+    #[cold]
+    #[inline(never)]
+    pub(super) fn exiled_permissions(&self, p: PlayerId) -> SmallVec<[(ObjId, bool, bool); 2]> {
+        let mut out: SmallVec<[(ObjId, bool, bool); 2]> = SmallVec::new();
+        for l in &self.linked_exiles {
+            let Some(s) = self.objects.get(l.source) else {
+                continue;
+            };
+            let Some(o) = self.objects.get(l.card) else {
+                continue;
+            };
+            if s.zone != Zone::Battlefield || s.controller != p || o.zone != Zone::Exile {
+                continue;
+            }
+            let def = self.pool.get(o.def);
+            let chars = self.base_characteristics(o);
+            let (mut land_ok, mut spell_ok) = (false, false);
+            for a in &self.pool.get(s.def).ability_ids {
+                let AbilityDef::PlayExiled {
+                    lands,
+                    spells,
+                    your_turn,
+                    owned,
+                } = self.pool.ability(*a)
+                else {
+                    continue;
+                };
+                if (*your_turn && self.active_player != p) || (*owned && o.owner != p) {
+                    continue;
+                }
+                land_ok |= *lands;
+                // The mana value isn't a characteristic `matches` sees.
+                spell_ok |= spells.as_ref().is_some_and(|f| {
+                    f.mana_value
+                        .is_none_or(|(cmp, n)| cmp.holds(def.mana_cost.mana_value(), u32::from(n)))
+                        && f.matches(l.card, p, &chars, Some(l.source), Some(p))
+                });
+            }
+            if (land_ok || spell_ok) && !out.iter().any(|(c, ..)| *c == l.card) {
+                out.push((l.card, land_ok, spell_ok));
+            }
+        }
+        out
+    }
+
     pub(super) fn cost_changers(&self) -> SmallVec<[ObjId; 2]> {
         if self.cost_change_sources == 0 {
             return SmallVec::new();
@@ -3064,6 +3138,7 @@ impl GameState {
                         source: this,
                         card: new,
                         until: false,
+                        to_hand: false,
                     });
                 }
             }
@@ -7604,6 +7679,25 @@ impl GameState {
                         .map(|l| Target::Object(l.card)),
                 );
             }
+            Recipient::ExiledWith(f) => {
+                // CR 607.2a: what the source's abilities exiled, still in
+                // exile, matching the filter as cards there.
+                let objects = &self.objects;
+                self.linked_exiles
+                    .retain(|l| objects.get(l.card).is_some_and(|o| o.zone == Zone::Exile));
+                let filter = self.pool.filter(f);
+                let you = ctx.controller;
+                out.extend(
+                    self.exiled_with(ctx.source)
+                        .filter(|id| {
+                            let o = &self.objects[*id];
+                            let c = self.base_characteristics(o);
+                            filter.matches(*id, o.owner, &c, None, Some(you))
+                        })
+                        .map(Target::Object),
+                );
+                self.note_group(&out);
+            }
             Recipient::DamagedThisWay => {
                 if let Some(log) = &self.this_way {
                     out.extend(
@@ -8001,6 +8095,33 @@ impl GameState {
             }
             st.exile_castable(p, id, alt)
         };
+        // "You may cast a card exiled with this": one of them, chosen.
+        if let Some(r @ Recipient::ExiledWith(_)) = what {
+            let castable: Vec<ObjId> = self
+                .recipients(ctx, r)
+                .into_iter()
+                .filter_map(|t| match t {
+                    Target::Object(id) if fits(self, id) => Some(id),
+                    _ => None,
+                })
+                .collect();
+            if castable.is_empty() {
+                return;
+            }
+            let mut options: Vec<Choice> = castable
+                .iter()
+                .map(|id| Choice::Target(Target::Object(*id)))
+                .collect();
+            options.push(Choice::Done);
+            let k = self.choose_mid(p, DecisionKind::ChooseCard, options);
+            if let Some(&card) = castable.get(k) {
+                self.exile_casts
+                    .get_or_insert_with(Box::default)
+                    .pending
+                    .push((p, card, alt));
+            }
+            return;
+        }
         if let Some(r) = what {
             for t in self.recipients(ctx, r) {
                 if let Target::Object(id) = t
@@ -9629,14 +9750,25 @@ impl GameState {
                 filter,
                 optional,
                 exile,
+                until,
             } => {
                 // "If you do" / "If you don't": whether a card was chosen.
                 ctx.did = false;
+                // CR 610.3a: "until this leaves the battlefield" after it
+                // already has: nothing is exiled.
+                let gone = *until
+                    && !self
+                        .objects
+                        .get(ctx.source)
+                        .is_some_and(|o| o.zone == Zone::Battlefield);
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
                         continue;
                     };
                     self.reveal_hand(p);
+                    if gone {
+                        continue;
+                    }
                     let mut options: Vec<Choice> = self
                         .player(p)
                         .hand
@@ -9661,7 +9793,16 @@ impl GameState {
                     let k = self.choose_mid(ctx.controller, DecisionKind::Discard, options.clone());
                     if let Choice::Discard { card, .. } = options[k] {
                         if *exile {
-                            self.move_object(card, Zone::Exile, false);
+                            let new = self.move_object(card, Zone::Exile, false);
+                            if *until
+                                && self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile)
+                            {
+                                self.link_exile(ctx.source, new, true);
+                                // CR 610.3: back to the hand it left.
+                                if let Some(l) = self.linked_exiles.last_mut() {
+                                    l.to_hand = true;
+                                }
+                            }
                         } else {
                             self.discard_card(p, card);
                         }
@@ -10611,11 +10752,7 @@ impl GameState {
                         let new = self.move_object(id, Zone::Exile, true);
                         ctx.created = Some(new);
                         if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
-                            self.linked_exiles.push(crate::state::LinkedExile {
-                                source: ctx.source,
-                                card: new,
-                                until: *until,
-                            });
+                            self.link_exile(ctx.source, new, *until);
                         }
                     }
                 }
@@ -10702,20 +10839,72 @@ impl GameState {
                     ctx.created = Some(new);
                 }
             }
-            Effect::BecomeCopy { of, except } => {
-                let Some(source) = self
-                    .current_object(ctx.source)
-                    .filter(|s| self.objects[*s].zone == Zone::Battlefield)
-                else {
+            Effect::BecomeCopy {
+                of,
+                except,
+                who,
+                until,
+            } => {
+                // The exceptions are the source card's (`except` block).
+                let x = if *except {
+                    self.objects
+                        .get(ctx.source)
+                        .map(|o| o.card)
+                        .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.card))
+                } else {
+                    None
+                };
+                let copiers: SmallVec<[ObjId; 4]> = match who {
+                    None => self
+                        .current_object(ctx.source)
+                        .filter(|s| self.objects[*s].zone == Zone::Battlefield)
+                        .into_iter()
+                        .collect(),
+                    Some(w) => self
+                        .recipients(ctx, *w)
+                        .into_iter()
+                        .filter_map(|t| on_battlefield(self, t))
+                        .collect(),
+                };
+                // What is copied: a permanent, or a card in a graveyard or
+                // exile ("a creature card exiled with it").
+                let of_obj = self.recipients(ctx, *of).into_iter().find_map(|t| {
+                    on_battlefield(self, t).or_else(|| match t {
+                        Target::Object(id)
+                            if self.objects.get(id).is_some_and(|o| {
+                                matches!(o.zone, Zone::Graveyard | Zone::Exile)
+                            }) =>
+                        {
+                            Some(id)
+                        }
+                        _ => None,
+                    })
+                });
+                let Some(of_obj) = of_obj else {
                     return;
                 };
-                let x = except.then_some(self.objects[source].card);
-                for t in self.recipients(ctx, *of) {
-                    if let Some(id) = on_battlefield(self, t)
-                        && id != source
-                    {
-                        self.become_copy(source, id, x);
+                for id in copiers {
+                    if id == of_obj {
+                        continue;
                     }
+                    let (def, before) = {
+                        let o = &self.objects[id];
+                        (o.def, o.except)
+                    };
+                    self.become_copy(id, of_obj, x);
+                    let next_turn_of = match until {
+                        crate::card::CopyUntil::Permanent => continue,
+                        crate::card::CopyUntil::EndOfTurn => None,
+                        crate::card::CopyUntil::YourNextTurn => Some(ctx.controller),
+                    };
+                    let copied = self.objects[id].def;
+                    self.temp_copies.push(crate::state::TempCopy {
+                        obj: id,
+                        def,
+                        except: before,
+                        copied,
+                        next_turn_of,
+                    });
                 }
             }
             Effect::AddEnergy { count, who } => {

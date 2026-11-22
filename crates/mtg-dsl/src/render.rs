@@ -889,6 +889,10 @@ pub fn self_noun(card: &Card) -> String {
     if card.kind == Kind::Token {
         return "token".to_string();
     }
+    // "this emblem deals 4 damage to any target" (CR 114).
+    if card.kind == Kind::Emblem {
+        return "emblem".to_string();
+    }
     // CR 702.176a: a creature with impending isn't always a creature
     // ("Whenever this permanent enters or attacks").
     if card
@@ -1427,6 +1431,35 @@ impl<'a> Ctx<'a> {
             Recipient::BlockingIt => "each creature blocking it".to_string(),
             Recipient::TargetAnd(t, i) => self.target_and(t, i),
             Recipient::ExiledCard => "the exiled card".to_string(),
+            Recipient::ExiledWith(i) => {
+                // CR 607.2a: "all cards exiled with this artifact", "each
+                // creature card exiled with this land".
+                let f = self
+                    .card
+                    .groups
+                    .get(usize::from(i))
+                    .cloned()
+                    .unwrap_or_default();
+                let all = f.all;
+                let g = Filter {
+                    all: false,
+                    all_word: false,
+                    each: false,
+                    ..f
+                };
+                let with = this_ref(self.card);
+                if all {
+                    format!(
+                        "all {} exiled with {with}",
+                        cards_phrase(&g, self.card, true)
+                    )
+                } else {
+                    format!(
+                        "each {} exiled with {with}",
+                        cards_phrase(&g, self.card, false)
+                    )
+                }
+            }
             Recipient::ThoseCards(..) => "those cards".to_string(),
             Recipient::ThoseTargets(a, _) => format!("those {}", self.plural_target_noun(a)),
         }
@@ -3310,10 +3343,22 @@ fn except_text(card: &Card, current: Option<&Ability>) -> String {
     }
     // "it's a Vehicle artifact in addition to its other types".
     if !x.subtypes.is_empty() || !x.types.is_empty() {
-        let mut words = x.subtypes.clone();
+        // "it's a 1/1 red Balloon creature in addition to its other
+        // colors and types".
+        let mut words: Vec<String> = Vec::new();
+        if let Some((p, t)) = x.pt {
+            words.push(format!("{p}/{t}"));
+        }
+        words.extend(x.colors.iter().map(|c| color_name(*c).to_string()));
+        words.extend(x.subtypes.iter().cloned());
         words.extend(x.types.iter().map(|t| type_noun(*t).to_string()));
+        let other = if x.colors.is_empty() {
+            "types"
+        } else {
+            "colors and types"
+        };
         parts.push(format!(
-            "it's {} in addition to its other types",
+            "it's {} in addition to its other {other}",
             with_article(&words.join(" "))
         ));
     }
@@ -3647,6 +3692,36 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "color among permanents you control".to_string(),
             "colors among permanents you control".to_string(),
         ),
+        CountExpr::ExiledWith(f) => {
+            let f = f.clone().unwrap_or_default();
+            let with = this_ref(card);
+            (
+                format!("{} exiled with {with}", cards_phrase(&f, card, false)),
+                format!("{} exiled with {with}", cards_phrase(&f, card, true)),
+            )
+        }
+        CountExpr::CardsInExile { filter, graveyard } => {
+            let f = filter.clone().unwrap_or_default();
+            let tail = if *graveyard {
+                " and in your graveyard"
+            } else {
+                ""
+            };
+            let (mut one, mut many) = (cards_phrase(&f, card, false), cards_phrase(&f, card, true));
+            // "instant and sorcery cards you own in exile".
+            if !f.any_types.is_empty() {
+                one = one.replace(" or ", " and ");
+                many = many.replace(" or ", " and ");
+            }
+            let one = format!("{one} you own in exile{tail}");
+            let many = format!("{many} you own in exile{tail}");
+            // "the total number of instant and sorcery cards you own in
+            // exile and in your graveyard".
+            if *graveyard && !each {
+                return format!("the total number of {many}");
+            }
+            (one, many)
+        }
         CountExpr::CardsInOpponentsGraveyards(f) => {
             let f = f.clone().unwrap_or_default();
             (
@@ -5946,14 +6021,32 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             Clause::imperative(text)
         }
-        Effect::BecomeCopy { of, except } => {
-            let s = ctx.source_subj();
+        Effect::BecomeCopy {
+            of,
+            except,
+            who,
+            until,
+        } => {
+            let source = matches!(
+                who,
+                Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt
+            );
+            let s = if source {
+                ctx.source_subj()
+            } else {
+                ctx.subj(*who)
+            };
             let o = ctx.obj(*of);
             let mut text = format!("becomes a copy of {o}");
+            match until {
+                mtg_core::card::CopyUntil::Permanent => {}
+                mtg_core::card::CopyUntil::EndOfTurn => text.push_str(" until end of turn"),
+                mtg_core::card::CopyUntil::YourNextTurn => text.push_str(" until your next turn"),
+            }
             if *except {
                 let _ = write!(text, ", except {}", except_text(ctx.card, ctx.current));
             }
-            Clause::with_subject(Recipient::Source, s, text)
+            Clause::with_subject(if source { Recipient::Source } else { *who }, s, text)
         }
         // Where a countered spell goes is added in `clause`, after a count.
         Effect::Counter { to, .. } => {
@@ -6137,6 +6230,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // without paying its mana cost."
             #[allow(clippy::single_match_else)] // the hand's long phrase
             let what = match what {
+                // "a card exiled with Krang & Shredder" (CR 607.2a).
+                Some(Recipient::ExiledWith(i)) => {
+                    let f = ctx
+                        .card
+                        .groups
+                        .get(usize::from(*i))
+                        .cloned()
+                        .unwrap_or_default();
+                    with_article(&format!(
+                        "{} exiled with {}",
+                        cards_phrase(&f, ctx.card, false),
+                        this_ref(ctx.card)
+                    ))
+                }
                 Some(r) => ctx.obj(*r),
                 None => {
                     let noun = match filter {
@@ -6317,18 +6424,51 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             who,
             filter,
             exile: Some(joined),
-            ..
+            until,
+            and_choose,
+            look,
+            may,
         } => {
             let what = match filter {
                 None => "a card".to_string(),
                 Some(f) => with_article(&format!("{} card", card_filter_phrase(f, ctx.card))),
             };
-            let exile = if *joined {
-                " and exile that card"
+            // CR 610.3: "until this creature leaves the battlefield".
+            let until = if *until {
+                format!(" until {} leaves the battlefield", this_ref(ctx.card))
             } else {
-                ". Exile that card"
+                String::new()
             };
+            if *look {
+                // "Look at target opponent's hand. You may exile a nonland
+                // card from it until this creature leaves the battlefield."
+                let o = ctx.obj(*who);
+                let whose = match o.as_str() {
+                    "you" => "your".to_string(),
+                    "it" | "them" => "their".to_string(),
+                    o => format!("{o}'s"),
+                };
+                let may = if *may { "You may exile" } else { "Exile" };
+                return Clause::imperative(format!(
+                    "look at {whose} hand. {may} {what} from it{until}"
+                ));
+            }
             let s = ctx.subj(*who);
+            if *and_choose {
+                return Clause::with_subject(
+                    *who,
+                    s,
+                    format!(
+                        "{} their hand and you choose {what} from it. Exile that card{until}",
+                        ctx.verb(*who, "reveals", "reveal")
+                    ),
+                );
+            }
+            let exile = if *joined {
+                format!(" and exile that card{until}")
+            } else {
+                format!(". Exile that card{until}")
+            };
             Clause::with_subject(
                 *who,
                 s,
@@ -7797,7 +7937,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::YouMay(inner) => {
             if let [one] = inner.as_slice()
-                && let [Effect::BecomeCopy { of, except }] = one.effects.as_slice()
+                && let [
+                    Effect::BecomeCopy {
+                        of,
+                        except,
+                        who: Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt,
+                        until: mtg_core::card::CopyUntil::Permanent,
+                    },
+                ] = one.effects.as_slice()
             {
                 let s = ctx.source();
                 let o = ctx.obj(*of);
@@ -11398,6 +11545,16 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("an opponent has {} poison counters", or_more(*n))
         }
         StaticCond::OwnCardInExile => "you own a card in exile".to_string(),
+        StaticCond::ExiledWith(n) => format!(
+            "there are {} cards exiled with {}",
+            or_more(*n),
+            this_ref(card)
+        ),
+        StaticCond::TypesExiledWith(n) => format!(
+            "there are {} card types among cards exiled with {}",
+            or_more(*n),
+            this_ref(card)
+        ),
         StaticCond::Monarch => "you're the monarch".to_string(),
         StaticCond::CompletedDungeon => "you've completed a dungeon".to_string(),
         StaticCond::CityBlessing => "you have the city's blessing".to_string(),
@@ -11595,7 +11752,13 @@ fn conditional_static(
         let this = format!("{} ", capitalize(&this_ref(card)));
         let rest = if starts_with_name(body, card) {
             body.to_string()
-        } else if matches!(c, StaticCond::SourceCounters { .. }) && body.starts_with(&this) {
+        } else if matches!(
+            c,
+            StaticCond::SourceCounters { .. }
+                | StaticCond::ExiledWith(_)
+                | StaticCond::TypesExiledWith(_)
+        ) && body.starts_with(&this)
+        {
             // "As long as this creature has four or more oil counters on
             // it, it gets +2/+0."
             format!("it {}", &body[this.len()..])
@@ -12515,6 +12678,40 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             };
             let once = if *once { "Once each turn, you" } else { "You" };
             format!("{once} may {what} from the top of your library.")
+        }
+        Ability::PlayExiled {
+            lands,
+            spells,
+            your_turn,
+            owned,
+        } => {
+            // CR 607.2a: "You may cast spells from among cards exiled with
+            // Rona.", "During your turn, you may play cards exiled with
+            // Valgavoth."
+            let all = spells.as_ref().is_some_and(|f| *f == Filter::default());
+            let whose = if *owned { "cards you own" } else { "cards" };
+            let with = this_ref(card);
+            let what = match (*lands, spells) {
+                (true, Some(_)) if all && *your_turn => {
+                    format!("play {whose} exiled with {with}")
+                }
+                (true, None) => format!("play lands from among {whose} exiled with {with}"),
+                (true, Some(f)) => format!(
+                    "play lands and cast {} from among {whose} exiled with {with}",
+                    top_spells(f, card)
+                ),
+                (false, Some(f)) => format!(
+                    "cast {} from among {whose} exiled with {with}",
+                    top_spells(f, card)
+                ),
+                (false, None) => String::new(),
+            };
+            let lead = if *your_turn {
+                "During your turn, you"
+            } else {
+                "You"
+            };
+            format!("{lead} may {what}.")
         }
         Ability::TopRevealed { players } => {
             if *players {

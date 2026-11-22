@@ -1,0 +1,80 @@
+# "Exile that card until this creature leaves the battlefield" from an
+# opponent's hand (CR 610.3): the card returns to its owner's hand, the
+# zone it came from, when the creature leaves.
+
+scenario "Kitesail Freebooter: the card returns to hand when it dies" {
+  battlefield A: 2 "Swamp", "Mountain"
+  hand A: "Kitesail Freebooter", "Lightning Bolt"
+  hand B: "Shock", "Grizzly Bears", "Forest"
+  turn 1 A: cast "Kitesail Freebooter"
+  turn 1 A: trigger "Kitesail Freebooter" targeting player B
+  turn 1 precombat_main A: discard "Shock"
+  run_to turn 1 begin_combat
+  assert exile B contains "Shock"
+  assert hand B count 2
+  turn 1 main2 A: cast "Lightning Bolt" targeting "Kitesail Freebooter"
+  run_to turn 1 end
+  assert hand B contains "Shock"
+  assert exile B count 0
+  assert battlefield B lacks "Shock"
+}
+
+scenario "Kitesail Freebooter: no creature or land can be chosen" {
+  battlefield A: 2 "Swamp"
+  hand A: "Kitesail Freebooter"
+  hand B: "Grizzly Bears", "Forest"
+  turn 1 A: cast "Kitesail Freebooter"
+  turn 1 A: trigger "Kitesail Freebooter" targeting player B
+  run_to turn 1 end
+  assert hand B count 2
+  assert exile B count 0
+}
+
+scenario "Brain Maggot: gone before its trigger resolves, nothing is exiled" {
+  battlefield A: 2 "Swamp", "Nantuko Husk"
+  hand A: "Brain Maggot"
+  hand B: "Shock"
+  turn 1 A: cast "Brain Maggot"
+  turn 1 A: trigger "Brain Maggot" targeting player B
+  turn 1 A: activate "Nantuko Husk" sacrificing "Brain Maggot"
+  run_to turn 1 end
+  # CR 610.3b: the creature had left; the card stays in hand.
+  assert hand B contains "Shock"
+  assert exile B count 0
+}
+
+scenario "Brain Maggot exiles a nonland card while it stays" {
+  battlefield A: 2 "Swamp"
+  hand A: "Brain Maggot"
+  hand B: "Grizzly Bears", "Forest"
+  turn 1 A: cast "Brain Maggot"
+  turn 1 A: trigger "Brain Maggot" targeting player B
+  run_to turn 3 end
+  assert exile B contains "Grizzly Bears"
+  assert hand B contains "Forest"
+}
+
+scenario "Deep-Cavern Bat: a land can't be exiled" {
+  battlefield A: 2 "Swamp"
+  hand A: "Deep-Cavern Bat"
+  hand B: "Forest"
+  turn 1 A: cast "Deep-Cavern Bat"
+  turn 1 A: trigger "Deep-Cavern Bat" targeting player B
+  run_to turn 1 end
+  assert hand B contains "Forest"
+  assert exile B count 0
+}
+
+scenario "Deep-Cavern Bat: the card comes back when it leaves" {
+  battlefield A: 2 "Swamp", "Mountain"
+  hand A: "Deep-Cavern Bat", "Lightning Bolt"
+  hand B: "Shock", "Hill Giant"
+  turn 1 A: cast "Deep-Cavern Bat"
+  turn 1 A: trigger "Deep-Cavern Bat" targeting player B
+  turn 1 precombat_main A: discard "Hill Giant"
+  run_to turn 1 begin_combat
+  assert exile B contains "Hill Giant"
+  turn 1 main2 A: cast "Lightning Bolt" targeting "Deep-Cavern Bat"
+  run_to turn 1 end
+  assert hand B contains "Hill Giant"
+}

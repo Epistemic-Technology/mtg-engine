@@ -604,6 +604,8 @@ impl GameState {
             this_way: None,
             paid_costs: Vec::new(),
             linked_exiles: Vec::new(),
+            temp_copies: Vec::new(),
+            linking: None,
             spent_mana: Vec::new(),
             spending: None,
             spent_watchers: 0,
@@ -1757,7 +1759,10 @@ impl GameState {
             }
             (Flow::Priority, Choice::PlayLand(id)) => {
                 self.consecutive_passes = 0;
-                let new = self.move_object(id, Zone::Battlefield, true);
+                // CR 305.1, 110.2a: under the control of the player who
+                // played it, even a card they don't own (played from
+                // exile).
+                let new = self.put_onto_battlefield(id, player);
                 self.player_mut(player).lands_played_this_turn += 1;
                 self.emit(Event::LandPlayed { player, land: new });
             }
@@ -3066,6 +3071,9 @@ impl GameState {
         self.rules
             .retain(|e| e.duration != Duration::UntilEndOfTurn);
         self.player_rules.clear();
+        if !self.temp_copies.is_empty() {
+            self.end_temp_copies(None);
+        }
         self.granted_flashback.clear();
         self.granted_harmonize.clear();
         // CR 603.7c: "when that creature dies this turn" ends unfired.
@@ -3352,6 +3360,9 @@ impl GameState {
             if !self.goads.is_empty() {
                 let p = self.active_player;
                 self.goads.retain(|(_, by)| *by != p);
+            }
+            if !self.temp_copies.is_empty() {
+                self.end_temp_copies(Some(self.active_player));
             }
             // "During your turn" static abilities (CR 611.3a) change with
             // it; nothing a state-based action looks at does.

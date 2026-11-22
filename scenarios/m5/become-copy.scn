@@ -1,0 +1,87 @@
+# "<something> becomes a copy of <something>" (CR 707.2, 613.2): a target
+# or a group, not only the source, and for a duration (CR 611.2b).
+
+scenario "Mirrorweave: each other creature until end of turn" {
+  battlefield A: 4 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Wind Drake"
+  hand A: "Mirrorweave"
+  turn 1 A: cast "Mirrorweave" targeting "Wind Drake"
+  run_to turn 1 end
+  assert battlefield A contains "Wind Drake"
+  assert battlefield B contains 2 "Wind Drake"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  assert power "Hill Giant" 3
+}
+
+scenario "Mirrorweave: a legendary creature can't be the target" {
+  battlefield A: 4 "Island", "Grizzly Bears"
+  battlefield B: "Isamaru, Hound of Konda"
+  hand A: "Mirrorweave"
+  illegal turn 1 A: cast "Mirrorweave" targeting "Isamaru, Hound of Konda"
+  run_to turn 1 end
+}
+
+scenario "Mirrorform: your nonland permanents copy the target" {
+  battlefield A: 6 "Island", "Grizzly Bears", "Ornithopter"
+  battlefield B: "Serra Angel"
+  hand A: "Mirrorform"
+  turn 1 A: cast "Mirrorform" targeting "Serra Angel"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Serra Angel"
+  assert battlefield A contains 6 "Island"
+  run_to turn 3 precombat_main
+  assert battlefield A contains 2 "Serra Angel"
+}
+
+scenario "Mirage Mirror becomes a copy until end of turn" {
+  battlefield A: "Mirage Mirror", 2 "Plains"
+  battlefield B: "Serra Angel"
+  turn 1 A: activate "Mirage Mirror" targeting "Serra Angel"
+  run_to turn 1 end
+  assert battlefield A contains "Serra Angel"
+  assert power A "Serra Angel" 4
+  run_to turn 2 upkeep
+  assert battlefield A contains "Mirage Mirror"
+  assert is not "Mirage Mirror" creature
+}
+
+scenario "Shapesharer: until your next turn" {
+  battlefield A: "Shapesharer", 3 "Island"
+  battlefield B: "Serra Angel"
+  turn 1 A: activate "Shapesharer" targeting "Shapesharer", "Serra Angel"
+  run_to turn 2 end
+  assert battlefield A contains "Serra Angel"
+  run_to turn 3 upkeep
+  assert battlefield A contains "Shapesharer"
+}
+
+scenario "Mizzium Transreliquat keeps its ability as a copy" {
+  battlefield A: "Mizzium Transreliquat", 2 "Island", 2 "Mountain", 2 "Plains", "Ornithopter"
+  battlefield B: "Millstone"
+  turn 1 A: activate "Mizzium Transreliquat" ability 2 targeting "Millstone"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Millstone"
+  turn 3 A: activate "Millstone" ability 2 targeting "Ornithopter"
+  run_to turn 3 end
+  # No duration, and it kept the ability: it copies again.
+  assert battlefield A contains 2 "Ornithopter"
+  assert battlefield A lacks "Millstone"
+}
+
+scenario "The Jolly Balloon Man: a 1/1 red Balloon copy with flying and haste" {
+  battlefield A: "The Jolly Balloon Man", "Serra Angel", "Plains"
+  turn 1 A: activate "The Jolly Balloon Man" targeting "Serra Angel"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 2 "Serra Angel"
+  assert power newest A "Serra Angel" 1
+  assert toughness newest A "Serra Angel" 1
+  assert is newest A "Serra Angel" red
+  assert is newest A "Serra Angel" white
+  assert is newest A "Serra Angel" Balloon
+  assert is newest A "Serra Angel" Angel
+  assert has newest A "Serra Angel" haste
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Serra Angel"
+}

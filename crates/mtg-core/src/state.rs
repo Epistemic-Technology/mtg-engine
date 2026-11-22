@@ -1250,6 +1250,18 @@ pub struct ThisWayLog {
     pub group: Vec<ObjId>,
 }
 
+/// A copy effect that ends (`GameState::temp_copies`).
+#[derive(Copy, Clone, Debug)]
+pub struct TempCopy {
+    pub obj: ObjId,
+    pub def: crate::card::CardRef,
+    pub except: Option<crate::card::CardRef>,
+    /// What the copy made it: a later copy effect isn't undone.
+    pub copied: crate::card::CardRef,
+    /// `None`: at the cleanup step; `Some(p)`: as `p`'s next turn begins.
+    pub next_turn_of: Option<crate::ids::PlayerId>,
+}
+
 /// A card a permanent exiled (`GameState::linked_exiles`).
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct LinkedExile {
@@ -1260,6 +1272,9 @@ pub struct LinkedExile {
     pub card: ObjId,
     /// Exiled "until" the source leaves the battlefield (CR 610.3).
     pub until: bool,
+    /// Exiled from a hand "until": it returns there (CR 610.3), not to
+    /// the battlefield.
+    pub to_hand: bool,
 }
 
 impl Moved {
@@ -1943,6 +1958,15 @@ pub struct GameState {
     /// 610.3); see `Effect::ExileLinked`. Empty on most boards: zone
     /// changes check it only when it isn't.
     pub linked_exiles: Vec<LinkedExile>,
+    /// Copy effects with a duration ("becomes a copy of ... until end of
+    /// turn"): the permanent, the definition and `except` it had before,
+    /// the definition the copy gave it, and when it ends (with the
+    /// player for "until your next turn").
+    pub temp_copies: Vec<TempCopy>,
+    /// While an ability of a permanent whose card refers to "cards exiled
+    /// with" it resolves (`CardDef::links_exile`): that permanent, so what
+    /// the resolution exiles is linked to it (CR 607.2a).
+    pub linking: Option<ObjId>,
     /// The mana spent to cast spells whose text asks about it (CR
     /// 601.2h; `CardDef::spent`), keyed by the spell and then by the
     /// permanent it became ("if {B} was spent to cast it"). Kept until the
@@ -2604,6 +2628,13 @@ impl GameState {
         if let Some(ce) = &xd.copy_except {
             c.keywords = c.keywords.union(ce.keywords);
             c.types = c.types.union(ce.types);
+            for col in ce.colors.iter() {
+                c.colors = c.colors.with(col);
+            }
+            if let Some((p, t)) = ce.pt {
+                c.power = i16::try_from(p).unwrap_or(0);
+                c.toughness = i16::try_from(t).unwrap_or(0);
+            }
             if ce.not_legendary {
                 c.supertypes = c.supertypes.without(crate::card::Supertype::Legendary);
             }
@@ -3602,6 +3633,8 @@ impl GameState {
                 .players_in_game()
                 .any(|p| p != you && self.player(p).poison >= *n),
             C::OwnCardInExile => !self.player(you).exile.is_empty(),
+            C::ExiledWith(n) => self.count_exiled_with(source, None, you) >= *n as usize,
+            C::TypesExiledWith(n) => self.types_exiled_with(source) >= *n,
             C::Monarch => self.desig.monarch == Some(you),
             C::CompletedDungeon => self.desig.completed(you) > 0,
             C::CityBlessing => self.desig.blessed(you),

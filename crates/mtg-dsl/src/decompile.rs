@@ -142,6 +142,8 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             abilities: x.abilities.iter().map(|a| d.ability(a)).collect(),
             not_legendary: x.not_legendary,
             types: x.types.iter().collect(),
+            pt: x.pt,
+            colors: x.colors.iter().collect(),
         }),
         mismatch: None,
         line: 0,
@@ -619,6 +621,8 @@ impl Decompiler<'_> {
             StaticCondition::MoreCardsInHand => StaticCond::MoreCardsInHand,
             StaticCondition::OpponentPoison(n) => StaticCond::OpponentPoison(*n),
             StaticCondition::OwnCardInExile => StaticCond::OwnCardInExile,
+            StaticCondition::ExiledWith(n) => StaticCond::ExiledWith(*n),
+            StaticCondition::TypesExiledWith(n) => StaticCond::TypesExiledWith(*n),
             StaticCondition::Monarch => StaticCond::Monarch,
             StaticCondition::CompletedDungeon => StaticCond::CompletedDungeon,
             StaticCondition::CityBlessing => StaticCond::CityBlessing,
@@ -670,6 +674,7 @@ impl Decompiler<'_> {
             CoreRecipient::CreatedTokens => Recipient::CreatedTokens,
             CoreRecipient::Group(i) => Recipient::Group(i),
             CoreRecipient::RandomOf(i) => Recipient::RandomOf(i),
+            CoreRecipient::ExiledWith(i) => Recipient::ExiledWith(i),
             CoreRecipient::OpponentsWithout(i) => Recipient::OpponentsWithout(i),
             CoreRecipient::DamagedThisWay => Recipient::DamagedThisWay,
             CoreRecipient::TargetAndGroup(t, i) => Recipient::TargetAnd(t, i),
@@ -911,9 +916,16 @@ impl Decompiler<'_> {
                 new_targets: *new_targets,
                 except: *except,
             },
-            CoreEffect::BecomeCopy { of, except } => Effect::BecomeCopy {
+            CoreEffect::BecomeCopy {
+                of,
+                except,
+                who,
+                until,
+            } => Effect::BecomeCopy {
                 of: r(*of),
                 except: *except,
+                who: who.map_or(Recipient::Source, r),
+                until: *until,
             },
             CoreEffect::CreateEmblem { emblem } => Effect::CreateEmblem {
                 emblem: self.pool.get(*emblem).name.clone(),
@@ -1046,12 +1058,15 @@ impl Decompiler<'_> {
                 filter,
                 optional,
                 exile,
+                until,
             } => Effect::DiscardChosen {
                 who: r(*who),
                 filter: filter.as_ref().map(|f| self.filter(f)),
                 may: *optional,
                 look: false,
-                exile: exile.then_some(true),
+                exile: exile.then_some(!*until),
+                until: *until,
+                and_choose: false,
             },
             CoreEffect::Transform { what } => Effect::Transform { what: r(*what) },
             CoreEffect::Search {
@@ -2112,6 +2127,17 @@ impl Decompiler<'_> {
                 lands: *lands,
                 spells: spells.as_ref().map(|f| self.filter(f)),
                 once: *once,
+            },
+            AbilityDef::PlayExiled {
+                lands,
+                spells,
+                your_turn,
+                owned,
+            } => Ability::PlayExiled {
+                lands: *lands,
+                spells: spells.as_ref().map(|f| self.filter(f)),
+                your_turn: *your_turn,
+                owned: *owned,
             },
             AbilityDef::TopRevealed { players } => Ability::TopRevealed { players: *players },
             AbilityDef::MayLook {

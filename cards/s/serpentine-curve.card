@@ -1,0 +1,6 @@
+card "Serpentine Curve" {
+  oracle_id e07ed462-17b8-46ec-8a3f-3f5c89f4bf78
+  cost {3}{U}
+  type Sorcery
+  spell: create 1 "0/0 green and blue Fractal creature"; put count where plus one exile and graveyard instant or sorcery card +1/+1 counters on it
+}

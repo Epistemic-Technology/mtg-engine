@@ -1,0 +1,6 @@
+card "Mirrorform" {
+  oracle_id 81cb888c-c4d3-45a2-a03e-bfd91a2af2be
+  cost {4}{U}{U}
+  type Instant
+  spell: each single nonland permanent you control becomes a copy of target non-Aura permanent
+}

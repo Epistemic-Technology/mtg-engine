@@ -434,6 +434,14 @@ impl GameState {
         if let Some(l) = self.lki.get_mut(&id) {
             l.moved_to = Some(new);
         }
+        // CR 607.2a: a card the resolving ability of a permanent that
+        // refers to "cards exiled with" it exiles is linked to it.
+        if let Some(src) = self.linking
+            && to == Zone::Exile
+            && old.zone != Zone::Exile
+        {
+            self.link_exile(src, new, false);
+        }
         // CR 607.2a: what the spell's costs exiled ("behold a Kithkin and
         // exile it") is linked to the permanent it becomes.
         if !self.linked_exiles.is_empty() && old.zone == Zone::Stack && to == Zone::Battlefield {
@@ -684,26 +692,117 @@ impl GameState {
         new
     }
 
+    /// Link `card`, in exile, to the permanent `source` (CR 607.2a), or
+    /// mark an existing link as lasting until it leaves (CR 610.3).
+    pub(super) fn link_exile(&mut self, source: ObjId, card: ObjId, until: bool) {
+        if let Some(l) = self
+            .linked_exiles
+            .iter_mut()
+            .find(|l| l.source == source && l.card == card)
+        {
+            l.until |= until;
+        } else {
+            self.linked_exiles.push(crate::state::LinkedExile {
+                source,
+                card,
+                until,
+                to_hand: false,
+            });
+        }
+        // Counts and conditions read the links.
+        self.cbump();
+    }
+
+    /// How many cards `source` exiled are still in exile, all or
+    /// matching `f` (CR 607.2a).
+    pub(crate) fn count_exiled_with(
+        &self,
+        source: ObjId,
+        f: Option<&crate::card::ObjFilter>,
+        you: PlayerId,
+    ) -> usize {
+        self.exiled_with(source)
+            .filter(|id| self.card_matches(*id, f, you))
+            .count()
+    }
+
+    /// The card types among the cards `source` exiled (CR 607.2a).
+    pub(crate) fn types_exiled_with(&self, source: ObjId) -> u32 {
+        let mut types = crate::card::TypeSet::default();
+        for id in self.exiled_with(source) {
+            types = types.union(self.pool.get(self.objects[id].def).types);
+        }
+        types.len()
+    }
+
+    /// Cards `you` own in exile, and with `graveyard` in their graveyard
+    /// too, all or matching `f` ("cards you own in exile and in your
+    /// graveyard"). A token is not a card (CR 111.8).
+    pub(crate) fn owned_in_exile(
+        &self,
+        you: PlayerId,
+        f: Option<&crate::card::ObjFilter>,
+        graveyard: bool,
+    ) -> usize {
+        let ps = self.player(you);
+        let yard: &[ObjId] = if graveyard { &ps.graveyard } else { &[] };
+        ps.exile
+            .iter()
+            .chain(yard.iter())
+            .filter(|id| self.objects[**id].kind != crate::state::ObjKind::Token)
+            .filter(|id| self.card_matches(**id, f, you))
+            .count()
+    }
+
+    /// Whether a card outside the battlefield matches `f` (all do without
+    /// one), judged by its card's characteristics.
+    fn card_matches(&self, id: ObjId, f: Option<&crate::card::ObjFilter>, you: PlayerId) -> bool {
+        f.is_none_or(|f| {
+            let o = &self.objects[id];
+            let c = self.base_characteristics(o);
+            f.matches(id, o.owner, &c, None, Some(you))
+        })
+    }
+
+    /// The cards `source` exiled that are still in exile (CR 607.2a).
+    pub(crate) fn exiled_with(&self, source: ObjId) -> impl Iterator<Item = ObjId> + '_ {
+        self.linked_exiles
+            .iter()
+            .filter(move |l| {
+                l.source == source
+                    && self
+                        .objects
+                        .get(l.card)
+                        .is_some_and(|o| o.zone == Zone::Exile)
+            })
+            .map(|l| l.card)
+    }
+
     /// CR 610.3: the cards `left` exiled "until this leaves the
     /// battlefield" return to the battlefield under their owners' control
     /// (610.3c) right after it leaves, without using the stack.
     #[cold]
     #[inline(never)]
     fn return_exiled_until(&mut self, left: ObjId) {
-        let mut back: SmallVec<[ObjId; 2]> = SmallVec::new();
+        let mut back: SmallVec<[(ObjId, bool); 2]> = SmallVec::new();
         self.linked_exiles.retain(|l| {
             let mine = l.until && l.source == left;
             if mine {
-                back.push(l.card);
+                back.push((l.card, l.to_hand));
             }
             !mine
         });
-        for card in back {
+        for (card, to_hand) in back {
             if let Some(o) = self.objects.get(card)
                 && o.zone == Zone::Exile
             {
                 let owner = o.owner;
-                self.put_onto_battlefield_with(card, owner, Enter::default());
+                if to_hand {
+                    // CR 610.3: to its owner's hand, where it was.
+                    self.move_object(card, Zone::Hand, false);
+                } else {
+                    self.put_onto_battlefield_with(card, owner, Enter::default());
+                }
             }
         }
     }
@@ -909,6 +1008,39 @@ impl GameState {
             let o = &self.objects[of];
             (o.def, except.or(o.except))
         };
+        self.set_copy_def(id, def, x);
+        self.emit(Event::BecameCopy { obj: id, of: def });
+    }
+
+    /// CR 611.2b: the copy effects whose duration ends now (`None`: "until
+    /// end of turn", at cleanup; `Some(p)`: "until your next turn", as
+    /// `p`'s turn begins): each permanent still the same object, and
+    /// still that copy, gets back the values it had.
+    #[cold]
+    #[inline(never)]
+    pub(super) fn end_temp_copies(&mut self, next_turn_of: Option<PlayerId>) {
+        let mut ending: SmallVec<[crate::state::TempCopy; 2]> = SmallVec::new();
+        self.temp_copies.retain(|t| {
+            let ends = t.next_turn_of == next_turn_of;
+            if ends {
+                ending.push(*t);
+            }
+            !ends
+        });
+        // The latest first, so an earlier copy's values come back last.
+        for t in ending.into_iter().rev() {
+            if self
+                .objects
+                .get(t.obj)
+                .is_some_and(|o| o.zone == Zone::Battlefield && o.def == t.copied)
+            {
+                self.set_copy_def(t.obj, t.def, t.except);
+            }
+        }
+    }
+
+    /// Give `id` the copiable values of `def` with `x`'s exceptions.
+    fn set_copy_def(&mut self, id: ObjId, def: CardRef, x: Option<CardRef>) {
         let (old_flags, old_legend) = {
             let o = &self.objects[id];
             (self.flags_of(o), self.pool.get(o.def).is_legendary())
@@ -923,7 +1055,6 @@ impl GameState {
         };
         self.count_sources(flags, legend, true);
         self.cbump();
-        self.emit(Event::BecameCopy { obj: id, of: def });
     }
 
     /// CR 701.21: sacrifice a permanent. Indestructible does not matter.

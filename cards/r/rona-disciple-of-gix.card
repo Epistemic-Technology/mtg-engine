@@ -1,0 +1,9 @@
+card "Rona, Disciple of Gix" {
+  oracle_id 409305b3-5373-4376-8096-c04a73184cef
+  cost {1}{U}{B}
+  type Legendary Creature — Human Artificer
+  pt 2/2
+  triggered when this enters: you may exile target historic card from your graveyard
+  play exiled spells
+  activated {4}, {T}: exile top 1 card
+}

@@ -1,0 +1,8 @@
+card "Kitesail Freebooter" {
+  oracle_id 8aa1bbc9-b047-4d68-93f4-728e40dafc5e
+  cost {1}{B}
+  type Creature — Human Pirate
+  pt 1/2
+  keywords flying
+  triggered when this enters: target opponent reveals hand exiling noncreature nonland card split until this leaves
+}
