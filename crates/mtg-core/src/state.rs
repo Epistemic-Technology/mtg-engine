@@ -2459,6 +2459,24 @@ impl GameState {
         None
     }
 
+    /// Like `current_object`, but a move out of a graveyard or exile
+    /// breaks the trail (CR 400.7): "exile this, then return it" finds the
+    /// exiled card and "when this dies, return it" the card in the
+    /// graveyard, but not that card once it has moved again.
+    pub fn current_object_from_battlefield(&self, mut id: ObjId) -> Option<ObjId> {
+        for _ in 0..8 {
+            if self.objects.contains_key(id) {
+                return Some(id);
+            }
+            let l = self.lki.get(&id)?;
+            if matches!(l.object.zone, Zone::Graveyard | Zone::Exile) {
+                return None;
+            }
+            id = l.moved_to?;
+        }
+        None
+    }
+
     /// Name of an object, including one that has left the game.
     pub fn name_of_or_lki(&self, id: ObjId) -> &str {
         let def = self

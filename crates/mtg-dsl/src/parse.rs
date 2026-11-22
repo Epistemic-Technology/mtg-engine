@@ -7698,6 +7698,13 @@ impl P {
         self.expect_word("battlefield")?;
         let mut tapped = self.eat_word("tapped");
         let mut attacking = tapped && self.eat_words(&["and", "attacking"]);
+        // CR 712.14a: `transformed`, `tapped and transformed`.
+        let transformed = if tapped && !attacking {
+            self.eat_words(&["and", "transformed"])
+        } else {
+            !tapped && self.eat_word("transformed")
+        };
+        let front_up = !transformed && self.eat_words(&["front", "face", "up"]);
         self.eat_words(&["under", "its", "owner's", "control"]);
         let under_you = self.eat_words(&["under", "your", "control"]);
         // "onto the battlefield under your control tapped and attacking".
@@ -7740,6 +7747,8 @@ impl P {
             additional,
             more,
             if_creature,
+            transformed,
+            front_up,
         })
     }
 

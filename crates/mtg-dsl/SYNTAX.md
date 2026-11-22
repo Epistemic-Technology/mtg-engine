@@ -1653,7 +1653,22 @@ creature card from a graveyard`, `... from an opponent's graveyard`)
 returned `under your control` prints "put ... onto the battlefield under
 your control"; `put that target 1 onto battlefield tapped` is the same
 effect worded "put that card onto the battlefield tapped" (Zuko's
-Conviction). `it deals 1 damage to each opponent` makes the
+Conviction). `return this to battlefield transformed under your control`
+(and `tapped and transformed`; from the graveyard, `activated ..., from
+graveyard: return this to battlefield transformed`) returns a transforming
+double-faced card with its back face up (CR 712.14a): "Exile this Saga,
+then return it to the battlefield transformed under your control" is
+`exile this then return this to battlefield transformed under your
+control`; "When this creature dies, return it to the battlefield tapped and
+transformed under its owner's control". Any other card stays where it is.
+The source is found as the card it became by being exiled or dying, but
+not once that card has left the graveyard or exile again (CR 400.7: the
+delayed `delayed this: return this to battlefield transformed ... at
+beginning of the next end step` of Loyal Cathar misses a card exiled from
+the graveyard first). `... front face up` is the same return worded "return
+it to the battlefield (front face up)" (wording only: a back face's "Exile
+Shiva, then return it to the battlefield (front face up).").
+`it deals 1 damage to each opponent` makes the
 triggering creature the damage's source (CR 120.3: Hawkeye's Bow), and
 `that defending player` prints "defending player" where `defending
 player` as an object prints "the player or planeswalker it's attacking".

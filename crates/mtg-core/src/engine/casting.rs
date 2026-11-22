@@ -12084,6 +12084,7 @@ impl GameState {
                 attached,
                 more,
                 if_creature,
+                transformed,
             } => {
                 if *what == crate::card::Recipient::Source && self.source_left_graveyard(ctx) {
                     return;
@@ -12103,7 +12104,20 @@ impl GameState {
                     }
                     None => None,
                 };
-                for t in self.recipients(ctx, *what) {
+                // "When this dies, return it ... at the beginning of the
+                // next end step": a card that has left the graveyard (or
+                // exile) since is a new object the ability can't find (CR
+                // 400.7); "exile this, then return it" finds the exiled
+                // card.
+                let found: SmallVec<[Target; 2]> = if *what == crate::card::Recipient::Source {
+                    self.current_object_from_battlefield(ctx.source)
+                        .map(Target::Object)
+                        .into_iter()
+                        .collect()
+                } else {
+                    self.recipients(ctx, *what)
+                };
+                for t in found {
                     let Target::Object(id) = t else {
                         continue;
                     };
@@ -12138,6 +12152,23 @@ impl GameState {
                         }
                     }
                     let controller = if *under_you { ctx.controller } else { o.owner };
+                    // CR 712.14a: "return it to the battlefield
+                    // transformed": a transforming double-faced card enters
+                    // back face up; any other card stays where it is (CR
+                    // 701.27c; a copy of the card, as a token, has left).
+                    if *transformed {
+                        let d = self.pool.get(o.card);
+                        let back = match d.faces.first() {
+                            Some(b) if d.layout == Layout::Transform && o.kind == ObjKind::Card => {
+                                *b
+                            }
+                            _ => continue,
+                        };
+                        self.objects[id].def = back;
+                    }
+                    let Some(o) = self.objects.get(id) else {
+                        continue;
+                    };
                     // "If it enters as a creature": its card's types.
                     let with = !*if_creature
                         || self

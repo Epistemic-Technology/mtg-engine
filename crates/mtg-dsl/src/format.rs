@@ -1450,6 +1450,8 @@ impl Fmt {
                 additional,
                 more,
                 if_creature,
+                transformed,
+                front_up,
             } => {
                 let mut s = if *put {
                     format!("put {} onto battlefield", self.recipient(*what, t))
@@ -1461,6 +1463,16 @@ impl Fmt {
                 }
                 if *attacking {
                     s.push_str(" and attacking");
+                }
+                if *transformed {
+                    s.push_str(if *tapped {
+                        " and transformed"
+                    } else {
+                        " transformed"
+                    });
+                }
+                if *front_up {
+                    s.push_str(" front face up");
                 }
                 if *under_you {
                     s.push_str(" under your control");

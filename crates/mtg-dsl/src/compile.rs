@@ -2994,6 +2994,8 @@ impl Compiler<'_> {
                 additional: _,
                 more,
                 if_creature,
+                transformed,
+                front_up: _,
             } => {
                 out.push(CoreEffect::ReturnToBattlefield {
                     what: r(*what),
@@ -3003,6 +3005,7 @@ impl Compiler<'_> {
                     attached: attached.map(r),
                     more: *more,
                     if_creature: *if_creature,
+                    transformed: *transformed,
                 });
                 if *attacking {
                     out.push(CoreEffect::EnteredAttack);
@@ -6737,6 +6740,8 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         additional: false,
                         more: None,
                         if_creature: false,
+                        transformed: false,
+                        front_up: false,
                     },
                     E::Grant {
                         keywords: vec![mtg_core::card::Keyword::Haste],

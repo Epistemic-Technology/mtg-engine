@@ -1,0 +1,16 @@
+card "Garland, Knight of Cornelia // Chaos, the Endless" {
+  oracle_id 75e930dd-32e9-4c39-81a7-d833a3976b8d
+  layout transform
+  cost {B}{R}
+  type Legendary Creature — Human Knight
+  pt 3/2
+  triggered whenever you cast a noncreature spell: surveil 1
+  activated {3}{B}{B}{R}{R}, from graveyard, sorcery: return this to battlefield transformed
+  face "Chaos, the Endless" {
+    type Legendary Creature — Demon
+    pt 5/5
+    color black red
+    keywords flying
+    triggered when this dies: put this on bottom of library
+  }
+}

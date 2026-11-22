@@ -6147,6 +6147,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             additional,
             more,
             if_creature,
+            transformed,
+            front_up,
         } => {
             let what_ref = what;
             // `that card` prints "that card", `it` (inside a delayed
@@ -6202,15 +6204,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     ctx.target_noun[*i] = "permanent".to_string();
                 }
             }
-            let tapped = match (*tapped, *attacking) {
-                (true, true) => " tapped and attacking",
-                (true, false) => " tapped",
+            let tapped = match (*tapped, *attacking, *transformed) {
+                (true, true, _) => " tapped and attacking",
+                // CR 712.14a: "return it to the battlefield tapped and
+                // transformed under its owner's control".
+                (true, false, true) => " tapped and transformed",
+                (true, false, false) => " tapped",
+                (false, _, true) => " transformed",
                 _ => "",
             };
             // Activated from the graveyard: "Return this card from your
             // graveyard to the battlefield tapped."
             let from_graveyard = *what == Recipient::Source && works_from_graveyard(ctx.current);
-            let mut text = if *attacking && (others || (*put && *under_you)) {
+            let mut text = if *front_up {
+                // A transforming card's back face returning itself (CR
+                // 712.14): "return it to the battlefield (front face up)".
+                format!("return {o} to the battlefield{tapped} (front face up)")
+            } else if *attacking && (others || (*put && *under_you)) {
                 // "put target creature card from defending player's
                 // graveyard onto the battlefield under your control tapped
                 // and attacking".
@@ -6253,7 +6263,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // battlefield under their owners' control."
                 format!("return {o} to the battlefield{tapped} under their owners' control")
             } else {
-                format!("return {o} to the battlefield{tapped} under its owner's control")
+                // "Exile Nicol Bolas, then return him to the battlefield
+                // transformed under his owner's control."
+                let its = match (what, ctx.card.pronoun) {
+                    (Recipient::Source, Some(crate::ast::Pronoun::He)) => "his",
+                    (Recipient::Source, Some(crate::ast::Pronoun::She)) => "her",
+                    _ => "its",
+                };
+                format!("return {o} to the battlefield{tapped} under {its} owner's control")
             };
             if let Some((kind, n)) = c {
                 let mut what = counters(Num::N(*n), *kind);

@@ -1,0 +1,15 @@
+card "Era of Enlightenment // Hand of Enlightenment" {
+  oracle_id a6d646e8-0d84-489b-a46a-3bd5b1141864
+  layout transform
+  cost {1}{W}
+  type Enchantment — Saga
+  triggered chapter 1: scry 2
+  triggered chapter 2: you gains 2 life
+  triggered chapter 3: exile this then return this to battlefield transformed under your control
+  face "Hand of Enlightenment" {
+    type Enchantment Creature — Human Monk
+    pt 2/2
+    color white
+    keywords first strike
+  }
+}

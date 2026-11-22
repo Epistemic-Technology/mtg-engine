@@ -1,0 +1,14 @@
+card "Michiko's Reign of Truth // Portrait of Michiko" {
+  oracle_id 94794f7c-62e7-43c8-ba7f-ac5c0bc9a712
+  layout transform
+  cost {1}{W}
+  type Enchantment — Saga
+  triggered chapter 1, 2: target creature gets +1/+1 count each andor artifact or enchantment you control
+  triggered chapter 3: exile this then return this to battlefield transformed under your control
+  face "Portrait of Michiko" {
+    type Enchantment Creature — Human Noble
+    pt 0/0
+    color white
+    static this: +1/+1 count each andor artifact or enchantment you control
+  }
+}

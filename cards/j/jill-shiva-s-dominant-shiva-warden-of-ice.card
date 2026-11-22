@@ -1,0 +1,16 @@
+card "Jill, Shiva's Dominant // Shiva, Warden of Ice" {
+  oracle_id c6655e05-9e31-4a74-a97d-1eeb473fe900
+  layout transform
+  cost {2}{U}
+  type Legendary Creature — Human Noble Warrior
+  pt 2/2
+  triggered when this enters: return up to 1 another target nonland permanent to hand
+  activated {3}{U}{U}, {T}, sorcery: exile this then return this to battlefield transformed
+  face "Shiva, Warden of Ice" {
+    type Legendary Enchantment Creature — Saga Elemental
+    pt 4/5
+    color blue
+    label "Mesmerize" triggered chapter 1, 2: target creature can't be blocked
+    label "Cold Snap" triggered chapter 3: tap each land your opponents control; exile this then return this to battlefield front face up
+  }
+}

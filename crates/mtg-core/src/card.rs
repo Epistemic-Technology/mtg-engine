@@ -4352,6 +4352,11 @@ pub enum Effect {
         /// card that will be a creature (judged by its card).
         #[serde(default)]
         if_creature: bool,
+        /// "Return it to the battlefield transformed under your control"
+        /// (CR 712.14a): a transforming double-faced card enters with its
+        /// back face up; any other card stays where it is (CR 701.27c).
+        #[serde(default)]
+        transformed: bool,
     },
     /// The ability's source becomes a copy of the recipient (CR 707),
     /// keeping its own definition's `copy_except` if `except`. With `who`,
@@ -8958,6 +8963,7 @@ impl CardPool {
                     attached: None,
                     more: None,
                     if_creature: false,
+                    transformed: false,
                 }],
             }));
         pool.builtins[Builtin::Miracle as usize] =
@@ -9043,6 +9049,7 @@ impl CardPool {
                     attached: None,
                     more: None,
                     if_creature: false,
+                    transformed: false,
                 }],
             }));
             if slot == 0 {

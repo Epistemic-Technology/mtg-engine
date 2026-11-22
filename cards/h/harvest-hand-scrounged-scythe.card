@@ -1,0 +1,14 @@
+card "Harvest Hand // Scrounged Scythe" {
+  oracle_id ffd3c928-af42-4d69-8d22-a4c72f93b1c7
+  layout transform
+  cost {3}
+  type Artifact Creature — Scarecrow
+  pt 2/2
+  triggered when this dies: return this to battlefield transformed under your control
+  face "Scrounged Scythe" {
+    type Artifact — Equipment
+    static equipped creature: +1/+1
+    static as long as attached is Human, equipped creature: has menace
+    equip {2}
+  }
+}

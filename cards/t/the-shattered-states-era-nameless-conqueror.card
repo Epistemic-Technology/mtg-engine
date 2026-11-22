@@ -1,0 +1,15 @@
+card "The Shattered States Era // Nameless Conqueror" {
+  oracle_id 99473461-3c6f-4f7f-8ba2-d6c090ddb567
+  layout transform
+  cost {4}{R}
+  type Enchantment — Saga
+  triggered chapter 1: gain control of target creature; untap target 1; target 1 gains haste
+  triggered chapter 2: each creature you control gets +1/+0
+  triggered chapter 3: exile this then return this to battlefield transformed under your control
+  face "Nameless Conqueror" {
+    type Enchantment Creature — Human Samurai
+    pt 3/3
+    color red
+    keywords trample, haste
+  }
+}

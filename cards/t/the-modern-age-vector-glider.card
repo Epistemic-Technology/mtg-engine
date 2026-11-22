@@ -1,0 +1,14 @@
+card "The Modern Age // Vector Glider" {
+  oracle_id a8995df6-99a7-41a7-bd3e-f34643b27947
+  layout transform
+  cost {1}{U}
+  type Enchantment — Saga
+  triggered chapter 1, 2: draw 1 cards then discard 1 cards
+  triggered chapter 3: exile this then return this to battlefield transformed under your control
+  face "Vector Glider" {
+    type Enchantment Creature — Spirit
+    pt 2/3
+    color blue
+    keywords flying
+  }
+}

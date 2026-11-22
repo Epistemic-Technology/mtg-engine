@@ -1,0 +1,14 @@
+card "Befriending the Moths // Imperial Moth" {
+  oracle_id 2ee5f5ad-2f16-40d9-831a-2aefece31b36
+  layout transform
+  cost {3}{W}
+  type Enchantment — Saga
+  triggered chapter 1, 2: target creature you control gets +1/+1 and target 1 gains flying
+  triggered chapter 3: exile this then return this to battlefield transformed under your control
+  face "Imperial Moth" {
+    type Enchantment Creature — Insect
+    pt 2/4
+    color white
+    keywords flying
+  }
+}

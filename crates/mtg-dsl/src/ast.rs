@@ -3653,6 +3653,15 @@ pub enum Effect {
         /// `with 1 additional +1/+1 counter if creature`: "If it enters as
         /// a creature, it enters with an additional +1/+1 counter on it."
         if_creature: bool,
+        /// `... to battlefield transformed`, `tapped and transformed`:
+        /// "return it to the battlefield transformed under your control"
+        /// (CR 712.14a).
+        transformed: bool,
+        /// `... to battlefield front face up`: "Exile Shiva, then return
+        /// it to the battlefield (front face up)." (wording only: a card
+        /// put onto the battlefield is front face up unless told
+        /// otherwise, CR 712.14).
+        front_up: bool,
     },
     Regenerate {
         to: Recipient,

@@ -1,0 +1,16 @@
+card "Behold the Unspeakable // Vision of the Unspeakable" {
+  oracle_id 464372ef-0b16-4b8d-ba6f-fbf5c905c479
+  layout transform
+  cost {3}{U}{U}
+  type Enchantment — Saga
+  triggered chapter 1: each creature you don't control gets -2/-0 until your next turn
+  triggered chapter 2: if hand 1 or less, draw 4 cards; otherwise, scry 2 then draw 2 cards
+  triggered chapter 3: exile this then return this to battlefield transformed under your control
+  face "Vision of the Unspeakable" {
+    type Enchantment Creature — Spirit
+    pt 0/0
+    color blue
+    keywords flying, trample
+    static this: +1/+1 count each hand
+  }
+}

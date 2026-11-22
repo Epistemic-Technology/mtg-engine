@@ -913,6 +913,8 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
             | "this land"
             | "this Aura"
             | "this Siege"
+            | "this Equipment"
+            | "this Vehicle"
             | "~"
     ) {
         return Some("this".to_string());
@@ -2288,6 +2290,40 @@ impl Templates {
                     })
                 },
             ),
+            // A transforming card's back face returning itself: "Exile
+            // Shiva, then return it to the battlefield (front face up)."
+            // (CR 712.14; Oracle names no controller only there).
+            (
+                r(r"^Exile ~, then return it to the battlefield$"),
+                |_, _| Some("exile this then return this to battlefield front face up".to_string()),
+            ),
+            // CR 712.14a: "Exile this Saga, then return it to the
+            // battlefield transformed under your control", "When this
+            // creature dies, return it to the battlefield tapped and
+            // transformed under its owner's control", "Return this card
+            // from your graveyard to the battlefield transformed". "It" is
+            // the source: where it isn't, the source's name or noun prints
+            // and the gate refuses the card.
+            (
+                r(
+                    r"^[Rr]eturn (?:it|him|her|this card from your graveyard) to the battlefield( tapped and)? transformed( under your control| under (?:its|his|her) owner's control)?$",
+                ),
+                |c, _| {
+                    let tapped = if c.get(1).is_some() {
+                        " tapped and"
+                    } else {
+                        ""
+                    };
+                    let under = if cap(c, 2) == " under your control" {
+                        " under your control"
+                    } else {
+                        ""
+                    };
+                    Some(format!(
+                        "return this to battlefield{tapped} transformed{under}"
+                    ))
+                },
+            ),
             (
                 r(r"^(Target creature) blocks this turn if able$"),
                 |c, t| Some(format!("{} blocks if able", recipient(cap(c, 1), t)?)),
@@ -3113,6 +3149,7 @@ impl Templates {
                 || body == "Discard all the cards in your hand, then draw that many cards"
                 || body.ends_with("explores, then it explores again")
                 || body.contains(", then meld them into ")
+                || body == "Exile ~, then return it to the battlefield"
             {
                 vec![body.as_str()]
             } else {
@@ -6026,6 +6063,10 @@ impl Builder<'_> {
                 }
                 "Return this card from your graveyard to the battlefield tapped" => {
                     Some("return this to battlefield tapped")
+                }
+                // CR 712.14a.
+                "Return this card from your graveyard to the battlefield transformed" => {
+                    Some("return this to battlefield transformed")
                 }
                 _ => None,
             };
