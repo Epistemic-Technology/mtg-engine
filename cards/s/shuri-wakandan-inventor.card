@@ -1,0 +1,11 @@
+card "Shuri, Wakandan Inventor" {
+  oracle_id a8c047fc-20a9-4c62-b8a6-9ead56d60ad0
+  cost {1}{U}
+  type Legendary Creature — Human Artificer Hero
+  pt 2/1
+  spells artifact you cast cost {1} less
+  activated {1}, {T}, sorcery: target artifact you control becomes a copy of target artifact you control with exceptions until end of turn
+  except {
+    not legendary
+  }
+}

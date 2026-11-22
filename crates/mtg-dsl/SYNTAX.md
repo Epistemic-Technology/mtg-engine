@@ -1858,7 +1858,13 @@ copy of <what> [with exceptions]` (any subject: `target Shapeshifter
 becomes a copy of target creature until your next turn`, `each single
 other creature becomes a copy of target nonlegendary creature until end of
 turn`, "Each other creature becomes ..."; `until end of turn` and `until
-your next turn` end the copy effect, the permanent getting back what it
+your next turn` end the copy effect (`until end of turn, target 1 becomes
+a copy of up to 1 another target creature until end of turn` prints
+"Until end of turn, it becomes a copy of up to one other target
+creature."; the same target kind twice, `target artifact you control
+becomes a copy of target artifact you control with exceptions until end of
+turn`, prints "... a copy of a second target artifact you control ...",
+two different artifacts), the permanent getting back what it
 was unless it has become a copy of something else since; a card in a
 graveyard or exile can be copied too), `<what> bites <what>` ("deals damage
 equal to its power to"; the creature is the damage's source, so its

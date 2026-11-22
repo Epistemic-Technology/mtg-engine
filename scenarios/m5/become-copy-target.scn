@@ -1,0 +1,63 @@
+# "Target artifact you control becomes a copy of a second target artifact
+# you control until end of turn, except it isn't legendary." (Shuri): the
+# first target becomes the copy (CR 707.2), not the source, and the two
+# targets are different objects (CR 601.2c).
+
+scenario "Shuri: the first target becomes a copy of the second until end of turn" {
+  battlefield A: "Shuri, Wakandan Inventor", "Island", "Darksteel Relic", "Ornithopter"
+  turn 1 A: activate "Shuri, Wakandan Inventor" targeting "Darksteel Relic", "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Ornithopter"
+  assert battlefield A lacks "Darksteel Relic"
+  assert battlefield A contains "Shuri, Wakandan Inventor"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Darksteel Relic"
+  assert battlefield A contains 1 "Ornithopter"
+}
+
+scenario "Shuri: a copy of a legendary artifact isn't legendary" {
+  battlefield A: "Shuri, Wakandan Inventor", "Island", "Darksteel Relic", "The Ten Rings"
+  turn 1 A: activate "Shuri, Wakandan Inventor" targeting "Darksteel Relic", "The Ten Rings"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "The Ten Rings"
+}
+
+scenario "Shuri: the two targets are different artifacts" {
+  battlefield A: "Shuri, Wakandan Inventor", "Island", "Ornithopter"
+  illegal turn 1 A: activate "Shuri, Wakandan Inventor" targeting "Ornithopter", "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Ornithopter"
+}
+
+scenario "Fleeting Reflection: hexproof, untapped, and a copy until end of turn" {
+  battlefield A: "Grizzly Bears" tapped, 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Fleeting Reflection"
+  turn 1 A: cast "Fleeting Reflection" targeting "Grizzly Bears", "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert battlefield A lacks "Grizzly Bears"
+  assert untapped A "Serra Angel"
+  assert has A "Serra Angel" hexproof
+  assert power A "Serra Angel" 4
+  run_to turn 2 upkeep
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Fleeting Reflection: with no second target, only hexproof and untap" {
+  battlefield A: "Grizzly Bears" tapped, 2 "Island"
+  hand A: "Fleeting Reflection"
+  turn 1 A: cast "Fleeting Reflection" targeting "Grizzly Bears", none
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert has "Grizzly Bears" hexproof
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Shuri: artifact spells cost {1} less" {
+  battlefield A: "Shuri, Wakandan Inventor"
+  hand A: "Bonesplitter"
+  turn 1 A: cast "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bonesplitter"
+}

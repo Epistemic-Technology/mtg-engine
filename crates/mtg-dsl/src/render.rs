@@ -6855,10 +6855,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 ctx.subj(*who)
             };
-            let o = ctx.obj(*of);
+            let mut o = ctx.obj(*of);
+            // "Target artifact you control becomes a copy of a second
+            // target artifact you control" (Shuri): the same kind of target
+            // twice.
+            if let (Recipient::Target(w), Recipient::Target(f)) = (who, of)
+                && w < f
+                && ctx.targets.get(*w) == ctx.targets.get(*f)
+                && o.starts_with("target ")
+            {
+                o = format!("a second {o}");
+            }
             let mut text = format!("becomes a copy of {o}");
             match until {
                 mtg_core::card::CopyUntil::Permanent => {}
+                // "Until end of turn, it becomes a copy of ..." (Fleeting
+                // Reflection): the duration printed first.
+                mtg_core::card::CopyUntil::EndOfTurn if ctx.eot_first => {}
                 mtg_core::card::CopyUntil::EndOfTurn => text.push_str(" until end of turn"),
                 mtg_core::card::CopyUntil::YourNextTurn => text.push_str(" until your next turn"),
             }
