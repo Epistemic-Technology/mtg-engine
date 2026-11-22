@@ -1989,6 +1989,10 @@ impl Decompiler<'_> {
                     to: self.affects(to),
                 },
                 CoreReplaces::Enters => Replaces::Enters,
+                CoreReplaces::OthersEnter { what } => Replaces::OthersEnter {
+                    what: self.filter(what),
+                    each: true,
+                },
             },
             outcome: r.replacement,
             then: self.sentences(&r.then),

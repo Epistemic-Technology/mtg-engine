@@ -1,0 +1,9 @@
+card "Giada, Font of Hope" {
+  oracle_id 48e6d3d8-2f27-4017-acdd-40bce8cdbc02
+  cost {1}{W}
+  type Legendary Creature — Angel
+  pt 2/2
+  keywords flying, vigilance
+  replace each other Angel you control enters: with count each Angel you control +1/+1 counters
+  mana {W} only to cast Angel spell
+}

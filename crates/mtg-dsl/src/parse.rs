@@ -12025,6 +12025,22 @@ impl P {
                 to: Affects::DamagedThisWay,
             });
         }
+        // "Each Dragon you control enters with ...", "Other creatures you
+        // control enter with ..." (CR 614.1c).
+        if self.eat_word("each") {
+            let what = self.filter()?;
+            self.expect_word("enters")?;
+            return Ok(Replaces::OthersEnter { what, each: true });
+        }
+        {
+            let at = self.pos;
+            if let Ok(what) = self.filter()
+                && self.eat_word("enter")
+            {
+                return Ok(Replaces::OthersEnter { what, each: false });
+            }
+            self.pos = at;
+        }
         // `creature dealt damage by this this turn dies` (Frostwielder),
         // `<affects> dies` in general.
         if !self.at_word("damage") && !self.at_word("combat") && !self.at_word("noncombat") {

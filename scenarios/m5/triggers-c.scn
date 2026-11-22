@@ -350,6 +350,48 @@ scenario "the end step on your next turn: Kav Landseeker's Lander lasts through 
   assert battlefield A lacks "Lander"
 }
 
+scenario "others enter with counters: Dragonstorm Globe gives a Dragon one, not another creature" {
+  battlefield A: "Dragonstorm Globe", 6 "Mountain"
+  hand A: "Furnace Whelp", "Raging Goblin"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Furnace Whelp"
+  turn 2 A: wait
+  turn 2 A: cast "Raging Goblin"
+  run_to turn 2 postcombat_main
+  assert counters "Furnace Whelp" +1/+1 1
+  assert counters "Raging Goblin" +1/+1 0
+}
+
+scenario "others enter with counters: Gev gives one for each opponent who lost life this turn" {
+  battlefield A: "Gev, Scaled Scorch", 3 "Mountain"
+  hand A: "Lightning Bolt", "Raging Goblin"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  turn 2 A: wait
+  turn 2 A: cast "Raging Goblin"
+  run_to turn 2 postcombat_main
+  assert counters "Raging Goblin" +1/+1 1
+}
+
+scenario "others enter with counters: Gev gives none when no opponent lost life" {
+  battlefield A: "Gev, Scaled Scorch", 3 "Mountain"
+  hand A: "Raging Goblin"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Raging Goblin"
+  run_to turn 2 postcombat_main
+  assert counters "Raging Goblin" +1/+1 0
+}
+
+scenario "others enter with counters: Giada counts the Angels already there" {
+  battlefield A: "Giada, Font of Hope", "Serra Angel", 5 "Plains"
+  hand A: "Serra Angel"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert counters newest A "Serra Angel" +1/+1 2
+  assert counters oldest A "Serra Angel" +1/+1 0
+}
+
 scenario "if you cast it: Geological Appraiser discovers 3 when cast" {
   battlefield A: 4 "Mountain"
   hand A: "Geological Appraiser"

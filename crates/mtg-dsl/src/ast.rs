@@ -2387,6 +2387,14 @@ pub enum Replaces {
         to: Affects,
     },
     Enters,
+    /// `each Dragon you control enters`: "Each Dragon you control enters
+    /// with an additional +1/+1 counter on it"; without `each`, `other
+    /// creature you control enter` ("Other creatures you control enter
+    /// with an additional +1/+1 counter on them ...").
+    OthersEnter {
+        what: Filter,
+        each: bool,
+    },
 }
 
 /// Where "Prevent all damage" names a damage source (CR 609.7).

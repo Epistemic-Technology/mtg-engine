@@ -583,6 +583,29 @@ impl GameState {
                     n,
                 },
             ) => *n > 0 && self.filter_matches(on, *obj, source, controller),
+            // "Each Dragon you control enters with an additional +1/+1
+            // counter on it" (CR 614.1c).
+            (
+                Replaces::OthersEnter { what },
+                Proposed::ZoneChange {
+                    obj,
+                    to: Zone::Battlefield,
+                    controller: ctl,
+                    ..
+                },
+            ) => {
+                *obj != source
+                    && self.objects.get(*obj).is_some_and(|o| {
+                        o.zone != Zone::Battlefield
+                            && what.matches(
+                                *obj,
+                                *ctl,
+                                &self.printed(o.def),
+                                Some(source),
+                                Some(controller),
+                            )
+                    })
+            }
             (
                 Replaces::PlusCounters { on },
                 Proposed::ZoneChange {
@@ -1342,11 +1365,15 @@ impl GameState {
                 // ("for each other creature you control", converge's "for
                 // each color of mana spent to cast it") judged for the
                 // entering object as it enters.
+                // Another permanent's "Each other Angel you control enters
+                // with ... for each Angel you already control" (Giada):
+                // counted for that permanent, by its card's counts.
+                let other = c.source != obj;
                 let n = match n {
                     crate::card::Num::Count(_) => {
                         let ctx = EffectCtx {
-                            source: obj,
-                            controller,
+                            source: if other { c.source } else { obj },
+                            controller: if other { c.controller } else { controller },
                             targets: Vec::new(),
                             division: Vec::new(),
                             legal: Vec::new(),
@@ -1360,7 +1387,7 @@ impl GameState {
                             chosen: Chosen::None,
                             couldnt: 0,
                             created_tokens: SmallVec::new(),
-                            counts: None,
+                            counts: other.then_some(c.def),
                         };
                         self.eval_num(n, &ctx)
                     }

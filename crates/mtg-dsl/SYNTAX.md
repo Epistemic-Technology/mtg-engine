@@ -1084,7 +1084,15 @@ creature": one effect, CR 615), `you gain life`,
 `a player gains life`, `you draw`, `you draw with empty library`,
 `card put into a graveyard`, `card put into an opponent's graveyard`,
 `... from the battlefield`, `+1/+1 counters put on creature you control`,
-`destroy <affects>`, `enters`.
+`destroy <affects>`, `enters`, and another permanent entering (CR
+614.1c): `replace each Dragon you control enters: with 1 +1/+1 counter`
+("Each Dragon you control enters with an additional +1/+1 counter on
+it."), `replace other creature you control enter: with count each
+opponents lost life this turn +1/+1 counters` ("Other creatures you
+control enter with an additional +1/+1 counter on them for each opponent
+who lost life this turn."); a count is the replacement source's, counted
+as the permanent enters ("for each Angel you already control"), and the
+permanent matches by its card under the controller it will have.
 
 Affects: `any` (a permanent or player), `this`, `you`, `each opponent`,
 `each player`, `you and creature you control`, a filter, a target (`target

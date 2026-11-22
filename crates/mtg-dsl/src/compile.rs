@@ -3662,6 +3662,9 @@ impl Compiler<'_> {
                 to: self.affects(to),
             },
             Replaces::Enters => CoreReplaces::Enters,
+            Replaces::OthersEnter { what, .. } => CoreReplaces::OthersEnter {
+                what: self.filter(what),
+            },
         };
         let mut replacement = r.outcome;
         if let mtg_core::card::Replacement::PlusToken { token, .. } = &mut replacement {

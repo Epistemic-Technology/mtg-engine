@@ -554,6 +554,8 @@ impl Fmt {
             Replaces::Destroy { to } => format!("destroy {}", self.affects(to, targets)),
             Replaces::Dies { to } => format!("{} dies", self.affects(to, targets)),
             Replaces::Enters => "enters".to_string(),
+            Replaces::OthersEnter { what, each: true } => format!("each {} enters", filter(what)),
+            Replaces::OthersEnter { what, each: false } => format!("{} enter", filter(what)),
         }
     }
 

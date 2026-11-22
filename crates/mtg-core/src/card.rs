@@ -5008,6 +5008,11 @@ pub enum Replaces {
     Dies { to: Affects },
     /// How this permanent itself enters the battlefield (CR 614.1c).
     Enters,
+    /// How another permanent matching the filter enters ("Each Dragon you
+    /// control enters with an additional +1/+1 counter on it", CR
+    /// 614.1c), judged by its card as it enters, under the controller it
+    /// will have.
+    OthersEnter { what: ObjFilter },
     /// One or more tokens (`creature`: creature tokens) would be created
     /// under the controller's control (CR 111.1, 614.1a). `effect` prints
     /// the older "If an effect would create ..." (rendering only).

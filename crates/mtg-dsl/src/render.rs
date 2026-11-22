@@ -9954,6 +9954,52 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 )
             }
         }
+        // "Each Dragon you control enters with an additional +1/+1 counter
+        // on it", "Other creatures you control enter with an additional
+        // +1/+1 counter on them for each opponent who lost life this turn".
+        (Replaces::OthersEnter { what, each }, Outcome::EnterWithCounters { kind, n }) => {
+            let (n, per) = match n {
+                Num::Count(i) => match ctx.card.counts.get(usize::from(*i)) {
+                    Some(count) if count.style == crate::ast::CountStyle::Each => {
+                        let (n, expr) = match &count.expr {
+                            crate::ast::CountExpr::Times(n, inner) => (*n, &**inner),
+                            e => (1, e),
+                        };
+                        // Counted before it enters: "for each Angel you
+                        // already control" (Giada).
+                        let p = count_phrase(expr, ctx.card, true);
+                        let p = match p.strip_suffix(" you control") {
+                            Some(head) => format!("{head} you already control"),
+                            None => p,
+                        };
+                        (Num::N(n), format!(" {p}"))
+                    }
+                    _ => (*n, String::new()),
+                },
+                n => (*n, String::new()),
+            };
+            let what_text = if *each {
+                format!(
+                    "Each {} enters",
+                    controller_first(what, filter_phrase(what, ctx.card, false))
+                )
+            } else {
+                format!(
+                    "{} enter",
+                    capitalize(&controller_first(what, filter_phrase(what, ctx.card, true)))
+                )
+            };
+            let c = counters(n, *kind);
+            let c = match c.split_once(' ') {
+                Some((a, rest)) if a == "a" || a == "an" => format!("an additional {rest}"),
+                Some((a, rest)) => format!("{a} additional {rest}"),
+                None => c,
+            };
+            format!(
+                "{what_text} with {c} on {}{per}.",
+                if *each { "it" } else { "them" }
+            )
+        }
         (Replaces::Enters, Outcome::EnterWithCounters { kind, n }) => format!(
             "{} enters with {} on {}.",
             capitalize(&this_ref(ctx.card)),
