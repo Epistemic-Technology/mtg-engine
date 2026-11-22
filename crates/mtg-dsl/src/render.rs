@@ -1366,6 +1366,13 @@ impl<'a> Ctx<'a> {
                 self.target_mentioned[i] = true;
                 format!("the chosen {}", self.target_noun[i])
             }
+            Recipient::TheTargetFull(i, chosen) => {
+                let phrase = self.target_phrase_of(i);
+                self.target_mentioned[i] = true;
+                let phrase = phrase.strip_prefix("target ").unwrap_or(&phrase).to_string();
+                format!("the {}{phrase}", if chosen { "chosen " } else { "" })
+            }
+            Recipient::ChosenTargets(a, n) => format!("the chosen {}", self.group_noun(a, n)),
             Recipient::You => "you".to_string(),
             Recipient::EachOpponent => {
                 self.opponents_object = true;
@@ -1558,7 +1565,7 @@ impl<'a> Ctx<'a> {
                 }
             }
             Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
-            Recipient::ThoseTargets(a, _) => format!("those {}", self.plural_target_noun(a)),
+            Recipient::ThoseTargets(a, n) => format!("those {}", self.group_noun(a, n)),
         }
     }
 
@@ -1878,6 +1885,19 @@ impl<'a> Ctx<'a> {
 
     /// The plural noun of target `i`'s kind: "lands", "creature cards
     /// from your graveyard".
+    /// Targets `a..a + n` named together: "creatures you control" for
+    /// targets alike, the plain noun ("those creatures") for targets of
+    /// different kinds ("target creature you control and target creature
+    /// you don't control").
+    fn group_noun(&self, a: usize, n: usize) -> String {
+        let alike = (a + 1..a + n).all(|i| self.targets.get(i) == self.targets.get(a));
+        if alike {
+            self.plural_target_noun(a)
+        } else {
+            pluralize(&self.target_noun[a])
+        }
+    }
+
     fn plural_target_noun(&self, i: usize) -> String {
         match self.targets[i].base() {
             Target::UpTo(_) | Target::Many { .. } => unreachable!("base"),
@@ -1973,6 +1993,7 @@ impl<'a> Ctx<'a> {
                 | Recipient::Group(_)
                 | Recipient::Targets(..)
                 | Recipient::ThoseTargets(..)
+                | Recipient::ChosenTargets(..)
                 | Recipient::TargetAnd(..)
                 | Recipient::CreatedTokens
                 | Recipient::CreatedThem
@@ -6637,6 +6658,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
             }
         }
+        Effect::ChooseTarget(Recipient::Targets(a, 2)) => {
+            let first = ctx.obj(Recipient::Target(*a));
+            let second = ctx.obj(Recipient::Target(a + 1));
+            Clause::imperative(format!("choose {first} and {second}"))
+        }
         Effect::ChooseTarget(r) => Clause::imperative(format!("choose {}", ctx.obj(*r))),
         Effect::FlipCoin => Clause::imperative("flip a coin".to_string()),
         Effect::Clash => Clause::imperative("clash with an opponent".to_string()),
@@ -7990,6 +8016,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
             }
         }
+        // "Then those creatures fight each other." (CR 701.14a).
+        Effect::Fight { a, b } if a == b => {
+            let s = ctx.subj(*a);
+            Clause::with_subject(*a, s, "fight each other".to_string())
+        }
         Effect::Fight { a, b } => {
             let s = ctx.subj(*a);
             let o = ctx.obj(*b);
@@ -8687,6 +8718,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }) == Filter::default()
             });
             let cond = match (check.tense, has) {
+                // "If the creature you control entered this turn" (Malamet
+                // Battle Glyph).
+                (TargetTense::TheFullIs, _) => {
+                    let who = ctx.obj(Recipient::TheTargetFull(*n, false));
+                    let entered_only = (Filter {
+                        status: mtg_core::card::StatusQuals::default(),
+                        types: Vec::new(),
+                        ..f.clone()
+                    }) == Filter::default()
+                        && f.status
+                            == mtg_core::card::StatusQuals {
+                                entered_this_turn: true,
+                                ..mtg_core::card::StatusQuals::default()
+                            };
+                    if entered_only {
+                        format!("{who} entered this turn")
+                    } else {
+                        format!("{who} is {pred}")
+                    }
+                }
                 (TargetTense::Is, _) if let Some(b) = bound_only => {
                     format!("its {}", bound_words(b, ctx.card, " is"))
                 }

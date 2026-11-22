@@ -293,6 +293,11 @@ impl Fmt {
                 self.mentioned[i] = true;
                 format!("the chosen target {}", i + 1)
             }
+            Recipient::TheTargetFull(i, chosen) => {
+                self.mentioned[i] = true;
+                format!("the {}full target {}", if chosen { "chosen " } else { "" }, i + 1)
+            }
+            Recipient::ChosenTargets(..) => "the chosen targets".to_string(),
             // "up to 2 target creature": declares them together.
             Recipient::Targets(a, n) if self.mentioned[a] => {
                 format!("targets {} to {}", a + 1, a + n)
@@ -1849,6 +1854,13 @@ impl Fmt {
             Effect::Vote(words) => format!("vote {}", words.join(" or ")),
             Effect::VoteReturn(f) => format!("vote return {} card", filter(f)),
             Effect::IfWonFlip(inner) => format!("if you win the flip, {}", self.line(inner, t)),
+            // "Choose target creature you control and target creature you
+            // don't control."
+            Effect::ChooseTarget(Recipient::Targets(a, 2)) => {
+                let first = self.recipient(Recipient::Target(*a), t);
+                let second = self.recipient(Recipient::Target(a + 1), t);
+                format!("choose {first} and {second}")
+            }
             Effect::ChooseTarget(r) => format!("choose {}", self.recipient(*r, t)),
             Effect::DiscardRandom {
                 count, who: None, ..
@@ -2236,6 +2248,9 @@ impl Fmt {
                     }
                 }
             }
+            Effect::Fight { a, b } if a == b => {
+                format!("{} fight each other", self.recipient(*a, t))
+            }
             Effect::Fight { a, b } => {
                 format!("{} fights {}", self.recipient(*a, t), self.recipient(*b, t))
             }
@@ -2442,6 +2457,7 @@ impl Fmt {
                     TargetTense::Had => ("", "had"),
                     TargetTense::Is => ("", "is"),
                     TargetTense::ThatIs => ("that ", "is"),
+                    TargetTense::TheFullIs => ("the full ", "is"),
                     TargetTense::ThatWas => ("that ", "was"),
                 };
                 // `if target 1 isnt creature`: the check's negated types.

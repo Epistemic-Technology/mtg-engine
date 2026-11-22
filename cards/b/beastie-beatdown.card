@@ -1,0 +1,10 @@
+card "Beastie Beatdown" {
+  oracle_id 3da5fbe2-e47b-4a1d-9e73-393f37314fa3
+  cost {R}{G}
+  type Sorcery
+  spell {
+    choose target creature you control and target creature an opponent controls
+    label "Delirium" if 4 card types in your graveyard, put 2 +1/+1 counters on the full target 1
+    the full target 1 bites the full target 2
+  }
+}

@@ -1,0 +1,111 @@
+# "Choose target creature you control and target creature you don't
+# control." and the references after it: "the creature you control", "the
+# chosen creature you control", "those creatures fight each other" (CR
+# 701.14a), "the chosen creatures fight each other".
+
+scenario "Malamet Battle Glyph: a creature that entered this turn gets a counter, then fights" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Grizzly Bears", "Malamet Battle Glyph"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Malamet Battle Glyph" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Malamet Battle Glyph: an older creature gets no counter" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Malamet Battle Glyph"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Malamet Battle Glyph" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Malamet Battle Glyph: the first target must be yours, the second not" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Malamet Battle Glyph"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Malamet Battle Glyph" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Malamet Battle Glyph"
+}
+
+scenario "Longstalk Brawl: gift promised, a counter on the creature you control, then the fight" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Longstalk Brawl"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Longstalk Brawl" gift targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Fish"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Longstalk Brawl: no gift, no counter" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Longstalk Brawl"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Longstalk Brawl" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B lacks "Fish"
+  assert graveyard A contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Duel for Dominance: coven puts a counter on the chosen creature you control" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Llanowar Elves", 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Duel for Dominance"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Duel for Dominance" targeting A "Hill Giant", B "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters A "Hill Giant" +1/+1 1
+  assert graveyard B contains "Hill Giant"
+  assert damage A "Hill Giant" 3
+}
+
+scenario "Duel for Dominance: without coven no counter" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Duel for Dominance"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Duel for Dominance" targeting A "Grizzly Bears", B "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Beastie Beatdown: delirium, two counters; the creature you control deals damage, takes none" {
+  battlefield A: "Grizzly Bears", "Mountain", "Forest"
+  battlefield B: "Serra Angel"
+  graveyard A: "Forest", "Shock", "Divination", "Hill Giant"
+  hand A: "Beastie Beatdown"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Beastie Beatdown" targeting "Grizzly Bears", "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert graveyard B contains "Serra Angel"
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Beastie Beatdown: no delirium, no counters" {
+  battlefield A: "Grizzly Bears", "Mountain", "Forest"
+  battlefield B: "Serra Angel"
+  graveyard A: "Forest", "Shock"
+  hand A: "Beastie Beatdown"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Beastie Beatdown" targeting "Grizzly Bears", "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+  assert damage "Serra Angel" 2
+}

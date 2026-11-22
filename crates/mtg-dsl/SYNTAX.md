@@ -3144,6 +3144,10 @@ Forms that change only how Oracle words what an existing form does:
 | `static plural artifact you control: add subtype Food, ...` | "Artifacts you control are Foods in addition to their other types and have ..." rather than "Each artifact you control is a Food ...". An added subtype and the card types added after it are one noun ("are Food artifacts", "is a Golem creature with base power and toughness 5/4"), and a quoted ability of a holder given a card type names "this permanent". |
 | `reduced {1} during your turn` | "This ability costs {1} less to activate during your turn." |
 | `the chosen target 1` | "the chosen creature", after "choose target creature" |
+| `choose target creature you control and target creature you don't control` | "Choose target creature you control and target creature you don't control." (two targets named at once; no effect of its own) |
+| `the full target 1`, `the chosen full target 1` | "the creature you control", "the chosen creature you control": the target named by its whole filter |
+| `those targets fight each other`, `the chosen targets fight each other` | "Then those creatures fight each other.", "Then the chosen creatures fight each other." (CR 701.14a; the first two targets; "those creatures" is the plain noun when the targets differ) |
+| `if the full target 1 is creature that entered this turn, ...` | "If the creature you control entered this turn, ..." (a target check as it resolves) |
 | `if this sneak paid` | "If this creature's sneak cost was paid" |
 | `count foreach land you control` | "For each land you control, create a Treasure token." (the count leads the sentence, ahead of a subject: `you create count foreach ...` is "For each ..., you create ..."; `put count foreach ... +1/+1 counters on this creature` is "For each ..., put a +1/+1 counter on this creature"; the template author writes it for "For each ..., create a ... token") |
 | `your opponents control 3 creature` | "your opponents control three or more creatures" (a static condition: the opponents' permanents counted together) |

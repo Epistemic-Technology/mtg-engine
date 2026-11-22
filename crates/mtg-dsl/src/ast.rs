@@ -48,6 +48,9 @@ pub enum TargetTense {
     /// `if target 1 had with mana value 3 or less`: "If it had mana value 3
     /// or less", as it last existed, like `Was`.
     Had,
+    /// `if the full target 1 is that entered this turn`: "If the creature
+    /// you control entered this turn", as it is now, like `Is`.
+    TheFullIs,
 }
 
 /// How `Effect::IfYouDont` words what didn't happen.
@@ -3361,6 +3364,14 @@ pub enum Recipient {
     /// `the chosen target 1`: "the chosen creature", a target declared by
     /// "choose target creature" (Vengeful Villagers).
     ChosenTarget(usize),
+    /// `the full target 1`, `the chosen full target 1`: the `n`th target
+    /// named by its whole filter, "the creature you control", "the chosen
+    /// creature you control" (after "Choose target creature you control
+    /// and target creature you don't control.").
+    TheTargetFull(usize, bool),
+    /// `the chosen targets`: targets `first..first + count`, "the chosen
+    /// creatures" ("Then the chosen creatures fight each other.").
+    ChosenTargets(usize, usize),
     /// `controller of the creature` in a triggered ability: the triggering
     /// object's controller, "the creature's controller" (Creature Bond).
     TheTriggeringController,

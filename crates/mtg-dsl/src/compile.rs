@@ -2593,8 +2593,10 @@ impl Compiler<'_> {
             Recipient::Target(i)
             | Recipient::ThatTarget(i)
             | Recipient::TheTarget(i)
+            | Recipient::TheTargetFull(i, _)
             | Recipient::ChosenTarget(i) => CoreRecipient::Target(ti(i)),
             Recipient::Targets(a, n)
+            | Recipient::ChosenTargets(a, n)
             | Recipient::ThoseCards(a, n)
             | Recipient::ThoseTargets(a, n) => CoreRecipient::Targets(
                 u8::try_from(ti(a)).unwrap_or(u8::MAX),
@@ -3513,6 +3515,15 @@ impl Compiler<'_> {
                     filter,
                 });
             }
+            // "Then those creatures fight each other." (CR 701.14a): the
+            // first two of the group.
+            Effect::Fight {
+                a: Recipient::ThoseTargets(i, _) | Recipient::ChosenTargets(i, _),
+                b: Recipient::ThoseTargets(..) | Recipient::ChosenTargets(..),
+            } => out.push(CoreEffect::Fight {
+                a: r(Recipient::Target(*i)),
+                b: r(Recipient::Target(i + 1)),
+            }),
             Effect::Fight { a, b } => out.push(CoreEffect::Fight { a: r(*a), b: r(*b) }),
             Effect::Bite { source, to, twice } => out.push(CoreEffect::Bite {
                 source: r(*source),

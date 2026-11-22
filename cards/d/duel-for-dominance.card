@@ -1,0 +1,6 @@
+card "Duel for Dominance" {
+  oracle_id 5064a55a-9692-4a67-9e82-16250b9140d1
+  cost {1}{G}
+  type Instant
+  label "Coven" spell: choose target creature you control and target creature you don't control; if 3 different powers, put 1 +1/+1 counter on the chosen full target 1; then the chosen targets fight each other
+}

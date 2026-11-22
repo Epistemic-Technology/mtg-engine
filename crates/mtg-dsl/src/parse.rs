@@ -5011,7 +5011,11 @@ impl P {
         if w == "targets" && matches!(self.peek_at(1), Some(Tok::Num(_))) {
             return true;
         }
-        if self.at_words(&["those", "targets"]) {
+        if self.at_words(&["those", "targets"])
+            || self.at_words(&["the", "chosen", "targets"])
+            || self.at_words(&["the", "full", "target"])
+            || self.at_words(&["the", "chosen", "full", "target"])
+        {
             return true;
         }
         if self.group_named && self.at_those().is_some() {
@@ -5237,7 +5241,8 @@ impl P {
     /// judged on the target's last state.
     fn if_target(&mut self) -> R<Effect> {
         self.pos += 1;
-        let that = self.eat_word("that");
+        let full = self.eat_words(&["the", "full"]);
+        let that = !full && self.eat_word("that");
         self.pos += 1;
         let n = self.number()? as usize;
         if n == 0 || n > self.targets.len() {
@@ -5274,7 +5279,9 @@ impl P {
             }
             Self::no_host_check(&filter).or_else(|m| self.fail(m))?;
             self.expect(&Tok::Comma)?;
-            let tense = if that {
+            let tense = if full {
+                crate::ast::TargetTense::TheFullIs
+            } else if that {
                 crate::ast::TargetTense::ThatIs
             } else {
                 crate::ast::TargetTense::Is
@@ -5308,6 +5315,9 @@ impl P {
                     Ok(Effect::IfTarget(n - 1, filter, vec![s], check))
                 }
             };
+        }
+        if full {
+            return self.fail("`if the full target N` takes `is`");
         }
         let tense = if that {
             self.expect_words(&["was"])?;
@@ -5722,7 +5732,10 @@ impl P {
             self.subject = saved;
             return Ok(Effect::IfWonClash(vec![s]));
         }
-        if self.at_words(&["if", "target"]) || self.at_words(&["if", "that", "target"]) {
+        if self.at_words(&["if", "target"])
+            || self.at_words(&["if", "that", "target"])
+            || self.at_words(&["if", "the", "full", "target"])
+        {
             return self.if_target();
         }
         // `if you dont, ...` / `if you cant, ...` after an action.
@@ -6707,6 +6720,16 @@ impl P {
             "fights" => {
                 let b = self.recipient()?;
                 Ok(Effect::Fight { a: subject, b })
+            }
+            // "Then those creatures fight each other."
+            "fight"
+                if matches!(subject, Recipient::ThoseTargets(..) | Recipient::ChosenTargets(..))
+                    && self.eat_words(&["each", "other"]) =>
+            {
+                Ok(Effect::Fight {
+                    a: subject,
+                    b: subject,
+                })
             }
             "bites" => {
                 let twice = self.eat_word("twice");
@@ -7799,7 +7822,20 @@ impl P {
             // "Choose target creature, then roll a d20.": the target
             // named before what acts on it.
             "choose" if self.at_word("target") || self.at_words(&["any", "target"]) => {
-                Ok(Effect::ChooseTarget(self.recipient()?))
+                let first = self.recipient()?;
+                // "Choose target creature you control and target creature
+                // you don't control.": two targets named at once.
+                if let Recipient::Target(i) = first
+                    && self.at_words(&["and", "target"])
+                {
+                    self.pos += 1;
+                    let second = self.recipient()?;
+                    if second != Recipient::Target(i + 1) {
+                        return self.fail("expected a second new target after `and`");
+                    }
+                    return Ok(Effect::ChooseTarget(Recipient::Targets(i, 2)));
+                }
+                Ok(Effect::ChooseTarget(first))
             }
             // "Roll a d20." (CR 706); its results table follows on the
             // next lines (`result 1 to 9: ...`, see `effects_body`).
@@ -10677,6 +10713,30 @@ impl P {
                 return self.fail(format!("target {n} has not been declared"));
             }
             return Ok(Recipient::ThatTarget(n - 1));
+        }
+        // `the full target 1`, `the chosen full target 1`: "the creature
+        // you control", "the chosen creature you control".
+        if (self.at_words(&["the", "full", "target"])
+            && matches!(self.peek_at(3), Some(Tok::Num(_))))
+            || (self.at_words(&["the", "chosen", "full", "target"])
+                && matches!(self.peek_at(4), Some(Tok::Num(_))))
+        {
+            let chosen = self.word_at(1).as_deref() == Some("chosen");
+            self.pos += if chosen { 4 } else { 3 };
+            let Some(Tok::Num(n)) = self.next() else {
+                return self.fail("expected a target number after `the full target`");
+            };
+            let n = n as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            return Ok(Recipient::TheTargetFull(n - 1, chosen));
+        }
+        if self.eat_words(&["the", "chosen", "targets"]) {
+            if self.targets.len() < 2 {
+                return self.fail("`the chosen targets` needs two targets declared before it");
+            }
+            return Ok(Recipient::ChosenTargets(0, self.targets.len()));
         }
         if self.at_words(&["the", "chosen", "target"])
             && matches!(self.peek_at(3), Some(Tok::Num(_)))
