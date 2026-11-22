@@ -1,0 +1,10 @@
+card "Warping Wail" {
+  oracle_id c8b9fa02-0a0c-4a87-9a00-3c1c7e2f4bfd
+  cost {1}{C}
+  type Instant
+  choose one {
+    mode: exile target creature with power or toughness 1 or less
+    mode: counter target sorcery spell
+    mode: create 1 "Eldrazi Scion" it has
+  }
+}

@@ -1,0 +1,7 @@
+card "Battlefield Butcher" {
+  oracle_id 2978ba77-c0ce-4411-99c7-ef05dd602c8d
+  cost {2}{B}
+  type Creature — Human Soldier
+  pt 1/4
+  activated {5}, {T}, reduced {1} each graveyard creature: each opponent loses 2 life
+}

@@ -1,0 +1,99 @@
+# Cards the template author writes with this branch's forms: ability
+# cost reductions, spells cast as though with flash, uncounterable
+# spells, and the power-or-toughness filter.
+
+scenario "Battlefield Butcher costs {1} less for each creature card in your graveyard" {
+  battlefield A: "Battlefield Butcher", 2 "Swamp"
+  graveyard A: 3 "Grizzly Bears"
+  turn 1 A: activate "Battlefield Butcher"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Tamiyo's Logbook: {1} less for each other artifact" {
+  battlefield A: "Tamiyo's Logbook", 2 "Ornithopter", 4 "Island"
+  library A: "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Tamiyo's Logbook"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Mutagen Man: its Mutagen token's ability costs {0}" {
+  battlefield A: 3 "Forest"
+  hand A: "Mutagen Man, Living Ooze"
+  turn 1 A: cast "Mutagen Man, Living Ooze" x 1
+  turn 1 A: activate "Mutagen" targeting "Mutagen Man, Living Ooze"
+  run_to turn 1 postcombat_main
+  assert counters "Mutagen Man, Living Ooze" +1/+1 1
+}
+
+scenario "Chimil: spells you control can't be countered" {
+  battlefield A: "Chimil, the Inner Sun", 2 "Forest"
+  hand A: "Grizzly Bears"
+  battlefield B: 2 "Island"
+  hand B: "Counterspell"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Counterspell" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Prowling Serpopard: creature spells, not other spells" {
+  battlefield A: "Prowling Serpopard", 3 "Island"
+  hand A: "Divination"
+  battlefield B: 2 "Island"
+  hand B: "Counterspell"
+  turn 1 A: cast "Divination"
+  turn 1 B: cast "Counterspell" targeting "Divination" in response to "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert graveyard A contains "Divination"
+}
+
+scenario "Hypersonic Dragon: sorceries at instant speed" {
+  battlefield A: "Hypersonic Dragon", 3 "Island"
+  hand A: "Divination"
+  start turn 2 B
+  turn 2 end A: cast "Divination"
+  run_to turn 2 cleanup
+  assert hand A count 2
+}
+
+scenario "Vedalken Orrery: a creature during the opponent's turn" {
+  battlefield A: "Vedalken Orrery", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 2 B
+  turn 2 end A: cast "Grizzly Bears"
+  run_to turn 2 cleanup
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Shimmer Myr: artifact spells only" {
+  battlefield A: "Shimmer Myr", 2 "Forest"
+  hand A: "Ornithopter", "Grizzly Bears"
+  start turn 2 B
+  turn 2 end A: cast "Ornithopter"
+  illegal turn 2 end A: cast "Grizzly Bears"
+  run_to turn 2 cleanup
+  assert battlefield A contains "Ornithopter"
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Yeva: green creature spells only" {
+  battlefield A: "Yeva, Nature's Herald", 2 "Forest", "Plains"
+  hand A: "Grizzly Bears", "Savannah Lions"
+  start turn 2 B
+  turn 2 end A: cast "Grizzly Bears"
+  illegal turn 2 end A: cast "Savannah Lions"
+  run_to turn 2 cleanup
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Warping Wail exiles a 5/1" {
+  battlefield A: "Wastes", "Mountain"
+  hand A: "Warping Wail"
+  battlefield B: "Dross Crocodile"
+  turn 1 A: cast "Warping Wail" mode 1 targeting "Dross Crocodile"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Dross Crocodile"
+}

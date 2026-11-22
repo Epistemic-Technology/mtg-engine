@@ -1,0 +1,10 @@
+card "Surrak Dragonclaw" {
+  oracle_id 7c766365-82c2-46d6-8521-42e73129f4ef
+  cost {2}{G}{U}{R}
+  type Legendary Creature — Human Warrior
+  pt 6/6
+  keywords flash
+  this spell can't be countered
+  spells creature you control can't be countered
+  static other creature you control: has trample
+}

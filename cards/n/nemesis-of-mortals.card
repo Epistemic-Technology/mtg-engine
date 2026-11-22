@@ -1,0 +1,8 @@
+card "Nemesis of Mortals" {
+  oracle_id 599fc217-e0a3-45ee-b9aa-cd7f181dcdf3
+  cost {4}{G}{G}
+  type Creature — Snake
+  pt 5/5
+  this spell costs {1} less count each graveyard creature
+  activated {7}{G}{G}, reduced {1} each graveyard creature: monstrosity 5
+}

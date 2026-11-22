@@ -1,0 +1,6 @@
+card "Eiganjo, Seat of the Empire" {
+  oracle_id 7edb3d15-4f70-4ebe-8c5e-caf6a225076d
+  type Legendary Land
+  mana {W}
+  label "Channel" activated {2}{W}, discard this, reduced {1} each legendary creature you control: it deals 4 damage to target attacking or blocking creature
+}

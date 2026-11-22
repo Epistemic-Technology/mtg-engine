@@ -1,0 +1,8 @@
+card "Hypersonic Dragon" {
+  oracle_id e1bf20b0-2bd7-4a0f-9a02-41e43bd44641
+  cost {3}{U}{R}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying, haste
+  spells sorcery you cast have flash
+}

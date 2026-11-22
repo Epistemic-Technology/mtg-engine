@@ -1,0 +1,8 @@
+card "Towashi Guide-Bot" {
+  oracle_id 28bb9a58-f45a-4452-a1f4-c7609373085f
+  cost {4}
+  type Artifact Creature — Construct
+  pt 2/1
+  triggered when this enters: put 1 +1/+1 counters on target creature you control
+  activated {4}, {T}, reduced {1} each modified creature you control: draw 1 cards
+}

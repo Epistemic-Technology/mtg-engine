@@ -1,0 +1,8 @@
+card "Shimmer Myr" {
+  oracle_id e110ee80-37af-4989-a5fb-95d51dc7f102
+  cost {3}
+  type Artifact Creature — Myr
+  pt 2/2
+  keywords flash
+  spells artifact you cast have flash
+}
