@@ -1,0 +1,6 @@
+card "Fleeting Reflection" {
+  oracle_id c915f815-77d7-4e08-b178-82b29a58bb03
+  cost {1}{U}
+  type Instant
+  spell: target creature you control gains hexproof until end of turn; untap that target 1; until end of turn, target 1 becomes a copy of up to 1 another target creature until end of turn
+}

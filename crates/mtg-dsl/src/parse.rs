@@ -127,6 +127,7 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     (&["can't", "block", "alone"], Keyword::CantBlockAlone),
     (&["can't", "attack"], Keyword::CantAttack),
     (&["can't", "block"], Keyword::CantBlock),
+    (&["can't", "transform"], Keyword::CantTransform),
     (&["double", "strike"], Keyword::DoubleStrike),
     (&["first", "strike"], Keyword::FirstStrike),
     (&["deathtouch"], Keyword::Deathtouch),
@@ -7459,9 +7460,10 @@ impl P {
     /// before the clause ends or another verb starts. `return N <filter>
     /// chosen` alone is `ReturnChosen`.
     fn chosen_act_ahead(&self) -> bool {
-        const VERBS: [&str; 12] = [
+        const VERBS: [&str; 13] = [
             "tap",
             "untap",
+            "transform",
             "sacrifice",
             "discard",
             "exile",
@@ -7476,7 +7478,7 @@ impl P {
         let Some(verb) = self.word_at(0) else {
             return false;
         };
-        if !VERBS[..9].contains(&verb.as_str()) {
+        if !VERBS[..10].contains(&verb.as_str()) {
             return false;
         }
         let mut hand = false;
@@ -7539,6 +7541,7 @@ impl P {
         let (act, filter) = match verb.as_str() {
             "tap" => (ChooseAct::Tap, self.filter()?),
             "untap" => (ChooseAct::Untap, self.filter()?),
+            "transform" => (ChooseAct::Transform, self.filter()?),
             "sacrifice" => (ChooseAct::Sacrifice, self.filter()?),
             "discard" => (ChooseAct::Discard, card_filter(self)?),
             // `reveal any number green card in hand chosen`: "Reveal any
@@ -7898,6 +7901,13 @@ impl P {
         self.expect_word("battlefield")?;
         let mut tapped = self.eat_word("tapped");
         let mut attacking = tapped && self.eat_words(&["and", "attacking"]);
+        // CR 712.14a: `transformed`, `tapped and transformed`.
+        let transformed = if tapped && !attacking {
+            self.eat_words(&["and", "transformed"])
+        } else {
+            !tapped && self.eat_word("transformed")
+        };
+        let front_up = !transformed && self.eat_words(&["front", "face", "up"]);
         self.eat_words(&["under", "its", "owner's", "control"]);
         let under_you = self.eat_words(&["under", "your", "control"]);
         // "onto the battlefield under your control tapped and attacking".
@@ -7940,6 +7950,8 @@ impl P {
             additional,
             more,
             if_creature,
+            transformed,
+            front_up,
         })
     }
 
@@ -11874,6 +11886,23 @@ impl P {
                 // CR 708.2: "face-down creature".
                 "face-down" if !f.status.face_down => {
                     f.status.face_down = true;
+                    self.pos += 1;
+                }
+                // "a spell that's both white and black": `both white or
+                // black spell`.
+                "both"
+                    if !f.status.all_colors
+                        && self
+                            .word_at(1)
+                            .as_deref()
+                            .is_some_and(|w| color(w).is_some()) =>
+                {
+                    f.status.all_colors = true;
+                    self.pos += 1;
+                }
+                // CR 701.27g: "transformed permanent".
+                "transformed" if !f.status.transformed => {
+                    f.status.transformed = true;
                     self.pos += 1;
                 }
                 // CR 701.60: "suspected creature".

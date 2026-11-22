@@ -1,0 +1,14 @@
+card "Autumnal Gloom // Ancient of the Equinox" {
+  oracle_id 245aa786-d607-414f-ab55-b003b2b9faf4
+  layout transform
+  cost {2}{G}
+  type Enchantment
+  activated {B}: mill 1 cards
+  label "Delirium" triggered at beginning of your end step if 4 card types in your graveyard: transform this
+  face "Ancient of the Equinox" {
+    type Creature — Treefolk
+    pt 4/4
+    color green
+    keywords trample, hexproof
+  }
+}

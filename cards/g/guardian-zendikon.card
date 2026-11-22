@@ -1,0 +1,8 @@
+card "Guardian Zendikon" {
+  oracle_id 44154004-e50e-45d1-bde0-ba6e3354067c
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: base 2/6, set color white, add subtype Wall, add type creature, has defender
+  triggered when enchanted land dies: return triggering card to hand
+}

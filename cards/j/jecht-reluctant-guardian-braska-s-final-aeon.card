@@ -1,0 +1,17 @@
+card "Jecht, Reluctant Guardian // Braska's Final Aeon" {
+  oracle_id b6cebf8d-37e1-42de-b3f1-1c174ab17ac8
+  layout transform
+  cost {3}{B}
+  type Legendary Creature — Human Warrior
+  pt 4/3
+  keywords menace
+  triggered whenever this deals combat damage to a player: you may exile this then return this to battlefield transformed
+  face "Braska's Final Aeon" {
+    type Legendary Enchantment Creature — Saga Nightmare
+    pt 7/7
+    color black
+    label "Jecht Beam" triggered chapter 1, 2: each opponent discards a card and you draws 1 cards
+    label "Ultimate Jecht Shot" triggered chapter 3: each opponent sacrifices 2 creature
+    keyword menace
+  }
+}

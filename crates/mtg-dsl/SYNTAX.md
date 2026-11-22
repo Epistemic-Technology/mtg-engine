@@ -1376,7 +1376,10 @@ planeswalker.
 
 A filter names a kind of permanent, in the singular: `creature`,
 `creature you control`, `creature an opponent controls`, `creature you
-don't control`, `white creature`, `nonblack creature`, `nonbasic land`,
+don't control`, `white creature`, `nonblack creature`, `both white or
+black spell` (every one of the colors, not just one: "Whenever you cast a
+spell that's both white and black", the colors printed in the order
+written), `nonbasic land`,
 `other non-Aura enchantment`, `creature with flying`, `creature without
 flying`, `creature with no abilities`, `all Sliver creature` (a static
 ability's subject then prints "All Sliver creatures", as old Slivers do), `Goblin`, `Swamp you control`, `nonplaneswalker permanent you
@@ -1505,7 +1508,11 @@ on it"), and `modified` ("a modified
 creature", CR 700.9: it has a counter, is equipped, or is enchanted by an
 Aura its controller controls), `attached to creature` / `attached to land`
 ("target Aura attached to a creature": what it is attached to, CR
-303.4), `face-down` ("target face-down creature", CR 708.2), and `with toxic` ("each other creature you
+303.4), `face-down` ("target face-down creature", CR 708.2),
+`transformed` ("for each transformed permanent you control", "As long as
+you control a transformed permanent": a double-faced permanent with its
+back face up, CR 701.27g; a permanent turned back to its front face isn't
+one), and `with toxic` ("each other creature you
 control with toxic", CR 702.164: one of its abilities is toxic N, printed
 or granted; printed after the controller). As a check on a target or what
 an Aura enchants it prints "has": `if that target 1 is with toxic, draw 1
@@ -1680,7 +1687,22 @@ creature card from a graveyard`, `... from an opponent's graveyard`)
 returned `under your control` prints "put ... onto the battlefield under
 your control"; `put that target 1 onto battlefield tapped` is the same
 effect worded "put that card onto the battlefield tapped" (Zuko's
-Conviction). `it deals 1 damage to each opponent` makes the
+Conviction). `return this to battlefield transformed under your control`
+(and `tapped and transformed`; from the graveyard, `activated ..., from
+graveyard: return this to battlefield transformed`) returns a transforming
+double-faced card with its back face up (CR 712.14a): "Exile this Saga,
+then return it to the battlefield transformed under your control" is
+`exile this then return this to battlefield transformed under your
+control`; "When this creature dies, return it to the battlefield tapped and
+transformed under its owner's control". Any other card stays where it is.
+The source is found as the card it became by being exiled or dying, but
+not once that card has left the graveyard or exile again (CR 400.7: the
+delayed `delayed this: return this to battlefield transformed ... at
+beginning of the next end step` of Loyal Cathar misses a card exiled from
+the graveyard first). `... front face up` is the same return worded "return
+it to the battlefield (front face up)" (wording only: a back face's "Exile
+Shiva, then return it to the battlefield (front face up).").
+`it deals 1 damage to each opponent` makes the
 triggering creature the damage's source (CR 120.3: Hawkeye's Bow), and
 `that defending player` prints "defending player" where `defending
 player` as an object prints "the player or planeswalker it's attacking".
@@ -1851,12 +1873,25 @@ turn": no regeneration shield replaces its destruction this turn, CR
 didn't have defender` ("can attack this turn as though it didn't have
 defender"), `<what> gains lure` ("All creatures able to block <what> this turn
 do so."), `<what> fights <what>`, `<what> has base power and toughness 4/4`,
-`<what> becomes 2/2 Assembly-Worker artifact creature`, `this becomes a
+`<what> becomes 2/2 Assembly-Worker artifact creature` (a land stays a
+land, CR 205.1b: on a target land it prints "that's still a land" when no
+duration follows, `until end of turn, target land becomes 3/3 creature`
+"Until end of turn, target land becomes a 3/3 creature that's still a
+land.", else ". It's still a land."; an Aura's `static enchanted: base 4/2,
+set color red, add subtype Beast, add type creature, has trample` prints
+"Enchanted land is a 4/2 red Beast creature with trample. It's still a
+land."), `this becomes a
 copy of <what> [with exceptions]` (any subject: `target Shapeshifter
 becomes a copy of target creature until your next turn`, `each single
 other creature becomes a copy of target nonlegendary creature until end of
 turn`, "Each other creature becomes ..."; `until end of turn` and `until
-your next turn` end the copy effect, the permanent getting back what it
+your next turn` end the copy effect (`until end of turn, target 1 becomes
+a copy of up to 1 another target creature until end of turn` prints
+"Until end of turn, it becomes a copy of up to one other target
+creature."; the same target kind twice, `target artifact you control
+becomes a copy of target artifact you control with exceptions until end of
+turn`, prints "... a copy of a second target artifact you control ...",
+two different artifacts), the permanent getting back what it
 was unless it has become a copy of something else since; a card in a
 graveyard or exile can be copied too), `<what> bites <what>` ("deals damage
 equal to its power to"; the creature is the damage's source, so its
@@ -2678,6 +2713,10 @@ do` then sees:
 - `tap 1 other untapped Citizen you control chosen` ("tap another untapped
   Citizen you control"), `tap 2 other untapped creature you control chosen`
 - `sacrifice 1 creature chosen` ("sacrifice a creature")
+- `transform 1 Incubator token you control chosen` ("transform an
+  Incubator token you control", CR 701.27: permanents you control; one
+  that can't transform is still chosen), `transform any number Human
+  Werewolf you control chosen`
 - `discard 1 creature card chosen` ("discard a creature card")
 - `reveal any number green card in hand chosen` ("reveal any number of
   green cards in your hand", CR 701.20a): the cards stay in the hand,
@@ -3154,7 +3193,10 @@ creature counts for when tapped for a crew (and, with `saddles`, a
 saddle) cost. `can't crew Vehicles` is a restriction like `can't block`
 (CR 702.122d): `static enchanted: has can't attack, can't block, can't
 crew Vehicles` prints "Enchanted creature can't attack, block, or crew
-Vehicles." In a trigger on `Vehicle you control attacks`, `that
+Vehicles." `can't transform` is a restriction too (CR 701.27): no effect,
+and no change of day or night, transforms the permanent; `static enchanted:
+has can't attack, can't block, can't transform` prints "Enchanted creature
+can't attack, block, or transform." (Bound by Moonsilver). In a trigger on `Vehicle you control attacks`, `that
 Vehicle` is the attacking Vehicle.
 
 `replace this dies: exile`: "If this creature would die, exile it

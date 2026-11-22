@@ -1,0 +1,7 @@
+card "Nightsky Mimic" {
+  oracle_id ed186aea-e0dc-4d88-a619-748b2ebf0c52
+  cost {1}{W/B}
+  type Creature — Shapeshifter
+  pt 2/1
+  triggered whenever you cast both white or black spell: this has base power and toughness 4/4 and gains flying
+}

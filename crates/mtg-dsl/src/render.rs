@@ -273,6 +273,7 @@ pub fn is_restriction(k: Keyword) -> bool {
             | Keyword::CantCrew
             | Keyword::UntapsDuringOthers
             | Keyword::AssignsToughness
+            | Keyword::CantTransform
     )
 }
 
@@ -313,7 +314,12 @@ fn lure_sentence(what: &str, this_turn: bool) -> String {
 /// "can't attack or block", "can't block", ...
 fn restriction_phrase(ks: &[Keyword]) -> String {
     let mut parts = Vec::new();
-    if ks.contains(&Keyword::CantAttack)
+    // "Enchanted creature can't attack, block, or transform." (Bound by
+    // Moonsilver).
+    let transform = ks.contains(&Keyword::CantTransform);
+    if transform && ks.contains(&Keyword::CantAttack) && ks.contains(&Keyword::CantBlock) {
+        parts.push("can't attack, block, or transform".to_string());
+    } else if ks.contains(&Keyword::CantAttack)
         && ks.contains(&Keyword::CantBlock)
         && ks.contains(&Keyword::CantCrew)
     {
@@ -335,6 +341,9 @@ fn restriction_phrase(ks: &[Keyword]) -> String {
                 parts.push(keyword_name(*k).to_string());
             }
         }
+    }
+    if transform && !(ks.contains(&Keyword::CantAttack) && ks.contains(&Keyword::CantBlock)) {
+        parts.push("can't transform".to_string());
     }
     for k in ks {
         if matches!(
@@ -478,6 +487,21 @@ fn lower_spell_subject(f: &Filter) -> bool {
 }
 
 fn a_spell(f: &Filter, card: &Card) -> String {
+    // "a spell that's both white and black" (CR 105.2).
+    if f.status.all_colors
+        && let Some(cs) = &f.colors
+    {
+        let mut g = f.clone();
+        g.colors = None;
+        g.status.all_colors = false;
+        let names: Vec<&str> = cs.iter().map(|c| color_name(*c)).collect();
+        let a = if g == Filter::default() {
+            "a spell".to_string()
+        } else {
+            a_spell(&g, card)
+        };
+        return format!("{a} that's both {}", names.join(" and "));
+    }
     // "a Lesson or Shrine spell": two creature or card types alone share
     // the article and the noun (`Lesson spell or Shrine spell` prints each
     // whole).
@@ -2473,6 +2497,21 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
 
 #[allow(clippy::too_many_lines)] // one clause per qualifier
 fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
+    // "a spell that's both white and black" (CR 105.2).
+    if f.status.all_colors
+        && let Some(cs) = &f.colors
+    {
+        let mut g = f.clone();
+        g.colors = None;
+        g.status.all_colors = false;
+        let names: Vec<&str> = cs.iter().map(|c| color_name(*c)).collect();
+        return format!(
+            "{} {} both {}",
+            filter_phrase_one(&g, card, plural_form),
+            if plural_form { "that are" } else { "that's" },
+            names.join(" and ")
+        );
+    }
     if f.enchanted {
         if is_equipment(card) {
             return "equipped creature".to_string();
@@ -2512,6 +2551,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if f.status.face_down {
         words.push("face-down".to_string());
+    }
+    if f.status.transformed {
+        words.push("transformed".to_string());
     }
     if f.status.suspected == Some(true) {
         words.push("suspected".to_string());
@@ -6270,6 +6312,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             additional,
             more,
             if_creature,
+            transformed,
+            front_up,
         } => {
             let what_ref = what;
             // `that card` prints "that card", `it` (inside a delayed
@@ -6325,15 +6369,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     ctx.target_noun[*i] = "permanent".to_string();
                 }
             }
-            let tapped = match (*tapped, *attacking) {
-                (true, true) => " tapped and attacking",
-                (true, false) => " tapped",
+            let tapped = match (*tapped, *attacking, *transformed) {
+                (true, true, _) => " tapped and attacking",
+                // CR 712.14a: "return it to the battlefield tapped and
+                // transformed under its owner's control".
+                (true, false, true) => " tapped and transformed",
+                (true, false, false) => " tapped",
+                (false, _, true) => " transformed",
                 _ => "",
             };
             // Activated from the graveyard: "Return this card from your
             // graveyard to the battlefield tapped."
             let from_graveyard = *what == Recipient::Source && works_from_graveyard(ctx.current);
-            let mut text = if *attacking && (others || (*put && *under_you)) {
+            let mut text = if *front_up {
+                // A transforming card's back face returning itself (CR
+                // 712.14): "return it to the battlefield (front face up)".
+                format!("return {o} to the battlefield{tapped} (front face up)")
+            } else if *attacking && (others || (*put && *under_you)) {
                 // "put target creature card from defending player's
                 // graveyard onto the battlefield under your control tapped
                 // and attacking".
@@ -6376,7 +6428,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // battlefield under their owners' control."
                 format!("return {o} to the battlefield{tapped} under their owners' control")
             } else {
-                format!("return {o} to the battlefield{tapped} under its owner's control")
+                // "Exile Nicol Bolas, then return him to the battlefield
+                // transformed under his owner's control."
+                let its = match (what, ctx.card.pronoun) {
+                    (Recipient::Source, Some(crate::ast::Pronoun::He)) => "his",
+                    (Recipient::Source, Some(crate::ast::Pronoun::She)) => "her",
+                    _ => "its",
+                };
+                format!("return {o} to the battlefield{tapped} under {its} owner's control")
             };
             if let Some((kind, n)) = c {
                 let mut what = counters(Num::N(*n), *kind);
@@ -6938,10 +6997,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 ctx.subj(*who)
             };
-            let o = ctx.obj(*of);
+            let mut o = ctx.obj(*of);
+            // "Target artifact you control becomes a copy of a second
+            // target artifact you control" (Shuri): the same kind of target
+            // twice.
+            if let (Recipient::Target(w), Recipient::Target(f)) = (who, of)
+                && w < f
+                && ctx.targets.get(*w) == ctx.targets.get(*f)
+                && o.starts_with("target ")
+            {
+                o = format!("a second {o}");
+            }
             let mut text = format!("becomes a copy of {o}");
             match until {
                 mtg_core::card::CopyUntil::Permanent => {}
+                // "Until end of turn, it becomes a copy of ..." (Fleeting
+                // Reflection): the duration printed first.
+                mtg_core::card::CopyUntil::EndOfTurn if ctx.eot_first => {}
                 mtg_core::card::CopyUntil::EndOfTurn => text.push_str(" until end of turn"),
                 mtg_core::card::CopyUntil::YourNextTurn => text.push_str(" until your next turn"),
             }
@@ -7547,6 +7619,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(match act {
                 ChooseAct::Tap | ChooseAct::Enlist => format!("tap {}", permanents()),
                 ChooseAct::Untap => format!("untap {}", permanents()),
+                ChooseAct::Transform => format!("transform {}", permanents()),
                 ChooseAct::Sacrifice => format!("sacrifice {}", permanents()),
                 ChooseAct::Bounce => format!(
                     "return {} to {} owner's hand",
@@ -8292,14 +8365,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let land_target = matches!(*to, Recipient::Target(i) if matches!(
                 ctx.targets[i].base(),
                 Target::Filter(f) if f.types == [CardType::Land]
-            ));
+            ) || (types.contains(&CardType::Creature)
+                && matches!(ctx.targets[i].base(), Target::Spec(TargetSpec::Land))));
             if (ctx.card.types.contains(&CardType::Land) || land_target)
                 && !types.contains(&CardType::Land)
             {
-                if *indefinite && land_target && !ctx.card.types.contains(&CardType::Land) {
+                if (*indefinite || (ctx.eot_first && keywords.is_empty()))
+                    && land_target
+                    && !ctx.card.types.contains(&CardType::Land)
+                {
                     // "target land you control becomes a 3/3 Elemental
                     // creature with haste that's still a land" (Brave the
-                    // Wilds): with no duration after it.
+                    // Wilds), "Until end of turn, target land becomes a 3/3
+                    // creature that's still a land" (Lifespark Spellbomb):
+                    // with no duration after it.
                     clause.text.push_str(" that's still a land");
                 } else {
                     clause.tail.push_str(". It's still a land");
@@ -9707,8 +9786,18 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
         .collect::<Vec<_>>()
         .windows(2)
         .any(|w| w[0] != w[1]);
+    // "this creature has base power and toughness 4/4 until end of turn
+    // and gains flying until end of turn" (the Mimics): a base power and
+    // toughness keeps its own duration, unless the duration comes first
+    // ("Until end of turn, target creature you control has base power and
+    // toughness 4/4 and gains flying").
+    let base_pt_apart = s
+        .effects
+        .iter()
+        .any(|e| matches!(e, Effect::SetBasePt { .. }));
     let shared_suffix = clauses.len() > 1
         && !pumps_apart
+        && !base_pt_apart
         && clauses[0].suffix.is_some()
         && clauses.iter().all(|c| c.suffix == clauses[0].suffix);
     // CR 611.2b: a duration other than "until end of turn" in its place.
@@ -9810,12 +9899,13 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
         out.push_str(text);
         // "creatures you control get +1/+0 and gain haste until end of
         // turn": the same subject's clauses share one duration.
-        let next_shares = clauses.get(i + 1).is_some_and(|d| {
-            s.joins.get(i) == Some(&Join::And)
-                && d.suffix == c.suffix
-                && d.subject.as_ref().map(|(r, _)| *r) == prev_subject
-                && c.subject.is_some()
-        });
+        let next_shares = !base_pt_apart
+            && clauses.get(i + 1).is_some_and(|d| {
+                s.joins.get(i) == Some(&Join::And)
+                    && d.suffix == c.suffix
+                    && d.subject.as_ref().map(|(r, _)| *r) == prev_subject
+                    && c.subject.is_some()
+            });
         if let Some(suffix) = c.suffix
             && !shared_suffix
             && !s.eot_first
@@ -10700,6 +10790,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             });
             if base == Filter::default() {
                 return format!("whenever {who} a spell{that}");
+            }
+            // "Whenever you cast a spell that's both white and black" (the
+            // Shadowmoor Mimics, CR 105.2).
+            if base.status.all_colors && base.colors.is_some() && base.targeting.is_none() {
+                return format!("whenever {who} {}{that}", a_spell(&base, ctx.card));
             }
             // "an instant or sorcery spell with mana value 4 or less".
             if !base.any_types.is_empty() {

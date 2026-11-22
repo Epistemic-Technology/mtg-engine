@@ -1,0 +1,24 @@
+# A permanent that grants itself a dies trigger ("As long as you control
+# another Wizard, this creature has 'When this creature dies, draw a
+# card.'") triggers as it dies even when it was the only permanent granting
+# abilities (its grant leaves with it; CR 603.10a looks back).
+
+scenario "self-granted dies trigger: the only grant source" {
+  battlefield A: "Expedition Diviner", "Prodigal Sorcerer"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Expedition Diviner"
+  run_to turn 1 end
+  assert graveyard A contains "Expedition Diviner"
+  assert hand A count 1
+}
+
+scenario "self-granted dies trigger: not without the condition" {
+  battlefield A: "Expedition Diviner", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Expedition Diviner"
+  run_to turn 1 end
+  assert graveyard A contains "Expedition Diviner"
+  assert hand A count 0
+}

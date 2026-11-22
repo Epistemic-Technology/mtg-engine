@@ -1,0 +1,158 @@
+# "Exile this Saga, then return it to the battlefield transformed under
+# your control", "When this creature dies, return it to the battlefield
+# transformed", "Return this card from your graveyard to the battlefield
+# transformed" (CR 712.14a): the card returns as a new object with its back
+# face up (CR 400.7). "Exile Shiva, then return it to the battlefield (front
+# face up)" returns a back face as its front face (CR 712.14).
+
+scenario "return transformed: a Saga's last chapter returns it as its back face" {
+  battlefield A: "Befriending the Moths" with 2 lore
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Imperial Moth"
+  assert battlefield A lacks "Befriending the Moths"
+  assert has "Imperial Moth" flying
+  assert power "Imperial Moth" 2
+  assert toughness "Imperial Moth" 4
+  assert graveyard A count 0
+  assert exile A count 0
+}
+
+scenario "return transformed: earlier chapters don't transform it" {
+  battlefield A: "Befriending the Moths" with 1 lore, "Grizzly Bears"
+  turn 1 A: trigger "Befriending the Moths" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Befriending the Moths"
+  assert battlefield A lacks "Imperial Moth"
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" flying
+}
+
+scenario "return transformed: the back face has none of the Saga's chapters" {
+  battlefield A: "Okiba Reckoner Raid" with 2 lore
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Nezumi Road Captain"
+  assert has "Nezumi Road Captain" menace
+  assert life B 20
+}
+
+scenario "return transformed: dies, back as the Equipment" {
+  battlefield A: "Harvest Hand"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 B
+  turn 1 B: cast "Lightning Bolt" targeting "Harvest Hand"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Scrounged Scythe"
+  assert graveyard A count 0
+}
+
+scenario "return transformed: the Equipment gives a Human menace" {
+  battlefield A: "Scrounged Scythe", "Thraben Inspector", "Grizzly Bears", 4 "Plains"
+  turn 1 A: activate "Scrounged Scythe" targeting "Thraben Inspector"
+  turn 1 A: activate "Scrounged Scythe" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert power "Thraben Inspector" 1
+  assert has not "Grizzly Bears" menace
+}
+
+scenario "return transformed: at the beginning of the next end step" {
+  battlefield A: "Loyal Cathar"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 B
+  turn 1 B: cast "Lightning Bolt" targeting "Loyal Cathar"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Loyal Cathar"
+  assert battlefield A lacks "Unhallowed Cathar"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Unhallowed Cathar"
+  assert power "Unhallowed Cathar" 2
+  assert toughness "Unhallowed Cathar" 1
+  assert graveyard A count 0
+}
+
+scenario "return transformed: the delayed return misses a card that left the graveyard" {
+  battlefield A: "Loyal Cathar"
+  battlefield B: "Mountain", "Swamp"
+  hand B: "Lightning Bolt", "Bojuka Bog"
+  start turn 1 B
+  turn 1 B: cast "Lightning Bolt" targeting "Loyal Cathar"
+  turn 1 B: play "Bojuka Bog"
+  turn 1 B: trigger "Bojuka Bog" targeting player A
+  run_to turn 2 untap
+  assert battlefield A lacks "Unhallowed Cathar"
+  assert exile A contains "Loyal Cathar"
+}
+
+scenario "return transformed: an activated ability, the back face a Saga" {
+  battlefield A: "Crystal Fragments", 7 "Plains"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Crystal Fragments" ability 1
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Summon: Alexander"
+  assert counters "Summon: Alexander" lore 1
+  assert has "Summon: Alexander" flying
+}
+
+scenario "return transformed: only as a sorcery" {
+  battlefield A: "Crystal Fragments", 7 "Plains"
+  start turn 2 B
+  illegal turn 2 A: activate "Crystal Fragments" ability 1
+  run_to turn 2 end
+  assert battlefield A contains "Crystal Fragments"
+}
+
+scenario "return transformed: from the graveyard" {
+  battlefield A: 3 "Swamp", 4 "Mountain"
+  graveyard A: "Garland, Knight of Cornelia"
+  turn 1 A: activate "Garland, Knight of Cornelia"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Chaos, the Endless"
+  assert power "Chaos, the Endless" 5
+  assert has "Chaos, the Endless" flying
+}
+
+scenario "return transformed: Jill becomes Shiva, and Shiva's last chapter brings Jill back" {
+  battlefield A: "Jill, Shiva's Dominant", 5 "Island"
+  battlefield B: "Grizzly Bears", "Forest"
+  turn 1 A: activate "Jill, Shiva's Dominant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Shiva, Warden of Ice"
+  assert counters "Shiva, Warden of Ice" lore 1
+}
+
+scenario "return transformed: front face up after the back face's last chapter" {
+  # The scenario runner sets up a back face as a card of its own, so Shiva
+  # is reached through Jill.
+  battlefield A: "Jill, Shiva's Dominant", 5 "Island"
+  battlefield B: "Grizzly Bears", "Forest"
+  turn 1 A: activate "Jill, Shiva's Dominant"
+  turn 5 A: trigger "Jill, Shiva's Dominant" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert counters "Shiva, Warden of Ice" lore 2
+  run_to turn 5 postcombat_main
+  assert battlefield A contains "Jill, Shiva's Dominant"
+  assert battlefield A lacks "Shiva, Warden of Ice"
+  assert tapped "Forest"
+  assert hand B contains "Grizzly Bears"
+  assert exile A count 0
+}
+
+scenario "return transformed: a 'you may' combat damage trigger, accepted" {
+  battlefield A: "Jecht, Reluctant Guardian"
+  turn 1 A: attack "Jecht, Reluctant Guardian"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert battlefield A contains "Braska's Final Aeon"
+  assert counters "Braska's Final Aeon" lore 1
+}
+
+scenario "return transformed: a 'you may' combat damage trigger, declined" {
+  battlefield A: "Jecht, Reluctant Guardian"
+  turn 1 A: attack "Jecht, Reluctant Guardian"
+  turn 1 A: decline "Jecht, Reluctant Guardian"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Jecht, Reluctant Guardian"
+  assert exile A count 0
+}

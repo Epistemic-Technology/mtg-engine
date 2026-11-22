@@ -1,0 +1,17 @@
+card "Crystal Fragments // Summon: Alexander" {
+  oracle_id b291d046-7649-4a05-98c4-224ecaece912
+  layout transform
+  cost {W}
+  type Artifact — Equipment
+  static equipped creature: +1/+1
+  activated {5}{W}{W}, sorcery: exile this then return this to battlefield transformed
+  equip {1}
+  face "Summon: Alexander" {
+    type Enchantment Creature — Saga Construct
+    pt 4/3
+    color white
+    triggered chapter 1, 2: prevent all damage to creature you control this turn
+    triggered chapter 3: tap each creature your opponents control
+    keyword flying
+  }
+}

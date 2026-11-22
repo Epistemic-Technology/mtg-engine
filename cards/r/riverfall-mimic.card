@@ -1,0 +1,7 @@
+card "Riverfall Mimic" {
+  oracle_id 16948dd9-959b-4972-b337-37ecc2b141bd
+  cost {1}{U/R}
+  type Creature — Shapeshifter
+  pt 2/1
+  triggered whenever you cast both blue or red spell: this has base power and toughness 3/3 and can't be blocked this turn
+}

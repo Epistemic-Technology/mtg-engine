@@ -733,9 +733,13 @@ impl GameState {
             return true;
         }
         // The object that left may itself have a leaves-the-battlefield
-        // trigger; a cycled card, a "when you cycle this card" trigger.
+        // trigger (or have granted itself one: "As long as you control an
+        // artifact, this creature has 'When this creature dies, draw a
+        // card.'", its grant gone with it); a cycled card, a "when you
+        // cycle this card" trigger.
         matches!(event, Event::ZoneChange { def, .. } | Event::Cycled { def, .. }
-            if self.pool.get(*def).has_triggers())
+            if self.pool.get(*def).has_triggers()
+                || self.pool.get(*def).flags().grants_abilities())
             || matches!(event, Event::Cast { def, .. } if self.pool.get(*def).may_watch(event))
     }
 
@@ -753,7 +757,13 @@ impl GameState {
             let mut out: Vec<Watcher> = lb
                 .iter()
                 .filter(|l| {
-                    self.may_watch(l.characteristics.def, l.except, event) || self.grants_exist()
+                    self.may_watch(l.characteristics.def, l.except, event)
+                        || self.grants_exist()
+                        || self
+                            .pool
+                            .get(l.characteristics.def)
+                            .flags()
+                            .grants_abilities()
                 })
                 .map(|l| Watcher {
                     source: l.id,
@@ -794,7 +804,9 @@ impl GameState {
         if leaves
             && let Event::ZoneChange { old, .. } = event
             && let Some(l) = self.lki.get(old)
-            && (self.may_watch(l.object.def, l.object.except, event) || self.grants_exist())
+            && (self.may_watch(l.object.def, l.object.except, event)
+                || self.grants_exist()
+                || self.pool.get(l.object.def).flags().grants_abilities())
         {
             out.push(Watcher {
                 source: *old,

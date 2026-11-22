@@ -1,0 +1,15 @@
+card "Okiba Reckoner Raid // Nezumi Road Captain" {
+  oracle_id 54257132-c67a-4c19-bada-08e7025c2929
+  layout transform
+  cost {B}
+  type Enchantment — Saga
+  triggered chapter 1, 2: each opponent loses 1 life and you gain 1 life
+  triggered chapter 3: exile this then return this to battlefield transformed under your control
+  face "Nezumi Road Captain" {
+    type Enchantment Creature — Rat Rogue
+    pt 2/2
+    color black
+    keywords menace
+    static Vehicle you control: has menace
+  }
+}

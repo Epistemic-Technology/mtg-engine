@@ -1284,6 +1284,8 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
             | "this land"
             | "this Aura"
             | "this Siege"
+            | "this Equipment"
+            | "this Vehicle"
             | "~"
     ) {
         return Some("this".to_string());
@@ -2098,8 +2100,60 @@ impl Templates {
                 ))
             }),
             (
-                r(r"^[Tt]ransform (this creature|this artifact|this permanent|it|~)$"),
+                r(
+                    r"^[Tt]ransform (this creature|this artifact|this permanent|this enchantment|this land|this Equipment|this Vehicle|it|~)$",
+                ),
                 |_, _| Some("transform this".to_string()),
+            ),
+            // "Until end of turn, target land becomes a 3/3 creature that's
+            // still a land" (CR 205.1b).
+            (
+                r(
+                    r"^Until end of turn, (target land(?: you control)?) becomes an? (\d+)/(\d+) creature that's still a land$",
+                ),
+                |c, t| {
+                    Some(format!(
+                        "until end of turn, {} becomes {}/{} creature",
+                        recipient(cap(c, 1), t)?,
+                        cap(c, 2),
+                        cap(c, 3)
+                    ))
+                },
+            ),
+            // The Mimics: "this creature has base power and toughness 4/4
+            // until end of turn and gains flying until end of turn".
+            (
+                r(
+                    r"^(?:[Tt]his creature|~) has base power and toughness (\d+)/(\d+) until end of turn and (?:gains ([a-z ]+) until end of turn|(can't be blocked) this turn)$",
+                ),
+                |c, _| {
+                    let rest = match c.get(4) {
+                        Some(_) => "can't be blocked this turn".to_string(),
+                        None => format!("gains {}", cap(c, 3)),
+                    };
+                    Some(format!(
+                        "this has base power and toughness {}/{} and {rest}",
+                        cap(c, 1),
+                        cap(c, 2)
+                    ))
+                },
+            ),
+            // CR 701.27: "Transform target Incubator token you control",
+            // "transform an Incubator token you control" (chosen as it
+            // resolves), "transform all Humans".
+            (r(r"^[Tt]ransform (target .+|all .+)$"), |c, t| {
+                Some(format!("transform {}", recipient(cap(c, 1), t)?))
+            }),
+            (
+                r(r"^[Tt]ransform (an?|any number of) (.+? you control)$"),
+                |c, _| {
+                    let n = if cap(c, 1) == "any number of" {
+                        "any number"
+                    } else {
+                        "1"
+                    };
+                    Some(format!("transform {n} {} chosen", singular(cap(c, 2))))
+                },
             ),
             // CR 701.42a: a meld card's "exile them, then meld them".
             (
@@ -2843,6 +2897,40 @@ impl Templates {
                         "the battlefield" => "return this to battlefield".to_string(),
                         _ => "return this to battlefield tapped".to_string(),
                     })
+                },
+            ),
+            // A transforming card's back face returning itself: "Exile
+            // Shiva, then return it to the battlefield (front face up)."
+            // (CR 712.14; Oracle names no controller only there).
+            (
+                r(r"^Exile ~, then return it to the battlefield$"),
+                |_, _| Some("exile this then return this to battlefield front face up".to_string()),
+            ),
+            // CR 712.14a: "Exile this Saga, then return it to the
+            // battlefield transformed under your control", "When this
+            // creature dies, return it to the battlefield tapped and
+            // transformed under its owner's control", "Return this card
+            // from your graveyard to the battlefield transformed". "It" is
+            // the source: where it isn't, the source's name or noun prints
+            // and the gate refuses the card.
+            (
+                r(
+                    r"^[Rr]eturn (?:it|him|her|this card from your graveyard) to the battlefield( tapped and)? transformed( under your control| under (?:its|his|her) owner's control)?$",
+                ),
+                |c, _| {
+                    let tapped = if c.get(1).is_some() {
+                        " tapped and"
+                    } else {
+                        ""
+                    };
+                    let under = if cap(c, 2) == " under your control" {
+                        " under your control"
+                    } else {
+                        ""
+                    };
+                    Some(format!(
+                        "return this to battlefield{tapped} transformed{under}"
+                    ))
                 },
             ),
             (
@@ -3809,6 +3897,7 @@ impl Templates {
                 || body == "Discard all the cards in your hand, then draw that many cards"
                 || body.ends_with("explores, then it explores again")
                 || body.contains(", then meld them into ")
+                || body == "Exile ~, then return it to the battlefield"
             {
                 vec![body.as_str()]
             } else {
@@ -4403,6 +4492,19 @@ fn trigger_text(head: &str) -> Option<String> {
             if let Some(c) = mv.captures(head) {
                 return Some(format!(
                     "whenever you cast with mana value {} or {} spell",
+                    cap(&c, 1),
+                    cap(&c, 2)
+                ));
+            }
+            // "Whenever you cast a spell that's both white and black" (CR
+            // 105.2: every one of the colors).
+            let both = Regex::new(
+                r"^Whenever you cast a spell that's both (white|blue|black|red|green) and (white|blue|black|red|green)$",
+            )
+            .unwrap();
+            if let Some(c) = both.captures(head) {
+                return Some(format!(
+                    "whenever you cast both {} or {} spell",
                     cap(&c, 1),
                     cap(&c, 2)
                 ));
@@ -5844,6 +5946,32 @@ impl Builder<'_> {
             self.statements.push(format!("static enchanted: has {ks}"));
             return Ok(());
         }
+        if line == "Enchanted creature can't attack, block, or transform." {
+            self.statements.push(
+                "static enchanted: has can't attack, can't block, can't transform".to_string(),
+            );
+            return Ok(());
+        }
+        // The Zendikons: "Enchanted land is a 4/2 red Beast creature with
+        // trample. It's still a land." (CR 205.1b).
+        if let Some(c) = Regex::new(
+            r"^Enchanted land is an? (\d+)/(\d+) (white|blue|black|red|green) ([A-Z][a-z]+) creature(?: with ([a-z ]+))?\. It's still a land\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let has = c
+                .get(5)
+                .map_or(String::new(), |k| format!(", has {}", k.as_str()));
+            self.statements.push(format!(
+                "static enchanted: base {}/{}, set color {}, add subtype {}, add type creature{has}",
+                cap(&c, 1),
+                cap(&c, 2),
+                cap(&c, 3),
+                cap(&c, 4)
+            ));
+            return Ok(());
+        }
         if line == "This creature doesn't untap during your untap step."
             || line == "This artifact doesn't untap during your untap step."
             || line == "This land doesn't untap during your untap step."
@@ -6788,6 +6916,10 @@ impl Builder<'_> {
                 "Return this card from your graveyard to the battlefield tapped" => {
                     Some("return this to battlefield tapped")
                 }
+                // CR 712.14a.
+                "Return this card from your graveyard to the battlefield transformed" => {
+                    Some("return this to battlefield transformed")
+                }
                 _ => None,
             };
             if let Some(effect) = from_graveyard {
@@ -6901,7 +7033,16 @@ impl Builder<'_> {
                 (c, _) => (c.to_string(), rest),
             };
             let mut targets = 0;
-            let effects = self.templates.effects(rest, &mut targets)?;
+            // The Zendikons: "When enchanted land dies, return that card to
+            // its owner's hand." ("that card" is the land that died).
+            let effects = if trigger.starts_with("when enchanted ")
+                && trigger.ends_with(" dies")
+                && rest.trim_end_matches('.') == "return that card to its owner's hand"
+            {
+                "return triggering card to hand".to_string()
+            } else {
+                self.templates.effects(rest, &mut targets)?
+            };
             // "Whenever you cast a multicolored spell, you may return this
             // card from your graveyard to your hand." triggers from the
             // graveyard (a dies trigger looks back instead).

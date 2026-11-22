@@ -1523,6 +1523,7 @@ impl GameState {
             | ChooseAct::Untap
             | ChooseAct::Sacrifice
             | ChooseAct::Bounce
+            | ChooseAct::Transform
             | ChooseAct::AttachToTarget(_) => self
                 .battlefield
                 .iter()
@@ -1713,6 +1714,7 @@ impl GameState {
                     }
                 }
                 ChooseAct::Untap => self.untap(id),
+                ChooseAct::Transform => self.transform_by_effect(id),
                 ChooseAct::Sacrifice => self.sacrifice(id),
                 ChooseAct::Discard => self.discard_card(p, id),
                 // CR 701.20a: revealed where it is, for "cards revealed
@@ -3969,6 +3971,19 @@ impl GameState {
         self.cbump();
     }
 
+    /// "Transform this creature", "transform an Incubator token you
+    /// control": a daybound or nightbound permanent transforms only by
+    /// those abilities (CR 702.145b, e).
+    fn transform_by_effect(&mut self, id: ObjId) {
+        if self.objects.get(id).is_some_and(|o| {
+            let m = self.pool.get(o.def).marks;
+            m.has(crate::card::Marks::DAYBOUND) || m.has(crate::card::Marks::NIGHTBOUND)
+        }) {
+            return;
+        }
+        self.transform_now(id);
+    }
+
     pub(super) fn transform_now(&mut self, id: ObjId) -> bool {
         let Some(o) = self.objects.get(id) else {
             return false;
@@ -3984,6 +3999,13 @@ impl GameState {
         let Some(other) = d.faces.first().copied() else {
             return false;
         };
+        // "Enchanted creature can't attack, block, or transform."
+        if self
+            .characteristics(id)
+            .is_some_and(|c| c.has(Keyword::CantTransform))
+        {
+            return false;
+        }
         let legendary = d.is_legendary();
         let flags = self.flags_of(&self.objects[id]);
         self.count_sources(flags, legendary, false);
@@ -10048,18 +10070,9 @@ impl GameState {
             }
             Effect::Transform { what } => {
                 for t in self.recipients(ctx, *what) {
-                    let Target::Object(id) = t else {
-                        continue;
-                    };
-                    // CR 702.145b, e: a daybound or nightbound permanent
-                    // transforms only by those abilities.
-                    if self.objects.get(id).is_some_and(|o| {
-                        let m = self.pool.get(o.def).marks;
-                        m.has(crate::card::Marks::DAYBOUND) || m.has(crate::card::Marks::NIGHTBOUND)
-                    }) {
-                        continue;
+                    if let Target::Object(id) = t {
+                        self.transform_by_effect(id);
                     }
-                    self.transform_now(id);
                 }
             }
             Effect::AddMana(mana) => {
@@ -12304,6 +12317,7 @@ impl GameState {
                 attached,
                 more,
                 if_creature,
+                transformed,
             } => {
                 if *what == crate::card::Recipient::Source && self.source_left_graveyard(ctx) {
                     return;
@@ -12323,7 +12337,20 @@ impl GameState {
                     }
                     None => None,
                 };
-                for t in self.recipients(ctx, *what) {
+                // "When this dies, return it ... at the beginning of the
+                // next end step": a card that has left the graveyard (or
+                // exile) since is a new object the ability can't find (CR
+                // 400.7); "exile this, then return it" finds the exiled
+                // card.
+                let found: SmallVec<[Target; 2]> = if *what == crate::card::Recipient::Source {
+                    self.current_object_from_battlefield(ctx.source)
+                        .map(Target::Object)
+                        .into_iter()
+                        .collect()
+                } else {
+                    self.recipients(ctx, *what)
+                };
+                for t in found {
                     let Target::Object(id) = t else {
                         continue;
                     };
@@ -12358,6 +12385,22 @@ impl GameState {
                         }
                     }
                     let controller = if *under_you { ctx.controller } else { o.owner };
+                    // CR 712.14a: "return it to the battlefield
+                    // transformed": a transforming double-faced card enters
+                    // back face up; any other card stays where it is.
+                    if *transformed {
+                        let d = self.pool.get(o.card);
+                        let back = match d.faces.first() {
+                            Some(b) if d.layout == Layout::Transform && o.kind == ObjKind::Card => {
+                                *b
+                            }
+                            _ => continue,
+                        };
+                        self.objects[id].def = back;
+                    }
+                    let Some(o) = self.objects.get(id) else {
+                        continue;
+                    };
                     // "If it enters as a creature": its card's types.
                     let with = !*if_creature
                         || self

@@ -1,0 +1,7 @@
+card "Shorecrasher Mimic" {
+  oracle_id 3da837db-b3e9-46e4-939d-54ab43af94d9
+  cost {1}{G/U}
+  type Creature — Shapeshifter
+  pt 2/1
+  triggered whenever you cast both green or blue spell: this has base power and toughness 5/3 and gains trample
+}

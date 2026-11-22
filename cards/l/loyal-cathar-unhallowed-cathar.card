@@ -1,0 +1,15 @@
+card "Loyal Cathar // Unhallowed Cathar" {
+  oracle_id bf28a2ed-cad7-48a7-9dec-06e43af73e9c
+  layout transform
+  cost {W}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords vigilance
+  triggered when this dies: delayed this: return this to battlefield transformed under your control at beginning of the next end step
+  face "Unhallowed Cathar" {
+    type Creature — Zombie Soldier
+    pt 2/1
+    color black
+    keywords can't block
+  }
+}

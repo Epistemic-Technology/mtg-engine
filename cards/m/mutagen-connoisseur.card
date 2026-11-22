@@ -1,0 +1,8 @@
+card "Mutagen Connoisseur" {
+  oracle_id 07b4f5b5-47ef-43a5-af71-51693d775d4b
+  cost {1}{G}{U}
+  type Creature — Vedalken Mutant
+  pt 0/5
+  keywords flying, vigilance
+  static this: +1/+0 count each transformed permanent you control
+}

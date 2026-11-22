@@ -370,6 +370,10 @@ pub enum Keyword {
     /// both halves of this card from your hand": the fused split spell is
     /// the card's third face (CR 702.102b-d). The split card has it too.
     Fuse,
+    /// "Enchanted creature can't attack, block, or transform." (CR
+    /// 701.27): no effect transforms it. A restriction kept with the
+    /// keywords.
+    CantTransform,
 }
 
 /// The pool's built-in triggered abilities that aren't keywords on a
@@ -589,7 +593,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 75] = [
+    pub const ALL: [Keyword; 76] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -665,6 +669,7 @@ impl Keyword {
         Keyword::AssignsToughness,
         Keyword::Aftermath,
         Keyword::Fuse,
+        Keyword::CantTransform,
     ];
 
     /// The keyword as Oracle prints it.
@@ -727,6 +732,7 @@ impl Keyword {
             Keyword::SplitSecond => "split second",
             Keyword::Aftermath => "aftermath",
             Keyword::Fuse => "fuse",
+            Keyword::CantTransform => "can't transform",
             Keyword::Convoke => "convoke",
             Keyword::Improvise => "improvise",
             Keyword::Evoke => "evoke",
@@ -1310,6 +1316,15 @@ pub struct StatusQuals {
     /// `pt_either`.
     #[serde(default)]
     pub toughness_over_power: bool,
+    /// "transformed permanent": a transforming double-faced permanent with
+    /// its back face up (CR 701.27g).
+    #[serde(default)]
+    pub transformed: bool,
+    /// "a spell that's both white and black": `ObjFilter::colors` must
+    /// all be the object's, not just one (CR 105.2). A characteristic, not
+    /// game state: `any` leaves it out.
+    #[serde(default)]
+    pub all_colors: bool,
 }
 
 /// A characteristic compared with an amount the source counts
@@ -1361,6 +1376,7 @@ impl StatusQuals {
             || self.toxic
             || self.on.is_some()
             || self.face_down
+            || self.transformed
             || self.morph
             || self.suspected.is_some()
             || self.bound.is_some()
@@ -1662,7 +1678,11 @@ impl ObjFilter {
             return false;
         }
         if let Some(cs) = self.colors
-            && !c.colors.intersects(cs)
+            && !(if self.status.all_colors {
+                c.colors.union(cs) == c.colors
+            } else {
+                c.colors.intersects(cs)
+            })
         {
             return false;
         }
@@ -4379,6 +4399,11 @@ pub enum Effect {
         /// card that will be a creature (judged by its card).
         #[serde(default)]
         if_creature: bool,
+        /// "Return it to the battlefield transformed under your control"
+        /// (CR 712.14a): a transforming double-faced card enters with its
+        /// back face up; any other card stays where it is.
+        #[serde(default)]
+        transformed: bool,
     },
     /// The ability's source becomes a copy of the recipient (CR 707),
     /// keeping its own definition's `copy_except` if `except`. With `who`,
@@ -5402,6 +5427,10 @@ pub enum ChooseAct {
     /// in your hand, revealed where they are; "cards revealed this way"
     /// (`ThisWay::Revealed`) counts them.
     RevealFromHand,
+    /// "transform an Incubator token you control", "transform any number
+    /// of Human Werewolves you control" (CR 701.27; permanents you
+    /// control).
+    Transform,
 }
 
 /// What a player chooses as a permanent enters ("As this land enters,
@@ -9046,6 +9075,7 @@ impl CardPool {
                     attached: None,
                     more: None,
                     if_creature: false,
+                    transformed: false,
                 }],
             }));
         pool.builtins[Builtin::Miracle as usize] =
@@ -9131,6 +9161,7 @@ impl CardPool {
                     attached: None,
                     more: None,
                     if_creature: false,
+                    transformed: false,
                 }],
             }));
             if slot == 0 {

@@ -1,0 +1,7 @@
+card "Lifespark Spellbomb" {
+  oracle_id 3f351696-1402-4b69-b924-f0ba14320287
+  cost {1}
+  type Artifact
+  activated {G}, sacrifice this: until end of turn, target land becomes 3/3 creature
+  activated {1}, sacrifice this: draw 1 card
+}

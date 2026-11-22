@@ -1,0 +1,14 @@
+card "Tales of Master Seshiro // Seshiro's Living Legacy" {
+  oracle_id 096fbb51-be73-4edc-a051-770a12c09005
+  layout transform
+  cost {4}{G}
+  type Enchantment — Saga
+  triggered chapter 1, 2: put 1 +1/+1 counters on target creature or Vehicle you control; target 1 gains vigilance
+  triggered chapter 3: exile this then return this to battlefield transformed under your control
+  face "Seshiro's Living Legacy" {
+    type Enchantment Creature — Snake Warrior
+    pt 5/5
+    color green
+    keywords vigilance, haste
+  }
+}

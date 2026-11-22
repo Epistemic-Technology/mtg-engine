@@ -932,6 +932,7 @@ impl Decompiler<'_> {
                 attached,
                 more,
                 if_creature,
+                transformed,
             } => Effect::ReturnToBattlefield {
                 what: r(*what),
                 counters: *counters,
@@ -943,6 +944,8 @@ impl Decompiler<'_> {
                 additional: *if_creature,
                 more: *more,
                 if_creature: *if_creature,
+                transformed: *transformed,
+                front_up: false,
             },
             CoreEffect::Regenerate { to } => Effect::Regenerate { to: r(*to) },
             CoreEffect::Exile { what } | CoreEffect::ExileLinked { what, until: false } => {

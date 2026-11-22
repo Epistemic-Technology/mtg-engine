@@ -1,0 +1,18 @@
+card "Teachings of the Kirin // Kirin-Touched Orochi" {
+  oracle_id cb7edb5e-3a90-41c7-ae52-dc564086bf22
+  layout transform
+  cost {1}{G}
+  type Enchantment — Saga
+  triggered chapter 1: mill 3 cards; create 1 "1/1 colorless Spirit creature"
+  triggered chapter 2: put 1 +1/+1 counters on target creature you control
+  triggered chapter 3: exile this then return this to battlefield transformed under your control
+  face "Kirin-Touched Orochi" {
+    type Enchantment Creature — Snake Monk
+    pt 1/1
+    color green
+    triggered whenever this attacks: choose one {
+      mode: exile target creature card from a graveyard; when you do, create 1 "1/1 colorless Spirit creature"
+      mode: exile target noncreature card from a graveyard; when you do, put 1 +1/+1 counters on target creature you control
+    }
+  }
+}

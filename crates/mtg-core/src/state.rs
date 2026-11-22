@@ -2523,6 +2523,36 @@ impl GameState {
         None
     }
 
+    /// Like `current_object`, but a move out of a graveyard or exile
+    /// breaks the trail (CR 400.7): "exile this, then return it" finds the
+    /// exiled card and "when this dies, return it" the card in the
+    /// graveyard, but not that card once it has moved again.
+    pub fn current_object_from_battlefield(&self, mut id: ObjId) -> Option<ObjId> {
+        for _ in 0..8 {
+            if self.objects.contains_key(id) {
+                return Some(id);
+            }
+            let l = self.lki.get(&id)?;
+            if matches!(l.object.zone, Zone::Graveyard | Zone::Exile) {
+                return None;
+            }
+            id = l.moved_to?;
+        }
+        None
+    }
+
+    /// CR 701.27g: a double-faced permanent on the battlefield with its
+    /// back face up ("transformed permanent").
+    pub fn is_transformed(&self, o: &GameObject) -> bool {
+        o.zone == Zone::Battlefield && o.def != o.card && {
+            let d = self.pool.get(o.card);
+            matches!(
+                d.layout,
+                crate::card::Layout::Transform | crate::card::Layout::ModalDfc
+            ) && d.faces.first() == Some(&o.def)
+        }
+    }
+
     /// Name of an object, including one that has left the game.
     pub fn name_of_or_lki(&self, id: ObjId) -> &str {
         let def = self
@@ -3260,6 +3290,11 @@ impl GameState {
         }
         // CR 708.2: a face-down permanent.
         if q.face_down && !self.pool.is_face_down(o.def) {
+            return false;
+        }
+        // CR 701.27g: "transformed permanent", a double-faced permanent
+        // with its back face up.
+        if q.transformed && !self.is_transformed(o) {
             return false;
         }
         // CR 701.60: "suspected creature".

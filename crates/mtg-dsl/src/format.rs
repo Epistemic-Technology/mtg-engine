@@ -1450,6 +1450,8 @@ impl Fmt {
                 additional,
                 more,
                 if_creature,
+                transformed,
+                front_up,
             } => {
                 let mut s = if *put {
                     format!("put {} onto battlefield", self.recipient(*what, t))
@@ -1461,6 +1463,16 @@ impl Fmt {
                 }
                 if *attacking {
                     s.push_str(" and attacking");
+                }
+                if *transformed {
+                    s.push_str(if *tapped {
+                        " and transformed"
+                    } else {
+                        " transformed"
+                    });
+                }
+                if *front_up {
+                    s.push_str(" front face up");
                 }
                 if *under_you {
                     s.push_str(" under your control");
@@ -2530,6 +2542,7 @@ impl Fmt {
                 match act {
                     ChooseAct::Tap | ChooseAct::Enlist => format!("tap {n} {f} chosen"),
                     ChooseAct::Untap => format!("untap {n} {f} chosen"),
+                    ChooseAct::Transform => format!("transform {n} {f} chosen"),
                     ChooseAct::Sacrifice => format!("sacrifice {n} {f} chosen"),
                     ChooseAct::Bounce => format!("return {n} {f} to hand chosen"),
                     ChooseAct::Discard if unfiltered => format!("discard {n} {cs} chosen"),
@@ -3495,6 +3508,9 @@ fn filter_one(f: &Filter) -> String {
     if f.status.face_down {
         words.push("face-down".to_string());
     }
+    if f.status.transformed {
+        words.push("transformed".to_string());
+    }
     if f.status.suspected == Some(true) {
         words.push("suspected".to_string());
     }
@@ -3530,6 +3546,9 @@ fn filter_one(f: &Filter) -> String {
     }
     if let Some(colors) = &f.colors {
         let names: Vec<String> = colors.iter().map(|c| color_name(*c).to_string()).collect();
+        if f.status.all_colors {
+            words.push("both".to_string());
+        }
         words.push(names.join(" or "));
     }
     words.extend(f.subtypes.iter().cloned());

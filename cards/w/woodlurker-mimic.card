@@ -1,0 +1,7 @@
+card "Woodlurker Mimic" {
+  oracle_id 5f4ddd52-4940-4557-8531-40c66857d4cd
+  cost {1}{B/G}
+  type Creature — Shapeshifter
+  pt 2/1
+  triggered whenever you cast both black or green spell: this has base power and toughness 4/5 and gains wither
+}
