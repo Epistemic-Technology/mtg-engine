@@ -3580,6 +3580,9 @@ fn trigger_general(head: &str) -> Option<String> {
             Some("whenever this attacks and isn't blocked")
         }
         "Whenever you attack" => Some("whenever you attack"),
+        // A Room's door (CR 709.5h, 709.5i).
+        "When you unlock this door" => Some("when you unlock this door"),
+        "Whenever you fully unlock a Room" => Some("whenever you fully unlock a Room"),
         "Whenever you discard one or more cards" => Some("whenever you discard one or more cards"),
         "Whenever a player discards one or more cards" => {
             Some("whenever a player discards one or more cards")
@@ -5920,15 +5923,8 @@ fn author_faces(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         "prepare" => "prepare",
         "modal_dfc" => "modal_dfc",
         "flip" => "flip",
-        _ => {
-            if faces
-                .iter()
-                .any(|f| f.type_line.as_deref().unwrap_or("").contains("Room"))
-            {
-                return Err(Skip::Layout("room".to_string()));
-            }
-            "split"
-        }
+        // A Room's doors are a split card's halves (CR 709.5).
+        _ => "split",
     };
     let mut bodies = Vec::new();
     let mut tokens = Vec::new();

@@ -1,0 +1,87 @@
+# Rooms the template author writes (CR 709.5): "When you unlock this
+# door" as the half is cast or unlocked, and a door's abilities only while
+# it is unlocked.
+
+scenario "Rooms: casting Bottomless Pool returns up to one target creature" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Bottomless Pool // Locker Room"
+  turn 1 A: cast "Bottomless Pool"
+  turn 1 A: trigger "Bottomless Pool" targeting "Hill Giant"
+  run_to turn 1 end
+  assert hand B contains "Hill Giant"
+  assert battlefield A contains "Bottomless Pool"
+}
+
+scenario "Rooms: Bottomless Pool's target may be declined" {
+  battlefield A: "Island", "Grizzly Bears"
+  hand A: "Bottomless Pool // Locker Room"
+  turn 1 A: cast "Bottomless Pool"
+  turn 1 A: trigger "Bottomless Pool" targeting none
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Rooms: unlocking Bottomless Pool later returns a creature too" {
+  battlefield A: "Island", "Locker Room"
+  battlefield B: "Hill Giant"
+  turn 1 A: unlock "Bottomless Pool"
+  run_to turn 1 end
+  assert hand B contains "Hill Giant"
+}
+
+scenario "Rooms: Locker Room draws once when creatures deal combat damage to a player" {
+  battlefield A: "Locker Room", "Grizzly Bears", "Hill Giant"
+  library A: 10 "Island"
+  start turn 3 A
+  turn 3 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert life B 15
+  assert hand A count 2
+}
+
+scenario "Rooms: Locker Room's door locked, no draw" {
+  battlefield A: "Bottomless Pool", "Grizzly Bears"
+  library A: 10 "Island"
+  start turn 3 A
+  turn 3 A: attack "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life B 18
+  assert hand A count 1
+}
+
+scenario "Rooms: Dazzling Theater gives creature spells convoke" {
+  battlefield A: "Dazzling Theater", "Mountain", 3 "Grizzly Bears"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert tapped "Mountain"
+  assert tapped oldest A "Grizzly Bears"
+  assert tapped newest A "Grizzly Bears"
+}
+
+scenario "Rooms: convoke only for creature spells" {
+  battlefield A: "Dazzling Theater", "Mountain", 3 "Grizzly Bears"
+  battlefield B: "Wind Drake"
+  hand A: "Glacial Ray"
+  illegal turn 1 A: cast "Glacial Ray" targeting "Wind Drake"
+  run_to turn 1 end
+  assert battlefield B contains "Wind Drake"
+}
+
+scenario "Rooms: Prop Room untaps your creatures during each other player's untap step" {
+  battlefield A: "Prop Room", "Grizzly Bears" tapped
+  battlefield B: "Hill Giant" tapped
+  start turn 2 B
+  run_to turn 2 upkeep
+  assert untapped "Grizzly Bears"
+  assert untapped "Hill Giant"
+}
+
+scenario "Rooms: without Prop Room's door, they stay tapped" {
+  battlefield A: "Dazzling Theater", "Grizzly Bears" tapped
+  start turn 2 B
+  run_to turn 2 upkeep
+  assert tapped "Grizzly Bears"
+}

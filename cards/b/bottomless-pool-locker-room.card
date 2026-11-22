@@ -1,0 +1,14 @@
+card "Bottomless Pool // Locker Room" {
+  oracle_id b9ac4856-5cdb-479f-b0f5-7fa0b232a5ff
+  layout split
+  face "Bottomless Pool" {
+    cost {U}
+    type Enchantment — Room
+    triggered when you unlock this door: return up to one target creature to hand
+  }
+  face "Locker Room" {
+    cost {4}{U}
+    type Enchantment — Room
+    triggered whenever one or more creature you control deal combat damage to a player: draw 1 cards
+  }
+}

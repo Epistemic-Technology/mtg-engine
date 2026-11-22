@@ -1,0 +1,14 @@
+card "Dazzling Theater // Prop Room" {
+  oracle_id c46a02db-13d6-477f-9da0-822599470168
+  layout split
+  face "Dazzling Theater" {
+    cost {3}{W}
+    type Enchantment — Room
+    spells creature you cast have convoke
+  }
+  face "Prop Room" {
+    cost {2}{W}
+    type Enchantment — Room
+    static each creature you control: has untaps during each other player's untap step
+  }
+}
