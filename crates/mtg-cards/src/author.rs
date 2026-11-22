@@ -4571,7 +4571,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) = Regex::new(
-            r"^(Basic land|Land|Plains|Island|Swamp|Mountain|Forest)cycling ((?:\{[0-9XWUBRGC]+\})+)$",
+            r"^(Basic land|[A-Z][a-z]+)cycling ((?:\{[0-9XWUBRGC]+\})+)$",
         )
         .unwrap()
         .captures(line)
@@ -6228,6 +6228,8 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     for k in &s.keywords {
         if !KEYWORDS.contains(&k.as_str())
             && !TEMPLATED_TAGS.contains(&k.as_str())
+            // Typecycling of any type (CR 702.29e): "Wizardcycling {2}".
+            && !(k.ends_with("cycling") && k.len() > "cycling".len())
             && !ABILITY_WORDS.contains(&k.as_str())
             // A flavor word before equip ("Hagneia — Equip {3}") is tagged
             // as a keyword; the line is templated as a labeled equip.

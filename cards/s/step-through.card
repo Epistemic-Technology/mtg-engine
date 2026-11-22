@@ -1,0 +1,7 @@
+card "Step Through" {
+  oracle_id c4fa89c7-f00d-42ef-bd67-407a288cd054
+  cost {3}{U}{U}
+  type Sorcery
+  spell: return two target creatures to hand
+  wizardcycling {2}
+}
