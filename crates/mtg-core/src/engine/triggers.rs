@@ -1893,7 +1893,6 @@ impl GameState {
             damage: 0,
             deathtouch_damage: false,
             controlled_since_turn_start: false,
-            echo_due: false,
             marks: 0,
             skip_untap: false,
             chosen: Chosen::None,
@@ -1904,6 +1903,7 @@ impl GameState {
             attached_to: None,
             ability: Some(t.ability),
             revealed: 0,
+            sized: 0,
         });
         self.stack.push(obj);
         // CR 107.3m: "When this creature enters, it deals X damage": the
@@ -2112,7 +2112,7 @@ impl GameState {
             Condition::TriggerHadCounters => trigger_obj.is_some_and(|o| self.had_any_counters(o)),
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
-            Condition::EchoDue => self.objects.get(source).is_some_and(|o| o.echo_due),
+            Condition::EchoDue => self.objects.get(source).is_some_and(|o| o.echo_due()),
             Condition::NotRenowned => self.objects.get(source).is_some_and(|o| !o.renowned()),
             Condition::NotPrepared => self.objects.get(source).is_some_and(|o| !o.prepared()),
             Condition::Evolves => {
@@ -2167,7 +2167,7 @@ impl GameState {
             Condition::TriggerHadCounters => trigger_obj.is_some_and(|o| self.had_any_counters(o)),
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
-            Condition::EchoDue => self.objects.get(w.source).is_some_and(|o| o.echo_due),
+            Condition::EchoDue => self.objects.get(w.source).is_some_and(|o| o.echo_due()),
             Condition::NotRenowned => self.objects.get(w.source).is_some_and(|o| !o.renowned()),
             Condition::NotPrepared => self.objects.get(w.source).is_some_and(|o| !o.prepared()),
             Condition::Evolves => self.evolves(Some(&w.chars), trigger_obj),

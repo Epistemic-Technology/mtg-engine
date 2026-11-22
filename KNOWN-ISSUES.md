@@ -47,11 +47,6 @@ wrong thing in some case.
 - **Token-creation replacements apply in a fixed order** (tokens
   instead of others, then added tokens, then doubling) rather than the
   order the player chooses (CR 616.1).
-- **A copy of an X/X token is 0/0.** "Create an X/X ... token, where X
-  is ..." (`sized`, Tumbleweed Rising, Slime Molding) gives the token base
-  power and toughness X/X with a layer-7b effect, not as a copiable value
-  (CR 111.3, 707.2), so a Clone or populate copying it gets the
-  definition's 0/0.
 - **Reflexive trigger on a token:** "it" may read the token where the
   text means the triggering object.
 - **A player's protection from a color** (Seht's Tiger) stops targeting

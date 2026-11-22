@@ -86,7 +86,6 @@ impl GameState {
             damage: 0,
             deathtouch_damage: false,
             controlled_since_turn_start: false,
-            echo_due: false,
             marks: 0,
             skip_untap: false,
             chosen: Chosen::None,
@@ -97,6 +96,7 @@ impl GameState {
             attached_to: None,
             ability: None,
             revealed: 0,
+            sized: 0,
         })
     }
 
@@ -378,9 +378,8 @@ impl GameState {
             damage: 0,
             deathtouch_damage: false,
             controlled_since_turn_start: false,
-            echo_due: to == Zone::Battlefield,
             marks: if to == Zone::Battlefield {
-                let mut m = 0;
+                let mut m = crate::state::OBJ_ECHO_DUE;
                 if enter.haste {
                     m |= crate::state::OBJ_RIOT_HASTE;
                 }
@@ -446,6 +445,12 @@ impl GameState {
             },
             ability: None,
             revealed: 0,
+            // Copiable values, kept onto the battlefield like `except`.
+            sized: if to == Zone::Battlefield {
+                old.sized
+            } else {
+                0
+            },
         });
         if let Some(l) = self.lki.get_mut(&id) {
             l.moved_to = Some(new);
@@ -940,11 +945,11 @@ impl GameState {
         controller: PlayerId,
         except: Option<CardRef>,
     ) -> ObjId {
-        let (def, x) = {
+        let (def, x, sized) = {
             let o = &self.objects[of];
-            (o.def, except.or(o.except))
+            (o.def, except.or(o.except), o.sized)
         };
-        self.create_token_copy_of(def, x, controller)
+        self.create_token_copy_of(def, x, sized, controller)
     }
 
     /// A token copy of the definition `def` with the copy exceptions of
@@ -954,12 +959,14 @@ impl GameState {
         &mut self,
         def: CardRef,
         x: Option<CardRef>,
+        sized: u8,
         controller: PlayerId,
     ) -> ObjId {
         let id = self.new_object(def, controller, Zone::Command);
         let t = &mut self.objects[id];
         t.kind = ObjKind::Token;
         t.except = x;
+        t.sized = sized;
         let new = self.put_onto_battlefield(id, controller);
         self.emit(Event::TokenCreated {
             obj: new,
@@ -1027,11 +1034,11 @@ impl GameState {
     /// (CR 707.9b). Counters, damage, and attachments stay; the board
     /// counts follow the new definition.
     pub(super) fn become_copy(&mut self, id: ObjId, of: ObjId, except: Option<CardRef>) {
-        let (def, x) = {
+        let (def, x, sized) = {
             let o = &self.objects[of];
-            (o.def, except.or(o.except))
+            (o.def, except.or(o.except), o.sized)
         };
-        self.set_copy_def(id, def, x);
+        self.set_copy_def(id, def, x, sized);
         self.emit(Event::BecameCopy { obj: id, of: def });
     }
 
@@ -1057,13 +1064,14 @@ impl GameState {
                 .get(t.obj)
                 .is_some_and(|o| o.zone == Zone::Battlefield && o.def == t.copied)
             {
-                self.set_copy_def(t.obj, t.def, t.except);
+                self.set_copy_def(t.obj, t.def, t.except, t.sized);
             }
         }
     }
 
-    /// Give `id` the copiable values of `def` with `x`'s exceptions.
-    fn set_copy_def(&mut self, id: ObjId, def: CardRef, x: Option<CardRef>) {
+    /// Give `id` the copiable values of `def` with `x`'s exceptions (and
+    /// an X/X token's X, `sized`).
+    fn set_copy_def(&mut self, id: ObjId, def: CardRef, x: Option<CardRef>, sized: u8) {
         let (old_flags, old_legend) = {
             let o = &self.objects[id];
             (self.flags_of(o), self.pool.get(o.def).is_legendary())
@@ -1072,6 +1080,7 @@ impl GameState {
         let o = &mut self.objects[id];
         o.def = def;
         o.except = x;
+        o.sized = sized;
         let (flags, legend) = {
             let o = &self.objects[id];
             (self.flags_of(o), self.pool.get(o.def).is_legendary())

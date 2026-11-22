@@ -1805,9 +1805,9 @@ control` ("Create an X/X green Elemental creature token, where X is the
 number of lands you control."; `sized x` is the spell's or ability's X,
 "Create an X/X green Ooze creature token."): X is fixed as the effect
 resolves, before the token exists (CR 608.2h), and the token has base
-power and toughness X/X from its creation on (CR 111.3; a layer-7b effect,
-so a copy of the token is 0/0); the definition's power and toughness print
-as "X/X",
+power and toughness X/X from its creation on (CR 111.3), a copiable value
+(CR 707.2: a Clone, a token copy, or populate copying it is X/X too); the
+definition's power and toughness print as "X/X",
 `create 1 "Eldrazi Scion" it has` (the token's abilities after the
 sentence: "Create a 1/1 colorless Eldrazi Scion creature token. It has
 \"Sacrifice this token: Add {C}.\""; "They have" for more than one),

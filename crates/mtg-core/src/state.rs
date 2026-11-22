@@ -154,6 +154,9 @@ pub const OBJ_PREPARED: u8 = 8;
 /// Suspected (CR 701.60): it has menace and "can't block" for as long as
 /// it is suspected.
 pub const OBJ_SUSPECTED: u8 = 16;
+/// Came onto the battlefield since its echo was last dealt with (CR
+/// 702.30a): set as it enters, cleared by its echo trigger.
+pub const OBJ_ECHO_DUE: u8 = 32;
 
 impl GameObject {
     pub const fn renowned(&self) -> bool {
@@ -173,6 +176,9 @@ impl GameObject {
     }
     pub const fn suspected(&self) -> bool {
         self.marks & OBJ_SUSPECTED != 0
+    }
+    pub const fn echo_due(&self) -> bool {
+        self.marks & OBJ_ECHO_DUE != 0
     }
 }
 
@@ -202,11 +208,8 @@ pub struct GameObject {
     /// Under its controller's control continuously since their most recent
     /// turn began (CR 302.6).
     pub controlled_since_turn_start: bool,
-    /// Came onto the battlefield since its echo was last dealt with (CR
-    /// 702.30a): set as it enters, cleared by its echo trigger.
-    pub echo_due: bool,
     /// Per-object marks (`OBJ_RENOWNED`, `OBJ_MONSTROUS`, `OBJ_RIOT_HASTE`,
-    /// `OBJ_PREPARED`): renowned (CR 702.112b), monstrous (CR 701.37b),
+    /// `OBJ_PREPARED`, `OBJ_SUSPECTED`, `OBJ_ECHO_DUE`): renowned (CR 702.112b), monstrous (CR 701.37b),
     /// riot's haste (CR 702.136a), and prepared (CR 722.3a). One byte, so
     /// `GameObject` stays small.
     pub marks: u8,
@@ -237,6 +240,11 @@ pub struct GameObject {
     /// until the card moves; `determinize` keeps a card the viewer has
     /// seen where it is.
     pub revealed: u8,
+    /// "Create an X/X ... token, where X is ...": the token's base power
+    /// and toughness X, fixed as it was created (CR 111.3); 0 for none
+    /// (the definition's 0/0). Part of its copiable values (CR 707.2): a
+    /// copy of it is X/X too.
+    pub sized: u8,
 }
 
 /// A choice an object remembers (`GameObject::chosen`): small, so the
@@ -1297,6 +1305,8 @@ pub struct TempCopy {
     pub obj: ObjId,
     pub def: crate::card::CardRef,
     pub except: Option<crate::card::CardRef>,
+    /// Its `GameObject::sized` before the copy.
+    pub sized: u8,
     /// What the copy made it: a later copy effect isn't undone.
     pub copied: crate::card::CardRef,
     /// `None`: at the cleanup step; `Some(p)`: as `p`'s next turn begins.
@@ -2680,7 +2690,9 @@ impl GameState {
                 // an `except` (layers::compute_battlefield), so the printed
                 // values are the copiable values here; skipping the check
                 // keeps this hot path a plain copy.
-                debug_assert!(!matches!(derived, Derived::Printed) || obj.except.is_none());
+                debug_assert!(
+                    !matches!(derived, Derived::Printed) || (obj.except.is_none() && obj.sized == 0)
+                );
                 let out = match derived {
                     Derived::Printed => Some(self.printed(obj.def)),
                     Derived::Battlefield(map) => map.get(&id).copied(),
@@ -2711,7 +2723,9 @@ impl GameState {
             }
         }
         let derived = crate::layers::compute_battlefield(self);
-        debug_assert!(!matches!(derived, Derived::Printed) || obj.except.is_none());
+        debug_assert!(
+            !matches!(derived, Derived::Printed) || (obj.except.is_none() && obj.sized == 0)
+        );
         let out = match &derived {
             Derived::Printed => Some(self.printed(obj.def)),
             Derived::Battlefield(map) => map.get(&id).copied(),
@@ -2738,15 +2752,29 @@ impl GameState {
         // does not weigh on every rules query (measured at 13% of an
         // effect-free game when it was inline).
         match o.except {
-            None => self.printed(o.def),
-            Some(x) => self.printed_with_except(o.def, x),
+            None if o.sized == 0 => self.printed(o.def),
+            x => self.printed_with_except(o.def, x, o.sized),
         }
     }
 
     #[cold]
     #[inline(never)]
-    fn printed_with_except(&self, def: CardRef, except: CardRef) -> Characteristics {
+    fn printed_with_except(
+        &self,
+        def: CardRef,
+        except: Option<CardRef>,
+        sized: u8,
+    ) -> Characteristics {
         let mut c = self.printed(def);
+        // CR 111.3, 707.2: an X/X token's X, then the exceptions over it
+        // (CR 707.9b: "except it's 1/1").
+        if sized > 0 {
+            c.power = i16::from(sized);
+            c.toughness = i16::from(sized);
+        }
+        let Some(except) = except else {
+            return c;
+        };
         let xd = self.pool.get(except);
         for s in &xd.except_subtype_ids {
             if !c.subtypes.contains(s) {

@@ -4744,7 +4744,6 @@ impl GameState {
             damage: 0,
             deathtouch_damage: false,
             controlled_since_turn_start: false,
-            echo_due: false,
             marks: 0,
             skip_untap: false,
             chosen: Chosen::None,
@@ -4762,6 +4761,7 @@ impl GameState {
                 trigger_amount: 0,
             }),
             revealed: 0,
+            sized: 0,
         });
         self.stack.push(obj);
         self.bump();
@@ -7732,9 +7732,9 @@ impl GameState {
         let Some(of) = candidates.get(k).copied() else {
             return;
         };
-        let (def, except) = {
+        let (def, except, sized) = {
             let t = &self.objects[of];
-            (t.def, t.except)
+            (t.def, t.except, t.sized)
         };
         // The copying card's own exceptions (Phantasmal Image) replace
         // those of what it copies.
@@ -7746,6 +7746,7 @@ impl GameState {
         let s = &mut self.objects[spell];
         s.def = def;
         s.except = except;
+        s.sized = sized;
         self.bump();
         self.emit(Event::BecameCopy {
             obj: spell,
@@ -10376,20 +10377,15 @@ impl GameState {
                                     {
                                         self.attach(id, h);
                                     }
-                                    // CR 111.3: "an X/X ... token".
+                                    // CR 111.3: "an X/X ... token", X part of
+                                    // its copiable values (CR 707.2).
                                     if def == *token
                                         && let Some(v) = sized
                                         && self.objects[id].zone == Zone::Battlefield
                                     {
-                                        self.effect_on(
-                                            ctx,
-                                            id,
-                                            smallvec::smallvec![Modification::SetPt {
-                                                power: PtValue::Fixed(v),
-                                                toughness: PtValue::Fixed(v),
-                                            }],
-                                            Duration::Permanent,
-                                        );
+                                        self.objects[id].sized =
+                                            u8::try_from(v.max(0)).unwrap_or(u8::MAX);
+                                        self.cbump();
                                     }
                                     ctx.created = Some(id);
                                     ctx.created_tokens.push(id);
@@ -11507,9 +11503,9 @@ impl GameState {
                     if id == of_obj {
                         continue;
                     }
-                    let (def, before) = {
+                    let (def, before, sized) = {
                         let o = &self.objects[id];
-                        (o.def, o.except)
+                        (o.def, o.except, o.sized)
                     };
                     self.become_copy(id, of_obj, x);
                     let next_turn_of = match until {
@@ -11522,6 +11518,7 @@ impl GameState {
                         obj: id,
                         def,
                         except: before,
+                        sized,
                         copied,
                         next_turn_of,
                     });
@@ -12906,7 +12903,7 @@ impl GameState {
                 if let Some(id) = self.current_object(ctx.source)
                     && let Some(o) = self.objects.get_mut(id)
                 {
-                    o.echo_due = false;
+                    o.marks &= !crate::state::OBJ_ECHO_DUE;
                 }
             }
             Effect::BecomeSaddled => {
@@ -13007,11 +13004,12 @@ impl GameState {
                         .get(&left)
                         .filter(|l| l.object.zone == Zone::Battlefield)
                     {
-                        let (def, was) = (l.object.def, l.object.except);
+                        let (def, was, sized) =
+                            (l.object.def, l.object.except, l.object.sized);
                         for (d, k) in self.tokens_to_create(ctx.controller, def, n) {
                             for _ in 0..k {
                                 let new = if d == def {
-                                    self.create_token_copy_of(def, x.or(was), ctx.controller)
+                                    self.create_token_copy_of(def, x.or(was), sized, ctx.controller)
                                 } else {
                                     self.create_token(d, ctx.controller)
                                 };
