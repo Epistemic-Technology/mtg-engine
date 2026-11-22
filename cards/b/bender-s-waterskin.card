@@ -1,0 +1,7 @@
+card "Bender's Waterskin" {
+  oracle_id 3bc46467-323f-4cbf-9d0a-f3d2ae3c3a34
+  cost {3}
+  type Artifact
+  keywords untaps during each other player's untap step
+  mana any
+}

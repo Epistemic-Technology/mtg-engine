@@ -2688,6 +2688,7 @@ fn num(n: Num) -> String {
         Num::N(n) => n.to_string(),
         Num::X => "X".to_string(),
         Num::XPlus(n) => format!("X plus {n}"),
+        Num::XTimes(n) => format!("{n} times X"),
         Num::ThatMuch => "that much".to_string(),
         Num::Count(i) => COUNTS.with(|c| {
             c.borrow()
@@ -2754,6 +2755,14 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
     use crate::ast::CountExpr;
     match e {
         CountExpr::Times(n, inner) => format!("{n} {}", count_expr_text(inner)),
+        CountExpr::Divided { by: 2, up, inner } => format!(
+            "half {} {}",
+            if *up { "up" } else { "down" },
+            count_expr_text(inner)
+        ),
+        CountExpr::Divided { by, inner, .. } => {
+            format!("every {by} {}", count_expr_text(inner))
+        }
         CountExpr::Plus { n, word, inner } => {
             let n = if *word {
                 crate::render::NUMBER_WORDS
@@ -2942,6 +2951,9 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::TwoToX => "two to x".to_string(),
         CountExpr::AttackedThisTurn => "creature attacked this turn".to_string(),
         CountExpr::OpponentsLostLife => "opponents lost life this turn".to_string(),
+        CountExpr::CreaturesEnteredThisTurn => "creatures entered this turn".to_string(),
+        CountExpr::DiscardedThisTurn => "discarded this turn".to_string(),
+
         CountExpr::OpponentsMoreCards => "opponents more cards in hand".to_string(),
         CountExpr::Total(stat, f) => format!("total {} {}", stat_word(*stat), filter(f)),
     }
@@ -3036,8 +3048,13 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
         Who::Any if graveyards => "graveyards",
         Who::Any => "a graveyard",
     };
-    // "target card named this from your graveyard".
-    let named = if f.same.is_some() { " named this" } else { "" };
+    // "target card named this from your graveyard"; "creature card with
+    // mana value at most this power".
+    let named = match f.same {
+        Some(crate::ast::SameRef::ManaValueAtMostPower) => " with mana value at most this power",
+        Some(_) => " named this",
+        None => "",
+    };
     let mut g = f.clone();
     g.same = None;
     g.that_player = None;
@@ -3272,7 +3289,11 @@ fn filter_one(f: &Filter) -> String {
     }
     for (name, v) in [("power", f.power), ("toughness", f.toughness)] {
         if let Some((cmp, n)) = v {
-            if f.status.spent_colors && name == "power" {
+            if f.status.pt_either {
+                if name == "power" {
+                    words.push(format!("with power or toughness {n}{}", cmp_suffix(cmp)));
+                }
+            } else if f.status.spent_colors && name == "power" {
                 words.push("with power colors spent or less".to_string());
             } else {
                 words.push(format!("with {name} {n}{}", cmp_suffix(cmp)));
@@ -3462,6 +3483,7 @@ pub fn same_ref(r: crate::ast::SameRef) -> String {
         SameRef::SameNameAs(n) => format!("with same name as target {}", n + 1),
         SameRef::SharesColorWith(n) => format!("that shares color with target {}", n + 1),
         SameRef::LesserPower => "with lesser power".to_string(),
+        SameRef::ManaValueAtMostPower => "with mana value at most this power".to_string(),
     }
 }
 
@@ -4743,6 +4765,12 @@ fn static_cond(c: &StaticCond) -> String {
             "creature died under your control this turn".to_string()
         }
         StaticCond::OpponentMoreLands => "opponent controls more lands".to_string(),
+        StaticCond::OpponentHasMore(w) => match w {
+            mtg_core::card::MoreWhat::Creatures => "opponent controls more creatures",
+            mtg_core::card::MoreWhat::Life => "opponent has more life",
+            mtg_core::card::MoreWhat::CardsInHand => "opponent has more cards in hand",
+        }
+        .to_string(),
         StaticCond::Void => "void".to_string(),
         StaticCond::NotYourMainPhase => "not your main phase".to_string(),
         StaticCond::NotCastFromHand => "cast from anywhere other than hand".to_string(),
@@ -4898,6 +4926,10 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::EnduringStory => "enduring story".to_string(),
         StaticCond::NoEnduringStory => "no enduring story".to_string(),
         StaticCond::MaxSpeed => "max speed".to_string(),
+        StaticCond::NoSpellsCastThisTurn { from_hand: false } => "not cast this turn".to_string(),
+        StaticCond::NoSpellsCastThisTurn { from_hand: true } => {
+            "not cast from hand this turn".to_string()
+        }
         StaticCond::TotalPower(n) => format!("total power {n} or more"),
         StaticCond::DifferentPowers(n) => format!("{n} different powers"),
         StaticCond::During(t) => {
@@ -5415,12 +5447,20 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             keywords: ks,
             storm,
             affinity,
+            uncounterable,
         } => {
             let subject = if *f == Filter::default() {
                 String::new()
             } else {
                 format!(" {}", filter(f))
             };
+            if *uncounterable {
+                let _ = writeln!(
+                    out,
+                    "{indent}spells{subject} you control can't be countered"
+                );
+                return;
+            }
             let from = if *from_hand { " from hand" } else { "" };
             let mut items: Vec<String> = ks.iter().map(|k| keywords(&[*k])).collect();
             if *storm {
@@ -5823,9 +5863,24 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 filter(f)
             );
         }
+        Ability::ActivationCost {
+            filter: f,
+            by,
+            min_one,
+            keyword,
+        } => {
+            let _ = writeln!(
+                out,
+                "{indent}{} abilities of {} cost {{{by}}} less{}",
+                keyword.map_or("activated", activated_keyword_word),
+                filter(f),
+                if *min_one { " min one" } else { "" }
+            );
+        }
         Ability::PlayerStatic { kind, cond } => {
             use mtg_core::card::PlayerStaticKind as K;
             let head = match kind {
+                K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
                 K::CantLose => "you can't lose the game".to_string(),
@@ -6008,5 +6063,15 @@ fn mode_head_dsl(head: crate::ast::ModeHead) -> String {
         crate::ast::ModeHead::Unchosen { this_turn: true } => {
             "choose one unchosen this turn".to_string()
         }
+    }
+}
+
+/// An activated ability keyword as a word: `power-up`, `exhaust`.
+pub fn activated_keyword_word(k: mtg_core::card::ActivatedKeyword) -> &'static str {
+    match k {
+        mtg_core::card::ActivatedKeyword::Boast => "boast",
+        mtg_core::card::ActivatedKeyword::Exhaust => "exhaust",
+        mtg_core::card::ActivatedKeyword::PowerUp => "power-up",
+        mtg_core::card::ActivatedKeyword::Ninjutsu => "ninjutsu",
     }
 }

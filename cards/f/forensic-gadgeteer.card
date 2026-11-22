@@ -1,0 +1,8 @@
+card "Forensic Gadgeteer" {
+  oracle_id 9d5917d5-4fb3-4f37-9278-e08c1f73aae5
+  cost {2}{U}
+  type Creature — Vedalken Artificer Detective
+  pt 2/3
+  triggered whenever you cast artifact spell: investigate
+  activated abilities of artifact you control cost {1} less min one
+}

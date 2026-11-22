@@ -1,0 +1,8 @@
+card "Yeva, Nature's Herald" {
+  oracle_id 2d513c3e-bd27-479e-af32-7f66d96d0de0
+  cost {2}{G}{G}
+  type Legendary Creature — Elf Shaman
+  pt 4/4
+  keywords flash
+  spells green creature you cast have flash
+}

@@ -1,0 +1,6 @@
+card "Sanctum of Tranquil Light" {
+  oracle_id 1818b0b1-0104-4673-9be8-acfc773ef87d
+  cost {W}
+  type Legendary Enchantment — Shrine
+  activated {5}{W}, reduced {1} each Shrine you control: tap target creature
+}

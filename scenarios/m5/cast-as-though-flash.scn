@@ -1,0 +1,69 @@
+# "You may cast <spells> as though they had flash." (CR 702.8): a static
+# ability of a permanent lets its controller cast matching spells any time
+# they could cast an instant.
+
+scenario "High Fae Trickster: a creature and a sorcery during the opponent's turn" {
+  battlefield A: "High Fae Trickster", 2 "Forest", 3 "Island"
+  hand A: "Grizzly Bears", "Divination"
+  start turn 2 B
+  turn 2 end A: cast "Grizzly Bears"
+  turn 2 end A: wait
+  turn 2 end A: cast "Divination"
+  run_to turn 2 cleanup
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+}
+
+scenario "Without it, a creature can't be cast during the opponent's turn" {
+  battlefield A: 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 2 B
+  illegal turn 2 end A: cast "Grizzly Bears"
+  run_to turn 2 cleanup
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "The opponent's spells don't get flash" {
+  battlefield B: "High Fae Trickster"
+  battlefield A: 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 2 B
+  illegal turn 2 end A: cast "Grizzly Bears"
+  run_to turn 2 cleanup
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Valley Floodcaller: a sorcery at instant speed pumps and untaps Birds" {
+  battlefield A: "Valley Floodcaller", "Birds of Paradise" tapped, 3 "Island"
+  hand A: "Divination"
+  start turn 2 B
+  turn 2 postcombat_main A: cast "Divination"
+  run_to turn 2 end
+  assert graveyard A contains "Divination"
+  assert power "Birds of Paradise" 1
+  assert untapped "Birds of Paradise"
+}
+
+scenario "Valley Floodcaller: creature spells still need sorcery timing" {
+  battlefield A: "Valley Floodcaller", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 2 B
+  illegal turn 2 end A: cast "Grizzly Bears"
+  run_to turn 2 cleanup
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Whirlwing Stormbrood: Dragon spells and sorceries, not other creatures" {
+  battlefield A: "Whirlwing Stormbrood", 6 "Mountain", 3 "Island", 2 "Forest"
+  hand A: "Shivan Dragon", "Divination", "Grizzly Bears"
+  start turn 2 B
+  turn 2 end A: cast "Shivan Dragon"
+  turn 2 end A: wait
+  turn 2 end A: cast "Divination"
+  illegal turn 2 end A: cast "Grizzly Bears"
+  run_to turn 2 cleanup
+  assert battlefield A contains "Shivan Dragon"
+  assert graveyard A contains "Divination"
+  assert hand A contains "Grizzly Bears"
+}

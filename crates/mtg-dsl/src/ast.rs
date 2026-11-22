@@ -310,6 +310,14 @@ pub enum CountExpr {
     /// `count each 2 creature you control`: "2 life for each creature
     /// you control".
     Times(u32, Box<CountExpr>),
+    /// `half down <count>`, `half up <count>`: "half the number of
+    /// artifacts you control, rounded down"; `every 7 <count>`: "for every
+    /// seven cards in your graveyard" (rounded down).
+    Divided {
+        by: u32,
+        up: bool,
+        inner: Box<CountExpr>,
+    },
     /// `all graveyards [<filter>]` / `each graveyard [<filter>]`: cards in
     /// all graveyards, "in all graveyards" or "in each graveyard".
     CardsInGraveyards {
@@ -508,6 +516,11 @@ pub enum CountExpr {
     /// `opponents lost life this turn`: "for each opponent who lost life
     /// this turn".
     OpponentsLostLife,
+    /// `creatures entered this turn`: "the number of creatures that
+    /// entered the battlefield under your control this turn".
+    CreaturesEnteredThisTurn,
+    /// `discarded this turn`: "for each card you've discarded this turn".
+    DiscardedThisTurn,
     /// `opponents more cards in hand`: "for each opponent who has more
     /// cards in hand than you".
     OpponentsMoreCards,
@@ -974,6 +987,10 @@ pub enum SameRef {
     /// `with lesser power`: "with lesser power" (than the source's power,
     /// as it is or last existed; mentor, CR 702.134a).
     LesserPower,
+    /// `with mana value at most this power`: "with mana value less than
+    /// or equal to this creature's power" (the source's, as it is or last
+    /// existed).
+    ManaValueAtMostPower,
 }
 
 /// How a filter refers to a chosen color or type, as printed after the
@@ -1224,6 +1241,9 @@ pub enum Ability {
         keywords: Vec<Keyword>,
         storm: bool,
         affinity: Option<Filter>,
+        /// `spells you control can't be countered`: "Spells you control
+        /// can't be countered." (no keywords then).
+        uncounterable: bool,
     },
     /// `this spell costs {1} less count each artifact you control`: "This
     /// spell costs {1} less to cast for each artifact you control."
@@ -1264,6 +1284,17 @@ pub enum Ability {
     PlayerStatic {
         kind: mtg_core::card::PlayerStaticKind,
         cond: Option<StaticCond>,
+    },
+    /// `activated abilities of artifact you control cost {1} less min
+    /// one`, `power-up abilities of other creature you control cost {3}
+    /// less`: "Activated abilities of artifacts you control cost {1} less
+    /// to activate. This effect can't reduce the mana in that cost to less
+    /// than one mana." (`PlayerStaticKind::ActivationCost`).
+    ActivationCost {
+        filter: Filter,
+        by: u8,
+        min_one: bool,
+        keyword: Option<mtg_core::card::ActivatedKeyword>,
     },
     /// `opening hand`: "If this card is in your opening hand, you may begin
     /// the game with it on the battlefield." (CR 103.6a).
@@ -2238,6 +2269,11 @@ pub enum StaticCond {
     /// `max speed`: "you have max speed" (CR 702.179e). Usually written
     /// as the ability word `label "Max speed"` instead.
     MaxSpeed,
+    /// `not cast this turn`: "you haven't cast a spell this turn"; `not
+    /// cast from hand this turn`: "... a spell from your hand this turn".
+    NoSpellsCastThisTurn {
+        from_hand: bool,
+    },
     /// `total power 8 or more` (formidable): "creatures you control have
     /// total power 8 or greater".
     TotalPower(u32),
@@ -2296,6 +2332,10 @@ pub enum StaticCond {
     /// `opponent controls more lands`: "an opponent controls more lands
     /// than you".
     OpponentMoreLands,
+    /// `opponent controls more creatures`, `opponent has more life`,
+    /// `opponent has more cards in hand`: "an opponent controls more
+    /// creatures than you", ...
+    OpponentHasMore(mtg_core::card::MoreWhat),
     /// `void`: "a nonland permanent left the battlefield this turn or a
     /// spell was warped this turn".
     Void,

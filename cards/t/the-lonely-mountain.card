@@ -1,0 +1,6 @@
+card "The Lonely Mountain" {
+  oracle_id 3678c06f-8a33-4a6d-bf20-5b92d5c05a95
+  type Land — Mountain
+  enters tapped unless you control Equipment
+  activated {4}{R}, {T}, reduced {1} each Equipment you control, sorcery: create 1 "2/2 red Dwarf creature"
+}

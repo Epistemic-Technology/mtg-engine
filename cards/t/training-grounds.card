@@ -1,0 +1,6 @@
+card "Training Grounds" {
+  oracle_id 8de3eabe-9a8f-4865-beef-a4888c081d39
+  cost {U}
+  type Enchantment
+  activated abilities of creature you control cost {2} less min one
+}

@@ -803,6 +803,9 @@ impl GameState {
             CountExpr::CardsInExile { filter, graveyard } => {
                 self.owned_in_exile(you, filter.as_ref(), *graveyard)
             }
+            CountExpr::Divided { by, up, inner } => {
+                return CountExpr::divide(self.eval_count(inner, ctx), *by, *up);
+            }
             CountExpr::Permanents(f) => {
                 let f = &*self.chosen_filter(f, ctx);
                 let host = f.attached_to.map(|a| self.attached_host(ctx, a));
@@ -1218,6 +1221,11 @@ impl GameState {
                 .players_in_game()
                 .filter(|p| *p != you && self.lost_life_this_turn & (1 << p.index().min(7)) != 0)
                 .count(),
+            CountExpr::CreaturesEnteredThisTurn => {
+                usize::from(self.turn_log.creatures_entered[you.index().min(3)])
+            }
+            CountExpr::DiscardedThisTurn => usize::from(self.turn_log.discards[you.index().min(3)]),
+
             CountExpr::OpponentsMoreCards => {
                 let mine = self.player(you).hand.len();
                 self.players_in_game()
@@ -2941,6 +2949,42 @@ impl GameState {
             || def
                 .flash_if
                 .is_some_and(|c| self.condition_now(self.pool.condition(c), p, id))
+            || (self.cost_change_sources > 0 && self.flash_granted(p, def, id))
+    }
+
+    /// Whether a static ability makes the spell `id` uncounterable ("Spells
+    /// you control can't be countered"; a `SpellGrant`).
+    #[cold]
+    #[inline(never)]
+    fn uncounterable_granted(&self, id: ObjId) -> bool {
+        let Some(o) = self.objects.get(id) else {
+            return false;
+        };
+        let (p, def) = (o.controller, self.pool.get(o.def));
+        self.cost_changers().into_iter().any(|src| {
+            let s = &self.objects[src];
+            self.pool.get(s.def).ability_ids.iter().any(|a| {
+                matches!(self.pool.ability(*a), AbilityDef::CostChange(cc)
+                    if cc.grant.as_ref().is_some_and(|g| g.uncounterable)
+                        && self.cost_change_applies(cc, p, def, id, src))
+            })
+        })
+    }
+
+    /// Whether a static ability lets `p` cast `def`'s card `id` as though
+    /// it had flash ("You may cast noncreature spells as though they had
+    /// flash", CR 702.8; a `SpellGrant` of the keyword).
+    #[cold]
+    #[inline(never)]
+    fn flash_granted(&self, p: PlayerId, def: &crate::card::CardDef, id: ObjId) -> bool {
+        self.cost_changers().into_iter().any(|src| {
+            let o = &self.objects[src];
+            self.pool.get(o.def).ability_ids.iter().any(|a| {
+                matches!(self.pool.ability(*a), AbilityDef::CostChange(cc)
+                    if cc.grant.as_ref().is_some_and(|g| g.keywords.contains(Keyword::Flash))
+                        && self.cost_change_applies(cc, p, def, id, src))
+            })
+        })
     }
 
     #[inline(never)]
@@ -4528,7 +4572,72 @@ impl GameState {
         if let Some(r) = &ab.reduction {
             self.reduce_activation(source, r, &mut req);
         }
+        if self.player_static_sources > 0 {
+            self.static_activation_cost(source, ab, &mut req);
+        }
         req
+    }
+
+    /// "Activated abilities of artifacts you control cost {1} less to
+    /// activate" (`PlayerStaticKind::ActivationCost`; CR 601.2f by way of
+    /// 602.2b): the static abilities of its controller's permanents that
+    /// reduce `ab`, an ability of the permanent `source`.
+    #[cold]
+    #[inline(never)]
+    fn static_activation_cost(
+        &self,
+        source: ObjId,
+        ab: &ActivatedAbility,
+        req: &mut ManaRequirement,
+    ) {
+        let Some(obj) = self.objects.get(source) else {
+            return;
+        };
+        if obj.zone != Zone::Battlefield {
+            return;
+        }
+        let p = obj.controller;
+        let Some(chars) = self.characteristics(source) else {
+            return;
+        };
+        for id in &self.battlefield {
+            let holder = &self.objects[*id];
+            if holder.controller != p || !self.pool.get(holder.def).flags().has_player_static() {
+                continue;
+            }
+            for a in &self.pool.get(holder.def).ability_ids {
+                let AbilityDef::PlayerStatic {
+                    kind:
+                        crate::card::PlayerStaticKind::ActivationCost {
+                            sources,
+                            by,
+                            min_one,
+                            keyword,
+                        },
+                    condition,
+                } = self.pool.ability(*a)
+                else {
+                    continue;
+                };
+                if keyword.is_some_and(|k| ab.keyword != Some(k))
+                    || !self
+                        .pool
+                        .filter(*sources)
+                        .matches(source, p, &chars, Some(*id), Some(p))
+                    || condition
+                        .is_some_and(|i| !self.condition_now(self.pool.condition(i), p, *id))
+                {
+                    continue;
+                }
+                let mut off = u32::from(*by);
+                // "This effect can't reduce the mana in that cost to less
+                // than one mana."
+                if *min_one {
+                    off = off.min(req.total().saturating_sub(1));
+                }
+                req.generic -= off.min(req.generic);
+            }
+        }
     }
 
     /// CR 601.2f (by way of 602.2b): "This ability costs {1} less to
@@ -6633,6 +6742,9 @@ impl GameState {
         // this spell, its total cost paid (CR 601.2f-h).
         self.next_spell_less[caster.index().min(3)] = 0;
         self.cast_this_turn.push((caster, def_ref));
+        if self.objects[spell].cast.cast_from() == Some(Zone::Hand) {
+            self.turn_log.cast_from_hand |= 1 << caster.index().min(7);
+        }
         // Void: "a spell was warped this turn" (CR 702.185).
         if self.objects[spell].alt == crate::state::AltCast::Warp && !self.turn_log.warped {
             self.turn_log.warped = true;
@@ -6710,8 +6822,11 @@ impl GameState {
             return;
         }
         let def = o.def;
-        // "This spell can't be countered."
-        if self.pool.get(def).uncounterable {
+        // "This spell can't be countered.", "Spells you control can't be
+        // countered."
+        if self.pool.get(def).uncounterable
+            || (self.cost_change_sources > 0 && self.uncounterable_granted(id))
+        {
             return;
         }
         let flashback = o.cast.flashback() && !self.pool.get(def).retrace;
@@ -12067,6 +12182,8 @@ impl GameState {
                     .filter(|id| {
                         let o = &self.objects[*id];
                         let c = self.base_characteristics(o);
+                        // "with mana value 2 or less": the mana value
+                        // `matches` leaves to the caller.
                         filter.matches(*id, p, &c, Some(ctx.source), Some(ctx.controller))
                             && self.status_ok(filter, *id)
                     })

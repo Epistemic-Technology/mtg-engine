@@ -1572,6 +1572,12 @@ pub struct TurnLog {
     pub nonland_left: bool,
     /// Void: a spell was cast for its warp cost (CR 702.185a).
     pub warped: bool,
+    /// Players who cast a spell from their hand ("if you haven't cast a
+    /// spell from your hand this turn").
+    pub cast_from_hand: u8,
+    /// Cards each player discarded ("for each card you've discarded this
+    /// turn").
+    pub discards: [u8; 4],
 }
 
 /// Day and night (CR 731): neither until something makes it day.
@@ -3595,6 +3601,30 @@ impl GameState {
                     .sum();
                 total >= i32::try_from(*n).unwrap_or(i32::MAX)
             }
+            C::OpponentHasMore(what) => {
+                let n = |p: PlayerId| -> i64 {
+                    match what {
+                        crate::card::MoreWhat::Creatures => i64::try_from(
+                            self.battlefield
+                                .iter()
+                                .filter(|id| {
+                                    self.objects[**id].controller == p
+                                        && self
+                                            .characteristics(**id)
+                                            .is_some_and(|c| c.is_creature())
+                                })
+                                .count(),
+                        )
+                        .unwrap_or(i64::MAX),
+                        crate::card::MoreWhat::Life => i64::from(self.player(p).life),
+                        crate::card::MoreWhat::CardsInHand => {
+                            i64::try_from(self.player(p).hand.len()).unwrap_or(i64::MAX)
+                        }
+                    }
+                };
+                let mine = n(you);
+                self.players_in_game().any(|p| p != you && n(p) > mine)
+            }
             C::OpponentMoreLands => {
                 let lands = |p: PlayerId| {
                     self.battlefield
@@ -3781,6 +3811,12 @@ impl GameState {
                 .get(source)
                 .or_else(|| self.lki.get(&source).map(|l| &l.object))
                 .is_some_and(|o| o.chosen == Chosen::Option(*i)),
+            C::NoSpellsCastThisTurn { from_hand: true } => {
+                self.turn_log.cast_from_hand & (1 << you.index().min(7)) == 0
+            }
+            C::NoSpellsCastThisTurn { from_hand: false } => {
+                !self.cast_this_turn.iter().any(|(p, _)| *p == you)
+            }
             C::During(crate::card::TurnTime::AttackedThisStep) => {
                 self.step == crate::turn::Step::DeclareAttackers
                     && self.combat.as_ref().is_some_and(|c| {
@@ -4209,8 +4245,23 @@ impl GameState {
                     let c = self.base_characteristics(obj);
                     // "another target card": the source's card after it
                     // moved to the graveyard is the source still.
+                    let filter = self.pool.filter(filter);
+                    // "with mana value less than or equal to this
+                    // creature's power": its power as it is, or as it last
+                    // existed on the battlefield (a dies trigger), not the
+                    // card's in the graveyard.
+                    let filled;
+                    let filter = if filter
+                        .same
+                        .is_some_and(|s| s.what == crate::card::SameWhat::ManaValueAtMostPower)
+                    {
+                        filled = self.with_same_of(filter, source);
+                        &filled
+                    } else {
+                        filter
+                    };
                     let source = source.map(|s| self.current_object(s).unwrap_or(s));
-                    let f = self.source_filter(self.pool.filter(filter), source, x);
+                    let f = self.source_filter(filter, source, x);
                     return obj.zone == Zone::Graveyard
                         && whose
                         && f.matches(id, obj.owner, &c, source, None)

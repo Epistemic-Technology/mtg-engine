@@ -1,0 +1,8 @@
+card "Arnyn, Deathbloom Botanist" {
+  oracle_id 3debd5c7-da3c-4130-8ed9-e156e10034b6
+  cost {2}{B}
+  type Legendary Creature — Vampire Druid
+  pt 2/2
+  keywords deathtouch
+  triggered whenever a creature you control with power or toughness 1 or less dies: target opponent loses 2 life and you gain 2 life
+}

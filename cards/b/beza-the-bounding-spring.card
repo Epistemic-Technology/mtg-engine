@@ -1,0 +1,7 @@
+card "Beza, the Bounding Spring" {
+  oracle_id 020de6d7-f5a2-4036-ad25-451e5977b4d4
+  cost {2}{W}{W}
+  type Legendary Creature — Elemental Elk
+  pt 4/5
+  triggered when this enters: create 1 "Treasure" if opponent controls more lands; you gain 4 life if opponent has more life; create 2 "1/1 blue Fish creature" if opponent controls more creatures; draw 1 card if opponent has more cards in hand
+}

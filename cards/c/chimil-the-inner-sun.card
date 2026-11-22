@@ -1,0 +1,7 @@
+card "Chimil, the Inner Sun" {
+  oracle_id 119d9671-61ba-4629-89b1-f94bdec5cb74
+  cost {6}
+  type Legendary Artifact
+  spells you control can't be countered
+  triggered at beginning of your end step: discover 5
+}

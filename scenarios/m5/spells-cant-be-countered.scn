@@ -1,0 +1,41 @@
+# "Spells you control can't be countered." (CR 701.5): a counterspell
+# resolves but does nothing to the spell.
+
+scenario "Hexing Squelcher: a creature spell survives Counterspell" {
+  battlefield A: "Hexing Squelcher", 2 "Forest"
+  hand A: "Grizzly Bears"
+  battlefield B: 2 "Island"
+  hand B: "Counterspell"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Counterspell" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Counterspell"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Hexing Squelcher doesn't protect the opponent's spells" {
+  battlefield A: 2 "Forest"
+  hand A: "Grizzly Bears"
+  battlefield B: "Hexing Squelcher", 2 "Island"
+  hand B: "Counterspell"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Counterspell" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Sphinx of the Final Word: a sorcery can't be countered, a creature can" {
+  battlefield A: "Sphinx of the Final Word", 3 "Island", 2 "Forest"
+  hand A: "Divination", "Grizzly Bears"
+  battlefield B: 4 "Island"
+  hand B: 2 "Counterspell"
+  turn 1 A: cast "Divination"
+  turn 1 B: cast "Counterspell" targeting "Divination" in response to "Divination"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Counterspell" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Divination"
+  assert graveyard A contains "Grizzly Bears"
+}

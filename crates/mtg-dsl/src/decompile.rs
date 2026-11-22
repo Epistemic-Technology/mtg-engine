@@ -181,11 +181,17 @@ impl Decompiler<'_> {
                 inner: Box::new(self.cda_count(inner)),
             },
             C::Times(n, inner) => A::Times(*n, Box::new(self.cda_count(inner))),
+            C::Divided { by, up, inner } => A::Divided {
+                by: *by,
+                up: *up,
+                inner: Box::new(self.cda_count(inner)),
+            },
             C::Sum(a, b) => A::Sum(Box::new(self.cda_count(a)), Box::new(self.cda_count(b))),
             _ => A::Domain,
         }
     }
 
+    #[allow(clippy::too_many_lines)] // one field per line
     fn filter(&self, f: &ObjFilter) -> Filter {
         Filter {
             who: f.who,
@@ -235,6 +241,10 @@ impl Decompiler<'_> {
                 use mtg_core::card::{SameOf, SameWhat};
                 match (r.of, r.what) {
                     (SameOf::Source, SameWhat::NotName) => SameRef::NotNamedThis,
+                    (SameOf::Source, SameWhat::LesserPower) => SameRef::LesserPower,
+                    (SameOf::Source, SameWhat::ManaValueAtMostPower) => {
+                        SameRef::ManaValueAtMostPower
+                    }
                     (SameOf::Source, _) => SameRef::NamedThis,
                     (SameOf::Target(n), SameWhat::Color) => {
                         SameRef::SharesColorWith(usize::from(n))
@@ -530,6 +540,7 @@ impl Decompiler<'_> {
                 yours: *yours,
             },
             StaticCondition::OpponentMoreLands => StaticCond::OpponentMoreLands,
+            StaticCondition::OpponentHasMore(w) => StaticCond::OpponentHasMore(*w),
             StaticCondition::Void => StaticCond::Void,
             StaticCondition::NotYourMainPhase => StaticCond::NotYourMainPhase,
             StaticCondition::NotCastFrom(_) => StaticCond::NotCastFromHand,
@@ -639,6 +650,11 @@ impl Decompiler<'_> {
             StaticCondition::EnduringStory => StaticCond::EnduringStory,
             StaticCondition::NoEnduringStory => StaticCond::NoEnduringStory,
             StaticCondition::MaxSpeed => StaticCond::MaxSpeed,
+            StaticCondition::NoSpellsCastThisTurn { from_hand } => {
+                StaticCond::NoSpellsCastThisTurn {
+                    from_hand: *from_hand,
+                }
+            }
             StaticCondition::TotalPower(n) => StaticCond::TotalPower(*n),
             StaticCondition::DifferentPowers(n) => StaticCond::DifferentPowers(*n),
             StaticCondition::During(t) => StaticCond::During(*t),
@@ -2131,6 +2147,21 @@ impl Decompiler<'_> {
                 cause: *cause,
                 suppress: *suppress,
             },
+            AbilityDef::PlayerStatic {
+                kind:
+                    mtg_core::card::PlayerStaticKind::ActivationCost {
+                        sources,
+                        by,
+                        min_one,
+                        keyword,
+                    },
+                ..
+            } => Ability::ActivationCost {
+                filter: self.filter(self.pool.filter(*sources)),
+                by: *by,
+                min_one: *min_one,
+                keyword: *keyword,
+            },
             AbilityDef::PlayerStatic { kind, condition } => Ability::PlayerStatic {
                 kind: *kind,
                 cond: condition.map(|c| self.static_cond(self.pool.condition(c))),
@@ -2208,6 +2239,7 @@ impl Decompiler<'_> {
                     keywords: keywords(g.keywords),
                     storm: g.storm,
                     affinity: g.affinity.as_ref().map(|f| self.filter(f)),
+                    uncounterable: g.uncounterable,
                 }
             }
             AbilityDef::CostChange(c) => Ability::CostChange {

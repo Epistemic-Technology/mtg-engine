@@ -1,0 +1,6 @@
+card "Endless Ranks of the Dead" {
+  oracle_id 69d4ecac-4735-4667-bfc1-c8800b436d08
+  cost {2}{B}{B}
+  type Enchantment
+  triggered at beginning of your upkeep: create count where half down Zombie you control "2/2 black Zombie creature"
+}

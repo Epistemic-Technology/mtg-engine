@@ -1,0 +1,6 @@
+card "Sanguine Sacrament" {
+  oracle_id 851be993-35d7-4566-96a0-3fe84d17979e
+  cost {X}{W}{W}
+  type Instant
+  spell: you gain 2 times X life; put this on bottom of library
+}

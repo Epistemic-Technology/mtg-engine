@@ -1,0 +1,6 @@
+card "Tamiyo's Logbook" {
+  oracle_id d9356199-4ce3-44fa-9463-90fc134088f9
+  cost {2}{U}
+  type Artifact — Book
+  activated {5}{U}, {T}, reduced {1} each other artifact you control: draw 1 cards
+}

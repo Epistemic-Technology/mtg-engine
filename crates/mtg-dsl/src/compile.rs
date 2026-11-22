@@ -1333,6 +1333,10 @@ impl Compiler<'_> {
                         of: SameOf::Source,
                         what: SameWhat::LesserPower,
                     },
+                    SameRef::ManaValueAtMostPower => Same {
+                        of: SameOf::Source,
+                        what: SameWhat::ManaValueAtMostPower,
+                    },
                 }
             }),
             named: None,
@@ -1865,6 +1869,7 @@ impl Compiler<'_> {
                 yours: *yours,
             },
             StaticCond::OpponentMoreLands => StaticCondition::OpponentMoreLands,
+            StaticCond::OpponentHasMore(w) => StaticCondition::OpponentHasMore(*w),
             StaticCond::Void => StaticCondition::Void,
             StaticCond::NotYourMainPhase => StaticCondition::NotYourMainPhase,
             StaticCond::NotCastFromHand => {
@@ -1953,6 +1958,11 @@ impl Compiler<'_> {
             StaticCond::EnduringStory => StaticCondition::EnduringStory,
             StaticCond::NoEnduringStory => StaticCondition::NoEnduringStory,
             StaticCond::MaxSpeed => StaticCondition::MaxSpeed,
+            StaticCond::NoSpellsCastThisTurn { from_hand } => {
+                StaticCondition::NoSpellsCastThisTurn {
+                    from_hand: *from_hand,
+                }
+            }
             StaticCond::TotalPower(n) => StaticCondition::TotalPower(*n),
             StaticCond::DifferentPowers(n) => StaticCondition::DifferentPowers(*n),
             StaticCond::During(t) => StaticCondition::During(*t),
@@ -1983,6 +1993,11 @@ impl Compiler<'_> {
             },
             A::Life => C::Life,
             A::Times(n, inner) => C::Times(*n, Box::new(self.count_expr(inner))),
+            A::Divided { by, up, inner } => C::Divided {
+                by: *by,
+                up: *up,
+                inner: Box::new(self.count_expr(inner)),
+            },
             A::CardsInGraveyards { filter, .. } => {
                 C::CardsInAllGraveyards(filter.as_ref().map(|f| self.filter(f)))
             }
@@ -2058,6 +2073,9 @@ impl Compiler<'_> {
             A::TwoToX => C::TwoToX,
             A::AttackedThisTurn => C::AttackedThisTurn,
             A::OpponentsLostLife => C::OpponentsLostLife,
+            A::CreaturesEnteredThisTurn => C::CreaturesEnteredThisTurn,
+            A::DiscardedThisTurn => C::DiscardedThisTurn,
+
             A::OpponentsMoreCards => C::OpponentsMoreCards,
             A::Total(stat, f) => C::Total(*stat, self.filter(f)),
         }
@@ -4628,6 +4646,7 @@ impl Compiler<'_> {
                 keywords,
                 storm,
                 affinity,
+                uncounterable,
             } => AbilityDef::CostChange(mtg_core::card::CostChange {
                 spells: self.filter(filter),
                 whose: Who::You,
@@ -4638,6 +4657,7 @@ impl Compiler<'_> {
                     storm: *storm,
                     affinity: affinity.as_ref().map(|f| self.filter(f)),
                     from_hand: *from_hand,
+                    uncounterable: *uncounterable,
                 })),
             }),
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
@@ -4656,6 +4676,23 @@ impl Compiler<'_> {
                 cause: *cause,
                 suppress: *suppress,
             },
+            Ability::ActivationCost {
+                filter,
+                by,
+                min_one,
+                keyword,
+            } => {
+                let f = self.filter(filter);
+                AbilityDef::PlayerStatic {
+                    kind: mtg_core::card::PlayerStaticKind::ActivationCost {
+                        sources: self.pool.intern_filter(f),
+                        by: *by,
+                        min_one: *min_one,
+                        keyword: *keyword,
+                    },
+                    condition: None,
+                }
+            }
             Ability::PlayerStatic { kind, cond } => {
                 let condition = match cond {
                     Some(c) => {

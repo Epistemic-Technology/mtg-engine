@@ -845,6 +845,29 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                 .sum::<i32>()
                 >= i32::try_from(*n).unwrap_or(i32::MAX)
         }
+        StaticCondition::OpponentHasMore(what) => {
+            let n = |p: crate::ids::PlayerId| -> i64 {
+                match what {
+                    crate::card::MoreWhat::Creatures => i64::try_from(
+                        work.ids
+                            .iter()
+                            .filter(|id| {
+                                work.on_battlefield(**id)
+                                    && work.controller_of(**id) == p
+                                    && work.chars[work.index[*id]].is_creature()
+                            })
+                            .count(),
+                    )
+                    .unwrap_or(i64::MAX),
+                    crate::card::MoreWhat::Life => i64::from(state.player(p).life),
+                    crate::card::MoreWhat::CardsInHand => {
+                        i64::try_from(state.player(p).hand.len()).unwrap_or(i64::MAX)
+                    }
+                }
+            };
+            let mine = n(you);
+            state.players_in_game().any(|p| p != you && n(p) > mine)
+        }
         StaticCondition::OpponentMoreLands => {
             let lands = |p: crate::ids::PlayerId| {
                 work.ids
@@ -1239,6 +1262,9 @@ fn per_count(
             .players_in_game()
             .filter(|p| *p != you && state.lost_life_this_turn & (1 << p.index().min(7)) != 0)
             .count(),
+        CountExpr::CreaturesEnteredThisTurn => {
+            usize::from(state.turn_log.creatures_entered[you.index().min(3)])
+        }
         CountExpr::OpponentsMoreCards => {
             let mine = state.player(you).hand.len();
             state
@@ -1293,6 +1319,10 @@ fn per_count(
             return i32::try_from(*k)
                 .unwrap_or(0)
                 .saturating_add(per_count(work, source, controller, inner));
+        }
+        CountExpr::Divided { by, up, inner } => {
+            let n = u32::try_from(per_count(work, source, controller, inner).max(0)).unwrap_or(0);
+            return i32::try_from(CountExpr::divide(n, *by, *up)).unwrap_or(i32::MAX);
         }
         CountExpr::GreatestPowerInGraveyard(f) => {
             return state.greatest_power_in_graveyard(you, f);
@@ -1370,6 +1400,7 @@ fn per_count(
         | CountExpr::TargetHand(_)
         | CountExpr::GreatestToughness(_)
         | CountExpr::LifeLostThisTurn
+        | CountExpr::DiscardedThisTurn
         // Power and toughness are what the layers are computing.
         | CountExpr::Total(..)
         | CountExpr::DamageThisWay { .. } => 0,

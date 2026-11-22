@@ -1,0 +1,33 @@
+# Counts divided and rounded (CountExpr::Divided): "half the number of
+# ..., rounded down/up" (CR 107.1a), "for every seven cards ...".
+
+scenario "Dark Matter Manipulator: +2/+0 for every seven cards in your graveyard" {
+  battlefield A: "Dark Matter Manipulator"
+  graveyard A: 13 "Forest"
+  run_to turn 1 precombat_main
+  assert power "Dark Matter Manipulator" 3
+}
+
+scenario "Dark Matter Manipulator: fourteen cards are two sevens" {
+  battlefield A: "Dark Matter Manipulator"
+  graveyard A: 14 "Forest"
+  run_to turn 1 precombat_main
+  assert power "Dark Matter Manipulator" 5
+  assert toughness "Dark Matter Manipulator" 2
+}
+
+scenario "Endless Ranks of the Dead: half the Zombies, rounded down" {
+  battlefield A: "Endless Ranks of the Dead", 3 "Walking Corpse"
+  start turn 3 A
+  run_to turn 3 draw
+  assert battlefield A contains 1 "Zombie"
+}
+
+scenario "Ghoulcaller's Harvest: half the creature cards, rounded up" {
+  battlefield A: "Swamp", "Forest"
+  hand A: "Ghoulcaller's Harvest"
+  graveyard A: 3 "Grizzly Bears", "Forest"
+  turn 1 A: cast "Ghoulcaller's Harvest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Zombie"
+}

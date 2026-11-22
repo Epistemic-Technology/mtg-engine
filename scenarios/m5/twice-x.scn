@@ -1,0 +1,66 @@
+# "twice X" (Num::XTimes): X times two, X announced as the spell is cast.
+
+scenario "Procrastinate puts twice X stun counters" {
+  battlefield A: 3 "Island"
+  hand A: "Procrastinate"
+  battlefield B: "Craw Wurm"
+  turn 1 A: cast "Procrastinate" x 2 targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert tapped "Craw Wurm"
+  assert counters "Craw Wurm" stun 4
+}
+
+scenario "Sanguine Sacrament gains twice X life and goes to the bottom" {
+  battlefield A: 5 "Plains"
+  hand A: "Sanguine Sacrament"
+  turn 1 A: cast "Sanguine Sacrament" x 3
+  run_to turn 1 postcombat_main
+  assert life A 26
+  assert graveyard A lacks "Sanguine Sacrament"
+  assert library A contains "Sanguine Sacrament"
+}
+
+scenario "Heliod's Intervention: target player gains twice X life" {
+  battlefield A: 4 "Plains"
+  hand A: "Heliod's Intervention"
+  turn 1 A: cast "Heliod's Intervention" mode 2 x 2 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 24
+  assert life A 20
+}
+
+scenario "Stonesplitter Bolt: X damage, twice X if bargained" {
+  battlefield A: 3 "Mountain", "Ornithopter"
+  hand A: 2 "Stonesplitter Bolt"
+  battlefield B: "Craw Wurm", "Hill Giant"
+  turn 1 A: cast "Stonesplitter Bolt" x 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Stonesplitter Bolt bargained deals twice X" {
+  battlefield A: 3 "Mountain", "Ornithopter"
+  hand A: "Stonesplitter Bolt"
+  battlefield B: "Hill Giant"
+  turn 1 A: cast "Stonesplitter Bolt" x 2 sacrificing "Ornithopter" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ornithopter"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Territorial Maro: twice the number of basic land types" {
+  battlefield A: "Territorial Maro", "Forest", "Island", "Forest"
+  run_to turn 1 precombat_main
+  assert power "Territorial Maro" 4
+  assert toughness "Territorial Maro" 4
+}
+
+scenario "Masumaro: twice the number of cards in hand, as it changes" {
+  battlefield A: "Masumaro, First to Live", "Mountain"
+  hand A: "Grizzly Bears", "Hill Giant", "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert power "Masumaro, First to Live" 4
+  assert toughness "Masumaro, First to Live" 4
+}

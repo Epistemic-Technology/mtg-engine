@@ -1,0 +1,6 @@
+card "Jodah's Codex" {
+  oracle_id 1ba5b108-59cb-4af1-88cb-d3ceaaf00784
+  cost {5}
+  type Artifact — Book
+  label "Domain" activated {5}, {T}, reduced {1} each domain: draw 1 cards
+}

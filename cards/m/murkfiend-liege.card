@@ -1,0 +1,9 @@
+card "Murkfiend Liege" {
+  oracle_id 61d28182-498f-4bbc-bb7a-c5e1ef872dda
+  cost {2}{G/U}{G/U}{G/U}
+  type Creature — Horror
+  pt 4/4
+  static other green creature you control: +1/+1
+  static other blue creature you control: +1/+1
+  static andor green or blue creature you control: has untaps during each other player's untap step
+}

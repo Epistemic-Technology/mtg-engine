@@ -1,0 +1,68 @@
+# "Activated abilities of artifacts you control cost {1} less to
+# activate." (PlayerStaticKind::ActivationCost; CR 601.2f by way of
+# 602.2b): generic mana off the abilities of matching permanents.
+
+scenario "Training Grounds: {3} becomes {1}" {
+  battlefield A: "Training Grounds", "Duskworker", "Plains"
+  turn 1 A: activate "Duskworker"
+  run_to turn 1 postcombat_main
+  assert power "Duskworker" 3
+}
+
+scenario "Training Grounds can't reduce below one mana" {
+  battlefield A: "Training Grounds", "Duskworker"
+  illegal turn 1 A: activate "Duskworker"
+  run_to turn 1 postcombat_main
+  assert power "Duskworker" 2
+}
+
+scenario "Training Grounds: {2}{R} becomes {R}" {
+  battlefield A: "Training Grounds", "Bold Impaler", "Mountain"
+  turn 1 A: activate "Bold Impaler"
+  run_to turn 1 postcombat_main
+  assert power "Bold Impaler" 3
+}
+
+scenario "Training Grounds doesn't help the opponent" {
+  battlefield B: "Training Grounds"
+  battlefield A: "Duskworker", "Plains"
+  illegal turn 1 A: activate "Duskworker"
+  run_to turn 1 postcombat_main
+  assert power "Duskworker" 2
+}
+
+scenario "Forensic Gadgeteer: a Clue costs {1}" {
+  battlefield A: "Forensic Gadgeteer", "Clue", "Island"
+  library A: "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Clue"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Forensic Gadgeteer doesn't reduce creatures' abilities" {
+  battlefield A: "Forensic Gadgeteer", "Bold Impaler", "Mountain", "Plains"
+  illegal turn 1 A: activate "Bold Impaler"
+  run_to turn 1 postcombat_main
+  assert power "Bold Impaler" 1
+}
+
+scenario "Hulk, Gamma Goliath: another creature's power-up costs {3} less" {
+  battlefield A: "Hulk, Gamma Goliath", "Serpent Specialist", "Forest"
+  turn 1 A: activate "Serpent Specialist"
+  run_to turn 1 postcombat_main
+  assert counters "Serpent Specialist" +1/+1 2
+}
+
+scenario "Boom Scholar: another permanent's exhaust costs {2} less" {
+  battlefield A: "Boom Scholar", "Camera Launcher", "Island"
+  turn 1 A: activate "Camera Launcher"
+  run_to turn 1 postcombat_main
+  assert counters "Camera Launcher" +1/+1 1
+}
+
+scenario "Boom Scholar doesn't reduce its own exhaust" {
+  battlefield A: "Boom Scholar", 2 "Mountain", 2 "Forest"
+  illegal turn 1 A: activate "Boom Scholar"
+  run_to turn 1 postcombat_main
+  assert counters "Boom Scholar" +1/+1 0
+}

@@ -1,0 +1,7 @@
+card "Tetsuko Umezawa, Fugitive" {
+  oracle_id ceeeacbc-01b0-4421-aaca-2ce6cdbe45d7
+  cost {1}{U}
+  type Legendary Creature — Human Rogue
+  pt 1/3
+  static creature you control with power or toughness 1 or less: has can't be blocked
+}

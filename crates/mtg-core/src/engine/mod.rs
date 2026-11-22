@@ -2870,6 +2870,27 @@ impl GameState {
         }
     }
 
+    /// "Untap this creature during each other player's untap step" (CR
+    /// 502.3): the other players' permanents with it untap too.
+    fn untap_others(&mut self, active: PlayerId) {
+        let ids: smallvec::SmallVec<[ObjId; 4]> = self
+            .battlefield
+            .iter()
+            .copied()
+            .filter(|id| {
+                let o = &self.objects[*id];
+                o.controller != active
+                    && o.tapped
+                    && self.characteristics(*id).is_some_and(|c| {
+                        c.has(Keyword::UntapsDuringOthers) && !c.has(Keyword::DoesntUntap)
+                    })
+            })
+            .collect();
+        for id in ids {
+            self.untap(id);
+        }
+    }
+
     /// Turn-based actions at the start of the current step (CR 500.1 and the
     /// step rules), then priority or straight to the end of the step.
     fn begin_step(&mut self) {
@@ -2882,6 +2903,7 @@ impl GameState {
                     self.day_night_check();
                 }
                 self.untap_all(active);
+                self.untap_others(active);
                 self.player_mut(active).lands_played_this_turn = 0;
                 for p in 0..self.num_players() {
                     self.players[p].extra_land_plays = 0;

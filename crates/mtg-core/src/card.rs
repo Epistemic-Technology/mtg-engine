@@ -331,6 +331,9 @@ pub enum Keyword {
     /// "can't crew Vehicles" (CR 702.122d): it can't be tapped to pay a
     /// crew cost.
     CantCrew,
+    /// "Untap this creature during each other player's untap step." (CR
+    /// 502.3): it untaps in every untap step, not only its controller's.
+    UntapsDuringOthers,
     /// CR 702.147: "This creature can't block. When this creature
     /// attacks, sacrifice it at end of combat." Its triggered half is
     /// `CardPool::keyword_trigger`.
@@ -538,7 +541,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 71] = [
+    pub const ALL: [Keyword; 72] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -610,6 +613,7 @@ impl Keyword {
         Keyword::HexproofFromFilter,
         Keyword::Paradigm,
         Keyword::SplitSecond,
+        Keyword::UntapsDuringOthers,
     ];
 
     /// The keyword as Oracle prints it.
@@ -688,6 +692,7 @@ impl Keyword {
                 "its activated abilities can't be activated unless they're mana abilities"
             }
             Keyword::CantCrew => "can't crew Vehicles",
+            Keyword::UntapsDuringOthers => "untaps during each other player's untap step",
         }
     }
 
@@ -1219,6 +1224,11 @@ pub struct StatusQuals {
     pub morph: bool,
     /// "suspected creature" (`true`, CR 701.60) or not suspected.
     pub suspected: Option<bool>,
+    /// "with power or toughness 1 or less": `ObjFilter::power` and
+    /// `toughness` (the same threshold) are alternatives, either enough.
+    /// A characteristic, not game state: `any` leaves it out.
+    #[serde(default)]
+    pub pt_either: bool,
 }
 
 /// The kind of permanent `StatusQuals::on` asks the object to be attached
@@ -1311,6 +1321,9 @@ pub enum SameWhat {
     /// Has lesser power ("target attacking creature with lesser power",
     /// mentor, CR 702.134a).
     LesserPower,
+    /// Has mana value at most the source's power ("with mana value less
+    /// than or equal to this creature's power"); no source, nothing.
+    ManaValueAtMostPower,
 }
 
 /// What a spell must target ("that targets a creature", "that targets you
@@ -1435,6 +1448,11 @@ impl ObjFilter {
             SameWhat::LesserPower => {
                 f.power = Some((Cmp::AtMost, power.map_or(i16::MIN, |p| p.saturating_sub(1))));
             }
+            // A negative power (or none): no mana value is that small.
+            SameWhat::ManaValueAtMostPower => match power.and_then(|p| u8::try_from(p).ok()) {
+                Some(p) => f.mana_value = Some((Cmp::AtMost, p)),
+                None => f.named = Some((CardRef(u32::MAX), true)),
+            },
         }
         f
     }
@@ -1526,15 +1544,26 @@ impl ObjFilter {
         if !self.any_types.is_empty() && !c.types.intersects(self.any_types) {
             return false;
         }
-        if let Some((cmp, n)) = self.power
-            && !cmp.holds(c.power, n)
-        {
-            return false;
-        }
-        if let Some((cmp, n)) = self.toughness
-            && !cmp.holds(c.toughness, n)
-        {
-            return false;
+        if self.status.pt_either {
+            // "with power or toughness 1 or less": either is enough.
+            let p = self.power.is_some_and(|(cmp, n)| cmp.holds(c.power, n));
+            let t = self
+                .toughness
+                .is_some_and(|(cmp, n)| cmp.holds(c.toughness, n));
+            if !p && !t {
+                return false;
+            }
+        } else {
+            if let Some((cmp, n)) = self.power
+                && !cmp.holds(c.power, n)
+            {
+                return false;
+            }
+            if let Some((cmp, n)) = self.toughness
+                && !cmp.holds(c.toughness, n)
+            {
+                return false;
+            }
         }
         if let Some(cc) = self.color_count {
             let n = c.colors.iter().count();
@@ -1756,6 +1785,14 @@ pub enum CountExpr {
     Life,
     /// N times another count ("2 life for each creature you control").
     Times(u32, Box<CountExpr>),
+    /// Another count divided by `by`, rounded down or (`up`) up: "half the
+    /// number of artifacts you control, rounded down" (CR 107.1a), "for
+    /// every seven cards in your graveyard".
+    Divided {
+        by: u32,
+        up: bool,
+        inner: Box<CountExpr>,
+    },
     /// Cards in all graveyards, all or matching the filter ("the number of
     /// cards named ~ in all graveyards").
     CardsInAllGraveyards(Option<ObjFilter>),
@@ -1911,6 +1948,13 @@ pub enum CountExpr {
     /// Opponents who lost life this turn ("for each opponent who lost life
     /// this turn"; CR 119.3).
     OpponentsLostLife,
+    /// Creatures that entered the battlefield under your control this
+    /// turn ("the number of creatures that entered the battlefield under
+    /// your control this turn").
+    CreaturesEnteredThisTurn,
+    /// Cards you've discarded this turn ("for each card you've discarded
+    /// this turn", CR 701.8).
+    DiscardedThisTurn,
     /// Opponents who have more cards in hand than you.
     OpponentsMoreCards,
     /// The total power, toughness, or mana value of the battlefield
@@ -1933,6 +1977,13 @@ pub enum CountExpr {
 }
 
 impl CountExpr {
+    /// `n` divided by `by`, rounded down or (`up`) up (CR 107.1a).
+    #[must_use]
+    pub fn divide(n: u32, by: u32, up: bool) -> u32 {
+        let by = by.max(1);
+        if up { n.div_ceil(by) } else { n / by }
+    }
+
     /// Whether the count reads the turn's history, so a static ability
     /// using it must be recomputed as that changes (`history_static`).
     pub fn reads_history(&self) -> bool {
@@ -1940,8 +1991,10 @@ impl CountExpr {
             CountExpr::LifeGainedThisTurn
             | CountExpr::SacrificedThisTurn
             | CountExpr::AttackedThisTurn
-            | CountExpr::OpponentsLostLife => true,
+            | CountExpr::OpponentsLostLife
+            | CountExpr::CreaturesEnteredThisTurn => true,
             CountExpr::Times(_, c) | CountExpr::Plus(_, c) => c.reads_history(),
+            CountExpr::Divided { inner, .. } => inner.reads_history(),
             CountExpr::Sum(a, b) => a.reads_history() || b.reads_history(),
             _ => false,
         }
@@ -1958,6 +2011,7 @@ impl CountExpr {
         match self {
             CountExpr::Sum(a, b) => a.in_static() && b.in_static(),
             CountExpr::Plus(_, c) | CountExpr::Times(_, c) => c.in_static(),
+            CountExpr::Divided { inner, .. } => inner.in_static(),
             CountExpr::Permanents(_)
             | CountExpr::Domain
             | CountExpr::ColorsAmongPermanents
@@ -1977,10 +2031,12 @@ impl CountExpr {
             | CountExpr::SacrificedThisTurn
             | CountExpr::AttackedThisTurn
             | CountExpr::OpponentsLostLife
+            | CountExpr::CreaturesEnteredThisTurn
             | CountExpr::OpponentsMoreCards
             | CountExpr::ExiledWith(_)
             | CountExpr::CardsInExile { .. }
             | CountExpr::Life => true,
+
             // Total power and toughness would read the characteristics
             // being computed; total mana value does not.
             CountExpr::Total(stat, _) => *stat == Stat::ManaValue,
@@ -2014,6 +2070,8 @@ impl CountExpr {
             | CountExpr::TargetHand(_)
             | CountExpr::GreatestToughness(_)
             | CountExpr::LifeLostThisTurn
+            // Discards are counted only as an effect resolves.
+            | CountExpr::DiscardedThisTurn
             | CountExpr::DamageThisWay { .. } => false,
         }
     }
@@ -2527,6 +2585,11 @@ pub enum StaticCondition {
     /// "• Khans — ...": the source's controller chose this one of its
     /// named options as it entered (`ChoiceKind::Named`; the Sieges).
     Chose(u8),
+    /// "you haven't cast a spell this turn"; with `from_hand`, "you
+    /// haven't cast a spell from your hand this turn" (CR 601.2a).
+    NoSpellsCastThisTurn {
+        from_hand: bool,
+    },
     /// "If {B} was spent to cast this spell", "if at least three red mana
     /// was spent to cast it" (adamant), "if mana from a Treasure was spent
     /// to cast it": at least `at_least` of the mana paid to cast the
@@ -2585,6 +2648,9 @@ pub enum StaticCondition {
     },
     /// "an opponent controls more lands than you".
     OpponentMoreLands,
+    /// "an opponent controls more creatures than you", "an opponent has
+    /// more life than you", "an opponent has more cards in hand than you".
+    OpponentHasMore(MoreWhat),
     /// Void: "a nonland permanent left the battlefield this turn or a
     /// spell was warped this turn" (CR 702.185).
     Void,
@@ -2635,6 +2701,14 @@ pub struct SpentUse {
     pub converge: bool,
     /// Anything is read, so the cast records what was spent.
     pub record: bool,
+}
+
+/// What `StaticCondition::OpponentHasMore` compares.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum MoreWhat {
+    Creatures,
+    Life,
+    CardsInHand,
 }
 
 /// A part of the turn an activation restriction names (CR 602.5b).
@@ -3245,6 +3319,8 @@ pub enum Num {
     X,
     /// "X plus 1": X and then some (Meteor Shower).
     XPlus(u32),
+    /// "twice X": X times this (Torch the Witness).
+    XTimes(u32),
     /// The `i`th of the source card's `CardDef::counts` ("the number of
     /// creatures you control"), evaluated as the effect happens
     /// (`GameState::eval_num`).
@@ -3266,6 +3342,7 @@ impl Num {
             Num::N(n) => n,
             Num::X => x,
             Num::XPlus(n) => x.saturating_add(n),
+            Num::XTimes(n) => x.saturating_mul(n),
             Num::Count(_) | Num::ThatMuch => 0,
         }
     }
@@ -3276,6 +3353,7 @@ impl Num {
             Num::N(n) => n,
             Num::X | Num::Count(_) | Num::ThatMuch => 3,
             Num::XPlus(n) => 3 + n,
+            Num::XTimes(n) => 3 * n,
         }
     }
 }
@@ -5000,6 +5078,19 @@ pub enum PlayerStaticKind {
     /// "Players can't gain life.", "Damage can't be prevented." (CR
     /// 614.17; `GameState::rule_in_force`).
     Rule(RuleKind),
+    /// "Activated abilities of artifacts you control cost {1} less to
+    /// activate." (CR 602.2b, 601.2f): the generic mana of the activated
+    /// abilities (of that `keyword`, if any: "Power-up abilities of other
+    /// creatures you control ...") of permanents matching the pooled
+    /// filter `sources` (judged for this source) is reduced by `by`; with
+    /// `min_one`, "This effect can't reduce the mana in that cost to less
+    /// than one mana."
+    ActivationCost {
+        sources: u16,
+        by: u8,
+        min_one: bool,
+        keyword: Option<ActivatedKeyword>,
+    },
 }
 
 /// Effects that modify the rules rather than objects (CR 613.11, 614.17).
@@ -6425,6 +6516,10 @@ pub struct SpellGrant {
     pub affinity: Option<ObjFilter>,
     /// Only spells cast from their caster's hand.
     pub from_hand: bool,
+    /// "Spells you control can't be countered" (CR 701.5): an effect that
+    /// counters a matching spell does nothing to it.
+    #[serde(default)]
+    pub uncounterable: bool,
 }
 
 /// "This spell costs {1} less to cast for each artifact you control"
@@ -8906,6 +9001,7 @@ impl CardPool {
                     | StaticCondition::MoreCardsInHand
                     | StaticCondition::DrawnThisTurn(_)
                     | StaticCondition::CastThisTurn { .. }
+                    | StaticCondition::NoSpellsCastThisTurn { .. }
                     | StaticCondition::DiscardedThisTurn
             )))
         });

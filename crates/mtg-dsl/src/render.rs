@@ -93,6 +93,7 @@ fn count_words(n: Num, article: &str) -> String {
         Num::ThatMuch => "that many".to_string(),
         Num::X | Num::Count(_) => "X".to_string(),
         Num::XPlus(n) => format!("X plus {n}"),
+        Num::XTimes(n) => times_x(n),
         Num::N(1) => article.to_string(),
         Num::N(n) => NUMBER_WORDS
             .get(n as usize - 1)
@@ -105,7 +106,21 @@ fn digits(n: Num) -> String {
         Num::ThatMuch => "that much".to_string(),
         Num::X | Num::Count(_) => "X".to_string(),
         Num::XPlus(n) => format!("X plus {n}"),
+        Num::XTimes(n) => times_x(n),
         Num::N(n) => n.to_string(),
+    }
+}
+
+/// "twice X", "three times X".
+fn times_x(n: u32) -> String {
+    match n {
+        2 => "twice X".to_string(),
+        n => format!(
+            "{} times X",
+            NUMBER_WORDS
+                .get(n as usize - 1)
+                .map_or_else(|| n.to_string(), |w| (*w).to_string())
+        ),
     }
 }
 
@@ -256,6 +271,7 @@ pub fn is_restriction(k: Keyword) -> bool {
             | Keyword::CantActivate
             | Keyword::CantActivateNonMana
             | Keyword::CantCrew
+            | Keyword::UntapsDuringOthers
     )
 }
 
@@ -344,6 +360,12 @@ fn keyword_line(card: &Card, k: Keyword) -> String {
         return format!(
             "{} doesn't untap during your untap step.",
             capitalize(&this_ref(card))
+        );
+    }
+    if k == Keyword::UntapsDuringOthers {
+        return format!(
+            "Untap {} during each other player's untap step.",
+            this_ref(card)
         );
     }
     if k == Keyword::Lure {
@@ -2460,7 +2482,12 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     for (name, v) in [("power", f.power), ("toughness", f.toughness)] {
         if let Some((cmp, n)) = v {
-            if f.status.spent_colors && name == "power" {
+            if f.status.pt_either {
+                // "with power or toughness 1 or less".
+                if name == "power" {
+                    let _ = write!(s, " with power or toughness {n}{}", cmp_words(cmp));
+                }
+            } else if f.status.spent_colors && name == "power" {
                 let _ = write!(s, " with power {}", spent_at_most(card));
             } else {
                 let _ = write!(s, " with {name} {n}{}", cmp_words(cmp));
@@ -2630,6 +2657,10 @@ fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             if plural_form { "share" } else { "shares" }
         ),
         Some(SameRef::LesserPower) => " with lesser power".to_string(),
+        Some(SameRef::ManaValueAtMostPower) => format!(
+            " with mana value less than or equal to {}'s power",
+            this_ref(card)
+        ),
     }
 }
 
@@ -3547,6 +3578,16 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
     if let CountExpr::Times(_, inner) = c {
         return count_phrase(inner, card, each);
     }
+    // "half the number of artifacts you control, rounded down"; "for
+    // every seven cards in your graveyard".
+    if let CountExpr::Divided { by, up, inner } = c {
+        let s = count_phrase(inner, card, false);
+        if *by == 2 && !each {
+            return format!("half {s}, rounded {}", if *up { "up" } else { "down" });
+        }
+        let many = s.strip_prefix("the number of ").unwrap_or(&s);
+        return format!("for every {} {many}", count_words(Num::N(*by), "one"));
+    }
     let (one, many) = match c {
         // "the greatest power among creatures you control".
         CountExpr::GreatestPower(f) => {
@@ -3707,7 +3748,7 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 format!("creatures blocking it{rest}"),
             )
         }
-        CountExpr::Times(..) => unreachable!("unwrapped above"),
+        CountExpr::Times(..) | CountExpr::Divided { .. } => unreachable!("unwrapped above"),
         // "for each enchantment destroyed this way".
         CountExpr::ThisWay { verb, filter } => {
             // "the number of cards shuffled into your library this way".
@@ -4017,6 +4058,15 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         CountExpr::OpponentsLostLife => (
             "opponent who lost life this turn".to_string(),
             "opponents who lost life this turn".to_string(),
+        ),
+        CountExpr::DiscardedThisTurn => (
+            "card you've discarded this turn".to_string(),
+            "cards you've discarded this turn".to_string(),
+        ),
+
+        CountExpr::CreaturesEnteredThisTurn => (
+            "creature that entered the battlefield under your control this turn".to_string(),
+            "creatures that entered the battlefield under your control this turn".to_string(),
         ),
         CountExpr::OpponentsMoreCards => (
             "opponent who has more cards in hand than you".to_string(),
@@ -8615,6 +8665,14 @@ fn lowercase_first(s: &str) -> String {
     {
         return s.to_string();
     }
+    // "Birds, Frogs, Otters, and Rats you control get +1/+1": a list of
+    // creature types in the plural.
+    if let Some(first) = s.split(' ').next()
+        && first.ends_with("s,")
+        && first.chars().next().is_some_and(char::is_uppercase)
+    {
+        return s.to_string();
+    }
     // "Raccoons you control get +1/+1": a creature type in the plural.
     let mut words = s.split(' ');
     if let (Some(first), Some("you"), Some("control")) = (words.next(), words.next(), words.next())
@@ -10666,6 +10724,9 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
 fn cda_count_text(c: &crate::ast::CountExpr, card: &Card) -> String {
     use crate::ast::CountExpr;
     match c {
+        // "twice the number of instant and sorcery cards in your
+        // graveyard".
+        CountExpr::Times(2, inner) => format!("twice {}", cda_count_text(inner, card)),
         CountExpr::Permanents(f) => format!(
             "the number of {}{}",
             filter_phrase(f, card, true),
@@ -10696,6 +10757,27 @@ pub(crate) fn also_subtypes(filter: &Filter, mods: &[Mod]) -> Option<Vec<String>
 
 #[allow(clippy::too_many_lines)] // one case per kind of static
 fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) -> String {
+    // "Untap all permanents you control during each other player's untap
+    // step." (Seedborn Muse), "Untap each creature you control with a
+    // +1/+1 counter on it during ...".
+    if let [Mod::AddKeywords(ks)] = mods
+        && ks.as_slice() == [Keyword::UntapsDuringOthers]
+        && filter.relation != Relation::This
+        && !filter.enchanted
+    {
+        let what = if filter.each {
+            format!("each {}", filter_phrase(filter, card, false))
+        } else {
+            format!("all {}", filter_phrase(filter, card, true))
+        };
+        // "all green and/or blue creatures you control".
+        let what = if filter.and_or {
+            what.replacen(" or ", " and/or ", 1)
+        } else {
+            what
+        };
+        return format!("Untap {what} during each other player's untap step.");
+    }
     // Soulbond (CR 702.95b): "As long as this creature is paired with
     // another creature, both creatures have flying." / "each of those
     // creatures gets +1/+1." / "each of those creatures has "..."."
@@ -11628,6 +11710,12 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("{} creatures died this turn", or_more(*n))
         }
         StaticCond::OpponentMoreLands => "an opponent controls more lands than you".to_string(),
+        StaticCond::OpponentHasMore(w) => match w {
+            mtg_core::card::MoreWhat::Creatures => "an opponent controls more creatures than you",
+            mtg_core::card::MoreWhat::Life => "an opponent has more life than you",
+            mtg_core::card::MoreWhat::CardsInHand => "an opponent has more cards in hand than you",
+        }
+        .to_string(),
         StaticCond::Void => {
             "a nonland permanent left the battlefield this turn or a spell was warped this turn"
                 .to_string()
@@ -12093,6 +12181,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::EnduringStory => "you have an enduring story".to_string(),
         StaticCond::NoEnduringStory => "you don't have an enduring story".to_string(),
         StaticCond::MaxSpeed => "you have max speed".to_string(),
+        StaticCond::NoSpellsCastThisTurn { from_hand } => format!(
+            "you haven't cast a spell{} this turn",
+            if *from_hand { " from your hand" } else { "" }
+        ),
         StaticCond::TotalPower(n) => {
             format!("creatures you control have total power {n} or greater")
         }
@@ -12910,7 +13002,22 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             keywords,
             storm,
             affinity,
+            uncounterable,
         } => {
+            if *uncounterable {
+                return format!(
+                    "{} you control can't be countered.",
+                    cost_spells_subject(filter, card)
+                );
+            }
+            // "You may cast noncreature spells as though they had flash."
+            if keywords == &[Keyword::Flash] && !*storm && affinity.is_none() {
+                let from = if *from_hand { " from your hand" } else { "" };
+                return format!(
+                    "You may cast {}{from} as though they had flash.",
+                    lowercase_first(&cost_spells_subject(filter, card))
+                );
+            }
             let mut items: Vec<String> = keywords
                 .iter()
                 .map(|k| keyword_name(*k).to_string())
@@ -13498,9 +13605,29 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             };
             format!("If a triggered ability of {what} triggers, {it} triggers an additional time.")
         }
+        // "Activated abilities of artifacts you control cost {1} less to
+        // activate."
+        Ability::ActivationCost {
+            filter,
+            by,
+            min_one,
+            keyword,
+        } => {
+            let what = keyword.map_or("Activated", mtg_core::card::ActivatedKeyword::name);
+            let min = if *min_one {
+                " This effect can't reduce the mana in that cost to less than one mana."
+            } else {
+                ""
+            };
+            format!(
+                "{what} abilities of {} cost {{{by}}} less to activate.{min}",
+                filter_phrase(filter, card, true)
+            )
+        }
         Ability::PlayerStatic { kind, cond } => {
             use mtg_core::card::PlayerStaticKind as K;
             let s = match kind {
+                K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
                 K::CantLose => {

@@ -1,0 +1,8 @@
+card "Canyon Crab" {
+  oracle_id 4681facf-21ca-4118-a827-0e3d4233d8e6
+  cost {1}{U}
+  type Creature — Crab
+  pt 0/5
+  activated {1}{U}: this gets +2/-2 until end of turn
+  triggered at beginning of your end step if not cast from hand this turn: draw 1 card then discard 1 card
+}

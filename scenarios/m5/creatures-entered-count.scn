@@ -1,0 +1,30 @@
+# "the number of creatures that entered the battlefield under your
+# control this turn" (CountExpr::CreaturesEnteredThisTurn), in a static
+# ability.
+
+scenario "Kinbinding: +X/+X for creatures that entered this turn" {
+  battlefield A: "Kinbinding", "Hill Giant", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 declare_attackers
+  assert power "Hill Giant" 5
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "Kinbinding: the count starts over each turn" {
+  battlefield A: "Kinbinding", "Hill Giant"
+  start turn 2 A
+  run_to turn 2 precombat_main
+  assert power "Hill Giant" 3
+}
+
+scenario "Kinbinding: the opponent's creatures don't count" {
+  battlefield A: "Kinbinding", "Hill Giant"
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert power "Hill Giant" 3
+}

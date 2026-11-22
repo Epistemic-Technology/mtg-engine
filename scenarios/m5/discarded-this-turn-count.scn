@@ -1,0 +1,33 @@
+# "for each card you've discarded this turn"
+# (CountExpr::DiscardedThisTurn), the cost's discard included.
+
+scenario "Misty Knight: the discard paying the cost counts" {
+  battlefield A: "Misty Knight, Hero for Hire", 2 "Plains"
+  hand A: "Forest"
+  library A: "Grizzly Bears", "Hill Giant", "Craw Wurm"
+  turn 1 A: activate "Misty Knight, Hero for Hire" discarding "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Change of Fortune: discard three, draw three" {
+  battlefield A: 4 "Mountain"
+  hand A: "Change of Fortune", "Forest", "Island", "Swamp"
+  library A: "Grizzly Bears", "Hill Giant", "Craw Wurm", "Shock"
+  turn 1 A: cast "Change of Fortune"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert hand A lacks "Shock"
+}
+
+scenario "Change of Fortune counts earlier discards this turn" {
+  battlefield A: 4 "Mountain", "Misty Knight, Hero for Hire", 2 "Plains"
+  hand A: "Change of Fortune", "Forest", "Island"
+  library A: "Grizzly Bears", "Hill Giant", "Craw Wurm", "Shock"
+  turn 1 A: activate "Misty Knight, Hero for Hire" discarding "Forest"
+  turn 1 A: wait
+  turn 1 A: cast "Change of Fortune"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+}

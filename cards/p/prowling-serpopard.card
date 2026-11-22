@@ -1,0 +1,8 @@
+card "Prowling Serpopard" {
+  oracle_id 4bdfd718-f474-4223-88d8-7fa9fb0c86b4
+  cost {1}{G}{G}
+  type Creature — Cat Snake
+  pt 4/3
+  this spell can't be countered
+  spells creature you control can't be countered
+}

@@ -1,0 +1,10 @@
+card "Sunset Revelry" {
+  oracle_id 65779f3b-7fc5-4847-99d7-78f697d34c3d
+  cost {1}{W}
+  type Sorcery
+  spell {
+  if opponent has more life, you gain 4 life
+  if opponent controls more creatures, create 2 "1/1 white Human creature"
+  if opponent has more cards in hand, draw 1 card
+  }
+}

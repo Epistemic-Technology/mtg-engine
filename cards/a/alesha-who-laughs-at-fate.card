@@ -1,0 +1,9 @@
+card "Alesha, Who Laughs at Fate" {
+  oracle_id 17ce2c17-b69b-4ebf-9c3c-c64e771af101
+  cost {1}{B}{R}
+  type Legendary Creature — Human Warrior
+  pt 2/2
+  keywords first strike
+  triggered whenever this attacks: put 1 +1/+1 counter on this
+  label "Raid" triggered at beginning of your end step if attacked this turn: return target creature card with mana value at most this power from your graveyard to battlefield
+}

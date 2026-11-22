@@ -1,0 +1,17 @@
+card "Malevolent Hermit // Benevolent Geist" {
+  oracle_id 51233ade-70cd-4539-9f41-5ffab761da54
+  layout transform
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 2/1
+  activated {U}, sacrifice this: counter target noncreature spell unless its controller pays {3}
+  disturb {2}{U}
+  face "Benevolent Geist" {
+    type Creature — Spirit Wizard
+    pt 2/2
+    color blue
+    keywords flying
+    spells noncreature you control can't be countered
+    exiled instead of graveyard
+  }
+}

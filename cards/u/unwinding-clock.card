@@ -1,0 +1,6 @@
+card "Unwinding Clock" {
+  oracle_id 153fac93-5d2b-4348-a468-a5eef6a12da3
+  cost {4}
+  type Artifact
+  static artifact you control: has untaps during each other player's untap step
+}

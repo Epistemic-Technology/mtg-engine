@@ -1,0 +1,9 @@
+card "Sphinx of the Final Word" {
+  oracle_id d4246e4d-390d-4925-a5a8-89cd096a237c
+  cost {5}{U}{U}
+  type Creature — Sphinx
+  pt 5/5
+  this spell can't be countered
+  keywords flying, hexproof
+  spells instant or sorcery you control can't be countered
+}

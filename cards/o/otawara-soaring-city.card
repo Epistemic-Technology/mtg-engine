@@ -1,0 +1,6 @@
+card "Otawara, Soaring City" {
+  oracle_id e9b6a394-691c-425a-9307-76d8edc7375e
+  type Legendary Land
+  mana {U}
+  label "Channel" activated {3}{U}, discard this, reduced {1} each legendary creature you control: return target artifact, creature, enchantment, or planeswalker to hand
+}

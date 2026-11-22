@@ -1,0 +1,9 @@
+card "Etherium Pteramander" {
+  oracle_id 3e254cae-6e14-4a40-bc02-7ca23750bb26
+  cost {B}
+  type Artifact Creature — Salamander Drake
+  pt 1/1
+  keywords flying
+  can block only creature with flying
+  activated {6}{B}, reduced {1} each other artifact you control: adapt 4
+}

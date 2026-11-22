@@ -1,0 +1,6 @@
+card "Mirror of Galadriel" {
+  oracle_id 7695ef41-fa58-4890-b3fe-de5751831d8e
+  cost {2}
+  type Legendary Artifact
+  activated {5}, {T}, reduced {1} each legendary creature you control: scry 1 then draw 1 cards
+}

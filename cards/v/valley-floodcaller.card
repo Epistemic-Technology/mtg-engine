@@ -1,0 +1,9 @@
+card "Valley Floodcaller" {
+  oracle_id 4879c8f0-8832-4290-bc71-9838940f75cd
+  cost {2}{U}
+  type Creature — Otter Wizard
+  pt 2/2
+  keywords flash
+  spells noncreature you cast have flash
+  triggered whenever you cast noncreature spell: each Bird or Frog or Otter or Rat you control gets +1/+1 until end of turn; untap them
+}

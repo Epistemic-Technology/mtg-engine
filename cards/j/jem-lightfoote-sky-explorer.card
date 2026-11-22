@@ -1,0 +1,8 @@
+card "Jem Lightfoote, Sky Explorer" {
+  oracle_id 5802aa98-a9b7-4b0d-9d7c-c3938701870d
+  cost {2}{W}{U}
+  type Legendary Creature — Human Scout
+  pt 3/3
+  keywords flying, vigilance
+  triggered at beginning of your end step if not cast from hand this turn: draw 1 card
+}

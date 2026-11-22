@@ -1,0 +1,9 @@
+card "Mutagen Man, Living Ooze" {
+  oracle_id 472d9a18-19a0-46c0-a4bf-328ebec7ce41
+  cost {X}{G}{G}
+  type Legendary Creature — Ooze Mutant
+  pt 2/3
+  keywords trample
+  activated abilities of artifact token you control cost {1} less
+  triggered when this enters: create X "Mutagen"
+}

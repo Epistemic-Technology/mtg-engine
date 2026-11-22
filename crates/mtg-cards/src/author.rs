@@ -572,6 +572,10 @@ fn number(w: &str) -> Option<String> {
     if w == "X" {
         return Some("X".to_string());
     }
+    // "twice X", made one word by `sentence_rules`.
+    if w == "twiceX" {
+        return Some("2 times X".to_string());
+    }
     if w == "a" || w == "an" {
         return Some("1".to_string());
     }
@@ -607,11 +611,33 @@ fn keyword_list(s: &str) -> Option<String> {
 #[allow(clippy::too_many_lines)] // one arm per phrase
 fn count_expr(s: &str) -> Option<String> {
     let s = s.trim();
+    // "half the number of artifacts you control, rounded down".
+    if let Some(rest) = s.strip_prefix("half the number of ")
+        && let Some((what, how)) = rest.rsplit_once(", rounded ")
+        && matches!(how, "down" | "up")
+    {
+        return count_expr(what).map(|e| format!("half {how} {e}"));
+    }
+    // "+2/+0 for every seven cards in your graveyard": `every 7 ...`.
+    if let Some(rest) = s.strip_prefix("every ")
+        && let Some((n, what)) = rest.split_once(' ')
+        && let Some(n) = number(n)
+        && n.chars().all(|c| c.is_ascii_digit())
+    {
+        return count_expr(what).map(|e| format!("every {n} {e}"));
+    }
     match s {
         "basic land types among lands you control" | "basic land type among lands you control" => {
             return Some("domain".to_string());
         }
         "cards in your hand" | "card in your hand" => return Some("hand".to_string()),
+        "cards you've discarded this turn" | "card you've discarded this turn" => {
+            return Some("discarded this turn".to_string());
+        }
+        "creatures that entered the battlefield under your control this turn"
+        | "creature that entered the battlefield under your control this turn" => {
+            return Some("creatures entered this turn".to_string());
+        }
         // Vivid.
         "colors among permanents you control" | "color among permanents you control" => {
             return Some("colors among permanents".to_string());
@@ -2361,6 +2387,14 @@ impl Templates {
     }
 
     fn sentence_rules(&self, s: &str, targets: &mut usize) -> Option<String> {
+        // "deals twice X damage": one word, so a number's `(\w+)` takes it.
+        let twice;
+        let s = if s.contains("twice X ") {
+            twice = s.replace("twice X ", "twiceX ");
+            twice.as_str()
+        } else {
+            s
+        };
         // The first rule that matches and makes something; a rule that
         // matches but declines leaves the next one a chance.
         for (re, f) in &self.rules {
@@ -3560,6 +3594,17 @@ fn trigger_general(head: &str) -> Option<String> {
 fn static_condition(s: &str) -> Option<String> {
     match s {
         "you attacked this turn" => return Some("attacked this turn".to_string()),
+        "you haven't cast a spell this turn" => return Some("not cast this turn".to_string()),
+        "an opponent controls more creatures than you" => {
+            return Some("opponent controls more creatures".to_string());
+        }
+        "an opponent has more life than you" => return Some("opponent has more life".to_string()),
+        "an opponent has more cards in hand than you" => {
+            return Some("opponent has more cards in hand".to_string());
+        }
+        "you haven't cast a spell from your hand this turn" => {
+            return Some("not cast from hand this turn".to_string());
+        }
         "a creature died this turn" => return Some("creature died this turn".to_string()),
         "you have no cards in hand" => return Some("hand 0 or less".to_string()),
         "it's your turn" => return Some("your turn".to_string()),
@@ -3795,15 +3840,17 @@ fn control_filter(s: &str) -> Option<String> {
 /// has flying").
 fn static_mods(s: &str) -> Option<String> {
     let gets = Regex::new(r"^gets? ([+-]\d+/[+-]\d+)$").unwrap();
-    let per = Regex::new(r"^gets? ([+-]\d+/[+-]\d+) for each (.+)$").unwrap();
+    let per = Regex::new(r"^gets? ([+-]\d+/[+-]\d+) for (each|every) (.+)$").unwrap();
     let mut mods = Vec::new();
     for part in s.split(" and ") {
         if let Some(c) = per.captures(part) {
-            mods.push(format!(
-                "{} count each {}",
-                cap(&c, 1),
-                count_expr(cap(&c, 2))?
-            ));
+            // "for every seven cards in your graveyard": `every 7 ...`.
+            let what = if cap(&c, 2) == "every" {
+                format!("every {}", cap(&c, 3))
+            } else {
+                cap(&c, 3).to_string()
+            };
+            mods.push(format!("{} count each {}", cap(&c, 1), count_expr(&what)?));
         } else if let Some(c) = gets.captures(part) {
             mods.push(cap(&c, 1).to_string());
         } else if let Some(rest) = part
@@ -5077,6 +5124,80 @@ impl Builder<'_> {
             ));
             return Ok(());
         }
+        // "Activated abilities of artifacts you control cost {1} less to
+        // activate.", "Power-up abilities of other creatures you control
+        // cost {3} less to activate."
+        if let Some(c) = Regex::new(
+            r"^(Activated|Power-up|Exhaust|Boast|Ninjutsu) abilities of (.+?) you control cost \{(\d+)\} less to activate\.( This effect can't reduce the mana in that cost to less than one mana\.)?$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let what = cap(&c, 2);
+            let subject = if let Some(rest) = what.strip_prefix("other ") {
+                format!("other {}", singular(rest))
+            } else {
+                singular(what)
+            };
+            self.statements.push(format!(
+                "{} abilities of {subject} you control cost {{{}}} less{}",
+                cap(&c, 1).to_ascii_lowercase(),
+                cap(&c, 3),
+                if c.get(4).is_some() { " min one" } else { "" }
+            ));
+            return Ok(());
+        }
+        // "Untap this creature during each other player's untap step."
+        // (CR 502.3); "Untap all artifacts you control during ...".
+        if Regex::new(r"^Untap this (?:creature|artifact|land|permanent) during each other player's untap step\.$")
+            .unwrap()
+            .is_match(line)
+        {
+            self.statements
+                .push("keywords untaps during each other player's untap step".to_string());
+            return Ok(());
+        }
+        if let Some(c) =
+            Regex::new(r"^Untap all (.+?) you control during each other player's untap step\.$")
+                .unwrap()
+                .captures(line)
+        {
+            let what = cap(&c, 1);
+            let subject = if what.contains(" and/or ") {
+                format!("andor {}", singular(&what.replace(" and/or ", " or ")))
+            } else if what.contains(" and ") {
+                format!("andlist {}", singular(&what.replace(" and ", " or ")))
+            } else {
+                singular(what)
+            };
+            self.statements.push(format!(
+                "static {subject} you control: has untaps during each other player's untap step"
+            ));
+            return Ok(());
+        }
+        // "You may cast noncreature spells as though they had flash.",
+        // "Creature spells you control can't be countered."
+        let flash = Regex::new(r"^You may cast (?:(.+) )?spells as though they had flash\.$")
+            .unwrap()
+            .captures(line);
+        let uncounterable = Regex::new(r"^(?:(.+) )?[Ss]pells you control can't be countered\.$")
+            .unwrap()
+            .captures(line);
+        if let Some(c) = flash.as_ref().or(uncounterable.as_ref()) {
+            let subject = lowercase_first(&cap(c, 1).replace(" spells and ", " or "));
+            let subject = subject.replace(" and ", " or ");
+            let subject = if subject.is_empty() {
+                String::new()
+            } else {
+                format!(" {}", singular(&subject))
+            };
+            self.statements.push(if flash.is_some() {
+                format!("spells{subject} you cast have flash")
+            } else {
+                format!("spells{subject} you control can't be countered")
+            });
+            return Ok(());
+        }
         // "Instant and sorcery spells you cast [from your hand] have
         // storm." (convoke, improvise, delve, cascade, affinity for ...).
         if let Some(c) = Regex::new(
@@ -5438,6 +5559,26 @@ impl Builder<'_> {
                     let _ = write!(cost, ", {restriction}");
                 }
                 r
+            } else {
+                rest
+            };
+            // "This ability costs {1} less to activate for each Shrine you
+            // control." (or "... if <condition>."), before the
+            // restrictions in the cost.
+            let reduced = Regex::new(
+                r"^(.*?) This ability costs (\{\d+\}) less to activate (for each|if) (.+)\.$",
+            )
+            .unwrap();
+            let rest = if let Some(c) = reduced.captures(rest) {
+                let by = cap(&c, 2);
+                let what = if cap(&c, 3) == "if" {
+                    static_condition(cap(&c, 4)).map(|s| format!("if {s}"))
+                } else {
+                    count_expr(cap(&c, 4)).map(|s| format!("each {s}"))
+                };
+                let what = what.ok_or_else(|| Skip::Sentence(line.to_string()))?;
+                cost.insert_str(base_len, &format!(", reduced {by} {what}"));
+                c.get(1).map_or("", |m| m.as_str())
             } else {
                 rest
             };

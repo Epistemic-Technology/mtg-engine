@@ -197,6 +197,12 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
         Keyword::DoesntUntap,
     ),
     (&["doesn't", "untap"], Keyword::DoesntUntap),
+    (
+        &[
+            "untaps", "during", "each", "other", "player's", "untap", "step",
+        ],
+        Keyword::UntapsDuringOthers,
+    ),
 ];
 
 /// Target specifications by their text, longest first. `,` stands for a
@@ -1485,6 +1491,34 @@ impl P {
                     battlefield,
                     cause,
                     suppress,
+                })
+            }
+            // "Activated abilities of artifacts you control cost {1} less
+            // to activate."
+            "activated" | "power-up" | "exhaust" | "boast" | "ninjutsu"
+                if self.word_at(1).as_deref() == Some("abilities")
+                    && self.word_at(2).as_deref() == Some("of") =>
+            {
+                use mtg_core::card::ActivatedKeyword as K;
+                let keyword = match w.as_str() {
+                    "power-up" => Some(K::PowerUp),
+                    "exhaust" => Some(K::Exhaust),
+                    "boast" => Some(K::Boast),
+                    "ninjutsu" => Some(K::Ninjutsu),
+                    _ => None,
+                };
+                self.pos += 3;
+                let filter = self.filter()?;
+                self.expect_word("cost")?;
+                let by = u8::try_from(self.mana_cost()?.mana_value()).unwrap_or(u8::MAX);
+                self.expect_word("less")?;
+                let min_one = self.eat_words(&["min", "one"]);
+                self.end_stmt()?;
+                Ok(Ability::ActivationCost {
+                    filter,
+                    by,
+                    min_one,
+                    keyword,
                 })
             }
             "you" if self.at_words(&["you", "have", "hexproof"]) => {
@@ -2894,6 +2928,24 @@ impl P {
         } else {
             Who::Any
         };
+        // "Spells you control can't be countered." (the filter may have
+        // read "you control").
+        if cond.is_none()
+            && (self.eat_words(&["you", "control", "can't", "be", "countered"])
+                || (filter.who == Some(Who::You) && self.eat_words(&["can't", "be", "countered"])))
+        {
+            self.end_stmt()?;
+            let mut filter = filter;
+            filter.who = None;
+            return Ok(Ability::SpellsHave {
+                filter,
+                from_hand: false,
+                keywords: Vec::new(),
+                storm: false,
+                affinity: None,
+                uncounterable: true,
+            });
+        }
         // "Instant and sorcery spells you cast [from your hand] have
         // storm".
         let from_hand = whose == Who::You && self.eat_words(&["from", "hand"]);
@@ -3278,6 +3330,19 @@ impl P {
         if self.eat_words(&["opponent", "controls", "more", "lands"]) {
             return Ok(StaticCond::OpponentMoreLands);
         }
+        if self.eat_words(&["opponent", "controls", "more", "creatures"]) {
+            return Ok(StaticCond::OpponentHasMore(
+                mtg_core::card::MoreWhat::Creatures,
+            ));
+        }
+        if self.eat_words(&["opponent", "has", "more", "life"]) {
+            return Ok(StaticCond::OpponentHasMore(mtg_core::card::MoreWhat::Life));
+        }
+        if self.eat_words(&["opponent", "has", "more", "cards", "in", "hand"]) {
+            return Ok(StaticCond::OpponentHasMore(
+                mtg_core::card::MoreWhat::CardsInHand,
+            ));
+        }
         if self.eat_words(&[
             "creature", "died", "under", "your", "control", "this", "turn",
         ]) {
@@ -3587,6 +3652,12 @@ impl P {
         }
         if self.eat_words(&["max", "speed"]) {
             return Ok(StaticCond::MaxSpeed);
+        }
+        if self.eat_words(&["not", "cast", "this", "turn"]) {
+            return Ok(StaticCond::NoSpellsCastThisTurn { from_hand: false });
+        }
+        if self.eat_words(&["not", "cast", "from", "hand", "this", "turn"]) {
+            return Ok(StaticCond::NoSpellsCastThisTurn { from_hand: true });
         }
         if self.eat_words(&["you", "own", "card", "in", "exile"]) {
             return Ok(StaticCond::OwnCardInExile);
@@ -4347,7 +4418,8 @@ impl P {
                         k @ (Keyword::Convoke
                         | Keyword::Improvise
                         | Keyword::Delve
-                        | Keyword::Cascade),
+                        | Keyword::Cascade
+                        | Keyword::Flash),
                     ) => keywords.push(k),
                     _ => return self.fail(
                         "spells can have convoke, improvise, delve, cascade, storm, or affinity",
@@ -4369,6 +4441,7 @@ impl P {
             keywords,
             storm,
             affinity,
+            uncounterable: false,
         })
     }
 
@@ -8124,6 +8197,9 @@ impl P {
                     let g = self.filter()?;
                     filter.mana_value = g.mana_value;
                     filter.status.mana_value_x = g.status.mana_value_x;
+                    if g.same == Some(SameRef::ManaValueAtMostPower) {
+                        filter.same = g.same;
+                    }
                 }
                 // "a basic land card or a Gate card": the alternative as its
                 // own noun.
@@ -8692,6 +8768,15 @@ impl P {
             return self.push_count(crate::ast::Count { expr, style });
         }
         match self.peek() {
+            // `2 times X`: "twice X".
+            Some(Tok::Num(n))
+                if self.word_at(1).as_deref() == Some("times")
+                    && self.word_at(2).is_some_and(|w| w.eq_ignore_ascii_case("x")) =>
+            {
+                let n = *n;
+                self.pos += 3;
+                Ok(Num::XTimes(n))
+            }
             Some(Tok::Num(n)) => {
                 let n = *n;
                 self.pos += 1;
@@ -8711,6 +8796,11 @@ impl P {
                 if lw == "a" || lw == "an" {
                     self.pos += 1;
                     return Ok(Num::N(1));
+                }
+                // `2 times X`: "twice X".
+                if lw == "twice" && self.word_at(1).as_deref() == Some("x") {
+                    self.pos += 2;
+                    return Ok(Num::XTimes(2));
                 }
                 if let Some(i) = NUMBER_WORDS.iter().position(|x| *x == lw) {
                     self.pos += 1;
@@ -8739,7 +8829,7 @@ impl P {
     fn count(&mut self) -> R<u32> {
         match self.num()? {
             Num::N(n) => Ok(n),
-            Num::X | Num::XPlus(_) | Num::Count(_) | Num::ThatMuch => {
+            Num::X | Num::XPlus(_) | Num::XTimes(_) | Num::Count(_) | Num::ThatMuch => {
                 self.fail("X is not allowed here")
             }
         }
@@ -8788,6 +8878,27 @@ impl P {
     /// N`, `life`, or a filter (`creature you control`, `Elf on
     /// battlefield`).
     fn count_expr(&mut self) -> R<crate::ast::CountExpr> {
+        // `half down <count>`, `half up <count>`, `every 7 <count>`.
+        if self.at_word("half") && matches!(self.word_at(1).as_deref(), Some("down" | "up")) {
+            let up = self.word_at(1).as_deref() == Some("up");
+            self.pos += 2;
+            let inner = self.count_expr()?;
+            return Ok(crate::ast::CountExpr::Divided {
+                by: 2,
+                up,
+                inner: Box::new(inner),
+            });
+        }
+        if self.at_word("every") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            self.pos += 1;
+            let by = self.number()?;
+            let inner = self.count_expr()?;
+            return Ok(crate::ast::CountExpr::Divided {
+                by,
+                up: false,
+                inner: Box::new(inner),
+            });
+        }
         let first = self.count_expr_one()?;
         // `<expr> plus <expr>`; `plus 2 <expr>` is the prefix form.
         if self.at_word("plus")
@@ -8921,6 +9032,13 @@ impl P {
         if self.eat_words(&["opponents", "lost", "life", "this", "turn"]) {
             return Ok(CountExpr::OpponentsLostLife);
         }
+        if self.eat_words(&["creatures", "entered", "this", "turn"]) {
+            return Ok(CountExpr::CreaturesEnteredThisTurn);
+        }
+        if self.eat_words(&["discarded", "this", "turn"]) {
+            return Ok(CountExpr::DiscardedThisTurn);
+        }
+
         if self.eat_words(&["opponents", "more", "cards", "in", "hand"]) {
             return Ok(CountExpr::OpponentsMoreCards);
         }
@@ -10269,6 +10387,9 @@ impl P {
             } else {
                 f.mana_value = g.mana_value;
                 f.status.mana_value_x = g.status.mana_value_x;
+                if g.same == Some(SameRef::ManaValueAtMostPower) {
+                    f.same = g.same;
+                }
             }
             if !self.at_word("from") {
                 return self.unexpected("`from` after the card's mana value");
@@ -10701,13 +10822,16 @@ impl P {
                 }
                 "with"
                     if matches!(self.word_at(1).as_deref(), Some("power" | "toughness"))
-                        || self.at_words(&["with", "mana", "value"]) =>
+                        || (self.at_words(&["with", "mana", "value"])
+                            && !self.at_words(&["with", "mana", "value", "at", "most"])) =>
                 {
                     self.pos += 1;
                     let what = self.word()?;
                     if what == "mana" {
                         self.expect_word("value")?;
                     }
+                    // "with power or toughness 1 or less": either.
+                    let either = what == "power" && self.eat_words(&["or", "toughness"]);
                     let n = self.number()?;
                     let cmp = if self.eat_words(&["or", "less"]) {
                         Cmp::AtMost
@@ -10717,6 +10841,12 @@ impl P {
                         Cmp::Exactly
                     };
                     match what.as_str() {
+                        "power" if either => {
+                            let n = i16::try_from(n).unwrap_or(i16::MAX);
+                            f.power = Some((cmp, n));
+                            f.toughness = Some((cmp, n));
+                            f.status.pt_either = true;
+                        }
                         "power" => f.power = Some((cmp, i16::try_from(n).unwrap_or(i16::MAX))),
                         "toughness" => {
                             f.toughness = Some((cmp, i16::try_from(n).unwrap_or(i16::MAX)));
@@ -10857,6 +10987,15 @@ impl P {
                 "with" if self.at_words(&["with", "lesser", "power"]) && f.same.is_none() => {
                     self.pos += 3;
                     f.same = Some(SameRef::LesserPower);
+                }
+                // "with mana value less than or equal to this creature's
+                // power".
+                "with"
+                    if self.at_words(&["with", "mana", "value", "at", "most", "this", "power"])
+                        && f.same.is_none() =>
+                {
+                    self.pos += 7;
+                    f.same = Some(SameRef::ManaValueAtMostPower);
                 }
                 "that" if self.at_words(&["that", "was", "dealt", "damage", "this", "turn"]) => {
                     f.damaged = true;

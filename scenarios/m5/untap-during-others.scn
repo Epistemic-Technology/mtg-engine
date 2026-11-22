@@ -1,0 +1,53 @@
+# "Untap this creature during each other player's untap step." (CR
+# 502.3): it untaps in the other players' untap steps too.
+
+scenario "Thousand Moons Infantry untaps in the opponent's untap step" {
+  battlefield A: "Thousand Moons Infantry" tapped, "Grizzly Bears" tapped
+  start turn 2 B
+  run_to turn 2 upkeep
+  assert untapped "Thousand Moons Infantry"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Thousand Moons Infantry: a stun counter is removed instead" {
+  battlefield A: "Thousand Moons Infantry" tapped with 1 stun
+  start turn 2 B
+  run_to turn 2 upkeep
+  assert tapped "Thousand Moons Infantry"
+  assert counters "Thousand Moons Infantry" stun 0
+}
+
+scenario "Seedborn Muse untaps all your permanents in the opponent's untap step" {
+  battlefield A: "Seedborn Muse", "Grizzly Bears" tapped, "Forest" tapped
+  battlefield B: "Hill Giant" tapped, "Mountain" tapped
+  start turn 2 B
+  run_to turn 2 upkeep
+  assert untapped "Grizzly Bears"
+  assert untapped "Forest"
+  assert untapped "Hill Giant"
+}
+
+scenario "Seedborn Muse doesn't untap the opponent's permanents in your untap step" {
+  battlefield A: "Seedborn Muse"
+  battlefield B: "Hill Giant" tapped
+  start turn 3 A
+  run_to turn 3 upkeep
+  assert tapped "Hill Giant"
+}
+
+scenario "Prophet of Kruphix: creatures and lands, not artifacts" {
+  battlefield A: "Prophet of Kruphix", "Grizzly Bears" tapped, "Forest" tapped, "Mind Stone" tapped
+  start turn 2 B
+  run_to turn 2 upkeep
+  assert untapped "Grizzly Bears"
+  assert untapped "Forest"
+  assert tapped "Mind Stone"
+}
+
+scenario "Ivorytusk Fortress: only creatures with a +1/+1 counter" {
+  battlefield A: "Ivorytusk Fortress", "Grizzly Bears" tapped with 1 +1/+1, "Hill Giant" tapped
+  start turn 2 B
+  run_to turn 2 upkeep
+  assert untapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+}

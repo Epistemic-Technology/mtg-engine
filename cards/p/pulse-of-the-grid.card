@@ -1,0 +1,6 @@
+card "Pulse of the Grid" {
+  oracle_id 73ea32e4-72c5-42ee-8ed5-21dee83d7eec
+  cost {1}{U}{U}
+  type Instant
+  spell: draw 2 cards then discard 1 card; then if opponent has more cards in hand, return this to its owner's hand
+}
