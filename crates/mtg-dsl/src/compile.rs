@@ -1122,6 +1122,14 @@ impl Compiler<'_> {
             // you exile another [object] you control" and "When this
             // permanent leaves the battlefield, return the exiled card to
             // the battlefield under its owner's control."
+            // CR 702.155a.
+            if let Ability::Mechanic(Mechanic::ReadAhead) = a {
+                if !card.subtypes.iter().any(|s| s == "Saga") {
+                    return self.err("read ahead on a card that isn't a Saga");
+                }
+                b = b.read_ahead();
+                continue;
+            }
             if let Ability::Mechanic(Mechanic::Champion(f)) = a {
                 let mut filter = self.filter(f);
                 filter.who = Some(Who::You);
@@ -6569,6 +6577,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Renown(_)
         | Mechanic::Unleash
         | Mechanic::Haunt
+        | Mechanic::ReadAhead
         | Mechanic::Champion(_)
         | Mechanic::Reconfigure(_)
         | Mechanic::Cleave(..)

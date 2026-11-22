@@ -1,0 +1,47 @@
+# Read ahead (CR 702.155a): "As this Saga enters, choose a number from one
+# to the number of chapter abilities it has. It enters with a number of
+# lore counters equal to the chosen number." Chapters below the chosen
+# number don't trigger as it enters (702.155c).
+
+scenario "read ahead: start at chapter III, only III triggers" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  hand A: "The Elder Dragon War"
+  turn 1 A: cast "The Elder Dragon War"
+  turn 1 A: choose "3"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Dragon"
+  assert battlefield A contains "Grizzly Bears"
+  assert life B 20
+  assert graveyard A contains "The Elder Dragon War"
+}
+
+scenario "read ahead: start at chapter I, as a Saga does" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  hand A: "The Elder Dragon War"
+  turn 1 A: cast "The Elder Dragon War"
+  turn 1 A: choose "1"
+  run_to turn 1 postcombat_main
+  assert counters "The Elder Dragon War" lore 1
+  assert graveyard A contains "Grizzly Bears"
+  assert life B 18
+  assert battlefield A lacks "Dragon"
+}
+
+scenario "read ahead: start at chapter II, then III next turn" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  hand A: "The Elder Dragon War", "Island", "Forest"
+  library A: "Swamp", "Plains", "Island"
+  turn 1 A: cast "The Elder Dragon War"
+  turn 1 A: choose "2"
+  turn 1 A: choose "Island"
+  turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert counters "The Elder Dragon War" lore 2
+  assert battlefield A contains "Grizzly Bears"
+  assert life B 20
+  assert graveyard A contains "Island"
+  assert hand A count 2
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Dragon"
+  assert graveyard A contains "The Elder Dragon War"
+}

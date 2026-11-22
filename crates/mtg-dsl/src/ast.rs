@@ -1866,6 +1866,9 @@ pub enum Mechanic {
     /// with the words in square brackets removed. The `spell` line prints
     /// with the words it has beyond these in brackets.
     Cleave(ManaCost, Box<Ability>),
+    /// `read ahead` (CR 702.155): a Saga that enters with a chosen number
+    /// of lore counters, the chapters below it not triggering.
+    ReadAhead,
     /// `champion Goblin` (CR 702.72): "Champion a Goblin": when it enters,
     /// sacrifice it unless you exile another Goblin you control; when it
     /// leaves the battlefield, the exiled card returns.

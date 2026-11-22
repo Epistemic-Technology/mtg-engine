@@ -204,9 +204,13 @@ impl GameState {
         if d.types.contains(crate::card::CardType::Battle) && d.defense > 0 {
             counters.push((CounterKind::Defense, d.defense));
         }
-        // CR 714.3a: a Saga enters with a lore counter.
+        // CR 714.3a: a Saga enters with a lore counter (with read ahead's
+        // others, CR 702.155a).
         if d.final_chapter > 0 {
-            counters.push((CounterKind::Lore, 1));
+            match counters.iter_mut().find(|(k, _)| *k == CounterKind::Lore) {
+                Some((_, n)) => *n += 1,
+                None => counters.push((CounterKind::Lore, 1)),
+            }
         }
         // CR 702.43a, 702.58a: modular's and graft's counters; CR 702.63a:
         // vanishing's time counters.
@@ -692,12 +696,21 @@ impl GameState {
                     {
                         self.turn_log.any_counter_put_by |= bit;
                     }
+                    // CR 702.155c: a Saga with read ahead entering with
+                    // lore counters triggers only its chosen chapter.
+                    let before = if kind == CounterKind::Lore
+                        && self.pool.get(self.objects[new].def).read_ahead
+                    {
+                        n - 1
+                    } else {
+                        0
+                    };
                     self.emit(Event::CountersAdded {
                         obj: new,
                         kind,
-                        n,
+                        n: n - before,
                         by,
-                        before: 0,
+                        before,
                     });
                 }
             }

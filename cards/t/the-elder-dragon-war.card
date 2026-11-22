@@ -1,0 +1,9 @@
+card "The Elder Dragon War" {
+  oracle_id 4945f03b-ff99-4923-b62d-3cdb60275ef1
+  cost {2}{R}{R}
+  type Enchantment — Saga
+  read ahead
+  triggered chapter 1: deal 2 damage to each creature and each opponent
+  triggered chapter 2: discard any number cards chosen then draw count that many discarded this way cards
+  triggered chapter 3: create 1 "4/4 red Dragon creature with flying"
+}

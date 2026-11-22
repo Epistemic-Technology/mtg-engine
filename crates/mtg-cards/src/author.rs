@@ -68,6 +68,8 @@ const KEYWORDS: &[&str] = &[
 
 /// Scryfall keyword tags that templates below handle as abilities.
 const TEMPLATED_TAGS: &[&str] = &[
+    "Read ahead",
+    "Read Ahead",
     "Champion",
     "Cleave",
     "Haunt",
@@ -4652,6 +4654,11 @@ impl Builder<'_> {
             .captures(line)
         {
             self.statements.push(format!("champion {}", cap(&c, 1)));
+            return Ok(());
+        }
+        // CR 702.155a.
+        if line == "Read ahead" {
+            self.statements.push("read ahead".to_string());
             return Ok(());
         }
         // CR 702.55a.

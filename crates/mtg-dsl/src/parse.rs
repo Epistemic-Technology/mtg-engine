@@ -2066,6 +2066,12 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Champion(f)))
             }
+            // CR 702.155a.
+            "read" if self.at_words(&["read", "ahead"]) => {
+                self.pos += 2;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::ReadAhead))
+            }
             "haunt" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
                 self.pos += 1;
                 self.end_stmt()?;

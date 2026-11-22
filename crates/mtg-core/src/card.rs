@@ -5373,6 +5373,11 @@ pub enum Replacement {
     /// opponent. That player may put an additional N +1/+1 counters on it
     /// as it enters." Paid, it is noted (`EnterNote::TributePaid`).
     EnterTribute(u32),
+    /// Read ahead (CR 702.155a): "As this Saga enters, choose a number
+    /// from one to the number of chapter abilities it has. It enters with
+    /// a number of lore counters equal to the chosen number." Chapters
+    /// below it don't trigger as it enters (702.155c).
+    EnterReadAhead,
     /// CR 701.15a: instead of being destroyed, the permanent has all damage
     /// removed, is tapped, and leaves combat. A stored shield; used once.
     Regenerate,
@@ -6977,6 +6982,7 @@ impl AbilityDef {
                     | Replacement::EnterDevour { .. }
                     | Replacement::EnterAmplify(_)
                     | Replacement::EnterTribute(_)
+                    | Replacement::EnterReadAhead
                     | Replacement::EnterTappedUnlessPay(_),
                 ..
             })
@@ -7300,6 +7306,10 @@ pub struct CardDef {
     /// to a creature (CR 301.5c), and isn't a creature while attached.
     #[serde(default)]
     pub reconfigure: bool,
+    /// Read ahead (CR 702.155): a Saga entering with lore counters
+    /// triggers only the chapter it starts at.
+    #[serde(default)]
+    pub read_ahead: bool,
     /// Haunt on an instant or sorcery (CR 702.55a): "When this spell is
     /// put into a graveyard during its resolution, exile it haunting
     /// target creature.", triggered as the resolved spell goes there.
@@ -9521,6 +9531,7 @@ impl Builder {
             haunted: None,
             haunt_spell: None,
             reconfigure: false,
+            read_ahead: false,
             cleaved: None,
             cleave_face: None,
             prowl: false,
@@ -9838,6 +9849,19 @@ impl Builder {
             others_gain: 0,
         }));
         self.0.cleaved = Some(Box::new(cleaved));
+        self
+    }
+
+    /// Read ahead (CR 702.155a): its entering choice, and its chapters.
+    #[must_use]
+    pub fn read_ahead(mut self) -> Self {
+        self.0.read_ahead = true;
+        self.0.abilities.push(AbilityDef::Replacement(ReplacementAbility {
+            replaces: Replaces::Enters,
+            replacement: Replacement::EnterReadAhead,
+            then: Vec::new(),
+            condition: None,
+        }));
         self
     }
 

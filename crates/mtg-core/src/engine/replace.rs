@@ -1654,6 +1654,43 @@ impl GameState {
                     },
                 })
             }
+            // CR 702.155a: read ahead, the chapter to start at.
+            (
+                Replacement::EnterReadAhead,
+                Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter,
+                },
+            ) => {
+                let def = self.objects[obj].def;
+                let last = self.pool.get(def).final_chapter;
+                let k = if last > 1 {
+                    let options = (0..usize::from(last)).map(Choice::Mode).collect();
+                    self.choose_mid(controller, DecisionKind::ChooseOption { def }, options)
+                } else {
+                    0
+                };
+                // One more comes with every Saga (CR 714.3a).
+                let more = u32::try_from(k).unwrap_or(0);
+                Outcome::Event(Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter: Enter {
+                        counters: match enter.counters {
+                            _ if more == 0 => enter.counters,
+                            Some((CounterKind::Lore, m)) => Some((CounterKind::Lore, m + more)),
+                            Some(other) => Some(other),
+                            None => Some((CounterKind::Lore, more)),
+                        },
+                        ..enter
+                    },
+                })
+            }
             // `applies` only offers matching pairs.
             (_, ev) => Outcome::Event(ev),
         };
