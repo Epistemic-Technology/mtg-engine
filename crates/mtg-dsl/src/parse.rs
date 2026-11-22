@@ -5083,9 +5083,13 @@ impl P {
             let e = self.if_kicked()?;
             // Not for an "instead" (Blood Beckoning's "instead return two
             // target creature cards"): its own targets replace the others.
+            // An "instead" after a sentence with no targets ("Wildfire
+            // Howl deals 2 damage to each creature. If the gift was
+            // promised, instead ... 1 damage to any target ...") has
+            // nothing to replace: its targets are the kicked spell's only.
             if self.targets.len() > before
                 && self.kicked_targets.is_none()
-                && !matches!(e, Effect::Instead { .. })
+                && (!matches!(e, Effect::Instead { .. }) || before == 0)
             {
                 self.kicked_targets = Some(before);
             }

@@ -192,10 +192,6 @@ Wrong behaviour that reaches accepted cards:
 
 Forms that pass the gate with the wrong meaning:
 
-- **Gift with `if kicked/gift, instead <targeted effect>`**: cast
-  without the gift, the spell still takes the gifted side's target and
-  can fizzle on it (Wildfire Howl). The promised side was fixed in the
-  third wave.
 - **`it` in a granted `has ability { triggered ...: untap it }`** does
   not untap the creature; `untap this` does (Quintessential Katana).
   Same family as the first entry of section 2.
