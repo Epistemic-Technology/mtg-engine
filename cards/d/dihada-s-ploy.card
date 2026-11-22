@@ -1,0 +1,7 @@
+card "Dihada's Ploy" {
+  oracle_id cc929343-db65-43d5-9bf6-9f0bd77c2cd8
+  cost {1}{U}{B}
+  type Instant
+  spell: draw 2 cards then discard 1 cards; you gains count equal discarded this turn life
+  jump start
+}

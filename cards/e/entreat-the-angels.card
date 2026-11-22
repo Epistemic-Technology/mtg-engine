@@ -1,0 +1,7 @@
+card "Entreat the Angels" {
+  oracle_id b349f018-c20b-48b0-9e65-d5fd56b24b88
+  cost {X}{X}{W}{W}{W}
+  type Sorcery
+  spell: create X "4/4 white Angel creature with flying"
+  miracle {X}{W}{W}
+}

@@ -96,6 +96,35 @@ by rejecting the form at compile time or by binding it correctly.
   creature you control. That creature gains hexproof and indestructible
   until end of turn."): the Equipment attaches but the creature gains
   nothing. Celestial Armor is not in (the template author writes it).
+- **Found by the fifth wave's card batches; none is used by a card in
+  the corpus** (each card named was rejected):
+  - `counter target with mana value X spell`: X is not checked against
+    the spell (Spell Blast countered a mana value 4 spell with X=3).
+  - `each player loses count each creature they control life`: every
+    player loses for the opponent's creatures (Stronghold Discipline).
+  - A sentence after `delayed target 1: when ...` is taken into the
+    delayed trigger, so it never happens on resolution (Time to Feed).
+  - `trigger again other creature you control of chosen type` never
+    doubles; the same with a named type does (Roaming Throne).
+  - A status word in a target check is ignored: `if target 1 is
+    enchanted creature ...` and `creature with aura` are true for a
+    creature with no Aura (Karametra's Blessing).
+  - `whenever modified creature you control leaves the battlefield`
+    fires for an unmodified creature (Costume Closet).
+  - A counter condition on the enchanted creature in a static (`if
+    attached is with sleep counter`) is always true, and `tap enchanted
+    creature and put X sleep counter on it` puts none (Venarian Gold).
+  - `that creature becomes Mutant ...` in a trigger doesn't bind to the
+    target; `that target 1 becomes ...` does (Jenova uses the second).
+  - `static enchanted: has ... as long as this is with power 3 or less`
+    reads the Equipment's power, and the `attached` form prints
+    "equipped creature's power" for "its power" (Thieves' Tools).
+- **`whenever you cast of chosen color spell`** renders "Whenever you
+  cast a spell of the chosen color" but never triggered (Diamond Mare,
+  not added).
+- **The sacrificed creature in a reflexive trigger:** `you may sacrifice
+  1 other creature chosen; when you do, deal damage equal power of the
+  sacrificed creature to ...` deals 0 (Bolg of the North, not added).
 - **Template-author cards written before the first wave's catch-up**
   may read "it" as the source where the text means another object. Not
   audited.
@@ -195,10 +224,33 @@ named the feature; a card may need more than one.
   among three keywords or counter kinds printed with commas; void;
   tiered; "X is your speed"; non-mana kicker; teamwork "choose both
   instead".
-- **Mechanics not yet in:** tiered, devour, battle cry, harness, hideaway,
+- **Most often named in the fifth wave** (363 unsupported or failed of
+  480; nearly every card names a different gap): wording near-misses
+  (about 60); a ward cost that is a sacrifice (Vein Ripper and Ygra,
+  Eater of All, removed: the cost was never enforced), collect evidence,
+  or another act; a kicker cost that isn't mana (four cards); "assigns
+  combat damage equal to its toughness" (five); "Otherwise" after a
+  conditional static (four); "Choose target X and target Y" as one
+  sentence with "those creatures fight each other" (four); "Remove X
+  counters" as a cost; "enchant player" Curses; "exile this, then return
+  it to the battlefield transformed"; restricted mana of more than one
+  symbol or added by an effect; "dies or is put into exile"; "if that spell was kicked"; a combined subject ("you and other Heroes you control have
+  hexproof"); "flash if you pay {2} more"; copying a card and casting
+  the copy; choose a number, a card name, odd or even; piles; haunt,
+  amplify, sweep, devour, tribute, cleave, champion, reconfigure.
+- **A cost of "sacrifice six creatures named this"** is never offered
+  (Shadowborn Apostle, not added).
+- **Mechanics not yet in:** tiered, devour, harness, hideaway, mutate,
   meld, the Everywhere land token, "when this land enters untapped".
 - **Scenario runner:** a trigger cannot be answered while its source
   spell is still on the stack.
+  An edict-style choice ("return another permanent you control to its
+  owner's hand", Aviary Mechanic) always takes the first option; an
+  `illegal ... trigger` line followed by a legal `trigger` in the same
+  step reports the legal one unreached; a mana ability can't be scripted
+  as an action; no way to give X to a spell cast by a trigger, to choose
+  a library-search card, or to say `prototyped`/`blitzed`/`prowled`
+  (all use `alternative`).
 
 ## 4. Process
 

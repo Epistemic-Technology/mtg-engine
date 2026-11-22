@@ -1,0 +1,9 @@
+card "Vesperlark" {
+  oracle_id b801a701-15ce-4792-a3d7-d632e7bd9f72
+  cost {2}{W}
+  type Creature — Elemental
+  pt 2/1
+  keywords flying
+  triggered when this leaves the battlefield: return target creature card with power 1 or less from your graveyard to battlefield
+  evoke {1}{W}
+}

@@ -1,0 +1,11 @@
+card "Zacama, Primal Calamity" {
+  oracle_id 23270e4a-a222-4ffb-a946-d0e20d665187
+  cost {6}{R}{G}{W}
+  type Legendary Creature — Elder Dinosaur
+  pt 9/9
+  keywords reach, vigilance, trample
+  triggered when this enters if you cast it: untap each land you control
+  activated {2}{R}: deal 3 damage to target creature
+  activated {2}{G}: destroy target artifact or enchantment
+  activated {2}{W}: you gains 3 life
+}

@@ -1,0 +1,9 @@
+card "Twisted Riddlekeeper" {
+  oracle_id c7ad20a3-51bf-4a22-a09c-fff8cae22765
+  cost {8}
+  type Creature — Eldrazi Sphinx
+  pt 5/5
+  emerge {5}{C}{U}
+  triggered when you cast this: tap up to two target permanents; put 1 stun counters on each of them
+  keyword flying
+}
