@@ -10265,6 +10265,20 @@ mod tests {
     }
 
     #[test]
+    fn triggered_keywords_are_those_with_an_ability() {
+        // Trigger detection walks a watcher's keywords only when they meet
+        // `KeywordSet::TRIGGERED`.
+        let pool = test_pool();
+        for k in Keyword::ALL {
+            assert_eq!(
+                pool.keyword_trigger(k).is_some(),
+                KeywordSet::TRIGGERED.contains(k),
+                "{k:?}"
+            );
+        }
+    }
+
+    #[test]
     fn pool_lookup_and_characteristics() {
         let pool = test_pool();
         let bears = pool.get(pool.lookup("Grizzly Bears").unwrap());

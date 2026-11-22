@@ -10,7 +10,7 @@
 
 use smallvec::SmallVec;
 
-use crate::card::{AbilityDef, AbilityId, Condition, TriggerObj, TriggerSpec, Who};
+use crate::card::{AbilityDef, AbilityId, Condition, KeywordSet, TriggerObj, TriggerSpec, Who};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
 use crate::state::{
@@ -54,9 +54,13 @@ impl GameState {
         for w in &watchers {
             let mut abilities: SmallVec<[AbilityId; 8]> =
                 w.chars.abilities.iter().copied().collect();
-            for k in w.chars.keywords.iter() {
-                if let Some(id) = self.pool.keyword_trigger(k) {
-                    abilities.push(id);
+            // Only the keywords that stand for triggered abilities have
+            // one (`CardPool::keyword_trigger`).
+            if w.chars.keywords.intersects(KeywordSet::TRIGGERED) {
+                for k in w.chars.keywords.iter() {
+                    if let Some(id) = self.pool.keyword_trigger(k) {
+                        abilities.push(id);
+                    }
                 }
             }
             for ability in abilities {
