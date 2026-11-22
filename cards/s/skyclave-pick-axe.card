@@ -1,0 +1,8 @@
+card "Skyclave Pick-Axe" {
+  oracle_id 6d2cf8b4-1468-4e00-94ca-65ef0c564b09
+  cost {G}
+  type Artifact — Equipment
+  triggered when this enters: attach to target creature you control
+  label "Landfall" triggered whenever land you control enters: equipped creature gets +2/+2
+  equip {2}{G}
+}

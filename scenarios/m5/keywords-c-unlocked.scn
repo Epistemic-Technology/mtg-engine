@@ -1,0 +1,67 @@
+# Cards the template author writes after this branch's changes (equip
+# costs with colored mana, "can't be blocked except by three or more
+# creatures", semicolon keyword lines).
+
+scenario "Skyclave Pick-Axe: attaches as it enters; landfall +2/+2" {
+  battlefield A: "Forest", "Grizzly Bears"
+  hand A: "Skyclave Pick-Axe", "Forest"
+  turn 1 A: cast "Skyclave Pick-Axe"
+  turn 1 A: trigger "Skyclave Pick-Axe" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert attached "Skyclave Pick-Axe" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Skyclave Pick-Axe: equip {2}{G}" {
+  battlefield A: 3 "Forest", "Grizzly Bears", "Skyclave Pick-Axe"
+  turn 1 A: activate "Skyclave Pick-Axe" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Skyclave Pick-Axe" to "Grizzly Bears"
+}
+
+scenario "Giant Solifuge: trample, haste, shroud" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Giant Solifuge"
+  hand B: "Shock"
+  turn 1 A: cast "Giant Solifuge"
+  turn 1 A: attack "Giant Solifuge"
+  illegal turn 1 declare_attackers B: cast "Shock" targeting "Giant Solifuge"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert has "Giant Solifuge" trample
+}
+
+scenario "Phyrexian Colossus: three blockers or none; pay 8 life to untap" {
+  battlefield A: "Phyrexian Colossus"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: attack "Phyrexian Colossus"
+  illegal turn 1 B: block "Phyrexian Colossus" with "Hill Giant"
+  turn 1 postcombat_main A: activate "Phyrexian Colossus"
+  run_to turn 1 end
+  assert life B 12
+  assert life A 12
+  assert untapped "Phyrexian Colossus"
+}
+
+scenario "Phobian Phantasm: fear, and an age counter each upkeep" {
+  battlefield A: "Phobian Phantasm", 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  start turn 3 A
+  turn 3 A: attack "Phobian Phantasm"
+  illegal turn 3 B: block "Phobian Phantasm" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert counters "Phobian Phantasm" age 1
+  assert life B 17
+}
+
+scenario "Poet's Quill: equipped +1/+1 and lifelink" {
+  battlefield A: 2 "Swamp", "Grizzly Bears", "Poet's Quill" on "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert life A 23
+  assert life B 17
+}

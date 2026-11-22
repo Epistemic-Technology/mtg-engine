@@ -1,0 +1,8 @@
+card "Phobian Phantasm" {
+  oracle_id df680ccd-7e76-4a05-9bdf-4f437b4bfbb3
+  cost {1}{B}{B}
+  type Creature — Illusion
+  pt 3/3
+  keywords flying, fear
+  cumulative upkeep {B}
+}

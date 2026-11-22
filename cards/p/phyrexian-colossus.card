@@ -1,0 +1,9 @@
+card "Phyrexian Colossus" {
+  oracle_id caab555c-7852-418a-bdc3-f908af7e0932
+  cost {7}
+  type Artifact Creature — Phyrexian Golem
+  pt 8/8
+  keywords doesn't untap
+  activated pay 8 life: untap this
+  can't be blocked except by 3 or more creatures
+}
