@@ -161,3 +161,33 @@ scenario "give control: Zidane's trigger on a permanent given away" {
   assert battlefield B contains "Grizzly Bears"
   assert battlefield A contains 1 "Treasure"
 }
+
+scenario "give control: Akroan Horse goes to the opponent as it enters" {
+  battlefield A: 4 "Plains"
+  hand A: "Akroan Horse"
+  turn 1 A: cast "Akroan Horse"
+  run_to turn 2 draw
+  assert battlefield B contains "Akroan Horse"
+  assert battlefield A contains 1 "Soldier"
+}
+
+scenario "give control: Wishclaw Talisman tutors, then the opponent gets it" {
+  battlefield A: "Wishclaw Talisman" with 3 wish, "Swamp"
+  library A: "Lightning Bolt"
+  turn 1 A: activate "Wishclaw Talisman"
+  run_to turn 1 end
+  assert hand A contains "Lightning Bolt"
+  assert battlefield B contains "Wishclaw Talisman"
+  assert counters "Wishclaw Talisman" wish 2
+}
+
+scenario "give control: the opponent can use Wishclaw Talisman only on their turn" {
+  battlefield A: "Wishclaw Talisman" with 3 wish, "Swamp"
+  battlefield B: "Swamp"
+  turn 1 A: activate "Wishclaw Talisman"
+  illegal turn 1 B: activate "Wishclaw Talisman"
+  turn 2 B: activate "Wishclaw Talisman"
+  run_to turn 2 end
+  assert battlefield A contains "Wishclaw Talisman"
+  assert counters "Wishclaw Talisman" wish 1
+}

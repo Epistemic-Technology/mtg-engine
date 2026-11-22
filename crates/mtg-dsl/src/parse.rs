@@ -4370,7 +4370,8 @@ impl P {
         if w == "each" || w == "all" || w == "every" {
             return true;
         }
-        RECIPIENTS.iter().any(|(ws, _)| self.at_words(ws))
+        self.at_words(&["an", "opponent", "gains", "control"])
+            || RECIPIENTS.iter().any(|(ws, _)| self.at_words(ws))
     }
 
     /// Verbs that take the previous clause's subject when none is written
@@ -9473,6 +9474,11 @@ impl P {
         {
             self.pos += 2;
             return Ok(Recipient::ThatTarget(self.targets.len() - 1));
+        }
+        // "An opponent gains control of this artifact."
+        if self.at_words(&["an", "opponent", "gains", "control"]) {
+            self.pos += 2;
+            return Ok(Recipient::AnOpponent);
         }
         for (ws, r) in RECIPIENTS {
             if self.at_words(ws) {

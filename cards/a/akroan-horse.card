@@ -1,0 +1,9 @@
+card "Akroan Horse" {
+  oracle_id 8d0213d7-9e25-49d2-93fa-1d346cb2e869
+  cost {4}
+  type Artifact Creature — Horse
+  pt 0/4
+  keywords defender
+  triggered when this enters: an opponent gains control of it
+  triggered at beginning of your upkeep: each opponent creates 1 "1/1 white Soldier creature"
+}

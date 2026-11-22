@@ -2902,6 +2902,10 @@ pub enum Recipient {
     /// `each of your opponents`: "each of your opponents" (each opponent;
     /// wording only, Everything Pizza).
     EachOfYourOpponents,
+    /// `an opponent` as the subject of `gains control of`: "An opponent
+    /// gains control of this artifact." (the first opponent; the game
+    /// has one).
+    AnOpponent,
     /// `this`: the source, "this creature" (a spell's or a legendary
     /// permanent's name, CR 201.5) at its first mention, "it" after.
     Source,

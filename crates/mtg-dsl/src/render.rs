@@ -1297,6 +1297,7 @@ impl<'a> Ctx<'a> {
             Recipient::EachOpponent => "each opponent".to_string(),
             Recipient::EachOtherPlayer => "each other player".to_string(),
             Recipient::EachOfYourOpponents => "each of your opponents".to_string(),
+            Recipient::AnOpponent => "an opponent".to_string(),
             Recipient::Source => self.source(),
             Recipient::SourceNamed => {
                 self.source_mentioned = true;

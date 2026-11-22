@@ -289,6 +289,7 @@ impl Fmt {
             Recipient::EachOpponent => "each opponent".to_string(),
             Recipient::EachOtherPlayer => "each other player".to_string(),
             Recipient::EachOfYourOpponents => "each of your opponents".to_string(),
+            Recipient::AnOpponent => "an opponent".to_string(),
             Recipient::Source => "this".to_string(),
             // The parser takes only its own list of nouns here; the
             // renderer prints the card's own ("this Spacecraft") whatever

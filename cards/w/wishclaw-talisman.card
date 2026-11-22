@@ -1,0 +1,7 @@
+card "Wishclaw Talisman" {
+  oracle_id 81c70ae7-3c18-4c9b-8505-e4db9e0e6518
+  cost {1}{B}
+  type Artifact
+  enters with 3 wish counters
+  activated {1}, {T}, remove 1 wish counter from this, during your turn: search card to hand; an opponent gains control of this artifact
+}

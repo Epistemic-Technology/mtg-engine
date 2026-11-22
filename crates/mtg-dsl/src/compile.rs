@@ -1914,7 +1914,8 @@ impl Compiler<'_> {
             Recipient::You => CoreRecipient::You,
             Recipient::EachOpponent
             | Recipient::EachOtherPlayer
-            | Recipient::EachOfYourOpponents => CoreRecipient::EachOpponent,
+            | Recipient::EachOfYourOpponents
+            | Recipient::AnOpponent => CoreRecipient::EachOpponent,
             Recipient::Source
             | Recipient::SourceNamed
             | Recipient::SourceCard

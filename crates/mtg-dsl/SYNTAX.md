@@ -890,7 +890,9 @@ permanent indefinitely.
 `target opponent gains control of target permanent you control` (a
 player subject other than `you`; CR 613.1b) prints "Target opponent gains
 control of target permanent you control.": that player gains control
-indefinitely. A following `if they do,` prints "If they do, ..." and holds
+indefinitely (`an opponent gains control of this artifact`: "An opponent
+gains control of this artifact.", the game's one opponent). A following
+`if they do,` prints "If they do, ..." and holds
 only if the permanent changed hands (Stiltzkin); `you may have` prints "you
 may have target opponent gain control of ...". `whenever an opponent gains
 control of a permanent from you` triggers on each permanent its
