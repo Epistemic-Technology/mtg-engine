@@ -812,6 +812,8 @@ pub enum LossReason {
     Conceded,
     /// An effect made an opponent win the game (CR 104.2b).
     OpponentWon,
+    /// An effect said the player loses the game (CR 104.3e).
+    Effect,
 }
 
 #[derive(Clone, Debug)]
@@ -1663,6 +1665,11 @@ pub struct GameState {
     /// power-up, CR 702.193a): never cleared, since the object a new
     /// zone makes is a new object with a new id (CR 400.7).
     pub activated_ever: Vec<(ObjId, crate::card::AbilityId)>,
+    /// Modes chosen for "choose one that hasn't been chosen [this turn]"
+    /// abilities (`Mode::once`): the source, its ability, the mode, and
+    /// whether the entry lapses as the turn ends. A new object has a new
+    /// id, so it starts fresh (CR 400.7).
+    pub modes_chosen: Vec<(ObjId, crate::card::AbilityId, u8, bool)>,
     /// Creatures declared as attackers this turn (boast, CR 702.142a);
     /// one put onto the battlefield attacking was never declared.
     pub attackers_this_turn: Vec<ObjId>,
@@ -2253,6 +2260,23 @@ impl GameState {
             };
         }
         self.pool.get(o.def).modes()
+    }
+
+    /// Whether mode `i` of `source`'s ability can't be chosen again: a
+    /// "choose one that hasn't been chosen [this turn]" mode already
+    /// chosen (`Mode::once`).
+    pub fn mode_used(
+        &self,
+        source: ObjId,
+        ability: crate::card::AbilityId,
+        i: usize,
+        m: &crate::card::Mode,
+    ) -> bool {
+        m.once != crate::card::ModeOnce::Any
+            && self
+                .modes_chosen
+                .iter()
+                .any(|e| e.0 == source && e.1 == ability && usize::from(e.2) == i)
     }
 
     /// For the chosen "both" mode (CR 700.2): from which effect, and

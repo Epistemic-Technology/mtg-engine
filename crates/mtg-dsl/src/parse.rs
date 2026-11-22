@@ -13,8 +13,8 @@ use thiserror::Error;
 use crate::ast::{
     Ability, Affects, AttachedRef, BlockRule, Card, ChoiceKind, Cost, CostItem, DamageWording,
     DieRow, Effect, Except, Filter, InsteadCond, InsteadWording, Join, Kind, LibraryPlace,
-    LibraryWording, Mechanic, Mod, Mode, OfChosen, Recipient, Replacement, Replaces, Restrict,
-    SacCost, SameRef, Sentence, StaticCond, Target, Trigger, TriggerObj,
+    LibraryWording, Mechanic, Mod, Mode, ModeHead, OfChosen, Recipient, Replacement, Replaces,
+    Restrict, SacCost, SameRef, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 use crate::lex::{Spanned, Tok, lex};
 
@@ -2185,10 +2185,14 @@ impl P {
                 // are chosen on casting (CR 700.2a), not on resolution.
                 let lone_modes = self.targets.is_empty()
                     && matches!(effects.as_slice(), [s] if s.label.is_none()
-                        && matches!(s.effects.as_slice(), [Effect::Modes(_) | Effect::ModesTwo(_)]));
+                        && matches!(s.effects.as_slice(), [Effect::Modes(_) | Effect::ModesTwo(_)
+                            | Effect::ModesOf(ModeHead::OneOrMore | ModeHead::UpTo(_), _)]));
                 if lone_modes {
                     match effects.pop().and_then(|mut s| s.effects.pop()) {
                         Some(Effect::Modes(modes)) => return Ok(Ability::Modal(modes)),
+                        Some(Effect::ModesOf(head, modes)) => {
+                            return Ok(Ability::ModalOf(head, modes));
+                        }
                         // `spell: choose two { ... }`: "Choose two —".
                         Some(Effect::ModesTwo(modes)) => return Ok(Ability::ModalTwo(modes)),
                         _ => unreachable!("checked"),
@@ -2231,6 +2235,17 @@ impl P {
                 Ok(Ability::Spree(modes))
             }
             "choose" => {
+                if let Some((head, n)) = self.peek_mode_head() {
+                    self.pos += n;
+                    let modes = self.modes_block()?;
+                    self.end_stmt()?;
+                    if matches!(head, ModeHead::Unchosen { .. }) {
+                        return self.fail(
+                            "`choose one unchosen` is a triggered or activated ability's effect",
+                        );
+                    }
+                    return Ok(Ability::ModalOf(head, modes));
+                }
                 self.pos += 1;
                 if self.eat_word("two") {
                     let modes = self.modes_block()?;
@@ -2815,6 +2830,33 @@ impl P {
     }
 
     /// `{ mode: <effects> ... }`: each mode with its own targets.
+    /// `choose one or more {`, `choose up to 2 {`, `choose one unchosen
+    /// [this turn] {` at the current position: the head and how many
+    /// words it takes, up to the brace.
+    fn peek_mode_head(&self) -> Option<(ModeHead, usize)> {
+        let w = |i: usize, s: &str| matches!(self.peek_at(i), Some(Tok::Word(x)) if x == s);
+        if !w(0, "choose") {
+            return None;
+        }
+        let (head, n) = if w(1, "one") && w(2, "or") && w(3, "more") {
+            (ModeHead::OneOrMore, 4)
+        } else if w(1, "up") && w(2, "to") {
+            match self.peek_at(3) {
+                Some(Tok::Num(k)) if *k > 0 => (ModeHead::UpTo(u8::try_from(*k).ok()?), 4),
+                _ => return None,
+            }
+        } else if w(1, "one") && w(2, "unchosen") {
+            if w(3, "this") && w(4, "turn") {
+                (ModeHead::Unchosen { this_turn: true }, 5)
+            } else {
+                (ModeHead::Unchosen { this_turn: false }, 3)
+            }
+        } else {
+            return None;
+        };
+        (self.peek_at(n) == Some(&Tok::LBrace)).then_some((head, n))
+    }
+
     fn modes_block(&mut self) -> R<Vec<Mode>> {
         self.expect(&Tok::LBrace)?;
         self.end_stmt()?;
@@ -4869,6 +4911,12 @@ impl P {
             };
             return Ok(Effect::YouMay(inner));
         }
+        // "choose one or more { ... }", "choose up to 1 { ... }", "choose
+        // one unchosen { ... }".
+        if let Some((head, n)) = self.peek_mode_head() {
+            self.pos += n;
+            return Ok(Effect::ModesOf(head, self.modes_block()?));
+        }
         // "choose one { mode: ... }": a modal triggered ability.
         if self.at_words(&["choose", "one"]) && self.peek_at(2) == Some(&Tok::LBrace) {
             self.pos += 2;
@@ -5510,6 +5558,7 @@ impl P {
                     _ => self.fail("`loses all abilities and becomes` takes what it becomes"),
                 }
             }
+            "lose" | "loses" if self.eat_word("game") => Ok(Effect::LoseGame { who: subject }),
             "lose" | "loses" if self.at_words(&["half", "life"]) => {
                 self.pos += 2;
                 Ok(Effect::LoseHalfLife { who: subject })

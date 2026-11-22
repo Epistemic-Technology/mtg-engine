@@ -1,0 +1,10 @@
+card "Rankle's Prank" {
+  oracle_id 052e8e1c-d006-4c9f-90da-deafbbf7fed3
+  cost {2}{B}{B}
+  type Sorcery
+  choose one or more {
+    mode: each player discards 2 cards
+    mode: each player loses 4 life
+    mode: each player sacrifices 2 creature
+  }
+}

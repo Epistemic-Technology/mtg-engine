@@ -3249,6 +3249,11 @@ pub enum Effect {
     LoseHalfLife {
         who: Recipient,
     },
+    /// "You lose the game." (CR 104.3e): each recipient player loses,
+    /// unless they can't lose the game.
+    LoseGame {
+        who: Recipient,
+    },
     DrawCards {
         count: Num,
         who: Recipient,
@@ -6250,9 +6255,26 @@ pub struct Mode {
     /// CR 700.2d, 700.2i): where each part after the third starts.
     #[serde(default)]
     pub more: Vec<(u16, u16)>,
+    /// "Choose one that hasn't been chosen [this turn] —": the mode can be
+    /// chosen only once for each object's ability (CR 700.2; a new object
+    /// starts fresh, CR 400.7), or once each turn.
+    #[serde(default)]
+    pub once: ModeOnce,
     /// A named mode's name ("• Smash the Chest — Destroy target
     /// artifact."), printed before its effect; it has no rules meaning.
     pub name: Option<String>,
+}
+
+/// How often a mode of an ability may be chosen (`Mode::once`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum ModeOnce {
+    /// Any number of times.
+    #[default]
+    Any,
+    /// "choose one that hasn't been chosen —": once for each object.
+    Ever,
+    /// "choose one that hasn't been chosen this turn —".
+    ThisTurn,
 }
 
 /// Modifications a copy effect makes as part of copying (CR 707.9b):

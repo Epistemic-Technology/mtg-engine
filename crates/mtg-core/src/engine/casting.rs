@@ -4141,9 +4141,10 @@ impl GameState {
                 }
                 // A modal ability needs a mode it can choose (CR 700.2).
                 if let [crate::card::Effect::Modes(modes)] = ab.effects.as_slice()
-                    && !modes
-                        .iter()
-                        .any(|m| self.targets_available(p, &m.targets, Some(id)))
+                    && !modes.iter().enumerate().any(|(i, m)| {
+                        !self.mode_used(id, *a, i, m)
+                            && self.targets_available(p, &m.targets, Some(id))
+                    })
                 {
                     continue;
                 }
@@ -5106,6 +5107,11 @@ impl GameState {
         modes
             .iter()
             .enumerate()
+            .filter(|(i, m)| {
+                // "Choose one that hasn't been chosen" (CR 700.2).
+                o.ability
+                    .is_none_or(|a| !self.mode_used(a.source, a.ability, *i, m))
+            })
             .filter(|(_, m)| self.mode_targets_available(o.controller, m, source))
             .filter(|(_, m)| {
                 // Entwined, the spell costs more (CR 702.42a).
@@ -8442,6 +8448,20 @@ impl GameState {
                 // "Target opponent loses 1 life for each attacking creature
                 // you control. You gain that much life."
                 ctx.trigger_amount = lost;
+            }
+            // CR 104.3e: "You lose the game."
+            Effect::LoseGame { who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t
+                        && self.player(p).lost.is_none()
+                        && !self.cant_lose(p)
+                    {
+                        let reason = crate::state::LossReason::Effect;
+                        self.player_mut(p).lost = Some(reason);
+                        self.emit(Event::PlayerLost { player: p, reason });
+                        self.bump();
+                    }
+                }
             }
             // CR 107.1a: rounded up.
             Effect::LoseHalfLife { who } => {

@@ -881,6 +881,7 @@ impl Compiler<'_> {
                         | Ability::Modal(_)
                         | Ability::ModalBoth(_)
                         | Ability::ModalTwo(_)
+                        | Ability::ModalOf(..)
                         | Ability::Spree(_)
                         | Ability::Pawprint { .. }
                 )
@@ -1187,6 +1188,7 @@ impl Compiler<'_> {
                 split: None,
                 split2: None,
                 more: Vec::new(),
+                once: mtg_core::card::ModeOnce::Any,
                 name: m.name.clone(),
             });
         }
@@ -1203,6 +1205,7 @@ impl Compiler<'_> {
                     split: Some((0, u16::try_from(b.targets.len()).unwrap_or(u16::MAX))),
                     split2: Some((u16::try_from(a.effects.len()).unwrap_or(u16::MAX), 0)),
                     more: Vec::new(),
+                    once: mtg_core::card::ModeOnce::Any,
                     name: None,
                 };
             }
@@ -1216,6 +1219,7 @@ impl Compiler<'_> {
                 )),
                 split2: None,
                 more: Vec::new(),
+                once: mtg_core::card::ModeOnce::Any,
                 name: None,
             }
         };
@@ -1303,6 +1307,59 @@ impl Compiler<'_> {
         self.sentences(&[Sentence::new(vec![e])])
     }
 
+    /// The modes under another head (CR 700.2). "Choose one or more":
+    /// every nonempty set of the printed modes, the set with bits `b` at
+    /// index `b - 1` (as spree). "Choose up to N": the sets of at most N
+    /// modes in the same order, then no mode at all. "Choose one that
+    /// hasn't been chosen": the printed modes, each chosen at most once
+    /// (`Mode::once`).
+    fn head_modes(
+        &mut self,
+        head: crate::ast::ModeHead,
+        modes: &[crate::ast::Mode],
+    ) -> Result<Vec<CoreMode>, CompileError> {
+        use crate::ast::ModeHead;
+        let mut singles = self.modes(modes, false, false)?;
+        let n = singles.len();
+        let most = match head {
+            ModeHead::Unchosen { this_turn } => {
+                let once = if this_turn {
+                    mtg_core::card::ModeOnce::ThisTurn
+                } else {
+                    mtg_core::card::ModeOnce::Ever
+                };
+                for m in &mut singles {
+                    m.once = once;
+                }
+                return Ok(singles);
+            }
+            ModeHead::OneOrMore => n,
+            ModeHead::UpTo(k) => usize::from(k).min(n),
+        };
+        // The chosen mode is kept in four bits (`CastInfo`).
+        if n < 2 || n > 4 {
+            return self.err("`choose one or more` and `choose up to` take two to four modes");
+        }
+        let mut out = Vec::new();
+        for bits in 1..(1usize << n) {
+            if bits.count_ones() as usize > most {
+                continue;
+            }
+            let parts: Vec<&CoreMode> = (0..n)
+                .filter(|i| bits & (1 << i) != 0)
+                .map(|i| &singles[i])
+                .collect();
+            out.push(combined_mode(&parts));
+        }
+        if matches!(head, ModeHead::UpTo(_)) {
+            out.push(combined_mode(&[]));
+        }
+        if out.len() > 16 {
+            return self.err("at most sixteen sets of modes");
+        }
+        Ok(out)
+    }
+
     /// A spree spell's modes (CR 702.172a): every nonempty set of the
     /// printed modes, the set with bits `b` at index `b - 1`, each made of
     /// its modes' targets and effects in printed order (`split`, `split2`
@@ -1327,6 +1384,7 @@ impl Compiler<'_> {
                 split: None,
                 split2: None,
                 more: Vec::new(),
+                once: mtg_core::card::ModeOnce::Any,
                 name: None,
             };
             for (k, p) in parts.iter().enumerate() {
@@ -1394,6 +1452,7 @@ impl Compiler<'_> {
                 split: None,
                 split2: None,
                 more: Vec::new(),
+                once: mtg_core::card::ModeOnce::Any,
                 name: None,
             };
             for (k, i) in set.iter().enumerate() {
@@ -2147,6 +2206,7 @@ impl Compiler<'_> {
                 who: r(*who),
             }),
             Effect::LoseHalfLife { who } => out.push(CoreEffect::LoseHalfLife { who: r(*who) }),
+            Effect::LoseGame { who } => out.push(CoreEffect::LoseGame { who: r(*who) }),
             Effect::DrawCards { count, who } => out.push(CoreEffect::DrawCards {
                 count: *count,
                 who: who.map_or(CoreRecipient::You, r),
@@ -3212,6 +3272,10 @@ impl Compiler<'_> {
                 let modes = self.modes(modes, false, true)?;
                 out.push(CoreEffect::Modes(modes));
             }
+            Effect::ModesOf(head, modes) => {
+                let modes = self.head_modes(*head, modes)?;
+                out.push(CoreEffect::Modes(modes));
+            }
             Effect::SwitchPt { to } => out.push(CoreEffect::SwitchPt { to: r(*to) }),
             Effect::GrantFlashback { to, harmonize, .. } => {
                 out.push(CoreEffect::GrantFlashback {
@@ -3909,6 +3973,7 @@ impl Compiler<'_> {
             ),
             Ability::ModalBoth(modes) => AbilityDef::Modal(self.modes(modes, true, false)?),
             Ability::ModalTwo(modes) => AbilityDef::Modal(self.modes(modes, false, true)?),
+            Ability::ModalOf(head, modes) => AbilityDef::Modal(self.head_modes(*head, modes)?),
             Ability::Spree(modes) => AbilityDef::Modal(self.spree_modes(modes)?),
             Ability::Pawprint { limit, modes } => {
                 AbilityDef::Modal(self.pawprint_modes(*limit, modes)?)
@@ -5727,4 +5792,44 @@ fn target_index(tmap: TargetMap, i: usize) -> usize {
         _ => i,
     };
     i.saturating_sub(tmap.shift)
+}
+
+/// Modes chosen together, as one mode: their targets and effects in
+/// printed order, each later part's start in `split`, `split2`, `more`.
+/// No parts is choosing no mode ("choose up to one").
+fn combined_mode(parts: &[&CoreMode]) -> CoreMode {
+    let mut m = CoreMode {
+        targets: Vec::new(),
+        effects: Vec::new(),
+        text: String::new(),
+        split: None,
+        split2: None,
+        more: Vec::new(),
+        once: mtg_core::card::ModeOnce::Any,
+        name: None,
+    };
+    for (k, p) in parts.iter().enumerate() {
+        let at = (
+            u16::try_from(m.effects.len()).unwrap_or(u16::MAX),
+            u16::try_from(m.targets.len()).unwrap_or(u16::MAX),
+        );
+        match k {
+            0 => {}
+            1 => m.split = Some(at),
+            2 => m.split2 = Some(at),
+            _ => m.more.push(at),
+        }
+        m.targets.extend(p.targets.iter().copied());
+        m.effects.extend(p.effects.iter().cloned());
+    }
+    m.text = if parts.is_empty() {
+        "no mode".to_string()
+    } else {
+        parts
+            .iter()
+            .map(|p| p.text.as_str())
+            .collect::<Vec<_>>()
+            .join(" and ")
+    };
+    m
 }

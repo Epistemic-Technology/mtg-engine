@@ -4951,11 +4951,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             Clause::imperative(format!("{head}. {body}"))
         }
-        Effect::Modes(modes) | Effect::ModesTwo(modes) => {
-            let mut out = if matches!(e, Effect::ModesTwo(_)) {
-                "choose two —".to_string()
-            } else {
-                "choose one —".to_string()
+        Effect::Modes(modes) | Effect::ModesTwo(modes) | Effect::ModesOf(_, modes) => {
+            let mut out = match e {
+                Effect::ModesTwo(_) => "choose two —".to_string(),
+                Effect::ModesOf(h, _) => format!("{} —", mode_head_text(*h)),
+                _ => "choose one —".to_string(),
             };
             for m in modes {
                 let mut inner = Ctx::new(ctx.card, ctx.lookup, &m.targets);
@@ -5282,6 +5282,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     ctx.verb(*who, "loses", "lose"),
                     digits(*amount)
                 ),
+            )
+        }
+        // CR 104.3e.
+        Effect::LoseGame { who } => {
+            let s = ctx.subj(*who);
+            Clause::with_subject(
+                *who,
+                s,
+                format!("{} the game", ctx.verb(*who, "loses", "lose")),
             )
         }
         // CR 107.1a: "loses half their life, rounded up".
@@ -11749,13 +11758,16 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             }
             out
         }
-        Ability::Modal(modes) | Ability::ModalBoth(modes) | Ability::ModalTwo(modes) => {
+        Ability::Modal(modes)
+        | Ability::ModalBoth(modes)
+        | Ability::ModalTwo(modes)
+        | Ability::ModalOf(_, modes) => {
             let mut out = match a {
-                Ability::ModalBoth(_) => "Choose one or both —",
-                Ability::ModalTwo(_) => "Choose two —",
-                _ => "Choose one —",
-            }
-            .to_string();
+                Ability::ModalBoth(_) => "Choose one or both —".to_string(),
+                Ability::ModalTwo(_) => "Choose two —".to_string(),
+                Ability::ModalOf(h, _) => capitalize(&format!("{} —", mode_head_text(*h))),
+                _ => "Choose one —".to_string(),
+            };
             for m in modes {
                 let mut ctx = Ctx::new(card, lookup, &m.targets);
                 ctx.current = Some(a);
@@ -13068,4 +13080,19 @@ fn is_instant_or_sorcery(card: &Card) -> bool {
             mtg_core::card::CardType::Instant | mtg_core::card::CardType::Sorcery
         )
     })
+}
+
+/// "choose one or more", "choose up to two", "choose one that hasn't been
+/// chosen [this turn]" (CR 700.2).
+fn mode_head_text(head: crate::ast::ModeHead) -> String {
+    match head {
+        crate::ast::ModeHead::OneOrMore => "choose one or more".to_string(),
+        crate::ast::ModeHead::UpTo(n) => {
+            format!("choose up to {}", count_words(Num::N(u32::from(n)), "one"))
+        }
+        crate::ast::ModeHead::Unchosen { this_turn } => format!(
+            "choose one that hasn't been chosen{}",
+            if this_turn { " this turn" } else { "" }
+        ),
+    }
 }

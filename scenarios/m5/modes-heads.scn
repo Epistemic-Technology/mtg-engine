@@ -1,0 +1,50 @@
+# "Choose one or more —" and "Choose up to N —" (CR 700.2). The modes are
+# the sets of printed modes, numbered as bits as for spree: `mode 1` the
+# first, `mode 2` the second, `mode 3` both, `mode 4` the third, `mode 7`
+# all three. "Choose up to N" leaves out the sets of more than N modes and
+# ends with the empty set (no mode).
+
+scenario "Rankle's Prank: all three modes" {
+  battlefield A: 4 "Swamp", "Grizzly Bears", "Hill Giant", "Serra Angel"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Rankle's Prank", "Forest", "Island"
+  hand B: "Forest", "Island", "Mountain"
+  turn 1 A: cast "Rankle's Prank" mode 7
+  run_to turn 1 postcombat_main
+  assert life A 16
+  assert life B 16
+  assert hand A count 0
+  assert hand B count 1
+  assert battlefield B lacks "Grizzly Bears"
+  assert battlefield B lacks "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains "Serra Angel"
+}
+
+scenario "Rankle's Prank: the first and third modes, not the second" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  hand A: "Rankle's Prank"
+  hand B: "Forest", "Island", "Mountain"
+  turn 1 A: cast "Rankle's Prank" mode 5
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert life B 20
+  assert hand B count 1
+  assert battlefield B contains "Serra Angel"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Rankle's Prank: only the second mode" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Rankle's Prank"
+  hand B: "Forest"
+  turn 1 A: cast "Rankle's Prank" mode 2
+  run_to turn 1 postcombat_main
+  assert life A 16
+  assert life B 16
+  assert hand B count 1
+  assert battlefield B contains "Grizzly Bears"
+}

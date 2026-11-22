@@ -1076,6 +1076,9 @@ pub enum Ability {
     ModalBoth(Vec<Mode>),
     /// `choose two { mode: ... }` (CR 700.2): two different modes.
     ModalTwo(Vec<Mode>),
+    /// `choose one or more { ... }`, `choose up to 2 { ... }` (CR 700.2):
+    /// a modal spell with another head.
+    ModalOf(ModeHead, Vec<Mode>),
     /// `spree { mode {2}: ... mode {1}: ... }` (CR 702.172): one or more
     /// modes, each with an additional cost (at most three).
     Spree(Vec<(ManaCost, Mode)>),
@@ -2168,6 +2171,22 @@ pub enum Restrict {
     Cond(usize),
 }
 
+/// The head of a modal ability other than "choose one", "choose one or
+/// both" and "choose two" (CR 700.2).
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum ModeHead {
+    /// `choose one or more`: "Choose one or more —", any nonempty set of
+    /// the modes.
+    OneOrMore,
+    /// `choose up to 2`: "Choose up to two —", no mode or up to that many
+    /// different modes.
+    UpTo(u8),
+    /// `choose one unchosen`, `choose one unchosen this turn`: "choose one
+    /// that hasn't been chosen [this turn] —" (an ability's modes, each
+    /// chosen at most once for the object, or once each turn).
+    Unchosen { this_turn: bool },
+}
+
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Mode {
     pub targets: Vec<Target>,
@@ -3042,6 +3061,10 @@ pub enum Effect {
     /// rounded up" (`you lose half life`: "you lose half your life,
     /// rounded up").
     LoseHalfLife {
+        who: Recipient,
+    },
+    /// `you lose game`: "You lose the game." (CR 104.3e).
+    LoseGame {
         who: Recipient,
     },
     /// `who` is `None` for the imperative "Draw a card" (the controller).
@@ -4106,6 +4129,9 @@ pub enum Effect {
     /// effect: "When this creature enters, choose two —" (CR 700.2d), two
     /// different modes chosen as the ability goes on the stack.
     ModesTwo(Vec<Mode>),
+    /// `choose one or more { ... }`, `choose up to 1 { ... }`, `choose one
+    /// unchosen { ... }` as a triggered or activated ability's effect.
+    ModesOf(ModeHead, Vec<Mode>),
     /// `target 1 doesn't untap next untap step`: "It doesn't untap during
     /// its controller's next untap step."; `... next untap steps`: "Those
     /// creatures don't untap during their controllers' next untap steps."
