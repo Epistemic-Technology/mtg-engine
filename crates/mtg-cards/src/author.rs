@@ -585,6 +585,21 @@ fn keyword_list(s: &str) -> Option<String> {
 /// phrase may be singular ("for each creature you control").
 fn count_expr(s: &str) -> Option<String> {
     let s = s.trim();
+    // "half the number of artifacts you control, rounded down".
+    if let Some(rest) = s.strip_prefix("half the number of ")
+        && let Some((what, how)) = rest.rsplit_once(", rounded ")
+        && matches!(how, "down" | "up")
+    {
+        return count_expr(what).map(|e| format!("half {how} {e}"));
+    }
+    // "+2/+0 for every seven cards in your graveyard": `every 7 ...`.
+    if let Some(rest) = s.strip_prefix("every ")
+        && let Some((n, what)) = rest.split_once(' ')
+        && let Some(n) = number(n)
+        && n.chars().all(|c| c.is_ascii_digit())
+    {
+        return count_expr(what).map(|e| format!("every {n} {e}"));
+    }
     match s {
         "basic land types among lands you control" | "basic land type among lands you control" => {
             return Some("domain".to_string());
@@ -3654,15 +3669,17 @@ fn control_filter(s: &str) -> Option<String> {
 /// has flying").
 fn static_mods(s: &str) -> Option<String> {
     let gets = Regex::new(r"^gets? ([+-]\d+/[+-]\d+)$").unwrap();
-    let per = Regex::new(r"^gets? ([+-]\d+/[+-]\d+) for each (.+)$").unwrap();
+    let per = Regex::new(r"^gets? ([+-]\d+/[+-]\d+) for (each|every) (.+)$").unwrap();
     let mut mods = Vec::new();
     for part in s.split(" and ") {
         if let Some(c) = per.captures(part) {
-            mods.push(format!(
-                "{} count each {}",
-                cap(&c, 1),
-                count_expr(cap(&c, 2))?
-            ));
+            // "for every seven cards in your graveyard": `every 7 ...`.
+            let what = if cap(&c, 2) == "every" {
+                format!("every {}", cap(&c, 3))
+            } else {
+                cap(&c, 3).to_string()
+            };
+            mods.push(format!("{} count each {}", cap(&c, 1), count_expr(&what)?));
         } else if let Some(c) = gets.captures(part) {
             mods.push(cap(&c, 1).to_string());
         } else if let Some(rest) = part

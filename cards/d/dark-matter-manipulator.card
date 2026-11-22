@@ -1,0 +1,8 @@
+card "Dark Matter Manipulator" {
+  oracle_id 6a3862f0-8dfc-4ac9-8eb9-faefcad685d4
+  cost {B}
+  type Creature — Human Warlock
+  pt 1/2
+  triggered when this enters: mill 3 cards
+  static this: +2/+0 count each every 7 graveyard
+}

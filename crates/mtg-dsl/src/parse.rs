@@ -8382,6 +8382,27 @@ impl P {
     /// N`, `life`, or a filter (`creature you control`, `Elf on
     /// battlefield`).
     fn count_expr(&mut self) -> R<crate::ast::CountExpr> {
+        // `half down <count>`, `half up <count>`, `every 7 <count>`.
+        if self.at_word("half") && matches!(self.word_at(1).as_deref(), Some("down" | "up")) {
+            let up = self.word_at(1).as_deref() == Some("up");
+            self.pos += 2;
+            let inner = self.count_expr()?;
+            return Ok(crate::ast::CountExpr::Divided {
+                by: 2,
+                up,
+                inner: Box::new(inner),
+            });
+        }
+        if self.at_word("every") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            self.pos += 1;
+            let by = self.number()?;
+            let inner = self.count_expr()?;
+            return Ok(crate::ast::CountExpr::Divided {
+                by,
+                up: false,
+                inner: Box::new(inner),
+            });
+        }
         let first = self.count_expr_one()?;
         // `<expr> plus <expr>`; `plus 2 <expr>` is the prefix form.
         if self.at_word("plus")

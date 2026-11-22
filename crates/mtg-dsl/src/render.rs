@@ -3438,6 +3438,16 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
     if let CountExpr::Times(_, inner) = c {
         return count_phrase(inner, card, each);
     }
+    // "half the number of artifacts you control, rounded down"; "for
+    // every seven cards in your graveyard".
+    if let CountExpr::Divided { by, up, inner } = c {
+        let s = count_phrase(inner, card, false);
+        if *by == 2 && !each {
+            return format!("half {s}, rounded {}", if *up { "up" } else { "down" });
+        }
+        let many = s.strip_prefix("the number of ").unwrap_or(&s);
+        return format!("for every {} {many}", count_words(Num::N(*by), "one"));
+    }
     let (one, many) = match c {
         // "the greatest power among creatures you control".
         CountExpr::GreatestPower(f) => {
@@ -3598,7 +3608,7 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 format!("creatures blocking it{rest}"),
             )
         }
-        CountExpr::Times(..) => unreachable!("unwrapped above"),
+        CountExpr::Times(..) | CountExpr::Divided { .. } => unreachable!("unwrapped above"),
         // "for each enchantment destroyed this way".
         CountExpr::ThisWay { verb, filter } => {
             // "the number of cards shuffled into your library this way".

@@ -720,6 +720,9 @@ impl GameState {
         let you = ctx.controller;
         let n = match expr {
             CountExpr::Times(k, inner) => return k.saturating_mul(self.eval_count(inner, ctx)),
+            CountExpr::Divided { by, up, inner } => {
+                return CountExpr::divide(self.eval_count(inner, ctx), *by, *up);
+            }
             CountExpr::Permanents(f) => {
                 let f = &*self.chosen_filter(f, ctx);
                 let host = f.attached_to.map(|a| self.attached_host(ctx, a));

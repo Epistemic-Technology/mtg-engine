@@ -2599,6 +2599,14 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
     use crate::ast::CountExpr;
     match e {
         CountExpr::Times(n, inner) => format!("{n} {}", count_expr_text(inner)),
+        CountExpr::Divided { by: 2, up, inner } => format!(
+            "half {} {}",
+            if *up { "up" } else { "down" },
+            count_expr_text(inner)
+        ),
+        CountExpr::Divided { by, inner, .. } => {
+            format!("every {by} {}", count_expr_text(inner))
+        }
         CountExpr::Plus { n, word, inner } => {
             let n = if *word {
                 crate::render::NUMBER_WORDS

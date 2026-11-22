@@ -717,7 +717,12 @@ creature blocking it"). A count of attacking or blocking creatures omits
 "on the battlefield" ("for each other attacking Aurochs").
 `count each 2 creature you control` ("2 life for each creature you
 control"); filter `defending player controls` (two players: the
-attacker's opponent).
+attacker's opponent). `half down <count>`, `half up <count>`: "half the
+number of Zombies you control, rounded down" (CR 107.1a; `create count
+where half down Zombie you control "2/2 black Zombie creature"`);
+`every 7 <count>`: "for every seven cards in your graveyard", rounded
+down (`static this: +2/+0 count each every 7 graveyard`). Both work in
+static abilities.
 `if you control Treefolk, draw 1 card`: a static condition judged as the
 effect resolves ("If you control a Treefolk, draw a card."); written after
 the sentence, it prints after it: `draw 1 card if you control creature

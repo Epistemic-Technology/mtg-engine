@@ -1766,6 +1766,14 @@ pub enum CountExpr {
     Life,
     /// N times another count ("2 life for each creature you control").
     Times(u32, Box<CountExpr>),
+    /// Another count divided by `by`, rounded down or (`up`) up: "half the
+    /// number of artifacts you control, rounded down" (CR 107.1a), "for
+    /// every seven cards in your graveyard".
+    Divided {
+        by: u32,
+        up: bool,
+        inner: Box<CountExpr>,
+    },
     /// Cards in all graveyards, all or matching the filter ("the number of
     /// cards named ~ in all graveyards").
     CardsInAllGraveyards(Option<ObjFilter>),
@@ -1931,6 +1939,13 @@ pub enum CountExpr {
 }
 
 impl CountExpr {
+    /// `n` divided by `by`, rounded down or (`up`) up (CR 107.1a).
+    #[must_use]
+    pub fn divide(n: u32, by: u32, up: bool) -> u32 {
+        let by = by.max(1);
+        if up { n.div_ceil(by) } else { n / by }
+    }
+
     /// Whether the count reads the turn's history, so a static ability
     /// using it must be recomputed as that changes (`history_static`).
     pub fn reads_history(&self) -> bool {
@@ -1940,6 +1955,7 @@ impl CountExpr {
             | CountExpr::AttackedThisTurn
             | CountExpr::OpponentsLostLife => true,
             CountExpr::Times(_, c) | CountExpr::Plus(_, c) => c.reads_history(),
+            CountExpr::Divided { inner, .. } => inner.reads_history(),
             CountExpr::Sum(a, b) => a.reads_history() || b.reads_history(),
             _ => false,
         }
@@ -1956,6 +1972,7 @@ impl CountExpr {
         match self {
             CountExpr::Sum(a, b) => a.in_static() && b.in_static(),
             CountExpr::Plus(_, c) | CountExpr::Times(_, c) => c.in_static(),
+            CountExpr::Divided { inner, .. } => inner.in_static(),
             CountExpr::Permanents(_)
             | CountExpr::Domain
             | CountExpr::ColorsAmongPermanents

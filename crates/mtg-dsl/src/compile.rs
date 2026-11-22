@@ -1684,6 +1684,11 @@ impl Compiler<'_> {
             },
             A::Life => C::Life,
             A::Times(n, inner) => C::Times(*n, Box::new(self.count_expr(inner))),
+            A::Divided { by, up, inner } => C::Divided {
+                by: *by,
+                up: *up,
+                inner: Box::new(self.count_expr(inner)),
+            },
             A::CardsInGraveyards { filter, .. } => {
                 C::CardsInAllGraveyards(filter.as_ref().map(|f| self.filter(f)))
             }

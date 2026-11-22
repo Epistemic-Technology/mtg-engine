@@ -1,0 +1,7 @@
+card "Ghoulcaller's Harvest" {
+  oracle_id bbef4d8e-5861-4d50-9589-14b46c71e9af
+  cost {B}{G}
+  type Sorcery
+  spell: create count where half up graveyard creature "2/2 black Zombie creature with decayed"
+  flashback {3}{B}{G}
+}

@@ -176,6 +176,11 @@ impl Decompiler<'_> {
                 inner: Box::new(self.cda_count(inner)),
             },
             C::Times(n, inner) => A::Times(*n, Box::new(self.cda_count(inner))),
+            C::Divided { by, up, inner } => A::Divided {
+                by: *by,
+                up: *up,
+                inner: Box::new(self.cda_count(inner)),
+            },
             C::Sum(a, b) => A::Sum(Box::new(self.cda_count(a)), Box::new(self.cda_count(b))),
             _ => A::Domain,
         }

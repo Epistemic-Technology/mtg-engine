@@ -296,6 +296,14 @@ pub enum CountExpr {
     /// `count each 2 creature you control`: "2 life for each creature
     /// you control".
     Times(u32, Box<CountExpr>),
+    /// `half down <count>`, `half up <count>`: "half the number of
+    /// artifacts you control, rounded down"; `every 7 <count>`: "for every
+    /// seven cards in your graveyard" (rounded down).
+    Divided {
+        by: u32,
+        up: bool,
+        inner: Box<CountExpr>,
+    },
     /// `all graveyards [<filter>]` / `each graveyard [<filter>]`: cards in
     /// all graveyards, "in all graveyards" or "in each graveyard".
     CardsInGraveyards {
