@@ -1,0 +1,9 @@
+card "Karrthus, Tyrant of Jund" {
+  oracle_id 242dfae4-504c-45d4-9a49-f7ab515fd23a
+  cost {4}{B}{R}{G}
+  type Legendary Creature — Dragon
+  pt 7/7
+  keywords flying, haste
+  triggered when this enters: gain control of all Dragon indefinitely then untap each Dragon
+  static other Dragon creature you control: has haste
+}

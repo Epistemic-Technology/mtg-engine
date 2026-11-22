@@ -6921,7 +6921,7 @@ fn similarity(a: &str, b: &str) -> usize {
 /// names there.
 #[allow(clippy::too_many_lines)]
 fn wording_variants(text: &str) -> Vec<String> {
-    const VERBS: [&str; 10] = [
+    const VERBS: [&str; 11] = [
         "untap",
         "tap",
         "destroy",
@@ -6932,6 +6932,8 @@ fn wording_variants(text: &str) -> Vec<String> {
         "then",
         "and",
         "return",
+        // "gain control of all Dragons".
+        "of",
     ];
     const HEADS: [&str; 10] = [
         "card ",
@@ -6970,7 +6972,11 @@ fn wording_variants(text: &str) -> Vec<String> {
         .any(|p| ability.starts_with(p))
             || (ability.starts_with("triggered when")
                 && !ability.starts_with("triggered when this")
-                && !ability.starts_with("triggered whenever this"));
+                && !ability.starts_with("triggered whenever this"))
+            // "Whenever this creature attacks, put a +1/+1 counter on it":
+            // the triggering object is the source.
+            || ability.starts_with("triggered whenever this attacks")
+            || ability.starts_with("triggered when this enters");
         let indent = line.len() - body.len();
         if body.ends_with('{') {
             block_it_ok = opener_it_ok && !body.starts_with("triggered ");
@@ -7008,6 +7014,9 @@ fn wording_variants(text: &str) -> Vec<String> {
             let mut alts: Vec<String> = Vec::new();
             match *w {
                 "each" if after_clause && next != "counters" => alts.push("all".to_string()),
+                // "put two +1/+1 counters on each creature you control
+                // instead": the group named again, not "those creatures".
+                "each" if prev == "on" && next != "single" => alts.push("each single".to_string()),
                 "all" if after_clause && !matches!(next, "counters" | "graveyards") => {
                     alts.push("each".to_string());
                 }

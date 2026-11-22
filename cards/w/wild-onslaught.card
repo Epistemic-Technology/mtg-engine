@@ -1,0 +1,7 @@
+card "Wild Onslaught" {
+  oracle_id 7ca9ef3e-e5b2-4eb5-87b3-0d97637428a0
+  cost {3}{G}
+  type Instant
+  kicker {4}
+  spell: put 1 +1/+1 counters on each creature you control; if kicked, put 2 +1/+1 counters on each single creature you control instead
+}
