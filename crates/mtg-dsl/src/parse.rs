@@ -199,6 +199,22 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     ),
     (&["doesn't", "untap"], Keyword::DoesntUntap),
     (
+        &[
+            "assigns",
+            "combat",
+            "damage",
+            "equal",
+            "to",
+            "its",
+            "toughness",
+            "rather",
+            "than",
+            "its",
+            "power",
+        ],
+        Keyword::AssignsToughness,
+    ),
+    (
         &["assigns", "combat", "damage", "equal", "to", "toughness"],
         Keyword::AssignsToughness,
     ),
