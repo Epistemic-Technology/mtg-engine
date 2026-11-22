@@ -296,6 +296,9 @@ pub struct PlayableExile {
     pub cast_only: bool,
     /// "... without paying its mana cost".
     pub free: bool,
+    /// The permanent whose control the permission lasts for
+    /// (`PlayUntil::WhileYouControlSource`).
+    pub source: ObjId,
 }
 
 /// How a spell was cast (on the stack; `Suspend` stays with the permanent

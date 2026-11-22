@@ -1,0 +1,7 @@
+card "Sakura-Tribe Springcaller" {
+  oracle_id 675a0eff-4da0-45cd-9371-fca96c313f4c
+  cost {3}{G}
+  type Creature — Snake Shaman
+  pt 2/4
+  triggered at beginning of your upkeep: keep mana add {G}
+}

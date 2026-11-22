@@ -6485,6 +6485,8 @@ impl P {
             mtg_core::card::PlayUntil::YourNextEndStep
         } else if self.eat_word("forever") {
             mtg_core::card::PlayUntil::Forever
+        } else if self.eat_words(&["while", "you", "control", "this"]) {
+            mtg_core::card::PlayUntil::WhileYouControlSource
         } else {
             return self.unexpected("`this turn`, `next turn`, `next end step`, or `forever`");
         })
@@ -10946,6 +10948,16 @@ impl P {
             self.pos += 4;
             return Ok(Trigger::GainsLife { whose: Who::Any });
         }
+        // CR 119.3: "an opponent loses life".
+        for (words, whose) in [
+            (&["an", "opponent", "loses", "life"][..], Who::Opponents),
+            (&["a", "player", "loses", "life"][..], Who::Any),
+            (&["you", "lose", "life"][..], Who::You),
+        ] {
+            if self.eat_words(words) {
+                return Ok(Trigger::LosesLife { whose });
+            }
+        }
         // "you draw your second card each turn".
         if self.at_words(&["you", "draw", "your"])
             || self.at_words(&["an", "opponent", "draws", "their"])
@@ -12544,7 +12556,10 @@ fn no_trigger_amount(t: &Trigger) -> bool {
         | Trigger::CastsNth { .. }
         | Trigger::GainsLife { .. }
         | Trigger::GainsLifeFirst { .. } => true,
-        t => no_trigger_object(t) && !matches!(t, Trigger::CreaturesDealCombatDamage(_)),
+        t => {
+            no_trigger_object(t)
+                && !matches!(t, Trigger::CreaturesDealCombatDamage(_) | Trigger::LosesLife { .. })
+        }
     }
 }
 
@@ -12565,6 +12580,7 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::CreaturesYouControlAttack
         | Trigger::GainsLife { .. }
         | Trigger::GainsLifeFirst { .. }
+        | Trigger::LosesLife { .. }
         | Trigger::DayNight
         | Trigger::RollsDice { .. }
         | Trigger::WinsFlip { .. }

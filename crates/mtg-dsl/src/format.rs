@@ -798,6 +798,7 @@ impl Fmt {
                         mtg_core::card::PlayUntil::EndOfYourNextTurn => "next turn",
                         mtg_core::card::PlayUntil::YourNextEndStep => "next end step",
                         mtg_core::card::PlayUntil::Forever => "forever",
+                        mtg_core::card::PlayUntil::WhileYouControlSource => "while you control this",
                     }
                 );
                 if *first {
@@ -924,6 +925,7 @@ impl Fmt {
                         mtg_core::card::PlayUntil::EndOfYourNextTurn => "next turn",
                         mtg_core::card::PlayUntil::YourNextEndStep => "next end step",
                         mtg_core::card::PlayUntil::Forever => "forever",
+                        mtg_core::card::PlayUntil::WhileYouControlSource => "while you control this",
                     }
                 );
                 if *first {
@@ -3795,6 +3797,11 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::GainsLife { whose } => match whose {
             Who::You => "whenever you gain life".to_string(),
             _ => "whenever a player gains life".to_string(),
+        },
+        Trigger::LosesLife { whose } => match whose {
+            Who::You => "whenever you lose life".to_string(),
+            Who::Opponents => "whenever an opponent loses life".to_string(),
+            Who::Any => "whenever a player loses life".to_string(),
         },
         Trigger::GainsLifeFirst { .. } => "whenever you gain life first time each turn".to_string(),
         Trigger::CastsSpell {

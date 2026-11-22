@@ -2525,6 +2525,10 @@ pub enum Trigger {
     GainsLife {
         whose: Who,
     },
+    /// `whenever an opponent loses life`, `whenever a player loses life`.
+    LosesLife {
+        whose: Who,
+    },
     /// `whenever you gain life first time each turn`: "Whenever you gain
     /// life for the first time each turn".
     GainsLifeFirst {

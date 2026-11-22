@@ -3332,6 +3332,13 @@ impl GameState {
                                 true
                             }
                             crate::card::PlayUntil::YourNextEndStep => true,
+                            // Ends when its source leaves or changes
+                            // control (CR 400.7).
+                            crate::card::PlayUntil::WhileYouControlSource => {
+                                objects.get(pe.source).is_some_and(|s| {
+                                    s.zone == Zone::Battlefield && s.controller == pe.player
+                                })
+                            }
                         }
                     });
                 }

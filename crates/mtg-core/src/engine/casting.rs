@@ -329,6 +329,15 @@ impl GameState {
                 {
                     continue;
                 }
+                // "for as long as you control Lightning".
+                if pe.until == crate::card::PlayUntil::WhileYouControlSource
+                    && !self
+                        .objects
+                        .get(pe.source)
+                        .is_some_and(|s| s.zone == Zone::Battlefield && s.controller == p)
+                {
+                    continue;
+                }
                 let def = self.pool.get(o.def);
                 if def.layout == Layout::ModalDfc
                     && let Some(&back) = def.faces.first()
@@ -11047,6 +11056,7 @@ impl GameState {
                             own_ends,
                             cast_only: *cast,
                             free: *free,
+                            source: ctx.source,
                         });
                 }
             }
@@ -11837,6 +11847,7 @@ impl GameState {
                                 own_ends: crate::state::WARP_LATER,
                                 cast_only: true,
                                 free: false,
+                                source: ObjId::default(),
                             });
                     }
                 }
@@ -11902,6 +11913,7 @@ impl GameState {
                             own_ends,
                             cast_only: false,
                             free: false,
+                            source: ctx.source,
                         });
                 }
             }

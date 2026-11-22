@@ -4469,18 +4469,27 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let body = if *until == PlayUntil::Forever {
                 // "You may play them." (no duration).
                 format!("You may play {}", if one { "it" } else { "them" })
+            } else if *until == PlayUntil::WhileYouControlSource {
+                format!(
+                    "You may play {what} for as long as you control {}",
+                    ctx.source_name()
+                )
             } else if *first {
                 let when = match until {
                     PlayUntil::ThisTurn => "Until end of turn",
                     PlayUntil::EndOfYourNextTurn => "Until the end of your next turn",
-                    PlayUntil::YourNextEndStep | PlayUntil::Forever => "Until your next end step",
+                    PlayUntil::YourNextEndStep
+                    | PlayUntil::Forever
+                    | PlayUntil::WhileYouControlSource => "Until your next end step",
                 };
                 format!("{when}, you may play {what}")
             } else {
                 let when = match until {
                     PlayUntil::ThisTurn => "this turn",
                     PlayUntil::EndOfYourNextTurn => "until the end of your next turn",
-                    PlayUntil::YourNextEndStep | PlayUntil::Forever => "until your next end step",
+                    PlayUntil::YourNextEndStep
+                    | PlayUntil::Forever
+                    | PlayUntil::WhileYouControlSource => "until your next end step",
                 };
                 format!("You may play {what} {when}")
             };
@@ -4582,7 +4591,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 let when = match until {
                     PlayUntil::ThisTurn => "Until end of turn",
                     PlayUntil::EndOfYourNextTurn => "Until the end of your next turn",
-                    PlayUntil::YourNextEndStep | PlayUntil::Forever => "Until your next end step",
+                    PlayUntil::YourNextEndStep
+                    | PlayUntil::Forever
+                    | PlayUntil::WhileYouControlSource => "Until your next end step",
                 };
                 Clause::imperative(format!("{when}, you may {verb} {what}{free}"))
             } else {
@@ -4591,6 +4602,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     PlayUntil::EndOfYourNextTurn => " until the end of your next turn",
                     PlayUntil::YourNextEndStep => " until your next end step",
                     PlayUntil::Forever => "",
+                    PlayUntil::WhileYouControlSource => {
+                        return Clause::imperative(format!(
+                            "you may {verb} {what}{free} for as long as you control {}",
+                            ctx.source_name()
+                        ));
+                    }
                 };
                 Clause::imperative(format!("you may {verb} {what}{free}{when}"))
             }
@@ -9040,6 +9057,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::GainsLife { whose } => match whose {
             Who::You => "whenever you gain life".to_string(),
             _ => "whenever a player gains life".to_string(),
+        },
+        Trigger::LosesLife { whose } => match whose {
+            Who::You => "whenever you lose life".to_string(),
+            Who::Opponents => "whenever an opponent loses life".to_string(),
+            Who::Any => "whenever a player loses life".to_string(),
         },
         Trigger::GainsLifeFirst { .. } => {
             "whenever you gain life for the first time each turn".to_string()

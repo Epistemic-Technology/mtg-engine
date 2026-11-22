@@ -1,0 +1,9 @@
+card "Annie Flash, the Veteran" {
+  oracle_id 858067f9-eb1f-4569-9831-30441cba5f90
+  cost {3}{R}{G}{W}
+  type Legendary Creature — Human Rogue
+  pt 4/5
+  keywords flash
+  triggered when this enters if you cast it: return target permanent card with mana value 3 or less from your graveyard to battlefield tapped
+  triggered whenever this becomes tapped: impulse 2 this turn
+}

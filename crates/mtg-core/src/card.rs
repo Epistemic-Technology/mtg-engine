@@ -2132,6 +2132,10 @@ pub enum PlayUntil {
     /// "You may play them." with no duration (Runestone Caverns): for as
     /// long as the card stays in exile.
     Forever,
+    /// "You may play that card for as long as you control Lightning": while
+    /// the source stays on the battlefield under the player's control
+    /// (the same object, CR 400.7).
+    WhileYouControlSource,
 }
 
 /// Where searched-for cards go.
@@ -5256,6 +5260,11 @@ pub enum TriggerSpec {
     CommitsCrime { your_turn: bool },
     /// "Whenever you gain life".
     GainsLife { whose: Who },
+    /// "Whenever an opponent loses life", "Whenever a player loses life"
+    /// (CR 119.3): once per life-losing event, damage included; the player
+    /// is the triggering player and the amount lost the trigger's amount
+    /// ("that much").
+    LosesLife { whose: Who },
     /// "Whenever you gain life for the first time each turn": the life
     /// gain event that starts the player's life gained this turn.
     GainsLifeFirst { whose: Who },
@@ -5670,6 +5679,7 @@ impl TriggerSpec {
             | TriggerSpec::Reflexive
             | TriggerSpec::State(_) => 0,
             TriggerSpec::GainsLife { .. }
+            | TriggerSpec::LosesLife { .. }
             | TriggerSpec::GainsLifeFirst { .. }
             | TriggerSpec::GainsOrLosesLife { .. } => WATCH_LIFE_CHANGE,
             TriggerSpec::RollsDice { .. } | TriggerSpec::WinsFlip { .. } => WATCH_ROLL,

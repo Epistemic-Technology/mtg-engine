@@ -1,0 +1,8 @@
+card "Bloodthirsty Conqueror" {
+  oracle_id fd505c02-c59e-476d-8e88-35da862ddc23
+  cost {3}{B}{B}
+  type Creature — Vampire Knight
+  pt 5/5
+  keywords flying, deathtouch
+  triggered whenever an opponent loses life: you gain that much life
+}

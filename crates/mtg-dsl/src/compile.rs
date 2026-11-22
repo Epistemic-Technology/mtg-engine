@@ -3458,6 +3458,7 @@ impl Compiler<'_> {
                 TriggerSpec::DealsCombatDamageToPlayer(self.trigger_obj(o))
             }
             Trigger::GainsLife { whose } => TriggerSpec::GainsLife { whose: *whose },
+            Trigger::LosesLife { whose } => TriggerSpec::LosesLife { whose: *whose },
             Trigger::GainsLifeFirst { whose } => TriggerSpec::GainsLifeFirst { whose: *whose },
             Trigger::RollsDice { whose } => TriggerSpec::RollsDice { whose: *whose },
             Trigger::DayNight => TriggerSpec::DayNight,

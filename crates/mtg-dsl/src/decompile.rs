@@ -1760,6 +1760,7 @@ impl Decompiler<'_> {
                 Trigger::DealsCombatDamageToPlayer(self.trigger_obj(o))
             }
             TriggerSpec::GainsLife { whose } => Trigger::GainsLife { whose: *whose },
+            TriggerSpec::LosesLife { whose } => Trigger::LosesLife { whose: *whose },
             TriggerSpec::GainsLifeFirst { whose } => Trigger::GainsLifeFirst { whose: *whose },
             TriggerSpec::RollsDice { whose } => Trigger::RollsDice { whose: *whose },
             TriggerSpec::DayNight => Trigger::DayNight,

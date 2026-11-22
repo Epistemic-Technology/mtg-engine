@@ -303,6 +303,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever this deals combat damage to a player`, `whenever enchanted creature deals combat damage to defending player` | the damaged player is "that player" (`target creature that player controls`); `defending player` is wording only (combat damage to a player is dealt to the defending player, CR 510.1) |
 | `when you control no Island`, `when you control no other creature`, `when you control Dwarf` | a state trigger (CR 603.8): "When you control no Islands, sacrifice this creature."; any static condition after `when you control` ("When you control a Dwarf", "When you control a creature with toughness 2 or less"). Checked whenever a player would receive priority; it doesn't trigger again while its ability waits to go on the stack or is on it. A face-down permanent has no abilities, so no state trigger |
 | `whenever you gain life` | |
+| `whenever an opponent loses life`, `whenever a player loses life`, `whenever you lose life` | once per life-losing event (CR 119.3; damage too); the player is `that player`, the life lost `that much` ("you gain that much life") |
 | `whenever you gain or lose life`, `whenever you gain or lose life during your turn` | once per event that changes your life total (CR 119.9: a gain or a loss of any amount is one event), only on your turn with `during your turn` |
 | `whenever you scry or surveil` | once per instruction to scry or surveil (CR 701.22, 701.25) |
 | `whenever creature you control explores`, `whenever this explores` | as a creature explores (CR 701.44), whatever it revealed and even if it has left the battlefield (then judged as it last existed); it is the triggering object |
@@ -1795,7 +1796,7 @@ the usual timing permissions and a land only with a land play left, CR
 305.2, 601.3; `impulse 1 this turn` is "You may play that card this
 turn.", `first` puts the duration first ("Until end of turn, you may
 play that card."), `it` prints "it" for "that card", and `next end step`
-is "until your next end step", which ends as that step begins; `choose`
+is "until your next end step", which ends as that step begins; `while you control this` is "You may play that card for as long as you control Lightning" (the source on the battlefield under its controller's control, the same object); `choose`
 adds "Choose one of them." and only that card may be played, `this way`
 prints "cards exiled this way", `of target opponent` takes the cards from
 that player's library ("Target opponent exiles the top card of their

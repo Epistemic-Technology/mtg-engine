@@ -46,6 +46,8 @@ impl GameState {
         let event_amount = match event {
             Event::Damage { amount, .. } => *amount,
             Event::CountersAdded { n, .. } => *n,
+            // "you gain that much life" after a player loses or gains life.
+            Event::LifeChange { delta, .. } => delta.unsigned_abs(),
             _ => 0,
         };
         let mut fired: SmallVec<[PendingTrigger; 2]> = SmallVec::new();
@@ -1026,6 +1028,9 @@ impl GameState {
             }
             (TriggerSpec::GainsLife { whose }, Event::LifeChange { player, delta, .. }) => {
                 (*delta > 0 && whose_ok(*whose, *player)).then_some((None, Some(*player)))
+            }
+            (TriggerSpec::LosesLife { whose }, Event::LifeChange { player, delta, .. }) => {
+                (*delta < 0 && whose_ok(*whose, *player)).then_some((None, Some(*player)))
             }
             // Triggers are detected as each event is emitted, so the first
             // gain is the one whose amount is all gained this turn.
