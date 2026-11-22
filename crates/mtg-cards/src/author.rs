@@ -3524,18 +3524,27 @@ impl Templates {
 /// sentence holding that DSL after a `\u{1}` marker.
 fn merge_impulse(sentences: Vec<String>) -> Vec<String> {
     let exile = Regex::new(
-        r"^(If you do, |you may |You may )?[Ee]xile the top (card|\w+ cards) of your library$",
+        r"^(If you do, |you may |You may )?[Ee]xile the top (card|\w+ cards) of your library(?:, where X is (.+))?$",
     )
     .unwrap();
     let mut out: Vec<String> = Vec::new();
-    let mut it = sentences.into_iter().peekable();
-    while let Some(s) = it.next() {
-        let merged = exile.captures(&s).and_then(|c| {
-            let n = match cap(&c, 2) {
-                "card" => "1".to_string(),
-                w => number(w.strip_suffix(" cards")?)?,
+    let mut i = 0;
+    while i < sentences.len() {
+        let s = &sentences[i];
+        // "Choose one of them." between the exile and the permission:
+        // `choose`.
+        let chosen = sentences
+            .get(i + 1)
+            .is_some_and(|n| n == "Choose one of them");
+        let next_at = if chosen { i + 2 } else { i + 1 };
+        let merged = exile.captures(s).and_then(|c| {
+            let n = match (cap(&c, 2), c.get(3)) {
+                ("X cards", Some(x)) => x_count(x.as_str())?,
+                (_, Some(_)) => return None,
+                ("card", None) => "1".to_string(),
+                (w, None) => number(w.strip_suffix(" cards")?)?,
             };
-            let next = it.peek()?;
+            let next = sentences.get(next_at)?;
             let when = match next
                 .replace("that card", "those cards")
                 .replace("them", "it")
@@ -3546,6 +3555,11 @@ fn merge_impulse(sentences: Vec<String>) -> Vec<String> {
                 "Until your next end step, you may play those cards" => "next end step first",
                 "You may play those cards this turn" => "this turn",
                 "You may play those cards until the end of your next turn" => "next turn",
+                "You may play those cards until your next end step" => "next end step",
+                "You may play cards exiled this way until the end of your next turn" => {
+                    "next turn this way"
+                }
+                "You may play cards exiled this way this turn" => "this turn this way",
                 "You may play it this turn" => "this turn it",
                 "You may play it until the end of your next turn" => "next turn it",
                 "You may play it until your next end step" => "next end step it",
@@ -3556,24 +3570,28 @@ fn merge_impulse(sentences: Vec<String>) -> Vec<String> {
                 "" => "",
                 _ => "you may ",
             };
-            Some(format!("\u{1}{prefix}impulse {n} {when}"))
+            let choose = if chosen { " choose" } else { "" };
+            Some(format!("\u{1}{prefix}impulse {n} {when}{choose}"))
         });
+        if let Some(m) = merged {
+            out.push(m);
+            i = next_at + 1;
+            continue;
+        }
         // "... without paying its mana cost. If that spell would be put
         // into your graveyard, exile it instead.": one sentence, marked.
-        let merged = merged.or_else(|| {
-            let next = it.peek()?;
-            (s.ends_with("without paying its mana cost")
-                && next.trim_end_matches('.')
-                    == "If that spell would be put into your graveyard, exile it instead")
-                .then(|| format!("{s}\u{2}"))
-        });
-        match merged {
-            Some(m) => {
-                it.next();
-                out.push(m);
-            }
-            None => out.push(s),
+        if s.ends_with("without paying its mana cost")
+            && sentences.get(i + 1).is_some_and(|n| {
+                n.trim_end_matches('.')
+                    == "If that spell would be put into your graveyard, exile it instead"
+            })
+        {
+            out.push(format!("{s}\u{2}"));
+            i += 2;
+            continue;
         }
+        out.push(s.clone());
+        i += 1;
     }
     out
 }

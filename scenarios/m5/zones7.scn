@@ -582,3 +582,43 @@ scenario "reanimate: Teneb pays {2}{B} after combat damage" {
   assert life B 14
   assert battlefield A contains "Hill Giant"
 }
+
+# Impulse wordings the template author now writes.
+
+scenario "impulse: Opera Love Song's cards are played until the next end step" {
+  battlefield A: 2 "Mountain", 2 "Forest"
+  hand A: "Opera Love Song"
+  library A: "Grizzly Bears", "Mountain", "Island", "Island"
+  turn 1 A: cast "Opera Love Song" mode 1
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: play "Mountain"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains 3 "Mountain"
+}
+
+scenario "impulse: Opera Love Song's permission ends at the next end step" {
+  battlefield A: 2 "Mountain", 2 "Forest"
+  hand A: "Opera Love Song"
+  library A: "Grizzly Bears", "Mountain", "Island", "Island", "Island"
+  turn 1 A: cast "Opera Love Song" mode 1
+  illegal turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 end
+  assert exile A contains "Grizzly Bears"
+}
+
+scenario "impulse: Escape to the Wilds lasts through the next turn, with a land play more" {
+  battlefield A: 3 "Mountain", 2 "Forest"
+  hand A: "Escape to the Wilds", "Forest"
+  library A: "Mountain", "Grizzly Bears", "Island", "Island", "Island", "Island", "Island"
+  turn 1 A: cast "Escape to the Wilds"
+  turn 1 A: wait
+  turn 1 A: play "Forest"
+  turn 1 A: play "Mountain"
+  turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 end
+  assert battlefield A contains 4 "Mountain"
+  assert battlefield A contains 3 "Forest"
+  assert battlefield A contains "Grizzly Bears"
+}
