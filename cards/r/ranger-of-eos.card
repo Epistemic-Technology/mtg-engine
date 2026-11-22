@@ -1,0 +1,7 @@
+card "Ranger of Eos" {
+  oracle_id b9c8b929-f3ee-457f-9cbc-9de18eb69dc5
+  cost {3}{W}
+  type Creature — Human Soldier Ranger
+  pt 3/2
+  triggered when this enters: you may search up to 2 creature card with mana value 1 or less reveal to hand
+}

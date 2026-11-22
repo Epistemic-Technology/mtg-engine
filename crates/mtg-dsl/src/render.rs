@@ -7686,6 +7686,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 with_article(&cards_phrase(filter, ctx.card, false))
             } else if one {
                 with_article(&format!("{} card", filter_phrase(filter, ctx.card, false)))
+            } else if filter.or.is_none() && filter.mana_value.is_some() {
+                // "up to two creature cards with mana value 1 or less": the
+                // mana value after the noun.
+                format!(
+                    "{}{} {}",
+                    if *up_to { "up to " } else { "" },
+                    count_words(*count, "a"),
+                    cards_phrase(filter, ctx.card, true)
+                )
             } else {
                 format!(
                     "{}{} {} cards",

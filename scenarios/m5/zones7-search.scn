@@ -809,3 +809,19 @@ scenario "search to graveyard: Unmarked Grave doesn't find a legendary card" {
   run_to turn 1 postcombat_main
   assert library A contains "Barktooth Warbeard"
 }
+
+# "up to two creature cards with mana value 1 or less" (the mana value
+# after the plural noun).
+
+scenario "search to hand: Ranger of Eos finds up to two creature cards with mana value 1 or less" {
+  battlefield A: 4 "Plains"
+  hand A: "Ranger of Eos"
+  library A: "Memnite", "Grizzly Bears", "Ornithopter", "Island"
+  turn 1 A: cast "Ranger of Eos"
+  turn 1 A: choose "Memnite"
+  turn 1 A: choose "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Memnite"
+  assert hand A contains "Ornithopter"
+  assert library A contains "Grizzly Bears"
+}
