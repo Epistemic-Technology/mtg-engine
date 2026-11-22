@@ -710,6 +710,23 @@ fn cost_spells_subject(f: &Filter, card: &Card) -> String {
     let second = |s: String, keep_case: bool| if keep_case { s } else { lowercase_first(&s) };
     if let Some(alt) = &f.or {
         let (b, a) = crate::format::factor_qualifiers(f, alt);
+        // "Aura and Equipment spells you cast cost {1} less" (Danitha
+        // Capashen, Paragon): two noncreature subtypes share "spells";
+        // creature types don't ("Angel spells and Human spells").
+        let lone_sub = |g: &Filter| match g.subtypes.as_slice() {
+            [s] if matches!(s.as_str(), "Aura" | "Equipment" | "Vehicle")
+                && Filter {
+                    subtypes: Vec::new(),
+                    ..g.clone()
+                } == Filter::default() =>
+            {
+                Some(s.clone())
+            }
+            _ => None,
+        };
+        if let (Some(x), Some(y)) = (lone_sub(&b), lone_sub(&a)) {
+            return format!("{x} and {y} spells");
+        }
         return format!(
             "{} and {}",
             spells_subject(&b, card),

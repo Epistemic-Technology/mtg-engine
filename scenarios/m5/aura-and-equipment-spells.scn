@@ -1,0 +1,32 @@
+# "Aura and Equipment spells you cast cost {1} less to cast" (two
+# noncreature subtypes sharing "spells").
+
+scenario "Danitha Capashen: an Equipment costs {1} less" {
+  battlefield A: "Danitha Capashen, Paragon"
+  hand A: "Bonesplitter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bonesplitter"
+}
+
+scenario "Danitha Capashen: an Aura costs {1} less" {
+  battlefield A: "Danitha Capashen, Paragon", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Pacifism"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pacifism" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert attached "Pacifism" to "Hill Giant"
+}
+
+scenario "Danitha Capashen: not other spells" {
+  battlefield A: "Danitha Capashen, Paragon"
+  hand A: "Ornithopter", "Shock"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert has "Danitha Capashen, Paragon" first_strike
+  assert has "Danitha Capashen, Paragon" vigilance
+  assert has "Danitha Capashen, Paragon" lifelink
+}
