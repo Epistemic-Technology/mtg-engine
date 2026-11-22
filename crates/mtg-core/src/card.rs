@@ -2612,6 +2612,10 @@ pub enum StaticCondition {
     SourceModified,
     /// "it's attacking alone" (CR 506.5).
     SourceAttackingAlone,
+    /// "if this creature attacked or blocked this combat" (the Clockwork
+    /// creatures): it is an attacking or blocking creature of the combat
+    /// now ending.
+    SourceAttackedOrBlocked,
     /// "this creature is blocked" (CR 509.1h).
     SourceBlocked,
     /// "at least one creature is blocking this creature": blocked, by a
@@ -2981,6 +2985,8 @@ pub enum CounterKind {
     Film,
     Possession,
     Wish,
+    /// A named counter with no rules of its own (Drake Hatcher).
+    Incubation,
     /// CR 122.1h: if a permanent with a finality counter on it would be
     /// put into a graveyard from the battlefield, it is exiled instead.
     Finality,
@@ -3032,7 +3038,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 50] = [
+    pub const NAMED: [(&'static str, CounterKind); 51] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -3069,6 +3075,7 @@ impl CounterKind {
         ("film", CounterKind::Film),
         ("possession", CounterKind::Possession),
         ("wish", CounterKind::Wish),
+        ("incubation", CounterKind::Incubation),
         ("finality", CounterKind::Finality),
         ("flying", CounterKind::Flying),
         ("first strike", CounterKind::FirstStrike),
@@ -3563,6 +3570,17 @@ pub enum Effect {
         count: Num,
         to: Recipient,
     },
+    /// "Put up to X +1/+0 counters on this creature. This ability can't
+    /// cause the total number of +1/+0 counters on this creature to be
+    /// greater than four." (the Clockwork creatures): `count` counters, but
+    /// none past `cap` in all. "Up to" lets fewer be chosen; the engine
+    /// always puts as many as it may.
+    AddCountersCapped {
+        kind: CounterKind,
+        count: Num,
+        to: Recipient,
+        cap: u32,
+    },
     /// "deals 3 damage divided as you choose among one, two, or three
     /// targets" (CR 601.2d): `to` is a variable target group
     /// (`Recipient::Targets`); each target is dealt what the caster
@@ -3594,9 +3612,13 @@ pub enum Effect {
         to: Recipient,
     },
     /// "Remove a counter from target permanent": one counter of a kind
-    /// the controller chooses among those on it.
+    /// the controller chooses among those on it. With `up_to` N, "remove
+    /// up to three counters from target creature": up to N counters, one
+    /// at a time, each of a kind chosen (or stop).
     RemoveCounterChosen {
         to: Recipient,
+        #[serde(default)]
+        up_to: u8,
     },
     /// Give the recipient a regeneration shield until end of turn (CR
     /// 701.15).
@@ -4278,6 +4300,15 @@ pub enum Effect {
         under_you: bool,
         #[serde(default)]
         attached: Option<Recipient>,
+        /// "with a hexproof counter and an indestructible counter on it":
+        /// counters of a second kind.
+        #[serde(default)]
+        more: Option<(CounterKind, u32)>,
+        /// "If it enters as a creature, it enters with an additional +1/+1
+        /// counter on it." (Teferi's Time Twist): the counters only on a
+        /// card that will be a creature (judged by its card).
+        #[serde(default)]
+        if_creature: bool,
     },
     /// The ability's source becomes a copy of the recipient (CR 707),
     /// keeping its own definition's `copy_except` if `except`. With `who`,
@@ -4581,6 +4612,8 @@ pub enum Effect {
         from: Recipient,
         to: Recipient,
         kind: Option<CounterKind>,
+        /// `None`: all of them; `Some(MOVE_ANY_NUMBER)`: "any number of",
+        /// chosen as it resolves.
         count: Option<u32>,
     },
     /// "Then that player shuffles" (CR 701.24): each recipient player
@@ -4824,6 +4857,15 @@ pub enum Effect {
     /// Cipher's trigger (CR 702.99a): a copy of the encoded card (the
     /// source, in exile) may be cast without paying its mana cost.
     CastCipherCopy,
+    /// "Copy it. You may cast the copy [without paying its mana cost]."
+    /// (CR 707.12): for each recipient card (one not on the battlefield or
+    /// the stack), a copy is made in exile, and the controller may cast it
+    /// as the effect finishes, for its mana cost or free; not cast, it
+    /// ceases to exist. "If you do" sees whether one will be cast.
+    CastCopy {
+        what: Recipient,
+        free: bool,
+    },
     /// Blight N (CR 701.68a): the controller puts N -1/-1 counters on a
     /// creature they control; without one, nothing happens and it isn't
     /// done (701.68b).
@@ -5021,6 +5063,7 @@ impl Effect {
         }
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per effect that asks
     pub const fn asks(&self) -> bool {
         matches!(
             self,
@@ -5081,6 +5124,7 @@ impl Effect {
                 | Effect::Connive { .. }
                 | Effect::CastExiled(_)
                 | Effect::CastCipherCopy
+                | Effect::CastCopy { .. }
                 | Effect::SuspendTick
                 | Effect::Cascade
                 | Effect::Ripple
@@ -5215,6 +5259,10 @@ pub enum SkipWhat {
     CombatPhaseThisTurn,
 }
 
+/// `Effect::MoveCounters::count` for "move any number of +1/+1 counters":
+/// the controller chooses how many as it resolves.
+pub const MOVE_ANY_NUMBER: u32 = u32::MAX;
+
 /// What `Effect::ChooseAct` does to each object its controller chooses.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum ChooseAct {
@@ -5252,6 +5300,10 @@ pub enum ChooseAct {
     /// could pay a {T} cost (CR 302.6); the source gets +X/+0 until end of
     /// turn, X that creature's power.
     Enlist,
+    /// "put a card an opponent owns from exile into that player's
+    /// graveyard" (a processor, CR 400.3: to its owner's graveyard): cards
+    /// in exile whose owner the filter's `who` names.
+    ExileToGraveyard,
 }
 
 /// What a player chooses as a permanent enters ("As this land enters,
@@ -6514,6 +6566,21 @@ pub struct Cost {
     /// least that much life.
     #[serde(default)]
     pub life_x: bool,
+    /// "Put a -1/-1 counter on a creature you control" (Lethal Sting): the
+    /// older wording of blight (CR 701.68a), the `blight` counters.
+    #[serde(default)]
+    pub blight_put: bool,
+    /// "Put a card an opponent owns from exile into that player's
+    /// graveyard" (a processor's cost): that many cards in exile owned by
+    /// the payer's opponents go to their owners' graveyards (the engine
+    /// picks: the longest exiled first).
+    #[serde(default)]
+    pub process: u32,
+    /// "Remove a +1/+1 counter from a creature you control": the
+    /// `remove_counters` come off a creature the payer controls rather
+    /// than the source (the engine picks the one with the most of them).
+    #[serde(default)]
+    pub remove_from_creature: bool,
 }
 
 /// A behold cost (CR 701.69a): `n` objects matching `filter`, each a
@@ -6591,6 +6658,9 @@ impl Cost {
             exert: false,
             discard_hand: false,
             life_x: false,
+            blight_put: false,
+            process: 0,
+            remove_from_creature: false,
         }
     }
 
@@ -8806,6 +8876,8 @@ impl CardPool {
                     tapped: true,
                     under_you: true,
                     attached: None,
+                    more: None,
+                    if_creature: false,
                 }],
             }));
         pool.builtins[Builtin::Miracle as usize] =
@@ -8889,6 +8961,8 @@ impl CardPool {
                     tapped: false,
                     under_you: false,
                     attached: None,
+                    more: None,
+                    if_creature: false,
                 }],
             }));
             if slot == 0 {
@@ -9413,6 +9487,7 @@ impl CardPool {
                 StaticCondition::SourceAttacking
                     | StaticCondition::SourceAttackedBattle
                     | StaticCondition::SourceAttackingAlone
+                    | StaticCondition::SourceAttackedOrBlocked
                     | StaticCondition::SourceBlocked
                     | StaticCondition::SourceBeingBlocked
             )))

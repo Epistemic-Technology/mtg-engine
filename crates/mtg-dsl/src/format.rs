@@ -849,6 +849,12 @@ impl Fmt {
                     counter(*k, Num::N(2)),
                     self.recipient(*to, t)
                 ),
+                (Some(k), Some(mtg_core::card::MOVE_ANY_NUMBER)) => format!(
+                    "move any number {} from {} onto {}",
+                    counter(*k, Num::N(2)),
+                    self.recipient(*from, t),
+                    self.recipient(*to, t)
+                ),
                 (Some(k), Some(n)) => format!(
                     "move {n} {} from {} onto {}",
                     counter(*k, Num::N(*n)),
@@ -1379,6 +1385,17 @@ impl Fmt {
                 counter(*kind, *count),
                 self.recipient(*to, t)
             ),
+            Effect::AddCountersCapped {
+                kind,
+                count,
+                to,
+                cap,
+            } => format!(
+                "put up to {} {} on {} capped {cap}",
+                num(*count),
+                counter(*kind, Num::N(2)),
+                self.recipient(*to, t)
+            ),
             Effect::AddCounterList { counters, to } => format!(
                 "put {} on {}",
                 counters
@@ -1405,8 +1422,14 @@ impl Fmt {
                 counter(*kind, *count),
                 self.recipient(*to, t)
             ),
-            Effect::RemoveCounterChosen { to } => {
+            Effect::RemoveCounterChosen { to, up_to: 0 } => {
                 format!("remove 1 counter from {}", self.recipient(*to, t))
+            }
+            Effect::RemoveCounterChosen { to, up_to } => {
+                format!(
+                    "remove up to {up_to} counters from {}",
+                    self.recipient(*to, t)
+                )
             }
             Effect::RemoveAllCounters { to } => {
                 format!("remove all counters from {}", self.recipient(*to, t))
@@ -1425,6 +1448,8 @@ impl Fmt {
                 put,
                 attacking,
                 additional,
+                more,
+                if_creature,
             } => {
                 let mut s = if *put {
                     format!("put {} onto battlefield", self.recipient(*what, t))
@@ -1441,8 +1466,14 @@ impl Fmt {
                     s.push_str(" under your control");
                 }
                 if let Some((kind, n)) = counters {
-                    let more = if *additional { "additional " } else { "" };
-                    let _ = write!(s, " with {n} {more}{}", counter(*kind, Num::N(*n)));
+                    let add = if *additional { "additional " } else { "" };
+                    let _ = write!(s, " with {n} {add}{}", counter(*kind, Num::N(*n)));
+                    if let Some((k, m)) = more {
+                        let _ = write!(s, " and {m} {}", counter(*k, Num::N(*m)));
+                    }
+                    if *if_creature {
+                        s.push_str(" if creature");
+                    }
                 }
                 if let Some(a) = attached {
                     let _ = write!(s, " attached to {}", self.recipient(*a, t));
@@ -1598,6 +1629,20 @@ impl Fmt {
                 }
                 s
             }
+            Effect::CastCopy {
+                what,
+                free,
+                wording,
+            } => format!(
+                "copy {}{} may cast{}",
+                self.recipient(*what, t),
+                if *wording == crate::ast::CopyCastWording::Then {
+                    " then"
+                } else {
+                    ""
+                },
+                if *free { " free" } else { "" }
+            ),
             Effect::CopySpells {
                 what,
                 times,
@@ -2462,6 +2507,7 @@ impl Fmt {
                     format!("{}{}", if *up_to { "up to " } else { "" }, num(*count))
                 };
                 let unfiltered = *f == Filter::default();
+                let filter_ref = f;
                 let f = filter(f);
                 let cs = cards(*count);
                 match act {
@@ -2487,6 +2533,20 @@ impl Fmt {
                     }
                     ChooseAct::GraveyardToTop => {
                         format!("put {n} {f} {cs} from your graveyard on top of library chosen")
+                    }
+                    ChooseAct::ExileToGraveyard => {
+                        let mut rest = filter_ref.clone();
+                        rest.who = None;
+                        if rest == Filter::default() {
+                            format!(
+                                "put {n} {cs} an opponent owns from exile into graveyard chosen"
+                            )
+                        } else {
+                            format!(
+                                "put {n} {} {cs} an opponent owns from exile into graveyard chosen",
+                                filter(&rest)
+                            )
+                        }
                     }
                     ChooseAct::ReturnFromGraveyard => {
                         format!("return {n} {f} {cs} from your graveyard to hand chosen")
@@ -4480,6 +4540,7 @@ fn cost_text(c: &Cost) -> String {
         CostItem::Blight,
         CostItem::Evidence,
         CostItem::Forage,
+        CostItem::Process,
     ];
     let order: &[CostItem] = if c.order.is_empty() {
         &default_order
@@ -4522,7 +4583,12 @@ fn cost_text(c: &Cost) -> String {
             },
             CostItem::RemoveCounters => {
                 if let Some((k, n)) = c.remove_counters {
-                    parts.push(format!("remove {n} {} from this", counter(k, Num::N(n))));
+                    let from = if c.remove_from_creature {
+                        "creature you control"
+                    } else {
+                        "this"
+                    };
+                    parts.push(format!("remove {n} {} from {from}", counter(k, Num::N(n))));
                 }
             }
             CostItem::PutCounters => {
@@ -4581,12 +4647,27 @@ fn cost_text(c: &Cost) -> String {
                 }
             }
             CostItem::Exert => parts.push("exert this".to_string()),
+            CostItem::Process => {
+                if c.process > 0 {
+                    parts.push(format!(
+                        "put {} card{} an opponent owns from exile into graveyard",
+                        c.process,
+                        if c.process == 1 { "" } else { "s" }
+                    ));
+                }
+            }
             CostItem::DiscardHand => parts.push("discard hand".to_string()),
             CostItem::RevealHand => parts.push("reveal hand".to_string()),
             CostItem::RevealThis => parts.push("reveal this".to_string()),
             CostItem::Energy => parts.push(format!("pay {} energy", c.energy)),
             CostItem::Blight => {
-                if c.blight > 0 {
+                if c.blight > 0 && c.blight_put {
+                    parts.push(format!(
+                        "put {} -1/-1 counter{} on creature you control",
+                        c.blight,
+                        if c.blight == 1 { "" } else { "s" }
+                    ));
+                } else if c.blight > 0 {
                     parts.push(format!("blight {}", c.blight));
                 }
             }
@@ -5126,6 +5207,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::IsntToken => "this isnt token".to_string(),
         StaticCond::Modified => "modified".to_string(),
         StaticCond::AttackingAlone => "attacking alone".to_string(),
+        StaticCond::AttackedOrBlocked => "attacked or blocked this combat".to_string(),
         StaticCond::Blocked => "blocked".to_string(),
         StaticCond::BeingBlocked => "being blocked".to_string(),
         StaticCond::AttachedIs(fl)
@@ -5919,11 +6001,15 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     counter(*b, Num::N(1))
                 ),
                 crate::ast::Mechanic::Bloodthirst(n) => format!("bloodthirst {n}"),
-                crate::ast::Mechanic::KickedWith(n, ks) if ks.is_empty() => {
-                    format!("kicked with {n} +1/+1 counters")
-                }
-                crate::ast::Mechanic::KickedWith(n, ks) => {
-                    format!("kicked with {n} +1/+1 counters and {}", keywords(ks))
+                crate::ast::Mechanic::KickedWith(n, more, ks) => {
+                    let mut s = format!("kicked with {n} +1/+1 counters");
+                    if let Some((m, k)) = more {
+                        let _ = write!(s, " and {m} {}", counter(*k, Num::N(*m)));
+                    }
+                    if !ks.is_empty() {
+                        let _ = write!(s, " and {}", keywords(ks));
+                    }
+                    s
                 }
                 crate::ast::Mechanic::Megamorph(c) => format!("megamorph {c}"),
                 crate::ast::Mechanic::Disguise(c) => format!("disguise {c}"),
@@ -6010,12 +6096,21 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             kind,
             cond,
             first,
+            more,
         } => {
-            let what = format!(
+            let mut what = format!(
                 "{n} {} {}",
                 kind.name(),
                 if *n == 1 { "counter" } else { "counters" }
             );
+            if let Some((m, k)) = more {
+                let _ = write!(
+                    what,
+                    " and {m} {} {}",
+                    k.name(),
+                    if *m == 1 { "counter" } else { "counters" }
+                );
+            }
             if *first {
                 let _ = writeln!(out, "{indent}if {}, enters with {what}", static_cond(cond));
             } else {

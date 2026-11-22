@@ -1,0 +1,236 @@
+# Processors: "put a card an opponent owns from exile into that player's
+# graveyard" (CR 400.3), as an effect and as a cost; and blight's older
+# wording, "put a -1/-1 counter on a creature you control" (CR 701.68a).
+
+scenario "Murk Strider: a card an opponent owns goes to their graveyard, then the bounce" {
+  battlefield A: 4 "Island"
+  hand A: "Murk Strider"
+  exile A: "Shock"
+  exile B: "Giant Growth", "Lightning Bolt"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murk Strider"
+  turn 1 A: trigger "Murk Strider" targeting "Grizzly Bears"
+  turn 1 A: choose "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Lightning Bolt"
+  assert exile B lacks "Lightning Bolt"
+  assert exile B contains "Giant Growth"
+  assert exile A contains "Shock"
+  assert hand B contains "Grizzly Bears"
+}
+
+scenario "Murk Strider: with no card an opponent owns in exile, no bounce" {
+  battlefield A: 4 "Island"
+  hand A: "Murk Strider"
+  exile A: "Shock"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murk Strider"
+  turn 1 A: trigger "Murk Strider" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Shock"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Murk Strider: declining keeps the card in exile" {
+  battlefield A: 4 "Island"
+  hand A: "Murk Strider"
+  exile B: "Lightning Bolt"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murk Strider"
+  turn 1 A: trigger "Murk Strider" targeting "Grizzly Bears"
+  turn 1 A: decline "Murk Strider"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Lightning Bolt"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Mind Raker: each opponent discards" {
+  battlefield A: 4 "Swamp"
+  hand A: "Mind Raker"
+  exile B: "Lightning Bolt"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mind Raker"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Lightning Bolt"
+  assert graveyard B contains "Shock"
+  assert hand B count 0
+}
+
+scenario "Ruin Processor: on cast, 5 life" {
+  battlefield A: 7 "Plains"
+  hand A: "Ruin Processor"
+  exile B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ruin Processor"
+  run_to turn 1 postcombat_main
+  assert life A 25
+  assert graveyard B contains "Lightning Bolt"
+  assert battlefield A contains "Ruin Processor"
+}
+
+scenario "Wasteland Strangler: -3/-3" {
+  battlefield A: 3 "Swamp"
+  hand A: "Wasteland Strangler"
+  exile B: "Lightning Bolt"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wasteland Strangler"
+  turn 1 A: trigger "Wasteland Strangler" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Lightning Bolt"
+}
+
+scenario "Blight Herder: two cards, three Scions" {
+  battlefield A: 5 "Plains"
+  hand A: "Blight Herder"
+  exile B: "Lightning Bolt", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blight Herder"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Eldrazi Scion"
+  assert graveyard B contains "Lightning Bolt"
+  assert graveyard B contains "Shock"
+}
+
+scenario "Blight Herder: one card isn't enough" {
+  battlefield A: 5 "Plains"
+  hand A: "Blight Herder"
+  exile B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blight Herder"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 0 "Eldrazi Scion"
+  assert exile B contains "Lightning Bolt"
+}
+
+scenario "Ulamog's Reclaimer returns an instant" {
+  battlefield A: 5 "Island"
+  hand A: "Ulamog's Reclaimer"
+  graveyard A: "Shock"
+  exile B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ulamog's Reclaimer"
+  turn 1 A: trigger "Ulamog's Reclaimer" targeting "Shock"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+}
+
+scenario "Oracle of Dust: the cost needs an opponent's card in exile" {
+  battlefield A: "Oracle of Dust", 4 "Island"
+  exile A: "Shock"
+  exile B: "Lightning Bolt"
+  hand A: "Forest"
+  library A: "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Oracle of Dust"
+  turn 1 precombat_main A: discard "Island"
+  illegal turn 1 postcombat_main A: activate "Oracle of Dust"
+  run_to turn 1 end
+  assert graveyard B contains "Lightning Bolt"
+  assert exile A contains "Shock"
+  assert hand A contains "Forest"
+  assert graveyard A contains "Island"
+}
+
+scenario "Void Attendant makes a Scion" {
+  battlefield A: "Void Attendant", 2 "Forest"
+  exile B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Void Attendant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Eldrazi Scion"
+}
+
+scenario "Cryptic Cruiser taps" {
+  battlefield A: "Cryptic Cruiser", 3 "Island"
+  battlefield B: "Grizzly Bears"
+  exile B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Cryptic Cruiser" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Processor Assault: an additional cost" {
+  battlefield A: 2 "Mountain"
+  hand A: "Processor Assault", "Processor Assault"
+  battlefield B: "Hill Giant"
+  exile B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Processor Assault" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Lightning Bolt"
+}
+
+scenario "Processor Assault can't be cast with nothing to process" {
+  battlefield A: 2 "Mountain"
+  hand A: "Processor Assault"
+  battlefield B: "Hill Giant"
+  exile A: "Shock"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Processor Assault" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Lethal Sting: a -1/-1 counter on a creature you control" {
+  battlefield A: 3 "Swamp", "Hill Giant"
+  hand A: "Lethal Sting"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lethal Sting" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert counters "Hill Giant" -1/-1 1
+}
+
+scenario "Lethal Sting needs a creature to put the counter on" {
+  battlefield A: 3 "Swamp"
+  hand A: "Lethal Sting"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Lethal Sting" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "Scarscale Ritual draws two" {
+  battlefield A: 2 "Swamp", "Grizzly Bears"
+  hand A: "Scarscale Ritual"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Scarscale Ritual"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert counters "Grizzly Bears" -1/-1 1
+}
+
+scenario "Hatchet Bully: the counter as an activation cost" {
+  battlefield A: "Hatchet Bully", 3 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Hatchet Bully" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert counters "Hatchet Bully" -1/-1 1
+}
+
+scenario "Ulamog's Nullifier counters a spell" {
+  battlefield A: 2 "Island", 2 "Swamp"
+  hand A: "Ulamog's Nullifier"
+  exile B: "Lightning Bolt", "Shock"
+  battlefield B: 4 "Mountain"
+  hand B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Hill Giant"
+  turn 2 A: cast "Ulamog's Nullifier" in response to "Hill Giant"
+  turn 2 A: trigger "Ulamog's Nullifier" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Shock"
+  assert battlefield A contains "Ulamog's Nullifier"
+}

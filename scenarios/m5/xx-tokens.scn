@@ -105,3 +105,41 @@ scenario "X/X tokens: Promise of Power's Demon counts cards in hand" {
   assert power "Demon" 3
   assert has "Demon" flying
 }
+
+# CR 707.2: the X is a copiable value, so a copy of an X/X token is X/X.
+
+scenario "X/X tokens: a Clone of a 4/4 Ooze is 4/4" {
+  battlefield A: 5 "Forest", 4 "Island"
+  hand A: "Slime Molding", "Clone"
+  turn 1 A: cast "Slime Molding" x 4
+  turn 1 A: wait
+  turn 1 A: cast "Clone"
+  turn 1 A: copy "Ooze"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Ooze"
+  assert power newest A "Ooze" 4
+  assert toughness newest A "Ooze" 4
+}
+
+scenario "X/X tokens: populate copies the size" {
+  battlefield A: 5 "Forest", "Plains"
+  battlefield B: "Darksteel Relic"
+  hand A: "Slime Molding", "Sundering Growth"
+  turn 1 A: cast "Slime Molding" x 3
+  turn 1 A: wait
+  turn 1 A: cast "Sundering Growth" targeting B "Darksteel Relic"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Ooze"
+  assert power newest A "Ooze" 3
+}
+
+scenario "X/X tokens: a token copy (Cackling Counterpart) is X/X" {
+  battlefield A: 4 "Forest", 3 "Island"
+  hand A: "Slime Molding", "Cackling Counterpart"
+  turn 1 A: cast "Slime Molding" x 2
+  turn 1 A: wait
+  turn 1 A: cast "Cackling Counterpart" targeting "Ooze"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Ooze"
+  assert toughness newest A "Ooze" 2
+}

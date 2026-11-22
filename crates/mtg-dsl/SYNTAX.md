@@ -219,10 +219,10 @@ like the card; either half may still be cast alone.
 | `disturb {1}{U}`, `exiled instead of graveyard` | Disturb (CR 702.146), on a transforming card's front face: the card may be cast transformed from its owner's graveyard for this cost, the spell being the back face, which enters as the permanent (CR 702.146b). The back face's "If [name] would be put into a graveyard from anywhere, exile it instead." is `exiled instead of graveyard` (from the stack too). Print `Disturb {1}{U}` and that sentence. |
 | `transmute {1}{B}{B}` | Transmute (CR 702.53): an activated ability of the card in hand, "{1}{B}{B}, Discard this card: Search your library for a card with the same mana value as the discarded card (the printed card's), reveal it, put it into your hand, then shuffle. Activate only as a sorcery." Prints `Transmute {1}{B}{B}`. |
 | `entwine {2}`, `escape {3}{B} exile 3`, `escapes with 2 +1/+1 counters` | Entwine (CR 702.42): a `choose one` spell may choose every mode for this cost on top. Escape (CR 702.138): cast from the graveyard for this cost, exiling N other cards from it (the oldest); a permanent cast this way keeps that, for `escapes with`. The keyword `exploit` (CR 702.110) sacrifices a creature as it enters, if its controller wants, and `triggered when this exploits a creature:` abilities follow. `discover 4` (CR 701.57) is an effect. |
-| `enters with 1 +1/+1 counter if attacked this turn`, `if spent 3 white, enters with 1 +1/+1 counter` | "This creature enters with a +1/+1 counter on it if you attacked this turn." (raid; any static condition: `opponent lost life this turn`, `permanent left this turn` (revolt: "a permanent left the battlefield under your control this turn"), `you control creature with power 4 or greater` (ferocious), `you control modified creature`), and with the condition first, "If at least three white mana was spent to cast this spell, this creature enters with a +1/+1 counter on it." (adamant). Judged as the permanent enters (CR 614.1c). |
+| `enters with 1 +1/+1 counter if attacked this turn`, `if spent 3 white, enters with 1 +1/+1 counter` | "This creature enters with a +1/+1 counter on it if you attacked this turn." (raid; any static condition: `opponent lost life this turn`, `permanent left this turn` (revolt: "a permanent left the battlefield under your control this turn"), `you control creature with power 4 or greater` (ferocious), `you control modified creature`), and with the condition first, "If at least three white mana was spent to cast this spell, this creature enters with a +1/+1 counter on it." (adamant); `if you control 5 untapped land, enters with 2 +1/+1 counters and 1 lifelink counter` "If you control five or more untapped lands, this creature enters with two +1/+1 counters and a lifelink counter on it." (two kinds). Judged as the permanent enters (CR 614.1c). |
 | `enters with count each other creature you control +1/+1 counters`, `enters with count each colors spent +1/+1 counters`, `enters with count equal all graveyards creature +1/+1 counters` | "This creature enters with a +1/+1 counter on it for each other creature you control." / "... for each color of mana spent to cast it." (converge) / "This creature enters with a number of +1/+1 counters on it equal to the number of creature cards in all graveyards.": the count judged as it enters. |
 | `enters with choice flying counter or first strike counter`, `escapes with choice +1/+1 counter or flying counter` | "This creature enters with your choice of a flying counter or a first strike counter on it." (CR 614.1c, 122.1b): its controller chooses one as it enters; "escapes with ..." only when cast with escape. |
-| `kicked with 2 +1/+1 counters`, `kicked with 2 +1/+1 counters and first strike` | "If this creature was kicked, it enters with two +1/+1 counters on it [and with first strike]." (CR 702.33c): the counters as it enters, and the keywords for as long as it stays, only if it was cast with its kicker paid. |
+| `kicked with 2 +1/+1 counters`, `kicked with 2 +1/+1 counters and first strike`, `kicked with 2 +1/+1 counters and 1 trample counter and haste` | "If this creature was kicked, it enters with two +1/+1 counters [and a trample counter] on it [and with first strike]." (CR 702.33c): the counters as it enters, and the keywords for as long as it stays, only if it was cast with its kicker paid. A permanent enters with counters of up to two kinds. |
 | `madness {1}{R}`, `foretell {1}{U}`, `suspend 4 {1}{U}` | Madness (CR 702.35): discarded into exile, then may be cast for this cost (else to the graveyard). Foretell (CR 702.143): on its owner's turn, exiled from hand for {2}; cast on a later turn for this cost. Suspend N (CR 702.62): exiled from hand for this cost with N time counters; one comes off each upkeep, and as the last does it may be cast free (a creature has haste). The keywords `cascade` and `rebound` need no cost. `keywords cipher` (CR 702.99, printed "Cipher" after the spell's text): as the spell resolves, its controller may exile it encoded on a creature they control (`decline "X"` in scenarios; `choose "Y"` picks the creature); whenever that creature deals combat damage to a player, its controller may cast a copy of the card free. The encoding ends when the creature or the card moves. `keywords paradigm` (CR 702.192, printed "Paradigm" after the spell's text): the spell is exiled as it resolves; the first time a spell its controller controls with that name resolves, at the beginning of each of their precombat main phases for the rest of the game a copy is made in exile, which they may cast free (scenarios: `turn 3 precombat_main A: cast "X" targeting ...`; it is always cast). |
 | `evoke {1}{U}{U}`, `bloodthirst 2` | Evoke (CR 702.74): cast for this cost instead, and the permanent is sacrificed as it enters (`if evoked` is the trigger condition). Bloodthirst (CR 702.54): enters with N +1/+1 counters if an opponent was dealt damage this turn (`opponent damaged this turn` is also a static condition). |
 | `crew 3` | Crew (CR 702.122): "Tap any number of other untapped creatures you control with total power 3 or more: this Vehicle becomes an artifact creature until end of turn." The engine taps the weakest creature strong enough alone, else the strongest until the power suffices. |
@@ -516,7 +516,10 @@ graveyard`, `opponent graveyard 8 or more` ("an opponent has eight or more
 cards in their graveyard"), `opponent controls Human`, `this is untapped`,
 `this is Wall` ("it's untapped", "it's a Wall"), `modified` ("it's
 modified", CR 700.9), `attacking alone`, `blocked`, `being blocked` ("at
-least one creature is blocking this creature"), `attached is legendary`
+least one creature is blocking this creature"), `attacked or blocked this
+combat` ("this creature attacked or blocked this combat", in an "at end
+of combat" trigger; one removed from combat, or whose attacker was, still
+counts; "it" follows), `attached is legendary`
 ("equipped creature is legendary"; "enchanted" on an Aura), `this is with
 power 5 or greater` ("this creature's power is 5 or greater"), `this has 1
 or more +1/+1 counters` ("this creature has a +1/+1 counter on it"),
@@ -611,18 +614,28 @@ Counter kinds: `+1/+1`, `-1/-1`, the other power/toughness counters
 `spore`, `depletion`, `quest`, `ki`, `time`, `tide`, `shield`, `age`,
 `fade`, `ice`, `level`, `lore`, `page`, `arrowhead`, `javelin`, `polyp`,
 `healing`, `mining`, `scream`, `credit`, `brick`, `currency`, `sleep`,
-`net`, `flood`, `glyph`, `crystal`, `unlock`, `loot`, `supply`, `divinity`, `finality` (CR
+`net`, `flood`, `glyph`, `crystal`, `unlock`, `loot`, `supply`, `incubation`, `divinity`, `finality` (CR
 122.1h: a permanent with one that would be put into a graveyard from the
 battlefield is exiled instead, so it doesn't die; `return target creature
 card from your graveyard to battlefield with 1 finality counter` prints
 "... with a finality counter on it"; `with 2 additional +1/+1 counters`
-prints "with two additional +1/+1 counters on it", the same counters), and the keyword counters `flying`, `first strike`, `trample`,
+prints "with two additional +1/+1 counters on it", the same counters;
+`with 1 hexproof counter and 1 indestructible counter` "with a hexproof
+counter and an indestructible counter on it"; in a delayed return,
+`return that card to battlefield with 1 additional +1/+1 counter if
+creature at beginning of the next end step` prints "Return that card to
+the battlefield under its owner's control at the beginning of the next end
+step. If it enters as a creature, it enters with an additional +1/+1
+counter on it." (judged by its card's types)), and the keyword counters `flying`, `first strike`, `trample`,
 `lifelink`, `deathtouch`, `reach`, `menace`, `vigilance`, `hexproof`,
 `indestructible`, `double strike` (CR 122.1b: the permanent has the
 keyword; `double_strike` in scenarios). A cost may
 `remove 1 charge counter from this`, `remove 1 counter from this` ("Remove
 a counter from this creature": any kind; the engine removes -1/-1 counters
-first, then kinds that don't change power or toughness, then the rest), or
+first, then kinds that don't change power or toughness, then the rest),
+`remove 1 +1/+1 counter from creature you control` ("Remove a +1/+1
+counter from a creature you control": the engine takes it from the
+creature with the most such counters, the source included), or
 `put 1 -1/-1 counter on this`
 ("Put a -1/-1 counter on this creature", CR 118.3: put on as the cost is
 paid, so a creature it kills is gone before the ability resolves; a mana
@@ -1146,7 +1159,24 @@ blight 2` fails, 701.68b) and a cost (`{T}, blight 1: ...` prints "{T},
 Blight 1: ..."; `additional cost blight 1` with `additional cost or {3}`
 prints "As an additional cost to cast this spell, blight 1 or pay {3}.").
 As a cost the engine puts the counters on the toughest creature its payer
-controls, and it can't be paid without a creature.
+controls, and it can't be paid without a creature. The older wording is
+the same cost: `additional cost put 1 -1/-1 counter on creature you
+control` ("As an additional cost to cast this spell, put a -1/-1 counter
+on a creature you control.", Lethal Sting) and `{2}{R}, {T}, put 1 -1/-1
+counter on creature you control: ...` (Hatchet Bully).
+
+Processors (CR 400.3): `you may put 1 card an opponent owns from exile
+into graveyard chosen; if you do, ...` prints "you may put a card an
+opponent owns from exile into that player's graveyard. If you do, ..."
+(the controller chooses among the cards in exile their opponents own; the
+card goes to its owner's graveyard; with none, `if you do` fails), and
+`put 2 cards an opponent owns ...` "put two cards your opponents own from
+exile into their owners' graveyards" (all or nothing). As a cost, `{2},
+put 1 card an opponent owns from exile into graveyard: ...` and `additional
+cost put 1 card an opponent owns from exile into graveyard` print "Put a
+card an opponent owns from exile into that player's graveyard" (payable
+only with such a card in exile; the engine picks the longest exiled).
+Devoid prints before an additional cost, as flash does.
 
 Behold (CR 701.69a) is a cost: `additional cost behold Kithkin` with
 `additional cost or {2}` prints "As an additional cost to cast this
@@ -1822,8 +1852,11 @@ Verb-first clauses: `deal 3 damage to <what> [and <what>]`,
 target Knight and it can't be regenerated" in one sentence), `put 2 +1/+1 counters on <what>`,
 `put 1 +1/+1 counter and 1 reach counter and 1 deathtouch counter on
 <what>` ("Put a +1/+1 counter, a reach counter, and a deathtouch counter
-on target creature"),
-`remove 1 +1/+1 counter from <what>`, `remove 1 counter from <what>` ("remove a counter from target permanent": a counter of a kind the controller chooses), `remove all counters from <what>`,
+on target creature"), `put up to x +1/+0 counters on this capped 4` ("Put
+up to X +1/+0 counters on this creature. This ability can't cause the
+total number of +1/+0 counters on this creature to be greater than
+four.": the engine puts as many as it may),
+`remove 1 +1/+1 counter from <what>`, `remove 1 counter from <what>` ("remove a counter from target permanent": a counter of a kind the controller chooses), `remove up to 3 counters from <what>` ("remove up to three counters from target permanent": one at a time, each of a kind the controller chooses, or stop; scenarios `choose "1"` the first kind on it, `choose done`; unscripted, all three), `remove all counters from <what>`,
 `return <what> to hand`, `return <what> to battlefield [with 1 +1/+1 counter]`,
 `regenerate <what>`, `exile <what> [and <what>]` (a permanent or a graveyard card),
 `return all card exiled with this to battlefield under your control`
@@ -1927,9 +1960,9 @@ control` ("Create an X/X green Elemental creature token, where X is the
 number of lands you control."; `sized x` is the spell's or ability's X,
 "Create an X/X green Ooze creature token."): X is fixed as the effect
 resolves, before the token exists (CR 608.2h), and the token has base
-power and toughness X/X from its creation on (CR 111.3; a layer-7b effect,
-so a copy of the token is 0/0); the definition's power and toughness print
-as "X/X",
+power and toughness X/X from its creation on (CR 111.3), a copiable value
+(CR 707.2: a Clone, a token copy, or populate copying it is X/X too); the
+definition's power and toughness print as "X/X",
 `create 1 "Eldrazi Scion" it has` (the token's abilities after the
 sentence: "Create a 1/1 colorless Eldrazi Scion creature token. It has
 \"Sacrifice this token: Add {C}.\""; "They have" for more than one),
@@ -1970,7 +2003,17 @@ it last existed). Abilities on the stack are copied the same way (CR
 target triggered ability you control new targets`, `copy target
 activated or triggered ability you control [from a creature source | from
 an artifact source]` (targets "you control" only the ability's
-controller's), `emblem "Name"`,
+controller's), `copy target 1 may cast [free]` (CR 707.12: "Copy it. You
+may cast the copy [without paying its mana cost]."; `copy target 1 then
+may cast free` "Copy it, then you may cast the copy without paying its
+mana cost."; after `exile up to one target black card from your
+graveyard and`, Kaervek's "... and copy it. You may cast the copy."): a
+copy of the card is made in exile and its controller may cast it as the
+ability finishes, for its mana cost (offered only if they can pay it) or
+free; not cast, it ceases to exist; a copy of a permanent card becomes a
+token; `if you do` after it sees whether it will be cast. In scenarios,
+`cast "Murder" targeting "Hill Giant"` gives the copy's targets; the
+runner always casts it), `emblem "Name"`,
 `draw 2 cards` (you), `discard 1 card` (you), `mill 2 cards` (you),
 `scry 2`, `surveil 1`, `investigate` (create a Clue token; `investigate
 twice`; `investigate count each opponents lost life this turn`:
@@ -2100,7 +2143,13 @@ creature"),
 `that player may pay {4}` / `that player may discard 1 card at random`
 (another player decides and acts as it resolves, CR 608.2d; an act they
 can't complete isn't offered; a following `if they do,` prints "If the
-player does,"), `the creature` (in a triggered ability, the triggering
+player does,"; `deal 3 damage to any target; then controller of that
+target 1 may pay {R}{R}; if they do, controller of that target 1 may copy
+this new targets` prints Chain Lightning's "Then that player or that
+permanent's controller may pay {R}{R}. If the player does, they may copy
+this spell and may choose a new target for that copy.": the controller of
+an "any target" that is a player is that player, and the copy is the
+paying player's, CR 707.10), `the creature` (in a triggered ability, the triggering
 object printed "the creature": "untap the creature"), `if you do,
 <clause>` (only if the optional action before it happened: "You may pay
 {2}. If you do, draw a card."), `if you don't, <clause>` / `if you dont, <clause>` (only if it
@@ -2782,7 +2831,10 @@ activated {2}, once: reveal top card; if it is land card, this gets +1/+0 and ga
 and `move 1 +1/+1 counter from this onto target creature` ("Move a +1/+1
 counter from this artifact onto target creature") take the counters off
 the first permanent and put them on the second (CR 122.5); nothing moves
-if the second is gone. `put its counters on target creature you control`
+if the second is gone. `move any number +1/+1 counters from this onto
+another target creature` ("Move any number of +1/+1 counters from this
+creature onto another target creature", Scrounging Bandar): how many is
+chosen as it resolves (scenarios: `choose "2"`; unscripted, all). `put its counters on target creature you control`
 in a dies trigger puts the counters the source had as it last existed on
 the battlefield, of every kind (CR 608.2h); `put its +1/+1 counters on
 target creature you control` only those of one kind (Selfless Police

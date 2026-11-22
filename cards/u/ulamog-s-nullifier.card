@@ -1,0 +1,8 @@
+card "Ulamog's Nullifier" {
+  oracle_id bd213210-42d1-49af-9959-08188abe692a
+  cost {2}{U}{B}
+  type Creature — Eldrazi Processor
+  pt 2/3
+  keywords devoid, flash, flying
+  triggered when this enters: you may put 2 cards an opponent owns from exile into graveyard chosen; if you do, counter target spell
+}

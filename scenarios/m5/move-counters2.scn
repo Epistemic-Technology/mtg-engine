@@ -1,0 +1,71 @@
+# Moving counters between permanents (CR 122.5): "any number of" chosen as
+# it resolves; one counter from a creature or from this.
+
+scenario "Scrounging Bandar moves the number chosen" {
+  battlefield A: "Scrounging Bandar" with 3 +1/+1, "Grizzly Bears"
+  start turn 3 A upkeep
+  turn 3 upkeep A: trigger "Scrounging Bandar" targeting "Grizzly Bears"
+  turn 3 upkeep A: choose "2"
+  run_to turn 3 draw
+  assert counters "Grizzly Bears" +1/+1 2
+  assert counters "Scrounging Bandar" +1/+1 1
+}
+
+scenario "Scrounging Bandar: unscripted, all of them (and it dies as a 0/0)" {
+  battlefield A: "Scrounging Bandar" with 2 +1/+1, "Grizzly Bears"
+  start turn 3 A upkeep
+  turn 3 upkeep A: trigger "Scrounging Bandar" targeting "Grizzly Bears"
+  run_to turn 3 draw
+  assert counters "Grizzly Bears" +1/+1 2
+  assert graveyard A contains "Scrounging Bandar"
+}
+
+scenario "Scrounging Bandar: declining moves none" {
+  battlefield A: "Scrounging Bandar" with 2 +1/+1, "Grizzly Bears"
+  start turn 3 A upkeep
+  turn 3 upkeep A: trigger "Scrounging Bandar" targeting "Grizzly Bears"
+  turn 3 upkeep A: decline "Scrounging Bandar"
+  run_to turn 3 draw
+  assert counters "Grizzly Bears" +1/+1 0
+  assert counters "Scrounging Bandar" +1/+1 2
+}
+
+scenario "Simic Fluxmage moves a counter from itself" {
+  battlefield A: "Simic Fluxmage" with 1 +1/+1, "Grizzly Bears", 2 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Simic Fluxmage" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Simic Fluxmage" +1/+1 0
+}
+
+scenario "Arcbound Fiend takes a counter from an opponent's creature" {
+  battlefield A: "Arcbound Fiend" with 1 +1/+1
+  battlefield B: "Grizzly Bears" with 2 +1/+1
+  start turn 3 A upkeep
+  turn 3 upkeep A: trigger "Arcbound Fiend" targeting "Grizzly Bears"
+  run_to turn 3 draw
+  assert counters "Arcbound Fiend" +1/+1 2
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+# A named counter with no rules of its own: incubation (Drake Hatcher).
+
+scenario "Drake Hatcher: incubation counters from combat damage, then a Drake" {
+  battlefield A: "Drake Hatcher" with 1 +1/+1
+  start turn 1 A precombat_main
+  turn 1 A: attack "Drake Hatcher"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert counters "Drake Hatcher" incubation 2
+}
+
+scenario "Drake Hatcher: three counters make a Drake" {
+  battlefield A: "Drake Hatcher" with 3 incubation
+  start turn 1 A precombat_main
+  turn 1 A: activate "Drake Hatcher"
+  illegal turn 1 postcombat_main A: activate "Drake Hatcher"
+  run_to turn 1 end
+  assert battlefield A contains "Drake"
+  assert counters "Drake Hatcher" incubation 0
+}

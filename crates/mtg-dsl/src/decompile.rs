@@ -411,6 +411,9 @@ impl Decompiler<'_> {
             exert: c.exert,
             discard_hand: c.discard_hand,
             life_x: c.life_x,
+            blight_put: c.blight_put,
+            process: c.process,
+            remove_from_creature: c.remove_from_creature,
             chosen: c.chosen,
             count: c.count,
             exile_cards: c.exile_cards.as_ref().map(|g| {
@@ -594,6 +597,7 @@ impl Decompiler<'_> {
             StaticCondition::SourceIs(f) => StaticCond::Is(unowned(f)),
             StaticCondition::SourceModified => StaticCond::Modified,
             StaticCondition::SourceAttackingAlone => StaticCond::AttackingAlone,
+            StaticCondition::SourceAttackedOrBlocked => StaticCond::AttackedOrBlocked,
             StaticCondition::SourceBlocked => StaticCond::Blocked,
             StaticCondition::SourceBeingBlocked => StaticCond::BeingBlocked,
             StaticCondition::AttachedIs(f) => StaticCond::AttachedIs(unowned(f)),
@@ -865,6 +869,17 @@ impl Decompiler<'_> {
                 count: *count,
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
             },
+            CoreEffect::AddCountersCapped {
+                kind,
+                count,
+                to,
+                cap,
+            } => Effect::AddCountersCapped {
+                kind: *kind,
+                count: *count,
+                to: r(*to),
+                cap: *cap,
+            },
             CoreEffect::AddCounters { kind, count, to } => Effect::AddCounters {
                 kind: *kind,
                 count: *count,
@@ -885,7 +900,10 @@ impl Decompiler<'_> {
                 to: r(*to),
             },
             CoreEffect::RemoveAllCounters { to } => Effect::RemoveAllCounters { to: r(*to) },
-            CoreEffect::RemoveCounterChosen { to } => Effect::RemoveCounterChosen { to: r(*to) },
+            CoreEffect::RemoveCounterChosen { to, up_to } => Effect::RemoveCounterChosen {
+                to: r(*to),
+                up_to: *up_to,
+            },
             CoreEffect::ReturnToHand { what } => Effect::ReturnToHand {
                 what: vec![r(*what)],
                 owner_hand: false,
@@ -896,6 +914,8 @@ impl Decompiler<'_> {
                 tapped,
                 under_you,
                 attached,
+                more,
+                if_creature,
             } => Effect::ReturnToBattlefield {
                 what: r(*what),
                 counters: *counters,
@@ -904,7 +924,9 @@ impl Decompiler<'_> {
                 attached: attached.map(r),
                 put: false,
                 attacking: false,
-                additional: false,
+                additional: *if_creature,
+                more: *more,
+                if_creature: *if_creature,
             },
             CoreEffect::Regenerate { to } => Effect::Regenerate { to: r(*to) },
             CoreEffect::Exile { what } | CoreEffect::ExileLinked { what, until: false } => {
@@ -967,6 +989,11 @@ impl Decompiler<'_> {
                 of: r(*of),
                 except: *except,
                 count: *count,
+            },
+            CoreEffect::CastCopy { what, free } => Effect::CastCopy {
+                what: r(*what),
+                free: *free,
+                wording: crate::ast::CopyCastWording::Sentences,
             },
             CoreEffect::CopySpells {
                 what,
@@ -2558,8 +2585,8 @@ impl Decompiler<'_> {
                     Ability::Mechanic(crate::ast::Mechanic::EscapesWith(*n))
                 }
                 // The keywords come back as a separate conditional static.
-                StaticCondition::Kicked => {
-                    Ability::Mechanic(crate::ast::Mechanic::KickedWith(*n, Vec::new()))
+                StaticCondition::Kicked if *kind == mtg_core::card::CounterKind::PlusOnePlusOne => {
+                    Ability::Mechanic(crate::ast::Mechanic::KickedWith(*n, None, Vec::new()))
                 }
                 StaticCondition::OpponentDamagedThisTurn
                     if *kind == mtg_core::card::CounterKind::PlusOnePlusOne =>
@@ -2571,6 +2598,7 @@ impl Decompiler<'_> {
                     kind: *kind,
                     cond: self.static_cond(c),
                     first: false,
+                    more: None,
                 },
             },
             AbilityDef::Replacement(r) => Ability::Replacement(self.replacement(r)),

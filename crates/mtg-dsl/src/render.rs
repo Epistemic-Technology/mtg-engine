@@ -1087,6 +1087,13 @@ struct Ctx<'a> {
     /// "That player may pay {4}": a following "If you do" prints "If the
     /// player does".
     player_did: bool,
+    /// Inside "If the player does, ...": that player is "they" (Chain
+    /// Lightning's "they may copy this spell").
+    player_they: bool,
+    /// A sentence to print after a delayed trigger's timing ("Return that
+    /// card ... at the beginning of the next end step. If it enters as a
+    /// creature, ...").
+    delayed_tail: Option<String>,
     /// The next sentence is "If you don't, ...": an optional choice before
     /// it prints its result "If you do, ..." ("You may choose a creature
     /// card from it. If you do, that player discards that card.").
@@ -1141,6 +1148,8 @@ impl<'a> Ctx<'a> {
             they_paid: false,
             lost_life_did: false,
             player_did: false,
+            player_they: false,
+            delayed_tail: None,
             before_if_you_dont: false,
             in_unless: false,
             x_defined: Vec::new(),
@@ -1433,6 +1442,11 @@ impl<'a> Ctx<'a> {
             }
             Recipient::ControllerOf(_) | Recipient::TriggeringController { that: false } => {
                 "its controller".to_string()
+            }
+            // "any target": "that player or that permanent's controller"
+            // (Chain Lightning).
+            Recipient::ThatControllerOf(i) if self.target_noun[i] == "permanent or player" => {
+                "that player or that permanent's controller".to_string()
             }
             Recipient::ThatControllerOf(i) => format!("that {}'s controller", self.target_noun[i]),
             Recipient::TheControllerOf(i) => format!("the {}'s controller", self.target_noun[i]),
@@ -3112,6 +3126,7 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
         CostItem::Blight,
         CostItem::Evidence,
         CostItem::Forage,
+        CostItem::Process,
     ];
     let order: &[CostItem] = if cost.order.is_empty() {
         &default_order
@@ -3176,6 +3191,12 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 }
                 None => {}
             },
+            CostItem::RemoveCounters if cost.remove_from_creature => {
+                if let Some((k, n)) = cost.remove_counters {
+                    let what = counters(Num::N(n), k);
+                    parts.push(format!("Remove {what} from a creature you control"));
+                }
+            }
             CostItem::RemoveCounters => {
                 if let Some((k, n)) = cost.remove_counters {
                     let what = counters(Num::N(n), k);
@@ -3260,8 +3281,23 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 }
             )),
             CostItem::Energy => parts.push(format!("Pay {}", energy(cost.energy))),
+            // CR 400.3: to the owner's graveyard.
+            CostItem::Process => match cost.process {
+                0 => {}
+                1 => parts.push(
+                    "Put a card an opponent owns from exile into that player's graveyard"
+                        .to_string(),
+                ),
+                n => parts.push(format!(
+                    "Put {} cards your opponents own from exile into their owners' graveyards",
+                    count_words(Num::N(n), "a")
+                )),
+            },
             CostItem::Blight => {
-                if cost.blight > 0 {
+                if cost.blight > 0 && cost.blight_put {
+                    let what = counters(Num::N(cost.blight), CounterKind::MinusOneMinusOne);
+                    parts.push(format!("Put {what} on a creature you control"));
+                } else if cost.blight > 0 {
                     parts.push(format!("Blight {}", cost.blight));
                 }
             }
@@ -5075,6 +5111,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 let o = ctx.obj(*to);
                 Clause::imperative(format!("put its {} counters on {o}", counter_name(*kind)))
             }
+            // "move any number of +1/+1 counters from this creature onto
+            // another target creature" (Scrounging Bandar).
+            (Some(kind), Some(mtg_core::card::MOVE_ANY_NUMBER)) => {
+                let src = ctx.obj(*from);
+                let dst = ctx.obj(*to);
+                Clause::imperative(format!(
+                    "move any number of {} counters from {src} onto {dst}",
+                    counter_name(*kind)
+                ))
+            }
             (Some(kind), Some(n)) => {
                 let what = counters(Num::N(*n), *kind);
                 let src = ctx.obj(*from);
@@ -5956,6 +6002,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*to);
             Clause::imperative(format!("put {c} on {each}{o}"))
         }
+        // "This ability can't cause the total number of +1/+0 counters on
+        // this creature to be greater than four." (the Clockwork cap).
+        Effect::AddCountersCapped {
+            kind,
+            count,
+            to,
+            cap,
+        } => {
+            let c = counters(*count, *kind);
+            let o = ctx.obj(*to);
+            let all = counters(Num::N(2), *kind);
+            let all = all.trim_start_matches("two ");
+            Clause::imperative(format!(
+                "put up to {c} on {o}. This ability can't cause the total number of {all} on {o} to be greater than {}",
+                count_words(Num::N(*cap), "one")
+            ))
+        }
         Effect::AddCounterList { counters: cs, to } => {
             let c: Vec<String> = cs.iter().map(|(k, n)| counters(*n, *k)).collect();
             let each = ctx.each_of(*to);
@@ -5985,7 +6048,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*to);
             Clause::imperative(format!("distribute {c} among {o}"))
         }
-        Effect::RemoveCounterChosen { to } => {
+        Effect::RemoveCounterChosen { to, up_to } if *up_to > 0 => {
+            let o = ctx.obj(*to);
+            Clause::imperative(format!(
+                "remove up to {} counters from {o}",
+                count_words(Num::N(u32::from(*up_to)), "one")
+            ))
+        }
+        Effect::RemoveCounterChosen { to, .. } => {
             let o = ctx.obj(*to);
             Clause::imperative(format!("remove a counter from {o}"))
         }
@@ -6068,6 +6138,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             put,
             attacking,
             additional,
+            more,
+            if_creature,
         } => {
             let what_ref = what;
             // `that card` prints "that card", `it` (inside a delayed
@@ -6177,7 +6249,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 format!("return {o} to the battlefield{tapped} under its owner's control")
             };
             if let Some((kind, n)) = c {
-                let what = counters(Num::N(*n), *kind);
+                let mut what = counters(Num::N(*n), *kind);
+                // "with a hexproof counter and an indestructible counter".
+                if let Some((k, m)) = more {
+                    let _ = write!(what, " and {}", counters(Num::N(*m), *k));
+                }
                 // "with two additional +1/+1 counters on it" (Rakdos
                 // Joins Up).
                 // "with an additional +1/+1 counter on it" (Prison Break).
@@ -6190,6 +6266,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 } else {
                     what
                 };
+                if *if_creature {
+                    // A sentence of its own, after a delayed return's
+                    // timing (Teferi's Time Twist).
+                    let tail = format!("If it enters as a creature, it enters with {what} on it");
+                    if ctx.in_delayed {
+                        ctx.delayed_tail = Some(tail);
+                    } else {
+                        let _ = write!(text, ". {tail}");
+                    }
+                    return Clause::imperative(text);
+                }
                 // "with a +1/+1 counter on her" (Gallia, returning itself).
                 let it = if *what_ref == Recipient::Source {
                     it_obj(ctx.card)
@@ -6634,6 +6721,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 let _ = write!(text, ", except {}", except_text(ctx.card, ctx.current));
             }
             Clause::imperative(text)
+        }
+        // CR 707.12: "Copy it. You may cast the copy without paying its
+        // mana cost."
+        Effect::CastCopy {
+            what,
+            free,
+            wording,
+        } => {
+            let o = ctx.obj(*what);
+            let join = if *wording == crate::ast::CopyCastWording::Then {
+                ", then you"
+            } else {
+                ". You"
+            };
+            let free = if *free {
+                " without paying its mana cost"
+            } else {
+                ""
+            };
+            Clause::imperative(format!("copy {o}{join} may cast the copy{free}"))
         }
         Effect::CopySpells {
             what,
@@ -7298,6 +7405,25 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
                 ChooseAct::GraveyardToTop => {
                     format!("put {} from your graveyard on top of your library", cards())
+                }
+                // CR 400.3: to the owner's graveyard. "a card an opponent
+                // owns from exile into that player's graveyard"; "two cards
+                // your opponents own from exile into their owners'
+                // graveyards".
+                ChooseAct::ExileToGraveyard => {
+                    let mut rest = filter.clone();
+                    rest.who = None;
+                    if one {
+                        format!(
+                            "put {} an opponent owns from exile into that player's graveyard",
+                            with_article(&cards_phrase(&rest, ctx.card, false))
+                        )
+                    } else {
+                        format!(
+                            "put {n} {} your opponents own from exile into their owners' graveyards",
+                            cards_phrase(&rest, ctx.card, true)
+                        )
+                    }
                 }
                 ChooseAct::ReturnFromGraveyard => {
                     format!("return {} from your graveyard to your hand", cards())
@@ -8169,6 +8295,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let who = if std::mem::take(&mut ctx.lost_life_did) {
                 "you lost life this way"
             } else if std::mem::take(&mut ctx.player_did) {
+                ctx.player_they = true;
                 "the player does"
             } else if std::mem::take(&mut ctx.they_paid) {
                 "they do"
@@ -8188,6 +8315,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ctx.source_mentioned = false;
             }
             let body = sentences(inner, ctx);
+            ctx.player_they = false;
             // "If you do, Oros deals 3 damage ...".
             let mut body = if starts_with_name(&body, ctx.card) {
                 body
@@ -8815,7 +8943,35 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::PlayerMay { who, inner } => {
             let you = *who == Recipient::You;
-            let who = ctx.obj(*who);
+            // "If the player does, they may copy this spell and may choose
+            // a new target for that copy." (Chain Lightning): the player
+            // of the "may" before.
+            let again = ctx.player_they;
+            let who = if again {
+                "they".to_string()
+            } else {
+                ctx.obj(*who)
+            };
+            if let [one] = inner.as_slice()
+                && let [
+                    Effect::CopySpells {
+                        what: Recipient::Source,
+                        times: Num::N(1),
+                        new_targets: true,
+                        except: false,
+                        ..
+                    },
+                ] = one.effects.as_slice()
+            {
+                let target = if ctx.targets.len() == 1 {
+                    "a new target"
+                } else {
+                    "new targets"
+                };
+                return Clause::imperative(format!(
+                    "{who} may copy this spell and may choose {target} for that copy"
+                ));
+            }
             let body = lowercase_first(&sentences(inner, ctx));
             let body = body.strip_prefix("you ").unwrap_or(&body);
             // The player acts on their own cards ("Each player may discard
@@ -8962,10 +9118,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 trigger_text(trigger, ctx, true)
             };
+            let tail = ctx
+                .delayed_tail
+                .take()
+                .map_or_else(String::new, |s| format!(". {s}"));
             if *trigger_first {
-                Clause::imperative(format!("{t}, {}", lowercase_first(&body)))
+                Clause::imperative(format!("{t}, {}{tail}", lowercase_first(&body)))
             } else {
-                Clause::imperative(format!("{} {t}", lowercase_first(&body)))
+                Clause::imperative(format!("{} {t}{tail}", lowercase_first(&body)))
             }
         }
         Effect::CreateReplacement(r) => {
@@ -12955,6 +13115,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::Is(f) => format!("it's {}", is_predicate(f, card)),
         StaticCond::Modified => "it's modified".to_string(),
         StaticCond::AttackingAlone => "it's attacking alone".to_string(),
+        StaticCond::AttackedOrBlocked => {
+            format!("{} attacked or blocked this combat", this_ref(card))
+        }
         StaticCond::Blocked => "it's blocked".to_string(),
         StaticCond::BeingBlocked => "at least one creature is blocking it".to_string(),
         // "As long as enchanted permanent is a creature" (an Aura that
@@ -13820,6 +13983,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                             c,
                             StaticCond::SourceCounters { .. }
                                 | StaticCond::ManaSpent { that: false, .. }
+                                | StaticCond::AttackedOrBlocked
                         );
                     ctx.attached_mentioned = matches!(c, StaticCond::AttachedIs(_));
                     ctx.attached_by_cond = ctx.attached_mentioned;
@@ -14277,11 +14441,15 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 counters(Num::N(1), *b)
             ),
             crate::ast::Mechanic::Bloodthirst(n) => format!("Bloodthirst {n}"),
-            crate::ast::Mechanic::KickedWith(n, ks) => {
+            crate::ast::Mechanic::KickedWith(n, more, ks) => {
+                let mut what = counters(Num::N(*n), CounterKind::PlusOnePlusOne);
+                // "two +1/+1 counters and a trample counter" (Voidpouncer).
+                if let Some((m, k)) = more {
+                    let _ = write!(what, " and {}", counters(Num::N(*m), *k));
+                }
                 let mut s = format!(
-                    "If this {} was kicked, it enters with {} on it",
+                    "If this {} was kicked, it enters with {what} on it",
                     self_noun(card),
-                    counters(Num::N(*n), CounterKind::PlusOnePlusOne)
                 );
                 if !ks.is_empty() {
                     let names: Vec<String> =
@@ -14397,9 +14565,13 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             kind,
             cond,
             first,
+            more,
         } => {
             let this = this_ref(card);
-            let what = counters(Num::N(*n), *kind);
+            let mut what = counters(Num::N(*n), *kind);
+            if let Some((m, k)) = more {
+                let _ = write!(what, " and {}", counters(Num::N(*m), *k));
+            }
             let mut cond = static_cond_text(cond, card);
             if *first {
                 // Adamant names the permanent spell: "spent to cast this
@@ -14881,6 +15053,14 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     if card.keywords.contains(&Keyword::Aftermath) {
         lines.insert(0, "Aftermath".to_string());
     }
+    // Devoid, a color-defining ability, comes before everything else
+    // ("Devoid\nKicker {2}{C}", Voidpouncer; "Devoid\nAs an additional
+    // cost to cast this spell, put a card an opponent owns from exile
+    // ...", Processor Assault).
+    let devoid_first = card.keywords.contains(&Keyword::Devoid);
+    if devoid_first {
+        lines.insert(0, keyword_line(card, Keyword::Devoid));
+    }
     if let Some(k) = &card.kicker {
         lines.push(format!("Kicker {k}"));
     }
@@ -14931,6 +15111,7 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     for k in &card.keywords {
         if alone_pair && *k == Keyword::CantBlockAlone
             || (flash_first && *k == Keyword::Flash)
+            || (devoid_first && *k == Keyword::Devoid)
             || *k == Keyword::Rebound
             || *k == Keyword::Cipher
             || *k == Keyword::Paradigm

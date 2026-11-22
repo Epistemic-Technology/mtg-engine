@@ -1,0 +1,8 @@
+card "Cryptic Cruiser" {
+  oracle_id ae7cfdb8-b0f2-46d7-b847-9a760ddbe028
+  cost {3}{U}
+  type Creature — Eldrazi Processor
+  pt 3/3
+  keywords devoid
+  activated {2}{U}, put 1 card an opponent owns from exile into graveyard: tap target creature
+}

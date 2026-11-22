@@ -1,0 +1,6 @@
+card "Teferi's Time Twist" {
+  oracle_id f5479d4f-bc4b-4452-a944-41be623f8367
+  cost {1}{U}
+  type Instant
+  spell: exile target permanent you control; delayed target 1: return that card to battlefield with 1 additional +1/+1 counter if creature at beginning of the next end step
+}

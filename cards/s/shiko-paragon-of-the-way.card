@@ -1,0 +1,8 @@
+card "Shiko, Paragon of the Way" {
+  oracle_id d3bdd3f2-9e38-436a-93a3-f87d9f4d4f86
+  cost {2}{U}{R}{W}
+  type Legendary Creature — Spirit Dragon
+  pt 4/5
+  keywords flying, vigilance
+  triggered when this enters: exile target nonland card with mana value 3 or less from your graveyard; copy target 1 then may cast free
+}

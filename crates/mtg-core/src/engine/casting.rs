@@ -1493,6 +1493,18 @@ impl GameState {
                 .copied()
                 .filter(|id| card_ok(*id))
                 .collect(),
+            // "a card an opponent owns from exile": any exile, judged by
+            // the card's owner.
+            ChooseAct::ExileToGraveyard => self
+                .players
+                .iter()
+                .flat_map(|ps| ps.exile.iter().copied())
+                .filter(|id| {
+                    let o = &self.objects[*id];
+                    let c = self.base_characteristics(o);
+                    filter.matches(*id, o.owner, &c, Some(ctx.source), Some(p))
+                })
+                .collect(),
             // "from among the milled cards": those still in the graveyard.
             ChooseAct::MilledToHand => self.this_way.as_ref().map_or_else(Vec::new, |log| {
                 log.moved
@@ -1647,6 +1659,9 @@ impl GameState {
                 }
                 ChooseAct::GraveyardToTop => {
                     self.move_object(id, Zone::Library, true);
+                }
+                ChooseAct::ExileToGraveyard => {
+                    ctx.created = Some(self.move_object(id, Zone::Graveyard, false));
                 }
                 ChooseAct::ExileFromGraveyard => {
                     ctx.created = Some(self.move_object(id, Zone::Exile, false));
@@ -4259,6 +4274,8 @@ impl GameState {
                 generic: 2,
                 ..ManaRequirement::default()
             }),
+            // "You may cast the copy" (CR 707.12): for its mana cost.
+            AltCast::None => Some(def.mana_cost.requirements(0)),
             _ => return true,
         };
         let Some(mut req) = req.take() else {
@@ -4634,7 +4651,11 @@ impl GameState {
                     continue;
                 }
                 if let Some((k, n)) = ab.cost.remove_counters
-                    && o.counters(k) < n
+                    && if ab.cost.remove_from_creature {
+                        self.counter_cost_creature(p, k, n).is_none()
+                    } else {
+                        o.counters(k) < n
+                    }
                 {
                     continue;
                 }
@@ -4999,7 +5020,6 @@ impl GameState {
             damage: 0,
             deathtouch_damage: false,
             controlled_since_turn_start: false,
-            echo_due: false,
             marks: 0,
             skip_untap: false,
             chosen: Chosen::None,
@@ -5017,6 +5037,7 @@ impl GameState {
                 trigger_amount: 0,
             }),
             revealed: 0,
+            sized: 0,
         });
         self.stack.push(obj);
         self.bump();
@@ -6314,7 +6335,15 @@ impl GameState {
             self.change_life(p, -i32::try_from(x).unwrap_or(i32::MAX));
         }
         if let Some((k, n)) = cost.remove_counters {
-            self.remove_counters(this, k, n);
+            // "Remove a +1/+1 counter from a creature you control".
+            let from = if cost.remove_from_creature {
+                self.counter_cost_creature(p, k, n)
+            } else {
+                Some(this)
+            };
+            if let Some(from) = from {
+                self.remove_counters(from, k, n);
+            }
         }
         // CR 701.43a: an exerted permanent won't untap during its
         // controller's next untap step.
@@ -6356,6 +6385,16 @@ impl GameState {
         }
         if cost.evidence > 0 {
             self.collect_evidence(p, cost.evidence, this);
+        }
+        // A processor's cost (CR 400.3: to the owner's graveyard).
+        if cost.process > 0 {
+            for id in self
+                .process_candidates(p)
+                .into_iter()
+                .take(cost.process as usize)
+            {
+                self.move_object(id, Zone::Graveyard, false);
+            }
         }
         if cost.forage {
             self.forage(p, this, None);
@@ -7451,6 +7490,7 @@ impl GameState {
                         super::replace::Enter {
                             tapped: false,
                             counters: Some((CounterKind::Time, n)),
+                            more: None,
                             haste: false,
                             prepared: false,
                         },
@@ -7516,6 +7556,7 @@ impl GameState {
             super::replace::Enter {
                 tapped: true,
                 counters: None,
+                more: None,
                 haste: false,
                 prepared: false,
             },
@@ -7564,6 +7605,48 @@ impl GameState {
             ctx.did = true;
             self.apply_effects(ctx, effects, &[]);
         }
+    }
+
+    /// `Effect::CastCopy` (CR 707.12): a copy of each recipient card is
+    /// made in exile, and its controller may cast it as the resolution
+    /// finishes (free, or for its mana cost if they can pay it); a copy not
+    /// cast ceases to exist. "If you do" sees whether one will be.
+    #[cold]
+    #[inline(never)]
+    fn cast_copy(&mut self, ctx: &mut EffectCtx, what: Recipient, free: bool) {
+        let p = ctx.controller;
+        let alt = if free { AltCast::Free } else { AltCast::None };
+        let mut any = false;
+        for t in self.recipients(ctx, what) {
+            let Target::Object(card) = t else {
+                continue;
+            };
+            let Some(o) = self.objects.get(card) else {
+                continue;
+            };
+            if matches!(o.zone, Zone::Battlefield | Zone::Stack) || o.kind != ObjKind::Card {
+                continue;
+            }
+            let copy = self.new_object(o.def, p, Zone::Exile);
+            self.objects[copy].cast = self.objects[copy].cast.copied();
+            self.player_mut(p).exile.push(copy);
+            // The decision names the card as it was before this resolution
+            // moved it ("exile target card ... and copy it"), an object
+            // that exists while the decision is asked.
+            let shown = match what {
+                Recipient::Target(i) => match ctx.targets.get(i) {
+                    Some(Target::Object(id)) => *id,
+                    _ => card,
+                },
+                _ => card,
+            };
+            if self.offer_exile_cast_shown(copy, alt, p, shown) {
+                any = true;
+            } else {
+                self.remove_from_game(copy);
+            }
+        }
+        ctx.did = any;
     }
 
     /// CR 707.10: a copy of the source spell on the stack (as it last
@@ -7994,9 +8077,9 @@ impl GameState {
         let Some(of) = candidates.get(k).copied() else {
             return;
         };
-        let (def, except) = {
+        let (def, except, sized) = {
             let t = &self.objects[of];
-            (t.def, t.except)
+            (t.def, t.except, t.sized)
         };
         // The copying card's own exceptions (Phantasmal Image) replace
         // those of what it copies.
@@ -8008,6 +8091,7 @@ impl GameState {
         let s = &mut self.objects[spell];
         s.def = def;
         s.except = except;
+        s.sized = sized;
         self.bump();
         self.emit(Event::BecameCopy {
             obj: spell,
@@ -8123,6 +8207,13 @@ impl GameState {
                 }
             }
             Recipient::ControllerOf(i) | Recipient::OwnerOf(i) => {
+                // "that player or that permanent's controller" (Chain
+                // Lightning): a player target is that player.
+                if let Some(Target::Player(p)) = ctx.targets.get(i)
+                    && matches!(r, Recipient::ControllerOf(_))
+                {
+                    out.push(Target::Player(*p));
+                }
                 if let Some(Target::Object(id)) = ctx.targets.get(i) {
                     let owner = matches!(r, Recipient::OwnerOf(_));
                     let p = self
@@ -9331,6 +9422,22 @@ impl GameState {
                     }
                 }
             }
+            Effect::AddCountersCapped {
+                kind,
+                count,
+                to,
+                cap,
+            } => {
+                let n = self.eval_num(*count, ctx);
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        let room = cap.saturating_sub(self.objects[id].counters(*kind));
+                        if n.min(room) > 0 {
+                            self.add_counters(id, *kind, n.min(room));
+                        }
+                    }
+                }
+            }
             // CR 601.2d, 608.2b: the division announced on casting holds;
             // what an illegal target was assigned is not dealt.
             Effect::DealDamageDivided { to, .. } => {
@@ -9382,7 +9489,7 @@ impl GameState {
                     }
                 }
             }
-            Effect::RemoveCounterChosen { to } => {
+            Effect::RemoveCounterChosen { to, up_to } => {
                 let def = self
                     .objects
                     .get(ctx.source)
@@ -9392,22 +9499,38 @@ impl GameState {
                     let Some(id) = on_battlefield(self, t) else {
                         continue;
                     };
-                    let kinds: SmallVec<[CounterKind; 4]> = self.objects[id]
-                        .counters
-                        .iter()
-                        .filter(|(_, n)| *n > 0)
-                        .map(|(k, _)| *k)
-                        .collect();
-                    let i = match (kinds.len(), def) {
-                        (0, _) => continue,
-                        (1, _) | (_, None) => 0,
-                        (n, Some(def)) => self.choose_mid(
-                            ctx.controller,
-                            DecisionKind::ChooseOption { def },
-                            (0..n).map(Choice::Mode).collect(),
-                        ),
-                    };
-                    self.remove_counters(id, kinds[i.min(kinds.len() - 1)], 1);
+                    // "up to three": a counter at a time, the controller
+                    // choosing its kind or to stop (`Choice::Done`, last).
+                    for _ in 0..(*up_to).max(1) {
+                        let kinds: SmallVec<[CounterKind; 4]> = self.objects[id]
+                            .counters
+                            .iter()
+                            .filter(|(_, n)| *n > 0)
+                            .map(|(k, _)| *k)
+                            .collect();
+                        let n = kinds.len();
+                        if n == 0 {
+                            break;
+                        }
+                        let i = match def {
+                            Some(def) if n > 1 || *up_to > 0 => {
+                                let mut options: Vec<Choice> = (0..n).map(Choice::Mode).collect();
+                                if *up_to > 0 {
+                                    options.push(Choice::Done);
+                                }
+                                self.choose_mid(
+                                    ctx.controller,
+                                    DecisionKind::ChooseOption { def },
+                                    options,
+                                )
+                            }
+                            _ => 0,
+                        };
+                        if i >= n {
+                            break;
+                        }
+                        self.remove_counters(id, kinds[i], 1);
+                    }
                 }
             }
             Effect::RemoveAllCounters { to } => {
@@ -10655,20 +10778,15 @@ impl GameState {
                                     {
                                         self.attach(id, h);
                                     }
-                                    // CR 111.3: "an X/X ... token".
+                                    // CR 111.3: "an X/X ... token", X part of
+                                    // its copiable values (CR 707.2).
                                     if def == *token
                                         && let Some(v) = sized
                                         && self.objects[id].zone == Zone::Battlefield
                                     {
-                                        self.effect_on(
-                                            ctx,
-                                            id,
-                                            smallvec::smallvec![Modification::SetPt {
-                                                power: PtValue::Fixed(v),
-                                                toughness: PtValue::Fixed(v),
-                                            }],
-                                            Duration::Permanent,
-                                        );
+                                        self.objects[id].sized =
+                                            u8::try_from(v.max(0)).unwrap_or(u8::MAX);
+                                        self.cbump();
                                     }
                                     ctx.created = Some(id);
                                     ctx.created_tokens.push(id);
@@ -11204,7 +11322,7 @@ impl GameState {
                 // (Leatherhead, Swamp Stalker).
                 let no_counter = inner.iter().any(|e| {
                     let (to, kind, n) = match e {
-                        Effect::RemoveCounterChosen { to } => (*to, None, 1),
+                        Effect::RemoveCounterChosen { to, .. } => (*to, None, 1),
                         Effect::RemoveCounters { kind, count, to } => {
                             (*to, Some(*kind), self.eval_num(*count, ctx).max(1))
                         }
@@ -11780,6 +11898,8 @@ impl GameState {
                 tapped,
                 under_you,
                 attached,
+                more,
+                if_creature,
             } => {
                 if *what == crate::card::Recipient::Source && self.source_left_graveyard(ctx) {
                     return;
@@ -11834,12 +11954,20 @@ impl GameState {
                         }
                     }
                     let controller = if *under_you { ctx.controller } else { o.owner };
+                    // "If it enters as a creature": its card's types.
+                    let with = !*if_creature
+                        || self
+                            .pool
+                            .get(o.def)
+                            .types
+                            .contains(crate::card::CardType::Creature);
                     let new = self.put_onto_battlefield_with(
                         id,
                         controller,
                         super::replace::Enter {
                             tapped: *tapped,
-                            counters: *counters,
+                            counters: counters.filter(|_| with),
+                            more: *more,
                             ..super::replace::Enter::default()
                         },
                     );
@@ -11904,9 +12032,9 @@ impl GameState {
                     if id == of_obj {
                         continue;
                     }
-                    let (def, before) = {
+                    let (def, before, sized) = {
                         let o = &self.objects[id];
-                        (o.def, o.except)
+                        (o.def, o.except, o.sized)
                     };
                     self.become_copy(id, of_obj, x);
                     let next_turn_of = match until {
@@ -11919,6 +12047,7 @@ impl GameState {
                         obj: id,
                         def,
                         except: before,
+                        sized,
                         copied,
                         next_turn_of,
                     });
@@ -12415,6 +12544,7 @@ impl GameState {
                     self.remove_from_game(copy);
                 }
             }
+            Effect::CastCopy { what, free } => self.cast_copy(ctx, *what, *free),
             Effect::CastExiled(kind) => {
                 // CR 702.94a: a miracle card is cast from the hand.
                 let from = if *kind == crate::card::ExileCast::Miracle {
@@ -13313,7 +13443,7 @@ impl GameState {
                 if let Some(id) = self.current_object(ctx.source)
                     && let Some(o) = self.objects.get_mut(id)
                 {
-                    o.echo_due = false;
+                    o.marks &= !crate::state::OBJ_ECHO_DUE;
                 }
             }
             Effect::BecomeSaddled => {
@@ -13426,11 +13556,11 @@ impl GameState {
                         .get(&left)
                         .filter(|l| l.object.zone == Zone::Battlefield)
                     {
-                        let (def, was) = (l.object.def, l.object.except);
+                        let (def, was, sized) = (l.object.def, l.object.except, l.object.sized);
                         for (d, k) in self.tokens_to_create(ctx.controller, def, n) {
                             for _ in 0..k {
                                 let new = if d == def {
-                                    self.create_token_copy_of(def, x.or(was), ctx.controller)
+                                    self.create_token_copy_of(def, x.or(was), sized, ctx.controller)
                                 } else {
                                     self.create_token(d, ctx.controller)
                                 };
@@ -13703,6 +13833,24 @@ impl GameState {
         if dest.is_empty() {
             return;
         }
+        // "Move any number of +1/+1 counters": how many, chosen now (most
+        // first, so the engine's default moves them all).
+        let count = if count == Some(crate::card::MOVE_ANY_NUMBER) {
+            let have: u32 = counters
+                .iter()
+                .filter(|(k, _)| kind.is_none_or(|x| x == *k))
+                .map(|(_, n)| *n)
+                .sum();
+            let options: Vec<Choice> = (0..=have).rev().map(Choice::X).collect();
+            let k = self.choose_mid(
+                ctx.controller,
+                DecisionKind::ChooseX { spell: ctx.source },
+                options,
+            );
+            Some(have.saturating_sub(u32::try_from(k).unwrap_or(0)))
+        } else {
+            count
+        };
         let mut left = count.unwrap_or(u32::MAX);
         for (k, n) in counters {
             if kind.is_some_and(|x| x != k) {

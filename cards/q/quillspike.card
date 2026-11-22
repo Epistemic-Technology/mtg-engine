@@ -1,0 +1,7 @@
+card "Quillspike" {
+  oracle_id b8c748ed-7ba2-4f92-a9de-5080382c2fc2
+  cost {2}{B/G}
+  type Creature — Beast
+  pt 1/1
+  activated {B/G}, remove 1 -1/-1 counter from creature you control: this gets +3/+3 until end of turn
+}

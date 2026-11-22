@@ -1948,13 +1948,21 @@ impl P {
                 if self.counter_kind()? != CounterKind::PlusOnePlusOne {
                     return self.fail("kicked with +1/+1 counters only");
                 }
+                // `and 1 trample counter`: a second kind.
+                let more = if self.at_word("and") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+                    self.pos += 1;
+                    let m = self.number()?;
+                    Some((m, self.counter_kind()?))
+                } else {
+                    None
+                };
                 let keywords = if self.eat_word("and") {
                     self.keyword_list()?
                 } else {
                     Vec::new()
                 };
                 self.end_stmt()?;
-                Ok(Ability::Mechanic(Mechanic::KickedWith(n, keywords)))
+                Ok(Ability::Mechanic(Mechanic::KickedWith(n, more, keywords)))
             }
             "modular" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
                 self.pos += 1;
@@ -2858,12 +2866,19 @@ impl P {
                 self.expect_word("with")?;
                 let n = self.number()?;
                 let kind = self.counter_kind()?;
+                let more = if self.eat_word("and") {
+                    let m = self.number()?;
+                    Some((m, self.counter_kind()?))
+                } else {
+                    None
+                };
                 self.end_stmt()?;
                 Ok(Ability::EntersWithIf {
                     n,
                     kind,
                     cond,
                     first: true,
+                    more,
                 })
             }
             "enters"
@@ -2882,6 +2897,7 @@ impl P {
                     kind,
                     cond,
                     first: false,
+                    more: None,
                 })
             }
             "enters" => {
@@ -2897,6 +2913,7 @@ impl P {
                         kind,
                         cond,
                         first: false,
+                        more: None,
                     });
                 }
                 self.end_stmt()?;
@@ -3637,6 +3654,9 @@ impl P {
         }
         if self.eat_words(&["attacking", "alone"]) {
             return Ok(StaticCond::AttackingAlone);
+        }
+        if self.eat_words(&["attacked", "or", "blocked", "this", "combat"]) {
+            return Ok(StaticCond::AttackedOrBlocked);
         }
         if self.eat_word("blocked") {
             return Ok(StaticCond::Blocked);
@@ -6508,9 +6528,13 @@ impl P {
             }
             // "That player may pay {4}", "that player may discard a card
             // at random": the player decides and acts (`PlayerMay`).
+            // "If the player does, they may copy this spell" (Chain
+            // Lightning): the copy is that player's.
             "may"
                 if subject != Recipient::You
-                    && (self.at_word("pay") || self.at_word("discard")) =>
+                    && (self.at_word("pay")
+                        || self.at_word("discard")
+                        || self.at_words(&["copy", "this"])) =>
             {
                 let saved = self.subject.take();
                 let s = self.sentence()?;
@@ -7213,6 +7237,9 @@ impl P {
                 // random`.
                 Some("random") if verb == "return" && hand => return true,
                 Some("hand") => hand = true,
+                // `put 1 card an opponent owns from exile into graveyard
+                // chosen`: a zone, not a verb.
+                Some("exile") if self.word_at(k - 1).as_deref() == Some("from") => {}
                 Some(w) if VERBS.contains(&w) => return false,
                 _ => {}
             }
@@ -7339,6 +7366,30 @@ impl P {
                 let f = card_filter(self)?;
                 self.pos += 7;
                 (ChooseAct::GraveyardToTop, f)
+            }
+            // `put 1 card an opponent owns from exile into graveyard
+            // chosen` (a processor).
+            "put"
+                if {
+                    let at = self.pos;
+                    let ex = card_filter(self).is_ok()
+                        && self.at_words(&[
+                            "an",
+                            "opponent",
+                            "owns",
+                            "from",
+                            "exile",
+                            "into",
+                            "graveyard",
+                        ]);
+                    self.pos = at;
+                    ex
+                } =>
+            {
+                let mut f = card_filter(self)?;
+                self.pos += 7;
+                f.who = Some(mtg_core::card::Who::Opponents);
+                (ChooseAct::ExileToGraveyard, f)
             }
             _ => {
                 let f = card_filter(self)?;
@@ -7589,11 +7640,20 @@ impl P {
             attacking = true;
         }
         let mut additional = false;
+        let mut more = None;
+        let mut if_creature = false;
         let counters = if self.eat_word("with") {
             let n = self.count()?;
             additional = self.eat_word("additional");
             let kind = self.counter_kind()?;
+            // `with 1 hexproof counter and 1 indestructible counter`.
+            if self.at_word("and") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+                self.pos += 1;
+                let m = self.count()?;
+                more = Some((self.counter_kind()?, m));
+            }
             self.eat_words(&["on", "it"]);
+            if_creature = self.eat_words(&["if", "creature"]);
             Some((kind, n))
         } else {
             None
@@ -7612,6 +7672,8 @@ impl P {
             put,
             attacking,
             additional,
+            more,
+            if_creature,
         })
     }
 
@@ -7770,6 +7832,30 @@ impl P {
                 })
             }
             // `put 2 cards from hand on top of library`.
+            // `put up to x +1/+0 counters on this capped 4`.
+            "put"
+                if self.at_words(&["up", "to"]) && {
+                    let at = self.pos;
+                    self.pos += 2;
+                    let ok = self.num().is_ok() && self.counter_kind().is_ok();
+                    self.pos = at;
+                    ok
+                } =>
+            {
+                self.pos += 2;
+                let count = self.num()?;
+                let kind = self.counter_kind()?;
+                self.expect_word("on")?;
+                let to = self.recipient()?;
+                self.expect_word("capped")?;
+                let cap = self.number()?;
+                Ok(Effect::AddCountersCapped {
+                    kind,
+                    count,
+                    to,
+                    cap,
+                })
+            }
             "put" if self.revealed && self.at_card_words() => self.put_card(None),
             "reveal" if self.revealed && self.at_word("it") => {
                 self.pos += 1;
@@ -7848,6 +7934,10 @@ impl P {
             "move" => {
                 let (kind, count) = if self.eat_words(&["all", "counters"]) {
                     (None, None)
+                } else if self.eat_words(&["any", "number"]) {
+                    // `move any number +1/+1 counters from ...`.
+                    let k = self.counter_kind()?;
+                    (Some(k), Some(mtg_core::card::MOVE_ANY_NUMBER))
                 } else {
                     let n = self.number()?;
                     let k = self.counter_kind()?;
@@ -8046,7 +8136,21 @@ impl P {
                 {
                     self.pos += 3;
                     let to = self.recipient()?;
-                    return Ok(Effect::RemoveCounterChosen { to });
+                    return Ok(Effect::RemoveCounterChosen { to, up_to: 0 });
+                }
+                // `remove up to 3 counters from target creature`.
+                if self.at_words(&["up", "to"])
+                    && matches!(self.peek_at(2), Some(Tok::Num(_)))
+                    && self.word_at(3).as_deref() == Some("counters")
+                {
+                    self.pos += 2;
+                    let n = self.number()?;
+                    self.expect_words(&["counters", "from"])?;
+                    let to = self.recipient()?;
+                    return Ok(Effect::RemoveCounterChosen {
+                        to,
+                        up_to: u8::try_from(n).unwrap_or(u8::MAX).max(1),
+                    });
                 }
                 let count = self.num()?;
                 let kind = self.counter_kind()?;
@@ -8870,6 +8974,21 @@ impl P {
             // N] [new targets] [with exceptions]` (CR 707.10).
             "copy" => {
                 let what = self.recipient()?;
+                // `copy target 1 [then] may cast [free]` (CR 707.12).
+                let then = self.at_words(&["then", "may", "cast"]);
+                if then || self.at_words(&["may", "cast"]) {
+                    self.pos += if then { 3 } else { 2 };
+                    let free = self.eat_word("free");
+                    return Ok(Effect::CastCopy {
+                        what,
+                        free,
+                        wording: if then {
+                            crate::ast::CopyCastWording::Then
+                        } else {
+                            crate::ast::CopyCastWording::Sentences
+                        },
+                    });
+                }
                 let times = if self.eat_word("times") {
                     self.num()?
                 } else {
@@ -13257,6 +13376,66 @@ impl P {
                         self.expect_words(&["from", "this"])?;
                         cost.remove_counters = Some((k, n));
                         cost.order.push(CostItem::RemoveCounters);
+                    }
+                    // `remove 1 +1/+1 counter from creature you control`.
+                    "remove"
+                        if (2..5).any(|k| {
+                            self.word_at(k).as_deref() == Some("from")
+                                && self.word_at(k + 1).as_deref() == Some("creature")
+                                && self.word_at(k + 2).as_deref() == Some("you")
+                                && self.word_at(k + 3).as_deref() == Some("control")
+                        }) =>
+                    {
+                        self.pos += 1;
+                        let n = self.count()?;
+                        let k = self.counter_kind()?;
+                        self.expect_words(&["from", "creature", "you", "control"])?;
+                        cost.remove_counters = Some((k, n));
+                        cost.remove_from_creature = true;
+                        cost.order.push(CostItem::RemoveCounters);
+                    }
+                    // `put 1 card an opponent owns from exile into
+                    // graveyard` (a processor).
+                    "put"
+                        if matches!(self.peek_at(1), Some(Tok::Num(_)))
+                            && matches!(self.word_at(2).as_deref(), Some("card" | "cards"))
+                            && self.word_at(3).as_deref() == Some("an") =>
+                    {
+                        self.pos += 1;
+                        let n = self.count()?;
+                        self.pos += 1;
+                        self.expect_words(&[
+                            "an",
+                            "opponent",
+                            "owns",
+                            "from",
+                            "exile",
+                            "into",
+                            "graveyard",
+                        ])?;
+                        cost.process = n;
+                        cost.order.push(CostItem::Process);
+                    }
+                    // `put 1 -1/-1 counter on creature you control`:
+                    // blight's older wording (CR 701.68a).
+                    "put"
+                        if matches!(self.peek_at(1), Some(Tok::Num(_)))
+                            && (2..5).any(|k| {
+                                self.word_at(k).as_deref() == Some("on")
+                                    && self.word_at(k + 1).as_deref() == Some("creature")
+                                    && self.word_at(k + 2).as_deref() == Some("you")
+                                    && self.word_at(k + 3).as_deref() == Some("control")
+                            }) =>
+                    {
+                        self.pos += 1;
+                        let n = self.count()?;
+                        if self.counter_kind()? != CounterKind::MinusOneMinusOne {
+                            return self.fail("only -1/-1 counters on a creature you control");
+                        }
+                        self.expect_words(&["on", "creature", "you", "control"])?;
+                        cost.blight = n;
+                        cost.blight_put = true;
+                        cost.order.push(CostItem::Blight);
                     }
                     // `put 1 -1/-1 counter on this` (CR 118.3).
                     "put"

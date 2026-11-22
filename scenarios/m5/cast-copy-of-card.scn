@@ -1,0 +1,114 @@
+# "Copy it. You may cast the copy [without paying its mana cost]." (CR
+# 707.12): the copy is made in exile and cast as the ability finishes; not
+# cast, it ceases to exist. A copy of a permanent card becomes a token
+# (CR 608.3f).
+
+scenario "Kaervek: a crime exiles a black card and casts a copy for its cost" {
+  battlefield A: "Kaervek, the Punisher", 4 "Swamp"
+  hand A: "Shock"
+  graveyard A: "Murder"
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: trigger "Kaervek, the Punisher" targeting "Murder"
+  turn 1 A: cast "Murder" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard B contains "Hill Giant"
+  assert life A 18
+  assert exile A contains "Murder"
+  assert graveyard A lacks "Murder"
+  assert exile A count 1
+}
+
+scenario "Kaervek: without the mana for the copy, it isn't cast" {
+  battlefield A: "Kaervek, the Punisher", "Mountain"
+  hand A: "Shock"
+  graveyard A: "Murder"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: trigger "Kaervek, the Punisher" targeting "Murder"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert life A 20
+  assert exile A count 1
+}
+
+scenario "Shiko: a free copy of a sorcery" {
+  battlefield A: 2 "Plains", "Island", "Mountain", "Plains"
+  hand A: "Shiko, Paragon of the Way"
+  graveyard A: "Divination"
+  library A: "Island", "Forest", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shiko, Paragon of the Way"
+  turn 1 A: trigger "Shiko, Paragon of the Way" targeting "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert exile A contains "Divination"
+}
+
+scenario "Shiko: a copy of a creature card becomes a token" {
+  battlefield A: 2 "Plains", "Island", "Mountain", "Plains"
+  hand A: "Shiko, Paragon of the Way"
+  graveyard A: "Grizzly Bears", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shiko, Paragon of the Way"
+  turn 1 A: trigger "Shiko, Paragon of the Way" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert exile A contains "Grizzly Bears"
+  assert graveyard A contains "Serra Angel"
+}
+
+scenario "Shiko: a card with mana value 4 can't be the target" {
+  battlefield A: 2 "Plains", "Island", "Mountain", "Plains"
+  hand A: "Shiko, Paragon of the Way"
+  graveyard A: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shiko, Paragon of the Way"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Serra Angel"
+  assert battlefield A contains 0 "Serra Angel"
+}
+
+scenario "Roving Actuator: void, a free copy of an instant" {
+  battlefield A: 7 "Mountain"
+  hand A: "Roving Actuator", "Shock"
+  graveyard A: "Lightning Bolt"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Roving Actuator"
+  turn 1 A: trigger "Roving Actuator" targeting "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert exile A contains "Lightning Bolt"
+}
+
+scenario "Roving Actuator: no void, no trigger" {
+  battlefield A: 4 "Mountain"
+  hand A: "Roving Actuator"
+  graveyard A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Roving Actuator"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Lightning Bolt"
+  assert life B 20
+}
+
+scenario "Nashi: a copy of a legendary card, paid for, is a token" {
+  battlefield A: "Nashi, Moon's Legacy", "Plains"
+  graveyard A: "Isamaru, Hound of Konda"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Nashi, Moon's Legacy"
+  turn 1 A: trigger "Nashi, Moon's Legacy" targeting "Isamaru, Hound of Konda"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Isamaru, Hound of Konda"
+  assert exile A contains "Isamaru, Hound of Konda"
+  assert tapped "Plains"
+  assert life B 17
+}

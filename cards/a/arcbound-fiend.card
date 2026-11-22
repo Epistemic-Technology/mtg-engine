@@ -1,0 +1,9 @@
+card "Arcbound Fiend" {
+  oracle_id 72e6cc74-0574-4421-a6b8-97d180484950
+  cost {6}
+  type Artifact Creature — Horror
+  pt 0/0
+  keywords fear
+  triggered at beginning of your upkeep: you may move 1 +1/+1 counter from target creature onto this
+  modular 3
+}

@@ -1317,6 +1317,25 @@ impl Templates {
             (r(r"^Draw (\S+) cards?$"), |c, _| {
                 Some(format!("draw {} cards", number(cap(c, 1))?))
             }),
+            // A processor (CR 400.3): "put a card an opponent owns from
+            // exile into that player's graveyard", "put two cards your
+            // opponents own from exile into their owners' graveyards".
+            (
+                r(
+                    r"^Put (a card an opponent owns from exile into that player's graveyard|(\w+) cards your opponents own from exile into their owners' graveyards)$",
+                ),
+                |c, _| {
+                    let n = if cap(c, 2).is_empty() {
+                        "1".to_string()
+                    } else {
+                        number(cap(c, 2))?
+                    };
+                    Some(format!(
+                        "put {n} card{} an opponent owns from exile into graveyard chosen",
+                        if n == "1" { "" } else { "s" }
+                    ))
+                },
+            ),
             // "each opponent loses 1 life and you gain 1 life".
             (
                 r(r"^(.+?) (gains?|loses?) (\S+) life and (.+?) (gains?|loses?) (\S+) life$"),
@@ -3274,6 +3293,18 @@ fn cost_text(s: &str) -> Option<String> {
             .filter(|n| n.chars().all(|c| c.is_ascii_digit()))
         {
             format!("blight {n}")
+        } else if part == "Put a -1/-1 counter on a creature you control" {
+            // Blight's older wording (CR 701.68a).
+            "put 1 -1/-1 counter on creature you control".to_string()
+        } else if part == "Put a card an opponent owns from exile into that player's graveyard" {
+            // A processor.
+            "put 1 card an opponent owns from exile into graveyard".to_string()
+        } else if let Some(kind) = part
+            .strip_prefix("Remove a ")
+            .and_then(|r| r.strip_suffix(" counter from a creature you control"))
+            .filter(|k| !k.contains(' '))
+        {
+            format!("remove 1 {kind} counter from creature you control")
         } else if part == "Discard this card" {
             "discard this".to_string()
         } else if part == "Reveal this card from your hand"

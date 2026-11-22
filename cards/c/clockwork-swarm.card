@@ -1,0 +1,10 @@
+card "Clockwork Swarm" {
+  oracle_id a6091c3e-b227-4e84-b75d-69512a0bddfb
+  cost {4}
+  type Artifact Creature — Insect
+  pt 0/3
+  enters with 4 +1/+0 counters
+  can't be blocked by Wall
+  triggered at end of combat if attacked or blocked this combat: remove 1 +1/+0 counter from this
+  activated {X}, {T}, during your upkeep: put up to x +1/+0 counters on this capped 4
+}

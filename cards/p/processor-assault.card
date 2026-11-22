@@ -1,0 +1,8 @@
+card "Processor Assault" {
+  oracle_id e773258a-e59b-4e5f-b4e1-4f95cb11a39f
+  cost {1}{R}
+  type Sorcery
+  keywords devoid
+  additional cost put 1 card an opponent owns from exile into graveyard
+  spell: deal 5 damage to target creature
+}

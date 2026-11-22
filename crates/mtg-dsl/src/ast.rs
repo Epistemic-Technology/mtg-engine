@@ -725,6 +725,15 @@ pub struct Cost {
     /// `pay x life`: "pay X life" (a spell's additional cost, X announced
     /// as it is cast).
     pub life_x: bool,
+    /// `put 1 -1/-1 counter on creature you control`: "Put a -1/-1 counter
+    /// on a creature you control", blight's older wording.
+    pub blight_put: bool,
+    /// `put 1 card an opponent owns from exile into graveyard`: "Put a
+    /// card an opponent owns from exile into that player's graveyard".
+    pub process: u32,
+    /// `remove 1 +1/+1 counter from creature you control`: the
+    /// `remove_counters` from a creature the payer controls.
+    pub remove_from_creature: bool,
 }
 
 /// `behold Kithkin`: "behold a Kithkin" (CR 701.69a); `and exile`: "and
@@ -748,6 +757,16 @@ pub struct ExileCards {
     /// `exile top 3 black cards from graveyard`: "the top three black
     /// cards of your graveyard".
     pub top: bool,
+}
+
+/// How "copy it" and "you may cast the copy" join (`Effect::CastCopy`).
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum CopyCastWording {
+    /// "Copy it. You may cast the copy."
+    #[default]
+    Sentences,
+    /// "Copy it, then you may cast the copy ..."
+    Then,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
@@ -782,6 +801,8 @@ pub enum CostItem {
     Exert,
     /// `discard hand`.
     DiscardHand,
+    /// `put 1 card an opponent owns from exile into graveyard`.
+    Process,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -1399,6 +1420,9 @@ pub enum Ability {
         kind: CounterKind,
         cond: StaticCond,
         first: bool,
+        /// `and 1 lifelink counter`: counters of a second kind ("two +1/+1
+        /// counters and a lifelink counter", Dust Animus).
+        more: Option<(u32, CounterKind)>,
     },
     /// `can't attack unless defending player controls Island`, `can't
     /// block unless ...`, `can't attack or block unless ...`.
@@ -1722,7 +1746,8 @@ pub enum Mechanic {
     /// `kicked with 2 +1/+1 counters [and first strike]`: "If this
     /// creature was kicked, it enters with two +1/+1 counters on it [and
     /// with first strike]." (CR 702.33c, 614.1c).
-    KickedWith(u32, Vec<Keyword>),
+    /// `kicked with 2 +1/+1 counters [and 1 trample counter] [and haste]`.
+    KickedWith(u32, Option<(u32, CounterKind)>, Vec<Keyword>),
     /// CR 702.43: `modular 2`.
     Modular(u32),
     /// CR 702.58: `graft 2`: enters with N +1/+1 counters; "Whenever
@@ -2257,6 +2282,9 @@ pub enum StaticCond {
     Modified,
     /// `attacking alone`: "it's attacking alone".
     AttackingAlone,
+    /// `attacked or blocked this combat`: "this creature attacked or
+    /// blocked this combat".
+    AttackedOrBlocked,
     /// `blocked`: "this creature is blocked".
     Blocked,
     /// `being blocked`: "at least one creature is blocking this creature".
@@ -3529,6 +3557,16 @@ pub enum Effect {
         count: Num,
         to: Recipient,
     },
+    /// `put up to x +1/+0 counters on this capped 4`: "Put up to X +1/+0
+    /// counters on this creature. This ability can't cause the total
+    /// number of +1/+0 counters on this creature to be greater than
+    /// four."
+    AddCountersCapped {
+        kind: CounterKind,
+        count: Num,
+        to: Recipient,
+        cap: u32,
+    },
     /// `put 1 +1/+1 counter and 1 reach counter on target creature`:
     /// several kinds at once ("Put a +1/+1 counter, a reach counter, and a
     /// deathtouch counter on target creature"), at least two.
@@ -3558,9 +3596,11 @@ pub enum Effect {
         to: Recipient,
     },
     /// `remove 1 counter from target permanent`: "remove a counter from
-    /// target permanent" (of a kind the controller chooses).
+    /// target permanent" (of a kind the controller chooses); `remove up to
+    /// 3 counters from target creature` (`up_to` 3).
     RemoveCounterChosen {
         to: Recipient,
+        up_to: u8,
     },
     ReturnToHand {
         what: Vec<Recipient>,
@@ -3585,6 +3625,11 @@ pub enum Effect {
         /// `with 2 additional +1/+1 counters`: "with two additional
         /// +1/+1 counters on it" (wording only).
         additional: bool,
+        /// `with 1 hexproof counter and 1 indestructible counter`.
+        more: Option<(CounterKind, u32)>,
+        /// `with 1 additional +1/+1 counter if creature`: "If it enters as
+        /// a creature, it enters with an additional +1/+1 counter on it."
+        if_creature: bool,
     },
     Regenerate {
         to: Recipient,
@@ -3740,6 +3785,15 @@ pub enum Effect {
         /// `copy it and new targets`: "copy it and you may choose new
         /// targets for the copy" (one sentence). Wording only.
         and_may: bool,
+    },
+    /// `copy target 1 may cast [free]`: "Copy it. You may cast the copy
+    /// [without paying its mana cost]." (CR 707.12); `then`: "Copy it,
+    /// then you may cast the copy ..."; `may copy`: "You may copy the
+    /// exiled card. If you do, you may cast the copy ...".
+    CastCopy {
+        what: Recipient,
+        free: bool,
+        wording: CopyCastWording,
     },
     /// `this becomes a copy of <what> [with exceptions]`; another subject
     /// (`target artifact becomes ...`, `each other creature becomes ...`)

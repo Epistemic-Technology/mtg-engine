@@ -1,0 +1,8 @@
+card "Ulamog's Reclaimer" {
+  oracle_id 137de343-e3d0-4ccb-b8fc-680024387367
+  cost {4}{U}
+  type Creature — Eldrazi Processor
+  pt 2/5
+  keywords devoid
+  triggered when this enters: you may put 1 card an opponent owns from exile into graveyard chosen; if you do, return target instant or sorcery card from your graveyard to hand
+}

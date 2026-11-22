@@ -1,0 +1,9 @@
+card "Nashi, Moon's Legacy" {
+  oracle_id ffa6c14e-3d8e-47a2-b102-d37538d60ef6
+  cost {B}{G}{U}
+  type Legendary Creature — Rat Shaman
+  pt 3/4
+  keywords menace
+  ward {1}
+  triggered whenever this attacks: exile up to one target legendary or Rat card from your graveyard and copy target 1 may cast
+}

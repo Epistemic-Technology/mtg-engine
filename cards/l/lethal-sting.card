@@ -1,0 +1,7 @@
+card "Lethal Sting" {
+  oracle_id 464749e1-9df2-47d0-8fcd-516f566022b5
+  cost {2}{B}
+  type Sorcery
+  additional cost put 1 -1/-1 counter on creature you control
+  spell: destroy target creature
+}

@@ -1,0 +1,12 @@
+card "Glissa Sunslayer" {
+  oracle_id 8859a692-d107-4de2-9110-4681fc2761c7
+  cost {1}{B}{G}
+  type Legendary Creature — Phyrexian Zombie Elf
+  pt 3/3
+  keywords first strike, deathtouch
+  triggered whenever this deals combat damage to a player: choose one {
+    mode: you draw 1 card and lose 1 life
+    mode: destroy target enchantment
+    mode: remove up to 3 counters from target permanent
+  }
+}

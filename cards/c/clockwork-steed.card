@@ -1,0 +1,10 @@
+card "Clockwork Steed" {
+  oracle_id 1d6a1dab-8724-4b07-b109-c6ba2a7ea1ad
+  cost {4}
+  type Artifact Creature — Horse
+  pt 0/3
+  enters with 4 +1/+0 counters
+  can't be blocked by artifact creature
+  triggered at end of combat if attacked or blocked this combat: remove 1 +1/+0 counter from this
+  activated {X}, {T}, during your upkeep: put up to x +1/+0 counters on this capped 4
+}

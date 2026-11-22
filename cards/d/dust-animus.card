@@ -1,0 +1,9 @@
+card "Dust Animus" {
+  oracle_id 494f8c29-7626-43ed-b0b8-fb9afd4cd5d3
+  cost {1}{W}
+  type Creature — Spirit
+  pt 2/3
+  keywords flying
+  if you control 5 untapped land, enters with 2 +1/+1 counters and 1 lifelink counter
+  plot {1}{W}
+}

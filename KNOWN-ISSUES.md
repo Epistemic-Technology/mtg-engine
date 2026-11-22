@@ -37,7 +37,11 @@ wrong thing in some case.
   first other matching permanent, which may be an untapped land; the
   creatures tapped for crew and saddle (the fewest with enough power),
   which decides which "saddles a Mount or crews a Vehicle" trigger
-  (Canyon Vaulter, Reckless Velocitaur) fires; several
+  (Canyon Vaulter, Reckless Velocitaur) fires; a
+  processor's cost ("Put a card an opponent owns from exile into that
+  player's graveyard", Oracle of Dust: the longest exiled); "Remove a
+  +1/+1 counter from a creature you control" as a cost (the creature with
+  the most); several
   mechanics from the first wave have the engine choose where the player
   should.
 - **Thousand-Year Storm:** the "cast before it this turn" count has an
@@ -45,11 +49,6 @@ wrong thing in some case.
 - **Token-creation replacements apply in a fixed order** (tokens
   instead of others, then added tokens, then doubling) rather than the
   order the player chooses (CR 616.1).
-- **A copy of an X/X token is 0/0.** "Create an X/X ... token, where X
-  is ..." (`sized`, Tumbleweed Rising, Slime Molding) gives the token base
-  power and toughness X/X with a layer-7b effect, not as a copiable value
-  (CR 111.3, 707.2), so a Clone or populate copying it gets the
-  definition's 0/0.
 - **Reflexive trigger on a token:** "it" may read the token where the
   text means the triggering object.
 - **A player's protection from a color** (Seht's Tiger) stops targeting
@@ -71,12 +70,19 @@ wrong thing in some case.
 - **"Each Dragon you control enters with an additional +1/+1 counter"**
   (`Replaces::OthersEnter`) judges the entering permanent by its printed
   card, not as it would exist on the battlefield (CR 614.12), and an
-  entering permanent carries only one counter kind, so another kind it
-  would enter with drops the additional counters (Dragonstorm Globe,
-  Gev, Giada).
+  entering permanent carries counters of at most two kinds
+  (`Enter::more`), so a third kind is dropped (Dragonstorm Globe, Gev,
+  Giada).
 - **Life lost by exchanging life totals** (CR 701.12c) changes the
   total directly, so a life-loss replacement (Bloodletter of Aclazotz)
   doesn't see it. No card in the corpus combines them.
+- **Choosing the order of a permanent spell's own "enters" replacements
+  panics** ("choice Replacement ... does not fit flow Priority") as it
+  resolves. "Enters with counters" replacements commute and skip the
+  choice; two that don't (none known in the corpus) would hit it.
+- **"If it enters as a creature"** (Teferi's Time Twist) is judged by the
+  returned card's printed types, not as it would exist on the
+  battlefield (CR 614.12).
 - **Mana kept "until end of turn" and firebending's mana** assume the
   player's other mana is spent first (`PlayerState::turn_mana`,
   `combat_mana`): spending the kept mana in an earlier step leaves other

@@ -1,0 +1,7 @@
+card "Ruin Processor" {
+  oracle_id 1cf82e44-99dd-48d3-a272-8df9835ebc0d
+  cost {7}
+  type Creature — Eldrazi Processor
+  pt 7/8
+  triggered when you cast this: you may put 1 card an opponent owns from exile into graveyard chosen; if you do, you gain 5 life
+}

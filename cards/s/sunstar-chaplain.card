@@ -1,0 +1,8 @@
+card "Sunstar Chaplain" {
+  oracle_id de6b26e4-8700-490f-9df2-dac430463274
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 3/2
+  triggered at beginning of your end step if you control 2 tapped creature: put 1 +1/+1 counter on target creature you control
+  activated {2}, remove 1 +1/+1 counter from creature you control: tap target artifact or creature
+}

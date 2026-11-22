@@ -246,6 +246,7 @@ fn pass(
         let o = &state.objects[*id];
         o.counters.is_empty()
             && o.except.is_none()
+            && o.sized == 0
             && !o.riot_haste()
             && !o.suspected()
             && !matches!(

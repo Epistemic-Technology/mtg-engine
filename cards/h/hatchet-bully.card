@@ -1,0 +1,7 @@
+card "Hatchet Bully" {
+  oracle_id 860affd6-8f48-4630-b613-d147299b0355
+  cost {3}{R}
+  type Creature — Goblin Warrior
+  pt 3/3
+  activated {2}{R}, {T}, put 1 -1/-1 counter on creature you control: deal 2 damage to any target
+}

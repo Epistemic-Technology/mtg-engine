@@ -1502,7 +1502,42 @@ impl Compiler<'_> {
             }
             // "... and with first strike": abilities the permanent has as
             // long as it was kicked (fixed as it enters, CR 702.33c).
-            if let Ability::Mechanic(Mechanic::KickedWith(_, ks)) = a
+            // "two +1/+1 counters and a lifelink counter": a second
+            // replacement for the second kind.
+            if let Ability::EntersWithIf {
+                cond,
+                more: Some((n, kind)),
+                ..
+            } = a
+            {
+                let c = self.static_cond(cond);
+                let cond = self.pool.intern_condition(c);
+                b = b.ability(AbilityDef::Replacement(ReplacementAbility {
+                    replaces: mtg_core::card::Replaces::Enters,
+                    replacement: mtg_core::card::Replacement::EnterWithCountersIf {
+                        cond,
+                        kind: *kind,
+                        n: *n,
+                    },
+                    then: Vec::new(),
+                    condition: None,
+                }));
+            }
+            // "... and a trample counter": a second replacement.
+            if let Ability::Mechanic(Mechanic::KickedWith(_, Some((n, kind)), _)) = a {
+                let cond = self.pool.intern_condition(StaticCondition::Kicked);
+                b = b.ability(AbilityDef::Replacement(ReplacementAbility {
+                    replaces: mtg_core::card::Replaces::Enters,
+                    replacement: mtg_core::card::Replacement::EnterWithCountersIf {
+                        cond,
+                        kind: *kind,
+                        n: *n,
+                    },
+                    then: Vec::new(),
+                    condition: None,
+                }));
+            }
+            if let Ability::Mechanic(Mechanic::KickedWith(_, _, ks)) = a
                 && !ks.is_empty()
             {
                 b = b.ability(AbilityDef::Static(StaticAbility {
@@ -2208,6 +2243,7 @@ impl Compiler<'_> {
             })),
             StaticCond::Modified => StaticCondition::SourceModified,
             StaticCond::AttackingAlone => StaticCondition::SourceAttackingAlone,
+            StaticCond::AttackedOrBlocked => StaticCondition::SourceAttackedOrBlocked,
             StaticCond::Blocked => StaticCondition::SourceBlocked,
             StaticCond::BeingBlocked => StaticCondition::SourceBeingBlocked,
             StaticCond::AttachedIs(filter) => StaticCondition::AttachedIs(self.filter(filter)),
@@ -2477,6 +2513,9 @@ impl Compiler<'_> {
             exert: c.exert,
             discard_hand: c.discard_hand,
             life_x: c.life_x,
+            blight_put: c.blight_put,
+            process: c.process,
+            remove_from_creature: c.remove_from_creature,
             chosen: c.chosen,
             life: c.life,
             discard: c.discard,
@@ -2866,6 +2905,17 @@ impl Compiler<'_> {
                 count: *count,
                 who: who.map_or(CoreRecipient::You, r),
             }),
+            Effect::AddCountersCapped {
+                kind,
+                count,
+                to,
+                cap,
+            } => out.push(CoreEffect::AddCountersCapped {
+                kind: *kind,
+                count: *count,
+                to: r(*to),
+                cap: *cap,
+            }),
             Effect::AddCounters { kind, count, to } => out.push(CoreEffect::AddCounters {
                 kind: *kind,
                 count: *count,
@@ -2900,8 +2950,11 @@ impl Compiler<'_> {
                 count: *count,
                 to: r(*to),
             }),
-            Effect::RemoveCounterChosen { to } => {
-                out.push(CoreEffect::RemoveCounterChosen { to: r(*to) });
+            Effect::RemoveCounterChosen { to, up_to } => {
+                out.push(CoreEffect::RemoveCounterChosen {
+                    to: r(*to),
+                    up_to: *up_to,
+                });
             }
             Effect::RemoveAllCounters { to } => {
                 out.push(CoreEffect::RemoveAllCounters { to: r(*to) });
@@ -2920,6 +2973,8 @@ impl Compiler<'_> {
                 put: _,
                 attacking,
                 additional: _,
+                more,
+                if_creature,
             } => {
                 out.push(CoreEffect::ReturnToBattlefield {
                     what: r(*what),
@@ -2927,6 +2982,8 @@ impl Compiler<'_> {
                     tapped: *tapped,
                     under_you: *under_you,
                     attached: attached.map(r),
+                    more: *more,
+                    if_creature: *if_creature,
                 });
                 if *attacking {
                     out.push(CoreEffect::EnteredAttack);
@@ -3054,6 +3111,10 @@ impl Compiler<'_> {
                     count: *count,
                 });
             }
+            Effect::CastCopy { what, free, .. } => out.push(CoreEffect::CastCopy {
+                what: r(*what),
+                free: *free,
+            }),
             Effect::CopySpells {
                 what,
                 times,
@@ -5227,7 +5288,7 @@ impl Compiler<'_> {
                 }
                 Mechanic::Bloodthirst(n)
                 | Mechanic::EscapesWith(n)
-                | Mechanic::KickedWith(n, _) => {
+                | Mechanic::KickedWith(n, ..) => {
                     let cond = self.pool.intern_condition(match m {
                         Mechanic::EscapesWith(_) => StaticCondition::Escaped,
                         Mechanic::KickedWith(..) => StaticCondition::Kicked,
@@ -6644,6 +6705,8 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         put: false,
                         attacking: false,
                         additional: false,
+                        more: None,
+                        if_creature: false,
                     },
                     E::Grant {
                         keywords: vec![mtg_core::card::Keyword::Haste],

@@ -1,0 +1,8 @@
+card "Ferropede" {
+  oracle_id 9ade7c7b-7d28-4d79-94b8-20c9c5b8369a
+  cost {3}
+  type Artifact Creature — Insect
+  pt 1/1
+  keywords can't be blocked
+  triggered whenever this deals combat damage to a player: you may remove 1 counter from target permanent
+}
