@@ -94,3 +94,29 @@ scenario "plus X, where X is its power: not combat damage, nor damage to you" {
   assert life A 18
   assert life B 18
 }
+
+scenario "the next time damage would be dealt to target creature this turn, destroy it instead" {
+  battlefield A: "Kill-Suit Cultist", "Swamp", 2 "Mountain"
+  battlefield B: "Serra Angel", "Grizzly Bears"
+  hand A: "Shock", "Shock"
+  turn 1 A: activate "Kill-Suit Cultist" targeting "Serra Angel"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Kill-Suit Cultist"
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "the next time damage would be dealt: only this turn" {
+  battlefield A: "Kill-Suit Cultist", "Swamp", "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Shock"
+  turn 1 A: activate "Kill-Suit Cultist" targeting "Serra Angel"
+  turn 3 A: cast "Shock" targeting "Serra Angel"
+  run_to turn 3 postcombat_main
+  assert battlefield B contains "Serra Angel"
+  assert damage "Serra Angel" 2
+}

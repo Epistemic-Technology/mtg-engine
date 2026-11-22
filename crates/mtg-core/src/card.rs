@@ -5373,6 +5373,10 @@ pub enum Replacement {
     /// shield that prevents all of one damage event, then is used up
     /// (CR 615.7). Stored effects only.
     PreventNextTime,
+    /// "The next time damage would be dealt to target creature this turn,
+    /// destroy that creature instead." (Kill-Suit Cultist): a one-use
+    /// replacement of one damage event to a permanent (CR 614.1a).
+    DestroyNextTime,
     /// The damage is dealt to `to` instead (CR 614.9): all of it, or the
     /// next `next` damage ("The next 1 damage that would be dealt to this
     /// creature this turn is dealt to target creature you control

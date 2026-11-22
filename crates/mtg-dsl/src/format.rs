@@ -3090,6 +3090,7 @@ fn outcome(o: &Outcome) -> String {
         Outcome::UmbraArmor => "umbra armor".to_string(),
         Outcome::RedirectToAttached => "redirect to attached".to_string(),
         Outcome::PreventNextTime => "prevent next time".to_string(),
+        Outcome::DestroyNextTime => "destroy next time".to_string(),
         Outcome::Redirect { to, next } => {
             let next = next.map_or(String::new(), |n| format!("next {n} "));
             match to {

@@ -13242,6 +13242,10 @@ impl P {
                 self.eat_word("it");
                 Outcome::Instead(Zone::Exile)
             }
+            "destroy" if self.at_words(&["next", "time"]) => {
+                self.pos += 2;
+                Outcome::DestroyNextTime
+            }
             "draw" => {
                 self.expect_word("two")?;
                 self.eat_word("cards");

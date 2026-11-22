@@ -1227,6 +1227,9 @@ would deal damage to you, ...");
 with them (Phantom Tiger), "If damage would be dealt to ..., prevent that
 damage.".
 
+`this turn, replace damage to target creature: destroy next time` prints
+"The next time damage would be dealt to target creature this turn, destroy
+that creature instead." (a one-use replacement: the damage isn't dealt).
 Outcomes: `prevent`, `prevent next 4`, `double`, `plus one`, `exile`,
 `draw two`, `win`, `tapped`, `with 2 +1/+1 counters`, `regenerate`,
 `redirect to attached`, `umbra armor` (`replace destroy enchanted: umbra

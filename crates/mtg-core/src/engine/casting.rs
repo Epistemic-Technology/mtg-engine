@@ -13656,7 +13656,7 @@ impl GameState {
         let remaining = match r.replacement {
             Replacement::PreventNext(n) => self.eval_num(n, ctx),
             Replacement::Redirect { next: Some(n), .. } => n,
-            Replacement::PreventNextTime => 1,
+            Replacement::PreventNextTime | Replacement::DestroyNextTime => 1,
             _ => 0,
         };
         let remaining = share.unwrap_or(remaining);

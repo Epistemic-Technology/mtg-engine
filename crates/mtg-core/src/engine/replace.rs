@@ -494,6 +494,7 @@ impl GameState {
                 e.ability.replacement,
                 Replacement::PreventNext(_)
                     | Replacement::PreventNextTime
+                    | Replacement::DestroyNextTime
                     | Replacement::Regenerate
                     | Replacement::Redirect { next: Some(_), .. }
             ) && e.remaining == 0
@@ -959,6 +960,22 @@ impl GameState {
                     amount: amount - prevented,
                     combat,
                 })
+            }
+            // "destroy that creature instead": the damage isn't dealt, and
+            // the shield is used up (CR 614.1a).
+            (
+                Replacement::DestroyNextTime,
+                Proposed::Damage {
+                    target: Target::Object(id),
+                    ..
+                },
+            ) => {
+                if let Key::Stored(i) = c.key {
+                    self.replacements[i].remaining = 0;
+                }
+                self.emit(Event::Replaced { by: c.def });
+                self.destroy(id);
+                Outcome::Nothing
             }
             (
                 Replacement::PreventNextTime,

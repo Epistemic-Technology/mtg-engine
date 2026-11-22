@@ -10357,6 +10357,15 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             let turn = if this_turn { " this turn" } else { "" };
             format!("The next time {by} would deal {kind}{to}{turn}, prevent that damage.")
         }
+        // "The next time damage would be dealt to target creature this
+        // turn, destroy that creature instead." (Kill-Suit Cultist).
+        (Replaces::Damage { from: None, to, .. }, Outcome::DestroyNextTime) => {
+            let to = affects_to(to, ctx);
+            let turn = if this_turn { " this turn" } else { "" };
+            format!(
+                "The next time damage would be dealt to {to}{turn}, destroy that creature instead."
+            )
+        }
         // CR 614.9: "The next 1 damage that would be dealt to this creature
         // this turn is dealt to target creature you control instead."
         (
