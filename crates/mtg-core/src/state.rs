@@ -3456,6 +3456,8 @@ impl GameState {
                     .get(&source)
                     .is_some_and(|l| l.object.alt == AltCast::WebSlinging),
             },
+            // The vote is the resolution's (`IfCondition` reads it).
+            C::MoreVotes { .. } => false,
             // CR 702.76a: the spell (cast for the card's alternative cost)
             // or the permanent it became.
             C::ProwlPaid => match self.objects.get(source) {

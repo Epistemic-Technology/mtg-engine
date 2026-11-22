@@ -2689,6 +2689,10 @@ turn for each card named Growth Cycle in your graveyard."). After a
 condition, `also those creatures gain vigilance` prints "those creatures
 also gain vigilance".
 
+After a vote, `if more votes for death, <sentence>` is "If death gets
+more votes, ..." and `if more votes for torture or tied, <sentence>` "If
+torture gets more votes or the vote is tied, ..." (Tyrant's Choice): the
+choice got more votes than any other (or at least as many).
 `vote sprout or harvest` is "starting with you, each player votes for
 sprout or harvest" (CR 701.38): each player in turn order from the
 controller votes for one of the two words (as a `choose` among them), and

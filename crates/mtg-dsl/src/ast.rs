@@ -2343,6 +2343,14 @@ pub enum StaticCond {
     /// `prowl paid`: "its prowl cost was paid", "this spell's prowl cost
     /// was paid" (CR 702.76a).
     ProwlPaid,
+    /// `more votes for death`: "death gets more votes"; `more votes for
+    /// torture or tied`: "torture gets more votes or the vote is tied"
+    /// (CR 701.38), after the ability's vote.
+    MoreVotes {
+        word: String,
+        index: u8,
+        ties: bool,
+    },
     /// `web slung`, `he web slung`, `she web slung`, `they web slung`:
     /// "it was (he was, she was, they were) cast using web-slinging" (CR
     /// 702.188). The pronoun: 0 it, 1 he, 2 she, 3 they.

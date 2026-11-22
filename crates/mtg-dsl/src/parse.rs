@@ -3812,6 +3812,19 @@ impl P {
         if self.eat_words(&["prowl", "paid"]) {
             return Ok(StaticCond::ProwlPaid);
         }
+        // CR 701.38: `more votes for death [or tied]`.
+        if self.eat_words(&["more", "votes", "for"]) {
+            let word = self.word()?;
+            let Some(index) = self.votes.iter().position(|w| *w == word) else {
+                return self.fail(format!("`{word}` is not a choice of the ability's vote"));
+            };
+            let ties = self.eat_words(&["or", "tied"]);
+            return Ok(StaticCond::MoreVotes {
+                word,
+                index: u8::try_from(index).unwrap_or(u8::MAX),
+                ties,
+            });
+        }
         if self.eat_word("spent") {
             return self.spent_cond();
         }

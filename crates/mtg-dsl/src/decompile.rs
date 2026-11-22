@@ -554,6 +554,7 @@ impl Decompiler<'_> {
             StaticCondition::TotalToughness(n) => StaticCond::TotalToughness(*n),
             StaticCondition::SneakPaid(p) => StaticCond::SneakPaid(*p),
             StaticCondition::ProwlPaid => StaticCond::ProwlPaid,
+            StaticCondition::MoreVotes { .. } => unreachable!("a vote's words are the card's"),
             StaticCondition::WebSlung(p) => StaticCond::WebSlung(*p),
             StaticCondition::OptionalCostPaid => StaticCond::EvidenceCollected,
             StaticCondition::OffspringPaid => unreachable!("only offspring's trigger"),

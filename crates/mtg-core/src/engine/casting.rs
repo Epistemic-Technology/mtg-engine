@@ -10645,7 +10645,28 @@ impl GameState {
             }
             Effect::IfCondition(cond, inner) => {
                 let c = self.pool.condition(*cond).clone();
-                if self.condition_for(&c, ctx.controller, ctx.source, ctx.trigger_obj) {
+                // CR 701.38: "If death gets more votes", the tally of this
+                // resolution's vote.
+                let holds = match c {
+                    crate::card::StaticCondition::MoreVotes { index, ties } => {
+                        match &ctx.chosen {
+                            Chosen::Votes(v) => {
+                                let mine = v.get(usize::from(index)).copied().unwrap_or(0);
+                                let best = v
+                                    .iter()
+                                    .enumerate()
+                                    .filter(|(i, _)| *i != usize::from(index))
+                                    .map(|(_, n)| *n)
+                                    .max()
+                                    .unwrap_or(0);
+                                mine > best || (ties && mine == best)
+                            }
+                            _ => false,
+                        }
+                    }
+                    _ => self.condition_for(&c, ctx.controller, ctx.source, ctx.trigger_obj),
+                };
+                if holds {
                     // For an "Otherwise" after it; optional actions inside
                     // set it again.
                     ctx.did = true;

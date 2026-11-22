@@ -2642,6 +2642,11 @@ pub enum StaticCondition {
     /// "if its prowl cost was paid", "if this spell's prowl cost was paid"
     /// (CR 702.76a).
     ProwlPaid,
+    /// "If death gets more votes" (CR 701.38): the resolution's vote gave
+    /// its `index`th choice more votes than any other; with `ties`, "or
+    /// the vote is tied", at least as many. Judged only by an
+    /// `Effect::IfCondition` after the vote; elsewhere false.
+    MoreVotes { index: u8, ties: bool },
     /// Prowl's condition (CR 702.76a): "if you dealt combat damage to a
     /// player this turn with a [creature of one of these types]".
     ProwlDamage(Vec<Subtype>),

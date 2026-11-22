@@ -1,0 +1,6 @@
+card "Tyrant's Choice" {
+  oracle_id ee7d2c2f-e32f-4be6-82ac-ff1e32055376
+  cost {1}{B}
+  type Sorcery
+  label "Will of the council" spell: vote death or torture; if more votes for death, each opponent sacrifices 1 creature; if more votes for torture or tied, each opponent loses 4 life
+}

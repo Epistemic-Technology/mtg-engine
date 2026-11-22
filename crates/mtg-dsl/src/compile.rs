@@ -2013,6 +2013,10 @@ impl Compiler<'_> {
             StaticCond::Impending => StaticCondition::Impending,
             StaticCond::SneakPaid(p) => StaticCondition::SneakPaid(*p),
             StaticCond::ProwlPaid => StaticCondition::ProwlPaid,
+            StaticCond::MoreVotes { index, ties, .. } => StaticCondition::MoreVotes {
+                index: *index,
+                ties: *ties,
+            },
             StaticCond::WebSlung(p) => StaticCondition::WebSlung(*p),
             StaticCond::EvidenceCollected | StaticCond::AdditionalCostPaid => {
                 StaticCondition::OptionalCostPaid

@@ -11989,6 +11989,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 _ => "it was",
             }
         ),
+        StaticCond::MoreVotes { word, ties, .. } => format!(
+            "{word} gets more votes{}",
+            if *ties { " or the vote is tied" } else { "" }
+        ),
         StaticCond::ProwlPaid if is_spell(card) => "this spell's prowl cost was paid".to_string(),
         StaticCond::ProwlPaid => "its prowl cost was paid".to_string(),
         StaticCond::SneakPaid(_) if is_spell(card) => {
