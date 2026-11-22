@@ -4733,6 +4733,14 @@ pub enum Effect {
     /// the controller's pool stays as steps end, until the cleanup step
     /// ends.
     KeepMana(Vec<Effect>),
+    /// "[add mana]. Spend this mana only to cast creature spells." (CR
+    /// 106.6): the mana these effects add goes into the controller's pool
+    /// as restricted mana (`GameState::restricted_pool`), each unit
+    /// spendable only as the restriction allows.
+    SpendOnly {
+        effects: Vec<Effect>,
+        restriction: Box<ManaRestriction>,
+    },
     /// "unless you waterbend {2}" (CR 701.67a): pay this generic mana,
     /// each {1} by mana or by tapping an untapped artifact or creature the
     /// controller controls; inside "you may" or "unless", like `Pay`.
@@ -5102,6 +5110,7 @@ impl Effect {
             | Effect::AddManaCombination { .. }
             | Effect::AddManaLandCould { .. } => true,
             Effect::Instead { base, alt, .. } => base.iter().chain(alt).any(Effect::adds_mana),
+            Effect::SpendOnly { effects, .. } => effects.iter().any(Effect::adds_mana),
             _ => false,
         }
     }
@@ -5148,6 +5157,7 @@ impl Effect {
                 | Effect::AddManaCombination { .. }
                 | Effect::AddManaLandCould { .. }
                 | Effect::KeepMana(_)
+                | Effect::SpendOnly { .. }
                 | Effect::SacrificeChosen { .. }
                 | Effect::ReturnChosen { .. }
                 | Effect::ExileChosen { .. }
@@ -6808,6 +6818,29 @@ pub struct ManaRestriction {
     pub disturb: bool,
     /// How the sentence reads; `CantCast` also turns `spells` around.
     pub wording: SpendWording,
+    /// "artifact spells or activate abilities of artifacts": the plural
+    /// wording, and how alternatives join. Wording only.
+    #[serde(default)]
+    pub plural: SpendPlural,
+    /// "abilities of Elementals", "an ability of a creature": the source
+    /// named without "source". Wording only.
+    #[serde(default)]
+    pub bare: bool,
+}
+
+/// Whether a `ManaRestriction` reads in the plural ("Spend this mana only
+/// to cast instant and sorcery spells."), and how its alternatives join.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum SpendPlural {
+    /// "an artifact spell", "an ability".
+    #[default]
+    One,
+    /// "instant or sorcery spells", "abilities".
+    Or,
+    /// "instant and sorcery spells".
+    And,
+    /// "instant and/or sorcery spells".
+    AndOr,
 }
 
 /// The sentence of a `ManaRestriction`.
@@ -6826,6 +6859,9 @@ pub enum SpendWording {
     /// "This mana can't be spent to cast a nonartifact spell.": anything
     /// but casting a spell `spells` matches.
     CantCast,
+    /// "Spend this mana only to cast Elf spells and activate abilities of
+    /// Elf sources." (the same rule as `CastFirst`).
+    CastAnd,
 }
 
 impl ManaRestriction {
@@ -7393,7 +7429,8 @@ impl AbilityDef {
             | Effect::OneOf(inner)
             | Effect::Lasting { effects: inner, .. }
             | Effect::UnlessPays { effects: inner, .. }
-            | Effect::UnlessSacrifices { effects: inner, .. } = e
+            | Effect::UnlessSacrifices { effects: inner, .. }
+            | Effect::SpendOnly { effects: inner, .. } = e
             {
                 for i in inner {
                     walk(i, out);

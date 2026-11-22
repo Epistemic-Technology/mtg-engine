@@ -196,6 +196,20 @@ impl Decompiler<'_> {
         }
     }
 
+    /// What restricted mana may be spent on (CR 106.6).
+    fn mana_restriction(&self, r: &mtg_core::card::ManaRestriction) -> crate::ast::ManaRestriction {
+        crate::ast::ManaRestriction {
+            spells: r.spells.as_ref().map(|f| self.filter(f)),
+            abilities: r.abilities,
+            ability_source: r.ability_source.as_ref().map(|f| self.filter(f)),
+            foretell: r.foretell,
+            disturb: r.disturb,
+            wording: r.wording,
+            plural: r.plural,
+            bare: r.bare,
+        }
+    }
+
     #[allow(clippy::too_many_lines)] // one field per line
     fn filter(&self, f: &ObjFilter) -> Filter {
         Filter {
@@ -1320,6 +1334,13 @@ impl Decompiler<'_> {
             },
             CoreEffect::IfKicked(inner) => Effect::IfKicked(self.sentences(inner)),
             CoreEffect::KeepMana(inner) => Effect::KeepMana(self.sentences(inner)),
+            CoreEffect::SpendOnly {
+                effects,
+                restriction,
+            } => Effect::SpendOnly {
+                inner: self.sentences(effects),
+                restriction: self.mana_restriction(restriction),
+            },
             CoreEffect::EachPutsFromGraveyard { who, filter } => Effect::EachPutsFromGraveyard {
                 who: Self::recipient(*who),
                 filter: self.filter(filter),
@@ -2390,14 +2411,7 @@ impl Decompiler<'_> {
             AbilityDef::SacForMana(m) => Ability::SacMana(*m),
             AbilityDef::RestrictedMana { mana, restriction } => Ability::RestrictedMana {
                 mana: *mana,
-                restriction: crate::ast::ManaRestriction {
-                    spells: restriction.spells.as_ref().map(|f| self.filter(f)),
-                    abilities: restriction.abilities,
-                    ability_source: restriction.ability_source.as_ref().map(|f| self.filter(f)),
-                    foretell: restriction.foretell,
-                    disturb: restriction.disturb,
-                    wording: restriction.wording,
-                },
+                restriction: self.mana_restriction(restriction),
             },
             AbilityDef::XManaColor(c) => Ability::XManaColor(*c),
             AbilityDef::BlockRule(r) => Ability::BlockRule(match r {

@@ -1,0 +1,6 @@
+card "Corrupted Crossroads" {
+  oracle_id 6276a985-7630-476d-a94f-6c6adc88f6c4
+  type Land
+  mana {C}
+  activated {T}, pay 1 life: add any only to cast with devoid spell
+}

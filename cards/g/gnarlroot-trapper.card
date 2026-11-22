@@ -1,0 +1,8 @@
+card "Gnarlroot Trapper" {
+  oracle_id d3cc22ea-2ccf-409b-b471-51adb63c7fda
+  cost {B}
+  type Creature — Elf Druid
+  pt 1/1
+  activated {T}, pay 1 life: add {G} only to cast Elf creature spell
+  activated {T}: target attacking Elf you control gains deathtouch until end of turn
+}

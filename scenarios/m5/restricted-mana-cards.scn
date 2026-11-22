@@ -1,0 +1,511 @@
+scenario "Smokebraider's mana casts an Elemental" {
+  battlefield A: "Smokebraider", "Mountain"
+  hand A: "Arc Runner"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Smokebraider"
+  turn 2 A: choose red
+  turn 2 A: choose red
+  turn 2 A: cast "Arc Runner"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Arc Runner"
+}
+
+scenario "Smokebraider's mana can't cast a non-Elemental" {
+  battlefield A: "Smokebraider", "Mountain", "Mountain"
+  hand A: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Smokebraider"
+  turn 2 A: choose red
+  turn 2 A: choose red
+  illegal turn 2 A: cast "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Flamebraider's mana casts an Elemental" {
+  battlefield A: "Flamebraider", "Mountain"
+  hand A: "Arc Runner"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Flamebraider"
+  turn 2 A: choose red
+  turn 2 A: choose red
+  turn 2 A: cast "Arc Runner"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Arc Runner"
+}
+
+scenario "Hydro-Channeler's second ability makes any color for an instant" {
+  battlefield A: "Hydro-Channeler", "Island"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Hydro-Channeler"
+  turn 2 A: choose red
+  turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 18
+}
+
+scenario "Hydro-Channeler's mana can't cast a creature" {
+  battlefield A: "Hydro-Channeler", "Island", "Island"
+  hand A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Hydro-Channeler"
+  turn 2 A: choose green
+  illegal turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Vedalken Engineer's two mana cast an artifact" {
+  battlefield A: "Vedalken Engineer"
+  hand A: "Eye of Vecna"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Vedalken Engineer"
+  turn 2 A: choose blue
+  turn 2 A: cast "Eye of Vecna"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Eye of Vecna"
+}
+
+scenario "Vedalken Engineer's mana can't cast a creature" {
+  battlefield A: "Vedalken Engineer"
+  hand A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Vedalken Engineer"
+  turn 2 A: choose green
+  illegal turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Abstract Paintmage's mana casts an instant in the main phase" {
+  battlefield A: "Abstract Paintmage"
+  hand A: "Shock"
+  start turn 2 A upkeep
+  turn 2 A: wait
+  turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 18
+}
+
+scenario "Abstract Paintmage's mana is gone by combat" {
+  battlefield A: "Abstract Paintmage"
+  hand A: "Shock"
+  start turn 2 A upkeep
+  illegal turn 2 begin_combat A: cast "Shock" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 20
+}
+
+scenario "Intrepid Stablemaster's mana can't cast a creature that isn't a Mount" {
+  battlefield A: "Intrepid Stablemaster"
+  hand A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Intrepid Stablemaster"
+  turn 2 A: choose green
+  illegal turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Hermitic Herbalist's two mana can't cast a non-Lesson" {
+  battlefield A: "Hermitic Herbalist"
+  hand A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Hermitic Herbalist"
+  turn 2 A: choose green
+  turn 2 A: choose green
+  illegal turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Steelswarm Operator's {U}{U} pays an artifact's ability" {
+  battlefield A: "Steelswarm Operator", "Dragon Engine"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Steelswarm Operator" ability 1
+  turn 2 A: activate "Dragon Engine"
+  run_to turn 2 postcombat_main
+  assert power "Dragon Engine" 2
+}
+
+scenario "Steelswarm Operator's {U}{U} can't pay a creature's ability" {
+  battlefield A: "Steelswarm Operator", "Canyon Crab"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Steelswarm Operator" ability 1
+  illegal turn 2 A: activate "Canyon Crab"
+  run_to turn 2 postcombat_main
+  assert power "Canyon Crab" 0
+}
+
+scenario "Cormela's mana casts an instant" {
+  battlefield A: "Cormela, Glamour Thief", "Island"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Cormela, Glamour Thief"
+  turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 18
+}
+
+scenario "Cormela's mana can't cast a creature" {
+  battlefield A: "Cormela, Glamour Thief", "Island"
+  hand A: "Blood Burglar"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Cormela, Glamour Thief"
+  illegal turn 2 A: cast "Blood Burglar"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Blood Burglar"
+}
+
+scenario "Eldrazi Temple's {C}{C} can't cast a colorless artifact that isn't an Eldrazi" {
+  battlefield A: "Eldrazi Temple"
+  hand A: "Eye of Vecna"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Eldrazi Temple"
+  illegal turn 2 A: cast "Eye of Vecna"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Eye of Vecna"
+}
+
+scenario "Galazeth Prismari's artifacts make mana for instants" {
+  battlefield A: "Galazeth Prismari", "Eye of Vecna"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Eye of Vecna"
+  turn 2 A: choose red
+  turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 18
+}
+
+scenario "Galazeth Prismari's artifacts' mana can't cast a creature" {
+  battlefield A: "Galazeth Prismari", "Eye of Vecna", "Forest"
+  hand A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Eye of Vecna"
+  turn 2 A: choose green
+  illegal turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Geosurge's seven {R} cast creatures" {
+  battlefield A: "Mountain", "Mountain", "Mountain", "Mountain"
+  hand A: "Geosurge", "Hill Giant", "Arc Runner"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Geosurge"
+  turn 1 A: cast "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Arc Runner"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Arc Runner"
+}
+
+scenario "Geosurge's mana can't cast an instant" {
+  battlefield A: "Mountain", "Mountain", "Mountain", "Mountain"
+  hand A: "Geosurge", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Geosurge"
+  illegal turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Gnarlroot Trapper pays 1 life for an Elf's {G}" {
+  battlefield A: "Gnarlroot Trapper"
+  hand A: "Arbor Elf"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Gnarlroot Trapper" ability 1
+  turn 2 A: cast "Arbor Elf"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Arbor Elf"
+  assert life A 19
+}
+
+scenario "Gnarlroot Trapper's {G} can't cast Giant Growth" {
+  battlefield A: "Gnarlroot Trapper", "Grizzly Bears"
+  hand A: "Giant Growth"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Gnarlroot Trapper" ability 1
+  illegal turn 2 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Giant Growth"
+}
+
+scenario "Interplanar Beacon's mana casts a planeswalker, and gains 1 life" {
+  battlefield A: "Interplanar Beacon", "Plains"
+  hand A: "Ajani Resolute"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Interplanar Beacon"
+  turn 1 A: choose white
+  turn 1 A: choose blue
+  turn 1 A: cast "Ajani Resolute"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ajani Resolute"
+  assert life A 21
+}
+
+scenario "Interplanar Beacon's mana can't cast a creature" {
+  battlefield A: "Interplanar Beacon", "Plains"
+  hand A: "Adelbert Steiner"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Interplanar Beacon"
+  turn 1 A: choose white
+  turn 1 A: choose blue
+  illegal turn 1 A: cast "Adelbert Steiner"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Adelbert Steiner"
+}
+
+scenario "Myr Reservoir's mana casts a Myr" {
+  battlefield A: "Myr Reservoir"
+  hand A: "Alpha Myr"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Myr Reservoir" ability 1
+  turn 1 A: cast "Alpha Myr"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Alpha Myr"
+}
+
+scenario "Myr Reservoir's mana can't cast another artifact" {
+  battlefield A: "Myr Reservoir"
+  hand A: "Eye of Vecna"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Myr Reservoir" ability 1
+  illegal turn 1 A: cast "Eye of Vecna"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Eye of Vecna"
+}
+
+scenario "Power Depot pays for an artifact" {
+  battlefield A: "Power Depot", "Power Depot"
+  hand A: "Eye of Vecna"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Eye of Vecna"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Eye of Vecna"
+}
+
+scenario "Power Depot's colored mana can't cast a creature" {
+  battlefield A: "Power Depot", "Power Depot"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Sarkhan, Fireblood's mana casts a Dragon" {
+  battlefield A: "Sarkhan, Fireblood", "Mountain", "Mountain"
+  hand A: "Archwing Dragon"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sarkhan, Fireblood" ability 2
+  turn 1 A: choose red
+  turn 1 A: choose red
+  turn 1 A: cast "Archwing Dragon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Archwing Dragon"
+  assert counters "Sarkhan, Fireblood" loyalty 4
+}
+
+scenario "Sarkhan, Fireblood's mana can't cast another creature" {
+  battlefield A: "Sarkhan, Fireblood", "Mountain", "Mountain"
+  hand A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sarkhan, Fireblood" ability 2
+  turn 1 A: choose red
+  turn 1 A: choose red
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Shrine of the Forsaken Gods makes {C}{C} for a colorless spell with seven lands" {
+  battlefield A: "Shrine of the Forsaken Gods", "Plains", "Plains", "Plains", "Plains", "Plains", "Plains"
+  hand A: "Eye of Vecna"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Shrine of the Forsaken Gods"
+  turn 1 A: cast "Eye of Vecna"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Eye of Vecna"
+  assert untapped newest "Plains"
+}
+
+scenario "Shrine of the Forsaken Gods needs seven lands" {
+  battlefield A: "Shrine of the Forsaken Gods", "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Shrine of the Forsaken Gods"
+  run_to turn 1 postcombat_main
+  assert untapped "Shrine of the Forsaken Gods"
+}
+
+scenario "Somberwald Sage's three mana cast a creature" {
+  battlefield A: "Somberwald Sage"
+  hand A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Somberwald Sage"
+  turn 2 A: choose green
+  turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Somberwald Sage's mana can't cast a sorcery" {
+  battlefield A: "Somberwald Sage"
+  hand A: "Divination"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Somberwald Sage"
+  turn 2 A: choose blue
+  illegal turn 2 A: cast "Divination"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Divination"
+}
+
+scenario "Untaidake's {C}{C} casts a legendary spell for 2 life" {
+  battlefield A: "Untaidake, the Cloud Keeper"
+  hand A: "Eye of Vecna"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Untaidake, the Cloud Keeper"
+  turn 1 A: cast "Eye of Vecna"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Eye of Vecna"
+  assert life A 16
+}
+
+scenario "Untaidake's {C}{C} can't cast a nonlegendary spell" {
+  battlefield A: "Untaidake, the Cloud Keeper"
+  hand A: "Abzan Monument"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Untaidake, the Cloud Keeper"
+  illegal turn 1 A: cast "Abzan Monument"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Abzan Monument"
+}
+
+scenario "Voldaren Estate's mana casts a Vampire" {
+  battlefield A: "Voldaren Estate", "Swamp"
+  hand A: "Blood Burglar"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Voldaren Estate"
+  turn 1 A: choose black
+  turn 1 A: cast "Blood Burglar"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Blood Burglar"
+  assert life A 19
+}
+
+scenario "Voldaren Estate's mana can't cast a Knight" {
+  battlefield A: "Voldaren Estate", "Plains"
+  hand A: "Accorder Paladin"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Voldaren Estate"
+  turn 1 A: choose white
+  illegal turn 1 A: cast "Accorder Paladin"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Accorder Paladin"
+}
+
+scenario "Tournament Grounds' mana casts a Knight" {
+  battlefield A: "Tournament Grounds", "Plains"
+  hand A: "Accorder Paladin"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Tournament Grounds"
+  turn 1 A: choose white
+  turn 1 A: cast "Accorder Paladin"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Accorder Paladin"
+}
+
+scenario "Tournament Grounds' mana can't cast a Vampire" {
+  battlefield A: "Tournament Grounds", "Swamp"
+  hand A: "Blood Burglar"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Tournament Grounds"
+  turn 1 A: choose black
+  illegal turn 1 A: cast "Blood Burglar"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Blood Burglar"
+}
+
+scenario "Corrupted Crossroads' colored mana can't cast a spell without devoid" {
+  battlefield A: "Corrupted Crossroads", "Island", "Island"
+  hand A: "Abstruse Interference", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Corrupted Crossroads"
+  turn 1 A: choose green
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Corrupted Crossroads' mana casts a spell with devoid" {
+  battlefield A: "Corrupted Crossroads", "Island", "Island"
+  hand A: "Abstruse Interference"
+  battlefield B: "Forest", "Forest"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 A: activate "Corrupted Crossroads"
+  turn 2 A: choose blue
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Abstruse Interference" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Abstruse Interference"
+}
+
+scenario "Mona Lisa adds mana equal to her power" {
+  battlefield A: "Mona Lisa, Science Geek"
+  hand A: "Arbor Elf"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Arbor Elf"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Arbor Elf"
+  assert tapped "Mona Lisa, Science Geek"
+}
+
+scenario "Woodland Weavemaster's mana casts an Elf" {
+  battlefield A: "Woodland Weavemaster"
+  hand A: "Arbor Elf"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Woodland Weavemaster"
+  turn 2 A: choose green
+  turn 2 A: cast "Arbor Elf"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Arbor Elf"
+  assert power "Woodland Weavemaster" 2
+}
+
+scenario "Woodland Weavemaster's mana can't cast Giant Growth" {
+  battlefield A: "Woodland Weavemaster"
+  hand A: "Giant Growth"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Woodland Weavemaster"
+  turn 2 A: choose green
+  illegal turn 2 A: cast "Giant Growth" targeting "Woodland Weavemaster"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Giant Growth"
+}
+
+scenario "Metamorphosis adds one more than the sacrificed creature's mana value, for creatures" {
+  battlefield A: "Forest", "Mountain", "Grizzly Bears"
+  hand A: "Metamorphosis", "Arc Runner"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Metamorphosis" sacrificing "Grizzly Bears"
+  turn 1 A: choose red
+  turn 1 A: cast "Arc Runner"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Arc Runner"
+  assert untapped "Mountain"
+}
+
+scenario "Metamorphosis's mana can't cast a sorcery" {
+  battlefield A: "Forest", "Grizzly Bears"
+  hand A: "Metamorphosis", "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Metamorphosis" sacrificing "Grizzly Bears"
+  turn 1 A: choose blue
+  illegal turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Divination"
+}

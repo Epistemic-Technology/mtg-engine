@@ -1,0 +1,7 @@
+card "Myr Reservoir" {
+  oracle_id 82b327c6-5cd9-4bee-bef4-860522bded9c
+  cost {3}
+  type Artifact
+  activated {T}: add {C}{C} only to cast Myr spells or activate of Myr bare
+  activated {3}, {T}: return target Myr card from your graveyard to hand
+}

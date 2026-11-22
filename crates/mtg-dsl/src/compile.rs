@@ -1596,6 +1596,23 @@ impl Compiler<'_> {
         names.iter().map(|s| self.pool.subtype(s)).collect()
     }
 
+    /// What restricted mana may be spent on (CR 106.6).
+    fn mana_restriction(
+        &mut self,
+        r: &crate::ast::ManaRestriction,
+    ) -> mtg_core::card::ManaRestriction {
+        mtg_core::card::ManaRestriction {
+            spells: r.spells.as_ref().map(|f| self.filter(f)),
+            abilities: r.abilities,
+            ability_source: r.ability_source.as_ref().map(|f| self.filter(f)),
+            foretell: r.foretell,
+            disturb: r.disturb,
+            wording: r.wording,
+            plural: r.plural,
+            bare: r.bare,
+        }
+    }
+
     #[allow(clippy::too_many_lines)] // one line per filter field
     fn filter(&mut self, f: &Filter) -> ObjFilter {
         // "an outlaw" (CR 700.12): one alternative per creature type.
@@ -3611,6 +3628,16 @@ impl Compiler<'_> {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::KeepMana(effects));
             }
+            Effect::SpendOnly { inner, restriction } => {
+                let effects = self.sentences(inner)?;
+                if !effects.iter().any(CoreEffect::adds_mana) {
+                    return self.err("`only to ...` follows an effect that adds mana");
+                }
+                out.push(CoreEffect::SpendOnly {
+                    effects,
+                    restriction: Box::new(self.mana_restriction(restriction)),
+                });
+            }
             Effect::IfKicked(inner) => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::IfKicked(effects));
@@ -4847,14 +4874,7 @@ impl Compiler<'_> {
             Ability::SacMana(m) => AbilityDef::SacForMana(*m),
             Ability::RestrictedMana { mana, restriction } => AbilityDef::RestrictedMana {
                 mana: *mana,
-                restriction: mtg_core::card::ManaRestriction {
-                    spells: restriction.spells.as_ref().map(|f| self.filter(f)),
-                    abilities: restriction.abilities,
-                    ability_source: restriction.ability_source.as_ref().map(|f| self.filter(f)),
-                    foretell: restriction.foretell,
-                    disturb: restriction.disturb,
-                    wording: restriction.wording,
-                },
+                restriction: self.mana_restriction(restriction),
             },
             Ability::XManaColor(c) => AbilityDef::XManaColor(*c),
             Ability::Enchant(t) => AbilityDef::Enchant(self.target(t)),

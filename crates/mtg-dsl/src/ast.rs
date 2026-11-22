@@ -123,6 +123,10 @@ pub struct ManaRestriction {
     /// `only to pay disturb or cast ...`: "pay a disturb cost".
     pub disturb: bool,
     pub wording: mtg_core::card::SpendWording,
+    /// `spells`, `abilities`: the plural wording; `joined and`.
+    pub plural: mtg_core::card::SpendPlural,
+    /// `of artifact bare`: "abilities of artifacts", without "sources".
+    pub bare: bool,
 }
 
 /// The pronoun a character's text uses for it after its name: `pronoun
@@ -4477,6 +4481,13 @@ pub enum Effect {
     /// `keep mana add {R}`: "Add {R}. Until end of turn, you don't lose
     /// this mana as steps and phases end."
     KeepMana(Vec<Sentence>),
+    /// `add 2 mana any combination only to cast legendary spells`: "Add
+    /// two mana in any combination of colors. Spend this mana only to
+    /// cast legendary spells." (CR 106.6): the mana is restricted.
+    SpendOnly {
+        inner: Vec<Sentence>,
+        restriction: ManaRestriction,
+    },
     /// `waterbend {2}` (CR 701.67a), inside "unless" or "you may": pay
     /// the mana, artifacts and creatures tapped to help.
     Waterbend(ManaCost),

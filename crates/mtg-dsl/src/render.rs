@@ -137,7 +137,7 @@ fn pluralize(word: &str) -> String {
     match word {
         "Plains" | "Equipment" | "Kavu" | "Aurochs" | "Sheep" | "Fish" | "Moonfolk" | "Kithkin"
         | "Merfolk" | "Samurai" | "Kor" | "Zubera" | "Vedalken" | "Aetherborn" | "Eldrazi"
-        | "Treefolk" | "Arcane" | "Spacecraft" => {
+        | "Treefolk" | "Arcane" | "Spacecraft" | "Myr" => {
             return word.to_string();
         }
         "Elf" => return "Elves".to_string(),
@@ -538,15 +538,71 @@ fn a_spell(f: &Filter, card: &Card) -> String {
 /// "{T}: Add {C}. Spend this mana only to cast an instant or sorcery
 /// spell." (CR 106.6).
 fn restricted_mana_text(card: &Card, m: Mana, r: &crate::ast::ManaRestriction) -> String {
-    use mtg_core::card::SpendWording;
     let what = match m {
         Mana::Colorless => "{C}".to_string(),
         Mana::Colored(c) => format!("{{{}}}", c.letter()),
         Mana::Any => "one mana of any color".to_string(),
         Mana::Chosen => "one mana of the chosen color".to_string(),
     };
+    format!("{{T}}: Add {what}. {}", spend_rule(card, r))
+}
+
+/// "instant and sorcery spells", "legendary spells", "Mount or Vehicle
+/// spells": a restriction's spells in the plural, alternatives joined by
+/// `join`.
+fn plural_spells(f: &Filter, card: &Card, join: &str) -> String {
+    let one = |g: &Filter| {
+        let s = spells_subject(g, card);
+        let s = s.strip_suffix(" spells").unwrap_or(&s).to_string();
+        // "colorless Eldrazi spells", but "Dragon spells".
+        if lower_spell_subject(g) || !g.subtypes.iter().any(|t| s.starts_with(t.as_str())) {
+            lowercase_first(&s)
+        } else {
+            s
+        }
+    };
+    if let Some(alt) = &f.or {
+        let (b, a) = crate::format::factor_qualifiers(f, alt);
+        return format!("{} {join} {} spells", one(&b), one(&a));
+    }
+    if f.any_types.len() == 2 {
+        let types: Vec<&str> = f.any_types.iter().map(|t| type_noun(*t)).collect();
+        let mut g = f.clone();
+        g.any_types.clear();
+        let rest = card_filter_phrase(&g, card);
+        let rest = rest.trim();
+        let types = format!("{} {join} {}", types[0], types[1]);
+        return if rest.is_empty() {
+            format!("{types} spells")
+        } else {
+            format!("{rest} {types} spells")
+        };
+    }
+    spell_noun_plural(&one(f))
+}
+
+/// "spells with mana value 5 or greater": the noun before "with".
+fn spell_noun_plural(what: &str) -> String {
+    spell_noun(what).replacen("spell", "spells", 1)
+}
+
+/// "Spend this mana only to cast an instant or sorcery spell.", "Spend
+/// this mana only to cast artifact spells or activate abilities of
+/// artifacts." (CR 106.6).
+fn spend_rule(card: &Card, r: &crate::ast::ManaRestriction) -> String {
+    use mtg_core::card::{SpendPlural, SpendWording};
+    let plural = r.plural != SpendPlural::One;
+    let join = match r.plural {
+        SpendPlural::And => "and",
+        SpendPlural::AndOr => "and/or",
+        _ => "or",
+    };
     let spells = r.spells.as_ref().map(|f| {
-        let s = format!("cast {}", a_spell(f, card));
+        let s = if plural {
+            format!("cast {}", plural_spells(f, card, join))
+        } else {
+            format!("cast {}", a_spell(f, card))
+        };
         if r.foretell {
             format!("foretell a card from your hand or {s}")
         } else if r.disturb {
@@ -555,13 +611,24 @@ fn restricted_mana_text(card: &Card, m: Mana, r: &crate::ast::ManaRestriction) -
             s
         }
     });
-    // "an ability of an artifact source".
-    let ability = match &r.ability_source {
-        Some(f) => format!(
+    // "an ability of an artifact source", "abilities of artifacts".
+    let ability = match (&r.ability_source, plural, r.bare) {
+        (Some(f), false, false) => format!(
             "an ability of {} source",
             with_article(&filter_phrase(f, card, false))
         ),
-        None => "an ability".to_string(),
+        (Some(f), false, true) => {
+            format!(
+                "an ability of {}",
+                with_article(&filter_phrase(f, card, false))
+            )
+        }
+        (Some(f), true, false) => {
+            format!("abilities of {} sources", filter_phrase(f, card, false))
+        }
+        (Some(f), true, true) => format!("abilities of {}", filter_phrase(f, card, true)),
+        (None, false, _) => "an ability".to_string(),
+        (None, true, _) => "abilities".to_string(),
     };
     let rule = match (r.wording, spells) {
         (SpendWording::CantCast, Some(s)) => format!("This mana can't be spent to {s}."),
@@ -571,6 +638,9 @@ fn restricted_mana_text(card: &Card, m: Mana, r: &crate::ast::ManaRestriction) -
         (SpendWording::CastFirstTo, Some(s)) if r.abilities => {
             format!("Spend this mana only to {s} or to activate {ability}.")
         }
+        (SpendWording::CastAnd, Some(s)) if r.abilities => {
+            format!("Spend this mana only to {s} and activate {ability}.")
+        }
         (_, Some(s)) if r.abilities => {
             format!("Spend this mana only to {s} or activate {ability}.")
         }
@@ -579,10 +649,8 @@ fn restricted_mana_text(card: &Card, m: Mana, r: &crate::ast::ManaRestriction) -
     };
     // "a creature spell of the chosen type", "a creature source of the
     // chosen type": the noun before the chosen type.
-    let rule = rule
-        .replace(" of the chosen type spell", " spell of the chosen type")
-        .replace(" of the chosen type source", " source of the chosen type");
-    format!("{{T}}: Add {what}. {rule}")
+    rule.replace(" of the chosen type spell", " spell of the chosen type")
+        .replace(" of the chosen type source", " source of the chosen type")
 }
 
 /// "a" or "an".
@@ -8865,6 +8933,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 "for each {} who can't, {}",
                 if *opponent { "opponent" } else { "player" },
                 lowercase_first(body.trim_end_matches('.'))
+            ))
+        }
+        Effect::SpendOnly { inner, restriction } => {
+            let body = sentences(inner, ctx);
+            let rule = spend_rule(ctx.card, restriction);
+            Clause::imperative(format!(
+                "{}. {}",
+                lowercase_first(body.trim_end_matches('.')),
+                rule.trim_end_matches('.')
             ))
         }
         Effect::KeepMana(inner) => {

@@ -1,0 +1,7 @@
+card "Vedalken Engineer" {
+  oracle_id b36accb4-cde6-4b1d-b549-8c975cfa999d
+  cost {1}{U}
+  type Creature — Vedalken Artificer
+  pt 1/1
+  activated {T}: add any 2 only to cast artifact spells or activate of artifact bare
+}

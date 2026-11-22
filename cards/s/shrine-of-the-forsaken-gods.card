@@ -1,0 +1,6 @@
+card "Shrine of the Forsaken Gods" {
+  oracle_id 8ea46945-d5ab-4209-b473-4769e7b8b962
+  type Land
+  mana {C}
+  activated {T}, if you control 7 land: add {C}{C} only to cast colorless spells
+}

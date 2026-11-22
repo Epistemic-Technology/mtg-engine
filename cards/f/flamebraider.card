@@ -1,0 +1,7 @@
+card "Flamebraider" {
+  oracle_id c552bd73-ce75-40fd-9d80-9e90b6f45274
+  cost {1}{R}
+  type Creature — Elemental Bard
+  pt 2/2
+  activated {T}: add 2 mana any combination only to cast Elemental spells or activate of Elemental
+}

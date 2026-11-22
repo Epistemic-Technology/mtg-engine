@@ -1,0 +1,6 @@
+card "Eldrazi Temple" {
+  oracle_id 7fab8d65-af51-47d3-8f10-2676bf6e8ba3
+  type Land
+  mana {C}
+  activated {T}: add {C}{C} only to cast colorless Eldrazi spells or activate of colorless Eldrazi bare
+}

@@ -1,0 +1,8 @@
+card "Power Depot" {
+  oracle_id 64687880-03f9-4f38-985b-1027c797e33f
+  type Artifact Land
+  enters tapped
+  mana {C}
+  mana any only to cast artifact spells or activate of artifact bare
+  modular 1
+}

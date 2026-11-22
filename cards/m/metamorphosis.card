@@ -1,0 +1,7 @@
+card "Metamorphosis" {
+  oracle_id 7140d726-0136-43af-84b5-85005a66a186
+  cost {G}
+  type Sorcery
+  additional cost sacrifice creature
+  spell: add any count where plus 1 mana value of the sacrificed creature only to cast creature spells
+}

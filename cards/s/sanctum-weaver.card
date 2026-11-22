@@ -1,0 +1,7 @@
+card "Sanctum Weaver" {
+  oracle_id acfe7ec0-0606-4d5e-b1fa-25f0c7aeec47
+  cost {1}{G}
+  type Enchantment Creature — Dryad
+  pt 0/2
+  activated {T}: add any count where enchantment you control
+}

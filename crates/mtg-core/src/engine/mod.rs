@@ -596,6 +596,7 @@ impl GameState {
             tap_static_sources: 0,
             cost_change_sources: 0,
             restricted_mana_sources: 0,
+            restricted_pool: Vec::new(),
             mana_trigger_sources: 0,
             turn_static_sources: 0,
             state_trigger_sources: 0,
@@ -3137,6 +3138,7 @@ impl GameState {
             p.combat_mana = 0;
             p.turn_mana.empty();
         }
+        self.restricted_pool.clear();
         if self.combat.take().is_some() {
             self.combat_bump();
         }
@@ -3307,6 +3309,8 @@ impl GameState {
             p.combat_mana = keep;
             p.mana_pool.colored[red] += keep;
         }
+        // Restricted mana empties too (CR 500.4).
+        self.restricted_pool.clear();
         if self.step == Step::EndOfCombat && self.combat.take().is_some() {
             // Filters on attacking and blocking creatures see the change.
             self.combat_bump();

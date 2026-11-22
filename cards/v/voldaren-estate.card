@@ -1,0 +1,7 @@
+card "Voldaren Estate" {
+  oracle_id fb0c0426-f1a6-4e52-9242-627786d3119a
+  type Land
+  mana {C}
+  activated {T}, pay 1 life: add any only to cast Vampire spell
+  activated {5}, {T}, reduced {1} each Vampire you control: create 1 "Blood"
+}

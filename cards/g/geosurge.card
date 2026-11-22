@@ -1,0 +1,6 @@
+card "Geosurge" {
+  oracle_id 6ec2794f-db1a-4448-a75e-ed7aff565378
+  cost {R}{R}{R}{R}
+  type Sorcery
+  spell: add {R}{R}{R}{R}{R}{R}{R} only to cast artifact or creature spells
+}

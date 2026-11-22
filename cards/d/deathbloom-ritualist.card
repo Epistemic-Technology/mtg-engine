@@ -1,0 +1,7 @@
+card "Deathbloom Ritualist" {
+  oracle_id b52148c3-fe97-4cc0-a814-a5a0f5d426f6
+  cost {3}{B}{G}
+  type Creature — Elf Warlock
+  pt 3/5
+  activated {T}: add any count where graveyard creature
+}

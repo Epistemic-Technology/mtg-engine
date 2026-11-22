@@ -1,0 +1,7 @@
+card "Interplanar Beacon" {
+  oracle_id 073169f2-da3a-4a93-8c01-b3fd8558d225
+  type Land
+  triggered whenever you cast planeswalker spell: you gain 1 life
+  mana {C}
+  activated {1}, {T}: add 2 mana different colors only to cast planeswalker spells
+}

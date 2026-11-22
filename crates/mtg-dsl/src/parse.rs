@@ -1381,11 +1381,128 @@ impl P {
 
     // ---- abilities ----
 
+    /// After `add`: the mana to add (CR 106.4).
+    fn add_effect(&mut self) -> R<Effect> {
+        if self.eat_word("chosen") {
+            return Ok(Effect::AddMana(vec![Mana::Chosen]));
+        }
+        // "any color that a land an opponent controls could
+        // produce" (CR 106.7).
+        if self.eat_words(&["any", "that"]) {
+            let basic = self.eat_word("basic");
+            self.expect_word("land")?;
+            let whose = if self.eat_words(&["you", "control"]) {
+                Who::You
+            } else {
+                self.expect_words(&["opponent", "controls"])?;
+                Who::Opponents
+            };
+            self.expect_words(&["could", "produce"])?;
+            return Ok(Effect::AddManaLandCould { whose, basic });
+        }
+        if self.eat_word("any") {
+            // `add any count where power`: "Add X mana of any one color,
+            // where X is this creature's power."
+            if matches!(self.peek(), Some(Tok::Num(_))) || self.at_word("count") {
+                return Ok(Effect::AddManaTimes {
+                    mana: Mana::Any,
+                    count: self.num()?,
+                });
+            }
+            return Ok(Effect::AddMana(vec![Mana::Any]));
+        }
+        let x = self.at_word("x") && self.word_at(1).as_deref() == Some("mana");
+        if x || matches!(self.peek(), Some(Tok::Num(_))) {
+            let mut count = if x {
+                self.pos += 1;
+                Num::X
+            } else {
+                Num::N(self.number()?)
+            };
+            self.expect_word("mana")?;
+            if self.eat_words(&["different", "colors"]) {
+                return Ok(Effect::AddManaCombination {
+                    count,
+                    colors: mtg_core::mana::ColorSet::ALL,
+                    different: true,
+                });
+            }
+            self.expect_words(&["any", "combination"])?;
+            let colors = if self.eat_word("of") {
+                let cost = self.mana_cost()?;
+                let mut set = mtg_core::mana::ColorSet::COLORLESS;
+                for s in cost.symbols() {
+                    match s {
+                        mtg_core::mana::ManaSymbol::Colored(c) => set = set.with(*c),
+                        _ => return self.unexpected("colored mana symbols"),
+                    }
+                }
+                set
+            } else {
+                mtg_core::mana::ColorSet::ALL
+            };
+            // "Add X mana ..., where X is the number of ...".
+            if x && self.at_word("count") {
+                count = self.num()?;
+            }
+            return Ok(Effect::AddManaCombination {
+                count,
+                colors,
+                different: false,
+            });
+        }
+        let cost = self.mana_cost()?;
+        let mut out = Vec::new();
+        for s in cost.symbols() {
+            out.push(match s {
+                mtg_core::mana::ManaSymbol::Colored(c) => Mana::Colored(*c),
+                mtg_core::mana::ManaSymbol::Colorless => Mana::Colorless,
+                _ => return self.unexpected("{W}, {U}, {B}, {R}, {G}, {C}, or `any`"),
+            });
+        }
+        if out.is_empty() {
+            return self.unexpected("mana to add");
+        }
+        if out.len() == 1 && self.at_word("or") {
+            while self.eat_word("or") {
+                let c = self.mana_cost()?;
+                match c.symbols() {
+                    [mtg_core::mana::ManaSymbol::Colored(c)] => out.push(Mana::Colored(*c)),
+                    [mtg_core::mana::ManaSymbol::Colorless] => out.push(Mana::Colorless),
+                    _ => return self.unexpected("one mana symbol after `or`"),
+                }
+            }
+            return Ok(Effect::AddManaOneOf(out));
+        }
+        // `add {R} that much` (Raphael's "add that much {R}").
+        if out.len() == 1 && (self.at_word("count") || self.at_words(&["that", "much"])) {
+            let count = self.num()?;
+            return Ok(Effect::AddManaTimes {
+                mana: out[0],
+                count,
+            });
+        }
+        Ok(Effect::AddMana(out))
+    }
+
+    /// `... only to cast creature spells` after an `add` effect: "Spend
+    /// this mana only to ..." (CR 106.6).
+    fn spend_only_suffix(&mut self, e: Effect) -> R<Effect> {
+        if self.at_words(&["only", "to"]) || self.at_words(&["not", "to"]) {
+            let restriction = self.mana_restriction()?;
+            return Ok(Effect::SpendOnly {
+                inner: vec![Sentence::new(vec![e])],
+                restriction,
+            });
+        }
+        Ok(e)
+    }
+
     /// `only to cast instant or sorcery spell`, `only to cast artifact
     /// spell or [to] activate`, `only to activate [or cast artifact
     /// spell]`, `not to cast nonartifact spell` (CR 106.6).
     fn mana_restriction(&mut self) -> R<crate::ast::ManaRestriction> {
-        use mtg_core::card::SpendWording;
+        use mtg_core::card::{SpendPlural, SpendWording};
         if self.eat_word("not") {
             self.expect_words(&["to", "cast"])?;
             let f = self.filter()?;
@@ -1397,11 +1514,18 @@ impl P {
                 foretell: false,
                 disturb: false,
                 wording: SpendWording::CantCast,
+                plural: SpendPlural::One,
+                bare: false,
             });
         }
         self.expect_words(&["only", "to"])?;
         if self.eat_word("activate") {
-            let ability_source = self.activate_of()?;
+            let plural = if self.eat_word("abilities") {
+                SpendPlural::Or
+            } else {
+                SpendPlural::One
+            };
+            let (ability_source, bare) = self.activate_of()?;
             let spells = if self.eat_words(&["or", "cast"]) {
                 let f = self.filter()?;
                 self.expect_word("spell")?;
@@ -1421,6 +1545,8 @@ impl P {
                 foretell: false,
                 disturb: false,
                 wording,
+                plural,
+                bare,
             });
         }
         // "foretell a card from your hand or cast an instant or sorcery
@@ -1429,27 +1555,42 @@ impl P {
         let disturb = self.eat_words(&["pay", "disturb", "or"]);
         self.expect_word("cast")?;
         let mut f = self.filter()?;
-        self.expect_word("spell")?;
+        let mut plural = self.spell_noun()?;
         // "an Elemental spell or a Chandra planeswalker spell": each side
         // whole.
         if self.at_word("or") && !matches!(self.word_at(1).as_deref(), Some("to" | "activate")) {
             self.pos += 1;
             let alt = self.filter()?;
-            self.expect_word("spell")?;
+            plural = self.spell_noun()?;
             f.or = Some(Box::new(alt));
             // Each side with its own article ("a Dragon spell or an Omen
             // spell"), against `Lesson or Shrine spell` ("a Lesson or
             // Shrine spell").
             f.alt_article = true;
         }
+        // `spells joined and`: "instant and sorcery spells".
+        if plural != SpendPlural::One && self.eat_word("joined") {
+            plural = if self.eat_word("and") {
+                SpendPlural::And
+            } else {
+                self.expect_word("andor")?;
+                SpendPlural::AndOr
+            };
+        }
         let (abilities, wording) = if self.eat_words(&["or", "to", "activate"]) {
             (true, SpendWording::CastFirstTo)
         } else if self.eat_words(&["or", "activate"]) {
             (true, SpendWording::CastFirst)
+        } else if self.eat_words(&["and", "activate"]) {
+            (true, SpendWording::CastAnd)
         } else {
             (false, SpendWording::CastFirst)
         };
-        let ability_source = if abilities { self.activate_of()? } else { None };
+        let (ability_source, bare) = if abilities {
+            self.activate_of()?
+        } else {
+            (None, false)
+        };
         Ok(crate::ast::ManaRestriction {
             spells: Some(f),
             abilities,
@@ -1457,16 +1598,29 @@ impl P {
             foretell,
             disturb,
             wording,
+            plural,
+            bare,
         })
+    }
+
+    /// `spell` or `spells` (the plural wording) after a restriction's
+    /// filter.
+    fn spell_noun(&mut self) -> R<mtg_core::card::SpendPlural> {
+        if self.eat_word("spells") {
+            return Ok(mtg_core::card::SpendPlural::Or);
+        }
+        self.expect_word("spell")?;
+        Ok(mtg_core::card::SpendPlural::One)
     }
 
     /// After `activate`: `of artifact` ("an ability of an artifact
     /// source"), or nothing for any source.
-    fn activate_of(&mut self) -> R<Option<Filter>> {
+    fn activate_of(&mut self) -> R<(Option<Filter>, bool)> {
         if self.eat_word("of") {
-            Ok(Some(self.filter()?))
+            let f = self.filter()?;
+            Ok((Some(f), self.eat_word("bare")))
         } else {
-            Ok(None)
+            Ok((None, false))
         }
     }
 
@@ -8901,104 +9055,8 @@ impl P {
                 })
             }
             "add" => {
-                if self.eat_word("chosen") {
-                    return Ok(Effect::AddMana(vec![Mana::Chosen]));
-                }
-                // "any color that a land an opponent controls could
-                // produce" (CR 106.7).
-                if self.eat_words(&["any", "that"]) {
-                    let basic = self.eat_word("basic");
-                    self.expect_word("land")?;
-                    let whose = if self.eat_words(&["you", "control"]) {
-                        Who::You
-                    } else {
-                        self.expect_words(&["opponent", "controls"])?;
-                        Who::Opponents
-                    };
-                    self.expect_words(&["could", "produce"])?;
-                    return Ok(Effect::AddManaLandCould { whose, basic });
-                }
-                if self.eat_word("any") {
-                    if matches!(self.peek(), Some(Tok::Num(_))) {
-                        return Ok(Effect::AddManaTimes {
-                            mana: Mana::Any,
-                            count: self.num()?,
-                        });
-                    }
-                    return Ok(Effect::AddMana(vec![Mana::Any]));
-                }
-                let x = self.at_word("x") && self.word_at(1).as_deref() == Some("mana");
-                if x || matches!(self.peek(), Some(Tok::Num(_))) {
-                    let mut count = if x {
-                        self.pos += 1;
-                        Num::X
-                    } else {
-                        Num::N(self.number()?)
-                    };
-                    self.expect_word("mana")?;
-                    if self.eat_words(&["different", "colors"]) {
-                        return Ok(Effect::AddManaCombination {
-                            count,
-                            colors: mtg_core::mana::ColorSet::ALL,
-                            different: true,
-                        });
-                    }
-                    self.expect_words(&["any", "combination"])?;
-                    let colors = if self.eat_word("of") {
-                        let cost = self.mana_cost()?;
-                        let mut set = mtg_core::mana::ColorSet::COLORLESS;
-                        for s in cost.symbols() {
-                            match s {
-                                mtg_core::mana::ManaSymbol::Colored(c) => set = set.with(*c),
-                                _ => return self.unexpected("colored mana symbols"),
-                            }
-                        }
-                        set
-                    } else {
-                        mtg_core::mana::ColorSet::ALL
-                    };
-                    // "Add X mana ..., where X is the number of ...".
-                    if x && self.at_word("count") {
-                        count = self.num()?;
-                    }
-                    return Ok(Effect::AddManaCombination {
-                        count,
-                        colors,
-                        different: false,
-                    });
-                }
-                let cost = self.mana_cost()?;
-                let mut out = Vec::new();
-                for s in cost.symbols() {
-                    out.push(match s {
-                        mtg_core::mana::ManaSymbol::Colored(c) => Mana::Colored(*c),
-                        mtg_core::mana::ManaSymbol::Colorless => Mana::Colorless,
-                        _ => return self.unexpected("{W}, {U}, {B}, {R}, {G}, {C}, or `any`"),
-                    });
-                }
-                if out.is_empty() {
-                    return self.unexpected("mana to add");
-                }
-                if out.len() == 1 && self.at_word("or") {
-                    while self.eat_word("or") {
-                        let c = self.mana_cost()?;
-                        match c.symbols() {
-                            [mtg_core::mana::ManaSymbol::Colored(c)] => out.push(Mana::Colored(*c)),
-                            [mtg_core::mana::ManaSymbol::Colorless] => out.push(Mana::Colorless),
-                            _ => return self.unexpected("one mana symbol after `or`"),
-                        }
-                    }
-                    return Ok(Effect::AddManaOneOf(out));
-                }
-                // `add {R} that much` (Raphael's "add that much {R}").
-                if out.len() == 1 && (self.at_word("count") || self.at_words(&["that", "much"])) {
-                    let count = self.num()?;
-                    return Ok(Effect::AddManaTimes {
-                        mana: out[0],
-                        count,
-                    });
-                }
-                Ok(Effect::AddMana(out))
+                let e = self.add_effect()?;
+                self.spend_only_suffix(e)
             }
             "surveil" => Ok(Effect::Surveil(self.num()?)),
             "learn" => Ok(Effect::Learn),

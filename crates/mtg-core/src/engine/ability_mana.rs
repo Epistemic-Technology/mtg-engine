@@ -111,6 +111,10 @@ fn effect_kinds(e: &Effect, chosen: Kinds) -> Kinds {
             .iter()
             .chain(alt)
             .fold(0, |k, e| k | effect_kinds(e, chosen)),
+        // CR 106.7: what the mana may be spent on doesn't matter.
+        Effect::SpendOnly { effects, .. } => {
+            effects.iter().fold(0, |k, e| k | effect_kinds(e, chosen))
+        }
         _ => 0,
     }
 }
@@ -697,6 +701,17 @@ impl GameState {
             return None;
         }
         let base = self.mana_sources(p);
+        // Restricted mana in the pool isn't offered here: an ability's own
+        // cost might be paid with it, which its restriction may not allow
+        // (CR 106.6).
+        if !self.restricted_pool.is_empty() {
+            let plain: Sources = sources
+                .iter()
+                .copied()
+                .filter(|(id, _)| super::casting::pool_unit_index(*id).is_none())
+                .collect();
+            return plan_with_abilities(&plain, &base, pool, req, life, &abilities);
+        }
         plan_with_abilities(sources, &base, pool, req, life, &abilities)
     }
 }
