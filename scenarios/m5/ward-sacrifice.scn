@@ -1,0 +1,118 @@
+# Ward—Sacrifice a permanent (CR 702.21a): whenever the permanent becomes
+# the target of a spell or ability an opponent controls, counter it unless
+# that player sacrifices a matching permanent, chosen as the ward trigger
+# resolves (`accept "Vein Ripper"` and `choose "X"`; `decline` doesn't).
+
+scenario "Ward—Sacrifice a creature: with no creature to sacrifice, Murder is countered" {
+  battlefield A: "Vein Ripper"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Vein Ripper"
+  run_to turn 2 end
+  assert battlefield A contains "Vein Ripper"
+  assert graveyard B contains "Murder"
+}
+
+scenario "Ward—Sacrifice a creature: declining to sacrifice counters Murder" {
+  battlefield A: "Vein Ripper"
+  battlefield B: 3 "Swamp", "Grizzly Bears"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Vein Ripper"
+  turn 2 B: decline "Vein Ripper"
+  run_to turn 2 end
+  assert battlefield A contains "Vein Ripper"
+  assert battlefield B contains "Grizzly Bears"
+  assert graveyard B contains "Murder"
+}
+
+scenario "Ward—Sacrifice a creature: the sacrifice is paid and Murder resolves" {
+  battlefield A: "Vein Ripper"
+  battlefield B: 3 "Swamp", "Hill Giant", "Grizzly Bears"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Vein Ripper"
+  turn 2 B: accept "Vein Ripper"
+  turn 2 B: choose "Grizzly Bears"
+  run_to turn 2 end
+  assert graveyard A contains "Vein Ripper"
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  # Vein Ripper sees the Bears and itself die: B loses 4, A gains 4.
+  assert life B 16
+  assert life A 24
+}
+
+scenario "Ward—Sacrifice a creature: a land can't pay it" {
+  battlefield A: "Vein Ripper"
+  battlefield B: 3 "Swamp", "Forest"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Vein Ripper"
+  run_to turn 2 end
+  assert battlefield A contains "Vein Ripper"
+  assert battlefield B contains "Forest"
+}
+
+scenario "Ward—Sacrifice a creature: its controller's own spell isn't countered" {
+  battlefield A: "Vein Ripper", "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Vein Ripper"
+  run_to turn 1 postcombat_main
+  assert power "Vein Ripper" 9
+}
+
+scenario "Vein Ripper: whenever a creature dies, target opponent loses 2 and you gain 2" {
+  battlefield A: "Vein Ripper", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Ward—Sacrifice a Food: Ygra's other creatures are Food, so one pays" {
+  battlefield A: "Ygra, Eater of All"
+  battlefield B: 3 "Swamp", "Grizzly Bears"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Ygra, Eater of All"
+  turn 2 B: accept "Ygra, Eater of All"
+  run_to turn 2 end
+  assert graveyard A contains "Ygra, Eater of All"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Ward—Sacrifice a Food: declined, Murder is countered, and no Food died" {
+  battlefield A: "Ygra, Eater of All"
+  battlefield B: 3 "Swamp", "Grizzly Bears"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Ygra, Eater of All"
+  turn 2 B: decline "Ygra, Eater of All"
+  run_to turn 2 end
+  assert battlefield A contains "Ygra, Eater of All"
+  assert counters "Ygra, Eater of All" +1/+1 0
+}
+
+scenario "Ygra: other creatures are Food artifacts; a Food dying puts two counters on Ygra" {
+  battlefield A: "Ygra, Eater of All", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Ygra, Eater of All" +1/+1 2
+}
+
+scenario "Ygra: other creatures have the Food ability" {
+  battlefield A: "Ygra, Eater of All", 2 "Mountain", "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 end
+  assert life A 23
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Ygra, Eater of All" +1/+1 2
+  assert is not "Ygra, Eater of All" artifact
+  assert is "Hill Giant" Food
+}

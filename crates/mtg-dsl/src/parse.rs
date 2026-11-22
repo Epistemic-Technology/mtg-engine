@@ -49,6 +49,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         in_trigger: false,
         it_source: false,
         no_trigger_obj: false,
+        self_trigger: false,
         created_at: None,
         no_trigger_amount: false,
         in_spell: false,
@@ -589,6 +590,11 @@ struct P {
     /// beginning of your upkeep", "whenever you gain life"): there is no
     /// triggering object for `it` to be.
     no_trigger_obj: bool,
+    /// Inside "When this enters", "Whenever this attacks", "When this is
+    /// turned face up" (the triggering object is the source):
+    /// "that creature" after an object target is that target ("attach it
+    /// to target creature you control. That creature gains hexproof").
+    self_trigger: bool,
     /// An effect of this ability created one token, with this many
     /// targets declared then: `it` after it is that token ("Create a 1/1
     /// ... token. Put X +1/+1 counters on it.") until a target is named.
@@ -1480,6 +1486,7 @@ impl P {
         self.in_trigger = false;
         self.it_source = false;
         self.no_trigger_obj = false;
+        self.self_trigger = false;
         self.created_at = None;
         self.no_trigger_amount = false;
         self.in_spell = false;
@@ -2687,6 +2694,18 @@ impl P {
                         }
                     );
                 self.no_trigger_obj = no_trigger_object(&trigger);
+                // Also a cast trigger: the triggering object is a spell,
+                // which "that creature" doesn't name.
+                self.self_trigger = matches!(
+                    trigger,
+                    Trigger::Enters(TriggerObj::This)
+                        | Trigger::Attacks(TriggerObj::This)
+                        | Trigger::TurnedFaceUp(TriggerObj::This)
+                        | Trigger::CastsSpell { .. }
+                        | Trigger::CastsFiltered { .. }
+                        | Trigger::CastThis { .. }
+                        | Trigger::CastsNth { .. }
+                );
                 self.no_trigger_amount = no_trigger_amount(&trigger);
                 if when && !crate::format::natural_when(&trigger) {
                     trigger = Trigger::When(Box::new(trigger));
@@ -3065,12 +3084,15 @@ impl P {
         }
         let outer = std::mem::take(&mut self.targets);
         let saved = self.subject.take();
-        let s = self.sentence();
+        // "When you do, Bolg deals damage ... . If excess damage was dealt
+        // this way, amass Goblins X ...": every later sentence is the
+        // reflexive ability's (CR 603.12).
+        let s = self.sentences_inline();
         self.subject = saved;
         let targets = std::mem::replace(&mut self.targets, outer);
         Ok(Effect::WhenYouDo {
             targets,
-            effects: vec![s?],
+            effects: s?,
         })
     }
 
@@ -5043,6 +5065,19 @@ impl P {
         })
     }
 
+    /// A target check can't ask whether the target is what the source
+    /// enchants: `enchanted creature` there would mean that, and print
+    /// "an enchanted creature" (Karametra's Blessing), which is `creature
+    /// with aura`.
+    fn no_host_check(f: &Filter) -> Result<(), String> {
+        if f.enchanted || f.or.as_ref().is_some_and(|g| g.enchanted) {
+            return Err(
+                "`if target N is enchanted ...`: write `creature with aura` (an Aura on it) or `creature with equipment`".to_string(),
+            );
+        }
+        Ok(())
+    }
+
     /// `if target 1 was Human, ...`: "If that creature was a Human, ...",
     /// judged on the target's last state.
     fn if_target(&mut self) -> R<Effect> {
@@ -5082,6 +5117,7 @@ impl P {
                     ..Filter::default()
                 };
             }
+            Self::no_host_check(&filter).or_else(|m| self.fail(m))?;
             self.expect(&Tok::Comma)?;
             let tense = if that {
                 crate::ast::TargetTense::ThatIs
@@ -5128,6 +5164,7 @@ impl P {
             crate::ast::TargetTense::Was
         };
         let f = self.filter()?;
+        Self::no_host_check(&f).or_else(|m| self.fail(m))?;
         self.expect(&Tok::Comma)?;
         let saved = self.subject.take();
         let s = self.sentence()?;
@@ -5788,8 +5825,26 @@ impl P {
     }
 
     /// A clause whose subject is known: "<subject> gains 3 life".
-    #[allow(clippy::too_many_lines)]
     fn subject_verb(&mut self, subject: Recipient, explicit: bool) -> R<Effect> {
+        let counts = self.counts.len();
+        let e = self.subject_verb_inner(subject, explicit)?;
+        // "Each player loses 1 life for each creature they control":
+        // `they control` compiles to "an opponent controls", not the
+        // player losing life, so it would count the wrong creatures.
+        if matches!(subject, Recipient::EachPlayer | Recipient::You)
+            && self.counts[counts..]
+                .iter()
+                .any(|c| matches!(&c.expr, crate::ast::CountExpr::Permanents(f) if f.they_control))
+        {
+            return self.fail(
+                "`they control` in a count for each player or you: it counts an opponent's permanents, not that player's",
+            );
+        }
+        Ok(e)
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn subject_verb_inner(&mut self, subject: Recipient, explicit: bool) -> R<Effect> {
         let w = self.word()?;
         match w.as_str() {
             // `this creature deals 3 damage to that player`, `it deals 2
@@ -8864,6 +8919,12 @@ impl P {
                 let was = (self.in_delayed, self.delayed_that);
                 self.in_delayed = true;
                 self.delayed_that = about == Recipient::TriggeringObject;
+                // `{ when ..., <effects> }`: the body ends at the brace.
+                let closed = self.peek() == Some(&Tok::LBrace);
+                if closed {
+                    self.pos += 1;
+                }
+                let targets_before = self.targets.len();
                 // "When that creature dies this turn, ..." (CR 603.7c).
                 let mut it = false;
                 let this_turn =
@@ -8914,11 +8975,25 @@ impl P {
                     let e = self.sentences_inline();
                     self.delayed_dies = was_dies;
                     (t, e?, true)
+                } else if closed {
+                    return self.fail("`delayed ...: {` takes a trigger first");
                 } else {
                     let e = self.delayed_effects()?;
                     let t = self.trigger()?;
                     (t, e, false)
                 };
+                if closed {
+                    self.expect(&Tok::RBrace)?;
+                } else if trigger_first && effects.len() > 1 && self.targets.len() > targets_before
+                {
+                    // "When that creature dies this turn, you gain 3 life.
+                    // Target creature you control fights that creature.":
+                    // the later sentence is the spell's, which the open
+                    // form would put in the delayed trigger.
+                    return self.fail(
+                        "a delayed trigger's later sentence declares a target: close the trigger with `{ ... }` if the sentence is not the trigger's",
+                    );
+                }
                 (self.in_delayed, self.delayed_that) = was;
                 self.subject = saved_subject;
                 Ok(Effect::Delayed {
@@ -8928,6 +9003,7 @@ impl P {
                     trigger_first,
                     this_turn: this_turn.is_some() || turn_long,
                     it,
+                    closed,
                 })
             }
             "prevent" => {
@@ -9914,6 +9990,7 @@ impl P {
             in_trigger: self.in_trigger,
             it_source: self.it_source,
             no_trigger_obj: self.no_trigger_obj,
+            self_trigger: self.self_trigger,
             created_at: self.created_at,
             no_trigger_amount: self.no_trigger_amount,
             in_spell: self.in_spell,
@@ -10434,6 +10511,19 @@ impl P {
             self.pos += 2;
             return Ok(Recipient::ThatTarget(self.targets.len() - 1));
         }
+        // "When this Equipment enters, attach it to target creature you
+        // control. That creature gains ...": the triggering object is the
+        // source, which "that creature" never names; it is the target. So
+        // in a trigger with no triggering object ("At the beginning of
+        // combat on your turn, ... target creature. That creature
+        // becomes a Mutant ...").
+        if (self.self_trigger || self.in_trigger && self.no_trigger_obj)
+            && (self.at_words(&["that", "creature"]) || self.at_words(&["that", "permanent"]))
+            && let Some(n) = self.last_object_target()
+        {
+            self.pos += 2;
+            return Ok(Recipient::ThatTarget(n));
+        }
         // "Return target permanent to its owner's hand. Then that player
         // discards a card.": the returned card's owner.
         if let Some(i) = self.returned
@@ -10650,6 +10740,7 @@ impl P {
                         in_trigger: false,
                         it_source: false,
                         no_trigger_obj: false,
+                        self_trigger: false,
                         created_at: None,
                         no_trigger_amount: false,
                         in_spell: false,
@@ -11047,6 +11138,15 @@ impl P {
                 }
                 // "that player controls": the triggering player.
                 "that" if self.at_words(&["that", "player", "controls"]) => {
+                    // A spell or an activated ability has no triggering
+                    // player, so it would match nothing ("each creature
+                    // that player controls" after a target player is
+                    // `that player 1 controls`).
+                    if !self.in_trigger && !self.in_delayed {
+                        return self.fail(
+                            "`that player controls` outside a triggered ability: there is no triggering player; write `that player N controls` for the Nth target",
+                        );
+                    }
                     f.that_player = Some(mtg_core::card::ThatPlayer::Triggering);
                     self.pos += 3;
                 }

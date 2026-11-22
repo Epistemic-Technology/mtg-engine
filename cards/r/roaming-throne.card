@@ -1,0 +1,10 @@
+card "Roaming Throne" {
+  oracle_id 3640c29b-1534-4952-b297-619ade948431
+  cost {4}
+  type Artifact Creature — Golem
+  pt 4/4
+  ward {2}
+  as this enters choose creature type
+  static this: add chosen type
+  trigger again other creature you control of chosen type
+}

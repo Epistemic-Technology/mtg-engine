@@ -5064,6 +5064,15 @@ impl GameState {
         f: &crate::card::ObjFilter,
         source: ObjId,
     ) -> Vec<ObjId> {
+        // "Sacrifice six creatures named Shadowborn Apostle": named like
+        // the source.
+        let filled;
+        let f = if f.same.is_some() {
+            filled = self.with_same_of(f, Some(source));
+            &filled
+        } else {
+            f
+        };
         self.permanents_of(p)
             .filter(|s| {
                 let sc = &self.objects[*s];
@@ -11301,6 +11310,14 @@ impl GameState {
                     if ctx.x > 0 {
                         self.reflexive_x.push((timestamp, ctx.x));
                     }
+                    // "When you do, Bolg deals damage equal to that
+                    // creature's power": the creature sacrificed this way.
+                    if let Some(log) = &self.this_way
+                        && !log.moved.is_empty()
+                    {
+                        let moved = log.moved.clone();
+                        self.reflexive_moved.push((timestamp, moved));
+                    }
                     self.pending_triggers.push(crate::state::PendingTrigger {
                         controller: ctx.controller,
                         ability: StackAbility {
@@ -13658,6 +13675,19 @@ impl GameState {
     /// `n`th target matches, judged as it last existed if it has left
     /// (CR 608.2h).
     fn nth_target_matches(&self, ctx: &EffectCtx, n: u8, filter: &crate::card::ObjFilter) -> bool {
+        // What only the permanent's state on the battlefield answers
+        // ("If it's an enchanted creature", "if it's attacking").
+        fn live_state(f: &crate::card::ObjFilter) -> bool {
+            f.attacking
+                || f.blocking
+                || f.tapped.is_some()
+                || f.status.counter.is_some()
+                || f.status.suspected.is_some()
+                || f.status.enchanted.is_some()
+                || f.status.equipped
+                || f.status.modified
+                || f.status.on.is_some()
+        }
         // Converge: "if its mana value is less than or equal to the number
         // of colors of mana spent to cast this spell".
         let filled;
@@ -13731,11 +13761,8 @@ impl GameState {
                     || c.abilities.iter().any(|a| {
                         matches!(self.pool.ability(*a), crate::card::AbilityDef::Toxic(_))
                     }))
-        }) && (!(filter.attacking
-            || filter.blocking
-            || filter.tapped.is_some()
-            || filter.status.counter.is_some()
-            || filter.status.suspected.is_some())
+        }) && (!(live_state(filter)
+            || filter.or.as_deref().is_some_and(live_state))
             // "If that creature is attacking", "If that creature has a
             // +1/+1 counter on it": its state while it is still on the
             // battlefield.

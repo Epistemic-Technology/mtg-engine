@@ -819,7 +819,7 @@ impl GameState {
 
     /// `f` with "of the chosen color" filled in from what `source` chose as
     /// it entered (CR 607.2a: Prismatic Ward).
-    fn with_source_chosen<'f>(
+    pub(super) fn with_source_chosen<'f>(
         &self,
         f: &'f ObjFilter,
         source: ObjId,

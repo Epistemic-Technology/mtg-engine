@@ -1,0 +1,9 @@
+card "Celestial Armor" {
+  oracle_id 4f1b68d7-7d16-4bb1-af5f-f1708b23ca73
+  cost {2}{W}
+  type Artifact — Equipment
+  keywords flash
+  triggered when this enters: attach to target creature you control; that creature gains hexproof, indestructible
+  static enchanted: +2/+0, has flying
+  equip {3}{W}
+}

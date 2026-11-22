@@ -496,7 +496,9 @@ impl GameState {
                             kind == k && e.matches(*obj, *ctl, c, Some(id), Some(controller))
                         })
                     })
-                    && filter.matches(
+                    // "another creature you control of the chosen type"
+                    // (Roaming Throne): what this permanent chose.
+                    && self.with_source_chosen(filter, id).matches(
                         w.source,
                         w.controller,
                         &w.chars,
@@ -847,6 +849,8 @@ impl GameState {
         };
         // Does `obj` (currently on the battlefield) match?
         let filter_on_battlefield = |f: &crate::card::ObjFilter, obj: ObjId| -> Option<PlayerId> {
+            // "a creature of the chosen type": what the source chose.
+            let f = &*self.with_source_chosen(f, w.source);
             let o = self.objects.get(obj)?;
             let c = self.characteristics(obj)?;
             (f.matches(obj, o.controller, &c, Some(w.source), Some(w.controller))
@@ -939,14 +943,13 @@ impl GameState {
                     return None;
                 }
                 let l = self.lki.get(old)?;
-                filter
-                    .matches(
-                        *old,
-                        l.object.controller,
-                        &l.characteristics,
-                        Some(w.source),
-                        Some(w.controller),
-                    )
+                (filter.matches(
+                    *old,
+                    l.object.controller,
+                    &l.characteristics,
+                    Some(w.source),
+                    Some(w.controller),
+                ) && (!filter.needs_state() || self.lki_status_ok(filter, *old, l)))
                     .then_some((None, Some(l.object.controller)))
             }
             (
@@ -980,13 +983,18 @@ impl GameState {
                 let l = self.lki.get(old)?;
                 let ok = match what {
                     TriggerObj::This => *old == w.source,
-                    TriggerObj::Filter(f) => f.matches(
-                        *old,
-                        l.object.controller,
-                        &l.characteristics,
-                        Some(w.source),
-                        Some(w.controller),
-                    ),
+                    // "Whenever a modified creature you control leaves the
+                    // battlefield": its state as it last existed (CR
+                    // 603.10a).
+                    TriggerObj::Filter(f) => {
+                        f.matches(
+                            *old,
+                            l.object.controller,
+                            &l.characteristics,
+                            Some(w.source),
+                            Some(w.controller),
+                        ) && (!f.needs_state() || self.lki_status_ok(f, *old, l))
+                    }
                 };
                 ok.then_some((Some(*old), Some(l.object.controller)))
             }
@@ -1368,6 +1376,9 @@ impl GameState {
                 let c = self
                     .characteristics(*spell)
                     .or_else(|| self.pool.get(*def).printed)?;
+                // "Whenever you cast a spell of the chosen color" (Diamond
+                // Mare): what the source chose as it entered.
+                let filter = &*self.with_source_chosen(filter, w.source);
                 // Heroic (CR 207.2c): "a spell that targets this creature",
                 // judged with the targets chosen as it was cast (CR 601.2c).
                 let targets_ok = filter.targeting.as_ref().is_none_or(|t| {
@@ -1960,6 +1971,7 @@ impl GameState {
     /// Put pending trigger `i` on the stack as an ability object; targets
     /// are then chosen (CR 603.3d). An ability that needs a target with no
     /// legal choice is removed instead.
+    #[allow(clippy::too_many_lines)] // one carry-over per kind of state
     pub(super) fn put_trigger(&mut self, i: usize) {
         let t = self.pending_triggers.remove(i);
         let def = t.ability.def;
@@ -2033,6 +2045,15 @@ impl GameState {
         {
             let (_, x) = self.reflexive_x.swap_remove(i);
             self.x_values.push((obj, x));
+        }
+        if !self.reflexive_moved.is_empty()
+            && let Some(i) = self
+                .reflexive_moved
+                .iter()
+                .position(|(ts, _)| *ts == t.timestamp)
+        {
+            let (_, moved) = self.reflexive_moved.swap_remove(i);
+            self.paid_costs.push((obj, moved));
         }
         // "Cycling {X}{G}{G}" and "When you cycle this card, destroy ...
         // with mana value X": X is the value paid for cycling (CR 107.3,

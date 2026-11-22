@@ -40,11 +40,6 @@ wrong thing in some case.
   (Canyon Vaulter, Reckless Velocitaur) fires; several
   mechanics from the first wave have the engine choose where the player
   should.
-- **Token copy of a creature that has died before its enters trigger
-  resolves** (Gruff Triplets, in; Sphinx of False Conclusions, not in):
-  made from last known information, but no scenario covers it (the
-  runner can't answer the trigger while the creature spell is on the
-  stack).
 - **Thousand-Year Storm:** the "cast before it this turn" count has an
   edge case with spells cast while it is on the stack.
 - **Token-creation replacements apply in a fixed order** (tokens
@@ -103,17 +98,6 @@ The renderer prints the right Oracle text for these, but the compiled
 card does something else. Scenarios catch them; the gate does not. Fix
 by rejecting the form at compile time or by binding it correctly.
 
-- **`that player controls` in a spell** (no triggering player) matches
-  nothing: `deal 2 damage to target player and each creature that player
-  controls` prints Chandra's Flame Wave's text but damages only the
-  player; `that player 1 controls` is the target. Breaking of the
-  Fellowship ("another target creature that player controls") may be
-  affected. Reject the bare form outside triggered abilities.
-- **`attach to target creature you control; that creature gains ...`**
-  (Celestial Armor: "When this Equipment enters, attach it to target
-  creature you control. That creature gains hexproof and indestructible
-  until end of turn."): the Equipment attaches but the creature gains
-  nothing. Celestial Armor is not in (the template author writes it).
 - **Found by the parse-forms branch; not used by a card in the corpus**
   (the template author writes both; each card was rejected):
   - `exile target nonland permanent ... and all other nonland permanents
@@ -122,33 +106,6 @@ by rejecting the form at compile time or by binding it correctly.
   - `triggered when this dies: put count each -1/-1 counters on this
     -1/-1 counters on target creature` puts none: the count doesn't read
     the counters it had as it died (Grief Tyrant).
-- **Found by the fifth wave's card batches; none is used by a card in
-  the corpus** (each card named was rejected):
-  - `each player loses count each creature they control life`: every
-    player loses for the opponent's creatures (Stronghold Discipline).
-  - A sentence after `delayed target 1: when ...` is taken into the
-    delayed trigger, so it never happens on resolution (Time to Feed).
-  - `trigger again other creature you control of chosen type` never
-    doubles; the same with a named type does (Roaming Throne).
-  - A status word in a target check is ignored: `if target 1 is
-    enchanted creature ...` and `creature with aura` are true for a
-    creature with no Aura (Karametra's Blessing).
-  - `whenever modified creature you control leaves the battlefield`
-    fires for an unmodified creature (Costume Closet).
-  - A counter condition on the enchanted creature in a static (`if
-    attached is with sleep counter`) is always true, and `tap enchanted
-    creature and put X sleep counter on it` puts none (Venarian Gold).
-  - `that creature becomes Mutant ...` in a trigger doesn't bind to the
-    target; `that target 1 becomes ...` does (Jenova uses the second).
-  - `static enchanted: has ... as long as this is with power 3 or less`
-    reads the Equipment's power, and the `attached` form prints
-    "equipped creature's power" for "its power" (Thieves' Tools).
-- **`whenever you cast of chosen color spell`** renders "Whenever you
-  cast a spell of the chosen color" but never triggered (Diamond Mare,
-  not added).
-- **The sacrificed creature in a reflexive trigger:** `you may sacrifice
-  1 other creature chosen; when you do, deal damage equal power of the
-  sacrificed creature to ...` deals 0 (Bolg of the North, not added).
 - **`put its counters on <target>` in a trigger about another object**
   moves the source's counters, not the triggering object's (`put its
   counters on this` and `put those counters on ...` take the triggering
@@ -207,7 +164,10 @@ named the feature; a card may need more than one.
   damage"; "the first time that creature has become tapped this turn"
   (Captain America); "whenever one or more creatures attack you, those
   creatures ..." (Sabotage Strategist).
-- **Counts:** mana spent on the triggering spell; counters of every
+- **Counts:** a count per player ("Each player loses 1 life for each
+  creature they control", Stronghold Discipline: `they control` there is
+  an error, since it compiled to "an opponent controls"); mana spent on
+  the triggering spell (Tellah, Great Sage); counters of every
   kind on the triggering object or a target ("counters on it" in a
   trigger); total power or toughness in a static ability; "if X is
   three or more" (a condition on a count, Obsessive Pursuit); cards in
@@ -269,9 +229,8 @@ named the feature; a card may need more than one.
   instead".
 - **Most often named in the fifth wave** (363 unsupported or failed of
   480; nearly every card names a different gap): wording near-misses
-  (about 60); a ward cost that is a sacrifice (Vein Ripper and Ygra,
-  Eater of All, removed: the cost was never enforced), collect evidence,
-  or another act; a kicker cost that isn't mana (four cards); "assigns
+  (about 60); a ward cost that is collect evidence (Axebane Ferox) or
+  another act besides mana, life, a discard, or one sacrifice; a kicker cost that isn't mana (four cards); "assigns
   combat damage equal to its toughness" (five); "Otherwise" after a
   conditional static (four); "Choose target X and target Y" as one
   sentence with "those creatures fight each other" (four); "Remove X
@@ -293,19 +252,12 @@ named the feature; a card may need more than one.
   (Magma Burst) after kicker, wording only; "Then if it has no oil
   counters on it" (Evolved Spinoderm, which the `otherwise` form
   otherwise covers).
-- **A cost of "sacrifice six creatures named this"** is never offered
-  (Shadowborn Apostle, not added).
 - **Mechanics not yet in:** tiered, devour, harness, hideaway, mutate,
-  meld, the Everywhere land token.
-- **Scenario runner:** a trigger cannot be answered while its source
-  spell is still on the stack.
-  An edict-style choice ("return another permanent you control to its
-  owner's hand", Aviary Mechanic) always takes the first option; an
-  `illegal ... trigger` line followed by a legal `trigger` in the same
-  step reports the legal one unreached; a mana ability can't be scripted
-  as an action; no way to give X to a spell cast by a trigger, to choose
-  a library-search card, or to say `prototyped`/`blitzed`/`prowled`
-  (all use `alternative`).
+  the Everywhere land token.
+- **Scenario runner:** a mana ability can't be scripted as an action
+  (the engine offers none at priority; it taps for mana while paying);
+  `x N` on a spell cast by a trigger isn't passed on (no corpus card
+  pays X for such a cast: the free ones have X 0).
 
 ## 4. Process
 

@@ -127,6 +127,11 @@ struct Runner {
     /// The `trigger` line supplying `pending_targets` is `illegal`: its
     /// target must be refused.
     pending_illegal: bool,
+    /// With `pending_illegal`, a later legal `trigger` line of the same
+    /// source at the same point: once the refusal is checked, it supplies
+    /// the ability's targets (`illegal trigger "X" targeting "Y"` then
+    /// `trigger "X" targeting "Z"`).
+    legal_after_illegal: Option<usize>,
     /// The scripted mode of the modal spell being cast (1-based).
     pending_mode: Option<usize>,
     /// The scripted X, sacrifice, and discard of the spell being cast.
@@ -247,6 +252,7 @@ impl Runner {
             decisions: 0,
             pending_targets: None,
             pending_illegal: false,
+            legal_after_illegal: None,
             pending_mode: None,
             pending_x: None,
             pending_division: Vec::new(),
@@ -404,16 +410,19 @@ impl Runner {
             .collect()
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per decision kind
     fn decide(&mut self, d: &Decision, pos: Position) -> Res<ChoiceId> {
         match d.kind {
             DecisionKind::Mulligan => Ok(index_of(d, &Choice::Keep).unwrap_or(0)),
             // Bottom nothing; keep everything on top; put nothing in the
             // graveyard; pay a counter's ransom.
             DecisionKind::Scry { .. } | DecisionKind::Surveil { .. } => self.choose_down(d, pos),
-            DecisionKind::Bottom
-            | DecisionKind::Edict
-            | DecisionKind::SearchLibrary
-            | DecisionKind::PutFromHand => Ok(0),
+            DecisionKind::Bottom | DecisionKind::PutFromHand => Ok(0),
+            // What to sacrifice or return for an effect ("return another
+            // permanent you control to its owner's hand", "sacrifice a
+            // creature"), and the card a library search finds: `choose
+            // "Hill Giant"`; unscripted, the first option.
+            DecisionKind::Edict | DecisionKind::SearchLibrary => Ok(self.choose_offered(d, pos)),
             // `decline "Owlin Shieldmage"`: don't pay its ward cost.
             DecisionKind::PayOrCounter { def } => Ok(self.you_may(d, pos, def)),
             DecisionKind::CastFromExile { card } => Ok(self.cast_from_exile(d, pos, card)),
@@ -482,6 +491,19 @@ impl Runner {
                 Ok(self.you_may(d, pos, def))
             }
             DecisionKind::ChooseCopy => self.choose_copy(d, pos),
+            // "Ward—Sacrifice a creature.", "... unless they sacrifice a
+            // nonland permanent": `accept "Vein Ripper"` sacrifices (the
+            // permanent is then `choose "X"`), `decline` takes the
+            // penalty; unscripted, the first option.
+            DecisionKind::ChooseOption { def }
+                if d.options.first() == Some(&Choice::Mode(0))
+                    && d.options.last() == Some(&Choice::Mode(2))
+                    && self.has_you_may(d.player, pos, def) =>
+            {
+                let accept = self.you_may_answer(d.player, pos, def);
+                let want = if accept { Choice::Mode(0) } else { Choice::Mode(2) };
+                Ok(index_of(d, &want).unwrap_or(0))
+            }
             DecisionKind::ChooseColor
             | DecisionKind::ChooseType
             | DecisionKind::ChooseCard
@@ -757,6 +779,41 @@ impl Runner {
         0
     }
 
+    /// Whether an unfired `accept`/`decline` of that card is scripted here.
+    fn has_you_may(&self, player: PlayerId, pos: Position, def: mtg_core::card::CardRef) -> bool {
+        let card = self.state().pool.get(def).name.clone();
+        !self
+            .matching(
+                player,
+                pos,
+                true,
+                |a| matches!(a, Action::YouMay { name, .. } if *name == card),
+            )
+            .is_empty()
+    }
+
+    /// Fires the first such `accept`/`decline` and returns whether it
+    /// accepts.
+    fn you_may_answer(
+        &mut self,
+        player: PlayerId,
+        pos: Position,
+        def: mtg_core::card::CardRef,
+    ) -> bool {
+        let card = self.state().pool.get(def).name.clone();
+        let idxs = self.matching(
+            player,
+            pos,
+            true,
+            |a| matches!(a, Action::YouMay { name, .. } if *name == card),
+        );
+        let Some(&i) = idxs.first() else {
+            return true;
+        };
+        self.fired[i] = true;
+        matches!(self.actions[i].action, Action::YouMay { accept: true, .. })
+    }
+
     /// A color or type: the first unfired scripted `choose` decides;
     /// otherwise the engine's first option.
     fn choose_named(&mut self, d: &Decision, pos: Position) -> Res<ChoiceId> {
@@ -791,6 +848,28 @@ impl Runner {
                 self.describe_options(d)
             ),
         })
+    }
+
+    /// `choose "X"` where the engine would otherwise take its first option:
+    /// the first unfired scripted `choose` naming one of the options
+    /// fires; one naming none of them is left for a later decision. With
+    /// none, the first option.
+    fn choose_offered(&mut self, d: &Decision, pos: Position) -> ChoiceId {
+        let idxs = self.matching(d.player, pos, true, |a| matches!(a, Action::Choose(_)));
+        for i in idxs {
+            let Action::Choose(want) = &self.actions[i].action else {
+                unreachable!()
+            };
+            let found = d.options.iter().position(|c| {
+                self.describe_choice(c).eq_ignore_ascii_case(want)
+                    || self.choice_name(c).is_some_and(|n| n == want.as_str())
+            });
+            if let Some(k) = found {
+                self.fired[i] = true;
+                return idx_u32(k);
+            }
+        }
+        0
     }
 
     /// Scry or surveil (CR 701.18a, 701.42a): the first unfired scripted
@@ -985,6 +1064,7 @@ impl Runner {
     /// Targets for a triggered ability on the stack: those scripted with its
     /// `trigger` line (fired now if the engine put the ability on the stack
     /// without an ordering decision), else the first legal option.
+    #[allow(clippy::too_many_lines)] // the scripted, illegal, and default paths
     fn choose_ability_target(
         &mut self,
         d: &Decision,
@@ -1028,6 +1108,13 @@ impl Runner {
                 }
                 self.pending_targets = Some(targets.clone());
                 self.pending_illegal = self.actions[i].illegal;
+                self.legal_after_illegal = if self.pending_illegal {
+                    idxs.iter()
+                        .copied()
+                        .find(|&j| j != i && !self.actions[j].illegal)
+                } else {
+                    None
+                };
             } else {
                 return Ok(0);
             }
@@ -1071,16 +1158,39 @@ impl Runner {
         // legal target is taken instead.
         if self.pending_illegal {
             self.pending_illegal = false;
-            return match index_of(d, &Choice::Target(t)) {
-                Some(_) => fail(
+            if index_of(d, &Choice::Target(t)).is_some() {
+                return fail(
                     line,
                     format!(
                         "{} was a legal target but the scenario says it must not be",
                         self.describe_target(t)
                     ),
-                ),
-                None => Ok(0),
+                );
+            }
+            // Refused as required: a later legal line of the same source
+            // gives the targets instead of the engine's first.
+            let Some(j) = self.legal_after_illegal.take() else {
+                return Ok(0);
             };
+            self.fired[j] = true;
+            let Action::Trigger { targets, .. } = &self.actions[j].action else {
+                unreachable!()
+            };
+            let targets = targets.clone();
+            let line = self.actions[j].line;
+            self.pending_targets = (index + 1 < targets.len()).then(|| targets.clone());
+            let Some(tr) = targets.get(index) else {
+                return fail(line, format!("trigger needs target #{}", index + 1));
+            };
+            let t = self.target_for(d, line, tr)?;
+            return index_of(d, &Choice::Target(t)).ok_or_else(|| Failure {
+                line,
+                message: format!(
+                    "{} is not a legal target; legal targets: {}",
+                    self.describe_target(t),
+                    self.describe_options(d)
+                ),
+            });
         }
         index_of(d, &Choice::Target(t)).ok_or_else(|| Failure {
             line,
@@ -1112,6 +1222,15 @@ impl Runner {
             .state()
             .stack
             .iter()
+            .map(|id| self.state().name_of(*id).to_string())
+            .collect();
+        // The sources of the abilities on the stack (`in response to
+        // trigger "X"`).
+        let stack_abilities: Vec<String> = self
+            .state()
+            .stack
+            .iter()
+            .filter(|id| self.state().objects[**id].kind == ObjKind::Ability)
             .map(|id| self.state().name_of(*id).to_string())
             .collect();
         let special = self.matching(d.player, pos, true, |a| {
@@ -1187,8 +1306,13 @@ impl Runner {
                 // A graveyard cast of its own (flashback, harmonize,
                 // disturb, an alternative cost) is made at priority.
                 let own = *from_graveyard || *harmonized || *disturbed || *alternative;
-                respond_to.as_ref().is_none_or(|n| stack_names.contains(n))
-                    && !self.waiting_in_exile(d.player, name)
+                respond_to.as_ref().is_none_or(|(n, trigger)| {
+                    if *trigger {
+                        stack_abilities.contains(n)
+                    } else {
+                        stack_names.contains(n)
+                    }
+                }) && !self.waiting_in_exile(d.player, name)
                     && (own || !self.waiting_in_graveyard(d, name))
             }
             _ => false,

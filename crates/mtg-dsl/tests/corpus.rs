@@ -274,8 +274,36 @@ fn enchanted_creature_biting_any_other_target_is_rejected() {
 
 #[test]
 fn a_ward_cost_part_the_trigger_would_drop_is_rejected() {
-    let e = creature_error("ward sacrifice creature");
+    let e = creature_error("ward collect evidence 4");
     assert!(e.contains("ward or echo cost"), "{e}");
+    assert!(compiles("ward sacrifice creature"));
     assert!(compiles("ward waterbend {4}"));
     assert!(compiles("ward discard 1 card at random"));
+}
+
+#[test]
+fn wrong_meaning_forms_of_the_sixth_correctness_wave_are_rejected() {
+    // No triggering player in a spell.
+    let e = spell_error("deal 2 damage to each creature that player controls");
+    assert!(e.contains("that player controls"), "{e}");
+    // `they control` counts an opponent's permanents.
+    let e = spell_error("each player loses count each creature they control life");
+    assert!(e.contains("they control"), "{e}");
+    // `enchanted creature` in a target check is what the source enchants.
+    let e = spell_error(
+        "target creature gets +2/+2; if target 1 is enchanted creature, also target 1 gains hexproof",
+    );
+    assert!(e.contains("creature with aura"), "{e}");
+    // An open delayed trigger would swallow the spell's later target.
+    let e = spell_error(
+        "choose target creature an opponent controls; delayed target 1: when that creature dies this turn, you gain 3 life; target creature you control fights that target 1",
+    );
+    assert!(e.contains("delayed trigger"), "{e}");
+    assert!(
+        load_card(
+            "Sorcery",
+            "spell: choose target creature an opponent controls; delayed target 1: { when that creature dies this turn, you gain 3 life }; target creature you control fights that target 1",
+        )
+        .is_ok()
+    );
 }

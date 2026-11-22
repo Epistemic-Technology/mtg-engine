@@ -133,8 +133,10 @@ pub enum Action {
         discard: Option<String>,
         targets: Vec<TargetRef>,
         /// `in response to "X"`: fire only while an object named X is on
-        /// the stack.
-        respond_to: Option<String>,
+        /// the stack; `in response to trigger "X"`, only while an ability
+        /// of a source named X is (the creature spell X has resolved and
+        /// its enters trigger waits).
+        respond_to: Option<(String, bool)>,
         /// `face_down`: cast face down for {3} (morph, CR 702.37c).
         face_down: bool,
         /// `evoked`: cast for the evoke cost (CR 702.74).

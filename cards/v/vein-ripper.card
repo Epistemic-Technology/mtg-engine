@@ -1,0 +1,9 @@
+card "Vein Ripper" {
+  oracle_id f83a768c-162d-46f0-8ebd-d9c6b2c69322
+  cost {3}{B}{B}{B}
+  type Creature — Vampire Assassin
+  pt 6/5
+  keywords flying
+  ward sacrifice creature
+  triggered whenever a creature dies: target opponent loses 2 life and you gain 2 life
+}

@@ -1,0 +1,8 @@
+card "Bolg of the North" {
+  oracle_id 88522a0f-5377-4522-97f4-4148bef954af
+  cost {3}{B}{R}
+  type Legendary Creature — Goblin Soldier
+  pt 5/5
+  short_name "Bolg"
+  triggered when this enters: you may sacrifice 1 another creature chosen; when you do, this deals damage equal power of that sacrificed creature to another target creature; if excess damage dealt this way, amass Goblins count where excess damage dealt this way
+}

@@ -1,0 +1,30 @@
+# Scenario runner: `in response to trigger "X"` casts a spell only while an
+# ability of a source named X is on the stack, not while the spell X is.
+
+scenario "respond to a trigger: Gruff Triplets dies before its enters trigger resolves" {
+  battlefield A: 6 "Forest"
+  battlefield B: "Mountain"
+  hand A: "Gruff Triplets"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Gruff Triplets"
+  turn 1 B: cast "Lightning Bolt" targeting "Gruff Triplets" in response to trigger "Gruff Triplets"
+  run_to turn 1 end
+  # The copies are made from the creature as it last existed (CR 707.4,
+  # 608.2h).
+  assert graveyard A contains "Gruff Triplets"
+  assert battlefield A contains 2 "Gruff Triplets"
+  assert power oldest A "Gruff Triplets" 3
+  assert has oldest A "Gruff Triplets" trample
+}
+
+scenario "respond to a spell: Bolt waits for the creature spell, not its trigger" {
+  battlefield A: 6 "Forest"
+  battlefield B: "Mountain"
+  hand A: "Gruff Triplets"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Gruff Triplets"
+  turn 1 B: cast "Lightning Bolt" targeting player A in response to "Gruff Triplets"
+  run_to turn 1 end
+  assert life A 17
+  assert battlefield A contains 3 "Gruff Triplets"
+}

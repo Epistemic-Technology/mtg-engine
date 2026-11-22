@@ -1851,6 +1851,12 @@ pub struct GameState {
     /// may pay {X}. When you do, ..."), by the pending trigger's
     /// timestamp, for the ability's X once it is on the stack.
     pub reflexive_x: Vec<(Timestamp, u32)>,
+    /// What the resolution that made a reflexive ability trigger
+    /// sacrificed or otherwise moved ("You may sacrifice another
+    /// creature. When you do, ... equal to that creature's power"), by
+    /// the pending trigger's timestamp: the ability's "this way" record
+    /// once it is on the stack (`paid_costs`).
+    pub reflexive_moved: Vec<(Timestamp, Vec<Moved>)>,
     /// Ninjutsu abilities on the stack (CR 702.49c): the card to enter
     /// attacking, and what the creature returned for the cost was
     /// attacking.
@@ -2928,7 +2934,17 @@ impl GameState {
             && !f.status.mana_value_x
             && !f.status.spent_colors
         {
-            let mv = self.pool.get(o.def).mana_cost.mana_value();
+            let cost = &self.pool.get(o.def).mana_cost;
+            let mut mv = cost.mana_value();
+            // CR 202.3b: on the stack, X is the value chosen for it.
+            if o.zone == Zone::Stack && cost.has_x() {
+                let xs = cost
+                    .symbols()
+                    .iter()
+                    .filter(|s| **s == crate::mana::ManaSymbol::X)
+                    .count();
+                mv += u32::try_from(xs).unwrap_or(1) * self.x_of(id);
+            }
             if !cmp.holds(mv, u32::from(n)) {
                 return false;
             }

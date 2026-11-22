@@ -1,0 +1,8 @@
+card "Thieves' Tools" {
+  oracle_id 7fe361ef-a168-4847-92a2-21c1661aac06
+  cost {1}{B}
+  type Artifact — Equipment
+  triggered when this enters: create 1 "Treasure"
+  static enchanted: has can't be blocked as long as attached is with power 3 or less
+  equip {2}
+}

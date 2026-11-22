@@ -219,7 +219,7 @@ like the card; either half may still be cast alone.
 | `evoke {1}{U}{U}`, `bloodthirst 2` | Evoke (CR 702.74): cast for this cost instead, and the permanent is sacrificed as it enters (`if evoked` is the trigger condition). Bloodthirst (CR 702.54): enters with N +1/+1 counters if an opponent was dealt damage this turn (`opponent damaged this turn` is also a static condition). |
 | `crew 3` | Crew (CR 702.122): "Tap any number of other untapped creatures you control with total power 3 or more: this Vehicle becomes an artifact creature until end of turn." The engine taps the weakest creature strong enough alone, else the strongest until the power suffices. |
 | `morph {2}{U}`, `megamorph {G}`, `disguise {1}{W}` | Cast face down as a nameless colorless 2/2 creature for {3}, turned face up any time its controller has priority for the cost (a special action; CR 702.37, 708); megamorph adds a +1/+1 counter as it turns up, and a disguised permanent has ward {2} while face down (CR 702.168). A land card with disguise (Branch of Vitu-Ghazi) may be cast face down too. `triggered when this is turned face up: ...`. `morph pay 5 life`, `morph discard 1 card`, `morph return Bird you control` print "Morph—Pay 5 life." and kin (CR 702.37a: any cost): turning it face up pays the life, or asks the player which card to discard or which permanent to return. `manifest` is an effect: the top card of your library onto the battlefield face down (CR 701.34); a manifested creature card turns face up for its mana cost. `manifest dread` (CR 701.62): look at the top two cards of your library, manifest the one you choose, and put the other into your graveyard. |
-| `bushido 2`, `soulshift 3`, `afflict 1`, `toxic 1`, `ward {2}`, `echo {2}{R}`, `unearth {B}`, `buyback {3}`, `outlast {1}{W}` | Keyword abilities with a number or cost (CR 702.45, .46, .130, .164, .21, .30, .84, .27, .107), printed as the keyword ("Bushido 2") in place and compiled to what they stand for: a blocks-or-blocked pump; a dies trigger that may return a Spirit card with that mana value or less; a becomes-blocked life loss; poison counters with combat damage to a player; a trigger countering an opponent's spell or ability that targets it unless they pay; an upkeep sacrifice unless paid, once after it comes under your control; an ability activated from the graveyard as a sorcery that returns it with haste and exiles it at the next end step; an optional additional cost that returns the spell to its owner's hand; and "{cost}, {T}: Put a +1/+1 counter on this creature. Activate only as a sorcery." `flanking` is a plain keyword. `ward pay 3 life` prints "Ward—Pay 3 life." (CR 702.21a: counter it unless that player pays 3 life); `buyback sacrifice land` prints "Buyback—Sacrifice a land." (CR 702.27a: the land is chosen as buyback is decided and sacrificed as the costs are paid). `ward discard 1 card` and `echo discard 1 card` print "Ward—Discard a card." and "Echo—Discard a card.": the payer discards a card of their choice to pay (none in hand, it can't be paid); `ward discard 1 card at random` ("Ward—Discard a card at random.") discards one at random (CR 701.9b). `ward waterbend {4}` prints "Ward—Waterbend {4}.": the payer may tap their untapped artifacts and creatures for the generic mana (CR 701.67a). A ward or echo cost with any other part (sacrifice, behold, ...) is an error. |
+| `bushido 2`, `soulshift 3`, `afflict 1`, `toxic 1`, `ward {2}`, `echo {2}{R}`, `unearth {B}`, `buyback {3}`, `outlast {1}{W}` | Keyword abilities with a number or cost (CR 702.45, .46, .130, .164, .21, .30, .84, .27, .107), printed as the keyword ("Bushido 2") in place and compiled to what they stand for: a blocks-or-blocked pump; a dies trigger that may return a Spirit card with that mana value or less; a becomes-blocked life loss; poison counters with combat damage to a player; a trigger countering an opponent's spell or ability that targets it unless they pay; an upkeep sacrifice unless paid, once after it comes under your control; an ability activated from the graveyard as a sorcery that returns it with haste and exiles it at the next end step; an optional additional cost that returns the spell to its owner's hand; and "{cost}, {T}: Put a +1/+1 counter on this creature. Activate only as a sorcery." `flanking` is a plain keyword. `ward pay 3 life` prints "Ward—Pay 3 life." (CR 702.21a: counter it unless that player pays 3 life); `buyback sacrifice land` prints "Buyback—Sacrifice a land." (CR 702.27a: the land is chosen as buyback is decided and sacrificed as the costs are paid). `ward discard 1 card` and `echo discard 1 card` print "Ward—Discard a card." and "Echo—Discard a card.": the payer discards a card of their choice to pay (none in hand, it can't be paid); `ward discard 1 card at random` ("Ward—Discard a card at random.") discards one at random (CR 701.9b). `ward waterbend {4}` prints "Ward—Waterbend {4}.": the payer may tap their untapped artifacts and creatures for the generic mana (CR 701.67a). `ward sacrifice creature` prints "Ward—Sacrifice a creature." (any filter: `ward sacrifice Food`, "Ward—Sacrifice a Food."): the player who controls the spell or ability may sacrifice one matching permanent of their choice as the ward trigger resolves; with none, or if they don't, it is countered. A ward or echo cost with any other part (a sacrifice with mana or of several permanents, collect evidence, behold, ...) is an error. |
 | `firebending 2`, `firebending count where power`, `firebending count where creature you control` | Firebending (CR 702.189): "Whenever this creature attacks, add N {R}. Until end of combat, you don't lose this mana as steps and phases end." The red mana stays in the pool as each combat step ends, through the end of combat step (the player's other mana is taken to be spent first); X is counted as the trigger resolves. Prints "Firebending 2" (in a keyword line with others: "Trample, firebending 4, haste") or "Firebending X, where X is this creature's power." |
 | `strive {2}{W}` | "Strive — This spell costs {2}{W} more to cast for each target beyond the first." (CR 207.2c): the cost is added once per target beyond the first as the total cost is determined (CR 601.2f); a variable target group stops offering targets once another could not be paid for. Printed first. |
 | `protection doesn't remove this` | "This effect doesn't remove this Aura.", printed after the static ability before it (`static enchanted: has protection from chosen color`): the Aura's state-based check (CR 704.5m) ignores protection. |
@@ -807,7 +807,13 @@ after a target the ability names (other than a player) it is that target,
 as in a spell: `put 2 +1/+1 counters on target creature you control; it
 gains vigilance until end of turn`, `you lose count equal mana value of it
 life` after `return up to 1 target Vampire card ...`; `it deals` stays the
-triggering object. In a trigger with no triggering object (`at beginning
+triggering object. Where the triggering object is the source (`when this
+enters`, `whenever this attacks`, `when this is turned face up`), a spell
+(`whenever you cast ...`), or there is none (`at beginning of combat on
+your turn`), `that creature` after an object target is that target too: `when this enters:
+attach to target creature you control; that creature gains hexproof`
+("When this Equipment enters, attach it to target creature you control.
+That creature gains hexproof ..."). In a trigger with no triggering object (`at beginning
 of ...`, `whenever you gain life`, `whenever you attack`) `it` is an
 error: write `this` or `target N`. In any ability, `it` after `create 1
 "..."` (or a token copy), before another target, is that token ("Create a
@@ -2102,7 +2108,12 @@ on this`, the player chooses X as they pay, any value they can pay, and
 X after it, in the same resolution or the reflexive ability, is that
 value; after `draw 1 card then discard 1 card` it prints "When you discard
 a card this way, ..."; `you may you sacrifice a creature` prints "you may sacrifice a
-creature", and an empty choice is no action), `<clause> unless you <clause>` (an act, not a payment: `sacrifice this
+creature", and an empty choice is no action; every sentence after `when
+you do` is the reflexive ability's, and what the resolution sacrificed
+is its `that sacrificed creature`: `you may sacrifice 1 another creature
+chosen; when you do, this deals damage equal power of that sacrificed
+creature to another target creature; if excess damage dealt this way,
+...`), `<clause> unless you <clause>` (an act, not a payment: `sacrifice this
 unless you discard 1 card at random`, `... unless you return 2 Forest you
 control to hand chosen` ("... unless you return two Forests you control to
 their owner's hand"), `... unless you sacrifice 1 land chosen`, `... unless
@@ -2267,7 +2278,13 @@ battlefield under their owner's control ...", each in turn); in one about `that 
 creature` is the object too. `delayed target 1: when that creature dies
 this turn, <effects>` (and `when that creature leaves the battlefield this
 turn`) triggers once if that object dies (leaves) and ends unfired at the
-cleanup step (CR 603.7c). A target declared by the delayed ability
+cleanup step (CR 603.7c). Every sentence after a trigger-first delayed
+trigger is its own; braces close it, so the sentences after them are the
+spell's: `delayed target 1: { when that creature dies this turn, you gain
+3 life }; target creature you control fights that target 1` ("When that
+creature dies this turn, you gain 3 life. Target creature you control
+fights that creature."). An open one whose later sentence declares a
+target is an error. A target declared by the delayed ability
 itself prints in its trigger: `delayed target creature: when that
 creature dies this turn, return triggering card to battlefield` ("When
 target creature dies this turn, return that card to the battlefield under
@@ -2446,7 +2463,9 @@ creature`, `blocking creature`, `<Subtype> creature` ("target Assembly-Worker cr
 ("target nonblack creature", "target creature an opponent controls").
 Targets relative to a player: `target creature that player controls` (the
 triggering player: "Whenever this creature deals combat damage to a
-player, ... target creature that player controls"), `another target
+player, ... target creature that player controls"; outside a triggered
+ability there is no triggering player, and the bare `that player
+controls` is an error), `another target
 creature controller of target 1 controls` ("Target creature an opponent
 controls deals damage equal to its power to another target creature that
 player controls": the first target's controller; a first target is offered
@@ -2530,7 +2549,10 @@ resolves: `if target 1 is Human, ...` ("If it's a Human, ..."), `if that
 target 1 is other Hero, ...` ("If that creature is another Hero, ..."),
 or as it last existed: `if that target 1 was with mana value 2 or less,
 ...` ("If that spell's mana value was 2 or less, ...", after countering
-it).
+it). State on the battlefield counts: `if target 1 is creature with aura
+or enchantment creature, also ...` ("If it's an enchanted creature or
+enchantment creature, it also ..."); `enchanted creature` (what the
+source enchants) is an error in a target check.
 `label "Hellbent"` before the sentence prints an ability word (CR 207.2c,
 no rules meaning): "Hellbent — Cackling Flames deals 5 damage instead if
 you have no cards in hand." In a `spell { ... }` block it starts its own

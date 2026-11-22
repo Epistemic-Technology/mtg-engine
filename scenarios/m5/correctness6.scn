@@ -1,0 +1,428 @@
+# Sixth correctness wave: forms that gated Match with the wrong meaning,
+# now bound correctly, and the cards they unlock.
+
+# "Another target creature that player controls" in a spell: the first
+# target's controller (`controller of target 1 controls`). The bare
+# `that player controls` names the triggering player and is an error
+# outside a triggered ability.
+scenario "Breaking of the Fellowship: one opponent's creature bites another of theirs" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Breaking of the Fellowship"
+  turn 1 A: cast "Breaking of the Fellowship" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 0
+  assert tempted A 1
+}
+
+scenario "Breaking of the Fellowship: the second creature must be controlled by the first's controller" {
+  battlefield A: 2 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Breaking of the Fellowship"
+  illegal turn 1 A: cast "Breaking of the Fellowship" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "Chandra's Flame Wave: the target player's creatures, not the caster's" {
+  battlefield A: 5 "Mountain", "Grizzly Bears"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Chandra's Flame Wave"
+  turn 1 A: cast "Chandra's Flame Wave" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert battlefield A contains "Grizzly Bears"
+}
+
+# "When this enters, ... target creature ... That creature ...": the
+# triggering object is the source, so "that creature" is the target.
+scenario "Bladed Battle-Fan: the creature it attaches to gains indestructible until end of turn" {
+  battlefield A: 2 "Swamp", "Grizzly Bears"
+  hand A: "Bladed Battle-Fan"
+  turn 1 A: cast "Bladed Battle-Fan"
+  turn 1 A: trigger "Bladed Battle-Fan" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Bladed Battle-Fan" to "Grizzly Bears"
+  assert has "Grizzly Bears" indestructible
+  assert power "Grizzly Bears" 3
+  run_to turn 2 upkeep
+  assert has not "Grizzly Bears" indestructible
+}
+
+scenario "Niblis of Frost: a cast trigger's 'that creature' is the tapped target" {
+  battlefield A: "Niblis of Frost", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: trigger "Niblis of Frost" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert tapped "Hill Giant"
+  assert life B 18
+}
+
+scenario "Akroan Conscriptor: the stolen creature untaps" {
+  battlefield A: "Akroan Conscriptor", "Forest"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Akroan Conscriptor"
+  turn 1 A: trigger "Akroan Conscriptor" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Hill Giant"
+  assert untapped "Hill Giant"
+  assert has "Hill Giant" haste
+}
+
+scenario "Celestial Armor: the creature gains hexproof and indestructible, and gets +2/+0 and flying" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Celestial Armor"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Celestial Armor"
+  turn 1 A: trigger "Celestial Armor" targeting "Grizzly Bears"
+  illegal turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert attached "Celestial Armor" to "Grizzly Bears"
+  assert has "Grizzly Bears" hexproof
+  assert has "Grizzly Bears" indestructible
+  assert has "Grizzly Bears" flying
+  assert power "Grizzly Bears" 4
+  run_to turn 2 upkeep
+  assert has not "Grizzly Bears" hexproof
+  assert has "Grizzly Bears" flying
+}
+
+scenario "Galadhrim Bow: the creature it attaches to untaps" {
+  battlefield A: 3 "Forest", "Grizzly Bears" tapped
+  hand A: "Galadhrim Bow"
+  turn 1 A: cast "Galadhrim Bow"
+  turn 1 A: trigger "Galadhrim Bow" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert has "Grizzly Bears" reach
+}
+
+scenario "Conquering Manticore: the stolen creature untaps and gains haste" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Conquering Manticore"
+  turn 1 A: cast "Conquering Manticore"
+  turn 1 A: trigger "Conquering Manticore" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Hill Giant"
+  assert untapped "Hill Giant"
+  assert has "Hill Giant" haste
+}
+
+scenario "Blitz Leech: the counters come off the target" {
+  battlefield A: 6 "Swamp"
+  battlefield B: "Hill Giant" with 2 +1/+1
+  hand A: "Blitz Leech"
+  turn 1 A: cast "Blitz Leech"
+  turn 1 A: trigger "Blitz Leech" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 0
+  assert power "Hill Giant" 1
+}
+
+scenario "Kor Hookmaster: the tapped creature doesn't untap" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Kor Hookmaster"
+  turn 1 A: cast "Kor Hookmaster"
+  turn 1 A: trigger "Kor Hookmaster" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert tapped "Hill Giant"
+}
+
+scenario "Bazaar Krovod: the other attacker gets +0/+2 and untaps, Krovod stays tapped" {
+  battlefield A: "Bazaar Krovod", "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Bazaar Krovod", "Grizzly Bears"
+  turn 2 A: trigger "Bazaar Krovod" targeting "Grizzly Bears"
+  run_to turn 2 declare_blockers
+  assert untapped "Grizzly Bears"
+  assert toughness "Grizzly Bears" 4
+  assert tapped "Bazaar Krovod"
+}
+# "Counter target spell with mana value X": X of Spell Blast, checked as
+# targets are chosen (CR 601.2c) and on resolution.
+scenario "Spell Blast: X must equal the target spell's mana value" {
+  battlefield A: 5 "Island"
+  battlefield B: 6 "Forest"
+  hand A: "Spell Blast"
+  hand B: "Craw Wurm"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Craw Wurm"
+  illegal turn 1 A: cast "Spell Blast" x 3 targeting "Craw Wurm"
+  run_to turn 1 end
+  assert battlefield B contains "Craw Wurm"
+}
+
+scenario "Spell Blast: X equal to the mana value counters it" {
+  battlefield A: 7 "Island"
+  battlefield B: 6 "Forest"
+  hand A: "Spell Blast"
+  hand B: "Craw Wurm"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Craw Wurm"
+  turn 1 A: cast "Spell Blast" x 6 targeting "Craw Wurm"
+  run_to turn 1 end
+  assert graveyard B contains "Craw Wurm"
+}
+
+scenario "Spell Blast: a spell's X counts in its mana value on the stack" {
+  battlefield A: 4 "Island"
+  battlefield B: 3 "Mountain"
+  hand A: "Spell Blast"
+  hand B: "Blaze"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Blaze" x 2 targeting player A
+  turn 1 A: cast "Spell Blast" x 3 targeting "Blaze"
+  run_to turn 1 end
+  assert life A 20
+  assert graveyard B contains "Blaze"
+}
+
+# "If it's an enchanted creature or enchantment creature": the Aura is
+# judged on the battlefield, not ignored.
+scenario "Karametra's Blessing: an unenchanted creature gets only +2/+2" {
+  battlefield A: "Plains", "Grizzly Bears"
+  hand A: "Karametra's Blessing"
+  turn 1 A: cast "Karametra's Blessing" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has not "Grizzly Bears" hexproof
+  assert has not "Grizzly Bears" indestructible
+}
+
+scenario "Karametra's Blessing: an enchanted creature also gains hexproof and indestructible" {
+  battlefield A: "Plains", "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  hand A: "Karametra's Blessing"
+  turn 1 A: cast "Karametra's Blessing" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert has "Grizzly Bears" hexproof
+  assert has "Grizzly Bears" indestructible
+}
+
+scenario "Karametra's Blessing: an enchantment creature also gains them" {
+  battlefield A: "Plains", "Nyxborn Shieldmate"
+  hand A: "Karametra's Blessing"
+  turn 1 A: cast "Karametra's Blessing" targeting "Nyxborn Shieldmate"
+  run_to turn 1 postcombat_main
+  assert has "Nyxborn Shieldmate" hexproof
+  assert has "Nyxborn Shieldmate" indestructible
+}
+
+# "Whenever a modified creature you control leaves the battlefield": the
+# creature as it last existed (CR 603.10a, 700.9).
+scenario "Costume Closet: an unmodified creature leaving doesn't trigger it" {
+  battlefield A: "Costume Closet" with 2 +1/+1, "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Costume Closet" +1/+1 2
+}
+
+scenario "Costume Closet: a creature with a counter leaving puts a counter on it" {
+  battlefield A: "Costume Closet" with 2 +1/+1, "Grizzly Bears"
+  battlefield B: "Mountain", "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Costume Closet" targeting "Grizzly Bears"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Costume Closet" +1/+1 2
+}
+
+scenario "Costume Closet: an equipped creature counts as modified" {
+  battlefield A: "Costume Closet" with 2 +1/+1, "Grizzly Bears", "Bone Saw" on "Grizzly Bears"
+  battlefield B: "Mountain", "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Costume Closet" +1/+1 3
+}
+
+# "Equipped creature can't be blocked as long as its power is 3 or less":
+# the equipped creature's power (`attached is with power 3 or less`).
+scenario "Thieves' Tools: a creature with power 3 or less can't be blocked" {
+  battlefield A: "Hill Giant", "Thieves' Tools" on "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Hill Giant"
+  illegal turn 2 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 17
+}
+
+scenario "Thieves' Tools: a creature with power 4 can be blocked" {
+  battlefield A: "Hill Giant", "Thieves' Tools" on "Hill Giant", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Brute Force"
+  start turn 2 A
+  turn 2 A: cast "Brute Force" targeting "Hill Giant"
+  turn 2 A: attack "Hill Giant"
+  turn 2 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Thieves' Tools: entering creates a Treasure" {
+  battlefield A: 2 "Swamp"
+  hand A: "Thieves' Tools"
+  turn 1 A: cast "Thieves' Tools"
+  run_to turn 1 end
+  assert battlefield A contains "Treasure"
+}
+
+# "Whenever you cast a spell of the chosen color": the color Diamond Mare
+# chose as it entered.
+scenario "Diamond Mare: a spell of the chosen color gains 1 life, another color doesn't" {
+  battlefield A: 3 "Mountain", 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Diamond Mare", "Lightning Bolt", "Giant Growth"
+  turn 1 A: cast "Diamond Mare"
+  turn 1 A: choose red
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  turn 1 postcombat_main A: cast "Giant Growth" targeting "Diamond Mare"
+  run_to turn 1 end
+  assert life A 21
+  assert graveyard B contains "Hill Giant"
+}
+
+# "If a triggered ability of another creature you control of the chosen
+# type triggers, it triggers an additional time": the type Roaming Throne
+# chose (CR 603.2d).
+scenario "Roaming Throne: an Elf's enters trigger triggers twice with Elf chosen" {
+  battlefield A: 6 "Forest"
+  hand A: "Roaming Throne", "Elvish Visionary"
+  library A: "Island", "Island", "Island"
+  turn 1 A: cast "Roaming Throne"
+  turn 1 A: choose Elf
+  turn 1 A: wait
+  turn 1 A: cast "Elvish Visionary"
+  run_to turn 1 end
+  assert is "Roaming Throne" Elf
+  assert hand A count 2
+}
+
+scenario "Roaming Throne: a creature of another type triggers once" {
+  battlefield A: 4 "Forest", 2 "Plains"
+  hand A: "Roaming Throne", "Wall of Omens"
+  library A: "Island", "Island", "Island"
+  turn 1 A: cast "Roaming Throne"
+  turn 1 A: choose Elf
+  turn 1 A: wait
+  turn 1 A: cast "Wall of Omens"
+  run_to turn 1 end
+  assert hand A count 1
+}
+
+# `delayed target 1: { when ..., <effects> }; <more>`: the braces end the
+# delayed trigger, so the fight happens as the spell resolves.
+scenario "Time to Feed: the creatures fight, and its death gains 3 life" {
+  battlefield A: 3 "Forest", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Time to Feed"
+  turn 1 A: cast "Time to Feed" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert life A 23
+}
+
+scenario "Time to Feed: no life if the opponent's creature survives" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Time to Feed"
+  turn 1 A: cast "Time to Feed" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert life A 20
+}
+
+# "Tap enchanted creature and put X sleep counters on it": `it` is the
+# creature; "if it has a sleep counter on it" is judged on the creature.
+scenario "Venarian Gold: X sleep counters, one off each upkeep, untaps when none are left" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Venarian Gold"
+  turn 1 A: cast "Venarian Gold" x 2 targeting "Hill Giant"
+  run_to turn 1 end
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" sleep 2
+  run_to turn 2 draw
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" sleep 1
+  run_to turn 4 draw
+  assert counters "Hill Giant" sleep 0
+  assert tapped "Hill Giant"
+  run_to turn 6 draw
+  assert untapped "Hill Giant"
+}
+
+scenario "Venarian Gold: X = 0 puts no counters, and the creature untaps" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Venarian Gold"
+  turn 1 A: cast "Venarian Gold" x 0 targeting "Hill Giant"
+  run_to turn 1 end
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" sleep 0
+  run_to turn 2 draw
+  assert untapped "Hill Giant"
+}
+
+# "You may sacrifice another creature. When you do, Bolg deals damage equal
+# to that creature's power ... If excess damage was dealt this way, amass
+# Goblins X": the reflexive ability reads what its trigger sacrificed, and
+# the sentences after "when you do" are its own (CR 603.12).
+scenario "Bolg of the North: the sacrificed creature's power is dealt, the excess amassed" {
+  battlefield A: 4 "Mountain", "Swamp", "Llanowar Elves", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Bolg of the North"
+  turn 1 A: cast "Bolg of the North"
+  turn 1 A: accept "Bolg of the North"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: trigger "Bolg of the North" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains "Llanowar Elves"
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Goblin Army"
+  assert counters "Goblin Army" +1/+1 1
+}
+
+scenario "Bolg of the North: declining sacrifices nothing" {
+  battlefield A: 4 "Mountain", "Swamp", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Bolg of the North"
+  turn 1 A: cast "Bolg of the North"
+  turn 1 A: decline "Bolg of the North"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Bolg of the North: no excess damage, no Army" {
+  battlefield A: 4 "Mountain", "Swamp", "Llanowar Elves", "Grizzly Bears"
+  battlefield B: "Runeclaw Bear"
+  hand A: "Bolg of the North"
+  turn 1 A: cast "Bolg of the North"
+  turn 1 A: accept "Bolg of the North"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: trigger "Bolg of the North" targeting "Runeclaw Bear"
+  run_to turn 1 end
+  assert graveyard B contains "Runeclaw Bear"
+  assert battlefield A lacks "Goblin Army"
+}

@@ -1,0 +1,6 @@
+card "Karametra's Blessing" {
+  oracle_id d553ae4d-b2a9-47eb-8c2e-ffab8cc31b26
+  cost {W}
+  type Instant
+  spell: target creature gets +2/+2; if target 1 is creature with aura or enchantment creature, also target 1 gains hexproof, indestructible
+}

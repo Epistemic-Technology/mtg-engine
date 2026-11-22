@@ -1,0 +1,21 @@
+# "Sacrifice six creatures named Shadowborn Apostle" (a cost of several
+# permanents named like the source, CR 201.4b).
+
+scenario "Shadowborn Apostle: six Apostles are sacrificed and a Demon is found" {
+  battlefield A: 7 "Shadowborn Apostle", "Swamp"
+  library A: "Island", "Archfiend of Sorrows", "Island"
+  turn 1 A: activate "Shadowborn Apostle"
+  turn 1 A: choose "Archfiend of Sorrows"
+  run_to turn 1 end
+  assert battlefield A contains "Archfiend of Sorrows"
+  assert battlefield A contains 1 "Shadowborn Apostle"
+  assert graveyard A contains 6 "Shadowborn Apostle"
+}
+
+scenario "Shadowborn Apostle: five Apostles can't pay it" {
+  battlefield A: 5 "Shadowborn Apostle", "Grizzly Bears", "Swamp"
+  library A: "Archfiend of Sorrows"
+  illegal turn 1 A: activate "Shadowborn Apostle"
+  run_to turn 1 end
+  assert battlefield A contains 5 "Shadowborn Apostle"
+}

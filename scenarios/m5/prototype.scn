@@ -1,4 +1,4 @@
-# Prototype (CR 702.160a, 718): cast prototyped (`alternative`, the
+# Prototype (CR 702.160a, 718): cast prototyped (`prototyped`, the
 # card's alternative cost), the spell and the permanent have the
 # prototype's mana cost, power, and toughness, and that cost's colors (CR
 # 718.3b); its abilities and types stay (CR 718.5); off the battlefield it
@@ -7,7 +7,7 @@
 scenario "prototype: Blitz Automaton prototyped is a red 3/2 with haste" {
   battlefield A: 3 "Mountain"
   hand A: "Blitz Automaton"
-  turn 1 A: cast "Blitz Automaton" alternative
+  turn 1 A: cast "Blitz Automaton" prototyped
   turn 1 A: attack "Blitz Automaton"
   run_to turn 1 postcombat_main
   assert power "Blitz Automaton" 3
@@ -31,7 +31,7 @@ scenario "prototype: cast normally it is a colorless 6/4" {
 scenario "prototype: the prototype cost needs its colored mana" {
   battlefield A: 3 "Island"
   hand A: "Blitz Automaton"
-  illegal turn 1 A: cast "Blitz Automaton" alternative
+  illegal turn 1 A: cast "Blitz Automaton" prototyped
   run_to turn 1 postcombat_main
   assert hand A contains "Blitz Automaton"
 }
@@ -41,7 +41,7 @@ scenario "prototype: a prototyped permanent's mana value is the prototype's" {
   battlefield B: 2 "Swamp"
   hand A: "Goring Warplow"
   hand B: "Smother"
-  turn 1 A: cast "Goring Warplow" alternative
+  turn 1 A: cast "Goring Warplow" prototyped
   turn 1 postcombat_main B: cast "Smother" targeting "Goring Warplow"
   run_to turn 1 end
   assert graveyard A contains "Goring Warplow"
@@ -65,7 +65,7 @@ scenario "prototype: back in the hand it is the card again" {
   battlefield B: 2 "Island"
   hand A: "Goring Warplow"
   hand B: "Unsummon"
-  turn 1 A: cast "Goring Warplow" alternative
+  turn 1 A: cast "Goring Warplow" prototyped
   turn 1 postcombat_main B: cast "Unsummon" targeting "Goring Warplow"
   run_to turn 1 end
   assert hand A contains "Goring Warplow"
@@ -74,7 +74,7 @@ scenario "prototype: back in the hand it is the card again" {
 scenario "prototype: Boulderbranch Golem gains life equal to its prototyped power" {
   battlefield A: 4 "Forest"
   hand A: "Boulderbranch Golem"
-  turn 1 A: cast "Boulderbranch Golem" alternative
+  turn 1 A: cast "Boulderbranch Golem" prototyped
   run_to turn 1 postcombat_main
   assert life A 23
   assert power "Boulderbranch Golem" 3
@@ -93,7 +93,7 @@ scenario "prototype: Combat Thresher prototyped draws and has double strike" {
   battlefield A: 3 "Plains"
   hand A: "Combat Thresher"
   library A: "Island", "Forest"
-  turn 1 A: cast "Combat Thresher" alternative
+  turn 1 A: cast "Combat Thresher" prototyped
   run_to turn 1 postcombat_main
   assert hand A count 1
   assert power "Combat Thresher" 1
@@ -103,7 +103,7 @@ scenario "prototype: Combat Thresher prototyped draws and has double strike" {
 scenario "prototype: Autonomous Assembler prototyped, and its counter ability" {
   battlefield A: 3 "Plains"
   hand A: "Autonomous Assembler"
-  turn 1 A: cast "Autonomous Assembler" alternative
+  turn 1 A: cast "Autonomous Assembler" prototyped
   turn 3 A: activate "Autonomous Assembler" targeting "Autonomous Assembler"
   run_to turn 3 postcombat_main
   assert power "Autonomous Assembler" 3
@@ -114,7 +114,7 @@ scenario "prototype: Autonomous Assembler prototyped, and its counter ability" {
 scenario "prototype: Rust Goliath prototyped is a 3/5 with reach and trample" {
   battlefield A: 5 "Forest"
   hand A: "Rust Goliath"
-  turn 1 A: cast "Rust Goliath" alternative
+  turn 1 A: cast "Rust Goliath" prototyped
   run_to turn 1 postcombat_main
   assert power "Rust Goliath" 3
   assert toughness "Rust Goliath" 5
@@ -125,7 +125,7 @@ scenario "prototype: Rust Goliath prototyped is a 3/5 with reach and trample" {
 scenario "prototype: Iron-Craw Crusher pumps by its prototyped power" {
   battlefield A: "Grizzly Bears", 4 "Forest"
   hand A: "Iron-Craw Crusher"
-  turn 1 A: cast "Iron-Craw Crusher" alternative
+  turn 1 A: cast "Iron-Craw Crusher" prototyped
   run_to turn 3 declare_attackers
   turn 3 A: attack "Iron-Craw Crusher", "Grizzly Bears"
   turn 3 A: trigger "Iron-Craw Crusher" targeting "Grizzly Bears"
@@ -137,7 +137,7 @@ scenario "prototype: Iron-Craw Crusher pumps by its prototyped power" {
 scenario "prototype: Frogmyr Enforcer's affinity reduces the prototype cost" {
   battlefield A: 4 "Mountain", 2 "Ornithopter"
   hand A: "Frogmyr Enforcer", "Lightning Bolt", "Shock"
-  turn 1 A: cast "Frogmyr Enforcer" alternative
+  turn 1 A: cast "Frogmyr Enforcer" prototyped
   turn 1 A: wait
   turn 1 A: cast "Lightning Bolt" targeting player B
   turn 1 A: cast "Shock" targeting player B
@@ -150,7 +150,7 @@ scenario "prototype: Frogmyr Enforcer's affinity reduces the prototype cost" {
 scenario "prototype: affinity makes the prototype castable with two lands" {
   battlefield A: 2 "Mountain", 2 "Ornithopter"
   hand A: "Frogmyr Enforcer"
-  turn 1 A: cast "Frogmyr Enforcer" alternative
+  turn 1 A: cast "Frogmyr Enforcer" prototyped
   run_to turn 1 postcombat_main
   assert battlefield A contains "Frogmyr Enforcer"
 }
@@ -158,7 +158,7 @@ scenario "prototype: affinity makes the prototype castable with two lands" {
 scenario "prototype: Fallaji Dragon Engine prototyped, firebreathing" {
   battlefield A: 5 "Mountain"
   hand A: "Fallaji Dragon Engine"
-  turn 1 A: cast "Fallaji Dragon Engine" alternative
+  turn 1 A: cast "Fallaji Dragon Engine" prototyped
   turn 1 A: activate "Fallaji Dragon Engine"
   run_to turn 1 postcombat_main
   assert power "Fallaji Dragon Engine" 2
@@ -168,7 +168,7 @@ scenario "prototype: Fallaji Dragon Engine prototyped, firebreathing" {
 scenario "prototype: Depth Charge Colossus prototyped doesn't untap" {
   battlefield A: 6 "Island"
   hand A: "Depth Charge Colossus"
-  turn 1 A: cast "Depth Charge Colossus" alternative
+  turn 1 A: cast "Depth Charge Colossus" prototyped
   run_to turn 3 declare_attackers
   turn 3 A: attack "Depth Charge Colossus"
   run_to turn 5 precombat_main
@@ -180,7 +180,7 @@ scenario "prototype: Depth Charge Colossus prototyped doesn't untap" {
 scenario "prototype: Cradle Clearcutter adds mana equal to its prototyped power" {
   battlefield A: 3 "Forest"
   hand A: "Cradle Clearcutter", "Rural Recruit", "Craw Giant"
-  turn 1 A: cast "Cradle Clearcutter" alternative
+  turn 1 A: cast "Cradle Clearcutter" prototyped
   illegal turn 3 A: cast "Craw Giant"
   turn 3 A: cast "Rural Recruit"
   run_to turn 3 postcombat_main
@@ -192,7 +192,7 @@ scenario "prototype: Spotter Thopter scries by its power" {
   battlefield A: 4 "Island"
   hand A: "Spotter Thopter"
   library A: "Forest", "Plains", "Swamp"
-  turn 1 A: cast "Spotter Thopter" alternative
+  turn 1 A: cast "Spotter Thopter" prototyped
   run_to turn 1 postcombat_main
   assert known A "Forest"
   assert known A "Plains"
