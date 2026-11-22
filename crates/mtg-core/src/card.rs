@@ -4100,6 +4100,12 @@ pub enum Effect {
     /// target: its `CardDef::haunted` ability becomes a delayed trigger
     /// about that creature (702.55b-c).
     ExileHaunting,
+    /// Champion (CR 702.72a): "sacrifice it unless you exile another
+    /// [object] you control": the controller may choose another permanent
+    /// they control matching the filter; it is exiled, linked to the
+    /// source (its "When this leaves the battlefield, return the exiled
+    /// card" returns it, 702.72b), or else the source is sacrificed.
+    Champion(ObjFilter),
     /// Exile a permanent.
     Exile {
         what: Recipient,
@@ -4919,6 +4925,7 @@ impl Effect {
                 | Effect::PutFromHand { .. }
                 | Effect::Dig { .. }
                 | Effect::ManifestDread
+                | Effect::Champion(_)
                 | Effect::Blight(_)
                 | Effect::BlightBy { .. }
                 | Effect::Connive { .. }

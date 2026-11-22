@@ -1,0 +1,8 @@
+card "Changeling Berserker" {
+  oracle_id 6a3dee57-9912-4c51-872e-2ec47acdaf52
+  cost {3}{R}
+  type Creature — Shapeshifter
+  pt 5/3
+  keywords changeling, haste
+  champion creature
+}

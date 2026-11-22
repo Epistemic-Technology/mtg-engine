@@ -1,0 +1,8 @@
+card "Changeling Titan" {
+  oracle_id c1409a11-3780-40e4-abe6-df53d26b2dd6
+  cost {4}{G}
+  type Creature — Shapeshifter
+  pt 7/7
+  keywords changeling
+  champion creature
+}

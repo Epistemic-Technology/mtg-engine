@@ -1,0 +1,9 @@
+card "Thoughtweft Trio" {
+  oracle_id 15fca8d6-8a86-4c24-9178-f0b6496518ab
+  cost {2}{W}{W}
+  type Creature — Kithkin Soldier
+  pt 5/5
+  keywords first strike, vigilance
+  champion Kithkin
+  keyword can block any number of creatures
+}

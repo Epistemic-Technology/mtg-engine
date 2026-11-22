@@ -1,0 +1,8 @@
+card "Lightning Crafter" {
+  oracle_id d0f81e9c-b890-4fa1-9f7e-868dff33b6a7
+  cost {3}{R}
+  type Creature — Goblin Shaman
+  pt 3/3
+  champion Goblin or Shaman
+  activated {T}: deal 3 damage to any target
+}

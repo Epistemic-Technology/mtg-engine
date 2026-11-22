@@ -1866,6 +1866,10 @@ pub enum Mechanic {
     /// with the words in square brackets removed. The `spell` line prints
     /// with the words it has beyond these in brackets.
     Cleave(ManaCost, Box<Ability>),
+    /// `champion Goblin` (CR 702.72): "Champion a Goblin": when it enters,
+    /// sacrifice it unless you exile another Goblin you control; when it
+    /// leaves the battlefield, the exiled card returns.
+    Champion(Filter),
     /// `reconfigure {2}` (CR 702.151): "{2}: Attach to target creature you
     /// control; or unattach from a creature. Reconfigure only as a
     /// sorcery. While attached, this isn't a creature."

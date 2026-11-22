@@ -13529,6 +13529,8 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Mentor => "Mentor".to_string(),
             crate::ast::Mechanic::Riot => "Riot".to_string(),
             crate::ast::Mechanic::Haunt => "Haunt".to_string(),
+            // "Champion a Goblin", "Champion an Elemental".
+            crate::ast::Mechanic::Champion(f) => format!("Champion {}", filter_a(f, card)),
             crate::ast::Mechanic::Devour(None, n) => format!("Devour {n}"),
             crate::ast::Mechanic::Devour(Some(k), n) => {
                 format!("Devour {} {n}", format!("{k:?}").to_lowercase())

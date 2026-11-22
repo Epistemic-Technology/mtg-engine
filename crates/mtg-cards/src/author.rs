@@ -68,6 +68,7 @@ const KEYWORDS: &[&str] = &[
 
 /// Scryfall keyword tags that templates below handle as abilities.
 const TEMPLATED_TAGS: &[&str] = &[
+    "Champion",
     "Cleave",
     "Haunt",
     "Reconfigure",
@@ -4643,6 +4644,14 @@ impl Builder<'_> {
             && self.is_spell
         {
             self.cleave = Some((cap(&c, 1).to_string(), Vec::new()));
+            return Ok(());
+        }
+        // CR 702.72a: "Champion a Goblin", "Champion a Goblin or Shaman".
+        if let Some(c) = Regex::new(r"^Champion an? (creature|[A-Z][a-z]+(?: or [A-Z][a-z]+)?)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements.push(format!("champion {}", cap(&c, 1)));
             return Ok(());
         }
         // CR 702.55a.

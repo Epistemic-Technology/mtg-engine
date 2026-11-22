@@ -1,0 +1,129 @@
+# Champion (CR 702.72a): "When this permanent enters, sacrifice it unless
+# you exile another [object] you control" and "When this permanent leaves
+# the battlefield, return the exiled card to the battlefield under its
+# owner's control."
+
+scenario "champion: another Goblin is exiled, and returns when it leaves" {
+  battlefield A: 4 "Swamp", "Goblin Piker", "Grizzly Bears"
+  hand A: "Boggart Mob", "Murder"
+  battlefield A: 3 "Swamp"
+  turn 1 A: cast "Boggart Mob"
+  turn 1 A: choose "Goblin Piker"
+  turn 1 A: wait
+  run_to turn 1 begin_combat
+  assert exile A contains "Goblin Piker"
+  assert battlefield A contains "Boggart Mob"
+  turn 1 postcombat_main A: cast "Murder" targeting "Boggart Mob"
+  run_to turn 1 end
+  assert battlefield A contains "Goblin Piker"
+  assert graveyard A contains "Boggart Mob"
+}
+
+scenario "champion: declining sacrifices it" {
+  battlefield A: 4 "Swamp", "Goblin Piker"
+  hand A: "Boggart Mob"
+  turn 1 A: cast "Boggart Mob"
+  turn 1 A: choose done
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Boggart Mob"
+  assert battlefield A contains "Goblin Piker"
+}
+
+scenario "champion: with nothing to champion, it is sacrificed" {
+  battlefield A: 4 "Swamp", "Grizzly Bears"
+  hand A: "Boggart Mob"
+  turn 1 A: cast "Boggart Mob"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Boggart Mob"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "champion: only another of the type you control" {
+  battlefield A: 4 "Swamp", "Grizzly Bears", "Goblin Piker"
+  battlefield B: "Raging Goblin"
+  hand A: "Boggart Mob"
+  turn 1 A: cast "Boggart Mob"
+  illegal turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Raging Goblin"
+}
+
+scenario "Changeling Titan: champion a creature" {
+  battlefield A: 5 "Forest", "Grizzly Bears"
+  hand A: "Changeling Titan"
+  turn 1 A: cast "Changeling Titan"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  assert power "Changeling Titan" 7
+}
+
+scenario "Lightning Crafter: a Goblin or a Shaman" {
+  battlefield A: 4 "Mountain", "Goblin Piker"
+  hand A: "Lightning Crafter"
+  turn 1 A: cast "Lightning Crafter"
+  turn 1 A: choose "Goblin Piker"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Goblin Piker"
+  assert battlefield A contains "Lightning Crafter"
+}
+
+scenario "Lightning Crafter: 3 damage to any target" {
+  battlefield A: "Lightning Crafter"
+  turn 1 A: activate "Lightning Crafter" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Changeling Berserker: champions with haste" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  hand A: "Changeling Berserker"
+  turn 1 A: cast "Changeling Berserker"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: attack "Changeling Berserker"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Changeling Hero: lifelink" {
+  battlefield A: "Changeling Hero"
+  turn 1 A: attack "Changeling Hero"
+  run_to turn 1 postcombat_main
+  assert life A 24
+}
+
+scenario "Nova Chaser: an Elemental" {
+  battlefield A: 4 "Mountain", "Air Elemental"
+  hand A: "Nova Chaser"
+  turn 1 A: cast "Nova Chaser"
+  turn 1 A: choose "Air Elemental"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Air Elemental"
+}
+
+scenario "Supreme Exemplar: an Elemental" {
+  battlefield A: 7 "Island", "Air Elemental"
+  hand A: "Supreme Exemplar"
+  turn 1 A: cast "Supreme Exemplar"
+  turn 1 A: choose "Air Elemental"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Supreme Exemplar"
+}
+
+scenario "Thoughtweft Trio: a Kithkin" {
+  battlefield A: 4 "Plains", "Goldmeadow Harrier"
+  hand A: "Thoughtweft Trio"
+  turn 1 A: cast "Thoughtweft Trio"
+  turn 1 A: choose "Goldmeadow Harrier"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Goldmeadow Harrier"
+}
+
+scenario "Unstoppable Ash: a blocked creature gets +0/+5" {
+  battlefield A: "Unstoppable Ash", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}

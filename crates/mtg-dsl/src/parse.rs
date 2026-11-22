@@ -2059,6 +2059,13 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Firebending(n)))
             }
+            // CR 702.72a: `champion Goblin or Shaman`.
+            "champion" if matches!(self.peek_at(1), Some(Tok::Word(_))) => {
+                self.pos += 1;
+                let f = self.filter()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Champion(f)))
+            }
             "haunt" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
                 self.pos += 1;
                 self.end_stmt()?;

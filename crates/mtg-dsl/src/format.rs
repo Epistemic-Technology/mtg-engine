@@ -5740,6 +5740,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Mentor => "mentor".to_string(),
                 crate::ast::Mechanic::Riot => "riot".to_string(),
                 crate::ast::Mechanic::Haunt => "haunt".to_string(),
+                crate::ast::Mechanic::Champion(f) => format!("champion {}", filter(f)),
                 crate::ast::Mechanic::Devour(None, n) => format!("devour {n}"),
                 crate::ast::Mechanic::Devour(Some(k), n) => {
                     format!("devour {} {n}", format!("{k:?}").to_lowercase())

@@ -11300,6 +11300,40 @@ impl GameState {
             // still in its owner's graveyard, is exiled; its "When the
             // creature it haunts dies" ability watches that creature from
             // exile (702.55c).
+            // CR 702.72a: the source still on the battlefield, another
+            // permanent of its controller's matching the filter is exiled
+            // (the first option; declining sacrifices the source).
+            Effect::Champion(filter) => {
+                let p = ctx.controller;
+                let Some(me) = self
+                    .objects
+                    .get(ctx.source)
+                    .filter(|o| o.zone == Zone::Battlefield)
+                    .map(|_| ctx.source)
+                else {
+                    return;
+                };
+                let cands: Vec<ObjId> = self
+                    .permanents_of(p)
+                    .filter(|id| {
+                        *id != me
+                            && self.characteristics(*id).is_some_and(|c| {
+                                filter.matches(*id, p, &c, Some(me), Some(p))
+                            })
+                    })
+                    .collect();
+                let mut options: Vec<Choice> = cands.iter().map(|id| Choice::Sacrifice(*id)).collect();
+                options.push(Choice::Done);
+                let k = self.choose_mid(p, DecisionKind::ChooseCard, options.clone());
+                if let Choice::Sacrifice(id) = options[k] {
+                    let new = self.move_object(id, Zone::Exile, true);
+                    if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
+                        self.link_exile(me, new, false);
+                    }
+                } else {
+                    self.sacrifice(me);
+                }
+            }
             Effect::ExileHaunting => {
                 let Some(card) = self
                     .current_object(ctx.source)

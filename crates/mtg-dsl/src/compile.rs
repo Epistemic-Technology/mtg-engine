@@ -66,6 +66,11 @@ fn keyword_expansion(i: usize, n: u32, cost: Option<&mtg_core::mana::ManaCost>) 
     cards.remove(0).abilities.remove(0)
 }
 
+/// Champion's second ability (CR 702.72a).
+const CHAMPION_RETURN: &str = "card \"Champion\" {
+  triggered when this leaves the battlefield: return exiled card to battlefield
+}";
+
 const MOBILIZE: &str = "card \"Mobilize\" {
   triggered whenever this attacks: create 1 tapped \"1/1 red Warrior creature\"; delayed those tokens: sacrifice those tokens at beginning of the next end step
 }";
@@ -1111,6 +1116,27 @@ impl Compiler<'_> {
                     condition: Some(attached),
                 }));
                 b = b.reconfigure();
+                continue;
+            }
+            // CR 702.72a: "When this permanent enters, sacrifice it unless
+            // you exile another [object] you control" and "When this
+            // permanent leaves the battlefield, return the exiled card to
+            // the battlefield under its owner's control."
+            if let Ability::Mechanic(Mechanic::Champion(f)) = a {
+                let mut filter = self.filter(f);
+                filter.who = Some(Who::You);
+                filter.relation = mtg_core::card::Relation::Other;
+                b = b.ability(AbilityDef::Triggered(TriggeredAbility {
+                    limit: mtg_core::card::TurnLimit::None,
+                    from_graveyard: false,
+                    trigger: TriggerSpec::Enters(CoreTriggerObj::This),
+                    condition: None,
+                    targets: Vec::new(),
+                    effects: vec![CoreEffect::Champion(filter)],
+                }));
+                let mut cards = crate::parse(CHAMPION_RETURN).expect("champion's return parses");
+                let back = cards.remove(0).abilities.remove(0);
+                b = b.ability(self.ability(&back)?);
                 continue;
             }
             if let Ability::Mechanic(Mechanic::Haunt) = a {
@@ -6543,6 +6569,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Renown(_)
         | Mechanic::Unleash
         | Mechanic::Haunt
+        | Mechanic::Champion(_)
         | Mechanic::Reconfigure(_)
         | Mechanic::Cleave(..)
         | Mechanic::Devour(..)
