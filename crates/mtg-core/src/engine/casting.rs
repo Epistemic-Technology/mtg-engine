@@ -1394,8 +1394,20 @@ impl GameState {
                 .copied()
                 .filter(|id| card_ok(*id))
                 .collect(),
+            // "a card an opponent owns from exile": any exile, judged by
+            // the card's owner.
+            ChooseAct::ExileToGraveyard => self
+                .players
+                .iter()
+                .flat_map(|ps| ps.exile.iter().copied())
+                .filter(|id| {
+                    let o = &self.objects[*id];
+                    let c = self.base_characteristics(o);
+                    filter.matches(*id, o.owner, &c, Some(ctx.source), Some(p))
+                })
+                .collect(),
             // "from among the milled cards": those still in the graveyard.
-            ChooseAct::MilledToHand => self.this_way.as_ref().map_or_else(Vec::new, |log| {
+            ChooseAct::MilledToHand =>self.this_way.as_ref().map_or_else(Vec::new, |log| {
                 log.moved
                     .iter()
                     .filter(|m| m.is(crate::card::ThisWay::Milled))
@@ -1548,6 +1560,9 @@ impl GameState {
                 }
                 ChooseAct::GraveyardToTop => {
                     self.move_object(id, Zone::Library, true);
+                }
+                ChooseAct::ExileToGraveyard => {
+                    ctx.created = Some(self.move_object(id, Zone::Graveyard, false));
                 }
                 ChooseAct::ExileFromGraveyard => {
                     ctx.created = Some(self.move_object(id, Zone::Exile, false));
@@ -6057,6 +6072,16 @@ impl GameState {
         }
         if cost.evidence > 0 {
             self.collect_evidence(p, cost.evidence, this);
+        }
+        // A processor's cost (CR 400.3: to the owner's graveyard).
+        if cost.process > 0 {
+            for id in self
+                .process_candidates(p)
+                .into_iter()
+                .take(cost.process as usize)
+            {
+                self.move_object(id, Zone::Graveyard, false);
+            }
         }
         if cost.forage {
             self.forage(p, this, None);

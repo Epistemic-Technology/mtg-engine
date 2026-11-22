@@ -3202,11 +3202,22 @@ impl GameState {
     /// value in the graveyard).
     pub fn other_costs_payable(&self, p: PlayerId, c: &crate::card::Cost, except: ObjId) -> bool {
         !(c.blight > 0 && self.creatures_of(p).next().is_none())
+            && (c.process == 0 || self.process_candidates(p).len() >= c.process as usize)
             && self.evidence_payable(p, c.evidence, except)
             && (!c.forage || self.forage_payable(p, except))
             && c.craft
                 .as_deref()
                 .is_none_or(|f| !self.craft_candidates(p, f, except).is_empty())
+    }
+
+    /// Cards in exile a processor's cost may put into a graveyard: those
+    /// `p`'s opponents own, the longest exiled first.
+    pub fn process_candidates(&self, p: PlayerId) -> Vec<ObjId> {
+        self.players
+            .iter()
+            .flat_map(|ps| ps.exile.iter().copied())
+            .filter(|id| self.objects[*id].owner != p)
+            .collect()
     }
 
     /// What craft may exile (CR 702.167a): cards in `p`'s graveyard, then

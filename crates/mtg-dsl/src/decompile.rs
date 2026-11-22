@@ -405,6 +405,8 @@ impl Decompiler<'_> {
             exert: c.exert,
             discard_hand: c.discard_hand,
             life_x: c.life_x,
+            blight_put: c.blight_put,
+            process: c.process,
             chosen: c.chosen,
             count: c.count,
             exile_cards: c.exile_cards.as_ref().map(|g| {

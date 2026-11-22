@@ -32,7 +32,9 @@ wrong thing in some case.
 - **Engine-picks-for-player approximations.** Forage as a cost (exiles
   the three oldest graveyard cards, else sacrifices a Food); "Remove a
   counter from this creature" of any kind (-1/-1 counters first, then
-  kinds that don't change power or toughness, then the rest); several
+  kinds that don't change power or toughness, then the rest); a
+  processor's cost ("Put a card an opponent owns from exile into that
+  player's graveyard", Oracle of Dust: the longest exiled); several
   mechanics from the first wave have the engine choose where the player
   should.
 - **Token copy of a creature that has died before its enters trigger

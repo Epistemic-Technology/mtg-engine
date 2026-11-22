@@ -682,6 +682,12 @@ pub struct Cost {
     /// `pay x life`: "pay X life" (a spell's additional cost, X announced
     /// as it is cast).
     pub life_x: bool,
+    /// `put 1 -1/-1 counter on creature you control`: "Put a -1/-1 counter
+    /// on a creature you control", blight's older wording.
+    pub blight_put: bool,
+    /// `put 1 card an opponent owns from exile into graveyard`: "Put a
+    /// card an opponent owns from exile into that player's graveyard".
+    pub process: u32,
 }
 
 /// `behold Kithkin`: "behold a Kithkin" (CR 701.69a); `and exile`: "and
@@ -739,6 +745,8 @@ pub enum CostItem {
     Exert,
     /// `discard hand`.
     DiscardHand,
+    /// `put 1 card an opponent owns from exile into graveyard`.
+    Process,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

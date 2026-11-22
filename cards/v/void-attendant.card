@@ -1,0 +1,8 @@
+card "Void Attendant" {
+  oracle_id 34f3ec68-871f-4b94-b497-04f71aea88c9
+  cost {2}{G}
+  type Creature — Eldrazi Processor
+  pt 2/3
+  keywords devoid
+  activated {1}{G}, put 1 card an opponent owns from exile into graveyard: create 1 "Eldrazi Scion" it has
+}

@@ -454,6 +454,7 @@ impl GameState {
             // Likewise blighting, collecting evidence, beholding, and
             // revealing: costs with a choice the planner doesn't make.
             || cost.blight > 0
+            || cost.process > 0
             || cost.evidence > 0
             || cost.behold.is_some()
             || cost.reveal_hand

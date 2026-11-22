@@ -6805,6 +6805,9 @@ impl P {
                 // random`.
                 Some("random") if verb == "return" && hand => return true,
                 Some("hand") => hand = true,
+                // `put 1 card an opponent owns from exile into graveyard
+                // chosen`: a zone, not a verb.
+                Some("exile") if self.word_at(k - 1).as_deref() == Some("from") => {}
                 Some(w) if VERBS.contains(&w) => return false,
                 _ => {}
             }
@@ -6920,6 +6923,24 @@ impl P {
                 let f = card_filter(self)?;
                 self.pos += 7;
                 (ChooseAct::GraveyardToTop, f)
+            }
+            // `put 1 card an opponent owns from exile into graveyard
+            // chosen` (a processor).
+            "put"
+                if {
+                    let at = self.pos;
+                    let ex = card_filter(self).is_ok()
+                        && self.at_words(&[
+                            "an", "opponent", "owns", "from", "exile", "into", "graveyard",
+                        ]);
+                    self.pos = at;
+                    ex
+                } =>
+            {
+                let mut f = card_filter(self)?;
+                self.pos += 7;
+                f.who = Some(mtg_core::card::Who::Opponents);
+                (ChooseAct::ExileToGraveyard, f)
             }
             _ => {
                 let f = card_filter(self)?;
@@ -12485,6 +12506,43 @@ impl P {
                         self.expect_words(&["from", "this"])?;
                         cost.remove_counters = Some((k, n));
                         cost.order.push(CostItem::RemoveCounters);
+                    }
+                    // `put 1 card an opponent owns from exile into
+                    // graveyard` (a processor).
+                    "put"
+                        if matches!(self.peek_at(1), Some(Tok::Num(_)))
+                            && matches!(self.word_at(2).as_deref(), Some("card" | "cards"))
+                            && self.word_at(3).as_deref() == Some("an") =>
+                    {
+                        self.pos += 1;
+                        let n = self.count()?;
+                        self.pos += 1;
+                        self.expect_words(&[
+                            "an", "opponent", "owns", "from", "exile", "into", "graveyard",
+                        ])?;
+                        cost.process = n;
+                        cost.order.push(CostItem::Process);
+                    }
+                    // `put 1 -1/-1 counter on creature you control`:
+                    // blight's older wording (CR 701.68a).
+                    "put"
+                        if matches!(self.peek_at(1), Some(Tok::Num(_)))
+                            && (2..5).any(|k| {
+                                self.word_at(k).as_deref() == Some("on")
+                                    && self.word_at(k + 1).as_deref() == Some("creature")
+                                    && self.word_at(k + 2).as_deref() == Some("you")
+                                    && self.word_at(k + 3).as_deref() == Some("control")
+                            }) =>
+                    {
+                        self.pos += 1;
+                        let n = self.count()?;
+                        if self.counter_kind()? != CounterKind::MinusOneMinusOne {
+                            return self.fail("only -1/-1 counters on a creature you control");
+                        }
+                        self.expect_words(&["on", "creature", "you", "control"])?;
+                        cost.blight = n;
+                        cost.blight_put = true;
+                        cost.order.push(CostItem::Blight);
                     }
                     // `put 1 -1/-1 counter on this` (CR 118.3).
                     "put"

@@ -2958,6 +2958,7 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
         CostItem::Blight,
         CostItem::Evidence,
         CostItem::Forage,
+        CostItem::Process,
     ];
     let order: &[CostItem] = if cost.order.is_empty() {
         &default_order
@@ -3097,8 +3098,23 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 }
             )),
             CostItem::Energy => parts.push(format!("Pay {}", energy(cost.energy))),
+            // CR 400.3: to the owner's graveyard.
+            CostItem::Process => match cost.process {
+                0 => {}
+                1 => parts.push(
+                    "Put a card an opponent owns from exile into that player's graveyard"
+                        .to_string(),
+                ),
+                n => parts.push(format!(
+                    "Put {} cards your opponents own from exile into their owners' graveyards",
+                    count_words(Num::N(n), "a")
+                )),
+            },
             CostItem::Blight => {
-                if cost.blight > 0 {
+                if cost.blight > 0 && cost.blight_put {
+                    let what = counters(Num::N(cost.blight), CounterKind::MinusOneMinusOne);
+                    parts.push(format!("Put {what} on a creature you control"));
+                } else if cost.blight > 0 {
                     parts.push(format!("Blight {}", cost.blight));
                 }
             }
@@ -6952,6 +6968,25 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
                 ChooseAct::GraveyardToTop => {
                     format!("put {} from your graveyard on top of your library", cards())
+                }
+                // CR 400.3: to the owner's graveyard. "a card an opponent
+                // owns from exile into that player's graveyard"; "two cards
+                // your opponents own from exile into their owners'
+                // graveyards".
+                ChooseAct::ExileToGraveyard => {
+                    let mut rest = filter.clone();
+                    rest.who = None;
+                    if one {
+                        format!(
+                            "put {} an opponent owns from exile into that player's graveyard",
+                            with_article(&cards_phrase(&rest, ctx.card, false))
+                        )
+                    } else {
+                        format!(
+                            "put {n} {} your opponents own from exile into their owners' graveyards",
+                            cards_phrase(&rest, ctx.card, true)
+                        )
+                    }
                 }
                 ChooseAct::ReturnFromGraveyard => {
                     format!("return {} from your graveyard to your hand", cards())
@@ -13968,6 +14003,13 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     // additional cost to cast this spell, behold a Kithkin and exile it.",
     // Champion of the Clachan).
     let flash_first = card.additional.is_some() && card.keywords.first() == Some(&Keyword::Flash);
+    // So does devoid, a color-defining ability ("Devoid\nAs an additional
+    // cost to cast this spell, put a card an opponent owns from exile
+    // ...", Processor Assault).
+    let devoid_first = card.additional.is_some() && card.keywords.contains(&Keyword::Devoid);
+    if devoid_first {
+        lines.push(keyword_line(card, Keyword::Devoid));
+    }
     if flash_first {
         lines.push(keyword_line(card, Keyword::Flash));
     }
@@ -14006,6 +14048,7 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     for k in &card.keywords {
         if alone_pair && *k == Keyword::CantBlockAlone
             || (flash_first && *k == Keyword::Flash)
+            || (devoid_first && *k == Keyword::Devoid)
             || *k == Keyword::Rebound
             || *k == Keyword::Cipher
             || *k == Keyword::Paradigm

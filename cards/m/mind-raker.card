@@ -1,0 +1,8 @@
+card "Mind Raker" {
+  oracle_id 060076e7-3705-4f8e-8fac-59402835902b
+  cost {3}{B}
+  type Creature — Eldrazi Processor
+  pt 3/3
+  keywords devoid
+  triggered when this enters: you may put 1 card an opponent owns from exile into graveyard chosen; if you do, each opponent discards 1 card
+}

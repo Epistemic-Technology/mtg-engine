@@ -2377,6 +2377,7 @@ impl Fmt {
                     format!("{}{}", if *up_to { "up to " } else { "" }, num(*count))
                 };
                 let unfiltered = *f == Filter::default();
+                let filter_ref = f;
                 let f = filter(f);
                 let cs = cards(*count);
                 match act {
@@ -2402,6 +2403,18 @@ impl Fmt {
                     }
                     ChooseAct::GraveyardToTop => {
                         format!("put {n} {f} {cs} from your graveyard on top of library chosen")
+                    }
+                    ChooseAct::ExileToGraveyard => {
+                        let mut rest = filter_ref.clone();
+                        rest.who = None;
+                        if rest == Filter::default() {
+                            format!("put {n} {cs} an opponent owns from exile into graveyard chosen")
+                        } else {
+                            format!(
+                                "put {n} {} {cs} an opponent owns from exile into graveyard chosen",
+                                filter(&rest)
+                            )
+                        }
                     }
                     ChooseAct::ReturnFromGraveyard => {
                         format!("return {n} {f} {cs} from your graveyard to hand chosen")
@@ -4275,6 +4288,7 @@ fn cost_text(c: &Cost) -> String {
         CostItem::Blight,
         CostItem::Evidence,
         CostItem::Forage,
+        CostItem::Process,
     ];
     let order: &[CostItem] = if c.order.is_empty() {
         &default_order
@@ -4376,12 +4390,27 @@ fn cost_text(c: &Cost) -> String {
                 }
             }
             CostItem::Exert => parts.push("exert this".to_string()),
+            CostItem::Process => {
+                if c.process > 0 {
+                    parts.push(format!(
+                        "put {} card{} an opponent owns from exile into graveyard",
+                        c.process,
+                        if c.process == 1 { "" } else { "s" }
+                    ));
+                }
+            }
             CostItem::DiscardHand => parts.push("discard hand".to_string()),
             CostItem::RevealHand => parts.push("reveal hand".to_string()),
             CostItem::RevealThis => parts.push("reveal this".to_string()),
             CostItem::Energy => parts.push(format!("pay {} energy", c.energy)),
             CostItem::Blight => {
-                if c.blight > 0 {
+                if c.blight > 0 && c.blight_put {
+                    parts.push(format!(
+                        "put {} -1/-1 counter{} on creature you control",
+                        c.blight,
+                        if c.blight == 1 { "" } else { "s" }
+                    ));
+                } else if c.blight > 0 {
                     parts.push(format!("blight {}", c.blight));
                 }
             }

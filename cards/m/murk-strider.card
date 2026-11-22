@@ -1,0 +1,8 @@
+card "Murk Strider" {
+  oracle_id 386b8c1f-620c-4561-a9d5-d01e2eb5f12a
+  cost {3}{U}
+  type Creature — Eldrazi Processor
+  pt 3/2
+  keywords devoid
+  triggered when this enters: you may put 1 card an opponent owns from exile into graveyard chosen; if you do, return target creature to hand
+}

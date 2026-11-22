@@ -2204,6 +2204,8 @@ impl Compiler<'_> {
             exert: c.exert,
             discard_hand: c.discard_hand,
             life_x: c.life_x,
+            blight_put: c.blight_put,
+            process: c.process,
             chosen: c.chosen,
             life: c.life,
             discard: c.discard,

@@ -1,0 +1,8 @@
+card "Wasteland Strangler" {
+  oracle_id 197f3b17-ce21-430e-8e41-f5d02d5e3637
+  cost {2}{B}
+  type Creature — Eldrazi Processor
+  pt 3/2
+  keywords devoid
+  triggered when this enters: you may put 1 card an opponent owns from exile into graveyard chosen; if you do, target creature gets -3/-3 until end of turn
+}

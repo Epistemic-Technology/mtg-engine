@@ -5076,6 +5076,10 @@ pub enum ChooseAct {
     /// could pay a {T} cost (CR 302.6); the source gets +X/+0 until end of
     /// turn, X that creature's power.
     Enlist,
+    /// "put a card an opponent owns from exile into that player's
+    /// graveyard" (a processor, CR 400.3: to its owner's graveyard): cards
+    /// in exile whose owner the filter's `who` names.
+    ExileToGraveyard,
 }
 
 /// What a player chooses as a permanent enters ("As this land enters,
@@ -6221,6 +6225,16 @@ pub struct Cost {
     /// least that much life.
     #[serde(default)]
     pub life_x: bool,
+    /// "Put a -1/-1 counter on a creature you control" (Lethal Sting): the
+    /// older wording of blight (CR 701.68a), the `blight` counters.
+    #[serde(default)]
+    pub blight_put: bool,
+    /// "Put a card an opponent owns from exile into that player's
+    /// graveyard" (a processor's cost): that many cards in exile owned by
+    /// the payer's opponents go to their owners' graveyards (the engine
+    /// picks: the longest exiled first).
+    #[serde(default)]
+    pub process: u32,
 }
 
 /// A behold cost (CR 701.69a): `n` objects matching `filter`, each a
@@ -6298,6 +6312,8 @@ impl Cost {
             exert: false,
             discard_hand: false,
             life_x: false,
+            blight_put: false,
+            process: 0,
         }
     }
 

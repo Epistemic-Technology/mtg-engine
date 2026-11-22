@@ -1,0 +1,7 @@
+card "Scarscale Ritual" {
+  oracle_id 367ec7c5-8c76-4af6-b941-a3a8c2ff67ff
+  cost {1}{U/B}
+  type Sorcery
+  additional cost put 1 -1/-1 counter on creature you control
+  spell: draw 2 cards
+}

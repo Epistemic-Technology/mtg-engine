@@ -1041,7 +1041,24 @@ blight 2` fails, 701.68b) and a cost (`{T}, blight 1: ...` prints "{T},
 Blight 1: ..."; `additional cost blight 1` with `additional cost or {3}`
 prints "As an additional cost to cast this spell, blight 1 or pay {3}.").
 As a cost the engine puts the counters on the toughest creature its payer
-controls, and it can't be paid without a creature.
+controls, and it can't be paid without a creature. The older wording is
+the same cost: `additional cost put 1 -1/-1 counter on creature you
+control` ("As an additional cost to cast this spell, put a -1/-1 counter
+on a creature you control.", Lethal Sting) and `{2}{R}, {T}, put 1 -1/-1
+counter on creature you control: ...` (Hatchet Bully).
+
+Processors (CR 400.3): `you may put 1 card an opponent owns from exile
+into graveyard chosen; if you do, ...` prints "you may put a card an
+opponent owns from exile into that player's graveyard. If you do, ..."
+(the controller chooses among the cards in exile their opponents own; the
+card goes to its owner's graveyard; with none, `if you do` fails), and
+`put 2 cards an opponent owns ...` "put two cards your opponents own from
+exile into their owners' graveyards" (all or nothing). As a cost, `{2},
+put 1 card an opponent owns from exile into graveyard: ...` and `additional
+cost put 1 card an opponent owns from exile into graveyard` print "Put a
+card an opponent owns from exile into that player's graveyard" (payable
+only with such a card in exile; the engine picks the longest exiled).
+Devoid prints before an additional cost, as flash does.
 
 Behold (CR 701.69a) is a cost: `additional cost behold Kithkin` with
 `additional cost or {2}` prints "As an additional cost to cast this

@@ -1,0 +1,7 @@
+card "Blight Herder" {
+  oracle_id 3159d289-b822-4657-919a-d712623e622e
+  cost {5}
+  type Creature — Eldrazi Processor
+  pt 4/5
+  triggered when you cast this: you may put 2 cards an opponent owns from exile into graveyard chosen; if you do, create 3 "Eldrazi Scion" it has
+}
