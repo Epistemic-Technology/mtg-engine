@@ -4494,6 +4494,14 @@ pub enum Effect {
         inner: Vec<Sentence>,
         restriction: ManaRestriction,
     },
+    /// `add {G} spent on Dragon creature spell: you gain 2 life`: "Add
+    /// {G}. When you spend this mana to cast a Dragon creature spell, you
+    /// gain 2 life."
+    SpendRider {
+        inner: Vec<Sentence>,
+        spells: Filter,
+        then: Vec<Sentence>,
+    },
     /// `waterbend {2}` (CR 701.67a), inside "unless" or "you may": pay
     /// the mana, artifacts and creatures tapped to help.
     Waterbend(ManaCost),

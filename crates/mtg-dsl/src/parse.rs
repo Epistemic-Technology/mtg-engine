@@ -1488,6 +1488,21 @@ impl P {
     /// `... only to cast creature spells` after an `add` effect: "Spend
     /// this mana only to ..." (CR 106.6).
     fn spend_only_suffix(&mut self, e: Effect) -> R<Effect> {
+        // `spent on Dragon creature spell: you gain 2 life`: "When you
+        // spend this mana to cast a Dragon creature spell, ...".
+        if self.eat_words(&["spent", "on"]) {
+            let spells = self.filter()?;
+            self.expect_word("spell")?;
+            self.expect(&Tok::Colon)?;
+            let saved = self.subject.take();
+            let then = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::SpendRider {
+                inner: vec![Sentence::new(vec![e])],
+                spells,
+                then: vec![then],
+            });
+        }
         if self.at_words(&["only", "to"]) || self.at_words(&["not", "to"]) {
             let restriction = self.mana_restriction()?;
             return Ok(Effect::SpendOnly {

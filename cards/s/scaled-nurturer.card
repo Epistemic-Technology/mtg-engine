@@ -1,0 +1,7 @@
+card "Scaled Nurturer" {
+  oracle_id 13b96709-0e88-476b-9485-956e682bb818
+  cost {1}{G}
+  type Creature — Dragon Druid
+  pt 0/2
+  activated {T}: add {G} spent on Dragon creature spell: you gain 2 life
+}

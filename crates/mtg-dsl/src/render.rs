@@ -8946,6 +8946,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 lowercase_first(body.trim_end_matches('.'))
             ))
         }
+        Effect::SpendRider {
+            inner,
+            spells,
+            then,
+        } => {
+            let body = sentences(inner, ctx);
+            let rider = sentences(then, ctx);
+            Clause::imperative(format!(
+                "{}. When you spend this mana to cast {}, {}",
+                lowercase_first(body.trim_end_matches('.')),
+                a_spell(spells, ctx.card),
+                lowercase_first(rider.trim_end_matches('.'))
+            ))
+        }
         Effect::SpendOnly { inner, restriction } => {
             let body = sentences(inner, ctx);
             let rule = spend_rule(ctx.card, restriction);

@@ -4753,6 +4753,17 @@ pub enum Effect {
         effects: Vec<Effect>,
         restriction: Box<ManaRestriction>,
     },
+    /// "[add mana]. When you spend this mana to cast a Dragon creature
+    /// spell, you gain 2 life.": the mana these effects add goes into the
+    /// pool (`GameState::restricted_pool`, spendable on any spell or
+    /// ability) carrying the rider; spent to cast a spell matching
+    /// `spells`, it triggers `ability` (a `TriggerSpec::Reflexive`
+    /// triggered ability; "it" is that spell).
+    SpendRider {
+        effects: Vec<Effect>,
+        spells: Box<ObjFilter>,
+        ability: AbilityId,
+    },
     /// "unless you waterbend {2}" (CR 701.67a): pay this generic mana,
     /// each {1} by mana or by tapping an untapped artifact or creature the
     /// controller controls; inside "you may" or "unless", like `Pay`.
@@ -5122,7 +5133,9 @@ impl Effect {
             | Effect::AddManaCombination { .. }
             | Effect::AddManaLandCould { .. } => true,
             Effect::Instead { base, alt, .. } => base.iter().chain(alt).any(Effect::adds_mana),
-            Effect::SpendOnly { effects, .. } => effects.iter().any(Effect::adds_mana),
+            Effect::SpendOnly { effects, .. } | Effect::SpendRider { effects, .. } => {
+                effects.iter().any(Effect::adds_mana)
+            }
             _ => false,
         }
     }
@@ -5170,6 +5183,7 @@ impl Effect {
                 | Effect::AddManaLandCould { .. }
                 | Effect::KeepMana(_)
                 | Effect::SpendOnly { .. }
+                | Effect::SpendRider { .. }
                 | Effect::SacrificeChosen { .. }
                 | Effect::ReturnChosen { .. }
                 | Effect::ExileChosen { .. }
@@ -7442,7 +7456,8 @@ impl AbilityDef {
             | Effect::Lasting { effects: inner, .. }
             | Effect::UnlessPays { effects: inner, .. }
             | Effect::UnlessSacrifices { effects: inner, .. }
-            | Effect::SpendOnly { effects: inner, .. } = e
+            | Effect::SpendOnly { effects: inner, .. }
+            | Effect::SpendRider { effects: inner, .. } = e
             {
                 for i in inner {
                     walk(i, out);

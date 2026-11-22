@@ -112,7 +112,7 @@ fn effect_kinds(e: &Effect, chosen: Kinds) -> Kinds {
             .chain(alt)
             .fold(0, |k, e| k | effect_kinds(e, chosen)),
         // CR 106.7: what the mana may be spent on doesn't matter.
-        Effect::SpendOnly { effects, .. } => {
+        Effect::SpendOnly { effects, .. } | Effect::SpendRider { effects, .. } => {
             effects.iter().fold(0, |k, e| k | effect_kinds(e, chosen))
         }
         _ => 0,

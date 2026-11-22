@@ -597,6 +597,7 @@ impl GameState {
             cost_change_sources: 0,
             restricted_mana_sources: 0,
             restricted_pool: Vec::new(),
+            spent_riders: Vec::new(),
             mana_trigger_sources: 0,
             turn_static_sources: 0,
             state_trigger_sources: 0,

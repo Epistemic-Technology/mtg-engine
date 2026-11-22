@@ -3631,6 +3631,33 @@ impl Compiler<'_> {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::KeepMana(effects));
             }
+            Effect::SpendRider {
+                inner,
+                spells,
+                then,
+            } => {
+                let effects = self.sentences(inner)?;
+                if !effects.iter().any(CoreEffect::adds_mana) {
+                    return self.err("`spent on ...` follows an effect that adds mana");
+                }
+                let then = self.sentences(then)?;
+                let spells = Box::new(self.filter(spells));
+                let ability = self
+                    .pool
+                    .register_ability(AbilityDef::Triggered(TriggeredAbility {
+                        limit: mtg_core::card::TurnLimit::None,
+                        from_graveyard: false,
+                        trigger: mtg_core::card::TriggerSpec::Reflexive,
+                        condition: None,
+                        targets: Vec::new(),
+                        effects: then,
+                    }));
+                out.push(CoreEffect::SpendRider {
+                    effects,
+                    spells,
+                    ability,
+                });
+            }
             Effect::SpendOnly { inner, restriction } => {
                 let effects = self.sentences(inner)?;
                 if !effects.iter().any(CoreEffect::adds_mana) {

@@ -442,6 +442,18 @@ pub struct RestrictedMana {
     /// A color or colorless, never `Any` or `Chosen`.
     pub mana: crate::mana::Mana,
     pub restriction: Box<crate::card::ManaRestriction>,
+    /// "When you spend this mana to cast ...": what it triggers.
+    pub rider: Option<Box<ManaRider>>,
+}
+
+/// A rider on restricted mana (`Effect::SpendRider`): spent to cast a
+/// spell matching `spells`, it triggers `ability` of `source`.
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct ManaRider {
+    pub spells: crate::card::ObjFilter,
+    pub ability: crate::card::AbilityId,
+    pub source: ObjId,
+    pub def: crate::card::CardRef,
 }
 
 impl GameState {
@@ -2123,6 +2135,9 @@ pub struct GameState {
     /// (see the engine's `restricted_sources`), and it empties with the
     /// pool (CR 500.4). Empty in almost every game.
     pub restricted_pool: Vec<RestrictedMana>,
+    /// Riders of the restricted mana the payment being made has spent
+    /// (`RestrictedMana::rider`), for the spell being cast to trigger.
+    pub spent_riders: Vec<(PlayerId, ManaRider)>,
     /// Battlefield permanents with a triggered mana ability (CR 605.1b,
     /// `DefFlags::MANA_TRIGGER`): tapping for mana and payment look for
     /// them only then.

@@ -6407,6 +6407,10 @@ impl GameState {
                 Some(i) if i < self.restricted_pool.len() => {
                     taken.push(i);
                     self.player_mut(p).mana_pool.add(mana);
+                    if let Some(r) = &self.restricted_pool[i].rider {
+                        let r = (**r).clone();
+                        self.spent_riders.push((p, r));
+                    }
                 }
                 Some(_) => {}
                 None => rest.push((id, mana)),
@@ -6417,6 +6421,36 @@ impl GameState {
             self.restricted_pool.remove(i);
         }
         rest
+    }
+
+    /// "When you spend this mana to cast a Dragon creature spell, ...":
+    /// the riders of the mana just spent to cast `spell` trigger if it
+    /// matches, "it" being that spell.
+    #[cold]
+    #[inline(never)]
+    fn fire_mana_riders(&mut self, spell: ObjId) {
+        let riders = std::mem::take(&mut self.spent_riders);
+        let Some(c) = self.characteristics(spell) else {
+            return;
+        };
+        let caster = self.objects[spell].controller;
+        for (p, r) in riders {
+            if r.spells.matches(spell, caster, &c, Some(r.source), Some(p)) {
+                let timestamp = self.tick();
+                self.pending_triggers.push(crate::state::PendingTrigger {
+                    controller: p,
+                    ability: crate::state::StackAbility {
+                        ability: r.ability,
+                        source: r.source,
+                        def: r.def,
+                        trigger_obj: Some(spell),
+                        trigger_player: None,
+                        trigger_amount: 0,
+                    },
+                    timestamp,
+                });
+            }
+        }
     }
 
     /// The chosen values in `r` filled in from `source` ("a creature spell
@@ -6790,6 +6824,10 @@ impl GameState {
         sources: &Sources,
         exclude: Option<ObjId>,
     ) {
+        // Riders count only for the spell this payment casts.
+        if !self.spent_riders.is_empty() {
+            self.spent_riders.clear();
+        }
         let ps = self.player(p);
         if req.snow > 0 {
             let (plan, req, life) = self
@@ -7224,6 +7262,9 @@ impl GameState {
             self.pay_recorded(spell, caster, &req, &sources, def.spent);
         } else {
             self.pay_from(caster, &req, &sources, None);
+        }
+        if !self.spent_riders.is_empty() {
+            self.fire_mana_riders(spell);
         }
         let mut discard = discard;
         if let (Some(fb), true) = (&def.flashback, flashback) {
@@ -13265,6 +13306,59 @@ impl GameState {
                         player: p,
                         mana,
                         restriction: r.clone(),
+                        rider: None,
+                    });
+                }
+                self.bump();
+            }
+            Effect::SpendRider {
+                effects,
+                spells,
+                ability,
+            } => {
+                let p = ctx.controller;
+                let before = self.player(p).mana_pool;
+                for e in effects {
+                    self.apply_effect(ctx, e);
+                }
+                let after = self.player(p).mana_pool;
+                let mut made: SmallVec<[Mana; 8]> = SmallVec::new();
+                for (c, color) in Color::ALL.into_iter().enumerate() {
+                    for _ in 0..after.colored[c].saturating_sub(before.colored[c]) {
+                        made.push(Mana::Colored(color));
+                    }
+                }
+                for _ in 0..after.colorless.saturating_sub(before.colorless) {
+                    made.push(Mana::Colorless);
+                }
+                self.player_mut(p).mana_pool = before.min_each(&after);
+                // Spendable on anything payment offers it for.
+                let any = Box::new(crate::card::ManaRestriction {
+                    spells: Some(crate::card::ObjFilter::default()),
+                    abilities: true,
+                    ability_source: None,
+                    foretell: true,
+                    disturb: false,
+                    wording: crate::card::SpendWording::CastFirst,
+                    plural: crate::card::SpendPlural::One,
+                    bare: false,
+                });
+                let def = self
+                    .objects
+                    .get(ctx.source)
+                    .map_or(crate::card::CardRef(0), |o| o.def);
+                let rider = Box::new(crate::state::ManaRider {
+                    spells: (**spells).clone(),
+                    ability: *ability,
+                    source: ctx.source,
+                    def,
+                });
+                for mana in made {
+                    self.restricted_pool.push(crate::state::RestrictedMana {
+                        player: p,
+                        mana,
+                        restriction: any.clone(),
+                        rider: Some(rider.clone()),
                     });
                 }
                 self.bump();

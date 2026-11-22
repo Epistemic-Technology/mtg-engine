@@ -2385,6 +2385,16 @@ impl Fmt {
             }
             Effect::IfKicked(inner) => format!("if kicked, {}", self.line(inner, t)),
             Effect::KeepMana(inner) => format!("keep mana {}", self.line(inner, t)),
+            Effect::SpendRider {
+                inner,
+                spells,
+                then,
+            } => format!(
+                "{} spent on {} spell: {}",
+                self.line(inner, t),
+                filter(spells),
+                self.line(then, t)
+            ),
             Effect::SpendOnly { inner, restriction } => {
                 format!("{} {}", self.line(inner, t), restriction_text(restriction))
             }

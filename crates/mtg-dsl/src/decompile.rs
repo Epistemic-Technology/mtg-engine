@@ -1334,6 +1334,20 @@ impl Decompiler<'_> {
             },
             CoreEffect::IfKicked(inner) => Effect::IfKicked(self.sentences(inner)),
             CoreEffect::KeepMana(inner) => Effect::KeepMana(self.sentences(inner)),
+            CoreEffect::SpendRider {
+                effects,
+                spells,
+                ability,
+            } => {
+                let AbilityDef::Triggered(t) = self.pool.ability(*ability) else {
+                    panic!("a mana rider's ability is not triggered");
+                };
+                Effect::SpendRider {
+                    inner: self.sentences(effects),
+                    spells: self.filter(spells),
+                    then: self.sentences(&t.effects),
+                }
+            }
             CoreEffect::SpendOnly {
                 effects,
                 restriction,
