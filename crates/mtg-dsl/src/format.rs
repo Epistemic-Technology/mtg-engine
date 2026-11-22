@@ -2847,6 +2847,10 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             format!("{} on battlefield", filter(f))
         }
         CountExpr::Permanents(f) => filter(f),
+        CountExpr::ThisWay {
+            verb: mtg_core::card::ThisWay::Revealed,
+            filter: Some(f),
+        } => format!("{} card revealed this way", filter(f)),
         CountExpr::ThisWay { verb, filter: f } => {
             let verb = crate::ast::this_way_word(*verb);
             match f {

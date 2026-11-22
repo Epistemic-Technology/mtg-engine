@@ -1,0 +1,62 @@
+# Parley (an ability word, CR 207.2c): "Each player reveals the top card of
+# their library. For each nonland card revealed this way, ... Then each
+# player draws a card." Every player's revealed card counts.
+
+scenario "Rousing of Souls: a Spirit for each nonland card revealed" {
+  battlefield A: 3 "Plains"
+  hand A: "Rousing of Souls"
+  library A: "Grizzly Bears", "Forest"
+  library B: "Shock", "Island"
+  turn 1 A: cast "Rousing of Souls"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Spirit"
+  assert has oldest "Spirit" flying
+  assert hand A contains "Grizzly Bears"
+  assert hand B contains "Shock"
+}
+
+scenario "Rousing of Souls: lands revealed make no Spirit" {
+  battlefield A: 3 "Plains"
+  hand A: "Rousing of Souls"
+  library A: "Forest", "Grizzly Bears"
+  library B: "Shock", "Island"
+  turn 1 A: cast "Rousing of Souls"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Spirit"
+  assert battlefield B lacks "Spirit"
+  assert hand A contains "Forest"
+}
+
+scenario "Rousing of Souls: no nonland card, no Spirit" {
+  battlefield A: 3 "Plains"
+  hand A: "Rousing of Souls"
+  library A: "Forest", "Grizzly Bears"
+  library B: "Island", "Shock"
+  turn 1 A: cast "Rousing of Souls"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Spirit"
+  assert hand B contains "Island"
+}
+
+scenario "Selvala's Enforcer: a counter for each nonland card revealed" {
+  battlefield A: 4 "Forest"
+  hand A: "Selvala's Enforcer"
+  library A: "Grizzly Bears", "Forest"
+  library B: "Shock", "Island"
+  turn 1 A: cast "Selvala's Enforcer"
+  run_to turn 1 postcombat_main
+  assert counters "Selvala's Enforcer" +1/+1 2
+  assert power "Selvala's Enforcer" 4
+  assert hand A contains "Grizzly Bears"
+  assert hand B contains "Shock"
+}
+
+scenario "Selvala's Enforcer: an opponent's land counts nothing" {
+  battlefield A: 4 "Forest"
+  hand A: "Selvala's Enforcer"
+  library A: "Grizzly Bears", "Forest"
+  library B: "Island", "Shock"
+  turn 1 A: cast "Selvala's Enforcer"
+  run_to turn 1 postcombat_main
+  assert counters "Selvala's Enforcer" +1/+1 1
+}

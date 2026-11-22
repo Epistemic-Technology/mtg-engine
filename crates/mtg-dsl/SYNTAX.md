@@ -2468,7 +2468,12 @@ is destroyed this way"), `if land card is discarded this way, ...`, `if
 Saproling was sacrificed this way, ...`, `if you discarded card this way,
 ...` (cards you owned), `if you put Town card into hand this way, ...`.
 Verbs: `exiled`, `sacrificed`, `destroyed`, `discarded`, `milled`,
-`returned` (put into a hand), `shuffled` (put into a library). What a spell's or ability's costs sacrificed
+`returned` (put into a hand), `shuffled` (put into a library), and in a
+count only `revealed` (parley: `each player reveals top card; you create
+count foreach nonland card revealed this way "1/1 white Spirit creature
+with flying"` is "Each player reveals the top card of their library. For
+each nonland card revealed this way, you create ..."; every card the
+resolution revealed, still where it was). What a spell's or ability's costs sacrificed
 or discarded counts too (CR 601.2h, 602.2b): `if the sacrificed creature was
 Human, ...`, `if the sacrificed permanent was artifact, ...`, `if the
 discarded card wasn't land card, ...`, and as an "instead": `if the
@@ -2906,7 +2911,7 @@ Forms that change only how Oracle words what an existing form does:
 | `reduced {1} during your turn` | "This ability costs {1} less to activate during your turn." |
 | `the chosen target 1` | "the chosen creature", after "choose target creature" |
 | `if this sneak paid` | "If this creature's sneak cost was paid" |
-| `count foreach land you control` | "For each land you control, create a Treasure token." (the count leads the sentence; the template author writes it for "For each ..., create a ... token") |
+| `count foreach land you control` | "For each land you control, create a Treasure token." (the count leads the sentence, ahead of a subject: `you create count foreach ...` is "For each ..., you create ..."; `put count foreach ... +1/+1 counters on this creature` is "For each ..., put a +1/+1 counter on this creature"; the template author writes it for "For each ..., create a ... token") |
 | `your opponents control 3 creature` | "your opponents control three or more creatures" (a static condition: the opponents' permanents counted together) |
 | `at beginning of your next end step` | In a delayed trigger: "at the beginning of your next end step". |
 | `this is with counter` | "this creature has a counter on it" (any kind) |

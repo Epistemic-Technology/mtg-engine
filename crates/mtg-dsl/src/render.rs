@@ -3779,6 +3779,14 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         }
         CountExpr::Times(..) | CountExpr::Divided { .. } => unreachable!("unwrapped above"),
         // "for each enchantment destroyed this way".
+        // Parley: "For each nonland card revealed this way".
+        CountExpr::ThisWay {
+            verb: mtg_core::card::ThisWay::Revealed,
+            filter: Some(f),
+        } => (
+            format!("{} revealed this way", cards_phrase(f, card, false)),
+            format!("{} revealed this way", cards_phrase(f, card, true)),
+        ),
         CountExpr::ThisWay { verb, filter } => {
             // "the number of cards shuffled into your library this way".
             let verb = match verb {
@@ -4312,7 +4320,18 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 if matches!(e, Effect::CreateToken { .. }) {
                     c.text = c.text.replacen(" tokens", " token", 1);
                 }
-                c.text = format!("{}, {}", count_phrase(&count.expr, ctx.card, true), c.text);
+                // "For each nonland card revealed this way, put a +1/+1
+                // counter on this creature." (parley).
+                if matches!(e, Effect::AddCounters { .. }) {
+                    c.text = c.text.replacen(" counters ", " counter ", 1);
+                }
+                let lead = count_phrase(&count.expr, ctx.card, true);
+                // "For each ..., you create ...": the subject after the
+                // count.
+                c.text = match c.subject.take() {
+                    Some((_, s)) => format!("{lead}, {s} {}", c.text),
+                    None => format!("{lead}, {}", c.text),
+                };
             }
             CountStyle::Each => {
                 // "gain 1 life for each", "deals 1 damage ... for each".

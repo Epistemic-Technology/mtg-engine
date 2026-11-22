@@ -5013,6 +5013,10 @@ pub enum ThisWay {
     /// Put into a library from another zone ("shuffle the cards from your
     /// hand into your library, then draw that many cards").
     Shuffled,
+    /// Revealed from the top of a library without moving (parley, "For
+    /// each nonland card revealed this way"): the resolution's revealed
+    /// cards, not a zone change, so only a count reads it.
+    Revealed,
 }
 
 /// "If a creature card was exiled this way", "If you discarded a card this

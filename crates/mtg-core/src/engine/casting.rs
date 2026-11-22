@@ -870,6 +870,21 @@ impl GameState {
                     _ => 0,
                 };
             }
+            // Parley: "For each nonland card revealed this way" (every
+            // player's top card, `Effect::RevealTop`).
+            CountExpr::ThisWay(crate::card::ThisWay::Revealed, f) => ctx
+                .revealed
+                .iter()
+                .filter(|id| {
+                    let Some(o) = self.objects.get(**id) else {
+                        return false;
+                    };
+                    f.as_ref().is_none_or(|f| {
+                        let c = self.base_characteristics(o);
+                        f.matches(**id, o.owner, &c, Some(ctx.source), Some(ctx.controller))
+                    })
+                })
+                .count(),
             CountExpr::ThisWay(verb, f) => self.this_way.as_ref().map_or(0, |log| {
                 log.moved
                     .iter()
@@ -11739,13 +11754,15 @@ impl GameState {
                 }
             }
             Effect::RevealTop { who, look } => {
+                // "Each player reveals the top card of their library"
+                // (parley): every card revealed is the resolution's.
+                ctx.revealed.clear();
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
                         continue;
                     };
                     let top = self.player(p).library.last().copied();
                     ctx.created = top;
-                    ctx.revealed.clear();
                     let Some(top) = top else {
                         continue;
                     };

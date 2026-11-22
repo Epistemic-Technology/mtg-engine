@@ -4684,6 +4684,7 @@ pub fn this_way_word(v: mtg_core::card::ThisWay) -> &'static str {
         ThisWay::PutInHand => "returned",
         ThisWay::Tapped => "tapped",
         ThisWay::Shuffled => "shuffled",
+        ThisWay::Revealed => "revealed",
     }
 }
 
@@ -4698,6 +4699,7 @@ pub fn this_way_verb(w: &str) -> Option<mtg_core::card::ThisWay> {
         ThisWay::Milled,
         ThisWay::PutInHand,
         ThisWay::Shuffled,
+        ThisWay::Revealed,
     ]
     .into_iter()
     .find(|v| this_way_word(*v) == w)

@@ -1331,6 +1331,9 @@ impl Moved {
             ThisWay::PutInHand => self.to == Zone::Hand && self.from != Zone::Hand,
             ThisWay::Tapped => self.from == Zone::Battlefield && self.to == Zone::Battlefield,
             ThisWay::Shuffled => self.to == Zone::Library && self.from != Zone::Library,
+            // Not a zone change: counted from the resolution's revealed
+            // cards (`CountExpr::ThisWay`).
+            ThisWay::Revealed => false,
         }
     }
 }

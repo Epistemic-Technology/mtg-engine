@@ -7522,7 +7522,7 @@ impl P {
                             || (w == "count"
                                 && matches!(
                                     self.word_at(1).as_deref(),
-                                    Some("where" | "equal" | "each")
+                                    Some("where" | "equal" | "each" | "foreach")
                                 ))
                     }) =>
             {
@@ -8907,6 +8907,10 @@ impl P {
                 && self.word_at(k + 1).as_deref() == Some("way")
         }) {
             let f = self.filter()?;
+            // `nonland card revealed this way` (parley): cards in a library.
+            if self.at_words(&["card", "revealed"]) {
+                self.pos += 1;
+            }
             let Some(verb) = self.word_at(0).and_then(|w| crate::ast::this_way_verb(&w)) else {
                 return self.unexpected("`destroyed`, `exiled`, ...");
             };

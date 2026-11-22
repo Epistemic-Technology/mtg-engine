@@ -261,6 +261,7 @@ const ABILITY_WORDS: &[&str] = &[
     // (Final Fantasy) is an ability word.
     "Jump",
     "Repartee",
+    "Parley",
     "Grandeur",
     "Vivid",
     // CR 702.179e: a condition, not a bare label; the DSL compiles it.
@@ -668,6 +669,10 @@ fn count_expr(s: &str) -> Option<String> {
             return Some("domain".to_string());
         }
         "cards in your hand" | "card in your hand" => return Some("hand".to_string()),
+        // Parley.
+        "nonland card revealed this way" => {
+            return Some("nonland card revealed this way".to_string());
+        }
         "cards you've discarded this turn" | "card you've discarded this turn" => {
             return Some("discarded this turn".to_string());
         }
@@ -1375,13 +1380,19 @@ impl Templates {
             ),
             (
                 r(
-                    r"^For each (.+?), create an? ((?:\d+/\d+) (?:colorless|(?:white|blue|black|red|green)(?: and (?:white|blue|black|red|green))?) (?:[A-Z][a-z]+ )+(?:artifact )?creature) token((?: with [a-z ,]+)?)$",
+                    r"^For each (.+?), (?:you )?create an? ((?:\d+/\d+) (?:colorless|(?:white|blue|black|red|green)(?: and (?:white|blue|black|red|green))?) (?:[A-Z][a-z]+ )+(?:artifact )?creature) token((?: with [a-z ,]+)?)$",
                 ),
                 |c, _| {
                     let key = format!("{}{}", cap(c, 2), cap(c, 3));
                     token_block(&key)?;
+                    // Parley: "For each ..., you create ...".
+                    let you = if cap(c, 0).contains(", you create ") {
+                        "you "
+                    } else {
+                        ""
+                    };
                     Some(format!(
-                        "create count foreach {} \"{key}\"",
+                        "{you}create count foreach {} \"{key}\"",
                         count_expr(cap(c, 1))?
                     ))
                 },
@@ -1796,6 +1807,11 @@ impl Templates {
                     r"^Look at the top (\w+) cards of your library, then put them back in any order$",
                 ),
                 |c, _| Some(format!("look at top {}", number(cap(c, 1))?)),
+            ),
+            // Parley.
+            (
+                r(r"^Each player reveals the top card of their library$"),
+                |_, _| Some("each player reveals top card".to_string()),
             ),
             (r(r"^Manifest the top card of your library$"), |_, _| {
                 Some("manifest".to_string())
