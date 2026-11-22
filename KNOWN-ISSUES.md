@@ -201,9 +201,7 @@ named the feature; a card may need more than one.
   (Shadowborn Apostle, not added).
 - **Mechanics not yet in:** tiered, devour, harness, hideaway, mutate,
   meld, the Everywhere land token, "when this land enters untapped".
-- **Scenario runner:** an
-  `illegal ... trigger` line followed by a legal `trigger` in the same
-  step reports the legal one unreached; a mana ability can't be scripted
+- **Scenario runner:** a mana ability can't be scripted
   as an action; no way to give X to a spell cast by a trigger, to choose
   a library-search card, or to say `prototyped`/`blitzed`/`prowled`
   (all use `alternative`).

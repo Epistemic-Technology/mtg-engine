@@ -127,6 +127,11 @@ struct Runner {
     /// The `trigger` line supplying `pending_targets` is `illegal`: its
     /// target must be refused.
     pending_illegal: bool,
+    /// With `pending_illegal`, a later legal `trigger` line of the same
+    /// source at the same point: once the refusal is checked, it supplies
+    /// the ability's targets (`illegal trigger "X" targeting "Y"` then
+    /// `trigger "X" targeting "Z"`).
+    legal_after_illegal: Option<usize>,
     /// The scripted mode of the modal spell being cast (1-based).
     pending_mode: Option<usize>,
     /// The scripted X, sacrifice, and discard of the spell being cast.
@@ -247,6 +252,7 @@ impl Runner {
             decisions: 0,
             pending_targets: None,
             pending_illegal: false,
+            legal_after_illegal: None,
             pending_mode: None,
             pending_x: None,
             pending_division: Vec::new(),
@@ -1085,6 +1091,13 @@ impl Runner {
                 }
                 self.pending_targets = Some(targets.clone());
                 self.pending_illegal = self.actions[i].illegal;
+                self.legal_after_illegal = if self.pending_illegal {
+                    idxs.iter()
+                        .copied()
+                        .find(|&j| j != i && !self.actions[j].illegal)
+                } else {
+                    None
+                };
             } else {
                 return Ok(0);
             }
@@ -1128,16 +1141,39 @@ impl Runner {
         // legal target is taken instead.
         if self.pending_illegal {
             self.pending_illegal = false;
-            return match index_of(d, &Choice::Target(t)) {
-                Some(_) => fail(
+            if index_of(d, &Choice::Target(t)).is_some() {
+                return fail(
                     line,
                     format!(
                         "{} was a legal target but the scenario says it must not be",
                         self.describe_target(t)
                     ),
-                ),
-                None => Ok(0),
+                );
+            }
+            // Refused as required: a later legal line of the same source
+            // gives the targets instead of the engine's first.
+            let Some(j) = self.legal_after_illegal.take() else {
+                return Ok(0);
             };
+            self.fired[j] = true;
+            let Action::Trigger { targets, .. } = &self.actions[j].action else {
+                unreachable!()
+            };
+            let targets = targets.clone();
+            let line = self.actions[j].line;
+            self.pending_targets = (index + 1 < targets.len()).then(|| targets.clone());
+            let Some(tr) = targets.get(index) else {
+                return fail(line, format!("trigger needs target #{}", index + 1));
+            };
+            let t = self.target_for(d, line, tr)?;
+            return index_of(d, &Choice::Target(t)).ok_or_else(|| Failure {
+                line,
+                message: format!(
+                    "{} is not a legal target; legal targets: {}",
+                    self.describe_target(t),
+                    self.describe_options(d)
+                ),
+            });
         }
         index_of(d, &Choice::Target(t)).ok_or_else(|| Failure {
             line,

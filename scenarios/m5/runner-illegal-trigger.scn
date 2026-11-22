@@ -1,0 +1,26 @@
+# Scenario runner: `illegal trigger "X" targeting "Y"` followed by a legal
+# `trigger "X" targeting "Z"` at the same point checks that Y is refused,
+# then gives the same trigger Z.
+
+scenario "illegal then legal trigger: the refused target, then the scripted one" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Kor Hookmaster"
+  turn 1 A: cast "Kor Hookmaster"
+  illegal turn 1 A: trigger "Kor Hookmaster" targeting "Grizzly Bears"
+  turn 1 A: trigger "Kor Hookmaster" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert tapped "Serra Angel"
+  assert untapped "Hill Giant"
+  assert untapped "Grizzly Bears"
+}
+
+scenario "illegal trigger alone: the engine's first legal target" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Kor Hookmaster"
+  turn 1 A: cast "Kor Hookmaster"
+  illegal turn 1 A: trigger "Kor Hookmaster" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+}
