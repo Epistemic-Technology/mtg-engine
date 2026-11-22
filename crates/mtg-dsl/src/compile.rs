@@ -1346,7 +1346,7 @@ impl Compiler<'_> {
             ModeHead::UpTo(k) => usize::from(k).min(n),
         };
         // The chosen mode is kept in four bits (`CastInfo`).
-        if n < 2 || n > 4 {
+        if !(2..=4).contains(&n) {
             return self.err("`choose one or more` and `choose up to` take two to four modes");
         }
         let mut out = Vec::new();
