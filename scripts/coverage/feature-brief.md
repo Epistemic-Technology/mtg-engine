@@ -80,6 +80,10 @@ your reply.
 
 `KNOWN-ISSUES.md` at the top of the repository is the open-issue list.
 Read sections 1 and 2 before you start: they name forms that pass the
-gate and mean the wrong thing. If you fix an entry, delete it in the
-same commit; if you find a new engine bug or wrong-meaning form and do
-not fix it, add an entry.
+gate and mean the wrong thing. Do not edit that file (every branch
+editing it makes every merge conflict). Keep a notes file instead, at
+the path your instructions give, with three headings: `Fixed` (the
+title of each entry you fixed, one per line), `New` (each engine bug or
+wrong-meaning form you found and did not fix, written as the entry
+should read), and `Missing` (features your cards still need). The lead
+folds the notes into `KNOWN-ISSUES.md` after merging.
