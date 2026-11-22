@@ -57,9 +57,6 @@ wrong thing in some case.
   mana payment:** the engine taps a creature's mana ability to pay a
   cost without activating it as an ability, so it doesn't trigger (CR
   605.3a says it should). No card in the corpus uses the trigger yet.
-- **An until-end-of-turn grant of a triggered keyword** ("gains prowess
-  until end of turn") may not trigger: only static grants are counted as
-  granting abilities. Not reproduced; no such card yet.
 
 ## 2. Forms that pass the gate with the wrong meaning
 
@@ -192,11 +189,6 @@ named the feature; a card may need more than one.
 
 Wrong behaviour that reaches accepted cards:
 
-- **Prowess granted by a static ability never triggers.** `static other
-  Ally you control: has menace, prowess` (Sokka, Tenacious Tactician)
-  grants the keyword but a noncreature spell does not pump. Bria,
-  Riptide Rogue has the same fault. Sokka's scenario leaves that
-  assertion out.
 
 Forms that pass the gate with the wrong meaning:
 

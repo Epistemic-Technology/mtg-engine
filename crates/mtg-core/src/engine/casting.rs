@@ -8341,6 +8341,19 @@ impl GameState {
         duration: Duration,
     ) {
         let duration = self.lasting_or(duration, ctx, id);
+        // An ability gained this way ("gains undying until end of turn",
+        // a granted triggered ability) can trigger: trigger detection
+        // looks past definitions while grants exist (`grants_exist`).
+        if parts.iter().any(|m| match m {
+            Modification::AddAbility(_) => true,
+            Modification::AddKeywords(ks) => ks.intersects(KeywordSet::TRIGGERED),
+            _ => false,
+        }) {
+            self.eot_grants += 1;
+            if duration != Duration::UntilEndOfTurn {
+                self.lasting_grants += 1;
+            }
+        }
         let timestamp = self.tick();
         self.effects.push(ContinuousEffect {
             source: Some(ctx.source),
@@ -9165,10 +9178,6 @@ impl GameState {
             Effect::GrantAbility { ability, to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
-                        self.eot_grants += 1;
-                        if self.lasting.is_some() {
-                            self.lasting_grants += 1;
-                        }
                         self.effect_until_end_of_turn(
                             ctx,
                             id,
