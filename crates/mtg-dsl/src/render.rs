@@ -6437,6 +6437,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj_list_tap(to);
             Clause::imperative(format!("untap {o}"))
         }
+        Effect::RemoveFromCombat { what } => {
+            let o = ctx.obj(*what);
+            Clause::imperative(format!("remove {o} from combat"))
+        }
         Effect::Grant {
             keywords,
             to,
@@ -12603,6 +12607,27 @@ fn protection_text(f: &Filter, card: &Card) -> String {
     }
 }
 
+/// "snow forestwalk", "snow landwalk", "nonbasic landwalk" (CR 702.14a):
+/// the land's qualities, then its basic land type or "land", then "walk".
+fn landwalk_text(f: &Filter, card: &Card) -> String {
+    let mut g = f.clone();
+    let kind = if let [s] = g.subtypes.as_slice() {
+        let k = s.to_lowercase();
+        g.subtypes.clear();
+        k
+    } else {
+        "land".to_string()
+    };
+    g.types.retain(|t| *t != CardType::Land);
+    let qual = if g == Filter::default() {
+        String::new()
+    } else {
+        let p = filter_phrase(&g, card, false);
+        format!("{} ", p.strip_suffix(" permanent").unwrap_or(&p))
+    };
+    format!("{qual}{kind}walk")
+}
+
 /// A keyword ability granted bare rather than quoted: "ward {2}", "toxic
 /// 1", "protection from artifacts".
 fn granted_keyword(a: &Ability, card: &Card) -> Option<String> {
@@ -12611,6 +12636,7 @@ fn granted_keyword(a: &Ability, card: &Card) -> Option<String> {
             let t = protection_text(f, card);
             Some(format!("p{}", &t[1..]))
         }
+        Ability::Landwalk(f) => Some(landwalk_text(f, card)),
         // 'have "Ward—Pay 2 life."': quoted.
         Ability::Mechanic(crate::ast::Mechanic::WardCost(_)) => None,
         _ => crate::format::granted_mechanic(a),
@@ -13268,6 +13294,16 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             bare.status.toughness_over_power = false;
             if f.status.toughness_over_power && bare == Filter::default() {
                 return format!("{noun}'s toughness is greater than its power");
+            }
+            // "As long as enchanted creature isn't legendary" (Stunning
+            // Strike).
+            if *f
+                == (Filter {
+                    not_supertypes: vec![Supertype::Legendary],
+                    ..Default::default()
+                })
+            {
+                return format!("{noun} isn't legendary");
             }
             let pred = is_predicate(f, card);
             // "if enchanted creature has toxic" (Maze's Mantle).
@@ -14949,6 +14985,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             }
         }
         Ability::Protection(f) => protection_text(f, card),
+        Ability::Landwalk(f) => capitalize(&landwalk_text(f, card)),
         // "Hexproof from black": a color alone.
         Ability::HexproofFrom(f)
             if f.colors.as_ref().is_some_and(|c| c.len() == 1)

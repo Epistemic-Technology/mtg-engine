@@ -1,0 +1,8 @@
+card "Gustcloak Harrier" {
+  oracle_id 7f34f6b4-18ef-40d7-a599-5c29ba468b89
+  cost {1}{W}{W}
+  type Creature — Bird Soldier
+  pt 2/2
+  keywords flying
+  triggered whenever this becomes blocked: you may untap this and remove this from combat
+}

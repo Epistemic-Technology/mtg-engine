@@ -10340,6 +10340,15 @@ impl GameState {
                     }
                 }
             }
+            // CR 506.4.
+            Effect::RemoveFromCombat { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.remove_from_combat(id);
+                        self.bump();
+                    }
+                }
+            }
             Effect::Grant { keywords, to } => {
                 for t in self.recipients(ctx, *to) {
                     // "You gain shroud until end of turn" (CR 702.18c,

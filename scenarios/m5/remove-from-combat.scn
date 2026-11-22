@@ -1,0 +1,111 @@
+# "Remove it from combat" (CR 506.4): an attacker removed from combat deals
+# and is dealt no combat damage; an attacker whose blocker is removed stays
+# blocked (CR 509.1h).
+
+scenario "Gustcloak Runner: blocked, it untaps and leaves combat" {
+  battlefield A: "Gustcloak Runner"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Gustcloak Runner"
+  turn 1 B: block "Gustcloak Runner" with "Hill Giant"
+  turn 1 A: accept "Gustcloak Runner"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Gustcloak Runner"
+  assert untapped "Gustcloak Runner"
+  assert damage "Hill Giant" 0
+}
+
+scenario "Gustcloak Runner: declined, it dies in combat" {
+  battlefield A: "Gustcloak Runner"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Gustcloak Runner"
+  turn 1 B: block "Gustcloak Runner" with "Hill Giant"
+  turn 1 A: decline "Gustcloak Runner"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Gustcloak Runner"
+}
+
+scenario "Gustcloak Harrier: blocked, it escapes" {
+  battlefield A: "Gustcloak Harrier"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Gustcloak Harrier"
+  turn 1 B: block "Gustcloak Harrier" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Gustcloak Harrier"
+  assert untapped "Gustcloak Harrier"
+  assert life B 20
+}
+
+scenario "Gustcloak Cavalier: taps a creature as it attacks, escapes a block" {
+  battlefield A: "Gustcloak Cavalier"
+  battlefield B: "Hill Giant", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Gustcloak Cavalier"
+  turn 1 A: trigger "Gustcloak Cavalier" targeting "Serra Angel"
+  turn 1 B: block "Gustcloak Cavalier" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Serra Angel"
+  assert battlefield A contains "Gustcloak Cavalier"
+  assert untapped "Gustcloak Cavalier"
+  assert damage "Hill Giant" 0
+}
+
+scenario "Reconnaissance: an unblocked attacker removed deals no damage and untaps" {
+  battlefield A: "Reconnaissance", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: activate "Reconnaissance" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Reconnaissance: only an attacking creature you control" {
+  battlefield A: "Reconnaissance", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  illegal turn 2 declare_attackers A: activate "Reconnaissance" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+}
+
+scenario "Labyrinth of Skophos: the attacker leaves combat" {
+  battlefield A: "Labyrinth of Skophos", 4 "Plains"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: activate "Labyrinth of Skophos" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert tapped "Hill Giant"
+}
+
+scenario "Hollowhenge Spirit: a blocker removed leaves the attacker blocked" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Hollowhenge Spirit"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers A: cast "Hollowhenge Spirit"
+  turn 1 declare_blockers A: trigger "Hollowhenge Spirit" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Hill Giant" 0
+  assert life B 20
+}
+
+scenario "Stunning Strike: flashed onto an attacker, it's tapped and removed and stays tapped" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Stunning Strike"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Stunning Strike" targeting "Hill Giant"
+  run_to turn 4 precombat_main
+  assert life A 20
+  assert tapped "Hill Giant"
+}

@@ -1541,6 +1541,9 @@ impl Fmt {
             }
             Effect::Detain { what } => format!("detain {}", self.recipient(*what, t)),
             Effect::Untap { to } => format!("untap {}", self.recipients(to, t)),
+            Effect::RemoveFromCombat { what } => {
+                format!("remove {} from combat", self.recipient(*what, t))
+            }
             Effect::Grant {
                 keywords: ks,
                 to,
@@ -6445,6 +6448,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 .unwrap_or_default();
             let _ = writeln!(out, "{indent}{head}{tail}");
         }
+        Ability::Landwalk(f) => {
+            let _ = writeln!(out, "{indent}landwalk {}", filter(f));
+        }
         Ability::Protection(f) => {
             if *f == Filter::default() {
                 let _ = writeln!(out, "{indent}protection from everything");
@@ -6539,6 +6545,7 @@ pub(crate) fn granted_mechanic(a: &Ability) -> Option<String> {
             Some("protection from everything".to_string())
         }
         Ability::Protection(f) => Some(format!("protection from {}", filter(f))),
+        Ability::Landwalk(f) => Some(format!("landwalk {}", filter(f))),
         _ => None,
     }
 }

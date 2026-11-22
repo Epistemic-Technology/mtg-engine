@@ -212,6 +212,24 @@ impl GameState {
                 }
             }
         }
+        // CR 702.14a: "snow forestwalk", "nonbasic landwalk": a land the
+        // filter matches.
+        if a.has(Keyword::LandwalkFilter)
+            && !self.has_block_rule(&b, |r| *r == BlockRule::BlocksLandwalk)
+        {
+            let defender = self.objects[blocker].controller;
+            for id in &a.abilities {
+                if let crate::card::AbilityDef::Landwalk(f) = self.pool.ability(*id)
+                    && self.permanents_of(defender).any(|l| {
+                        self.characteristics(l).is_some_and(|ch| {
+                            ch.is_land() && f.matches(l, defender, &ch, None, None)
+                        })
+                    })
+                {
+                    return false;
+                }
+            }
+        }
         // CR 702.9b: flying is blocked only by flying or reach.
         !a.has(Keyword::Flying) || b.has(Keyword::Flying) || b.has(Keyword::Reach)
     }

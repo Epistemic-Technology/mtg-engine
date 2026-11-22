@@ -1,0 +1,95 @@
+# Landwalk of a kind other than a basic land type (CR 702.14a): "Snow
+# forestwalk" (a snow Forest), "Snow landwalk" (a snow land), "Legendary
+# landwalk", "Nonbasic landwalk".
+
+scenario "Rime Dryad can't be blocked by a player with a snow Forest" {
+  battlefield A: "Rime Dryad"
+  battlefield B: "Grizzly Bears", "Snow-Covered Forest"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Rime Dryad"
+  illegal turn 1 B: block "Rime Dryad" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "Rime Dryad: a plain Forest isn't snow" {
+  battlefield A: "Rime Dryad"
+  battlefield B: "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Rime Dryad"
+  turn 1 B: block "Rime Dryad" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Rime Dryad"
+}
+
+scenario "Legions of Lim-Dûl: a snow Island isn't a snow Swamp" {
+  battlefield A: "Legions of Lim-Dûl"
+  battlefield B: "Grizzly Bears", "Snow-Covered Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Legions of Lim-Dûl"
+  turn 1 B: block "Legions of Lim-Dûl" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 20
+}
+
+scenario "Legions of Lim-Dûl: unblockable against a snow Swamp" {
+  battlefield A: "Legions of Lim-Dûl"
+  battlefield B: "Grizzly Bears", "Snow-Covered Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Legions of Lim-Dûl"
+  illegal turn 1 B: block "Legions of Lim-Dûl" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Zombie Musher: any snow land" {
+  battlefield A: "Zombie Musher"
+  battlefield B: "Grizzly Bears", "Snow-Covered Island"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Zombie Musher"
+  illegal turn 1 B: block "Zombie Musher" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Zombie Musher: regenerates for {S}" {
+  battlefield A: "Zombie Musher", "Snow-Covered Swamp"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Zombie Musher"
+  turn 2 A: activate "Zombie Musher"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Zombie Musher"
+}
+
+scenario "Ayumi, the Last Visitor: a legendary land" {
+  battlefield A: "Ayumi, the Last Visitor"
+  battlefield B: "Grizzly Bears", "Urborg, Tomb of Yawgmoth"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Ayumi, the Last Visitor"
+  illegal turn 1 B: block "Ayumi, the Last Visitor" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 13
+}
+
+scenario "Dryad Sophisticate: a nonbasic land; basics don't count" {
+  battlefield A: "Dryad Sophisticate"
+  battlefield B: "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Dryad Sophisticate"
+  turn 1 B: block "Dryad Sophisticate" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Dryad Sophisticate"
+}
+
+scenario "Dryad Sophisticate can't be blocked by a player with a nonbasic land" {
+  battlefield A: "Dryad Sophisticate"
+  battlefield B: "Grizzly Bears", "Shivan Reef"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Dryad Sophisticate"
+  illegal turn 1 B: block "Dryad Sophisticate" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

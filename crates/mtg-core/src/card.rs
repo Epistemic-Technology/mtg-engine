@@ -266,6 +266,10 @@ pub enum Keyword {
     /// artifacts", CR 702.16): a marker that one of the object's
     /// abilities is an `AbilityDef::Protection`. Not printed.
     ProtectionFromFilter,
+    /// Landwalk of a kind other than a basic land type ("snow
+    /// forestwalk", "nonbasic landwalk", CR 702.14a): a marker that one of
+    /// the object's abilities is an `AbilityDef::Landwalk`. Not printed.
+    LandwalkFilter,
     /// "This creature can't attack alone." (CR 506.5)
     CantAttackAlone,
     /// "This creature can't block alone."
@@ -589,7 +593,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 75] = [
+    pub const ALL: [Keyword; 76] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -665,6 +669,7 @@ impl Keyword {
         Keyword::AssignsToughness,
         Keyword::Aftermath,
         Keyword::Fuse,
+        Keyword::LandwalkFilter,
     ];
 
     /// The keyword as Oracle prints it.
@@ -713,6 +718,7 @@ impl Keyword {
             Keyword::Persist => "persist",
             Keyword::Undying => "undying",
             Keyword::ProtectionFromFilter => "protection",
+            Keyword::LandwalkFilter => "landwalk",
             Keyword::CantAttackAlone => "can't attack alone",
             Keyword::CantBlockAlone => "can't block alone",
             Keyword::Flanking => "flanking",
@@ -4086,6 +4092,11 @@ pub enum Effect {
     Untap {
         to: Recipient,
     },
+    /// "Remove it from combat" (CR 506.4): an attacker or blocker stops
+    /// being one; an attacker it was blocking stays blocked (CR 509.1h).
+    RemoveFromCombat {
+        what: Recipient,
+    },
     /// "gains haste until end of turn" (layer 6).
     Grant {
         keywords: KeywordSet,
@@ -7181,6 +7192,11 @@ pub enum AbilityDef {
     /// characteristics (CR 702.16); the object also has
     /// `Keyword::ProtectionFromFilter`.
     Protection(ObjFilter),
+    /// Landwalk of the lands the filter matches ("snow forestwalk": a snow
+    /// Forest; "nonbasic landwalk"; CR 702.14a): the creature can't be
+    /// blocked as long as the defending player controls such a land. The
+    /// object also has `Keyword::LandwalkFilter`.
+    Landwalk(ObjFilter),
     /// Toxic N (CR 702.164): combat damage this deals to a player also
     /// gives them N poison counters.
     Toxic(u32),
@@ -7324,6 +7340,7 @@ impl AbilityDef {
             | AbilityDef::CostChange(_)
             | AbilityDef::AttackUnless { .. }
             | AbilityDef::Protection(_)
+            | AbilityDef::Landwalk(_)
             | AbilityDef::HandSize { .. }
             | AbilityDef::ExtraVote { .. }
             | AbilityDef::MayLook { .. }
@@ -7360,6 +7377,7 @@ impl AbilityDef {
             | AbilityDef::CostChange(_)
             | AbilityDef::AttackUnless { .. }
             | AbilityDef::Protection(_)
+            | AbilityDef::Landwalk(_)
             | AbilityDef::HandSize { .. }
             | AbilityDef::ExtraVote { .. }
             | AbilityDef::MayLook { .. }

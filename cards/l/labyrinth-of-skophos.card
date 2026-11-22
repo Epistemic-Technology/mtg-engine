@@ -1,0 +1,6 @@
+card "Labyrinth of Skophos" {
+  oracle_id 9ec5a487-d8ed-459a-8f58-56f6e9a2dfe8
+  type Land
+  mana {C}
+  activated {4}, {T}: remove target attacking or blocking creature from combat
+}

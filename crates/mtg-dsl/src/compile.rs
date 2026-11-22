@@ -495,7 +495,16 @@ impl Compiler<'_> {
             .iter()
             .any(|a| matches!(a, Ability::HexproofFrom(_)))
             .then_some(mtg_core::card::Keyword::HexproofFromFilter);
-        let keywords = keywords.chain(protection).chain(evoke).chain(hexproof_from);
+        let landwalk = card
+            .abilities
+            .iter()
+            .any(|a| matches!(a, Ability::Landwalk(_)))
+            .then_some(mtg_core::card::Keyword::LandwalkFilter);
+        let keywords = keywords
+            .chain(protection)
+            .chain(evoke)
+            .chain(hexproof_from)
+            .chain(landwalk);
         // "Stonework Packbeast is also a Cleric, Rogue, Warrior, and
         // Wizard.": the types apply in every zone, so they are the card's
         // own (its static ability adds them again on the battlefield).
@@ -3114,6 +3123,9 @@ impl Compiler<'_> {
                     out.push(CoreEffect::Tap { to: r(*t) });
                 }
             }
+            Effect::RemoveFromCombat { what } => {
+                out.push(CoreEffect::RemoveFromCombat { what: r(*what) });
+            }
             Effect::Untap { to } => {
                 for t in to {
                     out.push(CoreEffect::Untap { to: r(*t) });
@@ -5314,6 +5326,7 @@ impl Compiler<'_> {
                 })),
             }),
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
+            Ability::Landwalk(f) => AbilityDef::Landwalk(self.filter(f)),
             Ability::HexproofFrom(f) => AbilityDef::HexproofFrom(self.filter(f)),
             Ability::OpeningHand => AbilityDef::OpeningHand,
             Ability::TriggerAgain {

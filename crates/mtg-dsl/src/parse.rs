@@ -1807,6 +1807,13 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::SelfCost { per, times })
             }
+            // CR 702.14a: `landwalk snow Forest` ("Snow forestwalk").
+            "landwalk" => {
+                self.pos += 1;
+                let filter = self.filter()?;
+                self.end_stmt()?;
+                Ok(Ability::Landwalk(filter))
+            }
             "protection"
                 if self.word_at(1).as_deref() == Some("from")
                     && self.word_at(2).as_deref().and_then(color).is_none() =>
@@ -5119,6 +5126,16 @@ impl P {
 
     /// Verbs that take the previous clause's subject when none is written
     /// ("you draw a card and lose 1 life").
+    /// After `remove`: a recipient followed by `from combat` ("remove it
+    /// from combat"), not counters.
+    fn peek_recipient_from_combat(&self) -> bool {
+        (1..8).any(|k| {
+            self.word_at(k).as_deref() == Some("from")
+                && self.word_at(k + 1).as_deref() == Some("combat")
+                && (0..k).all(|j| !matches!(self.peek_at(j), Some(Tok::Comma | Tok::Semi)))
+        })
+    }
+
     fn at_subject_verb(&self) -> bool {
         if self.revealed && self.at_word("puts") {
             return true;
@@ -8275,6 +8292,12 @@ impl P {
                 self.expect_word("among")?;
                 let to = self.divided_group()?;
                 Ok(Effect::DistributeCounters { kind, count, to })
+            }
+            // CR 506.4: "remove it from combat".
+            "remove" if self.peek_recipient_from_combat() => {
+                let what = self.recipient()?;
+                self.expect_words(&["from", "combat"])?;
+                Ok(Effect::RemoveFromCombat { what })
             }
             "remove" => {
                 if self.eat_words(&["all", "counters", "from"]) {

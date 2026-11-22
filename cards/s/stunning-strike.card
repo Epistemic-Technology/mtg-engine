@@ -1,0 +1,9 @@
+card "Stunning Strike" {
+  oracle_id 139574fd-c61b-4615-9200-59f2c65f5703
+  cost {2}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  triggered when this enters: tap enchanted creature and remove enchanted creature from combat
+  static as long as attached is nonlegendary, enchanted: has doesn't untap during its controller's untap step
+}

@@ -2364,6 +2364,11 @@ impl Templates {
             (r(r"^[Tt]ap or untap (.+)$"), |c, t| {
                 Some(format!("tap or untap {}", recipient(cap(c, 1), t)?))
             }),
+            // CR 506.4: "Remove target attacking or blocking creature from
+            // combat."
+            (r(r"^[Rr]emove (.+) from combat$"), |c, t| {
+                Some(format!("remove {} from combat", recipient(cap(c, 1), t)?))
+            }),
             // "Tap up to two target creatures. Those creatures don't untap
             // during their controller's next untap step." (Frost Breath).
             (

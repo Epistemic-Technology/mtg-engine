@@ -1,0 +1,6 @@
+card "Reconnaissance" {
+  oracle_id 32599d7c-243b-447b-9d5d-e8e29830ac61
+  cost {W}
+  type Enchantment
+  activated {0}: remove target attacking creature you control from combat and untap target 1
+}

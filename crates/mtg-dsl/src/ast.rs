@@ -1403,6 +1403,11 @@ pub enum Ability {
     /// "Protection from artifacts" (CR 702.16), a quality other than a
     /// color (those are keywords).
     Protection(Filter),
+    /// `landwalk snow Forest`, `landwalk snow land`, `landwalk nonbasic
+    /// land`: "Snow forestwalk", "Snow landwalk", "Nonbasic landwalk"
+    /// (CR 702.14a): can't be blocked as long as the defending player
+    /// controls a land the filter matches.
+    Landwalk(Filter),
     /// `hexproof from black`, `hexproof from multicolored`, `hexproof from
     /// instant`: "Hexproof from black" (CR 702.11d).
     HexproofFrom(Filter),
@@ -3767,6 +3772,10 @@ pub enum Effect {
     },
     Untap {
         to: Vec<Recipient>,
+    },
+    /// `remove target 1 from combat`: "remove it from combat" (CR 506.4).
+    RemoveFromCombat {
+        what: Recipient,
     },
     Grant {
         keywords: Vec<Keyword>,

@@ -956,6 +956,7 @@ impl Decompiler<'_> {
                 Effect::Detain { what: r(*to) }
             }
             CoreEffect::Untap { to } => Effect::Untap { to: vec![r(*to)] },
+            CoreEffect::RemoveFromCombat { what } => Effect::RemoveFromCombat { what: r(*what) },
             CoreEffect::Grant { keywords: k, to } => Effect::Grant {
                 keywords: keywords(*k),
                 to: r(*to),
@@ -2272,6 +2273,7 @@ impl Decompiler<'_> {
                 from_graveyard: false,
             },
             AbilityDef::Protection(f) => Ability::Protection(self.filter(f)),
+            AbilityDef::Landwalk(f) => Ability::Landwalk(self.filter(f)),
             AbilityDef::HexproofFrom(f) => Ability::HexproofFrom(self.filter(f)),
             AbilityDef::OpeningHand => Ability::OpeningHand,
             AbilityDef::TriggerAgain {

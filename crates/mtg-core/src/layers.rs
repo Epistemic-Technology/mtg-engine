@@ -1545,6 +1545,9 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
             ) {
                 c.keywords = c.keywords.with(crate::card::Keyword::HexproofFromFilter);
             }
+            if matches!(state.pool.ability(*a), crate::card::AbilityDef::Landwalk(_)) {
+                c.keywords = c.keywords.with(crate::card::Keyword::LandwalkFilter);
+            }
         }
         Modification::RemoveKeywords(k) => c.keywords = c.keywords.difference(*k),
         Modification::RemoveAllAbilities => {
