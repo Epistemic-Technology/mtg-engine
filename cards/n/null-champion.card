@@ -1,0 +1,10 @@
+card "Null Champion" {
+  oracle_id dfd2846f-574b-475c-bf2a-dc3e87d13476
+  cost {1}{B}
+  type Creature — Zombie Warrior
+  pt 1/1
+  level up {3}
+  levels 1 to 3 pt 4/2
+  levels 4 or more pt 7/3
+  activated {B}: regenerate this
+}

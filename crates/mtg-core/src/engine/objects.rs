@@ -213,6 +213,8 @@ impl GameState {
         for (kind, extra) in [
             (CounterKind::PlusOnePlusOne, d.modular + d.graft),
             (CounterKind::Time, d.vanishing),
+            // CR 702.32a: fading's fade counters.
+            (CounterKind::Fade, d.fading),
         ] {
             if extra == 0 {
                 continue;
@@ -404,6 +406,20 @@ impl GameState {
                         | AltCast::Impending
                 ) {
                 old.alt
+            } else if old.zone == Zone::Stack
+                && to == Zone::Battlefield
+                && old.alt == AltCast::AltCost
+                && self.pool.get(def).blitz
+            {
+                // CR 702.152a: cast for its blitz cost.
+                AltCast::Blitz
+            } else if old.zone == Zone::Stack
+                && to == Zone::Battlefield
+                && old.alt == AltCast::AltCost
+                && self.pool.get(def).prowl
+            {
+                // CR 702.76a: cast for its prowl cost.
+                AltCast::Prowl
             } else {
                 AltCast::None
             },
@@ -479,12 +495,16 @@ impl GameState {
         let cleanup = old.cast.instant_timing();
         if to == Zone::Battlefield
             && old.zone == Zone::Stack
-            && (matches!(old.alt, AltCast::Dash | AltCast::Warp) || cleanup)
+            && (matches!(old.alt, AltCast::Dash | AltCast::Warp)
+                || cleanup
+                || old.alt == AltCast::AltCost && self.pool.get(def).blitz)
         {
             // CR 702.185a: a warped permanent is exiled at the next end
             // step.
             let ability = self.pool.builtin(if cleanup {
                 crate::card::Builtin::CleanupSacrifice
+            } else if old.alt == AltCast::AltCost {
+                crate::card::Builtin::BlitzSacrifice
             } else if old.alt == AltCast::Warp {
                 crate::card::Builtin::WarpExile
             } else {
@@ -1253,6 +1273,20 @@ impl GameState {
             let new = self.move_object(top, Zone::Hand, false);
             let n = &mut self.drawn_this_turn[p.index().min(3)];
             *n = n.saturating_add(1);
+            // CR 702.94a: the first card drawn this turn, with miracle, is
+            // revealed (always: revealing costs nothing), and its trigger
+            // lets its owner cast it for the miracle cost.
+            let first = *n == 1;
+            if first
+                && let Some(o) = self.objects.get(new)
+                && o.zone == Zone::Hand
+                && self.pool.get(o.def).miracle.is_some()
+            {
+                let def = o.def;
+                self.objects[new].revealed = u8::MAX;
+                let ability = self.pool.builtin(crate::card::Builtin::Miracle);
+                self.queue_builtin(p, ability, new, def);
+            }
             // The move bumped before the count changed, and what it ran
             // may have cached characteristics since ("as long as you've
             // drawn two or more cards this turn").
@@ -1484,6 +1518,19 @@ impl GameState {
                     && c.has_subtype(a)
                 {
                     self.assassin_damage |= 1 << ctl.index().min(7);
+                }
+                // CR 702.76a: combat damage by a creature of a prowl type.
+                if combat
+                    && !self.pool.prowl_types().is_empty()
+                    && let (Some(c), Some(ctl)) = (src.as_ref(), controller)
+                    && c.is_creature()
+                {
+                    for i in 0..self.pool.prowl_types().len() {
+                        let t = self.pool.prowl_types()[i];
+                        if c.has_subtype(t) && !self.prowl_damage.contains(&(ctl, t)) {
+                            self.prowl_damage.push((ctl, t));
+                        }
+                    }
                 }
                 self.emit(Event::Damage {
                     source,

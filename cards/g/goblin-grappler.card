@@ -1,0 +1,7 @@
+card "Goblin Grappler" {
+  oracle_id 48c1c84c-f690-42ce-9c5a-dd09b1e4197c
+  cost {R}
+  type Creature — Goblin
+  pt 1/1
+  provoke
+}

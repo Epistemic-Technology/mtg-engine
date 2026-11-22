@@ -409,6 +409,7 @@ impl Decompiler<'_> {
             restrict: Vec::new(),
             reduce: None,
             reveal_hand: c.reveal_hand,
+            reveal_this: c.reveal_self,
             behold: c.behold.as_ref().map(|b| {
                 Box::new(crate::ast::Behold {
                     filter: self.filter(&b.filter),
@@ -508,6 +509,7 @@ impl Decompiler<'_> {
             StaticCondition::CreatureDiedThisTurn => StaticCond::CreatureDiedThisTurn,
             StaticCondition::OpponentDamagedThisTurn => StaticCond::OpponentDamagedThisTurn,
             StaticCondition::OpponentLostLifeThisTurn => StaticCond::OpponentLostLifeThisTurn,
+            StaticCondition::ProwlDamage(_) => unreachable!("only prowl's alternative cost"),
             StaticCondition::AssassinDealtCombatDamage => {
                 unreachable!("only freerunning's alternative cost")
             }
@@ -538,6 +540,7 @@ impl Decompiler<'_> {
             }
             StaticCondition::TotalToughness(n) => StaticCond::TotalToughness(*n),
             StaticCondition::SneakPaid(p) => StaticCond::SneakPaid(*p),
+            StaticCondition::ProwlPaid => StaticCond::ProwlPaid,
             StaticCondition::WebSlung(p) => StaticCond::WebSlung(*p),
             StaticCondition::OptionalCostPaid => StaticCond::EvidenceCollected,
             StaticCondition::OffspringPaid => unreachable!("only offspring's trigger"),
@@ -1887,6 +1890,9 @@ impl Decompiler<'_> {
             },
             TriggerSpec::LeavesGraveyard(f) => Trigger::LeavesGraveyard(self.filter(f)),
             TriggerSpec::PutIntoGraveyard(f) => Trigger::PutIntoGraveyard(self.filter(f)),
+            TriggerSpec::PutIntoGraveyardFromBattlefield(f) => {
+                Trigger::PutIntoGraveyardFromBattlefield(self.filter(f))
+            }
             TriggerSpec::EntersFromGraveyard(f) => Trigger::EntersFromGraveyard(self.filter(f)),
             TriggerSpec::Expends(n) => Trigger::Expends(*n),
             TriggerSpec::CollectsEvidence { .. } => Trigger::CollectsEvidence,

@@ -1,0 +1,8 @@
+card "Vexing Scuttler" {
+  oracle_id 2a5605a8-606e-4866-9473-7a2240ac6b8c
+  cost {8}
+  type Creature — Eldrazi Crab
+  pt 4/5
+  emerge {6}{U}
+  triggered when you cast this: you may return target instant or sorcery card from your graveyard to hand
+}

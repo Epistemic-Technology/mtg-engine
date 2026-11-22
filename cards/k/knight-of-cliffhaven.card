@@ -1,0 +1,11 @@
+card "Knight of Cliffhaven" {
+  oracle_id 5045cfc3-ea63-4e0d-bf6a-bdeaf841ae3c
+  cost {1}{W}
+  type Creature — Kor Knight
+  pt 2/2
+  level up {3}
+  levels 1 to 3 pt 2/3
+  keyword flying
+  levels 4 or more pt 4/4
+  keyword flying, vigilance
+}

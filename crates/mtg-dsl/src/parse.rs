@@ -181,6 +181,7 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     (&["rebound"], Keyword::Rebound),
     (&["cipher"], Keyword::Cipher),
     (&["paradigm"], Keyword::Paradigm),
+    (&["split", "second"], Keyword::SplitSecond),
     (&["exploit"], Keyword::Exploit),
     (&["delve"], Keyword::Delve),
     (
@@ -1534,6 +1535,76 @@ impl P {
                 let each_player = self.eat_words(&["each", "player"]);
                 self.player_static(mtg_core::card::PlayerStaticKind::ExtraLands { n, each_player })
             }
+            // CR 702.59a: recover; CR 702.120a: escalate.
+            "recover" | "escalate" | "prowl" | "miracle" | "emerge"
+                if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
+            {
+                self.pos += 1;
+                let c = self.mana_cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(match w.as_str() {
+                    "recover" => Mechanic::Recover(c),
+                    "miracle" => Mechanic::Miracle(c),
+                    "emerge" => Mechanic::Emerge(c),
+                    "prowl" => Mechanic::Prowl(c),
+                    _ => Mechanic::Escalate(c),
+                }))
+            }
+            // CR 702.152a: blitz.
+            "blitz" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
+                self.pos += 1;
+                let c = self.cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Blitz(c)))
+            }
+            // CR 702.160a: prototype.
+            "prototype" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
+                self.pos += 1;
+                let c = self.mana_cost()?;
+                let Some(Tok::Pt {
+                    power,
+                    toughness,
+                    signed: false,
+                }) = self.next()
+                else {
+                    return self.fail("expected power/toughness such as 3/2");
+                };
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Prototype(c, power, toughness)))
+            }
+            // CR 702.87a: level up.
+            "level" if self.word_at(1).as_deref() == Some("up") => {
+                self.pos += 2;
+                let c = self.mana_cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::LevelUp(c)))
+            }
+            // CR 711.2: a leveler's level symbol and P/T box.
+            "levels" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
+                self.pos += 1;
+                let min = self.number()?;
+                let max = if self.eat_word("to") {
+                    Some(self.number()?)
+                } else {
+                    self.expect_word("or")?;
+                    self.expect_word("more")?;
+                    None
+                };
+                if max.is_some_and(|m| m < min) {
+                    return self.fail("a level range runs from the lower number");
+                }
+                self.expect_word("pt")?;
+                let pt = match self.next() {
+                    Some(Tok::Pt {
+                        power,
+                        toughness,
+                        signed: false,
+                    }) => (power, toughness),
+                    _ => return self.fail("expected power/toughness such as 2/2"),
+                };
+                self.end_stmt()?;
+                Ok(Ability::LevelBand { min, max, pt })
+            }
             // CR 716.2a: a Class's level ability.
             "level" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
                 self.pos += 1;
@@ -1844,6 +1915,40 @@ impl P {
                 self.pos += 1;
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Provoke))
+            }
+            "fading" | "annihilator" | "rampage"
+                if matches!(self.peek_at(1), Some(Tok::Num(_))) =>
+            {
+                self.pos += 1;
+                let n = self.number()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(match w.as_str() {
+                    "fading" => Mechanic::Fading(n),
+                    "annihilator" => Mechanic::Annihilator(n),
+                    _ => Mechanic::Rampage(n),
+                }))
+            }
+            "battle" if self.at_words(&["battle", "cry"]) => {
+                self.pos += 2;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::BattleCry))
+            }
+            "for" if self.at_words(&["for", "mirrodin"]) => {
+                self.pos += 2;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::ForMirrodin))
+            }
+            "training" | "melee" | "dethrone" | "myriad"
+                if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) =>
+            {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(match w.as_str() {
+                    "training" => Mechanic::Training,
+                    "melee" => Mechanic::Melee,
+                    "dethrone" => Mechanic::Dethrone,
+                    _ => Mechanic::Myriad,
+                }))
             }
             "ingest" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
                 self.pos += 1;
@@ -3585,6 +3690,9 @@ impl P {
             if self.eat_words(words) {
                 return Ok(StaticCond::SneakPaid(u8::try_from(i).unwrap_or(0)));
             }
+        }
+        if self.eat_words(&["prowl", "paid"]) {
+            return Ok(StaticCond::ProwlPaid);
         }
         if self.eat_word("spent") {
             return self.spent_cond();
@@ -11792,6 +11900,20 @@ impl P {
         {
             return Ok(Trigger::PutIntoGraveyard(f.clone()));
         }
+        // "a creature is put into your graveyard from the battlefield".
+        if let TriggerObj::Filter(f) = &obj
+            && self.eat_words(&[
+                "is",
+                "put",
+                "into",
+                "your",
+                "graveyard",
+                "from",
+                "battlefield",
+            ])
+        {
+            return Ok(Trigger::PutIntoGraveyardFromBattlefield(f.clone()));
+        }
         // "a creature enters from your graveyard".
         if let TriggerObj::Filter(f) = &obj
             && self.eat_words(&["enters", "from", "your", "graveyard"])
@@ -12015,6 +12137,20 @@ impl P {
         }
         if self.eat_word("increments") {
             return Ok(Condition::Increments);
+        }
+        // Keyword triggers' conditions (training, dethrone, melee), judged
+        // as the creature attacks.
+        if self.eat_word("trains") {
+            return Ok(Condition::Trains);
+        }
+        if self.eat_word("blitzed") {
+            return Ok(Condition::Blitzed);
+        }
+        if self.eat_word("dethrones") {
+            return Ok(Condition::Dethrones);
+        }
+        if self.eat_words(&["attacked", "opponent"]) {
+            return Ok(Condition::AttackedOpponent);
         }
         if self.eat_word("evoked") {
             return Ok(Condition::Evoked);
@@ -12347,6 +12483,11 @@ impl P {
                         self.pos += 2;
                         cost.reveal_hand = true;
                         cost.order.push(CostItem::RevealHand);
+                    }
+                    "reveal" if self.word_at(1).as_deref() == Some("this") => {
+                        self.pos += 2;
+                        cost.reveal_this = true;
+                        cost.order.push(CostItem::RevealThis);
                     }
                     "sorcery" => {
                         self.pos += 1;

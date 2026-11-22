@@ -1,0 +1,8 @@
+card "Tabaxi Toucaneers" {
+  oracle_id 36dd999e-53da-45c7-ae98-90f7aad78680
+  cost {4}{W}
+  type Creature — Cat Ranger
+  pt 3/2
+  keywords flying
+  myriad
+}

@@ -526,6 +526,7 @@ impl GameState {
             died_this_turn: Vec::new(),
             damaged_this_turn: 0,
             assassin_damage: 0,
+            prowl_damage: Vec::new(),
             lost_life_this_turn: 0,
             left_this_turn: 0,
             discarded_this_turn: 0,
@@ -1836,7 +1837,21 @@ impl GameState {
                 self.begin_cast_as(player, card, crate::state::AltCast::Disturb, face);
             }
             (Flow::Priority, Choice::CastAlt(card)) => {
-                self.begin_cast(player, card, crate::state::AltCast::AltCost);
+                // CR 718.3: a prototype card's alternative cost casts it
+                // prototyped, the spell its prototype face.
+                match self.pool.get(self.objects[card].def).prototype_face {
+                    Some(face) => {
+                        self.begin_cast_as(
+                            player,
+                            card,
+                            crate::state::AltCast::AltCost,
+                            Some(face),
+                        );
+                    }
+                    None => {
+                        self.begin_cast(player, card, crate::state::AltCast::AltCost);
+                    }
+                }
             }
             (Flow::Priority, Choice::CastFaceDown(card)) => {
                 self.consecutive_passes = 0;
@@ -3327,6 +3342,7 @@ impl GameState {
             self.life_lost_this_turn = [0; 4];
             self.attacked_this_turn = 0;
             self.assassin_damage = 0;
+            self.prowl_damage.clear();
             self.lands_entered_this_turn = 0;
             self.block_demands.clear();
             self.block_bans.clear();

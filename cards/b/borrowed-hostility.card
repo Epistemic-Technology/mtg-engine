@@ -1,0 +1,10 @@
+card "Borrowed Hostility" {
+  oracle_id b45fc33b-0658-4fe1-89da-54a07a12ebd4
+  cost {R}
+  type Instant
+  escalate {3}
+  choose one or both {
+    mode: target creature gets +3/+0
+    mode: target creature gains first strike
+  }
+}

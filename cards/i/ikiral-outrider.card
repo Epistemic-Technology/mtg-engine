@@ -1,0 +1,11 @@
+card "Ikiral Outrider" {
+  oracle_id 4c03e0db-ce26-41f6-a12c-861a919e52fb
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 1/2
+  level up {4}
+  levels 1 to 3 pt 2/6
+  keyword vigilance
+  levels 4 or more pt 3/10
+  keyword vigilance
+}

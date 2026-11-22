@@ -1,0 +1,47 @@
+# Older keyword lines with semicolons ("Vigilance; horsemanship"), one
+# keyword each; cards the template author writes from them.
+
+scenario "Shu General: vigilance and horsemanship" {
+  battlefield A: "Shu General"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Shu General"
+  illegal turn 1 B: block "Shu General" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Shu General"
+  assert life B 18
+}
+
+scenario "Knight of Sursi: flying and flanking" {
+  battlefield A: "Knight of Sursi"
+  battlefield B: "Serra Angel"
+  turn 1 A: attack "Knight of Sursi"
+  turn 1 B: block "Knight of Sursi" with "Serra Angel"
+  run_to turn 1 combat_damage
+  assert power "Serra Angel" 3
+  assert toughness "Serra Angel" 3
+}
+
+scenario "Knight of Sursi: suspended, cast free three upkeeps later" {
+  battlefield A: "Plains"
+  hand A: "Knight of Sursi"
+  turn 1 A: suspend "Knight of Sursi"
+  run_to turn 7 precombat_main
+  assert battlefield A contains "Knight of Sursi"
+}
+
+scenario "Traproot Kami: toughness equal to the Forests on the battlefield" {
+  battlefield A: "Traproot Kami", 2 "Forest"
+  battlefield B: "Forest"
+  run_to turn 1 postcombat_main
+  assert toughness "Traproot Kami" 3
+  assert power "Traproot Kami" 0
+}
+
+scenario "Bayou Dragonfly: swampwalk" {
+  battlefield A: "Bayou Dragonfly"
+  battlefield B: "Swamp", "Giant Spider"
+  turn 1 A: attack "Bayou Dragonfly"
+  illegal turn 1 B: block "Bayou Dragonfly" with "Giant Spider"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}

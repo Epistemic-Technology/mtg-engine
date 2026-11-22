@@ -20,6 +20,7 @@ use crate::scryfall::{self, Card as ScryCard};
 
 /// Keyword abilities the engine implements (CR 702), as Scryfall tags them.
 const KEYWORDS: &[&str] = &[
+    "Split second",
     "Cipher",
     "Paradigm",
     "Banding",
@@ -67,6 +68,24 @@ const KEYWORDS: &[&str] = &[
 
 /// Scryfall keyword tags that templates below handle as abilities.
 const TEMPLATED_TAGS: &[&str] = &[
+    "Emerge",
+    "Miracle",
+    "Prowl",
+    "Escalate",
+    "Recover",
+    "Blitz",
+    "Prototype",
+    "Level Up",
+    "Provoke",
+    "Fading",
+    "Annihilator",
+    "Rampage",
+    "Battle Cry",
+    "For Mirrodin!",
+    "Training",
+    "Melee",
+    "Dethrone",
+    "Myriad",
     "Hexproof from",
     "Job select",
     "Mayhem",
@@ -235,6 +254,12 @@ const TEMPLATED_TAGS: &[&str] = &[
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
 /// "Landfall — <ability>". Scryfall tags them like keywords.
 const ABILITY_WORDS: &[&str] = &[
+    // CR 702.57: a keyword printed as a label ("Forecast — {2}{W}, Reveal
+    // this card from your hand: ..."); the DSL's `label "Forecast"`.
+    "Forecast",
+    // Scryfall tags jump-start "Jump" too; "Jump — During your turn, ..."
+    // (Final Fantasy) is an ability word.
+    "Jump",
     "Repartee",
     "Vivid",
     // CR 702.179e: a condition, not a bare label; the DSL compiles it.
@@ -3032,6 +3057,10 @@ fn cost_text(s: &str) -> Option<String> {
             format!("blight {n}")
         } else if part == "Discard this card" {
             "discard this".to_string()
+        } else if part == "Reveal this card from your hand"
+            || part == "Reveal this creature from your hand"
+        {
+            "reveal this".to_string()
         } else if let Some(c) = remove.captures(part) {
             let n = if matches!(cap(&c, 1), "a" | "an") {
                 "1".to_string()
@@ -3540,6 +3569,9 @@ fn static_condition(s: &str) -> Option<String> {
         "this spell's sneak cost was paid" | "its sneak cost was paid" => {
             return Some("sneak paid".to_string());
         }
+        "this spell's prowl cost was paid" | "its prowl cost was paid" => {
+            return Some("prowl paid".to_string());
+        }
         "his sneak cost was paid" => return Some("his sneak paid".to_string()),
         "her sneak cost was paid" => return Some("her sneak paid".to_string()),
         "this spell was cast using teamwork" => {
@@ -3891,6 +3923,52 @@ impl Builder<'_> {
 
     #[allow(clippy::too_many_lines)]
     fn line(&mut self, line: &str) -> Result<(), Skip> {
+        // CR 711.2: "LEVEL 1-4 2/2" (joined above), "LEVEL 5+ 5/5".
+        if let Some(c) = Regex::new(r"^LEVEL (\d+)(?:-(\d+)|\+) (\d+/\d+)$")
+            .unwrap()
+            .captures(line)
+        {
+            let range = match c.get(2) {
+                Some(m) => format!("{} to {}", cap(&c, 1), m.as_str()),
+                None => format!("{} or more", cap(&c, 1)),
+            };
+            self.statements
+                .push(format!("levels {range} pt {}", cap(&c, 3)));
+            return Ok(());
+        }
+        // CR 702.152a: "Blitz {3}{G}", "Blitz—{2}{B}{B}, Pay 2 life."
+        if let Some(c) = Regex::new(r"^Blitz ((?:\{[0-9WUBRGC]\})+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements.push(format!("blitz {}", cap(&c, 1)));
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(r"^Blitz\x{2014}((?:\{[0-9WUBRGC]\})+), Pay (\d+) life\.$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("blitz {}, pay {} life", cap(&c, 1), cap(&c, 2)));
+            return Ok(());
+        }
+        // CR 702.160a: "Prototype {2}{R} — 3/2".
+        if let Some(c) = Regex::new(r"^Prototype ((?:\{[0-9WUBRGC]\})+) \x{2014} (\d+/\d+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("prototype {} {}", cap(&c, 1), cap(&c, 2)));
+            return Ok(());
+        }
+        // CR 702.87a.
+        if let Some(c) = Regex::new(r"^Level up ((?:\{[0-9WUBRGC]\})+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements.push(format!("level up {}", cap(&c, 1)));
+            return Ok(());
+        }
         // CR 716.2a: "{R}{G}: Level 2".
         if let Some(c) = Regex::new(r"^((?:\{[0-9WUBRGC]+\})+): Level (\d)$")
             .unwrap()
@@ -4235,6 +4313,17 @@ impl Builder<'_> {
                 return Ok(());
             }
         }
+        // "Trample; rampage 2": an older keyword line, one keyword each.
+        if line.contains("; ")
+            && !line.contains(", ")
+            && !line.ends_with('.')
+            && line.chars().next().is_some_and(char::is_uppercase)
+        {
+            for p in line.split("; ") {
+                self.line(&capitalize(p))?;
+            }
+            return Ok(());
+        }
         // "Protection from artifacts" (a quality other than a color).
         if let Some(q) = line.strip_prefix("Protection from ")
             && keyword_list(line).is_none()
@@ -4254,8 +4343,12 @@ impl Builder<'_> {
             .strip_prefix("This creature ")
             .and_then(|r| r.strip_suffix('.'))
         {
+            let min = Regex::new(r"^can't be blocked except by (\w+) or more creatures$").unwrap();
             let rule = if rest == "can't be blocked by more than one creature" {
                 Some("can't be blocked by more than one creature".to_string())
+            } else if let Some(c) = min.captures(rest) {
+                number(cap(&c, 1))
+                    .map(|n| format!("can't be blocked except by {n} or more creatures"))
             } else if let Some(f) = rest.strip_prefix("can't be blocked except by ") {
                 Some(format!("can't be blocked except by {}", singular(f)))
             } else if let Some(f) = rest.strip_prefix("can't be blocked by ") {
@@ -4458,8 +4551,11 @@ impl Builder<'_> {
             self.statements.push(format!("enchant {spec}"));
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^Equip \{(\d+)\}$").unwrap().captures(line) {
-            self.statements.push(format!("equip {{{}}}", cap(&c, 1)));
+        if let Some(c) = Regex::new(r"^Equip ((?:\{[0-9WUBRGC]\})+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements.push(format!("equip {}", cap(&c, 1)));
             return Ok(());
         }
         // A flavor word before equip ("Perseus's Bow — Equip {6}", job
@@ -4655,7 +4751,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) = Regex::new(
-            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Afterlife|Casualty|Teamwork|Ripple|Dredge|Firebending|Graft|Vanishing) (\d+)$",
+            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Afterlife|Casualty|Teamwork|Ripple|Dredge|Firebending|Graft|Vanishing|Fading|Annihilator|Rampage) (\d+)$",
         )
         .unwrap()
         .captures(line)
@@ -4727,7 +4823,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Mayhem|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Plot|Sneak|Harmonize|Freerunning|Multikicker|Transmute|Disturb) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Mayhem|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Plot|Sneak|Harmonize|Freerunning|Multikicker|Transmute|Disturb|Recover|Escalate|Prowl|Miracle|Emerge) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {
@@ -4904,8 +5000,18 @@ impl Builder<'_> {
                 | "Retrace"
                 | "Ingest"
                 | "Increment"
+                | "Provoke"
+                | "Battle cry"
+                | "Training"
+                | "Melee"
+                | "Dethrone"
+                | "Myriad"
         ) {
             self.statements.push(line.to_lowercase());
+            return Ok(());
+        }
+        if line == "For Mirrodin!" {
+            self.statements.push("for mirrodin".to_string());
             return Ok(());
         }
         if let Some(c) = Regex::new(r"^Affinity for (\w+)$").unwrap().captures(line) {
@@ -5828,7 +5934,11 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     {
         return author_faces(s, corpus);
     }
-    if s.name.contains(" // ") || !matches!(s.layout.as_str(), "normal" | "saga" | "class" | "case")
+    if s.name.contains(" // ")
+        || !matches!(
+            s.layout.as_str(),
+            "normal" | "saga" | "class" | "case" | "leveler" | "prototype"
+        )
     {
         return Err(Skip::Layout(s.layout.clone()));
     }
@@ -5942,6 +6052,9 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         spell_at: None,
         spell_targets: 0,
     };
+    // CR 711.2: a leveler's "LEVEL 1-4" and the P/T box under it, one line.
+    let leveler = Regex::new(r"(?m)^(LEVEL \d+(?:-\d+|\+))\n(\d+/\d+)$").unwrap();
+    let oracle = leveler.replace_all(&oracle, "$1 $2").into_owned();
     let lines: Vec<&str> = oracle.lines().collect();
     let mut i = 0;
     while i < lines.len() {

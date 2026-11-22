@@ -1,0 +1,7 @@
+card "Sudden Edict" {
+  oracle_id b95f704d-96b9-437e-8c49-aba874139e12
+  cost {1}{B}
+  type Instant
+  keywords split second
+  spell: target player sacrifices 1 creature
+}

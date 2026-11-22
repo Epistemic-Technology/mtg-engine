@@ -1,0 +1,8 @@
+card "Tiamat's Fanatics" {
+  oracle_id 6eef7583-0716-49b5-b70e-8feb0e7c99fb
+  cost {4}{R}
+  type Creature — Dragon Warrior
+  pt 4/3
+  keywords haste
+  myriad
+}

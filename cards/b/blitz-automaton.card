@@ -1,0 +1,8 @@
+card "Blitz Automaton" {
+  oracle_id 19f344ee-031d-4346-9553-c5d32b02df43
+  cost {7}
+  type Artifact Creature — Construct
+  pt 6/4
+  prototype {2}{R} 3/2
+  keyword haste
+}

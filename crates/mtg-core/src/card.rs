@@ -349,6 +349,10 @@ pub enum Keyword {
     /// may be cast free at the beginning of each of their precombat main
     /// phases for the rest of the game (`Builtin::Paradigm`).
     Paradigm,
+    /// CR 702.61a: "As long as this spell is on the stack, players can't
+    /// cast other spells or activate abilities that aren't mana
+    /// abilities."
+    SplitSecond,
 }
 
 /// The pool's built-in triggered abilities that aren't keywords on a
@@ -408,6 +412,13 @@ pub enum Builtin {
     /// in exile. You may cast the copy without paying its mana cost." (a
     /// delayed trigger that stays).
     Paradigm,
+    /// CR 702.152a: "If this spell's blitz cost was paid, sacrifice the
+    /// permanent this spell becomes at the beginning of the next end
+    /// step."
+    BlitzSacrifice,
+    /// CR 702.94a: "When you reveal this card this way, you may cast it
+    /// by paying [cost] rather than its mana cost."
+    Miracle,
 }
 
 /// How an exiled card is cast by a built-in trigger.
@@ -420,6 +431,8 @@ pub enum ExileCast {
     /// Transformed (its back face, CR 712.11), without paying its mana
     /// cost: a defeated Siege (CR 310.12b).
     Transformed,
+    /// From the hand, for its miracle cost (CR 702.94a).
+    Miracle,
 }
 
 /// A set of keywords: two words, aligned as one (a `u128` would align
@@ -525,7 +538,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 70] = [
+    pub const ALL: [Keyword; 71] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -596,6 +609,7 @@ impl Keyword {
         Keyword::Cipher,
         Keyword::HexproofFromFilter,
         Keyword::Paradigm,
+        Keyword::SplitSecond,
     ];
 
     /// The keyword as Oracle prints it.
@@ -655,6 +669,7 @@ impl Keyword {
             Keyword::Cipher => "cipher",
             Keyword::HexproofFromFilter => "hexproof from",
             Keyword::Paradigm => "paradigm",
+            Keyword::SplitSecond => "split second",
             Keyword::Convoke => "convoke",
             Keyword::Improvise => "improvise",
             Keyword::Evoke => "evoke",
@@ -2542,6 +2557,12 @@ pub enum StaticCondition {
     /// the permanent). The number is wording only: the pronoun for a
     /// permanent (0 "its", 1 "his", 2 "her").
     SneakPaid(u8),
+    /// "if its prowl cost was paid", "if this spell's prowl cost was paid"
+    /// (CR 702.76a).
+    ProwlPaid,
+    /// Prowl's condition (CR 702.76a): "if you dealt combat damage to a
+    /// player this turn with a [creature of one of these types]".
+    ProwlDamage(Vec<Subtype>),
     /// "If it was cast using web-slinging" (CR 702.188): the source was
     /// cast for its web-slinging cost (kept by the permanent). The number
     /// is wording only: 0 "it was", 1 "he was", 2 "she was", 3 "they
@@ -5507,6 +5528,11 @@ pub enum TriggerSpec {
     /// once per matching card its controller owns going to a graveyard,
     /// the card (as it was) the triggering object.
     PutIntoGraveyard(ObjFilter),
+    /// "Whenever a creature is put into your graveyard from the
+    /// battlefield": a matching permanent (as it last existed) its
+    /// controller owns dies, whoever controlled it; the permanent the
+    /// triggering object.
+    PutIntoGraveyardFromBattlefield(ObjFilter),
     /// "Whenever a creature enters from your graveyard": a matching
     /// permanent that entered from its controller's graveyard (the
     /// source's controller's), the triggering object.
@@ -5727,6 +5753,7 @@ impl TriggerSpec {
             | TriggerSpec::LeavesBatch { .. }
             | TriggerSpec::LeavesGraveyard(_)
             | TriggerSpec::PutIntoGraveyard(_)
+            | TriggerSpec::PutIntoGraveyardFromBattlefield(_)
             | TriggerSpec::EntersFromGraveyard(_) => WATCH_ZONE_CHANGE,
             TriggerSpec::AttacksOrBlocks(_) => WATCH_ATTACK | WATCH_BLOCK,
             TriggerSpec::BeginningOfStep { .. } | TriggerSpec::AttachedControllersStep(_) => {
@@ -5862,6 +5889,24 @@ pub enum Condition {
     /// this creature enters and whenever it attacks while saddled"): the
     /// first event triggers it regardless (CR 603.2).
     WhileSecond(u16),
+    /// Training (CR 702.149a): "Whenever this creature and at least one
+    /// other creature with power greater than this creature's power
+    /// attack": judged only as attackers are declared (another attacking
+    /// creature its controller controls has greater power).
+    Trains,
+    /// Dethrone (CR 702.105a): "Whenever this creature attacks the player
+    /// with the most life or tied for most life": judged only as it
+    /// attacks; attacking a planeswalker or battle doesn't count.
+    Dethrones,
+    /// Blitz (CR 702.152a): "When this creature dies, draw a card." is
+    /// the source's only while its blitz cost was paid (as it last
+    /// existed).
+    Blitzed,
+    /// Melee (CR 702.121a) in a two-player game: an opponent was attacked
+    /// with a creature this combat (a planeswalker doesn't count), so the
+    /// bonus "for each opponent you attacked" is one. Judged only as the
+    /// ability triggers: attackers are declared once each combat.
+    AttackedOpponent,
 }
 
 /// A triggered ability (CR 603).
@@ -5983,6 +6028,10 @@ pub struct Cost {
     /// every card left in the payer's hand becomes known.
     #[serde(default)]
     pub reveal_hand: bool,
+    /// "Reveal this card from your hand" (forecast, CR 702.57a): the
+    /// ability is activated from the hand and the card becomes known.
+    #[serde(default)]
+    pub reveal_self: bool,
     /// "Blight N" (CR 701.68a): put N -1/-1 counters on a creature the
     /// payer controls (the engine picks the toughest).
     #[serde(default)]
@@ -6089,6 +6138,7 @@ impl Cost {
             count: 0,
             exile_cards: None,
             reveal_hand: false,
+            reveal_self: false,
             blight: 0,
             behold: None,
             evidence: 0,
@@ -7028,6 +7078,27 @@ pub struct CardDef {
     /// for each object or player the card's target spec matches.
     #[serde(skip)]
     pub overload_face: Option<CardRef>,
+    /// Prototype (CR 702.160a, 718): the alternative mana cost, power,
+    /// and toughness. Cast prototyped (the card's alternative cost, CR
+    /// 118.9), the spell and its permanent are `prototype_face`: the card
+    /// with those characteristics and the cost's colors (CR 718.3b).
+    #[serde(default)]
+    pub prototype: Option<Box<(ManaCost, i32, i32)>>,
+    #[serde(default)]
+    pub prototype_face: Option<CardRef>,
+    /// Blitz (CR 702.152a): the card's alternative cost (`alt_cost`) is its
+    /// blitz cost; cast for it, the permanent is `AltCast::Blitz`.
+    #[serde(default)]
+    pub blitz: bool,
+    /// Prowl (CR 702.76a): the card's alternative cost (`alt_cost`) is its
+    /// prowl cost; cast for it, the permanent is `AltCast::Prowl`.
+    #[serde(default)]
+    pub prowl: bool,
+    /// Emerge (CR 702.119a): the card's alternative cost (`alt_cost`) is
+    /// its emerge cost with a creature sacrificed, reduced by that
+    /// creature's mana value.
+    #[serde(default)]
+    pub emerge: bool,
     /// Awaken N (CR 702.113): an alternative cost; cast for it, the spell
     /// also puts N +1/+1 counters on target land you control, which
     /// becomes a 0/0 Elemental creature with haste (`awaken_face`).
@@ -7091,6 +7162,10 @@ pub struct CardDef {
     pub strive: Option<Box<ManaCost>>,
     /// Madness (CR 702.35): cast for this cost as it's discarded.
     pub madness: Option<Box<ManaCost>>,
+    /// Miracle (CR 702.94): cast for this cost as it's drawn, the first
+    /// card its owner drew this turn.
+    #[serde(default)]
+    pub miracle: Option<Box<ManaCost>>,
     /// Foretell (CR 702.143): exiled from hand for {2}, cast later for
     /// this cost.
     pub foretell: Option<Box<ManaCost>>,
@@ -7136,6 +7211,9 @@ pub struct CardDef {
     /// trigger is an ordinary ability).
     #[serde(default)]
     pub vanishing: u32,
+    /// Fading N's entering fade counters (CR 702.32a).
+    #[serde(default)]
+    pub fading: u32,
     /// Flashback (CR 702.34): the spell may be cast from the graveyard for
     /// this cost instead of its mana cost, and is exiled as it leaves the
     /// stack.
@@ -7899,7 +7977,7 @@ pub struct CardPool {
     /// Decayed's "When this creature attacks, sacrifice it at end of
     /// combat" (CR 702.147a).
     decayed: AbilityId,
-    builtins: [AbilityId; 13],
+    builtins: [AbilityId; 15],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -7913,6 +7991,8 @@ pub struct CardPool {
     /// compiled (CR 702.173a): combat damage to players by Assassins is
     /// then recorded.
     assassin: Option<Subtype>,
+    /// The creature types of the pool's prowl cards (CR 702.76a).
+    prowl_types: Vec<Subtype>,
 }
 
 /// The inherent triggered abilities of the monarch (CR 725.2), the
@@ -7985,12 +8065,13 @@ impl CardPool {
             evoke: AbilityId(0),
             exploit: AbilityId(0),
             decayed: AbilityId(0),
-            builtins: [AbilityId(0); 13],
+            builtins: [AbilityId(0); 15],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
             dungeons: Vec::new(),
             desig: DesigBuiltins::default(),
             assassin: None,
+            prowl_types: Vec::new(),
         };
         for c in Color::ALL {
             let id = pool.subtype(c.basic_land_type());
@@ -8217,6 +8298,29 @@ impl CardPool {
                     tapped: true,
                     under_you: true,
                     attached: None,
+                }],
+            }));
+        pool.builtins[Builtin::Miracle as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                limit: crate::card::TurnLimit::None,
+                from_graveyard: false,
+                trigger: TriggerSpec::Reflexive,
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![Effect::CastExiled(ExileCast::Miracle)],
+            }));
+        pool.builtins[Builtin::BlitzSacrifice as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                limit: crate::card::TurnLimit::None,
+                from_graveyard: false,
+                trigger: TriggerSpec::BeginningOfStep {
+                    step: crate::turn::Step::End,
+                    whose: Who::Any,
+                },
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![Effect::Sacrifice {
+                    what: Recipient::SameObject,
                 }],
             }));
         pool.builtins[Builtin::CleanupSacrifice as usize] =
@@ -8661,6 +8765,30 @@ impl CardPool {
             let face = bestowed_aura(&def);
             def.bestow_face = Some(self.add(face));
         }
+        // CR 718.3b: a prototyped spell and its permanent have only the
+        // alternative mana cost, power, and toughness, and that cost's
+        // colors. Casting it so is the card's alternative cost (CR 118.9),
+        // whose spell is this face.
+        if let Some(p) = def.prototype.clone() {
+            let (cost, power, toughness) = *p;
+            let mut face = def.clone();
+            face.mana_cost = cost.clone();
+            face.power = Some(power);
+            face.toughness = Some(toughness);
+            face.prototype = None;
+            face.alt_cost = None;
+            face.printed = None;
+            def.prototype_face = Some(self.add(face));
+            def.alt_cost = Some(Box::new(AltCost {
+                cost: Cost {
+                    mana: cost,
+                    ..Cost::default()
+                },
+                count: 1,
+                condition: None,
+                others_gain: 0,
+            }));
+        }
         // CR 702.96b: the overloaded spell has no targets (and so is
         // not registered again).
         if def.overload.is_some() && def.spell_ability().is_some_and(|(t, _)| !t.is_empty()) {
@@ -9012,6 +9140,21 @@ impl CardPool {
         }
     }
 
+    /// A card with prowl is in the pool (CR 702.76a): record combat damage
+    /// to players by creatures of these types.
+    pub fn note_prowl(&mut self, types: &[Subtype]) {
+        for t in types {
+            if !self.prowl_types.contains(t) {
+                self.prowl_types.push(*t);
+            }
+        }
+    }
+
+    /// The creature types prowl cards in the pool watch.
+    pub fn prowl_types(&self) -> &[Subtype] {
+        &self.prowl_types
+    }
+
     /// The Assassin type, if a card with freerunning is in the pool.
     pub fn assassin(&self) -> Option<Subtype> {
         self.assassin
@@ -9135,6 +9278,12 @@ impl Builder {
             bestow_face: None,
             overload: None,
             overload_face: None,
+            prototype: None,
+            prototype_face: None,
+            blitz: false,
+            prowl: false,
+            emerge: false,
+            miracle: None,
             awaken: None,
             awaken_face: None,
             goads: false,
@@ -9178,6 +9327,7 @@ impl Builder {
             modular: 0,
             graft: 0,
             vanishing: 0,
+            fading: 0,
             flashback: None,
             retrace: false,
             watch_mask: 0,
@@ -9397,6 +9547,62 @@ impl Builder {
         self
     }
 
+    /// Prowl (CR 702.76a): the alternative cost, and its condition.
+    #[must_use]
+    pub fn prowl(mut self, cost: ManaCost, condition: u16) -> Self {
+        self.0.alt_cost = Some(Box::new(AltCost {
+            cost: Cost {
+                mana: cost,
+                ..Cost::default()
+            },
+            count: 1,
+            condition: Some(condition),
+            others_gain: 0,
+        }));
+        self.0.prowl = true;
+        self
+    }
+
+    /// Emerge (CR 702.119a): "You may cast this spell by sacrificing a
+    /// creature and paying the emerge cost reduced by that creature's mana
+    /// value."
+    #[must_use]
+    pub fn emerge(mut self, cost: ManaCost) -> Self {
+        self.0.alt_cost = Some(Box::new(AltCost {
+            cost: Cost {
+                mana: cost,
+                sacrifice: Some(SacCost::Filter(ObjFilter::creatures())),
+                ..Cost::default()
+            },
+            count: 1,
+            condition: None,
+            others_gain: 0,
+        }));
+        self.0.emerge = true;
+        self
+    }
+
+    /// Blitz (CR 702.152a): the alternative cost is a blitz cost.
+    #[must_use]
+    pub fn blitz(mut self, cost: Cost) -> Self {
+        self.0.alt_cost = Some(Box::new(AltCost {
+            cost,
+            count: 1,
+            condition: None,
+            others_gain: 0,
+        }));
+        self.0.blitz = true;
+        self
+    }
+
+    /// Prototype (CR 702.160a): the alternative mana cost, power, and
+    /// toughness.
+    #[must_use]
+    pub fn prototype(mut self, cost: ManaCost, power: i32, toughness: i32) -> Self {
+        self.0.prototype = Some(Box::new((cost, power, toughness)));
+        self
+    }
+
     /// Dash (CR 702.109).
     #[must_use]
     pub fn dash(mut self, cost: ManaCost) -> Self {
@@ -9600,6 +9806,13 @@ impl Builder {
         self
     }
 
+    /// Miracle (CR 702.94).
+    #[must_use]
+    pub fn miracle(mut self, cost: ManaCost) -> Self {
+        self.0.miracle = Some(Box::new(cost));
+        self
+    }
+
     /// Foretell (CR 702.143).
     #[must_use]
     pub fn foretell(mut self, cost: ManaCost) -> Self {
@@ -9646,6 +9859,13 @@ impl Builder {
     #[must_use]
     pub fn vanishing(mut self, n: u32) -> Self {
         self.0.vanishing = n;
+        self
+    }
+
+    /// Fading N's entering fade counters (CR 702.32a).
+    #[must_use]
+    pub fn fading(mut self, n: u32) -> Self {
+        self.0.fading = n;
         self
     }
 

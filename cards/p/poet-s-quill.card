@@ -1,0 +1,8 @@
+card "Poet's Quill" {
+  oracle_id f474d421-5fd0-4d76-95cb-4824a2381a29
+  cost {1}{B}
+  type Artifact — Equipment
+  triggered when this enters: learn
+  static enchanted: +1/+1, has lifelink
+  equip {1}{B}
+}

@@ -1,0 +1,8 @@
+card "Goldwarden's Helm" {
+  oracle_id 4c35f41a-55e4-49ca-b211-f57d7b1b90f6
+  cost {2}{W}
+  type Artifact — Equipment
+  for mirrodin
+  static enchanted: +0/+1
+  equip {1}{W}
+}

@@ -1,0 +1,8 @@
+card "Spirit en-Dal" {
+  oracle_id 54730a15-0f03-4064-89dc-24de05117e7c
+  cost {2}{W}
+  type Creature — Spirit
+  pt 2/1
+  keywords shadow
+  label "Forecast" activated {1}{W}, reveal this: target creature gains shadow
+}

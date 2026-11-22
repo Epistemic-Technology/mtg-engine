@@ -1,0 +1,9 @@
+card "Wretched Gryff" {
+  oracle_id 83d0c4bc-aab9-4c14-a7dc-a344fcce4fea
+  cost {7}
+  type Creature — Eldrazi Hippogriff
+  pt 3/4
+  emerge {5}{U}
+  triggered when you cast this: draw 1 cards
+  keyword flying
+}

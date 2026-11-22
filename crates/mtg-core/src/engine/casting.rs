@@ -40,6 +40,14 @@ impl GameState {
                         && ab.from_hand
                         && (!ab.sorcery_speed || sorcery_timing)
                         && self.activation_allowed(ab, *a, p, *id)
+                        // "only once each turn" (forecast, CR 702.57b).
+                        && (ab.per_turn == 0
+                            || self
+                                .activated_once
+                                .iter()
+                                .filter(|x| **x == (*id, *a))
+                                .count()
+                                < usize::from(ab.per_turn))
                         && (ab.cost.life == 0
                             || ps.life >= i32::try_from(ab.cost.life).unwrap_or(i32::MAX))
                         && self.payable_for(
@@ -155,7 +163,9 @@ impl GameState {
                 options.push(Choice::CastEvoke(*id));
             }
             // CR 118.9: an alternative cost of the card's own.
-            if def.alt_cost.is_some() && self.alt_castable(p, def, *id, sorcery_timing, &sources) {
+            if def.alt_cost.is_some()
+                && self.alt_castable(p, def, *id, sorcery_timing, &sources, &changers)
+            {
                 options.push(Choice::CastAlt(*id));
             }
             // CR 702.109a: cast for the dash cost instead.
@@ -658,6 +668,30 @@ impl GameState {
                 | Choice::CastDisturb(_)
                 | Choice::CastFaceDown(_) => false,
                 _ => true,
+            });
+        }
+        // CR 702.61a: with a split second spell on the stack, no spells
+        // are cast and no abilities other than mana abilities activated;
+        // special actions remain (CR 702.61b).
+        if !self.stack.is_empty()
+            && self.stack.iter().any(|s| {
+                self.objects.get(*s).is_some_and(|o| {
+                    self.pool
+                        .get(o.def)
+                        .keywords
+                        .contains(crate::card::Keyword::SplitSecond)
+                })
+            })
+        {
+            options.retain(|c| {
+                matches!(
+                    c,
+                    Choice::TurnFaceUp(_)
+                        | Choice::Unlock { .. }
+                        | Choice::Suspend(_)
+                        | Choice::Foretell(_)
+                        | Choice::Plot(_)
+                )
             });
         }
         options.push(Choice::Pass);
@@ -2917,6 +2951,7 @@ impl GameState {
         id: ObjId,
         sorcery_timing: bool,
         sources: &Sources,
+        changers: &[ObjId],
     ) -> bool {
         let Some(alt) = &def.alt_cost else {
             return false;
@@ -2951,10 +2986,34 @@ impl GameState {
         {
             return false;
         }
+        // CR 601.2f: cost reductions (affinity) apply to an alternative
+        // cost too.
+        let mut req = alt.cost.mana.requirements(0);
+        // CR 702.119a: emerge, reduced by the mana value of the creature
+        // sacrificed (at best, the greatest).
+        if def.emerge
+            && let Some(SacCost::Filter(f)) = &alt.cost.sacrifice
+        {
+            let best = self
+                .sacrifice_candidates(p, f, id)
+                .into_iter()
+                .filter_map(|c| self.characteristics(c))
+                .map(|c| self.pool.get(c.def).mana_cost.mana_value())
+                .max()
+                .unwrap_or(0);
+            adjust_generic(&mut req, -i32::try_from(best).unwrap_or(i32::MAX));
+        }
+        if def.self_cost.is_some()
+            || def.cond_cost.is_some()
+            || !changers.is_empty()
+            || self.next_spell_less[p.index().min(3)] > 0
+        {
+            adjust_generic(&mut req, self.cost_delta(p, def, id, changers));
+        }
         if !self.payable_for(
             p,
             sources,
-            &alt.cost.mana.requirements(0),
+            &req,
             Spend::Spell(&self.printed(self.objects[id].def)),
         ) || !self.additional_payable(p, &def.additional, id)
         {
@@ -3614,6 +3673,9 @@ impl GameState {
             (_, false) if o.alt == AltCast::Madness && def.madness.is_some() => {
                 def.madness.as_ref().expect("checked").requirements(x)
             }
+            (_, false) if o.alt == AltCast::Miracle && def.miracle.is_some() => {
+                def.miracle.as_ref().expect("checked").requirements(x)
+            }
             (_, false) if o.alt == AltCast::Foretell && def.foretell.is_some() => {
                 def.foretell.as_ref().expect("checked").requirements(x)
             }
@@ -3869,6 +3931,7 @@ impl GameState {
         }
         let mut req = match alt {
             AltCast::Madness => def.madness.as_ref().map(|c| c.requirements(0)),
+            AltCast::Miracle => def.miracle.as_ref().map(|c| c.requirements(0)),
             AltCast::Foretell => def.foretell.as_ref().map(|c| c.requirements(0)),
             // CR 701.65a.
             AltCast::Airbend => Some(ManaRequirement {
@@ -5810,6 +5873,12 @@ impl GameState {
         if cost.reveal_hand {
             self.reveal_hand(p);
         }
+        // CR 702.57a: "Reveal this card from your hand".
+        if cost.reveal_self
+            && let Some(o) = self.objects.get_mut(this)
+        {
+            o.revealed = u8::MAX;
+        }
         if cost.energy > 0 {
             let e = &mut self.player_mut(p).energy;
             *e = e.saturating_sub(cost.energy);
@@ -6337,7 +6406,16 @@ impl GameState {
         let targets: Vec<Target> = obj.targets.iter().copied().collect();
         let pool = std::sync::Arc::clone(&self.pool);
         let def = pool.get(def_ref);
-        let req = self.spell_requirements(spell, x);
+        let mut req = self.spell_requirements(spell, x);
+        // CR 702.119a: emerge's cost is reduced by the sacrificed
+        // creature's mana value (generic mana only, CR 601.2f).
+        if def.emerge
+            && obj.alt == AltCast::AltCost
+            && let Some(c) = sacrifice.and_then(|c| self.characteristics(c))
+        {
+            let mv = pool.get(c.def).mana_cost.mana_value();
+            adjust_generic(&mut req, -i32::try_from(mv).unwrap_or(i32::MAX));
+        }
         // "Tap three untapped white creatures you control": tapped before
         // the mana is paid, so they don't also tap for it (CR 601.2h).
         let mut sacrifice = sacrifice;
@@ -11657,13 +11735,23 @@ impl GameState {
                 }
             }
             Effect::CastExiled(kind) => {
+                // CR 702.94a: a miracle card is cast from the hand.
+                let from = if *kind == crate::card::ExileCast::Miracle {
+                    Zone::Hand
+                } else {
+                    Zone::Exile
+                };
                 let Some(card) = self
                     .current_object(ctx.source)
-                    .filter(|c| self.objects[*c].zone == Zone::Exile)
+                    .filter(|c| self.objects[*c].zone == from)
                 else {
                     return;
                 };
                 let alt = match kind {
+                    crate::card::ExileCast::Miracle => {
+                        self.offer_exile_cast(card, AltCast::Miracle);
+                        return;
+                    }
                     crate::card::ExileCast::Madness => AltCast::Madness,
                     crate::card::ExileCast::Free => AltCast::Free,
                     crate::card::ExileCast::Transformed => {

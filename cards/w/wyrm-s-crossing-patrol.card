@@ -1,0 +1,7 @@
+card "Wyrm's Crossing Patrol" {
+  oracle_id fad2d14f-8825-4b08-8804-010d9659f6dc
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+  myriad
+}

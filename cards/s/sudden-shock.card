@@ -1,0 +1,7 @@
+card "Sudden Shock" {
+  oracle_id 7b139231-dcd2-4b03-bcf2-fcb040617b69
+  cost {1}{R}
+  type Instant
+  keywords split second
+  spell: deal 2 damage to any target
+}

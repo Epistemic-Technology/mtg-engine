@@ -1,0 +1,8 @@
+card "Girder Goons" {
+  oracle_id 655961a3-94b5-4600-b9f1-f93163d03a49
+  cost {4}{B}
+  type Creature — Ogre Warrior
+  pt 4/4
+  triggered when this dies: create 1 tapped "2/2 black Rogue creature"
+  blitz {3}{B}
+}

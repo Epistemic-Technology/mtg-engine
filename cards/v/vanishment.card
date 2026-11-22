@@ -1,0 +1,7 @@
+card "Vanishment" {
+  oracle_id a2ae1a1b-5c4f-46ed-90da-bd50ca914e7c
+  cost {4}{U}
+  type Instant
+  spell: put target nonland permanent on top of library
+  miracle {U}
+}

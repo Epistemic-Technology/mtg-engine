@@ -1,0 +1,12 @@
+card "Kargan Dragonlord" {
+  oracle_id eb4e6d97-f5df-4290-b193-912f44f43a67
+  cost {R}{R}
+  type Creature — Human Warrior
+  pt 2/2
+  level up {R}
+  levels 4 to 7 pt 4/4
+  keyword flying
+  levels 8 or more pt 8/8
+  keyword flying, trample
+  activated {R}: this gets +1/+0
+}

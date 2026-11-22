@@ -1,0 +1,8 @@
+card "Crested Craghorn" {
+  oracle_id 597c390e-deeb-4452-aeda-7cf9312a8b01
+  cost {4}{R}
+  type Creature — Goat Beast
+  pt 4/1
+  keywords haste
+  provoke
+}

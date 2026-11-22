@@ -83,6 +83,17 @@ by rejecting the form at compile time or by binding it correctly.
   player; `that player 1 controls` is the target. Breaking of the
   Fellowship ("another target creature that player controls") may be
   affected. Reject the bare form outside triggered abilities.
+- **`attach to target creature you control; that creature gains ...`**
+  (Celestial Armor: "When this Equipment enters, attach it to target
+  creature you control. That creature gains hexproof and indestructible
+  until end of turn."): the Equipment attaches but the creature gains
+  nothing. Celestial Armor is not in (the template author writes it).
+- **`put 1 stun counters on each of them` after targets** (Rime Chill,
+  Homesickness: "Tap up to two target creatures. Put a stun counter on
+  each of them."): `each of them` is `Recipient::CreatedThem`, the tokens
+  the resolution created, so no counter is put on the targets. Twisted
+  Riddlekeeper is left out for this.
+
 - **Template-author cards written before the first wave's catch-up**
   may read "it" as the source where the text means another object. Not
   audited.

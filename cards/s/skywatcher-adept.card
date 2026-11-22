@@ -1,0 +1,11 @@
+card "Skywatcher Adept" {
+  oracle_id d63725af-be6d-4f91-b5c8-04df82d6f805
+  cost {U}
+  type Creature — Merfolk Wizard
+  pt 1/1
+  level up {3}
+  levels 1 to 2 pt 2/2
+  keyword flying
+  levels 3 or more pt 4/2
+  keyword flying
+}

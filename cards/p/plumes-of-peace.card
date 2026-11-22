@@ -1,0 +1,8 @@
+card "Plumes of Peace" {
+  oracle_id 5526dcae-90e8-4102-808d-56c89027898c
+  cost {1}{W}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has doesn't untap
+  label "Forecast" activated {W}{U}, reveal this: tap target creature
+}

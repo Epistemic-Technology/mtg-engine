@@ -1,0 +1,7 @@
+card "Skyshroud Ridgeback" {
+  oracle_id 34a160bc-5d7e-483c-b24c-ab30b7d313b0
+  cost {G}
+  type Creature — Beast
+  pt 2/3
+  fading 2
+}

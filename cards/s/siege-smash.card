@@ -1,0 +1,10 @@
+card "Siege Smash" {
+  oracle_id 4e07d30a-d29a-49bc-ab49-41ea4116a18c
+  cost {1}{R}
+  type Instant
+  keywords split second
+  choose one {
+    mode: destroy target artifact
+    mode: target creature gets +3/+2 and gains trample
+  }
+}

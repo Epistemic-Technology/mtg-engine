@@ -1,0 +1,292 @@
+# Keyword triggers on attacking and blocking: annihilator (CR 702.86a),
+# battle cry (702.91a), rampage (702.23a), training (702.149a), melee
+# (702.121a), dethrone (702.105a), myriad (702.116a, nothing in a
+# two-player game); For Mirrodin! (702.163a) and fading (702.32a).
+
+# ---- annihilator ----
+
+scenario "annihilator: Ulamog's Crusher makes the defending player sacrifice two permanents" {
+  battlefield A: "Ulamog's Crusher"
+  battlefield B: 3 "Forest"
+  run_to turn 1 declare_blockers
+  assert battlefield B contains 1 "Forest"
+  assert graveyard B contains 2 "Forest"
+}
+
+scenario "annihilator: a sacrificed creature can't block" {
+  battlefield A: "Pathrazer of Ulamog"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  turn 1 A: attack "Pathrazer of Ulamog"
+  run_to turn 1 postcombat_main
+  assert battlefield B count 0
+  assert life B 11
+}
+
+scenario "annihilator: Pathrazer of Ulamog can't be blocked by two creatures" {
+  battlefield A: "Pathrazer of Ulamog"
+  battlefield B: 5 "Grizzly Bears"
+  turn 1 A: attack "Pathrazer of Ulamog"
+  illegal turn 1 B: block "Pathrazer of Ulamog" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 11
+}
+
+# ---- battle cry ----
+
+scenario "battle cry: each other attacking creature gets +1/+0" {
+  battlefield A: "Accorder Paladin", "Grizzly Bears", "Hill Giant"
+  turn 1 A: attack "Accorder Paladin", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 2
+  assert power "Accorder Paladin" 3
+  assert power "Hill Giant" 3
+  assert life B 14
+}
+
+scenario "battle cry: two instances each give +1/+0" {
+  battlefield A: "Accorder Paladin", "Signal Pest", "Grizzly Bears"
+  turn 1 A: attack "Accorder Paladin", "Signal Pest", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert power "Signal Pest" 1
+  assert power "Accorder Paladin" 4
+  assert life B 11
+}
+
+# ---- rampage ----
+
+scenario "rampage: +2/+2 for each blocker beyond the first" {
+  battlefield A: "Wolverine Pack"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Wind Drake"
+  turn 1 A: attack "Wolverine Pack"
+  turn 1 B: block "Wolverine Pack" with "Grizzly Bears"
+  turn 1 B: block "Wolverine Pack" with "Hill Giant"
+  turn 1 B: block "Wolverine Pack" with "Wind Drake"
+  run_to turn 1 combat_damage
+  assert power "Wolverine Pack" 6
+  assert toughness "Wolverine Pack" 8
+}
+
+scenario "rampage: one blocker gives nothing" {
+  battlefield A: "Wolverine Pack"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Wolverine Pack"
+  turn 1 B: block "Wolverine Pack" with "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert power "Wolverine Pack" 2
+  assert toughness "Wolverine Pack" 4
+}
+
+scenario "rampage: Gorilla Berserkers needs three blockers, and grows with them" {
+  battlefield A: "Gorilla Berserkers"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Wind Drake"
+  turn 1 A: attack "Gorilla Berserkers"
+  turn 1 B: block "Gorilla Berserkers" with "Grizzly Bears"
+  turn 1 B: block "Gorilla Berserkers" with "Hill Giant"
+  turn 1 B: block "Gorilla Berserkers" with "Wind Drake"
+  run_to turn 1 combat_damage
+  assert power "Gorilla Berserkers" 6
+  assert toughness "Gorilla Berserkers" 7
+}
+
+scenario "rampage: Gorilla Berserkers can't be blocked by two creatures" {
+  battlefield A: "Gorilla Berserkers"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: attack "Gorilla Berserkers"
+  illegal turn 1 B: block "Gorilla Berserkers" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+# ---- training ----
+
+scenario "training: attacking with a creature with greater power" {
+  battlefield A: "Gryff Rider", "Hill Giant"
+  turn 1 A: attack "Gryff Rider", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Gryff Rider" +1/+1 1
+  assert life B 14
+}
+
+scenario "training: equal power doesn't train" {
+  battlefield A: "Gryff Rider", "Grizzly Bears"
+  turn 1 A: attack "Gryff Rider", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Gryff Rider" +1/+1 0
+}
+
+scenario "training: attacking alone doesn't train" {
+  battlefield A: "Apprentice Sharpshooter", "Hill Giant"
+  turn 1 A: attack "Apprentice Sharpshooter"
+  run_to turn 1 postcombat_main
+  assert counters "Apprentice Sharpshooter" +1/+1 0
+}
+
+scenario "training: the counter stays even if the bigger attacker is gone" {
+  battlefield A: "Parish-Blade Trainee", "Hill Giant"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 A: attack "Parish-Blade Trainee", "Hill Giant"
+  turn 1 declare_attackers B: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert counters "Parish-Blade Trainee" +1/+1 1
+}
+
+scenario "training: Rural Recruit trains with its own Boar" {
+  battlefield A: 4 "Forest"
+  hand A: "Rural Recruit"
+  turn 1 A: cast "Rural Recruit"
+  run_to turn 3 precombat_main
+  assert power "Boar" 3
+  turn 3 A: attack "Rural Recruit", "Boar"
+  run_to turn 3 postcombat_main
+  assert counters "Rural Recruit" +1/+1 1
+  assert life B 15
+}
+
+# ---- melee ----
+
+scenario "melee: attacking the opponent gives +1/+1" {
+  battlefield A: "Wings of the Guard"
+  turn 1 A: attack "Wings of the Guard"
+  run_to turn 1 postcombat_main
+  assert power "Wings of the Guard" 2
+  assert toughness "Wings of the Guard" 2
+  assert life B 18
+}
+
+scenario "melee: attacking only a planeswalker gives nothing" {
+  battlefield A: "Wings of the Guard"
+  battlefield B: "Jace Beleren"
+  turn 1 A: attack "Wings of the Guard" at "Jace Beleren"
+  run_to turn 1 postcombat_main
+  assert power "Wings of the Guard" 1
+  assert counters "Jace Beleren" loyalty 2
+}
+
+scenario "melee: another creature attacking the player counts" {
+  battlefield A: "Wings of the Guard", "Grizzly Bears"
+  battlefield B: "Jace Beleren"
+  turn 1 A: attack "Wings of the Guard" at "Jace Beleren"
+  turn 1 A: attack "Grizzly Bears" at player B
+  run_to turn 1 postcombat_main
+  assert power "Wings of the Guard" 2
+  assert counters "Jace Beleren" loyalty 1
+}
+
+# ---- dethrone ----
+
+scenario "dethrone: tied for most life, a +1/+1 counter" {
+  battlefield A: "Grenzo's Cutthroat"
+  turn 1 A: attack "Grenzo's Cutthroat"
+  run_to turn 1 postcombat_main
+  assert counters "Grenzo's Cutthroat" +1/+1 1
+  assert life B 18
+}
+
+scenario "dethrone: the defending player has less life, no counter" {
+  life B 15
+  battlefield A: "Enraged Revolutionary"
+  turn 1 A: attack "Enraged Revolutionary"
+  run_to turn 1 postcombat_main
+  assert counters "Enraged Revolutionary" +1/+1 0
+  assert life B 13
+}
+
+scenario "dethrone: the defending player has more life" {
+  life A 10
+  battlefield A: "Marchesa's Emissary"
+  turn 1 A: attack "Marchesa's Emissary"
+  run_to turn 1 postcombat_main
+  assert counters "Marchesa's Emissary" +1/+1 1
+  assert life B 17
+}
+
+scenario "dethrone: attacking a planeswalker doesn't trigger" {
+  battlefield A: "Grenzo's Cutthroat"
+  battlefield B: "Jace Beleren"
+  turn 1 A: attack "Grenzo's Cutthroat" at "Jace Beleren"
+  run_to turn 1 postcombat_main
+  assert counters "Grenzo's Cutthroat" +1/+1 0
+}
+
+# ---- myriad ----
+
+scenario "myriad: with one opponent, no token copies" {
+  battlefield A: "Wyrm's Crossing Patrol"
+  turn 1 A: attack "Wyrm's Crossing Patrol"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Wyrm's Crossing Patrol"
+  assert life B 19
+}
+
+# ---- For Mirrodin! ----
+
+scenario "For Mirrodin!: a 2/2 Rebel with the Equipment attached" {
+  battlefield A: 2 "Mountain"
+  hand A: "Barbed Batterfist"
+  turn 1 A: cast "Barbed Batterfist"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Rebel"
+  assert is "Rebel" red
+  assert attached "Barbed Batterfist" to "Rebel"
+  assert power "Rebel" 3
+  assert toughness "Rebel" 1
+}
+
+scenario "For Mirrodin!: the Equipment moves on, the Rebel stays" {
+  battlefield A: 9 "Plains", "Grizzly Bears"
+  hand A: "Mirran Bardiche"
+  turn 1 A: cast "Mirran Bardiche"
+  turn 1 A: activate "Mirran Bardiche" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Mirran Bardiche" to "Grizzly Bears"
+  assert power "Rebel" 2
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" vigilance
+}
+
+# ---- fading ----
+
+scenario "fading: enters with fade counters, one removed each upkeep" {
+  battlefield A: "Forest"
+  hand A: "Skyshroud Ridgeback"
+  turn 1 A: cast "Skyshroud Ridgeback"
+  run_to turn 1 postcombat_main
+  assert counters "Skyshroud Ridgeback" fade 2
+  run_to turn 3 precombat_main
+  assert counters "Skyshroud Ridgeback" fade 1
+  run_to turn 5 precombat_main
+  assert counters "Skyshroud Ridgeback" fade 0
+  assert battlefield A contains "Skyshroud Ridgeback"
+  run_to turn 7 precombat_main
+  assert graveyard A contains "Skyshroud Ridgeback"
+}
+
+scenario "fading: the opponent's upkeep doesn't remove a counter" {
+  battlefield A: "Cloudskate" with 3 fade
+  start turn 2 B
+  run_to turn 2 end
+  assert counters "Cloudskate" fade 3
+}
+
+scenario "fading: Defender en-Vec removes a fade counter to prevent damage" {
+  battlefield A: "Defender en-Vec" with 4 fade, "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 2 precombat_main A: activate "Defender en-Vec" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+  assert counters "Defender en-Vec" fade 3
+}
+
+scenario "fading: with no fade counter left at upkeep, it's sacrificed" {
+  battlefield A: "Blastoderm"
+  run_to turn 1 precombat_main
+  assert graveyard A contains "Blastoderm"
+}

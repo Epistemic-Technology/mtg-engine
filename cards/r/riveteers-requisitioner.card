@@ -1,0 +1,8 @@
+card "Riveteers Requisitioner" {
+  oracle_id 469f25de-c180-47e9-9b1b-e23269139bbd
+  cost {1}{R}
+  type Creature — Lizard Rogue
+  pt 3/1
+  triggered when this dies: create 1 "Treasure"
+  blitz {2}{R}
+}

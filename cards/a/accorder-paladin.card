@@ -1,0 +1,7 @@
+card "Accorder Paladin" {
+  oracle_id 6891c8b7-7112-40dc-8b94-b84ad1885e5e
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 3/1
+  battle cry
+}

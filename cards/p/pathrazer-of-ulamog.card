@@ -1,0 +1,8 @@
+card "Pathrazer of Ulamog" {
+  oracle_id 4bf95747-4572-49b8-b892-87fe7f910252
+  cost {11}
+  type Creature — Eldrazi
+  pt 9/9
+  annihilator 3
+  can't be blocked except by 3 or more creatures
+}

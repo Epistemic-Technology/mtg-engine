@@ -1,0 +1,7 @@
+card "Sun's Bounty" {
+  oracle_id 5c15d9b1-5ec7-4476-a3e6-539d899a9957
+  cost {1}{W}
+  type Instant
+  spell: you gains 4 life
+  recover {1}{W}
+}

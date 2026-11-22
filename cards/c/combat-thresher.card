@@ -1,0 +1,9 @@
+card "Combat Thresher" {
+  oracle_id 0c460bdd-460b-4312-9ed2-32f3809a7d36
+  cost {7}
+  type Artifact Creature — Construct
+  pt 3/3
+  prototype {2}{W} 1/1
+  keyword double strike
+  triggered when this enters: draw 1 cards
+}

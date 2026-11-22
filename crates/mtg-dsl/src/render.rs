@@ -3040,6 +3040,16 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
             CostItem::Exert => parts.push(format!("Exert {}", ctx.source())),
             CostItem::DiscardHand => parts.push("Discard your hand".to_string()),
             CostItem::RevealHand => parts.push("Reveal your hand".to_string()),
+            // CR 702.57a: "Reveal this card from your hand" ("this
+            // creature" on a creature card).
+            CostItem::RevealThis => parts.push(format!(
+                "Reveal this {} from your hand",
+                if ctx.card.types.contains(&mtg_core::card::CardType::Creature) {
+                    "creature"
+                } else {
+                    "card"
+                }
+            )),
             CostItem::Energy => parts.push(format!("Pay {}", energy(cost.energy))),
             CostItem::Blight => {
                 if cost.blight > 0 {
@@ -9080,6 +9090,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             "whenever {} enters from your graveyard",
             filter_a(f, ctx.card)
         ),
+        Trigger::PutIntoGraveyardFromBattlefield(f) => format!(
+            "whenever {} is put into your graveyard from the battlefield",
+            filter_a(f, ctx.card)
+        ),
         Trigger::Expends(n) => format!("whenever you expend {n}"),
         Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
         Trigger::Forages => "whenever you forage".to_string(),
@@ -9773,6 +9787,15 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
             "if the amount of mana you spent is greater than {}'s power or toughness",
             this_ref(ctx.card)
         ),
+        Condition::Blitzed => "if its blitz cost was paid".to_string(),
+        Condition::Trains => format!(
+            "if at least one other creature with power greater than {}'s power attacked",
+            this_ref(ctx.card)
+        ),
+        Condition::Dethrones => {
+            "if it attacked the player with the most life or tied for most life".to_string()
+        }
+        Condition::AttackedOpponent => "if you attacked an opponent this combat".to_string(),
     }
 }
 
@@ -11661,6 +11684,8 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 _ => "it was",
             }
         ),
+        StaticCond::ProwlPaid if is_spell(card) => "this spell's prowl cost was paid".to_string(),
+        StaticCond::ProwlPaid => "its prowl cost was paid".to_string(),
         StaticCond::SneakPaid(_) if is_spell(card) => {
             "this spell's sneak cost was paid".to_string()
         }
@@ -12974,6 +12999,42 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Frenzy(n) => format!("Frenzy {n}"),
             crate::ast::Mechanic::Absorb(n) => format!("Absorb {n}"),
             crate::ast::Mechanic::Provoke => "Provoke".to_string(),
+            crate::ast::Mechanic::Fading(n) => format!("Fading {n}"),
+            crate::ast::Mechanic::LevelUp(c) => format!("Level up {c}"),
+            crate::ast::Mechanic::Recover(c) => format!("Recover {c}"),
+            crate::ast::Mechanic::Escalate(c) => format!("Escalate {c}"),
+            crate::ast::Mechanic::Prowl(c) => format!("Prowl {c}"),
+            crate::ast::Mechanic::Miracle(c) => format!("Miracle {c}"),
+            crate::ast::Mechanic::Emerge(c) => format!("Emerge {c}"),
+            // CR 702.152a: "Blitz {3}{G}"; with a cost other than mana,
+            // "Blitz—{2}{B}{B}, Pay 2 life."
+            crate::ast::Mechanic::Blitz(c) => {
+                if *c
+                    == (crate::ast::Cost {
+                        mana: c.mana.clone(),
+                        order: c.order.clone(),
+                        ..crate::ast::Cost::default()
+                    })
+                {
+                    format!("Blitz {}", c.mana)
+                } else {
+                    format!(
+                        "Blitz\u{2014}{}.",
+                        cost_text(c, &mut Ctx::new(card, lookup, &[]))
+                    )
+                }
+            }
+            crate::ast::Mechanic::Prototype(cost, power, toughness) => {
+                format!("Prototype {cost} \u{2014} {power}/{toughness}")
+            }
+            crate::ast::Mechanic::Annihilator(n) => format!("Annihilator {n}"),
+            crate::ast::Mechanic::Rampage(n) => format!("Rampage {n}"),
+            crate::ast::Mechanic::BattleCry => "Battle cry".to_string(),
+            crate::ast::Mechanic::ForMirrodin => "For Mirrodin!".to_string(),
+            crate::ast::Mechanic::Training => "Training".to_string(),
+            crate::ast::Mechanic::Melee => "Melee".to_string(),
+            crate::ast::Mechanic::Dethrone => "Dethrone".to_string(),
+            crate::ast::Mechanic::Myriad => "Myriad".to_string(),
             crate::ast::Mechanic::Toxic(n) => format!("Toxic {n}"),
             crate::ast::Mechanic::Ward(c) => format!("Ward {c}"),
             // CR 702.21a, 702.37a, 702.27a: a cost other than mana prints
@@ -13210,6 +13271,11 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         }
         // CR 716.2a, 719.2.
         Ability::ClassLevel { level, cost } => format!("{cost}: Level {level}"),
+        // CR 711.2: "LEVEL 1-4" over its P/T box.
+        Ability::LevelBand { min, max, pt } => match max {
+            Some(m) => format!("LEVEL {min}-{m}\n{}/{}", pt.0, pt.1),
+            None => format!("LEVEL {min}+\n{}/{}", pt.0, pt.1),
+        },
         Ability::ToSolve(c) => format!("To solve — {}.", capitalize(&static_cond_text(c, card))),
         Ability::Solved(inner) => format!("Solved — {}", ability_text(card, inner, lookup)),
         Ability::CrewsAs {
@@ -13801,10 +13867,12 @@ pub fn normalize(text: &str) -> String {
         // with a cost or number among plain ones.
         let with_param = |p: &str| {
             p.split_once(' ').is_some_and(|(w, rest)| {
-                matches!(w.to_ascii_lowercase().as_str(), "ward" | "firebending")
-                    && (rest.starts_with('{') && !rest.contains(' ')
-                        || rest == "X"
-                        || rest.chars().all(|c| c.is_ascii_digit()))
+                matches!(
+                    w.to_ascii_lowercase().as_str(),
+                    "ward" | "firebending" | "rampage"
+                ) && (rest.starts_with('{') && !rest.contains(' ')
+                    || rest == "X"
+                    || rest.chars().all(|c| c.is_ascii_digit()))
             })
         };
         let all_keywords = parts.iter().all(|p| {

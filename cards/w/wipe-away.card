@@ -1,0 +1,7 @@
+card "Wipe Away" {
+  oracle_id ad9b6737-22c4-45cc-976b-32743ed48462
+  cost {1}{U}{U}
+  type Instant
+  keywords split second
+  spell: return target permanent to hand
+}

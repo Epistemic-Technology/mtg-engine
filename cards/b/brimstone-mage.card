@@ -1,0 +1,11 @@
+card "Brimstone Mage" {
+  oracle_id 81dcb85e-d61f-430b-9540-5a3bb1378d5a
+  cost {2}{R}
+  type Creature — Human Shaman
+  pt 2/2
+  level up {3}{R}
+  levels 1 to 2 pt 2/3
+  activated {T}: deal 1 damage to any target
+  levels 3 or more pt 2/4
+  activated {T}: deal 3 damage to any target
+}

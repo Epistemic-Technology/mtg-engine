@@ -1,0 +1,8 @@
+card "Stinkdrinker Bandit" {
+  oracle_id dadae60e-b91e-435f-85e0-518dfa419530
+  cost {3}{B}
+  type Creature — Goblin Rogue
+  pt 2/1
+  prowl {1}{B}
+  triggered whenever Rogue you control attacks and isn't blocked: it gets +2/+1
+}

@@ -1,0 +1,11 @@
+card "Transcendent Master" {
+  oracle_id 11332981-f06a-48c7-a7b4-fce68e629e82
+  cost {1}{W}{W}
+  type Creature — Human Cleric Avatar
+  pt 3/3
+  level up {1}
+  levels 6 to 11 pt 6/6
+  keyword lifelink
+  levels 12 or more pt 9/9
+  keyword lifelink, indestructible
+}

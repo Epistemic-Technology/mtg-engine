@@ -1,0 +1,8 @@
+card "Plasma Jockey" {
+  oracle_id dedf0d3a-090a-4cc3-b5ee-65b6cb990b72
+  cost {3}{R}
+  type Creature — Lizard Warrior
+  pt 3/1
+  triggered whenever this attacks: target creature an opponent controls can't block
+  blitz {2}{R}
+}

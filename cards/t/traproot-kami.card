@@ -1,0 +1,8 @@
+card "Traproot Kami" {
+  oracle_id ce7d555a-9197-4241-94ee-a164a65099a5
+  cost {G}
+  type Creature — Spirit
+  pt 0/*
+  keywords defender, reach
+  static this: cda toughness count Forest on battlefield
+}

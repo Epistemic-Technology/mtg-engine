@@ -1,0 +1,10 @@
+card "Zulaport Enforcer" {
+  oracle_id 0ab5fde8-e7db-4265-81c6-2a6488ba56c4
+  cost {B}
+  type Creature — Human Warrior
+  pt 1/1
+  level up {4}
+  levels 1 to 2 pt 3/3
+  levels 3 or more pt 5/5
+  can't be blocked except by black creature
+}

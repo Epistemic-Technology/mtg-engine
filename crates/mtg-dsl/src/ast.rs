@@ -647,6 +647,9 @@ pub struct Cost {
     pub order: Vec<CostItem>,
     /// `reveal hand`: "reveal your hand" (an alternative cost).
     pub reveal_hand: bool,
+    /// `reveal this`: "Reveal this card from your hand" (forecast, CR
+    /// 702.57a): the ability is activated from the hand.
+    pub reveal_this: bool,
     /// `blight 1`: "Blight 1" (CR 701.68a).
     pub blight: u32,
     /// `behold Kithkin`, `behold and exile Elf`, `behold 3 Elemental`,
@@ -709,6 +712,8 @@ pub enum CostItem {
     Life,
     /// `reveal hand`: "reveal your hand".
     RevealHand,
+    /// `reveal this`: "Reveal this card from your hand".
+    RevealThis,
     /// `blight 1`.
     Blight,
     /// `behold Kithkin`.
@@ -1403,6 +1408,16 @@ pub enum Ability {
         level: u8,
         cost: ManaCost,
     },
+    /// `levels 1 to 4 pt 2/2`, `levels 5 or more pt 5/5` (`max` `None`):
+    /// a leveler card's level symbol and P/T box, "LEVEL 1-4" over "2/2"
+    /// (CR 711.2): as long as it has that many level counters, it has that
+    /// base power and toughness and the abilities after this line, up to
+    /// the next.
+    LevelBand {
+        min: u32,
+        max: Option<u32>,
+        pt: (i32, i32),
+    },
     /// `to solve you control 3 artifact`: a Case's "To solve — You
     /// control three or more artifacts." (CR 719.2a: at the beginning of
     /// its controller's end step, if the condition holds and it isn't
@@ -1473,6 +1488,69 @@ pub enum Mechanic {
     /// CR 702.39: attacks, you may have target creature defending player
     /// controls untap and block it if able.
     Provoke,
+    /// CR 702.119: `emerge {6}{B}`: an alternative cost, sacrificing a
+    /// creature, reduced by its mana value.
+    Emerge(ManaCost),
+    /// CR 702.94: `miracle {R}`: as it's drawn, the first card drawn this
+    /// turn, it may be cast for this cost.
+    Miracle(ManaCost),
+    /// CR 702.76: `prowl {2}{U}`: an alternative cost, offered if you dealt
+    /// combat damage to a player this turn with a creature of one of the
+    /// card's creature types.
+    Prowl(ManaCost),
+    /// CR 702.120: `escalate {1}{W}`: "Pay this cost for each mode chosen
+    /// beyond the first." On a `choose one or both` spell, the cost of
+    /// choosing both.
+    Escalate(ManaCost),
+    /// CR 702.59: `recover {2}{B}`: "When a creature is put into your
+    /// graveyard from the battlefield, you may pay [cost]. If you do,
+    /// return this card from your graveyard to your hand. Otherwise, exile
+    /// this card." (from the graveyard).
+    Recover(ManaCost),
+    /// CR 702.152: `blitz {3}{G}`, `blitz {2}{B}{B}, pay 2 life`: the
+    /// card's alternative cost; the permanent has haste and "When this
+    /// creature dies, draw a card" and is sacrificed at the beginning of
+    /// the next end step.
+    Blitz(Cost),
+    /// CR 702.160: `prototype {2}{R} 3/2`: "Prototype {2}{R} — 3/2", cast
+    /// with that mana cost, power, and toughness (and the cost's colors).
+    Prototype(ManaCost, i32, i32),
+    /// CR 702.87: `level up {2}`: "{2}: Put a level counter on this.
+    /// Activate only as a sorcery."
+    LevelUp(ManaCost),
+    /// CR 702.32: `fading 3`: enters with N fade counters; "At the
+    /// beginning of your upkeep, remove a fade counter from this
+    /// permanent. If you can't, sacrifice the permanent."
+    Fading(u32),
+    /// CR 702.86: `annihilator 2`: "Whenever this creature attacks,
+    /// defending player sacrifices N permanents."
+    Annihilator(u32),
+    /// CR 702.91: `battle cry`: "Whenever this creature attacks, each
+    /// other attacking creature gets +1/+0 until end of turn."
+    BattleCry,
+    /// CR 702.23: `rampage 2`: "Whenever this creature becomes blocked,
+    /// it gets +N/+N until end of turn for each creature blocking it
+    /// beyond the first."
+    Rampage(u32),
+    /// CR 702.149: `training`: "Whenever this creature and at least one
+    /// other creature with power greater than this creature's power
+    /// attack, put a +1/+1 counter on this creature."
+    Training,
+    /// CR 702.163: `for mirrodin`: "When this Equipment enters, create a
+    /// 2/2 red Rebel creature token, then attach this Equipment to it."
+    ForMirrodin,
+    /// CR 702.121: `melee`: "Whenever this creature attacks, it gets
+    /// +1/+1 until end of turn for each opponent you attacked with a
+    /// creature this combat."
+    Melee,
+    /// CR 702.105: `dethrone`: "Whenever this creature attacks the player
+    /// with the most life or tied for most life, put a +1/+1 counter on
+    /// this creature."
+    Dethrone,
+    /// CR 702.116: `myriad`: token copies attacking each opponent other
+    /// than the defending player. The game's only opponent is the
+    /// defending player, so it does nothing.
+    Myriad,
     /// CR 702.164: combat damage to a player also gives N poison counters.
     Toxic(u32),
     /// CR 702.21: becomes the target of an opponent's spell or ability,
@@ -2191,6 +2269,9 @@ pub enum StaticCond {
     /// sneak cost was paid" (an instant or sorcery), "its (his, her) sneak
     /// cost was paid" (CR 702.190). The pronoun: 0 its, 1 his, 2 her.
     SneakPaid(u8),
+    /// `prowl paid`: "its prowl cost was paid", "this spell's prowl cost
+    /// was paid" (CR 702.76a).
+    ProwlPaid,
     /// `web slung`, `he web slung`, `she web slung`, `they web slung`:
     /// "it was (he was, she was, they were) cast using web-slinging" (CR
     /// 702.188). The pronoun: 0 it, 1 he, 2 she, 3 they.
@@ -2805,6 +2886,10 @@ pub enum Trigger {
     LeavesGraveyard(Filter),
     /// `whenever land card is put into your graveyard from anywhere`.
     PutIntoGraveyard(Filter),
+    /// `whenever creature is put into your graveyard from battlefield`:
+    /// "Whenever a creature is put into your graveyard from the
+    /// battlefield" (a permanent you own; recover, CR 702.59a).
+    PutIntoGraveyardFromBattlefield(Filter),
     /// `whenever creature enters from your graveyard`.
     EntersFromGraveyard(Filter),
     /// `whenever you expend 4` (CR 700.14).

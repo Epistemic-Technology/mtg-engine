@@ -1,0 +1,8 @@
+card "Frogmyr Enforcer" {
+  oracle_id ccc7de36-aafc-4d87-80f7-fc2effc976eb
+  cost {7}
+  type Artifact Creature — Frog Myr
+  pt 4/4
+  prototype {3}{R} 2/2
+  affinity for artifact
+}

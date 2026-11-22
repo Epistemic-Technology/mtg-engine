@@ -1,0 +1,9 @@
+card "Latchkey Faerie" {
+  oracle_id 7bc4a0a0-f06e-4074-95a8-67a5d8fdfef9
+  cost {3}{U}
+  type Creature — Faerie Rogue
+  pt 3/1
+  keywords flying
+  prowl {2}{U}
+  triggered when this enters if prowl paid: draw 1 cards
+}

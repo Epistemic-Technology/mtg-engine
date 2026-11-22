@@ -1,0 +1,58 @@
+# Escalate (CR 702.120a): "Pay this cost for each mode chosen beyond the
+# first." On a "choose one or both" spell, `mode 3` (both) costs the
+# escalate cost once more.
+
+scenario "escalate: one mode for the mana cost" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  hand A: "Borrowed Hostility"
+  turn 1 A: cast "Borrowed Hostility" mode 1 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert has not "Grizzly Bears" first_strike
+}
+
+scenario "escalate: both modes for the escalate cost on top" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  hand A: "Borrowed Hostility"
+  turn 1 A: cast "Borrowed Hostility" mode 3 targeting "Grizzly Bears", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert has "Grizzly Bears" first_strike
+}
+
+scenario "escalate: both modes need the escalate cost" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Borrowed Hostility"
+  illegal turn 1 A: cast "Borrowed Hostility" mode 3 targeting "Grizzly Bears", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has not "Grizzly Bears" first_strike
+}
+
+scenario "escalate: Borrowed Malevolence, +1/+1 and -1/-1 on two creatures" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  battlefield B: "Llanowar Elves"
+  hand A: "Borrowed Malevolence"
+  turn 1 A: cast "Borrowed Malevolence" mode 3 targeting "Grizzly Bears", "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert graveyard B contains "Llanowar Elves"
+}
+
+scenario "escalate: Borrowed Grace, both pumps for the team" {
+  battlefield A: 5 "Plains", "Grizzly Bears", "Hill Giant"
+  hand A: "Borrowed Grace"
+  turn 1 A: cast "Borrowed Grace" mode 3
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert power "Hill Giant" 5
+}
+
+scenario "escalate: Borrowed Grace, one mode" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  hand A: "Borrowed Grace"
+  turn 1 A: cast "Borrowed Grace" mode 2
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 4
+}

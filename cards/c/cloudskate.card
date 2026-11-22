@@ -1,0 +1,8 @@
+card "Cloudskate" {
+  oracle_id 648e4072-b991-46fd-b057-1e807091dcdf
+  cost {1}{U}
+  type Creature — Illusion
+  pt 2/2
+  keywords flying
+  fading 3
+}

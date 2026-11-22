@@ -1,0 +1,9 @@
+card "Gorilla Berserkers" {
+  oracle_id 6373c66d-edfc-44cb-af2a-2273e0ba53e0
+  cost {3}{G}{G}
+  type Creature — Ape Berserker
+  pt 2/3
+  keywords trample
+  rampage 2
+  can't be blocked except by 3 or more creatures
+}

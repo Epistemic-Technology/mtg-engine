@@ -4119,6 +4119,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::EntersFromGraveyard(f) => {
             format!("whenever {} enters from your graveyard", filter(f))
         }
+        Trigger::PutIntoGraveyardFromBattlefield(f) => format!(
+            "whenever {} is put into your graveyard from battlefield",
+            filter(f)
+        ),
         Trigger::Expends(n) => format!("whenever you expend {n}"),
         Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
         Trigger::Forages => "whenever you forage".to_string(),
@@ -4288,6 +4292,7 @@ fn cost_text(c: &Cost) -> String {
             CostItem::Exert => parts.push("exert this".to_string()),
             CostItem::DiscardHand => parts.push("discard hand".to_string()),
             CostItem::RevealHand => parts.push("reveal hand".to_string()),
+            CostItem::RevealThis => parts.push("reveal this".to_string()),
             CostItem::Energy => parts.push(format!("pay {} energy", c.energy)),
             CostItem::Blight => {
                 if c.blight > 0 {
@@ -4756,6 +4761,7 @@ fn static_cond(c: &StaticCond) -> String {
                 _ => "",
             }
         ),
+        StaticCond::ProwlPaid => "prowl paid".to_string(),
         StaticCond::SneakPaid(p) => format!(
             "{}sneak paid",
             match p {
@@ -5211,6 +5217,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 Some(mtg_core::card::Condition::Evolves) => head.push_str(" if evolves"),
                 Some(mtg_core::card::Condition::Increments) => head.push_str(" if increments"),
+                Some(mtg_core::card::Condition::Trains) => head.push_str(" if trains"),
+                Some(mtg_core::card::Condition::Blitzed) => head.push_str(" if blitzed"),
+                Some(mtg_core::card::Condition::Dethrones) => head.push_str(" if dethrones"),
+                Some(mtg_core::card::Condition::AttackedOpponent) => {
+                    head.push_str(" if attacked opponent");
+                }
                 Some(mtg_core::card::Condition::Evoked) => head.push_str(" if evoked"),
                 Some(mtg_core::card::Condition::Kicked) => head.push_str(" if kicked"),
                 Some(mtg_core::card::Condition::NoSpellsLastTurn) => {
@@ -5470,6 +5482,23 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Frenzy(n) => format!("frenzy {n}"),
                 crate::ast::Mechanic::Absorb(n) => format!("absorb {n}"),
                 crate::ast::Mechanic::Provoke => "provoke".to_string(),
+                crate::ast::Mechanic::Fading(n) => format!("fading {n}"),
+                crate::ast::Mechanic::LevelUp(c) => format!("level up {c}"),
+                crate::ast::Mechanic::Recover(c) => format!("recover {c}"),
+                crate::ast::Mechanic::Escalate(c) => format!("escalate {c}"),
+                crate::ast::Mechanic::Prowl(c) => format!("prowl {c}"),
+                crate::ast::Mechanic::Miracle(c) => format!("miracle {c}"),
+                crate::ast::Mechanic::Emerge(c) => format!("emerge {c}"),
+                crate::ast::Mechanic::Blitz(c) => format!("blitz {}", cost_text(c)),
+                crate::ast::Mechanic::Prototype(c, p, t) => format!("prototype {c} {p}/{t}"),
+                crate::ast::Mechanic::Annihilator(n) => format!("annihilator {n}"),
+                crate::ast::Mechanic::Rampage(n) => format!("rampage {n}"),
+                crate::ast::Mechanic::BattleCry => "battle cry".to_string(),
+                crate::ast::Mechanic::ForMirrodin => "for mirrodin".to_string(),
+                crate::ast::Mechanic::Training => "training".to_string(),
+                crate::ast::Mechanic::Melee => "melee".to_string(),
+                crate::ast::Mechanic::Dethrone => "dethrone".to_string(),
+                crate::ast::Mechanic::Myriad => "myriad".to_string(),
                 crate::ast::Mechanic::Toxic(n) => format!("toxic {n}"),
                 crate::ast::Mechanic::Ward(c) => format!("ward {c}"),
                 crate::ast::Mechanic::WardCost(c) => format!("ward {}", cost_text(c)),
@@ -5619,6 +5648,13 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::DeckAnyNumber => {
             let _ = writeln!(out, "{indent}deck any number");
+        }
+        Ability::LevelBand { min, max, pt } => {
+            let range = match max {
+                Some(m) => format!("{min} to {m}"),
+                None => format!("{min} or more"),
+            };
+            let _ = writeln!(out, "{indent}levels {range} pt {}/{}", pt.0, pt.1);
         }
         Ability::Uncounterable => {
             let _ = writeln!(out, "{indent}this spell can't be countered");

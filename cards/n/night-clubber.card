@@ -1,0 +1,8 @@
+card "Night Clubber" {
+  oracle_id 4d2abfe1-f5f8-4ed5-915d-bfe98c6321ee
+  cost {1}{B}{B}
+  type Creature — Human Warrior
+  pt 2/2
+  triggered when this enters: each creature your opponents control gets -1/-1
+  blitz {2}{B}
+}

@@ -1,0 +1,9 @@
+card "Gryffwing Cavalry" {
+  oracle_id 8e5e6f1d-4945-4074-a33e-c0e8b6b24a47
+  cost {3}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords flying
+  training
+  triggered whenever this attacks: you may pay {1}{W}; if you do, target attacking creature without flying gains flying
+}

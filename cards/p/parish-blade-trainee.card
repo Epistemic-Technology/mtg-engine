@@ -1,0 +1,8 @@
+card "Parish-Blade Trainee" {
+  oracle_id e1733392-1402-458b-bbc7-673d733c731c
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 1/2
+  training
+  triggered when this dies: put its counters on target creature you control
+}

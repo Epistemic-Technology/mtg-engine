@@ -1,0 +1,11 @@
+card "Echo Mage" {
+  oracle_id fb98f6b7-5986-4c5d-98fc-e5c4106f48bf
+  cost {1}{U}{U}
+  type Creature — Human Wizard
+  pt 2/3
+  level up {1}{U}
+  levels 2 to 3 pt 2/4
+  activated {U}{U}, {T}: copy target instant or sorcery spell new targets
+  levels 4 or more pt 2/5
+  activated {U}{U}, {T}: copy target instant or sorcery spell times 2 new targets
+}

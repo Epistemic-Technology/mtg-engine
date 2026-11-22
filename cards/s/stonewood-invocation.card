@@ -1,0 +1,7 @@
+card "Stonewood Invocation" {
+  oracle_id 35f09a11-1d9b-4dfd-9695-b809c871f10d
+  cost {3}{G}
+  type Instant
+  keywords split second
+  spell: target creature gets +5/+5 and gains shroud
+}

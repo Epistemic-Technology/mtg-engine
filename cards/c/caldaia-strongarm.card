@@ -1,0 +1,8 @@
+card "Caldaia Strongarm" {
+  oracle_id e0e6938b-7abf-4f69-a3d6-82a58912bff4
+  cost {4}{G}
+  type Creature — Human Warrior
+  pt 2/3
+  triggered when this enters: put 2 +1/+1 counters on target creature
+  blitz {3}{G}
+}

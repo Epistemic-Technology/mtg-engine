@@ -1,0 +1,7 @@
+card "Enraged Revolutionary" {
+  oracle_id f4b8e856-17a9-44db-bce6-312a6bd2af32
+  cost {2}{R}
+  type Creature — Human Warrior
+  pt 2/1
+  dethrone
+}

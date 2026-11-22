@@ -1,0 +1,10 @@
+card "Caravan Escort" {
+  oracle_id 9a9c221d-9bb4-4ec4-b5db-cb26db6065df
+  cost {W}
+  type Creature — Human Knight
+  pt 1/1
+  level up {2}
+  levels 1 to 4 pt 2/2
+  levels 5 or more pt 5/5
+  keyword first strike
+}

@@ -1,0 +1,8 @@
+card "Mockery of Nature" {
+  oracle_id 5da5240e-5d87-494f-aec9-64b7a3f0d935
+  cost {9}
+  type Creature — Eldrazi Beast
+  pt 6/5
+  emerge {7}{G}
+  triggered when you cast this: you may destroy target artifact or enchantment
+}

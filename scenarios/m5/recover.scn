@@ -1,0 +1,112 @@
+# Recover (CR 702.59a): "When a creature is put into your graveyard from
+# the battlefield, you may pay [cost]. If you do, return this card from
+# your graveyard to your hand. Otherwise, exile this card." It works only
+# while the card is in its owner's graveyard.
+
+scenario "recover: a creature dies, pay to return the card to hand" {
+  battlefield A: 4 "Swamp", "Grizzly Bears"
+  battlefield B: "Mountain"
+  graveyard A: "Grim Harvest"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 2 precombat_main A: accept "Grim Harvest"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Grim Harvest"
+}
+
+scenario "recover: declining exiles the card" {
+  battlefield A: 4 "Swamp", "Grizzly Bears"
+  battlefield B: "Mountain"
+  graveyard A: "Grim Harvest"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 2 precombat_main A: decline "Grim Harvest"
+  run_to turn 2 postcombat_main
+  assert exile A contains "Grim Harvest"
+}
+
+scenario "recover: without the mana, the card is exiled" {
+  battlefield A: "Swamp", "Grizzly Bears"
+  battlefield B: "Mountain"
+  graveyard A: "Grim Harvest"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert exile A contains "Grim Harvest"
+}
+
+scenario "recover: an opponent's creature dying doesn't trigger it" {
+  battlefield A: "Mountain"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Icefall"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Icefall"
+}
+
+scenario "recover: a creature you own controlled by the opponent triggers it" {
+  battlefield A: 2 "Forest", "Mountain"
+  battlefield B: 5 "Island", "Mind Control" on "Grizzly Bears"
+  battlefield A: "Grizzly Bears"
+  graveyard A: "Resize"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A contains "Resize"
+}
+
+scenario "recover: the spell's own effect, then later recovered" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  hand A: "Grim Harvest"
+  turn 1 A: cast "Grim Harvest" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert graveyard A contains "Grim Harvest"
+}
+
+scenario "recover: Icefall destroys a land; Sun's Bounty gains 4" {
+  battlefield A: 6 "Mountain", 2 "Plains"
+  battlefield B: "Forest"
+  hand A: "Icefall", "Sun's Bounty"
+  turn 1 A: cast "Icefall" targeting "Forest"
+  turn 1 A: cast "Sun's Bounty"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Forest"
+  assert life A 24
+}
+
+scenario "recover: Krovikan Rot destroys a small creature only" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Krovikan Rot"
+  illegal turn 1 A: cast "Krovikan Rot" targeting "Hill Giant"
+  turn 1 A: cast "Krovikan Rot" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "recover: Controvert counters a spell" {
+  battlefield A: 4 "Island"
+  battlefield B: "Mountain"
+  hand A: "Controvert"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 precombat_main A: cast "Controvert" targeting "Lightning Bolt"
+  run_to turn 2 postcombat_main
+  assert life A 20
+}
+
+scenario "recover: Resize gives +3/+3" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  hand A: "Resize"
+  turn 1 A: cast "Resize" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+}

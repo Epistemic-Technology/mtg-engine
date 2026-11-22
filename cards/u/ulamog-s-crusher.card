@@ -1,0 +1,8 @@
+card "Ulamog's Crusher" {
+  oracle_id 597bce51-af89-4d13-9a97-667b4f4f4694
+  cost {8}
+  type Creature — Eldrazi
+  pt 8/8
+  annihilator 2
+  keyword attacks each combat if able
+}

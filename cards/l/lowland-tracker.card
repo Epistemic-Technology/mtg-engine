@@ -1,0 +1,8 @@
+card "Lowland Tracker" {
+  oracle_id de06b33f-0793-419a-bf65-1961634af8e7
+  cost {4}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords first strike
+  provoke
+}

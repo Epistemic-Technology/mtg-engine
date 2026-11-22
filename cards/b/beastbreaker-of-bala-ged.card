@@ -1,0 +1,10 @@
+card "Beastbreaker of Bala Ged" {
+  oracle_id 8c77f436-81ab-4200-b76d-58b1f91fc3d0
+  cost {1}{G}
+  type Creature — Human Warrior
+  pt 2/2
+  level up {2}{G}
+  levels 1 to 3 pt 4/4
+  levels 4 or more pt 6/6
+  keyword trample
+}

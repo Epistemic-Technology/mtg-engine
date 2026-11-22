@@ -1,0 +1,8 @@
+card "Apprentice Sharpshooter" {
+  oracle_id 40d6e1ff-995b-42fc-8146-8d5e5f1adcd9
+  cost {2}{G}
+  type Creature — Human Archer
+  pt 1/4
+  keywords reach
+  training
+}

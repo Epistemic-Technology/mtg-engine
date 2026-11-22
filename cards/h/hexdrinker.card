@@ -1,0 +1,11 @@
+card "Hexdrinker" {
+  oracle_id 69bc2afd-9f53-47f2-b9c8-f12732784e10
+  cost {G}
+  type Creature — Snake
+  pt 2/1
+  level up {1}
+  levels 3 to 7 pt 4/4
+  protection from instant
+  levels 8 or more pt 6/6
+  protection from everything
+}

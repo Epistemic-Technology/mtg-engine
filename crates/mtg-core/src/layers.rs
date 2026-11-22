@@ -250,7 +250,9 @@ fn pass(
             && !o.suspected()
             && !matches!(
                 o.alt,
-                crate::state::AltCast::Suspend | crate::state::AltCast::Dash
+                crate::state::AltCast::Suspend
+                    | crate::state::AltCast::Dash
+                    | crate::state::AltCast::Blitz
             )
             && !state.pool.get(o.def).has_static()
     };
@@ -1532,7 +1534,9 @@ fn apply_counters(work: &mut Work<'_>, layer: Layer) {
             if o.riot_haste()
                 || matches!(
                     o.alt,
-                    crate::state::AltCast::Suspend | crate::state::AltCast::Dash
+                    crate::state::AltCast::Suspend
+                        | crate::state::AltCast::Dash
+                        | crate::state::AltCast::Blitz
                 )
             {
                 work.chars[i].keywords = work.chars[i].keywords.with(crate::card::Keyword::Haste);

@@ -1,0 +1,8 @@
+card "Wings of the Guard" {
+  oracle_id 73c0a809-fb0e-4773-a385-a6e32feb03cd
+  cost {1}{W}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+  melee
+}

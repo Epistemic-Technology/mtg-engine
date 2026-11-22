@@ -1,0 +1,9 @@
+card "Mayhem Patrol" {
+  oracle_id f77a9160-1d37-476d-8908-29ddcc982328
+  cost {1}{R}
+  type Creature — Devil Warrior
+  pt 1/2
+  keywords menace
+  triggered whenever this attacks: target creature gets +1/+0
+  blitz {1}{R}
+}

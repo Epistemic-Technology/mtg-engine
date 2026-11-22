@@ -1,0 +1,7 @@
+card "Loxodon Partisan" {
+  oracle_id 9d2bfbb2-84df-4d7c-9989-7f5577f90d97
+  cost {4}{W}
+  type Creature — Elephant Soldier
+  pt 3/4
+  battle cry
+}

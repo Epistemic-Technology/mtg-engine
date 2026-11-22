@@ -1,0 +1,8 @@
+card "Rhox Veteran" {
+  oracle_id a681c6ea-b10a-4061-abf4-7b45e06ccebd
+  cost {3}{W}
+  type Creature — Rhino Soldier
+  pt 2/4
+  battle cry
+  triggered whenever this attacks: tap target creature an opponent controls
+}

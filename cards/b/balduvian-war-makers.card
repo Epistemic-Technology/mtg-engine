@@ -1,0 +1,8 @@
+card "Balduvian War-Makers" {
+  oracle_id 1bda7f60-f986-455b-9d56-bbd494e27c17
+  cost {4}{R}
+  type Creature — Human Barbarian
+  pt 3/3
+  keywords haste
+  rampage 1
+}

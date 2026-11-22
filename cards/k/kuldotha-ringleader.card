@@ -1,0 +1,8 @@
+card "Kuldotha Ringleader" {
+  oracle_id dff72513-b67a-4732-a8fc-269cbf21ae99
+  cost {4}{R}
+  type Creature — Giant Berserker
+  pt 4/4
+  battle cry
+  keyword attacks each combat if able
+}

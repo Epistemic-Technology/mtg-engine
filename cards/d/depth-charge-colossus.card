@@ -1,0 +1,9 @@
+card "Depth Charge Colossus" {
+  oracle_id f376f4c6-4526-4ae3-a84a-e8ea50fe78b6
+  cost {9}
+  type Artifact Creature — Dreadnought
+  pt 9/9
+  prototype {4}{U}{U} 6/6
+  keyword doesn't untap
+  activated {3}: untap this
+}
