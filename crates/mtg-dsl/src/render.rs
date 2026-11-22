@@ -889,6 +889,10 @@ pub fn self_noun(card: &Card) -> String {
     if card.kind == Kind::Token {
         return "token".to_string();
     }
+    // "this emblem deals 4 damage to any target" (CR 114).
+    if card.kind == Kind::Emblem {
+        return "emblem".to_string();
+    }
     // CR 702.176a: a creature with impending isn't always a creature
     // ("Whenever this permanent enters or attacks").
     if card

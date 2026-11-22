@@ -1,0 +1,9 @@
+card "Ral, Izzet Viceroy" {
+  oracle_id f29f4c73-5e5c-4341-8582-2873fbe5c5a3
+  cost {3}{U}{R}
+  type Legendary Planeswalker — Ral
+  loyalty 5
+  loyalty +1: dig 2 take card rest graveyard
+  loyalty -3: deal count equal exile and graveyard instant or sorcery card damage to target creature
+  loyalty -8: emblem "Ral, Izzet Viceroy emblem"
+}

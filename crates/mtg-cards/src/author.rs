@@ -633,6 +633,29 @@ fn count_expr(s: &str) -> Option<String> {
         }
         _ => {}
     }
+    // "cards you own in exile [and in your graveyard]", "cards exiled
+    // with this enchantment" (CR 607.2a).
+    if matches!(s, "cards you own in exile" | "card you own in exile") {
+        return Some("exile".to_string());
+    }
+    if let Some(f) = s
+        .strip_suffix(" cards you own in exile and in your graveyard")
+        .or_else(|| s.strip_suffix(" card you own in exile and in your graveyard"))
+        .map(|f| f.strip_prefix("the total number of ").unwrap_or(f))
+        && !f.contains(',')
+    {
+        return Some(format!(
+            "exile and graveyard {} card",
+            f.replace(" and ", " or ")
+        ));
+    }
+    if let Some(noun) = s
+        .strip_prefix("cards exiled with ")
+        .or_else(|| s.strip_prefix("card exiled with "))
+        && (noun == "~" || (noun.starts_with("this ") && !noun[5..].contains(' ')))
+    {
+        return Some("exiled with this".to_string());
+    }
     // "the total power of creatures you control".
     for (prefix, stat) in [
         ("the total power of ", "power"),

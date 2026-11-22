@@ -1,0 +1,7 @@
+card "Peter Parker's Camera" {
+  oracle_id 10777360-c046-43e3-ab44-9d0b926fbbf8
+  cost {1}
+  type Artifact
+  enters with 3 film counters
+  activated {2}, {T}, remove 1 film counter from this: copy target activated or triggered ability you control new targets
+}

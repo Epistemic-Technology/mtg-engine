@@ -184,6 +184,28 @@ scenario "Krang & Shredder: cast a card exiled with them for free" {
   assert library B count 1
 }
 
+scenario "Serpentine Curve: one plus instants and sorceries in exile and graveyard" {
+  battlefield A: 4 "Island"
+  hand A: "Serpentine Curve"
+  exile A: "Shock", "Hill Giant"
+  graveyard A: "Lightning Bolt", "Divination"
+  exile B: "Shock"
+  turn 1 A: cast "Serpentine Curve"
+  run_to turn 1 end
+  # Serpentine Curve itself is still on the stack as it counts.
+  assert power "Fractal" 4
+}
+
+scenario "Ral, Izzet Viceroy: -3 deals damage equal to that count" {
+  battlefield A: "Ral, Izzet Viceroy"
+  battlefield B: "Serra Angel"
+  exile A: "Shock", "Divination"
+  graveyard A: "Lightning Bolt", "Hill Giant"
+  turn 1 A: activate "Ral, Izzet Viceroy" ability 2 targeting "Serra Angel"
+  run_to turn 1 end
+  assert damage "Serra Angel" 3
+}
+
 scenario "Krang & Shredder: nothing left the battlefield, no cast" {
   battlefield A: 6 "Island"
   hand A: "Krang & Shredder"

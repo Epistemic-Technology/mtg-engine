@@ -1,0 +1,7 @@
+card "Social Snub" {
+  oracle_id b284913e-3530-4a7e-8c75-efb18788dad0
+  cost {1}{W}{B}
+  type Sorcery
+  triggered when you cast this while you control creature: you may copy this
+  spell: each player sacrifices 1 creature; each opponent loses 1 life and you gain 1 life
+}

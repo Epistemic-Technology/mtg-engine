@@ -1,0 +1,3 @@
+emblem "Ral, Izzet Viceroy emblem" {
+  triggered whenever you cast instant or sorcery spell: deal 4 damage to any target and you draw 2 cards
+}

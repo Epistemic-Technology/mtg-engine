@@ -2728,6 +2728,7 @@ pub enum CounterKind {
     Unlock,
     Loot,
     Supply,
+    Film,
     /// CR 122.1h: if a permanent with a finality counter on it would be
     /// put into a graveyard from the battlefield, it is exiled instead.
     Finality,
@@ -2777,7 +2778,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 46] = [
+    pub const NAMED: [(&'static str, CounterKind); 47] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -2811,6 +2812,7 @@ impl CounterKind {
         ("unlock", CounterKind::Unlock),
         ("loot", CounterKind::Loot),
         ("supply", CounterKind::Supply),
+        ("film", CounterKind::Film),
         ("finality", CounterKind::Finality),
         ("flying", CounterKind::Flying),
         ("first strike", CounterKind::FirstStrike),
