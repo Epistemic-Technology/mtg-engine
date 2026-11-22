@@ -2568,6 +2568,12 @@ impl Templates {
             r"^Look at the top (\w+) cards of your library\. Put (two|three) of them into your hand and the rest (on the bottom of your library(?: in any order| in a random order)?|into your graveyard)\.?\s*(.*)$",
         )
         .unwrap();
+        // "look at the top three cards of your library, then put one of
+        // them into your hand and the rest ..." (Court Hussar).
+        let then = Regex::new(
+            r"^Look at the top (\w+) cards of your library, then put one of them into your hand and the rest (on the bottom of your library(?: in any order| in a random order)?|into your graveyard)\.?\s*(.*)$",
+        )
+        .unwrap();
         // "Put one into your hand and the other into your graveyard."
         let short = Regex::new(
             r"^Look at the top two cards of your library\. Put one into your hand and the other (on the bottom of your library|into your graveyard)\.?\s*(.*)$",
@@ -2631,6 +2637,12 @@ impl Templates {
             let n = number(cap(&c, 1)).ok_or_else(|| Skip::Sentence(text.clone()))?;
             (
                 format!("dig {n} take card rest {}", rest_of(cap(&c, 2))),
+                cap(&c, 3).to_string(),
+            )
+        } else if let Some(c) = then.captures(&text) {
+            let n = number(cap(&c, 1)).ok_or_else(|| Skip::Sentence(text.clone()))?;
+            (
+                format!("dig {n} then take card rest {}", rest_of(cap(&c, 2))),
                 cap(&c, 3).to_string(),
             )
         } else if let Some(c) = all.captures(&text) {
@@ -4929,6 +4941,9 @@ impl Builder<'_> {
                 Some("opponents can't cast spells during your turn")
             }
             "Players can't gain life." => Some("players can't gain life"),
+            "You may play lands from your graveyard." => {
+                Some("you may play lands from your graveyard")
+            }
             "Damage can't be prevented." => Some("damage can't be prevented"),
             "You may play an additional land on each of your turns." => Some("additional land"),
             "You may play two additional lands on each of your turns." => Some("additional land 2"),

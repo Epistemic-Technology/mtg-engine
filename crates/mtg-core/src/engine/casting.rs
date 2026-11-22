@@ -440,6 +440,20 @@ impl GameState {
                 }
             }
         }
+        // CR 305.1: "You may play lands from your graveyard."
+        if self.player_static_sources > 0
+            && sorcery_timing
+            && self.may_play_another_land(p)
+            && self.lands_from_graveyard(p)
+        {
+            for id in &ps.graveyard {
+                if self.pool.get(self.objects[*id].def).is_land()
+                    && !options.contains(&Choice::PlayLand(*id))
+                {
+                    options.push(Choice::PlayLand(*id));
+                }
+            }
+        }
         // CR 601.3, 305.1: the top card of the library, by a permanent's
         // permission ("You may cast creature spells from the top of your
         // library").

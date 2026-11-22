@@ -1537,6 +1537,12 @@ impl P {
                 self.pos += 3;
                 self.player_static(mtg_core::card::PlayerStaticKind::Shroud)
             }
+            "you"
+                if self.at_words(&["you", "may", "play", "lands", "from", "your", "graveyard"]) =>
+            {
+                self.pos += 7;
+                self.player_static(mtg_core::card::PlayerStaticKind::LandsFromGraveyard)
+            }
             "opponents"
                 if self.at_words(&[
                     "opponents",

@@ -2524,6 +2524,14 @@ impl GameState {
             })
     }
 
+    /// "You may play lands from your graveyard." applies to `p`.
+    pub fn lands_from_graveyard(&self, p: PlayerId) -> bool {
+        self.player_static_sources > 0
+            && self.player_statics().any(|(who, kind)| {
+                who == p && kind == crate::card::PlayerStaticKind::LandsFromGraveyard
+            })
+    }
+
     /// The keywords player `p` has gained from effects (`PlayerGrant`).
     pub fn player_keywords(&self, p: PlayerId) -> crate::card::KeywordSet {
         self.player_grants

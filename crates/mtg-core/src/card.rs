@@ -5152,6 +5152,10 @@ pub enum PlayerStaticKind {
     /// "You have shroud." (CR 702.18c): the controller can't be the target
     /// of spells or abilities.
     Shroud,
+    /// "You may play lands from your graveyard." (CR 305.1, 601.3): the
+    /// controller may play land cards from their graveyard, using their
+    /// land plays.
+    LandsFromGraveyard,
     /// "Your opponents can't cast spells during your turn." (CR 101.2).
     OpponentsCantCastYourTurn,
     /// "You can't lose the game and your opponents can't win the game."

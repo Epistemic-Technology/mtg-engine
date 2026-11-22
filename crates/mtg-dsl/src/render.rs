@@ -13845,6 +13845,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
+                K::LandsFromGraveyard => "you may play lands from your graveyard".to_string(),
                 K::CantLose => {
                     "you can't lose the game and your opponents can't win the game".to_string()
                 }
