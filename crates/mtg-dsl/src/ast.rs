@@ -2636,6 +2636,9 @@ pub enum Trigger {
     /// `you put a +1/+1 counter on other creature` ("Whenever you put a
     /// +1/+1 counter on another creature", the older wording).
     Each(Box<Trigger>),
+    /// `at beginning of the end step on your next turn` (a delayed
+    /// trigger): "At the beginning of the end step on your next turn".
+    OnNextTurn(Box<Trigger>),
     /// `when you cycle this` ("When you cycle this card"), `whenever you
     /// cycle a card`, `whenever you cycle another card`, `whenever you
     /// cycle or discard a card` (CR 702.29).

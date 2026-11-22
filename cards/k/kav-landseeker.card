@@ -1,0 +1,8 @@
+card "Kav Landseeker" {
+  oracle_id 528fe479-dab9-4cf8-bda0-1d226a644366
+  cost {3}{R}
+  type Creature — Kavu Soldier
+  pt 4/3
+  keywords menace
+  triggered when this enters: create 1 "Lander"; delayed that token: at beginning of the end step on your next turn, sacrifice that token
+}

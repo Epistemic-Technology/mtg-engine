@@ -324,6 +324,32 @@ scenario "Massacre Girl, Most Wanted: a creature dying deals 1 damage, and that 
   assert counters "Massacre Girl, Most Wanted" +1/+1 1
 }
 
+scenario "your next upkeep: Casey Jones discards three at random at its controller's next upkeep, not before" {
+  battlefield A: 4 "Mountain"
+  hand A: "Casey Jones, Vigilante"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Casey Jones, Vigilante"
+  run_to turn 3 draw
+  assert hand A count 3
+  assert graveyard A count 0
+  run_to turn 4 draw
+  assert graveyard A count 3
+  assert hand A count 1
+}
+
+scenario "the end step on your next turn: Kav Landseeker's Lander lasts through this turn and the next player's" {
+  battlefield A: 4 "Mountain"
+  hand A: "Kav Landseeker"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Kav Landseeker"
+  run_to turn 3 upkeep
+  assert battlefield A contains "Lander"
+  run_to turn 4 upkeep
+  assert battlefield A contains "Lander"
+  run_to turn 5 upkeep
+  assert battlefield A lacks "Lander"
+}
+
 scenario "if you cast it: Geological Appraiser discovers 3 when cast" {
   battlefield A: 4 "Mountain"
   hand A: "Geological Appraiser"

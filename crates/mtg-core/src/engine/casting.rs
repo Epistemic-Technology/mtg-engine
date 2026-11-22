@@ -7158,6 +7158,7 @@ impl GameState {
             },
             this_turn: false,
             forever: false,
+            turn: self.turn_number,
         });
     }
 
@@ -7191,6 +7192,7 @@ impl GameState {
             },
             this_turn: false,
             forever: true,
+            turn: self.turn_number,
         });
     }
 
@@ -10560,6 +10562,7 @@ impl GameState {
                         },
                         this_turn: *this_turn,
                         forever: false,
+                        turn: self.turn_number,
                     });
                     self.emit(Event::DelayedTriggerCreated {
                         source: ctx.source,

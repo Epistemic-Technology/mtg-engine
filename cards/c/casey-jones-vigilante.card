@@ -1,0 +1,7 @@
+card "Casey Jones, Vigilante" {
+  oracle_id bc163b5a-0b1a-4257-8c07-5c7d5284015f
+  cost {1}{R}{R}
+  type Legendary Creature — Human Berserker
+  pt 4/3
+  triggered when this enters: draw 3 cards; delayed this: at beginning of your next upkeep, discard 3 cards at random
+}

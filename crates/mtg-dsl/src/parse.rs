@@ -10774,6 +10774,8 @@ impl P {
             // `each opponent's` before `each`, which would take its first
             // word (the formatter writes `each opponent's upkeep step`).
             let whose = if self.eat_word("your") {
+                // "your next upkeep" (a delayed trigger).
+                self.eat_word("next");
                 Who::You
             } else if self.eat_words(&["each", "opponent's"])
                 || self.eat_words(&["an", "opponent's"])
@@ -10798,6 +10800,13 @@ impl P {
             self.eat_word("step");
             self.eat_word("main");
             self.eat_word("phase");
+            // "the end step on your next turn".
+            if self.eat_words(&["on", "your", "next", "turn"]) {
+                return Ok(Trigger::OnNextTurn(Box::new(Trigger::BeginningOfStep {
+                    step,
+                    whose: Who::You,
+                })));
+            }
             return Ok(Trigger::BeginningOfStep { step, whose });
         }
         let whenever = self.at_word("whenever");
@@ -12497,7 +12506,7 @@ fn no_trigger_amount(t: &Trigger) -> bool {
     match t {
         Trigger::When(t) | Trigger::Next(t) => no_trigger_amount(t),
         Trigger::Batch(_) => false,
-        Trigger::Each(t) => no_trigger_amount(t),
+        Trigger::Each(t) | Trigger::OnNextTurn(t) => no_trigger_amount(t),
         Trigger::Either(a, b) => no_trigger_amount(a) && no_trigger_amount(b),
         Trigger::CastsSpell { .. }
         | Trigger::CastsFiltered { .. }
@@ -12514,9 +12523,11 @@ fn no_trigger_amount(t: &Trigger) -> bool {
 /// would denote nothing.
 fn no_trigger_object(t: &Trigger) -> bool {
     match t {
-        Trigger::When(t) | Trigger::Next(t) | Trigger::Batch(t) | Trigger::Each(t) => {
-            no_trigger_object(t)
-        }
+        Trigger::When(t)
+        | Trigger::Next(t)
+        | Trigger::Batch(t)
+        | Trigger::Each(t)
+        | Trigger::OnNextTurn(t) => no_trigger_object(t),
         Trigger::Either(a, b) => no_trigger_object(a) && no_trigger_object(b),
         Trigger::State(_)
         | Trigger::EveryStep(_)

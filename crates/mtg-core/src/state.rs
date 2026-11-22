@@ -115,6 +115,9 @@ pub struct DelayedTrigger {
     /// "... for the rest of the game" (paradigm, CR 702.192a): it stays
     /// after it triggers.
     pub forever: bool,
+    /// The turn it was created in: "At the beginning of the end step on
+    /// your next turn" (`TriggerSpec::OnNextTurn`) waits for a later turn.
+    pub turn: u32,
 }
 
 /// Something a spell or ability can target or an effect can act on.

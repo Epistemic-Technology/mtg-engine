@@ -492,6 +492,7 @@ impl GameState {
                 },
                 this_turn: false,
                 forever: false,
+                turn: self.turn_number,
             });
         }
         if old.zone == Zone::Battlefield {

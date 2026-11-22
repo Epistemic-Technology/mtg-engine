@@ -1973,7 +1973,12 @@ damage only, CR 615.12), and
 `delayed <what>: <effects> at beginning of the next end step` (a delayed
 triggered ability, CR 603.7; write the trigger first, then a comma, then the
 effects, to print it that way); `at beginning of the next turn's upkeep`
-also works ("Draw a card at the beginning of the next turn's upkeep"), and
+also works ("Draw a card at the beginning of the next turn's upkeep"),
+`delayed this: at beginning of your next upkeep, discard 3 cards at
+random` ("At the beginning of your next upkeep, ..."), `delayed that
+token: at beginning of the end step on your next turn, sacrifice that
+token` ("At the beginning of the end step on your next turn, ...": the
+controller's end step, but not in the turn it was created), and
 `at end of combat` ("destroy it at end of combat"). Inside a delayed ability `it` is the object
 the ability is about, and so is `that card`, which prints so where `it`
 prints "it" (`delayed target 1: return that card to battlefield at

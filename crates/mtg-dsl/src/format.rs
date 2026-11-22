@@ -3532,6 +3532,7 @@ pub fn natural_when(t: &Trigger) -> bool {
             | Trigger::BecomesTarget(TriggerObj::This)
             | Trigger::When(_)
             | Trigger::BeginningOfStep { .. }
+            | Trigger::OnNextTurn(_)
             | Trigger::AttachedStep(_)
             | Trigger::State(_)
             | Trigger::EveryStep(_)
@@ -3647,6 +3648,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             Trigger::YouTap(f) => format!("whenever you tap one or more {}", filter(f)),
             t => unreachable!("no batched form of {t:?}"),
         },
+        Trigger::OnNextTurn(inner) => format!("{} on your next turn", trigger_text(inner, next)),
         Trigger::Each(inner) => match &**inner {
             Trigger::LeavesGraveyard(f) => format!(
                 "whenever a {}card leaves your graveyard",

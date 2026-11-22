@@ -207,6 +207,13 @@ impl GameState {
             let dt = self.delayed_triggers[i];
             let at = match self.pool.ability(dt.ability.ability) {
                 AbilityDef::Triggered(t) => match &t.trigger {
+                    // "the end step on your next turn".
+                    TriggerSpec::OnNextTurn(inner) => match &**inner {
+                        TriggerSpec::BeginningOfStep { step: s, .. } => {
+                            *s == step && active == dt.controller && self.turn_number > dt.turn
+                        }
+                        _ => false,
+                    },
                     TriggerSpec::BeginningOfStep { step: s, whose } => {
                         *s == step
                             && match whose {
@@ -268,6 +275,7 @@ impl GameState {
             if matches!(
                 spec,
                 TriggerSpec::BeginningOfStep { .. }
+                    | TriggerSpec::OnNextTurn(_)
                     | TriggerSpec::Dies(TriggerObj::This)
                     | TriggerSpec::Leaves(TriggerObj::This)
                     | TriggerSpec::DiesOrExiled(TriggerObj::This)

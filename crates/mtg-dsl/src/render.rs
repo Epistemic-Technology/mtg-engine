@@ -8562,6 +8562,14 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             ),
             t => unreachable!("no batched form of {t:?}"),
         },
+        // "At the beginning of the end step on your next turn".
+        Trigger::OnNextTurn(inner) => match &**inner {
+            Trigger::BeginningOfStep { step, .. } => format!(
+                "at the beginning of the {} on your next turn",
+                step_name(*step, Who::You).trim_start_matches("your ")
+            ),
+            t => unreachable!("no next-turn form of {t:?}"),
+        },
         Trigger::Each(inner) => match &**inner {
             Trigger::LeavesGraveyard(f) => format!(
                 "whenever {} leaves your graveyard",
@@ -8830,6 +8838,12 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::BeginningOfStep { step, whose } => {
             if next && *step == Step::Upkeep && *whose == Who::Any {
                 "at the beginning of the next turn's upkeep".to_string()
+            } else if next && *whose == Who::You {
+                // "At the beginning of your next upkeep".
+                format!(
+                    "at the beginning of your next {}",
+                    step_name(*step, Who::You).trim_start_matches("your ")
+                )
             } else if next {
                 format!(
                     "at the beginning of the next {}",
