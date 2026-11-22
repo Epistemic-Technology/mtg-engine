@@ -1,0 +1,9 @@
+card "Autonomous Assembler" {
+  oracle_id 3afdc98e-aeeb-43e9-bdcd-0c51da44d2f8
+  cost {5}
+  type Artifact Creature — Assembly-Worker
+  pt 4/5
+  prototype {1}{W} 2/2
+  keyword vigilance
+  activated {1}, {T}: put 1 +1/+1 counters on target Assembly-Worker you control
+}

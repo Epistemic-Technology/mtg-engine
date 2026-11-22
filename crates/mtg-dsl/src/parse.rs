@@ -1474,6 +1474,21 @@ impl P {
                 let each_player = self.eat_words(&["each", "player"]);
                 self.player_static(mtg_core::card::PlayerStaticKind::ExtraLands { n, each_player })
             }
+            // CR 702.160a: prototype.
+            "prototype" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
+                self.pos += 1;
+                let c = self.mana_cost()?;
+                let (power, toughness) = match self.next() {
+                    Some(Tok::Pt {
+                        power,
+                        toughness,
+                        signed: false,
+                    }) => (power, toughness),
+                    _ => return self.fail("expected power/toughness such as 3/2"),
+                };
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Prototype(c, power, toughness)))
+            }
             // CR 702.87a: level up.
             "level" if self.word_at(1).as_deref() == Some("up") => {
                 self.pos += 2;

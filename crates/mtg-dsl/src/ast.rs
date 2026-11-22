@@ -1417,6 +1417,9 @@ pub enum Mechanic {
     /// CR 702.39: attacks, you may have target creature defending player
     /// controls untap and block it if able.
     Provoke,
+    /// CR 702.160: `prototype {2}{R} 3/2`: "Prototype {2}{R} — 3/2", cast
+    /// with that mana cost, power, and toughness (and the cost's colors).
+    Prototype(ManaCost, i32, i32),
     /// CR 702.87: `level up {2}`: "{2}: Put a level counter on this.
     /// Activate only as a sorcery."
     LevelUp(ManaCost),

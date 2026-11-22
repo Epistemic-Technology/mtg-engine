@@ -1,0 +1,8 @@
+card "Iron-Craw Crusher" {
+  oracle_id b04f45de-cb35-45a4-b039-0bf008c3ca56
+  cost {7}
+  type Artifact Creature — Wurm
+  pt 4/6
+  prototype {2}{G}{G} 2/5
+  triggered whenever this attacks: target attacking creature gets +1/+0 count where power
+}

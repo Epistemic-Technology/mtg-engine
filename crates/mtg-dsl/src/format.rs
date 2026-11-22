@@ -5226,6 +5226,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Provoke => "provoke".to_string(),
                 crate::ast::Mechanic::Fading(n) => format!("fading {n}"),
                 crate::ast::Mechanic::LevelUp(c) => format!("level up {c}"),
+                crate::ast::Mechanic::Prototype(c, p, t) => format!("prototype {c} {p}/{t}"),
                 crate::ast::Mechanic::Annihilator(n) => format!("annihilator {n}"),
                 crate::ast::Mechanic::Rampage(n) => format!("rampage {n}"),
                 crate::ast::Mechanic::BattleCry => "battle cry".to_string(),

@@ -1,0 +1,9 @@
+card "Fallaji Dragon Engine" {
+  oracle_id dc8cca38-df2a-4cef-973c-a482505be66f
+  cost {8}
+  type Artifact Creature — Dragon
+  pt 5/5
+  prototype {2}{R} 1/3
+  keyword flying
+  activated {2}: this gets +1/+0
+}

@@ -150,7 +150,9 @@ impl GameState {
                 options.push(Choice::CastEvoke(*id));
             }
             // CR 118.9: an alternative cost of the card's own.
-            if def.alt_cost.is_some() && self.alt_castable(p, def, *id, sorcery_timing, &sources) {
+            if def.alt_cost.is_some()
+                && self.alt_castable(p, def, *id, sorcery_timing, &sources, &changers)
+            {
                 options.push(Choice::CastAlt(*id));
             }
             // CR 702.109a: cast for the dash cost instead.
@@ -2820,6 +2822,7 @@ impl GameState {
         id: ObjId,
         sorcery_timing: bool,
         sources: &Sources,
+        changers: &[ObjId],
     ) -> bool {
         let Some(alt) = &def.alt_cost else {
             return false;
@@ -2854,10 +2857,20 @@ impl GameState {
         {
             return false;
         }
+        // CR 601.2f: cost reductions (affinity) apply to an alternative
+        // cost too.
+        let mut req = alt.cost.mana.requirements(0);
+        if def.self_cost.is_some()
+            || def.cond_cost.is_some()
+            || !changers.is_empty()
+            || self.next_spell_less[p.index().min(3)] > 0
+        {
+            adjust_generic(&mut req, self.cost_delta(p, def, id, changers));
+        }
         if !self.payable_for(
             p,
             sources,
-            &alt.cost.mana.requirements(0),
+            &req,
             Spend::Spell(&self.printed(self.objects[id].def)),
         ) || !self.additional_payable(p, &def.additional, id)
         {

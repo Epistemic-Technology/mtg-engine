@@ -1,0 +1,8 @@
+card "Boulderbranch Golem" {
+  oracle_id 82caf3e2-da42-4851-b4db-546e2403c4bf
+  cost {7}
+  type Artifact Creature — Golem
+  pt 6/5
+  prototype {3}{G} 3/3
+  triggered when this enters: you gain count equal power life
+}

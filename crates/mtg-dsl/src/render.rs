@@ -12250,6 +12250,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Provoke => "Provoke".to_string(),
             crate::ast::Mechanic::Fading(n) => format!("Fading {n}"),
             crate::ast::Mechanic::LevelUp(c) => format!("Level up {c}"),
+            crate::ast::Mechanic::Prototype(c, p, t) => format!("Prototype {c} \u{2014} {p}/{t}"),
             crate::ast::Mechanic::Annihilator(n) => format!("Annihilator {n}"),
             crate::ast::Mechanic::Rampage(n) => format!("Rampage {n}"),
             crate::ast::Mechanic::BattleCry => "Battle cry".to_string(),

@@ -67,6 +67,7 @@ const KEYWORDS: &[&str] = &[
 
 /// Scryfall keyword tags that templates below handle as abilities.
 const TEMPLATED_TAGS: &[&str] = &[
+    "Prototype",
     "Level Up",
     "Provoke",
     "Fading",
@@ -3797,6 +3798,15 @@ impl Builder<'_> {
                 .push(format!("levels {range} pt {}", cap(&c, 3)));
             return Ok(());
         }
+        // CR 702.160a: "Prototype {2}{R} — 3/2".
+        if let Some(c) = Regex::new(r"^Prototype ((?:\{[0-9WUBRGC]\})+) \x{2014} (\d+/\d+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("prototype {} {}", cap(&c, 1), cap(&c, 2)));
+            return Ok(());
+        }
         // CR 702.87a.
         if let Some(c) = Regex::new(r"^Level up ((?:\{[0-9WUBRGC]\})+)$")
             .unwrap()
@@ -5766,7 +5776,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     if s.name.contains(" // ")
         || !matches!(
             s.layout.as_str(),
-            "normal" | "saga" | "class" | "case" | "leveler"
+            "normal" | "saga" | "class" | "case" | "leveler" | "prototype"
         )
     {
         return Err(Skip::Layout(s.layout.clone()));

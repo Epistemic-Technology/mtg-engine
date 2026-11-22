@@ -1820,7 +1820,21 @@ impl GameState {
                 self.begin_cast_as(player, card, crate::state::AltCast::Disturb, face);
             }
             (Flow::Priority, Choice::CastAlt(card)) => {
-                self.begin_cast(player, card, crate::state::AltCast::AltCost);
+                // CR 718.3: a prototype card's alternative cost casts it
+                // prototyped, the spell its prototype face.
+                match self.pool.get(self.objects[card].def).prototype_face {
+                    Some(face) => {
+                        self.begin_cast_as(
+                            player,
+                            card,
+                            crate::state::AltCast::AltCost,
+                            Some(face),
+                        );
+                    }
+                    None => {
+                        self.begin_cast(player, card, crate::state::AltCast::AltCost);
+                    }
+                }
             }
             (Flow::Priority, Choice::CastFaceDown(card)) => {
                 self.consecutive_passes = 0;

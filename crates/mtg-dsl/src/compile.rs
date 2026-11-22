@@ -557,6 +557,12 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Fading(n)) => {
                     b = b.fading(*n);
                 }
+                Ability::Mechanic(Mechanic::Prototype(c, p, t)) => {
+                    if card.alt_cost.is_some() {
+                        return self.err("prototype and an alternative cost of the card's own");
+                    }
+                    b = b.prototype(c.clone(), *p, *t);
+                }
                 Ability::Mechanic(Mechanic::Impending(n, cost)) => {
                     b = b.impending(*n, cost.clone());
                 }
@@ -1075,6 +1081,7 @@ impl Compiler<'_> {
                             | Mechanic::Awaken(..)
                             | Mechanic::Assist
                             | Mechanic::Myriad
+                            | Mechanic::Prototype(..)
                             | Mechanic::Replicate(_)
                             | Mechanic::Multikicker(_)
                             | Mechanic::Disturb(_)
@@ -4445,6 +4452,7 @@ impl Compiler<'_> {
                 | Mechanic::Awaken(..)
                 | Mechanic::Assist
                 | Mechanic::Myriad
+                | Mechanic::Prototype(..)
                 | Mechanic::Replicate(_)
                 | Mechanic::Multikicker(_)
                 | Mechanic::Disturb(_)
@@ -5857,6 +5865,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Awaken(..)
         | Mechanic::Assist
         | Mechanic::Myriad
+        | Mechanic::Prototype(..)
         | Mechanic::BattleCry
         | Mechanic::Rampage(_)
         | Mechanic::Replicate(_)

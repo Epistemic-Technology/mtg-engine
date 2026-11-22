@@ -6838,6 +6838,14 @@ pub struct CardDef {
     /// for each object or player the card's target spec matches.
     #[serde(skip)]
     pub overload_face: Option<CardRef>,
+    /// Prototype (CR 702.160a, 718): the alternative mana cost, power,
+    /// and toughness. Cast prototyped (the card's alternative cost, CR
+    /// 118.9), the spell and its permanent are `prototype_face`: the card
+    /// with those characteristics and the cost's colors (CR 718.3b).
+    #[serde(default)]
+    pub prototype: Option<Box<(ManaCost, i32, i32)>>,
+    #[serde(default)]
+    pub prototype_face: Option<CardRef>,
     /// Awaken N (CR 702.113): an alternative cost; cast for it, the spell
     /// also puts N +1/+1 counters on target land you control, which
     /// becomes a 0/0 Elemental creature with haste (`awaken_face`).
@@ -8474,6 +8482,30 @@ impl CardPool {
             let face = bestowed_aura(&def);
             def.bestow_face = Some(self.add(face));
         }
+        // CR 718.3b: a prototyped spell and its permanent have only the
+        // alternative mana cost, power, and toughness, and that cost's
+        // colors. Casting it so is the card's alternative cost (CR 118.9),
+        // whose spell is this face.
+        if let Some(p) = def.prototype.clone() {
+            let (cost, power, toughness) = *p;
+            let mut face = def.clone();
+            face.mana_cost = cost.clone();
+            face.power = Some(power);
+            face.toughness = Some(toughness);
+            face.prototype = None;
+            face.alt_cost = None;
+            face.printed = None;
+            def.prototype_face = Some(self.add(face));
+            def.alt_cost = Some(Box::new(AltCost {
+                cost: Cost {
+                    mana: cost,
+                    ..Cost::default()
+                },
+                count: 1,
+                condition: None,
+                others_gain: 0,
+            }));
+        }
         // CR 702.96b: the overloaded spell has no targets (and so is
         // not registered again).
         if def.overload.is_some() && def.spell_ability().is_some_and(|(t, _)| !t.is_empty()) {
@@ -8948,6 +8980,8 @@ impl Builder {
             bestow_face: None,
             overload: None,
             overload_face: None,
+            prototype: None,
+            prototype_face: None,
             awaken: None,
             awaken_face: None,
             goads: false,
@@ -9207,6 +9241,14 @@ impl Builder {
     #[must_use]
     pub fn warp(mut self, cost: ManaCost) -> Self {
         self.0.warp = Some(Box::new(cost));
+        self
+    }
+
+    /// Prototype (CR 702.160a): the alternative mana cost, power, and
+    /// toughness.
+    #[must_use]
+    pub fn prototype(mut self, cost: ManaCost, power: i32, toughness: i32) -> Self {
+        self.0.prototype = Some(Box::new((cost, power, toughness)));
         self
     }
 
