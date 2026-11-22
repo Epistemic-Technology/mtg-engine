@@ -543,10 +543,11 @@ impl KeywordSet {
         // Each keyword's position in `ALL` (which is not declaration
         // order); `u8::MAX` for none.
         const RANK: [u8; 128] = {
+            assert!(Keyword::ALL.len() < u8::MAX as usize);
             let mut r = [u8::MAX; 128];
-            let mut i = 0;
-            while i < Keyword::ALL.len() {
-                r[Keyword::ALL[i] as usize] = i as u8;
+            let mut i: u8 = 0;
+            while (i as usize) < Keyword::ALL.len() {
+                r[Keyword::ALL[i as usize] as usize] = i;
                 i += 1;
             }
             r
