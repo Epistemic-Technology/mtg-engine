@@ -1,0 +1,6 @@
+card "Scent of Brine" {
+  oracle_id c22b5968-adea-4f74-877d-8ac2ee452769
+  cost {1}{U}
+  type Instant
+  spell: reveal any number blue card in hand chosen; counter target spell unless its controller pays {X} count each revealed this way
+}

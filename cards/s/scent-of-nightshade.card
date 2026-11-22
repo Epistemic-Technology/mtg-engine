@@ -1,0 +1,6 @@
+card "Scent of Nightshade" {
+  oracle_id 2e88f39d-6177-42d9-b756-144219dc0961
+  cost {1}{B}
+  type Instant
+  spell: reveal any number black card in hand chosen; target creature gets -1/-1 count where revealed this way until end of turn
+}

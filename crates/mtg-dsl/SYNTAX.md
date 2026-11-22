@@ -2637,6 +2637,11 @@ do` then sees:
   Citizen you control"), `tap 2 other untapped creature you control chosen`
 - `sacrifice 1 creature chosen` ("sacrifice a creature")
 - `discard 1 creature card chosen` ("discard a creature card")
+- `reveal any number green card in hand chosen` ("reveal any number of
+  green cards in your hand", CR 701.20a): the cards stay in the hand,
+  known to every player; `count where revealed this way` ("the number of
+  cards revealed this way") and `count each revealed this way` ("for each
+  card revealed this way") count them
 - `exile 2 creature card from your graveyard chosen`
 - `attach 1 Equipment you control to target 1 chosen` ("attach an Equipment
   you control to it": permanents you control, attached to that target)

@@ -2517,6 +2517,10 @@ impl Fmt {
                     ChooseAct::Bounce => format!("return {n} {f} to hand chosen"),
                     ChooseAct::Discard if unfiltered => format!("discard {n} {cs} chosen"),
                     ChooseAct::Discard => format!("discard {n} {f} {cs} chosen"),
+                    ChooseAct::RevealFromHand if unfiltered => {
+                        format!("reveal {n} {cs} in hand chosen")
+                    }
+                    ChooseAct::RevealFromHand => format!("reveal {n} {f} {cs} in hand chosen"),
                     // "put a card from your hand": no filter, no word for it.
                     ChooseAct::HandToBottom if unfiltered => {
                         format!("put {n} {cs} from hand on bottom of library chosen")

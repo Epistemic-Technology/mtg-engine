@@ -50,3 +50,77 @@ scenario "dies to library: exiled, it is not dying, so it stays in exile" {
   run_to turn 1 end
   assert exile B contains "Gravebane Zombie"
 }
+
+# "Reveal any number of green cards in your hand." (CR 701.20a): chosen as
+# the spell resolves; the cards stay in the hand, known to every player,
+# and "cards revealed this way" counts them.
+
+scenario "reveal from hand: Scent of Ivy counts the green cards revealed" {
+  battlefield A: "Forest", "Grizzly Bears"
+  hand A: "Scent of Ivy", "Giant Growth", "Grizzly Bears", "Serra Angel"
+  turn 1 A: cast "Scent of Ivy" targeting A "Grizzly Bears"
+  turn 1 A: choose "Giant Growth"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert hand A contains "Giant Growth"
+  assert hand A contains "Grizzly Bears"
+  assert known B "Giant Growth"
+  assert unknown B "Serra Angel"
+}
+
+scenario "reveal from hand: only cards of the color are offered" {
+  battlefield A: "Plains"
+  hand A: "Scent of Jasmine", "Serra Angel", "Grizzly Bears"
+  turn 1 A: cast "Scent of Jasmine"
+  illegal turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 22
+}
+
+scenario "reveal from hand: revealing nothing counts zero" {
+  battlefield A: "Plains"
+  hand A: "Scent of Jasmine", "Serra Angel"
+  turn 1 A: cast "Scent of Jasmine"
+  turn 1 A: choose done
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "reveal from hand: Scent of Cinder deals X damage" {
+  battlefield A: "Mountain", "Mountain"
+  hand A: "Scent of Cinder", "Lightning Bolt", "Shock"
+  turn 1 A: cast "Scent of Cinder" targeting player B
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand A count 2
+}
+
+scenario "reveal from hand: Scent of Brine counters unless {1} per card revealed is paid" {
+  battlefield A: "Island", "Island"
+  battlefield B: "Mountain", "Mountain"
+  hand A: "Scent of Brine", "Wind Drake", "Divination"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: cast "Scent of Brine" targeting "Lightning Bolt"
+  turn 2 A: choose "Wind Drake"
+  turn 2 A: choose "Divination"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Lightning Bolt"
+}
+
+scenario "reveal from hand: Scent of Nightshade gives -X/-X" {
+  battlefield A: "Swamp", "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Scent of Nightshade", "Murder"
+  turn 1 A: cast "Scent of Nightshade" targeting "Hill Giant"
+  turn 1 A: choose "Murder"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 2
+  assert toughness "Hill Giant" 2
+}

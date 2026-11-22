@@ -5347,6 +5347,10 @@ pub enum ChooseAct {
     /// graveyard" (a processor, CR 400.3: to its owner's graveyard): cards
     /// in exile whose owner the filter's `who` names.
     ExileToGraveyard,
+    /// "Reveal any number of green cards in your hand" (CR 701.20a): cards
+    /// in your hand, revealed where they are; "cards revealed this way"
+    /// (`ThisWay::Revealed`) counts them.
+    RevealFromHand,
 }
 
 /// What a player chooses as a permanent enters ("As this land enters,

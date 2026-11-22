@@ -7412,6 +7412,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     if one { "its" } else { "their" }
                 ),
                 ChooseAct::Discard => format!("discard {}", cards()),
+                ChooseAct::RevealFromHand => format!("reveal {} in your hand", cards()),
                 ChooseAct::HandToBottom => format!(
                     "put {} from your hand on the bottom of your library",
                     cards()

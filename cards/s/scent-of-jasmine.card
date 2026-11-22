@@ -1,0 +1,6 @@
+card "Scent of Jasmine" {
+  oracle_id 3a532c2b-a08c-46ab-86f7-c6dee0d6985f
+  cost {W}
+  type Instant
+  spell: reveal any number white card in hand chosen; you gain count each 2 revealed this way life
+}

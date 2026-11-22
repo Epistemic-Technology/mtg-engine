@@ -1528,7 +1528,7 @@ impl GameState {
                         && self.status_ok(filter, *id)
                 })
                 .collect(),
-            ChooseAct::Discard | ChooseAct::HandToBottom => self
+            ChooseAct::Discard | ChooseAct::HandToBottom | ChooseAct::RevealFromHand => self
                 .player(p)
                 .hand
                 .iter()
@@ -1706,6 +1706,12 @@ impl GameState {
                 ChooseAct::Untap => self.untap(id),
                 ChooseAct::Sacrifice => self.sacrifice(id),
                 ChooseAct::Discard => self.discard_card(p, id),
+                // CR 701.20a: revealed where it is, for "cards revealed
+                // this way".
+                ChooseAct::RevealFromHand => {
+                    self.reveal_in_library(id);
+                    ctx.revealed.push(id);
+                }
                 ChooseAct::HandToBottom => {
                     self.move_object(id, Zone::Library, false);
                 }

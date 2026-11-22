@@ -7267,7 +7267,7 @@ impl P {
     /// before the clause ends or another verb starts. `return N <filter>
     /// chosen` alone is `ReturnChosen`.
     fn chosen_act_ahead(&self) -> bool {
-        const VERBS: [&str; 11] = [
+        const VERBS: [&str; 12] = [
             "tap",
             "untap",
             "sacrifice",
@@ -7276,6 +7276,7 @@ impl P {
             "return",
             "put",
             "attach",
+            "reveal",
             "create",
             "draw",
             "destroy",
@@ -7283,7 +7284,7 @@ impl P {
         let Some(verb) = self.word_at(0) else {
             return false;
         };
-        if !VERBS[..8].contains(&verb.as_str()) {
+        if !VERBS[..9].contains(&verb.as_str()) {
             return false;
         }
         let mut hand = false;
@@ -7348,6 +7349,13 @@ impl P {
             "untap" => (ChooseAct::Untap, self.filter()?),
             "sacrifice" => (ChooseAct::Sacrifice, self.filter()?),
             "discard" => (ChooseAct::Discard, card_filter(self)?),
+            // `reveal any number green card in hand chosen`: "Reveal any
+            // number of green cards in your hand".
+            "reveal" => {
+                let f = card_filter(self)?;
+                self.expect_words(&["in", "hand"])?;
+                (ChooseAct::RevealFromHand, f)
+            }
             // `attach 1 Equipment you control to target 1 chosen`.
             "attach" => {
                 let f = self.filter()?;

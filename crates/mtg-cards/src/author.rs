@@ -692,6 +692,10 @@ fn count_expr(s: &str) -> Option<String> {
         "nonland card revealed this way" => {
             return Some("nonland card revealed this way".to_string());
         }
+        // "Reveal any number of green cards in your hand."
+        "cards revealed this way" | "card revealed this way" => {
+            return Some("revealed this way".to_string());
+        }
         "cards you've discarded this turn" | "card you've discarded this turn" => {
             return Some("discarded this turn".to_string());
         }
@@ -1633,6 +1637,18 @@ impl Templates {
             (r(r"^Draw a card for each (.+)$"), |c, _| {
                 Some(format!("draw count each {} cards", count_expr(cap(c, 1))?))
             }),
+            // CR 701.20a: "Reveal any number of green cards in your hand."
+            (
+                r(
+                    r"^Reveal any number of (white|blue|black|red|green|[A-Z][a-z]+) cards in your hand$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "reveal any number {} card in hand chosen",
+                        cap(c, 1)
+                    ))
+                },
+            ),
             (
                 r(r"^(.+?) sacrifices? (a|an|one|two|three|four|five) (.+?) of their choice$"),
                 |c, t| {
