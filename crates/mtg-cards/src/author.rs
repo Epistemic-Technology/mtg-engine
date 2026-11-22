@@ -67,6 +67,7 @@ const KEYWORDS: &[&str] = &[
 
 /// Scryfall keyword tags that templates below handle as abilities.
 const TEMPLATED_TAGS: &[&str] = &[
+    "Provoke",
     "Hexproof from",
     "Job select",
     "Mayhem",
@@ -235,6 +236,9 @@ const TEMPLATED_TAGS: &[&str] = &[
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
 /// "Landfall — <ability>". Scryfall tags them like keywords.
 const ABILITY_WORDS: &[&str] = &[
+    // Scryfall tags jump-start "Jump" too; "Jump — During your turn, ..."
+    // (Final Fantasy) is an ability word.
+    "Jump",
     "Repartee",
     "Vivid",
     // CR 702.179e: a condition, not a bare label; the DSL compiles it.
@@ -4783,6 +4787,7 @@ impl Builder<'_> {
                 | "Retrace"
                 | "Ingest"
                 | "Increment"
+                | "Provoke"
         ) {
             self.statements.push(line.to_lowercase());
             return Ok(());

@@ -1,0 +1,8 @@
+card "Krosan Vorine" {
+  oracle_id ddb95c3a-b383-4987-ba24-72e95f8e33bf
+  cost {3}{G}
+  type Creature — Cat Beast
+  pt 3/2
+  provoke
+  can't be blocked by more than one creature
+}

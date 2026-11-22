@@ -1,0 +1,7 @@
+card "Quasiduplicate" {
+  oracle_id 76b709ae-5765-4b7a-99c9-89eade7c8cb8
+  cost {1}{U}{U}
+  type Sorcery
+  spell: create token copy of target creature you control
+  jump start
+}

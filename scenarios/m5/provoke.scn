@@ -1,0 +1,100 @@
+# Provoke (CR 702.39a): "Whenever this creature attacks, you may have
+# target creature defending player controls untap and block it if able."
+# Jump-start (CR 702.133a) on cards authored with it.
+
+scenario "provoke: Goblin Grappler untaps a tapped creature and makes it block" {
+  battlefield A: "Goblin Grappler"
+  battlefield B: "Grizzly Bears" tapped
+  turn 1 A: attack "Goblin Grappler"
+  turn 1 A: trigger "Goblin Grappler" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Goblin Grappler"
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 1
+}
+
+scenario "provoke: declining leaves the creature tapped and the attacker unblocked" {
+  battlefield A: "Goblin Grappler"
+  battlefield B: "Grizzly Bears" tapped
+  turn 1 A: attack "Goblin Grappler"
+  turn 1 A: trigger "Goblin Grappler" targeting "Grizzly Bears"
+  turn 1 A: decline "Goblin Grappler"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert tapped "Grizzly Bears"
+}
+
+scenario "provoke: Crested Craghorn attacks with haste and its target must block it" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Crested Craghorn"
+  turn 1 A: cast "Crested Craghorn"
+  turn 1 A: attack "Crested Craghorn"
+  turn 1 A: trigger "Crested Craghorn" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Crested Craghorn"
+  assert life B 20
+}
+
+scenario "provoke: Lowland Tracker's first strike kills the provoked blocker" {
+  battlefield A: "Lowland Tracker"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Lowland Tracker"
+  turn 1 A: trigger "Lowland Tracker" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Lowland Tracker"
+  assert damage "Lowland Tracker" 0
+}
+
+scenario "provoke: Krosan Vorine can't be blocked by a second creature" {
+  battlefield A: "Krosan Vorine"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: attack "Krosan Vorine"
+  turn 1 A: trigger "Krosan Vorine" targeting "Grizzly Bears"
+  illegal turn 1 B: block "Krosan Vorine" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  assert graveyard A contains "Krosan Vorine"
+}
+
+scenario "jump-start: Chemister's Insight from the graveyard draws two, then is exiled" {
+  battlefield A: 4 "Island"
+  graveyard A: "Chemister's Insight"
+  hand A: "Forest"
+  library A: "Island", "Plains", "Swamp"
+  turn 1 A: cast "Chemister's Insight" from graveyard discarding "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert exile A contains "Chemister's Insight"
+  assert graveyard A contains "Forest"
+}
+
+scenario "jump-start: Gravitic Punch, the creature you control deals damage equal to its power" {
+  battlefield A: 4 "Mountain", "Hill Giant"
+  hand A: "Gravitic Punch"
+  turn 1 A: cast "Gravitic Punch" targeting "Hill Giant", player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Gravitic Punch"
+}
+
+scenario "jump-start: Quasiduplicate copies a creature you control" {
+  battlefield A: 3 "Island", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Quasiduplicate"
+  illegal turn 1 A: cast "Quasiduplicate" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Hill Giant"
+}
+
+scenario "jump-start: Quasiduplicate makes a token copy" {
+  battlefield A: 3 "Island", "Hill Giant"
+  hand A: "Quasiduplicate"
+  turn 1 A: cast "Quasiduplicate" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Hill Giant"
+}

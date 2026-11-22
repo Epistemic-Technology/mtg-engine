@@ -1,0 +1,7 @@
+card "Chemister's Insight" {
+  oracle_id a2cb30d7-c0a9-4f79-bc19-fc88c4986725
+  cost {3}{U}
+  type Instant
+  spell: draw 2 cards
+  jump start
+}
