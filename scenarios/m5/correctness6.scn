@@ -283,6 +283,22 @@ scenario "Thieves' Tools: entering creates a Treasure" {
   assert battlefield A contains "Treasure"
 }
 
+# "Whenever you cast a spell of the chosen color": the color Diamond Mare
+# chose as it entered.
+scenario "Diamond Mare: a spell of the chosen color gains 1 life, another color doesn't" {
+  battlefield A: 3 "Mountain", 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Diamond Mare", "Lightning Bolt", "Giant Growth"
+  turn 1 A: cast "Diamond Mare"
+  turn 1 A: choose red
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  turn 1 postcombat_main A: cast "Giant Growth" targeting "Diamond Mare"
+  run_to turn 1 end
+  assert life A 21
+  assert graveyard B contains "Hill Giant"
+}
+
 # "If a triggered ability of another creature you control of the chosen
 # type triggers, it triggers an additional time": the type Roaming Throne
 # chose (CR 603.2d).

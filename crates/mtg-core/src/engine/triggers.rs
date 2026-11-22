@@ -835,6 +835,8 @@ impl GameState {
         };
         // Does `obj` (currently on the battlefield) match?
         let filter_on_battlefield = |f: &crate::card::ObjFilter, obj: ObjId| -> Option<PlayerId> {
+            // "a creature of the chosen type": what the source chose.
+            let f = &*self.with_source_chosen(f, w.source);
             let o = self.objects.get(obj)?;
             let c = self.characteristics(obj)?;
             (f.matches(obj, o.controller, &c, Some(w.source), Some(w.controller))
@@ -1300,6 +1302,9 @@ impl GameState {
                 let c = self
                     .characteristics(*spell)
                     .or_else(|| self.pool.get(*def).printed)?;
+                // "Whenever you cast a spell of the chosen color" (Diamond
+                // Mare): what the source chose as it entered.
+                let filter = &*self.with_source_chosen(filter, w.source);
                 // Heroic (CR 207.2c): "a spell that targets this creature",
                 // judged with the targets chosen as it was cast (CR 601.2c).
                 let targets_ok = filter.targeting.as_ref().is_none_or(|t| {

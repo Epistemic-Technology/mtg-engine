@@ -90,9 +90,6 @@ by rejecting the form at compile time or by binding it correctly.
   - `each player loses count each creature they control life` is an
     error now (it counted the other player's creatures): a count per
     player isn't in (Stronghold Discipline).
-- **`whenever you cast of chosen color spell`** renders "Whenever you
-  cast a spell of the chosen color" but never triggered (Diamond Mare,
-  not added).
 - **The sacrificed creature in a reflexive trigger:** `you may sacrifice
   1 other creature chosen; when you do, deal damage equal power of the
   sacrificed creature to ...` deals 0 (Bolg of the North, not added).
