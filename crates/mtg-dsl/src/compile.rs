@@ -2048,6 +2048,7 @@ impl Compiler<'_> {
             A::BlockingIt { beyond } => C::BlockingIt { beyond: *beyond },
             A::GreatestPower(f) => C::GreatestPower(self.filter(f)),
             A::DifferentlyNamed(f) => C::DifferentlyNamed(self.filter(f)),
+            A::Devoured(f) => C::Devoured(self.filter(f)),
             A::Party => {
                 // CR 700.8: "up to one each of Cleric, Rogue, Warrior, and
                 // Wizard".
@@ -4996,6 +4997,23 @@ impl Compiler<'_> {
                 // CR 702.136a: riot, "You may have this permanent enter
                 // with an additional +1/+1 counter on it. If you don't, it
                 // gains haste."
+                // CR 702.82a, 702.38a, 702.104a: devour, amplify, tribute.
+                Mechanic::Devour(..) | Mechanic::Amplify(_) | Mechanic::Tribute(_) => {
+                    AbilityDef::Replacement(ReplacementAbility {
+                        replaces: mtg_core::card::Replaces::Enters,
+                        replacement: match m {
+                            Mechanic::Devour(k, n) => mtg_core::card::Replacement::EnterDevour {
+                                kind: k.unwrap_or(mtg_core::card::CardType::Creature),
+                                n: *n,
+                            },
+                            Mechanic::Amplify(n) => mtg_core::card::Replacement::EnterAmplify(*n),
+                            Mechanic::Tribute(n) => mtg_core::card::Replacement::EnterTribute(*n),
+                            _ => unreachable!("matched above"),
+                        },
+                        then: Vec::new(),
+                        condition: None,
+                    })
+                }
                 Mechanic::Unleash | Mechanic::Riot => AbilityDef::Replacement(ReplacementAbility {
                     replaces: mtg_core::card::Replaces::Enters,
                     replacement: mtg_core::card::Replacement::EnterWithCountersMay {
@@ -6366,6 +6384,9 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Fabricate(_)
         | Mechanic::Renown(_)
         | Mechanic::Unleash
+        | Mechanic::Devour(..)
+        | Mechanic::Amplify(_)
+        | Mechanic::Tribute(_)
         | Mechanic::Station
         | Mechanic::Transmute(_)
         | Mechanic::Sunburst

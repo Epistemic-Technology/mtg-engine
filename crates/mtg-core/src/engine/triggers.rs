@@ -2130,6 +2130,7 @@ impl GameState {
                 .or_else(|| self.lki.get(&source).map(|l| l.object.cast.evoked()))
                 .unwrap_or(false),
             Condition::Blitzed => self.blitzed(source),
+            Condition::TributeNotPaid => !self.tribute_paid(source),
             // Judged only as the ability triggered.
             Condition::While(_)
             | Condition::WhileSecond(_)
@@ -2178,9 +2179,18 @@ impl GameState {
             }
             Condition::Trains => self.trains(w),
             Condition::Blitzed => self.blitzed(w.source),
+            Condition::TributeNotPaid => !self.tribute_paid(w.source),
             Condition::Dethrones => self.dethrones(w.source),
             Condition::AttackedOpponent => self.attacked_opponent(w.controller),
         }
+    }
+
+    /// Tribute (CR 702.104b): an opponent put the tribute counters on the
+    /// source as it entered.
+    fn tribute_paid(&self, source: ObjId) -> bool {
+        self.enter_notes
+            .iter()
+            .any(|(o, n)| *o == source && *n == crate::state::EnterNote::TributePaid)
     }
 
     /// Blitz (CR 702.152a): the source (as it last existed, once it has

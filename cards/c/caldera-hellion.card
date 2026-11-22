@@ -1,0 +1,8 @@
+card "Caldera Hellion" {
+  oracle_id 86a7dba7-aff9-4086-b149-03eee812249f
+  cost {3}{R}{R}
+  type Creature — Hellion
+  pt 3/3
+  devour 1
+  triggered when this enters: deal 3 damage to each creature
+}

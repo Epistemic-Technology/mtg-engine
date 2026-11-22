@@ -1,0 +1,140 @@
+# Tribute N (CR 702.104a): "As this creature enters, choose an opponent.
+# That player may put an additional N +1/+1 counters on it as it enters."
+# "If tribute wasn't paid" (702.104b) is judged as the trigger resolves.
+
+scenario "tribute paid: the counters, no trigger" {
+  battlefield A: 5 "Mountain"
+  hand A: "Pharagax Giant"
+  turn 1 B: accept "Pharagax Giant"
+  turn 1 A: cast "Pharagax Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Pharagax Giant" +1/+1 2
+  assert power "Pharagax Giant" 5
+  assert life B 20
+}
+
+scenario "tribute not paid: no counters, the trigger" {
+  battlefield A: 5 "Mountain"
+  hand A: "Pharagax Giant"
+  turn 1 B: decline "Pharagax Giant"
+  turn 1 A: cast "Pharagax Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Pharagax Giant" +1/+1 0
+  assert life B 15
+}
+
+scenario "Snake of the Golden Grove: 4 life unless tribute is paid" {
+  battlefield A: 5 "Forest"
+  hand A: "Snake of the Golden Grove"
+  turn 1 B: decline "Snake of the Golden Grove"
+  turn 1 A: cast "Snake of the Golden Grove"
+  run_to turn 1 postcombat_main
+  assert life A 24
+  assert power "Snake of the Golden Grove" 4
+}
+
+scenario "Snake of the Golden Grove: three counters paid" {
+  battlefield A: 5 "Forest"
+  hand A: "Snake of the Golden Grove"
+  turn 1 B: accept "Snake of the Golden Grove"
+  turn 1 A: cast "Snake of the Golden Grove"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert power "Snake of the Golden Grove" 7
+}
+
+scenario "Fanatic of Xenagos: +1/+1 and haste without tribute" {
+  battlefield A: 2 "Mountain", "Forest"
+  hand A: "Fanatic of Xenagos"
+  turn 1 B: decline "Fanatic of Xenagos"
+  turn 1 A: cast "Fanatic of Xenagos"
+  turn 1 A: attack "Fanatic of Xenagos"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Thunder Brute: haste without tribute" {
+  battlefield A: 6 "Mountain"
+  hand A: "Thunder Brute"
+  turn 1 B: decline "Thunder Brute"
+  turn 1 A: cast "Thunder Brute"
+  turn 1 A: attack "Thunder Brute"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Shrike Harpy: an edict without tribute" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shrike Harpy"
+  turn 1 B: decline "Shrike Harpy"
+  turn 1 A: cast "Shrike Harpy"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Ornitharch: two Birds without tribute" {
+  battlefield A: 5 "Plains"
+  hand A: "Ornitharch"
+  turn 1 B: decline "Ornitharch"
+  turn 1 A: cast "Ornitharch"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Bird"
+}
+
+scenario "Nessian Demolok: destroys a noncreature permanent without tribute" {
+  battlefield A: 5 "Forest"
+  battlefield B: "Howling Mine", "Grizzly Bears"
+  hand A: "Nessian Demolok"
+  turn 1 B: decline "Nessian Demolok"
+  turn 1 A: cast "Nessian Demolok"
+  turn 1 A: trigger "Nessian Demolok" targeting "Howling Mine"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Howling Mine"
+}
+
+scenario "Nessian Wilds Ravager: fights without tribute" {
+  battlefield A: 6 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Nessian Wilds Ravager"
+  turn 1 B: decline "Nessian Wilds Ravager"
+  turn 1 A: cast "Nessian Wilds Ravager"
+  turn 1 A: trigger "Nessian Wilds Ravager" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert damage "Nessian Wilds Ravager" 3
+}
+
+scenario "Siren of the Fanged Coast: steals a creature without tribute" {
+  battlefield A: 5 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Siren of the Fanged Coast"
+  turn 1 B: decline "Siren of the Fanged Coast"
+  turn 1 A: cast "Siren of the Fanged Coast"
+  turn 1 A: trigger "Siren of the Fanged Coast" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Oracle of Bones: a free instant without tribute" {
+  battlefield A: 4 "Mountain"
+  hand A: "Oracle of Bones", "Divination"
+  library A: "Island", "Forest", "Swamp"
+  turn 1 B: decline "Oracle of Bones"
+  turn 1 A: cast "Oracle of Bones"
+  turn 1 A: choose "Divination"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+}
+
+scenario "Oracle of Bones: no free spell when tribute is paid" {
+  battlefield A: 4 "Mountain"
+  hand A: "Oracle of Bones", "Divination"
+  library A: "Island", "Forest", "Swamp"
+  turn 1 B: accept "Oracle of Bones"
+  turn 1 A: cast "Oracle of Bones"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Divination"
+  assert power "Oracle of Bones" 5
+}

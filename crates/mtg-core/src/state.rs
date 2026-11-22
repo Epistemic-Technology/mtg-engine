@@ -1303,6 +1303,17 @@ pub struct TempCopy {
     pub next_turn_of: Option<crate::ids::PlayerId>,
 }
 
+/// Something noted about a permanent as it entered
+/// (`GameState::enter_notes`).
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum EnterNote {
+    /// It devoured this permanent (its old id, for last-known
+    /// information; CR 702.82c).
+    Devoured(ObjId),
+    /// Its tribute was paid (CR 702.104b).
+    TributePaid,
+}
+
 /// A card a permanent exiled (`GameState::linked_exiles`).
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct LinkedExile {
@@ -1861,6 +1872,11 @@ pub struct GameState {
     /// creature of each prowl card's creature types (CR 702.76a), kept
     /// only with a prowl card in the pool.
     pub prowl_damage: Vec<(PlayerId, crate::card::Subtype)>,
+    /// What happened as permanents entered, for their later abilities:
+    /// what each devoured (CR 702.82c), whether tribute was paid (CR
+    /// 702.104b). Keyed by the permanent; pruned as turns begin once it
+    /// has left the battlefield.
+    pub enter_notes: Vec<(ObjId, EnterNote)>,
     /// Players who lost life this turn ("if an opponent lost life this
     /// turn"), one bit each.
     pub lost_life_this_turn: u8,

@@ -1,0 +1,9 @@
+card "Oracle of Bones" {
+  oracle_id 0503fc7e-6819-4979-b0df-7de23de4558b
+  cost {2}{R}{R}
+  type Creature — Minotaur Shaman
+  pt 3/1
+  keywords haste
+  tribute 2
+  triggered when this enters if tribute not paid: cast free instant or sorcery spell from hand
+}

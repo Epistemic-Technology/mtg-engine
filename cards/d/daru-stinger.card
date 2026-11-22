@@ -1,0 +1,8 @@
+card "Daru Stinger" {
+  oracle_id 696bff10-4e46-48a7-b2af-13387b9d9da0
+  cost {3}{W}
+  type Creature — Soldier
+  pt 1/1
+  amplify 1
+  activated {T}: this creature deals damage equal +1/+1 counters on it to target attacking or blocking creature
+}

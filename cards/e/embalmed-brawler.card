@@ -1,0 +1,8 @@
+card "Embalmed Brawler" {
+  oracle_id 42e95ad5-c10a-46fe-ab97-c7a734138586
+  cost {2}{B}
+  type Creature — Zombie
+  pt 2/2
+  amplify 1
+  triggered whenever this attacks or blocks: you lose count each +1/+1 counters on it life
+}

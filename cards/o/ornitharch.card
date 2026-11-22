@@ -1,0 +1,9 @@
+card "Ornitharch" {
+  oracle_id 19639595-c59b-4233-a167-f5cffcb0e38b
+  cost {3}{W}{W}
+  type Creature — Archon
+  pt 3/3
+  keywords flying
+  tribute 2
+  triggered when this enters if tribute not paid: create 2 "1/1 white Bird creature with flying"
+}

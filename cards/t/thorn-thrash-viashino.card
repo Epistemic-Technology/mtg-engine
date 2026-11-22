@@ -1,0 +1,8 @@
+card "Thorn-Thrash Viashino" {
+  oracle_id 83d9a5a2-09b0-44bf-b0b8-82a5fc53b00a
+  cost {3}{R}
+  type Creature — Lizard Warrior
+  pt 2/2
+  devour 2
+  activated {G}: this gains trample
+}

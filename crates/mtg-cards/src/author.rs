@@ -68,6 +68,9 @@ const KEYWORDS: &[&str] = &[
 
 /// Scryfall keyword tags that templates below handle as abilities.
 const TEMPLATED_TAGS: &[&str] = &[
+    "Devour",
+    "Amplify",
+    "Tribute",
     "Emerge",
     "Miracle",
     "Prowl",
@@ -663,6 +666,13 @@ fn count_expr(s: &str) -> Option<String> {
         && n.chars().all(|c| c.is_ascii_digit())
     {
         return count_expr(what).map(|e| format!("every {n} {e}"));
+    }
+    // Devour (CR 702.82c): "for each creature it devoured", "the number
+    // of Goblins it devoured".
+    if let Some(f) = s.strip_suffix(" it devoured")
+        && !f.contains(' ')
+    {
+        return Some(format!("{} it devoured", singular(f)));
     }
     match s {
         "basic land types among lands you control" | "basic land type among lands you control" => {
@@ -4950,7 +4960,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) = Regex::new(
-            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Afterlife|Casualty|Teamwork|Ripple|Dredge|Firebending|Graft|Vanishing|Fading|Annihilator|Rampage) (\d+)$",
+            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Afterlife|Casualty|Teamwork|Ripple|Dredge|Firebending|Graft|Vanishing|Fading|Annihilator|Rampage|Amplify|Tribute|Devour|Devour artifact|Devour land) (\d+)$",
         )
         .unwrap()
         .captures(line)
@@ -5834,6 +5844,9 @@ impl Builder<'_> {
             {
                 // The source's own cast (CR 601.2a), from any zone.
                 (" if you cast it", r)
+            } else if let Some(r) = rest.strip_prefix("if tribute wasn't paid, ") {
+                // CR 702.104b.
+                (" if tribute not paid", r)
             } else if let Some(r) = rest.strip_prefix("if no spells were cast last turn, ") {
                 (" if no spells were cast last turn", r)
             } else if let Some(r) =

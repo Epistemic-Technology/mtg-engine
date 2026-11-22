@@ -1,0 +1,9 @@
+card "Voracious Dragon" {
+  oracle_id 7f39bbae-6c84-4cb3-9a58-d746a723ad35
+  cost {3}{R}{R}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  devour 1
+  triggered when this enters: deal count equal 2 Goblin it devoured damage to any target
+}

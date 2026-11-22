@@ -1846,6 +1846,10 @@ pub enum CountExpr {
     /// ("the number of differently named lands you control"); a nameless
     /// face-down permanent adds none.
     DifferentlyNamed(ObjFilter),
+    /// Devour (CR 702.82c): the permanents the source devoured matching
+    /// the filter, as they last existed ("for each creature it devoured",
+    /// "the number of Goblins it devoured").
+    Devoured(ObjFilter),
     /// The number of creatures in your party (CR 700.8): up to one each
     /// matching these four filters (Cleric, Rogue, Warrior, Wizard
     /// creatures you control), as many as can be assigned.
@@ -2067,6 +2071,7 @@ impl CountExpr {
             | CountExpr::CardManaValue
             | CountExpr::GreatestPower(_)
             | CountExpr::DifferentlyNamed(_)
+            | CountExpr::Devoured(_)
             | CountExpr::Party(_)
             | CountExpr::SourceToughness
             | CountExpr::CardsDrawnThisTurn
@@ -5337,6 +5342,20 @@ pub enum Replacement {
         kinds: [CounterKind; 2],
         cond: Option<u16>,
     },
+    /// Devour N (CR 702.82a): "As this object enters, you may sacrifice
+    /// any number of [kind]s. This permanent enters with N times that many
+    /// +1/+1 counters on it." (CR 702.82b: "devour artifact", "devour
+    /// land"). What it devoured is noted (`GameState::enter_notes`).
+    EnterDevour { kind: CardType, n: u32 },
+    /// Amplify N (CR 702.38a): "As this object enters, reveal any number
+    /// of cards from your hand that share a creature type with it. This
+    /// permanent enters with N +1/+1 counters on it for each card revealed
+    /// this way."
+    EnterAmplify(u32),
+    /// Tribute N (CR 702.104a): "As this creature enters, choose an
+    /// opponent. That player may put an additional N +1/+1 counters on it
+    /// as it enters." Paid, it is noted (`EnterNote::TributePaid`).
+    EnterTribute(u32),
     /// CR 701.15a: instead of being destroyed, the permanent has all damage
     /// removed, is tapped, and leaves combat. A stored shield; used once.
     Regenerate,
@@ -6056,6 +6075,9 @@ pub enum Condition {
     /// the source's only while its blitz cost was paid (as it last
     /// existed).
     Blitzed,
+    /// Tribute (CR 702.104b): "if tribute wasn't paid", judged as the
+    /// ability resolves (the permanent as it is, or last existed).
+    TributeNotPaid,
     /// Melee (CR 702.121a) in a two-player game: an opponent was attacked
     /// with a creature this combat (a planeswalker doesn't count), so the
     /// bonus "for each opponent you attacked" is one. Judged only as the
@@ -6935,6 +6957,9 @@ impl AbilityDef {
             AbilityDef::Replacement(ReplacementAbility {
                 replacement: Replacement::EnterWithCountersMay { .. }
                     | Replacement::EnterWithCounterChoice { .. }
+                    | Replacement::EnterDevour { .. }
+                    | Replacement::EnterAmplify(_)
+                    | Replacement::EnterTribute(_)
                     | Replacement::EnterTappedUnlessPay(_),
                 ..
             })

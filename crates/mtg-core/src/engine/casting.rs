@@ -947,6 +947,23 @@ impl GameState {
                     .unwrap_or(0);
                 return u32::try_from(best.max(0)).unwrap_or(0);
             }
+            // CR 702.82c: "for each creature it devoured", the sacrificed
+            // permanents as they last existed.
+            CountExpr::Devoured(f) => self
+                .enter_notes
+                .iter()
+                .filter(|(o, note)| {
+                    *o == ctx.source
+                        && matches!(note, crate::state::EnterNote::Devoured(d)
+                            if self.lki.get(d).is_some_and(|l| f.matches(
+                                *d,
+                                l.object.controller,
+                                &l.characteristics,
+                                Some(ctx.source),
+                                Some(you),
+                            )))
+                })
+                .count(),
             CountExpr::DifferentlyNamed(f) => {
                 let f = &*self.chosen_filter(f, ctx);
                 let mut names: SmallVec<[&str; 8]> = SmallVec::new();

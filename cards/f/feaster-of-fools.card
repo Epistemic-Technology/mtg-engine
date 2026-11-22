@@ -1,0 +1,8 @@
+card "Feaster of Fools" {
+  oracle_id 3e3d4f28-93a0-4313-a9a0-48fd06540cf8
+  cost {4}{B}{B}
+  type Creature — Demon
+  pt 3/3
+  keywords convoke, flying
+  devour 2
+}

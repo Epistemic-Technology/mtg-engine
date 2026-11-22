@@ -467,6 +467,15 @@ impl GameState {
                 }
             }
         }
+        // What it devoured or whether its tribute was paid as it entered
+        // (noted for the object about to enter).
+        if !self.enter_notes.is_empty() && to == Zone::Battlefield {
+            for n in &mut self.enter_notes {
+                if n.0 == id {
+                    n.0 = new;
+                }
+            }
+        }
         // CR 601.2h: the permanent a spell becomes remembers the mana
         // spent to cast it ("if {B} was spent to cast it").
         if !self.spent_mana.is_empty()

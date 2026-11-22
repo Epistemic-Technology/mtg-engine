@@ -356,6 +356,9 @@ pub enum CountExpr {
     /// `differently named land you control`: "the number of differently
     /// named lands you control".
     DifferentlyNamed(Filter),
+    /// `creature it devoured`: "for each creature it devoured", "the
+    /// number of Goblins it devoured" (CR 702.82c).
+    Devoured(Filter),
     /// `party`: "creatures in your party" (CR 700.8).
     Party,
     /// `greatest mana value`: "the greatest mana value among permanents you
@@ -1858,6 +1861,17 @@ pub enum Mechanic {
     /// `riot` (CR 702.136): enters with your choice of a +1/+1 counter or
     /// haste.
     Riot,
+    /// `devour 2`, `devour artifact 1`, `devour land 3` (CR 702.82): as it
+    /// enters, sacrifice any number of creatures (artifacts, lands); it
+    /// enters with N +1/+1 counters for each.
+    Devour(Option<mtg_core::card::CardType>, u32),
+    /// `amplify 1` (CR 702.38): as it enters, reveal any number of cards
+    /// from your hand that share a creature type with it; N +1/+1 counters
+    /// for each.
+    Amplify(u32),
+    /// `tribute 2` (CR 702.104): as it enters, an opponent of your choice
+    /// may put N +1/+1 counters on it; `if tribute not paid` after.
+    Tribute(u32),
     /// `living weapon` (CR 702.92): when this Equipment enters, a 0/0
     /// black Phyrexian Germ token, then attach this to it.
     LivingWeapon,

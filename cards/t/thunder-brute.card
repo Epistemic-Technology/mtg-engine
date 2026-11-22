@@ -1,0 +1,9 @@
+card "Thunder Brute" {
+  oracle_id ee1d97e9-847d-4295-a9c1-7ce8006fb0bd
+  cost {4}{R}{R}
+  type Creature — Cyclops
+  pt 5/5
+  keywords trample
+  tribute 3
+  triggered when this enters if tribute not paid: this gains haste
+}

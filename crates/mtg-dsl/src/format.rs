@@ -2891,6 +2891,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::BlockingIt { beyond } => format!("creature blocking it beyond {beyond}"),
         CountExpr::GreatestPower(f) => format!("greatest power {}", filter(f)),
         CountExpr::DifferentlyNamed(f) => format!("differently named {}", filter(f)),
+        CountExpr::Devoured(f) => format!("{} it devoured", filter(f)),
         CountExpr::Party => "party".to_string(),
         CountExpr::GreatestManaValue => "greatest mana value".to_string(),
         CountExpr::CardsDrawnThisTurn => "drawn this turn".to_string(),
@@ -3054,7 +3055,10 @@ fn outcome(o: &Outcome) -> String {
         Outcome::EnterTappedUnless(_)
         | Outcome::EnterWithCountersIf { .. }
         | Outcome::EnterWithCountersMay { .. }
-        | Outcome::EnterWithCounterChoice { .. } => {
+        | Outcome::EnterWithCounterChoice { .. }
+        | Outcome::EnterDevour { .. }
+        | Outcome::EnterAmplify(_)
+        | Outcome::EnterTribute(_) => {
             unreachable!("an AST ability of its own")
         }
         Outcome::EnterTapped => "tapped".to_string(),
@@ -5319,6 +5323,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Some(mtg_core::card::Condition::Increments) => head.push_str(" if increments"),
                 Some(mtg_core::card::Condition::Trains) => head.push_str(" if trains"),
                 Some(mtg_core::card::Condition::Blitzed) => head.push_str(" if blitzed"),
+                Some(mtg_core::card::Condition::TributeNotPaid) => {
+                    head.push_str(" if tribute not paid");
+                }
                 Some(mtg_core::card::Condition::Dethrones) => head.push_str(" if dethrones"),
                 Some(mtg_core::card::Condition::AttackedOpponent) => {
                     head.push_str(" if attacked opponent");
@@ -5710,6 +5717,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Extort => "extort".to_string(),
                 crate::ast::Mechanic::Mentor => "mentor".to_string(),
                 crate::ast::Mechanic::Riot => "riot".to_string(),
+                crate::ast::Mechanic::Devour(None, n) => format!("devour {n}"),
+                crate::ast::Mechanic::Devour(Some(k), n) => {
+                    format!("devour {} {n}", format!("{k:?}").to_lowercase())
+                }
+                crate::ast::Mechanic::Amplify(n) => format!("amplify {n}"),
+                crate::ast::Mechanic::Tribute(n) => format!("tribute {n}"),
                 crate::ast::Mechanic::LivingWeapon => "living weapon".to_string(),
                 crate::ast::Mechanic::JobSelect => "job select".to_string(),
                 crate::ast::Mechanic::Retrace => "retrace".to_string(),

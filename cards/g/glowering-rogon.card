@@ -1,0 +1,7 @@
+card "Glowering Rogon" {
+  oracle_id e9ed7322-53d4-419a-809f-78824aeaf99e
+  cost {5}{G}
+  type Creature — Beast
+  pt 4/4
+  amplify 1
+}

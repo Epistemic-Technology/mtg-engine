@@ -1,0 +1,8 @@
+card "Nessian Wilds Ravager" {
+  oracle_id fa1a5797-3076-48a4-b64b-ce3dfe2a3e7b
+  cost {4}{G}{G}
+  type Creature — Hydra
+  pt 6/6
+  tribute 6
+  triggered when this enters if tribute not paid: you may this creature fights another target creature
+}

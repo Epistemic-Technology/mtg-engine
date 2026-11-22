@@ -3622,6 +3622,12 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         CountExpr::GreatestPower(f) => {
             return format!("the greatest power among {}", filter_phrase(f, card, true));
         }
+        // "for each creature it devoured", "the number of Goblins it
+        // devoured" (CR 702.82c).
+        CountExpr::Devoured(f) => (
+            format!("{} it devoured", filter_phrase(f, card, false)),
+            format!("{} it devoured", filter_phrase(f, card, true)),
+        ),
         CountExpr::DifferentlyNamed(f) => {
             return format!(
                 "the number of differently named {}",
@@ -9983,6 +9989,7 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
             this_ref(ctx.card)
         ),
         Condition::Blitzed => "if its blitz cost was paid".to_string(),
+        Condition::TributeNotPaid => "if tribute wasn't paid".to_string(),
         Condition::Trains => format!(
             "if at least one other creature with power greater than {}'s power attacked",
             this_ref(ctx.card)
@@ -13502,6 +13509,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Extort => "Extort".to_string(),
             crate::ast::Mechanic::Mentor => "Mentor".to_string(),
             crate::ast::Mechanic::Riot => "Riot".to_string(),
+            crate::ast::Mechanic::Devour(None, n) => format!("Devour {n}"),
+            crate::ast::Mechanic::Devour(Some(k), n) => {
+                format!("Devour {} {n}", format!("{k:?}").to_lowercase())
+            }
+            crate::ast::Mechanic::Amplify(n) => format!("Amplify {n}"),
+            crate::ast::Mechanic::Tribute(n) => format!("Tribute {n}"),
             crate::ast::Mechanic::LivingWeapon => "Living weapon".to_string(),
             crate::ast::Mechanic::JobSelect => "Job select".to_string(),
             crate::ast::Mechanic::Retrace => "Retrace".to_string(),

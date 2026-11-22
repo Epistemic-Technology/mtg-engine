@@ -1,0 +1,78 @@
+# Amplify N (CR 702.38a): "As this object enters, reveal any number of
+# cards from your hand that share a creature type with it. This permanent
+# enters with N +1/+1 counters on it for each card revealed this way."
+
+scenario "amplify: a counter for each Beast revealed" {
+  battlefield A: 6 "Forest"
+  hand A: "Glowering Rogon", "Shore Snapper", "Craw Wurm", "Glowering Rogon"
+  turn 1 A: cast "Glowering Rogon"
+  turn 1 A: choose "Shore Snapper"
+  turn 1 A: choose "Glowering Rogon"
+  run_to turn 1 postcombat_main
+  assert counters "Glowering Rogon" +1/+1 2
+  assert power "Glowering Rogon" 6
+  assert hand A count 3
+  assert known B "Shore Snapper"
+}
+
+scenario "amplify: revealing nothing is the default" {
+  battlefield A: 6 "Forest"
+  hand A: "Glowering Rogon", "Shore Snapper"
+  turn 1 A: cast "Glowering Rogon"
+  run_to turn 1 postcombat_main
+  assert counters "Glowering Rogon" +1/+1 0
+  assert unknown B "Shore Snapper"
+}
+
+scenario "amplify: a card of another creature type can't be revealed" {
+  battlefield A: 6 "Forest"
+  hand A: "Glowering Rogon", "Craw Wurm", "Shore Snapper"
+  turn 1 A: cast "Glowering Rogon"
+  illegal turn 1 A: choose "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert counters "Glowering Rogon" +1/+1 0
+}
+
+scenario "Embalmed Brawler: Zombies, and life lost for each counter as it attacks" {
+  battlefield A: 3 "Swamp"
+  hand A: "Embalmed Brawler", "Gravedigger", "Grizzly Bears"
+  turn 1 A: cast "Embalmed Brawler"
+  turn 1 A: choose "Gravedigger"
+  run_to turn 3 precombat_main
+  assert counters "Embalmed Brawler" +1/+1 1
+  assert power "Embalmed Brawler" 3
+}
+
+scenario "Embalmed Brawler: you lose 1 life for each +1/+1 counter as it attacks" {
+  battlefield A: "Embalmed Brawler" with 2 +1/+1
+  turn 1 A: attack "Embalmed Brawler"
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert life B 16
+}
+
+scenario "Daru Stinger: two Soldiers revealed, two damage to an attacker" {
+  battlefield A: "Daru Stinger" with 2 +1/+1
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: activate "Daru Stinger" targeting "Hill Giant"
+  run_to turn 2 end
+  assert damage "Hill Giant" 2
+}
+
+scenario "Daru Stinger: amplify with Soldiers" {
+  battlefield A: 4 "Plains"
+  hand A: "Daru Stinger", "Eager Cadet", "Savannah Lions"
+  turn 1 A: cast "Daru Stinger"
+  turn 1 A: choose "Eager Cadet"
+  run_to turn 1 postcombat_main
+  assert counters "Daru Stinger" +1/+1 1
+}
+
+scenario "Daru Stinger: a creature not attacking or blocking can't be targeted" {
+  battlefield A: "Daru Stinger" with 1 +1/+1
+  battlefield B: "Hill Giant"
+  illegal turn 1 A: activate "Daru Stinger" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+}

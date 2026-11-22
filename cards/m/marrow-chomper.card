@@ -1,0 +1,8 @@
+card "Marrow Chomper" {
+  oracle_id 96313465-6a97-4c0e-ae9a-91e95f247f5b
+  cost {3}{B}{G}
+  type Creature — Zombie Lizard
+  pt 3/3
+  devour 2
+  triggered when this enters: you gain count each 2 creature it devoured life
+}

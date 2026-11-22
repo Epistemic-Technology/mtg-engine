@@ -2070,13 +2070,17 @@ impl P {
             }
             "bushido" | "soulshift" | "afflict" | "toxic" | "crew" | "bloodthirst" | "backup"
             | "saddle" | "poisonous" | "frenzy" | "absorb" | "fabricate" | "renown"
-            | "afterlife" | "casualty" | "teamwork" | "ripple" | "dredge"
+            | "afterlife" | "casualty" | "teamwork" | "ripple" | "dredge" | "devour"
+            | "amplify" | "tribute"
                 if matches!(self.peek_at(1), Some(Tok::Num(_))) =>
             {
                 self.pos += 1;
                 let n = self.number()?;
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(match w.as_str() {
+                    "devour" => Mechanic::Devour(None, n),
+                    "amplify" => Mechanic::Amplify(n),
+                    "tribute" => Mechanic::Tribute(n),
                     "bushido" => Mechanic::Bushido(n),
                     "soulshift" => Mechanic::Soulshift(n),
                     "afflict" => Mechanic::Afflict(n),
@@ -2096,6 +2100,22 @@ impl P {
                     "ripple" => Mechanic::Ripple(n),
                     _ => Mechanic::Toxic(n),
                 }))
+            }
+            // CR 702.82b: "devour artifact 1", "devour land 3".
+            "devour"
+                if matches!(self.word_at(1).as_deref(), Some("artifact" | "land"))
+                    && matches!(self.peek_at(2), Some(Tok::Num(_))) =>
+            {
+                self.pos += 1;
+                let kind = if self.eat_word("artifact") {
+                    mtg_core::card::CardType::Artifact
+                } else {
+                    self.expect_word("land")?;
+                    mtg_core::card::CardType::Land
+                };
+                let n = self.number()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Devour(Some(kind), n)))
             }
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
             | "disguise" | "evoke" | "madness" | "mayhem" | "foretell" | "plot" | "sneak"
@@ -9193,6 +9213,15 @@ impl P {
         if self.eat_words(&["differently", "named"]) {
             return Ok(CountExpr::DifferentlyNamed(self.filter()?));
         }
+        // `creature it devoured`, `Goblin it devoured` (CR 702.82c).
+        if (1..5).any(|k| {
+            self.word_at(k).as_deref() == Some("it")
+                && self.word_at(k + 1).as_deref() == Some("devoured")
+        }) {
+            let f = self.filter()?;
+            self.expect_words(&["it", "devoured"])?;
+            return Ok(CountExpr::Devoured(f));
+        }
         if self.eat_words(&["greatest", "power", "graveyard"]) {
             return Ok(CountExpr::GreatestPowerInGraveyard(self.filter()?));
         }
@@ -12381,6 +12410,10 @@ impl P {
         }
         if self.eat_word("blitzed") {
             return Ok(Condition::Blitzed);
+        }
+        // CR 702.104b: "if tribute wasn't paid".
+        if self.eat_words(&["tribute", "not", "paid"]) {
+            return Ok(Condition::TributeNotPaid);
         }
         if self.eat_word("dethrones") {
             return Ok(Condition::Dethrones);

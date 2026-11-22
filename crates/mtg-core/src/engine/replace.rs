@@ -1503,6 +1503,157 @@ impl GameState {
                     enter: Enter { counters, ..enter },
                 })
             }
+            // CR 702.82a: devour, "you may sacrifice any number of
+            // creatures. This permanent enters with N times that many +1/+1
+            // counters on it."
+            (
+                Replacement::EnterDevour { kind, n },
+                Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter,
+                },
+            ) => {
+                let mut cands: Vec<ObjId> = self
+                    .battlefield
+                    .iter()
+                    .copied()
+                    .filter(|id| {
+                        *id != obj
+                            && self.objects[*id].controller == controller
+                            && self
+                                .characteristics(*id)
+                                .is_some_and(|c| c.types.contains(kind))
+                    })
+                    .collect();
+                let eaten = self.choose_some(controller, &mut cands, |id| Choice::Sacrifice(id));
+                for id in &eaten {
+                    self.sacrifice(*id);
+                    self.enter_notes
+                        .push((obj, crate::state::EnterNote::Devoured(*id)));
+                }
+                let m = n * u32::try_from(eaten.len()).unwrap_or(0);
+                Outcome::Event(Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter: Enter {
+                        counters: plus_counters(enter.counters, m),
+                        ..enter
+                    },
+                })
+            }
+            // CR 702.38a: amplify, "reveal any number of cards from your
+            // hand that share a creature type with it. This permanent
+            // enters with N +1/+1 counters on it for each card revealed
+            // this way."
+            (
+                Replacement::EnterAmplify(n),
+                Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter,
+                },
+            ) => {
+                let me = self.base_characteristics(&self.objects[obj]);
+                let mut cands: Vec<ObjId> = self
+                    .player(controller)
+                    .hand
+                    .iter()
+                    .copied()
+                    .filter(|id| {
+                        *id != obj && {
+                            let c = self.base_characteristics(&self.objects[*id]);
+                            c.subtypes
+                                .iter()
+                                .any(|t| t.is_creature_type() && me.has_subtype(*t))
+                                || me
+                                    .subtypes
+                                    .iter()
+                                    .any(|t| t.is_creature_type() && c.has_subtype(*t))
+                        }
+                    })
+                    .collect();
+                let shown = self.choose_some(controller, &mut cands, |card| Choice::Discard {
+                    card,
+                    def: crate::card::CardRef(0),
+                });
+                for id in &shown {
+                    self.reveal_in_hand(*id);
+                }
+                let m = n * u32::try_from(shown.len()).unwrap_or(0);
+                Outcome::Event(Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter: Enter {
+                        counters: plus_counters(enter.counters, m),
+                        ..enter
+                    },
+                })
+            }
+            // CR 702.104a: tribute, "As this creature enters, choose an
+            // opponent. That player may put an additional N +1/+1 counters
+            // on it as it enters."
+            (
+                Replacement::EnterTribute(n),
+                Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter,
+                },
+            ) => {
+                let opponents: Vec<PlayerId> = self
+                    .players_in_game()
+                    .filter(|p| *p != controller)
+                    .collect();
+                let def = self.objects[obj].def;
+                let chosen = match opponents.as_slice() {
+                    [] => None,
+                    [one] => Some(*one),
+                    many => {
+                        let options = many
+                            .iter()
+                            .map(|p| Choice::Target(crate::state::Target::Player(*p)))
+                            .collect();
+                        let k = self.choose_mid(controller, DecisionKind::ChooseOption { def }, options);
+                        many.get(k).copied()
+                    }
+                };
+                let paid = chosen.is_some_and(|p| {
+                    self.choose_mid(
+                        p,
+                        DecisionKind::YouMay { def },
+                        vec![Choice::Accept, Choice::Decline],
+                    ) == 0
+                });
+                if paid {
+                    self.enter_notes
+                        .push((obj, crate::state::EnterNote::TributePaid));
+                }
+                Outcome::Event(Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter: Enter {
+                        counters: if paid {
+                            plus_counters(enter.counters, n)
+                        } else {
+                            enter.counters
+                        },
+                        ..enter
+                    },
+                })
+            }
             // `applies` only offers matching pairs.
             (_, ev) => Outcome::Event(ev),
         };
@@ -1577,6 +1728,35 @@ impl GameState {
         self.choose_mid(player, DecisionKind::ChooseReplacement, options)
     }
 
+    /// "Any number of" `cands`, chosen one at a time as an event is
+    /// applied (devour, amplify): the first option, the default, is to
+    /// stop.
+    fn choose_some(
+        &mut self,
+        player: PlayerId,
+        cands: &mut Vec<ObjId>,
+        option: impl Fn(ObjId) -> Choice,
+    ) -> Vec<ObjId> {
+        let mut out = Vec::new();
+        while !cands.is_empty() {
+            let mut options = vec![Choice::Done];
+            options.extend(cands.iter().map(|id| match option(*id) {
+                Choice::Discard { card, .. } => Choice::Discard {
+                    card,
+                    def: self.objects[card].def,
+                },
+                c => c,
+            }));
+            let k = self.choose_mid(player, DecisionKind::ChooseCard, options.clone());
+            let (Choice::Sacrifice(id) | Choice::Discard { card: id, .. }) = options[k] else {
+                break;
+            };
+            cands.retain(|c| *c != id);
+            out.push(id);
+        }
+        out
+    }
+
     /// A decision needed while an event is being applied. On a replay the
     /// recorded answer is used; otherwise the question is recorded, the
     /// first option stands for now, and the `Engine` rolls back and asks.
@@ -1620,5 +1800,16 @@ impl GameState {
             });
         }
         self.cbump();
+    }
+}
+
+/// `m` more +1/+1 counters on an entering permanent (devour, amplify,
+/// tribute), with any it already enters with.
+fn plus_counters(counters: Option<(CounterKind, u32)>, m: u32) -> Option<(CounterKind, u32)> {
+    match counters {
+        _ if m == 0 => counters,
+        Some((k, c)) if k == CounterKind::PlusOnePlusOne => Some((k, c + m)),
+        Some(other) => Some(other),
+        None => Some((CounterKind::PlusOnePlusOne, m)),
     }
 }

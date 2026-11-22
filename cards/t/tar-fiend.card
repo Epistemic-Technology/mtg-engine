@@ -1,0 +1,8 @@
+card "Tar Fiend" {
+  oracle_id 82bc2ee1-9b51-4b3b-804b-1b4e8aab9a4f
+  cost {5}{B}
+  type Creature — Elemental
+  pt 4/4
+  devour 2
+  triggered when this enters: target player discards count each creature it devoured cards
+}

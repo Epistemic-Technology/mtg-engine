@@ -1,0 +1,9 @@
+card "Fanatic of Xenagos" {
+  oracle_id f1072af9-9e6f-45ce-8c4b-8e678e7da8ce
+  cost {1}{R}{G}
+  type Creature — Centaur Warrior
+  pt 3/3
+  keywords trample
+  tribute 1
+  triggered when this enters if tribute not paid: this gets +1/+1 and gains haste
+}
