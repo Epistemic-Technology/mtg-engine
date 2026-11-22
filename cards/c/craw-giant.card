@@ -1,0 +1,8 @@
+card "Craw Giant" {
+  oracle_id 152b621e-4c18-438c-9999-77e2685fda79
+  cost {3}{G}{G}{G}{G}
+  type Creature — Giant
+  pt 6/4
+  keywords trample
+  rampage 2
+}

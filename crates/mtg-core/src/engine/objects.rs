@@ -213,6 +213,8 @@ impl GameState {
         for (kind, extra) in [
             (CounterKind::PlusOnePlusOne, d.modular + d.graft),
             (CounterKind::Time, d.vanishing),
+            // CR 702.32a: fading's fade counters.
+            (CounterKind::Fade, d.fading),
         ] {
             if extra == 0 {
                 continue;

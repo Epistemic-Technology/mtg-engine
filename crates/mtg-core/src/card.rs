@@ -5709,6 +5709,20 @@ pub enum Condition {
     /// ability resolves even if the condition no longer holds (CR 603.2,
     /// unlike CR 603.4).
     While(u16),
+    /// Training (CR 702.149a): "Whenever this creature and at least one
+    /// other creature with power greater than this creature's power
+    /// attack": judged only as attackers are declared (another attacking
+    /// creature its controller controls has greater power).
+    Trains,
+    /// Dethrone (CR 702.105a): "Whenever this creature attacks the player
+    /// with the most life or tied for most life": judged only as it
+    /// attacks; attacking a planeswalker or battle doesn't count.
+    Dethrones,
+    /// Melee (CR 702.121a) in a two-player game: an opponent was attacked
+    /// with a creature this combat (a planeswalker doesn't count), so the
+    /// bonus "for each opponent you attacked" is one. Judged only as the
+    /// ability triggers: attackers are declared once each combat.
+    AttackedOpponent,
 }
 
 /// A triggered ability (CR 603).
@@ -6932,6 +6946,9 @@ pub struct CardDef {
     /// trigger is an ordinary ability).
     #[serde(default)]
     pub vanishing: u32,
+    /// Fading N's entering fade counters (CR 702.32a).
+    #[serde(default)]
+    pub fading: u32,
     /// Flashback (CR 702.34): the spell may be cast from the graveyard for
     /// this cost instead of its mana cost, and is exiled as it leaves the
     /// stack.
@@ -8973,6 +8990,7 @@ impl Builder {
             modular: 0,
             graft: 0,
             vanishing: 0,
+            fading: 0,
             flashback: None,
             retrace: false,
             watch_mask: 0,
@@ -9441,6 +9459,13 @@ impl Builder {
     #[must_use]
     pub fn vanishing(mut self, n: u32) -> Self {
         self.0.vanishing = n;
+        self
+    }
+
+    /// Fading N's entering fade counters (CR 702.32a).
+    #[must_use]
+    pub fn fading(mut self, n: u32) -> Self {
+        self.0.fading = n;
         self
     }
 

@@ -1,0 +1,8 @@
+card "Rural Recruit" {
+  oracle_id fda06d9e-d17f-4bb6-916b-06116e47c8e8
+  cost {3}{G}
+  type Creature — Human Peasant
+  pt 1/1
+  training
+  triggered when this enters: create 1 "3/1 green Boar creature"
+}

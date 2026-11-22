@@ -1,0 +1,8 @@
+card "Marchesa's Emissary" {
+  oracle_id 7a67cb39-6b53-4f2b-a52c-3861119eba12
+  cost {3}{U}
+  type Creature — Human Rogue
+  pt 2/2
+  keywords hexproof
+  dethrone
+}

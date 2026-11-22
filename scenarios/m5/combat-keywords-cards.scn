@@ -1,0 +1,155 @@
+# The cards with annihilator, battle cry, rampage, training, melee,
+# myriad, and For Mirrodin! not exercised in combat-keywords.scn.
+
+scenario "Balduvian War-Makers: haste, rampage 1 with two blockers" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Grizzly Bears", "Wind Drake"
+  hand A: "Balduvian War-Makers"
+  turn 1 A: cast "Balduvian War-Makers"
+  turn 1 A: attack "Balduvian War-Makers"
+  turn 1 B: block "Balduvian War-Makers" with "Grizzly Bears"
+  turn 1 B: block "Balduvian War-Makers" with "Wind Drake"
+  run_to turn 1 combat_damage
+  assert power "Balduvian War-Makers" 4
+  assert toughness "Balduvian War-Makers" 4
+}
+
+scenario "Craw Giant: rampage 2 and trample over two blockers" {
+  battlefield A: "Craw Giant"
+  battlefield B: "Grizzly Bears", "Wind Drake"
+  turn 1 A: attack "Craw Giant"
+  turn 1 B: block "Craw Giant" with "Grizzly Bears"
+  turn 1 B: block "Craw Giant" with "Wind Drake"
+  turn 1 A: assign "Craw Giant" to "Grizzly Bears" 2, "Wind Drake" 2, player B 4
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert battlefield A contains "Craw Giant"
+}
+
+scenario "Deputized Protester: melee, menace" {
+  battlefield A: "Deputized Protester"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Deputized Protester"
+  illegal turn 1 B: block "Deputized Protester" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Menagerie Liberator: melee" {
+  battlefield A: "Menagerie Liberator"
+  turn 1 A: attack "Menagerie Liberator"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Goblin Wardriver and Loxodon Partisan: battle cry" {
+  battlefield A: "Goblin Wardriver", "Loxodon Partisan"
+  turn 1 A: attack "Goblin Wardriver", "Loxodon Partisan"
+  run_to turn 1 postcombat_main
+  assert power "Goblin Wardriver" 3
+  assert power "Loxodon Partisan" 4
+  assert life B 13
+}
+
+scenario "Rhox Veteran: battle cry and taps a creature" {
+  battlefield A: "Rhox Veteran", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Rhox Veteran", "Grizzly Bears"
+  turn 1 A: trigger "Rhox Veteran" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert life B 15
+}
+
+scenario "Goldwarden's Helm: a 2/3 Rebel" {
+  battlefield A: 3 "Plains"
+  hand A: "Goldwarden's Helm"
+  turn 1 A: cast "Goldwarden's Helm"
+  run_to turn 1 postcombat_main
+  assert power "Rebel" 2
+  assert toughness "Rebel" 3
+}
+
+scenario "Vulshok Splitter: a 4/2 Rebel" {
+  battlefield A: 4 "Mountain"
+  hand A: "Vulshok Splitter"
+  turn 1 A: cast "Vulshok Splitter"
+  run_to turn 1 postcombat_main
+  assert power "Rebel" 4
+  assert toughness "Rebel" 2
+}
+
+scenario "Sylvok Battle-Chair: a 6/6 trampling Rebel" {
+  battlefield A: 6 "Forest"
+  hand A: "Sylvok Battle-Chair"
+  turn 1 A: cast "Sylvok Battle-Chair"
+  run_to turn 1 postcombat_main
+  assert power "Rebel" 6
+  assert toughness "Rebel" 6
+  assert has "Rebel" trample
+}
+
+scenario "Tabaxi Toucaneers and Tiamat's Fanatics: myriad makes no copies" {
+  battlefield A: 5 "Mountain", "Tabaxi Toucaneers"
+  hand A: "Tiamat's Fanatics"
+  turn 1 A: cast "Tiamat's Fanatics"
+  turn 1 A: attack "Tiamat's Fanatics", "Tabaxi Toucaneers"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Tiamat's Fanatics"
+  assert battlefield A contains 1 "Tabaxi Toucaneers"
+  assert life B 13
+}
+
+scenario "Signal Pest: can't be blocked except by flying or reach" {
+  battlefield A: "Signal Pest", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Signal Pest", "Grizzly Bears"
+  illegal turn 1 B: block "Signal Pest" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+}
+
+scenario "Kuldotha Ringleader: battle cry, attacks each combat" {
+  battlefield A: "Kuldotha Ringleader", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert tapped "Kuldotha Ringleader"
+}
+
+scenario "Sanguine Evangelist: battle cry, a Bat on entering" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  hand A: "Sanguine Evangelist"
+  turn 1 A: cast "Sanguine Evangelist"
+  run_to turn 3 upkeep
+  assert battlefield A contains "Bat"
+  turn 3 A: attack "Sanguine Evangelist", "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life B 15
+}
+
+scenario "Gryffwing Cavalry: training with a bigger attacker" {
+  battlefield A: "Gryffwing Cavalry", "Hill Giant"
+  turn 1 A: attack "Gryffwing Cavalry", "Hill Giant"
+  turn 1 A: decline "Gryffwing Cavalry"
+  run_to turn 1 postcombat_main
+  assert counters "Gryffwing Cavalry" +1/+1 1
+}
+
+scenario "Nulldrifter: evoked, draws two and is sacrificed" {
+  battlefield A: 3 "Island"
+  hand A: "Nulldrifter"
+  library A: "Forest", "Island", "Plains"
+  turn 1 A: cast "Nulldrifter" evoked
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Nulldrifter"
+}
+
+scenario "Artisan of Kozilek: annihilator 2" {
+  battlefield A: "Artisan of Kozilek"
+  battlefield B: 2 "Forest", "Island"
+  turn 1 A: attack "Artisan of Kozilek"
+  run_to turn 1 postcombat_main
+  assert battlefield B count 1
+  assert life B 10
+}

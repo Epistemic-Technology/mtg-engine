@@ -1,0 +1,7 @@
+card "Wolverine Pack" {
+  oracle_id d67d9d82-2786-48fc-8107-11d12c5813d0
+  cost {2}{G}{G}
+  type Creature — Wolverine
+  pt 2/4
+  rampage 2
+}

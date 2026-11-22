@@ -1,0 +1,8 @@
+card "Barbed Batterfist" {
+  oracle_id 93c2b91d-7d4e-483c-a11f-4a525f881503
+  cost {1}{R}
+  type Artifact — Equipment
+  for mirrodin
+  static enchanted: +1/-1
+  equip {1}
+}

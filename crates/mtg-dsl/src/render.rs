@@ -9255,6 +9255,14 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
             "if the amount of mana you spent is greater than {}'s power or toughness",
             this_ref(ctx.card)
         ),
+        Condition::Trains => format!(
+            "if at least one other creature with power greater than {}'s power attacked",
+            this_ref(ctx.card)
+        ),
+        Condition::Dethrones => {
+            "if it attacked the player with the most life or tied for most life".to_string()
+        }
+        Condition::AttackedOpponent => "if you attacked an opponent this combat".to_string(),
     }
 }
 
@@ -12240,6 +12248,15 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Frenzy(n) => format!("Frenzy {n}"),
             crate::ast::Mechanic::Absorb(n) => format!("Absorb {n}"),
             crate::ast::Mechanic::Provoke => "Provoke".to_string(),
+            crate::ast::Mechanic::Fading(n) => format!("Fading {n}"),
+            crate::ast::Mechanic::Annihilator(n) => format!("Annihilator {n}"),
+            crate::ast::Mechanic::Rampage(n) => format!("Rampage {n}"),
+            crate::ast::Mechanic::BattleCry => "Battle cry".to_string(),
+            crate::ast::Mechanic::ForMirrodin => "For Mirrodin!".to_string(),
+            crate::ast::Mechanic::Training => "Training".to_string(),
+            crate::ast::Mechanic::Melee => "Melee".to_string(),
+            crate::ast::Mechanic::Dethrone => "Dethrone".to_string(),
+            crate::ast::Mechanic::Myriad => "Myriad".to_string(),
             crate::ast::Mechanic::Toxic(n) => format!("Toxic {n}"),
             crate::ast::Mechanic::Ward(c) => format!("Ward {c}"),
             // CR 702.21a, 702.37a, 702.27a: a cost other than mana prints
@@ -12990,10 +13007,12 @@ pub fn normalize(text: &str) -> String {
         // with a cost or number among plain ones.
         let with_param = |p: &str| {
             p.split_once(' ').is_some_and(|(w, rest)| {
-                matches!(w.to_ascii_lowercase().as_str(), "ward" | "firebending")
-                    && (rest.starts_with('{') && !rest.contains(' ')
-                        || rest == "X"
-                        || rest.chars().all(|c| c.is_ascii_digit()))
+                matches!(
+                    w.to_ascii_lowercase().as_str(),
+                    "ward" | "firebending" | "rampage"
+                ) && (rest.starts_with('{') && !rest.contains(' ')
+                    || rest == "X"
+                    || rest.chars().all(|c| c.is_ascii_digit()))
             })
         };
         let all_keywords = parts.iter().all(|p| {

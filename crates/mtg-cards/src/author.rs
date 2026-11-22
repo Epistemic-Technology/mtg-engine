@@ -68,6 +68,15 @@ const KEYWORDS: &[&str] = &[
 /// Scryfall keyword tags that templates below handle as abilities.
 const TEMPLATED_TAGS: &[&str] = &[
     "Provoke",
+    "Fading",
+    "Annihilator",
+    "Rampage",
+    "Battle Cry",
+    "For Mirrodin!",
+    "Training",
+    "Melee",
+    "Dethrone",
+    "Myriad",
     "Hexproof from",
     "Job select",
     "Mayhem",
@@ -4118,6 +4127,17 @@ impl Builder<'_> {
                 return Ok(());
             }
         }
+        // "Trample; rampage 2": an older keyword line, one keyword each.
+        if line.contains("; ")
+            && !line.contains(", ")
+            && !line.ends_with('.')
+            && line.chars().next().is_some_and(char::is_uppercase)
+        {
+            for p in line.split("; ") {
+                self.line(&capitalize(p))?;
+            }
+            return Ok(());
+        }
         // "Protection from artifacts" (a quality other than a color).
         if let Some(q) = line.strip_prefix("Protection from ")
             && keyword_list(line).is_none()
@@ -4137,8 +4157,12 @@ impl Builder<'_> {
             .strip_prefix("This creature ")
             .and_then(|r| r.strip_suffix('.'))
         {
+            let min = Regex::new(r"^can't be blocked except by (\w+) or more creatures$").unwrap();
             let rule = if rest == "can't be blocked by more than one creature" {
                 Some("can't be blocked by more than one creature".to_string())
+            } else if let Some(c) = min.captures(rest) {
+                number(cap(&c, 1))
+                    .map(|n| format!("can't be blocked except by {n} or more creatures"))
             } else if let Some(f) = rest.strip_prefix("can't be blocked except by ") {
                 Some(format!("can't be blocked except by {}", singular(f)))
             } else if let Some(f) = rest.strip_prefix("can't be blocked by ") {
@@ -4341,8 +4365,11 @@ impl Builder<'_> {
             self.statements.push(format!("enchant {spec}"));
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^Equip \{(\d+)\}$").unwrap().captures(line) {
-            self.statements.push(format!("equip {{{}}}", cap(&c, 1)));
+        if let Some(c) = Regex::new(r"^Equip ((?:\{[0-9WUBRGC]\})+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements.push(format!("equip {}", cap(&c, 1)));
             return Ok(());
         }
         // A flavor word before equip ("Perseus's Bow — Equip {6}", job
@@ -4538,7 +4565,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) = Regex::new(
-            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Afterlife|Casualty|Teamwork|Ripple|Dredge|Firebending|Graft|Vanishing) (\d+)$",
+            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Afterlife|Casualty|Teamwork|Ripple|Dredge|Firebending|Graft|Vanishing|Fading|Annihilator|Rampage) (\d+)$",
         )
         .unwrap()
         .captures(line)
@@ -4788,8 +4815,17 @@ impl Builder<'_> {
                 | "Ingest"
                 | "Increment"
                 | "Provoke"
+                | "Battle cry"
+                | "Training"
+                | "Melee"
+                | "Dethrone"
+                | "Myriad"
         ) {
             self.statements.push(line.to_lowercase());
+            return Ok(());
+        }
+        if line == "For Mirrodin!" {
+            self.statements.push("for mirrodin".to_string());
             return Ok(());
         }
         if let Some(c) = Regex::new(r"^Affinity for (\w+)$").unwrap().captures(line) {

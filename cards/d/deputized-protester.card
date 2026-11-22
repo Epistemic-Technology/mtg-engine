@@ -1,0 +1,8 @@
+card "Deputized Protester" {
+  oracle_id 09947592-1730-4c1c-bfa5-be53a68d6919
+  cost {2}{R}
+  type Creature — Human Warrior
+  pt 2/1
+  keywords menace
+  melee
+}

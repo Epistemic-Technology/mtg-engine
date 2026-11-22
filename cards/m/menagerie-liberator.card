@@ -1,0 +1,8 @@
+card "Menagerie Liberator" {
+  oracle_id d91dd07a-93e1-4f88-b5f1-faa56df70ed0
+  cost {3}{G}
+  type Creature — Human Warrior
+  pt 3/2
+  keywords trample
+  melee
+}

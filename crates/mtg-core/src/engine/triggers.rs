@@ -1953,7 +1953,10 @@ impl GameState {
                 .or_else(|| self.lki.get(&source).map(|l| l.object.cast.evoked()))
                 .unwrap_or(false),
             // Judged only as the ability triggered.
-            Condition::While(_) => true,
+            Condition::While(_)
+            | Condition::Trains
+            | Condition::Dethrones
+            | Condition::AttackedOpponent => true,
             Condition::Static(i) => {
                 let you = self
                     .objects
@@ -1994,7 +1997,55 @@ impl GameState {
             Condition::Static(i) | Condition::While(i) => {
                 self.condition_for(self.pool.condition(i), w.controller, w.source, trigger_obj)
             }
+            Condition::Trains => self.trains(w),
+            Condition::Dethrones => self.dethrones(w.source),
+            Condition::AttackedOpponent => self.attacked_opponent(w.controller),
         }
+    }
+
+    /// Training (CR 702.149a): another creature attacking under the same
+    /// player's control has greater power than the source.
+    fn trains(&self, w: &Watcher) -> bool {
+        let Some(combat) = &self.combat else {
+            return false;
+        };
+        let power = w.chars.power();
+        combat.attackers.iter().any(|a| {
+            a.id != w.source
+                && self
+                    .objects
+                    .get(a.id)
+                    .is_some_and(|o| o.controller == w.controller)
+                && self
+                    .characteristics(a.id)
+                    .is_some_and(|c| c.power() > power)
+        })
+    }
+
+    /// Dethrone (CR 702.105a): the source attacks a player with the most
+    /// life or tied for the most.
+    fn dethrones(&self, source: ObjId) -> bool {
+        let Some(crate::state::Target::Player(p)) = self
+            .combat
+            .as_ref()
+            .and_then(|c| c.attacker(source))
+            .map(|a| a.attacking)
+        else {
+            return false;
+        };
+        let life = self.player(p).life;
+        self.players_in_game().all(|q| self.player(q).life <= life)
+    }
+
+    /// Whether `you` attacked an opponent (a player, not a planeswalker or
+    /// battle) with a creature this combat (melee, CR 702.121a).
+    fn attacked_opponent(&self, you: PlayerId) -> bool {
+        self.combat.as_ref().is_some_and(|c| {
+            c.attackers.iter().any(|a| {
+                matches!(a.attacking, crate::state::Target::Player(p) if p != you)
+                    && self.objects.get(a.id).is_some_and(|o| o.controller == you)
+            })
+        })
     }
 
     /// Evolve (CR 702.100a): the entering creature (as it last existed, if

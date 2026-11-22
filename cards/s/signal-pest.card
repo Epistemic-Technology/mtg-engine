@@ -1,0 +1,8 @@
+card "Signal Pest" {
+  oracle_id 724f3d2f-0513-4efd-961f-56a7ea7b5731
+  cost {1}
+  type Artifact Creature — Pest
+  pt 0/1
+  battle cry
+  can't be blocked except by creature with flying or reach
+}

@@ -1,0 +1,8 @@
+card "Vulshok Splitter" {
+  oracle_id 6253f9d4-83ff-4a0b-b465-e9f9a565f664
+  cost {3}{R}
+  type Artifact — Equipment
+  for mirrodin
+  static enchanted: +2/+0
+  equip {2}{R}
+}

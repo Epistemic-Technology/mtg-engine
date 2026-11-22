@@ -1407,6 +1407,39 @@ pub enum Mechanic {
     /// CR 702.39: attacks, you may have target creature defending player
     /// controls untap and block it if able.
     Provoke,
+    /// CR 702.32: `fading 3`: enters with N fade counters; "At the
+    /// beginning of your upkeep, remove a fade counter from this
+    /// permanent. If you can't, sacrifice the permanent."
+    Fading(u32),
+    /// CR 702.86: `annihilator 2`: "Whenever this creature attacks,
+    /// defending player sacrifices N permanents."
+    Annihilator(u32),
+    /// CR 702.91: `battle cry`: "Whenever this creature attacks, each
+    /// other attacking creature gets +1/+0 until end of turn."
+    BattleCry,
+    /// CR 702.23: `rampage 2`: "Whenever this creature becomes blocked,
+    /// it gets +N/+N until end of turn for each creature blocking it
+    /// beyond the first."
+    Rampage(u32),
+    /// CR 702.149: `training`: "Whenever this creature and at least one
+    /// other creature with power greater than this creature's power
+    /// attack, put a +1/+1 counter on this creature."
+    Training,
+    /// CR 702.163: `for mirrodin`: "When this Equipment enters, create a
+    /// 2/2 red Rebel creature token, then attach this Equipment to it."
+    ForMirrodin,
+    /// CR 702.121: `melee`: "Whenever this creature attacks, it gets
+    /// +1/+1 until end of turn for each opponent you attacked with a
+    /// creature this combat."
+    Melee,
+    /// CR 702.105: `dethrone`: "Whenever this creature attacks the player
+    /// with the most life or tied for most life, put a +1/+1 counter on
+    /// this creature."
+    Dethrone,
+    /// CR 702.116: `myriad`: token copies attacking each opponent other
+    /// than the defending player. The game's only opponent is the
+    /// defending player, so it does nothing.
+    Myriad,
     /// CR 702.164: combat damage to a player also gives N poison counters.
     Toxic(u32),
     /// CR 702.21: becomes the target of an opponent's spell or ability,

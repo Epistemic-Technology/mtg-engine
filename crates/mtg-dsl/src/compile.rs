@@ -44,6 +44,20 @@ pub fn compile_all(cards: &[Card]) -> Result<CardPool, CompileError> {
 
 /// Mobilize's triggered ability, its count and its tokens' attacking
 /// filled in by `expand_mechanic`.
+/// Keyword abilities whose expansion is written in the DSL (CR 702): `N`
+/// stands for the keyword's number. No groups or counts: they would be
+/// another card's.
+const KEYWORD_EXPANSIONS: &str = "card \"Keywords\" {
+  triggered whenever this attacks: defending player sacrifices N permanent
+}";
+
+/// The `i`th ability of `KEYWORD_EXPANSIONS`, its `N` replaced by `n`.
+fn keyword_expansion(i: usize, n: u32) -> Ability {
+    let text = KEYWORD_EXPANSIONS.replace('N', &n.to_string());
+    let mut cards = crate::parse(&text).expect("keyword expansions parse");
+    cards.remove(0).abilities.remove(i)
+}
+
 const MOBILIZE: &str = "card \"Mobilize\" {
   triggered whenever this attacks: create 1 tapped \"1/1 red Warrior creature\"; delayed those tokens: sacrifice those tokens at beginning of the next end step
 }";
@@ -101,6 +115,8 @@ pub fn add_card(
             station: None,
             sunburst: None,
             extort: None,
+            rampage: None,
+            battle_cry: None,
             token: None,
             cast_snapshot: None,
         };
@@ -131,6 +147,8 @@ pub fn add_card(
                 station: None,
                 sunburst: None,
                 extort: None,
+                rampage: None,
+                battle_cry: None,
                 token: None,
                 cast_snapshot: None,
             };
@@ -161,6 +179,8 @@ pub fn add_card(
         station: None,
         sunburst: None,
         extort: None,
+        rampage: None,
+        battle_cry: None,
         token,
         cast_snapshot: None,
     };
@@ -243,6 +263,8 @@ fn add_stages(
             scavenge: None,
             station: None,
             extort: None,
+            rampage: None,
+            battle_cry: None,
             token: None,
             cast_snapshot: None,
             sunburst: None,
@@ -351,6 +373,10 @@ struct Compiler<'a> {
     sunburst: Option<u8>,
     /// Extort's count (the life lost this way), once added to the counts.
     extort: Option<u8>,
+    /// Rampage's count (creatures blocking it beyond the first), likewise.
+    rampage: Option<u8>,
+    /// Battle cry's group ("each other attacking creature"), in `groups`.
+    battle_cry: Option<u16>,
     /// The token embalm, eternalize, or offspring creates, compiled
     /// before the card (`derived_token`).
     token: Option<CardRef>,
@@ -520,6 +546,9 @@ impl Compiler<'_> {
                 }
                 Ability::Mechanic(Mechanic::Vanishing(n)) => {
                     b = b.vanishing(*n);
+                }
+                Ability::Mechanic(Mechanic::Fading(n)) => {
+                    b = b.fading(*n);
                 }
                 Ability::Mechanic(Mechanic::Impending(n, cost)) => {
                     b = b.impending(*n, cost.clone());
@@ -735,6 +764,12 @@ impl Compiler<'_> {
                     counts.push(mtg_core::card::CountExpr::LifeLostThisWay);
                     self.extort = u8::try_from(counts.len() - 1).ok();
                 }
+                Ability::Mechanic(Mechanic::Rampage(_)) if self.rampage.is_none() => {
+                    // CR 702.23a: "for each creature blocking it beyond the
+                    // first".
+                    counts.push(mtg_core::card::CountExpr::BlockingIt { beyond: 1 });
+                    self.rampage = u8::try_from(counts.len() - 1).ok();
+                }
                 Ability::Affinity(f) => {
                     let mut f = self.filter(f);
                     f.who = Some(mtg_core::card::Who::You);
@@ -871,6 +906,23 @@ impl Compiler<'_> {
                 .map(|k| self.choice_kind(&k));
             self.implied.push(implied);
         }
+        // CR 702.91a: battle cry's "each other attacking creature".
+        if card
+            .abilities
+            .iter()
+            .any(|a| matches!(a, Ability::Mechanic(Mechanic::BattleCry)))
+        {
+            let f = self.filter(&crate::ast::Filter {
+                types: vec![mtg_core::card::CardType::Creature],
+                attacking: true,
+                relation: mtg_core::card::Relation::Other,
+                ..crate::ast::Filter::default()
+            });
+            let id = self.pool.intern_filter(f);
+            self.groups.push(id);
+            self.implied.push(None);
+            self.battle_cry = u16::try_from(self.groups.len() - 1).ok();
+        }
         let spells = card
             .abilities
             .iter()
@@ -945,6 +997,7 @@ impl Compiler<'_> {
                             | Mechanic::Storm
                             | Mechanic::Awaken(..)
                             | Mechanic::Assist
+                            | Mechanic::Myriad
                             | Mechanic::Replicate(_)
                             | Mechanic::Multikicker(_)
                             | Mechanic::Disturb(_)
@@ -4294,6 +4347,7 @@ impl Compiler<'_> {
                 | Mechanic::Storm
                 | Mechanic::Awaken(..)
                 | Mechanic::Assist
+                | Mechanic::Myriad
                 | Mechanic::Replicate(_)
                 | Mechanic::Multikicker(_)
                 | Mechanic::Disturb(_)
@@ -4698,6 +4752,49 @@ impl Compiler<'_> {
                     let expanded = extort(i);
                     return self.ability(&expanded);
                 }
+                // CR 702.23a: "Whenever this creature becomes blocked, it
+                // gets +N/+N until end of turn for each creature blocking it
+                // beyond the first." (CR 702.23b: counted as it resolves.)
+                Mechanic::Rampage(n) => {
+                    let Some(i) = self.rampage else {
+                        return self.err("rampage's count is missing");
+                    };
+                    let n = i32::try_from(*n).unwrap_or(0);
+                    let expanded = Ability::Triggered {
+                        limit: mtg_core::card::TurnLimit::None,
+                        from_graveyard: false,
+                        trigger: Trigger::BecomesBlocked(TriggerObj::This),
+                        condition: None,
+                        targets: Vec::new(),
+                        effects: vec![Sentence::new(vec![crate::ast::Effect::PumpVar {
+                            power: n,
+                            toughness: n,
+                            times: Num::Count(i),
+                            to: Recipient::Source,
+                        }])],
+                    };
+                    return self.ability(&expanded);
+                }
+                // CR 702.91a: "Whenever this creature attacks, each other
+                // attacking creature gets +1/+0 until end of turn."
+                Mechanic::BattleCry => {
+                    let Some(g) = self.battle_cry else {
+                        return self.err("battle cry's group is missing");
+                    };
+                    let expanded = Ability::Triggered {
+                        limit: mtg_core::card::TurnLimit::None,
+                        from_graveyard: false,
+                        trigger: Trigger::Attacks(TriggerObj::This),
+                        condition: None,
+                        targets: Vec::new(),
+                        effects: vec![Sentence::new(vec![crate::ast::Effect::Pump {
+                            power: 1,
+                            toughness: 0,
+                            to: Recipient::Group(g),
+                        }])],
+                    };
+                    return self.ability(&expanded);
+                }
                 other => {
                     let expanded = expand_mechanic(other);
                     return self.ability(&expanded);
@@ -4820,6 +4917,8 @@ const AFTERLIFE_SPIRIT: &str = "1/1 white and black Spirit creature with flying"
 const GERM: &str = "0/0 black Phyrexian Germ creature";
 /// The token job select creates (CR 702.182a).
 const HERO: &str = "1/1 colorless Hero creature";
+/// The token For Mirrodin! creates (CR 702.163a).
+const REBEL: &str = "2/2 red Rebel creature";
 /// The token recruit creates (CR 701.70a).
 const HUMAN_SOLDIER: &str = "1/1 white Human Soldier creature";
 /// The token Incubate creates (CR 701.53a, 111.10i).
@@ -5268,6 +5367,125 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             ],
         },
         Mechanic::Soulbond => soulbond_trigger(false),
+        // CR 702.32a: "At the beginning of your upkeep, remove a fade
+        // counter from this permanent. If you can't, sacrifice the
+        // permanent." (The counters it enters with are the card's
+        // `fading`.)
+        Mechanic::Fading(_) => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
+            from_graveyard: false,
+            trigger: Trigger::BeginningOfStep {
+                step: mtg_core::turn::Step::Upkeep,
+                whose: Who::You,
+            },
+            condition: None,
+            targets: Vec::new(),
+            effects: vec![
+                Sentence::new(vec![E::IfCondition(
+                    StaticCond::SourceCounters {
+                        kind: mtg_core::card::CounterKind::Fade,
+                        n: 0,
+                        at_least: false,
+                    },
+                    one(E::Sacrifice {
+                        what: Recipient::Source,
+                    }),
+                    crate::ast::IfWording::Lead,
+                )]),
+                Sentence::new(vec![E::RemoveCounters {
+                    kind: mtg_core::card::CounterKind::Fade,
+                    count: Num::N(1),
+                    to: Recipient::Source,
+                }]),
+            ],
+        },
+        // CR 702.86a: "Whenever this creature attacks, defending player
+        // sacrifices N permanents of their choice."
+        Mechanic::Annihilator(n) => keyword_expansion(0, *n),
+        // CR 702.149a: "Whenever this creature and at least one other
+        // creature with power greater than this creature's power attack,
+        // put a +1/+1 counter on this creature."
+        Mechanic::Training => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
+            from_graveyard: false,
+            trigger: Trigger::Attacks(TriggerObj::This),
+            condition: Some(crate::ast::TrigCond::Core(
+                mtg_core::card::Condition::Trains,
+            )),
+            targets: Vec::new(),
+            effects: one(E::AddCounters {
+                kind: mtg_core::card::CounterKind::PlusOnePlusOne,
+                count: Num::N(1),
+                to: Recipient::Source,
+            }),
+        },
+        // CR 702.105a: "Whenever this creature attacks the player with the
+        // most life or tied for most life, put a +1/+1 counter on this
+        // creature."
+        Mechanic::Dethrone => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
+            from_graveyard: false,
+            trigger: Trigger::Attacks(TriggerObj::This),
+            condition: Some(crate::ast::TrigCond::Core(
+                mtg_core::card::Condition::Dethrones,
+            )),
+            targets: Vec::new(),
+            effects: one(E::AddCounters {
+                kind: mtg_core::card::CounterKind::PlusOnePlusOne,
+                count: Num::N(1),
+                to: Recipient::Source,
+            }),
+        },
+        // CR 702.121a: "Whenever this creature attacks, it gets +1/+1
+        // until end of turn for each opponent you attacked with a creature
+        // this combat." With one opponent, +1/+1 if that player was
+        // attacked.
+        Mechanic::Melee => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
+            from_graveyard: false,
+            trigger: Trigger::Attacks(TriggerObj::This),
+            condition: Some(crate::ast::TrigCond::Core(
+                mtg_core::card::Condition::AttackedOpponent,
+            )),
+            targets: Vec::new(),
+            effects: one(E::Pump {
+                power: 1,
+                toughness: 1,
+                to: Recipient::Source,
+            }),
+        },
+        // CR 702.163a: "When this Equipment enters, create a 2/2 red Rebel
+        // creature token, then attach this Equipment to it."
+        Mechanic::ForMirrodin => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
+            from_graveyard: false,
+            trigger: Trigger::Enters(TriggerObj::This),
+            condition: None,
+            targets: Vec::new(),
+            effects: vec![Sentence {
+                effects: vec![
+                    E::CreateToken {
+                        token: REBEL.to_string(),
+                        count: Num::N(1),
+                        tapped: false,
+                        attacking: false,
+                        who: None,
+                        it_has: false,
+                        attached: None,
+                    },
+                    E::Attach {
+                        what: Recipient::Source,
+                        to: Recipient::CreatedObject,
+                    },
+                ],
+                label: None,
+                para: false,
+                eot_first: false,
+                lasting: None,
+                then_first: false,
+                joins: vec![Join::Then],
+            }],
+        },
         // CR 702.176a: "At the beginning of your end step, if this
         // permanent's impending cost was paid and it has a time counter on
         // it, remove a time counter from it."
@@ -5524,6 +5742,9 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Storm
         | Mechanic::Awaken(..)
         | Mechanic::Assist
+        | Mechanic::Myriad
+        | Mechanic::BattleCry
+        | Mechanic::Rampage(_)
         | Mechanic::Replicate(_)
         | Mechanic::Multikicker(_)
         | Mechanic::Disturb(_)

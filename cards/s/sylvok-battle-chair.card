@@ -1,0 +1,8 @@
+card "Sylvok Battle-Chair" {
+  oracle_id 2f6c21a1-d618-497c-bfde-c0f2e1014d99
+  cost {4}{G}{G}
+  type Artifact — Equipment
+  for mirrodin
+  static enchanted: +4/+4, has trample
+  equip {5}{G}{G}
+}

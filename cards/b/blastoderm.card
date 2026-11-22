@@ -1,0 +1,8 @@
+card "Blastoderm" {
+  oracle_id d6ee8bd6-0207-46ee-9892-c1d1b23b934e
+  cost {2}{G}{G}
+  type Creature — Beast
+  pt 5/5
+  keywords shroud
+  fading 3
+}

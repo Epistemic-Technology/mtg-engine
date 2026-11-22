@@ -1,0 +1,8 @@
+card "Grenzo's Cutthroat" {
+  oracle_id 9a133991-8a7a-4bfd-b0ae-d76433450c03
+  cost {1}{R}
+  type Creature — Goblin Rogue
+  pt 1/1
+  keywords first strike
+  dethrone
+}

@@ -1760,6 +1760,40 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Provoke))
             }
+            "fading" | "annihilator" | "rampage"
+                if matches!(self.peek_at(1), Some(Tok::Num(_))) =>
+            {
+                self.pos += 1;
+                let n = self.number()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(match w.as_str() {
+                    "fading" => Mechanic::Fading(n),
+                    "annihilator" => Mechanic::Annihilator(n),
+                    _ => Mechanic::Rampage(n),
+                }))
+            }
+            "battle" if self.at_words(&["battle", "cry"]) => {
+                self.pos += 2;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::BattleCry))
+            }
+            "for" if self.at_words(&["for", "mirrodin"]) => {
+                self.pos += 2;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::ForMirrodin))
+            }
+            "training" | "melee" | "dethrone" | "myriad"
+                if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) =>
+            {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(match w.as_str() {
+                    "training" => Mechanic::Training,
+                    "melee" => Mechanic::Melee,
+                    "dethrone" => Mechanic::Dethrone,
+                    _ => Mechanic::Myriad,
+                }))
+            }
             "ingest" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
                 self.pos += 1;
                 self.end_stmt()?;
@@ -11475,6 +11509,17 @@ impl P {
         }
         if self.eat_word("increments") {
             return Ok(Condition::Increments);
+        }
+        // Keyword triggers' conditions (training, dethrone, melee), judged
+        // as the creature attacks.
+        if self.eat_word("trains") {
+            return Ok(Condition::Trains);
+        }
+        if self.eat_word("dethrones") {
+            return Ok(Condition::Dethrones);
+        }
+        if self.eat_words(&["attacked", "opponent"]) {
+            return Ok(Condition::AttackedOpponent);
         }
         if self.eat_word("evoked") {
             return Ok(Condition::Evoked);

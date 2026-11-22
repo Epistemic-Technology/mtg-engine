@@ -1,0 +1,8 @@
+card "Gryff Rider" {
+  oracle_id e1ca5c24-bbd8-4eed-bb2b-17163f90e72b
+  cost {2}{W}
+  type Creature — Human Knight
+  pt 2/1
+  keywords flying
+  training
+}

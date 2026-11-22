@@ -4960,6 +4960,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 Some(mtg_core::card::Condition::Evolves) => head.push_str(" if evolves"),
                 Some(mtg_core::card::Condition::Increments) => head.push_str(" if increments"),
+                Some(mtg_core::card::Condition::Trains) => head.push_str(" if trains"),
+                Some(mtg_core::card::Condition::Dethrones) => head.push_str(" if dethrones"),
+                Some(mtg_core::card::Condition::AttackedOpponent) => {
+                    head.push_str(" if attacked opponent");
+                }
                 Some(mtg_core::card::Condition::Evoked) => head.push_str(" if evoked"),
                 Some(mtg_core::card::Condition::Kicked) => head.push_str(" if kicked"),
                 Some(mtg_core::card::Condition::NoSpellsLastTurn) => {
@@ -5219,6 +5224,15 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Frenzy(n) => format!("frenzy {n}"),
                 crate::ast::Mechanic::Absorb(n) => format!("absorb {n}"),
                 crate::ast::Mechanic::Provoke => "provoke".to_string(),
+                crate::ast::Mechanic::Fading(n) => format!("fading {n}"),
+                crate::ast::Mechanic::Annihilator(n) => format!("annihilator {n}"),
+                crate::ast::Mechanic::Rampage(n) => format!("rampage {n}"),
+                crate::ast::Mechanic::BattleCry => "battle cry".to_string(),
+                crate::ast::Mechanic::ForMirrodin => "for mirrodin".to_string(),
+                crate::ast::Mechanic::Training => "training".to_string(),
+                crate::ast::Mechanic::Melee => "melee".to_string(),
+                crate::ast::Mechanic::Dethrone => "dethrone".to_string(),
+                crate::ast::Mechanic::Myriad => "myriad".to_string(),
                 crate::ast::Mechanic::Toxic(n) => format!("toxic {n}"),
                 crate::ast::Mechanic::Ward(c) => format!("ward {c}"),
                 crate::ast::Mechanic::WardCost(c) => format!("ward {}", cost_text(c)),

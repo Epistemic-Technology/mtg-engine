@@ -1,0 +1,10 @@
+card "Nulldrifter" {
+  oracle_id ef8d9c3a-5860-45bf-8205-14e2df9a6fc8
+  cost {7}
+  type Creature — Eldrazi Elemental
+  pt 4/4
+  triggered when you cast this: draw 2 cards
+  keyword flying
+  annihilator 1
+  evoke {2}{U}
+}
