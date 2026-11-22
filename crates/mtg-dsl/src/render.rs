@@ -12087,7 +12087,8 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 // "When Enduring Innocence dies, if it was a creature, ...":
                 // the permanent as it last existed (CR 603.10a).
                 Some(crate::ast::TrigCond::Static(c @ StaticCond::Is(f)))
-                    if !f.types.is_empty() && matches!(trigger, Trigger::Dies(TriggerObj::This)) =>
+                    if !f.types.is_empty()
+                        && matches!(trigger, Trigger::Dies(TriggerObj::This)) =>
                 {
                     let text = static_cond_text(c, card);
                     let text = if card.pronoun == Some(crate::ast::Pronoun::They) {

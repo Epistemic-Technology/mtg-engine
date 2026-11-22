@@ -2429,7 +2429,9 @@ impl Templates {
         if let Some(head) = text
             .strip_suffix(" Until end of turn, you don't lose this mana as steps and phases end.")
             .or_else(|| {
-                text.strip_suffix(" Until end of turn, you don't lose this mana as steps and phases end")
+                text.strip_suffix(
+                    " Until end of turn, you don't lose this mana as steps and phases end",
+                )
             })
         {
             let inner = self.effects(head, targets)?;
@@ -3184,7 +3186,9 @@ fn trigger_text(head: &str) -> Option<String> {
             "whenever you tap one or more untapped creature your opponents control"
         }
         // CR 701.27: a transforming card's face names itself.
-        "Whenever this creature enters or transforms into ~" => "whenever this enters or transforms",
+        "Whenever this creature enters or transforms into ~" => {
+            "whenever this enters or transforms"
+        }
         "When this creature transforms into ~" | "When this permanent transforms into ~" => {
             "when this transforms"
         }

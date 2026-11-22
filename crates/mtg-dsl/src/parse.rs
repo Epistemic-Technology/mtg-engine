@@ -1402,7 +1402,9 @@ impl P {
             }
             // CR 603.2d: `trigger again Ninja creature you control`,
             // `trigger again entering permanent you control`.
-            "trigger" if self.at_words(&["trigger", "again"]) || self.at_words(&["trigger", "never"]) => {
+            "trigger"
+                if self.at_words(&["trigger", "again"]) || self.at_words(&["trigger", "never"]) =>
+            {
                 let suppress = self.word_at(1).as_deref() == Some("never");
                 self.pos += 2;
                 let filter = self.filter()?;
@@ -11060,7 +11062,10 @@ impl P {
             } else {
                 TriggerObj::Filter(self.filter()?)
             };
-            return Ok(Trigger::Each(Box::new(Trigger::YouPutCounters { obj, kind })));
+            return Ok(Trigger::Each(Box::new(Trigger::YouPutCounters {
+                obj,
+                kind,
+            })));
         }
         if self.eat_words(&["you", "put", "one", "or", "more"]) {
             let kind = if self.eat_word("counters") {
@@ -11165,7 +11170,9 @@ impl P {
         if self.eat_words(&[
             "one", "or", "more", "players", "discard", "one", "or", "more", "cards",
         ]) {
-            return Ok(Trigger::Batch(Box::new(Trigger::DiscardsBatch { whose: Who::Any })));
+            return Ok(Trigger::Batch(Box::new(Trigger::DiscardsBatch {
+                whose: Who::Any,
+            })));
         }
         // "one or more cards leave your graveyard", "one or more creature
         // cards leave your graveyard" (CR 603.2c).
@@ -11187,7 +11194,15 @@ impl P {
             let f = self.filter()?;
             // "one or more creature cards are put into your graveyard from
             // anywhere", "one or more creatures you control become tapped".
-            if self.eat_words(&["card", "put", "into", "your", "graveyard", "from", "anywhere"]) {
+            if self.eat_words(&[
+                "card",
+                "put",
+                "into",
+                "your",
+                "graveyard",
+                "from",
+                "anywhere",
+            ]) {
                 return Ok(Trigger::Batch(Box::new(Trigger::PutIntoGraveyard(f))));
             }
             if self.eat_words(&["become", "tapped"]) {
@@ -12546,9 +12561,10 @@ impl P {
 /// (`trigger_amount` is the damage, the counters, or a batch's size).
 fn no_trigger_amount(t: &Trigger) -> bool {
     match t {
-        Trigger::When(t) | Trigger::Next(t) => no_trigger_amount(t),
+        Trigger::When(t) | Trigger::Next(t) | Trigger::Each(t) | Trigger::OnNextTurn(t) => {
+            no_trigger_amount(t)
+        }
         Trigger::Batch(_) => false,
-        Trigger::Each(t) | Trigger::OnNextTurn(t) => no_trigger_amount(t),
         Trigger::Either(a, b) => no_trigger_amount(a) && no_trigger_amount(b),
         Trigger::CastsSpell { .. }
         | Trigger::CastsFiltered { .. }
@@ -12558,7 +12574,10 @@ fn no_trigger_amount(t: &Trigger) -> bool {
         | Trigger::GainsLifeFirst { .. } => true,
         t => {
             no_trigger_object(t)
-                && !matches!(t, Trigger::CreaturesDealCombatDamage(_) | Trigger::LosesLife { .. })
+                && !matches!(
+                    t,
+                    Trigger::CreaturesDealCombatDamage(_) | Trigger::LosesLife { .. }
+                )
         }
     }
 }

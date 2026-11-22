@@ -798,7 +798,8 @@ impl Fmt {
                         mtg_core::card::PlayUntil::EndOfYourNextTurn => "next turn",
                         mtg_core::card::PlayUntil::YourNextEndStep => "next end step",
                         mtg_core::card::PlayUntil::Forever => "forever",
-                        mtg_core::card::PlayUntil::WhileYouControlSource => "while you control this",
+                        mtg_core::card::PlayUntil::WhileYouControlSource =>
+                            "while you control this",
                     }
                 );
                 if *first {
@@ -925,7 +926,8 @@ impl Fmt {
                         mtg_core::card::PlayUntil::EndOfYourNextTurn => "next turn",
                         mtg_core::card::PlayUntil::YourNextEndStep => "next end step",
                         mtg_core::card::PlayUntil::Forever => "forever",
-                        mtg_core::card::PlayUntil::WhileYouControlSource => "while you control this",
+                        mtg_core::card::PlayUntil::WhileYouControlSource =>
+                            "while you control this",
                     }
                 );
                 if *first {
