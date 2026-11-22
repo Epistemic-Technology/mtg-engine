@@ -153,6 +153,9 @@ pub enum Event {
         player: PlayerId,
         looked: u32,
         down: u32,
+        /// Surveil rather than scry.
+        #[serde(default)]
+        surveil: bool,
     },
     Attack {
         attacker: ObjId,

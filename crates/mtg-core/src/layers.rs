@@ -1528,12 +1528,13 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
         }
         Modification::SetPt { power, toughness } => {
             let mv = i32::try_from(state.pool.get(c.def).mana_cost.mana_value()).unwrap_or(0);
-            let v = |p: &PtValue| match p {
+            let v = |p: &PtValue, cur: i32| match p {
                 PtValue::Fixed(n) => *n,
                 PtValue::ManaValue => mv,
+                PtValue::Unchanged => cur,
             };
-            c.power = pt16(v(power));
-            c.toughness = pt16(v(toughness));
+            c.power = pt16(v(power, c.power()));
+            c.toughness = pt16(v(toughness, c.toughness()));
         }
         Modification::ModifyPt { power, toughness } => {
             c.power = pt16(c.power() + power);

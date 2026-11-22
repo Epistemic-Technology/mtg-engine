@@ -1488,6 +1488,10 @@ pub enum Ability {
         label: String,
         ability: Box<Ability>,
     },
+    /// `during your turn replace damage to this: prevent`: "During your
+    /// turn, prevent all damage that would be dealt to this creature." The
+    /// ability applies only during its controller's turn.
+    DuringYourTurn(Box<Ability>),
 }
 
 /// An intervening "if" (CR 603.4): one of the engine's trigger conditions,
@@ -2674,6 +2678,9 @@ pub enum Trigger {
     State(StaticCond),
     Enters(TriggerObj),
     Dies(TriggerObj),
+    /// `when enchanted dies or is put into exile`: leaves the battlefield
+    /// for a graveyard or exile.
+    DiesOrExiled(TriggerObj),
     /// `at beginning of every upkeep`: "At the beginning of each upkeep"
     /// (each player's, worded without "player's", as werewolves are).
     EveryStep(Step),
@@ -2822,6 +2829,8 @@ pub enum Trigger {
     TappedForMana(TriggerObj),
     /// `whenever this is dealt damage`.
     DealtDamage(TriggerObj),
+    /// `whenever this is dealt 3 or more damage`.
+    DealtDamageAtLeast(TriggerObj, u32),
     /// `whenever this is dealt combat damage`.
     DealtCombatDamage(TriggerObj),
     /// `whenever this deals damage to creature`, `... to player`, `... to
@@ -2991,6 +3000,8 @@ pub enum Trigger {
     },
     /// `whenever you scry or surveil`.
     ScriesOrSurveils,
+    /// `whenever you scry` (CR 701.22).
+    Scries,
     /// `whenever creature you control explores` (CR 701.44).
     Explores(TriggerObj),
     /// `whenever you tap an untapped creature an opponent controls`: the
@@ -4081,6 +4092,14 @@ pub enum Effect {
     SetBasePtVar {
         to: Recipient,
         n: Num,
+    },
+    /// `<what> has base power 4` ("has base power 4 until end of turn"),
+    /// `<what> base power becomes count equal ...` (`becomes`: "this
+    /// creature's base power becomes equal to ...").
+    SetBasePower {
+        to: Recipient,
+        n: Num,
+        becomes: bool,
     },
     /// A delayed triggered ability (CR 603.7) about `about`; `trigger_first`
     /// records whether the text puts the trigger before the effects.

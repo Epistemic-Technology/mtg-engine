@@ -163,6 +163,7 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
             player,
             looked,
             down,
+            ..
         } => format!(
             "{} at {looked} cards and puts {down} down.",
             verb(*player, viewer, "look", "looks")

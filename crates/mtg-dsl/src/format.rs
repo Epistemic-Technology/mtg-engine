@@ -2590,6 +2590,16 @@ impl Fmt {
                 self.recipient(*to, t),
                 num(*n)
             ),
+            Effect::SetBasePower { to, n, becomes } => format!(
+                "{} {} {}",
+                self.recipient(*to, t),
+                if *becomes {
+                    "base power becomes"
+                } else {
+                    "has base power"
+                },
+                num(*n)
+            ),
             Effect::SetBasePt {
                 to,
                 power,
@@ -3777,6 +3787,7 @@ pub fn natural_when(t: &Trigger) -> bool {
         Trigger::Enters(TriggerObj::This)
             | Trigger::BecomesLevel(_)
             | Trigger::Dies(TriggerObj::This)
+            | Trigger::DiesOrExiled(TriggerObj::This)
             | Trigger::Leaves(TriggerObj::This)
             | Trigger::Sacrificed {
                 obj: TriggerObj::This,
@@ -3843,6 +3854,9 @@ pub fn spell_ordinal(nth: mtg_core::card::SpellOrdinal, whose: Who) -> String {
         SpellOrdinal::OnOpponentsTurn => format!("{who} a spell during an opponent's turn"),
         SpellOrdinal::FirstNoncreature => {
             format!("{who} {their} first noncreature spell each turn")
+        }
+        SpellOrdinal::FirstInstantOrSorcery => {
+            format!("{who} {their} first instant or sorcery spell each turn")
         }
         SpellOrdinal::FromExile => format!("{who} a spell from exile"),
     }
@@ -3924,6 +3938,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::State(c) => format!("when {}", static_cond(c)),
         Trigger::Enters(o) => format!("whenever {} enters", trigger_obj(o)),
         Trigger::Dies(o) => format!("whenever {} dies", trigger_obj(o)),
+        Trigger::DiesOrExiled(o) => {
+            format!("whenever {} dies or is put into exile", trigger_obj(o))
+        }
         Trigger::EveryStep(step) => {
             let w = match step {
                 Step::Untap => "untap",
@@ -4105,6 +4122,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             trigger_obj(obj)
         ),
         Trigger::DealtDamage(o) => format!("whenever {} is dealt damage", trigger_obj(o)),
+        Trigger::DealtDamageAtLeast(o, n) => {
+            format!("whenever {} is dealt {n} or more damage", trigger_obj(o))
+        }
         Trigger::DealtCombatDamage(o) => {
             format!("whenever {} is dealt combat damage", trigger_obj(o))
         }
@@ -4159,13 +4179,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             first,
             second,
             whenever,
-        } if matches!(**first, Trigger::Enters(crate::ast::TriggerObj::Filter(_))) => {
+        } if !matches!(**first, Trigger::Enters(crate::ast::TriggerObj::This)) => {
             let a = trigger_text(first, next);
             let b = trigger_text(second, next);
-            let (wa, wb): (Vec<&str>, Vec<&str>) = (a.split(' ').collect(), b.split(' ').collect());
-            let k = wa.iter().zip(&wb).take_while(|(x, y)| x == y).count();
-            let _ = whenever;
-            format!("{} or {}", wa.join(" "), wb[k..].join(" "))
+            crate::render::or_shared(&a, &b, *whenever)
         }
         Trigger::Or {
             second, whenever, ..
@@ -4244,6 +4261,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             if *your_turn { " during your turn" } else { "" }
         ),
         Trigger::ScriesOrSurveils => "whenever you scry or surveil".to_string(),
+        Trigger::Scries => "whenever you scry".to_string(),
         Trigger::Explores(o) => format!("whenever {} explores", trigger_obj(o)),
         Trigger::YouTap(f) => format!("whenever you tap {}", filter(f)),
         Trigger::Activates { whose, kind } => {
@@ -5272,6 +5290,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     mtg_core::card::TurnLimit::Triggers(2) => "twice each turn ".to_string(),
                     mtg_core::card::TurnLimit::Triggers(n) => format!("{n} times each turn "),
                     mtg_core::card::TurnLimit::Do => "do once each turn ".to_string(),
+                    mtg_core::card::TurnLimit::Ever => "once ever ".to_string(),
                 },
                 trigger_text(trigger, false)
             );
@@ -5435,6 +5454,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let mut tmp = String::new();
             self::ability(&mut tmp, inner, indent, groups);
             let _ = write!(out, "{indent}label \"{label}\" {}", &tmp[indent.len()..]);
+        }
+        Ability::DuringYourTurn(inner) => {
+            let mut tmp = String::new();
+            self::ability(&mut tmp, inner, indent, groups);
+            let _ = write!(out, "{indent}during your turn {}", &tmp[indent.len()..]);
         }
         Ability::BlockRule(r) => {
             let text = match r {

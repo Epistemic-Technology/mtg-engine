@@ -1625,6 +1625,9 @@ impl ObjFilter {
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum PtValue {
     Fixed(i32),
+    /// Left as it is ("has base power 4": the toughness isn't set, CR
+    /// 613.4b).
+    Unchanged,
     /// The object's mana value (CR 202.3).
     ManaValue,
 }
@@ -4073,6 +4076,14 @@ pub enum Effect {
         to: Recipient,
         n: Num,
     },
+    /// "has base power 4 until end of turn", "this creature's base power
+    /// becomes equal to the number of Towns you control" (layer 7b, CR
+    /// 613.4b): the power only, `n` fixed as the effect resolves (CR
+    /// 608.2h).
+    SetBasePower {
+        to: Recipient,
+        n: Num,
+    },
     /// Create a delayed triggered ability (CR 603.7) about the recipient:
     /// `ability` is a registered triggered ability (see
     /// `CardPool::register_ability`) whose effects see the recipient as
@@ -5468,8 +5479,9 @@ pub enum TriggerSpec {
     /// "When this creature leaves the battlefield" (to any zone).
     Leaves(TriggerObj),
     /// "When that land dies or is put into exile" (earthbend's delayed
-    /// trigger, CR 701.66a): leaves the battlefield for a graveyard or
-    /// exile. Delayed triggers only.
+    /// trigger, CR 701.66a), "When enchanted permanent dies or is put into
+    /// exile" (Kaya's Ghostform): leaves the battlefield for a graveyard or
+    /// exile, judged as it last existed.
     DiesOrExiled(TriggerObj),
     /// "Whenever ~ deals combat damage to a player".
     DealsCombatDamageToPlayer(TriggerObj),
@@ -5575,6 +5587,10 @@ pub enum TriggerSpec {
     /// "Whenever this creature is dealt damage" (enrage); the damaged
     /// object is the triggering object.
     DealtDamage(TriggerObj),
+    /// "Whenever this creature is dealt 3 or more damage": one damage event
+    /// of at least that much (damage dealt at different times doesn't add
+    /// up).
+    DealtDamageAtLeast(TriggerObj, u32),
     /// "Whenever this creature is dealt combat damage" (CR 510.2).
     DealtCombatDamage(TriggerObj),
     /// "Whenever this creature deals damage to a creature / an opponent /
@@ -5752,6 +5768,9 @@ pub enum TriggerSpec {
     /// "Whenever you scry or surveil" (CR 701.22, 701.25): once per
     /// instruction to scry or surveil.
     ScriesOrSurveils,
+    /// "Whenever you scry" (CR 701.22): once per instruction to scry, not
+    /// surveil.
+    Scries,
     /// "Whenever a creature you control explores" (CR 701.44): the
     /// exploring creature is the triggering object.
     Explores(TriggerObj),
@@ -5812,6 +5831,10 @@ pub enum SpellOrdinal {
     /// first of its caster's noncreature spells this turn (counted by the
     /// trigger, not by `holds`).
     FirstNoncreature,
+    /// "your first instant or sorcery spell each turn": the first of its
+    /// caster's instant and sorcery spells this turn (counted by the
+    /// trigger, not by `holds`).
+    FirstInstantOrSorcery,
     /// "a spell from exile": any spell cast from exile (checked by the
     /// trigger, not by `holds`).
     FromExile,
@@ -5822,7 +5845,9 @@ impl SpellOrdinal {
     /// on its caster's turn or not.
     pub fn holds(self, n: u8, own_turn: bool) -> bool {
         match self {
-            SpellOrdinal::First | SpellOrdinal::FirstNoncreature => n == 1,
+            SpellOrdinal::First
+            | SpellOrdinal::FirstNoncreature
+            | SpellOrdinal::FirstInstantOrSorcery => n == 1,
             SpellOrdinal::Second => n == 2,
             SpellOrdinal::Third => n == 3,
             SpellOrdinal::NotFirst => n >= 2,
@@ -5925,6 +5950,7 @@ impl TriggerSpec {
             | TriggerSpec::NoncombatDamageToOpponent { .. }
             | TriggerSpec::DealsCombatDamageToPlayerOrBattle(_)
             | TriggerSpec::DealtDamage(_)
+            | TriggerSpec::DealtDamageAtLeast(..)
             | TriggerSpec::DealtCombatDamage(_)
             | TriggerSpec::DealsDamage { .. }
             | TriggerSpec::DealsDamageTo { .. } => WATCH_DAMAGE,
@@ -5976,6 +6002,7 @@ impl TriggerSpec {
             | TriggerSpec::YouPutCounters { .. }
             | TriggerSpec::Chapter(_) => WATCH_COUNTERS,
             TriggerSpec::ScriesOrSurveils
+            | TriggerSpec::Scries
             | TriggerSpec::Explores(_)
             | TriggerSpec::Activates { .. }
             | TriggerSpec::Transforms
@@ -6091,6 +6118,9 @@ pub enum TurnLimit {
     /// but its first "you may" is offered only until it is done once this
     /// turn; declining doesn't count.
     Do,
+    /// "This ability triggers only once.": once for the object, ever (a
+    /// new object after a zone change starts fresh, CR 400.7).
+    Ever,
 }
 
 /// What a cost does to the permanent chosen for it.

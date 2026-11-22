@@ -319,6 +319,11 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever an opponent loses life`, `whenever a player loses life`, `whenever you lose life` | once per life-losing event (CR 119.3; damage too); the player is `that player`, the life lost `that much` ("you gain that much life") |
 | `whenever you gain or lose life`, `whenever you gain or lose life during your turn` | once per event that changes your life total (CR 119.9: a gain or a loss of any amount is one event), only on your turn with `during your turn` |
 | `whenever you scry or surveil` | once per instruction to scry or surveil (CR 701.22, 701.25) |
+| `whenever you scry` | once per instruction to scry (CR 701.22; scry 0 is none, 701.22b); surveilling doesn't trigger it |
+| `whenever this is dealt 3 or more damage` | "Whenever this creature is dealt 3 or more damage": one damage event of at least that much (damage dealt at different times doesn't add up) |
+| `when enchanted dies or is put into exile` | "When enchanted permanent dies or is put into exile": leaves the battlefield for a graveyard or exile, judged as it last existed (`return triggering card to battlefield under your control`: "return that card to the battlefield under your control") |
+| `when enchanted creature becomes tapped or is dealt damage`, `whenever this enters or becomes tapped` | two events of one subject, the shared words printed once ("When enchanted creature becomes tapped or is dealt damage, destroy it.") |
+| `when this enters while this is untapped` | "When this land enters untapped": the land's state as it enters (a `while` condition, judged as the event happens) |
 | `whenever creature you control explores`, `whenever this explores` | as a creature explores (CR 701.44), whatever it revealed and even if it has left the battlefield (then judged as it last existed); it is the triggering object |
 | `whenever you tap untapped creature an opponent controls` | "Whenever you tap an untapped creature an opponent controls": a spell or ability you control (an effect, or a cost such as `tap 1 untapped creature ... chosen` in an effect) taps an untapped permanent matching the filter; it is `that creature`. Not when an opponent taps their own creature for your effect |
 | `whenever you activate an ability of a creature`, `whenever you activate an exhaust ability`, `whenever an opponent activates a loyalty ability` | as an activated ability is activated (CR 602.2), before it resolves: of a creature (mana abilities included, CR 605.3a; mana the engine taps for automatically while paying a cost is not an activation), an exhaust ability (CR 702.177), a loyalty ability (CR 606). The activating player is `that player` |
@@ -358,6 +363,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever you cast artifact spell`, `whenever a player casts Goblin spell`, `whenever an opponent casts multicolored spell` | a cast trigger with any filter |
 | `whenever this becomes targeted by opponent` | "... becomes the target of a spell or ability an opponent controls" (ward's trigger) |
 | `whenever you cast with mana value 4 or greater spell` | "Whenever you cast a spell with mana value 4 or greater" (a filter's "with" qualities print after "spell"; likewise `counter target with mana value 4 or less spell`) |
+| `whenever you cast your first instant or sorcery spell each turn` | the first of the caster's instant and sorcery spells this turn (other spells cast before it don't count) |
 | `whenever you cast your first spell each turn`, `... your second spell each turn`, `... a spell other than your first spell each turn`, `... your first spell during each opponent's turn`, `whenever an opponent casts their second spell each turn`, `whenever you cast a spell during an opponent's turn`, `whenever an opponent casts their first noncreature spell each turn`, `whenever you cast a spell from exile`, `whenever you cast your third spell each turn` | the spell's place among those its caster cast this turn (or only that it was cast on another player's turn; the first noncreature one among their noncreature spells; or that it was cast from exile) |
 | `when you cycle this` | "When you cycle this card" (CR 702.29d): triggers from the card itself as its cycling ability is activated, so it resolves before the draw; the card is "it" ("it deals 6 damage to any target") |
 | `whenever you cycle a card`, `whenever you cycle another card`, `whenever you cycle or discard a card` | cycling a card (CR 702.29); `or discard` triggers once per card discarded, cycling included |
@@ -654,6 +660,15 @@ creature card was put into your graveyard from anywhere this turn"). A
 count `differently named land you control`: "the number of differently
 named lands you control" (`this spell costs {1} less count where
 differently named land you control`).
+`during your turn replace damage to this: prevent` prints "During your
+turn, prevent all damage that would be dealt to this creature.": the
+replacement or prevention effect applies only during its controller's
+turn.
+`until end of turn, this has base power 4 and gains trample` (CR
+613.4b: the power only, in layer 7b; the toughness stays) and `this base
+power becomes count equal Town you control` ("this creature's base power
+becomes equal to the number of Towns you control", fixed as it resolves),
+both until end of turn.
 `this spell can't be countered`: "This spell can't be countered." (CR
 101.2: a spell or ability that would counter it, ward included, does
 nothing to it). Triggers `when
@@ -1008,7 +1023,9 @@ can't be enchanted by it (CR 303.4g).
 `triggered once each turn <trigger>: ...` prints "This ability triggers
 only once each turn." after the effects (`twice each turn`: "only twice
 each turn"): past that many times in a turn the ability doesn't trigger
-at all. `triggered do once each turn <trigger>: you may ...` prints "Do
+at all. `triggered once ever <trigger>: ...` prints "This ability
+triggers only once.": once for the object, ever (an intervening "if"
+that fails doesn't use it up). `triggered do once each turn <trigger>: you may ...` prints "Do
 this only once each turn.": the ability triggers every time, but its
 first `you may` is offered only until its controller has done it this
 turn (declining doesn't count). Both count per object and ability and

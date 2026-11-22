@@ -2611,6 +2611,8 @@ impl P {
                     mtg_core::card::TurnLimit::Triggers(2)
                 } else if self.eat_words(&["do", "once", "each", "turn"]) {
                     mtg_core::card::TurnLimit::Do
+                } else if self.eat_words(&["once", "ever"]) {
+                    mtg_core::card::TurnLimit::Ever
                 } else {
                     mtg_core::card::TurnLimit::None
                 };
@@ -2669,6 +2671,11 @@ impl P {
                 self.pos += 1;
                 let r = self.replacement()?;
                 Ok(Ability::Replacement(r))
+            }
+            "during" if self.at_words(&["during", "your", "turn", "replace"]) => {
+                self.pos += 3;
+                let ability = self.ability()?;
+                Ok(Ability::DuringYourTurn(Box::new(ability)))
             }
             "as" if self.at_words(&["as", "this", "enters", "choose"])
                 || self.at_words(&["as", "it", "enters", "choose"]) =>
@@ -6267,6 +6274,31 @@ impl P {
                     source: subject,
                     to,
                     twice,
+                })
+            }
+            // "this creature's base power becomes equal to ..." (CR
+            // 613.4b).
+            "base" if self.at_words(&["power", "becomes"]) => {
+                self.pos += 2;
+                let n = self.num()?;
+                self.until_end_of_turn();
+                Ok(Effect::SetBasePower {
+                    to: subject,
+                    n,
+                    becomes: true,
+                })
+            }
+            "has" | "have"
+                if self.at_words(&["base", "power"])
+                    && !self.at_words(&["base", "power", "and"]) =>
+            {
+                self.pos += 2;
+                let n = self.num()?;
+                self.until_end_of_turn();
+                Ok(Effect::SetBasePower {
+                    to: subject,
+                    n,
+                    becomes: false,
                 })
             }
             "has" | "have" => {
@@ -11454,6 +11486,9 @@ impl P {
         if self.eat_words(&["first", "noncreature", "spell", "each", "turn"]) {
             return Ok(Some(SpellOrdinal::FirstNoncreature));
         }
+        if self.eat_words(&["first", "instant", "or", "sorcery", "spell", "each", "turn"]) {
+            return Ok(Some(SpellOrdinal::FirstInstantOrSorcery));
+        }
         let w = self.word()?;
         self.expect_word("spell")?;
         let nth = match w.as_str() {
@@ -11587,6 +11622,9 @@ impl P {
         }
         if self.eat_words(&["you", "scry", "or", "surveil"]) {
             return Ok(Trigger::ScriesOrSurveils);
+        }
+        if self.eat_words(&["you", "scry"]) {
+            return Ok(Trigger::Scries);
         }
         // "you tap an untapped creature an opponent controls".
         if self.eat_words(&["you", "tap"]) {
@@ -12151,10 +12189,24 @@ impl P {
                     | Trigger::Leaves(TriggerObj::This)
                     | Trigger::Attacks(TriggerObj::This)
                     | Trigger::TurnedFaceUp(TriggerObj::This)
+                    | Trigger::BecomesTapped(TriggerObj::This)
                     | Trigger::Transforms
             ) {
-                return self.fail("`this enters or` takes `dies`, `leaves the battlefield`, `attacks`, `transforms`, or `is turned face up`");
+                return self.fail("`this enters or` takes `dies`, `leaves the battlefield`, `attacks`, `becomes tapped`, `transforms`, or `is turned face up`");
             }
+            return Ok(Trigger::Or {
+                first: Box::new(first),
+                second: Box::new(second),
+                whenever,
+            });
+        }
+        // "When enchanted creature becomes tapped or is dealt damage": two
+        // events of the same object.
+        if matches!(first, Trigger::BecomesTapped(_))
+            && self.at_words(&["or", "is", "dealt", "damage"])
+        {
+            self.pos += 1;
+            let second = self.trigger_verb(obj, whenever)?;
             return Ok(Trigger::Or {
                 first: Box::new(first),
                 second: Box::new(second),
@@ -12182,6 +12234,10 @@ impl P {
         let w = self.word()?;
         match w.as_str() {
             "enters" => Ok(Trigger::Enters(obj)),
+            "dies" if self.at_words(&["or", "is", "put", "into", "exile"]) => {
+                self.pos += 5;
+                Ok(Trigger::DiesOrExiled(obj))
+            }
             "dies" => Ok(Trigger::Dies(obj)),
             // CR 701.27: "transforms into <this face>".
             "transforms" if obj == TriggerObj::This => Ok(Trigger::Transforms),
@@ -12212,6 +12268,12 @@ impl P {
             "is" if self.at_words(&["dealt", "damage"]) => {
                 self.pos += 2;
                 Ok(Trigger::DealtDamage(obj))
+            }
+            "is" if self.at_word("dealt") && matches!(self.peek_at(1), Some(Tok::Num(_))) => {
+                self.pos += 1;
+                let n = self.number()?;
+                self.expect_words(&["or", "more", "damage"])?;
+                Ok(Trigger::DealtDamageAtLeast(obj, n))
             }
             "is" => {
                 self.expect_words(&[

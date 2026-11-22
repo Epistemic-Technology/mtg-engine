@@ -3349,6 +3349,9 @@ impl Compiler<'_> {
             Effect::SetBasePtVar { to, n } => {
                 out.push(CoreEffect::SetBasePtVar { to: r(*to), n: *n });
             }
+            Effect::SetBasePower { to, n, .. } => {
+                out.push(CoreEffect::SetBasePower { to: r(*to), n: *n });
+            }
             Effect::SetBasePt {
                 to,
                 power,
@@ -3883,6 +3886,7 @@ impl Compiler<'_> {
             }
             Trigger::Enters(o) => TriggerSpec::Enters(self.trigger_obj(o)),
             Trigger::Dies(o) => TriggerSpec::Dies(self.trigger_obj(o)),
+            Trigger::DiesOrExiled(o) => TriggerSpec::DiesOrExiled(self.trigger_obj(o)),
             Trigger::EveryStep(step) => TriggerSpec::BeginningOfStep {
                 step: *step,
                 whose: Who::Any,
@@ -3981,6 +3985,9 @@ impl Compiler<'_> {
                 kind: *kind,
             },
             Trigger::DealtDamage(o) => TriggerSpec::DealtDamage(self.trigger_obj(o)),
+            Trigger::DealtDamageAtLeast(o, n) => {
+                TriggerSpec::DealtDamageAtLeast(self.trigger_obj(o), *n)
+            }
             Trigger::DealtCombatDamage(o) => TriggerSpec::DealtCombatDamage(self.trigger_obj(o)),
             Trigger::DealsDamage { obj, to, combat } => TriggerSpec::DealsDamage {
                 what: self.trigger_obj(obj),
@@ -4070,6 +4077,7 @@ impl Compiler<'_> {
                 your_turn: *your_turn,
             },
             Trigger::ScriesOrSurveils => TriggerSpec::ScriesOrSurveils,
+            Trigger::Scries => TriggerSpec::Scries,
             Trigger::Explores(o) => TriggerSpec::Explores(self.trigger_obj(o)),
             Trigger::YouTap(f) => TriggerSpec::YouTap(self.filter(f)),
             Trigger::Activates { whose, kind } => TriggerSpec::Activates {
@@ -4701,6 +4709,12 @@ impl Compiler<'_> {
                 return Ok(a);
             }
             Ability::Labeled { ability, .. } => return self.ability(ability),
+            // "During your turn, prevent all damage that would be dealt to
+            // this creature."
+            Ability::DuringYourTurn(ability) => {
+                let a = self.ability(ability)?;
+                return self.while_holds(a, StaticCondition::YourTurn, "during your turn");
+            }
             Ability::BlockRule(r) => AbilityDef::BlockRule(match r {
                 crate::ast::BlockRule::NotBy(f) => mtg_core::card::BlockRule::NotBy(self.filter(f)),
                 crate::ast::BlockRule::OnlyBy(f) => {

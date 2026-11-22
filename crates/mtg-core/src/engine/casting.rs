@@ -6963,6 +6963,7 @@ impl GameState {
             player: p,
             looked: u32::try_from(n).unwrap_or(0),
             down: u32::try_from(down.len()).unwrap_or(0),
+            surveil: graveyard,
         });
         self.bump();
     }
@@ -10766,6 +10767,23 @@ impl GameState {
                         smallvec::smallvec![Modification::SetPt {
                             power: PtValue::Fixed(*power),
                             toughness: PtValue::Fixed(*toughness),
+                        }],
+                    );
+                }
+            }
+            Effect::SetBasePower { to, n } => {
+                // CR 608.2h: the value is locked in as the effect resolves.
+                let v = i32::try_from(self.eval_num(*n, ctx)).unwrap_or(i32::MAX);
+                for t in self.recipients(ctx, *to) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    self.effect_until_end_of_turn(
+                        ctx,
+                        id,
+                        smallvec::smallvec![Modification::SetPt {
+                            power: PtValue::Fixed(v),
+                            toughness: PtValue::Unchanged,
                         }],
                     );
                 }

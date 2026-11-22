@@ -1355,6 +1355,11 @@ impl Decompiler<'_> {
                 ),
             },
             CoreEffect::SetBasePtVar { to, n } => Effect::SetBasePtVar { to: r(*to), n: *n },
+            CoreEffect::SetBasePower { to, n } => Effect::SetBasePower {
+                to: r(*to),
+                n: *n,
+                becomes: matches!(n, mtg_core::card::Num::Count(_)),
+            },
             CoreEffect::SetBasePt {
                 to,
                 power,
@@ -1825,7 +1830,7 @@ impl Decompiler<'_> {
             TriggerSpec::BlocksOrBlocked(o) => Trigger::BlocksOrBlocked(self.trigger_obj(o)),
             TriggerSpec::AttacksOrBlocks(o) => Trigger::AttacksOrBlocks(self.trigger_obj(o)),
             TriggerSpec::Leaves(o) => Trigger::Leaves(self.trigger_obj(o)),
-            TriggerSpec::DiesOrExiled(_) => unreachable!("earthbend's built-in delayed trigger"),
+            TriggerSpec::DiesOrExiled(o) => Trigger::DiesOrExiled(self.trigger_obj(o)),
             TriggerSpec::Blocks(o) => Trigger::Blocks(self.trigger_obj(o)),
             TriggerSpec::BlockPair {
                 what,
@@ -1891,6 +1896,9 @@ impl Decompiler<'_> {
                 kind: *kind,
             },
             TriggerSpec::DealtDamage(o) => Trigger::DealtDamage(self.trigger_obj(o)),
+            TriggerSpec::DealtDamageAtLeast(o, n) => {
+                Trigger::DealtDamageAtLeast(self.trigger_obj(o), *n)
+            }
             TriggerSpec::DealtCombatDamage(o) => Trigger::DealtCombatDamage(self.trigger_obj(o)),
             TriggerSpec::DealsDamage { what, to, combat } => Trigger::DealsDamage {
                 obj: self.trigger_obj(what),
@@ -1969,6 +1977,7 @@ impl Decompiler<'_> {
                 your_turn: *your_turn,
             },
             TriggerSpec::ScriesOrSurveils => Trigger::ScriesOrSurveils,
+            TriggerSpec::Scries => Trigger::Scries,
             TriggerSpec::Explores(o) => Trigger::Explores(self.trigger_obj(o)),
             TriggerSpec::YouTap(f) => Trigger::YouTap(self.filter(f)),
             TriggerSpec::Activates { whose, kind } => Trigger::Activates {
@@ -2002,12 +2011,29 @@ impl Decompiler<'_> {
                             | TriggerSpec::Leaves(CoreTriggerObj::This)
                             | TriggerSpec::Attacks(CoreTriggerObj::This)
                             | TriggerSpec::TurnedFaceUp(CoreTriggerObj::This)
+                            | TriggerSpec::BecomesTapped(CoreTriggerObj::This)
                     ) =>
             {
                 Trigger::Or {
                     first: Box::new(self.trigger(&pair.0)),
                     second: Box::new(self.trigger(&pair.1)),
-                    whenever: matches!(pair.1, TriggerSpec::Attacks(_)),
+                    whenever: matches!(
+                        pair.1,
+                        TriggerSpec::Attacks(_) | TriggerSpec::BecomesTapped(_)
+                    ),
+                }
+            }
+            // "When enchanted creature becomes tapped or is dealt damage".
+            TriggerSpec::Either(pair)
+                if matches!(
+                    (&pair.0, &pair.1),
+                    (TriggerSpec::BecomesTapped(a), TriggerSpec::DealtDamage(b)) if a == b
+                ) =>
+            {
+                Trigger::Or {
+                    first: Box::new(self.trigger(&pair.0)),
+                    second: Box::new(self.trigger(&pair.1)),
+                    whenever: false,
                 }
             }
             TriggerSpec::Either(pair) => Trigger::Either(

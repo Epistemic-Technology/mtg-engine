@@ -189,10 +189,18 @@ impl GameState {
         source: ObjId,
         ability: AbilityId,
     ) -> bool {
+        let key = (source, ability);
+        if limit == crate::card::TurnLimit::Ever {
+            // Kept with "activate only once" abilities: never cleared.
+            if self.activated_ever.contains(&key) {
+                return false;
+            }
+            self.activated_ever.push(key);
+            return true;
+        }
         let crate::card::TurnLimit::Triggers(n) = limit else {
             return true;
         };
-        let key = (source, ability);
         let times = self.limited_this_turn.iter().filter(|k| **k == key).count();
         if times >= usize::from(n) {
             return false;
@@ -868,6 +876,16 @@ impl GameState {
                     to: Zone::Graveyard,
                     ..
                 },
+            )
+            // "When enchanted permanent dies or is put into exile".
+            | (
+                TriggerSpec::DiesOrExiled(what),
+                Event::ZoneChange {
+                    old,
+                    from: Zone::Battlefield,
+                    to: Zone::Graveyard | Zone::Exile,
+                    ..
+                },
             ) => {
                 // Look back: the object as it last existed on the battlefield.
                 let l = self.lki.get(old)?;
@@ -1221,6 +1239,17 @@ impl GameState {
                 Some((Some(*obj), Some(p)))
             }
             (
+                TriggerSpec::DealtDamageAtLeast(what, n),
+                Event::Damage {
+                    target: Target::Object(obj),
+                    amount,
+                    ..
+                },
+            ) if amount >= n => {
+                let p = on_battlefield(what, *obj)?;
+                Some((Some(*obj), Some(p)))
+            }
+            (
                 TriggerSpec::DealsDamage { what, to, combat },
                 Event::Damage {
                     source,
@@ -1428,20 +1457,29 @@ impl GameState {
             (
                 TriggerSpec::CastsNth {
                     whose,
-                    nth: crate::card::SpellOrdinal::FirstNoncreature,
+                    nth:
+                        nth @ (crate::card::SpellOrdinal::FirstNoncreature
+                        | crate::card::SpellOrdinal::FirstInstantOrSorcery),
                 },
                 Event::Cast {
                     player, spell, def, ..
                 },
             ) => {
                 // The spells cast this turn include this one.
-                let noncreature = |d: &crate::card::CardRef| !self.pool.get(*d).is_creature();
+                let kind = |d: &crate::card::CardRef| {
+                    let d = self.pool.get(*d);
+                    if *nth == crate::card::SpellOrdinal::FirstNoncreature {
+                        !d.is_creature()
+                    } else {
+                        d.is_instant() || d.is_sorcery()
+                    }
+                };
                 let n = self
                     .cast_this_turn
                     .iter()
-                    .filter(|(p, d)| p == player && noncreature(d))
+                    .filter(|(p, d)| p == player && kind(d))
                     .count();
-                (whose_ok(*whose, *player) && noncreature(def) && n == 1)
+                (whose_ok(*whose, *player) && kind(def) && n == 1)
                     .then_some((Some(*spell), Some(*player)))
             }
             (
@@ -1679,6 +1717,14 @@ impl GameState {
             (TriggerSpec::ScriesOrSurveils, Event::Scried { player, .. }) => {
                 (*player == w.controller).then_some((None, Some(*player)))
             }
+            (
+                TriggerSpec::Scries,
+                Event::Scried {
+                    player,
+                    surveil: false,
+                    ..
+                },
+            ) => (*player == w.controller).then_some((None, Some(*player))),
             // CR 701.44c: the creature explores even if it has left the
             // battlefield; then it is judged as it last existed.
             (TriggerSpec::Explores(what), Event::Explored { obj }) => match what {
