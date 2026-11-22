@@ -254,13 +254,37 @@ named the feature; a card may need more than one.
 
 ## 4. Process
 
-- **Per-game throughput has fallen about 7.5% over five waves**, about
-  2% a wave: binaries built at each wave boundary measure 3,792, 3,733,
-  3,663, 3,578 and 3,507 games/s (mono-red mirror, pinned best of five).
-  A profile spreads the growth over `characteristics`, `run`,
-  `priority_options` and `mana_sources`; no one commit or function
-  accounts for it. Start-up (parsing and compiling the whole corpus) is
-  0.55 s per launch and grows with the corpus.
+- **Throughput: the five-wave drop is recovered; what is left.** Binaries
+  built at each wave boundary had lost about 2% a wave (mono-red mirror;
+  callgrind: 731.7M instructions in `mtg_sim::play` for 300 games at
+  9dfb5c71, 775.5M at 27cbd09a). The growth was spread thin: a
+  priority listing that checked fourteen alternative casts per hand card
+  and called `castable` for off-timing cards, cached mana sources cloned
+  entry by entry, an options vector regrown push by push, a large frame
+  on every cached `characteristics` call, an `IdMap` probe per battlefield
+  hit, and the derived `Flow::clone` per loop step. After the perf branch
+  the mirror is 712.2M (below the oldest wave) and random:3 v random:4
+  (100 games) 1,768.0M -> 1,241.1M: `KeywordSet::iter` tested all 72
+  keywords for every trigger watcher, the layer pass collected a vector
+  per object per layer, and snapshots cloned objects' small vectors
+  element by element. Start-up (`mtg sim --games 0`): 2,013M -> 1,745M
+  instructions (lexer and `at_word` allocation). Left, by size: in
+  effect-heavy games the layer pass (21% of a game: any `cbump` makes
+  the next `characteristics` call recompute every object), trigger
+  watchers (`watchers` copies characteristics for every permanent whose
+  printed abilities might see the event), and state snapshots before
+  actions that may ask midway (`Engine::advance` clones the whole state,
+  and twice when the question comes). In the mirror: `characteristics`
+  still returns an 88-byte copy (9%), `mana_sources` misses its cache on
+  37% of calls, malloc and free about 15%. At start-up, rendering every
+  card's Oracle text for `CardDef::oracle_text` is 14% (lazy rendering
+  would need the AST kept; `link_exiles` reads the text), and dropping
+  the pool at exit 2.5%. The "30 ms fixed cost inside the timed region"
+  did not reproduce in instruction counts: the first game costs about
+  2M more instructions than later ones (malloc working through the heap
+  the corpus load left), about 1 ms; the rest is cold caches or noise on
+  a loaded machine. Wall-clock A/B on this machine was unreliable at load
+  20+; use callgrind.
 - **The optional additional cost was built twice:** behold's "you may
   behold" and the path for collect evidence and blight are separate.
 - **Cost reductions on a prepared spell copy** have no scenario.

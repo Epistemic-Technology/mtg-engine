@@ -687,8 +687,16 @@ impl P {
         }
     }
 
+    /// Whether the next token is the word `w` in any case (`w` itself is
+    /// lowercase; one with a capital never matches, as when this compared
+    /// a lowercased copy of the token).
     fn at_word(&self, w: &str) -> bool {
-        self.word_at(0).as_deref() == Some(w)
+        match self.peek_at(0) {
+            Some(Tok::Word(x)) => {
+                x.eq_ignore_ascii_case(w) && !w.bytes().any(|b| b.is_ascii_uppercase())
+            }
+            _ => false,
+        }
     }
 
     fn at_words(&self, ws: &[&str]) -> bool {

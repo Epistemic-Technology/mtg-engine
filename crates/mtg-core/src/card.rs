@@ -535,8 +535,42 @@ impl KeywordSet {
         self.0[0] == 0 && self.0[1] == 0
     }
 
+    /// The keywords in the set, in `Keyword::ALL` order. Walks the set
+    /// bits only: trigger detection asks this of every watching permanent
+    /// on every event, and testing all of `ALL` was 8% of an effect-heavy
+    /// game.
     pub fn iter(self) -> impl Iterator<Item = Keyword> {
-        Keyword::ALL.into_iter().filter(move |k| self.contains(*k))
+        // Each keyword's position in `ALL` (which is not declaration
+        // order); `u8::MAX` for none.
+        const RANK: [u8; 128] = {
+            assert!(Keyword::ALL.len() < u8::MAX as usize);
+            let mut r = [u8::MAX; 128];
+            let mut i: u8 = 0;
+            while (i as usize) < Keyword::ALL.len() {
+                r[Keyword::ALL[i as usize] as usize] = i;
+                i += 1;
+            }
+            r
+        };
+        // The set re-indexed by position in `ALL`: lowest bit first is
+        // then `ALL` order.
+        let mut ranks = [0u64; 2];
+        for (w, word) in self.0.iter().enumerate() {
+            let mut word = *word;
+            while word != 0 {
+                let r = RANK[w * 64 + word.trailing_zeros() as usize];
+                word &= word - 1;
+                if r != u8::MAX {
+                    ranks[usize::from(r >> 6)] |= 1 << (r & 63);
+                }
+            }
+        }
+        std::iter::from_fn(move || {
+            let w = ranks.iter().position(|w| *w != 0)?;
+            let r = w * 64 + ranks[w].trailing_zeros() as usize;
+            ranks[w] &= ranks[w] - 1;
+            Some(Keyword::ALL[r])
+        })
     }
 }
 
@@ -7412,6 +7446,13 @@ pub struct CardDef {
     /// flag: those changes refresh it anyway.)
     #[serde(skip)]
     pub history_static: bool,
+    /// Filled in by `CardPool::add`: any way to cast it from the hand
+    /// besides its mana cost that the priority listing checks one by one
+    /// (evoke, an alternative cost, dash, warp, sneak, web-slinging,
+    /// impending, bestow, overload, awaken, face down, suspend, foretell,
+    /// plot). Most cards have none, and the listing skips them all.
+    #[serde(skip)]
+    pub other_casts: bool,
     /// Filled in by `CardPool::add`: what its text asks about the mana
     /// spent to cast it.
     #[serde(skip)]
@@ -9154,6 +9195,20 @@ impl CardPool {
             }),
         );
         def.flags = flags;
+        def.other_casts = def.evoke.is_some()
+            || def.alt_cost.is_some()
+            || def.dash.is_some()
+            || def.warp.is_some()
+            || def.sneak.is_some()
+            || def.web_slinging.is_some()
+            || def.impending.is_some()
+            || def.bestow_face.is_some()
+            || def.overload_face.is_some()
+            || def.awaken_face.is_some()
+            || def.morph.is_some()
+            || def.suspend.is_some()
+            || def.foretell.is_some()
+            || def.plot.is_some();
         def.printed = Some(crate::state::Characteristics {
             def: r,
             colors: def.colors(),
@@ -9386,6 +9441,7 @@ impl Builder {
             spent: SpentUse::default(),
             step_static: false,
             history_static: false,
+            other_casts: false,
             counts: Vec::new(),
             combat_static: false,
             layout: Layout::Normal,
@@ -10188,6 +10244,40 @@ pub(crate) fn test_pool() -> CardPool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn keyword_set_iterates_in_all_order() {
+        // Sets of one, of each pair, and of everything: `iter` yields what
+        // filtering `Keyword::ALL` by `contains` does, in that order.
+        let check = |s: KeywordSet| {
+            let want: Vec<Keyword> = Keyword::ALL
+                .into_iter()
+                .filter(|k| s.contains(*k))
+                .collect();
+            assert_eq!(s.iter().collect::<Vec<_>>(), want);
+        };
+        check(KeywordSet::NONE);
+        check(KeywordSet::of(Keyword::ALL));
+        for a in Keyword::ALL {
+            for b in Keyword::ALL {
+                check(KeywordSet::of([a, b]));
+            }
+        }
+    }
+
+    #[test]
+    fn triggered_keywords_are_those_with_an_ability() {
+        // Trigger detection walks a watcher's keywords only when they meet
+        // `KeywordSet::TRIGGERED`.
+        let pool = test_pool();
+        for k in Keyword::ALL {
+            assert_eq!(
+                pool.keyword_trigger(k).is_some(),
+                KeywordSet::TRIGGERED.contains(k),
+                "{k:?}"
+            );
+        }
+    }
 
     #[test]
     fn pool_lookup_and_characteristics() {

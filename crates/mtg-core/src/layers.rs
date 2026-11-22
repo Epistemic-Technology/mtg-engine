@@ -239,7 +239,7 @@ fn compute(state: &GameState, entering: Option<(ObjId, PlayerId)>) -> Derived {
 fn pass(
     state: &GameState,
     entering: Option<(ObjId, PlayerId)>,
-    settled: Option<IdMap<Characteristics>>,
+    settled: Option<crate::state::CharMap>,
 ) -> (Derived, bool) {
     // Fast path: nothing can modify anything.
     let plain = |id: &ObjId| {
@@ -393,7 +393,7 @@ fn pass(
 
     let again = work.needs_settled.get() && work.settled.is_none();
     (
-        Derived::Battlefield(work.ids.into_iter().zip(work.chars).collect()),
+        Derived::Battlefield(crate::state::CharMap::new(work.ids, work.chars)),
         again,
     )
 }
@@ -894,7 +894,10 @@ fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
         let Some(c) = work.get(*id) else {
             continue;
         };
-        for ability in c.abilities.iter().copied().collect::<Vec<_>>() {
+        // A copy of the (inline, `Copy`) set, not a collected vector: this
+        // runs for every object in every layer of every pass.
+        let abilities = c.abilities;
+        for ability in abilities.iter().copied() {
             let AbilityDef::Static(sa) = work.state.pool.ability(ability) else {
                 continue;
             };

@@ -124,12 +124,15 @@ pub enum LoadError {
 /// Parse every embedded card file, in compile order (tokens, emblems,
 /// cards; by name within each).
 pub fn builtin_cards() -> Result<Vec<ast::Card>, LoadError> {
-    let mut all = Vec::new();
-    let mut seen: HashMap<String, String> = HashMap::new();
-    for (path, text) in card_files() {
-        // Read at run time (card authoring), a file being written or a
-        // second copy of a card is skipped, not fatal.
-        let lenient = std::env::var_os("MTG_CARDS_DIR").is_some();
+    let files = card_files();
+    // Most files hold one card; sized up front, the vector of (large)
+    // cards isn't moved as it grows.
+    let mut all = Vec::with_capacity(files.len() + files.len() / 8);
+    let mut seen: HashMap<String, String> = HashMap::with_capacity(all.capacity());
+    // Read at run time (card authoring), a file being written or a second
+    // copy of a card is skipped, not fatal.
+    let lenient = std::env::var_os("MTG_CARDS_DIR").is_some();
+    for (path, text) in files {
         let cards = match parse(text) {
             Ok(c) => c,
             Err(e) if lenient => {
