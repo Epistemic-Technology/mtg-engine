@@ -553,6 +553,32 @@ impl GameState {
                                 }
                                 continue;
                             }
+                            // "{2}{U}, Discard two cards: Return this
+                            // card from your graveyard ...": one option
+                            // per card that could be discarded, none
+                            // without enough of them.
+                            if ab.cost.discard > 0 {
+                                let mut c = self.discard_candidates(
+                                    p,
+                                    ab.cost.discard_filter.as_ref(),
+                                    *id,
+                                );
+                                if c.len() < ab.cost.discard as usize {
+                                    continue;
+                                }
+                                if ab.cost.discard_random {
+                                    c.truncate(1);
+                                }
+                                for d in c {
+                                    options.push(Choice::Activate {
+                                        source: *id,
+                                        ability: *a,
+                                        sacrifice: None,
+                                        discard: Some(d),
+                                    });
+                                }
+                                continue;
+                            }
                             options.push(Choice::Activate {
                                 source: *id,
                                 ability: *a,
