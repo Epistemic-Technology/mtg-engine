@@ -10331,6 +10331,13 @@ impl P {
                     named_before_who = f.who.is_none();
                     self.pos += 2;
                 }
+                // `named "Keimi"`: a token's name.
+                "named"
+                    if matches!(self.peek_at(1), Some(Tok::Str(_))) && f.named_card.is_none() =>
+                {
+                    self.pos += 1;
+                    f.named_card = Some(self.string()?);
+                }
                 "not" if self.at_words(&["not", "named", "this"]) && f.same.is_none() => {
                     f.same = Some(SameRef::NotNamedThis);
                     named_before_who = f.who.is_none();

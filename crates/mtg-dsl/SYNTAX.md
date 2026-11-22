@@ -1190,7 +1190,8 @@ effect resolves). With nothing chosen, nothing matches. `named this` is
 "named ~", the card's own name (CR 201.4b), printed after the controller
 (`creature you control named this`: "creature you control named Timberpack
 Wolf") unless written before it (`creature named this you control`); `not
-named this` is "not named ~" (`target permanent not named this`). Cards
+named this` is "not named ~" (`target permanent not named this`). `named "Darkstar"` is a token's name ("you don't
+control a creature named Darkstar"), the token definition keyed by it. Cards
 take the name after the noun: `search card named this ...`, `target card
 named this from your graveyard`, `graveyard named this` ("cards named ~ in
 your graveyard"). A face-down permanent has no name (CR 708.2). As an effect's

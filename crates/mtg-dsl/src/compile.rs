@@ -1124,7 +1124,16 @@ impl Compiler<'_> {
                     },
                 }
             }),
-            named: None,
+            // `named "Keimi"`: a token definition's name; an unknown one
+            // matches nothing.
+            named: f.named_card.as_ref().map(|n| {
+                (
+                    self.pool
+                        .lookup(n)
+                        .unwrap_or(mtg_core::card::CardRef(u32::MAX)),
+                    true,
+                )
+            }),
             enchanted: f.enchanted,
             paired: f.paired.is_some(),
             no_abilities: f.no_abilities,

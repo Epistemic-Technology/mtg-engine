@@ -238,6 +238,7 @@ impl Decompiler<'_> {
                     (SameOf::Target(n), _) => SameRef::SameNameAs(usize::from(n)),
                 }
             }),
+            named_card: f.named.map(|(d, _)| self.pool.get(d).name.clone()),
             named_first: false,
             enchanted_late: false,
             equipped_late: false,

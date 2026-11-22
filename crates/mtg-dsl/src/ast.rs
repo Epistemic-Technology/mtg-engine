@@ -800,6 +800,9 @@ pub struct Filter {
     /// `named this`, `not named this`, `with same name as target 1`,
     /// `that shares color with target 1` (`ObjFilter::same`).
     pub same: Option<SameRef>,
+    /// `named "Keimi"`: "named Keimi", a token's name (CR 201.2; the
+    /// token definition keyed so).
+    pub named_card: Option<String>,
     /// `named this` written before the controller or place ("creatures
     /// named ~ on the battlefield", "creature named ~ you control") rather
     /// than after it ("creature you control named ~").

@@ -2535,6 +2535,10 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
 /// relations to a target outside a recipient that names it (" with the
 /// same name as it").
 fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
+    // "a creature named Keimi" (a token's name).
+    if let Some(n) = &f.named_card {
+        return format!(" named {n}");
+    }
     match f.same {
         None => String::new(),
         Some(SameRef::NamedThis) => format!(" named {}", card.name),

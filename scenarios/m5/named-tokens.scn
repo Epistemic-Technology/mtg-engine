@@ -149,3 +149,16 @@ scenario "named tokens: Kwia makes one Lotus a turn, which taps for three mana o
   assert battlefield A contains "Wind Drake"
   assert battlefield A lacks "Lotus"
 }
+
+scenario "named tokens: Rufus Shinra makes Darkstar only if you don't control one" {
+  battlefield A: "Rufus Shinra"
+  turn 1 A: attack "Rufus Shinra"
+  turn 3 A: attack "Rufus Shinra"
+  run_to turn 1 end
+  assert battlefield A contains 1 "Darkstar"
+  assert is "Darkstar" white
+  assert is "Darkstar" black
+  run_to turn 3 end
+  assert battlefield A contains 1 "Darkstar"
+  assert life B 16
+}

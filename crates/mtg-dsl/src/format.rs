@@ -3297,6 +3297,9 @@ fn filter_one(f: &Filter) -> String {
     {
         words.push(same_ref(r));
     }
+    if let Some(n) = &f.named_card {
+        words.push(format!("named \"{n}\""));
+    }
     words.join(" ")
 }
 
