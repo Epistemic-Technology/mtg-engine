@@ -124,3 +124,34 @@ scenario "reveal from hand: Scent of Nightshade gives -X/-X" {
   assert power "Hill Giant" 2
   assert toughness "Hill Giant" 2
 }
+
+# "Then discard two cards unless you discard an artifact card." (CR
+# 608.2d): the player chooses, and may discard two cards although they
+# hold an artifact card (`choose done` declines the artifact).
+
+scenario "Thirst for Knowledge: discard two cards although an artifact could be discarded" {
+  battlefield A: 3 "Island"
+  hand A: "Thirst for Knowledge"
+  library A: "Ornithopter", "Forest", "Plains", "Swamp"
+  turn 1 A: cast "Thirst for Knowledge"
+  turn 1 A: choose done
+  turn 1 precombat_main A: discard "Forest"
+  turn 1 precombat_main A: discard "Plains"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Ornithopter"
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Plains"
+}
+
+scenario "Thirst for Knowledge: the player chooses which artifact card" {
+  battlefield A: 3 "Island"
+  hand A: "Thirst for Knowledge"
+  library A: "Ornithopter", "Forest", "Millstone", "Swamp"
+  turn 1 A: cast "Thirst for Knowledge"
+  turn 1 precombat_main A: discard "Millstone"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Millstone"
+  assert hand A contains "Ornithopter"
+}
