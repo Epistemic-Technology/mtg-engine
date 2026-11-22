@@ -936,9 +936,10 @@ impl P {
                     "split" => mtg_core::card::Layout::Split,
                     "prepare" => mtg_core::card::Layout::Prepare,
                     "modal_dfc" => mtg_core::card::Layout::ModalDfc,
+                    "flip" => mtg_core::card::Layout::Flip,
                     w => {
                         return self.fail(format!(
-                            "unknown layout `{w}` (adventure, omen, transform, split, prepare, modal_dfc)"
+                            "unknown layout `{w}` (adventure, omen, transform, split, prepare, modal_dfc, flip)"
                         ));
                     }
                 };
@@ -7258,10 +7259,7 @@ impl P {
             }
             // "Roll a d20." (CR 706); its results table follows on the
             // next lines (`result 1 to 9: ...`, see `effects_body`).
-            "flip" => {
-                self.expect_word("coin")?;
-                Ok(Effect::FlipCoin)
-            }
+            "flip" if self.eat_word("coin") => Ok(Effect::FlipCoin),
             // CR 701.23: "clash with an opponent".
             "clash" => Ok(Effect::Clash),
             // CR 500.8: "After this phase, there is an additional combat
@@ -8180,6 +8178,16 @@ impl P {
                 1
             })),
             "transform" => Ok(Effect::Transform {
+                what: self.recipient()?,
+            }),
+            // A flip card flips only itself (CR 710.1a): `flip it` is the
+            // source, printed "it", even in a trigger with no triggering
+            // object ("..., if there are two or more ki counters on this
+            // creature, you may flip it.").
+            "flip" if self.eat_word("it") => Ok(Effect::Flip {
+                what: Recipient::SourceIt,
+            }),
+            "flip" => Ok(Effect::Flip {
                 what: self.recipient()?,
             }),
             "search" | "searches" => {

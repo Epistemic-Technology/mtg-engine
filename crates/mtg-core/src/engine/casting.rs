@@ -3660,6 +3660,29 @@ impl GameState {
 
     /// Transform a double-faced permanent to its other face (CR 701.27);
     /// it stays the same object. Whether it did.
+    /// CR 710.2, 710.4: an unflipped flip card on the battlefield turns to
+    /// its flipped half; it stays the same object. Nothing for anything
+    /// else (a flipped permanent's definition has no faces).
+    pub(super) fn flip_now(&mut self, id: ObjId) {
+        let Some(o) = self.objects.get(id) else {
+            return;
+        };
+        let d = self.pool.get(o.def);
+        if o.zone != Zone::Battlefield || d.layout != Layout::Flip {
+            return;
+        }
+        let Some(flipped) = d.faces.first().copied() else {
+            return;
+        };
+        let legendary = d.is_legendary();
+        let flags = self.flags_of(&self.objects[id]);
+        self.count_sources(flags, legendary, false);
+        self.objects[id].def = flipped;
+        let flags = self.flags_of(&self.objects[id]);
+        self.count_sources(flags, self.pool.get(flipped).is_legendary(), true);
+        self.cbump();
+    }
+
     pub(super) fn transform_now(&mut self, id: ObjId) -> bool {
         let Some(o) = self.objects.get(id) else {
             return false;
@@ -9293,6 +9316,13 @@ impl GameState {
                         *reveal,
                         (*graveyard, name.as_deref()),
                     );
+                }
+            }
+            Effect::Flip { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t {
+                        self.flip_now(id);
+                    }
                 }
             }
             Effect::Transform { what } => {

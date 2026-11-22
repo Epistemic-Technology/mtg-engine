@@ -1629,6 +1629,10 @@ impl Templates {
                 r(r"^[Tt]ransform (this creature|this artifact|this permanent|it|~)$"),
                 |_, _| Some("transform this".to_string()),
             ),
+            // CR 710: a flip card's "flip it".
+            (r(r"^(?:you may )?[Ff]lip (this creature|it|~)$"), |_, _| {
+                Some("flip this".to_string())
+            }),
             (
                 r(
                     r"^Search your library for (a|an|up to \S+) (basic land|land|Plains|Island|Swamp|Mountain|Forest|creature|artifact|enchantment|instant|sorcery)? ?cards?, (reveal (?:it|them), )?(?:put (it|them|that card) (into your hand or graveyard|into your hand|into your graveyard|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
@@ -5915,6 +5919,7 @@ fn author_faces(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         "transform" => "transform",
         "prepare" => "prepare",
         "modal_dfc" => "modal_dfc",
+        "flip" => "flip",
         _ => {
             if faces
                 .iter()
@@ -6194,7 +6199,7 @@ fn neuter_pronouns(oracle: &str) -> (String, Option<&'static str>) {
 pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     if matches!(
         s.layout.as_str(),
-        "adventure" | "transform" | "split" | "prepare" | "modal_dfc"
+        "adventure" | "transform" | "split" | "prepare" | "modal_dfc" | "flip"
     ) && s.card_faces.len() == 2
     {
         return author_faces(s, corpus);

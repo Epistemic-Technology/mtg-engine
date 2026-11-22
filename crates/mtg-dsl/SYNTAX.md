@@ -53,7 +53,7 @@ ability prints its abilities after the sentence ("... token. It has
 
 A split card, adventurer, omen, or double-faced card is one block named as
 Scryfall names it (`card "Curious Pair // Treats to Share"`) with a
-`layout` line (`adventure`, `omen`, `transform`, `split`, `prepare`,
+`layout` line (`adventure`, `omen`, `transform`, `split`, `prepare`, `flip`,
 `modal_dfc`) and a `face
 "Name" { ... }` block per other face, holding that face's header and
 ability lines. The block's own lines are the front face (a split card's
@@ -76,6 +76,18 @@ wherever it may be played) either face may be cast, or played if it is a
 land (CR 712.11b, 712.12), and the permanent has the face it was cast or
 played as; anywhere else it is its front face. `transform this` turns it
 to its other face as well.
+
+A flip card (`layout flip`, CR 710) has its top half as the block and its
+bottom half as its face, without a `cost` line (the face keeps the
+card's mana cost and so its color, CR 710.1c). The effect `flip this`
+("flip this creature", "flip Kuon" for a legendary card; `flip it` is
+the source too, "..., you may flip it.", even in a trigger with no
+triggering object) turns an unflipped flip card on the battlefield to its
+bottom half, the same object with its counters, until it leaves the
+battlefield (CR 710.2, 710.4); it does nothing to anything else, and
+`transform` does nothing to a flip card. In scenarios the permanent is
+named by the half it shows ("Callow Jushi", then "Jaraku the
+Interloper").
 
 `keywords aftermath` on a split card's half (CR 702.127a, printed
 "Aftermath" first in the half's text): that half can be cast only from

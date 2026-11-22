@@ -7091,6 +7091,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*what);
             Clause::imperative(format!("transform {o}"))
         }
+        Effect::Flip { what } => {
+            let o = ctx.obj(*what);
+            Clause::imperative(format!("flip {o}"))
+        }
         Effect::Search {
             filter,
             count,

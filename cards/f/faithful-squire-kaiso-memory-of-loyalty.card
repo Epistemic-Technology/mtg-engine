@@ -1,0 +1,15 @@
+card "Faithful Squire // Kaiso, Memory of Loyalty" {
+  oracle_id 2358ffc2-6663-4ef3-b3a4-b036a4733ac6
+  layout flip
+  cost {1}{W}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  triggered whenever you cast Spirit or Arcane spell: you may put 1 ki counters on this
+  triggered at beginning of the end step if there are 2 or more ki counters on this: you may flip it
+  face "Kaiso, Memory of Loyalty" {
+    type Legendary Creature — Spirit
+    pt 3/4
+    keywords flying
+    activated remove 1 ki counters from this: prevent all damage to target creature this turn
+  }
+}

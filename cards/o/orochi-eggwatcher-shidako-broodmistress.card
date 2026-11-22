@@ -1,0 +1,13 @@
+card "Orochi Eggwatcher // Shidako, Broodmistress" {
+  oracle_id e448e27c-f66d-4369-8215-7f7275e456e1
+  layout flip
+  cost {2}{G}
+  type Creature — Snake Shaman
+  pt 1/1
+  activated {2}{G}, {T}: create 1 "1/1 green Snake creature"; if you control 10 creature, flip this
+  face "Shidako, Broodmistress" {
+    type Legendary Creature — Snake Shaman
+    pt 3/3
+    activated {G}, sacrifice creature: target creature gets +3/+3
+  }
+}

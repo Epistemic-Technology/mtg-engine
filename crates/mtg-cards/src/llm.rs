@@ -162,6 +162,7 @@ fn face_layout(s: &ScryCard) -> &'static str {
         "transform" => "transform",
         "prepare" => "prepare",
         "modal_dfc" => "modal_dfc",
+        "flip" => "flip",
         _ => "split",
     }
 }

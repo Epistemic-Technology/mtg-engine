@@ -1,0 +1,12 @@
+card "Kuon, Ogre Ascendant // Kuon's Essence" {
+  oracle_id f1b1cf99-b44c-4bcc-b0ed-98f69e66c54a
+  layout flip
+  cost {B}{B}{B}
+  type Legendary Creature — Ogre Monk
+  pt 2/4
+  triggered at beginning of each end step if 3 creatures died this turn: flip this
+  face "Kuon's Essence" {
+    type Legendary Enchantment
+    triggered at beginning of each upkeep: that player sacrifices 1 creature
+  }
+}

@@ -1118,6 +1118,7 @@ impl Decompiler<'_> {
                 and_choose: false,
             },
             CoreEffect::Transform { what } => Effect::Transform { what: r(*what) },
+            CoreEffect::Flip { what } => Effect::Flip { what: r(*what) },
             CoreEffect::Search {
                 filter,
                 count,

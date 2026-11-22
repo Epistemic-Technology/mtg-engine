@@ -1,0 +1,13 @@
+card "Budoka Gardener // Dokai, Weaver of Life" {
+  oracle_id cb952c81-c7bb-4670-938d-296d35551986
+  layout flip
+  cost {1}{G}
+  type Creature — Human Monk
+  pt 2/1
+  activated {T}: you may put land card from hand onto battlefield; if you control 10 land, flip this
+  face "Dokai, Weaver of Life" {
+    type Legendary Creature — Human Monk
+    pt 3/3
+    activated {4}{G}{G}, {T}: create 1 "0/0 green Elemental creature" sized count where land you control
+  }
+}

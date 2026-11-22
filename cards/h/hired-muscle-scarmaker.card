@@ -1,0 +1,14 @@
+card "Hired Muscle // Scarmaker" {
+  oracle_id ea31c9a4-af4f-4cab-b53c-77ef4241d4a6
+  layout flip
+  cost {1}{B}{B}
+  type Creature — Human Warrior
+  pt 2/2
+  triggered whenever you cast Spirit or Arcane spell: you may put 1 ki counters on this
+  triggered at beginning of the end step if there are 2 or more ki counters on this: you may flip it
+  face "Scarmaker" {
+    type Legendary Creature — Spirit
+    pt 4/4
+    activated remove 1 ki counters from this: target creature gains fear
+  }
+}

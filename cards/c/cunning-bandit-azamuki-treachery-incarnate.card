@@ -1,0 +1,14 @@
+card "Cunning Bandit // Azamuki, Treachery Incarnate" {
+  oracle_id 3d416f83-32b8-4dad-8e4d-3acd182bbe44
+  layout flip
+  cost {1}{R}{R}
+  type Creature — Human Warrior
+  pt 2/2
+  triggered whenever you cast Spirit or Arcane spell: you may put 1 ki counters on this
+  triggered at beginning of the end step if there are 2 or more ki counters on this: you may flip it
+  face "Azamuki, Treachery Incarnate" {
+    type Legendary Creature — Spirit
+    pt 5/2
+    activated remove 1 ki counters from this: gain control of target creature until end of turn
+  }
+}

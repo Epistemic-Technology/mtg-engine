@@ -2179,7 +2179,9 @@ pub enum LibraryPlace {
 /// 712.12). `Omen` is an adventurer whose spell is
 /// shuffled into its owner's library as it resolves instead of exiled.
 /// `Prepare`'s face is its prepare spell (CR 722.2a): never cast itself,
-/// only copies of it while the permanent is prepared (CR 722.3).
+/// only copies of it while the permanent is prepared (CR 722.3). `Flip`'s
+/// face is its flipped half (CR 710.1b), with the card's mana cost (CR
+/// 710.1c): `Effect::Flip` turns the permanent to it, for good.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
 pub enum Layout {
     #[default]
@@ -2190,6 +2192,7 @@ pub enum Layout {
     Split,
     Prepare,
     ModalDfc,
+    Flip,
 }
 
 /// A restriction on how this creature blocks or is blocked.
@@ -3699,6 +3702,12 @@ pub enum Effect {
     /// "Transform this creature" (CR 701.27): a double-faced permanent
     /// turns to its other face; it stays the same object.
     Transform {
+        what: Recipient,
+    },
+    /// "Flip this creature" (CR 710): an unflipped flip card on the
+    /// battlefield gets its flipped half's characteristics, for as long as
+    /// it stays there (CR 710.4).
+    Flip {
         what: Recipient,
     },
     /// "Add {B}{B}" (CR 106.4): mana into the controller's pool; `Any` is

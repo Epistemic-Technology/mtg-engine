@@ -1,0 +1,202 @@
+# Flip cards (CR 710): the top half is the card's normal characteristics;
+# "flip it" turns the permanent to the bottom half's name, text, type line,
+# power, and toughness (CR 710.2), keeping its mana cost and color (CR
+# 710.1c), for as long as it stays on the battlefield (CR 710.4). The
+# permanent is still the same object: counters stay on it.
+
+scenario "flip: Budoka Gardener flips once you control ten lands" {
+  battlefield A: 9 "Forest", "Budoka Gardener // Dokai, Weaver of Life"
+  hand A: "Forest"
+  turn 1 A: activate "Budoka Gardener"
+  run_to turn 1 end
+  assert battlefield A contains 10 "Forest"
+  assert battlefield A contains "Dokai, Weaver of Life"
+  assert battlefield A lacks "Budoka Gardener"
+  assert power "Dokai, Weaver of Life" 3
+  assert toughness "Dokai, Weaver of Life" 3
+  assert is "Dokai, Weaver of Life" legendary
+  assert is "Dokai, Weaver of Life" green
+  assert tapped "Dokai, Weaver of Life"
+}
+
+scenario "flip: not with fewer than ten lands" {
+  battlefield A: 8 "Forest", "Budoka Gardener // Dokai, Weaver of Life"
+  hand A: "Forest"
+  turn 1 A: activate "Budoka Gardener"
+  run_to turn 1 end
+  assert battlefield A contains 9 "Forest"
+  assert battlefield A contains "Budoka Gardener"
+  assert power "Budoka Gardener" 2
+  assert is not "Budoka Gardener" legendary
+}
+
+scenario "flip: the flipped half's abilities (Dokai's Elemental counts lands)" {
+  battlefield A: 9 "Forest", "Budoka Gardener // Dokai, Weaver of Life"
+  hand A: "Forest"
+  turn 1 A: activate "Budoka Gardener"
+  turn 3 A: activate "Dokai, Weaver of Life"
+  illegal turn 1 A: activate "Budoka Gardener"
+  run_to turn 3 end
+  assert battlefield A contains "Elemental"
+  assert power "Elemental" 10
+  assert toughness "Elemental" 10
+}
+
+scenario "flip: a flipped permanent that leaves the battlefield is the unflipped card again" {
+  battlefield A: 9 "Forest", "Budoka Gardener // Dokai, Weaver of Life"
+  battlefield B: 2 "Island"
+  hand A: "Forest"
+  hand B: "Unsummon"
+  turn 1 A: activate "Budoka Gardener"
+  turn 1 end B: cast "Unsummon" targeting "Dokai, Weaver of Life"
+  run_to turn 2 upkeep
+  assert hand A contains "Budoka Gardener"
+  assert battlefield A lacks "Dokai, Weaver of Life"
+}
+
+scenario "flip: Orochi Eggwatcher flips with ten creatures; Shidako pumps" {
+  battlefield A: 6 "Forest", 8 "Grizzly Bears", "Orochi Eggwatcher // Shidako, Broodmistress"
+  turn 1 A: activate "Orochi Eggwatcher"
+  turn 3 A: activate "Shidako, Broodmistress" sacrificing "Snake" targeting oldest A "Grizzly Bears"
+  run_to turn 3 combat_damage
+  assert battlefield A contains "Shidako, Broodmistress"
+  assert battlefield A lacks "Snake"
+  assert power oldest A "Grizzly Bears" 5
+}
+
+scenario "flip: Orochi Eggwatcher doesn't flip with nine creatures" {
+  battlefield A: 3 "Forest", 7 "Grizzly Bears", "Orochi Eggwatcher // Shidako, Broodmistress"
+  turn 1 A: activate "Orochi Eggwatcher"
+  run_to turn 1 end
+  assert battlefield A contains "Snake"
+  assert battlefield A contains "Orochi Eggwatcher"
+}
+
+scenario "flip: Kuon flips at the end step after three creatures died; its Essence edicts each upkeep" {
+  battlefield A: 2 "Mountain", "Kuon, Ogre Ascendant // Kuon's Essence"
+  battlefield B: 3 "Grizzly Bears", "Serra Angel"
+  hand A: "Pyroclasm"
+  library A: 10 "Swamp"
+  library B: 10 "Island"
+  turn 1 A: cast "Pyroclasm"
+  run_to turn 1 end
+  assert graveyard B count 3
+  run_to turn 2 untap
+  assert battlefield A contains "Kuon's Essence"
+  assert is "Kuon's Essence" enchantment
+  assert is not "Kuon's Essence" creature
+  assert is "Kuon's Essence" black
+  assert is "Kuon's Essence" legendary
+  run_to turn 2 draw
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "flip: Kuon doesn't flip after two creatures died" {
+  battlefield A: 2 "Mountain", "Kuon, Ogre Ascendant // Kuon's Essence"
+  battlefield B: 2 "Grizzly Bears", "Serra Angel"
+  hand A: "Pyroclasm"
+  turn 1 A: cast "Pyroclasm"
+  run_to turn 2 draw
+  assert battlefield A contains "Kuon, Ogre Ascendant"
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "flip: a ki counter for each Spirit or Arcane spell; at the end step with two, Callow Jushi may flip" {
+  battlefield A: 4 "Mountain", "Callow Jushi // Jaraku the Interloper"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Glacial Ray", "Glacial Ray"
+  turn 1 A: cast "Glacial Ray" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Glacial Ray" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Callow Jushi" ki 2
+  run_to turn 2 upkeep
+  assert battlefield A contains "Jaraku the Interloper"
+  assert counters "Jaraku the Interloper" ki 2
+  assert power "Jaraku the Interloper" 3
+  assert toughness "Jaraku the Interloper" 4
+  assert is "Jaraku the Interloper" Spirit
+  assert is "Jaraku the Interloper" blue
+}
+
+scenario "flip: the flip is a may" {
+  battlefield A: "Callow Jushi // Jaraku the Interloper" with 2 ki
+  turn 1 end A: decline "Callow Jushi"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Callow Jushi"
+}
+
+scenario "flip: not with one ki counter; at each end step, the opponent's too" {
+  battlefield A: "Callow Jushi // Jaraku the Interloper" with 1 ki
+  battlefield B: "Faithful Squire // Kaiso, Memory of Loyalty" with 2 ki
+  run_to turn 2 upkeep
+  assert battlefield A contains "Callow Jushi"
+  assert battlefield B contains "Kaiso, Memory of Loyalty"
+}
+
+scenario "flip: Jaraku removes a ki counter to counter a spell unless its controller pays {2}" {
+  battlefield A: "Callow Jushi // Jaraku the Interloper" with 3 ki
+  battlefield B: "Mountain", "Grizzly Bears"
+  hand B: "Lightning Bolt"
+  turn 1 end A: accept "Callow Jushi"
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: activate "Jaraku the Interloper" targeting "Lightning Bolt"
+  run_to turn 2 end
+  assert life A 20
+  assert counters "Jaraku the Interloper" ki 2
+}
+
+scenario "flip: Ichiga removes a ki counter: target creature gets +2/+2 until end of turn" {
+  battlefield A: "Budoka Pupil // Ichiga, Who Topples Oaks" with 2 ki, "Grizzly Bears"
+  turn 3 A: activate "Ichiga, Who Topples Oaks" targeting "Grizzly Bears"
+  run_to turn 3 combat_damage
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert has "Ichiga, Who Topples Oaks" trample
+  assert counters "Ichiga, Who Topples Oaks" ki 1
+  run_to turn 4 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "flip: Azamuki removes a ki counter: gain control of target creature until end of turn" {
+  battlefield A: "Cunning Bandit // Azamuki, Treachery Incarnate" with 2 ki
+  battlefield B: "Hill Giant"
+  turn 3 A: activate "Azamuki, Treachery Incarnate" targeting "Hill Giant"
+  run_to turn 3 combat_damage
+  assert battlefield A contains "Hill Giant"
+  run_to turn 4 upkeep
+  assert battlefield B contains "Hill Giant"
+  assert power "Azamuki, Treachery Incarnate" 5
+}
+
+scenario "flip: Kaiso removes a ki counter: prevent all damage to target creature this turn" {
+  battlefield A: "Faithful Squire // Kaiso, Memory of Loyalty" with 2 ki, "Mountain", "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  turn 3 A: activate "Kaiso, Memory of Loyalty" targeting "Grizzly Bears"
+  turn 3 A: wait
+  turn 3 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 3 end
+  assert battlefield A contains "Grizzly Bears"
+  assert has "Kaiso, Memory of Loyalty" flying
+}
+
+scenario "flip: Scarmaker removes a ki counter: target creature gains fear until end of turn" {
+  battlefield A: "Hired Muscle // Scarmaker" with 2 ki, "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 3 A: activate "Scarmaker" targeting "Grizzly Bears"
+  turn 3 A: attack "Grizzly Bears"
+  illegal turn 3 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 3 end
+  assert life B 18
+  assert power "Scarmaker" 4
+}
+
+scenario "flip: Faithful Squire gets a ki counter only for Spirit or Arcane spells" {
+  battlefield A: 3 "Mountain", "Faithful Squire // Kaiso, Memory of Loyalty"
+  hand A: "Lightning Bolt", "Glacial Ray"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Glacial Ray" targeting player B
+  run_to turn 1 end
+  assert counters "Faithful Squire" ki 1
+}

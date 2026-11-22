@@ -133,6 +133,17 @@ pub fn add_card(
     let mut faces = Vec::new();
     for f in &card.faces {
         let prev = pool.lookup(&f.name);
+        // CR 710.1c: a flip card's flipped half keeps its mana cost (and so
+        // its color).
+        let flipped;
+        let f = if card.layout == mtg_core::card::Layout::Flip {
+            let mut g = f.clone();
+            g.cost.clone_from(&card.cost);
+            flipped = g;
+            &flipped
+        } else {
+            f
+        };
         let mut c = Compiler {
             pool,
             card: f,
@@ -3031,6 +3042,7 @@ impl Compiler<'_> {
                 });
             }
             Effect::Transform { what } => out.push(CoreEffect::Transform { what: r(*what) }),
+            Effect::Flip { what } => out.push(CoreEffect::Flip { what: r(*what) }),
             Effect::Search {
                 count,
                 up_to,

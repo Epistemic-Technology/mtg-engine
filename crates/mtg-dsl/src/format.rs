@@ -1869,6 +1869,7 @@ impl Fmt {
                 }
             }
             Effect::Transform { what } => format!("transform {}", self.recipient(*what, t)),
+            Effect::Flip { what } => format!("flip {}", self.recipient(*what, t)),
             Effect::AddMana(m) if m == &[Mana::Chosen] => "add chosen".to_string(),
             Effect::AddMana(m) => format!("add {}", crate::render::mana_symbols(m, "any")),
             Effect::AddManaLandCould { whose, basic } => format!(

@@ -3778,6 +3778,10 @@ pub enum Effect {
     Transform {
         what: Recipient,
     },
+    /// `flip this`: "flip this creature", "flip it" (CR 710).
+    Flip {
+        what: Recipient,
+    },
     /// `search basic land card to hand`, `search up to 2 basic land card
     /// to battlefield tapped`, `... to top`: "Search your library for a
     /// basic land card, reveal it, put it into your hand, then shuffle"
