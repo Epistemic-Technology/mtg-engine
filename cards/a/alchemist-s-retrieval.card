@@ -1,0 +1,7 @@
+card "Alchemist's Retrieval" {
+  oracle_id 8651da8e-9b2c-4530-a521-aea490ad88d4
+  cost {U}
+  type Instant
+  cleave {1}{U}: return target nonland permanent to hand
+  spell: return target nonland permanent you control to hand
+}

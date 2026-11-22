@@ -1,0 +1,6 @@
+card "Rousing of Souls" {
+  oracle_id e5e42293-ce01-4872-be2a-a79ff4312992
+  cost {2}{W}
+  type Sorcery
+  label "Parley" spell: each player reveals top card; you create count foreach nonland card revealed this way "1/1 white Spirit creature with flying"; then each player draws 1 card
+}

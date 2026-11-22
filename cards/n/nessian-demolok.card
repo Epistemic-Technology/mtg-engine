@@ -1,0 +1,8 @@
+card "Nessian Demolok" {
+  oracle_id 2341b59b-ce46-4efe-be94-c3851d3cd9e8
+  cost {3}{G}{G}
+  type Creature — Beast
+  pt 3/3
+  tribute 3
+  triggered when this enters if tribute not paid: destroy target noncreature permanent
+}

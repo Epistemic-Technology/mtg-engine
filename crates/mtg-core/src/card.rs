@@ -1944,6 +1944,10 @@ pub enum CountExpr {
     /// ("the number of differently named lands you control"); a nameless
     /// face-down permanent adds none.
     DifferentlyNamed(ObjFilter),
+    /// Devour (CR 702.82c): the permanents the source devoured matching
+    /// the filter, as they last existed ("for each creature it devoured",
+    /// "the number of Goblins it devoured").
+    Devoured(ObjFilter),
     /// The number of creatures in your party (CR 700.8): up to one each
     /// matching these four filters (Cleric, Rogue, Warrior, Wizard
     /// creatures you control), as many as can be assigned.
@@ -2172,6 +2176,7 @@ impl CountExpr {
             | CountExpr::CardManaValue
             | CountExpr::GreatestPower(_)
             | CountExpr::DifferentlyNamed(_)
+            | CountExpr::Devoured(_)
             | CountExpr::Party(_)
             | CountExpr::SourceToughness
             | CountExpr::CardsDrawnThisTurn
@@ -2753,6 +2758,14 @@ pub enum StaticCondition {
     /// "if its prowl cost was paid", "if this spell's prowl cost was paid"
     /// (CR 702.76a).
     ProwlPaid,
+    /// "If death gets more votes" (CR 701.38): the resolution's vote gave
+    /// its `index`th choice more votes than any other; with `ties`, "or
+    /// the vote is tied", at least as many. Judged only by an
+    /// `Effect::IfCondition` after the vote; elsewhere false.
+    MoreVotes {
+        index: u8,
+        ties: bool,
+    },
     /// Prowl's condition (CR 702.76a): "if you dealt combat damage to a
     /// player this turn with a [creature of one of these types]".
     ProwlDamage(Vec<Subtype>),
@@ -4224,6 +4237,17 @@ pub enum Effect {
         about: Recipient,
         this_turn: bool,
     },
+    /// Haunt (CR 702.55a): "exile it haunting target creature": the
+    /// source card, from its owner's graveyard, is exiled and haunts the
+    /// target: its `CardDef::haunted` ability becomes a delayed trigger
+    /// about that creature (702.55b-c).
+    ExileHaunting,
+    /// Champion (CR 702.72a): "sacrifice it unless you exile another
+    /// [object] you control": the controller may choose another permanent
+    /// they control matching the filter; it is exiled, linked to the
+    /// source (its "When this leaves the battlefield, return the exiled
+    /// card" returns it, 702.72b), or else the source is sacrificed.
+    Champion(ObjFilter),
     /// Exile a permanent.
     Exile {
         what: Recipient,
@@ -5051,6 +5075,7 @@ impl Effect {
                 | Effect::PutFromHand { .. }
                 | Effect::Dig { .. }
                 | Effect::ManifestDread
+                | Effect::Champion(_)
                 | Effect::Blight(_)
                 | Effect::BlightBy { .. }
                 | Effect::Connive { .. }
@@ -5160,6 +5185,10 @@ pub enum ThisWay {
     /// Put into a library from another zone ("shuffle the cards from your
     /// hand into your library, then draw that many cards").
     Shuffled,
+    /// Revealed from the top of a library without moving (parley, "For
+    /// each nonland card revealed this way"): the resolution's revealed
+    /// cards, not a zone change, so only a count reads it.
+    Revealed,
 }
 
 /// "If a creature card was exiled this way", "If you discarded a card this
@@ -5494,6 +5523,25 @@ pub enum Replacement {
         kinds: [CounterKind; 2],
         cond: Option<u16>,
     },
+    /// Devour N (CR 702.82a): "As this object enters, you may sacrifice
+    /// any number of [kind]s. This permanent enters with N times that many
+    /// +1/+1 counters on it." (CR 702.82b: "devour artifact", "devour
+    /// land"). What it devoured is noted (`GameState::enter_notes`).
+    EnterDevour { kind: CardType, n: u32 },
+    /// Amplify N (CR 702.38a): "As this object enters, reveal any number
+    /// of cards from your hand that share a creature type with it. This
+    /// permanent enters with N +1/+1 counters on it for each card revealed
+    /// this way."
+    EnterAmplify(u32),
+    /// Tribute N (CR 702.104a): "As this creature enters, choose an
+    /// opponent. That player may put an additional N +1/+1 counters on it
+    /// as it enters." Paid, it is noted (`EnterNote::TributePaid`).
+    EnterTribute(u32),
+    /// Read ahead (CR 702.155a): "As this Saga enters, choose a number
+    /// from one to the number of chapter abilities it has. It enters with
+    /// a number of lore counters equal to the chosen number." Chapters
+    /// below it don't trigger as it enters (702.155c).
+    EnterReadAhead,
     /// CR 701.15a: instead of being destroyed, the permanent has all damage
     /// removed, is tapped, and leaves combat. A stored shield; used once.
     Regenerate,
@@ -6286,6 +6334,9 @@ pub enum Condition {
     /// the source's only while its blitz cost was paid (as it last
     /// existed).
     Blitzed,
+    /// Tribute (CR 702.104b): "if tribute wasn't paid", judged as the
+    /// ability resolves (the permanent as it is, or last existed).
+    TributeNotPaid,
     /// Melee (CR 702.121a) in a two-player game: an opponent was attacked
     /// with a creature this combat (a planeswalker doesn't count), so the
     /// bonus "for each opponent you attacked" is one. Judged only as the
@@ -7176,6 +7227,10 @@ impl AbilityDef {
             AbilityDef::Replacement(ReplacementAbility {
                 replacement: Replacement::EnterWithCountersMay { .. }
                     | Replacement::EnterWithCounterChoice { .. }
+                    | Replacement::EnterDevour { .. }
+                    | Replacement::EnterAmplify(_)
+                    | Replacement::EnterTribute(_)
+                    | Replacement::EnterReadAhead
                     | Replacement::EnterTappedUnlessPay(_),
                 ..
             })
@@ -7503,6 +7558,25 @@ pub struct CardDef {
     /// blitz cost; cast for it, the permanent is `AltCast::Blitz`.
     #[serde(default)]
     pub blitz: bool,
+    /// Haunt (CR 702.55): "When the creature it haunts dies, ...", the
+    /// ability a card exiled haunting a creature has: a delayed trigger
+    /// about that creature, created as the card is exiled
+    /// (`Effect::ExileHaunting`), whose source is the card in exile.
+    #[serde(default)]
+    pub haunted: Option<AbilityId>,
+    /// Reconfigure (CR 702.151): this Equipment creature may be attached
+    /// to a creature (CR 301.5c), and isn't a creature while attached.
+    #[serde(default)]
+    pub reconfigure: bool,
+    /// Read ahead (CR 702.155): a Saga entering with lore counters
+    /// triggers only the chapter it starts at.
+    #[serde(default)]
+    pub read_ahead: bool,
+    /// Haunt on an instant or sorcery (CR 702.55a): "When this spell is
+    /// put into a graveyard during its resolution, exile it haunting
+    /// target creature.", triggered as the resolved spell goes there.
+    #[serde(default)]
+    pub haunt_spell: Option<AbilityId>,
     /// Prowl (CR 702.76a): the card's alternative cost (`alt_cost`) is its
     /// prowl cost; cast for it, the permanent is `AltCast::Prowl`.
     #[serde(default)]
@@ -7522,6 +7596,14 @@ pub struct CardDef {
     /// after its own (CR 702.113a).
     #[serde(skip)]
     pub awaken_face: Option<CardRef>,
+    /// Cleave (CR 702.148): the spell ability with the bracketed words
+    /// removed, cast for the card's alternative cost (`alt_cost`).
+    #[serde(default)]
+    pub cleaved: Option<Box<AbilityDef>>,
+    /// Filled in by `CardPool::add` for a spell with cleave: the spell as
+    /// cast for its cleave cost (CR 702.148a).
+    #[serde(skip)]
+    pub cleave_face: Option<CardRef>,
     /// Splice onto Arcane (CR 702.47): revealed from hand as an Arcane
     /// spell is cast, this cost paid on top, the card's effects (and
     /// targets) are added to that spell. Mana, or mana and a permanent
@@ -9215,6 +9297,19 @@ impl CardPool {
                 others_gain: 0,
             }));
         }
+        // CR 702.148a: cast for its cleave cost, the spell is its text with
+        // the bracketed words removed.
+        if let Some(cleaved) = def.cleaved.take() {
+            let mut face = def.clone();
+            face.alt_cost = None;
+            for a in &mut face.abilities {
+                if matches!(a, AbilityDef::Spell { .. }) {
+                    *a = (*cleaved).clone();
+                }
+            }
+            def.cleave_face = Some(self.add(face));
+            def.cleaved = Some(cleaved);
+        }
         // CR 702.96b: the overloaded spell has no targets (and so is
         // not registered again).
         if def.overload.is_some() && def.spell_ability().is_some_and(|(t, _)| !t.is_empty()) {
@@ -9773,6 +9868,12 @@ impl Builder {
             prototype: None,
             prototype_face: None,
             blitz: false,
+            haunted: None,
+            haunt_spell: None,
+            reconfigure: false,
+            read_ahead: false,
+            cleaved: None,
+            cleave_face: None,
             prowl: false,
             emerge: false,
             miracle: None,
@@ -10079,6 +10180,54 @@ impl Builder {
             others_gain: 0,
         }));
         self.0.emerge = true;
+        self
+    }
+
+    /// Cleave (CR 702.148a): the alternative cost, and the spell ability
+    /// without the bracketed words.
+    #[must_use]
+    pub fn cleave(mut self, cost: ManaCost, cleaved: AbilityDef) -> Self {
+        self.0.alt_cost = Some(Box::new(AltCost {
+            cost: Cost {
+                mana: cost,
+                ..Cost::default()
+            },
+            count: 1,
+            condition: None,
+            others_gain: 0,
+        }));
+        self.0.cleaved = Some(Box::new(cleaved));
+        self
+    }
+
+    /// Read ahead (CR 702.155a): its entering choice, and its chapters.
+    #[must_use]
+    pub fn read_ahead(mut self) -> Self {
+        self.0.read_ahead = true;
+        self.0
+            .abilities
+            .push(AbilityDef::Replacement(ReplacementAbility {
+                replaces: Replaces::Enters,
+                replacement: Replacement::EnterReadAhead,
+                then: Vec::new(),
+                condition: None,
+            }));
+        self
+    }
+
+    /// Reconfigure (CR 702.151): an Equipment creature that may equip.
+    #[must_use]
+    pub fn reconfigure(mut self) -> Self {
+        self.0.reconfigure = true;
+        self
+    }
+
+    /// Haunt (CR 702.55): the haunted creature's dies ability, and an
+    /// instant's or sorcery's trigger as it goes to the graveyard.
+    #[must_use]
+    pub fn haunt(mut self, haunted: Option<AbilityId>, spell: Option<AbilityId>) -> Self {
+        self.0.haunted = haunted;
+        self.0.haunt_spell = spell;
         self
     }
 

@@ -1,0 +1,6 @@
+card "Hobbit Hole" {
+  oracle_id 17492186-9814-4c41-8111-1f000a96c212
+  type Land
+  activated {T}, sacrifice this: search basic land card to battlefield tapped
+  halflingcycling {4}
+}

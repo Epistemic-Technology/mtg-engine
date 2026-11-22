@@ -1,0 +1,95 @@
+# Sweep (an ability word, CR 207.2c): "Return any number of [basic land
+# type] you control to their owner's hand. [Effect] for each [land] returned
+# this way." The lands are chosen as the spell resolves.
+
+scenario "Barrel Down Sokenzan: twice the Mountains returned" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Craw Wurm"
+  hand A: "Barrel Down Sokenzan"
+  turn 1 A: cast "Barrel Down Sokenzan" targeting "Craw Wurm"
+  turn 1 A: choose "Mountain"
+  turn 1 A: choose "Mountain"
+  turn 1 A: choose done
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert battlefield A contains 3 "Mountain"
+  assert graveyard B contains "Craw Wurm"
+}
+
+scenario "Barrel Down Sokenzan: one Mountain, two damage" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Craw Wurm"
+  hand A: "Barrel Down Sokenzan"
+  turn 1 A: cast "Barrel Down Sokenzan" targeting "Craw Wurm"
+  turn 1 A: choose "Mountain"
+  turn 1 A: choose done
+  run_to turn 1 postcombat_main
+  assert damage "Craw Wurm" 2
+  assert hand A count 1
+}
+
+scenario "Barrel Down Sokenzan: returning none deals no damage" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Barrel Down Sokenzan"
+  turn 1 A: cast "Barrel Down Sokenzan" targeting "Grizzly Bears"
+  turn 1 A: choose done
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+  assert battlefield A contains 3 "Mountain"
+}
+
+scenario "Barrel Down Sokenzan: only Mountains may be returned" {
+  battlefield A: 3 "Mountain", "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Barrel Down Sokenzan"
+  turn 1 A: cast "Barrel Down Sokenzan" targeting "Grizzly Bears"
+  illegal turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+}
+
+scenario "Plow Through Reito: +1/+1 for each Plains returned" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  hand A: "Plow Through Reito"
+  turn 1 A: cast "Plow Through Reito" targeting "Grizzly Bears"
+  turn 1 A: choose "Plains"
+  turn 1 A: choose "Plains"
+  turn 1 A: choose "Plains"
+  turn 1 A: choose done
+  run_to turn 1 end
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert hand A count 3
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Charge Across the Araba: each creature you control" {
+  battlefield A: 5 "Plains", "Grizzly Bears", "Savannah Lions"
+  battlefield B: "Hill Giant"
+  hand A: "Charge Across the Araba"
+  turn 1 A: cast "Charge Across the Araba"
+  turn 1 A: choose "Plains"
+  turn 1 A: choose "Plains"
+  turn 1 A: choose done
+  run_to turn 1 end
+  assert power "Grizzly Bears" 4
+  assert toughness "Savannah Lions" 3
+  assert power "Hill Giant" 3
+}
+
+scenario "Sink into Takenuma: a discard for each Swamp returned" {
+  battlefield A: 4 "Swamp"
+  hand A: "Sink into Takenuma"
+  hand B: "Grizzly Bears", "Hill Giant", "Shock"
+  turn 1 A: cast "Sink into Takenuma" targeting player B
+  turn 1 A: choose "Swamp"
+  turn 1 A: choose "Swamp"
+  turn 1 A: choose done
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert graveyard B count 2
+  assert hand A count 2
+}

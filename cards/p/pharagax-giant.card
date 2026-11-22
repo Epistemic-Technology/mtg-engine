@@ -1,0 +1,8 @@
+card "Pharagax Giant" {
+  oracle_id 69a134f2-c0c4-496f-b354-8325437af8ca
+  cost {4}{R}
+  type Creature — Giant
+  pt 3/3
+  tribute 2
+  triggered when this enters if tribute not paid: this creature deals 5 damage to each opponent
+}

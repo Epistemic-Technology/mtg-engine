@@ -1,0 +1,8 @@
+card "Supreme Exemplar" {
+  oracle_id bb9ed5c8-0437-4705-9133-9863786e6af8
+  cost {6}{U}
+  type Creature — Elemental
+  pt 10/10
+  keywords flying
+  champion Elemental
+}

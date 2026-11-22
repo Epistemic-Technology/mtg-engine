@@ -1,0 +1,7 @@
+card "Thunder-Thrash Elder" {
+  oracle_id aef6c5b3-824f-4b7d-9671-1ed61d547717
+  cost {2}{R}
+  type Creature — Lizard Warrior
+  pt 1/1
+  devour 3
+}

@@ -1,0 +1,172 @@
+# Haunt (CR 702.55): "When this creature dies, exile it haunting target
+# creature." (an instant or sorcery: "When this spell card is put into a
+# graveyard after resolving"). The card in exile haunts that creature
+# (702.55b) and its "When the creature it haunts dies" ability triggers
+# from exile (702.55c).
+
+scenario "haunt: the creature dies, haunts, and triggers when the haunted creature dies" {
+  battlefield A: "Blind Hunter", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt", "Shock"
+  turn 1 A: cast "Lightning Bolt" targeting "Blind Hunter"
+  turn 1 A: trigger "Blind Hunter" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: trigger "Blind Hunter" targeting player B
+  run_to turn 1 postcombat_main
+  assert exile A contains "Blind Hunter"
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 18
+  assert life A 22
+}
+
+scenario "haunt: the enters half of the trigger" {
+  battlefield A: 2 "Plains", 2 "Swamp"
+  hand A: "Blind Hunter"
+  turn 1 A: cast "Blind Hunter"
+  turn 1 A: trigger "Blind Hunter" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+}
+
+scenario "haunt: the haunted creature leaving another way triggers nothing" {
+  battlefield A: "Blind Hunter", 2 "Mountain", 2 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt", "Unsummon"
+  turn 1 A: cast "Lightning Bolt" targeting "Blind Hunter"
+  turn 1 A: trigger "Blind Hunter" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Unsummon" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert life B 20
+  assert exile A contains "Blind Hunter"
+}
+
+scenario "haunt: another creature dying triggers nothing" {
+  battlefield A: "Blind Hunter", 2 "Mountain"
+  battlefield B: "Grizzly Bears", "Savannah Lions"
+  hand A: "Lightning Bolt", "Shock"
+  turn 1 A: cast "Lightning Bolt" targeting "Blind Hunter"
+  turn 1 A: trigger "Blind Hunter" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "haunt: a sorcery haunts after resolving, and triggers later" {
+  battlefield A: "Swamp", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Cry of Contrition", "Lightning Bolt"
+  hand B: "Island", "Forest"
+  turn 1 A: cast "Cry of Contrition" targeting player B
+  turn 1 A: trigger "Cry of Contrition" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: trigger "Cry of Contrition" targeting player B
+  run_to turn 1 postcombat_main
+  assert exile A contains "Cry of Contrition"
+  assert hand B count 0
+}
+
+scenario "haunt: a sorcery's haunt is in exile, not the graveyard" {
+  battlefield A: "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Cry of Contrition"
+  hand B: "Island"
+  turn 1 A: cast "Cry of Contrition" targeting player B
+  run_to turn 1 postcombat_main
+  assert exile A contains "Cry of Contrition"
+  assert graveyard A lacks "Cry of Contrition"
+  assert hand B count 0
+}
+
+scenario "Absolver Thrull destroys an enchantment as it enters and when the haunted creature dies" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Pacifism" on "Grizzly Bears", "Grizzly Bears"
+  hand A: "Absolver Thrull"
+  turn 1 A: cast "Absolver Thrull"
+  turn 1 A: trigger "Absolver Thrull" targeting "Pacifism"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Pacifism"
+}
+
+scenario "Orzhov Euthanist destroys a creature dealt damage this turn" {
+  battlefield A: 3 "Swamp", "Mountain"
+  battlefield B: "Hill Giant", "Craw Wurm"
+  hand A: "Orzhov Euthanist", "Shock"
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Orzhov Euthanist"
+  turn 1 A: trigger "Orzhov Euthanist" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Craw Wurm"
+}
+
+scenario "Belfry Spirit: two Bats as it enters, two more when the haunted creature dies" {
+  battlefield A: "Belfry Spirit", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt", "Shock"
+  turn 1 A: cast "Lightning Bolt" targeting "Belfry Spirit"
+  turn 1 A: trigger "Belfry Spirit" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Bat"
+}
+
+scenario "Exhumer Thrull returns a creature card as it enters" {
+  battlefield A: 6 "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Exhumer Thrull"
+  turn 1 A: cast "Exhumer Thrull"
+  turn 1 A: trigger "Exhumer Thrull" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Seize the Soul: a Spirit now, and again when the haunted creature dies" {
+  battlefield A: 4 "Swamp", "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Craw Wurm"
+  hand A: "Seize the Soul", "Lightning Bolt"
+  turn 1 A: cast "Seize the Soul" targeting "Hill Giant"
+  turn 1 A: trigger "Seize the Soul" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: trigger "Seize the Soul" targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Craw Wurm"
+  assert battlefield A contains 2 "Spirit"
+  assert exile A contains "Seize the Soul"
+}
+
+scenario "Orzhov Pontiff: creatures you don't control get -1/-1" {
+  battlefield A: 2 "Plains", "Swamp", "Grizzly Bears"
+  battlefield B: "Llanowar Elves", "Hill Giant"
+  hand A: "Orzhov Pontiff"
+  turn 1 A: cast "Orzhov Pontiff"
+  turn 1 A: trigger "Orzhov Pontiff" mode 2
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert power "Hill Giant" 2
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Orzhov Pontiff: creatures you control get +1/+1 when the haunted creature dies" {
+  battlefield A: "Orzhov Pontiff", "Hill Giant", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt", "Shock"
+  turn 1 A: cast "Lightning Bolt" targeting "Orzhov Pontiff"
+  turn 1 A: trigger "Orzhov Pontiff" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: trigger "Orzhov Pontiff" mode 1
+  run_to turn 1 end
+  assert power "Hill Giant" 4
+  assert exile A contains "Orzhov Pontiff"
+}

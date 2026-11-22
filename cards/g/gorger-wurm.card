@@ -1,0 +1,7 @@
+card "Gorger Wurm" {
+  oracle_id f2126eb9-892c-4788-95cc-6f3e59f0375d
+  cost {3}{R}{G}
+  type Creature — Wurm
+  pt 5/5
+  devour 1
+}

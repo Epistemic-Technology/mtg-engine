@@ -1,0 +1,7 @@
+card "Fierce Retribution" {
+  oracle_id 83094dd2-b8e9-4753-a8a0-657b446def60
+  cost {1}{W}
+  type Instant
+  cleave {5}{W}: destroy target creature
+  spell: destroy target attacking creature
+}

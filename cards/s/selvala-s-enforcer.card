@@ -1,0 +1,7 @@
+card "Selvala's Enforcer" {
+  oracle_id 8ee2dd43-cda2-4cb7-9e4b-1946d5b7467e
+  cost {3}{G}
+  type Creature — Elf Warrior
+  pt 2/2
+  label "Parley" triggered when this enters: each player reveals top card; put count foreach nonland card revealed this way +1/+1 counters on this creature; then each player draws 1 card
+}

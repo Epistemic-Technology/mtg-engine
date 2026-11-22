@@ -1,0 +1,9 @@
+card "Changeling Hero" {
+  oracle_id fc893d4a-debd-4df0-ae83-d3ebd2f0fefe
+  cost {4}{W}
+  type Creature — Shapeshifter
+  pt 4/4
+  keywords changeling
+  champion creature
+  keyword lifelink
+}

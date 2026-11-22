@@ -1,0 +1,8 @@
+card "Absolver Thrull" {
+  oracle_id a9002245-0f33-48cb-96d3-fde884236eb5
+  cost {3}{W}
+  type Creature — Thrull Cleric
+  pt 2/3
+  haunt
+  triggered when this enters or haunted dies: destroy target enchantment
+}

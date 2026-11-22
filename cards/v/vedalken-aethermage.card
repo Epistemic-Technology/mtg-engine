@@ -1,0 +1,9 @@
+card "Vedalken Aethermage" {
+  oracle_id 271b37b6-b60b-4687-bd82-ecacf3b66cb3
+  cost {1}{U}
+  type Creature — Vedalken Wizard
+  pt 1/2
+  keywords flash
+  triggered when this enters: return target Sliver to hand
+  wizardcycling {3}
+}

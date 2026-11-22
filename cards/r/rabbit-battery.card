@@ -1,0 +1,9 @@
+card "Rabbit Battery" {
+  oracle_id c739e180-2f14-41ed-8e7e-50b7df985f35
+  cost {R}
+  type Artifact Creature — Equipment Rabbit
+  pt 1/1
+  keywords haste
+  static enchanted: +1/+1, has haste
+  reconfigure {R}
+}

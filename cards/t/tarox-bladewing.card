@@ -1,0 +1,8 @@
+card "Tarox Bladewing" {
+  oracle_id e195f2f8-2db7-46b8-948c-c3c27f2e5825
+  cost {2}{R}{R}{R}
+  type Legendary Creature — Dragon
+  pt 4/3
+  keywords flying, haste
+  label "Grandeur" activated discard other named this card: this gets +1/+1 count where power
+}

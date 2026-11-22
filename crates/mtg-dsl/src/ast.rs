@@ -396,6 +396,9 @@ pub enum CountExpr {
     /// `differently named land you control`: "the number of differently
     /// named lands you control".
     DifferentlyNamed(Filter),
+    /// `creature it devoured`: "for each creature it devoured", "the
+    /// number of Goblins it devoured" (CR 702.82c).
+    Devoured(Filter),
     /// `party`: "creatures in your party" (CR 700.8).
     Party,
     /// `greatest mana value`: "the greatest mana value among permanents you
@@ -1911,6 +1914,38 @@ pub enum Mechanic {
     /// `riot` (CR 702.136): enters with your choice of a +1/+1 counter or
     /// haste.
     Riot,
+    /// `cleave {1}{U}: <effects>` (CR 702.148): the spell's alternative
+    /// cost, cast for which the spell is these effects: the `spell` text
+    /// with the words in square brackets removed. The `spell` line prints
+    /// with the words it has beyond these in brackets.
+    Cleave(ManaCost, Box<Ability>),
+    /// `read ahead` (CR 702.155): a Saga that enters with a chosen number
+    /// of lore counters, the chapters below it not triggering.
+    ReadAhead,
+    /// `champion Goblin` (CR 702.72): "Champion a Goblin": when it enters,
+    /// sacrifice it unless you exile another Goblin you control; when it
+    /// leaves the battlefield, the exiled card returns.
+    Champion(Filter),
+    /// `reconfigure {2}` (CR 702.151): "{2}: Attach to target creature you
+    /// control; or unattach from a creature. Reconfigure only as a
+    /// sorcery. While attached, this isn't a creature."
+    Reconfigure(ManaCost),
+    /// `haunt` (CR 702.55): "When this creature dies [this spell card is
+    /// put into a graveyard after resolving], exile it haunting target
+    /// creature."; its `when haunted dies` ability then watches that
+    /// creature from exile.
+    Haunt,
+    /// `devour 2`, `devour artifact 1`, `devour land 3` (CR 702.82): as it
+    /// enters, sacrifice any number of creatures (artifacts, lands); it
+    /// enters with N +1/+1 counters for each.
+    Devour(Option<mtg_core::card::CardType>, u32),
+    /// `amplify 1` (CR 702.38): as it enters, reveal any number of cards
+    /// from your hand that share a creature type with it; N +1/+1 counters
+    /// for each.
+    Amplify(u32),
+    /// `tribute 2` (CR 702.104): as it enters, an opponent of your choice
+    /// may put N +1/+1 counters on it; `if tribute not paid` after.
+    Tribute(u32),
     /// `living weapon` (CR 702.92): when this Equipment enters, a 0/0
     /// black Phyrexian Germ token, then attach this to it.
     LivingWeapon,
@@ -2379,6 +2414,14 @@ pub enum StaticCond {
     /// `prowl paid`: "its prowl cost was paid", "this spell's prowl cost
     /// was paid" (CR 702.76a).
     ProwlPaid,
+    /// `more votes for death`: "death gets more votes"; `more votes for
+    /// torture or tied`: "torture gets more votes or the vote is tied"
+    /// (CR 701.38), after the ability's vote.
+    MoreVotes {
+        word: String,
+        index: u8,
+        ties: bool,
+    },
     /// `web slung`, `he web slung`, `she web slung`, `they web slung`:
     /// "it was (he was, she was, they were) cast using web-slinging" (CR
     /// 702.188). The pronoun: 0 it, 1 he, 2 she, 3 they.
@@ -3016,6 +3059,10 @@ pub enum Trigger {
     /// `when this enters and whenever you cast ...`: one ability, two
     /// trigger events.
     Either(Box<Trigger>, Box<Trigger>),
+    /// `when haunted dies`: "When the creature this card haunts dies"
+    /// (CR 702.55b), a card with `haunt`; `when this enters or haunted
+    /// dies`: "When this creature enters or the creature it haunts dies".
+    HauntedDies,
     /// `when this enters or dies`, `whenever this enters or attacks`,
     /// `when this enters or leaves the battlefield`, `when this enters or
     /// is turned face up`: one ability, two events of the source, printed
@@ -4860,6 +4907,7 @@ pub fn this_way_word(v: mtg_core::card::ThisWay) -> &'static str {
         ThisWay::PutInHand => "returned",
         ThisWay::Tapped => "tapped",
         ThisWay::Shuffled => "shuffled",
+        ThisWay::Revealed => "revealed",
     }
 }
 
@@ -4874,6 +4922,7 @@ pub fn this_way_verb(w: &str) -> Option<mtg_core::card::ThisWay> {
         ThisWay::Milled,
         ThisWay::PutInHand,
         ThisWay::Shuffled,
+        ThisWay::Revealed,
     ]
     .into_iter()
     .find(|v| this_way_word(*v) == w)

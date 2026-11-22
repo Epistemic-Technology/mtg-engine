@@ -1,0 +1,9 @@
+card "Webspinner Cuff" {
+  oracle_id 7826f3f5-c8f2-43f5-a837-ff016da625e6
+  cost {2}{G}
+  type Artifact Creature — Equipment Spider
+  pt 1/4
+  keywords reach
+  static enchanted: +1/+4, has reach
+  reconfigure {4}
+}

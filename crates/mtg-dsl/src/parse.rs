@@ -2120,6 +2120,24 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Firebending(n)))
             }
+            // CR 702.72a: `champion Goblin or Shaman`.
+            "champion" if matches!(self.peek_at(1), Some(Tok::Word(_))) => {
+                self.pos += 1;
+                let f = self.filter()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Champion(f)))
+            }
+            // CR 702.155a.
+            "read" if self.at_words(&["read", "ahead"]) => {
+                self.pos += 2;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::ReadAhead))
+            }
+            "haunt" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Haunt))
+            }
             "evolve" | "unleash" | "increment" => {
                 self.pos += 1;
                 self.end_stmt()?;
@@ -2131,13 +2149,17 @@ impl P {
             }
             "bushido" | "soulshift" | "afflict" | "toxic" | "crew" | "bloodthirst" | "backup"
             | "saddle" | "poisonous" | "frenzy" | "absorb" | "fabricate" | "renown"
-            | "afterlife" | "casualty" | "teamwork" | "ripple" | "dredge"
+            | "afterlife" | "casualty" | "teamwork" | "ripple" | "dredge" | "devour"
+            | "amplify" | "tribute"
                 if matches!(self.peek_at(1), Some(Tok::Num(_))) =>
             {
                 self.pos += 1;
                 let n = self.number()?;
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(match w.as_str() {
+                    "devour" => Mechanic::Devour(None, n),
+                    "amplify" => Mechanic::Amplify(n),
+                    "tribute" => Mechanic::Tribute(n),
                     "bushido" => Mechanic::Bushido(n),
                     "soulshift" => Mechanic::Soulshift(n),
                     "afflict" => Mechanic::Afflict(n),
@@ -2158,12 +2180,28 @@ impl P {
                     _ => Mechanic::Toxic(n),
                 }))
             }
+            // CR 702.82b: "devour artifact 1", "devour land 3".
+            "devour"
+                if matches!(self.word_at(1).as_deref(), Some("artifact" | "land"))
+                    && matches!(self.peek_at(2), Some(Tok::Num(_))) =>
+            {
+                self.pos += 1;
+                let kind = if self.eat_word("artifact") {
+                    mtg_core::card::CardType::Artifact
+                } else {
+                    self.expect_word("land")?;
+                    mtg_core::card::CardType::Land
+                };
+                let n = self.number()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Devour(Some(kind), n)))
+            }
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
             | "disguise" | "evoke" | "madness" | "mayhem" | "foretell" | "plot" | "sneak"
             | "harmonize" | "entwine" | "ninjutsu" | "scavenge" | "dash" | "warp" | "embalm"
             | "eternalize" | "offspring" | "bestow" | "splice" | "strive" | "overload"
             | "surge" | "freerunning" | "spectacle" | "replicate" | "encore" | "multikicker"
-            | "transmute" | "disturb"
+            | "transmute" | "disturb" | "reconfigure"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -2204,6 +2242,7 @@ impl P {
                     "multikicker" => Mechanic::Multikicker(c),
                     "transmute" => Mechanic::Transmute(c),
                     "disturb" => Mechanic::Disturb(c),
+                    "reconfigure" => Mechanic::Reconfigure(c),
                     _ => Mechanic::Outlast(c),
                 }))
             }
@@ -2465,6 +2504,23 @@ impl P {
                 let t = self.target_spec()?;
                 self.end_stmt()?;
                 Ok(Ability::Enchant(t))
+            }
+            // CR 702.148a: `cleave {1}{U}: <effects>`, the spell as cast
+            // for its cleave cost.
+            "cleave" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
+                self.pos += 1;
+                let c = self.mana_cost()?;
+                self.kicked_targets = None;
+                self.kicked_instead = None;
+                self.in_spell = true;
+                let effects = self.effects_body()?;
+                Ok(Ability::Mechanic(Mechanic::Cleave(
+                    c,
+                    Box::new(Ability::Spell {
+                        targets: std::mem::take(&mut self.targets),
+                        effects,
+                    }),
+                )))
             }
             "spell" => {
                 self.pos += 1;
@@ -3889,6 +3945,19 @@ impl P {
         }
         if self.eat_words(&["prowl", "paid"]) {
             return Ok(StaticCond::ProwlPaid);
+        }
+        // CR 701.38: `more votes for death [or tied]`.
+        if self.eat_words(&["more", "votes", "for"]) {
+            let word = self.word()?;
+            let Some(index) = self.votes.iter().position(|w| *w == word) else {
+                return self.fail(format!("`{word}` is not a choice of the ability's vote"));
+            };
+            let ties = self.eat_words(&["or", "tied"]);
+            return Ok(StaticCond::MoreVotes {
+                word,
+                index: u8::try_from(index).unwrap_or(u8::MAX),
+                ties,
+            });
         }
         if self.eat_word("spent") {
             return self.spent_cond();
@@ -7881,7 +7950,7 @@ impl P {
                             || (w == "count"
                                 && matches!(
                                     self.word_at(1).as_deref(),
-                                    Some("where" | "equal" | "each")
+                                    Some("where" | "equal" | "each" | "foreach")
                                 ))
                     }) =>
             {
@@ -9319,6 +9388,10 @@ impl P {
                 && self.word_at(k + 1).as_deref() == Some("way")
         }) {
             let f = self.filter()?;
+            // `nonland card revealed this way` (parley): cards in a library.
+            if self.at_words(&["card", "revealed"]) {
+                self.pos += 1;
+            }
             let Some(verb) = self.word_at(0).and_then(|w| crate::ast::this_way_verb(&w)) else {
                 return self.unexpected("`destroyed`, `exiled`, ...");
             };
@@ -9600,6 +9673,15 @@ impl P {
         // among creatures you control.
         if self.eat_words(&["differently", "named"]) {
             return Ok(CountExpr::DifferentlyNamed(self.filter()?));
+        }
+        // `creature it devoured`, `Goblin it devoured` (CR 702.82c).
+        if (1..5).any(|k| {
+            self.word_at(k).as_deref() == Some("it")
+                && self.word_at(k + 1).as_deref() == Some("devoured")
+        }) {
+            let f = self.filter()?;
+            self.expect_words(&["it", "devoured"])?;
+            return Ok(CountExpr::Devoured(f));
         }
         if self.eat_words(&["greatest", "power", "graveyard"]) {
             return Ok(CountExpr::GreatestPowerInGraveyard(self.filter()?));
@@ -12146,6 +12228,10 @@ impl P {
         if !(self.eat_word("when") || self.eat_word("whenever")) {
             return self.unexpected("`when`, `whenever`, or `at`");
         }
+        // CR 702.55b: "When the creature this card haunts dies".
+        if !whenever && self.eat_words(&["haunted", "dies"]) {
+            return Ok(Trigger::HauntedDies);
+        }
         // `when next you cast instant or sorcery spell`: "When you next
         // cast an instant or sorcery spell" (a delayed trigger, once).
         if !whenever && self.at_words(&["next", "you", "cast"]) {
@@ -12770,6 +12856,15 @@ impl P {
         // "this enters or dies", "this enters or attacks": one ability,
         // two events of the same object.
         if first == Trigger::Enters(TriggerObj::This) && self.eat_word("or") {
+            // CR 702.55b: "When this creature enters or the creature it
+            // haunts dies".
+            if !whenever && self.eat_words(&["haunted", "dies"]) {
+                return Ok(Trigger::Or {
+                    first: Box::new(first),
+                    second: Box::new(Trigger::HauntedDies),
+                    whenever,
+                });
+            }
             let second = self.trigger_verb(obj, whenever)?;
             if !matches!(
                 second,
@@ -13050,6 +13145,10 @@ impl P {
         }
         if self.eat_word("blitzed") {
             return Ok(Condition::Blitzed);
+        }
+        // CR 702.104b: "if tribute wasn't paid".
+        if self.eat_words(&["tribute", "not", "paid"]) {
+            return Ok(Condition::TributeNotPaid);
         }
         if self.eat_word("dethrones") {
             return Ok(Condition::Dethrones);

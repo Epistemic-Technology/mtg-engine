@@ -355,6 +355,19 @@ impl GameState {
             let mut gone = false;
             let at = dt.ability.trigger_obj == Some(old)
                 && match self.pool.ability(dt.ability.ability) {
+                    // CR 702.55c: the haunting card's ability triggers from
+                    // exile, only while the card is still there; the
+                    // haunted creature leaving any other way ends it.
+                    AbilityDef::Triggered(_)
+                        if self.pool.get(dt.ability.def).haunted == Some(dt.ability.ability) =>
+                    {
+                        gone = true;
+                        to == Zone::Graveyard
+                            && self
+                                .objects
+                                .get(dt.ability.source)
+                                .is_some_and(|o| o.zone == Zone::Exile)
+                    }
                     AbilityDef::Triggered(t) => match &t.trigger {
                         TriggerSpec::Dies(TriggerObj::This) => to == Zone::Graveyard,
                         TriggerSpec::Leaves(TriggerObj::This) => true,
@@ -855,7 +868,13 @@ impl GameState {
             let c = self.characteristics(obj)?;
             (f.matches(obj, o.controller, &c, Some(w.source), Some(w.controller))
                 && self.status_ok(f, obj)
-                && (!f.enchanted || enchants(obj)))
+                && (!f.enchanted
+                    || enchants(obj)
+                    // "this creature or equipped creature" (reconfigure).
+                    || (obj == w.source
+                        && f.or
+                            .as_deref()
+                            .is_some_and(|g| g.relation == crate::card::Relation::This))))
             .then_some(o.controller)
         };
         let on_battlefield = |what: &TriggerObj, obj: ObjId| -> Option<PlayerId> {
@@ -2264,6 +2283,7 @@ impl GameState {
                 .objects
                 .get(source)
                 .is_some_and(|o| self.meld_partner(source, o.controller).is_some()),
+            Condition::TributeNotPaid => !self.tribute_paid(source),
             // Judged only as the ability triggered.
             Condition::While(_)
             | Condition::WhileSecond(_)
@@ -2312,10 +2332,19 @@ impl GameState {
             }
             Condition::Trains => self.trains(w),
             Condition::Blitzed => self.blitzed(w.source),
+            Condition::TributeNotPaid => !self.tribute_paid(w.source),
             Condition::Dethrones => self.dethrones(w.source),
             Condition::AttackedOpponent => self.attacked_opponent(w.controller),
             Condition::MeldPair => self.meld_partner(w.source, w.controller).is_some(),
         }
+    }
+
+    /// Tribute (CR 702.104b): an opponent put the tribute counters on the
+    /// source as it entered.
+    fn tribute_paid(&self, source: ObjId) -> bool {
+        self.enter_notes
+            .iter()
+            .any(|(o, n)| *o == source && *n == crate::state::EnterNote::TributePaid)
     }
 
     /// Blitz (CR 702.152a): the source (as it last existed, once it has

@@ -1,0 +1,9 @@
+card "Bronzeplate Boar" {
+  oracle_id 0a09f825-0484-40b4-8adf-1028385db480
+  cost {2}{R}
+  type Artifact Creature — Equipment Boar
+  pt 3/2
+  keywords trample
+  static enchanted: +3/+2, has trample
+  reconfigure {5}
+}

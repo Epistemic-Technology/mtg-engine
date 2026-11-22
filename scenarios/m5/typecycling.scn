@@ -1,0 +1,85 @@
+# Typecycling of any type (CR 702.29e): "[Type]cycling [cost]" means
+# "[Cost], Discard this card: Search your library for a [type] card, reveal
+# it, put it into your hand, then shuffle."
+
+scenario "wizardcycling finds a Wizard, not another creature" {
+  battlefield A: 2 "Island"
+  hand A: "Step Through"
+  library A: "Grizzly Bears", "Prodigal Sorcerer", "Island"
+  turn 1 A: activate "Step Through"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Step Through"
+  assert hand A contains "Prodigal Sorcerer"
+  assert hand A count 1
+  assert library A count 2
+}
+
+scenario "wizardcycling with no Wizard in the library finds nothing" {
+  battlefield A: 2 "Island"
+  hand A: "Step Through"
+  library A: "Grizzly Bears", "Island"
+  turn 1 A: activate "Step Through"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Step Through"
+  assert hand A count 0
+}
+
+scenario "wizardcycling costs its mana" {
+  battlefield A: "Island"
+  hand A: "Step Through"
+  library A: "Prodigal Sorcerer"
+  illegal turn 1 A: activate "Step Through"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Step Through"
+}
+
+scenario "Step Through returns two creatures" {
+  battlefield A: 5 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Step Through"
+  turn 1 A: cast "Step Through" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+}
+
+scenario "Vedalken Aethermage wizardcycles for three" {
+  battlefield A: 3 "Island"
+  hand A: "Vedalken Aethermage"
+  library A: "Grizzly Bears", "Prodigal Sorcerer"
+  turn 1 A: activate "Vedalken Aethermage"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Prodigal Sorcerer"
+  assert graveyard A contains "Vedalken Aethermage"
+}
+
+scenario "Vedalken Aethermage returns a Sliver" {
+  battlefield A: 2 "Island"
+  battlefield B: "Muscle Sliver", "Grizzly Bears"
+  hand A: "Vedalken Aethermage"
+  turn 1 A: cast "Vedalken Aethermage"
+  turn 1 A: trigger "Vedalken Aethermage" targeting "Muscle Sliver"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Muscle Sliver"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "halflingcycling finds a Halfling" {
+  battlefield A: 4 "Forest"
+  hand A: "Hobbit Hole"
+  library A: "Grizzly Bears", "Bilbo, Retired Burglar"
+  turn 1 A: activate "Hobbit Hole"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Bilbo, Retired Burglar"
+  assert graveyard A contains "Hobbit Hole"
+}
+
+scenario "Hobbit Hole fetches a basic land tapped" {
+  battlefield A: "Hobbit Hole"
+  library A: "Grizzly Bears", "Forest"
+  turn 1 A: activate "Hobbit Hole"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+  assert tapped "Forest"
+  assert graveyard A contains "Hobbit Hole"
+}

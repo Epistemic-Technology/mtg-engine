@@ -1,0 +1,8 @@
+card "Caprichrome" {
+  oracle_id 27831489-b444-4b7b-91db-feb54281bca9
+  cost {3}{W}
+  type Artifact Creature — Goat
+  pt 2/2
+  keywords flash, vigilance
+  devour artifact 1
+}

@@ -1,0 +1,8 @@
+card "Korlash, Heir to Blackblade" {
+  oracle_id 09f99b5a-66cf-4178-ae64-29f2004fe899
+  cost {2}{B}{B}
+  type Legendary Creature — Zombie Warrior
+  static this: cda pt count Swamp you control
+  activated {1}{B}: regenerate this
+  label "Grandeur" activated discard other named this card: search up to 2 Swamp card to battlefield tapped
+}

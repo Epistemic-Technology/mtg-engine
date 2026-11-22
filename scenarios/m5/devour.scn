@@ -1,0 +1,206 @@
+# Devour N (CR 702.82a): "As this object enters, you may sacrifice any
+# number of creatures. This permanent enters with N times that many +1/+1
+# counters on it." Devour artifact / land (702.82b) sacrifices those;
+# "it devoured" counts what it sacrificed (702.82c).
+
+scenario "devour 1: two creatures eaten, two counters" {
+  battlefield A: 3 "Mountain", 2 "Forest", "Grizzly Bears", "Savannah Lions", "Hill Giant"
+  hand A: "Gorger Wurm"
+  turn 1 A: cast "Gorger Wurm"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Savannah Lions"
+  turn 1 A: choose done
+  run_to turn 1 postcombat_main
+  assert counters "Gorger Wurm" +1/+1 2
+  assert power "Gorger Wurm" 7
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Savannah Lions"
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "devour: eating nothing is the default" {
+  battlefield A: 3 "Mountain", 2 "Forest", "Grizzly Bears"
+  hand A: "Gorger Wurm"
+  turn 1 A: cast "Gorger Wurm"
+  run_to turn 1 postcombat_main
+  assert counters "Gorger Wurm" +1/+1 0
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "devour: only your own creatures" {
+  battlefield A: 3 "Mountain", 2 "Forest", "Savannah Lions"
+  battlefield B: "Grizzly Bears"
+  hand A: "Gorger Wurm"
+  turn 1 A: cast "Gorger Wurm"
+  illegal turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "devour 2: twice as many counters" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  hand A: "Thorn-Thrash Viashino"
+  turn 1 A: cast "Thorn-Thrash Viashino"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Thorn-Thrash Viashino" +1/+1 2
+  assert power "Thorn-Thrash Viashino" 4
+}
+
+scenario "devour: a sacrificed creature's dies trigger" {
+  battlefield A: 4 "Mountain", "Doomed Dissenter"
+  hand A: "Thorn-Thrash Viashino"
+  turn 1 A: cast "Thorn-Thrash Viashino"
+  turn 1 A: choose "Doomed Dissenter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zombie"
+}
+
+scenario "devour artifact: artifacts, not creatures" {
+  battlefield A: 4 "Plains", "Ornithopter", "Darksteel Relic", "Grizzly Bears"
+  hand A: "Caprichrome"
+  turn 1 A: cast "Caprichrome"
+  turn 1 A: choose "Ornithopter"
+  turn 1 A: choose "Darksteel Relic"
+  run_to turn 1 postcombat_main
+  assert counters "Caprichrome" +1/+1 2
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Darksteel Relic"
+}
+
+scenario "devour artifact: a creature isn't offered" {
+  battlefield A: 4 "Plains", "Ornithopter", "Grizzly Bears"
+  hand A: "Caprichrome"
+  turn 1 A: cast "Caprichrome"
+  illegal turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Skullmulcher: a card for each creature it devoured" {
+  battlefield A: 5 "Forest", "Grizzly Bears", "Savannah Lions"
+  hand A: "Skullmulcher"
+  library A: "Island", "Swamp", "Plains"
+  turn 1 A: cast "Skullmulcher"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert counters "Skullmulcher" +1/+1 2
+}
+
+scenario "Skullmulcher: nothing devoured, nothing drawn" {
+  battlefield A: 5 "Forest", "Grizzly Bears"
+  hand A: "Skullmulcher"
+  library A: "Island", "Swamp"
+  turn 1 A: cast "Skullmulcher"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Marrow Chomper: 2 life for each creature it devoured" {
+  battlefield A: 3 "Forest", 2 "Swamp", "Grizzly Bears", "Savannah Lions"
+  hand A: "Marrow Chomper"
+  turn 1 A: cast "Marrow Chomper"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert life A 24
+  assert counters "Marrow Chomper" +1/+1 4
+}
+
+scenario "Tar Fiend: a discard for each creature it devoured" {
+  battlefield A: 6 "Swamp", "Grizzly Bears"
+  hand A: "Tar Fiend"
+  hand B: "Shock", "Island"
+  turn 1 A: cast "Tar Fiend"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: trigger "Tar Fiend" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+}
+
+scenario "Voracious Dragon: twice the Goblins it devoured" {
+  battlefield A: 5 "Mountain", "Goblin Piker", "Raging Goblin", "Grizzly Bears"
+  hand A: "Voracious Dragon"
+  turn 1 A: cast "Voracious Dragon"
+  turn 1 A: choose "Goblin Piker"
+  turn 1 A: choose "Raging Goblin"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: trigger "Voracious Dragon" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert counters "Voracious Dragon" +1/+1 3
+}
+
+scenario "Mycoloth: a Saproling for each +1/+1 counter at upkeep" {
+  battlefield A: 5 "Forest", "Grizzly Bears"
+  hand A: "Mycoloth"
+  turn 1 A: cast "Mycoloth"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 3 precombat_main
+  assert battlefield A contains 2 "Saproling"
+}
+
+scenario "Caldera Hellion: a devoured creature escapes its 3 damage" {
+  battlefield A: 5 "Mountain", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Savannah Lions"
+  hand A: "Caldera Hellion"
+  turn 1 A: cast "Caldera Hellion"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose done
+  run_to turn 1 postcombat_main
+  assert counters "Caldera Hellion" +1/+1 1
+  assert battlefield A contains "Caldera Hellion"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard B contains "Savannah Lions"
+}
+
+scenario "Gluttonous Slime: flash, devour at instant speed" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  hand A: "Gluttonous Slime"
+  start turn 2 B
+  turn 2 end A: cast "Gluttonous Slime"
+  turn 2 end A: choose "Grizzly Bears"
+  run_to turn 3 upkeep
+  assert counters "Gluttonous Slime" +1/+1 1
+}
+
+scenario "Feaster of Fools: devour 2" {
+  battlefield A: 4 "Swamp", 2 "Forest", "Grizzly Bears"
+  hand A: "Feaster of Fools"
+  turn 1 A: cast "Feaster of Fools"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Feaster of Fools" 5
+  assert has "Feaster of Fools" flying
+}
+
+scenario "Predator Dragon: devour 2 and haste" {
+  battlefield A: 6 "Mountain", "Grizzly Bears", "Savannah Lions"
+  hand A: "Predator Dragon"
+  turn 1 A: cast "Predator Dragon"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Savannah Lions"
+  turn 1 A: attack "Predator Dragon"
+  run_to turn 1 postcombat_main
+  assert life B 12
+}
+
+scenario "Thunder-Thrash Elder: devour 3" {
+  battlefield A: 3 "Mountain", "Grizzly Bears", "Savannah Lions"
+  hand A: "Thunder-Thrash Elder"
+  turn 1 A: cast "Thunder-Thrash Elder"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose done
+  run_to turn 1 postcombat_main
+  assert counters "Thunder-Thrash Elder" +1/+1 3
+  assert battlefield A contains "Savannah Lions"
+}
+
+scenario "Thorn-Thrash Viashino: {G} for trample" {
+  battlefield A: "Thorn-Thrash Viashino", "Forest"
+  turn 1 A: activate "Thorn-Thrash Viashino"
+  run_to turn 1 end
+  assert has "Thorn-Thrash Viashino" trample
+}

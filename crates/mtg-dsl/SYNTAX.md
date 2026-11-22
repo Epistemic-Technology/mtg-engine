@@ -188,6 +188,14 @@ like the card; either half may still be cast alone.
 | `increment` | Increment (CR 702.191): whenever you cast a spell, if this is a creature and the amount of mana spent to cast that spell (X included) is greater than its power or its toughness, a +1/+1 counter on it; judged as it triggers and as it resolves. Prints `Increment`. |
 | `afterlife 1`, `extort`, `mentor` | Afterlife (CR 702.135): when it dies, N "1/1 white and black Spirit creature with flying" tokens. Extort (CR 702.101): whenever you cast a spell, you may pay {W/B}; if you do, each opponent loses 1 life and you gain the life lost this way. Mentor (CR 702.134): whenever it attacks, a +1/+1 counter on target attacking creature `with lesser power` (a filter word: power less than the source's, as it is or last existed); `has mentor` grants it. |
 | `mobilize 2`, `mobilize count where graveyard creature` | Mobilize (CR 702.181): whenever it attacks, N "1/1 red Warrior creature" tokens enter tapped and attacking what it attacks (never declared as attackers, CR 508.4), sacrificed at the beginning of the next end step. Prints "Mobilize 2", or "Mobilize X, where X is the number of creature cards in your graveyard." with a count. |
+| `devour 2`, `devour artifact 1`, `devour land 3`, `creature it devoured` | Devour (CR 702.82): as it enters, its controller sacrifices any number of other creatures (artifacts, lands) they control, chosen one at a time (scenarios: `choose "Grizzly Bears"`, `choose done`; unscripted, none), and it enters with N +1/+1 counters for each. Prints "Devour 2", "Devour artifact 1". The count `creature it devoured` (`Goblin it devoured`) is the permanents it devoured that match, as they last existed: "for each creature it devoured", "equal to twice the number of Goblins it devoured" (`count equal 2 Goblin it devoured`). |
+| `haunt`, `triggered when this enters or haunted dies: ...`, `triggered when haunted dies: ...` | Haunt (CR 702.55): on a permanent, "When this creature dies, exile it haunting target creature."; on an instant or sorcery, the same as the resolved spell is put into its owner's graveyard ("When this spell card is put into a graveyard after resolving"). Exiled so, the card haunts that creature, and its `when haunted dies` ability ("When the creature this card haunts dies, ..."; with `this enters or`, "When this creature enters or the creature it haunts dies, ...", also the creature's own enters trigger) triggers from exile when that creature dies, controlled by the card's owner, as long as the card is still in exile; the creature leaving the battlefield any other way ends it. Prints "Haunt". |
+| `reconfigure {2}`, `triggered whenever this or equipped creature attacks: it gets +2/+0` | Reconfigure (CR 702.151): two activated abilities, each only as a sorcery: "{2}: Attach this permanent to another target creature you control." (scenarios: `activate "Lizard Blades" ability 1 targeting ...`) and "{2}: Unattach this permanent." (`ability 2`; only while attached to a creature); attached to a creature, it isn't a creature (layer 4; an Equipment creature with reconfigure may be attached, CR 301.5c). Prints "Reconfigure {2}". The trigger subject `this or equipped creature` is "this creature or equipped creature": the source, or the creature it's attached to. |
+| `cleave {1}{U}: return target nonland permanent to hand`, then `spell: return target nonland permanent you control to hand` | Cleave (CR 702.148): "Cleave {1}{U}", the card's alternative cost (`alternative` in scenarios); cast for it, the spell is the `cleave` line's effects (and targets) instead of the `spell` line's. The `spell` line prints with the words the cleaved text lacks in square brackets ("Return target nonland permanent [you control] to its owner's hand."); the cleaved text must be the spell's with words removed, or the brackets aren't printed. Paragraphs: `cleave {3}{U} { ... }` like a `spell { ... }` block. |
+| `champion Goblin`, `champion creature`, `champion Goblin or Shaman` | Champion (CR 702.72): "When this enters, sacrifice it unless you exile another Goblin you control." (the controller chooses one, scenarios `choose "Goblin Piker"`, or `choose done` to sacrifice it; unscripted, the first) and "When this leaves the battlefield, return the exiled card to the battlefield under its owner's control." (the exile is linked to it). Prints "Champion a Goblin". |
+| `read ahead` | Read ahead (CR 702.155), on a Saga: as it enters, its controller chooses a number from one to its final chapter (scenarios: `choose "3"`; unscripted, one) and it enters with that many lore counters; only the chosen chapter triggers as it enters. Prints "Read ahead". |
+| `amplify 1` | Amplify (CR 702.38): as it enters, its controller reveals any number of other cards from their hand that share a creature type with it (scenarios: `choose "X"`, `choose done`; unscripted, none) and it enters with N +1/+1 counters for each. Prints "Amplify 1". |
+| `tribute 2`, `if tribute not paid` | Tribute (CR 702.104): as it enters, its controller chooses an opponent, who may put N +1/+1 counters on it (scenarios: that opponent's `accept "Pharagax Giant"` / `decline`; unscripted, accepted). The trigger condition `triggered when this enters if tribute not paid: ...` prints "When this creature enters, if tribute wasn't paid, ...". Prints "Tribute 2". |
 | `riot`, `living weapon`, `job select`, `activated {5}{R}: monstrosity 3`, `static as long as monstrous, this: has flying` | Riot (CR 702.136): as it enters, its controller may have it enter with an additional +1/+1 counter; if they don't, it has haste for as long as it is that object (scenarios: `accept`/`decline`). Living weapon (CR 702.92): when this Equipment enters, a "0/0 black Phyrexian Germ creature" token, then attach this to it. Job select (CR 702.182) likewise, with a "1/1 colorless Hero creature" token. Monstrosity N (CR 701.37), an effect, `X` allowed: if the source isn't monstrous, N +1/+1 counters on it and it becomes monstrous (a designation kept until it leaves the battlefield); `monstrous` is the condition "this creature is monstrous". |
 | `ingest`, `reinforce 1 {1}{R}` | Ingest (CR 702.115): whenever it deals combat damage to a player, that player exiles the top card of their library. Reinforce N—cost (CR 702.77): "{cost}, Discard this card: Put N +1/+1 counters on target creature." (activated from the hand). |
 | `retrace`, `jump start`, `surge {1}{R}`, `spectacle {R}` | Retrace (CR 702.81): the card may be cast from your graveyard for its mana cost and a land card discarded (scenarios: `from graveyard discarding "Forest"`); it isn't exiled. Jump-start (CR 702.133): the same with any card discarded, exiled as it leaves the stack (flashback's casting, for the mana cost and a discard). Surge (CR 702.117) and spectacle (CR 702.137): the card's alternative cost (`alternative` in scenarios), offered if you've cast another spell this turn, or if an opponent lost life this turn. Printed "Retrace", "Jump-start", "Surge {1}{R}", "Spectacle {R}" where written. `freerunning {1}{B}` (CR 702.173) likewise, offered once a creature that was an Assassin you controlled dealt combat damage to a player this turn (the game has no commanders); prints "Freerunning {1}{B}". |
@@ -1634,7 +1642,9 @@ cards` prints "..., lose 2 life, then mill two cards." `draw 2 cards then discar
 (only a card drawn this way can be the one).
 Numbers are digits, `X`, or a count: `count where <expr>` ("X ...,
 where X is the number of ..."), `count equal <expr>` ("... equal to the
-number of ..."), or `count each <expr>` ("... for each ..."), with
+number of ..."; `count equal 2 Mountain returned this way`: "equal to
+twice the number of Mountains returned this way", the count doubled), or
+`count each <expr>` ("... for each ..."), with
 `<expr>` a filter (`creature you control`, `Elf on battlefield`,
 `creature named this on battlefield`: "creatures named ~ on the
 battlefield", `other creature on battlefield named this`: "other creature
@@ -2614,7 +2624,12 @@ is destroyed this way"), `if land card is discarded this way, ...`, `if
 Saproling was sacrificed this way, ...`, `if you discarded card this way,
 ...` (cards you owned), `if you put Town card into hand this way, ...`.
 Verbs: `exiled`, `sacrificed`, `destroyed`, `discarded`, `milled`,
-`returned` (put into a hand), `shuffled` (put into a library). What a spell's or ability's costs sacrificed
+`returned` (put into a hand), `shuffled` (put into a library), and in a
+count only `revealed` (parley: `each player reveals top card; you create
+count foreach nonland card revealed this way "1/1 white Spirit creature
+with flying"` is "Each player reveals the top card of their library. For
+each nonland card revealed this way, you create ..."; every card the
+resolution revealed, still where it was). What a spell's or ability's costs sacrificed
 or discarded counts too (CR 601.2h, 602.2b): `if the sacrificed creature was
 Human, ...`, `if the sacrificed permanent was artifact, ...`, `if the
 discarded card wasn't land card, ...`, and as an "instead": `if the
@@ -2824,6 +2839,10 @@ turn for each card named Growth Cycle in your graveyard."). After a
 condition, `also those creatures gain vigilance` prints "those creatures
 also gain vigilance".
 
+After a vote, `if more votes for death, <sentence>` is "If death gets
+more votes, ..." and `if more votes for torture or tied, <sentence>` "If
+torture gets more votes or the vote is tied, ..." (Tyrant's Choice): the
+choice got more votes than any other (or at least as many).
 `vote sprout or harvest` is "starting with you, each player votes for
 sprout or harvest" (CR 701.38): each player in turn order from the
 controller votes for one of the two words (as a `choose` among them), and
@@ -3052,7 +3071,7 @@ Forms that change only how Oracle words what an existing form does:
 | `reduced {1} during your turn` | "This ability costs {1} less to activate during your turn." |
 | `the chosen target 1` | "the chosen creature", after "choose target creature" |
 | `if this sneak paid` | "If this creature's sneak cost was paid" |
-| `count foreach land you control` | "For each land you control, create a Treasure token." (the count leads the sentence; the template author writes it for "For each ..., create a ... token") |
+| `count foreach land you control` | "For each land you control, create a Treasure token." (the count leads the sentence, ahead of a subject: `you create count foreach ...` is "For each ..., you create ..."; `put count foreach ... +1/+1 counters on this creature` is "For each ..., put a +1/+1 counter on this creature"; the template author writes it for "For each ..., create a ... token") |
 | `your opponents control 3 creature` | "your opponents control three or more creatures" (a static condition: the opponents' permanents counted together) |
 | `at beginning of your next end step` | In a delayed trigger: "at the beginning of your next end step". |
 | `this is with counter` | "this creature has a counter on it" (any kind) |

@@ -1,0 +1,8 @@
+card "Seize the Soul" {
+  oracle_id 91557f08-15b1-4e3e-90fd-cec35ed0868a
+  cost {2}{B}{B}
+  type Instant
+  spell: destroy target nonwhite nonblack creature; create 1 "1/1 white Spirit creature with flying"
+  haunt
+  triggered when haunted dies: destroy target nonwhite nonblack creature; create 1 "1/1 white Spirit creature with flying"
+}

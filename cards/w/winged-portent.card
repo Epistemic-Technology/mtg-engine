@@ -1,0 +1,7 @@
+card "Winged Portent" {
+  oracle_id 378567f8-7aef-42b6-853e-8591641052e8
+  cost {1}{U}{U}
+  type Instant
+  cleave {4}{G}{U}: draw count each creature you control cards
+  spell: draw count each creature you control with flying cards
+}

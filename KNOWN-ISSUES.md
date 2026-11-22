@@ -238,8 +238,7 @@ named the feature; a card may need more than one.
   it to the battlefield transformed"; restricted mana of more than one
   symbol or added by an effect; "if that spell was kicked"; a combined subject ("you and other Heroes you control have
   hexproof"); "flash if you pay {2} more"; copying a card and casting
-  the copy; choose a number, a card name, odd or even; piles; haunt,
-  amplify, sweep, devour, tribute, cleave, champion, reconfigure.
+  the copy; choose a number, a card name, odd or even; piles.
 - **Left by the sixth wave's counts branch:** restricted mana of more
   than one symbol or added by an effect (about 40 cards: Great Hall of
   the Citadel, Resonating Lute, Eldrazi Temple, Boommobile; restricted
@@ -252,8 +251,14 @@ named the feature; a card may need more than one.
   (Magma Burst) after kicker, wording only; "Then if it has no oil
   counters on it" (Evolved Spinoderm, which the `otherwise` form
   otherwise covers).
-- **Mechanics not yet in:** tiered, devour, harness, hideaway, mutate,
-  the Everywhere land token.
+- **Mechanics not yet in:** tiered, harness, hideaway, cloak, epic,
+  offering, compleated, companion, mutate, the Everywhere land token;
+  "Each Sliver card in each player's hand has slivercycling {3}" (an
+  ability granted to cards in hands, Homing Sliver); "has flying and
+  trample if it devoured a creature" (Hellkite Hatchling).
+- **"This creature or equipped creature" as a leaves or dies trigger's
+  subject** still sees only the equipped creature, not the source (the
+  attack, block, and damage forms see both). No card known.
 - **Scenario runner:** a mana ability can't be scripted as an action
   (the engine offers none at priority; it taps for mana while paying);
   `x N` on a spell cast by a trigger isn't passed on (no corpus card

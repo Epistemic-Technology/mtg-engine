@@ -1,0 +1,8 @@
+card "Skullmulcher" {
+  oracle_id 66cdbd34-a864-4c39-acac-9fb26ef4adf9
+  cost {4}{G}
+  type Creature — Elemental
+  pt 3/3
+  devour 1
+  triggered when this enters: draw count each creature it devoured cards
+}

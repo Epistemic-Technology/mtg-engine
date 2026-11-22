@@ -1,0 +1,52 @@
+# Will of the council (an ability word, CR 207.2c) and voting (CR 701.38):
+# starting with the controller, each player in turn order votes; "If death
+# gets more votes, ... If torture gets more votes or the vote is tied, ..."
+
+scenario "Tyrant's Choice: death wins, each opponent sacrifices a creature" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Tyrant's Choice"
+  turn 1 A: cast "Tyrant's Choice"
+  turn 1 A: choose "1"
+  turn 1 B: choose "1"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 20
+}
+
+scenario "Tyrant's Choice: a tied vote is torture" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Tyrant's Choice"
+  turn 1 A: cast "Tyrant's Choice"
+  turn 1 A: choose "1"
+  turn 1 B: choose "2"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert life B 16
+}
+
+scenario "Tyrant's Choice: torture wins" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Tyrant's Choice"
+  turn 1 A: cast "Tyrant's Choice"
+  turn 1 A: choose "2"
+  turn 1 B: choose "2"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert life B 16
+  assert life A 20
+}
+
+scenario "Tyrant's Choice: an extra vote breaks the tie for death" {
+  battlefield A: 2 "Swamp", "Brago's Representative"
+  battlefield B: "Grizzly Bears"
+  hand A: "Tyrant's Choice"
+  turn 1 A: cast "Tyrant's Choice"
+  turn 1 A: choose "1"
+  turn 1 B: choose "2"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 20
+}

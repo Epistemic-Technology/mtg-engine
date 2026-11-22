@@ -2942,6 +2942,11 @@ fn card_filter_a(f: &Filter, card: &Card) -> String {
     if p.is_empty() {
         "a card".to_string()
     } else if f.or.is_none()
+        && let Some((before, name)) = p.split_once("permanent named ")
+    {
+        // Grandeur: "Discard another card named Skoa, Embermage".
+        with_article(&format!("{before}card named {name}"))
+    } else if f.or.is_none()
         && let Some((kind, quality)) = p.split_once(" with ")
     {
         // "a creature card with power 2 or less".
@@ -3785,6 +3790,12 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         CountExpr::GreatestPower(f) => {
             return format!("the greatest power among {}", filter_phrase(f, card, true));
         }
+        // "for each creature it devoured", "the number of Goblins it
+        // devoured" (CR 702.82c).
+        CountExpr::Devoured(f) => (
+            format!("{} it devoured", filter_phrase(f, card, false)),
+            format!("{} it devoured", filter_phrase(f, card, true)),
+        ),
         CountExpr::DifferentlyNamed(f) => {
             return format!(
                 "the number of differently named {}",
@@ -3945,6 +3956,14 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         }
         CountExpr::Times(..) | CountExpr::Divided { .. } => unreachable!("unwrapped above"),
         // "for each enchantment destroyed this way".
+        // Parley: "For each nonland card revealed this way".
+        CountExpr::ThisWay {
+            verb: mtg_core::card::ThisWay::Revealed,
+            filter: Some(f),
+        } => (
+            format!("{} revealed this way", cards_phrase(f, card, false)),
+            format!("{} revealed this way", cards_phrase(f, card, true)),
+        ),
         CountExpr::ThisWay { verb, filter } => {
             // "the number of cards shuffled into your library this way".
             let verb = match verb {
@@ -4303,6 +4322,13 @@ fn stat_word(s: mtg_core::card::Stat) -> &'static str {
 /// value" for a target of several permanent types.
 fn count_phrase_in(c: &crate::ast::CountExpr, ctx: &Ctx, each: bool) -> String {
     use crate::ast::CountExpr;
+    // "equal to twice the number of Mountains returned this way" (sweep,
+    // Barrel Down Sokenzan); "for each" prints the multiplier itself.
+    if !each && let CountExpr::Times(n, inner) = c {
+        let x = times_x(*n);
+        let times = x.strip_suffix(" X").unwrap_or(&x);
+        return format!("{times} {}", count_phrase_in(inner, ctx, false));
+    }
     let phrase = count_phrase(c, ctx.card, each);
     match c {
         CountExpr::DamageThisWay {
@@ -4496,7 +4522,18 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 if matches!(e, Effect::CreateToken { .. }) {
                     c.text = c.text.replacen(" tokens", " token", 1);
                 }
-                c.text = format!("{}, {}", count_phrase(&count.expr, ctx.card, true), c.text);
+                // "For each nonland card revealed this way, put a +1/+1
+                // counter on this creature." (parley).
+                if matches!(e, Effect::AddCounters { .. }) {
+                    c.text = c.text.replacen(" counters ", " counter ", 1);
+                }
+                let lead = count_phrase(&count.expr, ctx.card, true);
+                // "For each ..., you create ...": the subject after the
+                // count.
+                c.text = match c.subject.take() {
+                    Some((_, s)) => format!("{lead}, {s} {}", c.text),
+                    None => format!("{lead}, {}", c.text),
+                };
             }
             CountStyle::Each => {
                 // "gain 1 life for each", "deals 1 damage ... for each".
@@ -9654,6 +9691,12 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         }
         // "When this creature enters or dies", "Whenever this creature
         // enters or attacks": the subject printed once.
+        // "When this creature enters or the creature it haunts dies".
+        Trigger::Or { first, second, .. } if **second == Trigger::HauntedDies => {
+            let a = trigger_text(first, ctx, next);
+            ctx.source_mentioned = true;
+            format!("{a} or the creature it haunts dies")
+        }
         Trigger::Or {
             first,
             second,
@@ -10373,6 +10416,8 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             format!("whenever {} is turned face up", trigger_subject(o, ctx))
         }
         Trigger::Exploits => format!("when {} exploits a creature", this(ctx)),
+        // CR 702.55b.
+        Trigger::HauntedDies => "when the creature this card haunts dies".to_string(),
         // It is a card in exile, not yet a creature (CR 702.170).
         Trigger::BecomesPlotted => {
             ctx.source_mentioned = true;
@@ -10425,6 +10470,11 @@ fn trigger_subject(o: &TriggerObj, ctx: &mut Ctx) -> String {
                 .strip_prefix("an ")
                 .or_else(|| p.strip_prefix("a "))
                 .unwrap_or(&p);
+            // "Whenever this creature or equipped creature attacks"
+            // (reconfigure): the creature it's attached to, not another.
+            if f.enchanted {
+                return format!("{} or {p}", this_ref(ctx.card));
+            }
             // "Whenever High Perfect Morcant or another Elf you control
             // enters": a legendary source by name (CR 201.5).
             format!("{} or another {p}", this_ref(ctx.card))
@@ -10531,6 +10581,7 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
             this_ref(ctx.card)
         ),
         Condition::Blitzed => "if its blitz cost was paid".to_string(),
+        Condition::TributeNotPaid => "if tribute wasn't paid".to_string(),
         Condition::Trains => format!(
             "if at least one other creature with power greater than {}'s power attacked",
             this_ref(ctx.card)
@@ -12643,6 +12694,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 _ => "it was",
             }
         ),
+        StaticCond::MoreVotes { word, ties, .. } => format!(
+            "{word} gets more votes{}",
+            if *ties { " or the vote is tied" } else { "" }
+        ),
         StaticCond::ProwlPaid if is_spell(card) => "this spell's prowl cost was paid".to_string(),
         StaticCond::ProwlPaid => "its prowl cost was paid".to_string(),
         StaticCond::SneakPaid(_) if is_spell(card) => {
@@ -14239,6 +14294,8 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Megamorph(c) => format!("Megamorph {c}"),
             crate::ast::Mechanic::Disguise(c) => format!("Disguise {c}"),
             crate::ast::Mechanic::Ninjutsu(c) => format!("Ninjutsu {c}"),
+            crate::ast::Mechanic::Reconfigure(c) => format!("Reconfigure {c}"),
+            crate::ast::Mechanic::Cleave(c, _) => format!("Cleave {c}"),
             crate::ast::Mechanic::Scavenge(c) => format!("Scavenge {c}"),
             crate::ast::Mechanic::Dash(c) => format!("Dash {c}"),
             crate::ast::Mechanic::Warp(c) => format!("Warp {c}"),
@@ -14315,6 +14372,16 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Extort => "Extort".to_string(),
             crate::ast::Mechanic::Mentor => "Mentor".to_string(),
             crate::ast::Mechanic::Riot => "Riot".to_string(),
+            crate::ast::Mechanic::Haunt => "Haunt".to_string(),
+            crate::ast::Mechanic::ReadAhead => "Read ahead".to_string(),
+            // "Champion a Goblin", "Champion an Elemental".
+            crate::ast::Mechanic::Champion(f) => format!("Champion {}", filter_a(f, card)),
+            crate::ast::Mechanic::Devour(None, n) => format!("Devour {n}"),
+            crate::ast::Mechanic::Devour(Some(k), n) => {
+                format!("Devour {} {n}", format!("{k:?}").to_lowercase())
+            }
+            crate::ast::Mechanic::Amplify(n) => format!("Amplify {n}"),
+            crate::ast::Mechanic::Tribute(n) => format!("Tribute {n}"),
             crate::ast::Mechanic::LivingWeapon => "Living weapon".to_string(),
             crate::ast::Mechanic::JobSelect => "Job select".to_string(),
             crate::ast::Mechanic::Retrace => "Retrace".to_string(),
@@ -14902,7 +14969,17 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             i += 2;
             continue;
         }
-        let text = ability_text(card, &card.abilities[i], lookup);
+        let mut text = ability_text(card, &card.abilities[i], lookup);
+        // CR 702.148a: the spell's words that cleave removes, in square
+        // brackets.
+        if matches!(card.abilities[i], Ability::Spell { .. })
+            && let Some(cleaved) = card.abilities.iter().find_map(|a| match a {
+                Ability::Mechanic(crate::ast::Mechanic::Cleave(_, s)) => Some(s),
+                _ => None,
+            })
+        {
+            text = bracket_removed(&text, &ability_text(card, cleaved, lookup));
+        }
         // "This land enters tapped. As it enters, choose a color." is one
         // line.
         // "{X}: ... Spend only black mana on X." after an activated ability
@@ -14954,6 +15031,91 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
         lines.push("Fuse".to_string());
     }
     lines.join("\n")
+}
+
+/// Cleave (CR 702.148a): `full` with the words `cut` lacks in square
+/// brackets ("Return target nonland permanent [you control] to its
+/// owner's hand."), or `full` unchanged if `cut` isn't `full` with words
+/// removed.
+fn bracket_removed(full: &str, cut: &str) -> String {
+    fn tokens(s: &str) -> Vec<&str> {
+        let mut out = Vec::new();
+        for word in s.split(' ') {
+            let mut w = word;
+            // "control." is "control" and "."; a line break its own.
+            while let Some(i) = w.find('\n') {
+                let (a, b) = w.split_at(i);
+                out.extend(split_punct(a));
+                out.push("\n");
+                w = &b[1..];
+            }
+            out.extend(split_punct(w));
+        }
+        out
+    }
+    fn split_punct(w: &str) -> Vec<&str> {
+        match w.char_indices().last() {
+            Some((i, c)) if matches!(c, '.' | ',' | ';' | ':') && i > 0 => {
+                vec![&w[..i], &w[i..]]
+            }
+            _ if w.is_empty() => Vec::new(),
+            _ => vec![w],
+        }
+    }
+    let (a, b) = (tokens(full), tokens(cut));
+    // The longest common subsequence, matching each word as early as it
+    // can.
+    let mut lcs = vec![vec![0usize; b.len() + 1]; a.len() + 1];
+    for i in (0..a.len()).rev() {
+        for j in (0..b.len()).rev() {
+            lcs[i][j] = if a[i] == b[j] {
+                lcs[i + 1][j + 1] + 1
+            } else {
+                lcs[i + 1][j].max(lcs[i][j + 1])
+            };
+        }
+    }
+    if lcs[0][0] != b.len() {
+        return full.to_string();
+    }
+    let (mut i, mut j) = (0, 0);
+    let mut kept = vec![false; a.len()];
+    while i < a.len() {
+        if j < b.len() && a[i] == b[j] && lcs[i][j] == lcs[i + 1][j + 1] + 1 {
+            kept[i] = true;
+            j += 1;
+        }
+        i += 1;
+    }
+    let mut out = String::new();
+    let mut open = false;
+    for (k, t) in a.iter().enumerate() {
+        if *t == "\n" {
+            if open {
+                out.push(']');
+                open = false;
+            }
+            out.push('\n');
+            continue;
+        }
+        let punct = matches!(*t, "." | "," | ";" | ":");
+        if open && kept[k] {
+            out.push(']');
+            open = false;
+        }
+        if !punct && !out.is_empty() && !out.ends_with('\n') {
+            out.push(' ');
+        }
+        if !open && !kept[k] {
+            out.push('[');
+            open = true;
+        }
+        out.push_str(t);
+    }
+    if open {
+        out.push(']');
+    }
+    out
 }
 
 /// "This creature can't attack or block alone." for the `i`th and next

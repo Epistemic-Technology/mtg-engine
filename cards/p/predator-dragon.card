@@ -1,0 +1,8 @@
+card "Predator Dragon" {
+  oracle_id ef048ecc-581d-4a17-91fd-edf7d7733ef9
+  cost {3}{R}{R}{R}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying, haste
+  devour 2
+}

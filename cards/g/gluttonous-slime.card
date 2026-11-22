@@ -1,0 +1,8 @@
+card "Gluttonous Slime" {
+  oracle_id 5797684a-a022-45d2-aa2e-4d375b33017e
+  cost {2}{G}
+  type Creature — Ooze
+  pt 2/2
+  keywords flash
+  devour 1
+}

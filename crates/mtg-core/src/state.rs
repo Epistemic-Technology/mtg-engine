@@ -1374,6 +1374,17 @@ pub struct TempCopy {
     pub next_turn_of: Option<crate::ids::PlayerId>,
 }
 
+/// Something noted about a permanent as it entered
+/// (`GameState::enter_notes`).
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum EnterNote {
+    /// It devoured this permanent (its old id, for last-known
+    /// information; CR 702.82c).
+    Devoured(ObjId),
+    /// Its tribute was paid (CR 702.104b).
+    TributePaid,
+}
+
 /// A card a permanent exiled (`GameState::linked_exiles`).
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct LinkedExile {
@@ -1402,6 +1413,9 @@ impl Moved {
             ThisWay::PutInHand => self.to == Zone::Hand && self.from != Zone::Hand,
             ThisWay::Tapped => self.from == Zone::Battlefield && self.to == Zone::Battlefield,
             ThisWay::Shuffled => self.to == Zone::Library && self.from != Zone::Library,
+            // Not a zone change: counted from the resolution's revealed
+            // cards (`CountExpr::ThisWay`).
+            ThisWay::Revealed => false,
         }
     }
 }
@@ -1935,6 +1949,11 @@ pub struct GameState {
     /// creature of each prowl card's creature types (CR 702.76a), kept
     /// only with a prowl card in the pool.
     pub prowl_damage: Vec<(PlayerId, crate::card::Subtype)>,
+    /// What happened as permanents entered, for their later abilities:
+    /// what each devoured (CR 702.82c), whether tribute was paid (CR
+    /// 702.104b). Keyed by the permanent; pruned as turns begin once it
+    /// has left the battlefield.
+    pub enter_notes: Vec<(ObjId, EnterNote)>,
     /// Players who lost life this turn ("if an opponent lost life this
     /// turn"), one bit each.
     pub lost_life_this_turn: u8,
@@ -3543,8 +3562,9 @@ impl GameState {
                 at_least,
                 that: false,
             } => self.spent_on(source).count(*kind) >= u32::from(*at_least),
-            // Judged by `condition_for`, which knows the triggering spell.
-            C::ManaSpent { that: true, .. } => false,
+            // Judged by `condition_for`, which knows the triggering spell;
+            // the vote is the resolution's (`IfCondition` reads it).
+            C::ManaSpent { that: true, .. } | C::MoreVotes { .. } => false,
             C::NoManaSpent => self.spent_on(source).count(crate::card::SpentKind::Total) == 0,
             C::Impending => self.objects.get(source).is_some_and(|o| {
                 o.alt == AltCast::Impending && o.counters(crate::card::CounterKind::Time) > 0

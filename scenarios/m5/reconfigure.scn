@@ -1,0 +1,149 @@
+# Reconfigure (CR 702.151a): "[Cost]: Attach this permanent to another
+# target creature you control. Activate only as a sorcery." and "[Cost]:
+# Unattach this permanent. Activate only if this permanent is attached to a
+# creature and only as a sorcery." Attached, it isn't a creature
+# (702.151b).
+
+scenario "reconfigure: attached, it equips and isn't a creature" {
+  battlefield A: "Lizard Blades", "Grizzly Bears", 2 "Mountain"
+  turn 1 A: activate "Lizard Blades" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Lizard Blades" to "Grizzly Bears"
+  assert is not "Lizard Blades" creature
+  assert is "Lizard Blades" artifact
+  assert has "Grizzly Bears" double_strike
+}
+
+scenario "reconfigure: unattached, it is a creature again" {
+  battlefield A: "Lizard Blades", "Grizzly Bears", 4 "Mountain"
+  turn 1 A: activate "Lizard Blades" ability 1 targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Lizard Blades" ability 2
+  run_to turn 1 postcombat_main
+  assert is "Lizard Blades" creature
+  assert has not "Grizzly Bears" double_strike
+  assert has "Lizard Blades" double_strike
+}
+
+scenario "reconfigure: unattach only while attached" {
+  battlefield A: "Lizard Blades", 2 "Mountain"
+  illegal turn 1 A: activate "Lizard Blades" ability 2
+  run_to turn 1 postcombat_main
+  assert is "Lizard Blades" creature
+}
+
+scenario "reconfigure: only as a sorcery" {
+  battlefield A: "Lizard Blades", "Grizzly Bears", 2 "Mountain"
+  start turn 2 B
+  illegal turn 2 upkeep A: activate "Lizard Blades" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+}
+
+scenario "reconfigure: not onto itself or an opponent's creature" {
+  battlefield A: "Lizard Blades", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  illegal turn 1 A: activate "Lizard Blades" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "reconfigure: the equipped creature dying leaves a creature" {
+  battlefield A: "Lizard Blades", "Grizzly Bears", 3 "Mountain"
+  hand A: "Shock"
+  turn 1 A: activate "Lizard Blades" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert is "Lizard Blades" creature
+}
+
+scenario "Rabbit Battery: +1/+1 and haste to the equipped creature" {
+  battlefield A: "Rabbit Battery", "Mountain", "Grizzly Bears"
+  turn 1 A: activate "Rabbit Battery" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Chainflail Centipede: it or the equipped creature gets +2/+0 attacking" {
+  battlefield A: "Chainflail Centipede", "Grizzly Bears", 2 "Swamp"
+  turn 1 A: activate "Chainflail Centipede" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Chainflail Centipede attacks itself" {
+  battlefield A: "Chainflail Centipede"
+  turn 1 A: attack "Chainflail Centipede"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Simian Sling: the equipped creature becomes blocked" {
+  battlefield A: "Simian Sling", "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Simian Sling" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Armguard Familiar: +2/+1 and ward to the equipped creature" {
+  battlefield A: "Armguard Familiar", "Grizzly Bears", 4 "Island"
+  turn 1 A: activate "Armguard Familiar" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 3
+}
+
+scenario "Acquisition Octopus: a card when the equipped creature connects" {
+  battlefield A: "Acquisition Octopus", "Grizzly Bears", 2 "Island"
+  library A: "Forest", "Island"
+  turn 1 A: activate "Acquisition Octopus" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Bronzeplate Boar: +3/+2 and trample" {
+  battlefield A: "Bronzeplate Boar", "Grizzly Bears", 5 "Mountain"
+  turn 1 A: activate "Bronzeplate Boar" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert has "Grizzly Bears" trample
+}
+
+scenario "Leech Gauntlet: lifelink" {
+  battlefield A: "Leech Gauntlet", "Grizzly Bears", 4 "Swamp"
+  turn 1 A: activate "Leech Gauntlet" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 22
+}
+
+scenario "Webspinner Cuff: +1/+4 and reach" {
+  battlefield A: "Webspinner Cuff", "Grizzly Bears", 4 "Forest"
+  turn 1 A: activate "Webspinner Cuff" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert toughness "Grizzly Bears" 6
+  assert has "Grizzly Bears" reach
+}
+
+scenario "Acquisition Octopus: a card when it connects itself" {
+  battlefield A: "Acquisition Octopus"
+  library A: "Forest", "Island"
+  turn 1 A: attack "Acquisition Octopus"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Acquisition Octopus: another creature connecting draws nothing" {
+  battlefield A: "Acquisition Octopus", "Grizzly Bears"
+  library A: "Forest", "Island"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}

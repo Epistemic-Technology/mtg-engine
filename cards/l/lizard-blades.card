@@ -1,0 +1,9 @@
+card "Lizard Blades" {
+  oracle_id f6314e50-a610-4fff-8f60-803d23460ff0
+  cost {1}{R}
+  type Artifact Creature — Equipment Lizard
+  pt 1/1
+  keywords double strike
+  static enchanted: has double strike
+  reconfigure {2}
+}

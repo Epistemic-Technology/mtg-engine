@@ -529,6 +529,7 @@ impl GameState {
             damaged_this_turn: 0,
             assassin_damage: 0,
             prowl_damage: Vec::new(),
+            enter_notes: Vec::new(),
             lost_life_this_turn: 0,
             left_this_turn: 0,
             discarded_this_turn: 0,
@@ -1861,7 +1862,9 @@ impl GameState {
             (Flow::Priority, Choice::CastAlt(card)) => {
                 // CR 718.3: a prototype card's alternative cost casts it
                 // prototyped, the spell its prototype face.
-                match self.pool.get(self.objects[card].def).prototype_face {
+                // CR 702.148a: a cleaved spell is its cleave face.
+                let def = self.pool.get(self.objects[card].def);
+                match def.prototype_face.or(def.cleave_face) {
                     Some(face) => {
                         self.begin_cast_as(
                             player,
@@ -3379,6 +3382,14 @@ impl GameState {
             self.attacked_this_turn = 0;
             self.assassin_damage = 0;
             self.prowl_damage.clear();
+            if !self.enter_notes.is_empty() {
+                let objects = &self.objects;
+                self.enter_notes.retain(|(o, _)| {
+                    objects
+                        .get(*o)
+                        .is_some_and(|o| o.zone == crate::state::Zone::Battlefield)
+                });
+            }
             self.lands_entered_this_turn = 0;
             self.block_demands.clear();
             self.block_bans.clear();

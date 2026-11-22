@@ -2949,6 +2949,10 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             format!("{} on battlefield", filter(f))
         }
         CountExpr::Permanents(f) => filter(f),
+        CountExpr::ThisWay {
+            verb: mtg_core::card::ThisWay::Revealed,
+            filter: Some(f),
+        } => format!("{} card revealed this way", filter(f)),
         CountExpr::ThisWay { verb, filter: f } => {
             let verb = crate::ast::this_way_word(*verb);
             match f {
@@ -2989,6 +2993,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::BlockingIt { beyond } => format!("creature blocking it beyond {beyond}"),
         CountExpr::GreatestPower(f) => format!("greatest power {}", filter(f)),
         CountExpr::DifferentlyNamed(f) => format!("differently named {}", filter(f)),
+        CountExpr::Devoured(f) => format!("{} it devoured", filter(f)),
         CountExpr::Party => "party".to_string(),
         CountExpr::GreatestManaValue => "greatest mana value".to_string(),
         CountExpr::CardsDrawnThisTurn => "drawn this turn".to_string(),
@@ -3153,7 +3158,11 @@ fn outcome(o: &Outcome) -> String {
         Outcome::EnterTappedUnless(_)
         | Outcome::EnterWithCountersIf { .. }
         | Outcome::EnterWithCountersMay { .. }
-        | Outcome::EnterWithCounterChoice { .. } => {
+        | Outcome::EnterWithCounterChoice { .. }
+        | Outcome::EnterDevour { .. }
+        | Outcome::EnterAmplify(_)
+        | Outcome::EnterTribute(_)
+        | Outcome::EnterReadAhead => {
             unreachable!("an AST ability of its own")
         }
         Outcome::EnterTapped => "tapped".to_string(),
@@ -3918,6 +3927,7 @@ pub fn natural_when(t: &Trigger) -> bool {
             }
             | Trigger::TurnedFaceUp(TriggerObj::This)
             | Trigger::Exploits
+            | Trigger::HauntedDies
             | Trigger::BecomesPlotted
             | Trigger::BecomesTarget(TriggerObj::This)
             | Trigger::When(_)
@@ -4252,6 +4262,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         }
         Trigger::TurnedFaceUp(o) => format!("whenever {} is turned face up", trigger_obj(o)),
         Trigger::Exploits => "when this exploits a creature".to_string(),
+        Trigger::HauntedDies => "when haunted dies".to_string(),
         Trigger::BecomesPlotted => "when this becomes plotted".to_string(),
         Trigger::DrawsNth {
             whose,
@@ -4342,6 +4353,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             let a = trigger_text(first, next);
             let b = trigger_text(second, next);
             crate::render::or_shared(&a, &b, *whenever)
+        }
+        Trigger::Or { second, .. } if **second == Trigger::HauntedDies => {
+            "when this enters or haunted dies".to_string()
         }
         Trigger::Or {
             second, whenever, ..
@@ -5047,6 +5061,12 @@ fn static_cond(c: &StaticCond) -> String {
             }
         ),
         StaticCond::ProwlPaid => "prowl paid".to_string(),
+        StaticCond::MoreVotes { word, ties, .. } => {
+            format!(
+                "more votes for {word}{}",
+                if *ties { " or tied" } else { "" }
+            )
+        }
         StaticCond::SneakPaid(p) => format!(
             "{}sneak paid",
             match p {
@@ -5321,6 +5341,18 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let _ = writeln!(out, "{indent}enchant {phrase}");
         }
         Ability::Spell { targets, effects } => body(out, indent, "spell", effects, targets, groups),
+        Ability::Mechanic(crate::ast::Mechanic::Cleave(c, spell)) => {
+            if let Ability::Spell { targets, effects } = &**spell {
+                body(
+                    out,
+                    indent,
+                    &format!("cleave {c}"),
+                    effects,
+                    targets,
+                    groups,
+                );
+            }
+        }
         Ability::Exert(effects) => body(out, indent, "exert", effects, &[], groups),
         Ability::EquipOr {
             mana,
@@ -5522,6 +5554,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Some(mtg_core::card::Condition::Increments) => head.push_str(" if increments"),
                 Some(mtg_core::card::Condition::Trains) => head.push_str(" if trains"),
                 Some(mtg_core::card::Condition::Blitzed) => head.push_str(" if blitzed"),
+                Some(mtg_core::card::Condition::TributeNotPaid) => {
+                    head.push_str(" if tribute not paid");
+                }
                 Some(mtg_core::card::Condition::Dethrones) => head.push_str(" if dethrones"),
                 Some(mtg_core::card::Condition::AttackedOpponent) => {
                     head.push_str(" if attacked opponent");
@@ -5893,6 +5928,8 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Megamorph(c) => format!("megamorph {c}"),
                 crate::ast::Mechanic::Disguise(c) => format!("disguise {c}"),
                 crate::ast::Mechanic::Ninjutsu(c) => format!("ninjutsu {c}"),
+                crate::ast::Mechanic::Reconfigure(c) => format!("reconfigure {c}"),
+                crate::ast::Mechanic::Cleave(..) => unreachable!("a body of its own"),
                 crate::ast::Mechanic::Scavenge(c) => format!("scavenge {c}"),
                 crate::ast::Mechanic::Dash(c) => format!("dash {c}"),
                 crate::ast::Mechanic::Warp(c) => format!("warp {c}"),
@@ -5941,6 +5978,15 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Extort => "extort".to_string(),
                 crate::ast::Mechanic::Mentor => "mentor".to_string(),
                 crate::ast::Mechanic::Riot => "riot".to_string(),
+                crate::ast::Mechanic::Haunt => "haunt".to_string(),
+                crate::ast::Mechanic::ReadAhead => "read ahead".to_string(),
+                crate::ast::Mechanic::Champion(f) => format!("champion {}", filter(f)),
+                crate::ast::Mechanic::Devour(None, n) => format!("devour {n}"),
+                crate::ast::Mechanic::Devour(Some(k), n) => {
+                    format!("devour {} {n}", format!("{k:?}").to_lowercase())
+                }
+                crate::ast::Mechanic::Amplify(n) => format!("amplify {n}"),
+                crate::ast::Mechanic::Tribute(n) => format!("tribute {n}"),
                 crate::ast::Mechanic::LivingWeapon => "living weapon".to_string(),
                 crate::ast::Mechanic::JobSelect => "job select".to_string(),
                 crate::ast::Mechanic::Retrace => "retrace".to_string(),

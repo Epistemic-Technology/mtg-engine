@@ -1,0 +1,7 @@
+card "Path of Peril" {
+  oracle_id d41987b0-2ea0-4cc7-8608-70c486db76eb
+  cost {1}{B}{B}
+  type Sorcery
+  cleave {4}{W}{B}: destroy each creature
+  spell: destroy each creature with mana value 2 or less
+}

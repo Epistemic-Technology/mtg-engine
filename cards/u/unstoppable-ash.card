@@ -1,0 +1,9 @@
+card "Unstoppable Ash" {
+  oracle_id 4c0fa2f9-721e-45ac-ad74-68ad2523c658
+  cost {3}{G}
+  type Creature — Treefolk Warrior
+  pt 5/5
+  keywords trample
+  champion Treefolk or Warrior
+  triggered whenever creature you control becomes blocked: it gets +0/+5
+}

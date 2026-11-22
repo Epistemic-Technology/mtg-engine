@@ -937,6 +937,21 @@ impl GameState {
                     _ => 0,
                 };
             }
+            // Parley: "For each nonland card revealed this way" (every
+            // player's top card, `Effect::RevealTop`).
+            CountExpr::ThisWay(crate::card::ThisWay::Revealed, f) => ctx
+                .revealed
+                .iter()
+                .filter(|id| {
+                    let Some(o) = self.objects.get(**id) else {
+                        return false;
+                    };
+                    f.as_ref().is_none_or(|f| {
+                        let c = self.base_characteristics(o);
+                        f.matches(**id, o.owner, &c, Some(ctx.source), Some(ctx.controller))
+                    })
+                })
+                .count(),
             CountExpr::ThisWay(verb, f) => self.this_way.as_ref().map_or(0, |log| {
                 log.moved
                     .iter()
@@ -999,6 +1014,23 @@ impl GameState {
                     .unwrap_or(0);
                 return u32::try_from(best.max(0)).unwrap_or(0);
             }
+            // CR 702.82c: "for each creature it devoured", the sacrificed
+            // permanents as they last existed.
+            CountExpr::Devoured(f) => self
+                .enter_notes
+                .iter()
+                .filter(|(o, note)| {
+                    *o == ctx.source
+                        && matches!(note, crate::state::EnterNote::Devoured(d)
+                        if self.lki.get(d).is_some_and(|l| f.matches(
+                            *d,
+                            l.object.controller,
+                            &l.characteristics,
+                            Some(ctx.source),
+                            Some(you),
+                        )))
+                })
+                .count(),
             CountExpr::DifferentlyNamed(f) => {
                 let f = &*self.chosen_filter(f, ctx);
                 let mut names: SmallVec<[&str; 8]> = SmallVec::new();
@@ -3200,6 +3232,8 @@ impl GameState {
         if !payable || !self.additional_payable(p, &def.additional, id) {
             return false;
         }
+        // CR 702.148a: cleaved, the spell's targets are its cleave face's.
+        let def = def.cleave_face.map_or(def, |f| self.pool.get(f));
         match def.modes() {
             Some(modes) => modes
                 .iter()
@@ -3603,6 +3637,11 @@ impl GameState {
         filter: Option<&crate::card::ObjFilter>,
         source: ObjId,
     ) -> Vec<ObjId> {
+        // Grandeur: "Discard another card named ~" (the source's name).
+        let filled = filter
+            .filter(|f| f.same.is_some())
+            .map(|f| self.with_same_of(f, Some(source)));
+        let filter = filled.as_ref().or(filter);
         self.player(p)
             .hand
             .iter()
@@ -7437,6 +7476,26 @@ impl GameState {
                 && self.encode(spell, obj.controller))
             {
                 self.leave_stack(spell);
+                // CR 702.55a: haunt on an instant or sorcery triggers as it
+                // is put into a graveyard during its resolution.
+                if let Some(ability) = def.haunt_spell
+                    && let Some(card) = self.current_object(spell)
+                    && self.objects[card].zone == Zone::Graveyard
+                {
+                    let timestamp = self.tick();
+                    self.pending_triggers.push(crate::state::PendingTrigger {
+                        controller: obj.controller,
+                        ability: StackAbility {
+                            ability,
+                            source: card,
+                            def: self.objects[card].def,
+                            trigger_obj: None,
+                            trigger_player: None,
+                            trigger_amount: 0,
+                        },
+                        timestamp,
+                    });
+                }
             }
         }
     }
@@ -8356,7 +8415,10 @@ impl GameState {
             let spec = self.pool.get(def).enchant().unwrap_or(TargetSpec::Creature);
             self.is_legal_attachment(spec, host)
         } else if c.has_subtype(crate::card::Subtype::EQUIPMENT) {
-            !c.is_creature() && self.is_legal_attachment(TargetSpec::Creature, host)
+            // CR 702.151b: an Equipment with reconfigure attaches, and
+            // stops being a creature while attached.
+            (!c.is_creature() || self.pool.get(self.objects[obj].def).reconfigure)
+                && self.is_legal_attachment(TargetSpec::Creature, host)
         } else {
             false
         };
@@ -10876,7 +10938,26 @@ impl GameState {
             }
             Effect::IfCondition(cond, inner) => {
                 let c = self.pool.condition(*cond).clone();
-                if self.condition_for(&c, ctx.controller, ctx.source, ctx.trigger_obj) {
+                // CR 701.38: "If death gets more votes", the tally of this
+                // resolution's vote.
+                let holds = match c {
+                    crate::card::StaticCondition::MoreVotes { index, ties } => match &ctx.chosen {
+                        Chosen::Votes(v) => {
+                            let mine = v.get(usize::from(index)).copied().unwrap_or(0);
+                            let best = v
+                                .iter()
+                                .enumerate()
+                                .filter(|(i, _)| *i != usize::from(index))
+                                .map(|(_, n)| *n)
+                                .max()
+                                .unwrap_or(0);
+                            mine > best || (ties && mine == best)
+                        }
+                        _ => false,
+                    },
+                    _ => self.condition_for(&c, ctx.controller, ctx.source, ctx.trigger_obj),
+                };
+                if holds {
                     // For an "Otherwise" after it; optional actions inside
                     // set it again.
                     ctx.did = true;
@@ -11531,6 +11612,80 @@ impl GameState {
                     }
                 }
             }
+            // CR 702.55a: "exile it haunting target creature": the card,
+            // still in its owner's graveyard, is exiled; its "When the
+            // creature it haunts dies" ability watches that creature from
+            // exile (702.55c).
+            // CR 702.72a: the source still on the battlefield, another
+            // permanent of its controller's matching the filter is exiled
+            // (the first option; declining sacrifices the source).
+            Effect::Champion(filter) => {
+                let p = ctx.controller;
+                let Some(me) = self
+                    .objects
+                    .get(ctx.source)
+                    .filter(|o| o.zone == Zone::Battlefield)
+                    .map(|_| ctx.source)
+                else {
+                    return;
+                };
+                let cands: Vec<ObjId> = self
+                    .permanents_of(p)
+                    .filter(|id| {
+                        *id != me
+                            && self
+                                .characteristics(*id)
+                                .is_some_and(|c| filter.matches(*id, p, &c, Some(me), Some(p)))
+                    })
+                    .collect();
+                let mut options: Vec<Choice> =
+                    cands.iter().map(|id| Choice::Sacrifice(*id)).collect();
+                options.push(Choice::Done);
+                let k = self.choose_mid(p, DecisionKind::ChooseCard, options.clone());
+                if let Choice::Sacrifice(id) = options[k] {
+                    let new = self.move_object(id, Zone::Exile, true);
+                    if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
+                        self.link_exile(me, new, false);
+                    }
+                } else {
+                    self.sacrifice(me);
+                }
+            }
+            Effect::ExileHaunting => {
+                let Some(card) = self
+                    .current_object(ctx.source)
+                    .filter(|id| self.objects[*id].zone == Zone::Graveyard)
+                else {
+                    return;
+                };
+                let Some(Target::Object(creature)) = self
+                    .recipients(ctx, crate::card::Recipient::Target(0))
+                    .first()
+                    .copied()
+                else {
+                    return;
+                };
+                let (def, owner) = (self.objects[card].def, self.objects[card].owner);
+                let new = self.move_object(card, Zone::Exile, true);
+                if let Some(ability) = self.pool.get(def).haunted
+                    && self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile)
+                {
+                    self.delayed_triggers.push(DelayedTrigger {
+                        controller: owner,
+                        ability: StackAbility {
+                            ability,
+                            source: new,
+                            def,
+                            trigger_obj: Some(creature),
+                            trigger_player: None,
+                            trigger_amount: 0,
+                        },
+                        this_turn: false,
+                        forever: false,
+                        turn: self.turn_number,
+                    });
+                }
+            }
             Effect::Delayed {
                 ability,
                 about,
@@ -12052,13 +12207,15 @@ impl GameState {
                 }
             }
             Effect::RevealTop { who, look } => {
+                // "Each player reveals the top card of their library"
+                // (parley): every card revealed is the resolution's.
+                ctx.revealed.clear();
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
                         continue;
                     };
                     let top = self.player(p).library.last().copied();
                     ctx.created = top;
-                    ctx.revealed.clear();
                     let Some(top) = top else {
                         continue;
                     };

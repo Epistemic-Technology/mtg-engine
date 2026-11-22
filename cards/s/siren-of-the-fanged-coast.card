@@ -1,0 +1,9 @@
+card "Siren of the Fanged Coast" {
+  oracle_id c5e7ba95-c9b9-45e8-9551-dba892d90683
+  cost {3}{U}{U}
+  type Creature — Siren
+  pt 1/1
+  keywords flying
+  tribute 3
+  triggered when this enters if tribute not paid: gain control of target creature indefinitely
+}

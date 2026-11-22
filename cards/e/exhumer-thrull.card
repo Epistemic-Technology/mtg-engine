@@ -1,0 +1,8 @@
+card "Exhumer Thrull" {
+  oracle_id cd2ae326-1a74-4b67-9718-92b6a209303b
+  cost {5}{B}
+  type Creature — Thrull
+  pt 3/3
+  haunt
+  triggered when this enters or haunted dies: return target creature card from your graveyard to hand
+}

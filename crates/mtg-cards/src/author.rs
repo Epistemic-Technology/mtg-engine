@@ -71,6 +71,15 @@ const KEYWORDS: &[&str] = &[
 
 /// Scryfall keyword tags that templates below handle as abilities.
 const TEMPLATED_TAGS: &[&str] = &[
+    "Read ahead",
+    "Read Ahead",
+    "Champion",
+    "Cleave",
+    "Haunt",
+    "Reconfigure",
+    "Devour",
+    "Amplify",
+    "Tribute",
     "Emerge",
     "Miracle",
     "Prowl",
@@ -264,6 +273,8 @@ const ABILITY_WORDS: &[&str] = &[
     // (Final Fantasy) is an ability word.
     "Jump",
     "Repartee",
+    "Parley",
+    "Grandeur",
     "Vivid",
     // CR 702.179e: a condition, not a bare label; the DSL compiles it.
     "Max speed",
@@ -665,11 +676,22 @@ fn count_expr(s: &str) -> Option<String> {
     {
         return count_expr(what).map(|e| format!("every {n} {e}"));
     }
+    // Devour (CR 702.82c): "for each creature it devoured", "the number
+    // of Goblins it devoured".
+    if let Some(f) = s.strip_suffix(" it devoured")
+        && !f.contains(' ')
+    {
+        return Some(format!("{} it devoured", singular(f)));
+    }
     match s {
         "basic land types among lands you control" | "basic land type among lands you control" => {
             return Some("domain".to_string());
         }
         "cards in your hand" | "card in your hand" => return Some("hand".to_string()),
+        // Parley.
+        "nonland card revealed this way" => {
+            return Some("nonland card revealed this way".to_string());
+        }
         "cards you've discarded this turn" | "card you've discarded this turn" => {
             return Some("discarded this turn".to_string());
         }
@@ -1377,13 +1399,19 @@ impl Templates {
             ),
             (
                 r(
-                    r"^For each (.+?), create an? ((?:\d+/\d+) (?:colorless|(?:white|blue|black|red|green)(?: and (?:white|blue|black|red|green))?) (?:[A-Z][a-z]+ )+(?:artifact )?creature) token((?: with [a-z ,]+)?)$",
+                    r"^For each (.+?), (?:you )?create an? ((?:\d+/\d+) (?:colorless|(?:white|blue|black|red|green)(?: and (?:white|blue|black|red|green))?) (?:[A-Z][a-z]+ )+(?:artifact )?creature) token((?: with [a-z ,]+)?)$",
                 ),
                 |c, _| {
                     let key = format!("{}{}", cap(c, 2), cap(c, 3));
                     token_block(&key)?;
+                    // Parley: "For each ..., you create ...".
+                    let you = if cap(c, 0).contains(", you create ") {
+                        "you "
+                    } else {
+                        ""
+                    };
                     Some(format!(
-                        "create count foreach {} \"{key}\"",
+                        "{you}create count foreach {} \"{key}\"",
                         count_expr(cap(c, 1))?
                     ))
                 },
@@ -1809,6 +1837,11 @@ impl Templates {
                     r"^Look at the top (\w+) cards of your library, then put them back in any order$",
                 ),
                 |c, _| Some(format!("look at top {}", number(cap(c, 1))?)),
+            ),
+            // Parley.
+            (
+                r(r"^Each player reveals the top card of their library$"),
+                |_, _| Some("each player reveals top card".to_string()),
             ),
             (r(r"^Manifest the top card of your library$"), |_, _| {
                 Some("manifest".to_string())
@@ -2749,6 +2782,7 @@ impl Templates {
                 spell_paragraphs: Vec::new(),
                 spell_at: None,
                 spell_targets: 0,
+                cleave: None,
             }
             .quoted(cap(&c, 2));
             let who = recipient(&lowercase_first(cap(&c, 1)), targets);
@@ -3175,6 +3209,7 @@ fn split_sentences(text: &str) -> Vec<String> {
 }
 
 /// A cost prefix of an activated ability as the DSL writes it.
+#[allow(clippy::too_many_lines)] // one arm per cost item
 fn cost_text(s: &str) -> Option<String> {
     let remove = Regex::new(
         r"^Remove (an?|two|three|\w+) ([a-z+/1-]+(?: strike)?) counters? from this (?:artifact|creature|land|enchantment|permanent)$",
@@ -3213,6 +3248,19 @@ fn cost_text(s: &str) -> Option<String> {
             format!("waterbend {mana}")
         } else if part == "Discard a card" {
             "discard 1 card".to_string()
+        } else if let Some((n, rest)) = part
+            .strip_prefix("Sacrifice ")
+            .and_then(|r| r.split_once(' '))
+            .and_then(|(n, rest)| Some((number(n)?, rest)))
+            .filter(|(n, rest)| {
+                n != "1" && n.bytes().all(|b| b.is_ascii_digit()) && !rest.contains(' ')
+            })
+        {
+            // "Sacrifice two Mountains".
+            format!("sacrifice {n} {}", singular(rest))
+        } else if part == "Discard another card named ~" {
+            // Grandeur (an ability word, CR 207.2c).
+            "discard other named this card".to_string()
         } else if part == "Forage" {
             // CR 701.61a.
             "forage".to_string()
@@ -3298,6 +3346,11 @@ fn trigger_text(head: &str) -> Option<String> {
         | "When this permanent enters"
         | "When this Aura enters" => "when this enters",
         "Whenever another creature enters" => "whenever other creature enters",
+        // CR 702.55b-c: haunt.
+        "When this creature enters or the creature it haunts dies" => {
+            "when this enters or haunted dies"
+        }
+        "When the creature this card haunts dies" => "when haunted dies",
         "Whenever a creature you control enters" => "whenever creature you control enters",
         "Whenever another creature you control enters" => {
             "whenever other creature you control enters"
@@ -4081,6 +4134,9 @@ struct Builder<'a> {
     /// spell's text prints after it).
     spell_at: Option<usize>,
     spell_targets: usize,
+    /// Cleave (CR 702.148a): its cost, and the spell's paragraphs with the
+    /// bracketed words removed.
+    cleave: Option<(String, Vec<String>)>,
 }
 
 impl Builder<'_> {
@@ -4097,6 +4153,7 @@ impl Builder<'_> {
             spell_paragraphs: Vec::new(),
             spell_at: None,
             spell_targets: 0,
+            cleave: None,
         };
         // A keyword alone ("has \"Flying\"") is not an ability statement.
         inner.statements.push(String::new());
@@ -4588,17 +4645,42 @@ impl Builder<'_> {
             }
             return Ok(());
         }
-        if let Some(c) = Regex::new(
-            r"^(Basic land|Land|Plains|Island|Swamp|Mountain|Forest)cycling ((?:\{[0-9XWUBRGC]+\})+)$",
-        )
-        .unwrap()
-        .captures(line)
+        if let Some(c) = Regex::new(r"^(Basic land|[A-Z][a-z]+)cycling ((?:\{[0-9XWUBRGC]+\})+)$")
+            .unwrap()
+            .captures(line)
         {
             self.statements.push(format!(
                 "{}cycling {}",
                 cap(&c, 1).to_lowercase(),
                 cap(&c, 2)
             ));
+            return Ok(());
+        }
+        // CR 702.148a: the spell's text follows.
+        if let Some(c) = Regex::new(r"^Cleave ((?:\{[0-9WUBRGCX]+\})+)$")
+            .unwrap()
+            .captures(line)
+            && self.is_spell
+        {
+            self.cleave = Some((cap(&c, 1).to_string(), Vec::new()));
+            return Ok(());
+        }
+        // CR 702.72a: "Champion a Goblin", "Champion a Goblin or Shaman".
+        if let Some(c) = Regex::new(r"^Champion an? (creature|[A-Z][a-z]+(?: or [A-Z][a-z]+)?)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements.push(format!("champion {}", cap(&c, 1)));
+            return Ok(());
+        }
+        // CR 702.155a.
+        if line == "Read ahead" {
+            self.statements.push("read ahead".to_string());
+            return Ok(());
+        }
+        // CR 702.55a.
+        if line == "Haunt" {
+            self.statements.push("haunt".to_string());
             return Ok(());
         }
         if let Some(c) = Regex::new(r"^Cycling ((?:\{[0-9XWUBRGC]+\})+)$")
@@ -4949,7 +5031,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) = Regex::new(
-            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Afterlife|Casualty|Teamwork|Ripple|Dredge|Firebending|Graft|Vanishing|Fading|Annihilator|Rampage) (\d+)$",
+            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Afterlife|Casualty|Teamwork|Ripple|Dredge|Firebending|Graft|Vanishing|Fading|Annihilator|Rampage|Amplify|Tribute|Devour|Devour artifact|Devour land) (\d+)$",
         )
         .unwrap()
         .captures(line)
@@ -5078,7 +5160,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Mayhem|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Plot|Sneak|Harmonize|Freerunning|Multikicker|Transmute|Disturb|Recover|Escalate|Prowl|Miracle|Emerge) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Mayhem|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Plot|Sneak|Harmonize|Freerunning|Multikicker|Transmute|Disturb|Recover|Escalate|Prowl|Miracle|Emerge|Reconfigure) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {
@@ -5890,6 +5972,9 @@ impl Builder<'_> {
             {
                 // The source's own cast (CR 601.2a), from any zone.
                 (" if you cast it", r)
+            } else if let Some(r) = rest.strip_prefix("if tribute wasn't paid, ") {
+                // CR 702.104b.
+                (" if tribute not paid", r)
             } else if let Some(r) = rest.strip_prefix("if no spells were cast last turn, ") {
                 (" if no spells were cast last turn", r)
             } else if let Some(r) =
@@ -5925,6 +6010,28 @@ impl Builder<'_> {
             self.statements.push(format!(
                 "triggered {zone}{limit}{trigger}{condition}: {effects}"
             ));
+            return Ok(());
+        }
+        if self.is_spell
+            && let Some((cost, cut)) = &mut self.cleave
+        {
+            // CR 702.148a: the text as printed, and with the words in
+            // square brackets removed.
+            let full = line.replace(['[', ']'], "");
+            let short = Regex::new(r" ?\[[^\]]*\]")
+                .unwrap()
+                .replace_all(line, "")
+                .into_owned();
+            let short = short.trim_start();
+            let mut t = 0;
+            let cleaved = self.templates.effects(short, &mut t)?;
+            let _ = cost;
+            cut.push(cleaved);
+            let mut targets = self.spell_targets;
+            let effects = self.templates.effects(&full, &mut targets)?;
+            self.spell_targets = targets;
+            self.spell_at.get_or_insert(self.statements.len());
+            self.spell_paragraphs.push(effects);
             return Ok(());
         }
         if self.is_spell {
@@ -6674,8 +6781,11 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         return Err(Skip::Subtypes);
     }
     for k in &s.keywords {
+        // Typecycling of any type (CR 702.29e): "Wizardcycling {2}".
+        let typecycling = k.ends_with("cycling") && k.len() > "cycling".len();
         if !KEYWORDS.contains(&k.as_str())
             && !TEMPLATED_TAGS.contains(&k.as_str())
+            && !typecycling
             && !ABILITY_WORDS.contains(&k.as_str())
             // A flavor word before equip ("Hagneia — Equip {3}") is tagged
             // as a keyword; the line is templated as a labeled equip.
@@ -6762,6 +6872,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         spell_paragraphs: Vec::new(),
         spell_at: None,
         spell_targets: 0,
+        cleave: None,
     };
     // CR 711.2: a leveler's "LEVEL 1-4" and the P/T box under it, one line.
     let leveler = Regex::new(r"(?m)^(LEVEL \d+(?:-\d+|\+))\n(\d+/\d+)$").unwrap();
@@ -6887,6 +6998,21 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     let split = b.spell_at.unwrap_or(b.statements.len());
     for st in &b.statements[..split] {
         let _ = writeln!(text, "  {st}");
+    }
+    // CR 702.148a: the cleaved spell, before the spell.
+    if let Some((cost, cut)) = &b.cleave {
+        match cut.as_slice() {
+            [one] => {
+                let _ = writeln!(text, "  cleave {cost}: {one}");
+            }
+            many => {
+                let _ = writeln!(text, "  cleave {cost} {{");
+                for p in many {
+                    let _ = writeln!(text, "    {p}");
+                }
+                text.push_str("  }\n");
+            }
+        }
     }
     match b.spell_paragraphs.as_slice() {
         [] => {}

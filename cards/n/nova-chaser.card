@@ -1,0 +1,8 @@
+card "Nova Chaser" {
+  oracle_id 997f5847-04c2-498a-a294-d3355fbb7424
+  cost {3}{R}
+  type Creature — Elemental Warrior
+  pt 10/2
+  keywords trample
+  champion Elemental
+}

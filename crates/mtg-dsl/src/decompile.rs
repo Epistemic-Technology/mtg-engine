@@ -560,6 +560,7 @@ impl Decompiler<'_> {
             StaticCondition::TotalToughness(n) => StaticCond::TotalToughness(*n),
             StaticCondition::SneakPaid(p) => StaticCond::SneakPaid(*p),
             StaticCondition::ProwlPaid => StaticCond::ProwlPaid,
+            StaticCondition::MoreVotes { .. } => unreachable!("a vote's words are the card's"),
             StaticCondition::WebSlung(p) => StaticCond::WebSlung(*p),
             StaticCondition::OptionalCostPaid => StaticCond::EvidenceCollected,
             StaticCondition::OffspringPaid => unreachable!("only offspring's trigger"),
@@ -1444,6 +1445,8 @@ impl Decompiler<'_> {
                 unreachable!("built-in abilities and dungeon rooms only")
             }
             CoreEffect::Ascend => unreachable!("ascend is decompiled as a keyword line"),
+            CoreEffect::ExileHaunting => unreachable!("haunt is decompiled as a keyword line"),
+            CoreEffect::Champion(_) => unreachable!("champion is decompiled as a keyword line"),
             CoreEffect::Lasting { .. } => unreachable!("a sentence's duration, by `sentences`"),
             CoreEffect::Explore { what } => Effect::Explore {
                 what: Self::recipient(*what),

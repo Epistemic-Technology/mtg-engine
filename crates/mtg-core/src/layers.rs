@@ -1402,6 +1402,7 @@ fn per_count(
         | CountExpr::CardManaValue
         | CountExpr::GreatestPower(_)
         | CountExpr::DifferentlyNamed(_)
+        | CountExpr::Devoured(_)
         | CountExpr::Party(_)
         | CountExpr::SourceToughness
         | CountExpr::CardsDrawnThisTurn

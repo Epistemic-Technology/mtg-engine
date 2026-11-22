@@ -1,0 +1,9 @@
+card "Shrike Harpy" {
+  oracle_id 9c38b337-487c-4cef-843b-b0a2ed3f1b27
+  cost {3}{B}{B}
+  type Creature — Harpy
+  pt 2/2
+  keywords flying
+  tribute 2
+  triggered when this enters if tribute not paid: target opponent sacrifices 1 creature
+}

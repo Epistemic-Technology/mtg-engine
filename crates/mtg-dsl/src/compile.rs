@@ -67,6 +67,11 @@ fn keyword_expansion(i: usize, n: u32, cost: Option<&mtg_core::mana::ManaCost>) 
     cards.remove(0).abilities.remove(0)
 }
 
+/// Champion's second ability (CR 702.72a).
+const CHAMPION_RETURN: &str = "card \"Champion\" {
+  triggered when this leaves the battlefield: return exiled card to battlefield
+}";
+
 const MOBILIZE: &str = "card \"Mobilize\" {
   triggered whenever this attacks: create 1 tapped \"1/1 red Warrior creature\"; delayed those tokens: sacrifice those tokens at beginning of the next end step
 }";
@@ -1084,7 +1089,178 @@ impl Compiler<'_> {
         }
         // CR 711.2: the level symbol the abilities being compiled follow.
         let mut band: Option<StaticCond> = None;
+        // CR 702.55: haunt's abilities.
+        let (mut haunted, mut haunt_spell) = (None, None);
+        let has_haunt = card
+            .abilities
+            .iter()
+            .any(|a| matches!(a, Ability::Mechanic(Mechanic::Haunt)));
         for a in &card.abilities {
+            // CR 702.55a: "When this creature dies, exile it haunting
+            // target creature." ("When this spell card is put into a
+            // graveyard after resolving" on an instant or sorcery, which
+            // the engine triggers itself).
+            // CR 702.151a: "[Cost]: Attach this permanent to another
+            // target creature you control. Activate only as a sorcery." and
+            // "[Cost]: Unattach this permanent. Activate only if this
+            // permanent is attached to a creature and only as a sorcery.";
+            // 702.151b: attached, it isn't a creature.
+            // CR 702.148a: "You may cast this spell for [cost]. If you do,
+            // remove the words in square brackets."
+            if let Ability::Mechanic(Mechanic::Cleave(c, spell)) = a {
+                if card.alt_cost.is_some() {
+                    return self.err("cleave and an alternative cost of the card's own");
+                }
+                let cleaved = self.ability(spell)?;
+                b = b.cleave(c.clone(), cleaved);
+                continue;
+            }
+            if let Ability::Mechanic(Mechanic::Reconfigure(c)) = a {
+                let attached = StaticCondition::AttachedIs(ObjFilter {
+                    types: TypeSet::of([mtg_core::card::CardType::Creature]),
+                    ..ObjFilter::default()
+                });
+                let cost = Cost {
+                    mana: c.clone(),
+                    sorcery: true,
+                    ..Default::default()
+                };
+                let attach = Ability::Activated {
+                    cost: cost.clone(),
+                    targets: vec![Target::Filter(crate::ast::Filter {
+                        who: Some(Who::You),
+                        types: vec![mtg_core::card::CardType::Creature],
+                        relation: mtg_core::card::Relation::Other,
+                        ..Default::default()
+                    })],
+                    effects: vec![Sentence::new(vec![crate::ast::Effect::Attach {
+                        what: Recipient::Source,
+                        to: Recipient::Target(0),
+                    }])],
+                    equip: true,
+                    cycling: false,
+                };
+                b = b.ability(self.ability(&attach)?);
+                let unattach = Ability::Activated {
+                    cost,
+                    targets: Vec::new(),
+                    effects: vec![Sentence::new(vec![crate::ast::Effect::Unattach {
+                        what: Recipient::Source,
+                    }])],
+                    equip: false,
+                    cycling: false,
+                };
+                let mut unattach = self.ability(&unattach)?;
+                if let AbilityDef::Activated(aa) = &mut unattach {
+                    aa.conditions.push(attached.clone());
+                }
+                b = b.ability(unattach);
+                b = b.ability(AbilityDef::Static(StaticAbility {
+                    affected: ObjFilter::this(),
+                    parts: vec![Modification::SetTypes(TypeSet::of(
+                        card.types
+                            .iter()
+                            .copied()
+                            .filter(|t| *t != mtg_core::card::CardType::Creature),
+                    ))],
+                    condition: Some(attached),
+                }));
+                b = b.reconfigure();
+                continue;
+            }
+            // CR 702.72a: "When this permanent enters, sacrifice it unless
+            // you exile another [object] you control" and "When this
+            // permanent leaves the battlefield, return the exiled card to
+            // the battlefield under its owner's control."
+            // CR 702.155a.
+            if let Ability::Mechanic(Mechanic::ReadAhead) = a {
+                if !card.subtypes.iter().any(|s| s == "Saga") {
+                    return self.err("read ahead on a card that isn't a Saga");
+                }
+                b = b.read_ahead();
+                continue;
+            }
+            if let Ability::Mechanic(Mechanic::Champion(f)) = a {
+                let mut filter = self.filter(f);
+                filter.who = Some(Who::You);
+                filter.relation = mtg_core::card::Relation::Other;
+                b = b.ability(AbilityDef::Triggered(TriggeredAbility {
+                    limit: mtg_core::card::TurnLimit::None,
+                    from_graveyard: false,
+                    trigger: TriggerSpec::Enters(CoreTriggerObj::This),
+                    condition: None,
+                    targets: Vec::new(),
+                    effects: vec![CoreEffect::Champion(filter)],
+                }));
+                let mut cards = crate::parse(CHAMPION_RETURN).expect("champion's return parses");
+                let back = cards.remove(0).abilities.remove(0);
+                b = b.ability(self.ability(&back)?);
+                continue;
+            }
+            if let Ability::Mechanic(Mechanic::Haunt) = a {
+                let exile = AbilityDef::Triggered(TriggeredAbility {
+                    limit: mtg_core::card::TurnLimit::None,
+                    from_graveyard: false,
+                    trigger: TriggerSpec::Dies(CoreTriggerObj::This),
+                    condition: None,
+                    targets: vec![TargetSpec::Creature],
+                    effects: vec![CoreEffect::ExileHaunting],
+                });
+                if card.types.iter().any(|t| {
+                    matches!(
+                        t,
+                        mtg_core::card::CardType::Instant | mtg_core::card::CardType::Sorcery
+                    )
+                }) {
+                    haunt_spell = Some(self.pool.register_ability(exile));
+                } else {
+                    b = b.ability(exile);
+                }
+                continue;
+            }
+            // CR 702.55b-c: "When the creature it haunts dies, ...": a
+            // delayed trigger about the haunted creature once the card is
+            // exiled haunting it; "When this creature enters or the
+            // creature it haunts dies" is also the creature's own enters
+            // trigger.
+            if let Ability::Triggered {
+                trigger,
+                condition,
+                targets,
+                effects,
+                from_graveyard,
+                limit,
+            } = a
+                && let Some(enters) = match trigger {
+                    crate::ast::Trigger::HauntedDies => Some(None),
+                    crate::ast::Trigger::Or { first, second, .. }
+                        if **second == crate::ast::Trigger::HauntedDies =>
+                    {
+                        Some(Some((**first).clone()))
+                    }
+                    _ => None,
+                }
+            {
+                if !has_haunt {
+                    return self.err("`when haunted dies` on a card without `haunt`");
+                }
+                let with = |trigger: crate::ast::Trigger| Ability::Triggered {
+                    trigger,
+                    condition: condition.clone(),
+                    targets: targets.clone(),
+                    effects: effects.clone(),
+                    from_graveyard: *from_graveyard,
+                    limit: *limit,
+                };
+                let dies = self.ability(&with(crate::ast::Trigger::Dies(
+                    crate::ast::TriggerObj::This,
+                )))?;
+                haunted = Some(self.pool.register_ability(dies));
+                if let Some(first) = enters {
+                    b = b.ability(self.ability(&with(first))?);
+                }
+                continue;
+            }
             if let Ability::LevelBand { min, max, pt } = a {
                 let at_least = StaticCond::SourceCounters {
                     kind: mtg_core::card::CounterKind::Level,
@@ -1355,6 +1531,9 @@ impl Compiler<'_> {
                     .iter()
                     .fold(mtg_core::mana::ColorSet::default(), |s, c| s.with(*c)),
             });
+        }
+        if haunted.is_some() || haunt_spell.is_some() {
+            b = b.haunt(haunted, haunt_spell);
         }
         if let Some(c) = self.cast_snapshot.take() {
             b = b.cast_snapshot(self.pool.intern_condition(c));
@@ -1948,6 +2127,10 @@ impl Compiler<'_> {
             StaticCond::Impending => StaticCondition::Impending,
             StaticCond::SneakPaid(p) => StaticCondition::SneakPaid(*p),
             StaticCond::ProwlPaid => StaticCondition::ProwlPaid,
+            StaticCond::MoreVotes { index, ties, .. } => StaticCondition::MoreVotes {
+                index: *index,
+                ties: *ties,
+            },
             StaticCond::WebSlung(p) => StaticCondition::WebSlung(*p),
             StaticCond::EvidenceCollected | StaticCond::AdditionalCostPaid => {
                 StaticCondition::OptionalCostPaid
@@ -2137,6 +2320,7 @@ impl Compiler<'_> {
             A::BlockingIt { beyond } => C::BlockingIt { beyond: *beyond },
             A::GreatestPower(f) => C::GreatestPower(self.filter(f)),
             A::DifferentlyNamed(f) => C::DifferentlyNamed(self.filter(f)),
+            A::Devoured(f) => C::Devoured(self.filter(f)),
             A::Party => {
                 // CR 700.8: "up to one each of Cleric, Rogue, Warrior, and
                 // Wizard".
@@ -4011,6 +4195,13 @@ impl Compiler<'_> {
     fn trigger_obj(&mut self, t: &TriggerObj) -> CoreTriggerObj {
         match t {
             TriggerObj::This => CoreTriggerObj::This,
+            // "this creature or equipped creature" (reconfigure): the
+            // source, or what it's attached to.
+            TriggerObj::ThisOr(f) if f.enchanted && f.or.is_none() => {
+                let mut g = self.filter(f);
+                g.or = Some(Box::new(ObjFilter::this()));
+                CoreTriggerObj::Filter(g)
+            }
             TriggerObj::Filter(f) | TriggerObj::ThisOr(f) => CoreTriggerObj::Filter(self.filter(f)),
         }
     }
@@ -4121,6 +4312,8 @@ impl Compiler<'_> {
             Trigger::TargetedByYouFirstTime => TriggerSpec::TargetedByYouFirstTime,
             Trigger::TurnedFaceUp(o) => TriggerSpec::TurnedFaceUp(self.trigger_obj(o)),
             Trigger::Exploits => TriggerSpec::Exploits,
+            // Compiled by the card (`haunted`), as a dies trigger.
+            Trigger::HauntedDies => TriggerSpec::Dies(CoreTriggerObj::This),
             Trigger::BecomesPlotted => TriggerSpec::BecomesPlotted,
             Trigger::DrawsNth { whose, n, .. } => TriggerSpec::DrawsNth {
                 whose: *whose,
@@ -5200,6 +5393,23 @@ impl Compiler<'_> {
                 // CR 702.136a: riot, "You may have this permanent enter
                 // with an additional +1/+1 counter on it. If you don't, it
                 // gains haste."
+                // CR 702.82a, 702.38a, 702.104a: devour, amplify, tribute.
+                Mechanic::Devour(..) | Mechanic::Amplify(_) | Mechanic::Tribute(_) => {
+                    AbilityDef::Replacement(ReplacementAbility {
+                        replaces: mtg_core::card::Replaces::Enters,
+                        replacement: match m {
+                            Mechanic::Devour(k, n) => mtg_core::card::Replacement::EnterDevour {
+                                kind: k.unwrap_or(mtg_core::card::CardType::Creature),
+                                n: *n,
+                            },
+                            Mechanic::Amplify(n) => mtg_core::card::Replacement::EnterAmplify(*n),
+                            Mechanic::Tribute(n) => mtg_core::card::Replacement::EnterTribute(*n),
+                            _ => unreachable!("matched above"),
+                        },
+                        then: Vec::new(),
+                        condition: None,
+                    })
+                }
                 Mechanic::Unleash | Mechanic::Riot => AbilityDef::Replacement(ReplacementAbility {
                     replaces: mtg_core::card::Replaces::Enters,
                     replacement: mtg_core::card::Replacement::EnterWithCountersMay {
@@ -6597,6 +6807,14 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Fabricate(_)
         | Mechanic::Renown(_)
         | Mechanic::Unleash
+        | Mechanic::Haunt
+        | Mechanic::ReadAhead
+        | Mechanic::Champion(_)
+        | Mechanic::Reconfigure(_)
+        | Mechanic::Cleave(..)
+        | Mechanic::Devour(..)
+        | Mechanic::Amplify(_)
+        | Mechanic::Tribute(_)
         | Mechanic::Station
         | Mechanic::Transmute(_)
         | Mechanic::Sunburst
