@@ -1,0 +1,8 @@
+card "Grateful Apparition" {
+  oracle_id f1b3e0fc-1dc3-4eba-bd54-557f036f5ea9
+  cost {1}{W}
+  type Creature — Spirit
+  pt 1/1
+  keywords flying
+  triggered whenever this deals combat damage to a player or planeswalker: proliferate
+}

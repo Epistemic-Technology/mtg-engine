@@ -1,0 +1,7 @@
+card "Dryad Sophisticate" {
+  oracle_id 7cf59255-0ad7-4ca8-bc95-f3a8cc2643d5
+  cost {1}{G}
+  type Creature — Dryad
+  pt 2/1
+  landwalk nonbasic land
+}

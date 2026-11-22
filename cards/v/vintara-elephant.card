@@ -1,0 +1,8 @@
+card "Vintara Elephant" {
+  oracle_id 0a73b4da-9b5c-480e-b58b-6a82a52ea71e
+  cost {4}{G}
+  type Creature — Elephant
+  pt 4/3
+  keywords trample
+  activated {3}, any player: this loses trample until end of turn
+}

@@ -2488,6 +2488,11 @@ impl Templates {
                 ),
                 |_, _| Some("add any count where life you gained this turn".to_string()),
             ),
+            // CR 903.4f: no commander, no mana.
+            (
+                r(r"^Add one mana of any color in your commander's color identity$"),
+                |_, _| Some("add commander".to_string()),
+            ),
             (r(r"^Add two mana in any combination of colors$"), |_, _| {
                 Some("add 2 mana any combination".to_string())
             }),
@@ -2714,6 +2719,18 @@ impl Templates {
                     r"^[Cc]reatures you control have base power and toughness X/X until end of turn$",
                 ),
                 |_, _| Some("each creature you control has base power and toughness X".to_string()),
+            ),
+            // CR 613.4b: "target creature you control has base power 2
+            // until end of turn" (the toughness stays).
+            (
+                r(r"^(.+?) has base power (\d+) until end of turn$"),
+                |c, t| {
+                    Some(format!(
+                        "{} has base power {} until end of turn",
+                        recipient(cap(c, 1), t)?,
+                        cap(c, 2)
+                    ))
+                },
             ),
             // CR 724.1.
             (r(r"^[Ee]nd the turn$"), |_, _| {
@@ -3035,6 +3052,11 @@ impl Templates {
             ),
             (r(r"^[Tt]ap or untap (.+)$"), |c, t| {
                 Some(format!("tap or untap {}", recipient(cap(c, 1), t)?))
+            }),
+            // CR 506.4: "Remove target attacking or blocking creature from
+            // combat."
+            (r(r"^[Rr]emove (.+) from combat$"), |c, t| {
+                Some(format!("remove {} from combat", recipient(cap(c, 1), t)?))
             }),
             // "Tap up to two target creatures. Those creatures don't untap
             // during their controller's next untap step." (Frost Breath).
@@ -4371,6 +4393,9 @@ fn trigger_text(head: &str) -> Option<String> {
         "Whenever this creature deals combat damage to a player" => {
             "whenever this deals combat damage to a player"
         }
+        "Whenever this creature deals combat damage to a player or planeswalker" => {
+            "whenever this deals combat damage to a player or planeswalker"
+        }
         "Whenever you gain life" => "whenever you gain life",
         "Whenever a land you control enters" => "whenever land you control enters",
         "Whenever you cast a noncreature spell" => "whenever you cast a noncreature spell",
@@ -4790,6 +4815,41 @@ fn trigger_general(head: &str) -> Option<String> {
 /// graveyard`, and the other conditions `static_cond` parses.
 #[allow(clippy::too_many_lines)] // one arm per condition phrase
 fn static_condition(s: &str) -> Option<String> {
+    // CR 103.4: against the starting life total.
+    match s {
+        "your life total is greater than your starting life total" => {
+            return Some("life above starting".to_string());
+        }
+        "your life total is greater than or equal to your starting life total" => {
+            return Some("life at least starting".to_string());
+        }
+        "your life total is less than your starting life total" => {
+            return Some("life below starting".to_string());
+        }
+        _ => {}
+    }
+    if let Some(n) = s
+        .strip_prefix("you have at least ")
+        .and_then(|r| r.strip_suffix(" life more than your starting life total"))
+        .and_then(|n| n.parse::<u32>().ok())
+    {
+        return Some(format!("life {n} more than starting"));
+    }
+    if let Some(n) = s
+        .strip_prefix("your life total is at least ")
+        .and_then(|r| r.strip_suffix(" greater than your starting life total"))
+        .and_then(|n| n.parse::<u32>().ok())
+    {
+        return Some(format!("life {n} above starting"));
+    }
+    // Pack tactics.
+    if let Some(n) = s
+        .strip_prefix("you attacked with creatures with total power ")
+        .and_then(|r| r.strip_suffix(" or greater this combat"))
+        .and_then(|n| n.parse::<u16>().ok())
+    {
+        return Some(format!("attacked total power {n}"));
+    }
     match s {
         "you attacked this turn" => return Some("attacked this turn".to_string()),
         "you haven't cast a spell this turn" => return Some("not cast this turn".to_string()),
@@ -6977,6 +7037,18 @@ impl Builder<'_> {
         {
             // Where the cost ends and its restrictions begin.
             let base_len = cost.len();
+            // CR 602.1: who may activate it, printed last.
+            let activators =
+                if let Some(r) = rest.strip_suffix(" Any player may activate this ability.") {
+                    Some((r, "any player"))
+                } else {
+                    rest.strip_suffix(" Only your opponents may activate this ability.")
+                        .map(|r| (r, "opponents only"))
+                };
+            let rest = match activators {
+                Some((r, _)) => r,
+                None => rest,
+            };
             let rest = match rest.strip_suffix(" Activate only once each turn.") {
                 Some(r) => {
                     cost.push_str(", once");
@@ -7056,6 +7128,9 @@ impl Builder<'_> {
             } else {
                 rest
             };
+            if let Some((_, who)) = activators {
+                let _ = write!(cost, ", {who}");
+            }
             // "{2}{B}: Return this card from your graveyard to your hand."
             // is activated from the graveyard.
             let from_graveyard = match rest.trim_end_matches('.') {

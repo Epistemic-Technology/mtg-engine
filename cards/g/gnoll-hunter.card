@@ -1,0 +1,7 @@
+card "Gnoll Hunter" {
+  oracle_id 9e445336-8b1e-4642-b8bc-aa460ad79a3f
+  cost {1}{G}
+  type Creature — Gnoll
+  pt 2/2
+  label "Pack tactics" triggered whenever this attacks if attacked total power 6: put 1 +1/+1 counter on this
+}

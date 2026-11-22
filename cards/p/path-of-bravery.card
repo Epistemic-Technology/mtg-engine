@@ -1,0 +1,7 @@
+card "Path of Bravery" {
+  oracle_id fc04bfa9-a8f9-478d-8164-34b1e6c85417
+  cost {2}{W}
+  type Enchantment
+  static as long as life at least starting, creature you control: +1/+1
+  triggered whenever one or more creatures you control attack: you gain count equal attacking creature life
+}

@@ -9,6 +9,17 @@ use mtg_core::card::{
 };
 pub use mtg_core::card::{CounteredTo, LibraryPlace};
 
+/// One choice of `Ability::BecomesChoice`: "a 1/6 Wall artifact creature
+/// with defender".
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct ChoiceForm {
+    pub power: i32,
+    pub toughness: i32,
+    pub subtypes: Vec<String>,
+    pub types: Vec<mtg_core::card::CardType>,
+    pub keywords: Vec<mtg_core::card::Keyword>,
+}
+
 /// How `Effect::IfTarget` words its check.
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
 pub struct TargetCheck {
@@ -48,6 +59,9 @@ pub enum TargetTense {
     /// `if target 1 had with mana value 3 or less`: "If it had mana value 3
     /// or less", as it last existed, like `Was`.
     Had,
+    /// `if the full target 1 is that entered this turn`: "If the creature
+    /// you control entered this turn", as it is now, like `Is`.
+    TheFullIs,
 }
 
 /// How `Effect::IfYouDont` words what didn't happen.
@@ -709,6 +723,9 @@ pub struct Cost {
     /// `once ever`: "Activate only once." (for as long as the source is the
     /// same object).
     pub once_ever: bool,
+    /// `any player`: "Any player may activate this ability."; `opponents
+    /// only`: "Only your opponents may activate this ability." (CR 602.1).
+    pub activators: Option<Who>,
     /// The restrictions (`sorcery`, `once`, conditions) in the order
     /// written; printed as one sentence in that order. Empty: sorcery,
     /// then once.
@@ -886,6 +903,11 @@ pub struct Filter {
     /// recipient that is the opponents ("each opponent and each creature
     /// they control").
     pub they_control: bool,
+    /// `who` is `Opponents`, written `that opponent controls` and printed
+    /// "that player controls" in a `for each opponent,` sentence ("for
+    /// each opponent, tap up to one target creature that player
+    /// controls"): the game has one opponent.
+    pub per_opponent: bool,
     /// `who` is `Opponents`, written and printed "defending player
     /// controls" (two players: the attacker's opponent).
     pub defending: bool,
@@ -1344,6 +1366,18 @@ pub enum Ability {
         kind: ChoiceKind,
         joined: bool,
     },
+    /// `as this enters becomes choice 3/3 creature or 2/2 creature with
+    /// flying or 1/6 creature with defender` ("As this creature enters,
+    /// it becomes your choice of a 3/3 creature, a 2/2 creature with
+    /// flying, or a 1/6 creature with defender.", CR 614.12): the
+    /// controller chooses one as it enters, and the permanent has that
+    /// base power and toughness, those types, and those keywords for as
+    /// long as it stays on the battlefield. `in addition` prints "in
+    /// addition to its other types".
+    BecomesChoice {
+        forms: Vec<ChoiceForm>,
+        in_addition: bool,
+    },
     /// `can't be blocked by Wall`, `can't be blocked except by creature
     /// with flying`, `can't be blocked by more than one creature`, `can
     /// block only creature with flying`, `can't block creature with
@@ -1403,6 +1437,11 @@ pub enum Ability {
     /// "Protection from artifacts" (CR 702.16), a quality other than a
     /// color (those are keywords).
     Protection(Filter),
+    /// `landwalk snow Forest`, `landwalk snow land`, `landwalk nonbasic
+    /// land`: "Snow forestwalk", "Snow landwalk", "Nonbasic landwalk"
+    /// (CR 702.14a): can't be blocked as long as the defending player
+    /// controls a land the filter matches.
+    Landwalk(Filter),
     /// `hexproof from black`, `hexproof from multicolored`, `hexproof from
     /// instant`: "Hexproof from black" (CR 702.11d).
     HexproofFrom(Filter),
@@ -2142,6 +2181,18 @@ pub enum StaticCond {
         n: i32,
         at_least: bool,
     },
+    /// Your life total against your starting life total: `life above
+    /// starting` ("your life total is greater than your starting life
+    /// total"), `life at least starting` ("... greater than or equal to
+    /// ..."), `life 10 above starting` ("your life total is at least 10
+    /// greater than ..."), `life 7 more than starting` ("you have at least
+    /// 7 life more than ..."), `life below starting` ("your life total is
+    /// less than ..."). `wording` is 0 to 4 in that order.
+    LifeVsStarting {
+        at_least: i32,
+        below: bool,
+        wording: u8,
+    },
     /// `player life 13 or less`: "a player has 13 or less life".
     AnyPlayerLifeAtMost(i32),
     /// `opponent poison 3 or more`: "an opponent has three or more poison
@@ -2337,6 +2388,9 @@ pub enum StaticCond {
     /// `attacked or blocked this combat`: "this creature attacked or
     /// blocked this combat".
     AttackedOrBlocked,
+    /// `attacked total power 6`: "you attacked with creatures with total
+    /// power 6 or greater this combat" (pack tactics).
+    AttackedTotalPower(u16),
     /// `blocked`: "this creature is blocked".
     Blocked,
     /// `being blocked`: "at least one creature is blocking this creature".
@@ -2657,6 +2711,7 @@ pub enum InsteadWording {
 /// Effects that print as one sentence ("target player loses 1 life and you
 /// gain 1 life").
 #[derive(Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::struct_excessive_bools)] // independent wording flags
 pub struct Sentence {
     pub effects: Vec<Effect>,
     /// `label "Spell mastery"`: an ability word printed before the
@@ -2676,6 +2731,10 @@ pub struct Sentence {
     /// Printed "Then ..." (`then` before the sentence): "Then that player
     /// discards a card."
     pub then_first: bool,
+    /// `for each opponent, ...`: printed "For each opponent, ..."; the
+    /// game has one opponent, so it happens once (its targets are written
+    /// `that opponent controls`).
+    pub per_opponent: bool,
     /// How each clause after the first joins the sentence
     /// (`joins.len() == effects.len() - 1`).
     pub joins: Vec<Join>,
@@ -2731,6 +2790,7 @@ impl Sentence {
             eot_first: false,
             lasting: None,
             then_first: false,
+            per_opponent: false,
             joins,
         }
     }
@@ -2961,6 +3021,8 @@ pub enum Trigger {
     DealsCombatDamageToPlayer(TriggerObj),
     /// `deals combat damage to a player or battle` (CR 310.6).
     DealsCombatDamageToPlayerOrBattle(TriggerObj),
+    /// `deals combat damage to a player or planeswalker`.
+    DealsCombatDamageToPlayerOrPlaneswalker(TriggerObj),
     /// `whenever this attacks a battle` (CR 310.5).
     AttacksBattle(TriggerObj),
     /// `when you unlock this door` (CR 709.5h).
@@ -3387,6 +3449,14 @@ pub enum Recipient {
     /// `the chosen target 1`: "the chosen creature", a target declared by
     /// "choose target creature" (Vengeful Villagers).
     ChosenTarget(usize),
+    /// `the full target 1`, `the chosen full target 1`: the `n`th target
+    /// named by its whole filter, "the creature you control", "the chosen
+    /// creature you control" (after "Choose target creature you control
+    /// and target creature you don't control.").
+    TheTargetFull(usize, bool),
+    /// `the chosen targets`: targets `first..first + count`, "the chosen
+    /// creatures" ("Then the chosen creatures fight each other.").
+    ChosenTargets(usize, usize),
     /// `controller of the creature` in a triggered ability: the triggering
     /// object's controller, "the creature's controller" (Creature Bond).
     TheTriggeringController,
@@ -3776,6 +3846,10 @@ pub enum Effect {
     Untap {
         to: Vec<Recipient>,
     },
+    /// `remove target 1 from combat`: "remove it from combat" (CR 506.4).
+    RemoveFromCombat {
+        what: Recipient,
+    },
     Grant {
         keywords: Vec<Keyword>,
         to: Recipient,
@@ -4151,6 +4225,13 @@ pub enum Effect {
     AddManaLandCould {
         whose: Who,
         basic: bool,
+    },
+    /// `add commander`, `add commander rider counters`, `add commander
+    /// rider scry`: "Add one mana of any color in your commander's color
+    /// identity." (no mana: the game has no commanders, CR 903.4f), with
+    /// Opal Palace's or Path of Ancestry's rider as wording.
+    AddManaCommander {
+        rider: u8,
     },
     Surveil(Num),
     /// `learn` (CR 701.48): there is no sideboard here, so "you may

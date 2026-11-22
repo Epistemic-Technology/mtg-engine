@@ -1,0 +1,7 @@
+card "Longstalk Brawl" {
+  oracle_id adc8976a-0871-4fd6-9c4c-822ba9549b4b
+  cost {G}
+  type Sorcery
+  gift tapped fish
+  spell: choose target creature you control and target creature you don't control; put 1 +1/+1 counter on the full target 1 if kicked; then those targets fight each other
+}

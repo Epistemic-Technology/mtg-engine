@@ -1,0 +1,9 @@
+card "Gustcloak Cavalier" {
+  oracle_id 2e818d7e-169c-4909-969e-42e9f5d5c08a
+  cost {3}{W}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords flanking
+  triggered whenever this attacks: you may tap target creature
+  triggered whenever this becomes blocked: you may untap this creature and remove this from combat
+}

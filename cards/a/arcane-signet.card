@@ -1,0 +1,6 @@
+card "Arcane Signet" {
+  oracle_id 0bc7f093-bef0-4f1a-852c-4b75ebf54838
+  cost {2}
+  type Artifact
+  activated {T}: add commander
+}

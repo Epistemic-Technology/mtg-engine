@@ -1,0 +1,6 @@
+card "Malamet Battle Glyph" {
+  oracle_id 483a0caa-e912-41e9-aaa3-bcea9369ec06
+  cost {G}
+  type Sorcery
+  spell: choose target creature you control and target creature you don't control; if the full target 1 is creature that entered this turn, put 1 +1/+1 counter on target 1; then those targets fight each other
+}

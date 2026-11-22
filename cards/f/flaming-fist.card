@@ -1,0 +1,6 @@
+card "Flaming Fist" {
+  oracle_id cdaefc96-4560-43bb-9514-bf87657bd481
+  cost {2}{W}
+  type Legendary Enchantment — Background
+  static commander creature you own: has ability { triggered whenever this attacks: this gains double strike until end of turn }
+}

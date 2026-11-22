@@ -1019,6 +1019,9 @@ pub struct CombatState {
     /// from combat, or whose attacker has ("if this creature attacked or
     /// blocked this combat").
     pub left: Vec<ObjId>,
+    /// The total power of the creatures declared as attackers this
+    /// combat, as they were declared (pack tactics).
+    pub attacked_power: i32,
 }
 
 impl CombatState {
@@ -2189,6 +2192,13 @@ pub struct GameState {
     /// the top of the library or reveal it (`DefFlags::TOP_PLAY`):
     /// priority and the views look only when there are any.
     pub top_play_sources: u32,
+    /// Each player's starting life total (CR 103.4): the game's, or 20
+    /// for a prepared position.
+    pub starting_life: i32,
+    /// Permanents on the battlefield with an activated ability another
+    /// player may activate (`DefFlags::FOREIGN_ACTIVATED`): priority looks
+    /// at other players' permanents only when there are any.
+    pub foreign_activated_sources: u32,
     /// Sagas with chapter abilities on the battlefield (CR 714): the
     /// precombat main phase and state-based actions look for them only
     /// when there are any.
@@ -3289,6 +3299,10 @@ impl GameState {
                 return false;
             }
         }
+        // CR 903.3: the game has no commanders.
+        if q.commander.is_some() {
+            return false;
+        }
         // CR 708.2: a face-down permanent.
         if q.face_down && !self.pool.is_face_down(o.def) {
             return false;
@@ -3796,6 +3810,11 @@ impl GameState {
                 let l = self.player(you).life;
                 if *at_least { l >= *n } else { l <= *n }
             }
+            // CR 103.4: the starting life total.
+            C::LifeVsStarting { at_least, below } => {
+                let d = self.player(you).life - self.starting_life;
+                if *below { d < 0 } else { d >= *at_least }
+            }
             C::AnyPlayerLifeAtMost(n) => self.players_in_game().any(|p| self.player(p).life <= *n),
             C::MoreLifeThanOpponent => {
                 let l = self.player(you).life;
@@ -4090,6 +4109,13 @@ impl GameState {
                 .combat
                 .as_ref()
                 .is_some_and(|c| c.attackers.len() == 1 && c.attackers[0].id == source),
+            C::AttackedTotalPower(n) => {
+                self.active_player == you
+                    && self
+                        .combat
+                        .as_ref()
+                        .is_some_and(|c| c.attacked_power >= i32::from(*n))
+            }
             C::SourceAttackedOrBlocked => self.combat.as_ref().is_some_and(|c| {
                 c.attacker(source).is_some()
                     || c.attackers.iter().any(|a| a.blockers.contains(&source))

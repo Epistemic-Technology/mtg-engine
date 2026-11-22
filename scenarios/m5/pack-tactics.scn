@@ -1,0 +1,77 @@
+# Pack tactics: "Whenever this creature attacks, if you attacked with
+# creatures with total power 6 or greater this combat, ...": the attackers'
+# total power as they were declared.
+
+scenario "Gnoll Hunter: total power 7, a counter" {
+  battlefield A: "Gnoll Hunter", "Hill Giant", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Gnoll Hunter", "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Gnoll Hunter" +1/+1 1
+  assert life B 12
+}
+
+scenario "Gnoll Hunter: total power 5, no counter" {
+  battlefield A: "Gnoll Hunter", "Hill Giant", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Gnoll Hunter", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Gnoll Hunter" +1/+1 0
+  assert life B 15
+}
+
+scenario "Hobgoblin Captain: first strike with a big enough attack" {
+  battlefield A: "Hobgoblin Captain", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hobgoblin Captain", "Hill Giant"
+  turn 1 B: block "Hobgoblin Captain" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hobgoblin Captain"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Hobgoblin Captain: alone, no first strike" {
+  battlefield A: "Hobgoblin Captain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hobgoblin Captain"
+  turn 1 B: block "Hobgoblin Captain" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hobgoblin Captain"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Targ Nar: attacking creatures get +1/+0" {
+  battlefield A: "Targ Nar, Demon-Fang Gnoll", "Hill Giant", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Targ Nar, Demon-Fang Gnoll", "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 10
+}
+
+scenario "Targ Nar: doubles its power and toughness" {
+  battlefield A: "Targ Nar, Demon-Fang Gnoll", "Mountain", "Mountain", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Targ Nar, Demon-Fang Gnoll"
+  run_to turn 1 postcombat_main
+  assert power "Targ Nar, Demon-Fang Gnoll" 4
+  assert toughness "Targ Nar, Demon-Fang Gnoll" 4
+}
+
+scenario "Intrepid Outlander ventures with a big enough attack" {
+  battlefield A: "Intrepid Outlander", "Hill Giant", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Intrepid Outlander", "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert dungeon A "Lost Mine of Phandelver" "Cave Entrance"
+}
+
+scenario "Intrepid Outlander: the opponent's attack doesn't count" {
+  battlefield A: "Intrepid Outlander"
+  battlefield B: "Serra Angel", "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Serra Angel", "Hill Giant"
+  run_to turn 3 precombat_main
+  assert dungeon A none
+}

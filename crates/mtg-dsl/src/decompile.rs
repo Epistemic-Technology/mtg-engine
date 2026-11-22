@@ -244,6 +244,7 @@ impl Decompiler<'_> {
             dont_control: false,
             your_opponents: false,
             they_control: false,
+            per_opponent: false,
             defending: false,
             any_types: types(f.any_types),
             power: f.power,
@@ -460,6 +461,7 @@ impl Decompiler<'_> {
             order: Vec::new(),
             conditions: Vec::new(),
             once_ever: false,
+            activators: None,
             restrict: Vec::new(),
             reduce: None,
             reveal_hand: c.reveal_hand,
@@ -505,6 +507,19 @@ impl Decompiler<'_> {
             StaticCondition::OpponentLifeAtMost(n) => StaticCond::OpponentLifeAtMost(*n),
             StaticCondition::MoreLifeThanOpponent => StaticCond::MoreLifeThanOpponent,
             StaticCondition::BasicLandTypes(n) => StaticCond::BasicLandTypes(*n),
+            StaticCondition::LifeVsStarting { at_least, below } => StaticCond::LifeVsStarting {
+                at_least: *at_least,
+                below: *below,
+                wording: if *below {
+                    4
+                } else if *at_least == 1 {
+                    0
+                } else if *at_least == 0 {
+                    1
+                } else {
+                    3
+                },
+            },
             StaticCondition::YourLife { n, at_least } => StaticCond::YourLife {
                 n: *n,
                 at_least: *at_least,
@@ -631,6 +646,7 @@ impl Decompiler<'_> {
             StaticCondition::SourceModified => StaticCond::Modified,
             StaticCondition::SourceAttackingAlone => StaticCond::AttackingAlone,
             StaticCondition::SourceAttackedOrBlocked => StaticCond::AttackedOrBlocked,
+            StaticCondition::AttackedTotalPower(n) => StaticCond::AttackedTotalPower(*n),
             StaticCondition::SourceBlocked => StaticCond::Blocked,
             StaticCondition::SourceBeingBlocked => StaticCond::BeingBlocked,
             StaticCondition::AttachedIs(f) => StaticCond::AttachedIs(unowned(f)),
@@ -991,6 +1007,7 @@ impl Decompiler<'_> {
                 Effect::Detain { what: r(*to) }
             }
             CoreEffect::Untap { to } => Effect::Untap { to: vec![r(*to)] },
+            CoreEffect::RemoveFromCombat { what } => Effect::RemoveFromCombat { what: r(*what) },
             CoreEffect::Grant { keywords: k, to } => Effect::Grant {
                 keywords: keywords(*k),
                 to: r(*to),
@@ -1096,6 +1113,7 @@ impl Decompiler<'_> {
                 whose: *whose,
                 basic: *basic,
             },
+            CoreEffect::AddManaCommander { rider } => Effect::AddManaCommander { rider: *rider },
             CoreEffect::PumpVar {
                 power,
                 toughness,
@@ -1935,6 +1953,9 @@ impl Decompiler<'_> {
             TriggerSpec::DealsCombatDamageToPlayerOrBattle(o) => {
                 Trigger::DealsCombatDamageToPlayerOrBattle(self.trigger_obj(o))
             }
+            TriggerSpec::DealsCombatDamageToPlayerOrPlaneswalker(o) => {
+                Trigger::DealsCombatDamageToPlayerOrPlaneswalker(self.trigger_obj(o))
+            }
             TriggerSpec::AttacksAlone(o) => Trigger::AttacksAlone(self.trigger_obj(o)),
             TriggerSpec::PlayerAttacksWith { whose, min } => Trigger::PlayerAttacksWith {
                 whose: *whose,
@@ -2327,6 +2348,7 @@ impl Decompiler<'_> {
                 from_graveyard: false,
             },
             AbilityDef::Protection(f) => Ability::Protection(self.filter(f)),
+            AbilityDef::Landwalk(f) => Ability::Landwalk(self.filter(f)),
             AbilityDef::HexproofFrom(f) => Ability::HexproofFrom(self.filter(f)),
             AbilityDef::OpeningHand => Ability::OpeningHand,
             AbilityDef::TriggerAgain {
@@ -2535,6 +2557,7 @@ impl Decompiler<'_> {
                     cost.restrict.push(Restrict::OnceEver);
                 }
                 cost.keyword = act.keyword;
+                cost.activators = act.activators;
                 Ability::Activated {
                     cost,
                     targets: act.targets.iter().map(|t| self.target(*t)).collect(),

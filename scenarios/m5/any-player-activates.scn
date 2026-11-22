@@ -1,0 +1,123 @@
+# "Any player may activate this ability." and "Only your opponents may
+# activate this ability." (CR 602.1): the activating player pays the cost
+# and controls the ability (CR 602.2a); "this creature" is still the source.
+
+scenario "Flailing Soldier: its opponent shrinks it, paying the mana" {
+  battlefield A: "Flailing Soldier"
+  battlefield B: "Mountain"
+  start turn 1 A precombat_main
+  turn 1 B: activate A "Flailing Soldier" ability 2
+  run_to turn 1 postcombat_main
+  assert power A "Flailing Soldier" 1
+  assert toughness A "Flailing Soldier" 1
+  assert tapped "Mountain"
+}
+
+scenario "Flailing Soldier: its controller pumps it too" {
+  battlefield A: "Flailing Soldier", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Flailing Soldier" ability 1
+  run_to turn 1 postcombat_main
+  assert power "Flailing Soldier" 3
+}
+
+scenario "Flailing Soldier: twice shrunk by the opponent, it dies" {
+  battlefield A: "Flailing Soldier"
+  battlefield B: 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 B: activate A "Flailing Soldier" ability 2
+  turn 1 B: wait
+  turn 1 B: activate A "Flailing Soldier" ability 2
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Flailing Soldier"
+}
+
+scenario "Ribbon Snake: the defending player takes away flying, then blocks" {
+  battlefield A: "Ribbon Snake"
+  battlefield B: "Grizzly Bears", 2 "Island"
+  start turn 1 A precombat_main
+  turn 1 begin_combat B: activate A "Ribbon Snake"
+  turn 1 A: attack "Ribbon Snake"
+  turn 1 B: block "Ribbon Snake" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Grizzly Bears"
+  assert has not "Ribbon Snake" flying
+}
+
+scenario "Ribbon Snake: unpaid, it keeps flying" {
+  battlefield A: "Ribbon Snake"
+  battlefield B: "Grizzly Bears", "Island"
+  start turn 1 A precombat_main
+  illegal turn 1 begin_combat B: activate A "Ribbon Snake"
+  turn 1 A: attack "Ribbon Snake"
+  illegal turn 1 B: block "Ribbon Snake" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Vintara Elephant: the opponent removes trample" {
+  battlefield A: "Vintara Elephant"
+  battlefield B: "Grizzly Bears", 3 "Forest"
+  start turn 1 A precombat_main
+  turn 1 begin_combat B: activate A "Vintara Elephant"
+  turn 1 A: attack "Vintara Elephant"
+  turn 1 B: block "Vintara Elephant" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has not "Vintara Elephant" trample
+  assert life B 20
+}
+
+scenario "Zerapa Minotaur: without first strike it trades with a blocker" {
+  battlefield A: "Zerapa Minotaur"
+  battlefield B: "Hill Giant", 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 begin_combat B: activate A "Zerapa Minotaur"
+  turn 1 A: attack "Zerapa Minotaur"
+  turn 1 B: block "Zerapa Minotaur" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Zerapa Minotaur"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Fan Favorite: the opponent may pump it" {
+  battlefield A: "Fan Favorite"
+  battlefield B: 2 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 B: activate A "Fan Favorite"
+  run_to turn 1 postcombat_main
+  assert power A "Fan Favorite" 3
+}
+
+scenario "Clergy of the Holy Nimbus regenerates; its controller can't stop that" {
+  battlefield A: "Clergy of the Holy Nimbus", "Plains"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  illegal turn 2 A: activate "Clergy of the Holy Nimbus"
+  turn 2 B: cast "Lightning Bolt" targeting "Clergy of the Holy Nimbus"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Clergy of the Holy Nimbus"
+  assert tapped "Clergy of the Holy Nimbus"
+}
+
+scenario "Clergy of the Holy Nimbus: the opponent pays {1} and it dies" {
+  battlefield A: "Clergy of the Holy Nimbus"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: activate A "Clergy of the Holy Nimbus"
+  turn 2 B: wait
+  turn 2 B: cast "Shock" targeting "Clergy of the Holy Nimbus"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Clergy of the Holy Nimbus"
+}
+
+scenario "Another player's ordinary ability isn't offered" {
+  battlefield A: "Commander's Sphere"
+  battlefield B: "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 B: activate A "Commander's Sphere" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Commander's Sphere"
+}

@@ -1,0 +1,99 @@
+# "For each opponent, tap up to one target creature that player controls."
+# The game has one opponent: one target an opponent controls, or none.
+
+scenario "Hapatra, the Desert Frost taps and stuns a creature" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Hapatra, the Desert Frost"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hapatra, the Desert Frost"
+  turn 1 A: trigger "Hapatra, the Desert Frost" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 0
+}
+
+scenario "Hapatra, the Desert Frost: not a creature you control" {
+  battlefield A: 4 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Hapatra, the Desert Frost"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hapatra, the Desert Frost"
+  illegal turn 1 A: trigger "Hapatra, the Desert Frost" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Hapatra, the Desert Frost: up to one, so none is fine" {
+  battlefield A: 4 "Island"
+  hand A: "Hapatra, the Desert Frost"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hapatra, the Desert Frost"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hapatra, the Desert Frost"
+}
+
+scenario "Lich's Relic: paying {2}, it destroys a creature an opponent controls" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Serra Angel"
+  hand A: "Lich's Relic"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lich's Relic"
+  turn 1 A: accept "Lich's Relic"
+  turn 1 A: trigger "Lich's Relic" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Lich's Relic: not paying, nothing is destroyed" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Serra Angel"
+  hand A: "Lich's Relic"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lich's Relic"
+  turn 1 A: decline "Lich's Relic"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "Riptide Gearhulk puts a permanent third from the top" {
+  battlefield A: 2 "Plains", 3 "Island"
+  battlefield B: "Hill Giant"
+  library B: "Forest", "Island", "Swamp"
+  hand A: "Riptide Gearhulk"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Riptide Gearhulk"
+  turn 1 A: trigger "Riptide Gearhulk" targeting "Hill Giant"
+  run_to turn 4 precombat_main
+  assert hand B lacks "Hill Giant"
+  run_to turn 6 precombat_main
+  assert hand B contains "Hill Giant"
+}
+
+scenario "Celebrate the Mountain-king exiles until it leaves" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Celebrate the Mountain-king"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Celebrate the Mountain-king"
+  turn 1 A: trigger "Celebrate the Mountain-king" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+}
+
+scenario "The Theorist, Jace Beleren: −2 returns an opponent's creature" {
+  battlefield A: "The Theorist, Jace Beleren"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "The Theorist, Jace Beleren" ability 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert counters "The Theorist, Jace Beleren" loyalty 1
+}
+
+scenario "The Theorist, Jace Beleren: you draw in each opponent's draw step" {
+  battlefield A: "The Theorist, Jace Beleren"
+  start turn 1 A precombat_main
+  run_to turn 2 precombat_main
+  assert hand A count 1
+}

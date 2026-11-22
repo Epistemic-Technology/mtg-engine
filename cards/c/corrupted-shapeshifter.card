@@ -1,0 +1,7 @@
+card "Corrupted Shapeshifter" {
+  oracle_id 5c4cbf1c-95ee-4555-8351-ea962e17ae1f
+  cost {3}{U}
+  type Creature — Eldrazi Shapeshifter
+  keywords devoid
+  as this enters becomes choice 3/3 creature with flying or 2/5 creature with vigilance or 0/12 creature with defender
+}

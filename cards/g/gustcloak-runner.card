@@ -1,0 +1,7 @@
+card "Gustcloak Runner" {
+  oracle_id 0f485ea1-af00-4f6c-8e70-103ba172aa18
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+  triggered whenever this becomes blocked: you may untap this and remove this from combat
+}

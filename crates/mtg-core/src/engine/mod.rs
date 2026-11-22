@@ -146,6 +146,7 @@ impl Engine {
             rng,
             config.logging,
         );
+        state.starting_life = config.starting_life;
         state.flow = Flow::Mulligan {
             kept: [false; 2],
             mulled: [false; 2],
@@ -284,6 +285,7 @@ impl Engine {
                 state.saga_count += u32::from(def.flags().has_saga());
                 state.player_static_sources += u32::from(def.flags().has_player_static());
                 state.top_play_sources += u32::from(def.flags().has_top_play());
+                state.foreign_activated_sources += u32::from(def.flags().has_foreign_activated());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -613,6 +615,8 @@ impl GameState {
             face_down_count: 0,
             room_count: 0,
             top_play_sources: 0,
+            starting_life: 20,
+            foreign_activated_sources: 0,
             saga_count: 0,
             player_static_sources: 0,
             mid: crate::state::MidDecision::default(),

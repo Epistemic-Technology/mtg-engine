@@ -495,7 +495,16 @@ impl Compiler<'_> {
             .iter()
             .any(|a| matches!(a, Ability::HexproofFrom(_)))
             .then_some(mtg_core::card::Keyword::HexproofFromFilter);
-        let keywords = keywords.chain(protection).chain(evoke).chain(hexproof_from);
+        let landwalk = card
+            .abilities
+            .iter()
+            .any(|a| matches!(a, Ability::Landwalk(_)))
+            .then_some(mtg_core::card::Keyword::LandwalkFilter);
+        let keywords = keywords
+            .chain(protection)
+            .chain(evoke)
+            .chain(hexproof_from)
+            .chain(landwalk);
         // "Stonework Packbeast is also a Cleric, Rogue, Warrior, and
         // Wizard.": the types apply in every zone, so they are the card's
         // own (its static ability adds them again on the battlefield).
@@ -1148,6 +1157,45 @@ impl Compiler<'_> {
                 }
                 let cleaved = self.ability(spell)?;
                 b = b.cleave(c.clone(), cleaved);
+                continue;
+            }
+            // CR 614.12: "As this creature enters, it becomes your choice
+            // of ...": a named choice as it enters, and for each choice
+            // a static ability of the permanent's while it was chosen.
+            if let Ability::BecomesChoice { forms, .. } = a {
+                let n = u8::try_from(forms.len()).unwrap_or(u8::MAX);
+                b = b.ability(AbilityDef::AsEntersChoose(
+                    mtg_core::card::ChoiceKind::Named(n),
+                ));
+                for (i, f) in forms.iter().enumerate() {
+                    let mut mods = vec![crate::ast::Mod::SetPt {
+                        power: mtg_core::card::PtValue::Fixed(f.power),
+                        toughness: mtg_core::card::PtValue::Fixed(f.toughness),
+                    }];
+                    if !f.types.is_empty() {
+                        mods.push(crate::ast::Mod::AddTypes(f.types.clone()));
+                    }
+                    for s in &f.subtypes {
+                        mods.push(crate::ast::Mod::AddSubtype(s.clone()));
+                    }
+                    if !f.keywords.is_empty() {
+                        mods.push(crate::ast::Mod::AddKeywords(f.keywords.clone()));
+                    }
+                    let st = Ability::Static {
+                        filter: crate::ast::Filter::this(),
+                        mods,
+                        condition: None,
+                        cond_first: false,
+                        cond_if: false,
+                        otherwise: Vec::new(),
+                    };
+                    let st = self.ability(&st)?;
+                    b = b.ability(self.while_holds(
+                        st,
+                        StaticCondition::Chose(u8::try_from(i).unwrap_or(u8::MAX)),
+                        "a choice",
+                    )?);
+                }
                 continue;
             }
             if let Ability::Mechanic(Mechanic::Reconfigure(c)) = a {
@@ -2145,6 +2193,12 @@ impl Compiler<'_> {
             StaticCond::OpponentLifeAtMost(n) => StaticCondition::OpponentLifeAtMost(*n),
             StaticCond::MoreLifeThanOpponent => StaticCondition::MoreLifeThanOpponent,
             StaticCond::BasicLandTypes(n) => StaticCondition::BasicLandTypes(*n),
+            StaticCond::LifeVsStarting {
+                at_least, below, ..
+            } => StaticCondition::LifeVsStarting {
+                at_least: *at_least,
+                below: *below,
+            },
             StaticCond::YourLife { n, at_least } => StaticCondition::YourLife {
                 n: *n,
                 at_least: *at_least,
@@ -2306,6 +2360,7 @@ impl Compiler<'_> {
             StaticCond::Modified => StaticCondition::SourceModified,
             StaticCond::AttackingAlone => StaticCondition::SourceAttackingAlone,
             StaticCond::AttackedOrBlocked => StaticCondition::SourceAttackedOrBlocked,
+            StaticCond::AttackedTotalPower(n) => StaticCondition::AttackedTotalPower(*n),
             StaticCond::Blocked => StaticCondition::SourceBlocked,
             StaticCond::BeingBlocked => StaticCondition::SourceBeingBlocked,
             StaticCond::AttachedIs(filter) => StaticCondition::AttachedIs(self.filter(filter)),
@@ -2642,8 +2697,10 @@ impl Compiler<'_> {
             Recipient::Target(i)
             | Recipient::ThatTarget(i)
             | Recipient::TheTarget(i)
+            | Recipient::TheTargetFull(i, _)
             | Recipient::ChosenTarget(i) => CoreRecipient::Target(ti(i)),
             Recipient::Targets(a, n)
+            | Recipient::ChosenTargets(a, n)
             | Recipient::ThoseCards(a, n)
             | Recipient::ThoseTargets(a, n) => CoreRecipient::Targets(
                 u8::try_from(ti(a)).unwrap_or(u8::MAX),
@@ -3128,6 +3185,9 @@ impl Compiler<'_> {
                     out.push(CoreEffect::Tap { to: r(*t) });
                 }
             }
+            Effect::RemoveFromCombat { what } => {
+                out.push(CoreEffect::RemoveFromCombat { what: r(*what) });
+            }
             Effect::Untap { to } => {
                 for t in to {
                     out.push(CoreEffect::Untap { to: r(*t) });
@@ -3255,6 +3315,9 @@ impl Compiler<'_> {
                 whose: *whose,
                 basic: *basic,
             }),
+            Effect::AddManaCommander { rider } => {
+                out.push(CoreEffect::AddManaCommander { rider: *rider });
+            }
             Effect::PumpVar {
                 power,
                 toughness,
@@ -3565,6 +3628,15 @@ impl Compiler<'_> {
                     filter,
                 });
             }
+            // "Then those creatures fight each other." (CR 701.14a): the
+            // first two of the group.
+            Effect::Fight {
+                a: Recipient::ThoseTargets(i, _) | Recipient::ChosenTargets(i, _),
+                b: Recipient::ThoseTargets(..) | Recipient::ChosenTargets(..),
+            } => out.push(CoreEffect::Fight {
+                a: r(Recipient::Target(*i)),
+                b: r(Recipient::Target(i + 1)),
+            }),
             Effect::Fight { a, b } => out.push(CoreEffect::Fight { a: r(*a), b: r(*b) }),
             Effect::Bite { source, to, twice } => out.push(CoreEffect::Bite {
                 source: r(*source),
@@ -4414,6 +4486,9 @@ impl Compiler<'_> {
             Trigger::DealsCombatDamageToPlayerOrBattle(o) => {
                 TriggerSpec::DealsCombatDamageToPlayerOrBattle(self.trigger_obj(o))
             }
+            Trigger::DealsCombatDamageToPlayerOrPlaneswalker(o) => {
+                TriggerSpec::DealsCombatDamageToPlayerOrPlaneswalker(self.trigger_obj(o))
+            }
             Trigger::AttacksAlone(o) => TriggerSpec::AttacksAlone(self.trigger_obj(o)),
             Trigger::OneOrMoreAttack(f) => TriggerSpec::AttacksWithFilter {
                 filter: self.filter(f),
@@ -4904,6 +4979,7 @@ impl Compiler<'_> {
             per_turn: 0,
             conditions: Vec::new(),
             once_ever: false,
+            activators: None,
             from_hand,
             cycling: false,
             keyword,
@@ -4922,6 +4998,9 @@ impl Compiler<'_> {
                 return self.err("a level symbol is not an ability definition");
             }
             Ability::DeckAnyNumber => return self.err("a deck-building rule is not an ability"),
+            Ability::BecomesChoice { .. } => {
+                return self.err("`becomes choice` is a card's ability, not a granted one");
+            }
             Ability::Uncounterable => {
                 return self.err("\"can't be countered\" is a property of the spell");
             }
@@ -5018,6 +5097,7 @@ impl Compiler<'_> {
                     .map(|c| self.static_cond(c))
                     .collect(),
                 once_ever: cost.once_ever,
+                activators: cost.activators,
                 from_hand: *cycling || cost.discard_self || cost.reveal_this,
                 cycling: *cycling,
                 from_graveyard: cost.from_graveyard || cost.exile_self,
@@ -5355,6 +5435,7 @@ impl Compiler<'_> {
                 })),
             }),
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
+            Ability::Landwalk(f) => AbilityDef::Landwalk(self.filter(f)),
             Ability::HexproofFrom(f) => AbilityDef::HexproofFrom(self.filter(f)),
             Ability::OpeningHand => AbilityDef::OpeningHand,
             Ability::TriggerAgain {
@@ -5707,6 +5788,7 @@ impl Compiler<'_> {
                         per_turn: 0,
                         conditions: Vec::new(),
                         once_ever: false,
+                        activators: None,
                         from_hand: false,
                         cycling: false,
                         from_graveyard: false,
@@ -5734,6 +5816,7 @@ impl Compiler<'_> {
                         per_turn: 0,
                         conditions: Vec::new(),
                         once_ever: false,
+                        activators: None,
                         from_hand: false,
                         cycling: false,
                         from_graveyard: false,
@@ -5753,6 +5836,7 @@ impl Compiler<'_> {
                     per_turn: 0,
                     conditions: Vec::new(),
                     once_ever: false,
+                    activators: None,
                     from_hand: false,
                     cycling: false,
                     from_graveyard: false,
@@ -5989,6 +6073,7 @@ impl Compiler<'_> {
                 per_turn: 0,
                 conditions: Vec::new(),
                 once_ever: false,
+                activators: None,
                 from_hand: false,
                 cycling: false,
                 from_graveyard: false,
@@ -6186,6 +6271,7 @@ fn extort(i: u8) -> Ability {
         eot_first: false,
         lasting: None,
         then_first: false,
+        per_opponent: false,
         joins: vec![Join::And],
     };
     Ability::Triggered {
@@ -6345,6 +6431,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 eot_first: false,
                 lasting: None,
                 then_first: false,
+                per_opponent: false,
                 joins: vec![Join::Then],
             }],
         },
@@ -6670,6 +6757,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 eot_first: false,
                 lasting: None,
                 then_first: false,
+                per_opponent: false,
                 joins: vec![Join::Then],
             }],
         },
@@ -6812,6 +6900,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 eot_first: false,
                 lasting: None,
                 then_first: false,
+                per_opponent: false,
                 joins: vec![Join::Then],
             }],
         },
@@ -6865,6 +6954,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 eot_first: false,
                 lasting: None,
                 then_first: false,
+                per_opponent: false,
                 joins: vec![Join::And, Join::And],
             }],
             equip: false,

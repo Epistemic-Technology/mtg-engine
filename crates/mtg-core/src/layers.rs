@@ -567,6 +567,11 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             let l = state.player(you).life;
             if *at_least { l >= *n } else { l <= *n }
         }
+        // CR 103.4: the starting life total.
+        StaticCondition::LifeVsStarting { at_least, below } => {
+            let d = state.player(you).life - state.starting_life;
+            if *below { d < 0 } else { d >= *at_least }
+        }
         StaticCondition::AnyPlayerLifeAtMost(n) => {
             state.players_in_game().any(|p| state.player(p).life <= *n)
         }
@@ -1550,6 +1555,9 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
                 crate::card::AbilityDef::HexproofFrom(_)
             ) {
                 c.keywords = c.keywords.with(crate::card::Keyword::HexproofFromFilter);
+            }
+            if matches!(state.pool.ability(*a), crate::card::AbilityDef::Landwalk(_)) {
+                c.keywords = c.keywords.with(crate::card::Keyword::LandwalkFilter);
             }
         }
         Modification::RemoveKeywords(k) => c.keywords = c.keywords.difference(*k),

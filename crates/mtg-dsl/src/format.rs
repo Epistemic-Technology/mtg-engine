@@ -293,6 +293,15 @@ impl Fmt {
                 self.mentioned[i] = true;
                 format!("the chosen target {}", i + 1)
             }
+            Recipient::TheTargetFull(i, chosen) => {
+                self.mentioned[i] = true;
+                format!(
+                    "the {}full target {}",
+                    if chosen { "chosen " } else { "" },
+                    i + 1
+                )
+            }
+            Recipient::ChosenTargets(..) => "the chosen targets".to_string(),
             // "up to 2 target creature": declares them together.
             Recipient::Targets(a, n) if self.mentioned[a] => {
                 format!("targets {} to {}", a + 1, a + n)
@@ -641,6 +650,9 @@ impl Fmt {
         }
         if s.then_first {
             out.push_str("then ");
+        }
+        if s.per_opponent {
+            out.push_str("for each opponent, ");
         }
         if s.eot_first {
             out.push_str(match s.lasting {
@@ -1552,6 +1564,9 @@ impl Fmt {
             }
             Effect::Detain { what } => format!("detain {}", self.recipient(*what, t)),
             Effect::Untap { to } => format!("untap {}", self.recipients(to, t)),
+            Effect::RemoveFromCombat { what } => {
+                format!("remove {} from combat", self.recipient(*what, t))
+            }
             Effect::Grant {
                 keywords: ks,
                 to,
@@ -1865,6 +1880,13 @@ impl Fmt {
             Effect::Vote(words) => format!("vote {}", words.join(" or ")),
             Effect::VoteReturn(f) => format!("vote return {} card", filter(f)),
             Effect::IfWonFlip(inner) => format!("if you win the flip, {}", self.line(inner, t)),
+            // "Choose target creature you control and target creature you
+            // don't control."
+            Effect::ChooseTarget(Recipient::Targets(a, 2)) => {
+                let first = self.recipient(Recipient::Target(*a), t);
+                let second = self.recipient(Recipient::Target(a + 1), t);
+                format!("choose {first} and {second}")
+            }
             Effect::ChooseTarget(r) => format!("choose {}", self.recipient(*r, t)),
             Effect::DiscardRandom {
                 count, who: None, ..
@@ -1981,6 +2003,11 @@ impl Fmt {
             Effect::Meld { partner, into } => format!("meld with {partner:?} into {into:?}"),
             Effect::AddMana(m) if m == &[Mana::Chosen] => "add chosen".to_string(),
             Effect::AddMana(m) => format!("add {}", crate::render::mana_symbols(m, "any")),
+            Effect::AddManaCommander { rider } => match rider {
+                1 => "add commander rider counters".to_string(),
+                2 => "add commander rider scry".to_string(),
+                _ => "add commander".to_string(),
+            },
             Effect::AddManaLandCould { whose, basic } => format!(
                 "add any that {}land {} could produce",
                 if *basic { "basic " } else { "" },
@@ -2247,6 +2274,9 @@ impl Fmt {
                     }
                 }
             }
+            Effect::Fight { a, b } if a == b => {
+                format!("{} fight each other", self.recipient(*a, t))
+            }
             Effect::Fight { a, b } => {
                 format!("{} fights {}", self.recipient(*a, t), self.recipient(*b, t))
             }
@@ -2466,6 +2496,7 @@ impl Fmt {
                     TargetTense::Had => ("", "had"),
                     TargetTense::Is => ("", "is"),
                     TargetTense::ThatIs => ("that ", "is"),
+                    TargetTense::TheFullIs => ("the full ", "is"),
                     TargetTense::ThatWas => ("that ", "was"),
                 };
                 // `if target 1 isnt creature`: the check's negated types.
@@ -3552,6 +3583,9 @@ fn filter_one(f: &Filter) -> String {
         }
         words.push(names.join(" or "));
     }
+    if f.status.commander.is_some() {
+        words.push("commander".to_string());
+    }
     words.extend(f.subtypes.iter().cloned());
     words.extend(f.types.iter().map(|t| format!("{t:?}").to_lowercase()));
     if !f.any_types.is_empty() {
@@ -3562,8 +3596,12 @@ fn filter_one(f: &Filter) -> String {
             .collect();
         words.push(names.join(" or "));
     }
+    if f.status.commander == Some(true) {
+        words.push("you own".to_string());
+    }
     if f.status.token == Some(true) {
         words.push("token".to_string());
+    } else if f.status.commander.is_some() {
     } else if f.subtypes.is_empty()
         && f.types.is_empty()
         && f.any_types.is_empty()
@@ -3663,6 +3701,7 @@ fn filter_one(f: &Filter) -> String {
             words.push("your opponents control".to_string());
         }
         Some(Who::Opponents) if f.they_control => words.push("they control".to_string()),
+        Some(Who::Opponents) if f.per_opponent => words.push("that opponent controls".to_string()),
         Some(Who::Opponents) if f.defending => {
             words.push("defending player controls".to_string());
         }
@@ -4326,6 +4365,12 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 trigger_obj(o)
             )
         }
+        Trigger::DealsCombatDamageToPlayerOrPlaneswalker(o) => {
+            format!(
+                "whenever {} deals combat damage to a player or planeswalker",
+                trigger_obj(o)
+            )
+        }
         Trigger::AttacksBattle(o) => format!("whenever {} attacks a battle", trigger_obj(o)),
         Trigger::UnlocksDoor => "when you unlock this door".to_string(),
         Trigger::BecomesLevel(n) => format!("when this becomes level {n}"),
@@ -4804,6 +4849,11 @@ fn cost_text(c: &Cost) -> String {
     if c.per_turn > 1 {
         parts.push(format!("{} times per turn", c.per_turn));
     }
+    match c.activators {
+        Some(Who::Any) => parts.push("any player".to_string()),
+        Some(Who::Opponents) => parts.push("opponents only".to_string()),
+        _ => {}
+    }
     match c.reduce.as_deref() {
         Some((by, crate::ast::ReduceBy::Each(e))) => {
             parts.push(format!("reduced {by} each {}", count_expr_text(e)));
@@ -5254,6 +5304,15 @@ fn static_cond(c: &StaticCond) -> String {
         }
         StaticCond::HandFewerThan(n) => format!("hand fewer than {n}"),
         StaticCond::NoCardInHand(f) => format!("hand has no {} card", filter(f)),
+        StaticCond::LifeVsStarting {
+            at_least, wording, ..
+        } => match wording {
+            0 => "life above starting".to_string(),
+            1 => "life at least starting".to_string(),
+            2 => format!("life {at_least} above starting"),
+            3 => format!("life {at_least} more than starting"),
+            _ => "life below starting".to_string(),
+        },
         StaticCond::YourLife { n, at_least } => {
             format!(
                 "your life {n} or {}",
@@ -5297,6 +5356,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Modified => "modified".to_string(),
         StaticCond::AttackingAlone => "attacking alone".to_string(),
         StaticCond::AttackedOrBlocked => "attacked or blocked this combat".to_string(),
+        StaticCond::AttackedTotalPower(n) => format!("attacked total power {n}"),
         StaticCond::Blocked => "blocked".to_string(),
         StaticCond::BeingBlocked => "being blocked".to_string(),
         StaticCond::AttachedIs(fl)
@@ -5965,6 +6025,30 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         Ability::EntersAsCopy(f) => {
             let _ = writeln!(out, "{indent}enters as copy of {}", filter(f));
         }
+        Ability::BecomesChoice { forms, in_addition } => {
+            let forms: Vec<String> = forms
+                .iter()
+                .map(|f| {
+                    let mut s = format!("{}/{}", f.power, f.toughness);
+                    for t in &f.subtypes {
+                        let _ = write!(s, " {t}");
+                    }
+                    for t in &f.types {
+                        let _ = write!(s, " {}", format!("{t:?}").to_lowercase());
+                    }
+                    if !f.keywords.is_empty() {
+                        let _ = write!(s, " with {}", keywords(&f.keywords));
+                    }
+                    s
+                })
+                .collect();
+            let _ = writeln!(
+                out,
+                "{indent}as this enters becomes choice {}{}",
+                forms.join(" or "),
+                if *in_addition { " in addition" } else { "" }
+            );
+        }
         Ability::AsEntersChoose { kind, joined } => {
             let who = if *joined { "it" } else { "this" };
             let _ = writeln!(
@@ -6514,6 +6598,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 .unwrap_or_default();
             let _ = writeln!(out, "{indent}{head}{tail}");
         }
+        Ability::Landwalk(f) => {
+            let _ = writeln!(out, "{indent}landwalk {}", filter(f));
+        }
         Ability::Protection(f) => {
             if *f == Filter::default() {
                 let _ = writeln!(out, "{indent}protection from everything");
@@ -6608,6 +6695,7 @@ pub(crate) fn granted_mechanic(a: &Ability) -> Option<String> {
             Some("protection from everything".to_string())
         }
         Ability::Protection(f) => Some(format!("protection from {}", filter(f))),
+        Ability::Landwalk(f) => Some(format!("landwalk {}", filter(f))),
         _ => None,
     }
 }

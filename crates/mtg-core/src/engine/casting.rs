@@ -4716,11 +4716,26 @@ impl GameState {
         let pool = self.player(p).mana_pool;
         let life = self.player(p).life;
         let all_sources = sources;
-        for id in self.permanents_of(p) {
+        // CR 602.1: "Any player may activate this ability." on another
+        // player's permanent.
+        let foreign: Vec<ObjId> = if self.foreign_activated_sources > 0 {
+            self.battlefield
+                .iter()
+                .copied()
+                .filter(|id| {
+                    let o = &self.objects[*id];
+                    o.controller != p && self.flags_of(o).has_foreign_activated()
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
+        for id in self.permanents_of(p).chain(foreign) {
             let o = &self.objects[id];
             if !grants && !self.flags_of(o).has_activated() {
                 continue;
             }
+            let own = o.controller == p;
             let Some(c) = self.characteristics(id) else {
                 continue;
             };
@@ -4738,6 +4753,15 @@ impl GameState {
                     continue;
                 };
                 if barred || (barred_nonmana && !ab.is_mana_ability()) {
+                    continue;
+                }
+                // CR 602.1: who may activate it.
+                let allowed = match ab.activators {
+                    None => own,
+                    Some(crate::card::Who::Opponents) => !own,
+                    Some(_) => true,
+                };
+                if !allowed {
                     continue;
                 }
                 if ab.sorcery_speed && !sorcery_timing {
@@ -10467,13 +10491,31 @@ impl GameState {
                 // creature dealing the damage.
                 let other = matches!(to, Recipient::Group(n)
                     if self.pool.filter(*n).relation == crate::card::Relation::Other);
-                let sources: SmallVec<[ObjId; 2]> = self
+                // CR 608.2h: the ability's source (or the triggering object)
+                // that has left the battlefield still deals the damage, its
+                // power as it last existed ("When this creature dies, it
+                // deals damage equal to its power to any target").
+                let mut sources: SmallVec<[ObjId; 2]> = self
                     .recipients(ctx, *source)
                     .into_iter()
                     .filter_map(|t| on_battlefield(self, t))
                     .collect();
+                if sources.is_empty() {
+                    let left = match source {
+                        Recipient::Source => Some(ctx.source),
+                        Recipient::TriggeringObject => ctx.trigger_obj,
+                        _ => None,
+                    };
+                    sources.extend(left.filter(|o| {
+                        self.lki.contains_key(o)
+                            && self
+                                .objects
+                                .get(*o)
+                                .is_none_or(|x| x.zone != Zone::Battlefield)
+                    }));
+                }
                 for x in sources {
-                    let p = self.characteristics(x).map_or(0, |c| c.power.max(0));
+                    let p = self.characteristics_or_lki(x).map_or(0, |c| c.power.max(0));
                     let p = u32::try_from(p).unwrap_or(0);
                     let p = if *twice { p.saturating_mul(2) } else { p };
                     for &y in &to_all {
@@ -10680,6 +10722,15 @@ impl GameState {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
                         self.untap(id);
+                    }
+                }
+            }
+            // CR 506.4.
+            Effect::RemoveFromCombat { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.remove_from_combat(id);
+                        self.bump();
                     }
                 }
             }
@@ -12889,8 +12940,9 @@ impl GameState {
                     self.add_counters(id, CounterKind::Loyalty, n);
                 }
             }
-            // Modes resolve through the chosen mode (`effects_of`).
-            Effect::Modes(_) => {}
+            // Modes resolve through the chosen mode (`effects_of`); CR
+            // 903.4f: the game has no commanders, so no mana.
+            Effect::Modes(_) | Effect::AddManaCommander { .. } => {}
             // Looking at the top cards keeps their order; the controller
             // knows them where they are.
             Effect::LookAtTop { count, who, looker } => {
@@ -14659,6 +14711,10 @@ impl GameState {
                 || f.status.equipped
                 || f.status.modified
                 || f.status.on.is_some()
+                // "If the creature you control entered this turn", "if
+                // that creature is a token".
+                || f.status.entered_this_turn
+                || f.status.token.is_some()
         }
         // Converge: "if its mana value is less than or equal to the number
         // of colors of mana spent to cast this spell".
@@ -14768,6 +14824,11 @@ impl GameState {
                         && filter.tapped.is_none_or(|t| l.object.tapped == t)
                         && (!filter.attacking || l.attacking)
                         && (!filter.blocking || l.blocking)
+                        && filter.status.token.is_none_or(|t| {
+                            (l.object.kind == crate::state::ObjKind::Token) == t
+                        })
+                        && (!filter.status.entered_this_turn
+                            || l.object.timestamp >= self.turn_started_at)
                 })))
     }
 

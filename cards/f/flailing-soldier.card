@@ -1,0 +1,8 @@
+card "Flailing Soldier" {
+  oracle_id 2c1dd6f4-2db5-449d-9ed8-579d98cfcfb8
+  cost {R}
+  type Creature — Human Soldier
+  pt 2/2
+  activated {1}, any player: this gets +1/+1 until end of turn
+  activated {1}, any player: this gets -1/-1 until end of turn
+}

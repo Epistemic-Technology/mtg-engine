@@ -1327,6 +1327,7 @@ impl Runner {
                 return index_of(d, &Choice::Pass).ok_or_else(|| self.unexpected(d, "no pass"));
             }
             if let Action::Activate {
+                of,
                 source,
                 ability,
                 mode,
@@ -1339,7 +1340,7 @@ impl Runner {
                 match self.activation(
                     d,
                     &a,
-                    source,
+                    (*of, source),
                     (*ability, *mode, *x),
                     sacrifice.as_deref(),
                     discard.as_deref(),
@@ -1730,7 +1731,7 @@ impl Runner {
         &mut self,
         d: &Decision,
         a: &ScriptedAction,
-        source: &str,
+        (of, source): (Option<PlayerId>, &str),
         (nth, scripted_mode, x): (Option<usize>, Option<usize>, Option<u32>),
         sacrifice: Option<&str>,
         discard: Option<&str>,
@@ -1762,7 +1763,7 @@ impl Runner {
                     sacrifice: sac,
                     discard: dis,
                 } => {
-                    st.objects[*s].controller == d.player
+                    st.objects[*s].controller == of.unwrap_or(d.player)
                         && st.name_of(*s) == source
                         && nth_match(*s, *ability)
                         && names_match(sacrifice, sac)

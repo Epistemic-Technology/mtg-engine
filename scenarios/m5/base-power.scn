@@ -1,0 +1,52 @@
+# "has base power 2 until end of turn" (CR 613.4b): the power is set, the
+# toughness stays; counters and pumps still apply on top.
+
+scenario "Symmetry Sage: magecraft sets a creature's base power to 2" {
+  battlefield A: "Symmetry Sage", "Hill Giant" with 1 +1/+1, "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: trigger "Symmetry Sage" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 3
+  assert toughness "Hill Giant" 4
+}
+
+scenario "Symmetry Sage: it lasts until end of turn" {
+  battlefield A: "Symmetry Sage", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: trigger "Symmetry Sage" targeting "Symmetry Sage"
+  run_to turn 1 postcombat_main
+  assert power "Symmetry Sage" 2
+  run_to turn 2 upkeep
+  assert power "Symmetry Sage" 0
+}
+
+scenario "Crater Elemental: formidable, base power 8" {
+  battlefield A: "Crater Elemental", "Serra Angel", "Hill Giant", "Grizzly Bears", 3 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Crater Elemental" ability 2
+  run_to turn 1 postcombat_main
+  assert power "Crater Elemental" 8
+  assert toughness "Crater Elemental" 6
+}
+
+scenario "Crater Elemental: not formidable without total power 8" {
+  battlefield A: "Crater Elemental", "Hill Giant", 3 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Crater Elemental" ability 2
+  run_to turn 1 postcombat_main
+  assert power "Crater Elemental" 0
+}
+
+scenario "Crater Elemental: sacrificed, it deals 4 damage" {
+  battlefield A: "Crater Elemental", "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Crater Elemental" ability 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Crater Elemental"
+}

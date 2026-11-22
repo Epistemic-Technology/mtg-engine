@@ -1,0 +1,9 @@
+card "Dreadhorde Butcher" {
+  oracle_id d254514b-0688-4f05-9473-3090a2ce7ced
+  cost {B}{R}
+  type Creature — Zombie Warrior
+  pt 1/1
+  keywords haste
+  triggered whenever this deals combat damage to a player or planeswalker: put 1 +1/+1 counter on this creature
+  triggered when this dies: this bites any target
+}

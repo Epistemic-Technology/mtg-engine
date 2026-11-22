@@ -1,0 +1,8 @@
+card "Lich's Relic" {
+  oracle_id 0540eaca-0e03-4831-955a-192ae2b87d35
+  cost {B}
+  type Artifact — Equipment
+  triggered when this enters: you may pay {2}; when you do, for each opponent, destroy up to 1 target creature or planeswalker that opponent controls
+  static equipped: +2/+1
+  equip {2}
+}

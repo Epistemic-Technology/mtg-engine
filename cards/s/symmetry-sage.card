@@ -1,0 +1,8 @@
+card "Symmetry Sage" {
+  oracle_id 16cb916d-bb19-42ec-9a01-969e9d067b40
+  cost {U}
+  type Creature — Human Wizard
+  pt 0/2
+  keywords flying
+  label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: target creature you control has base power 2 until end of turn
+}

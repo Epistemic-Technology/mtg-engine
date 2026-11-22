@@ -1,0 +1,7 @@
+card "Legions of Lim-Dûl" {
+  oracle_id 70b69803-1870-4441-954b-dba5b433fcb2
+  cost {1}{B}{B}
+  type Creature — Zombie
+  pt 2/3
+  landwalk snow Swamp
+}

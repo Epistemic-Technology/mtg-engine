@@ -47,6 +47,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         delayed_that: false,
         delayed_dies: false,
         in_trigger: false,
+        per_opponent: false,
         it_source: false,
         no_trigger_obj: false,
         self_trigger: false,
@@ -584,6 +585,8 @@ struct P {
     /// Inside a triggered ability: "that creature" is the triggering
     /// object there, the last target elsewhere.
     in_trigger: bool,
+    /// Inside a `for each opponent,` sentence: `that opponent controls`.
+    per_opponent: bool,
     /// Inside a trigger on casting "a spell that targets this creature"
     /// (heroic): `it` is the source, as Oracle has it ("put a +1/+1
     /// counter on it").
@@ -1392,6 +1395,21 @@ impl P {
         if self.eat_word("chosen") {
             return Ok(Effect::AddMana(vec![Mana::Chosen]));
         }
+        // CR 903.4f: "one mana of any color in your commander's color
+        // identity".
+        if self.eat_word("commander") {
+            let rider = if self.eat_word("rider") {
+                if self.eat_word("counters") {
+                    1
+                } else {
+                    self.expect_word("scry")?;
+                    2
+                }
+            } else {
+                0
+            };
+            return Ok(Effect::AddManaCommander { rider });
+        }
         // "any color that a land an opponent controls could
         // produce" (CR 106.7).
         if self.eat_words(&["any", "that"]) {
@@ -1995,6 +2013,13 @@ impl P {
                 let times = self.num()?;
                 self.end_stmt()?;
                 Ok(Ability::SelfCost { per, times })
+            }
+            // CR 702.14a: `landwalk snow Forest` ("Snow forestwalk").
+            "landwalk" => {
+                self.pos += 1;
+                let filter = self.filter()?;
+                self.end_stmt()?;
+                Ok(Ability::Landwalk(filter))
             }
             "protection"
                 if self.word_at(1).as_deref() == Some("from")
@@ -3080,6 +3105,56 @@ impl P {
                 let ability = self.ability()?;
                 Ok(Ability::DuringYourTurn(Box::new(ability)))
             }
+            // CR 614.12: "As this creature enters, it becomes your choice
+            // of a 3/3 creature, a 2/2 creature with flying, or ...".
+            "as" if self.at_words(&["as", "this", "enters", "becomes", "choice"]) => {
+                self.pos += 5;
+                let mut forms = Vec::new();
+                loop {
+                    let Some(Tok::Pt {
+                        power,
+                        toughness,
+                        signed: false,
+                    }) = self.next()
+                    else {
+                        return self.fail("expected a power and toughness in `becomes choice`");
+                    };
+                    let mut form = crate::ast::ChoiceForm {
+                        power,
+                        toughness,
+                        subtypes: Vec::new(),
+                        types: Vec::new(),
+                        keywords: Vec::new(),
+                    };
+                    loop {
+                        let w = self.word()?;
+                        if let Some(t) = card_type(&w) {
+                            form.types.push(t);
+                            if t == CardType::Creature {
+                                break;
+                            }
+                        } else if w.chars().next().is_some_and(char::is_uppercase) {
+                            form.subtypes.push(w);
+                        } else {
+                            return self
+                                .fail(format!("expected a type in `becomes choice`, found {w}"));
+                        }
+                    }
+                    if self.eat_word("with") {
+                        form.keywords = self.keyword_list()?;
+                    }
+                    forms.push(form);
+                    if !self.eat_word("or") {
+                        break;
+                    }
+                }
+                let in_addition = self.eat_words(&["in", "addition"]);
+                if forms.len() < 2 {
+                    return self.fail("`becomes choice` needs two or more choices");
+                }
+                self.end_stmt()?;
+                Ok(Ability::BecomesChoice { forms, in_addition })
+            }
             "as" if self.at_words(&["as", "this", "enters", "choose"])
                 || self.at_words(&["as", "it", "enters", "choose"]) =>
             {
@@ -3970,6 +4045,12 @@ impl P {
         if self.eat_words(&["attacked", "or", "blocked", "this", "combat"]) {
             return Ok(StaticCond::AttackedOrBlocked);
         }
+        if self.eat_words(&["attacked", "total", "power"]) {
+            let n = self.number()?;
+            return Ok(StaticCond::AttackedTotalPower(
+                u16::try_from(n).unwrap_or(u16::MAX),
+            ));
+        }
         if self.eat_word("blocked") {
             return Ok(StaticCond::Blocked);
         }
@@ -4499,6 +4580,39 @@ impl P {
         if self.eat_words(&["you", "don't", "control"]) {
             return Ok(StaticCond::YouDontControl(self.filter()?));
         }
+        // CR 103.4: against the starting life total.
+        if self.at_word("life")
+            && (self.at_words(&["life", "above", "starting"])
+                || self.at_words(&["life", "at", "least", "starting"])
+                || self.at_words(&["life", "below", "starting"])
+                || (matches!(self.peek_at(1), Some(Tok::Num(_)))
+                    && (self.word_at(2).as_deref() == Some("above")
+                        || (self.word_at(2).as_deref() == Some("more")
+                            && self.word_at(3).as_deref() == Some("than")))))
+        {
+            self.pos += 1;
+            let (at_least, below, wording) = if self.eat_words(&["above", "starting"]) {
+                (1, false, 0)
+            } else if self.eat_words(&["at", "least", "starting"]) {
+                (0, false, 1)
+            } else if self.eat_words(&["below", "starting"]) {
+                (0, true, 4)
+            } else {
+                let n = i32::try_from(self.number()?).unwrap_or(0);
+                if self.eat_word("above") {
+                    self.expect_word("starting")?;
+                    (n, false, 2)
+                } else {
+                    self.expect_words(&["more", "than", "starting"])?;
+                    (n, false, 3)
+                }
+            };
+            return Ok(StaticCond::LifeVsStarting {
+                at_least,
+                below,
+                wording,
+            });
+        }
         if self.eat_words(&["your", "life"]) {
             let n = i32::try_from(self.number()?).unwrap_or(0);
             self.expect_word("or")?;
@@ -4791,6 +4905,14 @@ impl P {
         };
         // "Then that player discards a card.": a sentence led by "then".
         let then_first = self.eat_word("then");
+        // "For each opponent, tap up to one target creature that player
+        // controls." (one opponent in a two-player game).
+        let per_opponent =
+            self.at_words(&["for", "each", "opponent"]) && self.peek_at(3) == Some(&Tok::Comma);
+        if per_opponent {
+            self.pos += 4;
+        }
+        let was_per_opponent = std::mem::replace(&mut self.per_opponent, per_opponent);
         // "until end of turn, <clauses>": the duration printed first.
         let mut lasting = None;
         let eot_first = if self.eat_words(&["until", "your", "next", "turn"]) {
@@ -4876,6 +4998,7 @@ impl P {
         {
             *this_turn = true;
         }
+        self.per_opponent = was_per_opponent;
         let s = Sentence {
             effects: clauses,
             label,
@@ -4883,6 +5006,7 @@ impl P {
             eot_first,
             lasting,
             then_first,
+            per_opponent,
             joins,
         };
         self.condition_suffix(s)
@@ -5269,7 +5393,11 @@ impl P {
         if w == "targets" && matches!(self.peek_at(1), Some(Tok::Num(_))) {
             return true;
         }
-        if self.at_words(&["those", "targets"]) {
+        if self.at_words(&["those", "targets"])
+            || self.at_words(&["the", "chosen", "targets"])
+            || self.at_words(&["the", "full", "target"])
+            || self.at_words(&["the", "chosen", "full", "target"])
+        {
             return true;
         }
         if self.group_named && self.at_those().is_some() {
@@ -5324,6 +5452,16 @@ impl P {
 
     /// Verbs that take the previous clause's subject when none is written
     /// ("you draw a card and lose 1 life").
+    /// After `remove`: a recipient followed by `from combat` ("remove it
+    /// from combat"), not counters.
+    fn peek_recipient_from_combat(&self) -> bool {
+        (1..8).any(|k| {
+            self.word_at(k).as_deref() == Some("from")
+                && self.word_at(k + 1).as_deref() == Some("combat")
+                && (0..k).all(|j| !matches!(self.peek_at(j), Some(Tok::Comma | Tok::Semi)))
+        })
+    }
+
     fn at_subject_verb(&self) -> bool {
         if self.revealed && self.at_word("puts") {
             return true;
@@ -5495,7 +5633,8 @@ impl P {
     /// judged on the target's last state.
     fn if_target(&mut self) -> R<Effect> {
         self.pos += 1;
-        let that = self.eat_word("that");
+        let full = self.eat_words(&["the", "full"]);
+        let that = !full && self.eat_word("that");
         self.pos += 1;
         let n = self.number()? as usize;
         if n == 0 || n > self.targets.len() {
@@ -5532,7 +5671,9 @@ impl P {
             }
             Self::no_host_check(&filter).or_else(|m| self.fail(m))?;
             self.expect(&Tok::Comma)?;
-            let tense = if that {
+            let tense = if full {
+                crate::ast::TargetTense::TheFullIs
+            } else if that {
                 crate::ast::TargetTense::ThatIs
             } else {
                 crate::ast::TargetTense::Is
@@ -5566,6 +5707,9 @@ impl P {
                     Ok(Effect::IfTarget(n - 1, filter, vec![s], check))
                 }
             };
+        }
+        if full {
+            return self.fail("`if the full target N` takes `is`");
         }
         let tense = if that {
             self.expect_words(&["was"])?;
@@ -5980,7 +6124,10 @@ impl P {
             self.subject = saved;
             return Ok(Effect::IfWonClash(vec![s]));
         }
-        if self.at_words(&["if", "target"]) || self.at_words(&["if", "that", "target"]) {
+        if self.at_words(&["if", "target"])
+            || self.at_words(&["if", "that", "target"])
+            || self.at_words(&["if", "the", "full", "target"])
+        {
             return self.if_target();
         }
         // `if you dont, ...` / `if you cant, ...` after an action.
@@ -6965,6 +7112,18 @@ impl P {
             "fights" => {
                 let b = self.recipient()?;
                 Ok(Effect::Fight { a: subject, b })
+            }
+            // "Then those creatures fight each other."
+            "fight"
+                if matches!(
+                    subject,
+                    Recipient::ThoseTargets(..) | Recipient::ChosenTargets(..)
+                ) && self.eat_words(&["each", "other"]) =>
+            {
+                Ok(Effect::Fight {
+                    a: subject,
+                    b: subject,
+                })
             }
             "bites" => {
                 let twice = self.eat_word("twice");
@@ -8086,7 +8245,20 @@ impl P {
             // "Choose target creature, then roll a d20.": the target
             // named before what acts on it.
             "choose" if self.at_word("target") || self.at_words(&["any", "target"]) => {
-                Ok(Effect::ChooseTarget(self.recipient()?))
+                let first = self.recipient()?;
+                // "Choose target creature you control and target creature
+                // you don't control.": two targets named at once.
+                if let Recipient::Target(i) = first
+                    && self.at_words(&["and", "target"])
+                {
+                    self.pos += 1;
+                    let second = self.recipient()?;
+                    if second != Recipient::Target(i + 1) {
+                        return self.fail("expected a second new target after `and`");
+                    }
+                    return Ok(Effect::ChooseTarget(Recipient::Targets(i, 2)));
+                }
+                Ok(Effect::ChooseTarget(first))
             }
             // "Roll a d20." (CR 706); its results table follows on the
             // next lines (`result 1 to 9: ...`, see `effects_body`).
@@ -8477,6 +8649,12 @@ impl P {
                 self.expect_word("among")?;
                 let to = self.divided_group()?;
                 Ok(Effect::DistributeCounters { kind, count, to })
+            }
+            // CR 506.4: "remove it from combat".
+            "remove" if self.peek_recipient_from_combat() => {
+                let what = self.recipient()?;
+                self.expect_words(&["from", "combat"])?;
+                Ok(Effect::RemoveFromCombat { what })
             }
             "remove" => {
                 if self.eat_words(&["all", "counters", "from"]) {
@@ -10460,6 +10638,7 @@ impl P {
             delayed_that: self.delayed_that,
             delayed_dies: self.delayed_dies,
             in_trigger: self.in_trigger,
+            per_opponent: self.per_opponent,
             it_source: self.it_source,
             no_trigger_obj: self.no_trigger_obj,
             self_trigger: self.self_trigger,
@@ -10881,6 +11060,30 @@ impl P {
             }
             return Ok(Recipient::ThatTarget(n - 1));
         }
+        // `the full target 1`, `the chosen full target 1`: "the creature
+        // you control", "the chosen creature you control".
+        if (self.at_words(&["the", "full", "target"])
+            && matches!(self.peek_at(3), Some(Tok::Num(_))))
+            || (self.at_words(&["the", "chosen", "full", "target"])
+                && matches!(self.peek_at(4), Some(Tok::Num(_))))
+        {
+            let chosen = self.word_at(1).as_deref() == Some("chosen");
+            self.pos += if chosen { 4 } else { 3 };
+            let Some(Tok::Num(n)) = self.next() else {
+                return self.fail("expected a target number after `the full target`");
+            };
+            let n = n as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            return Ok(Recipient::TheTargetFull(n - 1, chosen));
+        }
+        if self.eat_words(&["the", "chosen", "targets"]) {
+            if self.targets.len() < 2 {
+                return self.fail("`the chosen targets` needs two targets declared before it");
+            }
+            return Ok(Recipient::ChosenTargets(0, self.targets.len()));
+        }
         if self.at_words(&["the", "chosen", "target"])
             && matches!(self.peek_at(3), Some(Tok::Num(_)))
         {
@@ -11235,6 +11438,7 @@ impl P {
                         delayed_that: false,
                         delayed_dies: false,
                         in_trigger: false,
+                        per_opponent: false,
                         it_source: false,
                         no_trigger_obj: false,
                         self_trigger: false,
@@ -11270,7 +11474,10 @@ impl P {
                         | (Some("an"), Some("opponent"))
                         | (Some("target"), Some("player" | "opponent"))
                         | (Some("defending" | "your"), Some("player" | "opponents"))
-                        | (Some("that"), Some("was" | "entered" | "dealt" | "blocked" | "player" | "share"))
+                        | (
+                            Some("that"),
+                            Some("was" | "entered" | "dealt" | "blocked" | "player" | "share" | "opponent")
+                        )
                         | (Some("other"), Some("than"))
                         | (Some("controller"), Some("of"))
                         | (Some("with" | "without"), Some("aura"))
@@ -11721,6 +11928,12 @@ impl P {
                     f.they_control = true;
                     self.pos += 2;
                 }
+                // "for each opponent, ... that player controls".
+                "that" if self.per_opponent && self.at_words(&["that", "opponent", "controls"]) => {
+                    f.who = Some(Who::Opponents);
+                    f.per_opponent = true;
+                    self.pos += 3;
+                }
                 "with" if self.at_words(&["with", "no", "abilities"]) => {
                     f.no_abilities = true;
                     self.pos += 3;
@@ -11957,6 +12170,15 @@ impl P {
                 "modified" if !f.status.modified => {
                     f.status.modified = true;
                     self.pos += 1;
+                }
+                // CR 903.3: "commander creatures you own", "a commander".
+                "commander" if f.status.commander.is_none() => {
+                    f.status.commander = Some(false);
+                    self.pos += 1;
+                }
+                "you" if f.status.commander == Some(false) && self.at_words(&["you", "own"]) => {
+                    f.status.commander = Some(true);
+                    self.pos += 2;
                 }
                 // CR 708.2: "face-down creature".
                 "face-down" if !f.status.face_down => {
@@ -13511,6 +13733,18 @@ impl P {
                     self.pos += 7;
                     return Ok(Trigger::DealsCombatDamageToPlayerOrBattle(obj));
                 }
+                if self.at_words(&[
+                    "combat",
+                    "damage",
+                    "to",
+                    "a",
+                    "player",
+                    "or",
+                    "planeswalker",
+                ]) {
+                    self.pos += 7;
+                    return Ok(Trigger::DealsCombatDamageToPlayerOrPlaneswalker(obj));
+                }
                 if self.at_words(&["combat", "damage", "to", "a", "player"]) {
                     self.pos += 5;
                     return Ok(Trigger::DealsCombatDamageToPlayer(obj));
@@ -13923,6 +14157,15 @@ impl P {
                         self.pos += 2;
                         cost.once_ever = true;
                         cost.restrict.push(Restrict::OnceEver);
+                    }
+                    // CR 602.1: "Any player may activate this ability."
+                    "any" if self.at_words(&["any", "player"]) => {
+                        self.pos += 2;
+                        cost.activators = Some(Who::Any);
+                    }
+                    "opponents" if self.at_words(&["opponents", "only"]) => {
+                        self.pos += 2;
+                        cost.activators = Some(Who::Opponents);
                     }
                     "once" => {
                         self.pos += 1;

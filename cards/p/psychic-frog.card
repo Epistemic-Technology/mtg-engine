@@ -1,0 +1,9 @@
+card "Psychic Frog" {
+  oracle_id e157ad1e-be35-47f3-92db-01799f8fb6a5
+  cost {U}{B}
+  type Creature — Frog
+  pt 1/2
+  triggered whenever this deals combat damage to a player or planeswalker: draw 1 card
+  activated discard 1 card: put 1 +1/+1 counter on this
+  activated exile 3 cards from graveyard: this gains flying until end of turn
+}

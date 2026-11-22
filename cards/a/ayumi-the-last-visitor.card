@@ -1,0 +1,7 @@
+card "Ayumi, the Last Visitor" {
+  oracle_id 12acd466-deb9-4e68-b75b-aed86680b917
+  cost {3}{G}{G}
+  type Legendary Creature — Spirit
+  pt 7/3
+  landwalk legendary land
+}

@@ -183,11 +183,13 @@ like the card; either half may still be cast alone.
 | `can't be blocked by Wall`, `can't be blocked except by creature with flying`, `can't be blocked by more than one creature`, `can block only creature with flying`, `can't block creature with flying` | Blocking restrictions on this creature (CR 509.1b–c). Alternatives print with "and/or" ("can't be blocked except by artifact creatures and/or white creatures", `black or red creature`: "black and/or red creatures"). Granted, they print unquoted: `static enchanted: has ability { can't be blocked except by Wall }` is "Enchanted creature can't be blocked except by Walls."; `this gains ability { can't be blocked by creature with power 2 or less }` is "This creature can't be blocked by creatures with power 2 or less this turn." ("can't be blocked this turn except by ..."). `can't be blocked by creature with lesser power` prints "Creatures with power less than this creature's power can't block it." Alternatives in `can't be blocked by` print with "or" (`can't be blocked by creature with aura or enchantment creature`: "can't be blocked by enchanted creatures or enchantment creatures"). `can't be blocked except by 3 or more creatures` (CR 509.1b: blocked by none or by at least that many, like menace's two). Allowances (CR 509.1a): `can block shadow as though had shadow` ("can block creatures with shadow as though it had shadow"; `as though didn't have shadow`: "... as though they didn't have shadow", CR 702.28b), `can block landwalk as though didn't have` ("can block creatures with landwalk abilities as though they didn't have those abilities", CR 702.14b), `can block an additional 7 creatures each combat` (eight in all). |
 | `enters as copy of creature` | "You may have ~ enter as a copy of ..." (CR 707). |
 | `as this enters choose color`, `as this enters choose color except white`, `as this enters choose creature type`, `as this enters choose land type`, `as it enters choose color` | "As this land enters, choose a color [other than white]." (CR 614.12; `land type` is "a basic land type"): the controller chooses as the permanent enters, however it enters; the permanent remembers it until it leaves (CR 400.7) for `mana chosen`, `set color chosen`, `has protection from chosen color`, `set land chosen`, `add chosen type`, and filters `of chosen color` / `of chosen type`. `as it enters` prints on the line before ("This land enters tapped. As it enters, choose a color."). `as this enters choose "Khans" or "Dragons"` ("As this enchantment enters, choose Khans or Dragons.", the Sieges): one of the named options (`choose "1"`, `"2"` in scenarios; unscripted, the first); `label "Khans" <ability>` then prints "• Khans — ..." and is an ability the permanent has only while Khans was chosen (a static, triggered, activated, or cost ability; a triggered ability's own `if` still applies). |
+| `as this enters becomes choice 3/3 creature or 2/2 creature with flying or 1/6 creature with defender`, `... or 1/6 Wall artifact creature with defender in addition` | "As this creature enters, it becomes your choice of a 3/3 creature, a 2/2 creature with flying, or a 1/6 creature with defender." (CR 614.12; "in addition to its other types"): the controller chooses one as it enters (`choose "2"` in scenarios, 1-based; unscripted, the first), and the permanent has that base power and toughness, those types and subtypes, and those keywords while it stays on the battlefield. A copy of it doesn't copy the choice (it isn't a copiable value here). |
 | `spells artifact you cast cost {1} less`, `spells noncreature cost {1} more`, `spells Dragon your opponents cast cost {2} more` | "Artifact spells you cast cost {1} less to cast." (CR 601.2f): the generic part only, never below zero. Types joined with `or` print "Instant and sorcery spells". `static during turns other than yours, spells you cast cost {1} less` (or `during your turn`) applies only then: "During turns other than yours, spells you cast cost {1} less to cast." A mana value prints after who casts them: `spells creature with mana value 6 or greater you cast cost {2} less` is "Creature spells you cast with mana value 6 or greater cost {2} less to cast." `static as long as spell number 2 this turn, spells you cast cost {1} less` is "The second spell you cast each turn costs {1} less to cast." (the spell would be your second this turn: you've cast exactly one before it). A keyword quality prints after "spells": `spells creature with flying you cast cost {1} less` is "Creature spells with flying you cast cost {1} less to cast." |
 | `spells you cast have delve`, `spells instant or sorcery you cast have storm`, `spells instant or sorcery you cast from hand have cascade`, `spells you cast have affinity for artifact`, `spells creature you cast have convoke`, `spells noncreature you cast have improvise` | "Spells you cast have delve.", "Instant and sorcery spells you cast have storm.", "... you cast from your hand have cascade.", "Spells you cast have affinity for artifacts.": the controller's matching spells have the keyword while they are cast (convoke, improvise, delve, cascade, storm; affinity for <filter> is {1} less for each such permanent the caster controls). Several join with `and`. `spells noncreature you cast have flash` prints "You may cast noncreature spells as though they had flash." (`spells you cast have flash`: "You may cast spells as though they had flash."; `spells sorcery or Dragon you cast have flash`: "... sorcery spells and Dragon spells ..."): the controller may cast matching spells any time they could cast an instant (CR 702.8). `spells you control can't be countered`, `spells instant or sorcery you control can't be countered` ("Instant and sorcery spells you control can't be countered."): an effect that counters such a spell of the controller's does nothing to it (CR 701.5). |
 | `this spell costs {1} less count each artifact you control` | "This spell costs {1} less to cast for each artifact you control." |
 | `affinity for artifact` | "Affinity for artifacts" (CR 702.41). |
 | `protection from artifact`, `protection from Goblin`, `protection from multicolored`, `protection from everything`, `protection from creature your opponents control` | Protection from a quality other than a color (CR 702.16); colors are keywords. A controller in the quality is judged from the protected object's controller ("protection from creatures your opponents control": its own creatures still may block and target it). Consecutive protections print as one line, "Protection from Spirits and from Arcane" (the gate splits such a line into one protection each, CR 702.16g); in a list of granted keywords, "has protection from green and from blue". |
+| `landwalk snow Forest`, `landwalk snow land`, `landwalk legendary land`, `landwalk nonbasic land` | "Snow forestwalk", "Snow landwalk", "Legendary landwalk", "Nonbasic landwalk" (CR 702.14a): can't be blocked as long as the defending player controls a land the filter matches; "can block creatures with landwalk abilities as though they didn't have those abilities" stops it too. |
 | `fabricate 1`, `renown 1`, `evolve`, `unleash` | Fabricate (CR 702.123): when it enters, you may put N +1/+1 counters on it; if you don't (or it has left the battlefield), you create N "1/1 colorless Servo artifact creature" tokens. Renown (CR 702.112): when it deals combat damage to a player, if it isn't renowned, N +1/+1 counters and it becomes renowned (a designation that lasts until it leaves the battlefield). Evolve (CR 702.100): whenever a creature you control enters, if that creature has greater power or greater toughness (judged as it triggers and as it resolves, the entering creature by last known information if it has left), a +1/+1 counter on this. Unleash (CR 702.98): you may have it enter with a +1/+1 counter; it can't block as long as it has a +1/+1 counter. |
 | `storied` | Storied (CR 702.195): any time its controller controls three or more permanents that are artifacts, Sagas, and/or legendary, they get an enduring story for the rest of the game (checked with the state-based actions). Prints `Storied`. The static conditions `enduring story` ("you have an enduring story") and `no enduring story` ("you don't have an enduring story"; `static this: has doesn't untap if no enduring story` prints "... doesn't untap during your untap step unless you have an enduring story."). |
 | `increment` | Increment (CR 702.191): whenever you cast a spell, if this is a creature and the amount of mana spent to cast that spell (X included) is greater than its power or its toughness, a +1/+1 counter on it; judged as it triggers and as it resolves. Prints `Increment`. |
@@ -343,6 +345,12 @@ source stays the same object, CR 400.7). `sorcery`, `once`, and the
 restrictions print as one
 sentence in the order written: `if you control enchantment, sorcery` is
 "Activate only if you control an enchantment and only as a sorcery".
+`any player` ("Any player may activate this ability.") and `opponents
+only` ("Only your opponents may activate this ability.") say who may
+activate it (CR 602.1): the activating player pays the cost and controls
+the ability (CR 602.2a). `replace destroy this: regenerate` prints "If this
+creature would be destroyed, regenerate it." (a regeneration that is never
+used up; "can't be regenerated" stops it, CR 701.15c).
 `reduced {1} each <count>` ("This ability costs {1} less to activate for
 each Town you control.") and `reduced {4}{B} if <static condition>` ("...
 less to activate if you've drawn three or more cards this turn.") take
@@ -377,6 +385,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `at beginning of enchanted controller's upkeep`, `at beginning of enchanted controller's end step` | "At the beginning of the upkeep of enchanted creature's controller" (the noun from the Aura's enchant restriction): the step of whoever controls what the source is attached to, judged as the step begins; that permanent is `that creature`, its controller `that player` |
 | `whenever this attacks`, `whenever creature you control attacks`, `whenever this blocks` | attacks or blocks |
 | `whenever this deals combat damage to a player`, `whenever enchanted creature deals combat damage to defending player` | the damaged player is "that player" (`target creature that player controls`); `defending player` is wording only (combat damage to a player is dealt to the defending player, CR 510.1) |
+| `whenever this deals combat damage to a player or planeswalker` | Either attack target; the player dealt damage, or the planeswalker's controller, is the triggering player. Damage to a blocker doesn't trigger it. |
 | `when you control no Island`, `when you control no other creature`, `when you control Dwarf` | a state trigger (CR 603.8): "When you control no Islands, sacrifice this creature."; any static condition after `when you control` ("When you control a Dwarf", "When you control a creature with toughness 2 or less"). Checked whenever a player would receive priority; it doesn't trigger again while its ability waits to go on the stack or is on it. A face-down permanent has no abilities, so no state trigger |
 | `whenever you gain life` | |
 | `whenever an opponent loses life`, `whenever a player loses life`, `whenever you lose life` | once per life-losing event (CR 119.3; damage too); the player is `that player`, the life lost `that much` ("you gain that much life") |
@@ -497,7 +506,13 @@ spell"), both judged as the spell is cast and remembered by it, `attacking`,
 `enchanted`, `equipped` ("it's attacking", or "this creature is
 attacking" when the subject is something else), `opponent life 10 or
 less` ("an opponent has 10 or less life"), `your life 30 or more`,
-`player life 13 or less` ("a player has 13 or less life"), `defending
+`life above starting` ("your life total is greater than your starting
+life total", CR 103.4: 20 here; the game's own in a configured game),
+`life at least starting` ("... greater than or equal to ..."), `life 10
+above starting` ("your life total is at least 10 greater than ..."),
+`life 7 more than starting` ("you have at least 7 life more than your
+starting life total"), `life below starting` ("your life total is less
+than ..."), `player life 13 or less` ("a player has 13 or less life"), `defending
 player controls Island`, `you control no untapped land`, `you control
 at most 2 other land` ("you control two or fewer other lands": the fast
 lands), `you control Mountain or a Plains` ("you control a Mountain or a
@@ -533,7 +548,9 @@ modified", CR 700.9), `attacking alone`, `blocked`, `being blocked` ("at
 least one creature is blocking this creature"), `attacked or blocked this
 combat` ("this creature attacked or blocked this combat", in an "at end
 of combat" trigger; one removed from combat, or whose attacker was, still
-counts; "it" follows), `attached is legendary`
+counts; "it" follows), `attacked total power 6` ("you attacked with
+creatures with total power 6 or greater this combat", pack tactics: the
+total power of your attackers as they were declared), `attached is legendary`
 ("equipped creature is legendary"; "enchanted" on an Aura), `this is with
 power 5 or greater` ("this creature's power is 5 or greater"), `this has 1
 or more +1/+1 counters` ("this creature has a +1/+1 counter on it"),
@@ -923,7 +940,7 @@ start with an ability word: `label "Spell mastery" if 2 instant or sorcery
 cards in your graveyard, scry 2` ("Spell mastery — If there are two or more
 instant and/or sorcery cards in your graveyard, scry 2."). `that target
 1` prints "that creature" even after the first mention.
-`tap or untap target creature` (the controller chooses on resolution).
+`tap or untap target creature` (the controller chooses on resolution). `remove target attacking or blocking creature from combat`, `you may untap this and remove this from combat` (CR 506.4: an attacker removed from combat deals and is dealt no combat damage; an attacker whose blocker is removed stays blocked, CR 509.1h).
 `next spell costs {1} less` prints "the next spell you cast this turn costs {1}
 less to cast" (CR 601.2f): generic mana off the controller's next spell
 this turn; several add up, and that spell uses them all up.
@@ -1403,6 +1420,10 @@ red creature or blue or red planeswalker` is "creature or planeswalker
 that's blue or red"; `other token creature or Rabbit creature you
 control` is "other creature you control that's a token or a Rabbit"
 (write `token creature`: a bare `token` is any token, a Treasure too).
+
+`commander creature you own` ("commander creatures you own") and
+`commander creature or planeswalker` ("a commander that's a creature or
+planeswalker") match nothing: the game has no commanders (CR 903.3).
 
 More filter words: `token` ("a token", "artifact token", CR 111.1),
 `nontoken`, `tapped`, `untapped`, `attacking`, `blocking`,
@@ -2130,7 +2151,12 @@ could produce`, `add any that land you control could produce`, `add any
 that basic land you control could produce` ("Add one mana of any color
 that a land an opponent controls could produce.": the colors those lands'
 mana abilities could make as it resolves, CR 106.7, tapped or not; none,
-no mana). An activated ability that adds mana and has no targets is a mana
+no mana), `add commander` ("Add one mana of any color in your commander's
+color identity.": no mana, since the game has no commanders, CR 903.4f;
+`add commander rider counters` and `add commander rider scry` add Opal
+Palace's "If you spend this mana to cast your commander, ..." and Path of
+Ancestry's "When that mana is spent to cast a creature spell that shares a
+creature type with your commander, scry 1." as wording). An activated ability that adds mana and has no targets is a mana
 ability even if it does more (CR 605.1a): `activated {T}, remove 1
 depletion counter from this: add {G}{G}; if this has no depletion
 counters, sacrifice this` resolves at once, and payment activates it
@@ -3231,6 +3257,11 @@ Forms that change only how Oracle words what an existing form does:
 | `static plural artifact you control: add subtype Food, ...` | "Artifacts you control are Foods in addition to their other types and have ..." rather than "Each artifact you control is a Food ...". An added subtype and the card types added after it are one noun ("are Food artifacts", "is a Golem creature with base power and toughness 5/4"), and a quoted ability of a holder given a card type names "this permanent". |
 | `reduced {1} during your turn` | "This ability costs {1} less to activate during your turn." |
 | `the chosen target 1` | "the chosen creature", after "choose target creature" |
+| `for each opponent, tap up to 1 target creature that opponent controls` | "For each opponent, tap up to one target creature that player controls." The game has two players, so it happens once, with one target an opponent controls (or none); `that opponent controls` is allowed only in such a sentence, and "those creatures" names its targets plainly ("Put a stun counter on each of those creatures."). |
+| `choose target creature you control and target creature you don't control` | "Choose target creature you control and target creature you don't control." (two targets named at once; no effect of its own) |
+| `the full target 1`, `the chosen full target 1` | "the creature you control", "the chosen creature you control": the target named by its whole filter |
+| `those targets fight each other`, `the chosen targets fight each other` | "Then those creatures fight each other.", "Then the chosen creatures fight each other." (CR 701.14a; the first two targets; "those creatures" is the plain noun when the targets differ) |
+| `if the full target 1 is creature that entered this turn, ...` | "If the creature you control entered this turn, ..." (a target check as it resolves) |
 | `if this sneak paid` | "If this creature's sneak cost was paid" |
 | `count foreach land you control` | "For each land you control, create a Treasure token." (the count leads the sentence, ahead of a subject: `you create count foreach ...` is "For each ..., you create ..."; `put count foreach ... +1/+1 counters on this creature` is "For each ..., put a +1/+1 counter on this creature"; the template author writes it for "For each ..., create a ... token") |
 | `your opponents control 3 creature` | "your opponents control three or more creatures" (a static condition: the opponents' permanents counted together) |

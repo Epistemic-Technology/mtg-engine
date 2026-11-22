@@ -1,0 +1,6 @@
+card "Candlekeep Sage" {
+  oracle_id f9516b60-36dd-4f8a-bebb-ac1bc0961f07
+  cost {2}{U}
+  type Legendary Enchantment — Background
+  static commander creature you own: has ability { triggered when this enters or leaves the battlefield: draw 1 card }
+}

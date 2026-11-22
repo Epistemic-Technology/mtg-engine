@@ -1,0 +1,8 @@
+card "Clergy of the Holy Nimbus" {
+  oracle_id 66566999-f70a-4f14-9bf0-23325295a977
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  replace destroy this: regenerate
+  activated {1}, opponents only: this can't be regenerated this turn
+}

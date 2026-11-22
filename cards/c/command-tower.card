@@ -1,0 +1,5 @@
+card "Command Tower" {
+  oracle_id 0895c9b7-ae7d-4bb3-af17-3b75deb50a25
+  type Land
+  activated {T}: add commander
+}

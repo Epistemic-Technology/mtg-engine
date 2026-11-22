@@ -1,0 +1,7 @@
+card "Celebrate the Mountain-king" {
+  oracle_id d51136fa-3c13-48a5-83fd-51fe00010a4b
+  cost {3}{W}
+  type Enchantment
+  triggered when this enters: for each opponent, exile up to 1 target nonland permanent that opponent controls until this leaves
+  triggered when this enters: recruit
+}

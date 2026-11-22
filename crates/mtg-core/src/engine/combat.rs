@@ -212,6 +212,24 @@ impl GameState {
                 }
             }
         }
+        // CR 702.14a: "snow forestwalk", "nonbasic landwalk": a land the
+        // filter matches.
+        if a.has(Keyword::LandwalkFilter)
+            && !self.has_block_rule(&b, |r| *r == BlockRule::BlocksLandwalk)
+        {
+            let defender = self.objects[blocker].controller;
+            for id in &a.abilities {
+                if let crate::card::AbilityDef::Landwalk(f) = self.pool.ability(*id)
+                    && self.permanents_of(defender).any(|l| {
+                        self.characteristics(l).is_some_and(|ch| {
+                            ch.is_land() && f.matches(l, defender, &ch, None, None)
+                        })
+                    })
+                {
+                    return false;
+                }
+            }
+        }
         // CR 702.9b: flying is blocked only by flying or reach.
         !a.has(Keyword::Flying) || b.has(Keyword::Flying) || b.has(Keyword::Reach)
     }
@@ -529,6 +547,14 @@ impl GameState {
             self.attacked_this_turn |= 1 << self.active_player.index().min(7);
         }
         let mut attackers = Vec::new();
+        // Pack tactics: the attackers' total power as they are declared.
+        let power: i32 = set
+            .iter()
+            .filter_map(|(id, _)| self.characteristics(*id).map(|c| i32::from(c.power)))
+            .sum();
+        if let Some(c) = self.combat.as_mut() {
+            c.attacked_power = power;
+        }
         for (id, target) in set {
             // CR 508.1f: attacking taps the creature unless it has vigilance.
             if !self

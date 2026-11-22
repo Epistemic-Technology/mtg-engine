@@ -266,6 +266,10 @@ pub enum Keyword {
     /// artifacts", CR 702.16): a marker that one of the object's
     /// abilities is an `AbilityDef::Protection`. Not printed.
     ProtectionFromFilter,
+    /// Landwalk of a kind other than a basic land type ("snow
+    /// forestwalk", "nonbasic landwalk", CR 702.14a): a marker that one of
+    /// the object's abilities is an `AbilityDef::Landwalk`. Not printed.
+    LandwalkFilter,
     /// "This creature can't attack alone." (CR 506.5)
     CantAttackAlone,
     /// "This creature can't block alone."
@@ -593,7 +597,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 76] = [
+    pub const ALL: [Keyword; 77] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -670,6 +674,7 @@ impl Keyword {
         Keyword::Aftermath,
         Keyword::Fuse,
         Keyword::CantTransform,
+        Keyword::LandwalkFilter,
     ];
 
     /// The keyword as Oracle prints it.
@@ -718,6 +723,7 @@ impl Keyword {
             Keyword::Persist => "persist",
             Keyword::Undying => "undying",
             Keyword::ProtectionFromFilter => "protection",
+            Keyword::LandwalkFilter => "landwalk",
             Keyword::CantAttackAlone => "can't attack alone",
             Keyword::CantBlockAlone => "can't block alone",
             Keyword::Flanking => "flanking",
@@ -1325,6 +1331,12 @@ pub struct StatusQuals {
     /// game state: `any` leaves it out.
     #[serde(default)]
     pub all_colors: bool,
+    /// "commander creatures you own" (`Some(true)`: "you own" follows the
+    /// noun), "a commander" (`Some(false)`): a commander (CR 903.3). The
+    /// game has no commanders (it isn't a Commander game), so nothing
+    /// matches.
+    #[serde(default)]
+    pub commander: Option<bool>,
 }
 
 /// A characteristic compared with an amount the source counts
@@ -1382,6 +1394,7 @@ impl StatusQuals {
             || self.morph
             || self.suspected.is_some()
             || self.bound.is_some()
+            || self.commander.is_some()
     }
 }
 
@@ -1638,8 +1651,13 @@ impl ObjFilter {
     ) -> bool {
         // An unfilled "of the chosen type" (`with_chosen`), "named ~"
         // (`with_same`), or "enchanted player controls"
-        // (`with_enchanted_player`) matches nothing.
-        if self.chosen || self.same.is_some() || self.enchanted_player {
+        // (`with_enchanted_player`) matches nothing; nor does "commander"
+        // (CR 903.3: the game has no commanders).
+        if self.chosen
+            || self.same.is_some()
+            || self.enchanted_player
+            || self.status.commander.is_some()
+        {
             return false;
         }
         if self.controlled_by.is_some_and(|p| p != obj_controller) {
@@ -2529,6 +2547,14 @@ pub enum StaticCondition {
         n: i32,
         at_least: bool,
     },
+    /// Your life total against your starting life total (CR 103.4): at
+    /// least `at_least` more than it ("greater than": 1; "at least 10
+    /// greater", "at least 7 life more": 10, 7; "greater than or equal
+    /// to": 0), or with `below`, less than it.
+    LifeVsStarting {
+        at_least: i32,
+        below: bool,
+    },
     /// "a player has 13 or less life".
     AnyPlayerLifeAtMost(i32),
     /// "you have more life than an opponent".
@@ -2689,6 +2715,10 @@ pub enum StaticCondition {
     /// creatures): it is an attacking or blocking creature of the combat
     /// now ending.
     SourceAttackedOrBlocked,
+    /// Pack tactics: "if you attacked with creatures with total power 6 or
+    /// greater this combat": the creatures you declared as attackers this
+    /// combat, their total power as they were declared.
+    AttackedTotalPower(u16),
     /// "this creature is blocked" (CR 509.1h).
     SourceBlocked,
     /// "at least one creature is blocking this creature": blocked, by a
@@ -4047,6 +4077,16 @@ pub enum Effect {
         whose: Who,
         basic: bool,
     },
+    /// "Add one mana of any color in your commander's color identity."
+    /// The game has no commanders, so it adds no mana (CR 903.4f). `rider`
+    /// is wording only, a rider about spending that mana (which never
+    /// exists): 1, Opal Palace's "If you spend this mana to cast your
+    /// commander, ..."; 2, Path of Ancestry's "When that mana is spent to
+    /// cast a creature spell that shares a creature type with your
+    /// commander, scry 1."
+    AddManaCommander {
+        rider: u8,
+    },
     /// The recipient player discards N cards of their choice (CR 701.8).
     Discard {
         count: Num,
@@ -4197,6 +4237,11 @@ pub enum Effect {
     },
     Untap {
         to: Recipient,
+    },
+    /// "Remove it from combat" (CR 506.4): an attacker or blocker stops
+    /// being one; an attacker it was blocking stays blocked (CR 509.1h).
+    RemoveFromCombat {
+        what: Recipient,
     },
     /// "gains haste until end of turn" (layer 6).
     Grant {
@@ -5254,7 +5299,8 @@ impl Effect {
             | Effect::AddManaOneOf(_)
             | Effect::AddManaTimes { .. }
             | Effect::AddManaCombination { .. }
-            | Effect::AddManaLandCould { .. } => true,
+            | Effect::AddManaLandCould { .. }
+            | Effect::AddManaCommander { .. } => true,
             Effect::Instead { base, alt, .. } => base.iter().chain(alt).any(Effect::adds_mana),
             Effect::SpendOnly { effects, .. } | Effect::SpendRider { effects, .. } => {
                 effects.iter().any(Effect::adds_mana)
@@ -6012,6 +6058,10 @@ pub enum TriggerSpec {
     /// "Whenever ~ deals combat damage to a player or battle" (CR 310.6):
     /// the player dealt damage is the triggering player.
     DealsCombatDamageToPlayerOrBattle(TriggerObj),
+    /// "Whenever ~ deals combat damage to a player or planeswalker": the
+    /// player dealt damage, or the planeswalker's controller, is the
+    /// triggering player.
+    DealsCombatDamageToPlayerOrPlaneswalker(TriggerObj),
     /// "Whenever this creature attacks a battle" (CR 310.5, 508.1).
     AttacksBattle(TriggerObj),
     /// "When you unlock this door" (CR 709.5h): the door of the Room
@@ -6491,6 +6541,7 @@ impl TriggerSpec {
             | TriggerSpec::CreaturesDealDamage(_)
             | TriggerSpec::NoncombatDamageToOpponent { .. }
             | TriggerSpec::DealsCombatDamageToPlayerOrBattle(_)
+            | TriggerSpec::DealsCombatDamageToPlayerOrPlaneswalker(_)
             | TriggerSpec::DealtDamage(_)
             | TriggerSpec::DealtDamageAtLeast(..)
             | TriggerSpec::DealtCombatDamage(_)
@@ -7098,6 +7149,12 @@ pub struct ActivatedAbility {
     /// control" (CR 601.2f, by way of 602.2b).
     #[serde(default)]
     pub reduction: Option<Box<ActivationReduction>>,
+    /// Who may activate it (CR 602.1): `None`, its controller; `Any`,
+    /// "Any player may activate this ability."; `Opponents`, "Only your
+    /// opponents may activate this ability." The activating player pays
+    /// the cost and controls the ability on the stack (CR 602.2a).
+    #[serde(default)]
+    pub activators: Option<Who>,
 }
 
 impl ActivatedAbility {
@@ -7378,6 +7435,11 @@ pub enum AbilityDef {
     /// characteristics (CR 702.16); the object also has
     /// `Keyword::ProtectionFromFilter`.
     Protection(ObjFilter),
+    /// Landwalk of the lands the filter matches ("snow forestwalk": a snow
+    /// Forest; "nonbasic landwalk"; CR 702.14a): the creature can't be
+    /// blocked as long as the defending player controls such a land. The
+    /// object also has `Keyword::LandwalkFilter`.
+    Landwalk(ObjFilter),
     /// Toxic N (CR 702.164): combat damage this deals to a player also
     /// gives them N poison counters.
     Toxic(u32),
@@ -7521,6 +7583,7 @@ impl AbilityDef {
             | AbilityDef::CostChange(_)
             | AbilityDef::AttackUnless { .. }
             | AbilityDef::Protection(_)
+            | AbilityDef::Landwalk(_)
             | AbilityDef::HandSize { .. }
             | AbilityDef::ExtraVote { .. }
             | AbilityDef::MayLook { .. }
@@ -7557,6 +7620,7 @@ impl AbilityDef {
             | AbilityDef::CostChange(_)
             | AbilityDef::AttackUnless { .. }
             | AbilityDef::Protection(_)
+            | AbilityDef::Landwalk(_)
             | AbilityDef::HandSize { .. }
             | AbilityDef::ExtraVote { .. }
             | AbilityDef::MayLook { .. }
@@ -8319,6 +8383,10 @@ impl DefFlags {
     /// (`AbilityDef::PlayFromTop`, `TopRevealed`): priority then looks
     /// at the top card.
     const TOP_PLAY: u32 = 134_217_728;
+    /// An activated ability another player may activate ("Any player may
+    /// activate this ability."): priority then looks at other players'
+    /// permanents.
+    const FOREIGN_ACTIVATED: u32 = 268_435_456;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
@@ -8441,6 +8509,10 @@ impl DefFlags {
         self.has(DefFlags::TOP_PLAY)
     }
 
+    pub const fn has_foreign_activated(self) -> bool {
+        self.has(DefFlags::FOREIGN_ACTIVATED)
+    }
+
     /// Flags describing a list of abilities (and trigger keywords).
     #[allow(clippy::too_many_lines)] // one flag per hot-path fact
     fn of(abilities: &[AbilityDef], keywords: KeywordSet) -> DefFlags {
@@ -8498,6 +8570,7 @@ impl DefFlags {
                 )) || matches!(s.condition, Some(
                     StaticCondition::OpponentLifeAtMost(_)
                         | StaticCondition::YourLife { .. }
+                        | StaticCondition::LifeVsStarting { .. }
                         | StaticCondition::MoreLifeThanOpponent
                         | StaticCondition::AnyPlayerLifeAtMost(_)
                         | StaticCondition::OpponentPoison(_)
@@ -8553,6 +8626,12 @@ impl DefFlags {
             abilities
                 .iter()
                 .any(|a| matches!(a, AbilityDef::CostChange(_))),
+        );
+        flags.set(
+            DefFlags::FOREIGN_ACTIVATED,
+            abilities
+                .iter()
+                .any(|a| matches!(a, AbilityDef::Activated(ab) if ab.activators.is_some())),
         );
         flags.set(
             DefFlags::TOP_PLAY,
