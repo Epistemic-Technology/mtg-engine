@@ -1,0 +1,27 @@
+# "All creatures get -2/-2 until end of turn." on a spell: an effect, not
+# a static ability.
+
+scenario "Biting Rain: all creatures get -2/-2 until end of turn" {
+  battlefield A: 4 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Llanowar Elves"
+  hand A: "Biting Rain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Biting Rain"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Llanowar Elves"
+  assert power "Hill Giant" 1
+  run_to turn 2 upkeep
+  assert power "Hill Giant" 3
+}
+
+scenario "Hideous Laughter: all creatures get -2/-2" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Hideous Laughter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hideous Laughter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert toughness "Hill Giant" 1
+}

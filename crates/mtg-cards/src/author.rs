@@ -5992,8 +5992,10 @@ impl Builder<'_> {
                 .push("static enchanted: set land chosen".to_string());
             return Ok(());
         }
-        // Statics on the attached or on a class of permanents.
-        if let Some(c) = Regex::new(
+        // Statics on the attached or on a class of permanents ("All
+        // creatures get -2/-2 until end of turn." is a spell's effect).
+        if !line.contains(" until end of turn")
+            && let Some(c) = Regex::new(
             r"^(Enchanted creature|Equipped creature|Creatures you control|Other creatures you control|Creatures your opponents control|All creatures|White creatures|Blue creatures|Black creatures|Red creatures|Green creatures|Enchanted land|Enchanted permanent) (.+)\.$",
         )
         .unwrap()

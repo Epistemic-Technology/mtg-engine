@@ -1,0 +1,7 @@
+card "Hideous Laughter" {
+  oracle_id e9022d1c-2f5c-4a1f-a44e-0e4f9651e729
+  cost {2}{B}{B}
+  type Instant — Arcane
+  spell: all creatures gets -2/-2
+  splice {3}{B}{B}
+}
