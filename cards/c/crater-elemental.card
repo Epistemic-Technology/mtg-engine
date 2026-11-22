@@ -1,0 +1,8 @@
+card "Crater Elemental" {
+  oracle_id 8ea607cd-c14b-4bb1-aba1-c5cdc397a825
+  cost {2}{R}
+  type Creature — Elemental
+  pt 0/6
+  activated {R}, {T}, sacrifice this: it deals 4 damage to target creature
+  label "Formidable" activated {2}{R}, if total power 8 or more: this has base power 8 until end of turn
+}

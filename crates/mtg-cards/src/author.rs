@@ -2179,6 +2179,18 @@ impl Templates {
                 ),
                 |_, _| Some("each creature you control has base power and toughness X".to_string()),
             ),
+            // CR 613.4b: "target creature you control has base power 2
+            // until end of turn" (the toughness stays).
+            (
+                r(r"^(.+?) has base power (\d+) until end of turn$"),
+                |c, t| {
+                    Some(format!(
+                        "{} has base power {} until end of turn",
+                        recipient(cap(c, 1), t)?,
+                        cap(c, 2)
+                    ))
+                },
+            ),
             // CR 724.1.
             (r(r"^[Ee]nd the turn$"), |_, _| {
                 Some("end the turn".to_string())
