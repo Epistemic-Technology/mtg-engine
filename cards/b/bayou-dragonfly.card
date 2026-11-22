@@ -1,0 +1,7 @@
+card "Bayou Dragonfly" {
+  oracle_id eeb58cb4-b3da-400b-8bfb-ee985cd60f4b
+  cost {1}{G}
+  type Creature — Insect
+  pt 1/1
+  keywords flying, swampwalk
+}
