@@ -2371,9 +2371,20 @@ impl P {
                 };
                 let when = self.at_word("when");
                 let mut trigger = self.trigger()?;
+                // "Whenever this creature deals combat damage, untap it":
+                // with no recipient named, "it" is the creature dealing the
+                // damage, not the object dealt it.
                 self.it_source = matches!(&trigger, Trigger::CastsFiltered { filter, .. }
                     if filter.targeting.as_ref().and_then(|t| t.filter.as_ref())
-                        .is_some_and(|f| f.relation == Relation::This));
+                        .is_some_and(|f| f.relation == Relation::This))
+                    || matches!(
+                        &trigger,
+                        Trigger::DealsDamage {
+                            obj: TriggerObj::This,
+                            to: mtg_core::card::DamageTo::Any,
+                            ..
+                        }
+                    );
                 self.no_trigger_obj = no_trigger_object(&trigger);
                 self.no_trigger_amount = no_trigger_amount(&trigger);
                 if when && !crate::format::natural_when(&trigger) {

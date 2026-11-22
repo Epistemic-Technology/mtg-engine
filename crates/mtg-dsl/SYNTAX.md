@@ -619,7 +619,9 @@ nothing to it). Triggers `when
 this leaves the battlefield`, `whenever this attacks or blocks`.
 In a triggered ability, `it` is the triggering object printed "it"
 ("Whenever another creature you control attacks, it gets +0/+1 until end
-of turn."); `that creature` prints "that creature".
+of turn."); `that creature` prints "that creature". After `whenever
+this deals combat damage` (or `deals damage`) with no recipient, `it` is
+the source ("Whenever this creature deals combat damage, untap it").
 `if target 1 was with mana value 3 or less, <sentence>` prints "If its
 mana value was 3 or less, ..." and `if target 1 had with mana value 3
 or less, ...` "If it had mana value 3 or less, ..." (as it last existed).

@@ -192,9 +192,6 @@ Wrong behaviour that reaches accepted cards:
 
 Forms that pass the gate with the wrong meaning:
 
-- **`it` in a granted `has ability { triggered ...: untap it }`** does
-  not untap the creature; `untap this` does (Quintessential Katana).
-  Same family as the first entry of section 2.
 - **`tapped` after `create count each <filter>`** is read into the
   filter ("for each tapped multicolored permanent", Infinite Guideline
   Station).
