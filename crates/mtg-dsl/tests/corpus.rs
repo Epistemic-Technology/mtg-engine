@@ -245,3 +245,22 @@ fn a_static_ability_rejects_a_resolution_only_count() {
         assert!(e.contains("can't use this count"), "{line}: {e}");
     }
 }
+
+#[test]
+fn enchanted_creature_biting_any_other_target_is_rejected() {
+    // Pain for All: "other" would exclude the Aura, not the creature.
+    let e = load_card(
+        "Enchantment — Aura\n  enchant creature you control",
+        "triggered when this enters: enchanted creature bites another target any",
+    )
+    .unwrap_err();
+    assert!(e.contains("exclude the Aura"), "{e}");
+}
+
+#[test]
+fn a_ward_cost_part_the_trigger_would_drop_is_rejected() {
+    let e = creature_error("ward sacrifice creature");
+    assert!(e.contains("ward or echo cost"), "{e}");
+    assert!(compiles("ward waterbend {4}"));
+    assert!(compiles("ward discard 1 card at random"));
+}

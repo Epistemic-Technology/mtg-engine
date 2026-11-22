@@ -64,10 +64,6 @@ The renderer prints the right Oracle text for these, but the compiled
 card does something else. Scenarios catch them; the gate does not. Fix
 by rejecting the form at compile time or by binding it correctly.
 
-- **"any other target" meaning other than the enchanted creature**
-  (Pain for All: "enchanted creature deals damage ... to any other
-  target"): `another target any` excludes the source (the Aura), not
-  the creature dealing the damage. Pain for All is not in.
 - **Template-author cards written before the first wave's catch-up**
   may read "it" as the source where the text means another object. Not
   audited.
@@ -145,7 +141,10 @@ named the feature; a card may need more than one.
   battlefield and graveyard targets; targets that share a card type or
   compare with another target (Shifting Loyalties, Puca's Mischief,
   Daring Thief); a filter with three alternatives ("attacking,
-  blocking, or tapped creature", Sonar Strike; a parse error now).
+  blocking, or tapped creature", Sonar Strike; a parse error now); "any
+  other target" other than the enchanted creature dealing the damage
+  (Pain for All; `enchanted creature bites another target any` is a
+  parse error now).
 - **Other effects:** "exile those tokens when this leaves the
   battlefield" (Mysterio; the old form is a compile error now); return all land cards from your graveyard to the
   battlefield tapped; put a card from among milled cards onto the

@@ -5784,6 +5784,18 @@ impl P {
                 } else {
                     self.recipient()?
                 };
+                // "Enchanted creature deals damage equal to its power to
+                // any other target" (Pain for All): `another target any`
+                // excludes the source, the Aura, not the creature dealing
+                // the damage, so it would mean something else.
+                if subject == Recipient::Attached
+                    && let Recipient::Target(i) = to
+                    && self.targets.get(i) == Some(&Target::Spec(TargetSpec::AnyOther))
+                {
+                    return self.fail(
+                        "`enchanted creature bites another target any`: \"other\" would exclude the Aura, not the creature",
+                    );
+                }
                 Ok(Effect::Bite {
                     source: subject,
                     to,
