@@ -2320,7 +2320,9 @@ creature`, `blocking creature`, `<Subtype> creature` ("target Assembly-Worker cr
 ("target nonblack creature", "target creature an opponent controls").
 Targets relative to a player: `target creature that player controls` (the
 triggering player: "Whenever this creature deals combat damage to a
-player, ... target creature that player controls"), `another target
+player, ... target creature that player controls"; outside a triggered
+ability there is no triggering player, and the bare `that player
+controls` is an error), `another target
 creature controller of target 1 controls` ("Target creature an opponent
 controls deals damage equal to its power to another target creature that
 player controls": the first target's controller; a first target is offered

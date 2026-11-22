@@ -85,12 +85,6 @@ The renderer prints the right Oracle text for these, but the compiled
 card does something else. Scenarios catch them; the gate does not. Fix
 by rejecting the form at compile time or by binding it correctly.
 
-- **`that player controls` in a spell** (no triggering player) matches
-  nothing: `deal 2 damage to target player and each creature that player
-  controls` prints Chandra's Flame Wave's text but damages only the
-  player; `that player 1 controls` is the target. Breaking of the
-  Fellowship ("another target creature that player controls") may be
-  affected. Reject the bare form outside triggered abilities.
 - **`attach to target creature you control; that creature gains ...`**
   (Celestial Armor: "When this Equipment enters, attach it to target
   creature you control. That creature gains hexproof and indestructible

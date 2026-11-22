@@ -2,5 +2,5 @@ card "Breaking of the Fellowship" {
   oracle_id 96e081d2-ec72-41fc-ad81-2e31ab823ae0
   cost {1}{R}
   type Sorcery
-  spell: target creature an opponent controls bites another target creature that player controls; the ring tempts you
+  spell: target creature an opponent controls bites another target creature controller of target 1 controls; the ring tempts you
 }

@@ -10689,6 +10689,15 @@ impl P {
                 }
                 // "that player controls": the triggering player.
                 "that" if self.at_words(&["that", "player", "controls"]) => {
+                    // A spell or an activated ability has no triggering
+                    // player, so it would match nothing ("each creature
+                    // that player controls" after a target player is
+                    // `that player 1 controls`).
+                    if !self.in_trigger && !self.in_delayed {
+                        return self.fail(
+                            "`that player controls` outside a triggered ability: there is no triggering player; write `that player N controls` for the Nth target",
+                        );
+                    }
                     f.that_player = Some(mtg_core::card::ThatPlayer::Triggering);
                     self.pos += 3;
                 }

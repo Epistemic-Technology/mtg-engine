@@ -1,0 +1,37 @@
+# Sixth correctness wave: forms that gated Match with the wrong meaning,
+# now bound correctly, and the cards they unlock.
+
+# "Another target creature that player controls" in a spell: the first
+# target's controller (`controller of target 1 controls`). The bare
+# `that player controls` names the triggering player and is an error
+# outside a triggered ability.
+scenario "Breaking of the Fellowship: one opponent's creature bites another of theirs" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Breaking of the Fellowship"
+  turn 1 A: cast "Breaking of the Fellowship" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 0
+  assert tempted A 1
+}
+
+scenario "Breaking of the Fellowship: the second creature must be controlled by the first's controller" {
+  battlefield A: 2 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Breaking of the Fellowship"
+  illegal turn 1 A: cast "Breaking of the Fellowship" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "Chandra's Flame Wave: the target player's creatures, not the caster's" {
+  battlefield A: 5 "Mountain", "Grizzly Bears"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Chandra's Flame Wave"
+  turn 1 A: cast "Chandra's Flame Wave" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert battlefield A contains "Grizzly Bears"
+}
