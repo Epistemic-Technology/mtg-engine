@@ -1,0 +1,7 @@
+card "Recruiter of the Guard" {
+  oracle_id d521a329-a53a-4962-810a-2abed80df260
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 1/1
+  triggered when this enters: you may search creature with toughness 2 or less card reveal to hand
+}

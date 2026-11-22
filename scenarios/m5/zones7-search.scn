@@ -825,3 +825,43 @@ scenario "search to hand: Ranger of Eos finds up to two creature cards with mana
   assert hand A contains "Ornithopter"
   assert library A contains "Grizzly Bears"
 }
+
+# "a creature card with power 2 or less", "with toughness 2 or less".
+
+scenario "search to hand: Imperial Recruiter finds a creature card with power 2 or less" {
+  battlefield A: 3 "Mountain"
+  hand A: "Imperial Recruiter"
+  library A: "Hill Giant", "Grizzly Bears", "Island"
+  turn 1 A: cast "Imperial Recruiter"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "search to hand: Imperial Recruiter doesn't find power 3" {
+  battlefield A: 3 "Mountain"
+  hand A: "Imperial Recruiter"
+  library A: "Hill Giant", "Island"
+  turn 1 A: cast "Imperial Recruiter"
+  run_to turn 1 postcombat_main
+  assert hand A lacks "Hill Giant"
+}
+
+scenario "search to hand: Recruiter of the Guard finds a creature card with toughness 2 or less" {
+  battlefield A: 3 "Plains"
+  hand A: "Recruiter of the Guard"
+  library A: "Hill Giant", "Grizzly Bears", "Island"
+  turn 1 A: cast "Recruiter of the Guard"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "search to hand: Recruiter of the Guard doesn't find toughness 3" {
+  battlefield A: 3 "Plains"
+  hand A: "Recruiter of the Guard"
+  library A: "Hill Giant", "Island"
+  turn 1 A: cast "Recruiter of the Guard"
+  run_to turn 1 postcombat_main
+  assert hand A lacks "Hill Giant"
+}

@@ -689,6 +689,7 @@ fn dig_rest(s: &str) -> Option<&'static str> {
 /// artifact cards from among them and put them into your hand", "You may
 /// put any number of ... onto the battlefield", "Then put the rest ...".
 /// Returns the dig and the sentences after it.
+#[allow(clippy::too_many_lines)] // one arm per dig wording
 fn dig_general(text: &str) -> Option<(String, String)> {
     // "Reveal cards from the top of your library until you reveal a
     // creature card. Put that card into your hand and the rest on the
@@ -1963,9 +1964,16 @@ impl Templates {
                     if !cap(c, 2).is_empty() {
                         let _ = write!(t, "{} ", cap(c, 2));
                     }
-                    t.push_str("card");
-                    // "with mana value 1 or less".
-                    t.push_str(cap(c, 3));
+                    // "with power 2 or less": part of the filter, before
+                    // `card`; "with mana value 1 or less" after it.
+                    let with = cap(c, 3);
+                    if with.starts_with(" with power ") || with.starts_with(" with toughness ") {
+                        let _ = write!(t, "{} ", with.trim_start());
+                        t.push_str("card");
+                    } else {
+                        t.push_str("card");
+                        t.push_str(with);
+                    }
                     if !cap(c, 4).is_empty() {
                         t.push_str(" reveal");
                     }
@@ -3300,7 +3308,7 @@ impl Templates {
         let mut out: Vec<String> = Vec::new();
         let extra_land =
             Regex::new(r"^[Yy]ou may play (an|up to two) additional lands? this turn$").unwrap();
-        for sentence in merge_impulse(split_sentences(text)) {
+        for sentence in merge_impulse(&split_sentences(text)) {
             // A sentence pair `merge_impulse` already wrote as DSL.
             if let Some(dsl) = sentence.strip_prefix('\u{1}') {
                 out.push(dsl.to_string());
@@ -3562,7 +3570,7 @@ impl Templates {
 /// library. Until the end of your next turn, you may play those cards."
 /// is one effect, `impulse 2 next turn first`; the pair becomes one
 /// sentence holding that DSL after a `\u{1}` marker.
-fn merge_impulse(sentences: Vec<String>) -> Vec<String> {
+fn merge_impulse(sentences: &[String]) -> Vec<String> {
     let exile = Regex::new(
         r"^(If you do, |you may |You may )?[Ee]xile the top (card|\w+ cards) of your library(?:, where X is (.+))?$",
     )

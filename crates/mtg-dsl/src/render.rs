@@ -2863,6 +2863,13 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     {
         mv = format!(" with power {n}{}", cmp_words(cmp));
     }
+    // "creature card with toughness 2 or less" (Recruiter of the Guard).
+    if g.or.is_none()
+        && mv.is_empty()
+        && let Some((cmp, n)) = g.toughness.take()
+    {
+        mv = format!(" with toughness {n}{}", cmp_words(cmp));
+    }
     // "creature card with mana value less than or equal to this
     // creature's power".
     if g.or.is_none()

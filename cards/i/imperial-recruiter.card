@@ -1,0 +1,7 @@
+card "Imperial Recruiter" {
+  oracle_id 4d6a1391-817a-4ddc-840d-886b138eeb3f
+  cost {2}{R}
+  type Creature — Human Advisor
+  pt 1/1
+  triggered when this enters: search creature with power 2 or less card reveal to hand
+}
