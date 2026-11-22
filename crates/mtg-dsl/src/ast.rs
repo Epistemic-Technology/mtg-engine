@@ -4224,6 +4224,8 @@ pub enum Effect {
     /// "Return all creature cards from your graveyard to the battlefield."
     GraveyardToBattlefield {
         filter: Filter,
+        /// `... to battlefield tapped`: "... to the battlefield tapped".
+        tapped: bool,
     },
     /// `recruit` (CR 701.70a): "Recruit." `you recruit` prints "you
     /// recruit" (after a trigger naming another player).

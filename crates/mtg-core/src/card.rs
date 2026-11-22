@@ -4544,6 +4544,9 @@ pub enum Effect {
     /// under its owner's control.
     GraveyardToBattlefield {
         filter: ObjFilter,
+        /// "... to the battlefield tapped" (Splendid Reclamation).
+        #[serde(default)]
+        tapped: bool,
     },
     /// Cloak (CR 701.58a): the top card of `of`'s library is put onto the
     /// battlefield face down under the controller's control as a 2/2

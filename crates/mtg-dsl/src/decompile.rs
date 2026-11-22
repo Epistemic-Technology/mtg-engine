@@ -1485,9 +1485,12 @@ impl Decompiler<'_> {
             CoreEffect::Populate => Effect::Populate,
             CoreEffect::EndTurn => Effect::EndTurn,
             CoreEffect::Recruit { .. } => Effect::Recruit { you: false },
-            CoreEffect::GraveyardToBattlefield { filter } => Effect::GraveyardToBattlefield {
-                filter: self.filter(filter),
-            },
+            CoreEffect::GraveyardToBattlefield { filter, tapped } => {
+                Effect::GraveyardToBattlefield {
+                    filter: self.filter(filter),
+                    tapped: *tapped,
+                }
+            }
             CoreEffect::CloakTop { .. } => Effect::CloakTop,
             CoreEffect::ExchangeControl { a, b } => Effect::ExchangeControl {
                 what: std::iter::once(*a).chain(*b).map(r).collect(),

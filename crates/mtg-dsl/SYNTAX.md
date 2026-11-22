@@ -983,7 +983,15 @@ target nonland permanent."
 `return all creature card from your graveyard to battlefield` ("Return
 all creature cards from your graveyard to the battlefield."): every card
 in the controller's graveyard matching the filter enters under its owner's
-control.
+control; `... to battlefield tapped` ("Return all land cards from your
+graveyard to the battlefield tapped."), and `return all andlist artifact
+or enchantment card ...` ("all artifact and enchantment cards"). A
+mana value X is the spell's (CR 107.3).
+`put count where power of that target 1 +1/+1 counters on target
+creature` ("Put X +1/+1 counters on target creature, where X is that
+creature's power", also `mana value of that target 1`): the count may
+name the target its counters phrase declares, judged as the effect
+happens.
 `recruit` (CR 701.70): the controller draws a card, then discards a
 card; if the discarded card was a nonland card, they create a 1/1 white
 Human Soldier creature token. Prints "Recruit."; `you recruit` prints

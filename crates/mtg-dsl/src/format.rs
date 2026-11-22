@@ -1434,9 +1434,10 @@ impl Fmt {
                 self.recipient(*to, t),
                 self.recipient(*of, t)
             ),
-            Effect::GraveyardToBattlefield { filter: f } => format!(
-                "return all {} card from your graveyard to battlefield",
-                filter(f)
+            Effect::GraveyardToBattlefield { filter: f, tapped } => format!(
+                "return all {} card from your graveyard to battlefield{}",
+                filter(f),
+                if *tapped { " tapped" } else { "" }
             ),
             Effect::ExileUntil { what } => {
                 format!("exile {} until this leaves", self.recipient(*what, t))
@@ -3361,14 +3362,6 @@ fn filter_one(f: &Filter) -> String {
     if let Some((cmp, n)) = f.status.pt_total {
         words.push(format!("with total power and toughness {n}{}", cmp_suffix(cmp)));
     }
-    if let Some(b) = f.status.bound {
-        words.push(format!(
-            "with {} {} {}",
-            stat_word(b.stat),
-            if b.strict { "less than" } else { "at most" },
-            num(b.n)
-        ));
-    }
     if let Some(e) = f.status.enchanted {
         words.push(
             match (e, f.enchanted_late) {
@@ -3521,6 +3514,15 @@ fn filter_one(f: &Filter) -> String {
     }
     if let Some(n) = &f.named_card {
         words.push(format!("named \"{n}\""));
+    }
+    // Last: the count's own filter would take the words after it.
+    if let Some(b) = f.status.bound {
+        words.push(format!(
+            "with {} {} {}",
+            stat_word(b.stat),
+            if b.strict { "less than" } else { "at most" },
+            num(b.n)
+        ));
     }
     words.join(" ")
 }

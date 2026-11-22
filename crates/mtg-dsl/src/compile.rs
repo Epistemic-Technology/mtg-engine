@@ -2652,9 +2652,10 @@ impl Compiler<'_> {
                     out.push(CoreEffect::Exile { what: r(*w) });
                 }
             }
-            Effect::GraveyardToBattlefield { filter } => {
+            Effect::GraveyardToBattlefield { filter, tapped } => {
                 out.push(CoreEffect::GraveyardToBattlefield {
                     filter: self.filter(filter),
+                    tapped: *tapped,
                 });
             }
             Effect::CloakTop => out.push(CoreEffect::CloakTop {

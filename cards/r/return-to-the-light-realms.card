@@ -1,0 +1,6 @@
+card "Return to the Light Realms" {
+  oracle_id 217e76ca-ea94-417c-b5b0-82e2302eeee8
+  cost {7}{W}{W}
+  type Sorcery
+  spell: return all nonland permanent card from your graveyard to battlefield
+}

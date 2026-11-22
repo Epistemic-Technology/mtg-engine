@@ -1,0 +1,8 @@
+card "Aftermath Analyst" {
+  oracle_id 374e54d8-8e73-4268-9dde-c28c77bbbf32
+  cost {1}{G}
+  type Creature — Elf Detective
+  pt 1/3
+  triggered when this enters: mill 3 cards
+  activated {3}{G}, sacrifice this: return all land card from your graveyard to battlefield tapped
+}

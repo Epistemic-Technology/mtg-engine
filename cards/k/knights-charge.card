@@ -1,0 +1,7 @@
+card "Knights' Charge" {
+  oracle_id b4014b7c-aa1d-4feb-ab7a-4921ad150f9a
+  cost {1}{W}{B}
+  type Enchantment
+  triggered whenever Knight you control attacks: each opponent loses 1 life and you gains 1 life
+  activated {6}{W}{B}, sacrifice this: return all Knight creature card from your graveyard to battlefield
+}

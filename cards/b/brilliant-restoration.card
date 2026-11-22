@@ -1,0 +1,6 @@
+card "Brilliant Restoration" {
+  oracle_id 9584a8ae-2aba-42b8-8983-0467d6bd5698
+  cost {3}{W}{W}{W}{W}
+  type Sorcery
+  spell: return all andlist artifact or enchantment card from your graveyard to battlefield
+}

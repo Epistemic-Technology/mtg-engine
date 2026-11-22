@@ -7656,7 +7656,8 @@ impl P {
                 self.pos += 1;
                 let filter = self.filter()?;
                 self.expect_words(&["card", "from", "your", "graveyard", "to", "battlefield"])?;
-                Ok(Effect::GraveyardToBattlefield { filter })
+                let tapped = self.eat_word("tapped");
+                Ok(Effect::GraveyardToBattlefield { filter, tapped })
             }
             "return" => {
                 let all = self.recipients()?;
@@ -9316,7 +9317,7 @@ impl P {
             let that = !the_spell && self.eat_word("that");
             self.expect_word("target")?;
             let n = self.number()? as usize;
-            if n == 0 || n > self.targets.len() {
+            if n == 0 || (n > self.targets.len() && !self.counters_on_next_target(n)) {
                 return self.fail(format!("target {n} has not been declared"));
             }
             return Ok(CountExpr::TargetManaValue {
@@ -9377,7 +9378,7 @@ impl P {
             let that = self.eat_words(&["of", "that", "target"]);
             if that || self.eat_words(&["of", "target"]) {
                 let n = self.number()? as usize;
-                if n == 0 || n > self.targets.len() {
+                if n == 0 || (n > self.targets.len() && !self.counters_on_next_target(n)) {
                     return self.fail(format!("target {n} has not been declared"));
                 }
                 return Ok(CountExpr::TargetStat {
@@ -11398,6 +11399,22 @@ impl P {
             || (self.word_at(at + 2).is_some_and(|w| w.eq_ignore_ascii_case("x"))
                 && self.word_at(at).as_deref() == Some("at"));
         (cmp_ok && n_ok).then_some((stat, len))
+    }
+
+    /// `put count where power of that target 1 +1/+1 counters on target
+    /// creature`: "Put X +1/+1 counters on target creature, where X is
+    /// that creature's power" names the target the counters phrase declares
+    /// next (the count is judged as the effect happens, after targets are
+    /// chosen).
+    fn counters_on_next_target(&self, n: usize) -> bool {
+        if n != self.targets.len() + 1 {
+            return false;
+        }
+        // After the counter kind (`+1/+1`, `stun`).
+        let at = 1;
+        matches!(self.word_at(at).as_deref(), Some("counter" | "counters"))
+            && self.word_at(at + 1).as_deref() == Some("on")
+            && self.word_at(at + 2).as_deref() == Some("target")
     }
 
     /// `<n>` after `target`: a target declared before, 0-based.

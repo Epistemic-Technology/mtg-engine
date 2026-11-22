@@ -1,0 +1,111 @@
+# "Return all land cards from your graveyard to the battlefield tapped"
+# (`return all ... card from your graveyard to battlefield tapped`), and
+# "Put X +1/+1 counters on target creature, where X is that creature's
+# power" (the count reads the target the phrase declares).
+
+scenario "Splendid Reclamation: all land cards return tapped" {
+  battlefield A: 4 "Forest"
+  graveyard A: "Plains", "Island", "Grizzly Bears"
+  graveyard B: "Swamp"
+  hand A: "Splendid Reclamation"
+  turn 1 A: cast "Splendid Reclamation"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Plains"
+  assert battlefield A contains "Island"
+  assert tapped "Plains"
+  assert tapped "Island"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Swamp"
+}
+
+scenario "World Shaper: dying, returns all land cards tapped" {
+  battlefield A: "World Shaper", "Mountain"
+  graveyard A: "Plains"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "World Shaper"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Plains"
+  assert tapped "Plains"
+}
+
+scenario "Aftermath Analyst: sacrificed, returns all land cards tapped" {
+  battlefield A: "Aftermath Analyst", 4 "Forest"
+  graveyard A: "Plains", "Island"
+  turn 1 A: activate "Aftermath Analyst" ability 1
+  run_to turn 1 postcombat_main
+  assert tapped "Plains"
+  assert tapped "Island"
+}
+
+scenario "Brilliant Restoration: all artifact and enchantment cards return" {
+  battlefield A: 7 "Plains"
+  graveyard A: "Mind Stone", "Glorious Anthem", "Grizzly Bears"
+  hand A: "Brilliant Restoration"
+  turn 1 A: cast "Brilliant Restoration"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mind Stone"
+  assert battlefield A contains "Glorious Anthem"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Return to the Light Realms: all nonland permanent cards return, not instants" {
+  battlefield A: 9 "Plains"
+  graveyard A: "Mind Stone", "Grizzly Bears", "Shock", "Island"
+  hand A: "Return to the Light Realms"
+  turn 1 A: cast "Return to the Light Realms"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mind Stone"
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Shock"
+  assert graveyard A contains "Island"
+}
+
+scenario "Knights' Charge: sacrificed, all Knight creature cards return" {
+  battlefield A: "Knights' Charge", 4 "Plains", 4 "Swamp"
+  graveyard A: "Tempered Veteran", "Grizzly Bears"
+  turn 1 A: activate "Knights' Charge"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Tempered Veteran"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Zombie Apocalypse: Zombies return tapped, then Humans are destroyed" {
+  battlefield A: 6 "Swamp", "Savannah Lions"
+  battlefield B: "Elite Vanguard"
+  graveyard A: "Scathe Zombies", "Grizzly Bears"
+  hand A: "Zombie Apocalypse"
+  turn 1 A: cast "Zombie Apocalypse"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Scathe Zombies"
+  assert tapped "Scathe Zombies"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Elite Vanguard"
+}
+
+scenario "Angel of Glory's Rise: exiles Zombies, returns Human creature cards" {
+  battlefield A: 7 "Plains"
+  battlefield B: "Scathe Zombies"
+  graveyard A: "Elite Vanguard", "Grizzly Bears"
+  hand A: "Angel of Glory's Rise"
+  turn 1 A: cast "Angel of Glory's Rise"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Scathe Zombies"
+  assert battlefield A contains "Elite Vanguard"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Soul's Might: counters equal to the target's power" {
+  battlefield A: 5 "Forest", "Hill Giant"
+  hand A: "Soul's Might"
+  turn 1 A: cast "Soul's Might" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 3
+}
+
+scenario "Living Armor: +0/+1 counters equal to the target's mana value" {
+  battlefield A: "Living Armor", "Hill Giant"
+  turn 1 A: activate "Living Armor" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +0/+1 4
+  assert toughness "Hill Giant" 7
+}

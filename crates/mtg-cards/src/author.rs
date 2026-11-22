@@ -6080,6 +6080,30 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
         )
         .replace("exile each graveyards", "exile all graveyards")
         .replace("to each of two targets", "to 2 targets");
+    // "Put X +1/+1 counters on target creature, where X is that creature's
+    // power": the line's one target, declared by the counters phrase.
+    s = re(r"put X (\S+) counters on (target [^,;]+), where X is that creature's (power|toughness|mana value)$")
+        .replace_all(&s, |c: &regex::Captures| {
+            if c[0].matches("target").count() == 1 {
+                format!(
+                    "put count where {} of that target 1 {} counters on {}",
+                    &c[3], &c[1], &c[2]
+                )
+            } else {
+                c[0].to_string()
+            }
+        })
+        .into_owned();
+    // "Return all land cards from your graveyard to the battlefield
+    // tapped": every one of them (`return all ... card`).
+    s = re(r"return each (.+?) cards from your graveyard to battlefield")
+        .replace_all(&s, |c: &regex::Captures| {
+            let f = re(r"^(\w+) and (\w+)$")
+                .replace(&c[1], "andlist $1 or $2")
+                .into_owned();
+            format!("return all {f} card from your graveyard to battlefield")
+        })
+        .into_owned();
     // "for each tapped artifact, creature, and land you control": any of
     // them, the list printed with "and".
     s = re(r"count each (tapped |untapped )?(\w+), (\w+), and (\w+) you control")

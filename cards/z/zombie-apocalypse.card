@@ -1,0 +1,6 @@
+card "Zombie Apocalypse" {
+  oracle_id 8241277d-654f-4985-9d49-a22c1e59eec2
+  cost {3}{B}{B}{B}
+  type Sorcery
+  spell: return all Zombie creature card from your graveyard to battlefield tapped then destroy each Human
+}

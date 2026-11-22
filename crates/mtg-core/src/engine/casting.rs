@@ -12345,8 +12345,10 @@ impl GameState {
                 ps.combat_mana += n;
                 self.bump();
             }
-            Effect::GraveyardToBattlefield { filter } => {
+            Effect::GraveyardToBattlefield { filter, tapped } => {
                 let p = ctx.controller;
+                // "each creature card with mana value X": X of the spell.
+                let filter = &*self.chosen_filter(filter, ctx);
                 let cards: Vec<ObjId> = self
                     .player(p)
                     .graveyard
@@ -12387,7 +12389,14 @@ impl GameState {
                         }
                         None => None,
                     };
-                    let new = self.put_onto_battlefield(id, owner);
+                    let new = self.put_onto_battlefield_with(
+                        id,
+                        owner,
+                        super::replace::Enter {
+                            tapped: *tapped,
+                            ..super::replace::Enter::default()
+                        },
+                    );
                     if let Some(h) = host
                         && self
                             .objects
