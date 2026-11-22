@@ -2631,6 +2631,11 @@ pub enum Trigger {
     /// more creature cards are put into your graveyard from anywhere"),
     /// `one or more creature you control become tapped`.
     Batch(Box<Trigger>),
+    /// The per-object form of a "one or more" trigger: `a card leaves your
+    /// graveyard` ("Whenever a card leaves your graveyard", once per card),
+    /// `you put a +1/+1 counter on other creature` ("Whenever you put a
+    /// +1/+1 counter on another creature", the older wording).
+    Each(Box<Trigger>),
     /// `when you cycle this` ("When you cycle this card"), `whenever you
     /// cycle a card`, `whenever you cycle another card`, `whenever you
     /// cycle or discard a card` (CR 702.29).

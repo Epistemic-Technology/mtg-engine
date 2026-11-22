@@ -8553,7 +8553,33 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 "whenever one or more {} become tapped",
                 controller_first(f, filter_phrase(f, ctx.card, true))
             ),
+            Trigger::DiscardsBatch { .. } => {
+                "whenever one or more players discard one or more cards".to_string()
+            }
+            Trigger::YouTap(f) => format!(
+                "whenever you tap one or more {}",
+                controller_first(f, filter_phrase(f, ctx.card, true))
+            ),
             t => unreachable!("no batched form of {t:?}"),
+        },
+        Trigger::Each(inner) => match &**inner {
+            Trigger::LeavesGraveyard(f) => format!(
+                "whenever {} leaves your graveyard",
+                with_article(&if *f == Filter::default() {
+                    "card".to_string()
+                } else {
+                    format!("{} card", card_filter_phrase(f, ctx.card))
+                })
+            ),
+            Trigger::YouPutCounters { obj, kind } => format!(
+                "whenever you put {} on {}",
+                with_article(&format!(
+                    "{}counter",
+                    kind.map_or(String::new(), |k| format!("{} ", counter_name(k)))
+                )),
+                trigger_subject(obj, ctx)
+            ),
+            t => unreachable!("no per-object form of {t:?}"),
         },
         Trigger::State(c) => format!("when {}", static_cond_text(c, ctx.card)),
         Trigger::Either(a, b) => {

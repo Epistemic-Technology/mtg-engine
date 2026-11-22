@@ -1,0 +1,8 @@
+card "Hostile Investigator" {
+  oracle_id de83b1a4-0ce0-4cc1-aff3-6d0239d92302
+  cost {3}{B}
+  type Creature — Ogre Rogue Detective
+  pt 4/3
+  triggered when this enters: target opponent discards 1 card
+  triggered once each turn whenever one or more players discard one or more cards: investigate
+}

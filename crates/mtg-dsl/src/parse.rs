@@ -10832,6 +10832,11 @@ impl P {
         }
         // "you tap an untapped creature an opponent controls".
         if self.eat_words(&["you", "tap"]) {
+            // "you tap one or more untapped creatures your opponents
+            // control" (CR 603.2c).
+            if self.eat_words(&["one", "or", "more"]) {
+                return Ok(Trigger::Batch(Box::new(Trigger::YouTap(self.filter()?))));
+            }
             return Ok(Trigger::YouTap(self.filter()?));
         }
         // CR 602.2: "you activate an ability of a creature", "you activate
@@ -11002,6 +11007,26 @@ impl P {
         }
         // CR 122.6: "you put one or more +1/+1 counters on a creature you
         // control".
+        // "you put a +1/+1 counter on another creature", "you put a
+        // counter on a creature you control": the older wording.
+        if self.at_words(&["you", "put", "a"])
+            && (self.word_at(3).as_deref() == Some("counter")
+                || matches!(self.peek_at(3), Some(Tok::Pt { .. })))
+        {
+            self.pos += 3;
+            let kind = if self.eat_word("counter") {
+                None
+            } else {
+                Some(self.counter_kind()?)
+            };
+            self.expect_word("on")?;
+            let obj = if self.eat_word("this") {
+                TriggerObj::This
+            } else {
+                TriggerObj::Filter(self.filter()?)
+            };
+            return Ok(Trigger::Each(Box::new(Trigger::YouPutCounters { obj, kind })));
+        }
         if self.eat_words(&["you", "put", "one", "or", "more"]) {
             let kind = if self.eat_word("counters") {
                 None
@@ -11093,6 +11118,19 @@ impl P {
                 TriggerObj::Filter(self.filter()?)
             };
             return Ok(Trigger::CountersPut { obj, kind });
+        }
+        // "a card leaves your graveyard": once for each card.
+        if self.at_words(&["a", "card", "leaves", "your", "graveyard"]) {
+            self.pos += 5;
+            return Ok(Trigger::Each(Box::new(Trigger::LeavesGraveyard(
+                Filter::default(),
+            ))));
+        }
+        // "one or more players discard one or more cards".
+        if self.eat_words(&[
+            "one", "or", "more", "players", "discard", "one", "or", "more", "cards",
+        ]) {
+            return Ok(Trigger::Batch(Box::new(Trigger::DiscardsBatch { whose: Who::Any })));
         }
         // "one or more cards leave your graveyard", "one or more creature
         // cards leave your graveyard" (CR 603.2c).
@@ -12459,6 +12497,7 @@ fn no_trigger_amount(t: &Trigger) -> bool {
     match t {
         Trigger::When(t) | Trigger::Next(t) => no_trigger_amount(t),
         Trigger::Batch(_) => false,
+        Trigger::Each(t) => no_trigger_amount(t),
         Trigger::Either(a, b) => no_trigger_amount(a) && no_trigger_amount(b),
         Trigger::CastsSpell { .. }
         | Trigger::CastsFiltered { .. }
@@ -12475,7 +12514,9 @@ fn no_trigger_amount(t: &Trigger) -> bool {
 /// would denote nothing.
 fn no_trigger_object(t: &Trigger) -> bool {
     match t {
-        Trigger::When(t) | Trigger::Next(t) | Trigger::Batch(t) => no_trigger_object(t),
+        Trigger::When(t) | Trigger::Next(t) | Trigger::Batch(t) | Trigger::Each(t) => {
+            no_trigger_object(t)
+        }
         Trigger::Either(a, b) => no_trigger_object(a) && no_trigger_object(b),
         Trigger::State(_)
         | Trigger::EveryStep(_)

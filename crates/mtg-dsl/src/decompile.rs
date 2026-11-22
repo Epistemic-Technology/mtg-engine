@@ -1867,6 +1867,7 @@ impl Decompiler<'_> {
             TriggerSpec::CastThis => Trigger::CastThis { or_cycle: false },
             TriggerSpec::Next(inner) => Trigger::Next(Box::new(self.trigger(inner))),
             TriggerSpec::Batch(inner) => Trigger::Batch(Box::new(self.trigger(inner))),
+            TriggerSpec::Each(inner) => Trigger::Each(Box::new(self.trigger(inner))),
             TriggerSpec::Sacrifices(f) => Trigger::Sacrifices(self.filter(f)),
             TriggerSpec::DiscardsBatch { whose } => Trigger::DiscardsBatch { whose: *whose },
             TriggerSpec::SacrificesBatch(f) => Trigger::SacrificesBatch(self.filter(f)),

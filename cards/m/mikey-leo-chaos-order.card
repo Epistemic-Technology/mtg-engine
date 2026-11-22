@@ -1,0 +1,7 @@
+card "Mikey & Leo, Chaos & Order" {
+  oracle_id a86117c1-b83d-4350-9a10-a23b7e67e1bd
+  cost {G/W}{G/W}
+  type Legendary Creature — Mutant Ninja Turtle
+  pt 2/2
+  triggered once each turn whenever you put a counter on creature you control: draw 1 card
+}

@@ -1488,7 +1488,7 @@ impl GameState {
                 .fires(&pair.0, event, w)
                 .or_else(|| self.fires(&pair.1, event, w)),
             // CR 603.2c: batched by `detect_triggers`.
-            (TriggerSpec::Batch(inner), _) => self.fires(inner, event, w),
+            (TriggerSpec::Batch(inner) | TriggerSpec::Each(inner), _) => self.fires(inner, event, w),
             _ => self.fires_more(spec, event, w),
         }
     }

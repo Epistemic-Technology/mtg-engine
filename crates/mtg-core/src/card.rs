@@ -5426,6 +5426,11 @@ pub enum TriggerSpec {
     /// together (before the next time a player would receive priority),
     /// their number the trigger's amount.
     Batch(Box<TriggerSpec>),
+    /// The per-object form of a "one or more" trigger: "Whenever a card
+    /// leaves your graveyard" (once for each card), "Whenever you put a
+    /// +1/+1 counter on a creature you control" (the same as "one or more",
+    /// in the older wording).
+    Each(Box<TriggerSpec>),
     /// "Whenever you put one or more +1/+1 counters on a creature you
     /// control", "... counters on a Goblin, Orc, or Army you control"
     /// (`kind` `None`: any kind): once per permanent counters are put on
@@ -5671,7 +5676,9 @@ impl TriggerSpec {
             } => WATCH_DISCARD,
             TriggerSpec::Cycles { .. } => WATCH_CYCLE,
             TriggerSpec::Either(pair) => pair.0.watch_mask() | pair.1.watch_mask(),
-            TriggerSpec::Next(inner) | TriggerSpec::Batch(inner) => inner.watch_mask(),
+            TriggerSpec::Next(inner) | TriggerSpec::Batch(inner) | TriggerSpec::Each(inner) => {
+                inner.watch_mask()
+            }
             TriggerSpec::UnlocksDoor { .. }
             | TriggerSpec::BecomesStage(_)
             | TriggerSpec::FullyUnlocks { .. }

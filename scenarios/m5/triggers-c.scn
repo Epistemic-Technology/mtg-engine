@@ -250,6 +250,80 @@ scenario "plan counters: Rewrite History returns two instant and sorcery cards" 
   assert hand A contains "Pyroclasm"
 }
 
+scenario "a card leaves your graveyard: Kishla Skimmer draws once each turn" {
+  battlefield A: "Kishla Skimmer", 8 "Swamp"
+  hand A: "Zombify", "Zombify"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Zombify" targeting "Grizzly Bears"
+  turn 2 A: wait
+  turn 2 A: cast "Zombify" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert hand A count 1
+}
+
+scenario "one or more players discard: Hostile Investigator investigates once each turn" {
+  battlefield A: 7 "Swamp"
+  hand A: "Hostile Investigator", "Mind Rot"
+  hand B: "Island", "Island", "Island", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Hostile Investigator"
+  turn 2 A: wait
+  turn 2 A: cast "Mind Rot" targeting player B
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 1 "Clue"
+  assert hand B count 1
+}
+
+scenario "a +1/+1 counter on another creature: Knight of Wundagore grows once each turn" {
+  battlefield A: "Knight of Wundagore", "Grizzly Bears", 2 "Forest"
+  hand A: "Battlegrowth", "Battlegrowth"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Battlegrowth" targeting "Grizzly Bears"
+  turn 2 A: wait
+  turn 2 A: cast "Battlegrowth" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert counters "Knight of Wundagore" +1/+1 1
+}
+
+scenario "a counter on a creature you control: Mikey & Leo draw once each turn" {
+  battlefield A: "Mikey & Leo, Chaos & Order", "Grizzly Bears", 2 "Forest"
+  hand A: "Battlegrowth", "Battlegrowth"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Battlegrowth" targeting "Grizzly Bears"
+  turn 2 A: wait
+  turn 2 A: cast "Battlegrowth" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "you tap an opponent's creature: Sharae draws as it taps one" {
+  battlefield A: "Plains", "Plains", "Island", "Island"
+  hand A: "Sharae of Numbing Depths"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Sharae of Numbing Depths"
+  turn 2 A: trigger "Sharae of Numbing Depths" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert counters "Grizzly Bears" stun 1
+  assert hand A count 1
+}
+
+scenario "Massacre Girl, Most Wanted: a creature dying deals 1 damage, and that damage grows her" {
+  battlefield A: "Massacre Girl, Most Wanted", "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 2 A: trigger "Massacre Girl, Most Wanted" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 19
+  assert life A 21
+  assert counters "Massacre Girl, Most Wanted" +1/+1 1
+}
+
 scenario "if you cast it: Geological Appraiser discovers 3 when cast" {
   battlefield A: 4 "Mountain"
   hand A: "Geological Appraiser"

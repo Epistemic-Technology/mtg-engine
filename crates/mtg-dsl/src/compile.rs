@@ -3515,6 +3515,7 @@ impl Compiler<'_> {
             Trigger::CastThis { or_cycle: false } => TriggerSpec::CastThis,
             Trigger::Next(inner) => TriggerSpec::Next(Box::new(self.trigger(inner))),
             Trigger::Batch(inner) => TriggerSpec::Batch(Box::new(self.trigger(inner))),
+            Trigger::Each(inner) => TriggerSpec::Each(Box::new(self.trigger(inner))),
             Trigger::Sacrifices(f) => TriggerSpec::Sacrifices(self.filter(f)),
             Trigger::CastThis { or_cycle: true } => TriggerSpec::Either(Box::new((
                 TriggerSpec::CastThis,

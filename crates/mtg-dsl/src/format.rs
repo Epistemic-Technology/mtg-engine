@@ -3641,7 +3641,27 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             Trigger::BecomesTapped(TriggerObj::Filter(f)) => {
                 format!("whenever one or more {} become tapped", filter(f))
             }
+            Trigger::DiscardsBatch { .. } => {
+                "whenever one or more players discard one or more cards".to_string()
+            }
+            Trigger::YouTap(f) => format!("whenever you tap one or more {}", filter(f)),
             t => unreachable!("no batched form of {t:?}"),
+        },
+        Trigger::Each(inner) => match &**inner {
+            Trigger::LeavesGraveyard(f) => format!(
+                "whenever a {}card leaves your graveyard",
+                if *f == Filter::default() {
+                    String::new()
+                } else {
+                    format!("{} ", filter(f))
+                }
+            ),
+            Trigger::YouPutCounters { obj, kind } => format!(
+                "whenever you put a {}counter on {}",
+                kind.map_or(String::new(), |k| format!("{} ", k.name())),
+                trigger_obj(obj)
+            ),
+            t => unreachable!("no per-object form of {t:?}"),
         },
         Trigger::State(c) => format!("when {}", static_cond(c)),
         Trigger::Enters(o) => format!("whenever {} enters", trigger_obj(o)),
