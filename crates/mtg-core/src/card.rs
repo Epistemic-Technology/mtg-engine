@@ -3052,6 +3052,48 @@ pub enum CounterKind {
     Divinity,
     /// Plan counters on a Plan enchantment (no rules of their own).
     Plan,
+    /// Named counters with no rules of their own (CR 122.1), added for
+    /// the seventh wave's cards.
+    Storage,
+    Verse,
+    Soul,
+    Blood,
+    Slime,
+    Stash,
+    Ingenuity,
+    Blaze,
+    Aim,
+    Void,
+    Omen,
+    Memory,
+    Luck,
+    Hour,
+    Hone,
+    Growth,
+    Fire,
+    Fate,
+    Devotion,
+    Collection,
+    Point,
+    Carrion,
+    Landmark,
+    Nest,
+    Bloodstain,
+    Invasion,
+    Skewer,
+    Revival,
+    Rev,
+    Impostor,
+    Fellowship,
+    Dream,
+    Dread,
+    Coin,
+    Chorus,
+    Blight,
+    Bait,
+    /// Keyword counter (CR 122.1b): the permanent has decayed (Rot-Curse
+    /// Rakshasa).
+    Decayed,
     /// Not a kind: "remove a counter from this creature" (a cost), counters
     /// of every kind. `GameObject::counters` totals them; removing them
     /// takes -1/-1 counters first, then kinds that don't change power or
@@ -3071,7 +3113,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 51] = [
+    pub const NAMED: [(&'static str, CounterKind); 89] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -3123,6 +3165,44 @@ impl CounterKind {
         ("double strike", CounterKind::DoubleStrike),
         ("divinity", CounterKind::Divinity),
         ("plan", CounterKind::Plan),
+        ("storage", CounterKind::Storage),
+        ("verse", CounterKind::Verse),
+        ("soul", CounterKind::Soul),
+        ("blood", CounterKind::Blood),
+        ("slime", CounterKind::Slime),
+        ("stash", CounterKind::Stash),
+        ("ingenuity", CounterKind::Ingenuity),
+        ("blaze", CounterKind::Blaze),
+        ("aim", CounterKind::Aim),
+        ("void", CounterKind::Void),
+        ("omen", CounterKind::Omen),
+        ("memory", CounterKind::Memory),
+        ("luck", CounterKind::Luck),
+        ("hour", CounterKind::Hour),
+        ("hone", CounterKind::Hone),
+        ("growth", CounterKind::Growth),
+        ("fire", CounterKind::Fire),
+        ("fate", CounterKind::Fate),
+        ("devotion", CounterKind::Devotion),
+        ("collection", CounterKind::Collection),
+        ("point", CounterKind::Point),
+        ("carrion", CounterKind::Carrion),
+        ("landmark", CounterKind::Landmark),
+        ("nest", CounterKind::Nest),
+        ("bloodstain", CounterKind::Bloodstain),
+        ("invasion", CounterKind::Invasion),
+        ("skewer", CounterKind::Skewer),
+        ("revival", CounterKind::Revival),
+        ("rev", CounterKind::Rev),
+        ("impostor", CounterKind::Impostor),
+        ("fellowship", CounterKind::Fellowship),
+        ("dream", CounterKind::Dream),
+        ("dread", CounterKind::Dread),
+        ("coin", CounterKind::Coin),
+        ("chorus", CounterKind::Chorus),
+        ("blight", CounterKind::Blight),
+        ("bait", CounterKind::Bait),
+        ("decayed", CounterKind::Decayed),
     ];
 
     /// Power/toughness counters by their Oracle name, with what each adds
@@ -3223,6 +3303,7 @@ impl CounterKind {
             CounterKind::Hexproof => Keyword::Hexproof,
             CounterKind::Indestructible => Keyword::Indestructible,
             CounterKind::DoubleStrike => Keyword::DoubleStrike,
+            CounterKind::Decayed => Keyword::Decayed,
             _ => return None,
         })
     }

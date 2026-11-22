@@ -570,6 +570,21 @@ pub fn coverage(data: &DataDir, format: &str, corpus: &[Card]) -> Result<(usize,
     Ok((have, total))
 }
 
+/// The named counter kinds as a regex alternation ("stun|charge|...|first
+/// strike"), from `CounterKind::NAMED`, longest first so "first strike"
+/// wins over a prefix.
+fn counter_names() -> &'static str {
+    static ALT: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    ALT.get_or_init(|| {
+        let mut names: Vec<&str> = mtg_core::card::CounterKind::NAMED
+            .iter()
+            .map(|(n, _)| *n)
+            .collect();
+        names.sort_by_key(|n| std::cmp::Reverse(n.len()));
+        names.join("|")
+    })
+}
+
 fn strip_reminder(text: &str) -> String {
     let mut out = String::new();
     let mut depth = 0usize;
@@ -2425,9 +2440,10 @@ impl Templates {
                 Some(format!("regenerate {}", recipient(cap(c, 1), t)?))
             }),
             (
-                r(
-                    r"^Put (\S+) ([+-]\d/[+-]\d|stun|charge|oil|spore|depletion|quest|ki|time|tide|shield|age|fade|ice|level|lore|page|arrowhead|javelin|polyp|healing|mining|scream|credit|brick|currency|sleep|net|flood|glyph|loot|supply|finality|flying|first strike|trample|lifelink|deathtouch|reach|menace|vigilance|hexproof|indestructible) counters? on (.+)$",
-                ),
+                r(&format!(
+                    r"^Put (\S+) ([+-]\d/[+-]\d|{}) counters? on (.+)$",
+                    counter_names()
+                )),
                 |c, t| {
                     Some(format!(
                         "put {} {} counters on {}",
@@ -2438,9 +2454,10 @@ impl Templates {
                 },
             ),
             (
-                r(
-                    r"^Remove (\S+) ([+-]\d/[+-]\d|stun|charge|oil|spore|depletion|quest|ki|time|tide|shield|age|fade|ice|level|lore|page|arrowhead|javelin|polyp|healing|mining|scream|credit|brick|currency|sleep|net|flood|glyph|loot|supply|finality|flying|first strike|trample|lifelink|deathtouch|reach|menace|vigilance|hexproof|indestructible) counters? from (.+)$",
-                ),
+                r(&format!(
+                    r"^Remove (\S+) ([+-]\d/[+-]\d|{}) counters? from (.+)$",
+                    counter_names()
+                )),
                 |c, t| {
                     Some(format!(
                         "remove {} {} counters from {}",
@@ -4069,6 +4086,37 @@ fn static_condition(s: &str) -> Option<String> {
         .captures(s)
     {
         return Some(format!("opponent poison {} or more", number(cap(&c, 1))?));
+    }
+    // Counters on the source (CR 122.1): "there are five or more growth
+    // counters on this enchantment", "this creature has four or more oil
+    // counters on it".
+    let self_word = r"this (?:creature|artifact|enchantment|land|permanent|Vehicle|Equipment)";
+    if let Some(c) = Regex::new(&format!(
+        r"^there are (\S+) or more ([+-]\d/[+-]\d|{}) counters on {self_word}$",
+        counter_names()
+    ))
+    .unwrap()
+    .captures(s)
+    {
+        return Some(format!(
+            "there are {} or more {} counters on this",
+            number(cap(&c, 1))?,
+            cap(&c, 2)
+        ));
+    }
+    if let Some(c) = Regex::new(&format!(
+        r"^{self_word} has (\S+) or more ([+-]\d/[+-]\d|{}) counters on it$",
+        counter_names()
+    ))
+    .unwrap()
+    .captures(s)
+        && cap(&c, 1) != "one"
+    {
+        return Some(format!(
+            "this has {} or more {} counters",
+            number(cap(&c, 1))?,
+            cap(&c, 2)
+        ));
     }
     let types =
         Regex::new(r"^there are (\S+) or more card types among cards in your graveyard$").unwrap();
@@ -5730,9 +5778,10 @@ impl Builder<'_> {
             self.statements.push("enters tapped".to_string());
             return Ok(());
         }
-        if let Some(c) = Regex::new(
-            r"^(?:This (?:creature|permanent|artifact|land|enchantment|Vehicle)|~) enters with (\S+) (\+1/\+1|-1/-1|stun|charge|oil|spore|depletion|quest|ki|time|tide|shield|age|fade|ice|level|lore|page|divinity) counters? on it(?: if (.+))?\.$",
-        )
+        if let Some(c) = Regex::new(&format!(
+            r"^(?:This (?:creature|permanent|artifact|land|enchantment|Vehicle)|~) enters with (\S+) (\+1/\+1|-1/-1|{}) counters? on it(?: if (.+))?\.$",
+            counter_names()
+        ))
         .unwrap()
         .captures(line)
         {

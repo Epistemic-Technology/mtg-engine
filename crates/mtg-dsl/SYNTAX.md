@@ -617,7 +617,7 @@ Counter kinds: `+1/+1`, `-1/-1`, the other power/toughness counters
 `spore`, `depletion`, `quest`, `ki`, `time`, `tide`, `shield`, `age`,
 `fade`, `ice`, `level`, `lore`, `page`, `arrowhead`, `javelin`, `polyp`,
 `healing`, `mining`, `scream`, `credit`, `brick`, `currency`, `sleep`,
-`net`, `flood`, `glyph`, `crystal`, `unlock`, `loot`, `supply`, `incubation`, `divinity`, `finality` (CR
+`net`, `flood`, `glyph`, `crystal`, `unlock`, `loot`, `supply`, `incubation`, `divinity`, `plan`, `storage`, `verse`, `soul`, `blood`, `slime`, `stash`, `ingenuity`, `blaze`, `aim`, `void`, `omen`, `memory`, `luck`, `hour`, `growth`, `fire`, `fate`, `devotion`, `collection`, `point`, `carrion`, `landmark`, `nest`, `bloodstain`, `invasion`, `skewer`, `revival`, `rev`, `impostor`, `fellowship`, `dream`, `dread`, `coin`, `chorus`, `blight` (none with rules of its own), `hone` (each hone counter on an Equipment gives the creature it is attached to +1/+0, layer 7c: Dwalin, Weaponmaster), `decayed` (a keyword counter, CR 122.1b), `finality` (CR
 122.1h: a permanent with one that would be put into a graveyard from the
 battlefield is exiled instead, so it doesn't die; `return target creature
 card from your graveyard to battlefield with 1 finality counter` prints
