@@ -1328,6 +1328,12 @@ impl GameState {
         }
         match target {
             Target::Player(p) => {
+                // CR 702.16d: protection from a color (a player's, "you
+                // gain protection from the color of your choice")
+                // prevents damage from sources of that color.
+                if !self.player_grants.is_empty() && self.player_protected_from(p, source) {
+                    return;
+                }
                 if self.damaged_this_turn & (1 << p.index().min(7)) == 0 {
                     self.damaged_this_turn |= 1 << p.index().min(7);
                     self.history_bump();

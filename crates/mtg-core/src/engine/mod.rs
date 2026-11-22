@@ -579,6 +579,7 @@ impl GameState {
             replacements: Vec::new(),
             rules: Vec::new(),
             player_rules: Vec::new(),
+            player_grants: Vec::new(),
             replacement_sources: 0,
             control_sources: 0,
             control_effects: 0,
@@ -3074,6 +3075,10 @@ impl GameState {
         self.rules
             .retain(|e| e.duration != Duration::UntilEndOfTurn);
         self.player_rules.clear();
+        if !self.player_grants.is_empty() {
+            self.player_grants
+                .retain(|g| g.duration != Duration::UntilEndOfTurn);
+        }
         self.granted_flashback.clear();
         self.granted_harmonize.clear();
         // CR 603.7c: "when that creature dies this turn" ends unfired.
@@ -3356,6 +3361,9 @@ impl GameState {
             }
             if self.rules.iter().any(|e| e.duration == ends) {
                 self.rules.retain(|e| e.duration != ends);
+            }
+            if !self.player_grants.is_empty() {
+                self.player_grants.retain(|g| g.duration != ends);
             }
             if !self.goads.is_empty() {
                 let p = self.active_player;

@@ -1,0 +1,7 @@
+card "Blossoming Calm" {
+  oracle_id 489a60f1-83f8-465b-918f-7d63d4f76d14
+  cost {W}
+  type Instant
+  keywords rebound
+  spell: you gains hexproof until your next turn; you gain 2 life
+}

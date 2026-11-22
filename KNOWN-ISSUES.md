@@ -68,11 +68,6 @@ by rejecting the form at compile time or by binding it correctly.
   (Pain for All: "enchanted creature deals damage ... to any other
   target"): `another target any` excludes the source (the Aura), not
   the creature dealing the damage. Pain for All is not in.
-- **`you gains shroud` / `you gains hexproof` / `you gains protection
-  from ...`** render "You gain shroud until end of turn" but do nothing:
-  `Effect::Grant` applies only to permanents (Seht's Tiger, Gilded
-  Light). Blossoming Calm ("You gain hexproof until your next turn") is
-  left out for this.
 - **`when this enters and whenever this attacks while saddled`**
   applies `while saddled` to both events, so the enters half needs the
   Mount saddled (Autarch Mammoth; not added). A trigger condition

@@ -8331,6 +8331,21 @@ impl GameState {
         self.effect_on(ctx, id, parts, Duration::UntilEndOfTurn);
     }
 
+    /// Player `p` gains `keywords` until end of turn, or until the
+    /// controller's next turn inside "until your next turn" (CR 611.2b).
+    fn grant_player(&mut self, ctx: &EffectCtx, p: PlayerId, keywords: KeywordSet) {
+        let duration = match self.lasting {
+            Some(crate::card::Lasting::YourNextTurn) => Duration::UntilYourNextTurn(ctx.controller),
+            _ => Duration::UntilEndOfTurn,
+        };
+        self.player_grants.push(crate::state::PlayerGrant {
+            player: p,
+            keywords,
+            duration,
+        });
+        self.bump();
+    }
+
     /// Store an effect on one object for `duration` (CR 611.2a, 611.2c):
     /// until end of turn, or indefinitely.
     fn effect_on(
@@ -9136,6 +9151,12 @@ impl GameState {
             }
             Effect::Grant { keywords, to } => {
                 for t in self.recipients(ctx, *to) {
+                    // "You gain shroud until end of turn" (CR 702.18c,
+                    // 702.11c, 702.16).
+                    if let Target::Player(p) = t {
+                        self.grant_player(ctx, p, *keywords);
+                        continue;
+                    }
                     if let Some(id) = on_battlefield(self, t) {
                         self.effect_until_end_of_turn(
                             ctx,
@@ -9889,6 +9910,10 @@ impl GameState {
                 };
                 let part = Modification::AddKeywords(KeywordSet::of([Keyword::protection_from(c)]));
                 for t in self.recipients(ctx, *to) {
+                    if let Target::Player(p) = t {
+                        self.grant_player(ctx, p, KeywordSet::of([Keyword::protection_from(c)]));
+                        continue;
+                    }
                     if let Some(id) = on_battlefield(self, t) {
                         self.effect_until_end_of_turn(ctx, id, smallvec::smallvec![part.clone()]);
                     }
@@ -9917,6 +9942,16 @@ impl GameState {
                 in_addition,
             } => {
                 let recipients = self.recipients(ctx, *to);
+                // "You gain protection from the color of your choice until
+                // end of turn" (CR 702.16): a player.
+                if *protection
+                    && let [Target::Player(p)] = recipients[..]
+                {
+                    if let Chosen::Color(c) = self.choose_kind(ctx.controller, *kind) {
+                        self.grant_player(ctx, p, KeywordSet::of([Keyword::protection_from(c)]));
+                    }
+                    return;
+                }
                 // CR 608.2b: with no legal recipient left, nothing to choose.
                 if !recipients
                     .iter()

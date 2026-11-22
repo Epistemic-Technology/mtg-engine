@@ -1033,6 +1033,17 @@ pub struct PlayerRuleEffect {
     pub kind: PlayerRuleKind,
 }
 
+/// Keywords a player has from a resolved spell or ability ("You gain
+/// hexproof until your next turn", "you gain protection from the color of
+/// your choice until end of turn"): shroud, hexproof, and protection from
+/// a color apply to players (CR 702.18c, 702.11c, 702.16).
+#[derive(Copy, Clone, Debug)]
+pub struct PlayerGrant {
+    pub player: PlayerId,
+    pub keywords: crate::card::KeywordSet,
+    pub duration: Duration,
+}
+
 /// A decision taken in the middle of applying an event (CR 616.1: which
 /// of several replacement effects applies first). The engine cannot pause
 /// there, so it records the question, lets a default stand, and the
@@ -1853,6 +1864,8 @@ pub struct GameState {
     pub rules: Vec<RuleEffect>,
     /// "Target player can't play lands this turn": until end of turn.
     pub player_rules: Vec<PlayerRuleEffect>,
+    /// Keywords players gained (`PlayerGrant`).
+    pub player_grants: Vec<PlayerGrant>,
     /// Battlefield objects whose definition has a replacement or
     /// prevention ability, so that events on plain boards cost nothing.
     pub replacement_sources: u32,
@@ -2394,7 +2407,20 @@ impl GameState {
 
     /// Whether `caster`'s spells and abilities may target player `p`
     /// ("You have hexproof", "You have shroud": CR 702.11c, 702.18c).
-    pub fn player_targetable(&self, p: PlayerId, caster: PlayerId) -> bool {
+    /// Keywords a player gained from an effect ("You gain shroud until
+    /// end of turn") also count, and protection from a color keeps
+    /// spells and abilities from sources of that color from targeting
+    /// them (CR 702.16b).
+    pub fn player_targetable(&self, p: PlayerId, caster: PlayerId, source: Option<ObjId>) -> bool {
+        if !self.player_grants.is_empty() {
+            let ks = self.player_keywords(p);
+            if ks.contains(Keyword::Shroud)
+                || ks.contains(Keyword::Hexproof) && caster != p
+                || source.is_some_and(|s| self.player_protected_from(p, s))
+            {
+                return false;
+            }
+        }
         self.player_static_sources == 0
             || !self.player_statics().any(|(who, kind)| {
                 who == p
@@ -2404,6 +2430,35 @@ impl GameState {
                         _ => false,
                     }
             })
+    }
+
+    /// The keywords player `p` has gained from effects (`PlayerGrant`).
+    pub fn player_keywords(&self, p: PlayerId) -> crate::card::KeywordSet {
+        self.player_grants
+            .iter()
+            .filter(|g| g.player == p)
+            .fold(crate::card::KeywordSet::NONE, |a, g| a.union(g.keywords))
+    }
+
+    /// Whether player `p` has protection from a color of `source` (CR
+    /// 702.16): as it is, or as it last existed.
+    pub fn player_protected_from(&self, p: PlayerId, source: ObjId) -> bool {
+        if self.player_grants.is_empty() {
+            return false;
+        }
+        let ks = self.player_keywords(p);
+        if !ks.intersects(crate::card::KeywordSet::PROTECTION) {
+            return false;
+        }
+        let colors = self
+            .characteristics(source)
+            .map(|c| c.colors)
+            .or_else(|| self.lki.get(&source).map(|l| l.characteristics.colors));
+        colors.is_some_and(|cs| {
+            crate::mana::Color::ALL
+                .into_iter()
+                .any(|c| cs.contains(c) && ks.contains(Keyword::protection_from(c)))
+        })
     }
 
     /// Whether `p` can't lose the game, and their opponents can't win it
@@ -4020,7 +4075,7 @@ impl GameState {
                         TargetSpec::Opponent | TargetSpec::OpponentOrPlaneswalker => p != caster,
                         _ => false,
                     }
-                    && (!targeting || self.player_targetable(p, caster))
+                    && (!targeting || self.player_targetable(p, caster, source))
             }
             Target::Object(id) => {
                 let Some(obj) = self.objects.get(id) else {
