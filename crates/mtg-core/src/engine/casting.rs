@@ -11005,6 +11005,14 @@ impl GameState {
                     if ctx.x > 0 {
                         self.reflexive_x.push((timestamp, ctx.x));
                     }
+                    // "When you do, Bolg deals damage equal to that
+                    // creature's power": the creature sacrificed this way.
+                    if let Some(log) = &self.this_way
+                        && !log.moved.is_empty()
+                    {
+                        let moved = log.moved.clone();
+                        self.reflexive_moved.push((timestamp, moved));
+                    }
                     self.pending_triggers.push(crate::state::PendingTrigger {
                         controller: ctx.controller,
                         ability: StackAbility {

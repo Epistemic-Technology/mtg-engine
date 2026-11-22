@@ -3004,12 +3004,15 @@ impl P {
         }
         let outer = std::mem::take(&mut self.targets);
         let saved = self.subject.take();
-        let s = self.sentence();
+        // "When you do, Bolg deals damage ... . If excess damage was dealt
+        // this way, amass Goblins X ...": every later sentence is the
+        // reflexive ability's (CR 603.12).
+        let s = self.sentences_inline();
         self.subject = saved;
         let targets = std::mem::replace(&mut self.targets, outer);
         Ok(Effect::WhenYouDo {
             targets,
-            effects: vec![s?],
+            effects: s?,
         })
     }
 

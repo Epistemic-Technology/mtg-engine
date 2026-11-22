@@ -1780,6 +1780,12 @@ pub struct GameState {
     /// may pay {X}. When you do, ..."), by the pending trigger's
     /// timestamp, for the ability's X once it is on the stack.
     pub reflexive_x: Vec<(Timestamp, u32)>,
+    /// What the resolution that made a reflexive ability trigger
+    /// sacrificed or otherwise moved ("You may sacrifice another
+    /// creature. When you do, ... equal to that creature's power"), by
+    /// the pending trigger's timestamp: the ability's "this way" record
+    /// once it is on the stack (`paid_costs`).
+    pub reflexive_moved: Vec<(Timestamp, Vec<Moved>)>,
     /// Ninjutsu abilities on the stack (CR 702.49c): the card to enter
     /// attacking, and what the creature returned for the cost was
     /// attacking.

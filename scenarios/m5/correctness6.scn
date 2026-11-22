@@ -382,3 +382,47 @@ scenario "Venarian Gold: X = 0 puts no counters, and the creature untaps" {
   run_to turn 2 draw
   assert untapped "Hill Giant"
 }
+
+# "You may sacrifice another creature. When you do, Bolg deals damage equal
+# to that creature's power ... If excess damage was dealt this way, amass
+# Goblins X": the reflexive ability reads what its trigger sacrificed, and
+# the sentences after "when you do" are its own (CR 603.12).
+scenario "Bolg of the North: the sacrificed creature's power is dealt, the excess amassed" {
+  battlefield A: 4 "Mountain", "Swamp", "Llanowar Elves", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Bolg of the North"
+  turn 1 A: cast "Bolg of the North"
+  turn 1 A: accept "Bolg of the North"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: trigger "Bolg of the North" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains "Llanowar Elves"
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Goblin Army"
+  assert counters "Goblin Army" +1/+1 1
+}
+
+scenario "Bolg of the North: declining sacrifices nothing" {
+  battlefield A: 4 "Mountain", "Swamp", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Bolg of the North"
+  turn 1 A: cast "Bolg of the North"
+  turn 1 A: decline "Bolg of the North"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Bolg of the North: no excess damage, no Army" {
+  battlefield A: 4 "Mountain", "Swamp", "Llanowar Elves", "Grizzly Bears"
+  battlefield B: "Runeclaw Bear"
+  hand A: "Bolg of the North"
+  turn 1 A: cast "Bolg of the North"
+  turn 1 A: accept "Bolg of the North"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: trigger "Bolg of the North" targeting "Runeclaw Bear"
+  run_to turn 1 end
+  assert graveyard B contains "Runeclaw Bear"
+  assert battlefield A lacks "Goblin Army"
+}

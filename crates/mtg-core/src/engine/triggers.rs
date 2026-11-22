@@ -1936,6 +1936,15 @@ impl GameState {
             let (_, x) = self.reflexive_x.swap_remove(i);
             self.x_values.push((obj, x));
         }
+        if !self.reflexive_moved.is_empty()
+            && let Some(i) = self
+                .reflexive_moved
+                .iter()
+                .position(|(ts, _)| *ts == t.timestamp)
+        {
+            let (_, moved) = self.reflexive_moved.swap_remove(i);
+            self.paid_costs.push((obj, moved));
+        }
         // "Cycling {X}{G}{G}" and "When you cycle this card, destroy ...
         // with mana value X": X is the value paid for cycling (CR 107.3,
         // 702.29d), carried as the trigger's amount.

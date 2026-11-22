@@ -1985,7 +1985,12 @@ on this`, the player chooses X as they pay, any value they can pay, and
 X after it, in the same resolution or the reflexive ability, is that
 value; after `draw 1 card then discard 1 card` it prints "When you discard
 a card this way, ..."; `you may you sacrifice a creature` prints "you may sacrifice a
-creature", and an empty choice is no action), `<clause> unless you <clause>` (an act, not a payment: `sacrifice this
+creature", and an empty choice is no action; every sentence after `when
+you do` is the reflexive ability's, and what the resolution sacrificed
+is its `that sacrificed creature`: `you may sacrifice 1 another creature
+chosen; when you do, this deals damage equal power of that sacrificed
+creature to another target creature; if excess damage dealt this way,
+...`), `<clause> unless you <clause>` (an act, not a payment: `sacrifice this
 unless you discard 1 card at random`, `... unless you return 2 Forest you
 control to hand chosen` ("... unless you return two Forests you control to
 their owner's hand"), `... unless you sacrifice 1 land chosen`, `... unless
