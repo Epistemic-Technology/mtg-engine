@@ -1,0 +1,79 @@
+# "Enchant player" (CR 303.4, 702.5): an Aura attached to a player, the
+# enchanted player.
+
+scenario "Curse of the Bloody Tome: enchanted player mills two each upkeep" {
+  battlefield A: 3 "Island"
+  hand A: "Curse of the Bloody Tome"
+  library B: "Grizzly Bears", "Hill Giant", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Curse of the Bloody Tome" targeting player B
+  run_to turn 2 draw
+  assert battlefield A contains "Curse of the Bloody Tome"
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B count 2
+  # Not on its controller's upkeep.
+  run_to turn 3 draw
+  assert graveyard A count 0
+  assert graveyard B count 2
+}
+
+scenario "Curse of the Bloody Tome can't enchant a creature" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Curse of the Bloody Tome"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Curse of the Bloody Tome" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Curse of the Bloody Tome on its caster" {
+  battlefield A: 3 "Island"
+  hand A: "Curse of the Bloody Tome"
+  library A: "Grizzly Bears", "Hill Giant", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Curse of the Bloody Tome" targeting player A
+  run_to turn 3 draw
+  assert graveyard A count 2
+  assert graveyard B count 0
+}
+
+scenario "Trespasser's Curse: creatures entering under the enchanted player" {
+  battlefield A: 2 "Swamp", "Forest", "Forest"
+  battlefield B: "Forest", "Forest"
+  hand A: "Trespasser's Curse", "Grizzly Bears"
+  hand B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Trespasser's Curse" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  # Only B's creature triggers it.
+  assert life B 19
+  assert life A 21
+}
+
+scenario "Curse of Death's Hold: only the enchanted player's creatures" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  battlefield B: "Grizzly Bears", "Llanowar Elves"
+  hand A: "Curse of Death's Hold"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Curse of Death's Hold" targeting player B
+  run_to turn 1 postcombat_main
+  assert power A "Grizzly Bears" 2
+  assert power B "Grizzly Bears" 1
+  assert toughness B "Grizzly Bears" 1
+  assert graveyard B contains "Llanowar Elves"
+}
+
+scenario "Curse of the Nightly Hunt: the enchanted player's creatures must attack" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Curse of the Nightly Hunt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Curse of the Nightly Hunt" targeting player B
+  # B declares no attackers unscripted, but must attack with Hill Giant.
+  run_to turn 2 postcombat_main
+  assert life A 17
+}

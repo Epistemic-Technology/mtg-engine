@@ -1,0 +1,7 @@
+card "Curse of the Bloody Tome" {
+  oracle_id 5480f855-80b7-45c7-94a9-071c7b5d5ccf
+  cost {2}{U}
+  type Enchantment — Aura Curse
+  enchant player
+  triggered at beginning of enchanted controller's upkeep: that player mills 2 cards
+}

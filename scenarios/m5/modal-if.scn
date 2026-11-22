@@ -1,0 +1,118 @@
+# "Choose one. If <condition>, choose both instead." (CR 700.2): the
+# larger choice of modes needs the condition as the spell is cast;
+# "choose both instead" requires both then, "you may choose both instead"
+# and "choose one or more/any number instead" allow one too.
+
+scenario "Go Nuts!: cast using teamwork, both modes" {
+  battlefield A: "Forest", "Hill Giant", "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  hand A: "Go Nuts!"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Go Nuts!" teamwork mode 3 targeting A "Grizzly Bears", "Hill Giant", B "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters A "Grizzly Bears" +1/+1 1
+  assert graveyard B contains "Grizzly Bears"
+  assert tapped "Hill Giant"
+}
+
+scenario "Widow's Bite: cast using teamwork" {
+  battlefield A: "Swamp", "Swamp", "Hill Giant", "Grizzly Bears"
+  battlefield B: "Grizzly Bears", "Llanowar Elves"
+  hand A: "Widow's Bite"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Widow's Bite" teamwork mode 3 targeting A "Grizzly Bears", B "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has A "Grizzly Bears" deathtouch
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Llanowar Elves"
+}
+
+scenario "HULK SMASH!: cast using teamwork, both modes" {
+  battlefield A: "Mountain", "Mountain", "Hill Giant", "Grizzly Bears"
+  battlefield B: "Mind Stone", "Serra Angel"
+  hand A: "HULK SMASH!"
+  start turn 1 A precombat_main
+  turn 1 A: cast "HULK SMASH!" teamwork mode 3 targeting "Mind Stone", "Hill Giant", "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Mind Stone"
+  assert damage "Serra Angel" 3
+  assert damage "Hill Giant" 0
+}
+
+scenario "Pyrrhic Strike: blighted, both modes" {
+  battlefield A: 3 "Plains", "Hill Giant"
+  battlefield B: "Mind Stone", "Serra Angel"
+  hand A: "Pyrrhic Strike"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pyrrhic Strike" kicked mode 3 targeting "Mind Stone", "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Mind Stone"
+  assert graveyard B contains "Serra Angel"
+  assert counters "Hill Giant" -1/-1 2
+}
+
+scenario "Molten Collapse: after descending, both modes may be chosen" {
+  battlefield A: "Swamp", "Mountain", "Mountain", "Grizzly Bears"
+  battlefield B: "Serra Angel", "Chromatic Star"
+  hand A: "Lightning Bolt", "Molten Collapse"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Molten Collapse" mode 3 targeting "Serra Angel", "Chromatic Star"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert graveyard B contains "Chromatic Star"
+}
+
+scenario "Molten Collapse: one mode after descending" {
+  battlefield A: "Swamp", "Mountain", "Mountain", "Grizzly Bears"
+  battlefield B: "Serra Angel", "Chromatic Star"
+  hand A: "Lightning Bolt", "Molten Collapse"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Molten Collapse" mode 1 targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield B contains "Chromatic Star"
+}
+
+scenario "Let's Play a Game: delirium, two modes" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Hill Giant", "Forest", "Shock", "Pacifism"
+  hand A: "Let's Play a Game"
+  hand B: "Forest", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Let's Play a Game" mode 6
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert life B 17
+  assert life A 23
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Inscription of Ruin: kicked, any number of modes" {
+  battlefield A: 7 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Inscription of Ruin"
+  hand B: "Forest", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Inscription of Ruin" kicked mode 5 targeting player B, "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert graveyard B contains "Grizzly Bears"
+}
+
+
+scenario "Go Nuts!: one mode, teamwork not used" {
+  battlefield A: "Forest", "Hill Giant", "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  hand A: "Go Nuts!"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Go Nuts!" mode 1 targeting A "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters A "Grizzly Bears" +1/+1 1
+  assert untapped "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+}

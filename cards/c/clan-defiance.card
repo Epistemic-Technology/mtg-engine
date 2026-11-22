@@ -1,0 +1,10 @@
+card "Clan Defiance" {
+  oracle_id abcf5e77-88fc-4b76-a1e8-907a5b27d612
+  cost {X}{R}{G}
+  type Sorcery
+  choose one or more {
+    mode: deal X damage to target creature with flying
+    mode: deal X damage to target creature without flying
+    mode: deal X damage to target player or planeswalker
+  }
+}

@@ -1360,6 +1360,7 @@ impl Runner {
                             match self
                                 .playable_in_exile(d.player, name, true)
                                 .or_else(|| self.top_of_library(d.player, name))
+                                .or_else(|| self.in_graveyard(a.line, d.player, name).ok())
                             {
                                 Some(id) if self.in_hand(a.line, d.player, name).is_err() => id,
                                 _ => self.in_hand(a.line, d.player, name)?,

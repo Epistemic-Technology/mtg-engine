@@ -249,6 +249,19 @@ pub struct GameObject {
     pub sized: u8,
 }
 
+impl GameObject {
+    /// For an Aura with "Enchant player" on the battlefield (CR 303.4,
+    /// 702.5): the player it is attached to ("enchanted player"), kept in
+    /// `targets`, which a permanent doesn't otherwise use. A new object has
+    /// none (CR 400.7).
+    pub fn attached_player(&self) -> Option<PlayerId> {
+        match (self.zone, self.targets.first()) {
+            (Zone::Battlefield, Some(Target::Player(p))) => Some(*p),
+            _ => None,
+        }
+    }
+}
+
 /// A choice an object remembers (`GameObject::chosen`): small, so the
 /// object stays small.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
@@ -263,9 +276,29 @@ pub enum Chosen {
     Votes([u8; 2]),
     /// One of a permanent's named options (`ChoiceKind::Named`), by index.
     Option(u8),
+    /// A card name ("As this artifact enters, choose a card name", CR
+    /// 201.3): the pool's definition of that name (the pool holds one
+    /// definition per name), in three bytes (`Chosen::card`) so the
+    /// object stays small.
+    Card([u8; 3]),
 }
 
 impl Chosen {
+    /// A chosen card name (`Chosen::Card`).
+    pub fn card(def: crate::card::CardRef) -> Self {
+        debug_assert!(def.0 < 1 << 24, "a card pool of over 16M definitions");
+        let [a, b, c, _] = def.0.to_le_bytes();
+        Chosen::Card([a, b, c])
+    }
+
+    /// The card name chosen, as its definition.
+    pub const fn card_ref(self) -> Option<crate::card::CardRef> {
+        match self {
+            Chosen::Card([a, b, c]) => Some(crate::card::CardRef(u32::from_le_bytes([a, b, c, 0]))),
+            _ => None,
+        }
+    }
+
     pub const fn color(self) -> Option<crate::mana::Color> {
         match self {
             Chosen::Color(c) => Some(c),
@@ -2639,6 +2672,14 @@ impl GameState {
             })
     }
 
+    /// "You may play lands from your graveyard." applies to `p`.
+    pub fn lands_from_graveyard(&self, p: PlayerId) -> bool {
+        self.player_static_sources > 0
+            && self.player_statics().any(|(who, kind)| {
+                who == p && kind == crate::card::PlayerStaticKind::LandsFromGraveyard
+            })
+    }
+
     /// The keywords player `p` has gained from effects (`PlayerGrant`).
     pub fn player_keywords(&self, p: PlayerId) -> crate::card::KeywordSet {
         self.player_grants
@@ -2675,6 +2716,66 @@ impl GameState {
             && self
                 .player_statics()
                 .any(|(who, kind)| who == p && kind == crate::card::PlayerStaticKind::CantLose)
+    }
+
+    /// The chosen-name bans in force ("Spells with the chosen name can't
+    /// be cast.", "Activated abilities of sources with the chosen name
+    /// can't be activated ..."): each with the name's definition.
+    fn name_bans(&self) -> impl Iterator<Item = (crate::card::NameBan, crate::card::CardRef)> + '_ {
+        self.battlefield
+            .iter()
+            .filter(|id| {
+                self.pool
+                    .get(self.objects[**id].def)
+                    .flags()
+                    .has_player_static()
+            })
+            .filter_map(move |id| {
+                let o = &self.objects[*id];
+                let name = o.chosen.card_ref()?;
+                Some(
+                    self.pool
+                        .get(o.def)
+                        .ability_ids
+                        .iter()
+                        .filter_map(move |a| match self.pool.ability(*a) {
+                            crate::card::AbilityDef::PlayerStatic {
+                                kind: crate::card::PlayerStaticKind::ChosenName(ban),
+                                ..
+                            } => Some((*ban, name)),
+                            _ => None,
+                        }),
+                )
+            })
+            .flatten()
+    }
+
+    /// Whether a spell with `def`'s name can't be cast (CR 201.3: "The
+    /// chosen card name can't be cast.").
+    pub fn name_cant_be_cast(&self, def: crate::card::CardRef) -> bool {
+        self.player_static_sources > 0 && {
+            let name = &self.pool.get(def).name;
+            self.name_bans()
+                .any(|(ban, d)| ban == crate::card::NameBan::Cast && self.pool.get(d).name == *name)
+        }
+    }
+
+    /// Whether an activated ability (`mana`: a mana ability) of `source`
+    /// can't be activated by a chosen-name ban (Pithing Needle).
+    pub fn name_cant_activate(&self, source: ObjId, mana: bool) -> bool {
+        self.player_static_sources > 0 && {
+            let Some(o) = self.objects.get(source) else {
+                return false;
+            };
+            let name = &self.pool.get(o.def).name;
+            self.name_bans().any(|(ban, d)| {
+                (match ban {
+                    crate::card::NameBan::ActivateNonMana => !mana,
+                    crate::card::NameBan::Activate => true,
+                    crate::card::NameBan::Cast => false,
+                }) && self.pool.get(d).name == *name
+            })
+        }
     }
 
     /// Whether `p` can't cast spells now: an opponent's "Your opponents
@@ -3161,6 +3262,16 @@ impl GameState {
                 &self.pool,
             ),
             _ => false,
+        }
+    }
+
+    /// The player an "Enchant player" Aura is attached to ("enchanted
+    /// player", CR 303.4), as it last was on the battlefield if it has left
+    /// (CR 608.2h).
+    pub fn attached_player_of(&self, aura: ObjId) -> Option<PlayerId> {
+        match self.objects.get(aura) {
+            Some(o) if o.zone == Zone::Battlefield => o.attached_player(),
+            _ => self.lki.get(&aura).and_then(|l| l.object.attached_player()),
         }
     }
 

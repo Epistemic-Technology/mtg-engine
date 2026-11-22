@@ -1,0 +1,9 @@
+card "Molten Collapse" {
+  oracle_id f0d1636e-6f80-44fe-869a-1749ab249815
+  cost {B}{R}
+  type Sorcery
+  choose one or both if may descended this turn {
+    mode: destroy target creature or planeswalker
+    mode: destroy target noncreature, nonland permanent with mana value 1 or less
+  }
+}

@@ -1,0 +1,75 @@
+# "You may play lands from your graveyard." (CR 305.1): a land play from
+# the graveyard, counted against the player's land plays. Skipped: the
+# runner's `play` looks in the hand, exile, and the top of the library,
+# not the graveyard; Crucible of Worlds, Ramunap Excavator, Icetill
+# Explorer, and Perennial Behemoth (which the template author writes) wait
+# for that.
+
+scenario "Crucible of Worlds: play a land from the graveyard" {
+  skip "runner: `play` does not look in the graveyard"
+  battlefield A: "Crucible of Worlds"
+  graveyard A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+  assert graveyard A count 0
+}
+
+scenario "Crucible of Worlds: still one land a turn" {
+  skip "runner: `play` does not look in the graveyard"
+  battlefield A: "Crucible of Worlds"
+  graveyard A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  illegal turn 1 postcombat_main A: play "Island"
+  run_to turn 1 end
+  assert graveyard A contains "Island"
+}
+
+scenario "Crucible of Worlds: only its controller" {
+  skip "runner: `play` does not look in the graveyard"
+  battlefield A: "Crucible of Worlds"
+  graveyard B: "Forest"
+  start turn 2 B precombat_main
+  illegal turn 2 B: play "Forest"
+  run_to turn 2 end
+  assert graveyard B contains "Forest"
+}
+
+scenario "Ramunap Excavator: not a nonland card" {
+  skip "runner: `play` does not look in the graveyard"
+  battlefield A: "Ramunap Excavator"
+  graveyard A: "Grizzly Bears", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: play "Swamp"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Swamp"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Icetill Explorer: two lands, one from the graveyard, each milling" {
+  skip "runner: `play` does not look in the graveyard"
+  battlefield A: "Icetill Explorer"
+  hand A: "Forest"
+  graveyard A: "Island"
+  library A: "Grizzly Bears", "Hill Giant", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: play "Island"
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Island"
+  assert battlefield A contains "Forest"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Perennial Behemoth: lands from the graveyard" {
+  skip "runner: `play` does not look in the graveyard"
+  battlefield A: "Perennial Behemoth"
+  graveyard A: "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: play "Mountain"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mountain"
+}

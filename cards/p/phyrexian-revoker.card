@@ -1,0 +1,8 @@
+card "Phyrexian Revoker" {
+  oracle_id 786b3657-b595-4b38-83f2-d40915e51e2b
+  cost {2}
+  type Artifact Creature — Phyrexian Horror
+  pt 2/1
+  as this enters choose nonland card name
+  activated abilities of sources with chosen name can't be activated
+}

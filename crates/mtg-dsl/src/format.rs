@@ -3632,6 +3632,9 @@ fn filter_one(f: &Filter) -> String {
         ),
         None => {}
     }
+    if f.enchanted_player {
+        words.push("enchanted player controls".to_string());
+    }
     if f.not_attached {
         words.push("other than enchanted".to_string());
     }
@@ -5477,11 +5480,30 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         Ability::Modal(modes)
         | Ability::ModalBoth(modes)
         | Ability::ModalTwo(modes)
-        | Ability::ModalOf(_, modes) => {
+        | Ability::ModalOf(_, modes)
+        | Ability::ModalIf { modes, .. } => {
             let head = match ability {
                 Ability::ModalBoth(_) => "choose one or both".to_string(),
                 Ability::ModalTwo(_) => "choose two".to_string(),
                 Ability::ModalOf(h, _) => mode_head_dsl(*h),
+                Ability::ModalIf {
+                    more,
+                    any_number,
+                    may,
+                    cond,
+                    ..
+                } => format!(
+                    "choose one or {} if {}{}",
+                    if *any_number {
+                        "any number"
+                    } else if *more {
+                        "more"
+                    } else {
+                        "both"
+                    },
+                    if *may { "may " } else { "" },
+                    static_cond(cond)
+                ),
                 _ => "choose one".to_string(),
             };
             let _ = writeln!(out, "{indent}{head} {{");
@@ -6329,6 +6351,17 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
+                K::LandsFromGraveyard => "you may play lands from your graveyard".to_string(),
+                K::ChosenName(ban) => match ban {
+                    mtg_core::card::NameBan::Cast => "spells with chosen name can't be cast",
+                    mtg_core::card::NameBan::ActivateNonMana => {
+                        "activated abilities of sources with chosen name can't be activated unless mana"
+                    }
+                    mtg_core::card::NameBan::Activate => {
+                        "activated abilities of sources with chosen name can't be activated"
+                    }
+                }
+                .to_string(),
                 K::CantLose => "you can't lose the game".to_string(),
                 K::OpponentsCantCastYourTurn => {
                     "opponents can't cast spells during your turn".to_string()
@@ -6390,6 +6423,8 @@ fn choice_kind(k: &ChoiceKind, of_choice: bool) -> String {
             .map(|n| format!("\"{n}\""))
             .collect::<Vec<_>>()
             .join(" or "),
+        ChoiceKind::CardName { nonland: false } => "card name".to_string(),
+        ChoiceKind::CardName { nonland: true } => "nonland card name".to_string(),
     }
 }
 

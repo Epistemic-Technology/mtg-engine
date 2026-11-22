@@ -2634,6 +2634,12 @@ impl Templates {
             r"^Look at the top (\w+) cards of your library\. Put (two|three) of them into your hand and the rest (on the bottom of your library(?: in any order| in a random order)?|into your graveyard)\.?\s*(.*)$",
         )
         .unwrap();
+        // "look at the top three cards of your library, then put one of
+        // them into your hand and the rest ..." (Court Hussar).
+        let then = Regex::new(
+            r"^Look at the top (\w+) cards of your library, then put one of them into your hand and the rest (on the bottom of your library(?: in any order| in a random order)?|into your graveyard)\.?\s*(.*)$",
+        )
+        .unwrap();
         // "Put one into your hand and the other into your graveyard."
         let short = Regex::new(
             r"^Look at the top two cards of your library\. Put one into your hand and the other (on the bottom of your library|into your graveyard)\.?\s*(.*)$",
@@ -2699,6 +2705,12 @@ impl Templates {
                 format!("dig {n} take card rest {}", rest_of(cap(&c, 2))),
                 cap(&c, 3).to_string(),
             )
+        } else if let Some(c) = then.captures(&text) {
+            let n = number(cap(&c, 1)).ok_or_else(|| Skip::Sentence(text.clone()))?;
+            (
+                format!("dig {n} then take card rest {}", rest_of(cap(&c, 2))),
+                cap(&c, 3).to_string(),
+            )
         } else if let Some(c) = all.captures(&text) {
             let n = number(cap(&c, 1)).ok_or_else(|| Skip::Sentence(text.clone()))?;
             (
@@ -2742,20 +2754,94 @@ impl Templates {
         // "Target opponent reveals their hand. You choose a nonland card
         // from it. That player discards that card." is one effect.
         let duress = Regex::new(
-            r"^(.+?) reveals their hand\. You choose (a|an) (.+? )?card from it\. That player discards that card\.?(.*)$",
+            r"^(.+?) reveals their hand\. You (may )?choose (a|an) (.+? )?card from it( with mana value \d+ or (?:less|greater))?\. That player discards that card\.?(.*)$",
         )
         .unwrap();
         if let Some(c) = duress.captures(text) {
             let who = recipient(&subject(cap(&c, 1)), targets)
                 .ok_or_else(|| Skip::Sentence(text.to_string()))?;
-            let what = cap(&c, 3).trim();
+            let may = if c.get(2).is_some() { "may " } else { "" };
+            let what = cap(&c, 4).trim();
             let what = what.replace(", ", " ");
             let mut out = if what.is_empty() {
-                format!("{who} reveals hand discarding card")
+                format!("{who} reveals hand discarding {may}card")
             } else {
-                format!("{who} reveals hand discarding {what} card")
+                format!("{who} reveals hand discarding {may}{what} card")
             };
-            let rest = cap(&c, 4).trim();
+            if let Some(mv) = c.get(5) {
+                if what.is_empty() {
+                    return Err(Skip::Sentence(text.to_string()));
+                }
+                out = format!(
+                    "{} card",
+                    out.trim_end_matches(" card").to_string() + mv.as_str()
+                );
+            }
+            let rest = cap(&c, 6).trim();
+            if !rest.is_empty() {
+                out.push_str("; ");
+                out.push_str(&self.effects(rest, targets)?);
+            }
+            return Ok(out);
+        }
+        // Kinship: "you may look at the top card of your library. If it
+        // shares a creature type with this creature, you may reveal it. If
+        // you do, ...".
+        if let Some(c) = Regex::new(
+            r"^[Yy]ou may look at the top card of your library\. If it shares a creature type with this creature, you may reveal it\. If you do, (.+?)\.?$",
+        )
+        .unwrap()
+        .captures(text)
+        {
+            let then = self.effects(cap(&c, 1), targets)?;
+            return Ok(format!(
+                "you may look at top card; if it shares creature type with this, you may reveal it; if you do, {then}"
+            ));
+        }
+        // "Target opponent reveals their hand. You may choose a nonland
+        // card from it. If you do, that player discards that card. If you
+        // don't, that player discards two cards." (Nightsnare).
+        if let Some(c) = Regex::new(
+            r"^(.+?) reveals their hand\. You may choose (a|an) (.+? )?card from it\. If you do, that player discards that card\. If you don't, (.+?)\.?$",
+        )
+        .unwrap()
+        .captures(text)
+        {
+            let who = recipient(&subject(cap(&c, 1)), targets)
+                .ok_or_else(|| Skip::Sentence(text.to_string()))?;
+            let what = cap(&c, 3).trim().replace(", ", " ");
+            let what = if what.is_empty() {
+                "card".to_string()
+            } else {
+                format!("{what} card")
+            };
+            let rest = self.effects(cap(&c, 4), targets)?;
+            return Ok(format!(
+                "{who} reveals hand discarding may {what}; if you don't, {rest}"
+            ));
+        }
+        // "Target opponent reveals their hand. You choose a nonland card
+        // from it. Exile that card." / "... and exile that card."
+        let exile_chosen = Regex::new(
+            r"^(.+?) reveals their hand\. You choose (a|an) (.+? )?card from it(\. Exile| and exile) that card\.?(.*)$",
+        )
+        .unwrap();
+        if let Some(c) = exile_chosen.captures(text) {
+            let who = recipient(&subject(cap(&c, 1)), targets)
+                .ok_or_else(|| Skip::Sentence(text.to_string()))?;
+            let what = cap(&c, 3).trim().replace(", ", " ");
+            let what = if what.is_empty() {
+                "card".to_string()
+            } else {
+                format!("{what} card")
+            };
+            let split = if cap(&c, 4) == ". Exile" {
+                " split"
+            } else {
+                ""
+            };
+            let mut out = format!("{who} reveals hand exiling {what}{split}");
+            let rest = cap(&c, 5).trim();
             if !rest.is_empty() {
                 out.push_str("; ");
                 out.push_str(&self.effects(rest, targets)?);
@@ -3398,6 +3484,10 @@ fn trigger_text(head: &str) -> Option<String> {
         }
         "Whenever another creature you control dies" => "whenever other creature you control dies",
         "At the beginning of your upkeep" => "at beginning of your upkeep",
+        // A Curse (CR 303.4): "enchanted controller" is the player.
+        "At the beginning of enchanted player's upkeep" => {
+            "at beginning of enchanted controller's upkeep"
+        }
         "At the beginning of each player's upkeep" => "at beginning of each upkeep",
         "At the beginning of each upkeep" => "at beginning of every upkeep",
         "At the beginning of your end step" => "at beginning of your end step",
@@ -3843,6 +3933,7 @@ fn static_condition(s: &str) -> Option<String> {
         }
         "his sneak cost was paid" => return Some("his sneak paid".to_string()),
         "her sneak cost was paid" => return Some("her sneak paid".to_string()),
+        "this spell was kicked" => return Some("kicked".to_string()),
         "this spell was cast using teamwork" => {
             return Some("teamwork".to_string());
         }
@@ -4775,7 +4866,7 @@ impl Builder<'_> {
         // "As this land enters, choose a color." (CR 614.12), alone or after
         // "This land enters tapped." on the same line.
         if let Some(c) = Regex::new(
-            r"^(This (?:land|artifact|creature|permanent) enters tapped\. )?As (?:it|this (?:land|artifact|creature|enchantment|permanent|Aura)) enters, choose a (color|creature type|basic land type)(?: other than (white|blue|black|red|green))?\.$",
+            r"^(This (?:land|artifact|creature|permanent) enters tapped\. )?As (?:it|this (?:land|artifact|creature|enchantment|permanent|Aura)) enters, choose a (color|creature type|basic land type|card name|nonland card name)(?: other than (white|blue|black|red|green))?\.$",
         )
         .unwrap()
         .captures(line)
@@ -4796,6 +4887,25 @@ impl Builder<'_> {
         }
         if line == "{T}: Add one mana of any color." {
             self.statements.push("mana any".to_string());
+            return Ok(());
+        }
+        // Chosen-name bans (CR 201.3).
+        let ban = match line {
+            "Spells with the chosen name can't be cast." => {
+                Some("spells with chosen name can't be cast")
+            }
+            "Activated abilities of sources with the chosen name can't be activated unless they're mana abilities." => {
+                Some(
+                    "activated abilities of sources with chosen name can't be activated unless mana",
+                )
+            }
+            "Activated abilities of sources with the chosen name can't be activated." => {
+                Some("activated abilities of sources with chosen name can't be activated")
+            }
+            _ => None,
+        };
+        if let Some(b) = ban {
+            self.statements.push(b.to_string());
             return Ok(());
         }
         // "As an additional cost to cast this spell, you may collect
@@ -4857,6 +4967,7 @@ impl Builder<'_> {
                 "creature or Vehicle" => "creature or Vehicle",
                 "tapped creature" => "tapped creature",
                 "nonland permanent" => "nonland permanent",
+                "player" => "player",
                 _ => return Err(Skip::Sentence(line.to_string())),
             };
             self.statements.push(format!("enchant {spec}"));
@@ -5005,6 +5116,9 @@ impl Builder<'_> {
                 Some("opponents can't cast spells during your turn")
             }
             "Players can't gain life." => Some("players can't gain life"),
+            "You may play lands from your graveyard." => {
+                Some("you may play lands from your graveyard")
+            }
             "Damage can't be prevented." => Some("damage can't be prevented"),
             "You may play an additional land on each of your turns." => Some("additional land"),
             "You may play two additional lands on each of your turns." => Some("additional land 2"),
@@ -6116,8 +6230,8 @@ impl Builder<'_> {
     }
 
     /// "When this creature enters, choose one —" with its modes.
-    fn modal_trigger(&mut self, trigger: &str, modes: &[String]) -> Result<(), Skip> {
-        let mut lines = vec![format!("triggered {trigger}: choose one {{")];
+    fn modal_trigger(&mut self, trigger: &str, head: &str, modes: &[String]) -> Result<(), Skip> {
+        let mut lines = vec![format!("triggered {trigger}: {head} {{")];
         for m in modes {
             lines.push(format!("  {}", self.mode(m)?));
         }
@@ -6910,6 +7024,11 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     let oracle = leveler.replace_all(&oracle, "$1 $2").into_owned();
     let lines: Vec<&str> = oracle.lines().collect();
     let mut i = 0;
+    // "Choose one. If ..., choose both instead." (CR 700.2).
+    let choose_if = Regex::new(
+        r"^Choose one\. If (.+), (you may )?choose (both|one or more|any number) instead\.$",
+    )
+    .unwrap();
     while i < lines.len() {
         let line = lines[i];
         // CR 702.172: "Spree" and its "+ {1} — ..." modes.
@@ -6926,10 +7045,54 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
             b.spree(&modes)?;
             continue;
         }
+        // "Choose one. If this spell was cast using teamwork, choose both
+        // instead." (CR 700.2), with an ability word before it.
+        let (cond_label, cond_line) = match line.split_once(" — ") {
+            Some((word, h)) if ABILITY_WORDS.contains(&word) => (Some(word), h),
+            _ => (None, line),
+        };
+        if let Some(c) = choose_if.captures(cond_line) {
+            let text = cap(&c, 1);
+            let cond = static_condition(text)
+                .or_else(|| {
+                    let n = Regex::new(
+                        r"^there are (\w+) or more card types among cards in your graveyard$",
+                    )
+                    .unwrap()
+                    .captures(text)?;
+                    Some(format!(
+                        "{} card types in your graveyard",
+                        number(cap(&n, 1))?
+                    ))
+                })
+                .ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            let may = if c.get(2).is_some() { "may " } else { "" };
+            let more = match cap(&c, 3) {
+                "one or more" => "more",
+                m => m,
+            };
+            let head = format!("choose one or {more} if {may}{cond}");
+            let mut modes = Vec::new();
+            i += 1;
+            while i < lines.len() && lines[i].starts_with("• ") {
+                modes.push(lines[i][3..].to_string());
+                i += 1;
+            }
+            b.modal(&modes, &head)?;
+            if let Some(l) = cond_label
+                && let Some(st) = b.statements.last_mut()
+            {
+                *st = format!("label \"{l}\" {st}");
+            }
+            continue;
+        }
         let head = match line {
             "Choose one —" => Some("choose one"),
             "Choose one or both —" => Some("choose one or both"),
             "Choose two —" => Some("choose two"),
+            "Choose one or more —" => Some("choose one or more"),
+            "Choose up to one —" => Some("choose up to 1"),
+            "Choose up to two —" => Some("choose up to 2"),
             _ => None,
         };
         if let Some(head) = head {
@@ -6943,7 +7106,27 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
             continue;
         }
         // "When this creature enters, choose one —" and its modes.
-        if let Some(head) = line.strip_suffix(", choose one —") {
+        // Other modal heads (CR 700.2): "choose one or more —", "choose up
+        // to one —", "choose one that hasn't been chosen —".
+        let trigger_head = [
+            (", choose one —", "choose one"),
+            (", choose one or both —", "choose one or both"),
+            (", choose two —", "choose two"),
+            (", choose one or more —", "choose one or more"),
+            (", choose up to one —", "choose up to 1"),
+            (", choose up to two —", "choose up to 2"),
+            (
+                ", choose one that hasn't been chosen —",
+                "choose one unchosen",
+            ),
+            (
+                ", choose one that hasn't been chosen this turn —",
+                "choose one unchosen this turn",
+            ),
+        ]
+        .iter()
+        .find_map(|(suffix, dsl)| line.strip_suffix(suffix).map(|h| (h, *dsl)));
+        if let Some((head, dsl_head)) = trigger_head {
             // "Landfall — Whenever a land you control enters, choose one —".
             let (label, head) = match head.split_once(" — ") {
                 Some((word, h)) if ABILITY_WORDS.contains(&word) => (Some(word), h),
@@ -6958,7 +7141,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
                 modes.push(lines[i][3..].to_string());
                 i += 1;
             }
-            b.modal_trigger(&trigger, &modes)?;
+            b.modal_trigger(&trigger, dsl_head, &modes)?;
             if let Some(l) = label
                 && let Some(st) = b.statements.last_mut()
             {

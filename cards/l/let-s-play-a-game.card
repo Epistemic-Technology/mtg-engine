@@ -1,0 +1,10 @@
+card "Let's Play a Game" {
+  oracle_id dd893746-e8bd-49fa-a1ce-755d5bd4f513
+  cost {3}{B}
+  type Sorcery
+  label "Delirium" choose one or more if 4 card types in your graveyard {
+    mode: each creature your opponents control gets -1/-1
+    mode: each opponent discards 2 cards
+    mode: each opponent loses 3 life and you gain 3 life
+  }
+}

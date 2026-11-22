@@ -1,0 +1,47 @@
+# Kinship cards the template author now writes ("you may look at the top
+# card of your library. If it shares a creature type with this creature,
+# you may reveal it. If you do, ...").
+
+scenario "Pyroclast Consul: a Shaman on top, 2 damage to each creature" {
+  battlefield A: "Pyroclast Consul", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  library A: "Wolf-Skull Shaman", "Forest"
+  start turn 3 A
+  run_to turn 3 draw
+  assert graveyard A contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert damage "Pyroclast Consul" 2
+}
+
+scenario "Pyroclast Consul: no shared type, nothing" {
+  battlefield A: "Pyroclast Consul", "Grizzly Bears"
+  library A: "Llanowar Elves", "Forest"
+  start turn 3 A
+  run_to turn 3 draw
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Wolf-Skull Shaman: an Elf on top, a Wolf" {
+  battlefield A: "Wolf-Skull Shaman"
+  library A: "Llanowar Elves", "Forest"
+  start turn 3 A
+  run_to turn 3 draw
+  assert battlefield A contains "Wolf"
+  assert power "Wolf" 2
+}
+
+scenario "Wandering Graybeard: a Giant on top, gain 4 life" {
+  battlefield A: "Wandering Graybeard"
+  library A: "Hill Giant", "Forest"
+  start turn 3 A
+  run_to turn 3 draw
+  assert life A 24
+}
+
+scenario "Nightshade Schemers: a Wizard on top, each opponent loses 2" {
+  battlefield A: "Nightshade Schemers"
+  library A: "Wandering Graybeard", "Forest"
+  start turn 3 A
+  run_to turn 3 draw
+  assert life B 18
+}

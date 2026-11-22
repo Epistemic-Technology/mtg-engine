@@ -2125,6 +2125,8 @@ fn enchanted_noun(card: &Card) -> &'static str {
         _ => None,
     });
     match enchant.map(Target::base) {
+        // "Enchant player" (CR 303.4): a Curse.
+        Some(Target::Spec(TargetSpec::Player)) => "player",
         Some(Target::Spec(TargetSpec::Land)) => "land",
         Some(Target::Spec(TargetSpec::Artifact)) => "artifact",
         Some(Target::Spec(TargetSpec::Enchantment)) => "enchantment",
@@ -2612,6 +2614,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         Some(_) => s.push_str(" that player controls"),
         None => {}
     }
+    if f.enchanted_player {
+        s.push_str(" enchanted player controls");
+    }
     if f.other_than_this {
         let _ = write!(s, " other than {}", this_ref(card));
     }
@@ -2917,6 +2922,8 @@ fn choice_noun(k: &ChoiceKind) -> String {
         }
         ChoiceKind::LandType(lands) if lands.len() == 5 => "a basic land type".to_string(),
         ChoiceKind::Named(names) => or_list(names),
+        ChoiceKind::CardName { nonland: false } => "a card name".to_string(),
+        ChoiceKind::CardName { nonland: true } => "a nonland card name".to_string(),
         ChoiceKind::LandType(lands) => or_list(
             &lands
                 .iter()
@@ -7281,11 +7288,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 None => "a card".to_string(),
                 Some(f) => with_article(&format!("{} card", card_filter_phrase(f, ctx.card))),
             };
+            // "You choose a nonland card from it with mana value 3 or
+            // less." (Inquisition of Kozilek): the qualifier after "it".
+            let (what, after) = match what.split_once(" with mana value ") {
+                Some((w, mv)) => match mv.strip_suffix(" card") {
+                    Some(mv) => (format!("{w} card"), format!(" with mana value {mv}")),
+                    None => (w.to_string(), format!(" with mana value {mv}")),
+                },
+                None => (what, String::new()),
+            };
             let choose = match (*look, *may) {
                 // "Look at target player's hand and choose a card from it."
-                (true, false) => format!(" and choose {what} from it."),
-                (_, true) => format!(". You may choose {what} from it."),
-                (false, false) => format!(". You choose {what} from it."),
+                (true, false) => format!(" and choose {what} from it{after}."),
+                (_, true) => format!(". You may choose {what} from it{after}."),
+                (false, false) => format!(". You choose {what} from it{after}."),
             };
             if *look {
                 let o = ctx.obj(*who);
@@ -8190,6 +8206,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     "the creature type of your choice".to_string()
                 }
                 ChoiceKind::Named(names) => or_list(names),
+                ChoiceKind::CardName { .. } => "the card name of your choice".to_string(),
                 // Imagecrafter: "Choose a creature type other than Wall.
                 // Target creature becomes that type until end of turn."
                 ChoiceKind::CreatureType { except: Some(t) } => {
@@ -10163,6 +10180,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         } => "at end of combat".to_string(),
         // "At the beginning of the upkeep of enchanted creature's
         // controller", "... the end step of enchanted artifact's controller".
+        // "At the beginning of enchanted player's upkeep" (a Curse).
+        Trigger::AttachedStep(step) if enchanted_noun(ctx.card) == "player" => format!(
+            "at the beginning of enchanted player's {}",
+            step_name(*step, Who::You).trim_start_matches("your ")
+        ),
         Trigger::AttachedStep(step) => format!(
             "at the beginning of the {} of enchanted {}'s controller",
             step_name(*step, Who::You).trim_start_matches("your "),
@@ -11679,8 +11701,11 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
             } else if !restricted.is_empty() {
                 let r = restriction_phrase(&restricted);
                 parts.push(if plural_form {
-                    // "can attack as though they didn't have defender".
+                    // "can attack as though they didn't have defender";
+                    // "Creatures enchanted player controls attack each
+                    // combat if able".
                     r.replace("though it didn't", "though they didn't")
+                        .replace("attacks each combat", "attack each combat")
                 } else {
                     r
                 });
@@ -11891,6 +11916,7 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
         )
     } else {
         let bare = filter.who.is_none()
+            && !filter.enchanted_player
             && filter.colors.is_none()
             && filter.not_types.is_empty()
             && filter.not_supertypes.is_empty()
@@ -13719,11 +13745,36 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         Ability::Modal(modes)
         | Ability::ModalBoth(modes)
         | Ability::ModalTwo(modes)
-        | Ability::ModalOf(_, modes) => {
+        | Ability::ModalOf(_, modes)
+        | Ability::ModalIf { modes, .. } => {
             let mut out = match a {
                 Ability::ModalBoth(_) => "Choose one or both —".to_string(),
                 Ability::ModalTwo(_) => "Choose two —".to_string(),
                 Ability::ModalOf(h, _) => capitalize(&format!("{} —", mode_head_text(*h))),
+                // "Choose one. If this spell was cast using teamwork,
+                // choose both instead."
+                Ability::ModalIf {
+                    more,
+                    any_number,
+                    may,
+                    cond,
+                    ..
+                } => format!(
+                    "Choose one. If {}, {}choose {} instead.",
+                    if *cond == StaticCond::Kicked {
+                        "this spell was kicked".to_string()
+                    } else {
+                        static_cond_text(cond, card)
+                    },
+                    if *may { "you may " } else { "" },
+                    if *any_number {
+                        "any number"
+                    } else if *more {
+                        "one or more"
+                    } else {
+                        "both"
+                    }
+                ),
                 _ => "Choose one —".to_string(),
             };
             for m in modes {
@@ -14884,6 +14935,17 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
+                K::LandsFromGraveyard => "you may play lands from your graveyard".to_string(),
+                K::ChosenName(ban) => match ban {
+                    mtg_core::card::NameBan::Cast => "spells with the chosen name can't be cast",
+                    mtg_core::card::NameBan::ActivateNonMana => {
+                        "activated abilities of sources with the chosen name can't be activated unless they're mana abilities"
+                    }
+                    mtg_core::card::NameBan::Activate => {
+                        "activated abilities of sources with the chosen name can't be activated"
+                    }
+                }
+                .to_string(),
                 K::CantLose => {
                     "you can't lose the game and your opponents can't win the game".to_string()
                 }

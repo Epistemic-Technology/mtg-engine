@@ -1,0 +1,10 @@
+card "Voidstone Gargoyle" {
+  oracle_id 1a1a6548-26ef-49f4-9e6d-b98bea1bd149
+  cost {3}{W}{W}
+  type Creature — Gargoyle
+  pt 3/3
+  keywords flying
+  as this enters choose nonland card name
+  spells with chosen name can't be cast
+  activated abilities of sources with chosen name can't be activated
+}

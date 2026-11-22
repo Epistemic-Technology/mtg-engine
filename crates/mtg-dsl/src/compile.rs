@@ -612,6 +612,12 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Entwine(cost)) => {
                     b = b.entwine(cost.clone());
                 }
+                // CR 700.2: "If ..., choose both instead."
+                Ability::ModalIf { may, cond, .. } => {
+                    let c = self.static_cond(cond);
+                    let cond = self.pool.intern_condition(c);
+                    b = b.modes_if(mtg_core::card::ModesIf { cond, must: !*may });
+                }
                 Ability::Mechanic(Mechanic::Escape(cost, n)) => {
                     b = b.escape(cost.clone(), *n);
                 }
@@ -630,14 +636,23 @@ impl Compiler<'_> {
                 // CR 702.120a: with two modes, choosing both pays the
                 // escalate cost once: entwine's cost on the both-mode.
                 Ability::Mechanic(Mechanic::Escalate(c)) => {
-                    if !card
+                    if card
+                        .abilities
+                        .iter()
+                        .any(|a| matches!(a, Ability::ModalOf(crate::ast::ModeHead::OneOrMore, _)))
+                    {
+                        b = b.escalate(c.clone());
+                    } else if card
                         .abilities
                         .iter()
                         .any(|a| matches!(a, Ability::ModalBoth(_)))
                     {
-                        return self.err("escalate on a `choose one or both` spell");
+                        b = b.entwine(c.clone());
+                    } else {
+                        return self.err(
+                            "escalate on a `choose one or both` or `choose one or more` spell",
+                        );
                     }
-                    b = b.entwine(c.clone());
                 }
                 // CR 702.76a: "You may cast this for its prowl cost if you
                 // dealt combat damage to a player this turn with a [creature
@@ -1077,6 +1092,7 @@ impl Compiler<'_> {
                         | Ability::ModalBoth(_)
                         | Ability::ModalTwo(_)
                         | Ability::ModalOf(..)
+                        | Ability::ModalIf { .. }
                         | Ability::Spree(_)
                         | Ability::Pawprint { .. }
                 )
@@ -1708,6 +1724,8 @@ impl Compiler<'_> {
             }),
             that_player: f.that_player,
             not_attached: f.not_attached,
+            enchanted_player: f.enchanted_player,
+            controlled_by: None,
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
             targeting: f.targeting.as_ref().map(|t| {
                 Box::new(mtg_core::card::SpellTargets {
@@ -2736,6 +2754,7 @@ impl Compiler<'_> {
             ChoiceKind::Named(names) => {
                 CoreChoiceKind::Named(u8::try_from(names.len()).unwrap_or(u8::MAX))
             }
+            ChoiceKind::CardName { nonland } => CoreChoiceKind::CardName { nonland: *nonland },
         }
     }
 
@@ -4857,6 +4876,17 @@ impl Compiler<'_> {
             Ability::ModalBoth(modes) => AbilityDef::Modal(self.modes(modes, true, false)?),
             Ability::ModalTwo(modes) => AbilityDef::Modal(self.modes(modes, false, true)?),
             Ability::ModalOf(head, modes) => AbilityDef::Modal(self.head_modes(*head, modes)?),
+            Ability::ModalIf {
+                more: false, modes, ..
+            } => {
+                if modes.len() != 2 {
+                    return self.err("`choose one or both if` takes two modes");
+                }
+                AbilityDef::Modal(self.modes(modes, true, false)?)
+            }
+            Ability::ModalIf {
+                more: true, modes, ..
+            } => AbilityDef::Modal(self.head_modes(crate::ast::ModeHead::OneOrMore, modes)?),
             Ability::Spree(modes) => AbilityDef::Modal(self.spree_modes(modes)?),
             Ability::Pawprint { limit, modes } => {
                 AbilityDef::Modal(self.pawprint_modes(*limit, modes)?)

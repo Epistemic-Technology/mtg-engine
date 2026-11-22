@@ -1,0 +1,50 @@
+# "Target opponent reveals their hand. You choose a nonland card from it
+# ..." forms the template author now writes.
+
+scenario "Inquisition of Kozilek: a nonland card with mana value 3 or less" {
+  battlefield A: "Swamp"
+  hand A: "Inquisition of Kozilek"
+  hand B: "Serra Angel", "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Inquisition of Kozilek" targeting player B
+  illegal turn 1 precombat_main A: discard "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert hand B contains "Serra Angel"
+  assert hand B contains "Forest"
+}
+
+scenario "Thought-Knot Seer: exile a nonland card; the opponent draws when it leaves" {
+  battlefield A: 4 "Wastes"
+  hand A: "Thought-Knot Seer"
+  hand B: "Lightning Bolt", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Thought-Knot Seer"
+  turn 1 precombat_main A: discard "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Lightning Bolt"
+  assert hand B count 1
+}
+
+scenario "Nightsnare: you choose a nonland card" {
+  battlefield A: 4 "Swamp"
+  hand A: "Nightsnare"
+  hand B: "Lightning Bolt", "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Nightsnare" targeting player B
+  turn 1 precombat_main A: discard "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert hand B count 2
+}
+
+scenario "Nightsnare: no nonland card chosen, that player discards two cards" {
+  battlefield A: 4 "Swamp"
+  hand A: "Nightsnare"
+  hand B: "Forest", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Nightsnare" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert graveyard B count 2
+}

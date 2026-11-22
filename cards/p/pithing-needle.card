@@ -1,0 +1,7 @@
+card "Pithing Needle" {
+  oracle_id a188fe7e-68de-4c7c-806c-bfe8fc7b44bf
+  cost {1}
+  type Artifact
+  as this enters choose card name
+  activated abilities of sources with chosen name can't be activated unless mana
+}

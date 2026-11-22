@@ -1180,6 +1180,16 @@ pub struct ObjFilter {
     /// "target creature other than enchanted creature": not what the source
     /// is attached to. Judged for targets of an ability of the source.
     pub not_attached: bool,
+    /// "creatures enchanted player controls" (CR 303.4): controlled by the
+    /// player the source, a Curse, is attached to. A placeholder the engine
+    /// fills in (`with_enchanted_player`) where the source is known: a
+    /// static ability's affected objects, a trigger's filter, an effect's
+    /// group; unfilled, nothing matches.
+    #[serde(default)]
+    pub enchanted_player: bool,
+    /// Controlled by this player: `enchanted_player` filled in.
+    #[serde(default)]
+    pub controlled_by: Option<crate::ids::PlayerId>,
 }
 
 /// The player a filter's `that_player` means.
@@ -1499,6 +1509,22 @@ impl ObjFilter {
         self
     }
 
+    /// The filter with "enchanted player controls" filled in: controlled
+    /// by `player`, the player the source is attached to; with none, a
+    /// filter nothing matches.
+    #[must_use]
+    pub fn with_enchanted_player(&self, player: Option<crate::ids::PlayerId>) -> Self {
+        let mut f = self.clone();
+        if player.is_some() {
+            f.enchanted_player = false;
+            f.controlled_by = player;
+        }
+        if let Some(alt) = &f.or {
+            f.or = Some(Box::new(alt.with_enchanted_player(player)));
+        }
+        f
+    }
+
     /// The filter with "the chosen color/type" filled in: that color or
     /// that subtype; with nothing chosen, a filter nothing matches.
     #[must_use]
@@ -1508,6 +1534,8 @@ impl ObjFilter {
         match chosen {
             crate::state::Chosen::Color(c) => f.colors = Some(ColorSet::of([c])),
             crate::state::Chosen::Subtype(s) => f.subtypes.push(s),
+            // "spell with the chosen name".
+            crate::state::Chosen::Card(_) => f.named = chosen.card_ref().map(|d| (d, true)),
             crate::state::Chosen::None
             | crate::state::Chosen::Votes(_)
             | crate::state::Chosen::Option(_) => {
@@ -1575,6 +1603,7 @@ impl ObjFilter {
                 .is_some_and(|a| a.matches(obj, obj_controller, c, source, controller))
     }
 
+    #[allow(clippy::too_many_lines)] // one check per qualifier
     fn matches_one(
         &self,
         obj: crate::ids::ObjId,
@@ -1583,9 +1612,13 @@ impl ObjFilter {
         source: Option<crate::ids::ObjId>,
         controller: Option<crate::ids::PlayerId>,
     ) -> bool {
-        // An unfilled "of the chosen type" (`with_chosen`) or "named ~"
-        // (`with_same`) matches nothing.
-        if self.chosen || self.same.is_some() {
+        // An unfilled "of the chosen type" (`with_chosen`), "named ~"
+        // (`with_same`), or "enchanted player controls"
+        // (`with_enchanted_player`) matches nothing.
+        if self.chosen || self.same.is_some() || self.enchanted_player {
+            return false;
+        }
+        if self.controlled_by.is_some_and(|p| p != obj_controller) {
             return false;
         }
         if let Some((def, named)) = self.named
@@ -3303,6 +3336,16 @@ pub enum TargetSpec {
     /// ability's "target" words chose (Boulder Dash's "2 damage to any
     /// target and 1 damage to any other target").
     AnyOther,
+}
+
+/// `CardDef::modes_if`: when a modal spell's larger choice is allowed.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct ModesIf {
+    /// The pooled condition (`CardPool::condition`).
+    pub cond: u16,
+    /// "choose both instead": with the condition, only the sets of more
+    /// than one mode ("you may choose both instead": any).
+    pub must: bool,
 }
 
 /// A variable number of targets of one kind (CR 601.2c): at least `min`,
@@ -5324,6 +5367,24 @@ pub enum ChoiceKind {
     /// One of this many named options ("choose Khans or Dragons", CR
     /// 614.12): `Chosen::Option` with its index.
     Named(u8),
+    /// "choose a card name", "choose a nonland card name" (CR 201.3):
+    /// `Chosen::Card`. The names offered are those of the cards in the
+    /// game (any zone, either player's), since naming another card has no
+    /// effect on play.
+    CardName { nonland: bool },
+}
+
+/// What a chosen-name ban forbids (`PlayerStaticKind::ChosenName`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum NameBan {
+    /// "Spells with the chosen name can't be cast."
+    Cast,
+    /// "Activated abilities of sources with the chosen name can't be
+    /// activated unless they're mana abilities." (CR 605.1a).
+    ActivateNonMana,
+    /// "Activated abilities of sources with the chosen name can't be
+    /// activated."
+    Activate,
 }
 
 /// What a player-level static ability does (`AbilityDef::PlayerStatic`).
@@ -5340,6 +5401,13 @@ pub enum PlayerStaticKind {
     /// "You have shroud." (CR 702.18c): the controller can't be the target
     /// of spells or abilities.
     Shroud,
+    /// A ban on the name the source chose as it entered (`Chosen::Card`,
+    /// CR 201.3), for every player: Meddling Mage, Pithing Needle.
+    ChosenName(NameBan),
+    /// "You may play lands from your graveyard." (CR 305.1, 601.3): the
+    /// controller may play land cards from their graveyard, using their
+    /// land plays.
+    LandsFromGraveyard,
     /// "Your opponents can't cast spells during your turn." (CR 101.2).
     OpponentsCantCastYourTurn,
     /// "You can't lose the game and your opponents can't win the game."
@@ -7759,6 +7827,18 @@ pub struct CardDef {
     /// Entwine (CR 702.42): every mode of a "choose one" spell for this
     /// cost on top.
     pub entwine: Option<Box<ManaCost>>,
+    /// Escalate (CR 702.120a) on a "choose one or more" spell: this cost
+    /// for each mode chosen beyond the first. (On a "choose one or both"
+    /// spell it is `entwine`.) The modes are the sets of modes as bits,
+    /// mode index `bits - 1`.
+    #[serde(default)]
+    pub escalate: Option<Box<ManaCost>>,
+    /// "Choose one. If this spell was cast using teamwork, choose both
+    /// instead." (CR 700.2): a modal spell whose sets of more than one mode
+    /// may be chosen only while the pooled condition holds as it is cast
+    /// (judged for the spell); with `must`, only those sets then.
+    #[serde(default)]
+    pub modes_if: Option<ModesIf>,
     /// Escape—cost, exile N other cards from your graveyard (CR 702.138).
     pub escape: Option<Box<(ManaCost, u32)>>,
     /// Mayhem—cost: cast from the graveyard for this cost if its owner
@@ -9990,6 +10070,8 @@ impl Builder {
             spree: Vec::new(),
             gift: None,
             entwine: None,
+            escalate: None,
+            modes_if: None,
             escape: None,
             mayhem: None,
             modular: 0,
@@ -10597,6 +10679,20 @@ impl Builder {
     #[must_use]
     pub fn entwine(mut self, cost: ManaCost) -> Self {
         self.0.entwine = Some(Box::new(cost));
+        self
+    }
+
+    /// "Choose one. If ..., choose both instead." (`CardDef::modes_if`).
+    #[must_use]
+    pub fn modes_if(mut self, m: ModesIf) -> Self {
+        self.0.modes_if = Some(m);
+        self
+    }
+
+    /// Escalate (CR 702.120a) on a "choose one or more" spell.
+    #[must_use]
+    pub fn escalate(mut self, cost: ManaCost) -> Self {
+        self.0.escalate = Some(Box::new(cost));
         self
     }
 

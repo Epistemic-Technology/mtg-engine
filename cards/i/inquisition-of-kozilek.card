@@ -1,0 +1,6 @@
+card "Inquisition of Kozilek" {
+  oracle_id 395611fa-aec2-4c9e-92c3-70cf95cc00f4
+  cost {B}
+  type Sorcery
+  spell: target player reveals hand discarding nonland with mana value 3 or less card
+}

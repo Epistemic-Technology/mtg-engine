@@ -842,6 +842,13 @@ impl P {
             suffix(self)?;
             return Ok(ChoiceKind::LandType(Color::ALL.to_vec()));
         }
+        // "choose a card name", "choose a nonland card name".
+        if self.eat_words(&["card", "name"]) {
+            return Ok(ChoiceKind::CardName { nonland: false });
+        }
+        if self.eat_words(&["nonland", "card", "name"]) {
+            return Ok(ChoiceKind::CardName { nonland: true });
+        }
         // `"Khans" or "Dragons"`.
         if let Some(Tok::Str(_)) = self.peek() {
             let mut names = Vec::new();
@@ -1504,6 +1511,14 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::XManaColor(c))
             }
+            "spells"
+                if self.at_words(&["spells", "with", "chosen", "name", "can't", "be", "cast"]) =>
+            {
+                self.pos += 7;
+                self.player_static(mtg_core::card::PlayerStaticKind::ChosenName(
+                    mtg_core::card::NameBan::Cast,
+                ))
+            }
             "spells" => self.cost_change(None),
             "hexproof" if self.word_at(1).as_deref() == Some("from") => {
                 self.pos += 2;
@@ -1551,6 +1566,28 @@ impl P {
             }
             // "Activated abilities of artifacts you control cost {1} less
             // to activate."
+            "activated"
+                if self.at_words(&[
+                    "activated",
+                    "abilities",
+                    "of",
+                    "sources",
+                    "with",
+                    "chosen",
+                    "name",
+                    "can't",
+                    "be",
+                    "activated",
+                ]) =>
+            {
+                self.pos += 10;
+                let ban = if self.eat_words(&["unless", "mana"]) {
+                    mtg_core::card::NameBan::ActivateNonMana
+                } else {
+                    mtg_core::card::NameBan::Activate
+                };
+                self.player_static(mtg_core::card::PlayerStaticKind::ChosenName(ban))
+            }
             "activated" | "power-up" | "exhaust" | "boast" | "ninjutsu"
                 if self.word_at(1).as_deref() == Some("abilities")
                     && self.word_at(2).as_deref() == Some("of") =>
@@ -1588,6 +1625,13 @@ impl P {
             "you" if self.at_words(&["you", "have", "shroud"]) => {
                 self.pos += 3;
                 self.player_static(mtg_core::card::PlayerStaticKind::Shroud)
+            }
+            // Chosen-name bans (CR 201.3): Meddling Mage, Pithing Needle.
+            "you"
+                if self.at_words(&["you", "may", "play", "lands", "from", "your", "graveyard"]) =>
+            {
+                self.pos += 7;
+                self.player_static(mtg_core::card::PlayerStaticKind::LandsFromGraveyard)
             }
             "opponents"
                 if self.at_words(&[
@@ -2609,6 +2653,24 @@ impl P {
                 }
                 self.expect_word("one")?;
                 let both = self.eat_words(&["or", "both"]);
+                let any_number = !both && self.eat_words(&["or", "any", "number"]);
+                let more = any_number || !both && self.eat_words(&["or", "more"]);
+                if (both || more) && self.eat_word("if") {
+                    let may = self.eat_word("may");
+                    let cond = self.static_cond()?;
+                    let modes = self.modes_block()?;
+                    self.end_stmt()?;
+                    return Ok(Ability::ModalIf {
+                        more,
+                        any_number,
+                        may,
+                        cond,
+                        modes,
+                    });
+                }
+                if more {
+                    return self.fail("expected `if` after `choose one or more`");
+                }
                 let modes = self.modes_block()?;
                 self.end_stmt()?;
                 Ok(if both {
@@ -3934,6 +3996,10 @@ impl P {
         }
         if self.eat_words(&["not", "kicked"]) {
             return Ok(StaticCond::NotKicked);
+        }
+        if self.at_word("kicked") && self.word_at(1).as_deref() != Some("with") {
+            self.pos += 1;
+            return Ok(StaticCond::Kicked);
         }
         if self.eat_word("impending") {
             return Ok(StaticCond::Impending);
@@ -11364,6 +11430,10 @@ impl P {
                 "this" if self.word_at(1).as_deref() != Some("turn") => {
                     f.relation = Relation::This;
                     self.pos += 1;
+                }
+                "enchanted" if self.at_words(&["enchanted", "player", "controls"]) => {
+                    f.enchanted_player = true;
+                    self.pos += 3;
                 }
                 "enchanted" | "equipped" => {
                     f.enchanted = true;

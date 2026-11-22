@@ -1,0 +1,8 @@
+card "Meddling Mage" {
+  oracle_id a5d02339-9f6d-486e-87d8-5ec2274cf680
+  cost {W}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  as this enters choose nonland card name
+  spells with chosen name can't be cast
+}

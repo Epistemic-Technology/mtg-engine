@@ -1,0 +1,10 @@
+card "Go Nuts!" {
+  oracle_id 0efe1357-bfbb-42c0-9cc9-6a919d686c66
+  cost {G}
+  type Sorcery
+  teamwork 3
+  choose one or both if teamwork {
+    mode: put 1 +1/+1 counters on target creature
+    mode: target creature you control fights target creature an opponent controls
+  }
+}

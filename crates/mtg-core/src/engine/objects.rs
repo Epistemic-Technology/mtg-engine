@@ -438,7 +438,19 @@ impl GameState {
                 CastInfo::default()
             },
             timestamp,
-            targets: SmallVec::new(),
+            // CR 303.4f: an Aura spell with "Enchant player" enters attached
+            // to the player it targets; a permanent's `targets` holds that
+            // player (`GameObject::attached_player`).
+            targets: if old.zone == Zone::Stack && to == Zone::Battlefield {
+                match old.targets.first() {
+                    Some(Target::Player(p)) if self.pool.get(def).enchant().is_some() => {
+                        SmallVec::from_slice(&[Target::Player(*p)])
+                    }
+                    _ => SmallVec::new(),
+                }
+            } else {
+                SmallVec::new()
+            },
             counters,
             // CR 303.4f: an Aura spell enters attached to its target, so its
             // "When this Aura enters, if enchanted creature ..." sees what

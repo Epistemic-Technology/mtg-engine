@@ -1,0 +1,10 @@
+card "Pyrrhic Strike" {
+  oracle_id 5ea1d89c-8650-4373-9835-e369587020ef
+  cost {2}{W}
+  type Instant
+  additional cost may blight 2
+  choose one or both if additional cost paid {
+    mode: destroy target artifact or enchantment
+    mode: destroy target creature with mana value 3 or greater
+  }
+}

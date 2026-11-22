@@ -1,0 +1,117 @@
+# "As this enters, choose a [nonland] card name." (CR 201.3): the names
+# offered are those of the cards in the game; `choose "X"` picks one. The
+# bans apply to every player.
+
+scenario "Meddling Mage: spells with the chosen name can't be cast, by anyone" {
+  battlefield A: "Plains", "Island", "Mountain", "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Meddling Mage", "Lightning Bolt", "Shock"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Meddling Mage"
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Lightning Bolt" targeting player B
+  illegal turn 1 end B: cast "Lightning Bolt" targeting player A
+  run_to turn 1 cleanup
+  assert hand A contains "Lightning Bolt"
+  assert hand B contains "Lightning Bolt"
+}
+
+scenario "Meddling Mage: other names still cast" {
+  battlefield A: "Plains", "Island", "Mountain"
+  hand A: "Meddling Mage", "Lightning Bolt", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Meddling Mage"
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Meddling Mage: a land name isn't offered" {
+  battlefield A: "Plains", "Island"
+  hand A: "Meddling Mage", "Forest", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Meddling Mage"
+  illegal turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Nevermore: the chosen name can't be cast" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Nevermore"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Nevermore"
+  turn 1 A: choose "Lightning Bolt"
+  illegal turn 1 end B: cast "Lightning Bolt" targeting player A
+  run_to turn 1 cleanup
+  assert life A 20
+}
+
+scenario "Pithing Needle: no non-mana abilities of the named source" {
+  battlefield A: "Plains"
+  battlefield B: "Prodigal Sorcerer", "Llanowar Elves"
+  hand A: "Pithing Needle"
+  hand B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pithing Needle"
+  turn 1 A: choose "Prodigal Sorcerer"
+  illegal turn 1 end B: activate "Prodigal Sorcerer" targeting player A
+  run_to turn 1 cleanup
+  assert life A 20
+}
+
+scenario "Pithing Needle: mana abilities still work" {
+  battlefield A: "Plains"
+  battlefield B: "Llanowar Elves", "Forest"
+  hand A: "Pithing Needle"
+  hand B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pithing Needle"
+  turn 1 A: choose "Llanowar Elves"
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Phyrexian Revoker: the named source's abilities can't be activated" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Prodigal Sorcerer"
+  hand A: "Phyrexian Revoker"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Phyrexian Revoker"
+  turn 1 A: choose "Prodigal Sorcerer"
+  illegal turn 1 end B: activate "Prodigal Sorcerer" targeting player A
+  run_to turn 1 cleanup
+  assert life A 20
+}
+
+scenario "Voidstone Gargoyle: not even mana abilities" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Llanowar Elves", "Forest"
+  hand A: "Voidstone Gargoyle"
+  hand B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Voidstone Gargoyle"
+  turn 1 A: choose "Llanowar Elves"
+  illegal turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand B contains "Grizzly Bears"
+}
+
+scenario "Voidstone Gargoyle: the chosen name can't be cast" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Voidstone Gargoyle"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Voidstone Gargoyle"
+  turn 1 A: choose "Lightning Bolt"
+  illegal turn 1 end B: cast "Lightning Bolt" targeting player A
+  run_to turn 1 cleanup
+  assert life A 20
+}
