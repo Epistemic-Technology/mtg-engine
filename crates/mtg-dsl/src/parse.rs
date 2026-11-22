@@ -11661,9 +11661,13 @@ impl P {
                     // "enchanted by Auras you control" (Archon of the Wild
                     // Rose): who controls the Aura isn't checked, and "you
                     // control" would be read as the creature's controller.
-                    if self.at_words(&["you", "control"])
-                        || self.at_words(&["an", "opponent", "controls"])
-                        || self.at_words(&["your", "opponents", "control"])
+                    // (`creature with aura you control` is the formatter's
+                    // order for "creatures you control that are enchanted":
+                    // the controller not yet given is the creature's.)
+                    if f.who.is_some()
+                        && (self.at_words(&["you", "control"])
+                            || self.at_words(&["an", "opponent", "controls"])
+                            || self.at_words(&["your", "opponents", "control"]))
                     {
                         return self.fail(
                             "`with aura <controller>`: who controls the Aura isn't supported",
