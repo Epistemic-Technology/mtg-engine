@@ -512,6 +512,11 @@ impl GameState {
             Who::You => p == controller,
             Who::Opponents => p != controller,
         };
+        if let Some(c) = r.condition
+            && !self.condition_now(self.pool.condition(c), controller, source)
+        {
+            return false;
+        }
         match (&r.replaces, ev) {
             (
                 Replaces::Damage { from, to, combat },

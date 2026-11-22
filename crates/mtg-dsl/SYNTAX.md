@@ -2602,7 +2602,9 @@ dungeons (CR 309):
   702.179e): the ability works only while its controller's speed is 4 (a
   static ability's or cost reduction's condition, an activated ability's
   activation condition, graveyard and mana abilities included; a
-  triggered ability triggers only at max speed). A dies trigger under it
+  triggered ability triggers only at max speed; a replacement effect, `label
+  "Max speed" replace damage from permanent you control to opponent and
+  permanent an opponent controls: plus 1`, applies only then). A dies trigger under it
   prints "Whenever a creature you control dies" without "this creature or
   another".
 - Trigger: `whenever day becomes night or night becomes day` (CR 731.1a;

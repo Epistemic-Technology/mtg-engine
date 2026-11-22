@@ -457,6 +457,79 @@ scenario "Tom, Bert, and William return as an artifact" {
   assert is not "Tom, Bert, and William" creature
 }
 
+scenario "Spider-Woman: the tapped creature stays tapped while she's under your control" {
+  battlefield A: 4 "Plains"
+  hand A: "Spider-Woman, Secret Agent"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Spider-Woman, Secret Agent"
+  turn 2 A: trigger "Spider-Woman, Secret Agent" targeting "Grizzly Bears"
+  run_to turn 3 precombat_main
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Spider-Woman: the creature untaps once she's gone" {
+  battlefield A: 4 "Plains"
+  hand A: "Spider-Woman, Secret Agent"
+  battlefield B: "Grizzly Bears", "Mountain", "Mountain"
+  hand B: "Lightning Bolt", "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Spider-Woman, Secret Agent"
+  turn 2 A: trigger "Spider-Woman, Secret Agent" targeting "Grizzly Bears"
+  turn 2 end B: cast "Lightning Bolt" targeting "Spider-Woman, Secret Agent"
+  turn 2 end B: cast "Lightning Bolt" targeting "Spider-Woman, Secret Agent"
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Spider-Woman, Secret Agent"
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Elegy Acolyte draws and loses 1 life when creatures deal combat damage; void makes a Robot" {
+  battlefield A: "Elegy Acolyte", "Grizzly Bears"
+  battlefield B: "Raging Goblin", "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 A
+  turn 2 A: attack "Elegy Acolyte", "Grizzly Bears"
+  turn 2 postcombat_main B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 3 upkeep
+  assert life B 14
+  assert life A 23
+  assert hand A count 2
+  assert battlefield A contains "Robot"
+}
+
+scenario "Far Fortune at max speed: a spell you control deals 1 more damage to an opponent" {
+  battlefield A: "Far Fortune, End Boss", "Mountain"
+  hand A: "Lightning Bolt"
+  speed A: 4
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 16
+}
+
+scenario "Far Fortune at max speed: its attack trigger and combat damage get 1 more, damage to you doesn't" {
+  battlefield A: "Far Fortune, End Boss"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  speed A: 4
+  start turn 2 A
+  turn 2 A: attack "Far Fortune, End Boss"
+  turn 2 postcombat_main B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 end
+  assert life B 13
+  assert life A 17
+}
+
+scenario "Far Fortune below max speed adds nothing" {
+  battlefield A: "Far Fortune, End Boss", "Mountain"
+  hand A: "Lightning Bolt"
+  speed A: 2
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 17
+}
+
 scenario "if you cast it: Geological Appraiser discovers 3 when cast" {
   battlefield A: 4 "Mountain"
   hand A: "Geological Appraiser"

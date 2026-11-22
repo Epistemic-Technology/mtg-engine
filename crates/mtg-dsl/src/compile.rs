@@ -1016,6 +1016,7 @@ impl Compiler<'_> {
                         n: *n,
                     },
                     then: Vec::new(),
+                    condition: None,
                 }));
             }
             // "... and with first strike": abilities the permanent has as
@@ -1265,6 +1266,9 @@ impl Compiler<'_> {
             }
             AbilityDef::CostChange(cc) if cc.cond.is_none() => {
                 cc.cond = Some(self.pool.intern_condition(c));
+            }
+            AbilityDef::Replacement(r) if r.condition.is_none() => {
+                r.condition = Some(self.pool.intern_condition(c));
             }
             _ => {
                 return self.err(format!(
@@ -3689,6 +3693,7 @@ impl Compiler<'_> {
             replaces,
             replacement,
             then: self.sentences(&r.then)?,
+            condition: None,
         })
     }
 
@@ -4109,6 +4114,7 @@ impl Compiler<'_> {
                         n: *n,
                     },
                     then: Vec::new(),
+                    condition: None,
                 })
             }
             // "enters tapped if it's not your turn" is "unless it's your
@@ -4120,6 +4126,7 @@ impl Compiler<'_> {
                     replaces: mtg_core::card::Replaces::Enters,
                     replacement: mtg_core::card::Replacement::EnterTappedUnless(i),
                     then: Vec::new(),
+                    condition: None,
                 })
             }
             Ability::EntersTappedUnless(c) => {
@@ -4129,6 +4136,7 @@ impl Compiler<'_> {
                     replaces: mtg_core::card::Replaces::Enters,
                     replacement: mtg_core::card::Replacement::EnterTappedUnless(i),
                     then: Vec::new(),
+                    condition: None,
                 })
             }
             Ability::AttackUnless {
@@ -4269,6 +4277,7 @@ impl Compiler<'_> {
                             cond,
                         },
                         then: Vec::new(),
+                        condition: None,
                     })
                 }
                 Mechanic::Bloodthirst(n)
@@ -4287,6 +4296,7 @@ impl Compiler<'_> {
                             n: *n,
                         },
                         then: Vec::new(),
+                        condition: None,
                     })
                 }
                 Mechanic::Buyback(_)
@@ -4439,6 +4449,7 @@ impl Compiler<'_> {
                         haste: matches!(m, Mechanic::Riot),
                     },
                     then: Vec::new(),
+                    condition: None,
                 }),
                 // CR 702.184a: "Tap another untapped creature you control:
                 // Put a number of charge counters on this permanent equal
@@ -4508,6 +4519,7 @@ impl Compiler<'_> {
                             n: Num::Count(i),
                         },
                         then: Vec::new(),
+                        condition: None,
                     })
                 }
                 Mechanic::Station => {

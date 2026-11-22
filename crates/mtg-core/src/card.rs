@@ -5113,6 +5113,11 @@ pub struct ReplacementAbility {
     /// Effects that happen when this applies (CR 615.5): Phantom Tiger's
     /// "Remove a +1/+1 counter from it".
     pub then: Vec<Effect>,
+    /// It applies only while the pool's condition holds for its
+    /// controller ("Max speed — If a source you control would deal
+    /// damage ...", CR 702.179f).
+    #[serde(default)]
+    pub condition: Option<u16>,
 }
 
 impl ReplacementAbility {

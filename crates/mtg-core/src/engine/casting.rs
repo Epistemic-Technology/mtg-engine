@@ -12646,6 +12646,7 @@ impl GameState {
                 },
                 replacement: Replacement::Regenerate,
                 then: Vec::new(),
+                condition: None,
             },
             target: Some(Target::Object(id)),
             remaining: 1,
