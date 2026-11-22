@@ -1,0 +1,33 @@
+# "If the sacrificed permanent was ...": the permanent sacrificed for the
+# cost (CR 601.2h), not one the resolution destroyed.
+
+scenario "Hellish Sideswipe: a sacrificed Vehicle draws a card" {
+  battlefield A: "Swamp", "Smuggler's Copter"
+  battlefield B: "Grizzly Bears"
+  hand A: "Hellish Sideswipe"
+  library A: 3 "Forest"
+  turn 1 A: cast "Hellish Sideswipe" sacrificing "Smuggler's Copter" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "Hellish Sideswipe: destroying a Vehicle is not sacrificing one" {
+  battlefield A: "Swamp", "Ornithopter"
+  battlefield B: "Smuggler's Copter"
+  hand A: "Hellish Sideswipe"
+  library A: 3 "Forest"
+  turn 1 A: cast "Hellish Sideswipe" sacrificing "Ornithopter" targeting "Smuggler's Copter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Smuggler's Copter"
+  assert hand A count 0
+}
+
+scenario "Foundry Helix: a sacrificed land gains nothing" {
+  battlefield A: "Mountain", "Plains", "Mountain", "Forest"
+  hand A: "Foundry Helix"
+  turn 1 A: cast "Foundry Helix" sacrificing "Forest" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 20
+}

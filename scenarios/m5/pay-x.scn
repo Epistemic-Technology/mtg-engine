@@ -1,0 +1,29 @@
+# "You may pay {X}. When you do, ... X": X is chosen as it's paid (CR
+# 107.3), and the reflexive ability (CR 603.12) uses that value.
+
+scenario "Wildborn Preserver: pay X=2 for two counters" {
+  battlefield A: "Wildborn Preserver", 4 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert counters "Wildborn Preserver" +1/+1 2
+}
+
+scenario "Wildborn Preserver: X is at most what can be paid" {
+  battlefield A: "Wildborn Preserver", 3 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  illegal turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert counters "Wildborn Preserver" +1/+1 0
+}
+
+scenario "Wildborn Preserver: declining pays nothing" {
+  battlefield A: "Wildborn Preserver", 4 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: decline "Wildborn Preserver"
+  run_to turn 1 postcombat_main
+  assert counters "Wildborn Preserver" +1/+1 0
+}

@@ -68,12 +68,17 @@ impl GameState {
                     continue;
                 };
                 if let Some(cond) = t.condition
+                    && !(matches!(cond, Condition::WhileSecond(_))
+                        && matches!(&t.trigger, TriggerSpec::Either(pair)
+                            if self.fires(&pair.0, event, w).is_some()))
                     && !self.condition_holds_for(cond, w, trigger_obj)
                 {
                     continue;
                 }
                 let (mut copies, limit) = (chapter_copies(&t.trigger, event), t.limit);
-                if self.player_static_sources > 0 && !w.in_graveyard {
+                // A source of "triggers an additional time" leaving in the
+                // same event still counts (CR 603.10a, `extra_triggers`).
+                if (self.player_static_sources > 0 || self.lookback.is_some()) && !w.in_graveyard {
                     match self.extra_triggers(w, event, &t.trigger) {
                         Some(n) => copies += n,
                         // Torpor Orb: it doesn't trigger at all.
@@ -373,7 +378,11 @@ impl GameState {
     /// abilities to trigger.", CR 603.6a).
     #[cold]
     #[inline(never)]
+    #[allow(clippy::too_many_lines)] // the look-back and the cause
     fn extra_triggers(&self, w: &Watcher, event: &Event, spec: &TriggerSpec) -> Option<usize> {
+        // Each: the permanent, its controller, its characteristics, and
+        // what it is attached to.
+        type Source = (ObjId, PlayerId, Characteristics, Option<ObjId>);
         use crate::card::TriggerCause;
         // The object whose event this is, as the cause filter judges it.
         let cause = match event {
@@ -413,15 +422,53 @@ impl GameState {
             }),
             _ => None,
         };
-        let mut n = 0;
-        for &id in &self.battlefield {
-            let o = &self.objects[id];
-            if !self.pool.get(o.def).flags().has_player_static() {
-                continue;
+        // CR 603.10a: for a leaves-the-battlefield event, the permanents
+        // as they were before it ("Teysa Karlov dying together with the
+        // creature whose death triggers": hers still applies).
+        let leaves = matches!(
+            event,
+            Event::ZoneChange {
+                from: Zone::Battlefield,
+                ..
             }
-            let Some(c) = self.characteristics(id) else {
-                continue;
-            };
+        );
+        let sources: SmallVec<[Source; 4]> = match &self.lookback {
+            Some(lb) if leaves => lb
+                .iter()
+                .filter(|l| {
+                    self.pool
+                        .get(l.characteristics.def)
+                        .flags()
+                        .has_player_static()
+                })
+                .map(|l| {
+                    let attached = self
+                        .objects
+                        .get(l.id)
+                        .filter(|o| o.zone == Zone::Battlefield)
+                        .map(|o| o.attached_to)
+                        .or_else(|| self.lki.get(&l.id).map(|k| k.object.attached_to))
+                        .flatten();
+                    (l.id, l.controller, l.characteristics, attached)
+                })
+                .collect(),
+            _ => self
+                .battlefield
+                .iter()
+                .filter(|id| {
+                    self.pool
+                        .get(self.objects[**id].def)
+                        .flags()
+                        .has_player_static()
+                })
+                .filter_map(|&id| {
+                    let o = &self.objects[id];
+                    Some((id, o.controller, self.characteristics(id)?, o.attached_to))
+                })
+                .collect(),
+        };
+        let mut n = 0;
+        for (id, controller, c, attached_to) in sources {
             for &a in &c.abilities {
                 if let AbilityDef::TriggerAgain {
                     filter,
@@ -432,7 +479,7 @@ impl GameState {
                 } = self.pool.ability(a)
                     && e.as_ref().is_none_or(|e| {
                         cause.as_ref().is_some_and(|(kind, obj, ctl, c)| {
-                            kind == k && e.matches(*obj, *ctl, c, Some(id), Some(o.controller))
+                            kind == k && e.matches(*obj, *ctl, c, Some(id), Some(controller))
                         })
                     })
                     && filter.matches(
@@ -440,10 +487,10 @@ impl GameState {
                         w.controller,
                         &w.chars,
                         Some(id),
-                        Some(o.controller),
+                        Some(controller),
                     )
                     // "equipped creature" (Wizard's Staff).
-                    && (!filter.enchanted || o.attached_to == Some(w.source))
+                    && (!filter.enchanted || attached_to == Some(w.source))
                 {
                     if *suppress {
                         if spec.is_enters() {
@@ -470,9 +517,14 @@ impl GameState {
         source: ObjId,
     ) -> bool {
         let mut joined = false;
+        let from = self.batch_from;
         for p in fired
             .iter_mut()
-            .chain(self.pending_triggers.iter_mut())
+            .chain(
+                self.pending_triggers
+                    .iter_mut()
+                    .filter(|p| p.timestamp >= from),
+            )
             .filter(|p| p.ability.ability == ability && p.ability.source == source)
         {
             p.ability.trigger_amount += 1;
@@ -493,9 +545,14 @@ impl GameState {
         player: Option<PlayerId>,
         amount: u32,
     ) -> bool {
+        let from = self.batch_from;
         match fired
             .iter_mut()
-            .chain(self.pending_triggers.iter_mut())
+            .chain(
+                self.pending_triggers
+                    .iter_mut()
+                    .filter(|p| p.timestamp >= from),
+            )
             .find(|p| {
                 p.ability.ability == ability
                     && p.ability.source == source
@@ -514,7 +571,13 @@ impl GameState {
     #[cold]
     #[inline(never)]
     fn cycle_triggers(&self, event: &Event, fired: &mut SmallVec<[PendingTrigger; 2]>) {
-        let Event::Cycled { player, card, def } = *event else {
+        let Event::Cycled {
+            player,
+            card,
+            def,
+            x,
+        } = *event
+        else {
             return;
         };
         if !self.pool.get(def).may_watch(event) {
@@ -532,7 +595,9 @@ impl GameState {
                         def,
                         trigger_obj: Some(card),
                         trigger_player: Some(player),
-                        trigger_amount: 0,
+                        // The X paid for cycling, for the trigger's X
+                        // (`put_trigger_on_stack`).
+                        trigger_amount: x,
                     },
                     timestamp: 0,
                 });
@@ -1819,6 +1884,25 @@ impl GameState {
         {
             self.x_values.push((obj, x));
         }
+        if !self.reflexive_x.is_empty()
+            && let Some(i) = self
+                .reflexive_x
+                .iter()
+                .position(|(ts, _)| *ts == t.timestamp)
+        {
+            let (_, x) = self.reflexive_x.swap_remove(i);
+            self.x_values.push((obj, x));
+        }
+        // "Cycling {X}{G}{G}" and "When you cycle this card, destroy ...
+        // with mana value X": X is the value paid for cycling (CR 107.3,
+        // 702.29d), carried as the trigger's amount.
+        if t.ability.trigger_amount > 0
+            && t.ability.trigger_obj == Some(t.ability.source)
+            && let AbilityDef::Triggered(tr) = self.pool.ability(t.ability.ability)
+            && tr.trigger.cycles_this()
+        {
+            self.x_values.push((obj, t.ability.trigger_amount));
+        }
         self.consecutive_passes = 0;
         self.bump();
         self.emit(Event::TriggerOnStack {
@@ -2014,7 +2098,7 @@ impl GameState {
                 .or_else(|| self.lki.get(&source).map(|l| l.object.cast.evoked()))
                 .unwrap_or(false),
             // Judged only as the ability triggered.
-            Condition::While(_) => true,
+            Condition::While(_) | Condition::WhileSecond(_) => true,
             Condition::Static(i) => {
                 let you = self
                     .objects
@@ -2052,7 +2136,7 @@ impl GameState {
             Condition::Evolves => self.evolves(Some(&w.chars), trigger_obj),
             Condition::Increments => self.increments(Some(&w.chars), trigger_obj),
             Condition::Evoked => self.objects.get(w.source).is_some_and(|o| o.cast.evoked()),
-            Condition::Static(i) | Condition::While(i) => {
+            Condition::Static(i) | Condition::While(i) | Condition::WhileSecond(i) => {
                 self.condition_for(self.pool.condition(i), w.controller, w.source, trigger_obj)
             }
         }

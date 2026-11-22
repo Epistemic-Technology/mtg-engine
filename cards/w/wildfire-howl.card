@@ -1,0 +1,7 @@
+card "Wildfire Howl" {
+  oracle_id 04fd8c1f-80e5-4b3d-b63e-7af6ccafbbaa
+  cost {1}{R}{R}
+  type Sorcery
+  gift card
+  spell: deal 2 damage to each creature; if kicked, instead deal 1 damage to any target and deal 2 damage to each creature
+}

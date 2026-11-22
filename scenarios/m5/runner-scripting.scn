@@ -1,0 +1,83 @@
+# Scenario runner: `surveil` and `scry` choices, tokens in a battlefield
+# setup line, and `trigger ... dividing`.
+
+scenario "surveil: the scripted card goes to the graveyard" {
+  battlefield A: "Umbral Collar Zealot", "Ornithopter"
+  library A: "Hill Giant", "Forest"
+  turn 1 A: activate "Umbral Collar Zealot" sacrificing "Ornithopter"
+  turn 1 A: surveil "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert library A count 1
+}
+
+scenario "surveil none keeps the card on top" {
+  battlefield A: "Umbral Collar Zealot", "Ornithopter"
+  library A: "Hill Giant", "Forest"
+  turn 1 A: activate "Umbral Collar Zealot" sacrificing "Ornithopter"
+  turn 1 A: surveil none
+  run_to turn 1 postcombat_main
+  assert graveyard A lacks "Hill Giant"
+  assert library A count 2
+}
+
+scenario "scry: the scripted card goes to the bottom" {
+  battlefield A: "Island"
+  hand A: "Opt"
+  library A: "Hill Giant", "Forest", "Plains"
+  turn 1 A: cast "Opt"
+  turn 1 A: scry "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert library A count 2
+}
+
+scenario "Arid Archway: surveil 1 after returning a Desert" {
+  battlefield A: "Arid Archway"
+  hand A: "Arid Archway"
+  library A: "Hill Giant", "Forest"
+  turn 1 A: play "Arid Archway"
+  turn 1 A: surveil "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "tokens on a setup line are tokens: Baylen taps three Soldiers" {
+  battlefield A: "Baylen, the Haymaker", 3 "Soldier"
+  library A: 3 "Forest"
+  turn 1 A: activate "Baylen, the Haymaker" ability 2
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "a token on a setup line ceases to exist when it dies" {
+  battlefield A: "Soldier"
+  hand A: "Shock"
+  battlefield A: "Mountain"
+  turn 1 A: cast "Shock" targeting "Soldier"
+  run_to turn 1 postcombat_main
+  assert graveyard A lacks "Soldier"
+  assert battlefield A lacks "Soldier"
+}
+
+scenario "trigger dividing: Gandalf, Spark Starter splits 3 damage 2 and 1" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Gandalf, Spark Starter"
+  turn 1 A: cast "Gandalf, Spark Starter"
+  turn 1 A: trigger "Gandalf, Spark Starter" targeting "Grizzly Bears", "Hill Giant" dividing 2, 1
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 1
+}
+
+scenario "trigger dividing: the other way round" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Gandalf, Spark Starter"
+  turn 1 A: cast "Gandalf, Spark Starter"
+  turn 1 A: trigger "Gandalf, Spark Starter" targeting "Grizzly Bears", "Hill Giant" dividing 1, 2
+  run_to turn 1 postcombat_main
+  assert damage "Grizzly Bears" 1
+  assert damage "Hill Giant" 2
+}

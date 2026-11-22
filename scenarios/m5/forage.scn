@@ -37,7 +37,8 @@ scenario "forage: both possible, the player chooses the Food" {
   turn 1 A: choose "2"
   run_to turn 1 postcombat_main
   assert battlefield A lacks "Food"
-  assert graveyard A count 4
+  # The Food is a token: sacrificed, it doesn't stay in the graveyard.
+  assert graveyard A count 3
   assert hand A count 1
 }
 

@@ -122,6 +122,8 @@ impl GameState {
     fn sba_loop_inner(&mut self) -> bool {
         let mut any = false;
         loop {
+            // CR 704.3: each pass's actions happen at once, one event.
+            self.batch_from = self.next_timestamp;
             // Control-changing effects are continuous (CR 611.1); their
             // consequences are settled before anything else is checked.
             self.sync_control();
@@ -468,7 +470,7 @@ impl GameState {
     }
 
     /// The battlefield as it is now, for look-back trigger detection.
-    fn snapshot_battlefield(&self) -> Vec<Lookback> {
+    pub(super) fn snapshot_battlefield(&self) -> Vec<Lookback> {
         self.battlefield
             .iter()
             .filter_map(|id| {

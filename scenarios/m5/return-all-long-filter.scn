@@ -1,0 +1,16 @@
+# "Return all creature cards with mana value 2 or less from your
+# graveyard to the battlefield": a filter of any length.
+
+scenario "Raise the Past returns the small creature cards only" {
+  battlefield A: 4 "Plains"
+  hand A: "Raise the Past"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Ornithopter", "Shock"
+  graveyard B: "Elite Vanguard"
+  turn 1 A: cast "Raise the Past"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Ornithopter"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Shock"
+  assert graveyard B contains "Elite Vanguard"
+}

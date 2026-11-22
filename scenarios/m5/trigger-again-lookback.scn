@@ -1,0 +1,29 @@
+# "That ability triggers an additional time" looks back for a
+# leaves-the-battlefield event (CR 603.10a): Teysa Karlov dying together
+# with the creatures whose deaths trigger still doubles their triggers.
+
+scenario "Teysa Karlov dying with the others still doubles Zulaport Cutthroat" {
+  battlefield A: "Teysa Karlov", "Zulaport Cutthroat", "Grizzly Bears", 4 "Plains"
+  hand A: "Wrath of God"
+  turn 1 A: cast "Wrath of God"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Teysa Karlov"
+  assert life B 14
+  assert life A 26
+}
+
+scenario "Teysa Karlov alone on the battlefield: a death doubles as usual" {
+  battlefield A: "Teysa Karlov", "Zulaport Cutthroat", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Without Teysa Karlov, a death triggers once" {
+  battlefield A: "Zulaport Cutthroat", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}

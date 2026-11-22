@@ -1,0 +1,85 @@
+# A player gaining shroud, hexproof, or protection from a color (CR
+# 702.18c, 702.11c, 702.16): until end of turn, or until their next turn.
+
+scenario "Gilded Light: you can't be targeted this turn, not even by yourself" {
+  battlefield A: 2 "Plains", 2 "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Gilded Light", "Shock"
+  hand B: "Shock"
+  turn 1 A: cast "Gilded Light"
+  turn 1 A: wait
+  illegal turn 1 postcombat_main A: cast "Shock" targeting player A
+  illegal turn 1 postcombat_main B: cast "Shock" targeting player A
+  run_to turn 1 end
+  assert life A 20
+}
+
+scenario "Gilded Light: shroud ends with the turn" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Gilded Light"
+  hand B: "Shock"
+  turn 1 A: cast "Gilded Light"
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 18
+}
+
+scenario "Blossoming Calm: hexproof through the opponent's turn, and 2 life" {
+  battlefield A: "Plains"
+  battlefield B: "Mountain"
+  hand A: "Blossoming Calm"
+  hand B: "Shock"
+  turn 1 A: cast "Blossoming Calm"
+  illegal turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 end
+  assert life A 22
+  assert exile A contains "Blossoming Calm"
+}
+
+scenario "Blossoming Calm: you can still target yourself" {
+  battlefield A: "Plains", "Mountain"
+  hand A: "Blossoming Calm", "Shock"
+  turn 1 A: cast "Blossoming Calm"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player A
+  run_to turn 1 end
+  assert life A 20
+}
+
+scenario "Blossoming Calm: hexproof ends as your next turn begins" {
+  battlefield A: "Plains"
+  battlefield B: "Mountain"
+  hand A: "Blossoming Calm"
+  hand B: "Shock"
+  turn 1 A: cast "Blossoming Calm"
+  turn 3 upkeep B: cast "Shock" targeting player A in response to "Blossoming Calm"
+  run_to turn 3 postcombat_main
+  assert life A 22
+}
+
+scenario "Seht's Tiger: protection from red stops red spells and red damage" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Mountain", "Raging Goblin"
+  hand A: "Seht's Tiger"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 upkeep A: cast "Seht's Tiger"
+  turn 2 upkeep A: choose red
+  illegal turn 2 B: cast "Shock" targeting player A
+  turn 2 B: attack "Raging Goblin"
+  run_to turn 2 end
+  assert life A 20
+}
+
+scenario "Seht's Tiger: protection from red doesn't stop a green creature" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Seht's Tiger"
+  start turn 2 B
+  turn 2 upkeep A: cast "Seht's Tiger"
+  turn 2 upkeep A: choose red
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 end
+  assert life A 18
+}

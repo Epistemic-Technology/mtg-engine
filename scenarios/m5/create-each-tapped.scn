@@ -1,0 +1,21 @@
+# `create count each <filter> tapped "<token>"`: the tokens enter tapped;
+# `tapped` isn't read into the filter.
+
+scenario "Infinite Guideline Station: a tapped Robot for each multicolored permanent" {
+  battlefield A: "Plains", "Island", "Swamp", "Mountain", "Forest", "Sokka, Tenacious Tactician", "Grizzly Bears"
+  hand A: "Infinite Guideline Station"
+  turn 1 A: cast "Infinite Guideline Station"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Robot"
+  assert tapped oldest "Robot"
+  assert tapped newest "Robot"
+}
+
+scenario "Infinite Guideline Station attacks at 12 charge counters: a card for each multicolored permanent" {
+  battlefield A: "Infinite Guideline Station" with 12 charge, "Sokka, Tenacious Tactician"
+  library A: 5 "Forest"
+  turn 1 A: attack "Infinite Guideline Station"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert life B 13
+}

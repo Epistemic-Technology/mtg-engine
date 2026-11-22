@@ -1,0 +1,34 @@
+# "Cycling {X}...": the X paid for cycling is the X of "When you cycle
+# this card" (CR 702.29d, 107.3).
+
+scenario "Webstrike Elite cycled for X=2 destroys an artifact with mana value 2" {
+  battlefield A: 4 "Forest"
+  battlefield B: "Smuggler's Copter"
+  hand A: "Webstrike Elite"
+  turn 1 A: activate "Webstrike Elite" x 2
+  turn 1 A: trigger "Webstrike Elite" targeting "Smuggler's Copter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Smuggler's Copter"
+  assert graveyard A contains "Webstrike Elite"
+}
+
+scenario "Webstrike Elite cycled for X=1 can't destroy a mana value 2 artifact" {
+  battlefield A: 4 "Forest"
+  battlefield B: "Smuggler's Copter", "Sol Ring"
+  hand A: "Webstrike Elite"
+  turn 1 A: activate "Webstrike Elite" x 1
+  illegal turn 1 A: trigger "Webstrike Elite" targeting "Smuggler's Copter"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Smuggler's Copter"
+  assert graveyard B contains "Sol Ring"
+}
+
+scenario "Valor's Flagship cycled for X=2 creates two Pilots" {
+  battlefield A: 5 "Plains"
+  hand A: "Valor's Flagship"
+  turn 1 A: activate "Valor's Flagship" x 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Pilot"
+  assert graveyard A contains "Valor's Flagship"
+  assert hand A count 1
+}

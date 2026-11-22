@@ -409,9 +409,8 @@ impl Runner {
             DecisionKind::Mulligan => Ok(index_of(d, &Choice::Keep).unwrap_or(0)),
             // Bottom nothing; keep everything on top; put nothing in the
             // graveyard; pay a counter's ransom.
+            DecisionKind::Scry { .. } | DecisionKind::Surveil { .. } => self.choose_down(d, pos),
             DecisionKind::Bottom
-            | DecisionKind::Scry { .. }
-            | DecisionKind::Surveil { .. }
             | DecisionKind::Edict
             | DecisionKind::SearchLibrary
             | DecisionKind::PutFromHand => Ok(0),
@@ -461,6 +460,16 @@ impl Runner {
             DecisionKind::ChooseReplacement => Ok(self.choose_replacement(d, pos)),
             DecisionKind::LegendRule => Ok(self.keep_legend(d, pos)),
             DecisionKind::ChooseMode { .. } => self.choose_mode(d, pos),
+            // X chosen as an effect resolves ("you may pay {X}"):
+            // `choose "3"`.
+            DecisionKind::ChooseX { .. }
+                if self.pending_x.is_none()
+                    && !self
+                        .matching(d.player, pos, true, |a| matches!(a, Action::Choose(_)))
+                        .is_empty() =>
+            {
+                self.choose_named(d, pos)
+            }
             DecisionKind::ChooseX { .. }
             | DecisionKind::Replicate { .. }
             | DecisionKind::Multikicker { .. } => self.choose_x(d),
@@ -784,6 +793,48 @@ impl Runner {
         })
     }
 
+    /// Scry or surveil (CR 701.18a, 701.42a): the first unfired scripted
+    /// `scry`/`surveil` line of that kind names the cards that go down,
+    /// in any order; unscripted, all stay on top.
+    fn choose_down(&mut self, d: &Decision, pos: Position) -> Res<ChoiceId> {
+        let surveil = matches!(d.kind, DecisionKind::Surveil { .. });
+        let scripted = self.matching(
+            d.player,
+            pos,
+            true,
+            |a| matches!(a, Action::Down { surveil: s, .. } if *s == surveil),
+        );
+        let Some(&i) = scripted.first() else {
+            return Ok(0);
+        };
+        self.fired[i] = true;
+        let a = self.actions[i].clone();
+        let Action::Down { cards, .. } = &a.action else {
+            unreachable!()
+        };
+        let mut want: Vec<String> = cards.clone();
+        want.sort();
+        let found = d.options.iter().position(|c| match c {
+            Choice::ScryBottom(ids) | Choice::SurveilGraveyard(ids) => {
+                let mut names: Vec<String> = ids
+                    .iter()
+                    .map(|id| self.state().name_of(*id).to_string())
+                    .collect();
+                names.sort();
+                names == want
+            }
+            _ => false,
+        });
+        found.map(idx_u32).ok_or_else(|| Failure {
+            line: a.line,
+            message: format!(
+                "{} {cards:?} is not possible here; options: {}",
+                a.action.kind_name(),
+                self.describe_options(d)
+            ),
+        })
+    }
+
     /// What `choose` may name besides the option's description: the card
     /// an effect acts on ("Grizzly Bears"), or an alternative's number
     /// ("2" for `Mode(1)`).
@@ -798,6 +849,7 @@ impl Runner {
             }
             Choice::Discard { def, .. } => Some(st.pool.get(*def).name.clone()),
             Choice::Mode(i) => Some((i + 1).to_string()),
+            Choice::X(n) => Some(n.to_string()),
             _ => None,
         }
     }
@@ -904,6 +956,7 @@ impl Runner {
                 source,
                 targets,
                 mode,
+                divide,
             } = &a.action
             else {
                 unreachable!()
@@ -919,6 +972,7 @@ impl Runner {
             if let Some(idx) = found {
                 self.fired[i] = true;
                 self.pending_targets = (!targets.is_empty()).then(|| targets.clone());
+                self.pending_division.clone_from(divide);
                 if mode.is_some() {
                     self.pending_mode = *mode;
                 }
@@ -952,9 +1006,13 @@ impl Runner {
             );
             if let Some(&i) = idxs.first() {
                 self.fired[i] = true;
-                let Action::Trigger { targets, .. } = &self.actions[i].action else {
+                let Action::Trigger {
+                    targets, divide, ..
+                } = &self.actions[i].action
+                else {
                     unreachable!()
                 };
+                self.pending_division.clone_from(divide);
                 let specs = self.state().targets_of(ability);
                 let (needed, optional, more) =
                     (specs.len(), optional_count(specs), unbounded(specs));

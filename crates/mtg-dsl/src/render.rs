@@ -7641,6 +7641,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             mana,
             life,
             discard,
+            waterbend,
+            discard_random,
             effect,
         } => {
             ctx.in_unless = true;
@@ -7658,13 +7660,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     (p, Some((s, _))) if p == s => "they discard".to_string(),
                     (p, _) => format!("{} discards", ctx.obj(*p)),
                 };
-                let _ = write!(c.tail, " unless {who} {what}");
+                let random = if *discard_random { " at random" } else { "" };
+                let _ = write!(c.tail, " unless {who} {what}{random}");
                 return c;
             }
             let amount = if *life > 0 && *mana != mtg_core::mana::ManaCost::default() {
                 format!("{mana} or {life} life")
             } else if *life > 0 {
                 format!("{life} life")
+            } else if *waterbend {
+                // Not an Oracle form outside ward ("Ward—Waterbend {4}"),
+                // which prints from the keyword.
+                format!("waterbend {mana}")
             } else {
                 mana.to_string()
             };
@@ -8984,7 +8991,17 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::State(c) => format!("when {}", static_cond_text(c, ctx.card)),
         Trigger::Either(a, b) => {
             let a = trigger_text(a, ctx, next);
-            format!("{a} and {}", trigger_text(b, ctx, next))
+            let b = trigger_text(b, ctx, next);
+            // "When this creature enters and whenever it attacks": the
+            // second names it again as "it".
+            let named = this_ref(ctx.card);
+            let b = match b.strip_prefix(&format!("whenever {named} ")) {
+                Some(rest) if named.starts_with("this ") && a.contains(&named) => {
+                    format!("whenever it {rest}")
+                }
+                _ => b,
+            };
+            format!("{a} and {b}")
         }
         // "When this creature enters or dies", "Whenever this creature
         // enters or attacks": the subject printed once.
@@ -9742,7 +9759,9 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         Condition::EchoDue => {
             "if it came under your control since the beginning of your last upkeep".to_string()
         }
-        Condition::Static(_) | Condition::While(_) => unreachable!("an AST condition"),
+        Condition::Static(_) | Condition::While(_) | Condition::WhileSecond(_) => {
+            unreachable!("an AST condition")
+        }
         Condition::Evoked => "if it was evoked".to_string(),
         Condition::NotRenowned => "if it isn't renowned".to_string(),
         Condition::NotPrepared => format!("if {} isn't prepared", ctx.source()),
@@ -13686,7 +13705,12 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
         // "Flashback {4}{R}" for a mana cost; "Flashback—{1}{U}, Pay 3
         // life." when the cost has other parts.
         let mut ctx = Ctx::new(card, lookup, &[]);
-        let mana_only = !fb.tap && fb.life == 0 && fb.discard == 0 && fb.sacrifice.is_none();
+        let mana_only = *fb
+            == crate::ast::Cost {
+                mana: fb.mana.clone(),
+                order: fb.order.clone(),
+                ..Default::default()
+            };
         if mana_only {
             lines.push(format!("Flashback {}", fb.mana));
         } else {

@@ -44,13 +44,9 @@ wrong thing in some case.
   rather than chosen (CR 616.1).
 - **Reflexive trigger on a token:** "it" may read the token where the
   text means the triggering object.
-- **"Triggers an additional time" looks at the battlefield as it is.**
-  Teysa Karlov or Drivnod dying together with the creature whose death
-  triggers doesn't double it (they should, looking back, CR 603.10a).
-- **Batched triggers batch until a player gets priority.** Two separate
-  discards in one resolution ("discard a card, then ... discard a card")
-  make one "whenever you discard one or more cards" trigger counting
-  both, where they are two events.
+- **A player's protection from a color** (Seht's Tiger) stops targeting
+  and damage but not an Aura of that color enchanting the player (a
+  Curse, CR 702.16c). No card in the corpus combines them yet.
 - **"Whenever you activate an ability of a creature" misses automatic
   mana payment:** the engine taps a creature's mana ability to pay a
   cost without activating it as an ability, so it doesn't trigger (CR
@@ -63,9 +59,6 @@ wrong thing in some case.
 - **"Exiled with" links whatever its ability moves to exile**: a card
   exiled by a replacement effect (Rest in Peace) while the ability
   resolves is linked to the permanent too. No card known to care.
-- **An until-end-of-turn grant of a triggered keyword** ("gains prowess
-  until end of turn") may not trigger: only static grants are counted as
-  granting abilities. Not reproduced; no such card yet.
 
 - **"Each Dragon you control enters with an additional +1/+1 counter"**
   (`Replaces::OthersEnter`) judges the entering permanent by its printed
@@ -90,20 +83,6 @@ by rejecting the form at compile time or by binding it correctly.
   player; `that player 1 controls` is the target. Breaking of the
   Fellowship ("another target creature that player controls") may be
   affected. Reject the bare form outside triggered abilities.
-
-- **"any other target" meaning other than the enchanted creature**
-  (Pain for All: "enchanted creature deals damage ... to any other
-  target"): `another target any` excludes the source (the Aura), not
-  the creature dealing the damage. Pain for All is not in.
-- **`you gains shroud` / `you gains hexproof` / `you gains protection
-  from ...`** render "You gain shroud until end of turn" but do nothing:
-  `Effect::Grant` applies only to permanents (Seht's Tiger, Gilded
-  Light). Blossoming Calm ("You gain hexproof until your next turn") is
-  left out for this.
-- **`when this enters and whenever this attacks while saddled`**
-  applies `while saddled` to both events, so the enters half needs the
-  Mount saddled (Autarch Mammoth; not added). A trigger condition
-  belongs to one event of an `Either`.
 - **Template-author cards written before the first wave's catch-up**
   may read "it" as the source where the text means another object. Not
   audited.
@@ -181,7 +160,10 @@ named the feature; a card may need more than one.
   battlefield and graveyard targets; targets that share a card type or
   compare with another target (Shifting Loyalties, Puca's Mischief,
   Daring Thief); a filter with three alternatives ("attacking,
-  blocking, or tapped creature", Sonar Strike; a parse error now).
+  blocking, or tapped creature", Sonar Strike; a parse error now); "any
+  other target" other than the enchanted creature dealing the damage
+  (Pain for All; `enchanted creature bites another target any` is a
+  parse error now).
 - **Other effects:** "exile those tokens when this leaves the
   battlefield" (Mysterio; the old form is a compile error now); return all land cards from your graveyard to the
   battlefield tapped; put a card from among milled cards onto the
@@ -191,12 +173,19 @@ named the feature; a card may need more than one.
   creature (Sita Varma), base power alone (Turtle-Duck); attack tax;
   "must be blocked"; "unless they sacrifice another ..." (Torment of
   Venom).
+- **Most often named in the fourth wave** (299 unsupported of 400):
+  wording near-misses (about 45); legendary named tokens ("create Mowu,
+  a legendary ... token"); "transforms into" triggers; token-creation
+  replacement; trigger doubling ("triggers an additional time"); cards
+  exiled and linked to their source for later casting; giving control
+  of a permanent to an opponent; "cards you own in exile"; a choice
+  among three keywords or counter kinds printed with commas; void;
+  tiered; "X is your speed"; non-mana kicker; teamwork "choose both
+  instead".
 - **Mechanics not yet in:** tiered, devour, battle cry, harness, hideaway,
   meld, the Everywhere land token, "when this land enters untapped".
-- **Scenario runner:** `trigger` cannot take `dividing`; surveil cannot
-  be scripted; tokens named in a battlefield setup line are not tokens
-  (Baylen's "tap two untapped tokens"); a trigger cannot be answered
-  while its source spell is still on the stack.
+- **Scenario runner:** a trigger cannot be answered while its source
+  spell is still on the stack.
 
 ## 4. Process
 
@@ -211,68 +200,3 @@ named the feature; a card may need more than one.
   `Keyword::ALL`. Only `CastInfo` is checked automatically.
 - **The census scripts** (`scripts/coverage/census/`) still name Pauper
   and have not been run over the union of the three pools.
-
-## 5. Reported in the fourth wave's card batches (to be sorted)
-
-Wrong behaviour that reaches accepted cards:
-
-- **Prowess granted by a static ability never triggers.** `static other
-  Ally you control: has menace, prowess` (Sokka, Tenacious Tactician)
-  grants the keyword but a noncreature spell does not pump. Bria,
-  Riptide Rogue has the same fault. Sokka's scenario leaves that
-  assertion out.
-- **X in a cycling trigger is 0.** `cycling {X}{G}{G}` with `triggered
-  when you cycle this: ... X` (Webstrike Elite, accepted; Valor's
-  Flagship, rejected): the X paid for cycling does not reach the
-  trigger. Not yet reproduced on Webstrike Elite.
-- **"If the sacrificed permanent was <type>" may read the wrong
-  object.** On Hellish Sideswipe (rejected) it looked at what the
-  resolution destroyed, not what was sacrificed for the cost. Nasty End,
-  Falkenrath Torturer, and Foundry Helix use the condition; not checked.
-  Agency Coroner (not added) drew two cards for a sacrificed Grizzly
-  Bears that wasn't suspected (`if the sacrificed creature was
-  suspected, draw 2 cards instead`).
-
-Forms that pass the gate with the wrong meaning:
-
-- **`<creature> bites each other creature`** damages only the first
-  creature of the group (Waltz of Rage, Nibelheim Aflame). `bites each
-  opponent` is used by accepted cards and is not known to be wrong.
-- **`you may pay {X}; when you do, ... X`**: X is never chosen and is 0
-  (`Effect::Pay` uses `requirements(0)`; Wildborn Preserver).
-- **`ward waterbend {4}`** is paid as plain {4}: creatures and
-  artifacts cannot be tapped toward it (The Unagi of Kyoshi Island).
-- **`flashback {1}{R}, behold 3 Elemental`** parses and drops the
-  behold part (Kindle the Inner Flame).
-- **Gift with `if kicked/gift, instead <targeted effect>`**: cast
-  without the gift, the spell still takes the gifted side's target and
-  can fizzle on it (Wildfire Howl). The promised side was fixed in the
-  third wave.
-- **`it` in a granted `has ability { triggered ...: untap it }`** does
-  not untap the creature; `untap this` does (Quintessential Katana).
-  Same family as the first entry of section 2.
-- **`tapped` after `create count each <filter>`** is read into the
-  filter ("for each tapped multicolored permanent", Infinite Guideline
-  Station).
-- **`whenever you cast of chosen color spell`** renders "Whenever you
-  cast a spell of the chosen color" but never triggered in a scenario
-  (red chosen, Lightning Bolt cast; Diamond Mare, not added).
-- **The sacrificed creature in a reflexive trigger:** `you may sacrifice
-  1 other creature chosen; when you do, deal damage equal power of the
-  sacrificed creature to ...` deals 0 (Bolg of the North, not added).
-- **`return all <filter> card from your graveyard`** finds `card` only
-  within seven words of `all` (`parse.rs`), so a long filter fails to
-  parse (Raise the Past).
-
-Scenario runner: surveil's choice still cannot be scripted (Umbral
-Collar Zealot, Arid Archway); a token named in a battlefield setup line
-is still not a token.
-
-Missing features most often named (fourth wave, 299 unsupported of 400):
-wording near-misses (about 45); legendary named tokens ("create Mowu, a
-legendary ... token"); "transforms into" triggers; token-creation
-replacement; trigger doubling ("triggers an additional time"); cards
-exiled and linked to their source for later casting; giving control of
-a permanent to an opponent; "cards you own in exile"; a choice among
-three keywords or counter kinds printed with commas; void; tiered;
-"X is your speed"; non-mana kicker; teamwork "choose both instead".

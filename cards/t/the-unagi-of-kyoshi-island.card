@@ -1,0 +1,9 @@
+card "The Unagi of Kyoshi Island" {
+  oracle_id be922360-ee9f-4cfb-bf10-d481c5de5cb1
+  cost {3}{U}{U}
+  type Legendary Creature — Serpent
+  pt 5/5
+  keywords flash
+  ward waterbend {4}
+  triggered whenever an opponent draws their second card each turn: you draw 2 cards
+}

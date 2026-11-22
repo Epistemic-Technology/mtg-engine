@@ -1,0 +1,28 @@
+# "When this creature enters and whenever it attacks while saddled": the
+# trigger condition belongs to the second event only (CR 603.2).
+
+scenario "Autarch Mammoth: entering makes an Elephant, unsaddled" {
+  battlefield A: 6 "Forest"
+  hand A: "Autarch Mammoth"
+  turn 1 A: cast "Autarch Mammoth"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Elephant"
+}
+
+scenario "Autarch Mammoth: attacking unsaddled makes nothing" {
+  battlefield A: "Autarch Mammoth"
+  turn 1 A: attack "Autarch Mammoth"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 0 "Elephant"
+  assert life B 15
+}
+
+scenario "Autarch Mammoth: attacking saddled makes an Elephant" {
+  battlefield A: "Autarch Mammoth", "Hill Giant", "Grizzly Bears"
+  turn 1 A: activate "Autarch Mammoth"
+  turn 1 A: attack "Autarch Mammoth"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Elephant"
+  assert tapped "Hill Giant"
+  assert tapped "Grizzly Bears"
+}

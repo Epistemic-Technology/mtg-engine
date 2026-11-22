@@ -1,0 +1,10 @@
+card "Valor's Flagship" {
+  oracle_id a3023de2-61e7-4f46-aa4a-09d08ee7d939
+  cost {4}{W}{W}{W}
+  type Legendary Artifact — Vehicle
+  pt 7/7
+  keywords flying, first strike, lifelink
+  crew 3
+  cycling {X}{2}{W}
+  triggered when you cycle this: create X "1/1 colorless Pilot creature with saddles and crews plus 2"
+}

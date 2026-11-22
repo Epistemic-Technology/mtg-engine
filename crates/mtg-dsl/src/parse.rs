@@ -2473,9 +2473,20 @@ impl P {
                 };
                 let when = self.at_word("when");
                 let mut trigger = self.trigger()?;
+                // "Whenever this creature deals combat damage, untap it":
+                // with no recipient named, "it" is the creature dealing the
+                // damage, not the object dealt it.
                 self.it_source = matches!(&trigger, Trigger::CastsFiltered { filter, .. }
                     if filter.targeting.as_ref().and_then(|t| t.filter.as_ref())
-                        .is_some_and(|f| f.relation == Relation::This));
+                        .is_some_and(|f| f.relation == Relation::This))
+                    || matches!(
+                        &trigger,
+                        Trigger::DealsDamage {
+                            obj: TriggerObj::This,
+                            to: mtg_core::card::DamageTo::Any,
+                            ..
+                        }
+                    );
                 self.no_trigger_obj = no_trigger_object(&trigger);
                 self.no_trigger_amount = no_trigger_amount(&trigger);
                 if when && !crate::format::natural_when(&trigger) {
@@ -4436,11 +4447,14 @@ impl P {
             if !self.eat_word("cards") {
                 self.expect_word("card")?;
             }
+            let discard_random = self.eat_words(&["at", "random"]);
             return Ok(Effect::UnlessPays {
                 payer,
                 mana: ManaCost::default(),
                 life: 0,
                 discard,
+                waterbend: false,
+                discard_random,
                 effect: Box::new(e),
             });
         }
@@ -4459,6 +4473,7 @@ impl P {
             self.expect_word("pays")?;
             r
         };
+        let waterbend = self.eat_word("waterbend");
         let (mana, mut life) = self.pay_amount()?;
         // "unless that player pays {1} or 1 life": either.
         if life == 0 && self.at_word("or") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
@@ -4471,6 +4486,8 @@ impl P {
             mana,
             life,
             discard: 0,
+            waterbend,
+            discard_random: false,
             effect: Box::new(e),
         })
     }
@@ -5323,9 +5340,13 @@ impl P {
             let e = self.if_kicked()?;
             // Not for an "instead" (Blood Beckoning's "instead return two
             // target creature cards"): its own targets replace the others.
+            // An "instead" after a sentence with no targets ("Wildfire
+            // Howl deals 2 damage to each creature. If the gift was
+            // promised, instead ... 1 damage to any target ...") has
+            // nothing to replace: its targets are the kicked spell's only.
             if self.targets.len() > before
                 && self.kicked_targets.is_none()
-                && !matches!(e, Effect::Instead { .. })
+                && (!matches!(e, Effect::Instead { .. }) || before == 0)
             {
                 self.kicked_targets = Some(before);
             }
@@ -6037,6 +6058,18 @@ impl P {
                 } else {
                     self.recipient()?
                 };
+                // "Enchanted creature deals damage equal to its power to
+                // any other target" (Pain for All): `another target any`
+                // excludes the source, the Aura, not the creature dealing
+                // the damage, so it would mean something else.
+                if subject == Recipient::Attached
+                    && let Recipient::Target(i) = to
+                    && self.targets.get(i) == Some(&Target::Spec(TargetSpec::AnyOther))
+                {
+                    return self.fail(
+                        "`enchanted creature bites another target any`: \"other\" would exclude the Aura, not the creature",
+                    );
+                }
                 Ok(Effect::Bite {
                     source: subject,
                     to,
@@ -7413,7 +7446,9 @@ impl P {
             // battlefield."
             "return"
                 if self.at_word("all")
-                    && (1..8).any(|k| {
+                    // A long filter ("all creature with mana value 2 or
+                    // less card from your graveyard") is still one.
+                    && (1..24).any(|k| {
                         self.word_at(k).as_deref() == Some("card")
                             && self.word_at(k + 1).as_deref() == Some("from")
                             && self.word_at(k + 2).as_deref() == Some("your")
@@ -10581,7 +10616,11 @@ impl P {
                         _ => f.mana_value = Some((cmp, u8::try_from(n).unwrap_or(u8::MAX))),
                     }
                 }
-                "tapped" | "untapped" => {
+                // `create count each multicolored permanent you control
+                // tapped "Robot"`: `tapped` before the token is the token's
+                // ("create a tapped ... token for each ..."), not the
+                // filter's.
+                "tapped" | "untapped" if !matches!(self.peek_at(1), Some(Tok::Str(_))) => {
                     f.tapped = Some(w == "tapped");
                     self.pos += 1;
                 }

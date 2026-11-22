@@ -227,7 +227,13 @@ impl Engine {
                         .contains(crate::card::CardType::Planeswalker)
                         .then_some(d.loyalty)
                 };
+                // A token definition set up on the battlefield is a token
+                // (CR 111.1), not a card.
+                let token = state.pool.get(perm.def).token;
                 let o = &mut state.objects[id];
+                if token {
+                    o.kind = crate::state::ObjKind::Token;
+                }
                 o.tapped = perm.tapped;
                 o.controlled_since_turn_start = true;
                 for (kind, n) in &perm.counters {
@@ -494,6 +500,7 @@ impl GameState {
             turn_started_at: 0,
             x_values: Vec::new(),
             entered_x: Vec::new(),
+            reflexive_x: Vec::new(),
             ninjutsu: Vec::new(),
             harmonized: Vec::new(),
             bargains: Vec::new(),
@@ -574,6 +581,7 @@ impl GameState {
             replacements: Vec::new(),
             rules: Vec::new(),
             player_rules: Vec::new(),
+            player_grants: Vec::new(),
             replacement_sources: 0,
             control_sources: 0,
             control_effects: 0,
@@ -620,6 +628,7 @@ impl GameState {
             lookback: None,
             rng,
             next_timestamp: 1,
+            batch_from: 0,
             flow: Flow::BeginStep,
             cleanup_repeat: false,
             end_turn: false,
@@ -2931,6 +2940,7 @@ impl GameState {
             }
             Step::Cleanup => {
                 self.entered_x.clear();
+                self.reflexive_x.clear();
                 self.flow = Flow::Discarding;
             }
             // CR 714.3b: as the precombat main phase begins, the active
@@ -3089,6 +3099,10 @@ impl GameState {
         self.player_rules.clear();
         if !self.temp_copies.is_empty() {
             self.end_temp_copies(None);
+        }
+        if !self.player_grants.is_empty() {
+            self.player_grants
+                .retain(|g| g.duration != Duration::UntilEndOfTurn);
         }
         self.granted_flashback.clear();
         self.granted_harmonize.clear();
@@ -3396,6 +3410,9 @@ impl GameState {
             }
             if self.rules.iter().any(|e| e.duration == ends) {
                 self.rules.retain(|e| e.duration != ends);
+            }
+            if !self.player_grants.is_empty() {
+                self.player_grants.retain(|g| g.duration != ends);
             }
             if !self.goads.is_empty() {
                 let p = self.active_player;

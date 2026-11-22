@@ -611,13 +611,13 @@ impl GameState {
                 }
                 // "Flashback—Sacrifice a Mountain.", "Flashback—Tap three
                 // untapped white creatures you control."
-                if fb.sacrifice.is_some()
-                    && !(if fb.taps_chosen() {
-                        self.cost_option_payable(p, fb, *id, &sources, req, false)
-                    } else {
-                        self.additional_payable(p, fb, *id)
-                    })
-                {
+                // "Flashback—{1}{R}, Behold three Elementals.": its other
+                // parts too (CR 601.2h, 702.34a).
+                if !(if fb.sacrifice.is_some() && fb.taps_chosen() {
+                    self.cost_option_payable(p, fb, *id, &sources, req, false)
+                } else {
+                    self.additional_payable(p, fb, *id)
+                }) {
                     continue;
                 }
                 if def.additional_or.is_some() || def.additional.taps_chosen() {
@@ -5334,10 +5334,12 @@ impl GameState {
         // CR 702.29d: "when you cycle" triggers as the cycling ability is
         // activated, so they resolve before it.
         if let Some((card, def)) = cycled {
+            let x = self.x_of(obj);
             self.emit(Event::Cycled {
                 player: controller,
                 card,
                 def,
+                x,
             });
         }
         // CR 605.3b: a mana ability doesn't use the stack.
@@ -5909,7 +5911,7 @@ impl GameState {
                     cost.discard_filter.as_ref().is_none_or(|f| {
                         let o = &self.objects[*id];
                         let ch = self.base_characteristics(o);
-                        f.matches(*id, o.owner, &ch, None, Some(p))
+                        f.matches(*id, o.owner, &ch, None, Some(p)) && self.status_ok(f, *id)
                     })
                 });
                 let Some(n) = next else { break };
@@ -5931,6 +5933,8 @@ impl GameState {
                 from: Zone::Battlefield,
                 to: Zone::Battlefield,
                 owner,
+                sacrificed: false,
+                destroyed: false,
             });
         }
     }
@@ -8521,6 +8525,41 @@ impl GameState {
         self.effect_on(ctx, id, parts, Duration::UntilEndOfTurn);
     }
 
+    /// CR 603.10a: several permanents leaving the battlefield at once
+    /// ("Destroy all creatures") are one event, and leaves-the-battlefield
+    /// triggers look back at the battlefield as it was before it, as for
+    /// state-based actions. Whether this call started the look-back, for
+    /// `end_together`.
+    fn begin_together(&mut self, n: usize) -> bool {
+        if n > 1 && self.lookback.is_none() {
+            self.lookback = Some(self.snapshot_battlefield());
+            true
+        } else {
+            false
+        }
+    }
+
+    fn end_together(&mut self, started: bool) {
+        if started {
+            self.lookback = None;
+        }
+    }
+
+    /// Player `p` gains `keywords` until end of turn, or until the
+    /// controller's next turn inside "until your next turn" (CR 611.2b).
+    fn grant_player(&mut self, ctx: &EffectCtx, p: PlayerId, keywords: KeywordSet) {
+        let duration = match self.lasting {
+            Some(crate::card::Lasting::YourNextTurn) => Duration::UntilYourNextTurn(ctx.controller),
+            _ => Duration::UntilEndOfTurn,
+        };
+        self.player_grants.push(crate::state::PlayerGrant {
+            player: p,
+            keywords,
+            duration,
+        });
+        self.bump();
+    }
+
     /// Store an effect on one object for `duration` (CR 611.2a, 611.2c):
     /// until end of turn, or indefinitely.
     fn effect_on(
@@ -8531,6 +8570,19 @@ impl GameState {
         duration: Duration,
     ) {
         let duration = self.lasting_or(duration, ctx, id);
+        // An ability gained this way ("gains undying until end of turn",
+        // a granted triggered ability) can trigger: trigger detection
+        // looks past definitions while grants exist (`grants_exist`).
+        if parts.iter().any(|m| match m {
+            Modification::AddAbility(_) => true,
+            Modification::AddKeywords(ks) => ks.intersects(KeywordSet::TRIGGERED),
+            _ => false,
+        }) {
+            self.eot_grants += 1;
+            if duration != Duration::UntilEndOfTurn {
+                self.lasting_grants += 1;
+            }
+        }
         let timestamp = self.tick();
         self.effects.push(ContinuousEffect {
             source: Some(ctx.source),
@@ -8545,6 +8597,9 @@ impl GameState {
 
     #[allow(clippy::too_many_lines)] // one arm per effect kind
     pub(super) fn apply_effect(&mut self, ctx: &mut EffectCtx, effect: &Effect) {
+        // CR 603.2c: each instruction is its own event for "one or more"
+        // triggers ("discard a card, then ... discards a card": two).
+        self.batch_from = self.next_timestamp;
         let outer = self.effect_controller.replace(ctx.controller);
         self.apply_effect_now(ctx, effect);
         self.effect_controller = outer;
@@ -8611,11 +8666,14 @@ impl GameState {
                 }
             }
             Effect::Destroy { to } => {
-                for t in self.recipients(ctx, *to) {
+                let ts = self.recipients(ctx, *to);
+                let together = self.begin_together(ts.len());
+                for t in ts {
                     if let Some(id) = on_battlefield(self, t) {
                         self.destroy(id);
                     }
                 }
+                self.end_together(together);
             }
             Effect::GainLife { amount, who } => {
                 for t in self.recipients(ctx, *who) {
@@ -8702,7 +8760,9 @@ impl GameState {
                 if *what == crate::card::Recipient::Source && self.source_left_graveyard(ctx) {
                     return;
                 }
-                for t in self.recipients(ctx, *what) {
+                let ts = self.recipients(ctx, *what);
+                let together = self.begin_together(ts.len());
+                for t in ts {
                     let Target::Object(id) = t else {
                         continue;
                     };
@@ -8724,6 +8784,7 @@ impl GameState {
                         self.move_object(id, Zone::Hand, false);
                     }
                 }
+                self.end_together(together);
             }
             Effect::RemoveCounters { kind, count, to } => {
                 for t in self.recipients(ctx, *to) {
@@ -8775,11 +8836,14 @@ impl GameState {
                 }
             }
             Effect::DestroyNoRegen { to } => {
-                for t in self.recipients(ctx, *to) {
+                let ts = self.recipients(ctx, *to);
+                let together = self.begin_together(ts.len());
+                for t in ts {
                     if let Some(id) = on_battlefield(self, t) {
                         self.destroy_with(id, false);
                     }
                 }
+                self.end_together(together);
             }
             Effect::Mill { count, who } => {
                 for t in self.recipients(ctx, *who) {
@@ -9112,6 +9176,7 @@ impl GameState {
                                 let o = &self.objects[*id];
                                 let c = self.base_characteristics(o);
                                 f.matches(*id, p, &c, Some(ctx.source), Some(ctx.controller))
+                                    && self.status_ok(f, *id)
                             })
                         })
                         .collect();
@@ -9155,9 +9220,15 @@ impl GameState {
                 // CR 608.2b: an illegal target is unaffected. If the
                 // creature is no longer a legal target it deals no damage;
                 // if the recipient is illegal there is nothing to damage.
-                let Some(y) = self.recipients(ctx, *to).first().copied() else {
+                let to_all = self.recipients(ctx, *to);
+                if to_all.is_empty() {
                     return;
-                };
+                }
+                // "Target creature you control deals damage equal to its
+                // power to each other creature": "other" is other than the
+                // creature dealing the damage.
+                let other = matches!(to, Recipient::Group(n)
+                    if self.pool.filter(*n).relation == crate::card::Relation::Other);
                 let sources: SmallVec<[ObjId; 2]> = self
                     .recipients(ctx, *source)
                     .into_iter()
@@ -9166,7 +9237,13 @@ impl GameState {
                 for x in sources {
                     let p = self.characteristics(x).map_or(0, |c| c.power.max(0));
                     let p = u32::try_from(p).unwrap_or(0);
-                    self.deal_damage(x, y, if *twice { p.saturating_mul(2) } else { p }, false);
+                    let p = if *twice { p.saturating_mul(2) } else { p };
+                    for &y in &to_all {
+                        if other && y == Target::Object(x) {
+                            continue;
+                        }
+                        self.deal_damage(x, y, p, false);
+                    }
                 }
             }
             Effect::DamageFrom { source, amount, to } => {
@@ -9335,6 +9412,12 @@ impl GameState {
             }
             Effect::Grant { keywords, to } => {
                 for t in self.recipients(ctx, *to) {
+                    // "You gain shroud until end of turn" (CR 702.18c,
+                    // 702.11c, 702.16).
+                    if let Target::Player(p) = t {
+                        self.grant_player(ctx, p, *keywords);
+                        continue;
+                    }
                     if let Some(id) = on_battlefield(self, t) {
                         self.effect_until_end_of_turn(
                             ctx,
@@ -9389,10 +9472,6 @@ impl GameState {
             Effect::GrantAbility { ability, to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
-                        self.eot_grants += 1;
-                        if self.lasting.is_some() {
-                            self.lasting_grants += 1;
-                        }
                         self.effect_until_end_of_turn(
                             ctx,
                             id,
@@ -9546,7 +9625,7 @@ impl GameState {
                     .filter(|id| {
                         let o = &self.objects[**id];
                         let c = self.base_characteristics(o);
-                        filter.matches(**id, p, &c, None, Some(p))
+                        filter.matches(**id, p, &c, None, Some(p)) && self.status_ok(filter, **id)
                     })
                     .map(|id| Choice::Discard {
                         card: *id,
@@ -9708,6 +9787,7 @@ impl GameState {
                             let o = &self.objects[**id];
                             let c = self.base_characteristics(o);
                             filter.matches(**id, p, &c, Some(ctx.source), Some(ctx.controller))
+                                && self.status_ok(filter, **id)
                         })
                         .map(|id| Choice::Discard {
                             card: *id,
@@ -9767,6 +9847,7 @@ impl GameState {
                         let o = &self.objects[*id];
                         let c = self.base_characteristics(o);
                         filter.matches(*id, o.owner, &c, Some(ctx.source), Some(you))
+                            && self.status_ok(filter, *id)
                     })
                     .collect();
                 if cards.is_empty() {
@@ -9909,11 +9990,14 @@ impl GameState {
                 }
             }
             Effect::Sacrifice { what } => {
-                for t in self.recipients(ctx, *what) {
+                let ts = self.recipients(ctx, *what);
+                let together = self.begin_together(ts.len());
+                for t in ts {
                     if let Some(id) = on_battlefield(self, t) {
                         self.sacrifice(id);
                     }
                 }
+                self.end_together(together);
             }
             Effect::CreateToken {
                 token,
@@ -10115,6 +10199,10 @@ impl GameState {
                 };
                 let part = Modification::AddKeywords(KeywordSet::of([Keyword::protection_from(c)]));
                 for t in self.recipients(ctx, *to) {
+                    if let Target::Player(p) = t {
+                        self.grant_player(ctx, p, KeywordSet::of([Keyword::protection_from(c)]));
+                        continue;
+                    }
                     if let Some(id) = on_battlefield(self, t) {
                         self.effect_until_end_of_turn(ctx, id, smallvec::smallvec![part.clone()]);
                     }
@@ -10143,6 +10231,15 @@ impl GameState {
                 in_addition,
             } => {
                 let recipients = self.recipients(ctx, *to);
+                // "You gain protection from the color of your choice until
+                // end of turn" (CR 702.16): a player.
+                if *protection && let [Target::Player(p)] = recipients[..] {
+                    let def = self.source_def(ctx);
+                    if let Chosen::Color(c) = self.choose_kind(ctx.controller, *kind, def) {
+                        self.grant_player(ctx, p, KeywordSet::of([Keyword::protection_from(c)]));
+                    }
+                    return;
+                }
                 // CR 608.2b: with no legal recipient left, nothing to choose.
                 if !recipients
                     .iter()
@@ -10293,6 +10390,7 @@ impl GameState {
                             let o = &self.objects[**id];
                             let c = self.base_characteristics(o);
                             filter.matches(**id, p, &c, None, Some(p))
+                                && self.status_ok(filter, **id)
                         })
                         .map(|id| Choice::Discard {
                             card: *id,
@@ -10329,7 +10427,7 @@ impl GameState {
                             filter.as_ref().is_none_or(|f| {
                                 let o = &self.objects[*id];
                                 let c = self.base_characteristics(o);
-                                f.matches(*id, p, &c, None, Some(p))
+                                f.matches(*id, p, &c, None, Some(p)) && self.status_ok(f, *id)
                             })
                         })
                         .collect();
@@ -10550,7 +10648,27 @@ impl GameState {
             }
             Effect::Pay { mana, life } => {
                 let p = ctx.controller;
-                let req = mana.requirements(0);
+                // "You may pay {X}. When you do, ...": the player chooses
+                // X as they pay (CR 107.1c, 107.3), any value they can
+                // pay; later "X" in the resolution, and in the reflexive
+                // ability, is that value.
+                let x = if mana.has_x() {
+                    let max = (0u32..=99)
+                        .take_while(|&n| self.can_pay(p, &mana.requirements(n)))
+                        .last()
+                        .unwrap_or(0);
+                    let pick = self.choose_mid(
+                        p,
+                        DecisionKind::ChooseX { spell: ctx.source },
+                        (0..=max).map(Choice::X).collect(),
+                    );
+                    let x = u32::try_from(pick).unwrap_or(0).min(max);
+                    ctx.x = x;
+                    x
+                } else {
+                    0
+                };
+                let req = mana.requirements(x);
                 let life_ok =
                     *life == 0 || self.player(p).life >= i32::try_from(*life).unwrap_or(i32::MAX);
                 if life_ok && self.can_pay(p, &req) {
@@ -10602,6 +10720,12 @@ impl GameState {
                         .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
                         .expect("a resolving spell or its last known information exists");
                     let timestamp = self.tick();
+                    // "You may pay {X}. When you do, put X +1/+1 counters
+                    // on this creature": the reflexive ability's X is the
+                    // resolution's.
+                    if ctx.x > 0 {
+                        self.reflexive_x.push((timestamp, ctx.x));
+                    }
                     self.pending_triggers.push(crate::state::PendingTrigger {
                         controller: ctx.controller,
                         ability: StackAbility {
@@ -10625,6 +10749,8 @@ impl GameState {
                 mana,
                 life,
                 discard,
+                waterbend,
+                discard_random,
                 effects,
             } => {
                 let def = self
@@ -10662,6 +10788,33 @@ impl GameState {
                 let either = *life > 0 && *mana != crate::mana::ManaCost::default();
                 let mut paid = false;
                 for p in payers {
+                    // "Ward—Waterbend {4}": artifacts and creatures tapped
+                    // for the generic mana (CR 701.67a).
+                    let bend = waterbend.then(|| {
+                        let mut sources = self.mana_sources(p);
+                        sources.extend(self.waterbend_sources(p, req.generic, None));
+                        sources
+                    });
+                    if let Some(sources) = &bend {
+                        let ps = self.player(p);
+                        let ok = self.payable(p, sources, &ps.mana_pool, &req, ps.life, None);
+                        let mut options = Vec::new();
+                        if ok {
+                            options.push(Choice::Accept);
+                        }
+                        if options.is_empty() {
+                            continue;
+                        }
+                        options.push(Choice::Decline);
+                        let i =
+                            self.choose_mid(p, DecisionKind::PayOrCounter { def }, options.clone());
+                        if options.get(i) != Some(&Choice::Accept) {
+                            continue;
+                        }
+                        self.pay_from(p, &req, sources, None);
+                        paid = true;
+                        break;
+                    }
                     let mana_ok = (either || *life == 0) && self.can_pay(p, &req);
                     let life_ok = *life > 0 && self.player(p).life >= life_n;
                     let mut options = Vec::new();
@@ -10697,8 +10850,19 @@ impl GameState {
                             if *life > 0 {
                                 self.change_life(p, -life_n);
                             }
-                            // CR 701.9: the payer chooses what to discard.
-                            if *discard > 0 {
+                            // CR 701.9: the payer chooses what to discard,
+                            // or it is chosen at random (CR 701.9b).
+                            if *discard > 0 && *discard_random {
+                                for _ in 0..*discard {
+                                    let n = self.player(p).hand.len();
+                                    if n == 0 {
+                                        break;
+                                    }
+                                    let i = rand::Rng::random_range(&mut self.rng, 0..n);
+                                    let card = self.player(p).hand[i];
+                                    self.discard_card(p, card);
+                                }
+                            } else if *discard > 0 {
                                 self.discard_n(p, *discard);
                             }
                         }
@@ -10817,7 +10981,9 @@ impl GameState {
                 }
             }
             Effect::Exile { what } => {
-                for t in self.recipients(ctx, *what) {
+                let ts = self.recipients(ctx, *what);
+                let together = self.begin_together(ts.len());
+                for t in ts {
                     // A permanent, or a card in a graveyard ("exile target
                     // card from a graveyard").
                     // "Exile Flood of Recollection.": the resolving spell
@@ -10838,6 +11004,7 @@ impl GameState {
                         ctx.created = Some(new);
                     }
                 }
+                self.end_together(together);
             }
             Effect::ExileLinked { what, until } => {
                 // CR 610.3a: "until this leaves the battlefield" after it
@@ -11317,6 +11484,7 @@ impl GameState {
                         }
                         let c = self.base_characteristics(o);
                         if filter.matches(new, o.owner, &c, Some(ctx.source), Some(ctx.controller))
+                            && self.status_ok(filter, new)
                         {
                             ctx.created = Some(new);
                             break;
@@ -11365,7 +11533,8 @@ impl GameState {
                             &c,
                             Some(ctx.source),
                             Some(ctx.controller),
-                        ) {
+                        ) && self.status_ok(filter, *id)
+                        {
                             ctx.created = Some(*id);
                             break;
                         }
@@ -11811,6 +11980,7 @@ impl GameState {
                         let o = &self.objects[*id];
                         let c = self.base_characteristics(o);
                         filter.matches(*id, p, &c, Some(ctx.source), Some(ctx.controller))
+                            && self.status_ok(filter, *id)
                     })
                     .collect();
                 for id in cards {

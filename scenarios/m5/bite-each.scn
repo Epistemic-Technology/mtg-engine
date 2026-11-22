@@ -1,0 +1,59 @@
+# "Target creature deals damage equal to its power to each other
+# creature" (`bites each other creature`): every other creature is dealt
+# damage, and "other" is other than the creature dealing it.
+
+scenario "Waltz of Rage: the target damages each other creature" {
+  battlefield A: 5 "Mountain", "Hill Giant", "Grizzly Bears"
+  battlefield B: "Grizzly Bears", "Wind Drake", "Serra Angel"
+  hand A: "Waltz of Rage"
+  library A: "Forest", "Plains"
+  turn 1 A: cast "Waltz of Rage" targeting "Hill Giant"
+  turn 1 postcombat_main A: play "Forest"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert damage "Hill Giant" 0
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Wind Drake"
+  assert damage "Serra Angel" 3
+  assert battlefield A contains "Forest"
+}
+
+scenario "Waltz of Rage: an opponent's creature dying exiles nothing" {
+  battlefield A: 5 "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Waltz of Rage"
+  library A: "Forest", "Plains"
+  turn 1 A: cast "Waltz of Rage" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert library A count 2
+}
+
+scenario "Nibelheim Aflame: each other creature, then flashback refills the hand" {
+  battlefield A: 7 "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears", "Wind Drake"
+  hand A: "Nibelheim Aflame", "Plains"
+  library A: 6 "Forest"
+  turn 1 A: cast "Nibelheim Aflame" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Wind Drake"
+  assert damage "Hill Giant" 0
+  assert hand A count 1
+}
+
+scenario "Nibelheim Aflame from the graveyard discards and draws four" {
+  battlefield A: 7 "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Nibelheim Aflame"
+  hand A: "Plains", "Island"
+  library A: 6 "Forest"
+  turn 1 A: cast "Nibelheim Aflame" from graveyard targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Plains"
+  assert graveyard A contains "Island"
+  assert hand A count 4
+  assert exile A contains "Nibelheim Aflame"
+}

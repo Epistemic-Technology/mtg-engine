@@ -2998,6 +2998,8 @@ impl Compiler<'_> {
                 mana,
                 life,
                 discard,
+                waterbend,
+                discard_random,
                 effect,
             } => {
                 let mut effects = Vec::new();
@@ -3007,6 +3009,8 @@ impl Compiler<'_> {
                     mana: mana.clone(),
                     life: *life,
                     discard: *discard,
+                    waterbend: *waterbend,
+                    discard_random: *discard_random,
                     effects,
                 });
             }
@@ -4177,6 +4181,18 @@ impl Compiler<'_> {
                             self.pool.intern_condition(c),
                         ))
                     }
+                    // "When this enters and whenever this attacks while
+                    // saddled": the condition is the second event's.
+                    Some(crate::ast::TrigCond::While(c))
+                        if matches!(trigger, crate::ast::Trigger::Either(..))
+                            || matches!(trigger, crate::ast::Trigger::When(t)
+                                if matches!(**t, crate::ast::Trigger::Either(..))) =>
+                    {
+                        let c = self.static_cond(c);
+                        Some(mtg_core::card::Condition::WhileSecond(
+                            self.pool.intern_condition(c),
+                        ))
+                    }
                     Some(crate::ast::TrigCond::While(c)) => {
                         let c = self.static_cond(c);
                         Some(mtg_core::card::Condition::While(
@@ -4885,6 +4901,25 @@ impl Compiler<'_> {
                     let expanded = extort(i);
                     return self.ability(&expanded);
                 }
+                // "Ward—..." and "Echo—..." are paid as the trigger resolves:
+                // mana (waterbend too), life, and discarded cards only. Any
+                // other part would be dropped, so it is an error.
+                Mechanic::WardCost(cost) | Mechanic::EchoCost(cost)
+                    if *cost
+                        != crate::ast::Cost {
+                            mana: cost.mana.clone(),
+                            life: cost.life,
+                            discard: cost.discard,
+                            waterbend: cost.waterbend,
+                            discard_random: cost.discard_random,
+                            order: cost.order.clone(),
+                            ..Default::default()
+                        } =>
+                {
+                    return self.err(
+                        "a ward or echo cost may be only mana (or waterbend), life, and discarded cards",
+                    );
+                }
                 other => {
                     let expanded = expand_mechanic(other);
                     return self.ability(&expanded);
@@ -5543,6 +5578,8 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 mana: cost.mana.clone(),
                 life: cost.life,
                 discard: cost.discard,
+                waterbend: cost.waterbend,
+                discard_random: cost.discard_random,
                 effect: Box::new(E::Counter {
                     to: Recipient::TriggeringObject,
                     dest: crate::ast::CounteredTo::Graveyard,
@@ -5573,6 +5610,8 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         mana: cost.mana.clone(),
                         life: cost.life,
                         discard: cost.discard,
+                        waterbend: cost.waterbend,
+                        discard_random: cost.discard_random,
                         effect: Box::new(E::Sacrifice {
                             what: Recipient::Source,
                         }),

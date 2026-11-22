@@ -1,9 +1,0 @@
-card "Ygra, Eater of All" {
-  oracle_id 62511d43-8eaf-405a-9c81-7bd593d3a01e
-  cost {3}{B}{G}
-  type Legendary Creature — Elemental Cat
-  pt 6/6
-  ward sacrifice Food
-  static plural other creature: add subtype Food, add type artifact, has ability { activated {2}, {T}, sacrifice this: you gain 3 life }
-  triggered whenever Food is put into a graveyard from the battlefield: put 2 +1/+1 counters on this
-}

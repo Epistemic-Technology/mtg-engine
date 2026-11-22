@@ -2504,12 +2504,15 @@ impl Fmt {
                 mana,
                 life,
                 discard,
+                discard_random,
                 effect,
+                ..
             } if *discard > 0 => {
                 let inner = self.effect(effect, t);
                 let n = if *discard == 1 { "card" } else { "cards" };
+                let random = if *discard_random { " at random" } else { "" };
                 format!(
-                    "{inner} unless {} discards {discard} {n}",
+                    "{inner} unless {} discards {discard} {n}{random}",
                     self.recipient(*payer, t)
                 )
             }
@@ -2517,6 +2520,7 @@ impl Fmt {
                 payer,
                 mana,
                 life,
+                waterbend,
                 effect,
                 ..
             } => {
@@ -2530,6 +2534,8 @@ impl Fmt {
                 };
                 let amount = if *life > 0 && *mana != mtg_core::mana::ManaCost::default() {
                     format!("{mana} or {life} life")
+                } else if *waterbend {
+                    format!("waterbend {}", pay_amount(mana, *life))
                 } else {
                     pay_amount(mana, *life)
                 };
@@ -5185,7 +5191,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             };
             match condition {
                 Some(
-                    mtg_core::card::Condition::Static(_) | mtg_core::card::Condition::While(_),
+                    mtg_core::card::Condition::Static(_)
+                    | mtg_core::card::Condition::While(_)
+                    | mtg_core::card::Condition::WhileSecond(_),
                 ) => unreachable!("an AST condition"),
                 Some(mtg_core::card::Condition::SourceUntapped) => {
                     head.push_str(" if this is untapped");

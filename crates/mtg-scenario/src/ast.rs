@@ -219,6 +219,9 @@ pub enum Action {
         /// 603.3c).
         mode: Option<usize>,
         targets: Vec<TargetRef>,
+        /// `dividing 2, 1`: each target's share of a divided amount (CR
+        /// 601.2d), in target order.
+        divide: Vec<u32>,
     },
     /// `apply "Source"`: when several replacement or prevention effects
     /// apply to one event, apply this source's first (CR 616.1).
@@ -259,6 +262,13 @@ pub enum Action {
     /// `choose red`, `choose Island`, `choose "Merfolk"`: a color or type
     /// chosen as a permanent enters or an effect resolves.
     Choose(String),
+    /// `surveil "Forest", "Island"` / `scry "Forest"` / `surveil none`:
+    /// the cards of the top ones looked at that go to the graveyard (or
+    /// the bottom); the rest stay on top (CR 701.42a, 701.18a).
+    Down {
+        surveil: bool,
+        cards: Vec<String>,
+    },
 }
 
 impl Action {
@@ -278,6 +288,8 @@ impl Action {
             Action::YouMay { accept: false, .. } => "decline",
             Action::Copy(_) => "copy",
             Action::Choose(_) => "choose",
+            Action::Down { surveil: true, .. } => "surveil",
+            Action::Down { surveil: false, .. } => "scry",
             Action::Wait => "wait",
             Action::TurnFaceUp(_) => "unmorph",
             Action::Suspend(_) => "suspend",

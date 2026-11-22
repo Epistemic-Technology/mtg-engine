@@ -1,0 +1,48 @@
+# "If the gift was promised, instead ... target ..." after a sentence with
+# no targets: only the spell with the gift promised has the target (CR
+# 601.2c, 702.174m), so without the gift it has none and can't fizzle.
+
+scenario "Wildfire Howl without the gift: 2 damage to each creature, no target" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Wildfire Howl"
+  turn 1 A: cast "Wildfire Howl"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert life B 20
+  assert hand B count 0
+}
+
+scenario "Wildfire Howl without the gift: removing a creature doesn't counter it" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Wildfire Howl", "Shock"
+  turn 1 A: cast "Wildfire Howl"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears" in response to "Wildfire Howl"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Wildfire Howl"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Wildfire Howl with the gift: 1 damage to any target too" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Wildfire Howl"
+  library B: "Forest"
+  turn 1 A: cast "Wildfire Howl" gift targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert hand B count 1
+}
+
+scenario "Wildfire Howl with the gift: 1 damage to a player" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Wildfire Howl"
+  turn 1 A: cast "Wildfire Howl" gift targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert damage "Hill Giant" 2
+}

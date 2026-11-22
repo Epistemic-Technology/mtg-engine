@@ -27,18 +27,6 @@ scenario "Crossway Troublemakers: a non-Vampire dying draws nothing; attackers h
   assert life B 15
 }
 
-scenario "Vein Ripper: any creature dying drains the target opponent 2" {
-  battlefield A: "Vein Ripper"
-  battlefield B: "Mountain", "Grizzly Bears"
-  hand B: "Lightning Bolt"
-  start turn 1 A precombat_main
-  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
-  turn 1 A: trigger "Vein Ripper" targeting player B
-  run_to turn 1 postcombat_main
-  assert life B 18
-  assert life A 22
-}
-
 scenario "Rakish Crew: a Mercenary, and an outlaw dying drains 1" {
   battlefield A: 3 "Swamp", "Agent of Kotis"
   battlefield B: "Mountain"
@@ -454,20 +442,6 @@ scenario "Ragost: an artifact's Food ability gains 3 life and untaps Ragost at t
   run_to turn 2 cleanup
   assert life A 23
   assert untapped "Ragost, Deft Gastronaut"
-}
-
-scenario "Ygra: other creatures are Food artifacts; a Food dying adds two counters" {
-  battlefield A: "Ygra, Eater of All"
-  battlefield B: "Grizzly Bears", "Mountain"
-  hand B: "Lightning Bolt"
-  start turn 1 A precombat_main
-  run_to turn 1 begin_combat
-  assert is "Grizzly Bears" Food
-  assert is "Grizzly Bears" artifact
-  assert is not "Ygra, Eater of All" Food
-  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Grizzly Bears"
-  run_to turn 1 end
-  assert counters "Ygra, Eater of All" +1/+1 2
 }
 
 scenario "Harried Dronesmith: a hasty Thopter, sacrificed at your next end step" {

@@ -1,0 +1,7 @@
+card "Hellish Sideswipe" {
+  oracle_id d919d8e9-d1ba-42de-9884-12e38dca78ac
+  cost {B}
+  type Sorcery
+  additional cost sacrifice artifact or creature
+  spell: destroy target creature or Vehicle; if the sacrificed permanent was Vehicle, draw 1 card
+}

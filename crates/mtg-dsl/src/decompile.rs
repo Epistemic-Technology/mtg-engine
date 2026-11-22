@@ -1298,12 +1298,16 @@ impl Decompiler<'_> {
                 mana,
                 life,
                 discard,
+                waterbend,
+                discard_random,
                 effects,
             } => Effect::UnlessPays {
                 payer: Self::recipient(*payer),
                 mana: mana.clone(),
                 life: *life,
                 discard: *discard,
+                waterbend: *waterbend,
+                discard_random: *discard_random,
                 effect: Box::new(
                     effects
                         .first()
@@ -2370,7 +2374,8 @@ impl Decompiler<'_> {
                     mtg_core::card::Condition::Static(i) => {
                         crate::ast::TrigCond::Static(self.static_cond(self.pool.condition(i)))
                     }
-                    mtg_core::card::Condition::While(i) => {
+                    mtg_core::card::Condition::While(i)
+                    | mtg_core::card::Condition::WhileSecond(i) => {
                         crate::ast::TrigCond::While(self.static_cond(self.pool.condition(i)))
                     }
                     other => crate::ast::TrigCond::Core(other),
