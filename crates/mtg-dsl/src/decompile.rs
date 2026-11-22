@@ -572,6 +572,11 @@ impl Decompiler<'_> {
                 at_least: *at_least,
                 wording: crate::ast::GraveyardWording::ThereAre,
             },
+            // Only "flash if you pay {2} more" negates sorcery timing.
+            StaticCondition::Not(a) if **a == StaticCondition::SorceryTiming => {
+                StaticCond::FlashPay(2)
+            }
+            StaticCondition::SorceryTiming => StaticCond::Not(Box::new(StaticCond::FlashPay(2))),
             StaticCondition::Not(a) => StaticCond::Not(Box::new(self.static_cond(a))),
             StaticCondition::Or(a, b) => {
                 StaticCond::Or(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))

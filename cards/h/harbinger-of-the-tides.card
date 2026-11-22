@@ -1,0 +1,8 @@
+card "Harbinger of the Tides" {
+  oracle_id 9f5277e8-1cbe-478c-a8bc-ac028f13305e
+  cost {U}{U}
+  type Creature — Merfolk Wizard
+  pt 2/2
+  flash if pay {2} more
+  triggered when this enters: you may return target tapped creature an opponent controls to hand
+}

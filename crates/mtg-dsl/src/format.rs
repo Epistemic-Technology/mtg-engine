@@ -4904,6 +4904,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Or(a, b) => format!("{} or {}", static_cond(a), static_cond(b)),
         // Only an `otherwise` (`Ability::Static`) writes it.
         StaticCond::Not(a) => static_cond(a),
+        StaticCond::FlashPay(n) => format!("pay {{{n}}} more"),
         StaticCond::OrIf(a, b) => format!("{} or if {}", static_cond(a), static_cond(b)),
         StaticCond::OpponentGraveyard(n) => format!("opponent graveyard {n} or more"),
         StaticCond::ManaValuesInGraveyard(n) => format!("{n} mana values in your graveyard"),

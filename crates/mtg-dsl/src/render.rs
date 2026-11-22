@@ -12110,6 +12110,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             )
         }
         StaticCond::Not(a) => format!("not ({})", static_cond_text(a, card)),
+        StaticCond::FlashPay(n) => format!("you pay {{{n}}} more to cast it"),
         StaticCond::Or(a, b) => format!(
             "{} or {}",
             static_cond_text(a, card),

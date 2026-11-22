@@ -2146,6 +2146,10 @@ pub enum StaticCond {
     /// `otherwise` (`static enchanted: +2/+2 as long as attached is Vampire
     /// otherwise -2/-2`).
     Not(Box<StaticCond>),
+    /// `flash if pay {2} more`: "You may cast this spell as though it had
+    /// flash if you pay {2} more to cast it." (flash, and the cost, while
+    /// a sorcery couldn't be cast).
+    FlashPay(u8),
     /// `if this is that entered this turn or if you control basic land`
     /// (an activation condition): either holds, printed "... or if ...".
     OrIf(Box<StaticCond>, Box<StaticCond>),

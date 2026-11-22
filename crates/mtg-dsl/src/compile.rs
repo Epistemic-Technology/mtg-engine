@@ -946,6 +946,12 @@ impl Compiler<'_> {
                 others_gain: a.others_gain,
             });
         }
+        // "... as though it had flash if you pay {2} more to cast it": the
+        // {2} too, while a sorcery couldn't be cast.
+        if let Some(StaticCond::FlashPay(n)) = &card.flash_if {
+            let c = self.static_cond(&StaticCond::FlashPay(*n));
+            b = b.cond_cost(i32::from(*n), self.pool.intern_condition(c));
+        }
         if let Some(c) = &card.flash_if {
             let c = self.static_cond(c);
             b = b.flash_if(self.pool.intern_condition(c));
@@ -1917,6 +1923,9 @@ impl Compiler<'_> {
                 at_least: *at_least,
             },
             StaticCond::Not(a) => StaticCondition::Not(Box::new(self.static_cond(a))),
+            StaticCond::FlashPay(_) => {
+                StaticCondition::Not(Box::new(StaticCondition::SorceryTiming))
+            }
             StaticCond::Or(a, b) | StaticCond::OrIf(a, b) => {
                 StaticCondition::Or(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
             }

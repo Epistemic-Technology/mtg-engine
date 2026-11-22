@@ -3369,6 +3369,17 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one branch per condition
     fn static_cond_one(&mut self) -> R<StaticCond> {
+        // `flash if pay {2} more` (Mystical Tether).
+        if self.at_word("pay")
+            && matches!(self.peek_at(1), Some(Tok::Sym(_)))
+            && self.word_at(2).as_deref() == Some("more")
+        {
+            self.pos += 1;
+            let c = self.mana_cost()?;
+            self.expect_word("more")?;
+            let n = u8::try_from(c.mana_value()).unwrap_or(u8::MAX);
+            return Ok(StaticCond::FlashPay(n));
+        }
         if self.eat_word("void") {
             return Ok(StaticCond::Void);
         }

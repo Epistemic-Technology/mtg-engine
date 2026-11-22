@@ -2485,6 +2485,11 @@ pub enum StaticCondition {
     /// The other doesn't hold: a conditional static ability's "Otherwise,
     /// it gets -2/-2." (CR 611.3a).
     Not(Box<StaticCondition>),
+    /// You could cast a sorcery now (CR 307.1: your main phase, the stack
+    /// empty but for the source): "You may cast this spell as though it had
+    /// flash if you pay {2} more to cast it" is flash and {2} more while
+    /// this doesn't hold.
+    SorceryTiming,
     /// The condition as the spell was cast ("If you cast this spell during
     /// your main phase", "if you controlled a Mount as you cast this
     /// spell"): judged then and remembered by the spell (the definition's

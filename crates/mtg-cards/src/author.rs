@@ -4992,6 +4992,17 @@ impl Builder<'_> {
             self.statements.push(format!("static paired{named}: {rest}"));
             return Ok(());
         }
+        // "You may cast this spell as though it had flash if you pay {2}
+        // more to cast it."
+        if let Some(c) = Regex::new(
+            r"^You may cast this spell as though it had flash if you pay \{(\d+)\} more to cast it\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            self.statements.push(format!("flash if pay {{{}}} more", cap(&c, 1)));
+            return Ok(());
+        }
         // CR 510.1a: "Each creature you control [with toughness greater
         // than its power] assigns combat damage equal to its toughness
         // rather than its power."
