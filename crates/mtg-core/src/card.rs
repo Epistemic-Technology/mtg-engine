@@ -2523,6 +2523,12 @@ pub enum StaticCondition {
     /// the permanent). The number is wording only: the pronoun for a
     /// permanent (0 "its", 1 "his", 2 "her").
     SneakPaid(u8),
+    /// "if its prowl cost was paid", "if this spell's prowl cost was paid"
+    /// (CR 702.76a).
+    ProwlPaid,
+    /// Prowl's condition (CR 702.76a): "if you dealt combat damage to a
+    /// player this turn with a [creature of one of these types]".
+    ProwlDamage(Vec<Subtype>),
     /// "If it was cast using web-slinging" (CR 702.188): the source was
     /// cast for its web-slinging cost (kept by the permanent). The number
     /// is wording only: 0 "it was", 1 "he was", 2 "she was", 3 "they
@@ -6875,6 +6881,10 @@ pub struct CardDef {
     /// blitz cost; cast for it, the permanent is `AltCast::Blitz`.
     #[serde(default)]
     pub blitz: bool,
+    /// Prowl (CR 702.76a): the card's alternative cost (`alt_cost`) is its
+    /// prowl cost; cast for it, the permanent is `AltCast::Prowl`.
+    #[serde(default)]
+    pub prowl: bool,
     /// Awaken N (CR 702.113): an alternative cost; cast for it, the spell
     /// also puts N +1/+1 counters on target land you control, which
     /// becomes a 0/0 Elemental creature with haste (`awaken_face`).
@@ -7763,6 +7773,8 @@ pub struct CardPool {
     /// compiled (CR 702.173a): combat damage to players by Assassins is
     /// then recorded.
     assassin: Option<Subtype>,
+    /// The creature types of the pool's prowl cards (CR 702.76a).
+    prowl_types: Vec<Subtype>,
 }
 
 /// The inherent triggered abilities of the monarch (CR 725.2), the
@@ -7841,6 +7853,7 @@ impl CardPool {
             dungeons: Vec::new(),
             desig: DesigBuiltins::default(),
             assassin: None,
+            prowl_types: Vec::new(),
         };
         for c in Color::ALL {
             let id = pool.subtype(c.basic_land_type());
@@ -8900,6 +8913,21 @@ impl CardPool {
         }
     }
 
+    /// A card with prowl is in the pool (CR 702.76a): record combat damage
+    /// to players by creatures of these types.
+    pub fn note_prowl(&mut self, types: &[Subtype]) {
+        for t in types {
+            if !self.prowl_types.contains(t) {
+                self.prowl_types.push(*t);
+            }
+        }
+    }
+
+    /// The creature types prowl cards in the pool watch.
+    pub fn prowl_types(&self) -> &[Subtype] {
+        &self.prowl_types
+    }
+
     /// The Assassin type, if a card with freerunning is in the pool.
     pub fn assassin(&self) -> Option<Subtype> {
         self.assassin
@@ -9026,6 +9054,7 @@ impl Builder {
             prototype: None,
             prototype_face: None,
             blitz: false,
+            prowl: false,
             awaken: None,
             awaken_face: None,
             goads: false,
@@ -9285,6 +9314,22 @@ impl Builder {
     #[must_use]
     pub fn warp(mut self, cost: ManaCost) -> Self {
         self.0.warp = Some(Box::new(cost));
+        self
+    }
+
+    /// Prowl (CR 702.76a): the alternative cost, and its condition.
+    #[must_use]
+    pub fn prowl(mut self, cost: ManaCost, condition: u16) -> Self {
+        self.0.alt_cost = Some(Box::new(AltCost {
+            cost: Cost {
+                mana: cost,
+                ..Cost::default()
+            },
+            count: 1,
+            condition: Some(condition),
+            others_gain: 0,
+        }));
+        self.0.prowl = true;
         self
     }
 

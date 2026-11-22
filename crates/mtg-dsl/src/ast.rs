@@ -1422,6 +1422,10 @@ pub enum Mechanic {
     /// CR 702.39: attacks, you may have target creature defending player
     /// controls untap and block it if able.
     Provoke,
+    /// CR 702.76: `prowl {2}{U}`: an alternative cost, offered if you dealt
+    /// combat damage to a player this turn with a creature of one of the
+    /// card's creature types.
+    Prowl(ManaCost),
     /// CR 702.120: `escalate {1}{W}`: "Pay this cost for each mode chosen
     /// beyond the first." On a `choose one or both` spell, the cost of
     /// choosing both.
@@ -2181,6 +2185,9 @@ pub enum StaticCond {
     /// sneak cost was paid" (an instant or sorcery), "its (his, her) sneak
     /// cost was paid" (CR 702.190). The pronoun: 0 its, 1 his, 2 her.
     SneakPaid(u8),
+    /// `prowl paid`: "its prowl cost was paid", "this spell's prowl cost
+    /// was paid" (CR 702.76a).
+    ProwlPaid,
     /// `web slung`, `he web slung`, `she web slung`, `they web slung`:
     /// "it was (he was, she was, they were) cast using web-slinging" (CR
     /// 702.188). The pronoun: 0 it, 1 he, 2 she, 3 they.

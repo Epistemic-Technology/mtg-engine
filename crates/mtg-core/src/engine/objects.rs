@@ -413,6 +413,13 @@ impl GameState {
             {
                 // CR 702.152a: cast for its blitz cost.
                 AltCast::Blitz
+            } else if old.zone == Zone::Stack
+                && to == Zone::Battlefield
+                && old.alt == AltCast::AltCost
+                && self.pool.get(def).prowl
+            {
+                // CR 702.76a: cast for its prowl cost.
+                AltCast::Prowl
             } else {
                 AltCast::None
             },
@@ -1340,6 +1347,19 @@ impl GameState {
                     && c.has_subtype(a)
                 {
                     self.assassin_damage |= 1 << ctl.index().min(7);
+                }
+                // CR 702.76a: combat damage by a creature of a prowl type.
+                if combat
+                    && !self.pool.prowl_types().is_empty()
+                    && let (Some(c), Some(ctl)) = (src.as_ref(), controller)
+                    && c.is_creature()
+                {
+                    for i in 0..self.pool.prowl_types().len() {
+                        let t = self.pool.prowl_types()[i];
+                        if c.has_subtype(t) && !self.prowl_damage.contains(&(ctl, t)) {
+                            self.prowl_damage.push((ctl, t));
+                        }
+                    }
                 }
                 self.emit(Event::Damage {
                     source,

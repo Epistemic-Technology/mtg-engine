@@ -1,0 +1,7 @@
+card "Thieves' Fortune" {
+  oracle_id e0bffcf3-8d34-461b-a1e4-ae47c1e7b19e
+  cost {2}{U}
+  type Kindred Instant — Rogue
+  prowl {U}
+  spell: dig 4 take card rest bottom
+}

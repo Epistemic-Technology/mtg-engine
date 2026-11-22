@@ -11039,6 +11039,8 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 _ => "it was",
             }
         ),
+        StaticCond::ProwlPaid if is_spell(card) => "this spell's prowl cost was paid".to_string(),
+        StaticCond::ProwlPaid => "its prowl cost was paid".to_string(),
         StaticCond::SneakPaid(_) if is_spell(card) => {
             "this spell's sneak cost was paid".to_string()
         }
@@ -12267,6 +12269,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::LevelUp(c) => format!("Level up {c}"),
             crate::ast::Mechanic::Recover(c) => format!("Recover {c}"),
             crate::ast::Mechanic::Escalate(c) => format!("Escalate {c}"),
+            crate::ast::Mechanic::Prowl(c) => format!("Prowl {c}"),
             // CR 702.152a: "Blitz {3}{G}"; with a cost other than mana,
             // "Blitz—{2}{B}{B}, Pay 2 life."
             crate::ast::Mechanic::Blitz(c) => {

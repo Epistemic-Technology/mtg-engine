@@ -577,6 +577,24 @@ impl Compiler<'_> {
                     }
                     b = b.entwine(c.clone());
                 }
+                // CR 702.76a: "You may cast this for its prowl cost if you
+                // dealt combat damage to a player this turn with a [creature
+                // of this card's creature types]."
+                Ability::Mechanic(Mechanic::Prowl(c)) => {
+                    if card.alt_cost.is_some() {
+                        return self.err("prowl and an alternative cost of the card's own");
+                    }
+                    let types: Vec<mtg_core::card::Subtype> =
+                        card.subtypes.iter().map(|s| self.pool.subtype(s)).collect();
+                    if types.is_empty() {
+                        return self.err("prowl on a card without creature types");
+                    }
+                    self.pool.note_prowl(&types);
+                    let cond = self
+                        .pool
+                        .intern_condition(StaticCondition::ProwlDamage(types));
+                    b = b.prowl(c.clone(), cond);
+                }
                 Ability::Mechanic(Mechanic::Blitz(c)) => {
                     if card.alt_cost.is_some() {
                         return self.err("blitz and an alternative cost of the card's own");
@@ -1128,6 +1146,7 @@ impl Compiler<'_> {
                             | Mechanic::Prototype(..)
                             | Mechanic::Blitz(_)
                             | Mechanic::Escalate(_)
+                            | Mechanic::Prowl(_)
                             | Mechanic::Replicate(_)
                             | Mechanic::Multikicker(_)
                             | Mechanic::Disturb(_)
@@ -1733,6 +1752,7 @@ impl Compiler<'_> {
             StaticCond::NotKicked => StaticCondition::NotKicked,
             StaticCond::Impending => StaticCondition::Impending,
             StaticCond::SneakPaid(p) => StaticCondition::SneakPaid(*p),
+            StaticCond::ProwlPaid => StaticCondition::ProwlPaid,
             StaticCond::WebSlung(p) => StaticCondition::WebSlung(*p),
             StaticCond::EvidenceCollected | StaticCond::AdditionalCostPaid => {
                 StaticCondition::OptionalCostPaid
@@ -4522,6 +4542,7 @@ impl Compiler<'_> {
                 | Mechanic::Prototype(..)
                 | Mechanic::Blitz(_)
                 | Mechanic::Escalate(_)
+                | Mechanic::Prowl(_)
                 | Mechanic::Replicate(_)
                 | Mechanic::Multikicker(_)
                 | Mechanic::Disturb(_)
@@ -5941,6 +5962,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Prototype(..)
         | Mechanic::Blitz(_)
         | Mechanic::Escalate(_)
+        | Mechanic::Prowl(_)
         | Mechanic::BattleCry
         | Mechanic::Rampage(_)
         | Mechanic::Replicate(_)

@@ -518,6 +518,7 @@ impl GameState {
             died_this_turn: Vec::new(),
             damaged_this_turn: 0,
             assassin_damage: 0,
+            prowl_damage: Vec::new(),
             lost_life_this_turn: 0,
             left_this_turn: 0,
             discarded_this_turn: 0,
@@ -3286,6 +3287,7 @@ impl GameState {
             self.life_lost_this_turn = [0; 4];
             self.attacked_this_turn = 0;
             self.assassin_damage = 0;
+            self.prowl_damage.clear();
             self.lands_entered_this_turn = 0;
             self.block_demands.clear();
             self.block_bans.clear();

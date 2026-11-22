@@ -359,6 +359,9 @@ pub enum AltCast {
     /// Cast transformed from the graveyard for its disturb cost (CR
     /// 702.146a): the spell is the back face.
     Disturb,
+    /// A permanent cast for its prowl cost (CR 702.76a, the card's
+    /// alternative cost): "if its prowl cost was paid".
+    Prowl,
     /// A permanent cast for its blitz cost (CR 702.152a, the card's
     /// alternative cost): it has haste and "When this creature dies, draw
     /// a card", and is sacrificed at the beginning of the next end step.
@@ -1785,6 +1788,10 @@ pub struct GameState {
     /// damage to a player this turn (freerunning, CR 702.173a), one bit
     /// each; kept only with a freerunning card in the pool.
     pub assassin_damage: u8,
+    /// The players who dealt combat damage to a player this turn with a
+    /// creature of each prowl card's creature types (CR 702.76a), kept
+    /// only with a prowl card in the pool.
+    pub prowl_damage: Vec<(PlayerId, crate::card::Subtype)>,
     /// Players who lost life this turn ("if an opponent lost life this
     /// turn"), one bit each.
     pub lost_life_this_turn: u8,
@@ -3282,6 +3289,22 @@ impl GameState {
                     .get(&source)
                     .is_some_and(|l| l.object.alt == AltCast::WebSlinging),
             },
+            // CR 702.76a: the spell (cast for the card's alternative cost)
+            // or the permanent it became.
+            C::ProwlPaid => match self.objects.get(source) {
+                Some(o) => {
+                    matches!(o.alt, AltCast::Prowl)
+                        || o.alt == AltCast::AltCost && self.pool.get(o.def).prowl
+                }
+                None => self
+                    .lki
+                    .get(&source)
+                    .is_some_and(|l| l.object.alt == AltCast::Prowl),
+            },
+            C::ProwlDamage(types) => self
+                .prowl_damage
+                .iter()
+                .any(|(p, t)| *p == you && types.contains(t)),
             C::SneakPaid(_) => match self.objects.get(source) {
                 Some(o) => o.alt == AltCast::Sneak,
                 None => self

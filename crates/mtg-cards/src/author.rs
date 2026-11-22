@@ -68,6 +68,7 @@ const KEYWORDS: &[&str] = &[
 
 /// Scryfall keyword tags that templates below handle as abilities.
 const TEMPLATED_TAGS: &[&str] = &[
+    "Prowl",
     "Escalate",
     "Recover",
     "Blitz",
@@ -3445,6 +3446,9 @@ fn static_condition(s: &str) -> Option<String> {
         "this spell's sneak cost was paid" | "its sneak cost was paid" => {
             return Some("sneak paid".to_string());
         }
+        "this spell's prowl cost was paid" | "its prowl cost was paid" => {
+            return Some("prowl paid".to_string());
+        }
         "his sneak cost was paid" => return Some("his sneak paid".to_string()),
         "her sneak cost was paid" => return Some("her sneak paid".to_string()),
         "this spell was cast using teamwork" => {
@@ -4696,7 +4700,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Mayhem|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Plot|Sneak|Harmonize|Freerunning|Multikicker|Transmute|Disturb|Recover|Escalate) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Mayhem|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Plot|Sneak|Harmonize|Freerunning|Multikicker|Transmute|Disturb|Recover|Escalate|Prowl) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {

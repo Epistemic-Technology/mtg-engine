@@ -1476,14 +1476,14 @@ impl P {
                 self.player_static(mtg_core::card::PlayerStaticKind::ExtraLands { n, each_player })
             }
             // CR 702.59a: recover; CR 702.120a: escalate.
-            "recover" | "escalate" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
+            "recover" | "escalate" | "prowl" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
                 self.pos += 1;
                 let c = self.mana_cost()?;
                 self.end_stmt()?;
-                Ok(Ability::Mechanic(if w == "recover" {
-                    Mechanic::Recover(c)
-                } else {
-                    Mechanic::Escalate(c)
+                Ok(Ability::Mechanic(match w.as_str() {
+                    "recover" => Mechanic::Recover(c),
+                    "prowl" => Mechanic::Prowl(c),
+                    _ => Mechanic::Escalate(c),
                 }))
             }
             // CR 702.152a: blitz.
@@ -3533,6 +3533,9 @@ impl P {
             if self.eat_words(words) {
                 return Ok(StaticCond::SneakPaid(u8::try_from(i).unwrap_or(0)));
             }
+        }
+        if self.eat_words(&["prowl", "paid"]) {
+            return Ok(StaticCond::ProwlPaid);
         }
         if self.eat_word("spent") {
             return self.spent_cond();

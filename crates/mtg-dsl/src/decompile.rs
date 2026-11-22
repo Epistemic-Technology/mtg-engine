@@ -502,6 +502,7 @@ impl Decompiler<'_> {
             StaticCondition::CreatureDiedThisTurn => StaticCond::CreatureDiedThisTurn,
             StaticCondition::OpponentDamagedThisTurn => StaticCond::OpponentDamagedThisTurn,
             StaticCondition::OpponentLostLifeThisTurn => StaticCond::OpponentLostLifeThisTurn,
+            StaticCondition::ProwlDamage(_) => unreachable!("only prowl's alternative cost"),
             StaticCondition::AssassinDealtCombatDamage => {
                 unreachable!("only freerunning's alternative cost")
             }
@@ -531,6 +532,7 @@ impl Decompiler<'_> {
             }
             StaticCondition::TotalToughness(n) => StaticCond::TotalToughness(*n),
             StaticCondition::SneakPaid(p) => StaticCond::SneakPaid(*p),
+            StaticCondition::ProwlPaid => StaticCond::ProwlPaid,
             StaticCondition::WebSlung(p) => StaticCond::WebSlung(*p),
             StaticCondition::OptionalCostPaid => StaticCond::EvidenceCollected,
             StaticCondition::OffspringPaid => unreachable!("only offspring's trigger"),

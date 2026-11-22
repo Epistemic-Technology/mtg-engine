@@ -1,0 +1,7 @@
+card "Morsel Theft" {
+  oracle_id b58878ce-dd5a-4c43-882c-639de4f4a111
+  cost {2}{B}{B}
+  type Kindred Sorcery — Rogue
+  prowl {1}{B}
+  spell: target player loses 3 life and you gains 3 life; if prowl paid, draw 1 cards
+}

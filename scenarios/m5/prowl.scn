@@ -1,0 +1,104 @@
+# Prowl (CR 702.76a): "You may cast this for its prowl cost if you dealt
+# combat damage to a player this turn with a [creature of one of this
+# card's creature types]." (`alternative`), and "if its prowl cost was
+# paid".
+
+scenario "prowl: after a Rogue's combat damage, cast for the prowl cost" {
+  battlefield A: 3 "Island", "Latchkey Faerie"
+  hand A: "Latchkey Faerie"
+  library A: "Forest", "Plains"
+  turn 1 A: attack "Latchkey Faerie"
+  turn 1 postcombat_main A: cast "Latchkey Faerie" alternative
+  run_to turn 1 end
+  assert life B 17
+  assert battlefield A contains 2 "Latchkey Faerie"
+  assert hand A count 1
+}
+
+scenario "prowl: without combat damage, no prowl" {
+  battlefield A: 3 "Island"
+  hand A: "Latchkey Faerie"
+  illegal turn 1 A: cast "Latchkey Faerie" alternative
+  run_to turn 1 postcombat_main
+  assert hand A contains "Latchkey Faerie"
+}
+
+scenario "prowl: a creature of another type doesn't enable it" {
+  battlefield A: 3 "Island", "Grizzly Bears"
+  hand A: "Latchkey Faerie"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 postcombat_main A: cast "Latchkey Faerie" alternative
+  run_to turn 1 end
+  assert hand A contains "Latchkey Faerie"
+}
+
+scenario "prowl: cast normally, the enters trigger draws nothing" {
+  battlefield A: 4 "Island"
+  hand A: "Latchkey Faerie"
+  library A: "Forest", "Plains"
+  turn 1 A: cast "Latchkey Faerie"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "prowl: a blocked Rogue dealt no damage to a player" {
+  battlefield A: 3 "Island", "Latchkey Faerie"
+  battlefield B: "Wind Drake"
+  hand A: "Latchkey Faerie"
+  turn 1 A: attack "Latchkey Faerie"
+  turn 1 B: block "Latchkey Faerie" with "Wind Drake"
+  illegal turn 1 postcombat_main A: cast "Latchkey Faerie" alternative
+  run_to turn 1 end
+  assert hand A contains "Latchkey Faerie"
+}
+
+scenario "prowl: the damage counts only this turn" {
+  battlefield A: 3 "Island", "Latchkey Faerie"
+  hand A: "Latchkey Faerie"
+  turn 1 A: attack "Latchkey Faerie"
+  illegal turn 3 A: cast "Latchkey Faerie" alternative
+  run_to turn 3 postcombat_main
+  assert hand A contains "Latchkey Faerie"
+}
+
+scenario "prowl: Morsel Theft prowled drains and draws" {
+  battlefield A: 2 "Swamp", "Stinkdrinker Bandit"
+  hand A: "Morsel Theft"
+  library A: "Forest", "Plains"
+  turn 1 A: attack "Stinkdrinker Bandit"
+  turn 1 postcombat_main A: cast "Morsel Theft" alternative targeting player B
+  run_to turn 1 end
+  assert life B 13
+  assert life A 23
+  assert hand A count 1
+}
+
+scenario "prowl: Morsel Theft cast normally doesn't draw" {
+  battlefield A: 4 "Swamp"
+  hand A: "Morsel Theft"
+  library A: "Forest", "Plains"
+  turn 1 A: cast "Morsel Theft" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand A count 0
+}
+
+scenario "prowl: Stinkdrinker Bandit pumps an unblocked Rogue" {
+  battlefield A: "Stinkdrinker Bandit", "Latchkey Faerie"
+  turn 1 A: attack "Latchkey Faerie"
+  run_to turn 1 postcombat_main
+  assert power "Latchkey Faerie" 5
+  assert life B 15
+}
+
+scenario "prowl: Thieves' Fortune prowled for {U}" {
+  battlefield A: "Island", "Latchkey Faerie"
+  hand A: "Thieves' Fortune"
+  library A: "Forest", "Plains", "Swamp", "Mountain", "Island"
+  turn 1 A: attack "Latchkey Faerie"
+  turn 1 postcombat_main A: cast "Thieves' Fortune" alternative
+  run_to turn 1 end
+  assert hand A count 1
+  assert library A count 4
+  assert graveyard A contains "Thieves' Fortune"
+}
