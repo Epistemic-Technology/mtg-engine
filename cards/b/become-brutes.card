@@ -1,0 +1,6 @@
+card "Become Brutes" {
+  oracle_id 789e034c-7f4a-4fd5-9dd8-48313742126e
+  cost {1}{R}
+  type Sorcery
+  spell: 1 to 2 target creature each gain haste; create 1 "Monster Role" attached to target 1
+}

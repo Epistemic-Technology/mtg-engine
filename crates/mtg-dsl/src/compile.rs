@@ -2291,7 +2291,7 @@ impl Compiler<'_> {
                     out.push(CoreEffect::Untap { to: r(*t) });
                 }
             }
-            Effect::Grant { keywords, to } => out.push(CoreEffect::Grant {
+            Effect::Grant { keywords, to, .. } => out.push(CoreEffect::Grant {
                 keywords: KeywordSet::of(keywords.iter().copied()),
                 to: r(*to),
             }),
@@ -5426,6 +5426,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                     E::Grant {
                         keywords: vec![mtg_core::card::Keyword::Haste],
                         to: Recipient::Source,
+                        each: false,
                     },
                     E::Delayed {
                         about: Recipient::Source,

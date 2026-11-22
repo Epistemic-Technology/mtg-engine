@@ -5674,7 +5674,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj_list_tap(to);
             Clause::imperative(format!("untap {o}"))
         }
-        Effect::Grant { keywords, to } => {
+        Effect::Grant { keywords, to, each } => {
             if keywords.as_slice() == [Keyword::Lure] {
                 let o = ctx.obj(*to);
                 return Clause::imperative(lure_sentence(&o, true));
@@ -5738,7 +5738,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 *to,
                 s,
                 format!(
-                    "{also}{} {}",
+                    "{also}{}{} {}",
+                    if *each { "each " } else { "" },
                     ctx.verb(*to, "gains", "gain"),
                     keywords_list(keywords)
                 ),
@@ -5852,7 +5853,32 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "Create a Wicked Role token attached to up to one target
             // creature you control", "... attached to it".
             if let Some(a) = attached {
-                let _ = write!(what, " attached to {}", ctx.obj(*a));
+                let o = ctx.obj(*a);
+                // One for each object: "For each Rat you control, create a
+                // Wicked Role token attached to that Rat", "For each of
+                // those creatures, create a Monster Role token attached to
+                // it".
+                let each = if let Some(rest) = o.strip_prefix("each ") {
+                    let head = [
+                        " you control",
+                        " your opponents control",
+                        " an opponent controls",
+                    ]
+                    .iter()
+                    .find_map(|c| rest.split_once(c).map(|(h, _)| h))
+                    .unwrap_or(rest);
+                    let noun = head.rsplit(' ').next().unwrap_or(head);
+                    Some((rest.to_string(), format!("that {noun}")))
+                } else if matches!(o.as_str(), "them" | "those creatures") {
+                    Some(("of those creatures".to_string(), "it".to_string()))
+                } else {
+                    None
+                };
+                if let Some((each, that)) = each {
+                    let _ = write!(what, " attached to {that}");
+                    return Clause::imperative(format!("for each {each}, create {what}"));
+                }
+                let _ = write!(what, " attached to {o}");
             }
             match who {
                 None => Clause::imperative(format!("create {what}")),

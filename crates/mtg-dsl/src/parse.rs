@@ -54,6 +54,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         in_spell: false,
         group_named: false,
         subject: None,
+        subject_each: false,
         votes: Vec::new(),
         returned: None,
         revealed: false,
@@ -573,6 +574,9 @@ struct P {
     group_named: bool,
     /// The subject of the previous clause of the sentence being parsed.
     subject: Option<Recipient>,
+    /// The sentence's subject was followed by `each` ("one or two target
+    /// creatures each gain haste").
+    subject_each: bool,
     /// The target an earlier effect of the ability returned to its
     /// owner's hand: "that player" is then its owner.
     returned: Option<usize>,
@@ -5116,8 +5120,9 @@ impl P {
                     .then_some(Recipient::Targets(*a, subjects.len())),
                 _ => None,
             };
+            self.subject_each = false;
             if group.is_some() || self.is_many_subject(&subjects) {
-                self.eat_word("each");
+                self.subject_each = self.eat_word("each");
             }
             let subject = if let Some(g) = group {
                 g
@@ -5277,6 +5282,7 @@ impl P {
                     return Ok(Effect::Grant {
                         keywords,
                         to: subject,
+                        each: explicit && self.subject_each,
                     });
                 }
                 let amount = self.num()?;
@@ -5807,6 +5813,7 @@ impl P {
                 Ok(Effect::Grant {
                     keywords: vec![Keyword::MustAttack],
                     to: subject,
+                    each: false,
                 })
             }
             // "Target creature blocks this creature this turn if able".
@@ -5857,6 +5864,7 @@ impl P {
                 Ok(Effect::Grant {
                     keywords: vec![keyword],
                     to: subject,
+                    each: false,
                 })
             }
             // "Target creature can't block this creature this turn".
@@ -5914,6 +5922,7 @@ impl P {
                 Ok(Effect::Grant {
                     keywords,
                     to: subject,
+                    each: explicit && self.subject_each,
                 })
             }
             "get" | "gets"
@@ -8917,6 +8926,7 @@ impl P {
             in_spell: self.in_spell,
             group_named: self.group_named,
             subject: None,
+            subject_each: false,
             votes: self.votes.clone(),
             returned: self.returned,
             revealed: self.revealed,
@@ -9604,6 +9614,7 @@ impl P {
                         in_spell: false,
                         group_named: false,
                         subject: None,
+                        subject_each: false,
                         votes: Vec::new(),
                         returned: None,
                         revealed: false,

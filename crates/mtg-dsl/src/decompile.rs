@@ -887,6 +887,7 @@ impl Decompiler<'_> {
             CoreEffect::Grant { keywords: k, to } => Effect::Grant {
                 keywords: keywords(*k),
                 to: r(*to),
+                each: false,
             },
             CoreEffect::GainControl { of, forever } => Effect::GainControl {
                 of: r(*of),

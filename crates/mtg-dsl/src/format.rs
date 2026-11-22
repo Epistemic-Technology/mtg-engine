@@ -1377,7 +1377,11 @@ impl Fmt {
             }
             Effect::Detain { what } => format!("detain {}", self.recipient(*what, t)),
             Effect::Untap { to } => format!("untap {}", self.recipients(to, t)),
-            Effect::Grant { keywords: ks, to } => {
+            Effect::Grant {
+                keywords: ks,
+                to,
+                each,
+            } => {
                 let v = if matches!(
                     to,
                     Recipient::You
@@ -1391,7 +1395,8 @@ impl Fmt {
                 } else {
                     "gains"
                 };
-                format!("{} {v} {}", self.recipient(*to, t), keywords(ks))
+                let each = if *each { " each" } else { "" };
+                format!("{}{each} {v} {}", self.recipient(*to, t), keywords(ks))
             }
             Effect::GainControl { of, forever } => format!(
                 "gain control of {}{}",

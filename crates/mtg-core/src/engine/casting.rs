@@ -9677,57 +9677,65 @@ impl GameState {
                 // CR 303.4f: an Aura token enters attached to what it was
                 // created attached to; with nothing it could enchant there
                 // (no target chosen, or one now illegal), it isn't created.
-                let host = match attached {
+                // "For each Rat you control, create a Wicked Role token
+                // attached to that Rat": one creation for each object.
+                let hosts: SmallVec<[Option<ObjId>; 2]> = match attached {
                     Some(r) => {
                         let spec = self
                             .pool
                             .get(*token)
                             .enchant()
                             .unwrap_or(TargetSpec::Creature);
-                        let host = self
-                            .recipients(ctx, *r)
-                            .into_iter()
-                            .find_map(|t| on_battlefield(self, t))
-                            .filter(|h| self.is_legal_attachment(spec, *h));
-                        if host.is_none() {
+                        let mut hosts: SmallVec<[Option<ObjId>; 2]> = SmallVec::new();
+                        for t in self.recipients(ctx, *r) {
+                            if let Some(h) = on_battlefield(self, t)
+                                && self.is_legal_attachment(spec, h)
+                                && !hosts.contains(&Some(h))
+                            {
+                                hosts.push(Some(h));
+                            }
+                        }
+                        if hosts.is_empty() {
                             return;
                         }
-                        host
+                        hosts
                     }
-                    None => None,
+                    None => smallvec::smallvec![None],
                 };
                 ctx.created_tokens.clear();
                 let sized = self.token_pt.take();
-                for t in self.recipients(ctx, *who) {
-                    if let Target::Player(p) = t {
-                        let n = self.eval_num(*count, ctx);
-                        // CR 614.1a: token-creation replacement effects.
-                        for (def, k) in self.tokens_to_create(p, *token, n) {
-                            for _ in 0..k {
-                                // "then attach this Equipment to it".
-                                let id = self.create_token_with(def, p, *tapped && def == *token);
-                                if def == *token
-                                    && let Some(h) = host
-                                {
-                                    self.attach(id, h);
+                for host in hosts {
+                    for t in self.recipients(ctx, *who) {
+                        if let Target::Player(p) = t {
+                            let n = self.eval_num(*count, ctx);
+                            // CR 614.1a: token-creation replacement effects.
+                            for (def, k) in self.tokens_to_create(p, *token, n) {
+                                for _ in 0..k {
+                                    let id =
+                                        self.create_token_with(def, p, *tapped && def == *token);
+                                    if def == *token
+                                        && let Some(h) = host
+                                    {
+                                        self.attach(id, h);
+                                    }
+                                    // CR 111.3: "an X/X ... token".
+                                    if def == *token
+                                        && let Some(v) = sized
+                                        && self.objects[id].zone == Zone::Battlefield
+                                    {
+                                        self.effect_on(
+                                            ctx,
+                                            id,
+                                            smallvec::smallvec![Modification::SetPt {
+                                                power: PtValue::Fixed(v),
+                                                toughness: PtValue::Fixed(v),
+                                            }],
+                                            Duration::Permanent,
+                                        );
+                                    }
+                                    ctx.created = Some(id);
+                                    ctx.created_tokens.push(id);
                                 }
-                                // CR 111.3: "an X/X ... token".
-                                if def == *token
-                                    && let Some(v) = sized
-                                    && self.objects[id].zone == Zone::Battlefield
-                                {
-                                    self.effect_on(
-                                        ctx,
-                                        id,
-                                        smallvec::smallvec![Modification::SetPt {
-                                            power: PtValue::Fixed(v),
-                                            toughness: PtValue::Fixed(v),
-                                        }],
-                                        Duration::Permanent,
-                                    );
-                                }
-                                ctx.created = Some(id);
-                                ctx.created_tokens.push(id);
                             }
                         }
                     }

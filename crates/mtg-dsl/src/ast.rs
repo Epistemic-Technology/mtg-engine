@@ -3195,6 +3195,9 @@ pub enum Effect {
     Grant {
         keywords: Vec<Keyword>,
         to: Recipient,
+        /// `one or two target creature each gain haste`: "each" after a
+        /// variable target group, as some Oracle texts print it.
+        each: bool,
     },
     /// `gain control of target creature` (until end of turn); with
     /// `indefinitely`, for good.

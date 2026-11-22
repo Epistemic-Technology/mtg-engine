@@ -1686,7 +1686,13 @@ sentence: "Create a 1/1 colorless Eldrazi Scion creature token. It has
 \"Sacrifice this token: Add {C}.\""; "They have" for more than one),
 `create 1 "Wicked Role" attached to up to 1 target creature you control`
 (an Aura token, such as a Role, enters attached to it; if there is nothing
-it could enchant, no token is created, CR 303.4f), `<who> creates 2
+it could enchant, no token is created, CR 303.4f; attached to several
+objects, one is created for each: `create 1 "Monster Role" attached to
+target 1` after `1 to 2 target creature each gain haste` prints "For each
+of those creatures, create a Monster Role token attached to it.", and
+`attached to each Rat you control` "For each Rat you control, create a
+Wicked Role token attached to that Rat."; `each` after a variable target
+group before `gain` prints "One or two target creatures each gain haste"), `<who> creates 2
 "Treasure"` (`its controller creates`, `each player creates`, `you
 create`: "Its controller creates two Treasure tokens"),
 `create token copy of <what> [with exceptions]` (of a group, `create
