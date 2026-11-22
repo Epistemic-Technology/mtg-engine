@@ -1,0 +1,6 @@
+card "Lapis Orb of Dragonkind" {
+  oracle_id c61ab8e1-ef23-465d-bcd3-f771434988b2
+  cost {2}{U}
+  type Artifact
+  activated {T}: add {U} spent on Dragon creature spell: scry 2
+}

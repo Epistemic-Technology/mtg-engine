@@ -1596,6 +1596,23 @@ impl Compiler<'_> {
         names.iter().map(|s| self.pool.subtype(s)).collect()
     }
 
+    /// What restricted mana may be spent on (CR 106.6).
+    fn mana_restriction(
+        &mut self,
+        r: &crate::ast::ManaRestriction,
+    ) -> mtg_core::card::ManaRestriction {
+        mtg_core::card::ManaRestriction {
+            spells: r.spells.as_ref().map(|f| self.filter(f)),
+            abilities: r.abilities,
+            ability_source: r.ability_source.as_ref().map(|f| self.filter(f)),
+            foretell: r.foretell,
+            disturb: r.disturb,
+            wording: r.wording,
+            plural: r.plural,
+            bare: r.bare,
+        }
+    }
+
     #[allow(clippy::too_many_lines)] // one line per filter field
     fn filter(&mut self, f: &Filter) -> ObjFilter {
         // "an outlaw" (CR 700.12): one alternative per creature type.
@@ -2348,6 +2365,7 @@ impl Compiler<'_> {
         }
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per count
     fn count_expr(&mut self, c: &crate::ast::CountExpr) -> mtg_core::card::CountExpr {
         use crate::ast::CountExpr as A;
         use mtg_core::card::CountExpr as C;
@@ -2405,7 +2423,10 @@ impl Compiler<'_> {
             A::TargetManaValue { n, .. } => C::TargetManaValue(target_index(self.tmap, *n)),
             A::CardManaValue(_) => C::CardManaValue,
             A::ColorsAmongPermanents => C::ColorsAmongPermanents,
+            A::SpentColors(crate::ast::SpentOf::That) => C::ThatSpellSpentColors,
             A::SpentColors(_) => C::SpentColors,
+            A::ManaSpent { that: false } => C::SpentTotal,
+            A::ManaSpent { that: true } => C::ThatSpellSpent,
             A::TimesKicked => C::TimesKicked,
             A::SpentTreasure => C::SpentTreasure,
             A::CardsInOpponentsGraveyards(f) => {
@@ -3620,6 +3641,43 @@ impl Compiler<'_> {
             Effect::KeepMana(inner) => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::KeepMana(effects));
+            }
+            Effect::SpendRider {
+                inner,
+                spells,
+                then,
+            } => {
+                let effects = self.sentences(inner)?;
+                if !effects.iter().any(CoreEffect::adds_mana) {
+                    return self.err("`spent on ...` follows an effect that adds mana");
+                }
+                let then = self.sentences(then)?;
+                let spells = Box::new(self.filter(spells));
+                let ability = self
+                    .pool
+                    .register_ability(AbilityDef::Triggered(TriggeredAbility {
+                        limit: mtg_core::card::TurnLimit::None,
+                        from_graveyard: false,
+                        trigger: mtg_core::card::TriggerSpec::Reflexive,
+                        condition: None,
+                        targets: Vec::new(),
+                        effects: then,
+                    }));
+                out.push(CoreEffect::SpendRider {
+                    effects,
+                    spells,
+                    ability,
+                });
+            }
+            Effect::SpendOnly { inner, restriction } => {
+                let effects = self.sentences(inner)?;
+                if !effects.iter().any(CoreEffect::adds_mana) {
+                    return self.err("`only to ...` follows an effect that adds mana");
+                }
+                out.push(CoreEffect::SpendOnly {
+                    effects,
+                    restriction: Box::new(self.mana_restriction(restriction)),
+                });
             }
             Effect::IfKicked(inner) => {
                 let effects = self.sentences(inner)?;
@@ -4857,14 +4915,7 @@ impl Compiler<'_> {
             Ability::SacMana(m) => AbilityDef::SacForMana(*m),
             Ability::RestrictedMana { mana, restriction } => AbilityDef::RestrictedMana {
                 mana: *mana,
-                restriction: mtg_core::card::ManaRestriction {
-                    spells: restriction.spells.as_ref().map(|f| self.filter(f)),
-                    abilities: restriction.abilities,
-                    ability_source: restriction.ability_source.as_ref().map(|f| self.filter(f)),
-                    foretell: restriction.foretell,
-                    disturb: restriction.disturb,
-                    wording: restriction.wording,
-                },
+                restriction: self.mana_restriction(restriction),
             },
             Ability::XManaColor(c) => AbilityDef::XManaColor(*c),
             Ability::Enchant(t) => AbilityDef::Enchant(self.target(t)),

@@ -112,6 +112,7 @@ pub enum Kind {
 /// What restricted mana may be spent on (CR 106.6); see
 /// `mtg_core::card::ManaRestriction`.
 #[derive(Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::struct_excessive_bools)] // independent permissions and wordings
 pub struct ManaRestriction {
     pub spells: Option<Filter>,
     pub abilities: bool,
@@ -123,6 +124,10 @@ pub struct ManaRestriction {
     /// `only to pay disturb or cast ...`: "pay a disturb cost".
     pub disturb: bool,
     pub wording: mtg_core::card::SpendWording,
+    /// `spells`, `abilities`: the plural wording; `joined and`.
+    pub plural: mtg_core::card::SpendPlural,
+    /// `of artifact bare`: "abilities of artifacts", without "sources".
+    pub bare: bool,
 }
 
 /// The pronoun a character's text uses for it after its name: `pronoun
@@ -443,6 +448,12 @@ pub enum CountExpr {
     TimesKicked,
     /// `treasure spent`: "mana from a Treasure spent to cast it".
     SpentTreasure,
+    /// `mana spent`: "the amount of mana spent to cast it"; `mana spent
+    /// that spell`: "... to cast that spell", the spell that triggered the
+    /// ability (CR 601.2h).
+    ManaSpent {
+        that: bool,
+    },
     /// `opponents graveyards [<filter>]`: "cards in your opponents'
     /// graveyards".
     CardsInOpponentsGraveyards(Option<Filter>),
@@ -4487,6 +4498,21 @@ pub enum Effect {
     /// `keep mana add {R}`: "Add {R}. Until end of turn, you don't lose
     /// this mana as steps and phases end."
     KeepMana(Vec<Sentence>),
+    /// `add 2 mana any combination only to cast legendary spells`: "Add
+    /// two mana in any combination of colors. Spend this mana only to
+    /// cast legendary spells." (CR 106.6): the mana is restricted.
+    SpendOnly {
+        inner: Vec<Sentence>,
+        restriction: ManaRestriction,
+    },
+    /// `add {G} spent on Dragon creature spell: you gain 2 life`: "Add
+    /// {G}. When you spend this mana to cast a Dragon creature spell, you
+    /// gain 2 life."
+    SpendRider {
+        inner: Vec<Sentence>,
+        spells: Filter,
+        then: Vec<Sentence>,
+    },
     /// `waterbend {2}` (CR 701.67a), inside "unless" or "you may": pay
     /// the mana, artifacts and creatures tapped to help.
     Waterbend(ManaCost),
@@ -5042,4 +5068,7 @@ pub enum SpentOf {
     Spell,
     /// "this creature".
     Creature,
+    /// `colors spent that spell`: "that spell", the spell that triggered
+    /// the ability (not converge: it reads that spell, not the source).
+    That,
 }

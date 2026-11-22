@@ -1,0 +1,9 @@
+card "Intrepid Stablemaster" {
+  oracle_id a825bdea-3ea2-46b2-93b9-21586643aab0
+  cost {1}{G}
+  type Creature — Human Scout
+  pt 2/2
+  keywords reach
+  mana {G}
+  activated {T}: add any 2 only to cast Mount or Vehicle spells
+}

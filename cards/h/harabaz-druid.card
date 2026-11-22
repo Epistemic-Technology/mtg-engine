@@ -1,0 +1,7 @@
+card "Harabaz Druid" {
+  oracle_id ead985ec-f29f-4a3b-b8b1-061142cc5bd1
+  cost {1}{G}
+  type Creature — Human Druid Ally
+  pt 0/1
+  activated {T}: add any count where Ally you control
+}

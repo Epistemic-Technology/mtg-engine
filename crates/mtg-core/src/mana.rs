@@ -554,6 +554,17 @@ impl ManaPool {
         *self = ManaPool::default();
     }
 
+    /// The smaller amount of each kind of mana of the two pools.
+    #[must_use]
+    pub fn min_each(&self, other: &ManaPool) -> ManaPool {
+        let mut out = *self;
+        for (a, b) in out.colored.iter_mut().zip(other.colored) {
+            *a = (*a).min(b);
+        }
+        out.colorless = out.colorless.min(other.colorless);
+        out
+    }
+
     /// Whether the pool alone can pay `req` (hybrid and Phyrexian symbols
     /// as mana).
     pub fn can_pay(&self, req: &ManaRequirement) -> bool {

@@ -1,0 +1,9 @@
+card "Cormela, Glamour Thief" {
+  oracle_id 3cd9bac9-0abc-43d8-9f84-94f965f7a2e0
+  cost {1}{U}{B}{R}
+  type Legendary Creature — Vampire Rogue
+  pt 2/4
+  keywords haste
+  activated {1}, {T}: add {U}{B}{R} only to cast instant or sorcery spells joined andor
+  triggered when this dies: return up to 1 target instant or sorcery card from your graveyard to hand
+}

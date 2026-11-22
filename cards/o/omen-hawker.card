@@ -1,0 +1,7 @@
+card "Omen Hawker" {
+  oracle_id 215fd0b4-5817-4335-a0ed-1694e44bde41
+  cost {U}
+  type Creature — Octopus Advisor
+  pt 1/1
+  activated {T}: add {C}{U} only to activate abilities
+}

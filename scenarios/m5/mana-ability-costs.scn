@@ -1,0 +1,31 @@
+scenario "Payment exiles a graveyard card for Molt Tender's mana" {
+  battlefield A: "Molt Tender"
+  graveyard A: "Grizzly Bears"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert exile A contains "Grizzly Bears"
+  assert tapped "Molt Tender"
+}
+
+scenario "Molt Tender's mana needs a card to exile" {
+  battlefield A: "Molt Tender"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  illegal turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 20
+}
+
+scenario "A sacrifice-cost mana ability resolves at once, before the dies trigger" {
+  battlefield A: "Ashnod's Altar", "Blood Artist", "Grizzly Bears"
+  hand A: "Abzan Monument"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ashnod's Altar" sacrificing "Grizzly Bears"
+  turn 1 A: cast "Abzan Monument"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Abzan Monument"
+  assert graveyard A contains "Grizzly Bears"
+}

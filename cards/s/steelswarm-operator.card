@@ -1,0 +1,9 @@
+card "Steelswarm Operator" {
+  oracle_id 770b2097-5178-42d2-be6c-393b4bfe3727
+  cost {1}{U}
+  type Artifact Creature — Robot Soldier
+  pt 1/1
+  keywords flying
+  mana {U} only to cast artifact spell
+  activated {T}: add {U}{U} only to activate abilities of artifact
+}

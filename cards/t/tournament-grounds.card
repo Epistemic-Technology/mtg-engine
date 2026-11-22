@@ -1,0 +1,6 @@
+card "Tournament Grounds" {
+  oracle_id a3ed5d7f-c554-4d46-86e5-7bb8df2693f6
+  type Land
+  mana {C}
+  activated {T}: add {R} or {W} or {B} only to cast Knight or Equipment spell
+}

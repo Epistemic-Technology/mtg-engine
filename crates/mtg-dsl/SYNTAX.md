@@ -150,6 +150,9 @@ like the card; either half may still be cast alone.
 | `mana any, sacrifice this` | "{T}, Sacrifice this artifact: Add one mana of any color." (Treasure, Lotus Petal). Payment uses such sources after all others. |
 | `mana {C} only to cast instant or sorcery spell`, `mana any only to cast creature spell`, `mana {U} only to cast artifact spell or activate`, `mana {R} only to cast artifact spell or to activate`, `mana {C} only to activate or cast artifact spell`, `mana {R} only to cast Elemental spell or Chandra planeswalker spell`, `mana any only to cast Lesson or Shrine spell`, `mana {U} not to cast nonartifact spell` | "{T}: Add {C}. Spend this mana only to cast an instant or sorcery spell.", "... only to cast an artifact spell or activate an ability.", "... or to activate an ability.", "... only to activate an ability or cast an artifact spell.", "This mana can't be spent to cast a nonartifact spell." Two alternatives each written with `spell` print whole ("an Elemental spell or a Chandra planeswalker spell"); two types alone with one `spell`, `Lesson or Shrine spell`, share it ("a Lesson or Shrine spell"). Restricted mana (CR 106.6): one kind of mana; the engine taps the source only to pay for what the restriction allows (any activated ability for `activate`; for `not to cast`, other spells and any activated ability, though not costs an effect asks for), so its mana is spent at once and never sits in the pool. |
 | `mana {U} only to cast artifact spell or activate of artifact`, `mana {U} only to foretell or cast instant or sorcery spell` | "Spend this mana only to cast an artifact spell or activate an ability of an artifact source." (`of <filter>` after `activate`: only abilities of matching sources, cards in hand and graveyard included); "Spend this mana only to foretell a card from your hand or cast an instant or sorcery spell." (the foretell special action's {2}, CR 702.143a). |
+| `mana any only to cast creature spells`, `... only to cast instant or sorcery spells joined and`, `... spells joined andor`, `... only to cast artifact spells or activate of artifact bare`, `... or activate of Elemental`, `... only to activate abilities`, `... only to activate abilities of land`, `... only to activate of creature bare`, `... only to cast Elf spells and activate of Elf` | The plural wordings of a restriction: "Spend this mana only to cast creature spells.", "... instant and sorcery spells.", "... instant and/or sorcery spells.", "... artifact spells or activate abilities of artifacts." (`bare`: the source named without "source"), "... or activate abilities of Elemental sources.", "... only to activate abilities.", "... only to activate abilities of land sources.", "... only to activate an ability of a creature.", "... only to cast Elf spells and activate abilities of Elf sources." `spells` (or `abilities` after `activate`) makes the sentence plural; `joined and` / `joined andor` join two alternatives with "and" or "and/or" (else "or"). The rule is the same as the singular wording's. |
+| `activated {1}, {T}: add 2 mana any combination only to cast legendary spells`, `spell: add {R}{R}{R}{R}{R}{R}{R} only to cast artifact or creature spells`, `triggered when this enters: add any 4 only to activate abilities` | "{1}, {T}: Add two mana in any combination of colors. Spend this mana only to cast legendary spells." and the like: a restriction (any of the forms above) after any `add` effect, in any ability or spell (CR 106.6). Unlike a `mana ... only to` line, the mana goes into the pool, each mana carrying the restriction: payment spends it only on what the restriction allows (after the unrestricted mana in the pool, before tapping permanents), never on a cost an effect asks for, and it empties with the pool as each step ends (CR 500.4). Payment doesn't activate such an ability on its own; a player activates it (a scenario's `activate`), then spends the mana. |
+| `activated {T}: add {G} spent on Dragon creature spell: you gain 2 life` | "{T}: Add {G}. When you spend this mana to cast a Dragon creature spell, you gain 2 life.": the mana goes into the pool like restricted mana, spendable on any spell or ability payment offers it for (not on a cost an effect asks for); spent to cast a spell matching the filter, it triggers the sentence after the colon ("it" is that spell). Payment doesn't activate the ability on its own. |
 | `spend only black mana on x` | "Spend only black mana on X." (CR 107.3): the X in the spell's cost is paid with that color only. After an activated ability with {X} (`activated {X}: deal X damage to each creature and each player` then `spend only black mana on x`), it is that ability's X, printed in its paragraph (Crypt Rats). |
 | `cycling {2}`, `cycling pay 2 life` | Cycling (CR 702.29): "{2}, Discard this card: Draw a card.", activated from the hand. A cost other than mana prints "Cycling—Pay 2 life." (activated only with that much life, CR 119.4). |
 | `plainscycling {2}`, `basic landcycling {1}{G}`, `landcycling {2}` | Typecycling (CR 702.29e): discard to search for a card of that type. Two of them, one per line (`islandcycling {2}` then `swampcycling {2}`), match Oracle's one line "Islandcycling {2}, swampcycling {2}"; each is its own ability. |
@@ -1263,6 +1266,17 @@ in a spell, an intervening "if", or `this spell costs {2} less if
 evidence collected` (printed after the cost, in its paragraph); the
 permanent a spell becomes keeps it.
 
+The mana spent to cast a spell (CR 601.2h): `mana spent` counts all of
+it ("the amount of mana spent to cast it", "this spell" on an instant or
+sorcery), and `mana spent that spell` the triggering spell's ("Whenever
+you cast an instant or sorcery spell, this creature gets +X/+0 until end
+of turn, where X is the amount of mana spent to cast that spell":
+`triggered whenever you cast an instant or sorcery spell: this gets
++1/+0 count where mana spent that spell until end of turn`); `colors
+spent that spell` counts that spell's colors ("for each color of mana
+spent to cast that spell"). A permanent with such a count makes every
+cast record what was spent.
+
 Converge (CR 601.2h): `colors spent` counts the colors of mana spent to
 cast the source ("this spell" on an instant or sorcery, "it" otherwise;
 `colors spent spell` and `colors spent creature` print "this spell" and
@@ -2054,7 +2068,9 @@ mana that sentence adds stays in the pool as steps end, until the cleanup
 step ends, the player's other mana taken to be spent first; CR 500.4),
 `add {R} that much` ("add that much {R}", the triggering event's amount:
 "Whenever Raphael is dealt damage, add that much {R}"), `add any 2` ("Add
-two mana of any one color."), `add 2 mana
+two mana of any one color."; `add any count where power`: "Add X mana of
+any one color, where X is this creature's power.", the color chosen once),
+`add 2 mana
 any combination` / `add 3 mana any combination of {R}{G}` / `add 2 mana
 different colors` ("Add two mana in any combination of colors.", "Add
 three mana in any combination of {R} and/or {G}.", "Add two mana of

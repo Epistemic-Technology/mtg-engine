@@ -2389,6 +2389,19 @@ impl Fmt {
             }
             Effect::IfKicked(inner) => format!("if kicked, {}", self.line(inner, t)),
             Effect::KeepMana(inner) => format!("keep mana {}", self.line(inner, t)),
+            Effect::SpendRider {
+                inner,
+                spells,
+                then,
+            } => format!(
+                "{} spent on {} spell: {}",
+                self.line(inner, t),
+                filter(spells),
+                self.line(then, t)
+            ),
+            Effect::SpendOnly { inner, restriction } => {
+                format!("{} {}", self.line(inner, t), restriction_text(restriction))
+            }
             Effect::EachPutsFromGraveyard { who, filter: f } => format!(
                 "{} puts 1 {} card from graveyard onto battlefield",
                 self.recipient(*who, t),
@@ -3104,7 +3117,10 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             crate::ast::SpentOf::Default => "colors spent".to_string(),
             crate::ast::SpentOf::Spell => "colors spent spell".to_string(),
             crate::ast::SpentOf::Creature => "colors spent creature".to_string(),
+            crate::ast::SpentOf::That => "colors spent that spell".to_string(),
         },
+        CountExpr::ManaSpent { that: false } => "mana spent".to_string(),
+        CountExpr::ManaSpent { that: true } => "mana spent that spell".to_string(),
         CountExpr::TimesKicked => "times kicked".to_string(),
         CountExpr::SpentTreasure => "treasure spent".to_string(),
         CountExpr::CardsInOpponentsGraveyards(None) => "opponents graveyards".to_string(),
@@ -5359,12 +5375,23 @@ fn static_cond(c: &StaticCond) -> String {
 /// `{C} only to cast instant or sorcery spell`: a restricted mana
 /// ability's mana and restriction (CR 106.6).
 fn restricted_mana(m: Mana, r: &crate::ast::ManaRestriction) -> String {
-    use mtg_core::card::SpendWording;
     let sym = match m {
         Mana::Colorless => "{C}".to_string(),
         Mana::Colored(c) => format!("{{{}}}", c.letter()),
         Mana::Any => "any".to_string(),
         Mana::Chosen => "chosen".to_string(),
+    };
+    format!("{sym} {}", restriction_text(r))
+}
+
+/// `only to cast instant or sorcery spell`, `only to cast artifact spells
+/// or activate of artifact bare`: what restricted mana may be spent on.
+fn restriction_text(r: &crate::ast::ManaRestriction) -> String {
+    use mtg_core::card::{SpendPlural, SpendWording};
+    let noun = if r.plural == SpendPlural::One {
+        "spell"
+    } else {
+        "spells"
     };
     // Each side of an alternative whole: "Elemental spell or Chandra
     // planeswalker spell".
@@ -5373,14 +5400,20 @@ fn restricted_mana(m: Mana, r: &crate::ast::ManaRestriction) -> String {
             let mut base = f.clone();
             base.or = None;
             base.alt_article = false;
-            format!("cast {} spell or {} spell", filter(&base), filter(alt))
+            format!("cast {} {noun} or {} {noun}", filter(&base), filter(alt))
         }
-        _ => format!("cast {} spell", filter(f)),
+        _ => format!("cast {} {noun}", filter(f)),
     });
+    let joined = match r.plural {
+        SpendPlural::And => " joined and",
+        SpendPlural::AndOr => " joined andor",
+        _ => "",
+    };
+    let spells = spells.map(|s| format!("{s}{joined}"));
     let of = r
         .ability_source
         .as_ref()
-        .map(|f| format!(" of {}", filter(f)))
+        .map(|f| format!(" of {}{}", filter(f), if r.bare { " bare" } else { "" }))
         .unwrap_or_default();
     let spells = spells.map(|s| {
         if r.foretell {
@@ -5391,17 +5424,20 @@ fn restricted_mana(m: Mana, r: &crate::ast::ManaRestriction) -> String {
             s
         }
     });
-    let rest = match (r.wording, spells) {
+    match (r.wording, spells) {
         (SpendWording::CantCast, Some(s)) => format!("not to {s}"),
         (SpendWording::ActivateFirst, Some(s)) => format!("only to activate{of} or {s}"),
         (SpendWording::CastFirstTo, Some(s)) if r.abilities => {
             format!("only to {s} or to activate{of}")
         }
+        (SpendWording::CastAnd, Some(s)) if r.abilities => {
+            format!("only to {s} and activate{of}")
+        }
         (_, Some(s)) if r.abilities => format!("only to {s} or activate{of}"),
         (_, Some(s)) => format!("only to {s}"),
+        (_, None) if r.plural != SpendPlural::One => format!("only to activate abilities{of}"),
         (_, None) => format!("only to activate{of}"),
-    };
-    format!("{sym} {rest}")
+    }
 }
 
 #[allow(clippy::too_many_lines)] // one arm per statement kind

@@ -1,0 +1,7 @@
+card "Smokebraider" {
+  oracle_id e970f2df-90cb-45b8-8ae5-71b762908925
+  cost {1}{R}
+  type Creature — Elemental Shaman
+  pt 1/1
+  activated {T}: add 2 mana any combination only to cast Elemental spells or activate of Elemental bare
+}

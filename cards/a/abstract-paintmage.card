@@ -1,0 +1,7 @@
+card "Abstract Paintmage" {
+  oracle_id bc899d5c-0a91-4f19-a3e4-3078ae966110
+  cost {U}{U/R}{R}
+  type Creature — Djinn Sorcerer
+  pt 2/2
+  triggered at beginning of your first main: add {U}{R} only to cast instant or sorcery spells joined and
+}

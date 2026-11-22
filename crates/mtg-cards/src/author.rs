@@ -897,6 +897,86 @@ fn dig_general(text: &str) -> Option<(String, String)> {
     None
 }
 
+/// "cast artifact spells or activate abilities of artifacts" (after
+/// "Spend this mana only to ") as a DSL restriction: `only to cast
+/// artifact spells or activate of artifact bare`.
+fn spend_rule(rule: &str) -> Option<String> {
+    // "abilities of artifact sources", "abilities of Elementals".
+    let of = |g: &str| -> Option<String> {
+        if let Some(n) = g
+            .strip_suffix(" sources")
+            .or_else(|| g.strip_suffix(" source"))
+        {
+            let n = n
+                .strip_prefix("an ")
+                .or_else(|| n.strip_prefix("a "))
+                .unwrap_or(n);
+            return Some(format!(" of {n}"));
+        }
+        let n = g
+            .strip_prefix("an ")
+            .or_else(|| g.strip_prefix("a "))
+            .unwrap_or(g);
+        let one = match n {
+            "Myr" | "Eldrazi" | "colorless Eldrazi" => n.to_string(),
+            _ if n.ends_with("Elves") => n.replace("Elves", "Elf"),
+            _ if g == n => n.strip_suffix('s')?.to_string(),
+            _ => n.to_string(),
+        };
+        Some(format!(" of {one} bare"))
+    };
+    let activate = |a: &str| -> Option<String> {
+        match a {
+            "an ability" => Some(String::new()),
+            "abilities" => Some(" abilities".to_string()),
+            _ => {
+                if let Some(g) = a.strip_prefix("abilities of ") {
+                    Some(format!(" abilities{}", of(g)?))
+                } else {
+                    Some(of(a.strip_prefix("an ability of ")?)?)
+                }
+            }
+        }
+    };
+    if let Some(a) = rule.strip_prefix("activate ") {
+        return Some(format!("only to activate{}", activate(a)?));
+    }
+    let rest = rule.strip_prefix("cast ")?;
+    let (spells, tail, join) = if let Some((s, t)) = rest.split_once(" or activate ") {
+        (s, Some(t), "or")
+    } else if let Some((s, t)) = rest.split_once(" and activate ") {
+        (s, Some(t), "and")
+    } else {
+        (rest, None, "")
+    };
+    let spells = if let Some(one) = spells.strip_suffix(" spell") {
+        let one = one.strip_prefix("an ").or_else(|| one.strip_prefix("a "))?;
+        format!("{one} spell")
+    } else {
+        let many = spells.strip_suffix(" spells")?;
+        if many.contains(" and/or ") {
+            format!("{} spells joined andor", many.replace(" and/or ", " or "))
+        } else if many.contains(" and ") {
+            format!("{} spells joined and", many.replace(" and ", " or "))
+        } else {
+            format!("{many} spells")
+        }
+    };
+    if !spells.chars().all(|c| c.is_ascii_alphabetic() || c == ' ') {
+        return None;
+    }
+    let tail = match tail {
+        None => String::new(),
+        Some(t) => {
+            let a = activate(t)?;
+            // Plural and singular wordings don't mix.
+            let a = a.strip_prefix(" abilities").unwrap_or(&a).to_string();
+            format!(" {join} activate{a}")
+        }
+    };
+    Some(format!("only to cast {spells}{tail}"))
+}
+
 fn number(w: &str) -> Option<String> {
     if w == "X" {
         return Some("X".to_string());
@@ -2319,9 +2399,26 @@ impl Templates {
             (r(r"^Add one mana of any color$"), |_, _| {
                 Some("add any".to_string())
             }),
-            (r(r"^Add (two|three) mana of any one color$"), |c, _| {
-                Some(format!("add any {}", number(cap(c, 1))?))
-            }),
+            (
+                r(r"^Add (two|three|four) mana of any one color$"),
+                |c, _| Some(format!("add any {}", number(cap(c, 1))?)),
+            ),
+            // "Add X mana of any one color, where X is this creature's
+            // power."
+            (
+                r(r"^Add X mana of any one color, where X is (?:this creature|~)'s power$"),
+                |_, _| Some("add any count where power".to_string()),
+            ),
+            (
+                r(r"^Add X mana of any one color, where X is the number of (.+)$"),
+                |c, _| Some(format!("add any count where {}", count_expr(cap(c, 1))?)),
+            ),
+            (
+                r(
+                    r"^Add X mana of any one color, where X is the amount of life you gained this turn$",
+                ),
+                |_, _| Some("add any count where life you gained this turn".to_string()),
+            ),
             (r(r"^Add two mana in any combination of colors$"), |_, _| {
                 Some("add 2 mana any combination".to_string())
             }),
@@ -3289,6 +3386,33 @@ impl Templates {
     /// counts targets declared so far in the ability.
     #[allow(clippy::too_many_lines)] // the sentence forms that need more than one rule
     fn effects(&self, text: &str, targets: &mut usize) -> Result<String, Skip> {
+        // "Add two mana in any combination of colors. Spend this mana only
+        // to cast legendary spells." (CR 106.6).
+        if let Some((head, rule)) = text.split_once(" Spend this mana only to ") {
+            let rule = rule.trim_end_matches('.');
+            let inner = self.effects(head, targets)?;
+            if inner.starts_with("add ")
+                && !inner.contains(';')
+                && let Some(r) = spend_rule(rule)
+            {
+                return Ok(format!("{inner} {r}"));
+            }
+            return Err(Skip::Sentence(text.to_string()));
+        }
+        // "Add {G}. When you spend this mana to cast a Dragon creature
+        // spell, you gain 2 life."
+        if let Some(c) =
+            Regex::new(r"^(.+?\.) When you spend this mana to cast an? ([A-Za-z ]+?) spell, (.+)$")
+                .unwrap()
+                .captures(text)
+        {
+            let inner = self.effects(cap(&c, 1), targets)?;
+            let then = self.effects(cap(&c, 3), targets)?;
+            if inner.starts_with("add ") && !inner.contains(';') && !then.contains(';') {
+                return Ok(format!("{inner} spent on {} spell: {then}", cap(&c, 2)));
+            }
+            return Err(Skip::Sentence(text.to_string()));
+        }
         // "Add {R}. Until end of turn, you don't lose this mana as steps
         // and phases end." (CR 500.4).
         if let Some(head) = text

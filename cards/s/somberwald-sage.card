@@ -1,0 +1,7 @@
+card "Somberwald Sage" {
+  oracle_id f249db15-09fa-4a1c-9461-9ae803c219b6
+  cost {2}{G}
+  type Creature — Human Druid
+  pt 0/1
+  activated {T}: add any 3 only to cast creature spells
+}

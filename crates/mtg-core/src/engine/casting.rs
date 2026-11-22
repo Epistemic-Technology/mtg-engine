@@ -953,6 +953,15 @@ impl GameState {
                 self.spent_on(ctx.source)
                     .count(crate::card::SpentKind::Treasure) as usize
             }
+            CountExpr::SpentTotal => self
+                .spent_on(ctx.source)
+                .count(crate::card::SpentKind::Total) as usize,
+            CountExpr::ThatSpellSpent => ctx.trigger_obj.map_or(0, |t| {
+                self.spent_on(t).count(crate::card::SpentKind::Total) as usize
+            }),
+            CountExpr::ThatSpellSpentColors => ctx
+                .trigger_obj
+                .map_or(0, |t| self.spent_on(t).colors() as usize),
             CountExpr::Domain => self.basic_land_types(you),
             CountExpr::CardsInHand => self.player(you).hand.len(),
             CountExpr::Plus(k, inner) => return k.saturating_add(self.eval_count(inner, ctx)),
@@ -2271,9 +2280,9 @@ impl GameState {
         }
         let keywords = self.spell_keywords(p, def, id).0;
         let helped = Keyword::helps_pay(keywords) || def.additional.waterbend;
-        let restricted = match (self.restricted_mana_sources, &def.printed) {
-            (0, _) | (_, None) => None,
-            (_, Some(c)) => self.with_restricted(p, sources, Spend::Spell(c)),
+        let restricted = match (self.restricted_mana_possible(), &def.printed) {
+            (false, _) | (_, None) => None,
+            (true, Some(c)) => self.with_restricted(p, sources, Spend::Spell(c)),
         };
         let all = if helped || restricted.is_some() {
             let mut all = restricted.unwrap_or_else(|| sources.clone());
@@ -2900,7 +2909,7 @@ impl GameState {
     fn spell_sources(&self, spell: ObjId) -> Sources {
         let o = &self.objects[spell];
         let mut s = self.mana_sources(o.controller);
-        if self.restricted_mana_sources > 0
+        if self.restricted_mana_possible()
             && let Some(c) = self.characteristics(spell)
             && let Some(all) = self.with_restricted(o.controller, &s, Spend::Spell(&c))
         {
@@ -6289,7 +6298,7 @@ impl GameState {
     /// mana may be spent on `spend`. Empty without any in play.
     fn restricted_sources(&self, p: PlayerId, spend: Spend) -> Sources {
         let mut out = Sources::new();
-        if self.restricted_mana_sources == 0 {
+        if !self.restricted_mana_possible() {
             return out;
         }
         for id in self.permanents_of(p) {
@@ -6352,6 +6361,130 @@ impl GameState {
                 }
             }
         }
+        if !self.restricted_pool.is_empty() {
+            self.pool_units_for(p, spend, &mut out);
+        }
+        out
+    }
+
+    /// Whether payment needs to look for restricted mana (CR 106.6): a
+    /// permanent with a restricted mana ability is in play, or restricted
+    /// mana is in a pool. Two loads on every payment check.
+    #[inline]
+    pub(super) fn restricted_mana_possible(&self) -> bool {
+        self.restricted_mana_sources != 0 || !self.restricted_pool.is_empty()
+    }
+
+    /// `p`'s restricted mana in the pool that may be spent on `spend`, as
+    /// sources (`pool_unit_id`), so that payment spends it after the
+    /// unrestricted pool and before tapping permanents.
+    #[cold]
+    #[inline(never)]
+    fn pool_units_for(&self, p: PlayerId, spend: Spend, out: &mut Sources) {
+        let mut units = Sources::new();
+        for (i, u) in self.restricted_pool.iter().enumerate() {
+            if u.player != p {
+                continue;
+            }
+            let r = &u.restriction;
+            let allowed = match spend {
+                Spend::Spell(sc) => r.allows_spell(sc),
+                Spend::Ability(src) => r.allows_abilities(src),
+                Spend::Foretell => r.foretell,
+            };
+            if allowed {
+                units.push((pool_unit_id(i), u.mana));
+            }
+        }
+        units.extend_from_slice(out);
+        *out = units;
+    }
+
+    /// Spend the restricted pool mana `plan` names (CR 106.6): each unit
+    /// moves into the pool, to be paid from there with the rest. The rest
+    /// of the plan.
+    #[cold]
+    #[inline(never)]
+    fn take_pool_units(&mut self, p: PlayerId, plan: &Sources) -> Sources {
+        let mut taken: SmallVec<[usize; 4]> = SmallVec::new();
+        let mut rest = Sources::new();
+        for &(id, mana) in plan {
+            match pool_unit_index(id) {
+                Some(i) if i < self.restricted_pool.len() => {
+                    taken.push(i);
+                    self.player_mut(p).mana_pool.add(mana);
+                    if let Some(r) = &self.restricted_pool[i].rider {
+                        let r = (**r).clone();
+                        self.spent_riders.push((p, r));
+                    }
+                }
+                Some(_) => {}
+                None => rest.push((id, mana)),
+            }
+        }
+        taken.sort_unstable();
+        for i in taken.into_iter().rev() {
+            self.restricted_pool.remove(i);
+        }
+        rest
+    }
+
+    /// "When you spend this mana to cast a Dragon creature spell, ...":
+    /// the riders of the mana just spent to cast `spell` trigger if it
+    /// matches, "it" being that spell.
+    #[cold]
+    #[inline(never)]
+    fn fire_mana_riders(&mut self, spell: ObjId) {
+        let riders = std::mem::take(&mut self.spent_riders);
+        let Some(c) = self.characteristics(spell) else {
+            return;
+        };
+        let caster = self.objects[spell].controller;
+        for (p, r) in riders {
+            if r.spells.matches(spell, caster, &c, Some(r.source), Some(p)) {
+                let timestamp = self.tick();
+                self.pending_triggers.push(crate::state::PendingTrigger {
+                    controller: p,
+                    ability: crate::state::StackAbility {
+                        ability: r.ability,
+                        source: r.source,
+                        def: r.def,
+                        trigger_obj: Some(spell),
+                        trigger_player: None,
+                        trigger_amount: 0,
+                    },
+                    timestamp,
+                });
+            }
+        }
+    }
+
+    /// The chosen values in `r` filled in from `source` ("a creature spell
+    /// of the chosen type").
+    pub(super) fn filled_restriction(
+        &self,
+        r: &crate::card::ManaRestriction,
+        source: ObjId,
+    ) -> crate::card::ManaRestriction {
+        let chosen = r.spells.as_ref().is_some_and(|f| f.chosen)
+            || r.ability_source.as_ref().is_some_and(|f| f.chosen);
+        let mut out = r.clone();
+        if chosen {
+            let c = self
+                .objects
+                .get(source)
+                .map(|o| o.chosen)
+                .unwrap_or_default();
+            let fill = |f: &crate::card::ObjFilter| {
+                if f.chosen {
+                    f.with_chosen(c)
+                } else {
+                    f.clone()
+                }
+            };
+            out.spells = r.spells.as_ref().map(fill);
+            out.ability_source = r.ability_source.as_ref().map(fill);
+        }
         out
     }
 
@@ -6365,7 +6498,7 @@ impl GameState {
         sources: &[(ObjId, Mana)],
         spend: Spend,
     ) -> Option<Sources> {
-        if self.restricted_mana_sources == 0 {
+        if !self.restricted_mana_possible() {
             return None;
         }
         let mut all = self.restricted_sources(p, spend);
@@ -6395,7 +6528,7 @@ impl GameState {
     /// Whether `p` could pay `req` to cast `card` (its current
     /// characteristics), restricted mana included.
     pub(super) fn spell_payable(&self, p: PlayerId, card: ObjId, req: &ManaRequirement) -> bool {
-        if self.restricted_mana_sources == 0 {
+        if !self.restricted_mana_possible() {
             return self.can_pay(p, req);
         }
         let Some(c) = self.characteristics(card) else {
@@ -6408,7 +6541,7 @@ impl GameState {
     /// allows it first (CR 106.6).
     fn ability_sources(&self, p: PlayerId, source: ObjId) -> Sources {
         let sources = self.mana_sources(p);
-        if self.restricted_mana_sources == 0 {
+        if !self.restricted_mana_possible() {
             return sources;
         }
         let c = self.characteristics(source);
@@ -6697,6 +6830,10 @@ impl GameState {
         sources: &Sources,
         exclude: Option<ObjId>,
     ) {
+        // Riders count only for the spell this payment casts.
+        if !self.spent_riders.is_empty() {
+            self.spent_riders.clear();
+        }
         let ps = self.player(p);
         if req.snow > 0 {
             let (plan, req, life) = self
@@ -6874,6 +7011,13 @@ impl GameState {
     #[allow(clippy::inline_always)] // measured: out of line costs 0.7% instructions/game
     #[inline(always)]
     fn tap_for_plan(&mut self, p: PlayerId, plan: &Sources) {
+        let rest;
+        let plan = if self.restricted_pool.is_empty() {
+            plan
+        } else {
+            rest = self.take_pool_units(p, plan);
+            &rest
+        };
         let boosted = if self.mana_trigger_sources > 0 {
             self.tapped_for_mana(p, plan)
         } else {
@@ -6963,6 +7107,31 @@ impl GameState {
         }
     }
 
+    /// Pay the "exile cards from your graveyard" cost of mana ability `a`
+    /// of `id` as payment activates it: the oldest that match, sparing
+    /// what the spell or ability being paid for targets (as
+    /// `pay_other_costs`).
+    #[cold]
+    fn exile_for_cost(&mut self, p: PlayerId, id: ObjId, a: crate::card::AbilityId) {
+        let pool = std::sync::Arc::clone(&self.pool);
+        let AbilityDef::Activated(ab) = pool.ability(a) else {
+            return;
+        };
+        let Some(g) = &ab.cost.exile_cards else {
+            return;
+        };
+        let mut cands = self.exile_candidates(p, g.filter.as_ref(), id);
+        if g.top {
+            cands.reverse();
+        }
+        if let Some(top) = self.stack.last().and_then(|t| self.objects.get(*t)) {
+            cands.sort_by_key(|c| top.targets.contains(&Target::Object(*c)));
+        }
+        for c in cands.into_iter().take(g.n as usize) {
+            self.move_object(c, Zone::Exile, true);
+        }
+    }
+
     /// CR 601.2g–h with mana abilities activated along the way: tap the
     /// plain sources, activate each ability (its mana cost from the pool,
     /// then {T}, life, the mana it adds, and last its sacrifice), then pay.
@@ -6982,6 +7151,9 @@ impl GameState {
             }
             if act.life > 0 {
                 self.change_life(p, -i32::try_from(act.life).unwrap_or(i32::MAX));
+            }
+            if act.exile {
+                self.exile_for_cost(p, act.id, act.ability);
             }
             if let Some((k, n)) = act.remove {
                 self.remove_counters(act.id, k, n);
@@ -7096,6 +7268,9 @@ impl GameState {
             self.pay_recorded(spell, caster, &req, &sources, def.spent);
         } else {
             self.pay_from(caster, &req, &sources, None);
+        }
+        if !self.spent_riders.is_empty() {
+            self.fire_mana_riders(spell);
         }
         let mut discard = discard;
         if let (Some(fb), true) = (&def.flashback, flashback) {
@@ -13149,6 +13324,90 @@ impl GameState {
                     }
                 }
             }
+            Effect::SpendOnly {
+                effects,
+                restriction,
+            } => {
+                let p = ctx.controller;
+                let before = self.player(p).mana_pool;
+                for e in effects {
+                    self.apply_effect(ctx, e);
+                }
+                let r = Box::new(self.filled_restriction(restriction, ctx.source));
+                let after = self.player(p).mana_pool;
+                let mut made: SmallVec<[Mana; 8]> = SmallVec::new();
+                for (c, color) in Color::ALL.into_iter().enumerate() {
+                    for _ in 0..after.colored[c].saturating_sub(before.colored[c]) {
+                        made.push(Mana::Colored(color));
+                    }
+                }
+                for _ in 0..after.colorless.saturating_sub(before.colorless) {
+                    made.push(Mana::Colorless);
+                }
+                // The mana goes into the pool restricted (CR 106.6).
+                self.player_mut(p).mana_pool = before.min_each(&after);
+                for mana in made {
+                    self.restricted_pool.push(crate::state::RestrictedMana {
+                        player: p,
+                        mana,
+                        restriction: r.clone(),
+                        rider: None,
+                    });
+                }
+                self.bump();
+            }
+            Effect::SpendRider {
+                effects,
+                spells,
+                ability,
+            } => {
+                let p = ctx.controller;
+                let before = self.player(p).mana_pool;
+                for e in effects {
+                    self.apply_effect(ctx, e);
+                }
+                let after = self.player(p).mana_pool;
+                let mut made: SmallVec<[Mana; 8]> = SmallVec::new();
+                for (c, color) in Color::ALL.into_iter().enumerate() {
+                    for _ in 0..after.colored[c].saturating_sub(before.colored[c]) {
+                        made.push(Mana::Colored(color));
+                    }
+                }
+                for _ in 0..after.colorless.saturating_sub(before.colorless) {
+                    made.push(Mana::Colorless);
+                }
+                self.player_mut(p).mana_pool = before.min_each(&after);
+                // Spendable on anything payment offers it for.
+                let any = Box::new(crate::card::ManaRestriction {
+                    spells: Some(crate::card::ObjFilter::default()),
+                    abilities: true,
+                    ability_source: None,
+                    foretell: true,
+                    disturb: false,
+                    wording: crate::card::SpendWording::CastFirst,
+                    plural: crate::card::SpendPlural::One,
+                    bare: false,
+                });
+                let def = self
+                    .objects
+                    .get(ctx.source)
+                    .map_or(crate::card::CardRef(0), |o| o.def);
+                let rider = Box::new(crate::state::ManaRider {
+                    spells: (**spells).clone(),
+                    ability: *ability,
+                    source: ctx.source,
+                    def,
+                });
+                for mana in made {
+                    self.restricted_pool.push(crate::state::RestrictedMana {
+                        player: p,
+                        mana,
+                        restriction: any.clone(),
+                        rider: Some(rider.clone()),
+                    });
+                }
+                self.bump();
+            }
             Effect::KeepMana(inner) => {
                 let before = self.player(ctx.controller).mana_pool;
                 for e in inner {
@@ -14727,6 +14986,27 @@ pub(super) fn without(sources: &Sources, gone: &[ObjId]) -> Sources {
         .filter(|(s, _)| !gone.contains(s))
         .copied()
         .collect()
+}
+
+/// The first index of the ids that stand for restricted mana in a pool
+/// (`GameState::restricted_pool`) among payment sources: past any arena
+/// slot, so no object has one.
+const POOL_UNIT_BASE: u64 = 0xFFFF_0000;
+
+/// The source id of the `i`th unit of `GameState::restricted_pool`.
+pub(super) fn pool_unit_id(i: usize) -> ObjId {
+    let i = u64::try_from(i).unwrap_or(0xFFFF);
+    ObjId::from(slotmap::KeyData::from_ffi(
+        (1u64 << 32) | (POOL_UNIT_BASE + i),
+    ))
+}
+
+/// Which unit of the restricted pool a source id stands for, if any.
+pub(super) fn pool_unit_index(id: ObjId) -> Option<usize> {
+    use slotmap::Key;
+    let idx = id.data().as_ffi() & 0xFFFF_FFFF;
+    idx.checked_sub(POOL_UNIT_BASE)
+        .and_then(|i| usize::try_from(i).ok())
 }
 
 /// What mana is being spent on, for restricted mana (CR 106.6).

@@ -433,6 +433,40 @@ pub enum AltCast {
 /// The mana spent to cast a spell (CR 601.2h), as much as cards ask
 /// about: how much of each color, colorless, and how much came from
 /// Treasures.
+/// One mana in a player's pool that may be spent only as `restriction`
+/// allows (CR 106.6; `GameState::restricted_pool`). A "chosen" filter in
+/// the restriction is already filled in from its source.
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct RestrictedMana {
+    pub player: PlayerId,
+    /// A color or colorless, never `Any` or `Chosen`.
+    pub mana: crate::mana::Mana,
+    pub restriction: Box<crate::card::ManaRestriction>,
+    /// "When you spend this mana to cast ...": what it triggers.
+    pub rider: Option<Box<ManaRider>>,
+}
+
+/// A rider on restricted mana (`Effect::SpendRider`): spent to cast a
+/// spell matching `spells`, it triggers `ability` of `source`.
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct ManaRider {
+    pub spells: crate::card::ObjFilter,
+    pub ability: crate::card::AbilityId,
+    pub source: ObjId,
+    pub def: crate::card::CardRef,
+}
+
+impl GameState {
+    /// How much restricted mana of each kind `p` has in their pool.
+    pub fn restricted_pool_of(&self, p: PlayerId) -> ManaPool {
+        let mut out = ManaPool::default();
+        for u in self.restricted_pool.iter().filter(|u| u.player == p) {
+            out.add(u.mana);
+        }
+        out
+    }
+}
+
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
 pub struct SpentMana {
     /// Indexed by `Color as usize`.
@@ -2114,6 +2148,16 @@ pub struct GameState {
     /// Battlefield permanents with a restricted mana ability (CR 106.6),
     /// so payment looks for such sources only when one is in play.
     pub restricted_mana_sources: u32,
+    /// Restricted mana in players' pools (CR 106.6), one entry per mana:
+    /// "Add two mana in any combination of colors. Spend this mana only to
+    /// cast legendary spells." It is not in `PlayerState::mana_pool`;
+    /// payment offers each unit as a source where its restriction allows
+    /// (see the engine's `restricted_sources`), and it empties with the
+    /// pool (CR 500.4). Empty in almost every game.
+    pub restricted_pool: Vec<RestrictedMana>,
+    /// Riders of the restricted mana the payment being made has spent
+    /// (`RestrictedMana::rider`), for the spell being cast to trigger.
+    pub spent_riders: Vec<(PlayerId, ManaRider)>,
     /// Battlefield permanents with a triggered mana ability (CR 605.1b,
     /// `DefFlags::MANA_TRIGGER`): tapping for mana and payment look for
     /// them only then.

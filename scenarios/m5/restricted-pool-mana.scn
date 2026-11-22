@@ -1,0 +1,85 @@
+scenario "Great Hall of the Citadel's mana casts a legendary spell" {
+  battlefield A: "Great Hall of the Citadel", "Plains", "Plains"
+  hand A: "Adelbert Steiner"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Great Hall of the Citadel"
+  turn 1 A: choose white
+  turn 1 A: choose white
+  turn 1 A: cast "Adelbert Steiner"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Adelbert Steiner"
+  assert untapped newest "Plains"
+}
+
+scenario "Great Hall of the Citadel's mana can't cast a nonlegendary spell" {
+  battlefield A: "Great Hall of the Citadel", "Plains", "Plains"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Great Hall of the Citadel"
+  turn 1 A: choose green
+  turn 1 A: choose green
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Restricted mana empties from the pool as the step ends" {
+  battlefield A: "Great Hall of the Citadel", "Plains", "Plains"
+  hand A: "Adelbert Steiner"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Great Hall of the Citadel"
+  turn 1 A: choose white
+  turn 1 A: choose white
+  illegal turn 1 postcombat_main A: cast "Adelbert Steiner"
+  run_to turn 1 end
+  assert hand A contains "Adelbert Steiner"
+}
+
+scenario "Desolation of Smaug's mana casts a Dragon" {
+  battlefield A: "Mountain", "Mountain", "Mountain", "Mountain", "Grizzly Bears"
+  hand A: "Desolation of Smaug", "Archwing Dragon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Desolation of Smaug"
+  turn 1 A: choose red
+  turn 1 A: choose red
+  turn 1 A: choose red
+  turn 1 A: choose red
+  turn 1 A: cast "Archwing Dragon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Archwing Dragon"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Desolation of Smaug's mana can't cast a non-Dragon" {
+  battlefield A: "Mountain", "Mountain", "Mountain", "Mountain"
+  hand A: "Desolation of Smaug", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Desolation of Smaug"
+  turn 1 A: choose red
+  turn 1 A: choose red
+  turn 1 A: choose red
+  turn 1 A: choose red
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Omen Hawker's mana pays for an activated ability" {
+  battlefield A: "Omen Hawker", "Canyon Crab", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Omen Hawker"
+  turn 2 A: activate "Canyon Crab"
+  run_to turn 2 postcombat_main
+  assert power "Canyon Crab" 2
+  assert untapped "Island"
+}
+
+scenario "Omen Hawker's mana can't cast a spell" {
+  battlefield A: "Omen Hawker", "Island"
+  hand A: "Divination"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Omen Hawker"
+  illegal turn 2 A: cast "Divination"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Divination"
+}

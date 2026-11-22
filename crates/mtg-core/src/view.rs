@@ -45,6 +45,10 @@ pub struct PlayerView {
     pub graveyard: Vec<ObjectView>,
     pub exile: Vec<ObjectView>,
     pub mana_pool: ManaPool,
+    /// Restricted mana in the pool (CR 106.6), apart from `mana_pool`:
+    /// how much of each kind, whatever it may be spent on.
+    #[serde(default)]
+    pub restricted_mana: ManaPool,
     pub lands_played_this_turn: u32,
     pub lost: bool,
     /// The top card of the viewer's own library, when they may look at it
@@ -224,6 +228,7 @@ impl GameState {
                         .map(|o| self.object_view(*o, viewer))
                         .collect(),
                     mana_pool: p.mana_pool,
+                    restricted_mana: self.restricted_pool_of(id),
                     lands_played_this_turn: p.lands_played_this_turn,
                     lost: p.lost.is_some(),
                     library_top: p
@@ -368,6 +373,10 @@ impl GameState {
             );
             if ps.mana_pool.total() > 0 {
                 let _ = write!(out, ", mana pool {:?}", ps.mana_pool);
+            }
+            let restricted = self.restricted_pool_of(p);
+            if restricted.total() > 0 {
+                let _ = write!(out, ", restricted mana {restricted:?}");
             }
             if ps.lost.is_some() {
                 out.push_str(", has lost");

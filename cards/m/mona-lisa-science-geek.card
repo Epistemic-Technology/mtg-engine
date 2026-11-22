@@ -1,0 +1,8 @@
+card "Mona Lisa, Science Geek" {
+  oracle_id e6490e98-37a9-4a8b-a04c-cceeb22b0c35
+  cost {2}{G}
+  type Legendary Creature — Lizard Mutant
+  pt 1/3
+  keywords reach
+  activated {T}: add any count where power
+}

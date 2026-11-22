@@ -1,0 +1,9 @@
+card "Galazeth Prismari" {
+  oracle_id f9217532-f7cf-4436-b476-72d97a3147dc
+  cost {2}{U}{R}
+  type Legendary Creature — Elder Dragon
+  pt 3/4
+  keywords flying
+  triggered when this enters: create 1 "Treasure"
+  static artifact you control: has ability { activated {T}: add any only to cast instant or sorcery spell }
+}
