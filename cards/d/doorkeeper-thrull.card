@@ -1,0 +1,8 @@
+card "Doorkeeper Thrull" {
+  oracle_id 0eaea4fd-a377-4541-9bdd-14921034a975
+  cost {1}{W}
+  type Creature — Thrull
+  pt 1/2
+  keywords flash, flying
+  trigger never permanent when andlist artifact or creature enters
+}

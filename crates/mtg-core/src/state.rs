@@ -3631,6 +3631,11 @@ impl GameState {
             }
             C::Void => self.turn_log.nonland_left || self.turn_log.warped,
             C::NotYourMainPhase => !(self.active_player == you && self.step.is_main()),
+            C::WasCast => self
+                .objects
+                .get(source)
+                .or_else(|| self.lki.get(&source).map(|l| &l.object))
+                .is_some_and(|o| o.cast.cast_from().is_some()),
             C::NotCastFrom(zone) => self
                 .objects
                 .get(source)

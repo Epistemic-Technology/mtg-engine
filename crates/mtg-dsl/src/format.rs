@@ -4502,6 +4502,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Void => "void".to_string(),
         StaticCond::NotYourMainPhase => "not your main phase".to_string(),
         StaticCond::NotCastFromHand => "cast from anywhere other than hand".to_string(),
+        StaticCond::WasCast => "you cast it".to_string(),
         StaticCond::PutAnyCounterThisTurn => "put any counter this turn".to_string(),
         StaticCond::AttackedWithAtLeast(f, n) => {
             format!("attacked with {n} {} this turn", filter(f))
@@ -5488,6 +5489,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             entering,
             battlefield,
             cause,
+            suppress,
         } => {
             let when = entering.as_ref().map_or(String::new(), |e| {
                 let verb = match cause {
@@ -5501,7 +5503,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     if *battlefield { " the battlefield" } else { "" }
                 )
             });
-            let _ = writeln!(out, "{indent}trigger again {}{when}", filter(f));
+            let _ = writeln!(
+                out,
+                "{indent}trigger {} {}{when}",
+                if *suppress { "never" } else { "again" },
+                filter(f)
+            );
         }
         Ability::PlayerStatic { kind, cond } => {
             use mtg_core::card::PlayerStaticKind as K;

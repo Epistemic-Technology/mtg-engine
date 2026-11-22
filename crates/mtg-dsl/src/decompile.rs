@@ -524,6 +524,7 @@ impl Decompiler<'_> {
             StaticCondition::Void => StaticCond::Void,
             StaticCondition::NotYourMainPhase => StaticCond::NotYourMainPhase,
             StaticCondition::NotCastFrom(_) => StaticCond::NotCastFromHand,
+            StaticCondition::WasCast => StaticCond::WasCast,
             StaticCondition::PutAnyCounterThisTurn => StaticCond::PutAnyCounterThisTurn,
             StaticCondition::AttackedWithAtLeast(f, n) => {
                 StaticCond::AttackedWithAtLeast(self.filter(f), *n)
@@ -2068,11 +2069,13 @@ impl Decompiler<'_> {
                 entering,
                 battlefield,
                 cause,
+                suppress,
             } => Ability::TriggerAgain {
                 filter: self.filter(filter),
                 entering: entering.as_ref().map(|f| self.filter(f)),
                 battlefield: *battlefield,
                 cause: *cause,
+                suppress: *suppress,
             },
             AbilityDef::PlayerStatic { kind, condition } => Ability::PlayerStatic {
                 kind: *kind,

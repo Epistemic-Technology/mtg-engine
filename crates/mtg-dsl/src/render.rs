@@ -10974,6 +10974,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 "it"
             }
         ),
+        StaticCond::WasCast => "you cast it".to_string(),
         StaticCond::PutAnyCounterThisTurn => {
             "you put a counter on a creature this turn".to_string()
         }
@@ -12614,12 +12615,24 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 "this card"
             }
         ),
+        // CR 603.6a: Torpor Orb.
+        Ability::TriggerAgain {
+            entering: Some(e),
+            battlefield,
+            suppress: true,
+            ..
+        } => format!(
+            "{} entering{} don't cause abilities to trigger.",
+            capitalize(&controller_first(e, filter_phrase(e, card, true))),
+            if *battlefield { " the battlefield" } else { "" },
+        ),
         // CR 603.2d.
         Ability::TriggerAgain {
             filter: f,
             entering: Some(e),
             battlefield,
             cause,
+            ..
         } => format!(
             "If {} {}{} causes a triggered ability of {} to trigger, that ability triggers an additional time.",
             with_article(&controller_first(e, filter_phrase(e, card, false))),

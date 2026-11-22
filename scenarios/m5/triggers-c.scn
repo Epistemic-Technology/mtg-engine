@@ -1,0 +1,118 @@
+# Triggers, replacements, and durations of the sixth wave (feature-triggers-c).
+
+scenario "Torpor Orb: a creature entering triggers nothing, its own or another's" {
+  battlefield A: "Torpor Orb", "Soul Warden", 3 "Forest"
+  hand A: "Elvish Visionary"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Elvish Visionary"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Elvish Visionary"
+  assert hand A count 0
+  assert life A 20
+}
+
+scenario "Torpor Orb: an artifact entering still triggers" {
+  battlefield A: "Torpor Orb", 2 "Forest"
+  hand A: "Ichor Wellspring"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Ichor Wellspring"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Doorkeeper Thrull: an artifact entering triggers nothing" {
+  battlefield A: "Doorkeeper Thrull", 2 "Forest"
+  hand A: "Ichor Wellspring"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Ichor Wellspring"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Doorkeeper Thrull: its own entering triggers nothing" {
+  battlefield A: "Soul Warden", 2 "Plains"
+  hand A: "Doorkeeper Thrull"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Doorkeeper Thrull"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Doorkeeper Thrull"
+  assert life A 20
+}
+
+scenario "Karn, Argent Defender: a creature entering triggers nothing" {
+  battlefield A: "Karn, Argent Defender", "Soul Warden", 3 "Forest"
+  hand A: "Elvish Visionary"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Elvish Visionary"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+  assert life A 20
+}
+
+scenario "if you cast it: Iridescent Tiger adds five mana when cast" {
+  battlefield A: 5 "Mountain"
+  hand A: "Iridescent Tiger", "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Iridescent Tiger"
+  turn 2 A: wait
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert battlefield A contains "Iridescent Tiger"
+}
+
+scenario "if you cast it: Iridescent Tiger put onto the battlefield adds nothing" {
+  battlefield A: 4 "Swamp"
+  hand A: "Zombify"
+  graveyard A: "Iridescent Tiger"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Zombify" targeting "Iridescent Tiger"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Iridescent Tiger"
+  assert stack count 0
+}
+
+scenario "if you cast it: Yathan Roadwatcher mills four and returns a creature card" {
+  battlefield A: "Plains", "Swamp", 2 "Forest"
+  hand A: "Yathan Roadwatcher"
+  library A: "Island", "Grizzly Bears", "Island", "Island", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Yathan Roadwatcher"
+  turn 2 A: trigger "Yathan Roadwatcher" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A count 3
+}
+
+scenario "if you cast it: Yathan Roadwatcher returned from the graveyard mills nothing" {
+  battlefield A: 4 "Swamp"
+  hand A: "Zombify"
+  graveyard A: "Yathan Roadwatcher"
+  library A: "Island", "Grizzly Bears", "Island", "Island", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Zombify" targeting "Yathan Roadwatcher"
+  run_to turn 2 postcombat_main
+  assert graveyard A count 1
+  assert library A count 5
+}
+
+scenario "if you cast it: Geological Appraiser discovers 3 when cast" {
+  battlefield A: 4 "Mountain"
+  hand A: "Geological Appraiser"
+  library A: "Island", "Grizzly Bears", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Geological Appraiser"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "if you cast it: Geological Appraiser put onto the battlefield discovers nothing" {
+  battlefield A: 4 "Swamp"
+  hand A: "Zombify"
+  graveyard A: "Geological Appraiser"
+  library A: "Island", "Grizzly Bears", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Zombify" targeting "Geological Appraiser"
+  run_to turn 2 postcombat_main
+  assert library A count 3
+}

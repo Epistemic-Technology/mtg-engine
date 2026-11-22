@@ -72,7 +72,11 @@ impl GameState {
                 }
                 let (mut copies, limit) = (chapter_copies(&t.trigger, event), t.limit);
                 if self.player_static_sources > 0 && !w.in_graveyard {
-                    copies += self.extra_triggers(w, event);
+                    match self.extra_triggers(w, event, &t.trigger) {
+                        Some(n) => copies += n,
+                        // Torpor Orb: it doesn't trigger at all.
+                        None => continue,
+                    }
                 }
                 // CR 603.2c: "one or more ... enter", once per batch.
                 let batch = matches!(
@@ -353,10 +357,12 @@ impl GameState {
     /// CR 603.2d: how many additional times a triggered ability of `w`
     /// triggers on `event` ("If a triggered ability of another Elemental
     /// you control triggers, it triggers an additional time"): one for
-    /// each such ability whose filter the watcher matches.
+    /// each such ability whose filter the watcher matches. `None`: an
+    /// enters trigger an ability stops ("Creatures entering don't cause
+    /// abilities to trigger.", CR 603.6a).
     #[cold]
     #[inline(never)]
-    fn extra_triggers(&self, w: &Watcher, event: &Event) -> usize {
+    fn extra_triggers(&self, w: &Watcher, event: &Event, spec: &TriggerSpec) -> Option<usize> {
         use crate::card::TriggerCause;
         // The object whose event this is, as the cause filter judges it.
         let cause = match event {
@@ -410,6 +416,7 @@ impl GameState {
                     filter,
                     entering: e,
                     cause: k,
+                    suppress,
                     ..
                 } = self.pool.ability(a)
                     && e.as_ref().is_none_or(|e| {
@@ -427,11 +434,17 @@ impl GameState {
                     // "equipped creature" (Wizard's Staff).
                     && (!filter.enchanted || o.attached_to == Some(w.source))
                 {
-                    n += 1;
+                    if *suppress {
+                        if spec.is_enters() {
+                            return None;
+                        }
+                    } else {
+                        n += 1;
+                    }
                 }
             }
         }
-        n
+        Some(n)
     }
 
     /// Counts one more object into a waiting "one or more" trigger of

@@ -1577,6 +1577,7 @@ impl Compiler<'_> {
             StaticCond::NotCastFromHand => {
                 StaticCondition::NotCastFrom(mtg_core::state::Zone::Hand)
             }
+            StaticCond::WasCast => StaticCondition::WasCast,
             StaticCond::PutAnyCounterThisTurn => StaticCondition::PutAnyCounterThisTurn,
             StaticCond::AttackedWithAtLeast(f, n) => {
                 StaticCondition::AttackedWithAtLeast(self.filter(f), *n)
@@ -4213,11 +4214,13 @@ impl Compiler<'_> {
                 entering,
                 battlefield,
                 cause,
+                suppress,
             } => AbilityDef::TriggerAgain {
                 filter: self.filter(filter),
                 entering: entering.as_ref().map(|f| self.filter(f)),
                 battlefield: *battlefield,
                 cause: *cause,
+                suppress: *suppress,
             },
             Ability::PlayerStatic { kind, cond } => {
                 let condition = match cond {

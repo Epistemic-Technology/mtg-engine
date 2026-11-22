@@ -1402,7 +1402,8 @@ impl P {
             }
             // CR 603.2d: `trigger again Ninja creature you control`,
             // `trigger again entering permanent you control`.
-            "trigger" if self.at_words(&["trigger", "again"]) => {
+            "trigger" if self.at_words(&["trigger", "again"]) || self.at_words(&["trigger", "never"]) => {
+                let suppress = self.word_at(1).as_deref() == Some("never");
                 self.pos += 2;
                 let filter = self.filter()?;
                 let (mut entering, mut battlefield) = (None, false);
@@ -1419,11 +1420,15 @@ impl P {
                     }
                 }
                 self.end_stmt()?;
+                if suppress && entering.is_none() {
+                    return self.fail("`trigger never` needs `when <filter> enters`".to_string());
+                }
                 Ok(Ability::TriggerAgain {
                     filter,
                     entering,
                     battlefield,
                     cause,
+                    suppress,
                 })
             }
             "you" if self.at_words(&["you", "have", "hexproof"]) => {
@@ -3021,6 +3026,9 @@ impl P {
         }
         if self.eat_words(&["cast", "from", "anywhere", "other", "than", "hand"]) {
             return Ok(StaticCond::NotCastFromHand);
+        }
+        if self.eat_words(&["you", "cast", "it"]) {
+            return Ok(StaticCond::WasCast);
         }
         if self.eat_words(&["put", "any", "counter", "this", "turn"]) {
             return Ok(StaticCond::PutAnyCounterThisTurn);

@@ -1227,6 +1227,9 @@ pub enum Ability {
         /// a creature dying causes ...", "If a creature you control
         /// attacking causes ...".
         cause: mtg_core::card::TriggerCause,
+        /// `trigger never permanent when creature enters`: "Creatures
+        /// entering don't cause abilities to trigger." (Torpor Orb).
+        suppress: bool,
     },
     /// A keyword ability with a number or cost, printed as the keyword
     /// ("Bushido 2", "Echo {2}{R}") and compiled to what it stands for.
@@ -2145,6 +2148,8 @@ pub enum StaticCond {
     /// `cast from anywhere other than hand`: "this spell was cast from
     /// anywhere other than your hand".
     NotCastFromHand,
+    /// `you cast it`: "you cast it" (from any zone).
+    WasCast,
     /// `put any counter this turn`: "you put a counter on a creature this
     /// turn" (any kind).
     PutAnyCounterThisTurn,

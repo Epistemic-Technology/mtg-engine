@@ -2543,6 +2543,9 @@ pub enum StaticCondition {
     /// "this spell was cast from anywhere other than your hand": the
     /// source was cast (CR 601.2a), from another zone than this one.
     NotCastFrom(crate::state::Zone),
+    /// "if you cast it" (CR 601.2a): the source was cast, from any zone;
+    /// a permanent remembers it from its spell.
+    WasCast,
     /// "you put a counter on a creature this turn": a spell or ability you
     /// controlled put counters of any kind on a creature (CR 122.6).
     PutAnyCounterThisTurn,
@@ -5536,6 +5539,18 @@ pub enum DamageTo {
 }
 
 impl TriggerSpec {
+    /// A trigger on a permanent entering the battlefield (alone or as one
+    /// of two events): what Torpor Orb stops.
+    pub fn is_enters(&self) -> bool {
+        match self {
+            TriggerSpec::Enters(_)
+            | TriggerSpec::EntersBatch(_)
+            | TriggerSpec::EntersFromGraveyard(_) => true,
+            TriggerSpec::Either(pair) => pair.0.is_enters() || pair.1.is_enters(),
+            _ => false,
+        }
+    }
+
     /// Valiant's trigger, alone or as one of two events.
     pub fn is_valiant(&self) -> bool {
         match self {
@@ -6370,13 +6385,19 @@ pub enum AbilityDef {
     /// matching it entering (`battlefield`: worded "entering the
     /// battlefield"); with `cause` `Dies` or `Attacks`, "If a creature
     /// dying causes ...", "If a creature attacking causes ...". Counted
-    /// with the player-level statics.
+    /// with the player-level statics. With `suppress`, "Creatures entering
+    /// don't cause abilities to trigger." (Torpor Orb): an enters trigger
+    /// of a permanent matching the filter doesn't trigger at all on a
+    /// permanent matching `entering` entering (CR 603.2, 603.6a), whatever
+    /// would add to it.
     TriggerAgain {
         filter: ObjFilter,
         entering: Option<ObjFilter>,
         battlefield: bool,
         #[serde(default)]
         cause: TriggerCause,
+        #[serde(default)]
+        suppress: bool,
     },
     /// "If this card is in your opening hand, you may begin the game with
     /// it on the battlefield." (CR 103.6a; the Leylines).
