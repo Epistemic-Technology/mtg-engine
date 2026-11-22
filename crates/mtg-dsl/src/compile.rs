@@ -1592,6 +1592,13 @@ impl Compiler<'_> {
                 }
             }
             StaticCond::Is(filter) => StaticCondition::SourceIs(self.filter(filter)),
+            StaticCond::IsntToken => StaticCondition::SourceIs(self.filter(&Filter {
+                status: mtg_core::card::StatusQuals {
+                    token: Some(false),
+                    ..Default::default()
+                },
+                ..Filter::default()
+            })),
             StaticCond::Modified => StaticCondition::SourceModified,
             StaticCond::AttackingAlone => StaticCondition::SourceAttackingAlone,
             StaticCond::Blocked => StaticCondition::SourceBlocked,
@@ -1937,7 +1944,9 @@ impl Compiler<'_> {
             | Recipient::SameToken
             | Recipient::SameTokens
             | Recipient::SameThem => CoreRecipient::SameObject,
-            Recipient::CreatedTokens | Recipient::CreatedThem => CoreRecipient::CreatedTokens,
+            Recipient::CreatedTokens | Recipient::CreatedThem | Recipient::CreatedThose => {
+                CoreRecipient::CreatedTokens
+            }
             Recipient::Manifested | Recipient::CreatedObject | Recipient::CreatedThat => {
                 CoreRecipient::CreatedObject
             }
@@ -2336,10 +2345,13 @@ impl Compiler<'_> {
                     out.push(CoreEffect::CreatedAttack);
                 }
             }
-            Effect::CreateTokenCopy { of, except } => out.push(CoreEffect::CreateTokenCopy {
-                of: r(*of),
-                except: *except,
-            }),
+            Effect::CreateTokenCopy { of, except, count } => {
+                out.push(CoreEffect::CreateTokenCopy {
+                    of: r(*of),
+                    except: *except,
+                    count: *count,
+                });
+            }
             Effect::CopySpells {
                 what,
                 times,

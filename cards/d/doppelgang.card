@@ -1,0 +1,6 @@
+card "Doppelgang" {
+  oracle_id d04c6375-25dd-4882-b8b3-a3b0d3081f32
+  cost {X}{X}{X}{G}{U}
+  type Sorcery
+  spell: create x token copies of x target permanent
+}

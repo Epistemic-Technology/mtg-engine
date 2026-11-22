@@ -12135,7 +12135,7 @@ impl GameState {
                 });
                 self.enter_attacking(new, defender);
             }
-            Effect::CreateTokenCopy { of, except } => {
+            Effect::CreateTokenCopy { of, except, count } => {
                 let x = except.then(|| {
                     self.objects
                         .get(ctx.source)
@@ -12143,6 +12143,8 @@ impl GameState {
                         .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.card))
                         .expect("a resolving spell or its last known information exists")
                 });
+                let n = self.eval_num(*count, ctx);
+                ctx.created_tokens.clear();
                 // "When this creature dies, ... create a token that's a copy
                 // of it": the copiable values it last had on the
                 // battlefield (CR 111.12, 707.2).
@@ -12163,8 +12165,11 @@ impl GameState {
                         .filter(|l| l.object.zone == Zone::Battlefield)
                     {
                         let (def, was) = (l.object.def, l.object.except);
-                        let new = self.create_token_copy_of(def, x.or(was), ctx.controller);
-                        ctx.created = Some(new);
+                        for _ in 0..n {
+                            let new = self.create_token_copy_of(def, x.or(was), ctx.controller);
+                            ctx.created = Some(new);
+                            ctx.created_tokens.push(new);
+                        }
                     }
                     return;
                 }
@@ -12174,7 +12179,7 @@ impl GameState {
                         // CR 614.1a: token-creation replacement effects
                         // ("twice that many of those tokens").
                         let def = self.objects[id].def;
-                        for (d, k) in self.tokens_to_create(ctx.controller, def, 1) {
+                        for (d, k) in self.tokens_to_create(ctx.controller, def, n) {
                             for _ in 0..k {
                                 let new = if d == def {
                                     self.create_token_copy(id, ctx.controller, x)
@@ -12182,6 +12187,7 @@ impl GameState {
                                     self.create_token(d, ctx.controller)
                                 };
                                 ctx.created = Some(new);
+                                ctx.created_tokens.push(new);
                             }
                         }
                     }

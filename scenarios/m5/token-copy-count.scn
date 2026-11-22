@@ -1,0 +1,82 @@
+# Token copies with a count (CR 111.4, 707.2): "create two tokens that are
+# copies of it", "Create X tokens that are copies of target ...", "For
+# each of X target permanents, create X tokens that are copies of that
+# permanent".
+
+scenario "token copies: Gruff Triplets makes two copies, which don't copy again" {
+  battlefield A: 6 "Forest"
+  hand A: "Gruff Triplets"
+  turn 1 A: cast "Gruff Triplets"
+  run_to turn 1 end
+  assert battlefield A contains 3 "Gruff Triplets"
+}
+
+scenario "token copies: a dying Triplet grows the others by its power" {
+  battlefield A: 6 "Forest", 3 "Swamp"
+  hand A: "Gruff Triplets", "Murder"
+  turn 1 A: cast "Gruff Triplets"
+  turn 1 postcombat_main A: cast "Murder" targeting oldest "Gruff Triplets"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Gruff Triplets"
+  assert power oldest "Gruff Triplets" 6
+  assert power newest "Gruff Triplets" 6
+  assert graveyard A contains "Murder"
+}
+
+scenario "token copies: Devastating Onslaught's X copies have haste and are sacrificed" {
+  battlefield A: 5 "Mountain", "Grizzly Bears"
+  hand A: "Devastating Onslaught"
+  turn 1 A: cast "Devastating Onslaught" x 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Grizzly Bears"
+  assert has newest A "Grizzly Bears" haste
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+scenario "token copies: For the Common Good copies a token, then gains life per token" {
+  battlefield A: 6 "Forest"
+  hand A: "Sprout", "For the Common Good"
+  turn 1 A: cast "Sprout"
+  turn 1 A: wait
+  turn 1 A: cast "For the Common Good" x 2 targeting "Saproling"
+  run_to turn 1 end
+  assert battlefield A contains 3 "Saproling"
+  assert has newest A "Saproling" indestructible
+  assert life A 23
+}
+
+scenario "token copies: For the Common Good can't target a nontoken" {
+  battlefield A: 6 "Forest", "Grizzly Bears"
+  hand A: "For the Common Good"
+  illegal turn 1 A: cast "For the Common Good" x 2 targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+scenario "token copies: Doppelgang with X 2 makes two copies of each of two targets" {
+  battlefield A: 6 "Island", 2 "Forest", "Grizzly Bears", "Ornithopter"
+  hand A: "Doppelgang"
+  turn 1 A: cast "Doppelgang" x 2 targeting "Grizzly Bears", "Ornithopter"
+  run_to turn 1 end
+  assert battlefield A contains 3 "Grizzly Bears"
+  assert battlefield A contains 3 "Ornithopter"
+}
+
+scenario "token copies: Chronozoa vanishes into two copies" {
+  battlefield A: "Chronozoa" with 1 time
+  start turn 2 A
+  run_to turn 2 draw
+  assert graveyard A contains "Chronozoa"
+  assert battlefield A contains 2 "Chronozoa"
+  assert counters oldest "Chronozoa" time 3
+}
+
+scenario "token copies: Chronozoa killed with time counters makes none" {
+  battlefield A: "Chronozoa" with 2 time, 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Chronozoa"
+  run_to turn 1 end
+  assert graveyard A contains "Chronozoa"
+  assert battlefield A lacks "Chronozoa"
+}

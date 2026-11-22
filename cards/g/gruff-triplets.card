@@ -1,0 +1,9 @@
+card "Gruff Triplets" {
+  oracle_id 32de1b70-f993-4423-b0ef-0762c2b4d1b1
+  cost {3}{G}{G}{G}
+  type Creature — Satyr Warrior
+  pt 3/3
+  keywords trample
+  triggered when this enters if this isnt token: create 2 token copies of it
+  triggered when this dies: put +1/+1 counters equal power of it on each creature you control named this
+}

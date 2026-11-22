@@ -914,9 +914,10 @@ impl Decompiler<'_> {
                 attached: attached.map(r),
                 sized: None,
             },
-            CoreEffect::CreateTokenCopy { of, except } => Effect::CreateTokenCopy {
+            CoreEffect::CreateTokenCopy { of, except, count } => Effect::CreateTokenCopy {
                 of: r(*of),
                 except: *except,
+                count: *count,
             },
             CoreEffect::CopySpells {
                 what,

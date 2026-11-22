@@ -338,6 +338,7 @@ impl Fmt {
             Recipient::SameThem => "them".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
             Recipient::CreatedThem => "each of them".to_string(),
+            Recipient::CreatedThose => "those copies".to_string(),
             Recipient::Manifested => "manifested creature".to_string(),
             // `all`, not `each`: "each creature you control" is the
             // built-in recipient, which prints differently.
@@ -1449,8 +1450,16 @@ impl Fmt {
                 }
                 s
             }
-            Effect::CreateTokenCopy { of, except } => {
-                let mut s = format!("create token copy of {}", self.recipient(*of, t));
+            Effect::CreateTokenCopy { of, except, count } => {
+                let mut s = if *count == Num::N(1) {
+                    format!("create token copy of {}", self.recipient(*of, t))
+                } else {
+                    format!(
+                        "create {} token copies of {}",
+                        num(*count),
+                        self.recipient(*of, t)
+                    )
+                };
                 if *except {
                     s.push_str(" with exceptions");
                 }
@@ -4586,6 +4595,7 @@ fn static_cond(c: &StaticCond) -> String {
             at_least,
         } => format!("opponent controls {at_least} {}", filter(fl)),
         StaticCond::Is(fl) => format!("this is {}", filter(fl)),
+        StaticCond::IsntToken => "this isnt token".to_string(),
         StaticCond::Modified => "modified".to_string(),
         StaticCond::AttackingAlone => "attacking alone".to_string(),
         StaticCond::Blocked => "blocked".to_string(),

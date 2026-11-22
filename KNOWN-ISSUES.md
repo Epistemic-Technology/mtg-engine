@@ -35,8 +35,11 @@ wrong thing in some case.
   kinds that don't change power or toughness, then the rest); several
   mechanics from the first wave have the engine choose where the player
   should.
-- **Token copy of a creature that has died** (Sphinx of False
-  Conclusions, Gruff Triplets): not supported; neither card is in.
+- **Token copy of a creature that has died before its enters trigger
+  resolves** (Gruff Triplets, in; Sphinx of False Conclusions, not in):
+  made from last known information, but no scenario covers it (the
+  runner can't answer the trigger while the creature spell is on the
+  stack).
 - **Thousand-Year Storm:** the "cast before it this turn" count has an
   edge case with spells cast while it is on the stack.
 - **Token-creation replacements apply only to `create` and `create

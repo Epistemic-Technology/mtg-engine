@@ -1,0 +1,9 @@
+card "Chronozoa" {
+  oracle_id 29ccf76e-dfa3-4144-8ec2-6d56ae0bfa9e
+  cost {3}{U}
+  type Creature — Illusion
+  pt 3/3
+  keywords flying
+  vanishing 3
+  triggered when this dies if it had no time counters: create 2 token copies of it
+}

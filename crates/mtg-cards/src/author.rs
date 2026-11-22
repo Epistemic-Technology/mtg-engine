@@ -1842,6 +1842,24 @@ impl Templates {
                     Some(format!("create token copy of {what}"))
                 },
             ),
+            // "Create two tokens that are copies of target creature you
+            // control", "Create X tokens that are copies of ...".
+            (
+                r(r"^[Cc]reate (\S+) tokens that are copies of ([^,]+)$"),
+                |c, t| {
+                    let n = number(cap(c, 1))?;
+                    let what = match cap(c, 2) {
+                        w @ ("this creature" | "this artifact" | "this enchantment") => {
+                            w.to_string()
+                        }
+                        w => recipient(w, t)?,
+                    };
+                    Some(format!(
+                        "create {} token copies of {what}",
+                        n.to_lowercase()
+                    ))
+                },
+            ),
             (r(r"^Surveil (\d+)$"), |c, _| {
                 Some(format!("surveil {}", cap(c, 1)))
             }),

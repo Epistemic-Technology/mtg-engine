@@ -1375,7 +1375,9 @@ impl<'a> Ctx<'a> {
                 "each permanent you control".to_string()
             }
             Recipient::SameObject if self.delayed_that => "that creature".to_string(),
-            Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
+            Recipient::CreatedTokens | Recipient::SameTokens | Recipient::CreatedThose => {
+                "those tokens".to_string()
+            }
             Recipient::CreatedThem | Recipient::SameThem => "them".to_string(),
             Recipient::Those(t) => crate::format::those_word(t).to_string(),
             Recipient::SameObject | Recipient::CreatedObject | Recipient::TriggeringIt => {
@@ -1833,6 +1835,7 @@ impl<'a> Ctx<'a> {
                 | Recipient::TargetAnd(..)
                 | Recipient::CreatedTokens
                 | Recipient::CreatedThem
+                | Recipient::CreatedThose
                 | Recipient::SameTokens
                 | Recipient::SameThem
                 | Recipient::Those(_)
@@ -5962,20 +5965,33 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             ctx.those_tokens = None;
             Clause::imperative(text)
         }
-        Effect::CreateTokenCopy { of, except } => {
+        Effect::CreateTokenCopy { of, except, count } => {
             let o = ctx.obj(*of);
+            // "create a token that's a copy of", "create two tokens that are
+            // copies of", "Create X tokens that are copies of".
+            let copies = if *count == Num::N(1) {
+                "a token that's a copy of".to_string()
+            } else {
+                format!("{} tokens that are copies of", count_words(*count, "one"))
+            };
+            let noun = |rest: &str| {
+                if rest.contains("creature") {
+                    "creature"
+                } else {
+                    "permanent"
+                }
+            };
             // "For each nontoken creature you control, create a token
-            // that's a copy of that creature" (Multiversal Incursion).
+            // that's a copy of that creature" (Multiversal Incursion);
+            // "For each of X target permanents, create X tokens that are
+            // copies of that permanent." (Doppelgang).
+            let many = ctx.is_many(*of);
             let mut text = match o.strip_prefix("each ") {
                 Some(rest) => {
-                    let noun = if rest.contains("creature") {
-                        "creature"
-                    } else {
-                        "permanent"
-                    };
-                    format!("for each {rest}, create a token that's a copy of that {noun}")
+                    format!("for each {rest}, create {copies} that {}", noun(rest))
                 }
-                None => format!("create a token that's a copy of {o}"),
+                None if many => format!("for each of {o}, create {copies} that {}", noun(&o)),
+                None => format!("create {copies} {o}"),
             };
             if *except {
                 let _ = write!(text, ", except {}", except_text(ctx.card, ctx.current));
@@ -11310,15 +11326,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             "it entered this turn".to_string()
         }
         // "if it isn't a token" (Gruff Triplets).
-        StaticCond::Is(f)
-            if f.status.token == Some(false) && {
-                let mut g = f.clone();
-                g.status.token = None;
-                g == Filter::default()
-            } =>
-        {
-            "it isn't a token".to_string()
-        }
+        StaticCond::IsntToken => "it isn't a token".to_string(),
         StaticCond::Is(f) => format!("it's {}", is_predicate(f, card)),
         StaticCond::Modified => "it's modified".to_string(),
         StaticCond::AttackingAlone => "it's attacking alone".to_string(),
@@ -11548,6 +11556,7 @@ fn about_source(c: &StaticCond) -> bool {
             | StaticCond::Monstrous
             | StaticCond::Suspected(_)
             | StaticCond::Is(_)
+            | StaticCond::IsntToken
             | StaticCond::Modified
             | StaticCond::AttackingAlone
             | StaticCond::Blocked

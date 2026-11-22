@@ -3933,6 +3933,9 @@ pub enum Effect {
     CreateTokenCopy {
         of: Recipient,
         except: bool,
+        /// "create two tokens that are copies of it": how many for each
+        /// object (CR 111.4).
+        count: Num,
     },
     /// "Each opponent gets a poison counter" (CR 122.1f).
     AddPoison {

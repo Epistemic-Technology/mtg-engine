@@ -3131,6 +3131,9 @@ impl P {
         if let Some(t) = self.turn_time() {
             return Ok(t);
         }
+        if self.eat_words(&["this", "isnt", "token"]) {
+            return Ok(StaticCond::IsntToken);
+        }
         if self.eat_words(&["this", "is"]) {
             return Ok(StaticCond::Is(self.filter()?));
         }
@@ -4353,7 +4356,7 @@ impl P {
         }
         // "They gain haste until end of turn." after creating tokens
         // (Salt Road Skirmish).
-        if self.at_words(&["those", "tokens"])
+        if (self.at_words(&["those", "tokens"]) || self.at_words(&["those", "copies"]))
             && matches!(
                 self.word_at(2).as_deref(),
                 Some("gain" | "gains" | "get" | "gets")
@@ -7898,7 +7901,25 @@ impl P {
                     let of = self.recipient()?;
                     let except = self.except_clause();
                     self.created_at = Some(self.targets.len());
-                    return Ok(Effect::CreateTokenCopy { of, except });
+                    return Ok(Effect::CreateTokenCopy {
+                        of,
+                        except,
+                        count: Num::N(1),
+                    });
+                }
+                // `create 2 token copies of this`, `create x token copies
+                // of target ...`.
+                if (matches!(self.peek(), Some(Tok::Num(_))) || self.at_word("x"))
+                    && self.word_at(1).as_deref() == Some("token")
+                    && self.word_at(2).as_deref() == Some("copies")
+                {
+                    let count = self.num()?;
+                    self.pos += 2;
+                    self.expect_word("of")?;
+                    let of = self.recipient()?;
+                    let except = self.except_clause();
+                    self.created_at = Some(self.targets.len());
+                    return Ok(Effect::CreateTokenCopy { of, except, count });
                 }
                 let count = self.num()?;
                 self.created_at = (count == Num::N(1)).then_some(self.targets.len());
@@ -9262,6 +9283,10 @@ impl P {
         // tokens a delayed trigger is about).
         if self.in_delayed && self.eat_word("them") {
             return Ok(Recipient::SameThem);
+        }
+        // "Those tokens gain haste until end of turn." as a subject.
+        if !self.in_delayed && self.eat_words(&["those", "copies"]) {
+            return Ok(Recipient::CreatedThose);
         }
         // "Sacrifice those tokens at the beginning of the next end step."
         if self.eat_words(&["those", "tokens"]) {

@@ -212,7 +212,7 @@ to its other face as well.
 | `play from top lands`, `play from top spells creature`, `play from top lands and spells`, `play from top once spells instant or sorcery` | "You may play lands from the top of your library.", "You may cast creature spells from the top of your library.", "You may play lands and cast spells from the top of your library.", "Once each turn, you may cast an instant or sorcery spell from the top of your library." (CR 601.3, 305.1): the controller may play the top card of their library, paying its costs, with the usual timing and a land only with a land play left. The spells' filter is any filter (`Spider or noncreature`: "Spider spells and noncreature spells"; `with mana value 4 or greater`: "spells with mana value 4 or greater"; `with flash or flying`); `once` allows one spell a turn by that permanent's permission. |
 | `top revealed`, `top revealed players` | "Play with the top card of your library revealed.", "Players play with the top card of their libraries revealed.": every player knows that top card (CR 401.2). |
 | `hand size none`, `hand size +1`, `hand size opponents -1` | "You have no maximum hand size.", "Your maximum hand size is increased by one.", "Each opponent's maximum hand size is reduced by one." (CR 402.2) |
-| `except { ... }` | What this card's copy effects add (CR 707.9b): `not legendary` ("it isn't legendary"; "the copy isn't legendary" for a spell copy), `types Artifact` and `subtypes Illusion` ("it's an artifact in addition to its other types", "it's a Vehicle artifact ..." together), `keywords haste`, and ability lines ("it has haste and \"At the beginning of the end step, sacrifice this token.\"": on an instant or sorcery, `this` in them is the token). They are part of the copy's copiable values; the legend rule reads its supertypes. A token copy of a creature that has left the battlefield ("When this creature dies, if it's not a token, create a token that's a copy of it"; `if this is nontoken`) is made as it last existed. |
+| `except { ... }` | What this card's copy effects add (CR 707.9b): `not legendary` ("it isn't legendary"; "the copy isn't legendary" for a spell copy), `types Artifact` and `subtypes Illusion` ("it's an artifact in addition to its other types", "it's a Vehicle artifact ..." together), `keywords haste`, and ability lines ("it has haste and \"At the beginning of the end step, sacrifice this token.\"": on an instant or sorcery, `this` in them is the token). They are part of the copy's copiable values; the legend rule reads its supertypes. A token copy of a creature that has left the battlefield ("When this creature dies, if it's not a token, create a token that's a copy of it"; `if this is nontoken`; `if this isnt token` prints "if it isn't a token") is made as it last existed. |
 
 Effects written after `:` sit on one line; write `{` instead of `:` and put
 one line per paragraph for text that spans paragraphs:
@@ -1698,7 +1698,11 @@ create`: "Its controller creates two Treasure tokens"),
 `create token copy of <what> [with exceptions]` (of a group, `create
 token copy of each nontoken creature you control` prints "For each
 nontoken creature you control, create a token that's a copy of that
-creature"), `copy <what> [times
+creature"; `create 2 token copies of it` prints "create two tokens that
+are copies of it", `create x token copies of x target permanent` "For
+each of X target permanents, create X tokens that are copies of that
+permanent."; `those copies gain haste` then prints "Those tokens gain
+haste until end of turn." where `those tokens` prints "They"), `copy <what> [times
 <num>] [new targets] [with exceptions]` (CR 707.10: `copy target instant
 or sorcery spell you control new targets` prints "Copy target instant or
 sorcery spell you control. You may choose new targets for the copy.";

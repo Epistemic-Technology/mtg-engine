@@ -1966,6 +1966,9 @@ pub enum StaticCond {
     /// `this is untapped`, `this is Wall`, `this is creature`: "it's
     /// untapped", "it's a Wall", "this permanent is a creature".
     Is(Filter),
+    /// `this isnt token`: "it isn't a token" (Gruff Triplets), where
+    /// `this is nontoken` prints "it's not a token".
+    IsntToken,
     /// `modified`: "it's modified" (CR 700.9).
     Modified,
     /// `attacking alone`: "it's attacking alone".
@@ -2964,6 +2967,10 @@ pub enum Recipient {
     /// `them` after creating tokens: `those tokens` printed "them" ("Put
     /// X +1/+1 counters on each of them").
     CreatedThem,
+    /// `those copies`: `those tokens` printed "those tokens" as a subject
+    /// too ("Those tokens gain haste until end of turn.", where `those
+    /// tokens` prints "They gain ...").
+    CreatedThose,
     /// `manifested creature`: the creature the resolution manifested
     /// (manifest dread, CR 701.62), printed "that creature" ("manifest
     /// dread, then put three +1/+1 counters on that creature").
@@ -3243,9 +3250,13 @@ pub enum Effect {
         /// definition's power and toughness print as "X/X".
         sized: Option<Num>,
     },
+    /// `create token copy of <what>`, `create 2 token copies of this`
+    /// ("create two tokens that are copies of it"), `create x token copies
+    /// of target ...` ("Create X tokens that are copies of ...").
     CreateTokenCopy {
         of: Recipient,
         except: bool,
+        count: Num,
     },
     /// `copy target instant or sorcery spell you control [times N] [new
     /// targets] [with exceptions]` (CR 707.10): "Copy target instant or
