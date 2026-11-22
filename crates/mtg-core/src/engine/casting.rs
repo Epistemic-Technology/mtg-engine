@@ -7817,6 +7817,13 @@ impl GameState {
                 }
             }
             Recipient::ControllerOf(i) | Recipient::OwnerOf(i) => {
+                // "that player or that permanent's controller" (Chain
+                // Lightning): a player target is that player.
+                if let Some(Target::Player(p)) = ctx.targets.get(i)
+                    && matches!(r, Recipient::ControllerOf(_))
+                {
+                    out.push(Target::Player(*p));
+                }
                 if let Some(Target::Object(id)) = ctx.targets.get(i) {
                     let owner = matches!(r, Recipient::OwnerOf(_));
                     let p = self

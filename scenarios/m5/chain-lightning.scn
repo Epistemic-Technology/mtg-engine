@@ -1,0 +1,55 @@
+# Chain Lightning: "Then that player or that permanent's controller may pay
+# {R}{R}. If the player does, they may copy this spell and may choose a new
+# target for that copy." (CR 707.10, 707.10c: the copy is that player's).
+
+scenario "the damaged creature's controller pays and copies it at another target" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  hand A: "Chain Lightning"
+  battlefield B: 2 "Mountain", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Chain Lightning" targeting "Hill Giant"
+  turn 1 B: accept "Chain Lightning"
+  turn 1 B: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert tapped B "Mountain"
+  assert graveyard A contains "Chain Lightning"
+}
+
+scenario "a targeted player who pays controls the copy; it asks its own target's player" {
+  battlefield A: 3 "Mountain"
+  hand A: "Chain Lightning"
+  battlefield B: 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Chain Lightning" targeting player B
+  run_to turn 1 postcombat_main
+  # Unscripted, B pays and copies it keeping the target (the first
+  # option); the copy then asks B again, now without mana. A, with two
+  # Mountains left, is never asked.
+  assert life B 14
+  assert life A 20
+}
+
+scenario "declining: no copy" {
+  battlefield A: "Mountain"
+  hand A: "Chain Lightning"
+  battlefield B: 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Chain Lightning" targeting player B
+  turn 1 B: decline "Chain Lightning"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert untapped B "Mountain"
+}
+
+scenario "a player without {R}{R} isn't asked" {
+  battlefield A: "Mountain"
+  hand A: "Chain Lightning"
+  battlefield B: "Mountain", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Chain Lightning" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert untapped B "Mountain"
+}

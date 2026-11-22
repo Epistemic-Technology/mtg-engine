@@ -6134,9 +6134,13 @@ impl P {
             }
             // "That player may pay {4}", "that player may discard a card
             // at random": the player decides and acts (`PlayerMay`).
+            // "If the player does, they may copy this spell" (Chain
+            // Lightning): the copy is that player's.
             "may"
                 if subject != Recipient::You
-                    && (self.at_word("pay") || self.at_word("discard")) =>
+                    && (self.at_word("pay")
+                        || self.at_word("discard")
+                        || self.at_words(&["copy", "this"])) =>
             {
                 let saved = self.subject.take();
                 let s = self.sentence()?;

@@ -1978,7 +1978,13 @@ creature"),
 `that player may pay {4}` / `that player may discard 1 card at random`
 (another player decides and acts as it resolves, CR 608.2d; an act they
 can't complete isn't offered; a following `if they do,` prints "If the
-player does,"), `the creature` (in a triggered ability, the triggering
+player does,"; `deal 3 damage to any target; then controller of that
+target 1 may pay {R}{R}; if they do, controller of that target 1 may copy
+this new targets` prints Chain Lightning's "Then that player or that
+permanent's controller may pay {R}{R}. If the player does, they may copy
+this spell and may choose a new target for that copy.": the controller of
+an "any target" that is a player is that player, and the copy is the
+paying player's, CR 707.10), `the creature` (in a triggered ability, the triggering
 object printed "the creature": "untap the creature"), `if you do,
 <clause>` (only if the optional action before it happened: "You may pay
 {2}. If you do, draw a card."), `if you don't, <clause>` / `if you dont, <clause>` (only if it

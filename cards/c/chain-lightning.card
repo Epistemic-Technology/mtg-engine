@@ -1,0 +1,6 @@
+card "Chain Lightning" {
+  oracle_id 8785f42f-87b9-4a0a-89ce-ea423649ba9c
+  cost {R}
+  type Sorcery
+  spell: deal 3 damage to any target; then controller of that target 1 may pay {R}{R}; if they do, controller of that target 1 may copy this new targets
+}

@@ -1085,6 +1085,9 @@ struct Ctx<'a> {
     /// "That player may pay {4}": a following "If you do" prints "If the
     /// player does".
     player_did: bool,
+    /// Inside "If the player does, ...": that player is "they" (Chain
+    /// Lightning's "they may copy this spell").
+    player_they: bool,
     /// The next sentence is "If you don't, ...": an optional choice before
     /// it prints its result "If you do, ..." ("You may choose a creature
     /// card from it. If you do, that player discards that card.").
@@ -1135,6 +1138,7 @@ impl<'a> Ctx<'a> {
             they_paid: false,
             lost_life_did: false,
             player_did: false,
+            player_they: false,
             before_if_you_dont: false,
             in_unless: false,
             x_defined: Vec::new(),
@@ -1410,6 +1414,11 @@ impl<'a> Ctx<'a> {
             }
             Recipient::ControllerOf(_) | Recipient::TriggeringController { that: false } => {
                 "its controller".to_string()
+            }
+            // "any target": "that player or that permanent's controller"
+            // (Chain Lightning).
+            Recipient::ThatControllerOf(i) if self.target_noun[i] == "permanent or player" => {
+                "that player or that permanent's controller".to_string()
             }
             Recipient::ThatControllerOf(i) => format!("that {}'s controller", self.target_noun[i]),
             Recipient::TheControllerOf(i) => format!("the {}'s controller", self.target_noun[i]),
@@ -7805,6 +7814,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let who = if std::mem::take(&mut ctx.lost_life_did) {
                 "you lost life this way"
             } else if std::mem::take(&mut ctx.player_did) {
+                ctx.player_they = true;
                 "the player does"
             } else if std::mem::take(&mut ctx.they_paid) {
                 "they do"
@@ -7812,6 +7822,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 "you do"
             };
             let body = sentences(inner, ctx);
+            ctx.player_they = false;
             // "If you do, Oros deals 3 damage ...".
             let body = if starts_with_name(&body, ctx.card) {
                 body
@@ -8360,7 +8371,30 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::PlayerMay { who, inner } => {
             let you = *who == Recipient::You;
-            let who = ctx.obj(*who);
+            // "If the player does, they may copy this spell and may choose
+            // a new target for that copy." (Chain Lightning): the player
+            // of the "may" before.
+            let again = ctx.player_they;
+            let who = if again { "they".to_string() } else { ctx.obj(*who) };
+            if let [one] = inner.as_slice()
+                && let [
+                    Effect::CopySpells {
+                        what: Recipient::Source,
+                        times: Num::N(1),
+                        new_targets: true,
+                        except: false,
+                    },
+                ] = one.effects.as_slice()
+            {
+                let target = if ctx.targets.len() == 1 {
+                    "a new target"
+                } else {
+                    "new targets"
+                };
+                return Clause::imperative(format!(
+                    "{who} may copy this spell and may choose {target} for that copy"
+                ));
+            }
             let body = lowercase_first(&sentences(inner, ctx));
             let body = body.strip_prefix("you ").unwrap_or(&body);
             // The player acts on their own cards ("Each player may discard
