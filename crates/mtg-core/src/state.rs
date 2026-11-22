@@ -4361,9 +4361,11 @@ impl GameState {
                         TargetSpec::NoncreatureSpell => !creature,
                         TargetSpec::SpellFiltered(f) => {
                             let c = self.base_characteristics(obj);
-                            let f = self.pool.filter(f);
+                            // "counter target spell with mana value X": X
+                            // of the source spell (CR 107.3).
+                            let f = self.source_filter(self.pool.filter(f), source, x);
                             f.matches(id, obj.controller, &c, source, Some(caster))
-                                && self.status_ok(f, id)
+                                && self.status_ok(&f, id)
                                 && f.targeting
                                     .as_ref()
                                     .is_none_or(|t| self.spell_targets(obj, t, caster, source))

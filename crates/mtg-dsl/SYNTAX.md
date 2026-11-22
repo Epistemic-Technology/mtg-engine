@@ -1297,7 +1297,8 @@ damage by this this turn dies: exile`: "If a creature dealt damage by this
 creature this turn would die, exile it instead."), and
 `with mana value X` / `with mana value X or less` (X of the spell, CR
 107.3; X is chosen before targets, CR 601.2b, so only an X some object
-fits is offered; on a card, the mana value prints after the noun: `target
+fits is offered, a spell on the stack too: `counter target with mana
+value X spell`, "Counter target spell with mana value X"; on a card, the mana value prints after the noun: `target
 creature card with mana value X or less from your graveyard`; several targets print "creature cards with mana value 2 or less", and `card each with mana value 3 or less` "creature cards each with mana value 3 or less"), `with +1/+1
 counter` / `with counter` ("creature you control with a +1/+1 counter on
 it", "with a counter on it", CR 122.1; plural "with +1/+1 counters on

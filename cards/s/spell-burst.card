@@ -1,0 +1,7 @@
+card "Spell Burst" {
+  oracle_id 141d9b88-5326-4e3d-8f16-5293246fab88
+  cost {X}{U}
+  type Instant
+  buyback {3}
+  spell: counter target with mana value X spell
+}

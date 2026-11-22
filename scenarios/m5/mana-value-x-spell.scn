@@ -1,0 +1,43 @@
+# "Counter target spell with mana value X" (Spell Blast, Spell Burst): X
+# of the counterspell, chosen before targets (CR 107.3, 601.2b), is
+# checked against the spell targeted, and only an X some spell on the
+# stack fits is offered.
+
+scenario "Spell Blast: X 4 counters a spell with mana value 4" {
+  battlefield A: 5 "Island"
+  battlefield B: 4 "Mountain"
+  hand B: "Hill Giant"
+  hand A: "Spell Blast"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Hill Giant"
+  turn 1 A: cast "Spell Blast" x 4 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Spell Blast: X 1 can't counter a spell with mana value 2" {
+  battlefield A: 2 "Island"
+  battlefield B: 2 "Forest", "Mountain"
+  hand B: "Grizzly Bears", "Lightning Bolt"
+  hand A: "Spell Blast"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Grizzly Bears"
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  illegal turn 1 A: cast "Spell Blast" x 1 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Spell Burst: X 1 counters a spell with mana value 1, with another on the stack" {
+  battlefield A: 2 "Island"
+  battlefield B: 2 "Forest", "Mountain"
+  hand B: "Grizzly Bears", "Lightning Bolt"
+  hand A: "Spell Burst"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Grizzly Bears"
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  turn 1 A: cast "Spell Burst" x 1 targeting "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert battlefield B contains "Grizzly Bears"
+}

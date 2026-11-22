@@ -98,8 +98,6 @@ by rejecting the form at compile time or by binding it correctly.
   nothing. Celestial Armor is not in (the template author writes it).
 - **Found by the fifth wave's card batches; none is used by a card in
   the corpus** (each card named was rejected):
-  - `counter target with mana value X spell`: X is not checked against
-    the spell (Spell Blast countered a mana value 4 spell with X=3).
   - `each player loses count each creature they control life`: every
     player loses for the opponent's creatures (Stronghold Discipline).
   - A sentence after `delayed target 1: when ...` is taken into the

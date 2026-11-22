@@ -1,0 +1,6 @@
+card "Spell Blast" {
+  oracle_id 04477339-7ed5-4770-9e5c-6e481ffcc858
+  cost {X}{U}
+  type Instant
+  spell: counter target with mana value X spell
+}
