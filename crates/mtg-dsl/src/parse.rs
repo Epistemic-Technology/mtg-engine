@@ -2484,6 +2484,24 @@ impl P {
                 }
                 self.expect_word("one")?;
                 let both = self.eat_words(&["or", "both"]);
+                let any_number = !both && self.eat_words(&["or", "any", "number"]);
+                let more = any_number || !both && self.eat_words(&["or", "more"]);
+                if (both || more) && self.eat_word("if") {
+                    let may = self.eat_word("may");
+                    let cond = self.static_cond()?;
+                    let modes = self.modes_block()?;
+                    self.end_stmt()?;
+                    return Ok(Ability::ModalIf {
+                        more,
+                        any_number,
+                        may,
+                        cond,
+                        modes,
+                    });
+                }
+                if more {
+                    return self.fail("expected `if` after `choose one or more`");
+                }
                 let modes = self.modes_block()?;
                 self.end_stmt()?;
                 Ok(if both {
@@ -3737,6 +3755,10 @@ impl P {
         }
         if self.eat_words(&["not", "kicked"]) {
             return Ok(StaticCond::NotKicked);
+        }
+        if self.at_word("kicked") && self.word_at(1).as_deref() != Some("with") {
+            self.pos += 1;
+            return Ok(StaticCond::Kicked);
         }
         if self.eat_word("impending") {
             return Ok(StaticCond::Impending);

@@ -1159,6 +1159,21 @@ pub enum Ability {
     /// `choose one or more { ... }`, `choose up to 2 { ... }` (CR 700.2):
     /// a modal spell with another head.
     ModalOf(ModeHead, Vec<Mode>),
+    /// `choose one or both if teamwork { ... }`, `choose one or both if
+    /// may descended this turn { ... }`, `choose one or more if 4 card
+    /// types in your graveyard { ... }` (CR 700.2): "Choose one. If this
+    /// spell was cast using teamwork, choose both instead." (`may`: "you
+    /// may choose both instead"), "... choose one or more instead.": a
+    /// modal spell whose larger choice needs the condition as it is cast.
+    /// `choose one or any number if kicked` is `more` printed "choose any
+    /// number instead".
+    ModalIf {
+        more: bool,
+        any_number: bool,
+        may: bool,
+        cond: StaticCond,
+        modes: Vec<Mode>,
+    },
     /// `spree { mode {2}: ... mode {1}: ... }` (CR 702.172): one or more
     /// modes, each with an additional cost (at most three).
     Spree(Vec<(ManaCost, Mode)>),

@@ -3481,6 +3481,43 @@ impl GameState {
 
     /// Whether `spell` (being cast) has a kicker its caster could pay on
     /// top of its cost (CR 702.33b).
+    /// For a spell with `CardDef::modes_if` whose condition is a cost
+    /// announced with the modes ("If this spell was kicked / cast using
+    /// teamwork / its additional cost was paid, choose both instead"):
+    /// whether that cost can be paid now. `None` for other conditions.
+    pub(super) fn mode_linked_cost(&self, spell: ObjId) -> Option<bool> {
+        use crate::card::StaticCondition as C;
+        let o = &self.objects[spell];
+        let def = self.pool.get(o.def);
+        let mi = def.modes_if?;
+        Some(match self.pool.condition(mi.cond) {
+            C::Kicked => self.kicker_payable(spell),
+            C::Teamwork => self.teamwork_tappers(o.controller, def.teamwork).is_some(),
+            C::OptionalCostPaid => def
+                .optional_cost
+                .as_deref()
+                .is_some_and(|c| self.other_costs_payable(o.controller, c, spell)),
+            _ => return None,
+        })
+    }
+
+    /// The answer a kicker, teamwork, or optional-cost decision must take
+    /// for a spell whose modes depend on that cost (`mode_linked_cost`):
+    /// paid with the larger choice of modes; declined with one mode when
+    /// "choose both instead" requires both. `None`: either answer.
+    pub(super) fn linked_cost_answer(&self, spell: ObjId) -> Option<bool> {
+        self.mode_linked_cost(spell)?;
+        let def = self.pool.get(self.objects[spell].def);
+        let must = def.modes_if.is_some_and(|m| m.must);
+        if self.mode_split_of(spell).is_some() {
+            Some(true)
+        } else if must {
+            Some(false)
+        } else {
+            None
+        }
+    }
+
     pub(super) fn kicker_payable(&self, spell: ObjId) -> bool {
         let o = &self.objects[spell];
         let def = self.pool.get(o.def);
@@ -5445,6 +5482,25 @@ impl GameState {
                     .is_none_or(|a| !self.mode_used(a.source, a.ability, *i, m))
             })
             .filter(|(_, m)| self.mode_targets_available(o.controller, m, source))
+            .filter(|(_, m)| {
+                // "Choose one. If ..., choose both instead." (CR 700.2).
+                let Some(mi) = def.modes_if.filter(|_| o.kind == ObjKind::Card) else {
+                    return true;
+                };
+                // A condition on a cost announced with the modes (CR
+                // 601.2b: kicker, teamwork, an optional additional cost):
+                // the larger choice commits to paying it, so it needs the
+                // cost to be payable now (`linked_cost_answer`).
+                if let Some(payable) = self.mode_linked_cost(spell) {
+                    return m.split.is_none() || payable;
+                }
+                let holds = self.condition_now(self.pool.condition(mi.cond), o.controller, spell);
+                if m.split.is_some() {
+                    holds
+                } else {
+                    !(holds && mi.must)
+                }
+            })
             .filter(|(i, m)| {
                 // Entwined or escalated, the spell costs more (CR 702.42a,
                 // 702.120a).

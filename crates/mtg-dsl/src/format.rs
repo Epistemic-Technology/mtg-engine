@@ -5160,11 +5160,30 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         Ability::Modal(modes)
         | Ability::ModalBoth(modes)
         | Ability::ModalTwo(modes)
-        | Ability::ModalOf(_, modes) => {
+        | Ability::ModalOf(_, modes)
+        | Ability::ModalIf { modes, .. } => {
             let head = match ability {
                 Ability::ModalBoth(_) => "choose one or both".to_string(),
                 Ability::ModalTwo(_) => "choose two".to_string(),
                 Ability::ModalOf(h, _) => mode_head_dsl(*h),
+                Ability::ModalIf {
+                    more,
+                    any_number,
+                    may,
+                    cond,
+                    ..
+                } => format!(
+                    "choose one or {} if {}{}",
+                    if *any_number {
+                        "any number"
+                    } else if *more {
+                        "more"
+                    } else {
+                        "both"
+                    },
+                    if *may { "may " } else { "" },
+                    static_cond(cond)
+                ),
                 _ => "choose one".to_string(),
             };
             let _ = writeln!(out, "{indent}{head} {{");

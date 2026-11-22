@@ -3199,6 +3199,16 @@ pub enum TargetSpec {
     AnyOther,
 }
 
+/// `CardDef::modes_if`: when a modal spell's larger choice is allowed.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct ModesIf {
+    /// The pooled condition (`CardPool::condition`).
+    pub cond: u16,
+    /// "choose both instead": with the condition, only the sets of more
+    /// than one mode ("you may choose both instead": any).
+    pub must: bool,
+}
+
 /// A variable number of targets of one kind (CR 601.2c): at least `min`,
 /// at most `max` (any number if `None`); X is the spell's X.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -7384,6 +7394,12 @@ pub struct CardDef {
     /// mode index `bits - 1`.
     #[serde(default)]
     pub escalate: Option<Box<ManaCost>>,
+    /// "Choose one. If this spell was cast using teamwork, choose both
+    /// instead." (CR 700.2): a modal spell whose sets of more than one mode
+    /// may be chosen only while the pooled condition holds as it is cast
+    /// (judged for the spell); with `must`, only those sets then.
+    #[serde(default)]
+    pub modes_if: Option<ModesIf>,
     /// Escape—cost, exile N other cards from your graveyard (CR 702.138).
     pub escape: Option<Box<(ManaCost, u32)>>,
     /// Mayhem—cost: cast from the graveyard for this cost if its owner
@@ -9514,6 +9530,7 @@ impl Builder {
             gift: None,
             entwine: None,
             escalate: None,
+            modes_if: None,
             escape: None,
             mayhem: None,
             modular: 0,
@@ -10065,6 +10082,13 @@ impl Builder {
     #[must_use]
     pub fn entwine(mut self, cost: ManaCost) -> Self {
         self.0.entwine = Some(Box::new(cost));
+        self
+    }
+
+    /// "Choose one. If ..., choose both instead." (`CardDef::modes_if`).
+    #[must_use]
+    pub fn modes_if(mut self, m: ModesIf) -> Self {
+        self.0.modes_if = Some(m);
         self
     }
 

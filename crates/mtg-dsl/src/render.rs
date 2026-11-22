@@ -12730,11 +12730,36 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         Ability::Modal(modes)
         | Ability::ModalBoth(modes)
         | Ability::ModalTwo(modes)
-        | Ability::ModalOf(_, modes) => {
+        | Ability::ModalOf(_, modes)
+        | Ability::ModalIf { modes, .. } => {
             let mut out = match a {
                 Ability::ModalBoth(_) => "Choose one or both —".to_string(),
                 Ability::ModalTwo(_) => "Choose two —".to_string(),
                 Ability::ModalOf(h, _) => capitalize(&format!("{} —", mode_head_text(*h))),
+                // "Choose one. If this spell was cast using teamwork,
+                // choose both instead."
+                Ability::ModalIf {
+                    more,
+                    any_number,
+                    may,
+                    cond,
+                    ..
+                } => format!(
+                    "Choose one. If {}, {}choose {} instead.",
+                    if *cond == StaticCond::Kicked {
+                        "this spell was kicked".to_string()
+                    } else {
+                        static_cond_text(cond, card)
+                    },
+                    if *may { "you may " } else { "" },
+                    if *any_number {
+                        "any number"
+                    } else if *more {
+                        "one or more"
+                    } else {
+                        "both"
+                    }
+                ),
                 _ => "Choose one —".to_string(),
             };
             for m in modes {

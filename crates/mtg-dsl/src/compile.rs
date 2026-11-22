@@ -572,6 +572,12 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Entwine(cost)) => {
                     b = b.entwine(cost.clone());
                 }
+                // CR 700.2: "If ..., choose both instead."
+                Ability::ModalIf { may, cond, .. } => {
+                    let c = self.static_cond(cond);
+                    let cond = self.pool.intern_condition(c);
+                    b = b.modes_if(mtg_core::card::ModesIf { cond, must: !*may });
+                }
                 Ability::Mechanic(Mechanic::Escape(cost, n)) => {
                     b = b.escape(cost.clone(), *n);
                 }
@@ -1031,6 +1037,7 @@ impl Compiler<'_> {
                         | Ability::ModalBoth(_)
                         | Ability::ModalTwo(_)
                         | Ability::ModalOf(..)
+                        | Ability::ModalIf { .. }
                         | Ability::Spree(_)
                         | Ability::Pawprint { .. }
                 )
@@ -4442,6 +4449,17 @@ impl Compiler<'_> {
             Ability::ModalBoth(modes) => AbilityDef::Modal(self.modes(modes, true, false)?),
             Ability::ModalTwo(modes) => AbilityDef::Modal(self.modes(modes, false, true)?),
             Ability::ModalOf(head, modes) => AbilityDef::Modal(self.head_modes(*head, modes)?),
+            Ability::ModalIf {
+                more: false, modes, ..
+            } => {
+                if modes.len() != 2 {
+                    return self.err("`choose one or both if` takes two modes");
+                }
+                AbilityDef::Modal(self.modes(modes, true, false)?)
+            }
+            Ability::ModalIf {
+                more: true, modes, ..
+            } => AbilityDef::Modal(self.head_modes(crate::ast::ModeHead::OneOrMore, modes)?),
             Ability::Spree(modes) => AbilityDef::Modal(self.spree_modes(modes)?),
             Ability::Pawprint { limit, modes } => {
                 AbilityDef::Modal(self.pawprint_modes(*limit, modes)?)

@@ -3745,6 +3745,7 @@ fn static_condition(s: &str) -> Option<String> {
         }
         "his sneak cost was paid" => return Some("his sneak paid".to_string()),
         "her sneak cost was paid" => return Some("her sneak paid".to_string()),
+        "this spell was kicked" => return Some("kicked".to_string()),
         "this spell was cast using teamwork" => {
             return Some("teamwork".to_string());
         }
@@ -6339,6 +6340,52 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
                 i += 1;
             }
             b.spree(&modes)?;
+            continue;
+        }
+        // "Choose one. If this spell was cast using teamwork, choose both
+        // instead." (CR 700.2), with an ability word before it.
+        let (cond_label, cond_line) = match line.split_once(" — ") {
+            Some((word, h)) if ABILITY_WORDS.contains(&word) => (Some(word), h),
+            _ => (None, line),
+        };
+        if let Some(c) = Regex::new(
+            r"^Choose one\. If (.+), (you may )?choose (both|one or more|any number) instead\.$",
+        )
+        .unwrap()
+        .captures(cond_line)
+        {
+            let text = cap(&c, 1);
+            let cond = static_condition(text)
+                .or_else(|| {
+                    let n = Regex::new(
+                        r"^there are (\w+) or more card types among cards in your graveyard$",
+                    )
+                    .unwrap()
+                    .captures(text)?;
+                    Some(format!(
+                        "{} card types in your graveyard",
+                        number(cap(&n, 1))?
+                    ))
+                })
+                .ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            let may = if c.get(2).is_some() { "may " } else { "" };
+            let more = match cap(&c, 3) {
+                "one or more" => "more",
+                m => m,
+            };
+            let head = format!("choose one or {more} if {may}{cond}");
+            let mut modes = Vec::new();
+            i += 1;
+            while i < lines.len() && lines[i].starts_with("• ") {
+                modes.push(lines[i][3..].to_string());
+                i += 1;
+            }
+            b.modal(&modes, &head)?;
+            if let Some(l) = cond_label
+                && let Some(st) = b.statements.last_mut()
+            {
+                *st = format!("label \"{l}\" {st}");
+            }
             continue;
         }
         let head = match line {

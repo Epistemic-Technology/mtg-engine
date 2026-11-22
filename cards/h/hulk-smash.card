@@ -1,0 +1,10 @@
+card "HULK SMASH!" {
+  oracle_id 5f97d49c-d0fa-4776-9455-93c1a172cd83
+  cost {1}{R}
+  type Instant
+  teamwork 4
+  choose one or both if teamwork {
+    mode: destroy target noncreature artifact
+    mode: target creature you control bites target creature an opponent controls
+  }
+}

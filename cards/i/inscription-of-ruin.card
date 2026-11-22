@@ -1,0 +1,11 @@
+card "Inscription of Ruin" {
+  oracle_id 760e8561-4ec6-4594-ba5d-f79cb9f25fd0
+  cost {2}{B}
+  type Sorcery
+  kicker {2}{B}{B}
+  choose one or any number if kicked {
+    mode: target opponent discards 2 cards
+    mode: return target creature card with mana value 2 or less from your graveyard to battlefield
+    mode: destroy target creature with mana value 3 or less
+  }
+}

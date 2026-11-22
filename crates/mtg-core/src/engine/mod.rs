@@ -847,7 +847,7 @@ impl GameState {
                     return StepResult::Decision(Decision {
                         player,
                         kind: DecisionKind::Kicker { spell },
-                        options: vec![Choice::Accept, Choice::Decline],
+                        options: self.linked_cost_options(spell),
                     });
                 }
                 Flow::ChoosingBuyback { spell } => {
@@ -996,6 +996,13 @@ impl GameState {
                     if without {
                         options.push(Choice::Decline);
                     }
+                    // "If this spell was cast using teamwork, choose both
+                    // instead" (CR 700.2): the modes chose it.
+                    match self.linked_cost_answer(spell) {
+                        Some(true) => options = vec![Choice::Accept],
+                        Some(false) => options = vec![Choice::Decline],
+                        None => {}
+                    }
                     return StepResult::Decision(Decision {
                         player: obj.controller,
                         kind: DecisionKind::Teamwork { spell },
@@ -1010,7 +1017,7 @@ impl GameState {
                     return StepResult::Decision(Decision {
                         player: obj.controller,
                         kind: DecisionKind::OptionalCost { spell },
-                        options: vec![Choice::Accept, Choice::Decline],
+                        options: self.linked_cost_options(spell),
                     });
                 }
                 Flow::ChoosingConspire { spell } => {
@@ -2564,6 +2571,16 @@ impl GameState {
             Flow::ChoosingMultikicker { spell }
         } else {
             self.after_kicker(spell)
+        }
+    }
+
+    /// Accept or decline an optional cost, or only the answer the chosen
+    /// modes require (`linked_cost_answer`).
+    fn linked_cost_options(&self, spell: ObjId) -> Vec<Choice> {
+        match self.linked_cost_answer(spell) {
+            Some(true) => vec![Choice::Accept],
+            Some(false) => vec![Choice::Decline],
+            None => vec![Choice::Accept, Choice::Decline],
         }
     }
 
