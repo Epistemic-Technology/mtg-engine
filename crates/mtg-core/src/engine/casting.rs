@@ -953,6 +953,15 @@ impl GameState {
                 self.spent_on(ctx.source)
                     .count(crate::card::SpentKind::Treasure) as usize
             }
+            CountExpr::SpentTotal => self
+                .spent_on(ctx.source)
+                .count(crate::card::SpentKind::Total) as usize,
+            CountExpr::ThatSpellSpent => ctx.trigger_obj.map_or(0, |t| {
+                self.spent_on(t).count(crate::card::SpentKind::Total) as usize
+            }),
+            CountExpr::ThatSpellSpentColors => ctx
+                .trigger_obj
+                .map_or(0, |t| self.spent_on(t).colors() as usize),
             CountExpr::Domain => self.basic_land_types(you),
             CountExpr::CardsInHand => self.player(you).hand.len(),
             CountExpr::Plus(k, inner) => return k.saturating_add(self.eval_count(inner, ctx)),

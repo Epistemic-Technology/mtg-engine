@@ -10019,8 +10019,14 @@ impl P {
         if self.eat_words(&["colors", "among", "permanents"]) {
             return Ok(CountExpr::ColorsAmongPermanents);
         }
+        if self.eat_words(&["mana", "spent"]) {
+            let that = self.eat_words(&["that", "spell"]);
+            return Ok(CountExpr::ManaSpent { that });
+        }
         if self.eat_words(&["colors", "spent"]) {
-            let of = if self.eat_word("spell") {
+            let of = if self.eat_words(&["that", "spell"]) {
+                crate::ast::SpentOf::That
+            } else if self.eat_word("spell") {
                 crate::ast::SpentOf::Spell
             } else if self.eat_word("creature") {
                 crate::ast::SpentOf::Creature

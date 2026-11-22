@@ -1,0 +1,8 @@
+card "Aberrant Manawurm" {
+  oracle_id a0657586-0404-4bb0-a92d-25f040d560c1
+  cost {3}{G}
+  type Creature — Wurm
+  pt 2/5
+  keywords trample
+  triggered whenever you cast an instant or sorcery spell: this gets +1/+0 count where mana spent that spell until end of turn
+}

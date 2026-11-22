@@ -2019,6 +2019,15 @@ pub enum CountExpr {
     /// The mana from Treasures spent to cast the source ("for each mana
     /// from a Treasure spent to cast it").
     SpentTreasure,
+    /// "the amount of mana spent to cast it" (CR 601.2h): all the mana
+    /// paid to cast the source, X included.
+    SpentTotal,
+    /// "the amount of mana spent to cast that spell": the spell that
+    /// triggered the ability ("Whenever you cast an instant or sorcery
+    /// spell"); 0 for one not cast.
+    ThatSpellSpent,
+    /// "for each color of mana spent to cast that spell".
+    ThatSpellSpentColors,
     /// The votes the resolution's vote (`Effect::Vote`) gave its `n`th
     /// choice ("for each sprout vote").
     Votes(u8),
@@ -2220,6 +2229,9 @@ impl CountExpr {
             | CountExpr::SpentColors
             | CountExpr::TimesKicked
             | CountExpr::SpentTreasure
+            | CountExpr::SpentTotal
+            | CountExpr::ThatSpellSpent
+            | CountExpr::ThatSpellSpentColors
             | CountExpr::DiedThisTurn(_)
             | CountExpr::TriggerStat(_)
             | CountExpr::AttachedStat(_)
@@ -9319,6 +9331,7 @@ impl CardPool {
                     out.record = true;
                     out.treasure = u8::MAX;
                 }
+                CountExpr::SpentTotal => out.record = true,
                 _ => {}
             }
         }
@@ -9667,7 +9680,21 @@ impl CardPool {
             DefFlags::TURN_STATIC,
             def.hand_static || def.step_static || def.history_static,
         );
-        flags.set(DefFlags::SPENT_WATCH, self.watches_spent(&def.abilities));
+        // "the amount of mana spent to cast that spell".
+        let reads_that = def.counts.iter().any(|c| {
+            let c = match c {
+                CountExpr::Times(_, inner) => &**inner,
+                c => c,
+            };
+            matches!(
+                c,
+                CountExpr::ThatSpellSpent | CountExpr::ThatSpellSpentColors
+            )
+        });
+        flags.set(
+            DefFlags::SPENT_WATCH,
+            reads_that || self.watches_spent(&def.abilities),
+        );
         // "Enchanted creature ... can only attack alone" (Errantry): a
         // granted attack restriction counts its source in
         // `GameState::attack_rule_sources` too.

@@ -1,0 +1,48 @@
+scenario "Aberrant Manawurm gets +X/+0 for the mana spent on the spell" {
+  battlefield A: "Aberrant Manawurm", "Island", "Island", "Island"
+  hand A: "Divination"
+  library A: "Forest", "Forest", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Divination"
+  run_to turn 2 begin_combat
+  assert power "Aberrant Manawurm" 5
+}
+
+scenario "Aberrant Manawurm counts one for a one-mana spell" {
+  battlefield A: "Aberrant Manawurm", "Mountain"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 begin_combat
+  assert power "Aberrant Manawurm" 3
+}
+
+scenario "Magmablood Archaic counts the colors spent on the spell" {
+  battlefield A: "Magmablood Archaic", "Grizzly Bears", "Island", "Mountain", "Forest"
+  hand A: "Divination"
+  library A: "Forest", "Forest", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Divination"
+  run_to turn 2 begin_combat
+  assert power "Grizzly Bears" 5
+}
+
+scenario "Magmablood Archaic: one color, +1/+0" {
+  battlefield A: "Magmablood Archaic", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 begin_combat
+  assert power "Grizzly Bears" 3
+}
+
+scenario "Uncover the Moon-Letters draws as many cards as mana spent, then discards two" {
+  battlefield A: "Uncover the Moon-Letters", "Island", "Island", "Island"
+  hand A: "Divination"
+  library A: "Forest", "Forest", "Forest", "Forest", "Forest", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Divination"
+  run_to turn 2 begin_combat
+  assert hand A count 3
+  assert graveyard A contains 2 "Forest"
+}

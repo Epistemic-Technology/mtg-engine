@@ -1,0 +1,9 @@
+card "Magmablood Archaic" {
+  oracle_id c6a5adc8-ee57-421e-8235-0b3160f44568
+  cost {2/R}{2/R}{2/R}
+  type Creature — Avatar
+  pt 2/2
+  keywords reach, trample
+  label "Converge" enters with count each colors spent +1/+1 counters
+  triggered whenever you cast an instant or sorcery spell: creatures you control get +1/+0 count each colors spent that spell until end of turn
+}

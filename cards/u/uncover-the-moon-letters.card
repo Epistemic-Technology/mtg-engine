@@ -1,0 +1,6 @@
+card "Uncover the Moon-Letters" {
+  oracle_id 4c67359d-5590-4eb0-827e-b411967ee238
+  cost {3}{U}
+  type Enchantment
+  triggered whenever you cast noncreature spell: you may draw count where mana spent that spell cards; if you do, discard 2 cards
+}

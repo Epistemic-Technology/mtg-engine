@@ -4216,8 +4216,19 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 format!("times {it} was kicked"),
             )
         }
+        CountExpr::ManaSpent { that } => {
+            let it = if *that {
+                "that spell"
+            } else if is_instant_or_sorcery(card) {
+                "this spell"
+            } else {
+                "it"
+            };
+            return format!("the amount of mana spent to cast {it}");
+        }
         CountExpr::SpentColors(_) | CountExpr::SpentTreasure => {
             let it = match c {
+                CountExpr::SpentColors(crate::ast::SpentOf::That) => "that spell",
                 CountExpr::SpentColors(crate::ast::SpentOf::Spell) => "this spell",
                 CountExpr::SpentColors(crate::ast::SpentOf::Creature) => "this creature",
                 _ if is_instant_or_sorcery(card) => "this spell",

@@ -447,6 +447,12 @@ pub enum CountExpr {
     TimesKicked,
     /// `treasure spent`: "mana from a Treasure spent to cast it".
     SpentTreasure,
+    /// `mana spent`: "the amount of mana spent to cast it"; `mana spent
+    /// that spell`: "... to cast that spell", the spell that triggered the
+    /// ability (CR 601.2h).
+    ManaSpent {
+        that: bool,
+    },
     /// `opponents graveyards [<filter>]`: "cards in your opponents'
     /// graveyards".
     CardsInOpponentsGraveyards(Option<Filter>),
@@ -5043,4 +5049,7 @@ pub enum SpentOf {
     Spell,
     /// "this creature".
     Creature,
+    /// `colors spent that spell`: "that spell", the spell that triggered
+    /// the ability (not converge: it reads that spell, not the source).
+    That,
 }

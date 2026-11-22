@@ -2415,7 +2415,10 @@ impl Compiler<'_> {
             A::TargetManaValue { n, .. } => C::TargetManaValue(target_index(self.tmap, *n)),
             A::CardManaValue(_) => C::CardManaValue,
             A::ColorsAmongPermanents => C::ColorsAmongPermanents,
+            A::SpentColors(crate::ast::SpentOf::That) => C::ThatSpellSpentColors,
             A::SpentColors(_) => C::SpentColors,
+            A::ManaSpent { that: false } => C::SpentTotal,
+            A::ManaSpent { that: true } => C::ThatSpellSpent,
             A::TimesKicked => C::TimesKicked,
             A::SpentTreasure => C::SpentTreasure,
             A::CardsInOpponentsGraveyards(f) => {

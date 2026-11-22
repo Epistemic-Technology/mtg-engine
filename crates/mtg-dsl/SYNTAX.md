@@ -1255,6 +1255,17 @@ in a spell, an intervening "if", or `this spell costs {2} less if
 evidence collected` (printed after the cost, in its paragraph); the
 permanent a spell becomes keeps it.
 
+The mana spent to cast a spell (CR 601.2h): `mana spent` counts all of
+it ("the amount of mana spent to cast it", "this spell" on an instant or
+sorcery), and `mana spent that spell` the triggering spell's ("Whenever
+you cast an instant or sorcery spell, this creature gets +X/+0 until end
+of turn, where X is the amount of mana spent to cast that spell":
+`triggered whenever you cast an instant or sorcery spell: this gets
++1/+0 count where mana spent that spell until end of turn`); `colors
+spent that spell` counts that spell's colors ("for each color of mana
+spent to cast that spell"). A permanent with such a count makes every
+cast record what was spent.
+
 Converge (CR 601.2h): `colors spent` counts the colors of mana spent to
 cast the source ("this spell" on an instant or sorcery, "it" otherwise;
 `colors spent spell` and `colors spent creature` print "this spell" and
@@ -2043,7 +2054,9 @@ mana that sentence adds stays in the pool as steps end, until the cleanup
 step ends, the player's other mana taken to be spent first; CR 500.4),
 `add {R} that much` ("add that much {R}", the triggering event's amount:
 "Whenever Raphael is dealt damage, add that much {R}"), `add any 2` ("Add
-two mana of any one color."), `add 2 mana
+two mana of any one color."; `add any count where power`: "Add X mana of
+any one color, where X is this creature's power.", the color chosen once),
+`add 2 mana
 any combination` / `add 3 mana any combination of {R}{G}` / `add 2 mana
 different colors` ("Add two mana in any combination of colors.", "Add
 three mana in any combination of {R} and/or {G}.", "Add two mana of

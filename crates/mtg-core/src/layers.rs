@@ -1418,6 +1418,9 @@ fn per_count(
         | CountExpr::SpentColors
         | CountExpr::TimesKicked
         | CountExpr::SpentTreasure
+        | CountExpr::SpentTotal
+        | CountExpr::ThatSpellSpent
+        | CountExpr::ThatSpellSpentColors
         | CountExpr::DiedThisTurn(_)
         | CountExpr::TriggerStat(_)
         | CountExpr::AttachedStat(_)
