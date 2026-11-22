@@ -3633,6 +3633,16 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
     match t {
         Trigger::When(_) => unreachable!("unwrapped by trigger_text"),
         Trigger::Next(inner) => trigger_text(inner, next).replacen("whenever", "when next", 1),
+        Trigger::Batch(inner) => match &**inner {
+            Trigger::PutIntoGraveyard(f) => format!(
+                "whenever one or more {} card put into your graveyard from anywhere",
+                filter(f)
+            ),
+            Trigger::BecomesTapped(TriggerObj::Filter(f)) => {
+                format!("whenever one or more {} become tapped", filter(f))
+            }
+            t => unreachable!("no batched form of {t:?}"),
+        },
         Trigger::State(c) => format!("when {}", static_cond(c)),
         Trigger::Enters(o) => format!("whenever {} enters", trigger_obj(o)),
         Trigger::Dies(o) => format!("whenever {} dies", trigger_obj(o)),
@@ -3802,6 +3812,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             kind.name(),
             trigger_obj(obj)
         ),
+        Trigger::NthCounterPut { kind, n } => {
+            format!("whenever nth {n} {} counter put on this", kind.name())
+        }
         Trigger::YouPutCounters { obj, kind } => format!(
             "whenever you put one or more {}counters on {}",
             kind.map_or(String::new(), |k| format!("{} ", k.name())),

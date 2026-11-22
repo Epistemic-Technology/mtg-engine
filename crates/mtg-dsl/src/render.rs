@@ -655,6 +655,20 @@ fn card_filter_phrase(f: &Filter, card: &Card) -> String {
 /// A cost changer's subject: "Goblin spells and Rogue spells", "Red
 /// spells and white spells" for two alternatives.
 /// "second", "third", "4th".
+/// "the fourth plan counter", "the seventh".
+fn nth_word(n: u32) -> String {
+    match n {
+        4 => "fourth".to_string(),
+        5 => "fifth".to_string(),
+        6 => "sixth".to_string(),
+        7 => "seventh".to_string(),
+        8 => "eighth".to_string(),
+        9 => "ninth".to_string(),
+        10 => "tenth".to_string(),
+        n => ordinal_word(n),
+    }
+}
+
 fn ordinal_word(n: u32) -> String {
     match n {
         1 => "first".to_string(),
@@ -2566,6 +2580,12 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
         String::new()
     } else {
         format!("{} ", card_filter_phrase(&g, card))
+    };
+    // `andor`: "up to two target instant and/or sorcery cards".
+    let p = if plural_form && f.and_or {
+        p.replacen(" or ", " and/or ", 1)
+    } else {
+        p
     };
     let noun = if plural_form { "cards" } else { "card" };
     // "a card with flash": only qualities after the noun.
@@ -8352,6 +8372,15 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
             && clauses[i - 1].text.starts_with("deals ")
         {
             &c.text["deals ".len()..]
+        } else if i > 0
+            && s.joins.get(i - 1) == Some(&Join::And)
+            && matches!(s.effects[i], Effect::AddCounters { .. })
+            && matches!(s.effects[i - 1], Effect::AddCounters { .. })
+            && c.text.starts_with("put ")
+        {
+            // "put a +1/+1 counter on target creature you control and a
+            // plan counter on this enchantment" (`, and` repeats "put").
+            &c.text["put ".len()..]
         } else if same_subject
             && c.text.starts_with("gains \"")
             && clauses[i - 1].text.starts_with("gains ")
@@ -8514,6 +8543,18 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::Next(inner) => {
             trigger_text(inner, ctx, next).replacen("whenever you cast", "when you next cast", 1)
         }
+        // CR 603.2c.
+        Trigger::Batch(inner) => match &**inner {
+            Trigger::PutIntoGraveyard(f) => format!(
+                "whenever one or more {} cards are put into your graveyard from anywhere",
+                card_filter_phrase(f, ctx.card)
+            ),
+            Trigger::BecomesTapped(TriggerObj::Filter(f)) => format!(
+                "whenever one or more {} become tapped",
+                controller_first(f, filter_phrase(f, ctx.card, true))
+            ),
+            t => unreachable!("no batched form of {t:?}"),
+        },
         Trigger::State(c) => format!("when {}", static_cond_text(c, ctx.card)),
         Trigger::Either(a, b) => {
             let a = trigger_text(a, ctx, next);
@@ -8993,6 +9034,12 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             "whenever one or more {} counters are put on {}",
             counter_name(*kind),
             trigger_subject(obj, ctx)
+        ),
+        Trigger::NthCounterPut { kind, n } => format!(
+            "whenever the {} {} counter is put on {}",
+            nth_word(*n),
+            counter_name(*kind),
+            trigger_subject(&TriggerObj::This, ctx)
         ),
         Trigger::YouPutCounters { obj, kind } => format!(
             "whenever you put one or more {}counters on {}",

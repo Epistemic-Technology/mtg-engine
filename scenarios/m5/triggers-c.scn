@@ -155,6 +155,101 @@ scenario "mana until end of turn: Branch of Vitu-Ghazi turned face up adds two m
   assert life B 15
 }
 
+scenario "plan counters: Political Triumph's fourth plan counter sacrifices it" {
+  battlefield A: "Political Triumph" with 3 plan, "Hill Giant", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Political Triumph"
+  assert hand A count 1
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Hill Giant" +1/+1 1
+}
+
+scenario "plan counters: Political Triumph's third plan counter does nothing more" {
+  battlefield A: "Political Triumph" with 2 plan, 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Political Triumph"
+  assert counters "Political Triumph" plan 3
+  assert hand A count 0
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "plan counters: Claim the Kingdom puts an indestructible counter on its target" {
+  battlefield A: "Claim the Kingdom" with 3 plan, "Grizzly Bears"
+  hand A: "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: play "Forest"
+  turn 2 A: trigger "Claim the Kingdom" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Claim the Kingdom"
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Grizzly Bears" indestructible 1
+}
+
+scenario "plan counters: Death to Our Enemies deals 7 damage when sacrificed" {
+  battlefield A: "Death to Our Enemies" with 3 plan, "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  turn 2 A: trigger "Death to Our Enemies" targeting player B
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Death to Our Enemies"
+  assert battlefield A contains "Treasure"
+  assert life B 10
+}
+
+scenario "plan counters: Robot Domination triggers once for creature cards put into the graveyard together" {
+  battlefield A: "Robot Domination", 2 "Grizzly Bears", 2 "Mountain"
+  hand A: "Pyroclasm"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Pyroclasm"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains 2 "Grizzly Bears"
+  assert counters "Robot Domination" plan 1
+  assert hand A count 1
+  assert life A 19
+}
+
+scenario "plan counters: Robot Domination's third plan counter makes three Robots" {
+  battlefield A: "Robot Domination" with 2 plan, "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Robot Domination"
+  assert battlefield A contains 3 "Robot Villain"
+}
+
+scenario "plan counters: Rewrite History triggers once for creatures tapped together" {
+  battlefield A: "Rewrite History", "Grizzly Bears", "Hill Giant"
+  hand A: "Island"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert counters "Rewrite History" plan 1
+  assert hand A count 2
+  assert graveyard A count 1
+}
+
+scenario "plan counters: Rewrite History returns two instant and sorcery cards" {
+  battlefield A: "Rewrite History" with 3 plan, "Grizzly Bears"
+  graveyard A: "Lightning Bolt", "Pyroclasm"
+  hand A: "Island"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 declare_attackers A: discard "Island"
+  turn 2 A: trigger "Rewrite History" targeting "Lightning Bolt", "Pyroclasm"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Rewrite History"
+  assert hand A contains "Lightning Bolt"
+  assert hand A contains "Pyroclasm"
+}
+
 scenario "if you cast it: Geological Appraiser discovers 3 when cast" {
   battlefield A: 4 "Mountain"
   hand A: "Geological Appraiser"

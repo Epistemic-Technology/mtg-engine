@@ -86,6 +86,7 @@ impl GameState {
                         | TriggerSpec::LeavesGraveyard(_)
                         | TriggerSpec::DiscardsBatch { .. }
                         | TriggerSpec::SacrificesBatch(_)
+                        | TriggerSpec::Batch(_)
                 );
                 // "one or more creatures you control deal combat damage to
                 // a player": once per player dealt damage together.
@@ -1077,6 +1078,18 @@ impl GameState {
                 let p = on_battlefield(what, *obj)?;
                 Some((Some(*obj), Some(p)))
             }
+            // "When the fourth plan counter is put on this enchantment".
+            (
+                TriggerSpec::NthCounterPut { kind, n: nth },
+                Event::CountersAdded {
+                    obj,
+                    kind: k,
+                    n,
+                    before,
+                    ..
+                },
+            ) => (*obj == w.source && k == kind && *before < *nth && before + n >= *nth)
+                .then_some((Some(*obj), Some(w.controller))),
             // CR 714.2c: lore counters put on this Saga take their number
             // from below a chapter number to at least it.
             (
@@ -1474,6 +1487,8 @@ impl GameState {
             (TriggerSpec::Either(pair), _) => self
                 .fires(&pair.0, event, w)
                 .or_else(|| self.fires(&pair.1, event, w)),
+            // CR 603.2c: batched by `detect_triggers`.
+            (TriggerSpec::Batch(inner), _) => self.fires(inner, event, w),
             _ => self.fires_more(spec, event, w),
         }
     }

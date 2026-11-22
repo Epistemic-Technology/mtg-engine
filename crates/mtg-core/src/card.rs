@@ -2741,6 +2741,8 @@ pub enum CounterKind {
     DoubleStrike,
     /// A named counter with no rules of its own (Myojin of Night's Reach).
     Divinity,
+    /// Plan counters on a Plan enchantment (no rules of their own).
+    Plan,
     /// Not a kind: "remove a counter from this creature" (a cost), counters
     /// of every kind. `GameObject::counters` totals them; removing them
     /// takes -1/-1 counters first, then kinds that don't change power or
@@ -2760,7 +2762,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 46] = [
+    pub const NAMED: [(&'static str, CounterKind); 47] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -2807,6 +2809,7 @@ impl CounterKind {
         ("indestructible", CounterKind::Indestructible),
         ("double strike", CounterKind::DoubleStrike),
         ("divinity", CounterKind::Divinity),
+        ("plan", CounterKind::Plan),
     ];
 
     /// Power/toughness counters by their Oracle name, with what each adds
@@ -5412,6 +5415,17 @@ pub enum TriggerSpec {
     /// 122.1): once per instruction putting counters of that kind on it,
     /// however many.
     CountersPut { what: TriggerObj, kind: CounterKind },
+    /// "When the fourth plan counter is put on this enchantment": counters
+    /// of that kind put on the source take their number from below `n` to
+    /// `n` or more.
+    NthCounterPut { kind: CounterKind, n: u32 },
+    /// The "one or more" form of a per-object trigger (CR 603.2c): "Whenever
+    /// one or more creature cards are put into your graveyard from
+    /// anywhere", "Whenever one or more creatures you control become
+    /// tapped": once for the matching objects of events that happen
+    /// together (before the next time a player would receive priority),
+    /// their number the trigger's amount.
+    Batch(Box<TriggerSpec>),
     /// "Whenever you put one or more +1/+1 counters on a creature you
     /// control", "... counters on a Goblin, Orc, or Army you control"
     /// (`kind` `None`: any kind): once per permanent counters are put on
@@ -5657,7 +5671,7 @@ impl TriggerSpec {
             } => WATCH_DISCARD,
             TriggerSpec::Cycles { .. } => WATCH_CYCLE,
             TriggerSpec::Either(pair) => pair.0.watch_mask() | pair.1.watch_mask(),
-            TriggerSpec::Next(inner) => inner.watch_mask(),
+            TriggerSpec::Next(inner) | TriggerSpec::Batch(inner) => inner.watch_mask(),
             TriggerSpec::UnlocksDoor { .. }
             | TriggerSpec::BecomesStage(_)
             | TriggerSpec::FullyUnlocks { .. }
@@ -5668,6 +5682,7 @@ impl TriggerSpec {
             | TriggerSpec::Sacrificed { .. }
             | TriggerSpec::SacrificesBatch(_) => WATCH_SACRIFICE,
             TriggerSpec::CountersPut { .. }
+            | TriggerSpec::NthCounterPut { .. }
             | TriggerSpec::YouPutCounters { .. }
             | TriggerSpec::Chapter(_) => WATCH_COUNTERS,
             TriggerSpec::ScriesOrSurveils

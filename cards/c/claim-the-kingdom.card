@@ -1,0 +1,7 @@
+card "Claim the Kingdom" {
+  oracle_id 3cd15225-e9b6-4998-b545-76536c72e948
+  cost {1}{G}
+  type Enchantment — Plan
+  label "Landfall" triggered whenever land you control enters: put 1 +1/+1 counter on target creature you control and put 1 plan counter on this
+  triggered when nth 4 plan counter put on this: sacrifice this; when you do, put 1 indestructible counter on target creature you control
+}

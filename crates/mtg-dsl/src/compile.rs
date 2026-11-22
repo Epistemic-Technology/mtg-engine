@@ -3483,6 +3483,7 @@ impl Compiler<'_> {
                 what: self.trigger_obj(obj),
                 kind: *kind,
             },
+            Trigger::NthCounterPut { kind, n } => TriggerSpec::NthCounterPut { kind: *kind, n: *n },
             Trigger::YouPutCounters { obj, kind } => TriggerSpec::YouPutCounters {
                 what: self.trigger_obj(obj),
                 kind: *kind,
@@ -3513,6 +3514,7 @@ impl Compiler<'_> {
             },
             Trigger::CastThis { or_cycle: false } => TriggerSpec::CastThis,
             Trigger::Next(inner) => TriggerSpec::Next(Box::new(self.trigger(inner))),
+            Trigger::Batch(inner) => TriggerSpec::Batch(Box::new(self.trigger(inner))),
             Trigger::Sacrifices(f) => TriggerSpec::Sacrifices(self.filter(f)),
             Trigger::CastThis { or_cycle: true } => TriggerSpec::Either(Box::new((
                 TriggerSpec::CastThis,

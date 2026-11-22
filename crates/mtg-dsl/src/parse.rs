@@ -11069,6 +11069,14 @@ impl P {
             let n = self.number()?;
             return Ok(Trigger::Expends(u8::try_from(n).unwrap_or(u8::MAX)));
         }
+        // "the fourth plan counter is put on this enchantment".
+        if self.eat_word("nth") {
+            let n = self.number()?;
+            let kind = self.counter_kind()?;
+            self.eat_word("counter");
+            self.expect_words(&["put", "on", "this"])?;
+            return Ok(Trigger::NthCounterPut { kind, n });
+        }
         // CR 122.1: "one or more +1/+1 counters are put on this creature".
         if self.eat_words(&["one", "or", "more", "creatures", "you", "control", "attack"]) {
             return Ok(Trigger::CreaturesYouControlAttack);
@@ -11104,6 +11112,16 @@ impl P {
         // CR 603.2c: "one or more artifacts you control enter".
         if self.eat_words(&["one", "or", "more"]) {
             let f = self.filter()?;
+            // "one or more creature cards are put into your graveyard from
+            // anywhere", "one or more creatures you control become tapped".
+            if self.eat_words(&["card", "put", "into", "your", "graveyard", "from", "anywhere"]) {
+                return Ok(Trigger::Batch(Box::new(Trigger::PutIntoGraveyard(f))));
+            }
+            if self.eat_words(&["become", "tapped"]) {
+                return Ok(Trigger::Batch(Box::new(Trigger::BecomesTapped(
+                    TriggerObj::Filter(f),
+                ))));
+            }
             // "one or more other creatures die", "... leave the
             // battlefield" (CR 603.10a).
             if self.eat_word("die") {
@@ -12440,6 +12458,7 @@ impl P {
 fn no_trigger_amount(t: &Trigger) -> bool {
     match t {
         Trigger::When(t) | Trigger::Next(t) => no_trigger_amount(t),
+        Trigger::Batch(_) => false,
         Trigger::Either(a, b) => no_trigger_amount(a) && no_trigger_amount(b),
         Trigger::CastsSpell { .. }
         | Trigger::CastsFiltered { .. }
@@ -12456,7 +12475,7 @@ fn no_trigger_amount(t: &Trigger) -> bool {
 /// would denote nothing.
 fn no_trigger_object(t: &Trigger) -> bool {
     match t {
-        Trigger::When(t) | Trigger::Next(t) => no_trigger_object(t),
+        Trigger::When(t) | Trigger::Next(t) | Trigger::Batch(t) => no_trigger_object(t),
         Trigger::Either(a, b) => no_trigger_object(a) && no_trigger_object(b),
         Trigger::State(_)
         | Trigger::EveryStep(_)

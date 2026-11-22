@@ -1,0 +1,7 @@
+card "Death to Our Enemies" {
+  oracle_id c2b2b743-dfc7-439e-8563-1ccce54422bd
+  cost {2}{R}
+  type Enchantment — Plan
+  triggered whenever you cast noncreature spell: create 1 tapped "Treasure" and put 1 plan counter on this
+  triggered when nth 4 plan counter put on this: sacrifice this; when you do, deal 7 damage divided among 1 to 2 targets
+}

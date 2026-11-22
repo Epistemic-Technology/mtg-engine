@@ -2563,6 +2563,12 @@ pub enum Trigger {
         obj: TriggerObj,
         kind: CounterKind,
     },
+    /// `when nth 4 plan counter put on this`: "When the fourth plan
+    /// counter is put on this enchantment".
+    NthCounterPut {
+        kind: CounterKind,
+        n: u32,
+    },
     /// `whenever you put one or more +1/+1 counters on creature you
     /// control`: "Whenever you put one or more +1/+1 counters on a creature
     /// you control"; `... one or more counters on ...` (any kind).
@@ -2620,6 +2626,11 @@ pub enum Trigger {
     /// trigger, followed by `this turn`): "When you next cast an instant
     /// or sorcery spell this turn" (CR 603.7c), once.
     Next(Box<Trigger>),
+    /// The "one or more" form of a per-object trigger (CR 603.2c): `one or
+    /// more creature card put into your graveyard from anywhere` ("one or
+    /// more creature cards are put into your graveyard from anywhere"),
+    /// `one or more creature you control become tapped`.
+    Batch(Box<Trigger>),
     /// `when you cycle this` ("When you cycle this card"), `whenever you
     /// cycle a card`, `whenever you cycle another card`, `whenever you
     /// cycle or discard a card` (CR 702.29).
