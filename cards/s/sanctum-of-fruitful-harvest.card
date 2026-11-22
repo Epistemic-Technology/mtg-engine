@@ -1,0 +1,6 @@
+card "Sanctum of Fruitful Harvest" {
+  oracle_id 132859dd-de66-45c6-8af4-ab5e202a17b0
+  cost {2}{G}
+  type Legendary Enchantment — Shrine
+  triggered at beginning of your first main: add any count where Shrine you control
+}
