@@ -162,6 +162,34 @@ scenario "Spell Blast: a spell's X counts in its mana value on the stack" {
   assert graveyard B contains "Blaze"
 }
 
+# "If a triggered ability of another creature you control of the chosen
+# type triggers, it triggers an additional time": the type Roaming Throne
+# chose (CR 603.2d).
+scenario "Roaming Throne: an Elf's enters trigger triggers twice with Elf chosen" {
+  battlefield A: 6 "Forest"
+  hand A: "Roaming Throne", "Elvish Visionary"
+  library A: "Island", "Island", "Island"
+  turn 1 A: cast "Roaming Throne"
+  turn 1 A: choose Elf
+  turn 1 A: wait
+  turn 1 A: cast "Elvish Visionary"
+  run_to turn 1 end
+  assert is "Roaming Throne" Elf
+  assert hand A count 2
+}
+
+scenario "Roaming Throne: a creature of another type triggers once" {
+  battlefield A: 4 "Forest", 2 "Plains"
+  hand A: "Roaming Throne", "Wall of Omens"
+  library A: "Island", "Island", "Island"
+  turn 1 A: cast "Roaming Throne"
+  turn 1 A: choose Elf
+  turn 1 A: wait
+  turn 1 A: cast "Wall of Omens"
+  run_to turn 1 end
+  assert hand A count 1
+}
+
 # `delayed target 1: { when ..., <effects> }; <more>`: the braces end the
 # delayed trigger, so the fight happens as the spell resolves.
 scenario "Time to Feed: the creatures fight, and its death gains 3 life" {

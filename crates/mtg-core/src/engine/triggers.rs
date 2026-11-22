@@ -482,7 +482,9 @@ impl GameState {
                             kind == k && e.matches(*obj, *ctl, c, Some(id), Some(controller))
                         })
                     })
-                    && filter.matches(
+                    // "another creature you control of the chosen type"
+                    // (Roaming Throne): what this permanent chose.
+                    && self.with_source_chosen(filter, id).matches(
                         w.source,
                         w.controller,
                         &w.chars,
