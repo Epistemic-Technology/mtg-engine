@@ -5807,7 +5807,7 @@ impl GameState {
                     cost.discard_filter.as_ref().is_none_or(|f| {
                         let o = &self.objects[*id];
                         let ch = self.base_characteristics(o);
-                        f.matches(*id, o.owner, &ch, None, Some(p))
+                        f.matches(*id, o.owner, &ch, None, Some(p)) && self.status_ok(f, *id)
                     })
                 });
                 let Some(n) = next else { break };
@@ -8900,7 +8900,7 @@ impl GameState {
                             filter.as_ref().is_none_or(|f| {
                                 let o = &self.objects[*id];
                                 let c = self.base_characteristics(o);
-                                f.matches(*id, p, &c, Some(ctx.source), Some(ctx.controller))
+                                f.matches(*id, p, &c, Some(ctx.source), Some(ctx.controller)) && self.status_ok(f, *id)
                             })
                         })
                         .collect();
@@ -9343,7 +9343,7 @@ impl GameState {
                     .filter(|id| {
                         let o = &self.objects[**id];
                         let c = self.base_characteristics(o);
-                        filter.matches(**id, p, &c, None, Some(p))
+                        filter.matches(**id, p, &c, None, Some(p)) && self.status_ok(filter, **id)
                     })
                     .map(|id| Choice::Discard {
                         card: *id,
@@ -9504,7 +9504,7 @@ impl GameState {
                         .filter(|id| {
                             let o = &self.objects[**id];
                             let c = self.base_characteristics(o);
-                            filter.matches(**id, p, &c, Some(ctx.source), Some(ctx.controller))
+                            filter.matches(**id, p, &c, Some(ctx.source), Some(ctx.controller)) && self.status_ok(filter, **id)
                         })
                         .map(|id| Choice::Discard {
                             card: *id,
@@ -9563,7 +9563,7 @@ impl GameState {
                     .filter(|id| {
                         let o = &self.objects[*id];
                         let c = self.base_characteristics(o);
-                        filter.matches(*id, o.owner, &c, Some(ctx.source), Some(you))
+                        filter.matches(*id, o.owner, &c, Some(ctx.source), Some(you)) && self.status_ok(filter, *id)
                     })
                     .collect();
                 if cards.is_empty() {
@@ -10065,7 +10065,7 @@ impl GameState {
                         .filter(|id| {
                             let o = &self.objects[**id];
                             let c = self.base_characteristics(o);
-                            filter.matches(**id, p, &c, None, Some(p))
+                            filter.matches(**id, p, &c, None, Some(p)) && self.status_ok(filter, **id)
                         })
                         .map(|id| Choice::Discard {
                             card: *id,
@@ -10102,7 +10102,7 @@ impl GameState {
                             filter.as_ref().is_none_or(|f| {
                                 let o = &self.objects[*id];
                                 let c = self.base_characteristics(o);
-                                f.matches(*id, p, &c, None, Some(p))
+                                f.matches(*id, p, &c, None, Some(p)) && self.status_ok(f, *id)
                             })
                         })
                         .collect();
@@ -11105,7 +11105,7 @@ impl GameState {
                             continue;
                         }
                         let c = self.base_characteristics(o);
-                        if filter.matches(new, o.owner, &c, Some(ctx.source), Some(ctx.controller))
+                        if filter.matches(new, o.owner, &c, Some(ctx.source), Some(ctx.controller)) && self.status_ok(filter, new)
                         {
                             ctx.created = Some(new);
                             break;
@@ -11153,7 +11153,7 @@ impl GameState {
                             &c,
                             Some(ctx.source),
                             Some(ctx.controller),
-                        ) {
+                        ) && self.status_ok(filter, *id) {
                             ctx.created = Some(*id);
                             break;
                         }
@@ -11586,7 +11586,7 @@ impl GameState {
                     .filter(|id| {
                         let o = &self.objects[*id];
                         let c = self.base_characteristics(o);
-                        filter.matches(*id, p, &c, Some(ctx.source), Some(ctx.controller))
+                        filter.matches(*id, p, &c, Some(ctx.source), Some(ctx.controller)) && self.status_ok(filter, *id)
                     })
                     .collect();
                 for id in cards {

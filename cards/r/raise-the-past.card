@@ -1,0 +1,6 @@
+card "Raise the Past" {
+  oracle_id a69a24d0-ca58-4a44-8af1-a3bd1608d2f9
+  cost {2}{W}{W}
+  type Sorcery
+  spell: return all creature with mana value 2 or less card from your graveyard to battlefield
+}

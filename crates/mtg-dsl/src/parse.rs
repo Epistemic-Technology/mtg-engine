@@ -7142,7 +7142,9 @@ impl P {
             // battlefield."
             "return"
                 if self.at_word("all")
-                    && (1..8).any(|k| {
+                    // A long filter ("all creature with mana value 2 or
+                    // less card from your graveyard") is still one.
+                    && (1..24).any(|k| {
                         self.word_at(k).as_deref() == Some("card")
                             && self.word_at(k + 1).as_deref() == Some("from")
                             && self.word_at(k + 2).as_deref() == Some("your")
