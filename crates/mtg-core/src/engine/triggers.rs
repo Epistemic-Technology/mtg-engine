@@ -1862,6 +1862,7 @@ impl GameState {
     /// Put pending trigger `i` on the stack as an ability object; targets
     /// are then chosen (CR 603.3d). An ability that needs a target with no
     /// legal choice is removed instead.
+    #[allow(clippy::too_many_lines)] // one carry-over per kind of state
     pub(super) fn put_trigger(&mut self, i: usize) {
         let t = self.pending_triggers.remove(i);
         let def = t.ability.def;

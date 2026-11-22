@@ -5638,9 +5638,9 @@ impl P {
         // `they control` compiles to "an opponent controls", not the
         // player losing life, so it would count the wrong creatures.
         if matches!(subject, Recipient::EachPlayer | Recipient::You)
-            && self.counts[counts..].iter().any(|c| {
-                matches!(&c.expr, crate::ast::CountExpr::Permanents(f) if f.they_control)
-            })
+            && self.counts[counts..]
+                .iter()
+                .any(|c| matches!(&c.expr, crate::ast::CountExpr::Permanents(f) if f.they_control))
         {
             return self.fail(
                 "`they control` in a count for each player or you: it counts an opponent's permanents, not that player's",
@@ -8648,7 +8648,8 @@ impl P {
                 };
                 if closed {
                     self.expect(&Tok::RBrace)?;
-                } else if trigger_first && effects.len() > 1 && self.targets.len() > targets_before {
+                } else if trigger_first && effects.len() > 1 && self.targets.len() > targets_before
+                {
                     // "When that creature dies this turn, you gain 3 life.
                     // Target creature you control fights that creature.":
                     // the later sentence is the spell's, which the open

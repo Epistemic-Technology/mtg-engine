@@ -410,6 +410,7 @@ impl Runner {
             .collect()
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per decision kind
     fn decide(&mut self, d: &Decision, pos: Position) -> Res<ChoiceId> {
         match d.kind {
             DecisionKind::Mulligan => Ok(index_of(d, &Choice::Keep).unwrap_or(0)),
@@ -782,15 +783,30 @@ impl Runner {
     fn has_you_may(&self, player: PlayerId, pos: Position, def: mtg_core::card::CardRef) -> bool {
         let card = self.state().pool.get(def).name.clone();
         !self
-            .matching(player, pos, true, |a| matches!(a, Action::YouMay { name, .. } if *name == card))
+            .matching(
+                player,
+                pos,
+                true,
+                |a| matches!(a, Action::YouMay { name, .. } if *name == card),
+            )
             .is_empty()
     }
 
     /// Fires the first such `accept`/`decline` and returns whether it
     /// accepts.
-    fn you_may_answer(&mut self, player: PlayerId, pos: Position, def: mtg_core::card::CardRef) -> bool {
+    fn you_may_answer(
+        &mut self,
+        player: PlayerId,
+        pos: Position,
+        def: mtg_core::card::CardRef,
+    ) -> bool {
         let card = self.state().pool.get(def).name.clone();
-        let idxs = self.matching(player, pos, true, |a| matches!(a, Action::YouMay { name, .. } if *name == card));
+        let idxs = self.matching(
+            player,
+            pos,
+            true,
+            |a| matches!(a, Action::YouMay { name, .. } if *name == card),
+        );
         let Some(&i) = idxs.first() else {
             return true;
         };
@@ -1048,6 +1064,7 @@ impl Runner {
     /// Targets for a triggered ability on the stack: those scripted with its
     /// `trigger` line (fired now if the engine put the ability on the stack
     /// without an ordering decision), else the first legal option.
+    #[allow(clippy::too_many_lines)] // the scripted, illegal, and default paths
     fn choose_ability_target(
         &mut self,
         d: &Decision,
@@ -1295,8 +1312,7 @@ impl Runner {
                     } else {
                         stack_names.contains(n)
                     }
-                })
-                    && !self.waiting_in_exile(d.player, name)
+                }) && !self.waiting_in_exile(d.player, name)
                     && (own || !self.waiting_in_graveyard(d, name))
             }
             _ => false,

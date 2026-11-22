@@ -80,11 +80,6 @@ The renderer prints the right Oracle text for these, but the compiled
 card does something else. Scenarios catch them; the gate does not. Fix
 by rejecting the form at compile time or by binding it correctly.
 
-- **Found by the fifth wave's card batches; none is used by a card in
-  the corpus** (each card named was rejected):
-  - `each player loses count each creature they control life` is an
-    error now (it counted the other player's creatures): a count per
-    player isn't in (Stronghold Discipline).
 - **Template-author cards written before the first wave's catch-up**
   may read "it" as the source where the text means another object. Not
   audited.
@@ -130,7 +125,10 @@ named the feature; a card may need more than one.
   alone; "a Shaman or another Wizard" prints "other" (Harmonic Prodigy).
   Elrond, Moon-Reader's trigger is in; its "return those cards" delayed
   return of a group of targets is not.
-- **Counts:** mana spent on the triggering spell; counters of every
+- **Counts:** a count per player ("Each player loses 1 life for each
+  creature they control", Stronghold Discipline: `they control` there is
+  an error, since it compiled to "an opponent controls"); mana spent on
+  the triggering spell (Tellah, Great Sage); counters of every
   kind on the triggering object or a target ("counters on it" in a
   trigger); total power or toughness in a static ability; "if X is
   three or more" (a condition on a count, Obsessive Pursuit); cards in

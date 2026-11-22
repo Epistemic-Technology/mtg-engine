@@ -5328,7 +5328,8 @@ impl Compiler<'_> {
                             order: cost.order.clone(),
                             ..Default::default()
                         }
-                        && !(matches!(m, Mechanic::WardCost(_)) && ward_sacrifice(cost).is_some()) =>
+                        && !(matches!(m, Mechanic::WardCost(_))
+                            && ward_sacrifice(cost).is_some()) =>
                 {
                     return self.err(
                         "a ward or echo cost may be only mana (or waterbend), life, and discarded cards, or for ward the sacrifice of one permanent",
