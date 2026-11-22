@@ -1,0 +1,6 @@
+card "Time to Feed" {
+  oracle_id 59642d6f-8a25-4f79-9e81-643eac775658
+  cost {2}{G}
+  type Sorcery
+  spell: choose target creature an opponent controls; delayed target 1: { when that creature dies this turn, you gain 3 life }; target creature you control fights that target 1
+}

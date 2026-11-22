@@ -87,10 +87,9 @@ by rejecting the form at compile time or by binding it correctly.
 
 - **Found by the fifth wave's card batches; none is used by a card in
   the corpus** (each card named was rejected):
-  - `each player loses count each creature they control life`: every
-    player loses for the opponent's creatures (Stronghold Discipline).
-  - A sentence after `delayed target 1: when ...` is taken into the
-    delayed trigger, so it never happens on resolution (Time to Feed).
+  - `each player loses count each creature they control life` is an
+    error now (it counted the other player's creatures): a count per
+    player isn't in (Stronghold Discipline).
   - `trigger again other creature you control of chosen type` never
     doubles; the same with a named type does (Roaming Throne).
   - A status word in a target check is ignored: `if target 1 is

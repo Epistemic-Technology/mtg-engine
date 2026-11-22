@@ -6224,6 +6224,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         trigger_first: false,
                         this_turn: false,
                         it: false,
+                        closed: false,
                     },
                 ],
                 label: None,

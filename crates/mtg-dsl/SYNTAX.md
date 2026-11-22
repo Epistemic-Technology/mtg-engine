@@ -2146,7 +2146,13 @@ under its owner's control ..."; `return it`: "Return it ..."); in one about `tha
 creature` is the object too. `delayed target 1: when that creature dies
 this turn, <effects>` (and `when that creature leaves the battlefield this
 turn`) triggers once if that object dies (leaves) and ends unfired at the
-cleanup step (CR 603.7c). A target declared by the delayed ability
+cleanup step (CR 603.7c). Every sentence after a trigger-first delayed
+trigger is its own; braces close it, so the sentences after them are the
+spell's: `delayed target 1: { when that creature dies this turn, you gain
+3 life }; target creature you control fights that target 1` ("When that
+creature dies this turn, you gain 3 life. Target creature you control
+fights that creature."). An open one whose later sentence declares a
+target is an error. A target declared by the delayed ability
 itself prints in its trigger: `delayed target creature: when that
 creature dies this turn, return triggering card to battlefield` ("When
 target creature dies this turn, return that card to the battlefield under

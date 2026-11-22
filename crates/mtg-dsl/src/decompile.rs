@@ -1379,6 +1379,7 @@ impl Decompiler<'_> {
                     trigger_first: *this_turn,
                     this_turn: *this_turn,
                     it: false,
+                    closed: false,
                 }
             }
             CoreEffect::CreateReplacement(rep) => Effect::CreateReplacement(self.replacement(rep)),

@@ -4097,6 +4097,11 @@ pub enum Effect {
         /// `when it dies this turn`: the same, printed "When it dies this
         /// turn" (wording only).
         it: bool,
+        /// `delayed target 1: { when ..., <effects> }; <more>`: a
+        /// trigger-first body closed by braces, so the sentences after it
+        /// are the spell's, not the delayed trigger's (wording only: both
+        /// print the same).
+        closed: bool,
     },
     /// A replacement or prevention effect that lasts until end of turn.
     CreateReplacement(Replacement),

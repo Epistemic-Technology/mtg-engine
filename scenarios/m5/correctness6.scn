@@ -161,3 +161,27 @@ scenario "Spell Blast: a spell's X counts in its mana value on the stack" {
   assert life A 20
   assert graveyard B contains "Blaze"
 }
+
+# `delayed target 1: { when ..., <effects> }; <more>`: the braces end the
+# delayed trigger, so the fight happens as the spell resolves.
+scenario "Time to Feed: the creatures fight, and its death gains 3 life" {
+  battlefield A: 3 "Forest", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Time to Feed"
+  turn 1 A: cast "Time to Feed" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert life A 23
+}
+
+scenario "Time to Feed: no life if the opponent's creature survives" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Time to Feed"
+  turn 1 A: cast "Time to Feed" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert life A 20
+}

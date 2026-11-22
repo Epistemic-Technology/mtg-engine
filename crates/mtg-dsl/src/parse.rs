@@ -5607,8 +5607,26 @@ impl P {
     }
 
     /// A clause whose subject is known: "<subject> gains 3 life".
-    #[allow(clippy::too_many_lines)]
     fn subject_verb(&mut self, subject: Recipient, explicit: bool) -> R<Effect> {
+        let counts = self.counts.len();
+        let e = self.subject_verb_inner(subject, explicit)?;
+        // "Each player loses 1 life for each creature they control":
+        // `they control` compiles to "an opponent controls", not the
+        // player losing life, so it would count the wrong creatures.
+        if matches!(subject, Recipient::EachPlayer | Recipient::You)
+            && self.counts[counts..].iter().any(|c| {
+                matches!(&c.expr, crate::ast::CountExpr::Permanents(f) if f.they_control)
+            })
+        {
+            return self.fail(
+                "`they control` in a count for each player or you: it counts an opponent's permanents, not that player's",
+            );
+        }
+        Ok(e)
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn subject_verb_inner(&mut self, subject: Recipient, explicit: bool) -> R<Effect> {
         let w = self.word()?;
         match w.as_str() {
             // `this creature deals 3 damage to that player`, `it deals 2
@@ -8541,6 +8559,12 @@ impl P {
                 let was = (self.in_delayed, self.delayed_that);
                 self.in_delayed = true;
                 self.delayed_that = about == Recipient::TriggeringObject;
+                // `{ when ..., <effects> }`: the body ends at the brace.
+                let closed = self.peek() == Some(&Tok::LBrace);
+                if closed {
+                    self.pos += 1;
+                }
+                let targets_before = self.targets.len();
                 // "When that creature dies this turn, ..." (CR 603.7c).
                 let mut it = false;
                 let this_turn =
@@ -8591,11 +8615,24 @@ impl P {
                     let e = self.sentences_inline();
                     self.delayed_dies = was_dies;
                     (t, e?, true)
+                } else if closed {
+                    return self.fail("`delayed ...: {` takes a trigger first");
                 } else {
                     let e = self.delayed_effects()?;
                     let t = self.trigger()?;
                     (t, e, false)
                 };
+                if closed {
+                    self.expect(&Tok::RBrace)?;
+                } else if trigger_first && effects.len() > 1 && self.targets.len() > targets_before {
+                    // "When that creature dies this turn, you gain 3 life.
+                    // Target creature you control fights that creature.":
+                    // the later sentence is the spell's, which the open
+                    // form would put in the delayed trigger.
+                    return self.fail(
+                        "a delayed trigger's later sentence declares a target: close the trigger with `{ ... }` if the sentence is not the trigger's",
+                    );
+                }
                 (self.in_delayed, self.delayed_that) = was;
                 self.subject = saved_subject;
                 Ok(Effect::Delayed {
@@ -8605,6 +8642,7 @@ impl P {
                     trigger_first,
                     this_turn: this_turn.is_some() || turn_long,
                     it,
+                    closed,
                 })
             }
             "prevent" => {

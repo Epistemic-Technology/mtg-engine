@@ -2605,6 +2605,7 @@ impl Fmt {
                 trigger_first,
                 this_turn,
                 it,
+                closed,
             } => {
                 let about = self.recipient(*about, t);
                 let body = self.line(effects, t);
@@ -2617,7 +2618,9 @@ impl Fmt {
                 } else {
                     trigger_text(trigger, true)
                 };
-                if *trigger_first {
+                if *closed {
+                    format!("delayed {about}: {{ {trig}, {body} }}")
+                } else if *trigger_first {
                     format!("delayed {about}: {trig}, {body}")
                 } else {
                     format!("delayed {about}: {body} {trig}")

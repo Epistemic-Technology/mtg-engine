@@ -8434,6 +8434,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             trigger_first,
             this_turn,
             it,
+            ..
         } => {
             // "When target creature dies this turn, ...": a target first
             // named by the delayed trigger itself.
