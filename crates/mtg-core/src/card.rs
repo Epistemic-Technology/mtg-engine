@@ -7087,6 +7087,14 @@ pub struct CardDef {
     /// Kicker (CR 702.33): an optional additional mana cost chosen as the
     /// spell is cast.
     pub kicker: Option<Box<ManaCost>>,
+    /// A kicker cost that isn't mana ("Kicker—Sacrifice two lands.", CR
+    /// 702.33a): paid with the other costs when the spell is kicked, a
+    /// permanent it chooses settled after targets like an additional
+    /// cost's (`kicker` is then its mana part, "Kicker—{2}{R}, Sacrifice
+    /// a land."). Such a card has no
+    /// additional cost of its own.
+    #[serde(default)]
+    pub kicker_cost: Option<Box<Cost>>,
     /// The spell's targets from this index on are chosen only if it was
     /// kicked ("If this spell was kicked, return another target permanent
     /// card ...", CR 601.2c).
@@ -9417,6 +9425,7 @@ impl Builder {
             except_flags: DefFlags::default(),
             additional: Cost::default(),
             kicker: None,
+            kicker_cost: None,
             kicker_targets: None,
             self_cost: None,
             buyback: None,
@@ -9608,6 +9617,14 @@ impl Builder {
     #[must_use]
     pub fn kicker(mut self, cost: ManaCost) -> Self {
         self.0.kicker = Some(Box::new(cost));
+        self
+    }
+
+    /// A kicker cost other than mana ("Kicker—Sacrifice a creature.").
+    #[must_use]
+    pub fn kicker_cost(mut self, cost: Cost) -> Self {
+        self.0.kicker = Some(Box::new(cost.mana.clone()));
+        self.0.kicker_cost = Some(Box::new(cost));
         self
     }
 

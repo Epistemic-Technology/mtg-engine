@@ -889,6 +889,7 @@ impl P {
             cast_only: None,
             cast_only_cant: false,
             kicker: None,
+            kicker_cost: None,
             kicker_targets: None,
             flashback: None,
             groups: Vec::new(),
@@ -1104,9 +1105,22 @@ impl P {
                 });
                 self.end_stmt()
             }
+            "kicker" if matches!(self.peek_at(1), Some(Tok::Word(_))) => {
+                self.pos += 1;
+                card.kicker_cost = Some(self.cost()?);
+                self.end_stmt()
+            }
             "kicker" => {
                 self.pos += 1;
-                card.kicker = Some(self.mana_cost()?);
+                let at = self.pos;
+                let k = self.mana_cost()?;
+                // "Kicker—{2}{R}, Sacrifice a land."
+                if self.peek() == Some(&Tok::Comma) {
+                    self.pos = at;
+                    card.kicker_cost = Some(self.cost()?);
+                } else {
+                    card.kicker = Some(k);
+                }
                 self.end_stmt()
             }
             "short_name" => {
@@ -13459,6 +13473,22 @@ fn other_target(spec: Target) -> Option<Target> {
         }),
         Target::Spec(TargetSpec::Artifact) => Target::Filter(Filter {
             types: vec![CardType::Artifact],
+            relation: Relation::Other,
+            ..Default::default()
+        }),
+        // "If this spell was kicked, destroy another target land."
+        Target::Spec(TargetSpec::Land) => Target::Filter(Filter {
+            types: vec![CardType::Land],
+            relation: Relation::Other,
+            ..Default::default()
+        }),
+        Target::Spec(TargetSpec::Enchantment) => Target::Filter(Filter {
+            types: vec![CardType::Enchantment],
+            relation: Relation::Other,
+            ..Default::default()
+        }),
+        Target::Spec(TargetSpec::CreatureOrPlaneswalker) => Target::Filter(Filter {
+            any_types: vec![CardType::Creature, CardType::Planeswalker],
             relation: Relation::Other,
             ..Default::default()
         }),

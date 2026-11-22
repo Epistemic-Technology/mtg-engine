@@ -966,6 +966,13 @@ impl Compiler<'_> {
         if let Some(k) = &card.kicker {
             b = b.kicker(k.clone());
         }
+        if let Some(c) = &card.kicker_cost {
+            if card.additional.is_some() || card.kicker.is_some() || c.tap {
+                return self.err("a kicker cost other than mana has no {T}, and the card no additional cost");
+            }
+            let c = self.cost(c);
+            b = b.kicker_cost(c);
+        }
         if let Some(n) = card.kicker_targets {
             b = b.kicker_targets(n);
         }

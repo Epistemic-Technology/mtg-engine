@@ -179,6 +179,9 @@ pub struct Card {
     pub cast_only_cant: bool,
     /// `kicker {R}` (CR 702.33).
     pub kicker: Option<ManaCost>,
+    /// `kicker sacrifice 2 land`: "Kicker—Sacrifice two lands." (CR
+    /// 702.33a), a kicker cost other than mana.
+    pub kicker_cost: Option<Cost>,
     /// The spell's targets from this index on are declared in its `if
     /// kicked, ...` and chosen only if it is kicked (CR 601.2c); set by
     /// the parser, never written.
@@ -239,6 +242,7 @@ impl Card {
             cast_only: None,
             cast_only_cant: false,
             kicker: None,
+            kicker_cost: None,
             kicker_targets: None,
             flashback: None,
             groups: Vec::new(),

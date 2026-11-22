@@ -1,0 +1,7 @@
+card "Primal Growth" {
+  oracle_id 3cbdf37b-7fe3-4791-b33c-8591158b0ce5
+  cost {2}{G}
+  type Sorcery
+  kicker sacrifice creature
+  spell: search basic land card to battlefield that card; if kicked, instead search up to 2 basic land card to battlefield
+}

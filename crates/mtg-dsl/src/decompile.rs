@@ -114,7 +114,12 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
         kicked_drops: def.kicked_drops.map(usize::from),
         cast_only: def.cast_only.map(|c| d.static_cond(pool.condition(c))),
         cast_only_cant: false,
-        kicker: def.kicker.as_deref().cloned(),
+        kicker: def
+            .kicker
+            .as_deref()
+            .filter(|_| def.kicker_cost.is_none())
+            .cloned(),
+        kicker_cost: def.kicker_cost.as_deref().map(|c| d.cost(c)),
         kicker_targets: def.kicker_targets,
         flashback: def.flashback.as_ref().map(|c| d.cost(c)),
         groups: pool.filters().iter().map(|f| d.filter(f)).collect(),

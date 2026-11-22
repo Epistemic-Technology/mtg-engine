@@ -148,6 +148,9 @@ fn format_inner(card: &Card) -> String {
     if let Some(k) = &card.kicker {
         let _ = writeln!(out, "  kicker {k}");
     }
+    if let Some(c) = &card.kicker_cost {
+        let _ = writeln!(out, "  kicker {}", cost_text(c));
+    }
     if let Some(c) = &card.flashback {
         let _ = writeln!(out, "  flashback {}", cost_text(c));
     }

@@ -4597,6 +4597,17 @@ impl Builder<'_> {
             self.statements.push(format!("kicker {}", cap(&c, 1)));
             return Ok(());
         }
+        // CR 702.33a: "Kicker—Sacrifice a creature.", "Kicker—{2}{R}, Sacrifice a
+        // land." (no {T}).
+        if let Some(c) = line
+            .strip_prefix("Kicker\u{2014}")
+            .and_then(|r| r.strip_suffix('.'))
+            .filter(|r| !r.contains("{T}"))
+            .and_then(cost_text)
+        {
+            self.statements.push(format!("kicker {c}"));
+            return Ok(());
+        }
         if let Some(c) = Regex::new(r"^Flashback ((?:\{[0-9XWUBRGC]+\})+)$")
             .unwrap()
             .captures(line)

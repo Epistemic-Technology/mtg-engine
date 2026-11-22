@@ -3452,6 +3452,13 @@ impl GameState {
         {
             return fb;
         }
+        // "Kicker—Sacrifice an artifact or creature.": likewise (CR
+        // 702.33a); such a card has no additional cost either.
+        if let Some(k) = def.kicker_cost.as_deref()
+            && o.cast.kicked()
+        {
+            return k;
+        }
         match &def.additional_or {
             Some(c) if o.cast.other_cost() => c,
             _ => &def.additional,
@@ -3489,6 +3496,20 @@ impl GameState {
         };
         if o.cast.flashback() {
             return false;
+        }
+        // "Kicker—Sacrifice two lands.": enough to sacrifice (or return),
+        // and the life to pay (CR 119.4).
+        if let Some(c) = def.kicker_cost.as_deref() {
+            if let Some(SacCost::Filter(f)) = &c.sacrifice
+                && self.sacrifice_candidates(o.controller, f, spell).len() < c.chosen_count()
+            {
+                return false;
+            }
+            if i64::from(c.life) > i64::from(self.player(o.controller).life)
+                || !self.other_costs_payable(o.controller, c, spell)
+            {
+                return false;
+            }
         }
         let mut req = def.mana_cost.requirements(0);
         req.add(&k.requirements(0));
@@ -6635,6 +6656,17 @@ impl GameState {
             };
             let card = if fb.discard > 0 { discard.take() } else { None };
             self.pay_other_costs(caster, fb, spell, pick, card);
+        }
+        // CR 702.33a: a kicker cost other than mana, its permanent chosen
+        // after targets (`additional_of`).
+        if let (Some(k), true) = (&def.kicker_cost, self.objects[spell].cast.kicked()) {
+            let pick = if k.sacrifice.is_some() {
+                sacrifice.take()
+            } else {
+                None
+            };
+            let card = if k.discard > 0 { discard.take() } else { None };
+            self.pay_other_costs(caster, k, spell, pick, card);
         }
         // CR 702.47a: splice costs other than mana ("Sacrifice two
         // Mountains", "Return a blue creature you control to its owner's

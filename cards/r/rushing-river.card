@@ -1,0 +1,7 @@
+card "Rushing River" {
+  oracle_id 6e2a695d-305a-4bbe-b302-11fdc5c2a451
+  cost {2}{U}
+  type Instant
+  kicker sacrifice land
+  spell: return target nonland permanent to hand; if kicked, return another target nonland permanent to hand
+}

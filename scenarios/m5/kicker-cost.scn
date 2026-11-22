@@ -1,0 +1,170 @@
+# M5: kicker costs other than mana ("Kicker—Sacrifice two lands.",
+# "Kicker—Sacrifice an artifact or creature.", CR 702.33a): chosen as the
+# spell is cast, the permanents picked after targets and paid with the
+# other costs.
+
+scenario "kicker sacrifice: two lands, and three cards are discarded" {
+  battlefield A: "Swamp", "Swamp", "Swamp", "Forest", "Forest"
+  hand A: "Bog Down"
+  hand B: "Grizzly Bears", "Hill Giant", "Shock", "Island"
+  turn 1 A: cast "Bog Down" kicked sacrificing "Forest" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert battlefield A contains 1 "Forest"
+  assert graveyard A contains "Swamp"
+  assert hand B count 1
+}
+
+scenario "kicker sacrifice: unkicked, two cards and the lands stay" {
+  battlefield A: "Swamp", "Swamp", "Swamp", "Forest", "Forest"
+  hand A: "Bog Down"
+  hand B: "Grizzly Bears", "Hill Giant", "Shock", "Island"
+  turn 1 A: cast "Bog Down" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Forest"
+  assert hand B count 2
+}
+
+scenario "kicker sacrifice: a creature, and -5/-5" {
+  battlefield A: "Swamp", "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Vicious Offering"
+  turn 1 A: cast "Vicious Offering" kicked sacrificing "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "kicker sacrifice: unkicked, -2/-2 only" {
+  battlefield A: "Swamp", "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Vicious Offering"
+  turn 1 A: cast "Vicious Offering" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  assert power "Hill Giant" 1
+}
+
+scenario "kicker sacrifice: an artifact pays it" {
+  battlefield A: "Swamp", "Swamp", "Ornithopter"
+  battlefield B: "Hill Giant"
+  hand A: "Stomped by the Foot"
+  turn 1 A: cast "Stomped by the Foot" kicked sacrificing "Ornithopter" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ornithopter"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "kicker sacrifice: -6/-6 kills a 5/5" {
+  battlefield A: "Swamp", "Swamp", "Ornithopter"
+  battlefield B: "Craw Wurm"
+  hand A: "Vayne's Treachery"
+  turn 1 A: cast "Vayne's Treachery" kicked sacrificing "Ornithopter" targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Craw Wurm"
+}
+
+scenario "kicker sacrifice: with nothing to sacrifice, the spell isn't kicked" {
+  battlefield A: "Swamp", "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Vicious Offering"
+  turn 1 A: cast "Vicious Offering" kicked targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert power "Hill Giant" 1
+}
+
+scenario "kicker with mana and a sacrifice: two lands destroyed" {
+  battlefield A: "Mountain", "Mountain", "Mountain", "Mountain", "Mountain", "Mountain", "Mountain", "Forest"
+  battlefield B: "Island", "Plains"
+  hand A: "Dwarven Landslide"
+  turn 1 A: cast "Dwarven Landslide" kicked sacrificing "Forest" targeting "Island", "Plains"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert graveyard B contains "Island"
+  assert graveyard B contains "Plains"
+}
+
+scenario "kicker with mana and a sacrifice: unkicked, one land" {
+  battlefield A: "Mountain", "Mountain", "Mountain", "Mountain", "Forest"
+  battlefield B: "Island", "Plains"
+  hand A: "Dwarven Landslide"
+  turn 1 A: cast "Dwarven Landslide" targeting "Island"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+  assert graveyard B contains "Island"
+  assert battlefield B contains "Plains"
+}
+
+scenario "kicker sacrifice a Goblin: 4 damage to the player too" {
+  battlefield A: "Mountain", "Mountain", "Mountain", "Mountain", "Goblin Piker"
+  battlefield B: "Hill Giant"
+  hand A: "Goblin Barrage"
+  turn 1 A: cast "Goblin Barrage" kicked sacrificing "Goblin Piker" targeting "Hill Giant", player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Goblin Piker"
+  assert graveyard B contains "Hill Giant"
+  assert life B 16
+}
+
+scenario "kicker tap a Vampire: half the life, and you gain it" {
+  life B 15
+  battlefield A: "Swamp", "Swamp", "Swamp", "Swamp", "Swamp", "Swamp", "Vampire Interloper"
+  hand A: "Blood Tribute"
+  turn 1 A: cast "Blood Tribute" kicked sacrificing "Vampire Interloper" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 7
+  assert life A 28
+  assert tapped "Vampire Interloper"
+}
+
+scenario "kicker tap a Vampire: unkicked, no life gained" {
+  life B 15
+  battlefield A: "Swamp", "Swamp", "Swamp", "Swamp", "Swamp", "Swamp", "Vampire Interloper"
+  hand A: "Blood Tribute"
+  turn 1 A: cast "Blood Tribute" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 7
+  assert life A 20
+  assert untapped "Vampire Interloper"
+}
+
+scenario "kicker sacrifice a creature: two basic lands" {
+  battlefield A: "Forest", "Forest", "Forest", "Grizzly Bears"
+  library A: "Forest", "Island", "Mountain"
+  hand A: "Primal Growth"
+  turn 1 A: cast "Primal Growth" kicked sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A count 5
+}
+
+scenario "kicker return a creature: the kicked creature enters with a counter" {
+  battlefield A: "Island", "Island", "Grizzly Bears"
+  hand A: "Arctic Merfolk"
+  turn 1 A: cast "Arctic Merfolk" kicked sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert counters "Arctic Merfolk" +1/+1 1
+}
+
+scenario "kicker sacrifice a land: two permanents returned" {
+  battlefield A: "Island", "Island", "Island", "Forest"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Rushing River"
+  turn 1 A: cast "Rushing River" kicked sacrificing "Forest" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert hand B contains "Hill Giant"
+  assert hand B contains "Grizzly Bears"
+}
+
+scenario "kicker sacrifice: -6/-6 with an artifact creature" {
+  battlefield A: "Swamp", "Swamp", "Ornithopter"
+  battlefield B: "Craw Wurm"
+  hand A: "Final Flourish"
+  turn 1 A: cast "Final Flourish" kicked sacrificing "Ornithopter" targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Craw Wurm"
+}

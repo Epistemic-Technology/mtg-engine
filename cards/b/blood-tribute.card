@@ -1,0 +1,7 @@
+card "Blood Tribute" {
+  oracle_id aa2da79c-b36c-4120-8d7d-f5571e87e45e
+  cost {4}{B}{B}
+  type Sorcery
+  kicker tap untapped Vampire you control
+  spell: target opponent loses half life; if kicked, you gain count equal life lost this way life
+}
