@@ -6113,6 +6113,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 ctx.obj_list(what, false)
             };
+            // "Return up to one target instant card and up to one target
+            // sorcery card from your graveyard to your hand": one graveyard
+            // for the list.
+            let o = if yours && what.len() > 1 {
+                format!("{} from your graveyard", o.replace(" from your graveyard", ""))
+            } else {
+                o
+            };
             // Activated from the graveyard: "Return this card from your
             // graveyard to your hand."
             let from_graveyard =

@@ -1,0 +1,7 @@
+card "Crop Sigil" {
+  oracle_id 76ee013d-5293-4432-b425-649a2e82bd74
+  cost {G}
+  type Enchantment
+  triggered at beginning of your upkeep: you may mill 1 cards
+  label "Delirium" activated {2}{G}, sacrifice this, if 4 card types in your graveyard: return up to 1 target creature card from your graveyard and up to 1 target land card from your graveyard to hand
+}

@@ -1,0 +1,6 @@
+card "Pull from the Deep" {
+  oracle_id 1c0a72dc-4756-4d60-b6b4-4c2c69699efd
+  cost {2}{U}{U}
+  type Sorcery
+  spell: return up to 1 target instant card from your graveyard and up to 1 target sorcery card from your graveyard to hand; exile this
+}

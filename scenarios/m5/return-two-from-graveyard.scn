@@ -1,0 +1,79 @@
+# "Return up to one target X card and up to one target Y card from your
+# graveyard to your hand": each target is a card in your graveyard.
+
+scenario "Pull from the Deep: an instant and a sorcery, then it's exiled" {
+  battlefield A: 4 "Island"
+  graveyard A: "Shock", "Lava Axe", "Grizzly Bears"
+  hand A: "Pull from the Deep"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pull from the Deep" targeting "Shock", "Lava Axe"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+  assert hand A contains "Lava Axe"
+  assert exile A contains "Pull from the Deep"
+}
+
+scenario "Pull from the Deep: the instant target must be an instant" {
+  battlefield A: 4 "Island"
+  graveyard A: "Lava Axe", "Grizzly Bears"
+  hand A: "Pull from the Deep"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pull from the Deep" targeting "Grizzly Bears", "Lava Axe"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Lava Axe"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Retrieve: a creature card and a noncreature permanent card" {
+  battlefield A: 3 "Forest"
+  graveyard A: "Grizzly Bears", "Bonesplitter", "Shock"
+  hand A: "Retrieve"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Retrieve" targeting "Grizzly Bears", "Shock"
+  turn 1 A: cast "Retrieve" targeting "Grizzly Bears", "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Bonesplitter"
+  assert graveyard A contains "Shock"
+  assert exile A contains "Retrieve"
+}
+
+scenario "Restoration Specialist: an artifact card and an enchantment card" {
+  battlefield A: "Restoration Specialist", "Plains"
+  graveyard A: "Bonesplitter", "Pacifism"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Restoration Specialist" targeting "Bonesplitter", "Pacifism"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Bonesplitter"
+  assert hand A contains "Pacifism"
+  assert graveyard A contains "Restoration Specialist"
+}
+
+scenario "Shreds of Sanity: an instant and a sorcery, then discard a card" {
+  battlefield A: 3 "Mountain"
+  graveyard A: "Shock", "Lava Axe"
+  hand A: "Shreds of Sanity", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shreds of Sanity" targeting "Shock", "Lava Axe"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert exile A contains "Shreds of Sanity"
+}
+
+scenario "Crop Sigil: delirium returns a creature card and a land card" {
+  battlefield A: "Crop Sigil", 3 "Forest"
+  graveyard A: "Grizzly Bears", "Plains", "Shock", "Bonesplitter"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Crop Sigil" targeting "Grizzly Bears", "Plains"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Plains"
+}
+
+scenario "Crop Sigil: without delirium it can't be activated" {
+  battlefield A: "Crop Sigil", 3 "Forest"
+  graveyard A: "Grizzly Bears", "Plains", "Shock"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Crop Sigil" targeting "Grizzly Bears", "Plains"
+  run_to turn 1 postcombat_main
+}

@@ -6629,6 +6629,26 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
             .replace_all(&s, "with same name as target 1")
             .into_owned();
     }
+    // "Return up to one target instant card and up to one target sorcery
+    // card from your graveyard to your hand": each target names the
+    // graveyard.
+    s = re(r"\breturn ((?:up to \d+ )?target [^;,]+? card) and ((?:up to \d+ )?target [^;,]+? card) from your graveyard to hand")
+        .replace_all(&s, |c: &regex::Captures| {
+            // "a noncreature permanent card" (CR 110.4a), as `recipient`
+            // writes it.
+            let nonperm = re(r"\b(non[a-z]+) permanent card");
+            let item = |i: usize| {
+                nonperm
+                    .replace_all(&c[i], "$1 noninstant nonsorcery permanent card")
+                    .into_owned()
+            };
+            format!(
+                "return {} from your graveyard and {} from your graveyard to hand",
+                item(1),
+                item(2)
+            )
+        })
+        .into_owned();
     // "Exile target nonland permanent an opponent controls and all other
     // nonland permanents that player controls with the same name as that
     // permanent": "that player" is the target's controller (or the target
