@@ -10191,7 +10191,11 @@ impl P {
                         _ => f.mana_value = Some((cmp, u8::try_from(n).unwrap_or(u8::MAX))),
                     }
                 }
-                "tapped" | "untapped" => {
+                // `create count each multicolored permanent you control
+                // tapped "Robot"`: `tapped` before the token is the token's
+                // ("create a tapped ... token for each ..."), not the
+                // filter's.
+                "tapped" | "untapped" if !matches!(self.peek_at(1), Some(Tok::Str(_))) => {
                     f.tapped = Some(w == "tapped");
                     self.pos += 1;
                 }

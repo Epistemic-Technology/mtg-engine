@@ -1,0 +1,10 @@
+card "Infinite Guideline Station" {
+  oracle_id cda39514-86c9-483e-8d95-fd08138ce33a
+  cost {W}{U}{B}{R}{G}
+  type Legendary Artifact — Spacecraft
+  pt 7/15
+  triggered when this enters: create count each multicolored permanent you control tapped "2/2 colorless Robot artifact creature"
+  station
+  station 12: flying
+  triggered whenever this attacks: draw count each multicolored permanent you control cards
+}
