@@ -3919,6 +3919,33 @@ fn trigger_general(head: &str) -> Option<String> {
 /// graveyard`, and the other conditions `static_cond` parses.
 #[allow(clippy::too_many_lines)] // one arm per condition phrase
 fn static_condition(s: &str) -> Option<String> {
+    // CR 103.4: against the starting life total.
+    match s {
+        "your life total is greater than your starting life total" => {
+            return Some("life above starting".to_string());
+        }
+        "your life total is greater than or equal to your starting life total" => {
+            return Some("life at least starting".to_string());
+        }
+        "your life total is less than your starting life total" => {
+            return Some("life below starting".to_string());
+        }
+        _ => {}
+    }
+    if let Some(n) = s
+        .strip_prefix("you have at least ")
+        .and_then(|r| r.strip_suffix(" life more than your starting life total"))
+        .and_then(|n| n.parse::<u32>().ok())
+    {
+        return Some(format!("life {n} more than starting"));
+    }
+    if let Some(n) = s
+        .strip_prefix("your life total is at least ")
+        .and_then(|r| r.strip_suffix(" greater than your starting life total"))
+        .and_then(|n| n.parse::<u32>().ok())
+    {
+        return Some(format!("life {n} above starting"));
+    }
     // Pack tactics.
     if let Some(n) = s
         .strip_prefix("you attacked with creatures with total power ")

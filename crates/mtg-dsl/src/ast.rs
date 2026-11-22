@@ -2152,6 +2152,18 @@ pub enum StaticCond {
         n: i32,
         at_least: bool,
     },
+    /// Your life total against your starting life total: `life above
+    /// starting` ("your life total is greater than your starting life
+    /// total"), `life at least starting` ("... greater than or equal to
+    /// ..."), `life 10 above starting` ("your life total is at least 10
+    /// greater than ..."), `life 7 more than starting` ("you have at least
+    /// 7 life more than ..."), `life below starting` ("your life total is
+    /// less than ..."). `wording` is 0 to 4 in that order.
+    LifeVsStarting {
+        at_least: i32,
+        below: bool,
+        wording: u8,
+    },
     /// `player life 13 or less`: "a player has 13 or less life".
     AnyPlayerLifeAtMost(i32),
     /// `opponent poison 3 or more`: "an opponent has three or more poison

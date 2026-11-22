@@ -495,7 +495,13 @@ spell"), both judged as the spell is cast and remembered by it, `attacking`,
 `enchanted`, `equipped` ("it's attacking", or "this creature is
 attacking" when the subject is something else), `opponent life 10 or
 less` ("an opponent has 10 or less life"), `your life 30 or more`,
-`player life 13 or less` ("a player has 13 or less life"), `defending
+`life above starting` ("your life total is greater than your starting
+life total", CR 103.4: 20 here; the game's own in a configured game),
+`life at least starting` ("... greater than or equal to ..."), `life 10
+above starting` ("your life total is at least 10 greater than ..."),
+`life 7 more than starting` ("you have at least 7 life more than your
+starting life total"), `life below starting` ("your life total is less
+than ..."), `player life 13 or less` ("a player has 13 or less life"), `defending
 player controls Island`, `you control no untapped land`, `you control
 at most 2 other land` ("you control two or fewer other lands": the fast
 lands), `you control Mountain or a Plains` ("you control a Mountain or a

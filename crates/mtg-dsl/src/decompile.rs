@@ -475,6 +475,19 @@ impl Decompiler<'_> {
             StaticCondition::OpponentLifeAtMost(n) => StaticCond::OpponentLifeAtMost(*n),
             StaticCondition::MoreLifeThanOpponent => StaticCond::MoreLifeThanOpponent,
             StaticCondition::BasicLandTypes(n) => StaticCond::BasicLandTypes(*n),
+            StaticCondition::LifeVsStarting { at_least, below } => StaticCond::LifeVsStarting {
+                at_least: *at_least,
+                below: *below,
+                wording: if *below {
+                    4
+                } else if *at_least == 1 {
+                    0
+                } else if *at_least == 0 {
+                    1
+                } else {
+                    3
+                },
+            },
             StaticCondition::YourLife { n, at_least } => StaticCond::YourLife {
                 n: *n,
                 at_least: *at_least,

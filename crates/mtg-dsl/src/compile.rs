@@ -2149,6 +2149,12 @@ impl Compiler<'_> {
             StaticCond::OpponentLifeAtMost(n) => StaticCondition::OpponentLifeAtMost(*n),
             StaticCond::MoreLifeThanOpponent => StaticCondition::MoreLifeThanOpponent,
             StaticCond::BasicLandTypes(n) => StaticCondition::BasicLandTypes(*n),
+            StaticCond::LifeVsStarting {
+                at_least, below, ..
+            } => StaticCondition::LifeVsStarting {
+                at_least: *at_least,
+                below: *below,
+            },
             StaticCond::YourLife { n, at_least } => StaticCondition::YourLife {
                 n: *n,
                 at_least: *at_least,

@@ -2127,6 +2127,9 @@ pub struct GameState {
     /// the top of the library or reveal it (`DefFlags::TOP_PLAY`):
     /// priority and the views look only when there are any.
     pub top_play_sources: u32,
+    /// Each player's starting life total (CR 103.4): the game's, or 20
+    /// for a prepared position.
+    pub starting_life: i32,
     /// Permanents on the battlefield with an activated ability another
     /// player may activate (`DefFlags::FOREIGN_ACTIVATED`): priority looks
     /// at other players' permanents only when there are any.
@@ -3706,6 +3709,11 @@ impl GameState {
             C::YourLife { n, at_least } => {
                 let l = self.player(you).life;
                 if *at_least { l >= *n } else { l <= *n }
+            }
+            // CR 103.4: the starting life total.
+            C::LifeVsStarting { at_least, below } => {
+                let d = self.player(you).life - self.starting_life;
+                if *below { d < 0 } else { d >= *at_least }
             }
             C::AnyPlayerLifeAtMost(n) => self.players_in_game().any(|p| self.player(p).life <= *n),
             C::MoreLifeThanOpponent => {

@@ -4314,6 +4314,39 @@ impl P {
         if self.eat_words(&["you", "don't", "control"]) {
             return Ok(StaticCond::YouDontControl(self.filter()?));
         }
+        // CR 103.4: against the starting life total.
+        if self.at_word("life")
+            && (self.at_words(&["life", "above", "starting"])
+                || self.at_words(&["life", "at", "least", "starting"])
+                || self.at_words(&["life", "below", "starting"])
+                || (matches!(self.peek_at(1), Some(Tok::Num(_)))
+                    && (self.word_at(2).as_deref() == Some("above")
+                        || (self.word_at(2).as_deref() == Some("more")
+                            && self.word_at(3).as_deref() == Some("than")))))
+        {
+            self.pos += 1;
+            let (at_least, below, wording) = if self.eat_words(&["above", "starting"]) {
+                (1, false, 0)
+            } else if self.eat_words(&["at", "least", "starting"]) {
+                (0, false, 1)
+            } else if self.eat_words(&["below", "starting"]) {
+                (0, true, 4)
+            } else {
+                let n = i32::try_from(self.number()?).unwrap_or(0);
+                if self.eat_word("above") {
+                    self.expect_word("starting")?;
+                    (n, false, 2)
+                } else {
+                    self.expect_words(&["more", "than", "starting"])?;
+                    (n, false, 3)
+                }
+            };
+            return Ok(StaticCond::LifeVsStarting {
+                at_least,
+                below,
+                wording,
+            });
+        }
         if self.eat_words(&["your", "life"]) {
             let n = i32::try_from(self.number()?).unwrap_or(0);
             self.expect_word("or")?;

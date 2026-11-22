@@ -1,0 +1,6 @@
+card "Cosmos Elixir" {
+  oracle_id ed7300f4-831a-4ba4-b5e6-ceba8d079eaa
+  cost {4}
+  type Artifact
+  triggered at beginning of your end step: draw 1 card if life above starting; otherwise, you gain 2 life
+}

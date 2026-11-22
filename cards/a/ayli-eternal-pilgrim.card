@@ -1,0 +1,9 @@
+card "Ayli, Eternal Pilgrim" {
+  oracle_id e6a35729-edee-4a8c-9aa1-041114d66c69
+  cost {W}{B}
+  type Legendary Creature — Kor Cleric
+  pt 2/3
+  keywords deathtouch
+  activated {1}, sacrifice other creature: you gain count equal toughness of the sacrificed creature life
+  activated {1}{W}{B}, sacrifice other creature, if life 10 more than starting: exile target nonland permanent
+}

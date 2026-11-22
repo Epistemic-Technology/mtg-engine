@@ -564,6 +564,11 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             let l = state.player(you).life;
             if *at_least { l >= *n } else { l <= *n }
         }
+        // CR 103.4: the starting life total.
+        StaticCondition::LifeVsStarting { at_least, below } => {
+            let d = state.player(you).life - state.starting_life;
+            if *below { d < 0 } else { d >= *at_least }
+        }
         StaticCondition::AnyPlayerLifeAtMost(n) => {
             state.players_in_game().any(|p| state.player(p).life <= *n)
         }

@@ -1,0 +1,8 @@
+card "Speaker of the Heavens" {
+  oracle_id e4bacf1b-0a45-4c73-857d-dffadb7e6fa5
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  keywords vigilance, lifelink
+  activated {T}, if life 7 more than starting, sorcery: create 1 "4/4 white Angel creature with flying"
+}

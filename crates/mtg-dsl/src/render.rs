@@ -13137,6 +13137,15 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 with_article(&filter_phrase(&f, card, false))
             )
         }
+        StaticCond::LifeVsStarting {
+            at_least, wording, ..
+        } => match wording {
+            0 => "your life total is greater than your starting life total".to_string(),
+            1 => "your life total is greater than or equal to your starting life total".to_string(),
+            2 => format!("your life total is at least {at_least} greater than your starting life total"),
+            3 => format!("you have at least {at_least} life more than your starting life total"),
+            _ => "your life total is less than your starting life total".to_string(),
+        },
         StaticCond::YourLife { n, at_least } => format!(
             "you have {n} or {} life",
             if *at_least { "more" } else { "less" }

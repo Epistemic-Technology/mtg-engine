@@ -1,0 +1,8 @@
+card "Leyline of Hope" {
+  oracle_id c7ee79c3-a273-45b4-b3a4-548d9b2b883c
+  cost {2}{W}{W}
+  type Enchantment
+  opening hand
+  replace you gain life: plus one
+  static as long as life 7 more than starting, creature you control: +2/+2
+}

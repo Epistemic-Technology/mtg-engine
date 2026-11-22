@@ -146,6 +146,7 @@ impl Engine {
             rng,
             config.logging,
         );
+        state.starting_life = config.starting_life;
         state.flow = Flow::Mulligan {
             kept: [false; 2],
             mulled: [false; 2],
@@ -613,6 +614,7 @@ impl GameState {
             face_down_count: 0,
             room_count: 0,
             top_play_sources: 0,
+            starting_life: 20,
             foreign_activated_sources: 0,
             saga_count: 0,
             player_static_sources: 0,

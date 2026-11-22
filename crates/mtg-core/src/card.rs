@@ -2503,6 +2503,14 @@ pub enum StaticCondition {
         n: i32,
         at_least: bool,
     },
+    /// Your life total against your starting life total (CR 103.4): at
+    /// least `at_least` more than it ("greater than": 1; "at least 10
+    /// greater", "at least 7 life more": 10, 7; "greater than or equal
+    /// to": 0), or with `below`, less than it.
+    LifeVsStarting {
+        at_least: i32,
+        below: bool,
+    },
     /// "a player has 13 or less life".
     AnyPlayerLifeAtMost(i32),
     /// "you have more life than an opponent".
@@ -8324,6 +8332,7 @@ impl DefFlags {
                 )) || matches!(s.condition, Some(
                     StaticCondition::OpponentLifeAtMost(_)
                         | StaticCondition::YourLife { .. }
+                        | StaticCondition::LifeVsStarting { .. }
                         | StaticCondition::MoreLifeThanOpponent
                         | StaticCondition::AnyPlayerLifeAtMost(_)
                         | StaticCondition::OpponentPoison(_)

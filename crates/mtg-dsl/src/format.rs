@@ -5214,6 +5214,15 @@ fn static_cond(c: &StaticCond) -> String {
         }
         StaticCond::HandFewerThan(n) => format!("hand fewer than {n}"),
         StaticCond::NoCardInHand(f) => format!("hand has no {} card", filter(f)),
+        StaticCond::LifeVsStarting {
+            at_least, wording, ..
+        } => match wording {
+            0 => "life above starting".to_string(),
+            1 => "life at least starting".to_string(),
+            2 => format!("life {at_least} above starting"),
+            3 => format!("life {at_least} more than starting"),
+            _ => "life below starting".to_string(),
+        },
         StaticCond::YourLife { n, at_least } => {
             format!(
                 "your life {n} or {}",
