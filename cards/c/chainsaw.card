@@ -1,0 +1,9 @@
+card "Chainsaw" {
+  oracle_id 3db40361-5f55-417e-a7cd-7e360cc91b4d
+  cost {1}{R}
+  type Artifact — Equipment
+  triggered when this enters: deal 3 damage to up to one target creature
+  triggered whenever one or more creature die: put 1 rev counters on this
+  static equipped creature: +1/+0 count where rev counters on this
+  equip {3}
+}

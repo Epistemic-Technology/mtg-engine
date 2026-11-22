@@ -84,3 +84,68 @@ scenario "A hone counter on an unattached Equipment pumps nothing" {
   run_to turn 1 precombat_main
   assert power "Grizzly Bears" 2
 }
+# More named counter kinds: rev (Chainsaw), stash (Hoarder's Overflow),
+# hone (Sting, Bilbo's Sword).
+
+scenario "Chainsaw enters and deals 3 damage to up to one creature" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Chainsaw"
+  turn 1 A: cast "Chainsaw"
+  turn 1 A: trigger "Chainsaw" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  # One creature died: a rev counter.
+  assert counters "Chainsaw" rev 1
+}
+
+scenario "Chainsaw's equipped creature gets +1/+0 per rev counter" {
+  battlefield A: "Hill Giant", "Chainsaw" on "Hill Giant" with 2 rev
+  run_to turn 1 precombat_main
+  assert power "Hill Giant" 5
+  assert toughness "Hill Giant" 3
+}
+
+scenario "Chainsaw gets one rev counter when several creatures die at once" {
+  battlefield A: "Chainsaw", "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "Pyroclasm"
+  turn 1 A: cast "Pyroclasm"
+  run_to turn 1 postcombat_main
+  assert counters "Chainsaw" rev 1
+}
+
+scenario "Hoarder's Overflow: a stash counter as it enters and on expend 4" {
+  battlefield A: 6 "Mountain"
+  hand A: "Hoarder's Overflow", "Hill Giant"
+  turn 1 A: cast "Hoarder's Overflow"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hoarder's Overflow" stash 2
+}
+
+scenario "Hoarder's Overflow discards the hand and draws one per stash counter" {
+  battlefield A: "Hoarder's Overflow" with 3 stash, 2 "Mountain"
+  hand A: "Island", "Forest"
+  library A: "Plains", "Swamp", "Mountain", "Grizzly Bears"
+  turn 1 A: activate "Hoarder's Overflow"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Island"
+  assert graveyard A contains "Forest"
+  assert hand A count 3
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "Sting enters with a hone counter per creature the opponent controls" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  battlefield B: "Hill Giant", "Llanowar Elves"
+  hand A: "Sting, Bilbo's Sword"
+  start turn 2 B
+  turn 2 A: cast "Sting, Bilbo's Sword"
+  turn 2 A: trigger "Sting, Bilbo's Sword" targeting player B, "Grizzly Bears"
+  run_to turn 2 end
+  assert counters "Sting, Bilbo's Sword" hone 2
+  assert attached "Sting, Bilbo's Sword" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+}
