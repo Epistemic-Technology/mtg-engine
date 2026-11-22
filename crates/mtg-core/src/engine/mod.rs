@@ -624,6 +624,7 @@ impl GameState {
             lookback: None,
             rng,
             next_timestamp: 1,
+            batch_from: 0,
             flow: Flow::BeginStep,
             cleanup_repeat: false,
             end_turn: false,

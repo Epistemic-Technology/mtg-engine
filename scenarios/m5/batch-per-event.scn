@@ -1,0 +1,32 @@
+# "Whenever ... one or more ..." triggers once per event (CR 603.2c):
+# two separate discards in one resolution are two events, not one batch.
+
+scenario "Tinybones: kicked Probe's two discards trigger twice" {
+  battlefield A: "Tinybones, Pocket Nuisance", 2 "Island", 2 "Swamp", "Plains"
+  hand A: "Probe"
+  hand B: "Forest", "Mountain", "Plains"
+  library A: 5 "Forest"
+  turn 1 A: cast "Probe" kicked targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert life B 18
+}
+
+scenario "Tinybones: one discard of two cards triggers once" {
+  battlefield A: "Tinybones, Pocket Nuisance", 2 "Island", "Plains"
+  hand A: "Probe"
+  library A: 5 "Forest"
+  turn 1 A: cast "Probe"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "Marauding Mako: counts only your own discards" {
+  battlefield A: "Marauding Mako", 2 "Island", 2 "Swamp", "Plains"
+  hand A: "Probe"
+  hand B: "Forest", "Mountain"
+  library A: 5 "Forest"
+  turn 1 A: cast "Probe" kicked targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Marauding Mako" +1/+1 2
+}

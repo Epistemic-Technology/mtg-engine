@@ -49,10 +49,6 @@ wrong thing in some case.
 - **"Triggers an additional time" looks at the battlefield as it is.**
   Teysa Karlov or Drivnod dying together with the creature whose death
   triggers doesn't double it (they should, looking back, CR 603.10a).
-- **Batched triggers batch until a player gets priority.** Two separate
-  discards in one resolution ("discard a card, then ... discard a card")
-  make one "whenever you discard one or more cards" trigger counting
-  both, where they are two events.
 - **"Whenever you activate an ability of a creature" misses automatic
   mana payment:** the engine taps a creature's mana ability to pay a
   cost without activating it as an ability, so it doesn't trigger (CR

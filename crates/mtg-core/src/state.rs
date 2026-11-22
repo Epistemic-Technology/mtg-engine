@@ -2001,6 +2001,11 @@ pub struct GameState {
     pub lookback: Option<Vec<Lookback>>,
     pub rng: ChaCha8Rng,
     pub next_timestamp: Timestamp,
+    /// The first timestamp of the current event (CR 603.2c): a "one or
+    /// more" trigger waiting with an earlier one triggered on an earlier
+    /// event and isn't joined. Each effect of a resolution and each pass
+    /// of state-based actions starts one.
+    pub batch_from: Timestamp,
     pub flow: Flow,
     /// Set when a cleanup step must repeat (CR 514.3a).
     pub cleanup_repeat: bool,

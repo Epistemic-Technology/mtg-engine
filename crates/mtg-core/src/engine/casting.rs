@@ -8383,6 +8383,9 @@ impl GameState {
 
     #[allow(clippy::too_many_lines)] // one arm per effect kind
     pub(super) fn apply_effect(&mut self, ctx: &mut EffectCtx, effect: &Effect) {
+        // CR 603.2c: each instruction is its own event for "one or more"
+        // triggers ("discard a card, then ... discards a card": two).
+        self.batch_from = self.next_timestamp;
         let outer = self.effect_controller.replace(ctx.controller);
         self.apply_effect_now(ctx, effect);
         self.effect_controller = outer;

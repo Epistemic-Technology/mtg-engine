@@ -449,9 +449,14 @@ impl GameState {
         source: ObjId,
     ) -> bool {
         let mut joined = false;
+        let from = self.batch_from;
         for p in fired
             .iter_mut()
-            .chain(self.pending_triggers.iter_mut())
+            .chain(
+                self.pending_triggers
+                    .iter_mut()
+                    .filter(|p| p.timestamp >= from),
+            )
             .filter(|p| p.ability.ability == ability && p.ability.source == source)
         {
             p.ability.trigger_amount += 1;
@@ -472,9 +477,14 @@ impl GameState {
         player: Option<PlayerId>,
         amount: u32,
     ) -> bool {
+        let from = self.batch_from;
         match fired
             .iter_mut()
-            .chain(self.pending_triggers.iter_mut())
+            .chain(
+                self.pending_triggers
+                    .iter_mut()
+                    .filter(|p| p.timestamp >= from),
+            )
             .find(|p| {
                 p.ability.ability == ability
                     && p.ability.source == source
