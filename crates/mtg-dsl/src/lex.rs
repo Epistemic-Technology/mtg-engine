@@ -143,9 +143,20 @@ fn lex_pt(text: &str) -> Option<(Tok, usize)> {
     ))
 }
 
+/// The longest prefix of `s` whose characters all satisfy `f`: a slice,
+/// so a token is copied out once (the whole corpus is lexed at start-up).
+fn prefix(s: &str, f: impl Fn(char) -> bool) -> &str {
+    let end = s
+        .char_indices()
+        .find(|(_, c)| !f(*c))
+        .map_or(s.len(), |(i, _)| i);
+    &s[..end]
+}
+
 #[allow(clippy::too_many_lines)]
 pub fn lex(text: &str) -> Result<Vec<Spanned>, ParseError> {
-    let mut out: Vec<Spanned> = Vec::new();
+    // About one token per five bytes of card text.
+    let mut out: Vec<Spanned> = Vec::with_capacity(text.len() / 4);
     for (idx, raw) in text.lines().enumerate() {
         let line = idx + 1;
         let mut rest = raw;
@@ -167,9 +178,9 @@ pub fn lex(text: &str) -> Result<Vec<Spanned>, ParseError> {
             }
             let n = match c {
                 '{' => {
-                    let inner: String = rest[1..].chars().take_while(|c| is_sym_char(*c)).collect();
+                    let inner = prefix(&rest[1..], is_sym_char);
                     if !inner.is_empty() && rest[1 + inner.len()..].starts_with('}') {
-                        push(&mut out, Tok::Sym(inner.clone()));
+                        push(&mut out, Tok::Sym(inner.to_string()));
                         inner.len() + 2
                     } else {
                         push(&mut out, Tok::LBrace);
@@ -208,8 +219,7 @@ pub fn lex(text: &str) -> Result<Vec<Spanned>, ParseError> {
                 }
                 '+' | '-' | '−' => {
                     let w = c.len_utf8();
-                    let digits: String =
-                        rest[w..].chars().take_while(char::is_ascii_digit).collect();
+                    let digits = prefix(&rest[w..], |c| c.is_ascii_digit());
                     if digits.is_empty() {
                         if c == '-' {
                             push(&mut out, Tok::Dash);
@@ -230,7 +240,7 @@ pub fn lex(text: &str) -> Result<Vec<Spanned>, ParseError> {
                     }
                 }
                 c if c.is_ascii_digit() => {
-                    let word: String = rest.chars().take_while(|c| is_word_char(*c)).collect();
+                    let word = prefix(rest, is_word_char);
                     if word.chars().all(|c| c.is_ascii_digit()) {
                         let n: u32 = word.parse().map_err(|_| ParseError {
                             line,
@@ -238,13 +248,13 @@ pub fn lex(text: &str) -> Result<Vec<Spanned>, ParseError> {
                         })?;
                         push(&mut out, Tok::Num(n));
                     } else {
-                        push(&mut out, Tok::Word(word.clone()));
+                        push(&mut out, Tok::Word(word.to_string()));
                     }
                     word.len()
                 }
                 c if c.is_alphabetic() => {
-                    let word: String = rest.chars().take_while(|c| is_word_char(*c)).collect();
-                    push(&mut out, Tok::Word(word.clone()));
+                    let word = prefix(rest, is_word_char);
+                    push(&mut out, Tok::Word(word.to_string()));
                     word.len()
                 }
                 _ => {
