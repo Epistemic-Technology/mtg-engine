@@ -2155,7 +2155,7 @@ impl Templates {
             // this creature leaves the battlefield" (Banishing Light).
             (
                 r(
-                    r"^Exile (.+) until (?:this (?:creature|enchantment|artifact|permanent|Aura|land)|~) leaves the battlefield$",
+                    r"^Exile (.+) until (?:this (?:creature|enchantment|artifact|permanent|Aura|land|Vehicle|Equipment)|~) leaves the battlefield$",
                 ),
                 |c, t| {
                     Some(format!(
