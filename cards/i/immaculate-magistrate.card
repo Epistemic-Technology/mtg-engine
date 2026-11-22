@@ -1,0 +1,7 @@
+card "Immaculate Magistrate" {
+  oracle_id e6e38bd4-e6dc-400b-8e08-956726842dc4
+  cost {3}{G}
+  type Creature — Elf Shaman
+  pt 2/2
+  activated {T}: put count each Elf you control +1/+1 counters on target creature
+}

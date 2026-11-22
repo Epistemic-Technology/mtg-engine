@@ -10816,7 +10816,8 @@ impl P {
                 "with" if f.status.bound.is_none() && self.stat_bound_ahead().is_some() => {
                     let (stat, len) = self.stat_bound_ahead().expect("checked");
                     self.pos += 1 + len;
-                    let strict = if self.eat_words(&["at", "most"]) {
+                    let exactly = self.eat_words(&["equal", "to"]);
+                    let strict = if exactly || self.eat_words(&["at", "most"]) {
                         false
                     } else {
                         self.expect_words(&["less", "than"])?;
@@ -10844,7 +10845,7 @@ impl P {
                     }
                     f.status.bound = Some(mtg_core::card::StatBound {
                         stat,
-                        cmp: Cmp::AtMost,
+                        cmp: if exactly { Cmp::Exactly } else { Cmp::AtMost },
                         n,
                         strict,
                     });
@@ -11394,7 +11395,9 @@ impl P {
         let cmp_ok = (self.word_at(at).as_deref() == Some("at")
             && self.word_at(at + 1).as_deref() == Some("most"))
             || (self.word_at(at).as_deref() == Some("less")
-                && self.word_at(at + 1).as_deref() == Some("than"));
+                && self.word_at(at + 1).as_deref() == Some("than"))
+            || (self.word_at(at).as_deref() == Some("equal")
+                && self.word_at(at + 1).as_deref() == Some("to"));
         let n_ok = self.word_at(at + 2).as_deref() == Some("count")
             || (self.word_at(at + 2).is_some_and(|w| w.eq_ignore_ascii_case("x"))
                 && self.word_at(at).as_deref() == Some("at"));

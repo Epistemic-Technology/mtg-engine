@@ -96,6 +96,14 @@ by rejecting the form at compile time or by binding it correctly.
   creature you control. That creature gains hexproof and indestructible
   until end of turn."): the Equipment attaches but the creature gains
   nothing. Celestial Armor is not in (the template author writes it).
+- **Found by the parse-forms branch; not used by a card in the corpus**
+  (the template author writes both; each card was rejected):
+  - `exile target nonland permanent ... and all other nonland permanents
+    that player controls with same name as target 1 until this leaves`
+    exiles only the target (Deputy of Detention).
+  - `triggered when this dies: put count each -1/-1 counters on this
+    -1/-1 counters on target creature` puts none: the count doesn't read
+    the counters it had as it died (Grief Tyrant).
 - **Found by the fifth wave's card batches; none is used by a card in
   the corpus** (each card named was rejected):
   - `each player loses count each creature they control life`: every

@@ -1,0 +1,9 @@
+card "Ajani, Wise Counselor" {
+  oracle_id 341f198b-beb6-4a44-af91-a64a5989c865
+  cost {3}{W}{W}
+  type Legendary Planeswalker — Ajani
+  loyalty 5
+  loyalty +2: you gain count each creature you control life
+  loyalty -3: each creature you control gets +2/+2
+  loyalty -9: put count where life +1/+1 counters on target creature
+}

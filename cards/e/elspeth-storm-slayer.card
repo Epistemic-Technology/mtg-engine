@@ -1,0 +1,10 @@
+card "Elspeth, Storm Slayer" {
+  oracle_id f78af825-023a-42e9-8374-5c52303a1417
+  cost {3}{W}{W}
+  type Legendary Planeswalker — Elspeth
+  loyalty 5
+  replace tokens created under your control: double
+  loyalty +1: create 1 "1/1 white Soldier creature"
+  loyalty 0: put 1 +1/+1 counters on each creature you control; those creatures gain flying until your next turn
+  loyalty -3: destroy target creature an opponent controls with mana value 3 or greater
+}

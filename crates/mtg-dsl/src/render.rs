@@ -2701,6 +2701,11 @@ fn bound_words(b: mtg_core::card::StatBound, card: &Card, verb: &str) -> String 
         crate::ast::CountExpr::SourceToughness => format!("{}'s toughness", this_ref(card)),
         _ => count_phrase(&c.expr, card, false),
     };
+    if b.cmp == mtg_core::card::Cmp::Exactly {
+        // "with mana value equal to the number of charge counters on this
+        // artifact" (Engineered Explosives).
+        return format!("{stat} equal to {phrase}");
+    }
     match (c.style, b.strict) {
         (crate::ast::CountStyle::Where, false) => {
             format!("{stat} X or less, where X is {phrase}")

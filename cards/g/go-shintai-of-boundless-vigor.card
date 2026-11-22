@@ -1,0 +1,8 @@
+card "Go-Shintai of Boundless Vigor" {
+  oracle_id 183cfd35-c18a-4838-94e5-1ad66e6bd325
+  cost {1}{G}
+  type Legendary Enchantment Creature — Shrine
+  pt 1/1
+  keywords trample
+  triggered at beginning of your end step: you may pay {1}; when you do, put count each Shrine you control +1/+1 counters on target Shrine
+}

@@ -6104,6 +6104,54 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
             format!("return all {f} card from your graveyard to battlefield")
         })
         .into_owned();
+    // "Those creatures gain trample": the group named before.
+    s = s
+        .replace("each those creature gains", "those creatures gain")
+        .replace("each those creature gets", "those creatures get")
+        .replace("untap each those creature", "untap those creatures")
+        .replace("tap each those creature", "tap those creatures");
+    // "and each other creature with the same name as that creature": the
+    // line's one target.
+    if s.matches("target ").count() == 1 {
+        s = re(r"with the same name as that (creature|permanent)")
+            .replace_all(&s, "with same name as target 1")
+            .into_owned();
+    }
+    // "Put X +1/+1 counters on target creature, where X is your life
+    // total"; "Counter target spell unless its controller pays {X}, where X
+    // is this creature's power": the count after the amount.
+    s = re(r"put X (\S+) counters on (target [^,;]+), where X is ([^;]+)$")
+        .replace_all(&s, |c: &regex::Captures| match bound_amount(&c[3]) {
+            Some(e) if !e.contains("target") => {
+                format!("put count where {e} {} counters on {}", &c[1], &c[2])
+            }
+            _ => c[0].to_string(),
+        })
+        .into_owned();
+    s = re(r"unless its controller pays \{X\}, where X is ([^;]+)$")
+        .replace_all(&s, |c: &regex::Captures| match bound_amount(&c[1]) {
+            Some(e) => format!("unless its controller pays {{X}} count where {e}"),
+            None => c[0].to_string(),
+        })
+        .into_owned();
+    // "Put a +1/+1 counter on target creature for each Elf you control".
+    s = re(r"put 1 (\S+) counters on (target [^;]+?) for each ([^;]+)$")
+        .replace_all(&s, |c: &regex::Captures| {
+            let what = c[3].to_string();
+            let e = bound_amount(&format!("the number of {what}"))
+                .or_else(|| count_expr(&what))
+                .or_else(|| {
+                    Regex::new(r"^(\S+) counter on (?:this creature|~)$")
+                        .expect("a counter pattern")
+                        .captures(&what)
+                        .map(|k| format!("{} counters on this", &k[1]))
+                });
+            match e {
+                Some(e) => format!("put count each {e} {} counters on {}", &c[1], &c[2]),
+                None => c[0].to_string(),
+            }
+        })
+        .into_owned();
     // "for each tapped artifact, creature, and land you control": any of
     // them, the list printed with "and".
     s = re(r"count each (tapped |untapped )?(\w+), (\w+), and (\w+) you control")
@@ -6159,8 +6207,23 @@ fn bound_amount(a: &str) -> Option<String> {
         "that creature's power" => Some("power of that target 1"),
         "the greatest mana value among permanents you control" => Some("greatest mana value"),
         "the greatest power among creatures you control" => Some("greatest power"),
+        "your life total" => Some("life"),
+        "your devotion to blue" => Some("devotion blue"),
+        "your devotion to black" => Some("devotion black"),
+        "your devotion to red" => Some("devotion red"),
+        "your devotion to green" => Some("devotion green"),
+        "your devotion to white" => Some("devotion white"),
         _ => None,
     };
+    // "the number of charge counters on this artifact".
+    if let Some(c) = Regex::new(
+        r"^the number of (\S+) counters on (?:this (?:artifact|creature|land|enchantment)|~)$",
+    )
+    .expect("a counters pattern")
+    .captures(a)
+    {
+        return Some(format!("{} counters on this", &c[1]));
+    }
     // The templates write "lands" singular before a count.
     let fixed = fixed.or(
         (a == "the number of basic land types among land you control").then_some("domain"),
@@ -6180,7 +6243,7 @@ fn bound_amount(a: &str) -> Option<String> {
 /// count.
 fn bound_phrases(st: &str) -> String {
     let head = Regex::new(
-        r"(with|if its) (power|toughness|mana value) (is )?(less than or equal to|less than|X or less, where X is) ",
+        r"(with|if its) (power|toughness|mana value) (is )?(less than or equal to|less than|equal to|X or less, where X is) ",
     )
     .expect("a bound pattern");
     let mut s = st.to_string();
@@ -6207,6 +6270,7 @@ fn bound_phrases(st: &str) -> String {
         };
         let (cmp, style) = match how.as_str() {
             "less than" => ("less than", "equal"),
+            "equal to" => ("equal to", "equal"),
             "X or less, where X is" => ("at most", "where"),
             _ => ("at most", "equal"),
         };

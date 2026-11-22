@@ -3520,7 +3520,11 @@ fn filter_one(f: &Filter) -> String {
         words.push(format!(
             "with {} {} {}",
             stat_word(b.stat),
-            if b.strict { "less than" } else { "at most" },
+            match (b.strict, b.cmp) {
+                (true, _) => "less than",
+                (false, mtg_core::card::Cmp::Exactly) => "equal to",
+                _ => "at most",
+            },
             num(b.n)
         ));
     }

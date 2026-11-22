@@ -1,0 +1,8 @@
+card "Blast Zone" {
+  oracle_id 393a254f-be31-431a-9341-a51286f8cbce
+  type Land
+  enters with 1 charge counters
+  mana {C}
+  activated {X}{X}, {T}: put X charge counters on this
+  activated {3}, {T}, sacrifice this: destroy each single nonland permanent with mana value equal to count equal charge counters on this
+}

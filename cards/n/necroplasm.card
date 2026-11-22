@@ -1,0 +1,9 @@
+card "Necroplasm" {
+  oracle_id aa1c40fb-c230-4e7f-99b1-4e2e8c39a168
+  cost {1}{B}{B}
+  type Creature — Ooze
+  pt 1/1
+  triggered at beginning of your upkeep: put 1 +1/+1 counters on this
+  triggered at beginning of your end step: destroy each single creature with mana value equal to count equal +1/+1 counters on this
+  dredge 2
+}
