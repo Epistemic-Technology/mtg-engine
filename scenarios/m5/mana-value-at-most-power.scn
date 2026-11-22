@@ -1,0 +1,65 @@
+# "with mana value less than or equal to this creature's power": the
+# source's power as it is, or as it last existed after it died.
+
+scenario "Alesha returns a card with mana value up to her power, not more" {
+  battlefield A: "Alesha, Who Laughs at Fate"
+  graveyard A: "Hill Giant", "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Alesha, Who Laughs at Fate"
+  run_to turn 2 cleanup
+  assert power "Alesha, Who Laughs at Fate" 3
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Alesha with power 5 can return a mana value 4 card" {
+  battlefield A: "Alesha, Who Laughs at Fate" with 2 +1/+1
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  start turn 2 A
+  turn 2 A: attack "Alesha, Who Laughs at Fate"
+  turn 2 end A: trigger "Alesha, Who Laughs at Fate" targeting "Hill Giant"
+  run_to turn 2 cleanup
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Fiendish Panda uses its power as it last existed" {
+  battlefield A: "Fiendish Panda", "Mountain"
+  hand A: "Lightning Bolt"
+  graveyard A: "Craw Wurm", "Hill Giant", "Savannah Lions"
+  turn 1 A: cast "Lightning Bolt" targeting "Fiendish Panda"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Fiendish Panda"
+  assert battlefield A contains "Savannah Lions"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Fiendish Panda with a counter returns a mana value 4 card" {
+  battlefield A: "Fiendish Panda" with 1 +1/+1, "Mountain"
+  hand A: "Lightning Bolt"
+  graveyard A: "Craw Wurm", "Hill Giant", "Grizzly Bears"
+  turn 1 A: cast "Lightning Bolt" targeting "Fiendish Panda"
+  turn 1 A: trigger "Fiendish Panda" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Fiendish Panda can't return a card above its power" {
+  battlefield A: "Fiendish Panda", "Mountain"
+  hand A: "Lightning Bolt"
+  graveyard A: "Craw Wurm", "Hill Giant"
+  turn 1 A: cast "Lightning Bolt" targeting "Fiendish Panda"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Craw Wurm"
+}
+
+scenario "Sandbender Scavengers: exile it, then return a creature card up to its power" {
+  battlefield A: "Sandbender Scavengers" with 2 +1/+1, "Mountain"
+  hand A: "Lightning Bolt"
+  graveyard A: "Hill Giant", "Grizzly Bears"
+  turn 1 A: cast "Lightning Bolt" targeting "Sandbender Scavengers"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Sandbender Scavengers"
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}

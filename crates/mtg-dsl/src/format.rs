@@ -2865,8 +2865,13 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
         Who::Any if graveyards => "graveyards",
         Who::Any => "a graveyard",
     };
-    // "target card named this from your graveyard".
-    let named = if f.same.is_some() { " named this" } else { "" };
+    // "target card named this from your graveyard"; "creature card with
+    // mana value at most this power".
+    let named = match f.same {
+        Some(crate::ast::SameRef::ManaValueAtMostPower) => " with mana value at most this power",
+        Some(_) => " named this",
+        None => "",
+    };
     let mut g = f.clone();
     g.same = None;
     g.that_player = None;
@@ -3280,6 +3285,7 @@ pub fn same_ref(r: crate::ast::SameRef) -> String {
         SameRef::SameNameAs(n) => format!("with same name as target {}", n + 1),
         SameRef::SharesColorWith(n) => format!("that shares color with target {}", n + 1),
         SameRef::LesserPower => "with lesser power".to_string(),
+        SameRef::ManaValueAtMostPower => "with mana value at most this power".to_string(),
     }
 }
 

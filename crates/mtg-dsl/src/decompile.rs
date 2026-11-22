@@ -230,6 +230,10 @@ impl Decompiler<'_> {
                 use mtg_core::card::{SameOf, SameWhat};
                 match (r.of, r.what) {
                     (SameOf::Source, SameWhat::NotName) => SameRef::NotNamedThis,
+                    (SameOf::Source, SameWhat::LesserPower) => SameRef::LesserPower,
+                    (SameOf::Source, SameWhat::ManaValueAtMostPower) => {
+                        SameRef::ManaValueAtMostPower
+                    }
                     (SameOf::Source, _) => SameRef::NamedThis,
                     (SameOf::Target(n), SameWhat::Color) => {
                         SameRef::SharesColorWith(usize::from(n))

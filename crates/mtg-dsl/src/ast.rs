@@ -925,6 +925,10 @@ pub enum SameRef {
     /// `with lesser power`: "with lesser power" (than the source's power,
     /// as it is or last existed; mentor, CR 702.134a).
     LesserPower,
+    /// `with mana value at most this power`: "with mana value less than
+    /// or equal to this creature's power" (the source's, as it is or last
+    /// existed).
+    ManaValueAtMostPower,
 }
 
 /// How a filter refers to a chosen color or type, as printed after the

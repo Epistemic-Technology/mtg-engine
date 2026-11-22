@@ -4031,8 +4031,23 @@ impl GameState {
                     let c = self.base_characteristics(obj);
                     // "another target card": the source's card after it
                     // moved to the graveyard is the source still.
+                    let filter = self.pool.filter(filter);
+                    // "with mana value less than or equal to this
+                    // creature's power": its power as it is, or as it last
+                    // existed on the battlefield (a dies trigger), not the
+                    // card's in the graveyard.
+                    let filled;
+                    let filter = if filter
+                        .same
+                        .is_some_and(|s| s.what == crate::card::SameWhat::ManaValueAtMostPower)
+                    {
+                        filled = self.with_same_of(filter, source);
+                        &filled
+                    } else {
+                        filter
+                    };
                     let source = source.map(|s| self.current_object(s).unwrap_or(s));
-                    let f = self.source_filter(self.pool.filter(filter), source, x);
+                    let f = self.source_filter(filter, source, x);
                     return obj.zone == Zone::Graveyard
                         && whose
                         && f.matches(id, obj.owner, &c, source, None)

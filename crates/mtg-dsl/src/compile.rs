@@ -1116,6 +1116,10 @@ impl Compiler<'_> {
                         of: SameOf::Source,
                         what: SameWhat::LesserPower,
                     },
+                    SameRef::ManaValueAtMostPower => Same {
+                        of: SameOf::Source,
+                        what: SameWhat::ManaValueAtMostPower,
+                    },
                 }
             }),
             named: None,

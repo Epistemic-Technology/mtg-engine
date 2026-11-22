@@ -1,0 +1,8 @@
+card "High Fae Trickster" {
+  oracle_id 28c1a4a0-f58c-4d07-a918-51ff8a74f050
+  cost {3}{U}
+  type Creature — Faerie Wizard
+  pt 4/2
+  keywords flash, flying
+  spells you cast have flash
+}

@@ -1,0 +1,8 @@
+card "Sandbender Scavengers" {
+  oracle_id 0feacc7c-b93e-4322-bc8b-b3c19006128e
+  cost {W}{B}
+  type Creature — Human Rogue
+  pt 1/1
+  triggered whenever you sacrifice other permanent: put 1 +1/+1 counter on this
+  triggered when this dies: you may exile this; when you do, return target creature card with mana value at most this power from your graveyard to battlefield
+}

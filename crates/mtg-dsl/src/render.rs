@@ -2543,6 +2543,10 @@ fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             if plural_form { "share" } else { "shares" }
         ),
         Some(SameRef::LesserPower) => " with lesser power".to_string(),
+        Some(SameRef::ManaValueAtMostPower) => format!(
+            " with mana value less than or equal to {}'s power",
+            this_ref(card)
+        ),
     }
 }
 
@@ -8195,6 +8199,14 @@ fn lowercase_first(s: &str) -> String {
     {
         return s.to_string();
     }
+    // "Birds, Frogs, Otters, and Rats you control get +1/+1": a list of
+    // creature types in the plural.
+    if let Some(first) = s.split(' ').next()
+        && first.ends_with("s,")
+        && first.chars().next().is_some_and(char::is_uppercase)
+    {
+        return s.to_string();
+    }
     // "Raccoons you control get +1/+1": a creature type in the plural.
     let mut words = s.split(' ');
     if let (Some(first), Some("you"), Some("control")) = (words.next(), words.next(), words.next())
@@ -12157,6 +12169,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             storm,
             affinity,
         } => {
+            // "You may cast noncreature spells as though they had flash."
+            if keywords == &[Keyword::Flash] && !*storm && affinity.is_none() {
+                let from = if *from_hand { " from your hand" } else { "" };
+                return format!(
+                    "You may cast {}{from} as though they had flash.",
+                    lowercase_first(&cost_spells_subject(filter, card))
+                );
+            }
             let mut items: Vec<String> = keywords
                 .iter()
                 .map(|k| keyword_name(*k).to_string())

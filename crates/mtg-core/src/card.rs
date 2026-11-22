@@ -1301,6 +1301,9 @@ pub enum SameWhat {
     /// Has lesser power ("target attacking creature with lesser power",
     /// mentor, CR 702.134a).
     LesserPower,
+    /// Has mana value at most the source's power ("with mana value less
+    /// than or equal to this creature's power"); no source, nothing.
+    ManaValueAtMostPower,
 }
 
 /// What a spell must target ("that targets a creature", "that targets you
@@ -1423,6 +1426,11 @@ impl ObjFilter {
             SameWhat::LesserPower => {
                 f.power = Some((Cmp::AtMost, power.map_or(i16::MIN, |p| p.saturating_sub(1))));
             }
+            // A negative power (or none): no mana value is that small.
+            SameWhat::ManaValueAtMostPower => match power.and_then(|p| u8::try_from(p).ok()) {
+                Some(p) => f.mana_value = Some((Cmp::AtMost, p)),
+                None => f.named = Some((CardRef(u32::MAX), true)),
+            },
         }
         f
     }

@@ -4033,7 +4033,8 @@ impl P {
                         k @ (Keyword::Convoke
                         | Keyword::Improvise
                         | Keyword::Delve
-                        | Keyword::Cascade),
+                        | Keyword::Cascade
+                        | Keyword::Flash),
                     ) => keywords.push(k),
                     _ => return self.fail(
                         "spells can have convoke, improvise, delve, cascade, storm, or affinity",
@@ -7650,6 +7651,9 @@ impl P {
                     let g = self.filter()?;
                     filter.mana_value = g.mana_value;
                     filter.status.mana_value_x = g.status.mana_value_x;
+                    if g.same == Some(SameRef::ManaValueAtMostPower) {
+                        filter.same = g.same;
+                    }
                 }
                 // "a basic land card or a Gate card": the alternative as its
                 // own noun.
@@ -9716,6 +9720,9 @@ impl P {
             let g = self.filter()?;
             f.mana_value = g.mana_value;
             f.status.mana_value_x = g.status.mana_value_x;
+            if g.same == Some(SameRef::ManaValueAtMostPower) {
+                f.same = g.same;
+            }
             if !self.at_word("from") {
                 return self.unexpected("`from` after the card's mana value");
             }
@@ -10147,7 +10154,8 @@ impl P {
                 }
                 "with"
                     if matches!(self.word_at(1).as_deref(), Some("power" | "toughness"))
-                        || self.at_words(&["with", "mana", "value"]) =>
+                        || (self.at_words(&["with", "mana", "value"])
+                            && !self.at_words(&["with", "mana", "value", "at", "most"])) =>
                 {
                     self.pos += 1;
                     let what = self.word()?;
@@ -10307,6 +10315,15 @@ impl P {
                 "with" if self.at_words(&["with", "lesser", "power"]) && f.same.is_none() => {
                     self.pos += 3;
                     f.same = Some(SameRef::LesserPower);
+                }
+                // "with mana value less than or equal to this creature's
+                // power".
+                "with"
+                    if self.at_words(&["with", "mana", "value", "at", "most", "this", "power"])
+                        && f.same.is_none() =>
+                {
+                    self.pos += 7;
+                    f.same = Some(SameRef::ManaValueAtMostPower);
                 }
                 "that" if self.at_words(&["that", "was", "dealt", "damage", "this", "turn"]) => {
                     f.damaged = true;

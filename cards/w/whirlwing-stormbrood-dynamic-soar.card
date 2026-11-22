@@ -1,0 +1,14 @@
+card "Whirlwing Stormbrood // Dynamic Soar" {
+  oracle_id 4fbfc814-df10-4d61-ada9-c96cc8ee8d8c
+  layout omen
+  cost {4}{U}
+  type Creature — Dragon
+  pt 4/3
+  keywords flash, flying
+  spells sorcery or Dragon you cast have flash
+  face "Dynamic Soar" {
+    cost {2}{G}
+    type Sorcery — Omen
+    spell: put 3 +1/+1 counters on target creature you control
+  }
+}

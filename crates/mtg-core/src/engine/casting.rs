@@ -2810,6 +2810,23 @@ impl GameState {
             || def
                 .flash_if
                 .is_some_and(|c| self.condition_now(self.pool.condition(c), p, id))
+            || (self.cost_change_sources > 0 && self.flash_granted(p, def, id))
+    }
+
+    /// Whether a static ability lets `p` cast `def`'s card `id` as though
+    /// it had flash ("You may cast noncreature spells as though they had
+    /// flash", CR 702.8; a `SpellGrant` of the keyword).
+    #[cold]
+    #[inline(never)]
+    fn flash_granted(&self, p: PlayerId, def: &crate::card::CardDef, id: ObjId) -> bool {
+        self.cost_changers().into_iter().any(|src| {
+            let o = &self.objects[src];
+            self.pool.get(o.def).ability_ids.iter().any(|a| {
+                matches!(self.pool.ability(*a), AbilityDef::CostChange(cc)
+                    if cc.grant.as_ref().is_some_and(|g| g.keywords.contains(Keyword::Flash))
+                        && self.cost_change_applies(cc, p, def, id, src))
+            })
+        })
     }
 
     #[inline(never)]
