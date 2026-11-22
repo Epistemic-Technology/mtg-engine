@@ -559,7 +559,12 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 false
             };
-            let alternative = if line.peek_ident("alternative") {
+            // `prototyped` (CR 702.160), `blitzed` (CR 702.152), and
+            // `prowled` (CR 702.76) name the card's own alternative cost.
+            let alternative = if ["alternative", "prototyped", "blitzed", "prowled"]
+                .iter()
+                .any(|k| line.peek_ident(k))
+            {
                 line.pos += 1;
                 true
             } else {

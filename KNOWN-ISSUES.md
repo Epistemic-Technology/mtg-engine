@@ -201,10 +201,10 @@ named the feature; a card may need more than one.
   (Shadowborn Apostle, not added).
 - **Mechanics not yet in:** tiered, devour, harness, hideaway, mutate,
   meld, the Everywhere land token, "when this land enters untapped".
-- **Scenario runner:** a mana ability can't be scripted
-  as an action; no way to give X to a spell cast by a trigger, to choose
-  a library-search card, or to say `prototyped`/`blitzed`/`prowled`
-  (all use `alternative`).
+- **Scenario runner:** a mana ability can't be scripted as an action
+  (the engine offers none at priority; it taps for mana while paying);
+  `x N` on a spell cast by a trigger isn't passed on (no corpus card
+  pays X for such a cast: the free ones have X 0).
 
 ## 4. Process
 
