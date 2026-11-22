@@ -6341,6 +6341,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             Clause::imperative(text)
         }
+        // CR 707.12: "Copy it. You may cast the copy without paying its
+        // mana cost."
+        Effect::CastCopy {
+            what,
+            free,
+            wording,
+        } => {
+            let o = ctx.obj(*what);
+            let join = if *wording == crate::ast::CopyCastWording::Then {
+                ", then you"
+            } else {
+                ". You"
+            };
+            let free = if *free {
+                " without paying its mana cost"
+            } else {
+                ""
+            };
+            Clause::imperative(format!("copy {o}{join} may cast the copy{free}"))
+        }
         Effect::CopySpells {
             what,
             times,

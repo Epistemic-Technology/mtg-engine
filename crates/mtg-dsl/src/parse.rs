@@ -8437,6 +8437,21 @@ impl P {
             // N] [new targets] [with exceptions]` (CR 707.10).
             "copy" => {
                 let what = self.recipient()?;
+                // `copy target 1 [then] may cast [free]` (CR 707.12).
+                let then = self.at_words(&["then", "may", "cast"]);
+                if then || self.at_words(&["may", "cast"]) {
+                    self.pos += if then { 3 } else { 2 };
+                    let free = self.eat_word("free");
+                    return Ok(Effect::CastCopy {
+                        what,
+                        free,
+                        wording: if then {
+                            crate::ast::CopyCastWording::Then
+                        } else {
+                            crate::ast::CopyCastWording::Sentences
+                        },
+                    });
+                }
                 let times = if self.eat_word("times") {
                     self.num()?
                 } else {

@@ -2761,6 +2761,10 @@ impl Compiler<'_> {
                     count: *count,
                 });
             }
+            Effect::CastCopy { what, free, .. } => out.push(CoreEffect::CastCopy {
+                what: r(*what),
+                free: *free,
+            }),
             Effect::CopySpells {
                 what,
                 times,

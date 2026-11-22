@@ -4653,6 +4653,15 @@ pub enum Effect {
     /// Cipher's trigger (CR 702.99a): a copy of the encoded card (the
     /// source, in exile) may be cast without paying its mana cost.
     CastCipherCopy,
+    /// "Copy it. You may cast the copy [without paying its mana cost]."
+    /// (CR 707.12): for each recipient card (one not on the battlefield or
+    /// the stack), a copy is made in exile, and the controller may cast it
+    /// as the effect finishes, for its mana cost or free; not cast, it
+    /// ceases to exist. "If you do" sees whether one will be cast.
+    CastCopy {
+        what: Recipient,
+        free: bool,
+    },
     /// Blight N (CR 701.68a): the controller puts N -1/-1 counters on a
     /// creature they control; without one, nothing happens and it isn't
     /// done (701.68b).
@@ -4909,6 +4918,7 @@ impl Effect {
                 | Effect::Connive { .. }
                 | Effect::CastExiled(_)
                 | Effect::CastCipherCopy
+                | Effect::CastCopy { .. }
                 | Effect::SuspendTick
                 | Effect::Cascade
                 | Effect::Ripple

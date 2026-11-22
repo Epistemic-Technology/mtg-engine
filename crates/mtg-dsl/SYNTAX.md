@@ -1848,7 +1848,17 @@ it last existed). Abilities on the stack are copied the same way (CR
 target triggered ability you control new targets`, `copy target
 activated or triggered ability you control [from a creature source | from
 an artifact source]` (targets "you control" only the ability's
-controller's), `emblem "Name"`,
+controller's), `copy target 1 may cast [free]` (CR 707.12: "Copy it. You
+may cast the copy [without paying its mana cost]."; `copy target 1 then
+may cast free` "Copy it, then you may cast the copy without paying its
+mana cost."; after `exile up to one target black card from your
+graveyard and`, Kaervek's "... and copy it. You may cast the copy."): a
+copy of the card is made in exile and its controller may cast it as the
+ability finishes, for its mana cost (offered only if they can pay it) or
+free; not cast, it ceases to exist; a copy of a permanent card becomes a
+token; `if you do` after it sees whether it will be cast. In scenarios,
+`cast "Murder" targeting "Hill Giant"` gives the copy's targets; the
+runner always casts it), `emblem "Name"`,
 `draw 2 cards` (you), `discard 1 card` (you), `mill 2 cards` (you),
 `scry 2`, `surveil 1`, `investigate` (create a Clue token; `investigate
 twice`; `investigate count each opponents lost life this turn`:

@@ -956,6 +956,11 @@ impl Decompiler<'_> {
                 except: *except,
                 count: *count,
             },
+            CoreEffect::CastCopy { what, free } => Effect::CastCopy {
+                what: r(*what),
+                free: *free,
+                wording: crate::ast::CopyCastWording::Sentences,
+            },
             CoreEffect::CopySpells {
                 what,
                 times,

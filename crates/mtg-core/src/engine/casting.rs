@@ -4002,6 +4002,8 @@ impl GameState {
                 generic: 2,
                 ..ManaRequirement::default()
             }),
+            // "You may cast the copy" (CR 707.12): for its mana cost.
+            AltCast::None => Some(def.mana_cost.requirements(0)),
             _ => return true,
         };
         let Some(mut req) = req.take() else {
@@ -7258,6 +7260,48 @@ impl GameState {
             ctx.did = true;
             self.apply_effects(ctx, effects, &[]);
         }
+    }
+
+    /// `Effect::CastCopy` (CR 707.12): a copy of each recipient card is
+    /// made in exile, and its controller may cast it as the resolution
+    /// finishes (free, or for its mana cost if they can pay it); a copy not
+    /// cast ceases to exist. "If you do" sees whether one will be.
+    #[cold]
+    #[inline(never)]
+    fn cast_copy(&mut self, ctx: &mut EffectCtx, what: Recipient, free: bool) {
+        let p = ctx.controller;
+        let alt = if free { AltCast::Free } else { AltCast::None };
+        let mut any = false;
+        for t in self.recipients(ctx, what) {
+            let Target::Object(card) = t else {
+                continue;
+            };
+            let Some(o) = self.objects.get(card) else {
+                continue;
+            };
+            if matches!(o.zone, Zone::Battlefield | Zone::Stack) || o.kind != ObjKind::Card {
+                continue;
+            }
+            let copy = self.new_object(o.def, p, Zone::Exile);
+            self.objects[copy].cast = self.objects[copy].cast.copied();
+            self.player_mut(p).exile.push(copy);
+            // The decision names the card as it was before this resolution
+            // moved it ("exile target card ... and copy it"), an object
+            // that exists while the decision is asked.
+            let shown = match what {
+                Recipient::Target(i) => match ctx.targets.get(i) {
+                    Some(Target::Object(id)) => *id,
+                    _ => card,
+                },
+                _ => card,
+            };
+            if self.offer_exile_cast_shown(copy, alt, p, shown) {
+                any = true;
+            } else {
+                self.remove_from_game(copy);
+            }
+        }
+        ctx.did = any;
     }
 
     /// CR 707.10: a copy of the source spell on the stack (as it last
@@ -11972,6 +12016,7 @@ impl GameState {
                     self.remove_from_game(copy);
                 }
             }
+            Effect::CastCopy { what, free } => self.cast_copy(ctx, *what, *free),
             Effect::CastExiled(kind) => {
                 // CR 702.94a: a miracle card is cast from the hand.
                 let from = if *kind == crate::card::ExileCast::Miracle {

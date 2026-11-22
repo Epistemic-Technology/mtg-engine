@@ -1562,6 +1562,20 @@ impl Fmt {
                 }
                 s
             }
+            Effect::CastCopy {
+                what,
+                free,
+                wording,
+            } => format!(
+                "copy {}{} may cast{}",
+                self.recipient(*what, t),
+                if *wording == crate::ast::CopyCastWording::Then {
+                    " then"
+                } else {
+                    ""
+                },
+                if *free { " free" } else { "" }
+            ),
             Effect::CopySpells {
                 what,
                 times,

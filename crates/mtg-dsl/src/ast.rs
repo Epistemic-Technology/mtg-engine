@@ -713,6 +713,16 @@ pub struct ExileCards {
     pub top: bool,
 }
 
+/// How "copy it" and "you may cast the copy" join (`Effect::CastCopy`).
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum CopyCastWording {
+    /// "Copy it. You may cast the copy."
+    #[default]
+    Sentences,
+    /// "Copy it, then you may cast the copy ..."
+    Then,
+}
+
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum CostItem {
     /// `exile 2 cards from graveyard`.
@@ -3564,6 +3574,15 @@ pub enum Effect {
         times: Num,
         new_targets: bool,
         except: bool,
+    },
+    /// `copy target 1 may cast [free]`: "Copy it. You may cast the copy
+    /// [without paying its mana cost]." (CR 707.12); `then`: "Copy it,
+    /// then you may cast the copy ..."; `may copy`: "You may copy the
+    /// exiled card. If you do, you may cast the copy ...".
+    CastCopy {
+        what: Recipient,
+        free: bool,
+        wording: CopyCastWording,
     },
     /// `this becomes a copy of <what> [with exceptions]`; another subject
     /// (`target artifact becomes ...`, `each other creature becomes ...`)

@@ -1,0 +1,7 @@
+card "Roving Actuator" {
+  oracle_id 78ac1e6c-2704-4844-9e87-642324c23997
+  cost {3}{R}
+  type Artifact Creature — Robot
+  pt 3/4
+  label "Void" triggered when this enters if void: exile up to one target instant or sorcery card with mana value 2 or less from your graveyard; copy target 1 may cast free
+}
