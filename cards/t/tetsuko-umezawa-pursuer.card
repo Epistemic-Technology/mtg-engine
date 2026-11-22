@@ -1,0 +1,8 @@
+card "Tetsuko Umezawa, Pursuer" {
+  oracle_id 708d4567-a5a3-437f-bae4-ae10f1537aa9
+  cost {3}{R}
+  type Legendary Creature — Human Mercenary
+  pt 2/4
+  keywords double strike, prowess
+  triggered whenever creature an opponent controls with power or toughness 1 or less blocks: deal 1 damage to controller of that creature
+}

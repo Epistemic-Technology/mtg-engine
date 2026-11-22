@@ -2368,7 +2368,12 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     for (name, v) in [("power", f.power), ("toughness", f.toughness)] {
         if let Some((cmp, n)) = v {
-            if f.status.spent_colors && name == "power" {
+            if f.status.pt_either {
+                // "with power or toughness 1 or less".
+                if name == "power" {
+                    let _ = write!(s, " with power or toughness {n}{}", cmp_words(cmp));
+                }
+            } else if f.status.spent_colors && name == "power" {
                 let _ = write!(s, " with power {}", spent_at_most(card));
             } else {
                 let _ = write!(s, " with {name} {n}{}", cmp_words(cmp));

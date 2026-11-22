@@ -1,0 +1,75 @@
+# "with power or toughness N or less/greater": either characteristic is
+# enough.
+
+scenario "Repel Calamity destroys a creature whose power or toughness is 4 or greater" {
+  battlefield A: 3 "Plains"
+  hand A: "Repel Calamity"
+  battlefield B: "Ancient Crab", "Dross Crocodile", "Hill Giant"
+  turn 1 A: cast "Repel Calamity" targeting "Ancient Crab"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ancient Crab"
+  assert battlefield B contains "Dross Crocodile"
+}
+
+scenario "Repel Calamity can target a 5/1" {
+  battlefield A: 3 "Plains"
+  hand A: "Repel Calamity"
+  battlefield B: "Dross Crocodile"
+  turn 1 A: cast "Repel Calamity" targeting "Dross Crocodile"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Dross Crocodile"
+}
+
+scenario "Repel Calamity can't target a 3/3" {
+  battlefield A: 3 "Plains"
+  hand A: "Repel Calamity"
+  battlefield B: "Hill Giant", "Ancient Crab"
+  illegal turn 1 A: cast "Repel Calamity" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Tetsuko Umezawa, Fugitive: a 5/1 can't be blocked, a 3/3 can" {
+  battlefield A: "Tetsuko Umezawa, Fugitive", "Dross Crocodile", "Hill Giant"
+  battlefield B: "Grizzly Bears", "Craw Wurm"
+  start turn 2 A
+  turn 2 A: attack "Dross Crocodile", "Hill Giant"
+  illegal turn 2 B: block "Dross Crocodile" with "Craw Wurm"
+  turn 2 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 15
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Arnyn: a 5/1 dying drains, a 3/3 dying doesn't" {
+  battlefield A: "Arnyn, Deathbloom Botanist", "Dross Crocodile", "Hill Giant", 2 "Mountain"
+  hand A: 2 "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Dross Crocodile"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Dross Crocodile"
+  assert graveyard A contains "Hill Giant"
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Tetsuko Umezawa, Pursuer: a 1/5 blocker pings its controller" {
+  battlefield A: "Tetsuko Umezawa, Pursuer", "Hill Giant"
+  battlefield B: "Ancient Crab"
+  start turn 2 A
+  turn 2 A: attack "Hill Giant"
+  turn 2 B: block "Hill Giant" with "Ancient Crab"
+  run_to turn 2 postcombat_main
+  assert life B 19
+}
+
+scenario "Tetsuko Umezawa, Pursuer: a 2/2 blocker doesn't" {
+  battlefield A: "Tetsuko Umezawa, Pursuer", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Hill Giant"
+  turn 2 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 20
+}

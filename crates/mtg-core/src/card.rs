@@ -1204,6 +1204,11 @@ pub struct StatusQuals {
     pub morph: bool,
     /// "suspected creature" (`true`, CR 701.60) or not suspected.
     pub suspected: Option<bool>,
+    /// "with power or toughness 1 or less": `ObjFilter::power` and
+    /// `toughness` (the same threshold) are alternatives, either enough.
+    /// A characteristic, not game state: `any` leaves it out.
+    #[serde(default)]
+    pub pt_either: bool,
 }
 
 /// The kind of permanent `StatusQuals::on` asks the object to be attached
@@ -1509,15 +1514,24 @@ impl ObjFilter {
         if !self.any_types.is_empty() && !c.types.intersects(self.any_types) {
             return false;
         }
-        if let Some((cmp, n)) = self.power
-            && !cmp.holds(c.power, n)
-        {
-            return false;
-        }
-        if let Some((cmp, n)) = self.toughness
-            && !cmp.holds(c.toughness, n)
-        {
-            return false;
+        if self.status.pt_either {
+            // "with power or toughness 1 or less": either is enough.
+            let p = self.power.is_some_and(|(cmp, n)| cmp.holds(c.power, n));
+            let t = self.toughness.is_some_and(|(cmp, n)| cmp.holds(c.toughness, n));
+            if !p && !t {
+                return false;
+            }
+        } else {
+            if let Some((cmp, n)) = self.power
+                && !cmp.holds(c.power, n)
+            {
+                return false;
+            }
+            if let Some((cmp, n)) = self.toughness
+                && !cmp.holds(c.toughness, n)
+            {
+                return false;
+            }
         }
         if let Some(cc) = self.color_count {
             let n = c.colors.iter().count();

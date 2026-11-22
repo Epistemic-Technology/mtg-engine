@@ -3086,7 +3086,11 @@ fn filter_one(f: &Filter) -> String {
     }
     for (name, v) in [("power", f.power), ("toughness", f.toughness)] {
         if let Some((cmp, n)) = v {
-            if f.status.spent_colors && name == "power" {
+            if f.status.pt_either {
+                if name == "power" {
+                    words.push(format!("with power or toughness {n}{}", cmp_suffix(cmp)));
+                }
+            } else if f.status.spent_colors && name == "power" {
                 words.push("with power colors spent or less".to_string());
             } else {
                 words.push(format!("with {name} {n}{}", cmp_suffix(cmp)));

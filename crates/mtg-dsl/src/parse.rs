@@ -10154,6 +10154,8 @@ impl P {
                     if what == "mana" {
                         self.expect_word("value")?;
                     }
+                    // "with power or toughness 1 or less": either.
+                    let either = what == "power" && self.eat_words(&["or", "toughness"]);
                     let n = self.number()?;
                     let cmp = if self.eat_words(&["or", "less"]) {
                         Cmp::AtMost
@@ -10163,6 +10165,12 @@ impl P {
                         Cmp::Exactly
                     };
                     match what.as_str() {
+                        "power" if either => {
+                            let n = i16::try_from(n).unwrap_or(i16::MAX);
+                            f.power = Some((cmp, n));
+                            f.toughness = Some((cmp, n));
+                            f.status.pt_either = true;
+                        }
                         "power" => f.power = Some((cmp, i16::try_from(n).unwrap_or(i16::MAX))),
                         "toughness" => {
                             f.toughness = Some((cmp, i16::try_from(n).unwrap_or(i16::MAX)));

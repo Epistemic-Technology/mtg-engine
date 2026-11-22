@@ -1151,7 +1151,9 @@ colors joined with `or` (`red or green creature`, sharing a color), types
 joined with `or` or listed (`artifact or enchantment`, `artifact,
 enchantment, or land`: at least one), negations listed with commas
 (`nonartifact, nonblack creature`), and `with
-power 2 or less`, `with toughness 4 or greater`, `with mana value 3`.
+power 2 or less`, `with toughness 4 or greater`, `with mana value 3`,
+`with power or toughness 1 or less` (either is enough: "creatures you
+control with power or toughness 1 or less").
 A chosen color or type comes last: `creature you control of chosen color`
 ("creatures you control of the chosen color", the color the source chose
 as it entered, CR 607.2a), `creature of chosen type`, `permanent you
