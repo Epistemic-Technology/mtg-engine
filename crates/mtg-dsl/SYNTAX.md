@@ -349,7 +349,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `when you cast this`, `when you cast or cycle this` | "When you cast this spell" (CR 603.2): triggers from the spell itself as it is cast, controlled by its caster, so it resolves before the spell and even if the spell is countered; "When you cast or cycle Warped Tusker" (the card's name) adds the cycle trigger. `when you cast this and when this dies` is one ability with both |
 | `whenever you sacrifice other Eldrazi` | "Whenever you sacrifice another Eldrazi" (CR 701.21a): the sacrificed permanent, matching as it is sacrificed, is the triggering object |
 | `when this enters and whenever you cast ...`, `when you cycle this and when this dies` | one ability with two trigger events, joined with "and" |
-| `when this enters or dies`, `whenever this enters or attacks`, `when this enters or leaves the battlefield`, `when this enters or is turned face up` | one ability with two events of the source, the subject printed once: "When this creature enters or dies" ("When this artifact enters or is put into a graveyard from the battlefield" on a noncreature), "Whenever this creature enters or attacks"; the word written (`when` / `whenever`) is the word printed ("Whenever this creature enters or dies"). A face-down permanent has no abilities, so one cast face down triggers only as it turns face up (CR 708.8) |
+| `when this enters or dies`, `whenever this enters or attacks`, `when this enters or leaves the battlefield`, `when this enters or is turned face up` | one ability with two events of the source, the subject printed once: "When this creature enters or dies" ("When this artifact enters or is put into a graveyard from the battlefield" on a noncreature), "Whenever this creature enters or attacks"; the word written (`when` / `whenever`) is the word printed ("Whenever this creature enters or dies"); a filter's two events likewise: `whenever Detective you control enters or is turned face up` ("Whenever a Detective you control enters or is turned face up", each Detective the triggering object). A face-down permanent has no abilities, so one cast face down triggers only as it turns face up (CR 708.8) |
 | `whenever you sacrifice other permanent`, `whenever you sacrifice token`, `whenever a player sacrifices creature`, `whenever an opponent sacrifices ...`, `when this enters and when you sacrifice this` | a permanent is sacrificed (CR 701.21) by its controller, the player named: "Whenever you sacrifice another permanent", "Whenever a player sacrifices a creature", "When this artifact enters and when you sacrifice it". It triggers as the permanent is sacrificed, judged while it is still on the battlefield (so a permanent sacrificing itself sees it), whether by an effect, a cost, or a mana ability (a Treasure); a creature that dies otherwise doesn't. The sacrificed permanent is the triggering object |
 | `whenever permanent is turned face up`, `whenever this or permanent is turned face up`, `whenever Detective you control is turned face up` | "Whenever a permanent is turned face up", "Whenever this creature or another permanent is turned face up": the permanent judged as it is face up (CR 708.8) |
 | `whenever you draw a card`, `whenever a player draws a card`, `whenever an opponent draws a card` | once per card drawn (CR 121.2); the card is the triggering object |
@@ -851,11 +851,19 @@ instead."); `replace creature tokens created under your control: plus
 "1/1 white Soldier creature"` prints "If one or more creature tokens would
 be created under your control, those tokens plus a 1/1 white Soldier
 creature token are created instead." (`plus that many "..."`: "plus that
-many ... tokens"). Each applies once to each `create` or `create token
-copy` effect's tokens for one player; tokens added this way come before
-doubling, so a doubler doubles them too (the order is the player's choice,
-CR 616.1). Other token makers (amass, fabricate, incubate, populate, ...)
-aren't replaced yet.
+many ... tokens"). `replace artifact tokens created under your control:
+that many "5/5 red Dragon creature with flying"` prints "If one or more
+artifact tokens would be created under your control, that many 5/5 red
+Dragon creature tokens with flying are created instead." (the covered
+tokens become as many of that token); `replace artifact tokens you create:
+plus "Map"` prints "If you would create one or more artifact tokens,
+instead create those tokens plus an additional Map token." Each applies
+once to each token-making effect's tokens for one player (`create`, token
+copies, amass, fabricate, incubate, populate, endure, ...): tokens made
+instead come first, then tokens added, then doubling, so a doubler doubles
+the added ones too (the order is the player's choice, CR 616.1, fixed
+here). An amassed Army made twice is two Armies, one of which gets the
+counters.
 `replace this put into a graveyard: shuffle into library` prints "If
 Darksteel Colossus would be put into a graveyard from anywhere, reveal
 Darksteel Colossus and shuffle it into its owner's library instead.": the

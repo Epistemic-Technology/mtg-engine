@@ -2370,6 +2370,11 @@ pub enum Replaces {
     CreateTokens {
         creature: bool,
         effect: bool,
+        /// `artifact tokens created under your control`.
+        artifact: bool,
+        /// `artifact tokens you create`: "If you would create one or more
+        /// artifact tokens, instead create ...".
+        you: bool,
     },
     /// `this put into a graveyard`: "If ~ would be put into a graveyard
     /// from anywhere" (CR 113.6b).

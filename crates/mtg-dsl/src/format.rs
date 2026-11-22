@@ -546,9 +546,26 @@ impl Fmt {
                 s
             }
             Replaces::ThisToGraveyard => "this put into a graveyard".to_string(),
-            Replaces::CreateTokens { creature, effect } => format!(
-                "{}tokens created under your control{}",
+            Replaces::CreateTokens {
+                creature,
+                effect,
+                artifact,
+                you: true,
+            } => format!(
+                "{}{}tokens you create{}",
                 if *creature { "creature " } else { "" },
+                if *artifact { "artifact " } else { "" },
+                if *effect { " by an effect" } else { "" }
+            ),
+            Replaces::CreateTokens {
+                creature,
+                effect,
+                artifact,
+                you: false,
+            } => format!(
+                "{}{}tokens created under your control{}",
+                if *creature { "creature " } else { "" },
+                if *artifact { "artifact " } else { "" },
                 if *effect { " by an effect" } else { "" }
             ),
             Replaces::PlusCounters { on } => format!("+1/+1 counters put on {}", filter(on)),
@@ -2836,6 +2853,7 @@ fn outcome(o: &Outcome) -> String {
         Outcome::PreventNext(n) => format!("prevent next {}", num(*n)),
         Outcome::Double => "double".to_string(),
         Outcome::PlusToken { .. } => "plus \"\"".to_string(),
+        Outcome::TokensInstead { .. } => "that many \"\"".to_string(),
         Outcome::ShuffleIntoLibrary => "shuffle into library".to_string(),
         Outcome::PlusOne => "plus one".to_string(),
         Outcome::PlusN { n, to_that } => {
@@ -3883,6 +3901,18 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::CastThis { or_cycle: true } => "when you cast or cycle this".to_string(),
         Trigger::CastsNth { whose, nth } => format!("whenever {}", spell_ordinal(*nth, *whose)),
         Trigger::Either(a, b) => format!("{} and {}", trigger_text(a, next), trigger_text(b, next)),
+        Trigger::Or {
+            first,
+            second,
+            whenever,
+        } if matches!(**first, Trigger::Enters(crate::ast::TriggerObj::Filter(_))) => {
+            let a = trigger_text(first, next);
+            let b = trigger_text(second, next);
+            let (wa, wb): (Vec<&str>, Vec<&str>) = (a.split(' ').collect(), b.split(' ').collect());
+            let k = wa.iter().zip(&wb).take_while(|(x, y)| x == y).count();
+            let _ = whenever;
+            format!("{} or {}", wa.join(" "), wb[k..].join(" "))
+        }
         Trigger::Or {
             second, whenever, ..
         } => {
@@ -5022,6 +5052,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     "replace {}: plus {}\"{}\"",
                     fmt.replaces(event, &[]),
                     if *that_many { "that many " } else { "" },
+                    rep.token.as_deref().unwrap_or_default()
+                ),
+                (event, Outcome::TokensInstead { .. }) => format!(
+                    "replace {}: that many \"{}\"",
+                    fmt.replaces(event, &[]),
                     rep.token.as_deref().unwrap_or_default()
                 ),
                 (event, o) => format!("replace {}: {}", fmt.replaces(event, &[]), outcome(o)),

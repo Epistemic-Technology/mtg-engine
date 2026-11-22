@@ -3665,9 +3665,16 @@ impl Compiler<'_> {
                 from_battlefield: *from_battlefield,
             },
             Replaces::ThisToGraveyard => CoreReplaces::ThisToGraveyard,
-            Replaces::CreateTokens { creature, effect } => CoreReplaces::CreateTokens {
+            Replaces::CreateTokens {
+                creature,
+                effect,
+                artifact,
+                you,
+            } => CoreReplaces::CreateTokens {
                 creature: *creature,
                 effect: *effect,
+                artifact: *artifact,
+                you: *you,
             },
             Replaces::PlusCounters { on } => CoreReplaces::PlusCounters {
                 on: self.filter(on),
@@ -3681,7 +3688,9 @@ impl Compiler<'_> {
             Replaces::Enters => CoreReplaces::Enters,
         };
         let mut replacement = r.outcome;
-        if let mtg_core::card::Replacement::PlusToken { token, .. } = &mut replacement {
+        if let mtg_core::card::Replacement::PlusToken { token, .. }
+        | mtg_core::card::Replacement::TokensInstead { token } = &mut replacement
+        {
             let name = r.token.as_deref().unwrap_or_default();
             let Some(t) = self.pool.lookup(name) else {
                 return self.err(format!("unknown token \"{name}\""));

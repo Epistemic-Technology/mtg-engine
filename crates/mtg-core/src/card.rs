@@ -5025,10 +5025,16 @@ pub enum Replaces {
     Dies { to: Affects },
     /// How this permanent itself enters the battlefield (CR 614.1c).
     Enters,
-    /// One or more tokens (`creature`: creature tokens) would be created
-    /// under the controller's control (CR 111.1, 614.1a). `effect` prints
-    /// the older "If an effect would create ..." (rendering only).
-    CreateTokens { creature: bool, effect: bool },
+    /// One or more tokens (`creature`: creature tokens; `artifact`:
+    /// artifact tokens) would be created under the controller's control
+    /// (CR 111.1, 614.1a). `effect` prints the older "If an effect would
+    /// create ...", `you` "If you would create ..." (rendering only).
+    CreateTokens {
+        creature: bool,
+        effect: bool,
+        artifact: bool,
+        you: bool,
+    },
 }
 
 /// What happens instead.
@@ -5048,6 +5054,10 @@ pub enum Replacement {
     /// instead" (Quina); `that_many`: "plus that many ... tokens"
     /// (Chatterfang).
     PlusToken { token: CardRef, that_many: bool },
+    /// "that many 5/5 red Dragon creature tokens with flying are created
+    /// instead" (Draconic Visitor): the tokens the event covers become as
+    /// many of this token.
+    TokensInstead { token: CardRef },
     /// "it deals that much damage plus 2 instead" (Torbran); `to_that`
     /// prints "to that permanent or player" after it (rendering only).
     PlusN { n: u32, to_that: bool },

@@ -1,0 +1,8 @@
+card "Case of the Pilfered Proof" {
+  oracle_id 68d3084b-0f4b-44a6-8954-6ebaf1db9269
+  cost {1}{W}
+  type Enchantment — Case
+  triggered whenever Detective you control enters or is turned face up: put 1 +1/+1 counter on it
+  to solve you control 3 Detective
+  solved replace tokens created under your control: plus "Clue"
+}

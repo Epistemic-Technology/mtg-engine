@@ -1995,9 +1995,16 @@ impl Decompiler<'_> {
                     from_battlefield: *from_battlefield,
                 },
                 CoreReplaces::ThisToGraveyard => Replaces::ThisToGraveyard,
-                CoreReplaces::CreateTokens { creature, effect } => Replaces::CreateTokens {
+                CoreReplaces::CreateTokens {
+                    creature,
+                    effect,
+                    artifact,
+                    you,
+                } => Replaces::CreateTokens {
                     creature: *creature,
                     effect: *effect,
+                    artifact: *artifact,
+                    you: *you,
                 },
                 CoreReplaces::PlusCounters { on } => Replaces::PlusCounters {
                     on: self.filter(on),
@@ -2013,7 +2020,8 @@ impl Decompiler<'_> {
             outcome: r.replacement,
             then: self.sentences(&r.then),
             token: match r.replacement {
-                mtg_core::card::Replacement::PlusToken { token, .. } => {
+                mtg_core::card::Replacement::PlusToken { token, .. }
+                | mtg_core::card::Replacement::TokensInstead { token } => {
                     Some(self.pool.get(token).name.clone())
                 }
                 _ => None,

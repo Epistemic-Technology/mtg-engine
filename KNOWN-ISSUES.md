@@ -42,11 +42,9 @@ wrong thing in some case.
   stack).
 - **Thousand-Year Storm:** the "cast before it this turn" count has an
   edge case with spells cast while it is on the stack.
-- **Token-creation replacements apply only to `create` and `create
-  token copy` effects.** Amass, fabricate, incubate, populate, offspring,
-  embalm and other token makers ignore Parallel Lives, Quina, and the
-  like; the replacements' order is fixed (added tokens, then doubling)
-  rather than chosen (CR 616.1).
+- **Token-creation replacements apply in a fixed order** (tokens
+  instead of others, then added tokens, then doubling) rather than the
+  order the player chooses (CR 616.1).
 - **A copy of an X/X token is 0/0.** "Create an X/X ... token, where X
   is ..." (`sized`, Tumbleweed Rising, Slime Molding) gives the token base
   power and toughness X/X with a layer-7b effect, not as a copiable value

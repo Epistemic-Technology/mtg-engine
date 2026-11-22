@@ -8599,6 +8599,14 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         } => {
             let a = trigger_text(first, ctx, next);
             let b = trigger_text(second, ctx, next);
+            // "Whenever a Detective you control enters or is turned face
+            // up": the words both events share printed once.
+            if matches!(**first, Trigger::Enters(crate::ast::TriggerObj::Filter(_))) {
+                let (wa, wb): (Vec<&str>, Vec<&str>) =
+                    (a.split(' ').collect(), b.split(' ').collect());
+                let k = wa.iter().zip(&wb).take_while(|(x, y)| x == y).count();
+                return format!("{} or {}", wa.join(" "), wb[k..].join(" "));
+            }
             // "Whenever this creature enters or transforms into ~": a
             // legendary one too.
             let named = format!("{} ", this_ref(ctx.card));
@@ -9846,8 +9854,20 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
         // your control, twice that many of those tokens are created
         // instead." (Mondrak); "If an effect would create ..." (Parallel
         // Lives).
-        (Replaces::CreateTokens { creature, effect }, Outcome::Double) => {
-            let c = if *creature { "creature " } else { "" };
+        (
+            Replaces::CreateTokens {
+                creature,
+                effect,
+                artifact,
+                ..
+            },
+            Outcome::Double,
+        ) => {
+            let c = match (*creature, *artifact) {
+                (true, _) => "creature ",
+                (false, true) => "artifact ",
+                _ => "",
+            };
             if *effect {
                 format!(
                     "If an effect would create one or more {c}tokens under your control, it creates twice that many of those tokens instead."
@@ -9860,13 +9880,61 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
         }
         // "those tokens plus a 1/1 green Frog creature token are created
         // instead" (Quina).
-        (Replaces::CreateTokens { creature, .. }, Outcome::PlusToken { that_many, .. }) => {
-            let c = if *creature { "creature " } else { "" };
+        (
+            Replaces::CreateTokens {
+                creature,
+                artifact,
+                you,
+                ..
+            },
+            Outcome::PlusToken { that_many, .. },
+        ) => {
+            let c = match (*creature, *artifact) {
+                (true, _) => "creature ",
+                (false, true) => "artifact ",
+                _ => "",
+            };
             let n = if *that_many { Num::ThatMuch } else { Num::N(1) };
             let desc =
                 token_description(r.token.as_deref().unwrap_or_default(), n, false, false, ctx);
+            // "If you would create one or more artifact tokens, instead
+            // create those tokens plus an additional Map token."
+            if *you {
+                let rest = desc
+                    .strip_prefix("an ")
+                    .or_else(|| desc.strip_prefix("a "))
+                    .unwrap_or(&desc);
+                return format!(
+                    "If you would create one or more {c}tokens, instead create those tokens plus an additional {rest}."
+                );
+            }
             format!(
                 "If one or more {c}tokens would be created under your control, those tokens plus {desc} are created instead."
+            )
+        }
+        // "If one or more artifact tokens would be created under your
+        // control, that many 5/5 red Dragon creature tokens with flying are
+        // created instead." (Draconic Visitor).
+        (
+            Replaces::CreateTokens {
+                creature, artifact, ..
+            },
+            Outcome::TokensInstead { .. },
+        ) => {
+            let c = match (*creature, *artifact) {
+                (true, _) => "creature ",
+                (false, true) => "artifact ",
+                _ => "",
+            };
+            let desc = token_description(
+                r.token.as_deref().unwrap_or_default(),
+                Num::ThatMuch,
+                false,
+                false,
+                ctx,
+            );
+            format!(
+                "If one or more {c}tokens would be created under your control, {desc} are created instead."
             )
         }
         // The card names itself: the ability works in every zone, where it

@@ -11346,6 +11346,18 @@ impl P {
                 whenever,
             });
         }
+        // "Whenever a Detective you control enters or is turned face up".
+        if let Trigger::Enters(TriggerObj::Filter(_)) = &first
+            && self.at_words(&["or", "is", "turned", "face", "up"])
+        {
+            self.pos += 1;
+            let second = self.trigger_verb(obj, whenever)?;
+            return Ok(Trigger::Or {
+                first: Box::new(first),
+                second: Box::new(second),
+                whenever,
+            });
+        }
         Ok(first)
     }
 
@@ -11949,6 +11961,15 @@ impl P {
                 token: mtg_core::card::CardRef::default(),
                 that_many,
             }
+        } else if self.at_words(&["that", "many"]) && matches!(self.peek_at(2), Some(Tok::Str(_))) {
+            // `that many "5/5 red Dragon creature with flying"`: those
+            // tokens become as many of this one (Draconic Visitor).
+            self.pos += 2;
+            token = Some(self.string()?);
+            self.eat_word("instead");
+            Outcome::TokensInstead {
+                token: mtg_core::card::CardRef::default(),
+            }
         } else {
             self.outcome()?
         };
@@ -11987,12 +12008,33 @@ impl P {
         // for the older wording.
         if self.at_words(&["tokens", "created"])
             || self.at_words(&["creature", "tokens", "created"])
+            || self.at_words(&["artifact", "tokens", "created"])
         {
             let creature = self.eat_word("creature");
+            let artifact = self.eat_word("artifact");
             self.pos += 2;
             self.expect_words(&["under", "your", "control"])?;
             let effect = self.eat_words(&["by", "an", "effect"]);
-            return Ok(Replaces::CreateTokens { creature, effect });
+            return Ok(Replaces::CreateTokens {
+                creature,
+                effect,
+                artifact,
+                you: false,
+            });
+        }
+        // `artifact tokens you create`: "If you would create one or more
+        // artifact tokens".
+        if self.at_words(&["tokens", "you", "create"])
+            || self.at_words(&["artifact", "tokens", "you", "create"])
+        {
+            let artifact = self.eat_word("artifact");
+            self.pos += 3;
+            return Ok(Replaces::CreateTokens {
+                creature: false,
+                effect: false,
+                artifact,
+                you: true,
+            });
         }
         // `this put into a graveyard` (CR 113.6b: from anywhere).
         if self.eat_words(&["this", "put", "into", "a", "graveyard"]) {

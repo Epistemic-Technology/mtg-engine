@@ -1542,9 +1542,19 @@ impl GameState {
                 tokens[self.choose_mid(p, DecisionKind::ChooseCard, options)]
             }
         };
-        let new = self.create_token_copy(of, p, None);
-        if self.objects.contains_key(new) {
-            ctx.created = Some(new);
+        // CR 614.1a: token-creation replacement effects apply.
+        let def = self.objects[of].def;
+        for (d, k) in self.tokens_to_create(p, def, 1) {
+            for _ in 0..k {
+                let new = if d == def {
+                    self.create_token_copy(of, p, None)
+                } else {
+                    self.create_token(d, p)
+                };
+                if self.objects.contains_key(new) {
+                    ctx.created = Some(new);
+                }
+            }
         }
     }
 
@@ -1568,10 +1578,12 @@ impl GameState {
             self.add_counters(ctx.source, CounterKind::PlusOnePlusOne, n);
             return;
         }
-        for _ in 0..n {
-            let new = self.create_token(token, p);
-            if self.objects.contains_key(new) {
-                ctx.created = Some(new);
+        for (d, k) in self.tokens_to_create(p, token, n) {
+            for _ in 0..k {
+                let new = self.create_token(d, p);
+                if self.objects.contains_key(new) {
+                    ctx.created = Some(new);
+                }
             }
         }
     }
@@ -10942,10 +10954,16 @@ impl GameState {
                     })
                 });
                 if target.is_none() {
-                    let new = self.create_token(*token, p);
-                    if self.objects.contains_key(new) {
-                        target = Some(new);
-                        ctx.created = Some(new);
+                    // CR 614.1a: an Army made twice is two Armies; one of
+                    // them gets the counters (CR 701.47a).
+                    for (d, k) in self.tokens_to_create(p, *token, 1) {
+                        for _ in 0..k {
+                            let new = self.create_token(d, p);
+                            if self.objects.contains_key(new) && d == *token && target.is_none() {
+                                target = Some(new);
+                                ctx.created = Some(new);
+                            }
+                        }
                     }
                 }
                 if let Some(id) = target {
@@ -10967,9 +10985,13 @@ impl GameState {
                     })
                 });
                 if target.is_none() {
-                    let new = self.create_token(*token, p);
-                    if self.objects.contains_key(new) {
-                        target = Some(new);
+                    for (d, k) in self.tokens_to_create(p, *token, 1) {
+                        for _ in 0..k {
+                            let new = self.create_token(d, p);
+                            if self.objects.contains_key(new) && d == *token && target.is_none() {
+                                target = Some(new);
+                            }
+                        }
                     }
                 }
                 if let Some(id) = target {
@@ -11449,17 +11471,25 @@ impl GameState {
             Effect::Incubate { count, token } => {
                 // CR 701.53a: it enters with the counters (CR 122.6).
                 let n = self.eval_num(*count, ctx);
-                let new = self.create_token_entering(
-                    *token,
-                    ctx.controller,
-                    super::replace::Enter {
-                        tapped: false,
-                        counters: (n > 0).then_some((CounterKind::PlusOnePlusOne, n)),
-                        ..super::replace::Enter::default()
-                    },
-                );
-                if self.objects.contains_key(new) {
-                    ctx.created = Some(new);
+                // CR 614.1a: token-creation replacement effects apply; each
+                // Incubator enters with the counters.
+                for (d, k) in self.tokens_to_create(ctx.controller, *token, 1) {
+                    for _ in 0..k {
+                        let counters =
+                            (d == *token && n > 0).then_some((CounterKind::PlusOnePlusOne, n));
+                        let new = self.create_token_entering(
+                            d,
+                            ctx.controller,
+                            super::replace::Enter {
+                                tapped: false,
+                                counters,
+                                ..super::replace::Enter::default()
+                            },
+                        );
+                        if self.objects.contains_key(new) {
+                            ctx.created = Some(new);
+                        }
+                    }
                 }
             }
             Effect::Fabricate { count, token } => self.fabricate(ctx, *count, *token),
@@ -12165,10 +12195,16 @@ impl GameState {
                         .filter(|l| l.object.zone == Zone::Battlefield)
                     {
                         let (def, was) = (l.object.def, l.object.except);
-                        for _ in 0..n {
-                            let new = self.create_token_copy_of(def, x.or(was), ctx.controller);
-                            ctx.created = Some(new);
-                            ctx.created_tokens.push(new);
+                        for (d, k) in self.tokens_to_create(ctx.controller, def, n) {
+                            for _ in 0..k {
+                                let new = if d == def {
+                                    self.create_token_copy_of(def, x.or(was), ctx.controller)
+                                } else {
+                                    self.create_token(d, ctx.controller)
+                                };
+                                ctx.created = Some(new);
+                                ctx.created_tokens.push(new);
+                            }
                         }
                     }
                     return;
@@ -12314,27 +12350,33 @@ impl GameState {
             self.add_counters(id, CounterKind::PlusOnePlusOne, n);
             return;
         }
-        let new = self.create_token_with(token, p, false);
-        // An X/X Spirit: the 0/0 made that size.
-        if self.objects.contains_key(new)
-            && self
-                .pool
-                .get(token)
-                .printed
-                .is_some_and(|c| u32::try_from(c.power).ok() != Some(n))
-        {
-            let size = i32::try_from(n).unwrap_or(i32::MAX);
-            self.effect_on(
-                ctx,
-                new,
-                smallvec::smallvec![Modification::SetPt {
-                    power: PtValue::Fixed(size),
-                    toughness: PtValue::Fixed(size),
-                }],
-                Duration::Permanent,
-            );
+        // CR 614.1a: token-creation replacement effects apply.
+        for (d, k) in self.tokens_to_create(p, token, 1) {
+            for _ in 0..k {
+                let new = self.create_token_with(d, p, false);
+                // An X/X Spirit: the 0/0 made that size.
+                if d == token
+                    && self.objects.contains_key(new)
+                    && self
+                        .pool
+                        .get(token)
+                        .printed
+                        .is_some_and(|c| u32::try_from(c.power).ok() != Some(n))
+                {
+                    let size = i32::try_from(n).unwrap_or(i32::MAX);
+                    self.effect_on(
+                        ctx,
+                        new,
+                        smallvec::smallvec![Modification::SetPt {
+                            power: PtValue::Fixed(size),
+                            toughness: PtValue::Fixed(size),
+                        }],
+                        Duration::Permanent,
+                    );
+                }
+                ctx.created = Some(new);
+            }
         }
-        ctx.created = Some(new);
     }
 
     fn explore(&mut self, ctx: &EffectCtx, id: ObjId) {

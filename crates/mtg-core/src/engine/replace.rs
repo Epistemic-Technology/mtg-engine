@@ -287,7 +287,8 @@ impl GameState {
         if self.replacement_sources == 0 || n == 0 {
             return out;
         }
-        let mut found: SmallVec<[(CardRef, Replacement, bool); 2]> = SmallVec::new();
+        // (source, replacement, creature tokens only, artifact tokens only)
+        let mut found: SmallVec<[(CardRef, Replacement, bool, bool); 2]> = SmallVec::new();
         let granted = self.grant_sources > 0;
         for id in &self.battlefield {
             let o = &self.objects[*id];
@@ -299,33 +300,40 @@ impl GameState {
             };
             for ability in c.abilities.iter().copied() {
                 if let AbilityDef::Replacement(ReplacementAbility {
-                    replaces: Replaces::CreateTokens { creature, .. },
+                    replaces:
+                        Replaces::CreateTokens {
+                            creature, artifact, ..
+                        },
                     replacement,
                     ..
                 }) = self.pool.ability(ability)
                 {
-                    found.push((o.def, *replacement, *creature));
+                    found.push((o.def, *replacement, *creature, *artifact));
                 }
             }
         }
         if found.is_empty() {
             return out;
         }
-        let is_creature = |state: &GameState, d: CardRef| {
-            state
-                .pool
-                .get(d)
-                .types
-                .contains(crate::card::CardType::Creature)
+        let covers = |state: &GameState, d: CardRef, creature: bool, artifact: bool| {
+            let types = state.pool.get(d).types;
+            (!creature || types.contains(crate::card::CardType::Creature))
+                && (!artifact || types.contains(crate::card::CardType::Artifact))
         };
-        if !found.iter().any(|(_, _, creature)| !*creature) && !is_creature(self, def) {
+        if !found.iter().any(|(_, _, c, a)| covers(self, def, *c, *a)) {
             return out;
         }
-        found.sort_by_key(|(_, r, _)| matches!(r, Replacement::Double));
-        for (by, r, creature) in found {
+        // Tokens instead of others first, then added tokens, then doubling
+        // (the player's order, CR 616.1, is fixed here).
+        found.sort_by_key(|(_, r, _, _)| match r {
+            Replacement::TokensInstead { .. } => 0,
+            Replacement::Double => 2,
+            _ => 1,
+        });
+        for (by, r, creature, artifact) in found {
             let total: u32 = out
                 .iter()
-                .filter(|(d, _)| !creature || is_creature(self, *d))
+                .filter(|(d, _)| covers(self, *d, creature, artifact))
                 .map(|(_, k)| *k)
                 .sum();
             if total == 0 {
@@ -334,13 +342,20 @@ impl GameState {
             match r {
                 Replacement::Double => {
                     for (d, k) in &mut out {
-                        if !creature || is_creature(self, *d) {
+                        if covers(self, *d, creature, artifact) {
                             *k = k.saturating_mul(2);
                         }
                     }
                 }
                 Replacement::PlusToken { token, that_many } => {
                     out.push((token, if that_many { total } else { 1 }));
+                }
+                Replacement::TokensInstead { token } => {
+                    for (d, _) in &mut out {
+                        if covers(self, *d, creature, artifact) {
+                            *d = token;
+                        }
+                    }
                 }
                 _ => continue,
             }
