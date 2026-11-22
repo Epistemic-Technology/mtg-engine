@@ -1585,7 +1585,15 @@ impl Fmt {
             } => {
                 let mut s = "cast free ".to_string();
                 if let Some(r) = what {
-                    s.push_str(&self.recipient(*r, t));
+                    let o = self.recipient(*r, t);
+                    // `cast free card exiled with this`: one of them.
+                    let o = match r {
+                        Recipient::ExiledWith(_) => {
+                            o.strip_prefix("each ").unwrap_or(&o).to_string()
+                        }
+                        _ => o,
+                    };
+                    s.push_str(&o);
                 } else {
                     if let Some(f) = f {
                         s.push_str(&filter(f));

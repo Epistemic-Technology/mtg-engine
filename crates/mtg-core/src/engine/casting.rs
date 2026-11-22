@@ -8086,6 +8086,33 @@ impl GameState {
             }
             st.exile_castable(p, id, alt)
         };
+        // "You may cast a card exiled with this": one of them, chosen.
+        if let Some(r @ Recipient::ExiledWith(_)) = what {
+            let castable: Vec<ObjId> = self
+                .recipients(ctx, r)
+                .into_iter()
+                .filter_map(|t| match t {
+                    Target::Object(id) if fits(self, id) => Some(id),
+                    _ => None,
+                })
+                .collect();
+            if castable.is_empty() {
+                return;
+            }
+            let mut options: Vec<Choice> = castable
+                .iter()
+                .map(|id| Choice::Target(Target::Object(*id)))
+                .collect();
+            options.push(Choice::Done);
+            let k = self.choose_mid(p, DecisionKind::ChooseCard, options);
+            if let Some(&card) = castable.get(k) {
+                self.exile_casts
+                    .get_or_insert_with(Box::default)
+                    .pending
+                    .push((p, card, alt));
+            }
+            return;
+        }
         if let Some(r) = what {
             for t in self.recipients(ctx, r) {
                 if let Target::Object(id) = t

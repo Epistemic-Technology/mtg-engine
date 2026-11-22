@@ -1507,7 +1507,10 @@ to that damage"), `cast free artifact spell from hand with mana value up
 to count where ...` ("... less than or equal to the number of ..."), and
 `cast free target instant or sorcery card from your graveyard` ("you may
 cast target instant or sorcery card from your graveyard without paying
-its mana cost"). `exile instead` after either adds "If that spell would
+its mana cost"), `cast free card exiled with this` ("you may cast a card
+exiled with Krang & Shredder without paying its mana cost": the
+controller chooses one of the cards this permanent's abilities exiled,
+CR 607.2a, or none). `exile instead` after either adds "If that spell would
 be put into your graveyard, exile it instead." (it is exiled as it
 resolves or is countered).
 

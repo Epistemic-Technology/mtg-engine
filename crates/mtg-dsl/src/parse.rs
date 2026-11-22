@@ -4022,7 +4022,34 @@ impl P {
     /// After `cast free`: `target ...` (a card), or `[<filter>] spell from
     /// hand [with mana value up to <n>]`; then `exile instead`.
     fn cast_free(&mut self) -> R<Effect> {
-        let (what, filter, max) = if self.at_word("target") {
+        // `cast free card exiled with this`: "you may cast a card exiled
+        // with Krang & Shredder without paying its mana cost" (CR 607.2a).
+        let exiled = (0..8).any(|k| {
+            self.word_at(k).as_deref() == Some("exiled")
+                && self.word_at(k + 1).as_deref() == Some("with")
+                && self.word_at(k + 2).as_deref() == Some("this")
+        }) && !self.at_word("target");
+        let (what, filter, max) = if exiled {
+            let f = if self.eat_word("card") {
+                Filter::default()
+            } else {
+                let f = self.filter()?;
+                self.expect_word("card")?;
+                f
+            };
+            self.expect_words(&["exiled", "with", "this"])?;
+            let i = if let Some(i) = self.groups.iter().position(|g| *g == f) {
+                i
+            } else {
+                self.groups.push(f);
+                self.groups.len() - 1
+            };
+            let i = u16::try_from(i).map_err(|_| ParseError {
+                line: self.line(),
+                message: "too many groups".to_string(),
+            })?;
+            (Some(Recipient::ExiledWith(i)), None, None)
+        } else if self.at_word("target") {
             (Some(self.recipient()?), None, None)
         } else {
             let filter = if self.at_word("spell") {

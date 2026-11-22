@@ -170,3 +170,25 @@ scenario "Huskburster Swarm: an opponent's cards don't count" {
   illegal turn 1 A: cast "Huskburster Swarm"
   run_to turn 1 end
 }
+
+scenario "Krang & Shredder: cast a card exiled with them for free" {
+  battlefield A: 6 "Island", "Mountain", "Grizzly Bears"
+  hand A: "Krang & Shredder", "Lightning Bolt"
+  library B: "Forest", "Hill Giant", "Island"
+  turn 1 A: cast "Krang & Shredder"
+  turn 1 main2 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 end A: choose "Hill Giant"
+  run_to turn 1 cleanup
+  assert exile B contains "Forest"
+  assert battlefield A contains "Hill Giant"
+  assert library B count 1
+}
+
+scenario "Krang & Shredder: nothing left the battlefield, no cast" {
+  battlefield A: 6 "Island"
+  hand A: "Krang & Shredder"
+  library B: "Hill Giant", "Island"
+  turn 1 A: cast "Krang & Shredder"
+  run_to turn 1 cleanup
+  assert exile B contains "Hill Giant"
+}

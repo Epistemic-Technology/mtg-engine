@@ -6196,6 +6196,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // without paying its mana cost."
             #[allow(clippy::single_match_else)] // the hand's long phrase
             let what = match what {
+                // "a card exiled with Krang & Shredder" (CR 607.2a).
+                Some(Recipient::ExiledWith(i)) => {
+                    let f = ctx
+                        .card
+                        .groups
+                        .get(usize::from(*i))
+                        .cloned()
+                        .unwrap_or_default();
+                    with_article(&format!(
+                        "{} exiled with {}",
+                        cards_phrase(&f, ctx.card, false),
+                        this_ref(ctx.card)
+                    ))
+                }
                 Some(r) => ctx.obj(*r),
                 None => {
                     let noun = match filter {

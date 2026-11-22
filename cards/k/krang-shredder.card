@@ -1,0 +1,9 @@
+card "Krang & Shredder" {
+  oracle_id 2385c8fb-9c38-4ff3-8f61-4e25a8c7d46b
+  cost {4}{U/B}{U/B}
+  type Legendary Creature — Utrom Human Ninja
+  pt 6/7
+  pronoun they
+  triggered whenever this enters or attacks: each opponent exiles until nonland card
+  label "Disappear" triggered at beginning of your end step if permanent left this turn: cast free card exiled with this
+}
