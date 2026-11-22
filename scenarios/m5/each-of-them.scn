@@ -1,0 +1,17 @@
+# "Tap up to two target creatures. Put a stun counter on each of them.":
+# with no tokens created, "them" is the creatures just tapped.
+
+scenario "Homesickness: both tapped creatures get a stun counter" {
+  battlefield A: 6 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  hand A: "Homesickness"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Homesickness" targeting player A, "Grizzly Bears", "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+  assert counters "Grizzly Bears" stun 1
+  assert counters "Hill Giant" stun 1
+  assert counters "Serra Angel" stun 0
+  assert hand A count 2
+}

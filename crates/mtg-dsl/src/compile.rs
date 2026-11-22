@@ -2391,6 +2391,47 @@ impl Compiler<'_> {
         let start = out.len();
         self.implied_used.set(None);
         self.effect_inner(e, out)?;
+        // "Tap up to two target creatures. Put a stun counter on each of
+        // them.": with no tokens created before it, "them" is what the
+        // effect before acted on.
+        if let Effect::AddCounters {
+            to: Recipient::CreatedThem,
+            ..
+        } = e
+            && !out[..start].iter().any(|c| {
+                matches!(
+                    c,
+                    CoreEffect::CreateToken { .. }
+                        | CoreEffect::CreateTokenCopy { .. }
+                        | CoreEffect::Amass { .. }
+                )
+            })
+        {
+            // One instruction per target, as the tap was compiled.
+            let mut before: Vec<CoreRecipient> = out[..start]
+                .iter()
+                .rev()
+                .map_while(|c| match c {
+                    CoreEffect::Tap { to } | CoreEffect::Pump { to, .. } => Some(*to),
+                    _ => None,
+                })
+                .collect();
+            before.reverse();
+            if before.is_empty() {
+                return self
+                    .err("`each of them` needs tokens created, or a tap or pump, before it");
+            }
+            let put = out.split_off(start);
+            for to in before {
+                for c in &put {
+                    let mut c = c.clone();
+                    if let CoreEffect::AddCounters { to: t, .. } = &mut c {
+                        *t = to;
+                    }
+                    out.push(c);
+                }
+            }
+        }
         if let Some(k) = self.implied_used.take()
             && !out[..start]
                 .iter()
