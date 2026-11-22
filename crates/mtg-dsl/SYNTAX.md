@@ -1846,7 +1846,14 @@ turn": no regeneration shield replaces its destruction this turn, CR
 didn't have defender` ("can attack this turn as though it didn't have
 defender"), `<what> gains lure` ("All creatures able to block <what> this turn
 do so."), `<what> fights <what>`, `<what> has base power and toughness 4/4`,
-`<what> becomes 2/2 Assembly-Worker artifact creature`, `this becomes a
+`<what> becomes 2/2 Assembly-Worker artifact creature` (a land stays a
+land, CR 205.1b: on a target land it prints "that's still a land" when no
+duration follows, `until end of turn, target land becomes 3/3 creature`
+"Until end of turn, target land becomes a 3/3 creature that's still a
+land.", else ". It's still a land."; an Aura's `static enchanted: base 4/2,
+set color red, add subtype Beast, add type creature, has trample` prints
+"Enchanted land is a 4/2 red Beast creature with trample. It's still a
+land."), `this becomes a
 copy of <what> [with exceptions]` (any subject: `target Shapeshifter
 becomes a copy of target creature until your next turn`, `each single
 other creature becomes a copy of target nonlegendary creature until end of

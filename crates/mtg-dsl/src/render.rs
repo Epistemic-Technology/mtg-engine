@@ -8200,14 +8200,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let land_target = matches!(*to, Recipient::Target(i) if matches!(
                 ctx.targets[i].base(),
                 Target::Filter(f) if f.types == [CardType::Land]
-            ));
+            ) || (types.contains(&CardType::Creature)
+                && matches!(ctx.targets[i].base(), Target::Spec(TargetSpec::Land))));
             if (ctx.card.types.contains(&CardType::Land) || land_target)
                 && !types.contains(&CardType::Land)
             {
-                if *indefinite && land_target && !ctx.card.types.contains(&CardType::Land) {
+                if (*indefinite || (ctx.eot_first && keywords.is_empty()))
+                    && land_target
+                    && !ctx.card.types.contains(&CardType::Land)
+                {
                     // "target land you control becomes a 3/3 Elemental
                     // creature with haste that's still a land" (Brave the
-                    // Wilds): with no duration after it.
+                    // Wilds), "Until end of turn, target land becomes a 3/3
+                    // creature that's still a land" (Lifespark Spellbomb):
+                    // with no duration after it.
                     clause.text.push_str(" that's still a land");
                 } else {
                     clause.tail.push_str(". It's still a land");

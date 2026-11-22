@@ -1,0 +1,8 @@
+card "Crusher Zendikon" {
+  oracle_id 68a1a67e-9d40-47dd-b282-6c1b15465f62
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: base 4/2, set color red, add subtype Beast, add type creature, has trample
+  triggered when enchanted land dies: return triggering card to hand
+}

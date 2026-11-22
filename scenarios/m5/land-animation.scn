@@ -1,0 +1,63 @@
+# Land animation: "Until end of turn, target land becomes a 3/3 creature
+# that's still a land", "target land you control becomes a 3/3 Elemental
+# creature with haste that's still a land" (indefinitely), and the
+# Zendikons: "Enchanted land is a 4/2 red Beast creature with trample.
+# It's still a land. When enchanted land dies, return that card to its
+# owner's hand." (CR 205.1b: the land keeps its types.)
+
+scenario "Lifespark Spellbomb: a 3/3 creature that's still a land, until end of turn" {
+  battlefield A: "Lifespark Spellbomb", "Forest", "Plains"
+  turn 1 A: activate "Lifespark Spellbomb" targeting "Plains"
+  run_to turn 1 postcombat_main
+  assert is "Plains" creature
+  assert is "Plains" land
+  assert power "Plains" 3
+  assert toughness "Plains" 3
+  assert graveyard A contains "Lifespark Spellbomb"
+  run_to turn 2 upkeep
+  assert is not "Plains" creature
+}
+
+scenario "Crusher Zendikon: the land is a 4/2 red Beast with trample" {
+  battlefield A: "Mountain", "Crusher Zendikon" on "Mountain"
+  run_to turn 1 postcombat_main
+  assert is "Mountain" creature
+  assert is "Mountain" land
+  assert is "Mountain" "Beast"
+  assert is "Mountain" red
+  assert power "Mountain" 4
+  assert toughness "Mountain" 2
+  assert has "Mountain" trample
+}
+
+scenario "Crusher Zendikon: the land dies and returns to its owner's hand" {
+  battlefield A: "Mountain", "Crusher Zendikon" on "Mountain"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting A "Mountain"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Mountain"
+  assert graveyard A contains "Crusher Zendikon"
+  assert battlefield A count 0
+}
+
+scenario "Vastwood Zendikon: a 6/4 green Elemental" {
+  battlefield A: "Forest", "Vastwood Zendikon" on "Forest"
+  run_to turn 1 postcombat_main
+  assert power "Forest" 6
+  assert toughness "Forest" 4
+  assert is "Forest" green
+  assert is "Forest" "Elemental"
+  assert is "Forest" land
+}
+
+scenario "Guardian Zendikon: a 2/6 white Wall with defender" {
+  battlefield A: "Plains", "Guardian Zendikon" on "Plains"
+  illegal turn 1 A: attack "Plains"
+  run_to turn 1 postcombat_main
+  assert toughness "Plains" 6
+  assert has "Plains" defender
+  assert is "Plains" "Wall"
+  assert life B 20
+}

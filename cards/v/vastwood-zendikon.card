@@ -1,0 +1,8 @@
+card "Vastwood Zendikon" {
+  oracle_id 10172c40-7169-4098-9452-b35797d27065
+  cost {4}{G}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: base 6/4, set color green, add subtype Elemental, add type creature
+  triggered when enchanted land dies: return triggering card to hand
+}

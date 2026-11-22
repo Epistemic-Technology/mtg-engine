@@ -1681,6 +1681,21 @@ impl Templates {
                 ),
                 |_, _| Some("transform this".to_string()),
             ),
+            // "Until end of turn, target land becomes a 3/3 creature that's
+            // still a land" (CR 205.1b).
+            (
+                r(
+                    r"^Until end of turn, (target land(?: you control)?) becomes an? (\d+)/(\d+) creature that's still a land$",
+                ),
+                |c, t| {
+                    Some(format!(
+                        "until end of turn, {} becomes {}/{} creature",
+                        recipient(cap(c, 1), t)?,
+                        cap(c, 2),
+                        cap(c, 3)
+                    ))
+                },
+            ),
             // The Mimics: "this creature has base power and toughness 4/4
             // until end of turn and gains flying until end of turn".
             (
@@ -5175,6 +5190,32 @@ impl Builder<'_> {
             self.statements.push(format!("static enchanted: has {ks}"));
             return Ok(());
         }
+        if line == "Enchanted creature can't attack, block, or transform." {
+            self.statements.push(
+                "static enchanted: has can't attack, can't block, can't transform".to_string(),
+            );
+            return Ok(());
+        }
+        // The Zendikons: "Enchanted land is a 4/2 red Beast creature with
+        // trample. It's still a land." (CR 205.1b).
+        if let Some(c) = Regex::new(
+            r"^Enchanted land is an? (\d+)/(\d+) (white|blue|black|red|green) ([A-Z][a-z]+) creature(?: with ([a-z ]+))?\. It's still a land\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let has = c
+                .get(5)
+                .map_or(String::new(), |k| format!(", has {}", k.as_str()));
+            self.statements.push(format!(
+                "static enchanted: base {}/{}, set color {}, add subtype {}, add type creature{has}",
+                cap(&c, 1),
+                cap(&c, 2),
+                cap(&c, 3),
+                cap(&c, 4)
+            ));
+            return Ok(());
+        }
         if line == "This creature doesn't untap during your untap step."
             || line == "This artifact doesn't untap during your untap step."
             || line == "This land doesn't untap during your untap step."
@@ -6231,7 +6272,16 @@ impl Builder<'_> {
                 (c, _) => (c.to_string(), rest),
             };
             let mut targets = 0;
-            let effects = self.templates.effects(rest, &mut targets)?;
+            // The Zendikons: "When enchanted land dies, return that card to
+            // its owner's hand." ("that card" is the land that died).
+            let effects = if trigger.starts_with("when enchanted ")
+                && trigger.ends_with(" dies")
+                && rest.trim_end_matches('.') == "return that card to its owner's hand"
+            {
+                "return triggering card to hand".to_string()
+            } else {
+                self.templates.effects(rest, &mut targets)?
+            };
             // "Whenever you cast a multicolored spell, you may return this
             // card from your graveyard to your hand." triggers from the
             // graveyard (a dies trigger looks back instead).
