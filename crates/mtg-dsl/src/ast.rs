@@ -884,6 +884,11 @@ pub struct Filter {
     /// recipient that is the opponents ("each opponent and each creature
     /// they control").
     pub they_control: bool,
+    /// `who` is `Opponents`, written `that opponent controls` and printed
+    /// "that player controls" in a `for each opponent,` sentence ("for
+    /// each opponent, tap up to one target creature that player
+    /// controls"): the game has one opponent.
+    pub per_opponent: bool,
     /// `who` is `Opponents`, written and printed "defending player
     /// controls" (two players: the attacker's opponent).
     pub defending: bool,
@@ -2684,6 +2689,10 @@ pub struct Sentence {
     /// Printed "Then ..." (`then` before the sentence): "Then that player
     /// discards a card."
     pub then_first: bool,
+    /// `for each opponent, ...`: printed "For each opponent, ..."; the
+    /// game has one opponent, so it happens once (its targets are written
+    /// `that opponent controls`).
+    pub per_opponent: bool,
     /// How each clause after the first joins the sentence
     /// (`joins.len() == effects.len() - 1`).
     pub joins: Vec<Join>,
@@ -2739,6 +2748,7 @@ impl Sentence {
             eot_first: false,
             lasting: None,
             then_first: false,
+            per_opponent: false,
             joins,
         }
     }

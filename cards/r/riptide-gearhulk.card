@@ -1,0 +1,8 @@
+card "Riptide Gearhulk" {
+  oracle_id f3838ff1-5403-4f3f-8531-36029c13fcfc
+  cost {1}{W}{W}{U}{U}
+  type Artifact Creature — Construct
+  pt 2/5
+  keywords double strike, prowess
+  triggered when this enters: for each opponent, put up to 1 target nonland permanent that opponent controls into library 3 from top
+}

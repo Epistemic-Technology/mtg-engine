@@ -1891,7 +1891,11 @@ impl<'a> Ctx<'a> {
     /// you don't control").
     fn group_noun(&self, a: usize, n: usize) -> String {
         let alike = (a + 1..a + n).all(|i| self.targets.get(i) == self.targets.get(a));
-        if alike {
+        // "for each opponent, tap up to one target creature that player
+        // controls. Put a stun counter on each of those creatures."
+        let per_opponent = matches!(self.targets.get(a).map(Target::base),
+            Some(Target::Filter(f)) if f.per_opponent);
+        if alike && !per_opponent {
             self.plural_target_noun(a)
         } else {
             pluralize(&self.target_noun[a])
@@ -2634,6 +2638,7 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         Some(Who::Opponents) if f.dont_control => s.push_str(" you don't control"),
         Some(Who::Opponents) if f.your_opponents => s.push_str(" your opponents control"),
         Some(Who::Opponents) if f.they_control => s.push_str(" they control"),
+        Some(Who::Opponents) if f.per_opponent => s.push_str(" that player controls"),
         Some(Who::Opponents) if f.defending => s.push_str(" defending player controls"),
         Some(Who::Opponents) => s.push_str(" an opponent controls"),
         Some(Who::You | Who::Any) | None => {}
@@ -9626,6 +9631,9 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
     let mut out = String::new();
     if s.then_first {
         out.push_str("then ");
+    }
+    if s.per_opponent {
+        out.push_str("for each opponent, ");
     }
     if s.eot_first {
         match &lasting {

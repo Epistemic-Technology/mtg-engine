@@ -647,6 +647,9 @@ impl Fmt {
         if s.then_first {
             out.push_str("then ");
         }
+        if s.per_opponent {
+            out.push_str("for each opponent, ");
+        }
         if s.eot_first {
             out.push_str(match s.lasting {
                 Some(mtg_core::card::Lasting::YourNextTurn) => "until your next turn, ",
@@ -3630,6 +3633,7 @@ fn filter_one(f: &Filter) -> String {
             words.push("your opponents control".to_string());
         }
         Some(Who::Opponents) if f.they_control => words.push("they control".to_string()),
+        Some(Who::Opponents) if f.per_opponent => words.push("that opponent controls".to_string()),
         Some(Who::Opponents) if f.defending => {
             words.push("defending player controls".to_string());
         }

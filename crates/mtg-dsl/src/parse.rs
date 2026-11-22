@@ -47,6 +47,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         delayed_that: false,
         delayed_dies: false,
         in_trigger: false,
+        per_opponent: false,
         it_source: false,
         no_trigger_obj: false,
         self_trigger: false,
@@ -582,6 +583,8 @@ struct P {
     /// Inside a triggered ability: "that creature" is the triggering
     /// object there, the last target elsewhere.
     in_trigger: bool,
+    /// Inside a `for each opponent,` sentence: `that opponent controls`.
+    per_opponent: bool,
     /// Inside a trigger on casting "a spell that targets this creature"
     /// (heroic): `it` is the source, as Oracle has it ("put a +1/+1
     /// counter on it").
@@ -4603,6 +4606,14 @@ impl P {
         };
         // "Then that player discards a card.": a sentence led by "then".
         let then_first = self.eat_word("then");
+        // "For each opponent, tap up to one target creature that player
+        // controls." (one opponent in a two-player game).
+        let per_opponent =
+            self.at_words(&["for", "each", "opponent"]) && self.peek_at(3) == Some(&Tok::Comma);
+        if per_opponent {
+            self.pos += 4;
+        }
+        let was_per_opponent = std::mem::replace(&mut self.per_opponent, per_opponent);
         // "until end of turn, <clauses>": the duration printed first.
         let mut lasting = None;
         let eot_first = if self.eat_words(&["until", "your", "next", "turn"]) {
@@ -4688,6 +4699,7 @@ impl P {
         {
             *this_turn = true;
         }
+        self.per_opponent = was_per_opponent;
         let s = Sentence {
             effects: clauses,
             label,
@@ -4695,6 +4707,7 @@ impl P {
             eot_first,
             lasting,
             then_first,
+            per_opponent,
             joins,
         };
         self.condition_suffix(s)
@@ -10384,6 +10397,7 @@ impl P {
             delayed_that: self.delayed_that,
             delayed_dies: self.delayed_dies,
             in_trigger: self.in_trigger,
+            per_opponent: self.per_opponent,
             it_source: self.it_source,
             no_trigger_obj: self.no_trigger_obj,
             self_trigger: self.self_trigger,
@@ -11158,6 +11172,7 @@ impl P {
                         delayed_that: false,
                         delayed_dies: false,
                         in_trigger: false,
+                        per_opponent: false,
                         it_source: false,
                         no_trigger_obj: false,
                         self_trigger: false,
@@ -11192,7 +11207,10 @@ impl P {
                         | (Some("an"), Some("opponent"))
                         | (Some("target"), Some("player" | "opponent"))
                         | (Some("defending" | "your"), Some("player" | "opponents"))
-                        | (Some("that"), Some("was" | "entered" | "dealt" | "blocked" | "player" | "share"))
+                        | (
+                            Some("that"),
+                            Some("was" | "entered" | "dealt" | "blocked" | "player" | "share" | "opponent")
+                        )
                         | (Some("other"), Some("than"))
                         | (Some("controller"), Some("of"))
                         | (Some("with" | "without"), Some("aura"))
@@ -11637,6 +11655,12 @@ impl P {
                     f.who = Some(Who::Opponents);
                     f.they_control = true;
                     self.pos += 2;
+                }
+                // "for each opponent, ... that player controls".
+                "that" if self.per_opponent && self.at_words(&["that", "opponent", "controls"]) => {
+                    f.who = Some(Who::Opponents);
+                    f.per_opponent = true;
+                    self.pos += 3;
                 }
                 "with" if self.at_words(&["with", "no", "abilities"]) => {
                     f.no_abilities = true;

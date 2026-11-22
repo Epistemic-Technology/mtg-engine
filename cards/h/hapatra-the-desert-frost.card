@@ -1,0 +1,8 @@
+card "Hapatra, the Desert Frost" {
+  oracle_id ac0f161a-e5ec-4a95-9f37-305bdf1ac900
+  cost {3}{U}
+  type Legendary Creature — Human Wizard
+  pt 4/3
+  triggered when this enters: for each opponent, tap up to 1 target creature that opponent controls; put 1 stun counter on those targets
+  activated {2}{U}: untap target creature
+}
