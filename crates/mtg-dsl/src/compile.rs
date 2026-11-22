@@ -1045,6 +1045,64 @@ impl Compiler<'_> {
             // target creature." ("When this spell card is put into a
             // graveyard after resolving" on an instant or sorcery, which
             // the engine triggers itself).
+            // CR 702.151a: "[Cost]: Attach this permanent to another
+            // target creature you control. Activate only as a sorcery." and
+            // "[Cost]: Unattach this permanent. Activate only if this
+            // permanent is attached to a creature and only as a sorcery.";
+            // 702.151b: attached, it isn't a creature.
+            if let Ability::Mechanic(Mechanic::Reconfigure(c)) = a {
+                let attached = StaticCondition::AttachedIs(ObjFilter {
+                    types: TypeSet::of([mtg_core::card::CardType::Creature]),
+                    ..ObjFilter::default()
+                });
+                let cost = Cost {
+                    mana: c.clone(),
+                    sorcery: true,
+                    ..Default::default()
+                };
+                let attach = Ability::Activated {
+                    cost: cost.clone(),
+                    targets: vec![Target::Filter(crate::ast::Filter {
+                        who: Some(Who::You),
+                        types: vec![mtg_core::card::CardType::Creature],
+                        relation: mtg_core::card::Relation::Other,
+                        ..Default::default()
+                    })],
+                    effects: vec![Sentence::new(vec![crate::ast::Effect::Attach {
+                        what: Recipient::Source,
+                        to: Recipient::Target(0),
+                    }])],
+                    equip: true,
+                    cycling: false,
+                };
+                b = b.ability(self.ability(&attach)?);
+                let unattach = Ability::Activated {
+                    cost,
+                    targets: Vec::new(),
+                    effects: vec![Sentence::new(vec![crate::ast::Effect::Unattach {
+                        what: Recipient::Source,
+                    }])],
+                    equip: false,
+                    cycling: false,
+                };
+                let mut unattach = self.ability(&unattach)?;
+                if let AbilityDef::Activated(aa) = &mut unattach {
+                    aa.conditions.push(attached.clone());
+                }
+                b = b.ability(unattach);
+                b = b.ability(AbilityDef::Static(StaticAbility {
+                    affected: ObjFilter::this(),
+                    parts: vec![Modification::SetTypes(TypeSet::of(
+                        card.types
+                            .iter()
+                            .copied()
+                            .filter(|t| *t != mtg_core::card::CardType::Creature),
+                    ))],
+                    condition: Some(attached),
+                }));
+                b = b.reconfigure();
+                continue;
+            }
             if let Ability::Mechanic(Mechanic::Haunt) = a {
                 let exile = AbilityDef::Triggered(TriggeredAbility {
                     limit: mtg_core::card::TurnLimit::None,
@@ -3947,6 +4005,13 @@ impl Compiler<'_> {
     fn trigger_obj(&mut self, t: &TriggerObj) -> CoreTriggerObj {
         match t {
             TriggerObj::This => CoreTriggerObj::This,
+            // "this creature or equipped creature" (reconfigure): the
+            // source, or what it's attached to.
+            TriggerObj::ThisOr(f) if f.enchanted && f.or.is_none() => {
+                let mut g = self.filter(f);
+                g.or = Some(Box::new(ObjFilter::this()));
+                CoreTriggerObj::Filter(g)
+            }
             TriggerObj::Filter(f) | TriggerObj::ThisOr(f) => CoreTriggerObj::Filter(self.filter(f)),
         }
     }
@@ -6464,6 +6529,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Renown(_)
         | Mechanic::Unleash
         | Mechanic::Haunt
+        | Mechanic::Reconfigure(_)
         | Mechanic::Devour(..)
         | Mechanic::Amplify(_)
         | Mechanic::Tribute(_)

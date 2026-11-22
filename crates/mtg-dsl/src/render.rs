@@ -9894,6 +9894,11 @@ fn trigger_subject(o: &TriggerObj, ctx: &mut Ctx) -> String {
                 .strip_prefix("an ")
                 .or_else(|| p.strip_prefix("a "))
                 .unwrap_or(&p);
+            // "Whenever this creature or equipped creature attacks"
+            // (reconfigure): the creature it's attached to, not another.
+            if f.enchanted {
+                return format!("{} or {p}", this_ref(ctx.card));
+            }
             // "Whenever High Perfect Morcant or another Elf you control
             // enters": a legendary source by name (CR 201.5).
             format!("{} or another {p}", this_ref(ctx.card))
@@ -13441,6 +13446,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Megamorph(c) => format!("Megamorph {c}"),
             crate::ast::Mechanic::Disguise(c) => format!("Disguise {c}"),
             crate::ast::Mechanic::Ninjutsu(c) => format!("Ninjutsu {c}"),
+            crate::ast::Mechanic::Reconfigure(c) => format!("Reconfigure {c}"),
             crate::ast::Mechanic::Scavenge(c) => format!("Scavenge {c}"),
             crate::ast::Mechanic::Dash(c) => format!("Dash {c}"),
             crate::ast::Mechanic::Warp(c) => format!("Warp {c}"),

@@ -7284,6 +7284,10 @@ pub struct CardDef {
     /// (`Effect::ExileHaunting`), whose source is the card in exile.
     #[serde(default)]
     pub haunted: Option<AbilityId>,
+    /// Reconfigure (CR 702.151): this Equipment creature may be attached
+    /// to a creature (CR 301.5c), and isn't a creature while attached.
+    #[serde(default)]
+    pub reconfigure: bool,
     /// Haunt on an instant or sorcery (CR 702.55a): "When this spell is
     /// put into a graveyard during its resolution, exile it haunting
     /// target creature.", triggered as the resolved spell goes there.
@@ -9483,6 +9487,7 @@ impl Builder {
             blitz: false,
             haunted: None,
             haunt_spell: None,
+            reconfigure: false,
             prowl: false,
             emerge: false,
             miracle: None,
@@ -9781,6 +9786,13 @@ impl Builder {
             others_gain: 0,
         }));
         self.0.emerge = true;
+        self
+    }
+
+    /// Reconfigure (CR 702.151): an Equipment creature that may equip.
+    #[must_use]
+    pub fn reconfigure(mut self) -> Self {
+        self.0.reconfigure = true;
         self
     }
 

@@ -1,0 +1,8 @@
+card "Chainflail Centipede" {
+  oracle_id e77a1809-d21a-4bb6-88a6-35eb13771b1d
+  cost {2}{B}
+  type Artifact Creature — Equipment Insect
+  pt 2/2
+  triggered whenever this or equipped creature attacks: it gets +2/+0
+  reconfigure {2}
+}

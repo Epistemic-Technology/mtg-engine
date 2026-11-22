@@ -1861,6 +1861,10 @@ pub enum Mechanic {
     /// `riot` (CR 702.136): enters with your choice of a +1/+1 counter or
     /// haste.
     Riot,
+    /// `reconfigure {2}` (CR 702.151): "{2}: Attach to target creature you
+    /// control; or unattach from a creature. Reconfigure only as a
+    /// sorcery. While attached, this isn't a creature."
+    Reconfigure(ManaCost),
     /// `haunt` (CR 702.55): "When this creature dies [this spell card is
     /// put into a graveyard after resolving], exile it haunting target
     /// creature."; its `when haunted dies` ability then watches that

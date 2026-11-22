@@ -1,0 +1,9 @@
+card "Armguard Familiar" {
+  oracle_id a7955f10-f502-4893-88ad-f36e7ff0af4f
+  cost {1}{U}
+  type Artifact Creature — Equipment Beast
+  pt 2/1
+  ward {2}
+  static enchanted: +2/+1, has ward {2}
+  reconfigure {4}
+}

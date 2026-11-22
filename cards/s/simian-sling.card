@@ -1,0 +1,9 @@
+card "Simian Sling" {
+  oracle_id e49c4d9a-6413-440f-ba5b-396fea6c03d9
+  cost {R}
+  type Artifact Creature — Equipment Monkey
+  pt 1/1
+  static enchanted: +1/+1
+  triggered whenever this or equipped creature becomes blocked: it deals 1 damage to that defending player
+  reconfigure {2}
+}

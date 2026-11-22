@@ -2127,7 +2127,7 @@ impl P {
             | "harmonize" | "entwine" | "ninjutsu" | "scavenge" | "dash" | "warp" | "embalm"
             | "eternalize" | "offspring" | "bestow" | "splice" | "strive" | "overload"
             | "surge" | "freerunning" | "spectacle" | "replicate" | "encore" | "multikicker"
-            | "transmute" | "disturb"
+            | "transmute" | "disturb" | "reconfigure"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -2168,6 +2168,7 @@ impl P {
                     "multikicker" => Mechanic::Multikicker(c),
                     "transmute" => Mechanic::Transmute(c),
                     "disturb" => Mechanic::Disturb(c),
+                    "reconfigure" => Mechanic::Reconfigure(c),
                     _ => Mechanic::Outlast(c),
                 }))
             }

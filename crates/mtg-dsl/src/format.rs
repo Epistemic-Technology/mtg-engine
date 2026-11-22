@@ -5674,6 +5674,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Megamorph(c) => format!("megamorph {c}"),
                 crate::ast::Mechanic::Disguise(c) => format!("disguise {c}"),
                 crate::ast::Mechanic::Ninjutsu(c) => format!("ninjutsu {c}"),
+                crate::ast::Mechanic::Reconfigure(c) => format!("reconfigure {c}"),
                 crate::ast::Mechanic::Scavenge(c) => format!("scavenge {c}"),
                 crate::ast::Mechanic::Dash(c) => format!("dash {c}"),
                 crate::ast::Mechanic::Warp(c) => format!("warp {c}"),

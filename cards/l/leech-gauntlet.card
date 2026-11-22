@@ -1,0 +1,9 @@
+card "Leech Gauntlet" {
+  oracle_id 1aaddaeb-baab-42b6-a442-d97339da54db
+  cost {1}{B}
+  type Artifact Creature — Equipment Leech
+  pt 2/2
+  keywords lifelink
+  static enchanted: has lifelink
+  reconfigure {4}
+}

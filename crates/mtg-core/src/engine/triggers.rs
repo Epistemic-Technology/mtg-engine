@@ -850,7 +850,13 @@ impl GameState {
             let c = self.characteristics(obj)?;
             (f.matches(obj, o.controller, &c, Some(w.source), Some(w.controller))
                 && self.status_ok(f, obj)
-                && (!f.enchanted || enchants(obj)))
+                && (!f.enchanted
+                    || enchants(obj)
+                    // "this creature or equipped creature" (reconfigure).
+                    || (obj == w.source
+                        && f.or
+                            .as_deref()
+                            .is_some_and(|g| g.relation == crate::card::Relation::This))))
             .then_some(o.controller)
         };
         let on_battlefield = |what: &TriggerObj, obj: ObjId| -> Option<PlayerId> {

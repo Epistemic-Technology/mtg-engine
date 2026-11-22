@@ -8141,7 +8141,10 @@ impl GameState {
             let spec = self.pool.get(def).enchant().unwrap_or(TargetSpec::Creature);
             self.is_legal_attachment(spec, host)
         } else if c.has_subtype(crate::card::Subtype::EQUIPMENT) {
-            !c.is_creature() && self.is_legal_attachment(TargetSpec::Creature, host)
+            // CR 702.151b: an Equipment with reconfigure attaches, and
+            // stops being a creature while attached.
+            (!c.is_creature() || self.pool.get(self.objects[obj].def).reconfigure)
+                && self.is_legal_attachment(TargetSpec::Creature, host)
         } else {
             false
         };
