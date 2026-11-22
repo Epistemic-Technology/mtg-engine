@@ -1226,6 +1226,12 @@ pub struct Moved {
     pub from: Zone,
     pub to: Zone,
     pub owner: PlayerId,
+    /// It left the battlefield by being sacrificed (CR 701.21) or
+    /// destroyed (CR 701.7), rather than by another effect of the same
+    /// resolution ("destroy target creature. If the sacrificed permanent
+    /// was a Vehicle": the destroyed creature was not sacrificed).
+    pub sacrificed: bool,
+    pub destroyed: bool,
 }
 
 /// What a resolution did "this way" (CR 608.2c).
@@ -1268,9 +1274,8 @@ impl Moved {
         use crate::card::ThisWay;
         match verb {
             ThisWay::Exiled => self.to == Zone::Exile && self.from != Zone::Exile,
-            ThisWay::Sacrificed | ThisWay::Destroyed => {
-                self.from == Zone::Battlefield && self.to != Zone::Battlefield
-            }
+            ThisWay::Sacrificed => self.sacrificed,
+            ThisWay::Destroyed => self.destroyed,
             ThisWay::Discarded => self.from == Zone::Hand && self.to != Zone::Hand,
             ThisWay::Milled => self.from == Zone::Library && self.to == Zone::Graveyard,
             ThisWay::PutInHand => self.to == Zone::Hand && self.from != Zone::Hand,

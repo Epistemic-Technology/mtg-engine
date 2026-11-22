@@ -201,10 +201,6 @@ Wrong behaviour that reaches accepted cards:
   when you cycle this: ... X` (Webstrike Elite, accepted; Valor's
   Flagship, rejected): the X paid for cycling does not reach the
   trigger. Not yet reproduced on Webstrike Elite.
-- **"If the sacrificed permanent was <type>" may read the wrong
-  object.** On Hellish Sideswipe (rejected) it looked at what the
-  resolution destroyed, not what was sacrificed for the cost. Nasty End,
-  Falkenrath Torturer, and Foundry Helix use the condition; not checked.
 
 Forms that pass the gate with the wrong meaning:
 

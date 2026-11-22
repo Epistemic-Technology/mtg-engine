@@ -460,6 +460,8 @@ impl GameState {
                 from: old.zone,
                 to,
                 owner: old.owner,
+                sacrificed: false,
+                destroyed: false,
             });
         }
         // CR 702.109a: a dashed permanent returns to its owner's hand at
@@ -946,6 +948,23 @@ impl GameState {
         self.history_bump();
         self.emit(Event::Sacrificed { obj: id, def });
         self.move_object(id, Zone::Graveyard, true);
+        self.note_moved_how(id, true);
+    }
+
+    /// Mark the zone change of `id` just logged "this way" as a sacrifice
+    /// or a destruction (`Moved::sacrificed`).
+    fn note_moved_how(&mut self, id: ObjId, sacrificed: bool) {
+        if let Some(m) = self
+            .this_way
+            .as_mut()
+            .and_then(|l| l.moved.iter_mut().rev().find(|m| m.old == id))
+        {
+            if sacrificed {
+                m.sacrificed = true;
+            } else {
+                m.destroyed = true;
+            }
+        }
     }
 
     /// Put `id` into its owner's library at `place`. Where the owner has a
@@ -1813,5 +1832,6 @@ impl GameState {
         let def = c.def;
         self.emit(Event::Destroyed { obj: id, def });
         self.move_object(id, Zone::Graveyard, true);
+        self.note_moved_how(id, false);
     }
 }

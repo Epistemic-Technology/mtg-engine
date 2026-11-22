@@ -5827,6 +5827,8 @@ impl GameState {
                 from: Zone::Battlefield,
                 to: Zone::Battlefield,
                 owner,
+                sacrificed: false,
+                destroyed: false,
             });
         }
     }
