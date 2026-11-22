@@ -176,7 +176,9 @@ impl GameObject {
     }
 }
 
-#[derive(Clone, Debug)]
+/// Every field but `targets` and `counters` is `Copy`; `Clone` (below)
+/// copies those two as slices.
+#[derive(Debug)]
 #[allow(clippy::struct_excessive_bools)] // independent facts
 pub struct GameObject {
     /// The definition whose copiable values this object has (CR 707.2):
@@ -773,6 +775,20 @@ impl CastInfo {
                     | Self::OPTIONAL_PAID
                     | Self::CAST_MASK),
         )
+    }
+}
+
+/// A state snapshot (before an action that may ask a question midway)
+/// clones every object; the derived `Clone` cloned the two small vectors
+/// element by element, out of line, at 180 instructions an object.
+impl Clone for GameObject {
+    #[inline]
+    fn clone(&self) -> Self {
+        GameObject {
+            targets: SmallVec::from_slice(&self.targets),
+            counters: SmallVec::from_slice(&self.counters),
+            ..*self
+        }
     }
 }
 
