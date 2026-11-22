@@ -1,0 +1,8 @@
+card "Colossus of the Blood Age" {
+  oracle_id 0788fdd2-6fab-460c-b054-a736df670f96
+  cost {4}{R}{W}
+  type Artifact Creature — Construct
+  pt 6/6
+  triggered when this enters: this deals 3 damage to each opponent and you gain 3 life
+  triggered when this dies: discard any number cards chosen then draw count that many plus 1 discarded this way cards
+}

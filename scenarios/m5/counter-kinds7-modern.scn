@@ -1,0 +1,146 @@
+# Template-authored cards the new counter kinds and conditions complete
+# (quest, brick, wish, oil, healing, and deathtouch counters; "this has N
+# or more K counters"), and alternative costs with mana and a tap.
+
+scenario "Beastmaster Ascension with seven quest counters pumps your creatures" {
+  battlefield A: "Beastmaster Ascension" with 6 quest, "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 A: accept "Beastmaster Ascension"
+  run_to turn 1 postcombat_main
+  assert counters "Beastmaster Ascension" quest 7
+  assert power "Grizzly Bears" 7
+  assert life B 13
+}
+
+scenario "Beastmaster Ascension with six quest counters does nothing" {
+  battlefield A: "Beastmaster Ascension" with 6 quest, "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Quest for the Goblin Lord counts Goblins entering" {
+  battlefield A: "Quest for the Goblin Lord" with 4 quest, "Mountain", "Grizzly Bears"
+  hand A: "Raging Goblin"
+  turn 1 A: cast "Raging Goblin"
+  turn 1 A: accept "Quest for the Goblin Lord"
+  run_to turn 1 postcombat_main
+  assert counters "Quest for the Goblin Lord" quest 5
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Kappa Tech-Wrecker enters with a deathtouch counter" {
+  battlefield A: 2 "Forest"
+  hand A: "Kappa Tech-Wrecker"
+  turn 1 A: cast "Kappa Tech-Wrecker"
+  run_to turn 1 postcombat_main
+  assert counters "Kappa Tech-Wrecker" deathtouch 1
+  assert has "Kappa Tech-Wrecker" deathtouch
+}
+
+scenario "Kappa Tech-Wrecker removes its counter to exile an artifact" {
+  battlefield A: "Kappa Tech-Wrecker" with 1 deathtouch
+  battlefield B: "Ornithopter" tapped, "Short Sword"
+  turn 1 A: attack "Kappa Tech-Wrecker"
+  turn 1 A: accept "Kappa Tech-Wrecker"
+  turn 1 A: trigger "Kappa Tech-Wrecker" targeting "Short Sword"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Short Sword"
+  assert counters "Kappa Tech-Wrecker" deathtouch 0
+  assert has not "Kappa Tech-Wrecker" deathtouch
+}
+
+scenario "Render Inert removes up to five counters and draws" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant" with 6 +1/+1
+  hand A: "Render Inert"
+  turn 1 A: cast "Render Inert" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 1
+  assert hand A count 1
+}
+
+scenario "Ring of Three Wishes enters with three wish counters and tutors" {
+  battlefield A: 5 "Plains"
+  battlefield A: "Ring of Three Wishes" with 3 wish
+  library A: "Island", "Grizzly Bears", "Forest"
+  turn 1 A: activate "Ring of Three Wishes"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Ring of Three Wishes" wish 2
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Ring of Three Wishes with no wish counters can't search" {
+  battlefield A: 5 "Plains", "Ring of Three Wishes"
+  illegal turn 1 A: activate "Ring of Three Wishes"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Sunset Pyramid enters with three brick counters" {
+  battlefield A: 3 "Plains"
+  hand A: "Sunset Pyramid"
+  turn 1 A: cast "Sunset Pyramid"
+  run_to turn 1 postcombat_main
+  assert counters "Sunset Pyramid" brick 3
+}
+
+scenario "Tablet of Compleation adds {C} only with two oil counters" {
+  battlefield A: "Tablet of Compleation" with 2 oil
+  hand A: "Ornithopter", "Memnite"
+  turn 1 A: activate "Tablet of Compleation" ability 2
+  run_to turn 1 postcombat_main
+  assert counters "Tablet of Compleation" oil 2
+}
+
+scenario "Tablet of Compleation with one oil counter can't make mana" {
+  battlefield A: "Tablet of Compleation" with 1 oil
+  illegal turn 1 A: activate "Tablet of Compleation" ability 2
+  run_to turn 1 postcombat_main
+}
+
+scenario "Ursine Fylgja removes a healing counter to prevent 1 damage" {
+  battlefield A: "Ursine Fylgja" with 4 healing
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 upkeep A: activate "Ursine Fylgja" ability 1
+  turn 2 B: cast "Shock" targeting "Ursine Fylgja"
+  run_to turn 2 end
+  assert counters "Ursine Fylgja" healing 3
+  assert damage "Ursine Fylgja" 1
+}
+
+scenario "Zahid costs {3}{U} and tapping an artifact" {
+  battlefield A: 4 "Island", "Ornithopter"
+  hand A: "Zahid, Djinn of the Lamp"
+  turn 1 A: cast "Zahid, Djinn of the Lamp" alternative sacrificing "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zahid, Djinn of the Lamp"
+  assert tapped "Ornithopter"
+}
+
+scenario "Zahid's alternative cost needs an untapped artifact" {
+  battlefield A: 4 "Island", "Ornithopter" tapped
+  start turn 1 A precombat_main
+  hand A: "Zahid, Djinn of the Lamp"
+  illegal turn 1 A: cast "Zahid, Djinn of the Lamp" alternative
+  run_to turn 1 postcombat_main
+}
+
+scenario "Pyramid of the Pantheon adds three mana with three brick counters" {
+  battlefield A: "Pyramid of the Pantheon" with 3 brick, "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: activate "Pyramid of the Pantheon" ability 2
+  turn 1 A: choose red
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Bringer of the Green Dawn for {W}{U}{B}{R}{G}" {
+  battlefield A: "Plains", "Island", "Swamp", "Mountain", "Forest"
+  hand A: "Bringer of the Green Dawn", "Bringer of the Black Dawn"
+  turn 1 A: cast "Bringer of the Green Dawn" alternative
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bringer of the Green Dawn"
+}

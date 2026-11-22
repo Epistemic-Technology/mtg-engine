@@ -1,0 +1,7 @@
+card "Comforting Counsel" {
+  oracle_id 5fd193c0-ed9f-4afb-b6cd-c1a20008fc0b
+  cost {1}{G}
+  type Enchantment
+  triggered whenever you gain life: put 1 growth counters on this
+  static as long as there are 5 or more growth counters on this, creature you control: +3/+3
+}

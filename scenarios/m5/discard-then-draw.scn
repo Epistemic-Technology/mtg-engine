@@ -1,0 +1,44 @@
+# "Discard any number of cards, then draw that many cards plus one."
+
+scenario "Colossus of the Blood Age enters: 3 damage to each opponent, gain 3" {
+  battlefield A: 3 "Mountain", 3 "Plains"
+  hand A: "Colossus of the Blood Age"
+  turn 1 A: cast "Colossus of the Blood Age"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+}
+
+scenario "Colossus of the Blood Age dies: discard two, draw three" {
+  battlefield A: "Colossus of the Blood Age"
+  battlefield B: 3 "Swamp"
+  hand A: "Island", "Forest", "Shock"
+  hand B: "Murder"
+  library A: "Plains", "Swamp", "Mountain", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Murder" targeting "Colossus of the Blood Age"
+  turn 1 A: choose "Island"
+  turn 1 A: choose "Forest"
+  turn 1 A: choose done
+  run_to turn 1 end
+  assert graveyard A contains "Island"
+  assert graveyard A contains "Forest"
+  assert hand A count 4
+  assert hand A contains "Shock"
+  assert hand A contains "Mountain"
+}
+
+scenario "Colossus of the Blood Age dies: discarding nothing still draws one" {
+  battlefield A: "Colossus of the Blood Age"
+  battlefield B: 3 "Swamp"
+  hand A: "Island"
+  hand B: "Murder"
+  library A: "Plains", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Murder" targeting "Colossus of the Blood Age"
+  turn 1 A: choose done
+  run_to turn 1 end
+  assert hand A count 2
+  assert hand A contains "Island"
+  assert hand A contains "Plains"
+}

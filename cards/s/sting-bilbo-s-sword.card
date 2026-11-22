@@ -1,0 +1,9 @@
+card "Sting, Bilbo's Sword" {
+  oracle_id 9779f32c-b1a2-42a3-8e78-14c28c3ad254
+  cost {2}
+  type Legendary Artifact — Equipment
+  short_name "Sting"
+  keywords flash
+  triggered when this enters: put count each creature target opponent controls hone counters on this Equipment; attach this Equipment to up to one target creature you control
+  equip {3}
+}

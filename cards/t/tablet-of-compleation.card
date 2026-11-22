@@ -1,0 +1,8 @@
+card "Tablet of Compleation" {
+  oracle_id 6eca2ac9-16ba-4a11-b6ee-3caf2d7d8254
+  cost {2}
+  type Artifact
+  activated {T}: put 1 oil counters on this
+  activated {T}, if this has 2 or more oil counters: add {C}
+  activated {1}, {T}, if this has 5 or more oil counters: draw 1 cards
+}

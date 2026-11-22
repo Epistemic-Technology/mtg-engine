@@ -606,6 +606,21 @@ pub fn coverage(data: &DataDir, format: &str, corpus: &[Card]) -> Result<(usize,
     Ok((have, total))
 }
 
+/// The named counter kinds as a regex alternation ("stun|charge|...|first
+/// strike"), from `CounterKind::NAMED`, longest first so "first strike"
+/// wins over a prefix.
+fn counter_names() -> &'static str {
+    static ALT: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    ALT.get_or_init(|| {
+        let mut names: Vec<&str> = mtg_core::card::CounterKind::NAMED
+            .iter()
+            .map(|(n, _)| *n)
+            .collect();
+        names.sort_by_key(|n| std::cmp::Reverse(n.len()));
+        names.join("|")
+    })
+}
+
 fn strip_reminder(text: &str) -> String {
     let mut out = String::new();
     let mut depth = 0usize;
@@ -2943,6 +2958,23 @@ impl Templates {
                     Some("discard all cards in hand then draw count that many discarded this way cards".to_string())
                 },
             ),
+            // "Discard any number of cards, then draw that many cards plus
+            // one", "discard up to two cards, then draw that many cards".
+            (
+                r(
+                    r"^[Dd]iscard (any number of|up to \w+) cards, then draw that many cards( plus one)?$",
+                ),
+                |c, _| {
+                    let how = match cap(c, 1) {
+                        "any number of" => "any number".to_string(),
+                        up => format!("up to {}", number(up.strip_prefix("up to ")?)?),
+                    };
+                    let plus = if cap(c, 2).is_empty() { "" } else { " plus 1" };
+                    Some(format!(
+                        "discard {how} cards chosen then draw count that many{plus} discarded this way cards"
+                    ))
+                },
+            ),
             (r(r"^[Pp]ut its counters on (.+)$"), |c, t| {
                 Some(format!("put its counters on {}", recipient(cap(c, 1), t)?))
             }),
@@ -3070,9 +3102,10 @@ impl Templates {
                 Some(format!("regenerate {}", recipient(cap(c, 1), t)?))
             }),
             (
-                r(
-                    r"^Put (\S+) ([+-]\d/[+-]\d|stun|loyalty|charge|oil|spore|depletion|quest|ki|time|tide|shield|age|fade|ice|level|lore|page|arrowhead|javelin|polyp|healing|mining|scream|credit|brick|currency|sleep|net|flood|glyph|loot|supply|finality|flying|first strike|trample|lifelink|deathtouch|reach|menace|vigilance|hexproof|indestructible) counters? on (.+)$",
-                ),
+                r(&format!(
+                    r"^Put (\S+) ([+-]\d/[+-]\d|{}) counters? on (.+)$",
+                    counter_names()
+                )),
                 |c, t| {
                     Some(format!(
                         "put {} {} counters on {}",
@@ -3083,9 +3116,10 @@ impl Templates {
                 },
             ),
             (
-                r(
-                    r"^Remove (\S+) ([+-]\d/[+-]\d|stun|charge|oil|spore|depletion|quest|ki|time|tide|shield|age|fade|ice|level|lore|page|arrowhead|javelin|polyp|healing|mining|scream|credit|brick|currency|sleep|net|flood|glyph|loot|supply|finality|flying|first strike|trample|lifelink|deathtouch|reach|menace|vigilance|hexproof|indestructible) counters? from (.+)$",
-                ),
+                r(&format!(
+                    r"^Remove (\S+) ([+-]\d/[+-]\d|{}) counters? from (.+)$",
+                    counter_names()
+                )),
                 |c, t| {
                     Some(format!(
                         "remove {} {} counters from {}",
@@ -3095,6 +3129,15 @@ impl Templates {
                     ))
                 },
             ),
+            // "Remove up to three counters from target creature": each of
+            // a kind the controller chooses.
+            (r(r"^Remove up to (\w+) counters from (.+)$"), |c, t| {
+                Some(format!(
+                    "remove up to {} counters from {}",
+                    number(cap(c, 1))?,
+                    recipient(cap(c, 2), t)?
+                ))
+            }),
             (r(r"^Remove all counters from (.+)$"), |c, t| {
                 Some(format!(
                     "remove all counters from {}",
@@ -3895,6 +3938,7 @@ impl Templates {
             let clauses: Vec<&str> = if body.contains("earch your library")
                 || body.contains("earch their library")
                 || body == "Discard all the cards in your hand, then draw that many cards"
+                || (body.contains("iscard ") && body.contains(", then draw that many cards"))
                 || body.ends_with("explores, then it explores again")
                 || body.contains(", then meld them into ")
                 || body == "Exile ~, then return it to the battlefield"
@@ -4910,6 +4954,37 @@ fn static_condition(s: &str) -> Option<String> {
     {
         return Some(format!("opponent poison {} or more", number(cap(&c, 1))?));
     }
+    // Counters on the source (CR 122.1): "there are five or more growth
+    // counters on this enchantment", "this creature has four or more oil
+    // counters on it".
+    let self_word = r"this (?:creature|artifact|enchantment|land|permanent|Vehicle|Equipment)";
+    if let Some(c) = Regex::new(&format!(
+        r"^there are (\S+) or more ([+-]\d/[+-]\d|{}) counters on {self_word}$",
+        counter_names()
+    ))
+    .unwrap()
+    .captures(s)
+    {
+        return Some(format!(
+            "there are {} or more {} counters on this",
+            number(cap(&c, 1))?,
+            cap(&c, 2)
+        ));
+    }
+    if let Some(c) = Regex::new(&format!(
+        r"^{self_word} has (\S+) or more ([+-]\d/[+-]\d|{}) counters on it$",
+        counter_names()
+    ))
+    .unwrap()
+    .captures(s)
+        && cap(&c, 1) != "one"
+    {
+        return Some(format!(
+            "this has {} or more {} counters",
+            number(cap(&c, 1))?,
+            cap(&c, 2)
+        ));
+    }
     let types =
         Regex::new(r"^there are (\S+) or more card types among cards in your graveyard$").unwrap();
     if let Some(c) = types.captures(s) {
@@ -5781,6 +5856,80 @@ impl Builder<'_> {
             }
             return Ok(());
         }
+        // "Equip abilities you activate that target this creature cost {2}
+        // less to activate."
+        if let Some(c) = Regex::new(
+            r"^Equip abilities you activate that target (?:this creature|~) cost \{(\d+)\} less to activate\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            self.statements.push(format!(
+                "equip abilities targeting this cost {{{}}} less",
+                cap(&c, 1)
+            ));
+            return Ok(());
+        }
+        // An alternative cost (CR 118.9): "You may pay {2}{U} rather than
+        // pay this spell's mana cost.", "If it's not your turn, you may
+        // exile a blue card from your hand rather than ...".
+        if let Some(c) = Regex::new(
+            r"^(?:If (.+?), )?[Yy]ou may (.+?) rather than pay this spell's mana cost\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let skip = || Skip::Sentence(line.to_string());
+            let mut parts = Vec::new();
+            let hand = Regex::new(r"^exile (a|an|two|three) ((?:[a-z]+ )*?)cards? from your hand$")
+                .unwrap();
+            let sac = Regex::new(r"^sacrifice (a|an|two|three|four|five) ([A-Za-z ]+)$").unwrap();
+            for part in cap(&c, 2).split(" and ") {
+                let part = part
+                    .strip_prefix("pay ")
+                    .filter(|p| p.starts_with('{'))
+                    .unwrap_or(part);
+                // "exile a blue card from your hand" (a pitch spell).
+                if let Some(h) = hand.captures(part) {
+                    let n = match cap(&h, 1) {
+                        "a" | "an" => String::new(),
+                        w => format!("{} ", number(w).ok_or_else(skip)?),
+                    };
+                    let cards = if n.is_empty() { "card" } else { "cards" };
+                    parts.push(format!("exile {n}{}{cards} from hand", cap(&h, 2)));
+                    continue;
+                }
+                // "sacrifice a nontoken blue creature", "sacrifice three
+                // artifacts".
+                if let Some(s) = sac.captures(part)
+                    && !cap(&s, 2).contains(" you ")
+                    && !cap(&s, 2).contains(" with ")
+                {
+                    let what = cap(&s, 2);
+                    parts.push(match cap(&s, 1) {
+                        "a" | "an" => format!("sacrifice {what}"),
+                        w => {
+                            let (head, last) = what.rsplit_once(' ').unwrap_or(("", what));
+                            let one = if head.is_empty() {
+                                singular(last)
+                            } else {
+                                format!("{head} {}", singular(last))
+                            };
+                            format!("sacrifice {} {one}", number(w).ok_or_else(skip)?)
+                        }
+                    });
+                    continue;
+                }
+                parts.push(cost_text(&capitalize(part)).ok_or_else(skip)?);
+            }
+            let mut cost = format!("alternative cost {}", parts.join(", "));
+            if !cap(&c, 1).is_empty() {
+                let cond = static_condition(cap(&c, 1)).ok_or_else(skip)?;
+                let _ = write!(cost, ", if {cond}");
+            }
+            self.statements.push(cost);
+            return Ok(());
+        }
         if let Some(rest) = line.strip_prefix("As an additional cost to cast this spell, ") {
             let rest = rest.trim_end_matches('.');
             // CR 701.69a: "behold a Kithkin or pay {2}", "behold an Elf
@@ -6614,9 +6763,10 @@ impl Builder<'_> {
             self.statements.push("enters tapped".to_string());
             return Ok(());
         }
-        if let Some(c) = Regex::new(
-            r"^(?:This (?:creature|permanent|artifact|land|enchantment|Vehicle)|~) enters with (\S+) (\+1/\+1|-1/-1|stun|charge|oil|spore|depletion|quest|ki|time|tide|shield|age|fade|ice|level|lore|page|divinity) counters? on it(?: if (.+))?\.$",
-        )
+        if let Some(c) = Regex::new(&format!(
+            r"^(?:This (?:creature|permanent|artifact|land|enchantment|Vehicle)|~) enters with (\S+) (\+1/\+1|-1/-1|{}) counters? on it(?: if (.+))?\.$",
+            counter_names()
+        ))
         .unwrap()
         .captures(line)
         {
@@ -7268,6 +7418,7 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
         .into_owned();
     s = s
         .replace("with a counter on it", "with counter")
+        .replace("with no counters on it", "with no counters")
         .replace("not named ~", "not named this")
         .replace("named ~", "named this");
     s = re(r"(\w+), (\w+), and/or (\w+)")

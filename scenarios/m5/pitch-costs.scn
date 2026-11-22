@@ -1,0 +1,84 @@
+# Alternative costs (CR 118.9): "You may exile a blue card from your hand
+# rather than pay this spell's mana cost." (a pitch spell; the exiled card
+# is chosen like a discard, `discarding "X"`), with a condition ("If it's
+# not your turn, ..."), two cards, and plain mana ("You may pay
+# {W}{U}{B}{R}{G} rather than ...").
+
+scenario "Snapback exiles a blue card from hand instead of its mana cost" {
+  battlefield B: "Hill Giant"
+  hand A: "Snapback", "Wind Drake", "Divination"
+  turn 1 A: cast "Snapback" alternative discarding "Wind Drake" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert exile A contains "Wind Drake"
+  assert graveyard A lacks "Wind Drake"
+  assert hand A contains "Divination"
+}
+
+scenario "Snapback can't pitch itself or a nonblue card" {
+  battlefield B: "Hill Giant"
+  hand A: "Snapback", "Lightning Bolt"
+  illegal turn 1 A: cast "Snapback" alternative targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Snapback cast for its mana cost exiles nothing" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Snapback", "Wind Drake"
+  turn 1 A: cast "Snapback" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert hand A contains "Wind Drake"
+}
+
+scenario "Force of Negation is free on an opponent's turn" {
+  battlefield B: 3 "Island"
+  hand A: "Force of Negation", "Wind Drake"
+  hand B: "Divination"
+  start turn 2 B
+  turn 2 B: cast "Divination"
+  turn 2 A: cast "Force of Negation" alternative discarding "Wind Drake" targeting "Divination"
+  run_to turn 2 end
+  assert exile B contains "Divination"
+  assert exile A contains "Wind Drake"
+}
+
+scenario "Force of Negation's alternative cost isn't offered on your own turn" {
+  battlefield B: "Mountain"
+  hand A: "Force of Negation", "Wind Drake"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  illegal turn 1 A: cast "Force of Negation" alternative targeting "Lightning Bolt"
+  run_to turn 1 end
+}
+
+scenario "Sunscour exiles two white cards from hand" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Sunscour", "Serra Angel", "Healing Salve", "Island"
+  turn 1 A: cast "Sunscour" alternative discarding "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert exile A contains "Serra Angel"
+  assert exile A contains "Healing Salve"
+  assert hand A contains "Island"
+}
+
+scenario "Sunscour needs two white cards besides itself" {
+  battlefield B: "Hill Giant"
+  hand A: "Sunscour", "Serra Angel", "Island"
+  illegal turn 1 A: cast "Sunscour" alternative
+  run_to turn 1 postcombat_main
+}
+
+scenario "Bringer of the Red Dawn for {W}{U}{B}{R}{G}" {
+  battlefield A: "Plains", "Island", "Swamp", "Mountain", "Forest"
+  hand A: "Bringer of the Red Dawn"
+  turn 1 A: cast "Bringer of the Red Dawn" alternative
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bringer of the Red Dawn"
+}

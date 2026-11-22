@@ -1,0 +1,7 @@
+card "Hoarder's Overflow" {
+  oracle_id 75f7d9c7-5d52-4bfe-a730-62fef187b8b8
+  cost {1}{R}
+  type Enchantment
+  triggered when this enters and whenever you expend 4: put 1 stash counters on this
+  activated {1}{R}, sacrifice this: discard hand then draw count equal stash counters on this cards
+}

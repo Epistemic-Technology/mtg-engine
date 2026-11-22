@@ -1,0 +1,9 @@
+card "Kappa Tech-Wrecker" {
+  oracle_id 2bc92c16-cd1e-4c32-9102-4593d77a9a9f
+  cost {1}{G}
+  type Creature — Turtle Ninja
+  pt 1/3
+  ninjutsu {1}{G}
+  enters with 1 deathtouch counters
+  triggered whenever this deals combat damage to a player: you may remove 1 deathtouch counters from this; when you do, exile target artifact or enchantment that player controls
+}

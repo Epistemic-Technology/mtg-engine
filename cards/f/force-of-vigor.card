@@ -1,0 +1,7 @@
+card "Force of Vigor" {
+  oracle_id 5f627e45-deee-4a4f-8128-57b0d8ebc553
+  cost {2}{G}{G}
+  type Instant
+  alternative cost exile green card from hand, if not your turn
+  spell: destroy up to 2 target andor artifact or enchantment
+}

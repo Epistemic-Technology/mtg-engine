@@ -1938,6 +1938,19 @@ impl P {
                 let inner = self.ability()?;
                 Ok(Ability::Solved(Box::new(inner)))
             }
+            // "Equip abilities you activate that target this creature cost
+            // {2} less to activate."
+            "equip" if self.at_words(&["equip", "abilities", "targeting", "this", "cost"]) => {
+                self.pos += 5;
+                let cost = self.mana_cost()?;
+                self.expect_word("less")?;
+                self.end_stmt()?;
+                let n = u8::try_from(cost.mana_value()).unwrap_or(u8::MAX);
+                if n == 0 || cost.to_string() != format!("{{{n}}}") {
+                    return self.fail("an equip discount is generic mana");
+                }
+                Ok(Ability::EquipDiscount(n))
+            }
             "this" if self.at_words(&["this", "spell", "can't", "be", "countered"]) => {
                 self.pos += 5;
                 self.end_stmt()?;
@@ -2809,6 +2822,12 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Spree(modes))
             }
+            "tiered" if self.peek_at(1) == Some(&Tok::LBrace) => {
+                self.pos += 1;
+                let modes = self.tiered_block()?;
+                self.end_stmt()?;
+                Ok(Ability::Tiered(modes))
+            }
             "choose" => {
                 if let Some((head, n)) = self.peek_mode_head() {
                     self.pos += n;
@@ -3646,6 +3665,44 @@ impl P {
         Ok(modes)
     }
 
+    /// `{ mode "Thunder" {0}: ... }` after `tiered`: each mode's name, its
+    /// cost, then its effects (CR 702.183).
+    fn tiered_block(&mut self) -> R<Vec<(ManaCost, Mode)>> {
+        self.expect(&Tok::LBrace)?;
+        self.end_stmt()?;
+        let outer = std::mem::take(&mut self.targets);
+        let mut modes = Vec::new();
+        loop {
+            self.skip_newlines();
+            if self.peek() == Some(&Tok::RBrace) {
+                self.pos += 1;
+                break;
+            }
+            self.expect_word("mode")?;
+            let Some(Tok::Str(name)) = self.next() else {
+                return self.fail("a tiered mode has a name: `mode \"Thunder\" {0}: ...`");
+            };
+            let cost = self.mana_cost()?;
+            self.targets.clear();
+            self.subject = None;
+            self.revealed = false;
+            let effects = self.effects_body()?;
+            modes.push((
+                cost,
+                Mode {
+                    targets: std::mem::take(&mut self.targets),
+                    effects,
+                    name: Some(name),
+                },
+            ));
+        }
+        self.targets = outer;
+        if modes.len() < 2 {
+            return self.fail("`tiered` takes two or more modes");
+        }
+        Ok(modes)
+    }
+
     /// After `this has`: `4 or more oil counters`, `no arrowhead counters`.
     fn source_counters_cond(&mut self) -> R<StaticCond> {
         if self.eat_word("no") {
@@ -3661,6 +3718,14 @@ impl P {
         let at_least = !self.eat_words(&["or", "fewer"]);
         if at_least {
             self.expect_words(&["or", "more"])?;
+        }
+        // `this has 3 or more counters`: of every kind together.
+        if at_least && n > 1 && self.eat_word("counters") {
+            return Ok(StaticCond::SourceCounters {
+                kind: CounterKind::Any,
+                n,
+                at_least,
+            });
         }
         let kind = self.counter_kind()?;
         Ok(StaticCond::SourceCounters { kind, n, at_least })
@@ -9897,10 +9962,11 @@ impl P {
                 return Ok(CountExpr::SourceAllCounters { it: false });
             }
             self.expect_word("it")?;
-            // In a triggered ability `it` is the triggering object, which
-            // this count doesn't read.
+            // In a triggered ability `it` is the triggering object: its
+            // counters of every kind ("the number of counters on it",
+            // Spider-Man Noir).
             if self.in_trigger && !self.it_source && !self.in_delayed {
-                return self.fail("`counters on it` counts the source's; write `counters on this`");
+                return Ok(CountExpr::TriggerCounters(CounterKind::Any));
             }
             return Ok(CountExpr::SourceAllCounters { it: true });
         }
@@ -11208,7 +11274,7 @@ impl P {
                         | (Some("other"), Some("than"))
                         | (Some("controller"), Some("of"))
                         | (Some("with" | "without"), Some("aura"))
-                        | (Some("with"), Some("counter" | "toxic" | "morph"))
+                        | (Some("with"), Some("counter" | "toxic" | "morph" | "no"))
                         | (Some("blocked"), Some("by"))
                         | (Some("blocking"), Some("this" | "it" | "or"))
                 ) || comma_type
@@ -11744,6 +11810,15 @@ impl P {
                     self.expect_words(&["or", "more"])?;
                     let k = self.counter_kind()?;
                     f.status.counter = Some(mtg_core::card::CounterQual::AtLeast(k, n));
+                }
+                // "with no counters on it".
+                "with"
+                    if f.status.counter.is_none()
+                        && self.word_at(1).as_deref() == Some("no")
+                        && self.word_at(2).as_deref() == Some("counters") =>
+                {
+                    self.pos += 3;
+                    f.status.counter = Some(mtg_core::card::CounterQual::NoCounters);
                 }
                 // "with a +1/+1 counter on it", "with a counter on it".
                 "with" if f.status.counter.is_none() && self.at_counter_qual() => {
@@ -13791,10 +13866,19 @@ impl P {
                             Some(self.filter()?)
                         };
                         self.cards_word()?;
-                        self.expect_words(&["from", "graveyard"])?;
-                        cost.exile_cards =
-                            Some(Box::new(crate::ast::ExileCards { n, x, filter, top }));
-                        cost.order.push(CostItem::ExileCards);
+                        // `exile blue card from hand` (CR 118.9: a pitch
+                        // spell's cost): cards from the hand, chosen.
+                        if !top && !x && self.eat_words(&["from", "hand"]) {
+                            cost.discard = n;
+                            cost.discard_filter = filter;
+                            cost.discard_exile = true;
+                            cost.order.push(CostItem::Discard);
+                        } else {
+                            self.expect_words(&["from", "graveyard"])?;
+                            cost.exile_cards =
+                                Some(Box::new(crate::ast::ExileCards { n, x, filter, top }));
+                            cost.order.push(CostItem::ExileCards);
+                        }
                     }
                     "discard" if self.word_at(1).as_deref() == Some("hand") => {
                         self.pos += 2;
@@ -13980,7 +14064,9 @@ impl P {
                             line: self.line(),
                             message: e.to_string(),
                         })?;
-                        let how = if self.eat_word("each") {
+                        let how = if self.eat_words(&["if", "targets"]) {
+                            crate::ast::ReduceBy::Targets(self.filter()?)
+                        } else if self.eat_word("each") {
                             crate::ast::ReduceBy::Each(self.count_expr()?)
                         } else if self.eat_words(&["during", "your", "turn"]) {
                             // "This ability costs {1} less to activate

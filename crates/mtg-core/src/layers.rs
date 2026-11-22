@@ -1619,6 +1619,7 @@ fn apply_counters(work: &mut Work<'_>, layer: Layer) {
     if layer != Layer::L7cModifyPt {
         return;
     }
+    let mut hone: SmallVec<[(ObjId, u32); 2]> = SmallVec::new();
     for (i, id) in work.ids.iter().enumerate() {
         let o = &work.state.objects[*id];
         if o.zone != Zone::Battlefield {
@@ -1632,6 +1633,10 @@ fn apply_counters(work: &mut Work<'_>, layer: Layer) {
                 let n = i32::try_from(*n).unwrap_or(i32::MAX / 4);
                 dp = dp.saturating_add(p.saturating_mul(n));
                 dt = dt.saturating_add(t.saturating_mul(n));
+            } else if *k == crate::card::CounterKind::Hone
+                && let Some(to) = o.attached_to
+            {
+                hone.push((to, *n));
             }
         }
         if dp == 0 && dt == 0 {
@@ -1640,5 +1645,15 @@ fn apply_counters(work: &mut Work<'_>, layer: Layer) {
         let c = &mut work.chars[i];
         c.power = pt16(c.power() + dp);
         c.toughness = pt16(c.toughness() + dt);
+    }
+    // Hone counters (Dwalin, Weaponmaster): "Each hone counter on an
+    // Equipment grants +1/+0 to equipped creature."
+    for (to, n) in hone {
+        if let Some(&i) = work.index.get(&to)
+            && work.state.objects[to].zone == Zone::Battlefield
+        {
+            let c = &mut work.chars[i];
+            c.power = pt16(c.power() + i32::try_from(n).unwrap_or(i32::MAX / 4));
+        }
     }
 }

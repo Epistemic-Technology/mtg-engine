@@ -1,0 +1,175 @@
+# Named counter kinds added in the seventh wave (CR 122.1): growth,
+# carrion, and hone counters (each hone counter on an Equipment grants
+# +1/+0 to equipped creature), and conditions on counters on the source.
+
+scenario "Comforting Counsel gets a growth counter whenever you gain life" {
+  battlefield A: "Comforting Counsel", "Grizzly Bears"
+  hand A: "Healing Salve"
+  battlefield A: "Plains"
+  turn 1 A: cast "Healing Salve" targeting player A
+  run_to turn 1 postcombat_main
+  assert counters "Comforting Counsel" growth 1
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Comforting Counsel with five growth counters pumps your creatures" {
+  battlefield A: "Comforting Counsel" with 5 growth, "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert power "Hill Giant" 3
+}
+
+scenario "Comforting Counsel with four growth counters does nothing" {
+  battlefield A: "Comforting Counsel" with 4 growth, "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Osai Vultures gets a carrion counter at end of turn if a creature died" {
+  battlefield A: "Osai Vultures", "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Llanowar Elves"
+  run_to turn 2 upkeep
+  assert counters "Osai Vultures" carrion 1
+}
+
+scenario "Osai Vultures gets no counter if nothing died" {
+  battlefield A: "Osai Vultures"
+  run_to turn 2 upkeep
+  assert counters "Osai Vultures" carrion 0
+}
+
+scenario "Osai Vultures removes two carrion counters to get +1/+1" {
+  battlefield A: "Osai Vultures" with 2 carrion
+  turn 1 A: activate "Osai Vultures"
+  run_to turn 1 postcombat_main
+  assert counters "Osai Vultures" carrion 0
+  assert power "Osai Vultures" 2
+  assert toughness "Osai Vultures" 2
+}
+
+scenario "Osai Vultures with one carrion counter can't activate" {
+  battlefield A: "Osai Vultures" with 1 carrion
+  illegal turn 1 A: activate "Osai Vultures"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Dwalin puts a hone counter on each Equipment; it grants +1/+0" {
+  battlefield A: "Grizzly Bears", "Short Sword" on "Grizzly Bears", "Bonesplitter", 2 "Mountain"
+  hand A: "Dwalin, Weaponmaster"
+  battlefield A: "Plains"
+  turn 1 A: cast "Dwalin, Weaponmaster"
+  run_to turn 1 postcombat_main
+  assert counters "Short Sword" hone 1
+  assert counters "Bonesplitter" hone 1
+  # Short Sword: +1/+1, plus one hone counter.
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 3
+  assert power "Dwalin, Weaponmaster" 2
+}
+
+scenario "Dwalin attacks: another hone counter" {
+  battlefield A: "Dwalin, Weaponmaster", "Grizzly Bears", "Short Sword" on "Grizzly Bears" with 1 hone
+  turn 1 A: attack "Dwalin, Weaponmaster"
+  run_to turn 1 postcombat_main
+  assert counters "Short Sword" hone 2
+  assert power "Grizzly Bears" 5
+}
+
+scenario "A hone counter on an unattached Equipment pumps nothing" {
+  battlefield A: "Grizzly Bears", "Short Sword" with 3 hone
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 2
+}
+# More named counter kinds: rev (Chainsaw), stash (Hoarder's Overflow),
+# hone (Sting, Bilbo's Sword).
+
+scenario "Chainsaw enters and deals 3 damage to up to one creature" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Chainsaw"
+  turn 1 A: cast "Chainsaw"
+  turn 1 A: trigger "Chainsaw" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  # One creature died: a rev counter.
+  assert counters "Chainsaw" rev 1
+}
+
+scenario "Chainsaw's equipped creature gets +1/+0 per rev counter" {
+  battlefield A: "Hill Giant", "Chainsaw" on "Hill Giant" with 2 rev
+  run_to turn 1 precombat_main
+  assert power "Hill Giant" 5
+  assert toughness "Hill Giant" 3
+}
+
+scenario "Chainsaw gets one rev counter when several creatures die at once" {
+  battlefield A: "Chainsaw", "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "Pyroclasm"
+  turn 1 A: cast "Pyroclasm"
+  run_to turn 1 postcombat_main
+  assert counters "Chainsaw" rev 1
+}
+
+scenario "Hoarder's Overflow: a stash counter as it enters and on expend 4" {
+  battlefield A: 6 "Mountain"
+  hand A: "Hoarder's Overflow", "Hill Giant"
+  turn 1 A: cast "Hoarder's Overflow"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hoarder's Overflow" stash 2
+}
+
+scenario "Hoarder's Overflow discards the hand and draws one per stash counter" {
+  battlefield A: "Hoarder's Overflow" with 3 stash, 2 "Mountain"
+  hand A: "Island", "Forest"
+  library A: "Plains", "Swamp", "Mountain", "Grizzly Bears"
+  turn 1 A: activate "Hoarder's Overflow"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Island"
+  assert graveyard A contains "Forest"
+  assert hand A count 3
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "Sting enters with a hone counter per creature the opponent controls" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  battlefield B: "Hill Giant", "Llanowar Elves"
+  hand A: "Sting, Bilbo's Sword"
+  start turn 2 B
+  turn 2 A: cast "Sting, Bilbo's Sword"
+  turn 2 A: trigger "Sting, Bilbo's Sword" targeting player B, "Grizzly Bears"
+  run_to turn 2 end
+  assert counters "Sting, Bilbo's Sword" hone 2
+  assert attached "Sting, Bilbo's Sword" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Rotisserie Elemental: sacrifice it to exile the top X, X its skewer counters" {
+  battlefield A: "Rotisserie Elemental" with 1 skewer
+  library A: "Mountain", "Island", "Forest", "Plains"
+  turn 1 A: attack "Rotisserie Elemental"
+  turn 1 A: accept "Rotisserie Elemental"
+  turn 1 postcombat_main A: play "Island"
+  run_to turn 1 end
+  assert graveyard A contains "Rotisserie Elemental"
+  assert battlefield A contains "Island"
+  assert exile A contains "Mountain"
+  assert library A contains "Forest"
+  assert life B 19
+}
+
+scenario "Rotisserie Elemental: declining keeps it and its counters" {
+  battlefield A: "Rotisserie Elemental"
+  library A: "Mountain", "Island"
+  turn 1 A: attack "Rotisserie Elemental"
+  turn 1 A: decline "Rotisserie Elemental"
+  run_to turn 1 postcombat_main
+  assert counters "Rotisserie Elemental" skewer 1
+  assert library A contains "Mountain"
+}

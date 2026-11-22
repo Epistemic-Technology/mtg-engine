@@ -1,0 +1,8 @@
+card "Rotisserie Elemental" {
+  oracle_id e33c1744-843f-438f-a8c3-2d9f60120776
+  cost {R}
+  type Creature — Elemental
+  pt 1/1
+  keywords menace
+  triggered whenever this deals combat damage to a player: put 1 skewer counters on this creature; then you may sacrifice this; if you do, impulse count where skewer counters on this this turn
+}

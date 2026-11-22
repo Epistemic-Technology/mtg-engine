@@ -2322,6 +2322,18 @@ impl GameState {
                     && self.payable(p, srcs, pool, &more, self.player(p).life, None)
             });
         }
+        // CR 702.183a: a tiered spell, likewise, needs a mode with its
+        // targets whose cost it can pay.
+        if !def.tiered.is_empty()
+            && let Some(modes) = def.modes()
+        {
+            return def.tiered.iter().zip(modes).any(|(c, m)| {
+                let mut more = req;
+                more.add(&c.requirements(0));
+                self.targets_available(p, &m.targets, Some(id))
+                    && self.payable(p, srcs, pool, &more, self.player(p).life, None)
+            });
+        }
         match def.modes() {
             Some(modes) => modes
                 .iter()
@@ -3280,6 +3292,15 @@ impl GameState {
         // "exile a creature card from your graveyard".
         if let Some(g) = &alt.cost.exile_cards
             && self.exile_candidates(p, g.filter.as_ref(), id).len() < g.n as usize
+        {
+            return false;
+        }
+        // "exile a blue card from your hand", "discard two cards".
+        if alt.cost.discard > 0
+            && self
+                .discard_candidates(p, alt.cost.discard_filter.as_ref(), id)
+                .len()
+                < alt.cost.discard as usize
         {
             return false;
         }
@@ -4262,6 +4283,10 @@ impl GameState {
                 req.add(&e.requirements(0));
             }
         }
+        // CR 702.183a: the chosen tiered mode's cost.
+        if let Some(c) = def.tiered.get(usize::from(mode)) {
+            req.add(&c.requirements(0));
+        }
         // CR 702.172a: the chosen spree modes' costs.
         if !def.spree.is_empty() {
             let bits = u32::from(mode) + 1;
@@ -4743,7 +4768,11 @@ impl GameState {
                 if ab.cost.tap && (o.tapped || sick) {
                     continue;
                 }
-                let req = self.activation_mana(id, ab);
+                let mut req = self.activation_mana(id, ab);
+                // A cost that depends on the target: the cheapest target.
+                if self.target_reduces(ab) {
+                    req = self.cheapest_target_mana(p, id, ab, req);
+                }
                 // CR 701.67a: artifacts and creatures help pay a waterbend
                 // cost.
                 let bent: Sources;
@@ -5071,6 +5100,93 @@ impl GameState {
                 req.generic -= off.min(req.generic);
             }
         }
+    }
+
+    /// Whether `ab`'s cost depends on its first target: "This ability
+    /// costs {1} less to activate if it targets a creature with power 3
+    /// or less", or an equip ability while some card has "Equip abilities
+    /// you activate that target this creature cost {2} less".
+    pub(super) fn target_reduces(&self, ab: &ActivatedAbility) -> bool {
+        ab.reduction.as_ref().is_some_and(|r| r.target.is_some())
+            || (self.pool.equip_discounts && ab.is_equip())
+    }
+
+    /// CR 601.2f (by way of 602.2b): what `t` as the first target takes
+    /// off the cost of `ab`, an ability of `source`.
+    #[cold]
+    pub(super) fn reduce_for_target(
+        &self,
+        p: PlayerId,
+        source: ObjId,
+        ab: &ActivatedAbility,
+        t: Target,
+        req: &mut ManaRequirement,
+    ) {
+        if let Some(r) = &ab.reduction
+            && let Some(f) = &r.target
+            && self.target_fits(f, t, p, source)
+        {
+            req.reduce_by(&r.by);
+        }
+        if self.pool.equip_discounts
+            && ab.is_equip()
+            && let Target::Object(id) = t
+            && let Some(o) = self.objects.get(id)
+        {
+            let off = u32::from(self.pool.get(o.def).equip_discount);
+            req.generic -= off.min(req.generic);
+        }
+    }
+
+    /// `req` for `ab` with its cheapest legal first target (an ability
+    /// whose cost depends on it is offered if some target makes it
+    /// payable; the targets are then limited to those, CR 601.2c).
+    #[cold]
+    #[inline(never)]
+    fn cheapest_target_mana(
+        &self,
+        p: PlayerId,
+        source: ObjId,
+        ab: &ActivatedAbility,
+        req: ManaRequirement,
+    ) -> ManaRequirement {
+        let Some(spec) = ab.targets.first() else {
+            return req;
+        };
+        self.legal_targets(p, *spec, Some(source))
+            .into_iter()
+            .map(|t| {
+                let mut r = req;
+                self.reduce_for_target(p, source, ab, t, &mut r);
+                r
+            })
+            .min_by_key(ManaRequirement::total)
+            .unwrap_or(req)
+    }
+
+    /// Whether the activated ability on the stack as `obj` could be paid
+    /// for with `t` as its first target.
+    pub(super) fn ability_target_payable(&self, obj: ObjId, t: Target) -> bool {
+        let o = &self.objects[obj];
+        let Some(sa) = o.ability else { return true };
+        let AbilityDef::Activated(ab) = self.pool.ability(sa.ability) else {
+            return true;
+        };
+        let mut req = self.activation_mana_x(sa.source, ab, self.x_of(obj));
+        self.reduce_for_target(o.controller, sa.source, ab, t, &mut req);
+        let mut sources = self.ability_sources(o.controller, sa.source);
+        if ab.cost.tap {
+            sources.retain(|(s, _)| *s != sa.source);
+        }
+        let ps = self.player(o.controller);
+        self.payable(
+            o.controller,
+            &sources,
+            &ps.mana_pool,
+            &req,
+            ps.life,
+            Some(sa.source),
+        )
     }
 
     /// CR 601.2f (by way of 602.2b): "This ability costs {1} less to
@@ -5851,7 +5967,7 @@ impl GameState {
         // CR 702.172a: a spree spell's modes cost more; those the caster
         // can pay for (all of them if none, so the cast can go on to fail
         // at payment rather than offer nothing).
-        if !def.spree.is_empty() && o.kind == ObjKind::Card {
+        if (!def.spree.is_empty() || !def.tiered.is_empty()) && o.kind == ObjKind::Card {
             let with_targets: Vec<usize> = modes
                 .iter()
                 .enumerate()
@@ -5972,7 +6088,12 @@ impl GameState {
             sacrifice = None;
         }
         let mut sources = self.ability_sources(controller, sa.source);
-        let req = self.activation_mana_x(sa.source, ab, self.x_of(obj));
+        let mut req = self.activation_mana_x(sa.source, ab, self.x_of(obj));
+        if self.target_reduces(ab)
+            && let Some(t) = self.objects[obj].targets.first().copied()
+        {
+            self.reduce_for_target(controller, sa.source, ab, t, &mut req);
+        }
         // CR 701.67a: a {T} source is tapped already, so it doesn't help.
         if ab.cost.waterbend {
             sources.extend(self.waterbend_sources(controller, req.generic, None));
@@ -6765,20 +6886,31 @@ impl GameState {
         } else if cost.discard > 0
             && let Some(c) = discard
         {
-            self.discard_card(p, c);
+            self.discard_or_exile(p, c, cost.discard_exile);
             // "Discard two cards": the chosen card, then the rest in hand
             // order (the engine picks them).
             for _ in 1..cost.discard {
                 let next = self.player(p).hand.iter().copied().find(|id| {
-                    cost.discard_filter.as_ref().is_none_or(|f| {
-                        let o = &self.objects[*id];
-                        let ch = self.base_characteristics(o);
-                        f.matches(*id, o.owner, &ch, None, Some(p)) && self.status_ok(f, *id)
-                    })
+                    *id != this
+                        && cost.discard_filter.as_ref().is_none_or(|f| {
+                            let o = &self.objects[*id];
+                            let ch = self.base_characteristics(o);
+                            f.matches(*id, o.owner, &ch, None, Some(p)) && self.status_ok(f, *id)
+                        })
                 });
                 let Some(n) = next else { break };
-                self.discard_card(p, n);
+                self.discard_or_exile(p, n, cost.discard_exile);
             }
+        }
+    }
+
+    /// A card leaving the hand for a cost: discarded, or with
+    /// `Cost::discard_exile` exiled ("exile a blue card from your hand").
+    fn discard_or_exile(&mut self, p: PlayerId, card: ObjId, exile: bool) {
+        if exile {
+            self.move_object(card, Zone::Exile, true);
+        } else {
+            self.discard_card(p, card);
         }
     }
 
@@ -7346,6 +7478,10 @@ impl GameState {
             .alt_cost
             .as_deref()
             .filter(|_| self.objects[spell].alt == AltCast::AltCost);
+        // The card chosen to discard (or exile, "exile a blue card from
+        // your hand") pays the alternative cost when it asks for one.
+        let alt_discard = alt.filter(|a| a.cost.discard > 0).and(discard);
+        let add_discard = if alt_discard.is_some() { None } else { discard };
         // CR 702.190a: sneak returns the chosen unblocked attacker; the
         // permanent will attack what it was attacking.
         let sneak = self.objects[spell].alt == AltCast::Sneak;
@@ -7390,9 +7526,9 @@ impl GameState {
                 {
                     g.n = x;
                 }
-                s.pay_other_costs(caster, &add, spell, add_sacrifice, discard);
+                s.pay_other_costs(caster, &add, spell, add_sacrifice, add_discard);
             } else {
-                s.pay_other_costs(caster, chosen, spell, add_sacrifice, discard);
+                s.pay_other_costs(caster, chosen, spell, add_sacrifice, add_discard);
             }
             if let Some(alt) = alt {
                 let mut chosen: Vec<ObjId> = sacrifice.into_iter().collect();
@@ -7410,10 +7546,10 @@ impl GameState {
                 if chosen.is_empty() {
                     // "You may pay 4 life rather than pay this spell's
                     // mana cost": nothing chosen.
-                    s.pay_other_costs(caster, &one, spell, None, None);
+                    s.pay_other_costs(caster, &one, spell, None, alt_discard);
                 }
-                for c in chosen {
-                    s.pay_other_costs(caster, &one, spell, Some(c), None);
+                for (i, c) in chosen.into_iter().enumerate() {
+                    s.pay_other_costs(caster, &one, spell, Some(c), alt_discard.filter(|_| i == 0));
                 }
                 // "have each other player gain 6 life".
                 if alt.others_gain > 0 {

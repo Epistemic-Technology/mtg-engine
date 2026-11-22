@@ -1,0 +1,8 @@
+card "Dwalin, Weaponmaster" {
+  oracle_id cee583b7-7cc3-40ea-a227-b760839ec291
+  cost {1}{R/W}
+  type Legendary Creature — Dwarf Warrior
+  pt 2/1
+  keywords first strike
+  triggered whenever this enters or attacks: put 1 hone counters on each Equipment you control
+}

@@ -1,0 +1,7 @@
+card "Quest for the Goblin Lord" {
+  oracle_id 2e19baba-2d66-4e3a-b2bf-cb27dce89f44
+  cost {R}
+  type Enchantment
+  triggered whenever Goblin you control enters: you may put 1 quest counters on this
+  static as long as this has 5 or more quest counters, creature you control: +2/+0
+}

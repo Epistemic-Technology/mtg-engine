@@ -1,0 +1,9 @@
+card "Ursine Fylgja" {
+  oracle_id 4d244787-66d2-4a32-914d-a3e97d393370
+  cost {4}{W}
+  type Creature — Spirit Bear
+  pt 3/3
+  enters with 4 healing counters
+  activated remove 1 healing counters from this: prevent next 1 damage to this this turn
+  activated {2}{W}: put 1 healing counters on this
+}

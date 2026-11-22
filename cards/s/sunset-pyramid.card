@@ -1,0 +1,8 @@
+card "Sunset Pyramid" {
+  oracle_id 5972f426-4a51-4130-baf5-25407c1499f1
+  cost {2}
+  type Artifact
+  enters with 3 brick counters
+  activated {2}, {T}, remove 1 brick counters from this: draw 1 cards
+  activated {2}, {T}: scry 1
+}

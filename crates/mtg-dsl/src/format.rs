@@ -3195,6 +3195,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             kind.name(),
             if *it { "it" } else { "this" }
         ),
+        CountExpr::TriggerCounters(CounterKind::Any) => "counters on it".to_string(),
         CountExpr::TriggerCounters(kind) => format!("{} counters on it", kind.name()),
         CountExpr::Those(t) => those_word(*t).to_string(),
         CountExpr::LifeGainedThisTurn { ve: false } => "life you gained this turn".to_string(),
@@ -3641,6 +3642,7 @@ fn filter_one(f: &Filter) -> String {
         Some(mtg_core::card::CounterQual::AtLeast(k, n)) => {
             words.push(format!("with {n} or more {} counters", k.name()));
         }
+        Some(mtg_core::card::CounterQual::NoCounters) => words.push("with no counters".to_string()),
         None => {}
     }
     if !f.keywords.is_empty() {
@@ -4685,6 +4687,19 @@ fn cost_text(c: &Cost) -> String {
                 }
             }
             CostItem::FromGraveyard => parts.push("from graveyard".to_string()),
+            CostItem::Discard if c.discard_exile => {
+                let what = c
+                    .discard_filter
+                    .as_ref()
+                    .map_or(String::new(), |f| filter(f) + " ");
+                let n = if c.discard > 1 {
+                    format!("{} ", c.discard)
+                } else {
+                    String::new()
+                };
+                let cards = if c.discard > 1 { "cards" } else { "card" };
+                parts.push(format!("exile {n}{what}{cards} from hand"));
+            }
             CostItem::Discard => {
                 if c.discard_self {
                     parts.push("discard this".to_string());
@@ -4792,6 +4807,9 @@ fn cost_text(c: &Cost) -> String {
     match c.reduce.as_deref() {
         Some((by, crate::ast::ReduceBy::Each(e))) => {
             parts.push(format!("reduced {by} each {}", count_expr_text(e)));
+        }
+        Some((by, crate::ast::ReduceBy::Targets(fl))) => {
+            parts.push(format!("reduced {by} if targets {}", filter(fl)));
         }
         Some((by, crate::ast::ReduceBy::If(StaticCond::DuringYourTurn))) => {
             parts.push(format!("reduced {by} during your turn"));
@@ -5053,6 +5071,11 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::SourceCountersThere { kind, n } => {
             format!("there are {n} or more {} counters on this", kind.name())
         }
+        StaticCond::SourceCounters {
+            kind: CounterKind::Any,
+            n,
+            at_least: true,
+        } => format!("this has {n} or more counters"),
         StaticCond::SourceCounters { kind, n, at_least } => {
             if *at_least {
                 format!("this has {n} or more {} counters", kind.name())
@@ -5539,6 +5562,20 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     out,
                     &format!("{indent}  "),
                     &format!("mode {w}"),
+                    &m.effects,
+                    &m.targets,
+                    groups,
+                );
+            }
+            let _ = writeln!(out, "{indent}}}");
+        }
+        Ability::Tiered(modes) => {
+            let _ = writeln!(out, "{indent}tiered {{");
+            for (c, m) in modes {
+                body(
+                    out,
+                    &format!("{indent}  "),
+                    &format!("mode \"{}\" {c}", m.name.as_deref().unwrap_or_default()),
                     &m.effects,
                     &m.targets,
                     groups,
@@ -6248,6 +6285,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::Uncounterable => {
             let _ = writeln!(out, "{indent}this spell can't be countered");
+        }
+        Ability::EquipDiscount(n) => {
+            let _ = writeln!(
+                out,
+                "{indent}equip abilities targeting this cost {{{n}}} less"
+            );
         }
         Ability::AuraStays => {
             let _ = writeln!(out, "{indent}protection doesn't remove this");

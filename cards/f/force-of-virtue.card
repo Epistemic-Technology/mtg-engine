@@ -1,0 +1,8 @@
+card "Force of Virtue" {
+  oracle_id 4262893c-8cbe-4854-9762-b3b6b75c0e35
+  cost {2}{W}{W}
+  type Enchantment
+  alternative cost exile white card from hand, if not your turn
+  keyword flash
+  static creature you control: +1/+1
+}

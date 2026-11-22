@@ -1,0 +1,64 @@
+# "Destroy target creature with no counters on it" and "remove up to
+# three counters from target creature" (each of a kind the controller
+# chooses, or stop).
+
+scenario "Heartless Act destroys a creature with no counters" {
+  battlefield A: "Swamp", "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Heartless Act"
+  turn 1 A: cast "Heartless Act" mode 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Heartless Act can't destroy a creature with a counter" {
+  battlefield A: "Swamp", "Island"
+  battlefield B: "Hill Giant" with 1 stun, "Grizzly Bears"
+  hand A: "Heartless Act"
+  turn 1 A: cast "Heartless Act" mode 1 targeting auto
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Heartless Act removes up to three counters" {
+  battlefield A: "Swamp", "Island"
+  battlefield B: "Hill Giant" with 2 +1/+1, "Grizzly Bears"
+  battlefield B: "Serra Angel" with 2 +1/+1
+  hand A: "Heartless Act"
+  turn 1 A: cast "Heartless Act" mode 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 0
+  assert counters "Serra Angel" +1/+1 2
+}
+
+scenario "Heartless Act's removal can stop after one" {
+  battlefield A: "Swamp", "Island"
+  battlefield B: "Hill Giant" with 4 +1/+1
+  hand A: "Heartless Act"
+  turn 1 A: cast "Heartless Act" mode 2 targeting "Hill Giant"
+  turn 1 A: choose "1"
+  turn 1 A: choose done
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 3
+}
+
+scenario "Mabel enters and removes three counters from another creature" {
+  battlefield A: "Swamp"
+  battlefield B: "Hill Giant" with 4 +1/+1
+  hand A: "Mabel, Bitter Recluse"
+  turn 1 A: cast "Mabel, Bitter Recluse"
+  turn 1 A: trigger "Mabel, Bitter Recluse" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 1
+}
+
+scenario "Mabel can't target herself" {
+  battlefield A: "Swamp"
+  battlefield B: "Hill Giant" with 1 +1/+1
+  hand A: "Mabel, Bitter Recluse"
+  turn 1 A: cast "Mabel, Bitter Recluse"
+  illegal turn 1 A: trigger "Mabel, Bitter Recluse" targeting "Mabel, Bitter Recluse"
+  run_to turn 1 postcombat_main
+  assert has "Mabel, Bitter Recluse" deathtouch
+}

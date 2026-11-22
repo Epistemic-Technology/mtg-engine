@@ -550,6 +550,9 @@ impl Compiler<'_> {
                 Ability::Uncounterable => {
                     b = b.uncounterable();
                 }
+                Ability::EquipDiscount(n) => {
+                    b = b.equip_discount(*n);
+                }
                 Ability::CondCost { delta, cond } => {
                     let c = self.static_cond(cond);
                     let i = self.pool.intern_condition(c);
@@ -596,6 +599,9 @@ impl Compiler<'_> {
                 }
                 Ability::Spree(modes) => {
                     b = b.spree(modes.iter().map(|(c, _)| c.clone()).collect());
+                }
+                Ability::Tiered(modes) => {
+                    b = b.tiered(modes.iter().map(|(c, _)| c.clone()).collect());
                 }
                 Ability::Mechanic(Mechanic::Sneak(cost)) => {
                     b = b.sneak(cost.clone());
@@ -965,6 +971,13 @@ impl Compiler<'_> {
             Kind::Emblem => b = b.emblem(),
             Kind::Card => {}
         }
+        if [&card.additional, &card.additional_or, &card.optional_cost]
+            .into_iter()
+            .flatten()
+            .any(|c| c.discard_exile)
+        {
+            return self.err("`exile ... from hand` is only an alternative cost");
+        }
         if let Some(cost) = &card.additional {
             b = b.additional_cost(self.cost(cost));
         }
@@ -984,7 +997,12 @@ impl Compiler<'_> {
             b = b.optional_cost(self.cost(cost));
         }
         if let Some(a) = &card.alt_cost {
-            if a.cost.conditions.len() > 1 || a.cost.tap || a.cost.discard > 0 {
+            // Cards from the hand only as exiled ones ("exile a blue card
+            // from your hand"); a discard there isn't paid.
+            if a.cost.conditions.len() > 1
+                || a.cost.tap
+                || (a.cost.discard > 0 && !a.cost.discard_exile)
+            {
                 return self.err("an alternative cost is mana and one kind of permanent");
             }
             let condition = match a.cost.conditions.first() {
@@ -1094,6 +1112,7 @@ impl Compiler<'_> {
                         | Ability::ModalOf(..)
                         | Ability::ModalIf { .. }
                         | Ability::Spree(_)
+                        | Ability::Tiered(_)
                         | Ability::Pawprint { .. }
                 )
             })
@@ -1380,6 +1399,7 @@ impl Compiler<'_> {
                 Ability::Keyword(_)
                     | Ability::DeckAnyNumber
                     | Ability::Uncounterable
+                    | Ability::EquipDiscount(_)
                     | Ability::AuraStays
                     | Ability::SelfCost { .. }
                     | Ability::TargetCost { .. }
@@ -2568,6 +2588,7 @@ impl Compiler<'_> {
             discard_x: c.discard_x,
             discard_random: c.discard_random,
             discard_filter: c.discard_filter.as_ref().map(|f| self.filter(f)),
+            discard_exile: c.discard_exile,
             loyalty: c.loyalty.unwrap_or(0),
             tap: c.tap,
             sacrifice: match &c.sacrifice {
@@ -4904,6 +4925,9 @@ impl Compiler<'_> {
             Ability::Uncounterable => {
                 return self.err("\"can't be countered\" is a property of the spell");
             }
+            Ability::EquipDiscount(_) => {
+                return self.err("an equip discount is a property of the card");
+            }
             Ability::AuraStays => {
                 return self.err("`protection doesn't remove this` is not an ability");
             }
@@ -4952,11 +4976,18 @@ impl Compiler<'_> {
                 more: true, modes, ..
             } => AbilityDef::Modal(self.head_modes(crate::ast::ModeHead::OneOrMore, modes)?),
             Ability::Spree(modes) => AbilityDef::Modal(self.spree_modes(modes)?),
+            Ability::Tiered(modes) => {
+                let singles: Vec<crate::ast::Mode> = modes.iter().map(|(_, m)| m.clone()).collect();
+                AbilityDef::Modal(self.modes(&singles, false, false)?)
+            }
             Ability::Pawprint { limit, modes } => {
                 AbilityDef::Modal(self.pawprint_modes(*limit, modes)?)
             }
             Ability::Activated { cost, .. } if cost.discard_x => {
                 return self.err("`discard X cards` is only a spell's additional cost");
+            }
+            Ability::Activated { cost, .. } if cost.discard_exile => {
+                return self.err("`exile ... from hand` is only an alternative cost");
             }
             // The first of the two equip abilities; the card's ability list
             // gets the second (`equip_or_second`).
@@ -4997,11 +5028,15 @@ impl Compiler<'_> {
                         by: by.clone(),
                         each: match how {
                             crate::ast::ReduceBy::Each(e) => Some(self.count_expr(e)),
-                            crate::ast::ReduceBy::If(_) => None,
+                            _ => None,
                         },
                         condition: match how {
                             crate::ast::ReduceBy::If(c) => Some(self.static_cond(c)),
-                            crate::ast::ReduceBy::Each(_) => None,
+                            _ => None,
+                        },
+                        target: match how {
+                            crate::ast::ReduceBy::Targets(f) => Some(self.filter(f)),
+                            _ => None,
                         },
                     })
                 }),

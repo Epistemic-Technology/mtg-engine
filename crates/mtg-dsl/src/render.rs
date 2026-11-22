@@ -2788,9 +2788,17 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
             counter_name(k),
             if plural_form { "them" } else { "it" }
         );
+    } else if f.status.counter == Some(mtg_core::card::CounterQual::NoCounters) {
+        s.push_str(if plural_form {
+            " with no counters on them"
+        } else {
+            " with no counters on it"
+        });
     } else if let Some(q) = f.status.counter {
         let kind = match q {
-            mtg_core::card::CounterQual::AtLeast(..) => unreachable!("above"),
+            mtg_core::card::CounterQual::AtLeast(..) | mtg_core::card::CounterQual::NoCounters => {
+                unreachable!("above")
+            }
             mtg_core::card::CounterQual::Any => String::new(),
             mtg_core::card::CounterQual::Kind(k) => format!("{} ", counter_name(k)),
         };
@@ -3181,6 +3189,10 @@ fn alt_cost_line(card: &Card, a: &crate::ast::AltCost) -> String {
     if a.cost.life > 0 {
         parts.push(format!("pay {} life", a.cost.life));
     }
+    // "exile a blue card from your hand" (a pitch spell).
+    if a.cost.discard_exile {
+        parts.push(hand_exile_text(&a.cost, card));
+    }
     if a.cost.reveal_hand {
         parts.push("reveal your hand".to_string());
     }
@@ -3219,6 +3231,22 @@ fn alt_cost_line(card: &Card, a: &crate::ast::AltCost) -> String {
         "{you_may} {} rather than pay this spell's mana cost.",
         parts.join(" and ")
     )
+}
+
+/// "exile a blue card from your hand", "exile two white cards from your
+/// hand" (`Cost::discard_exile`).
+fn hand_exile_text(cost: &crate::ast::Cost, card: &Card) -> String {
+    let kind = cost
+        .discard_filter
+        .as_ref()
+        .map_or(String::new(), |f| card_filter_phrase(f, card) + " ");
+    let n = Num::N(cost.discard.max(1));
+    let what = if cost.discard <= 1 {
+        with_article(&format!("{kind}card"))
+    } else {
+        format!("{} {kind}cards", count_words(n, "a"))
+    };
+    format!("exile {what} from your hand")
 }
 
 fn filter_a(f: &Filter, card: &Card) -> String {
@@ -3383,6 +3411,9 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 } else if cost.exile_this {
                     parts.push(format!("Exile {}", ctx.source()));
                 }
+            }
+            CostItem::Discard if cost.discard_exile => {
+                parts.push(capitalize(&hand_exile_text(cost, ctx.card)));
             }
             CostItem::Discard => {
                 if cost.discard_self {
@@ -3930,6 +3961,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::AddManaCombination { count, .. }
         | Effect::EmpowerJace { count }
         | Effect::Amass { count, .. }
+        | Effect::Endure { count, .. }
         | Effect::Dig { count, .. }
         | Effect::ExilePlayable { count, .. }
         | Effect::ExileTop { count, .. }
@@ -4386,6 +4418,9 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         // "the number of +1/+1 counters on this creature", "for each
         // scream counter on this Aura", "the number of age counters on it".
         // "for each +1/+1 counter on it" of the triggering object.
+        CountExpr::TriggerCounters(mtg_core::card::CounterKind::Any) => {
+            ("counter on it".to_string(), "counters on it".to_string())
+        }
         CountExpr::TriggerCounters(kind) => (
             format!("{} counter on it", counter_name(*kind)),
             format!("{} counters on it", counter_name(*kind)),
@@ -12917,6 +12952,14 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 // "this creature has a +1/+1 counter on it".
                 let c = kind.name();
                 format!("{} has {} {c} counter on it", this_ref(card), article(c))
+            } else if *at_least && *kind == CounterKind::Any {
+                // "As long as this creature has three or more counters on
+                // it": every kind.
+                format!(
+                    "{} has {} or more counters on it",
+                    this_ref(card),
+                    count_words(Num::N(*n), "one")
+                )
             } else if *at_least {
                 // "As long as Vadmir has four or more +1/+1 counters on
                 // it" (a legendary card names itself).
@@ -14012,6 +14055,22 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             }
             out
         }
+        // CR 702.183: "Tiered (Choose one additional cost.)", then
+        // "• Thunder — {3} — <effects>" per mode.
+        Ability::Tiered(modes) => {
+            let mut out = "Tiered (Choose one additional cost.)".to_string();
+            for (c, m) in modes {
+                let mut ctx = Ctx::new(card, lookup, &m.targets);
+                ctx.current = Some(a);
+                let _ = write!(
+                    out,
+                    "\n• {} — {c} — {}",
+                    m.name.as_deref().unwrap_or_default(),
+                    sentences(&m.effects, &mut ctx)
+                );
+            }
+            out
+        }
         Ability::Spree(modes) => {
             let mut out = "Spree".to_string();
             for (c, m) in modes {
@@ -14128,6 +14187,13 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     let _ = write!(
                         text,
                         " This ability costs {by} less to activate during your turn."
+                    );
+                }
+                Some((by, crate::ast::ReduceBy::Targets(f))) => {
+                    let _ = write!(
+                        text,
+                        " This ability costs {by} less to activate if it targets {}.",
+                        filter_a(f, card)
                     );
                 }
                 Some((by, crate::ast::ReduceBy::If(c))) => {
@@ -14949,6 +15015,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             format!("A deck can have any number of cards named {}.", card.name)
         }
         Ability::Uncounterable => "This spell can't be countered.".to_string(),
+        Ability::EquipDiscount(n) => format!(
+            "Equip abilities you activate that target {} cost {{{n}}} less to activate.",
+            this_ref(card)
+        ),
         Ability::AuraStays => "This effect doesn't remove this Aura.".to_string(),
         // CR 721.2: "4+ | Flying".
         Ability::StationLevel { n, keywords } => {

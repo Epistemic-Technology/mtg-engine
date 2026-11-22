@@ -1,0 +1,8 @@
+card "Warden of the Inner Sky" {
+  oracle_id 5268f772-5b42-4b5b-9e57-c32c662a42f3
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/2
+  static as long as this has 3 or more counters, this: has flying, vigilance
+  activated tap 3 andor untapped artifact or creature you control, sorcery: put 1 +1/+1 counter on this; scry 1
+}

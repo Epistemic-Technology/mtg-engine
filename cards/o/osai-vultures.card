@@ -1,0 +1,9 @@
+card "Osai Vultures" {
+  oracle_id 65b7a7ca-0e39-4612-9bcd-743bf903544a
+  cost {1}{W}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+  triggered at beginning of every end step if creature died this turn: put 1 carrion counters on this
+  activated remove 2 carrion counters from this: this creature gets +1/+1
+}

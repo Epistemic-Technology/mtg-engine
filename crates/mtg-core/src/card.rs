@@ -1355,6 +1355,8 @@ pub enum CounterQual {
     Kind(CounterKind),
     /// "with three or more level counters on it".
     AtLeast(CounterKind, u32),
+    /// "with no counters on it": none of any kind (Heartless Act).
+    NoCounters,
 }
 
 impl StatusQuals {
@@ -3090,6 +3092,48 @@ pub enum CounterKind {
     Divinity,
     /// Plan counters on a Plan enchantment (no rules of their own).
     Plan,
+    /// Named counters with no rules of their own (CR 122.1), added for
+    /// the seventh wave's cards.
+    Storage,
+    Verse,
+    Soul,
+    Blood,
+    Slime,
+    Stash,
+    Ingenuity,
+    Blaze,
+    Aim,
+    Void,
+    Omen,
+    Memory,
+    Luck,
+    Hour,
+    Hone,
+    Growth,
+    Fire,
+    Fate,
+    Devotion,
+    Collection,
+    Point,
+    Carrion,
+    Landmark,
+    Nest,
+    Bloodstain,
+    Invasion,
+    Skewer,
+    Revival,
+    Rev,
+    Impostor,
+    Fellowship,
+    Dream,
+    Dread,
+    Coin,
+    Chorus,
+    Blight,
+    Bait,
+    /// Keyword counter (CR 122.1b): the permanent has decayed (Rot-Curse
+    /// Rakshasa).
+    Decayed,
     /// Not a kind: "remove a counter from this creature" (a cost), counters
     /// of every kind. `GameObject::counters` totals them; removing them
     /// takes -1/-1 counters first, then kinds that don't change power or
@@ -3109,7 +3153,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 51] = [
+    pub const NAMED: [(&'static str, CounterKind); 89] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -3161,6 +3205,44 @@ impl CounterKind {
         ("double strike", CounterKind::DoubleStrike),
         ("divinity", CounterKind::Divinity),
         ("plan", CounterKind::Plan),
+        ("storage", CounterKind::Storage),
+        ("verse", CounterKind::Verse),
+        ("soul", CounterKind::Soul),
+        ("blood", CounterKind::Blood),
+        ("slime", CounterKind::Slime),
+        ("stash", CounterKind::Stash),
+        ("ingenuity", CounterKind::Ingenuity),
+        ("blaze", CounterKind::Blaze),
+        ("aim", CounterKind::Aim),
+        ("void", CounterKind::Void),
+        ("omen", CounterKind::Omen),
+        ("memory", CounterKind::Memory),
+        ("luck", CounterKind::Luck),
+        ("hour", CounterKind::Hour),
+        ("hone", CounterKind::Hone),
+        ("growth", CounterKind::Growth),
+        ("fire", CounterKind::Fire),
+        ("fate", CounterKind::Fate),
+        ("devotion", CounterKind::Devotion),
+        ("collection", CounterKind::Collection),
+        ("point", CounterKind::Point),
+        ("carrion", CounterKind::Carrion),
+        ("landmark", CounterKind::Landmark),
+        ("nest", CounterKind::Nest),
+        ("bloodstain", CounterKind::Bloodstain),
+        ("invasion", CounterKind::Invasion),
+        ("skewer", CounterKind::Skewer),
+        ("revival", CounterKind::Revival),
+        ("rev", CounterKind::Rev),
+        ("impostor", CounterKind::Impostor),
+        ("fellowship", CounterKind::Fellowship),
+        ("dream", CounterKind::Dream),
+        ("dread", CounterKind::Dread),
+        ("coin", CounterKind::Coin),
+        ("chorus", CounterKind::Chorus),
+        ("blight", CounterKind::Blight),
+        ("bait", CounterKind::Bait),
+        ("decayed", CounterKind::Decayed),
     ];
 
     /// Power/toughness counters by their Oracle name, with what each adds
@@ -3261,6 +3343,7 @@ impl CounterKind {
             CounterKind::Hexproof => Keyword::Hexproof,
             CounterKind::Indestructible => Keyword::Indestructible,
             CounterKind::DoubleStrike => Keyword::DoubleStrike,
+            CounterKind::Decayed => Keyword::Decayed,
             _ => return None,
         })
     }
@@ -6656,6 +6739,11 @@ pub struct Cost {
     pub discard_random: bool,
     /// "Discard a creature card": what the discarded card must match.
     pub discard_filter: Option<ObjFilter>,
+    /// "Exile a blue card from your hand" (a pitch spell's alternative
+    /// cost, CR 118.9): the `discard` cards are exiled from the hand
+    /// rather than discarded.
+    #[serde(default)]
+    pub discard_exile: bool,
     /// A loyalty ability's cost (CR 606): +N puts, −N removes that many
     /// loyalty counters; nonzero marks the ability as a loyalty ability
     /// (sorcery speed, one per planeswalker per turn, CR 606.3).
@@ -6798,6 +6886,7 @@ impl Cost {
             discard_x: false,
             discard_random: false,
             discard_filter: None,
+            discard_exile: false,
             loyalty: 0,
             tap: false,
             sacrifice: None,
@@ -7011,6 +7100,19 @@ pub struct ActivatedAbility {
     pub reduction: Option<Box<ActivationReduction>>,
 }
 
+impl ActivatedAbility {
+    /// An equip ability (CR 702.6a): it attaches its source to its target.
+    pub fn is_equip(&self) -> bool {
+        matches!(
+            self.effects.first(),
+            Some(Effect::Attach {
+                what: Recipient::Source,
+                to: Recipient::Target(0),
+            })
+        ) && self.sorcery_speed
+    }
+}
+
 /// What an activated ability's own text takes off its cost: `by` once for
 /// each of `each`, or once if `condition` holds ("This ability costs
 /// {4}{B} less to activate if you've drawn three or more cards this
@@ -7020,6 +7122,11 @@ pub struct ActivationReduction {
     pub by: ManaCost,
     pub each: Option<CountExpr>,
     pub condition: Option<StaticCondition>,
+    /// "This ability costs {1} less to activate if it targets a creature
+    /// with power 3 or less": `by` once if the first target matches (CR
+    /// 601.2f comes after the targets are chosen, 601.2c).
+    #[serde(default)]
+    pub target: Option<ObjFilter>,
 }
 
 /// A keyword that adds rules to the activated ability after it.
@@ -7941,6 +8048,16 @@ pub struct CardDef {
     /// modes: seven sets); the caster chooses one and pays its costs.
     #[serde(default)]
     pub spree: Vec<ManaCost>,
+    /// Tiered (CR 702.183): the additional cost of each mode of the
+    /// spell's "choose one" modal ability, in order; the caster chooses
+    /// exactly one mode and pays its cost.
+    #[serde(default)]
+    pub tiered: Vec<ManaCost>,
+    /// "Equip abilities you activate that target this creature cost {2}
+    /// less to activate." (CR 601.2f by way of 602.2b): generic mana off
+    /// any equip ability whose target is this permanent.
+    #[serde(default)]
+    pub equip_discount: u8,
     /// Entwine (CR 702.42): every mode of a "choose one" spell for this
     /// cost on top.
     pub entwine: Option<Box<ManaCost>>,
@@ -8740,6 +8857,9 @@ pub struct CardPool {
     /// printed on it (a granted ability, "has '...'", or a delayed
     /// trigger): the granting card's, not the permanent's that has it.
     counts_owner: Vec<Option<CardRef>>,
+    /// Whether some card has `CardDef::equip_discount`, so equip
+    /// abilities' costs depend on their targets.
+    pub equip_discounts: bool,
     /// The triggered ability prowess stands for (CR 702.108a).
     prowess: AbilityId,
     /// Exalted, persist, and undying (CR 702.83a, 702.79a, 702.93a).
@@ -8832,6 +8952,7 @@ impl CardPool {
             asks: Vec::new(),
             enters: Vec::new(),
             counts_owner: Vec::new(),
+            equip_discounts: false,
             prowess: AbilityId(0),
             exalted: AbilityId(0),
             persist: AbilityId(0),
@@ -9541,6 +9662,7 @@ impl CardPool {
 
     #[allow(clippy::too_many_lines)] // one flag per kind of definition
     pub fn add(&mut self, mut def: CardDef) -> CardRef {
+        self.equip_discounts |= def.equip_discount > 0;
         // CR 702.103b: the Aura a bestowed spell is, registered first so
         // the card's own definition keeps its name.
         if def.bestow.is_some() && def.types.contains(CardType::Creature) {
@@ -10202,6 +10324,8 @@ impl Builder {
             plot: None,
             suspend: None,
             spree: Vec::new(),
+            tiered: Vec::new(),
+            equip_discount: 0,
             gift: None,
             entwine: None,
             escalate: None,
@@ -10785,6 +10909,21 @@ impl Builder {
     #[must_use]
     pub fn spree(mut self, costs: Vec<ManaCost>) -> Self {
         self.0.spree = costs;
+        self
+    }
+
+    /// Tiered (CR 702.183): each mode's additional cost.
+    #[must_use]
+    pub fn tiered(mut self, costs: Vec<ManaCost>) -> Self {
+        self.0.tiered = costs;
+        self
+    }
+
+    /// "Equip abilities you activate that target this creature cost {N}
+    /// less to activate."
+    #[must_use]
+    pub fn equip_discount(mut self, n: u8) -> Self {
+        self.0.equip_discount = n;
         self
     }
 

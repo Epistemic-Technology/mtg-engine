@@ -1,0 +1,7 @@
+card "Force of Negation" {
+  oracle_id ac2173f9-f223-440a-9231-fd98762bdc6f
+  cost {1}{U}{U}
+  type Instant
+  alternative cost exile blue card from hand, if not your turn
+  spell: counter target noncreature spell to exile
+}

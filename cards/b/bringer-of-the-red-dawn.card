@@ -1,0 +1,9 @@
+card "Bringer of the Red Dawn" {
+  oracle_id 2ac11645-1290-4026-af19-e47e59c277b2
+  cost {7}{R}{R}
+  type Creature — Bringer
+  pt 5/5
+  alternative cost {W}{U}{B}{R}{G}
+  keyword trample
+  triggered at beginning of your upkeep: you may untap target creature and gain control of it until end of turn; that creature gains haste
+}

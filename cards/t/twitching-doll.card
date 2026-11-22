@@ -1,0 +1,8 @@
+card "Twitching Doll" {
+  oracle_id fd6e1967-237a-41f6-bbf4-2c869f9447c8
+  cost {1}{G}
+  type Artifact Creature — Spider Toy
+  pt 2/2
+  activated {T}: add any; put 1 nest counters on this
+  activated {T}, sacrifice this, sorcery: create count each counters on this "2/2 green Spider creature with reach"
+}

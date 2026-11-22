@@ -1,0 +1,7 @@
+card "Fury of the Horde" {
+  oracle_id c90e2db7-6973-4243-9645-265fd3bc8546
+  cost {5}{R}{R}
+  type Sorcery
+  alternative cost exile 2 red cards from hand
+  spell: untap all creature that attacked this turn; after this main phase, additional combat phase then main phase
+}

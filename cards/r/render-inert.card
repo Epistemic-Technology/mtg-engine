@@ -1,0 +1,9 @@
+card "Render Inert" {
+  oracle_id e9ece3c6-81c2-441a-acce-c109aaa9026b
+  cost {2}{B}
+  type Sorcery
+  spell {
+    remove up to 5 counters from target permanent
+    draw 1 cards
+  }
+}
