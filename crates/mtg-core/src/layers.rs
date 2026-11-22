@@ -769,6 +769,11 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                     && filter
                         .tapped
                         .is_none_or(|t| state.objects[host].tapped == t)
+                    // "if it has a sleep counter on it" (Venarian Gold).
+                    && filter
+                        .status
+                        .counter
+                        .is_none_or(|q| state.objects[host].counters_match(q))
                     // "As long as enchanted creature has toxic" (CR 702.164).
                     && (!filter.status.toxic
                         || chars[i].abilities.iter().any(|a| {

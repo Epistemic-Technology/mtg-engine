@@ -90,9 +90,6 @@ by rejecting the form at compile time or by binding it correctly.
   - `each player loses count each creature they control life` is an
     error now (it counted the other player's creatures): a count per
     player isn't in (Stronghold Discipline).
-  - A counter condition on the enchanted creature in a static (`if
-    attached is with sleep counter`) is always true, and `tap enchanted
-    creature and put X sleep counter on it` puts none (Venarian Gold).
   - `that creature becomes Mutant ...` in a trigger doesn't bind to the
     target; `that target 1 becomes ...` does (Jenova uses the second).
   - `static enchanted: has ... as long as this is with power 3 or less`

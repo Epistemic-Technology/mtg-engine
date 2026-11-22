@@ -1,0 +1,9 @@
+card "Venarian Gold" {
+  oracle_id 5d7acb89-1778-409a-9e91-aaeadd13ca27
+  cost {X}{U}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature and put X sleep counter on it
+  static enchanted: has doesn't untap during its controller's untap step if attached is with sleep counter
+  triggered at beginning of enchanted controller's upkeep: remove 1 sleep counter from that creature
+}

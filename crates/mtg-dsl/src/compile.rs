@@ -2432,6 +2432,26 @@ impl Compiler<'_> {
         let start = out.len();
         self.implied_used.set(None);
         self.effect_inner(e, out)?;
+        // "When this Aura enters, tap enchanted creature and put X sleep
+        // counters on it.": `it` is the creature just tapped, not the
+        // Aura that triggered.
+        if let Effect::AddCounters {
+            to: Recipient::TriggeringIt,
+            ..
+        } = e
+            && matches!(
+                out[..start].last(),
+                Some(CoreEffect::Tap {
+                    to: CoreRecipient::Attached
+                })
+            )
+        {
+            for c in &mut out[start..] {
+                if let CoreEffect::AddCounters { to, .. } = c {
+                    *to = CoreRecipient::Attached;
+                }
+            }
+        }
         // "Tap up to two target creatures. Put a stun counter on each of
         // them.": with no tokens created before it, "them" is what the
         // effect before acted on.

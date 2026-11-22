@@ -278,3 +278,35 @@ scenario "Time to Feed: no life if the opponent's creature survives" {
   assert damage "Hill Giant" 2
   assert life A 20
 }
+
+# "Tap enchanted creature and put X sleep counters on it": `it` is the
+# creature; "if it has a sleep counter on it" is judged on the creature.
+scenario "Venarian Gold: X sleep counters, one off each upkeep, untaps when none are left" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Venarian Gold"
+  turn 1 A: cast "Venarian Gold" x 2 targeting "Hill Giant"
+  run_to turn 1 end
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" sleep 2
+  run_to turn 2 draw
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" sleep 1
+  run_to turn 4 draw
+  assert counters "Hill Giant" sleep 0
+  assert tapped "Hill Giant"
+  run_to turn 6 draw
+  assert untapped "Hill Giant"
+}
+
+scenario "Venarian Gold: X = 0 puts no counters, and the creature untaps" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Venarian Gold"
+  turn 1 A: cast "Venarian Gold" x 0 targeting "Hill Giant"
+  run_to turn 1 end
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" sleep 0
+  run_to turn 2 draw
+  assert untapped "Hill Giant"
+}
