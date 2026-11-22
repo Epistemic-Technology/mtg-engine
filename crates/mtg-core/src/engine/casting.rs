@@ -4924,7 +4924,9 @@ impl GameState {
             .filter(|s| {
                 !matches!(s, TargetSpec::UpTo(_))
                     && match self.pool.base_spec(*s) {
-                        TargetSpec::Filtered(f) | TargetSpec::GraveyardCard { filter: f, .. } => {
+                        TargetSpec::Filtered(f)
+                        | TargetSpec::SpellFiltered(f)
+                        | TargetSpec::GraveyardCard { filter: f, .. } => {
                             self.pool.filter(f).status.mana_value_x
                         }
                         _ => false,
@@ -4963,6 +4965,9 @@ impl GameState {
         if self.pool.base_spec(spec).is_graveyard() {
             self.players_in_game()
                 .any(|p| self.player(p).graveyard.iter().any(fits))
+        } else if self.pool.base_spec(spec).is_spell() {
+            // "Counter target spell with mana value X."
+            self.stack.iter().any(fits)
         } else {
             self.battlefield.iter().any(fits)
         }

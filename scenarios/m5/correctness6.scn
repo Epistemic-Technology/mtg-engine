@@ -123,3 +123,41 @@ scenario "Bazaar Krovod: the other attacker gets +0/+2 and untaps, Krovod stays 
   assert toughness "Grizzly Bears" 4
   assert tapped "Bazaar Krovod"
 }
+# "Counter target spell with mana value X": X of Spell Blast, checked as
+# targets are chosen (CR 601.2c) and on resolution.
+scenario "Spell Blast: X must equal the target spell's mana value" {
+  battlefield A: 5 "Island"
+  battlefield B: 6 "Forest"
+  hand A: "Spell Blast"
+  hand B: "Craw Wurm"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Craw Wurm"
+  illegal turn 1 A: cast "Spell Blast" x 3 targeting "Craw Wurm"
+  run_to turn 1 end
+  assert battlefield B contains "Craw Wurm"
+}
+
+scenario "Spell Blast: X equal to the mana value counters it" {
+  battlefield A: 7 "Island"
+  battlefield B: 6 "Forest"
+  hand A: "Spell Blast"
+  hand B: "Craw Wurm"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Craw Wurm"
+  turn 1 A: cast "Spell Blast" x 6 targeting "Craw Wurm"
+  run_to turn 1 end
+  assert graveyard B contains "Craw Wurm"
+}
+
+scenario "Spell Blast: a spell's X counts in its mana value on the stack" {
+  battlefield A: 4 "Island"
+  battlefield B: 3 "Mountain"
+  hand A: "Spell Blast"
+  hand B: "Blaze"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Blaze" x 2 targeting player A
+  turn 1 A: cast "Spell Blast" x 3 targeting "Blaze"
+  run_to turn 1 end
+  assert life A 20
+  assert graveyard B contains "Blaze"
+}

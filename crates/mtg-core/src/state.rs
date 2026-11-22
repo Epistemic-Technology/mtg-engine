@@ -2831,7 +2831,17 @@ impl GameState {
             && !f.status.mana_value_x
             && !f.status.spent_colors
         {
-            let mv = self.pool.get(o.def).mana_cost.mana_value();
+            let cost = &self.pool.get(o.def).mana_cost;
+            let mut mv = cost.mana_value();
+            // CR 202.3b: on the stack, X is the value chosen for it.
+            if o.zone == Zone::Stack && cost.has_x() {
+                let xs = cost
+                    .symbols()
+                    .iter()
+                    .filter(|s| **s == crate::mana::ManaSymbol::X)
+                    .count();
+                mv += u32::try_from(xs).unwrap_or(1) * self.x_of(id);
+            }
             if !cmp.holds(mv, u32::from(n)) {
                 return false;
             }
@@ -4361,7 +4371,9 @@ impl GameState {
                         TargetSpec::NoncreatureSpell => !creature,
                         TargetSpec::SpellFiltered(f) => {
                             let c = self.base_characteristics(obj);
-                            let f = self.pool.filter(f);
+                            // "target spell with mana value X": X of the
+                            // source (CR 107.3).
+                            let f = &*self.source_filter(self.pool.filter(f), source, x);
                             f.matches(id, obj.controller, &c, source, Some(caster))
                                 && self.status_ok(f, id)
                                 && f.targeting
