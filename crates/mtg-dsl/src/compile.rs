@@ -3976,6 +3976,7 @@ impl Compiler<'_> {
                 TriggerSpec::BecomesTarget(self.trigger_obj(o))
             }
             Trigger::TargetedByOpponent => TriggerSpec::TargetedByOpponent,
+            Trigger::TargetedFirstTime => TriggerSpec::TargetedFirstTime,
             Trigger::TargetedByYouFirstTime => TriggerSpec::TargetedByYouFirstTime,
             Trigger::TurnedFaceUp(o) => TriggerSpec::TurnedFaceUp(self.trigger_obj(o)),
             Trigger::Exploits => TriggerSpec::Exploits,
@@ -4547,7 +4548,12 @@ impl Compiler<'_> {
                 from_graveyard,
                 limit,
             } => AbilityDef::Triggered(TriggeredAbility {
-                limit: *limit,
+                // "for the first time each turn" is "only once each turn".
+                limit: if matches!(trigger, Trigger::TargetedFirstTime) {
+                    mtg_core::card::TurnLimit::Triggers(1)
+                } else {
+                    *limit
+                },
                 trigger: self.trigger(trigger),
                 condition: match condition {
                     None => None,

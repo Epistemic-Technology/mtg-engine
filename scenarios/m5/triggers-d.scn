@@ -203,3 +203,37 @@ scenario "triggers only once: untapped, it doesn't trigger and stays available" 
   run_to turn 3 end
   assert counters "Acrobatic Cheerleader" flying 1
 }
+
+scenario "becomes the target for the first time each turn: that spell is countered, the next isn't" {
+  battlefield A: "Shimmering Glasskite"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Shimmering Glasskite"
+  turn 2 B: wait
+  turn 2 B: cast "Shock" targeting "Shimmering Glasskite"
+  run_to turn 2 postcombat_main
+  assert damage "Shimmering Glasskite" 2
+  assert graveyard B count 2
+}
+
+scenario "becomes the target for the first time each turn: an ability, and its controller's own spell" {
+  battlefield A: "Shimmering Glasskite", "Forest"
+  battlefield B: "Prodigal Sorcerer"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Shimmering Glasskite"
+  turn 1 A: wait
+  turn 1 B: activate "Prodigal Sorcerer" targeting "Shimmering Glasskite"
+  run_to turn 1 postcombat_main
+  assert power "Shimmering Glasskite" 2
+  assert damage "Shimmering Glasskite" 1
+}
+
+scenario "becomes the target for the first time each turn: a new turn, a new first time" {
+  battlefield A: "Shimmering Glasskite"
+  battlefield B: "Prodigal Sorcerer"
+  turn 1 B: activate "Prodigal Sorcerer" targeting "Shimmering Glasskite"
+  turn 2 B: activate "Prodigal Sorcerer" targeting "Shimmering Glasskite"
+  run_to turn 2 postcombat_main
+  assert damage "Shimmering Glasskite" 0
+}

@@ -368,6 +368,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever this is dealt damage` | (enrage) |
 | `whenever this deals damage`, `... deals damage to creature`, `... to player`, `... to opponent`, `... deals combat damage to creature` | the damaged creature is "that creature", the damaged player "that player"; `whenever this deals damage to Vampire`, `... to Goblin or Orc` (any filter): the damaged permanent, if it matches, is "that creature". On an Aura, the creature dealt damage by, or blocking or blocked by, the enchanted creature prints "the other creature" |
 | `whenever you cast artifact spell`, `whenever a player casts Goblin spell`, `whenever an opponent casts multicolored spell` | a cast trigger with any filter |
+| `whenever this becomes targeted first time each turn` | "Whenever this creature becomes the target of a spell or ability for the first time each turn": any controller's, once each turn; the spell or ability is `that spell` ("counter that spell or ability") |
 | `whenever this becomes targeted by opponent` | "... becomes the target of a spell or ability an opponent controls" (ward's trigger) |
 | `whenever you cast with mana value 4 or greater spell` | "Whenever you cast a spell with mana value 4 or greater" (a filter's "with" qualities print after "spell"; likewise `counter target with mana value 4 or less spell`) |
 | `whenever you cast your first instant or sorcery spell each turn` | the first of the caster's instant and sorcery spells this turn (other spells cast before it don't count) |

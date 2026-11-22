@@ -1400,6 +1400,12 @@ impl<'a> Ctx<'a> {
             {
                 "that Mount or Vehicle".to_string()
             }
+            // "..., counter that spell or ability" (Shimmering Glasskite).
+            Recipient::TriggeringObject
+                if matches!(self.trigger, Some(Trigger::TargetedFirstTime)) =>
+            {
+                "that spell or ability".to_string()
+            }
             Recipient::TriggeringObject | Recipient::SameThat | Recipient::Manifested => {
                 "that creature".to_string()
             }
@@ -9929,6 +9935,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         } => crate::format::draws_nth(*whose, *n, *in_a_turn),
         Trigger::TargetedByYouFirstTime => format!(
             "whenever {} becomes the target of a spell or ability you control for the first time each turn",
+            this(ctx)
+        ),
+        Trigger::TargetedFirstTime => format!(
+            "whenever {} becomes the target of a spell or ability for the first time each turn",
             this(ctx)
         ),
         Trigger::TargetedByOpponent => format!(

@@ -2812,6 +2812,10 @@ pub enum Trigger {
     /// Ward's trigger: "becomes the target of a spell or ability an
     /// opponent controls".
     TargetedByOpponent,
+    /// `whenever this becomes targeted first time each turn`: "Whenever
+    /// this creature becomes the target of a spell or ability for the first
+    /// time each turn" (the spell or ability is `that spell`).
+    TargetedFirstTime,
     /// Valiant's trigger, `whenever this becomes targeted by you first time
     /// each turn`: "becomes the target of a spell or ability you control
     /// for the first time each turn".

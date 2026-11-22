@@ -4124,6 +4124,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         }
         Trigger::BecomesTarget(o) => format!("when {} becomes targeted", trigger_obj(o)),
         Trigger::TargetedByOpponent => "whenever this becomes targeted by opponent".to_string(),
+        Trigger::TargetedFirstTime => {
+            "whenever this becomes targeted first time each turn".to_string()
+        }
         Trigger::TargetedByYouFirstTime => {
             "whenever this becomes targeted by you first time each turn".to_string()
         }

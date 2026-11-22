@@ -5605,6 +5605,12 @@ pub enum TriggerSpec {
     /// spell or ability an opponent controls"; the spell or ability is the
     /// triggering object.
     TargetedByOpponent,
+    /// "Whenever this creature becomes the target of a spell or ability
+    /// for the first time each turn" (Shimmering Glasskite): any
+    /// controller's; the spell or ability is the triggering object. The
+    /// compiler limits it to once each turn (`TurnLimit::Triggers(1)`),
+    /// which is the same thing.
+    TargetedFirstTime,
     /// Valiant (CR 207.2c): "Whenever this creature becomes the target
     /// of a spell or ability you control for the first time each turn":
     /// the spell or ability is the triggering object.
@@ -6031,6 +6037,7 @@ impl TriggerSpec {
             | TriggerSpec::Expends(_) => WATCH_CAST,
             TriggerSpec::BecomesTarget(_)
             | TriggerSpec::TargetedByOpponent
+            | TriggerSpec::TargetedFirstTime
             | TriggerSpec::TargetedByYouFirstTime
             | TriggerSpec::CommitsCrime { .. } => WATCH_TARGETED,
             TriggerSpec::BecomesAttachedTo(_) => WATCH_ATTACH,

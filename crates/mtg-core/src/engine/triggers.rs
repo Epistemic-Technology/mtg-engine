@@ -1381,6 +1381,10 @@ impl GameState {
                     && !self.targeted_by_controller.contains(target))
                 .then_some((Some(*by), Some(by_ctl)))
             }
+            (TriggerSpec::TargetedFirstTime, Event::Targeted { target, by }) => {
+                let by_ctl = self.objects.get(*by)?.controller;
+                (*target == w.source).then_some((Some(*by), Some(by_ctl)))
+            }
             (TriggerSpec::TargetedByOpponent, Event::Targeted { target, by }) => {
                 let by_ctl = self.objects.get(*by)?.controller;
                 (*target == w.source && by_ctl != w.controller).then_some((Some(*by), Some(by_ctl)))

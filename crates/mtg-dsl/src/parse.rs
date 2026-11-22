@@ -12455,6 +12455,9 @@ impl P {
                 {
                     return Ok(Trigger::TargetedByYouFirstTime);
                 }
+                if obj == TriggerObj::This && self.eat_words(&["first", "time", "each", "turn"]) {
+                    return Ok(Trigger::TargetedFirstTime);
+                }
                 if whenever {
                     return Ok(Trigger::BecomesTargetWhenever(obj));
                 }

@@ -1880,6 +1880,7 @@ impl Decompiler<'_> {
             },
             TriggerSpec::BecomesTarget(o) => Trigger::BecomesTarget(self.trigger_obj(o)),
             TriggerSpec::TargetedByOpponent => Trigger::TargetedByOpponent,
+            TriggerSpec::TargetedFirstTime => Trigger::TargetedFirstTime,
             TriggerSpec::TargetedByYouFirstTime => Trigger::TargetedByYouFirstTime,
             TriggerSpec::TurnedFaceUp(o) => Trigger::TurnedFaceUp(self.trigger_obj(o)),
             TriggerSpec::Exploits => Trigger::Exploits,
@@ -2487,7 +2488,12 @@ impl Decompiler<'_> {
                 crate::ast::Mechanic::Unleash
             }),
             AbilityDef::Triggered(t) => Ability::Triggered {
-                limit: t.limit,
+                // "for the first time each turn" carries its own limit.
+                limit: if t.trigger == TriggerSpec::TargetedFirstTime {
+                    mtg_core::card::TurnLimit::None
+                } else {
+                    t.limit
+                },
                 trigger: self.trigger(&t.trigger),
                 condition: t.condition.map(|c| match c {
                     mtg_core::card::Condition::Static(i) => {
