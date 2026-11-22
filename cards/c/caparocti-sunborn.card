@@ -1,0 +1,7 @@
+card "Caparocti Sunborn" {
+  oracle_id 7f87a770-af47-4345-8dc1-0a1e8bae75c5
+  cost {2}{R}{W}
+  type Legendary Creature — Human Soldier
+  pt 4/4
+  triggered whenever this attacks: you may tap 2 andor untapped artifact or creature you control chosen; if you do, discover 3
+}

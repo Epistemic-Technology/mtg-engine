@@ -1,0 +1,9 @@
+card "Jet, Freedom Fighter" {
+  oracle_id 77cd2246-6906-4dce-8580-4c9d2e68c477
+  cost {2}{R/W}{R/W}{R/W}
+  type Legendary Creature — Human Rebel Ally
+  pt 3/1
+  pronoun he
+  triggered when this enters: deal damage equal creature you control to target creature an opponent controls
+  triggered when this dies: put 1 +1/+1 counter on up to 2 target creature
+}

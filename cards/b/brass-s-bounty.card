@@ -1,0 +1,6 @@
+card "Brass's Bounty" {
+  oracle_id 63b0538e-aa94-4e23-adf1-704cbf5bc3e5
+  cost {6}{R}
+  type Sorcery
+  spell: create count foreach land you control "Treasure"
+}

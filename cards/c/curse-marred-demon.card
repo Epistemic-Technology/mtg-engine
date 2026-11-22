@@ -1,0 +1,8 @@
+card "Curse-Marred Demon" {
+  oracle_id f30a084c-5705-40f5-8e0d-2083d33973c7
+  cost {2}{R}{R}
+  type Creature — Demon
+  pt 4/4
+  keywords flying, trample
+  triggered when this enters: search card to hand then discard 1 card at random
+}

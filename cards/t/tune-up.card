@@ -1,0 +1,6 @@
+card "Tune Up" {
+  oracle_id aaa14260-2537-4668-8517-c825118777cc
+  cost {3}{W}
+  type Sorcery
+  spell: return target artifact card from your graveyard to battlefield; if target 1 is Vehicle, target 1 becomes artifact creature indefinitely
+}

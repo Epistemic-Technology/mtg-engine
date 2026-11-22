@@ -1,0 +1,7 @@
+card "Vengeful Villagers" {
+  oracle_id ad6442c2-7aa2-4c24-8133-f679a3499bde
+  cost {3}{W}
+  type Creature — Human Citizen
+  pt 3/3
+  triggered whenever this attacks: choose target creature an opponent controls; tap it then you may sacrifice 1 artifact or creature chosen; if you do, put 1 stun counter on the chosen target 1
+}

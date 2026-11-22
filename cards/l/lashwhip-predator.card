@@ -1,0 +1,8 @@
+card "Lashwhip Predator" {
+  oracle_id 56035e66-e730-436d-8de2-4ded7fd1b51e
+  cost {4}{G}{G}
+  type Creature — Plant Beast
+  pt 5/7
+  this spell costs {2} less if your opponents control 3 creature
+  keywords reach
+}

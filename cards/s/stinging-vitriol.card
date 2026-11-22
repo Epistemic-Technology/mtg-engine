@@ -1,0 +1,6 @@
+card "Stinging Vitriol" {
+  oracle_id 624cf822-0b4e-4f0c-9893-a53cb094f616
+  cost {B}{R}
+  type Sorcery
+  spell: deal 2 damage to target opponent; that player reveals hand discarding nonland card
+}

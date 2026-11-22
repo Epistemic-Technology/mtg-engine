@@ -1,0 +1,11 @@
+card "Smaug the Magnificent" {
+  oracle_id c53b7602-5e36-4900-896c-844bf6eac22e
+  cost {2}{R}{R}
+  type Legendary Creature — Dragon
+  pt 4/3
+  short_name "Smaug"
+  pronoun he
+  keywords flying, haste
+  triggered whenever this attacks: deal damage equal Treasure you control to any target
+  triggered at beginning of your upkeep: create 1 "Treasure"
+}

@@ -1,0 +1,9 @@
+card "Illusion Spinners" {
+  oracle_id b608288e-1755-4738-b828-9df6998bae8d
+  cost {4}{U}
+  type Creature — Faerie Wizard
+  pt 4/3
+  flash if you control Faerie
+  keywords flying
+  static this: has hexproof as long as this is untapped
+}

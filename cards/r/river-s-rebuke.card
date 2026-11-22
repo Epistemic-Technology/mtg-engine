@@ -1,0 +1,6 @@
+card "River's Rebuke" {
+  oracle_id c52cfb41-18f3-4e73-b5e7-d75baf74e578
+  cost {4}{U}{U}
+  type Sorcery
+  spell: return all nonland permanent target player controls to owner's hand
+}

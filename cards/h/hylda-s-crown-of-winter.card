@@ -1,0 +1,7 @@
+card "Hylda's Crown of Winter" {
+  oracle_id a8291d04-240e-456b-8c86-1fb4eb460476
+  cost {3}
+  type Legendary Artifact
+  activated {1}, {T}, reduced {1} during your turn: tap target creature
+  activated {3}, sacrifice this: draw count each tapped creature your opponents control cards
+}

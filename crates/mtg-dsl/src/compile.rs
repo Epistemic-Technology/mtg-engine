@@ -1591,6 +1591,13 @@ impl Compiler<'_> {
                 }
             }
             StaticCond::Is(filter) => StaticCondition::SourceIs(self.filter(filter)),
+            StaticCond::IsntToken => StaticCondition::SourceIs(self.filter(&Filter {
+                status: mtg_core::card::StatusQuals {
+                    token: Some(false),
+                    ..Default::default()
+                },
+                ..Filter::default()
+            })),
             StaticCond::Modified => StaticCondition::SourceModified,
             StaticCond::AttackingAlone => StaticCondition::SourceAttackingAlone,
             StaticCond::Blocked => StaticCondition::SourceBlocked,
@@ -1894,7 +1901,10 @@ impl Compiler<'_> {
             Recipient::Target(i) if Some(i) == many => {
                 CoreRecipient::Targets(u8::try_from(ti(i)).unwrap_or(u8::MAX), u8::MAX)
             }
-            Recipient::Target(i) | Recipient::ThatTarget(i) | Recipient::TheTarget(i) => {
+            Recipient::Target(i)
+            | Recipient::ThatTarget(i)
+            | Recipient::TheTarget(i)
+            | Recipient::ChosenTarget(i) => {
                 CoreRecipient::Target(ti(i))
             }
             Recipient::Targets(a, n)
@@ -2195,7 +2205,7 @@ impl Compiler<'_> {
             Effect::RemoveAllCounters { to } => {
                 out.push(CoreEffect::RemoveAllCounters { to: r(*to) });
             }
-            Effect::ReturnToHand { what } => {
+            Effect::ReturnToHand { what, .. } => {
                 for w in what {
                     out.push(CoreEffect::ReturnToHand { what: r(*w) });
                 }
@@ -5317,6 +5327,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             }],
             effects: one(E::YouMay(one(E::ReturnToHand {
                 what: vec![Recipient::Target(0)],
+                owner_hand: false,
             }))),
         },
         Mechanic::Ward(cost) => Ability::Triggered {

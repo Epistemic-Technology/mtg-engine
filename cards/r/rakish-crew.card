@@ -1,0 +1,7 @@
+card "Rakish Crew" {
+  oracle_id ddf34404-39dd-4dcf-a706-ec78d47167e9
+  cost {2}{B}
+  type Enchantment
+  triggered when this enters: create 1 "Mercenary"
+  triggered whenever an outlaw you control dies: each opponent loses 1 life and you gain 1 life
+}

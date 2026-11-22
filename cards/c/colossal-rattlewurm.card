@@ -1,0 +1,9 @@
+card "Colossal Rattlewurm" {
+  oracle_id 510659d6-69b4-4b04-8836-08b76213954e
+  cost {2}{G}{G}
+  type Creature — Wurm
+  pt 6/5
+  flash named as long as you control Desert
+  keywords trample
+  activated {1}{G}, exile this from graveyard: search Desert card to battlefield tapped
+}

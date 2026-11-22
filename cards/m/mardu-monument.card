@@ -1,0 +1,7 @@
+card "Mardu Monument" {
+  oracle_id 5f662383-1684-4bd3-be05-e696d301e26c
+  cost {2}
+  type Artifact
+  triggered when this enters: search basic Mountain or basic Plains or basic Swamp card reveal to hand
+  activated {2}{R}{W}{B}, {T}, sacrifice this, sorcery: create 3 "1/1 red Warrior creature"; those tokens gains menace, haste
+}

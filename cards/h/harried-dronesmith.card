@@ -1,0 +1,7 @@
+card "Harried Dronesmith" {
+  oracle_id a6e2d8bd-8fe7-4de0-af25-7ad3e9dcb81b
+  cost {3}{R}
+  type Creature — Human Artificer
+  pt 2/3
+  triggered at beginning of your combat: create 1 "1/1 colorless Thopter artifact creature with flying"; it gains haste; delayed that token: sacrifice it at beginning of your next end step
+}

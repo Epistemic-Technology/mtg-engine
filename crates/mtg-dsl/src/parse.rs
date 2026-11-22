@@ -847,12 +847,14 @@ impl P {
             alt_cost: None,
             flash_if: None,
             flash_if_may: false,
+            flash_if_named: false,
             flash_cleanup: false,
             pronoun: None,
             short_name: None,
             unkicked_targets: None,
             kicked_drops: None,
             cast_only: None,
+            cast_only_cant: false,
             kicker: None,
             kicker_targets: None,
             flashback: None,
@@ -1045,6 +1047,7 @@ impl P {
                             cost: crate::ast::Cost::default(),
                             count,
                             others_gain,
+                            cond_late: false,
                         });
                         return self.end_stmt();
                     }
@@ -1059,10 +1062,12 @@ impl P {
                 if cost.sacrifice.is_none() && count > 1 {
                     return self.fail("a count needs a permanent to sacrifice");
                 }
+                let cond_late = !cost.conditions.is_empty() && self.eat_word("late");
                 card.alt_cost = Some(crate::ast::AltCost {
                     cost,
                     count,
                     others_gain,
+                    cond_late,
                 });
                 self.end_stmt()
             }
@@ -1097,14 +1102,22 @@ impl P {
                 card.flash_if_may = true;
                 self.end_stmt()
             }
-            "flash" if self.at_words(&["flash", "as", "long", "as"]) => {
-                self.pos += 4;
+            "flash"
+                if self.at_words(&["flash", "as", "long", "as"])
+                    || self.at_words(&["flash", "named", "as", "long", "as"]) =>
+            {
+                self.pos += 1;
+                card.flash_if_named = self.eat_word("named");
+                self.pos += 3;
                 card.flash_if = Some(self.static_cond()?);
                 self.end_stmt()
             }
             "cast" if self.at_words(&["cast", "only"]) => {
                 self.pos += 2;
-                self.eat_word("if");
+                card.cast_only_cant = self.eat_word("unless");
+                if !card.cast_only_cant {
+                    self.eat_word("if");
+                }
                 card.cast_only = Some(self.static_cond()?);
                 self.end_stmt()
             }
@@ -2623,8 +2636,10 @@ impl P {
                     return self.cost_change(condition);
                 }
                 let each = self.at_word("each");
+                let plural = !each && self.eat_word("plural");
                 let mut filter = self.filter()?;
                 filter.each = each;
+                filter.plural = plural;
                 self.expect(&Tok::Colon)?;
                 let mut mods = Vec::new();
                 loop {
@@ -3127,6 +3142,9 @@ impl P {
         if let Some(t) = self.turn_time() {
             return Ok(t);
         }
+        if self.eat_words(&["this", "isnt", "token"]) {
+            return Ok(StaticCond::IsntToken);
+        }
         if self.eat_words(&["this", "is"]) {
             return Ok(StaticCond::Is(self.filter()?));
         }
@@ -3423,6 +3441,11 @@ impl P {
                 return Ok(StaticCond::WebSlung(u8::try_from(i).unwrap_or(0)));
             }
         }
+        // `this sneak paid`: "this creature's sneak cost was paid"
+        // (Turncoat Kunoichi).
+        if self.eat_words(&["this", "sneak", "paid"]) {
+            return Ok(StaticCond::SneakPaid(3));
+        }
         for (i, w) in ["sneak", "his", "her"].iter().enumerate() {
             let words: &[&str] = if i == 0 {
                 &["sneak", "paid"]
@@ -3574,6 +3597,19 @@ impl P {
                 1
             };
             let filter = self.filter()?;
+            return Ok(StaticCond::OnBattlefield { filter, at_least });
+        }
+        // `your opponents control 3 creature`: "your opponents control
+        // three or more creatures", counted together (Lashwhip Predator).
+        if self.eat_words(&["your", "opponents", "control"]) {
+            let at_least = if matches!(self.peek(), Some(Tok::Num(_))) {
+                self.number()?
+            } else {
+                1
+            };
+            let mut filter = self.filter()?;
+            filter.who = Some(Who::Opponents);
+            filter.your_opponents = true;
             return Ok(StaticCond::OnBattlefield { filter, at_least });
         }
         if self.eat_words(&["defending", "player", "controls"]) {
@@ -4973,6 +5009,7 @@ impl P {
         if self.revealed && self.at_words(&["if", "you", "dont", "put", "it"]) {
             use mtg_core::card::CardDest;
             self.pos += 5;
+            let it = self.eat_word("itself");
             let to = if self.eat_words(&["into", "hand"]) {
                 CardDest::Hand
             } else if self.eat_words(&["into", "graveyard"]) {
@@ -4985,7 +5022,11 @@ impl P {
             };
             self.expect(&Tok::Comma)?;
             let s = self.sentence()?;
-            return Ok(Effect::IfYouDontPut { to, then: vec![s] });
+            return Ok(Effect::IfYouDontPut {
+                to,
+                then: vec![s],
+                it,
+            });
         }
         // `if it is land card, ...` after a card is revealed.
         if self.revealed
@@ -6286,6 +6327,8 @@ impl P {
                 _ => {}
             }
             match self.word_at(k).as_deref() {
+                // `the chosen target 1` names a target.
+                Some("chosen") if self.word_at(k - 1).as_deref() == Some("the") => {}
                 Some("chosen") => {
                     return verb != "return" || hand || self.word_at(1).as_deref() == Some("up");
                 }
@@ -7137,7 +7180,10 @@ impl P {
                 let all = self.recipients()?;
                 let what = all[0];
                 self.expect_word("to")?;
-                if self.eat_words(&["its", "owner's", "hand"])
+                // `to owner's hand`: "to their owner's hand".
+                let owner_hand = self.eat_words(&["owner's", "hand"]);
+                if owner_hand
+                    || self.eat_words(&["its", "owner's", "hand"])
                     || self.eat_words(&["their", "owners'", "hands"])
                     || self.eat_words(&["your", "hand"])
                     || self.eat_word("hand")
@@ -7145,7 +7191,10 @@ impl P {
                     if let [Recipient::Target(i)] = all.as_slice() {
                         self.returned = Some(*i);
                     }
-                    return Ok(Effect::ReturnToHand { what: all });
+                    return Ok(Effect::ReturnToHand {
+                        what: all,
+                        owner_hand,
+                    });
                 }
                 if all.len() > 1 {
                     return self.fail("only one recipient returns to the battlefield");
@@ -8195,13 +8244,17 @@ impl P {
             return Ok(Num::ThatMuch);
         }
         if self.at_word("count")
-            && (matches!(self.word_at(1).as_deref(), Some("where" | "equal" | "each"))
+            && (matches!(
+                self.word_at(1).as_deref(),
+                Some("where" | "equal" | "each" | "foreach")
+            )
                 || self.at_words(&["count", "that", "many"]))
         {
             self.pos += 1;
             let style = match self.word()?.as_str() {
                 "where" => crate::ast::CountStyle::Where,
                 "equal" => crate::ast::CountStyle::Equal,
+                "foreach" => crate::ast::CountStyle::ForEach,
                 "that" => {
                     self.expect_word("many")?;
                     crate::ast::CountStyle::ThatMany
@@ -9290,6 +9343,19 @@ impl P {
                 return self.fail(format!("target {n} has not been declared"));
             }
             return Ok(Recipient::ThatTarget(n - 1));
+        }
+        if self.at_words(&["the", "chosen", "target"])
+            && matches!(self.peek_at(3), Some(Tok::Num(_)))
+        {
+            self.pos += 3;
+            let Some(Tok::Num(n)) = self.next() else {
+                return self.fail("expected a target number after `the chosen target`");
+            };
+            let n = n as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            return Ok(Recipient::ChosenTarget(n - 1));
         }
         if self.at_words(&["the", "target"]) && matches!(self.peek_at(2), Some(Tok::Num(_))) {
             self.pos += 2;
@@ -10441,6 +10507,8 @@ impl P {
                         let rest_raw = &raw[3..];
                         let rest_raw = rest_raw.strip_prefix('-').unwrap_or(rest_raw);
                         if let Some(t) = card_type(rest) {
+                            f.subtype_neg_first |=
+                                f.not_types.is_empty() && !f.not_subtypes.is_empty();
                             f.not_types.push(t);
                         } else if let Some(c) = color(rest) {
                             f.not_colors.push(c);
@@ -10756,6 +10824,9 @@ impl P {
             // `each opponent's` before `each`, which would take its first
             // word (the formatter writes `each opponent's upkeep step`).
             let whose = if self.eat_word("your") {
+                // `at beginning of your next end step` (a delayed trigger,
+                // Harried Dronesmith).
+                self.eat_word("next");
                 Who::You
             } else if self.eat_words(&["each", "opponent's"])
                 || self.eat_words(&["an", "opponent's"])
@@ -11830,6 +11901,10 @@ impl P {
                         })?;
                         let how = if self.eat_word("each") {
                             crate::ast::ReduceBy::Each(self.count_expr()?)
+                        } else if self.eat_words(&["during", "your", "turn"]) {
+                            // "This ability costs {1} less to activate
+                            // during your turn." (Hylda's Crown of Winter).
+                            crate::ast::ReduceBy::If(StaticCond::DuringYourTurn)
                         } else {
                             self.expect_word("if")?;
                             crate::ast::ReduceBy::If(self.static_cond()?)
@@ -12482,6 +12557,12 @@ fn other_target(spec: Target) -> Option<Target> {
         }),
         Target::Spec(TargetSpec::Artifact) => Target::Filter(Filter {
             types: vec![CardType::Artifact],
+            relation: Relation::Other,
+            ..Default::default()
+        }),
+        // "up to one other target artifact or creature" (Metalhead).
+        Target::Spec(TargetSpec::ArtifactOrCreature) => Target::Filter(Filter {
+            any_types: vec![CardType::Artifact, CardType::Creature],
             relation: Relation::Other,
             ..Default::default()
         }),

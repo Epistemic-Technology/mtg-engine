@@ -35,8 +35,6 @@ wrong thing in some case.
   kinds that don't change power or toughness, then the rest); several
   mechanics from the first wave have the engine choose where the player
   should.
-- **Token copy of a creature that has died** (Sphinx of False
-  Conclusions, Gruff Triplets): not supported; neither card is in.
 - **Thousand-Year Storm:** the "cast before it this turn" count has an
   edge case with spells cast while it is on the stack.
 - **Token-creation replacements apply only to `create` and `create
@@ -205,6 +203,9 @@ Wrong behaviour that reaches accepted cards:
   object.** On Hellish Sideswipe (rejected) it looked at what the
   resolution destroyed, not what was sacrificed for the cost. Nasty End,
   Falkenrath Torturer, and Foundry Helix use the condition; not checked.
+  Agency Coroner (not added) drew two cards for a sacrificed Grizzly
+  Bears that wasn't suspected (`if the sacrificed creature was
+  suspected, draw 2 cards instead`).
 
 Forms that pass the gate with the wrong meaning:
 

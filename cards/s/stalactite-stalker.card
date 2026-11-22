@@ -1,0 +1,9 @@
+card "Stalactite Stalker" {
+  oracle_id c8c28807-8abf-4f91-81f3-1d7d9e856c25
+  cost {B}
+  type Creature — Goblin Rogue
+  pt 1/1
+  keywords menace
+  triggered at beginning of your end step if descended this turn: put 1 +1/+1 counter on this
+  activated {2}{B}, sacrifice this: target creature gets -1/-1 count where power
+}

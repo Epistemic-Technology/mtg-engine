@@ -1,0 +1,8 @@
+card "Wrench" {
+  oracle_id fdbac0a7-18c0-48a5-a174-0d4d1473fd9c
+  cost {W}
+  type Artifact — Clue Equipment
+  static equipped creature: +1/+1, has vigilance, has ability { activated {3}, {T}: tap target creature }
+  activated {2}, sacrifice this: draw 1 card
+  equip {2}
+}

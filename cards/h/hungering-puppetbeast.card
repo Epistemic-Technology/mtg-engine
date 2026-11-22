@@ -1,0 +1,8 @@
+card "Hungering Puppetbeast" {
+  oracle_id 690ae865-87bd-46b2-8e65-c53bd80c1a18
+  cost {3}{G}{G}
+  type Artifact Creature — Beast Construct
+  pt 5/5
+  triggered when this enters: create 1 "Heartwood"
+  activated {1}, sacrifice other artifact: put 1 +1/+1 counter on this; it gains choice of trample or hexproof or haste
+}
