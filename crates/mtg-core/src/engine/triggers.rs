@@ -46,6 +46,8 @@ impl GameState {
         let event_amount = match event {
             Event::Damage { amount, .. } => *amount,
             Event::CountersAdded { n, .. } => *n,
+            // "you gain that much life" after a player loses or gains life.
+            Event::LifeChange { delta, .. } => delta.unsigned_abs(),
             _ => 0,
         };
         let mut fired: SmallVec<[PendingTrigger; 2]> = SmallVec::new();
@@ -72,7 +74,11 @@ impl GameState {
                 }
                 let (mut copies, limit) = (chapter_copies(&t.trigger, event), t.limit);
                 if self.player_static_sources > 0 && !w.in_graveyard {
-                    copies += self.extra_triggers(w, event);
+                    match self.extra_triggers(w, event, &t.trigger) {
+                        Some(n) => copies += n,
+                        // Torpor Orb: it doesn't trigger at all.
+                        None => continue,
+                    }
                 }
                 // CR 603.2c: "one or more ... enter", once per batch.
                 let batch = matches!(
@@ -82,6 +88,7 @@ impl GameState {
                         | TriggerSpec::LeavesGraveyard(_)
                         | TriggerSpec::DiscardsBatch { .. }
                         | TriggerSpec::SacrificesBatch(_)
+                        | TriggerSpec::Batch(_)
                 );
                 // "one or more creatures you control deal combat damage to
                 // a player": once per player dealt damage together.
@@ -202,6 +209,13 @@ impl GameState {
             let dt = self.delayed_triggers[i];
             let at = match self.pool.ability(dt.ability.ability) {
                 AbilityDef::Triggered(t) => match &t.trigger {
+                    // "the end step on your next turn".
+                    TriggerSpec::OnNextTurn(inner) => match &**inner {
+                        TriggerSpec::BeginningOfStep { step: s, .. } => {
+                            *s == step && active == dt.controller && self.turn_number > dt.turn
+                        }
+                        _ => false,
+                    },
                     TriggerSpec::BeginningOfStep { step: s, whose } => {
                         *s == step
                             && match whose {
@@ -263,6 +277,7 @@ impl GameState {
             if matches!(
                 spec,
                 TriggerSpec::BeginningOfStep { .. }
+                    | TriggerSpec::OnNextTurn(_)
                     | TriggerSpec::Dies(TriggerObj::This)
                     | TriggerSpec::Leaves(TriggerObj::This)
                     | TriggerSpec::DiesOrExiled(TriggerObj::This)
@@ -353,10 +368,12 @@ impl GameState {
     /// CR 603.2d: how many additional times a triggered ability of `w`
     /// triggers on `event` ("If a triggered ability of another Elemental
     /// you control triggers, it triggers an additional time"): one for
-    /// each such ability whose filter the watcher matches.
+    /// each such ability whose filter the watcher matches. `None`: an
+    /// enters trigger an ability stops ("Creatures entering don't cause
+    /// abilities to trigger.", CR 603.6a).
     #[cold]
     #[inline(never)]
-    fn extra_triggers(&self, w: &Watcher, event: &Event) -> usize {
+    fn extra_triggers(&self, w: &Watcher, event: &Event, spec: &TriggerSpec) -> Option<usize> {
         use crate::card::TriggerCause;
         // The object whose event this is, as the cause filter judges it.
         let cause = match event {
@@ -410,6 +427,7 @@ impl GameState {
                     filter,
                     entering: e,
                     cause: k,
+                    suppress,
                     ..
                 } = self.pool.ability(a)
                     && e.as_ref().is_none_or(|e| {
@@ -427,11 +445,17 @@ impl GameState {
                     // "equipped creature" (Wizard's Staff).
                     && (!filter.enchanted || o.attached_to == Some(w.source))
                 {
-                    n += 1;
+                    if *suppress {
+                        if spec.is_enters() {
+                            return None;
+                        }
+                    } else {
+                        n += 1;
+                    }
                 }
             }
         }
-        n
+        Some(n)
     }
 
     /// Counts one more object into a waiting "one or more" trigger of
@@ -1012,6 +1036,9 @@ impl GameState {
             (TriggerSpec::GainsLife { whose }, Event::LifeChange { player, delta, .. }) => {
                 (*delta > 0 && whose_ok(*whose, *player)).then_some((None, Some(*player)))
             }
+            (TriggerSpec::LosesLife { whose }, Event::LifeChange { player, delta, .. }) => {
+                (*delta < 0 && whose_ok(*whose, *player)).then_some((None, Some(*player)))
+            }
             // Triggers are detected as each event is emitted, so the first
             // gain is the one whose amount is all gained this turn.
             (TriggerSpec::GainsLifeFirst { whose }, Event::LifeChange { player, delta, .. }) => {
@@ -1071,6 +1098,18 @@ impl GameState {
                 let p = on_battlefield(what, *obj)?;
                 Some((Some(*obj), Some(p)))
             }
+            // "When the fourth plan counter is put on this enchantment".
+            (
+                TriggerSpec::NthCounterPut { kind, n: nth },
+                Event::CountersAdded {
+                    obj,
+                    kind: k,
+                    n,
+                    before,
+                    ..
+                },
+            ) => (*obj == w.source && k == kind && *before < *nth && before + n >= *nth)
+                .then_some((Some(*obj), Some(w.controller))),
             // CR 714.2c: lore counters put on this Saga take their number
             // from below a chapter number to at least it.
             (
@@ -1468,6 +1507,8 @@ impl GameState {
             (TriggerSpec::Either(pair), _) => self
                 .fires(&pair.0, event, w)
                 .or_else(|| self.fires(&pair.1, event, w)),
+            // CR 603.2c: batched by `detect_triggers`.
+            (TriggerSpec::Batch(inner) | TriggerSpec::Each(inner), _) => self.fires(inner, event, w),
             _ => self.fires_more(spec, event, w),
         }
     }

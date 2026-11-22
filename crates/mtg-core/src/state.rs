@@ -115,6 +115,9 @@ pub struct DelayedTrigger {
     /// "... for the rest of the game" (paradigm, CR 702.192a): it stays
     /// after it triggers.
     pub forever: bool,
+    /// The turn it was created in: "At the beginning of the end step on
+    /// your next turn" (`TriggerSpec::OnNextTurn`) waits for a later turn.
+    pub turn: u32,
 }
 
 /// Something a spell or ability can target or an effect can act on.
@@ -295,6 +298,9 @@ pub struct PlayableExile {
     pub cast_only: bool,
     /// "... without paying its mana cost".
     pub free: bool,
+    /// The permanent whose control the permission lasts for
+    /// (`PlayUntil::WhileYouControlSource`).
+    pub source: ObjId,
 }
 
 /// How a spell was cast (on the stack; `Suspend` stays with the permanent
@@ -858,6 +864,11 @@ pub struct PlayerState {
     /// CR 702.189a): at most this much red stays as each combat step
     /// ends (the player spends their other mana first).
     pub combat_mana: u32,
+    /// Mana in the pool that lasts until end of turn ("Until end of turn,
+    /// you don't lose this mana as steps and phases end."): at most this
+    /// much of each kind stays as a step ends (the player's other mana is
+    /// taken to be spent first).
+    pub turn_mana: crate::mana::ManaPool,
 }
 
 impl PlayerState {
@@ -3695,6 +3706,11 @@ impl GameState {
             }
             C::Void => self.turn_log.nonland_left || self.turn_log.warped,
             C::NotYourMainPhase => !(self.active_player == you && self.step.is_main()),
+            C::WasCast => self
+                .objects
+                .get(source)
+                .or_else(|| self.lki.get(&source).map(|l| &l.object))
+                .is_some_and(|o| o.cast.cast_from().is_some()),
             C::NotCastFrom(zone) => self
                 .objects
                 .get(source)

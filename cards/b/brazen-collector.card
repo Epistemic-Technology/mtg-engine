@@ -1,0 +1,8 @@
+card "Brazen Collector" {
+  oracle_id f93dc9cc-3dd2-4e2b-b972-217ab9d89dfe
+  cost {1}{R}
+  type Creature — Raccoon Rogue
+  pt 2/1
+  keywords first strike
+  triggered whenever this attacks: keep mana add {R}
+}

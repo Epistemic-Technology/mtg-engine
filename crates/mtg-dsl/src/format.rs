@@ -584,6 +584,8 @@ impl Fmt {
             Replaces::Destroy { to } => format!("destroy {}", self.affects(to, targets)),
             Replaces::Dies { to } => format!("{} dies", self.affects(to, targets)),
             Replaces::Enters => "enters".to_string(),
+            Replaces::OthersEnter { what, each: true } => format!("each {} enters", filter(what)),
+            Replaces::OthersEnter { what, each: false } => format!("{} enter", filter(what)),
         }
     }
 
@@ -826,6 +828,8 @@ impl Fmt {
                         mtg_core::card::PlayUntil::EndOfYourNextTurn => "next turn",
                         mtg_core::card::PlayUntil::YourNextEndStep => "next end step",
                         mtg_core::card::PlayUntil::Forever => "forever",
+                        mtg_core::card::PlayUntil::WhileYouControlSource =>
+                            "while you control this",
                     }
                 );
                 if *first {
@@ -953,6 +957,8 @@ impl Fmt {
                         mtg_core::card::PlayUntil::EndOfYourNextTurn => "next turn",
                         mtg_core::card::PlayUntil::YourNextEndStep => "next end step",
                         mtg_core::card::PlayUntil::Forever => "forever",
+                        mtg_core::card::PlayUntil::WhileYouControlSource =>
+                            "while you control this",
                     }
                 );
                 if *first {
@@ -1666,6 +1672,15 @@ impl Fmt {
             Effect::LoseAllAbilities { to } => {
                 format!("{} loses all abilities", self.recipient(*to, t))
             }
+            Effect::IsNow { to, types } => format!(
+                "{} is now {}",
+                self.recipient(*to, t),
+                types
+                    .iter()
+                    .map(|k| format!("{k:?}").to_lowercase())
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            ),
             Effect::Strip { keywords: ks, to } => {
                 format!("{} loses {}", self.recipient(*to, t), keywords(ks))
             }
@@ -2196,6 +2211,7 @@ impl Fmt {
                 format!("{who} may {}", self.line(inner, t))
             }
             Effect::IfKicked(inner) => format!("if kicked, {}", self.line(inner, t)),
+            Effect::KeepMana(inner) => format!("keep mana {}", self.line(inner, t)),
             Effect::EachPutsFromGraveyard { who, filter: f } => format!(
                 "{} puts 1 {} card from graveyard onto battlefield",
                 self.recipient(*who, t),
@@ -3654,6 +3670,7 @@ pub fn natural_when(t: &Trigger) -> bool {
             | Trigger::BecomesTarget(TriggerObj::This)
             | Trigger::When(_)
             | Trigger::BeginningOfStep { .. }
+            | Trigger::OnNextTurn(_)
             | Trigger::AttachedStep(_)
             | Trigger::State(_)
             | Trigger::EveryStep(_)
@@ -3755,6 +3772,37 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
     match t {
         Trigger::When(_) => unreachable!("unwrapped by trigger_text"),
         Trigger::Next(inner) => trigger_text(inner, next).replacen("whenever", "when next", 1),
+        Trigger::Batch(inner) => match &**inner {
+            Trigger::PutIntoGraveyard(f) => format!(
+                "whenever one or more {} card put into your graveyard from anywhere",
+                filter(f)
+            ),
+            Trigger::BecomesTapped(TriggerObj::Filter(f)) => {
+                format!("whenever one or more {} become tapped", filter(f))
+            }
+            Trigger::DiscardsBatch { .. } => {
+                "whenever one or more players discard one or more cards".to_string()
+            }
+            Trigger::YouTap(f) => format!("whenever you tap one or more {}", filter(f)),
+            t => unreachable!("no batched form of {t:?}"),
+        },
+        Trigger::OnNextTurn(inner) => format!("{} on your next turn", trigger_text(inner, next)),
+        Trigger::Each(inner) => match &**inner {
+            Trigger::LeavesGraveyard(f) => format!(
+                "whenever a {}card leaves your graveyard",
+                if *f == Filter::default() {
+                    String::new()
+                } else {
+                    format!("{} ", filter(f))
+                }
+            ),
+            Trigger::YouPutCounters { obj, kind } => format!(
+                "whenever you put a {}counter on {}",
+                kind.map_or(String::new(), |k| format!("{} ", k.name())),
+                trigger_obj(obj)
+            ),
+            t => unreachable!("no per-object form of {t:?}"),
+        },
         Trigger::State(c) => format!("when {}", static_cond(c)),
         Trigger::Enters(o) => format!("whenever {} enters", trigger_obj(o)),
         Trigger::Dies(o) => format!("whenever {} dies", trigger_obj(o)),
@@ -3875,6 +3923,11 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             Who::You => "whenever you gain life".to_string(),
             _ => "whenever a player gains life".to_string(),
         },
+        Trigger::LosesLife { whose } => match whose {
+            Who::You => "whenever you lose life".to_string(),
+            Who::Opponents => "whenever an opponent loses life".to_string(),
+            Who::Any => "whenever a player loses life".to_string(),
+        },
         Trigger::GainsLifeFirst { .. } => "whenever you gain life first time each turn".to_string(),
         Trigger::CastsSpell {
             whose,
@@ -3924,6 +3977,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             kind.name(),
             trigger_obj(obj)
         ),
+        Trigger::NthCounterPut { kind, n } => {
+            format!("whenever nth {n} {} counter put on this", kind.name())
+        }
         Trigger::YouPutCounters { obj, kind } => format!(
             "whenever you put one or more {}counters on {}",
             kind.map_or(String::new(), |k| format!("{} ", k.name())),
@@ -4625,6 +4681,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Void => "void".to_string(),
         StaticCond::NotYourMainPhase => "not your main phase".to_string(),
         StaticCond::NotCastFromHand => "cast from anywhere other than hand".to_string(),
+        StaticCond::WasCast => "you cast it".to_string(),
         StaticCond::PutAnyCounterThisTurn => "put any counter this turn".to_string(),
         StaticCond::AttackedWithAtLeast(f, n) => {
             format!("attacked with {n} {} this turn", filter(f))
@@ -5644,6 +5701,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             entering,
             battlefield,
             cause,
+            suppress,
         } => {
             let when = entering.as_ref().map_or(String::new(), |e| {
                 let verb = match cause {
@@ -5657,7 +5715,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     if *battlefield { " the battlefield" } else { "" }
                 )
             });
-            let _ = writeln!(out, "{indent}trigger again {}{when}", filter(f));
+            let _ = writeln!(
+                out,
+                "{indent}trigger {} {}{when}",
+                if *suppress { "never" } else { "again" },
+                filter(f)
+            );
         }
         Ability::PlayerStatic { kind, cond } => {
             use mtg_core::card::PlayerStaticKind as K;

@@ -1,0 +1,9 @@
+card "Elegy Acolyte" {
+  oracle_id f7d52eac-edc9-464b-a163-07c136aa6e4c
+  cost {2}{B}{B}
+  type Creature — Human Cleric
+  pt 4/4
+  keywords lifelink
+  triggered whenever one or more creature you control deal combat damage to a player: you draw 1 card and lose 1 life
+  label "Void" triggered at beginning of your end step if void: create 1 "2/2 colorless Robot artifact creature"
+}

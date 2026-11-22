@@ -91,6 +91,11 @@ impl GameState {
                 if sorcery_timing && self.may_play_another_land(p) {
                     options.push(Choice::PlayLand(*id));
                 }
+                // CR 702.168a, 708.4: a land card with disguise (Branch of
+                // Vitu-Ghazi) may be cast face down as a 2/2 creature.
+                if def.morph.is_some() && sorcery_timing {
+                    self.face_down_option(p, *id, &sources, &mut options);
+                }
                 // CR 715.3: a land with an Adventure (Midgar, City of Mako
                 // // Reactor Raid) is played as a land or cast as the
                 // Adventure.
@@ -321,6 +326,15 @@ impl GameState {
                 if pe.player != p
                     || o.zone != Zone::Exile
                     || pe.own_ends == crate::state::WARP_LATER
+                {
+                    continue;
+                }
+                // "for as long as you control Lightning".
+                if pe.until == crate::card::PlayUntil::WhileYouControlSource
+                    && !self
+                        .objects
+                        .get(pe.source)
+                        .is_some_and(|s| s.zone == Zone::Battlefield && s.controller == p)
                 {
                     continue;
                 }
@@ -7243,6 +7257,7 @@ impl GameState {
             },
             this_turn: false,
             forever: false,
+            turn: self.turn_number,
         });
     }
 
@@ -7276,6 +7291,7 @@ impl GameState {
             },
             this_turn: false,
             forever: true,
+            turn: self.turn_number,
         });
     }
 
@@ -10791,6 +10807,7 @@ impl GameState {
                         },
                         this_turn: *this_turn,
                         forever: false,
+                        turn: self.turn_number,
                     });
                     self.emit(Event::DelayedTriggerCreated {
                         source: ctx.source,
@@ -11323,6 +11340,7 @@ impl GameState {
                             own_ends,
                             cast_only: *cast,
                             free: *free,
+                            source: ctx.source,
                         });
                 }
             }
@@ -11763,6 +11781,18 @@ impl GameState {
                     }
                 }
             }
+            Effect::KeepMana(inner) => {
+                let before = self.player(ctx.controller).mana_pool;
+                for e in inner {
+                    self.apply_effect(ctx, e);
+                }
+                let ps = self.player_mut(ctx.controller);
+                let after = ps.mana_pool;
+                for c in 0..5 {
+                    ps.turn_mana.colored[c] += after.colored[c].saturating_sub(before.colored[c]);
+                }
+                ps.turn_mana.colorless += after.colorless.saturating_sub(before.colorless);
+            }
             Effect::Firebend(n) => {
                 let n = self.eval_num(*n, ctx);
                 let ps = self.player_mut(ctx.controller);
@@ -12101,6 +12131,7 @@ impl GameState {
                                 own_ends: crate::state::WARP_LATER,
                                 cast_only: true,
                                 free: false,
+                                source: ObjId::default(),
                             });
                     }
                 }
@@ -12166,6 +12197,7 @@ impl GameState {
                             own_ends,
                             cast_only: false,
                             free: false,
+                            source: ctx.source,
                         });
                 }
             }
@@ -12910,6 +12942,7 @@ impl GameState {
                 },
                 replacement: Replacement::Regenerate,
                 then: Vec::new(),
+                condition: None,
             },
             target: Some(Target::Object(id)),
             remaining: 1,

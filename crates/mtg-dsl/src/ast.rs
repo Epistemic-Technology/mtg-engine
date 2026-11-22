@@ -1249,6 +1249,9 @@ pub enum Ability {
         /// a creature dying causes ...", "If a creature you control
         /// attacking causes ...".
         cause: mtg_core::card::TriggerCause,
+        /// `trigger never permanent when creature enters`: "Creatures
+        /// entering don't cause abilities to trigger." (Torpor Orb).
+        suppress: bool,
     },
     /// A keyword ability with a number or cost, printed as the keyword
     /// ("Bushido 2", "Echo {2}{R}") and compiled to what it stands for.
@@ -2185,6 +2188,8 @@ pub enum StaticCond {
     /// `cast from anywhere other than hand`: "this spell was cast from
     /// anywhere other than your hand".
     NotCastFromHand,
+    /// `you cast it`: "you cast it" (from any zone).
+    WasCast,
     /// `put any counter this turn`: "you put a counter on a creature this
     /// turn" (any kind).
     PutAnyCounterThisTurn,
@@ -2438,6 +2443,14 @@ pub enum Replaces {
         to: Affects,
     },
     Enters,
+    /// `each Dragon you control enters`: "Each Dragon you control enters
+    /// with an additional +1/+1 counter on it"; without `each`, `other
+    /// creature you control enter` ("Other creatures you control enter
+    /// with an additional +1/+1 counter on them ...").
+    OthersEnter {
+        what: Filter,
+        each: bool,
+    },
 }
 
 /// Where "Prevent all damage" names a damage source (CR 609.7).
@@ -2568,6 +2581,10 @@ pub enum Trigger {
     GainsLife {
         whose: Who,
     },
+    /// `whenever an opponent loses life`, `whenever a player loses life`.
+    LosesLife {
+        whose: Who,
+    },
     /// `whenever you gain life first time each turn`: "Whenever you gain
     /// life for the first time each turn".
     GainsLifeFirst {
@@ -2613,6 +2630,12 @@ pub enum Trigger {
     CountersPut {
         obj: TriggerObj,
         kind: CounterKind,
+    },
+    /// `when nth 4 plan counter put on this`: "When the fourth plan
+    /// counter is put on this enchantment".
+    NthCounterPut {
+        kind: CounterKind,
+        n: u32,
     },
     /// `whenever you put one or more +1/+1 counters on creature you
     /// control`: "Whenever you put one or more +1/+1 counters on a creature
@@ -2671,6 +2694,19 @@ pub enum Trigger {
     /// trigger, followed by `this turn`): "When you next cast an instant
     /// or sorcery spell this turn" (CR 603.7c), once.
     Next(Box<Trigger>),
+    /// The "one or more" form of a per-object trigger (CR 603.2c): `one or
+    /// more creature card put into your graveyard from anywhere` ("one or
+    /// more creature cards are put into your graveyard from anywhere"),
+    /// `one or more creature you control become tapped`.
+    Batch(Box<Trigger>),
+    /// The per-object form of a "one or more" trigger: `a card leaves your
+    /// graveyard` ("Whenever a card leaves your graveyard", once per card),
+    /// `you put a +1/+1 counter on other creature` ("Whenever you put a
+    /// +1/+1 counter on another creature", the older wording).
+    Each(Box<Trigger>),
+    /// `at beginning of the end step on your next turn` (a delayed
+    /// trigger): "At the beginning of the end step on your next turn".
+    OnNextTurn(Box<Trigger>),
     /// `when you cycle this` ("When you cycle this card"), `whenever you
     /// cycle a card`, `whenever you cycle another card`, `whenever you
     /// cycle or discard a card` (CR 702.29).
@@ -3405,6 +3441,14 @@ pub enum Effect {
         max: Option<Num>,
         exile: bool,
     },
+    /// `it is now enchantment`: "It's an enchantment." (the Enduring
+    /// cycle's returned permanent; "They're an artifact." with `pronoun
+    /// they`): its card types become these, indefinitely (layer 4), so it
+    /// loses its creature types.
+    IsNow {
+        to: Recipient,
+        types: Vec<CardType>,
+    },
     /// `target creature loses all abilities` (until end of turn; layer
     /// 6).
     LoseAllAbilities {
@@ -3924,6 +3968,9 @@ pub enum Effect {
     /// Firebending's effect (CR 702.189a), from its expansion: "add N {R}
     /// that lasts until end of combat".
     Firebend(Num),
+    /// `keep mana add {R}`: "Add {R}. Until end of turn, you don't lose
+    /// this mana as steps and phases end."
+    KeepMana(Vec<Sentence>),
     /// `waterbend {2}` (CR 701.67a), inside "unless" or "you may": pay
     /// the mana, artifacts and creatures tapped to help.
     Waterbend(ManaCost),

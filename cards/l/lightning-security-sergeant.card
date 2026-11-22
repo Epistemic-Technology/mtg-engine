@@ -1,0 +1,8 @@
+card "Lightning, Security Sergeant" {
+  oracle_id e1626880-0fa3-441a-9978-b293fc87c418
+  cost {2}{R}
+  type Legendary Creature — Human Soldier
+  pt 2/3
+  keywords menace
+  triggered whenever this deals combat damage to a player: impulse 1 while you control this
+}

@@ -1,0 +1,7 @@
+card "Robot Domination" {
+  oracle_id 4f69d2f9-c16a-4752-9026-794a29d73af8
+  cost {3}{B}
+  type Enchantment — Plan
+  triggered whenever one or more creature card put into your graveyard from anywhere: you draw 1 card, lose 1 life, and put 1 plan counter on this
+  triggered when nth 3 plan counter put on this: sacrifice this and create 3 "2/2 colorless Robot Villain artifact creature"
+}

@@ -1,0 +1,7 @@
+card "Karn, Argent Defender" {
+  oracle_id aecc621f-67da-41a7-9d47-05ded302ae35
+  cost {2}
+  type Legendary Artifact Creature — Golem
+  pt 1/3
+  trigger never permanent when andlist artifact or creature enters the battlefield
+}

@@ -563,6 +563,7 @@ impl GameState {
                     skip_combat: 0,
                     skip_combat_this_turn: 0,
                     combat_mana: 0,
+                    turn_mana: crate::mana::ManaPool::default(),
                 })
                 .collect(),
             objects: SlotMap::with_key(),
@@ -3053,6 +3054,7 @@ impl GameState {
         for p in &mut self.players {
             p.mana_pool.empty();
             p.combat_mana = 0;
+            p.turn_mana.empty();
         }
         if self.combat.take().is_some() {
             self.combat_bump();
@@ -3193,16 +3195,32 @@ impl GameState {
                 | Step::FirstStrikeDamage
                 | Step::CombatDamage
         );
+        let cleanup = self.step == Step::Cleanup;
         for p in &mut self.players {
+            let red = crate::mana::Color::Red as usize;
             let keep = if combat {
-                p.combat_mana
-                    .min(p.mana_pool.colored[crate::mana::Color::Red as usize])
+                p.combat_mana.min(p.mana_pool.colored[red])
             } else {
                 0
             };
-            p.mana_pool.empty();
+            // "Until end of turn, you don't lose this mana": what is left of
+            // it, through the cleanup step (CR 500.4).
+            let mut kept = crate::mana::ManaPool::default();
+            if !cleanup && !p.turn_mana.is_empty() {
+                for c in 0..5 {
+                    let left = if c == red {
+                        p.mana_pool.colored[c] - keep
+                    } else {
+                        p.mana_pool.colored[c]
+                    };
+                    kept.colored[c] = p.turn_mana.colored[c].min(left);
+                }
+                kept.colorless = p.turn_mana.colorless.min(p.mana_pool.colorless);
+            }
+            p.mana_pool = kept;
+            p.turn_mana = kept;
             p.combat_mana = keep;
-            p.mana_pool.colored[crate::mana::Color::Red as usize] = keep;
+            p.mana_pool.colored[red] += keep;
         }
         if self.step == Step::EndOfCombat && self.combat.take().is_some() {
             // Filters on attacking and blocking creatures see the change.
@@ -3337,6 +3355,13 @@ impl GameState {
                                 true
                             }
                             crate::card::PlayUntil::YourNextEndStep => true,
+                            // Ends when its source leaves or changes
+                            // control (CR 400.7).
+                            crate::card::PlayUntil::WhileYouControlSource => {
+                                objects.get(pe.source).is_some_and(|s| {
+                                    s.zone == Zone::Battlefield && s.controller == pe.player
+                                })
+                            }
                         }
                     });
                 }

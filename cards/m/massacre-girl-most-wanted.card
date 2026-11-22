@@ -1,0 +1,8 @@
+card "Massacre Girl, Most Wanted" {
+  oracle_id 81f35914-73bf-429f-ba20-32e23ac30159
+  cost {4}{B}
+  type Legendary Creature — Human Assassin
+  pt 4/4
+  triggered whenever other creature or planeswalker you control dies: deal 1 damage to target opponent, and you gain 1 life
+  triggered whenever an opponent is dealt noncombat damage: put 1 +1/+1 counter on this
+}

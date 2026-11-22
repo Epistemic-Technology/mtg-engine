@@ -1,0 +1,9 @@
+card "Sharae of Numbing Depths" {
+  oracle_id c736935a-e006-4a67-b942-e8ccf1cd9abb
+  cost {2}{W}{U}
+  type Legendary Creature — Merfolk Wizard
+  pt 2/3
+  short_name "Sharae"
+  triggered when this enters: tap target creature an opponent controls and put 1 stun counter on it
+  triggered once each turn whenever you tap one or more untapped creature your opponents control: draw 1 card
+}

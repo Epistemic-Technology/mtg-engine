@@ -1,0 +1,9 @@
+card "Far Fortune, End Boss" {
+  oracle_id 8b9734c1-7185-40f6-8582-9f87109e3a09
+  cost {2}{B}{R}
+  type Legendary Creature — Human Mercenary
+  pt 4/5
+  start your engines
+  triggered whenever you attack: deal 1 damage to each opponent
+  label "Max speed" replace damage from permanent you control to opponent and permanent an opponent controls: plus 1
+}

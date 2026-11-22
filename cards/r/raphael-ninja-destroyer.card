@@ -1,0 +1,8 @@
+card "Raphael, Ninja Destroyer" {
+  oracle_id fdb8e862-c642-4b7b-b061-400de6061ffe
+  cost {2}{R}{R}
+  type Legendary Creature — Mutant Ninja Turtle
+  pt 4/4
+  keywords must be blocked if able
+  label "Enrage" triggered whenever this is dealt damage: keep mana add {R} that much
+}

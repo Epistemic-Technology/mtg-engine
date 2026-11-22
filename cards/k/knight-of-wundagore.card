@@ -1,0 +1,8 @@
+card "Knight of Wundagore" {
+  oracle_id 39145960-a212-46b4-addb-4b187f6bf6fd
+  cost {1}{G}
+  type Creature — Cat Knight Villain
+  pt 2/1
+  keywords trample
+  triggered once each turn whenever you put a +1/+1 counter on other creature: put 1 +1/+1 counter on this
+}

@@ -1440,7 +1440,10 @@ impl P {
             }
             // CR 603.2d: `trigger again Ninja creature you control`,
             // `trigger again entering permanent you control`.
-            "trigger" if self.at_words(&["trigger", "again"]) => {
+            "trigger"
+                if self.at_words(&["trigger", "again"]) || self.at_words(&["trigger", "never"]) =>
+            {
+                let suppress = self.word_at(1).as_deref() == Some("never");
                 self.pos += 2;
                 let filter = self.filter()?;
                 let (mut entering, mut battlefield) = (None, false);
@@ -1457,11 +1460,15 @@ impl P {
                     }
                 }
                 self.end_stmt()?;
+                if suppress && entering.is_none() {
+                    return self.fail("`trigger never` needs `when <filter> enters`".to_string());
+                }
                 Ok(Ability::TriggerAgain {
                     filter,
                     entering,
                     battlefield,
                     cause,
+                    suppress,
                 })
             }
             "you" if self.at_words(&["you", "have", "hexproof"]) => {
@@ -3128,6 +3135,9 @@ impl P {
         }
         if self.eat_words(&["cast", "from", "anywhere", "other", "than", "hand"]) {
             return Ok(StaticCond::NotCastFromHand);
+        }
+        if self.eat_words(&["you", "cast", "it"]) {
+            return Ok(StaticCond::WasCast);
         }
         if self.eat_words(&["put", "any", "counter", "this", "turn"]) {
             return Ok(StaticCond::PutAnyCounterThisTurn);
@@ -4996,6 +5006,15 @@ impl P {
             self.pos += 1;
             return Ok(Effect::Venture { undercity: false });
         }
+        // "Add {R}. Until end of turn, you don't lose this mana as steps
+        // and phases end."
+        if self.at_words(&["keep", "mana"]) {
+            self.pos += 2;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::KeepMana(vec![s]));
+        }
         // "you may ..." before "you" as a subject.
         if self.at_words(&["you", "may"]) {
             self.pos += 2;
@@ -5426,6 +5445,20 @@ impl P {
                     amount,
                     who: subject,
                 })
+            }
+            // "It's an enchantment." (indefinitely, layer 4).
+            "is" if self.at_word("now") => {
+                self.pos += 1;
+                let mut types = Vec::new();
+                while let Some(Tok::Word(w)) = self.peek() {
+                    let Some(t) = card_type(w) else { break };
+                    types.push(t);
+                    self.pos += 1;
+                }
+                if types.is_empty() {
+                    return self.fail("expected a card type after `is now`");
+                }
+                Ok(Effect::IsNow { to: subject, types })
             }
             // "loses all abilities" alone (layer 6).
             "lose" | "loses"
@@ -6619,6 +6652,8 @@ impl P {
             mtg_core::card::PlayUntil::YourNextEndStep
         } else if self.eat_word("forever") {
             mtg_core::card::PlayUntil::Forever
+        } else if self.eat_words(&["while", "you", "control", "this"]) {
+            mtg_core::card::PlayUntil::WhileYouControlSource
         } else {
             return self.unexpected("`this turn`, `next turn`, `next end step`, or `forever`");
         })
@@ -7999,7 +8034,8 @@ impl P {
                     }
                     return Ok(Effect::AddManaOneOf(out));
                 }
-                if out.len() == 1 && self.at_word("count") {
+                // `add {R} that much` (Raphael's "add that much {R}").
+                if out.len() == 1 && (self.at_word("count") || self.at_words(&["that", "much"])) {
                     let count = self.num()?;
                     return Ok(Effect::AddManaTimes {
                         mana: out[0],
@@ -11014,6 +11050,8 @@ impl P {
             // `each opponent's` before `each`, which would take its first
             // word (the formatter writes `each opponent's upkeep step`).
             let whose = if self.eat_word("your") {
+                // "your next upkeep" (a delayed trigger).
+                self.eat_word("next");
                 Who::You
             } else if self.eat_words(&["each", "opponent's"])
                 || self.eat_words(&["an", "opponent's"])
@@ -11038,6 +11076,13 @@ impl P {
             self.eat_word("step");
             self.eat_word("main");
             self.eat_word("phase");
+            // "the end step on your next turn".
+            if self.eat_words(&["on", "your", "next", "turn"]) {
+                return Ok(Trigger::OnNextTurn(Box::new(Trigger::BeginningOfStep {
+                    step,
+                    whose: Who::You,
+                })));
+            }
             return Ok(Trigger::BeginningOfStep { step, whose });
         }
         let whenever = self.at_word("whenever");
@@ -11072,6 +11117,11 @@ impl P {
         }
         // "you tap an untapped creature an opponent controls".
         if self.eat_words(&["you", "tap"]) {
+            // "you tap one or more untapped creatures your opponents
+            // control" (CR 603.2c).
+            if self.eat_words(&["one", "or", "more"]) {
+                return Ok(Trigger::Batch(Box::new(Trigger::YouTap(self.filter()?))));
+            }
             return Ok(Trigger::YouTap(self.filter()?));
         }
         // CR 602.2: "you activate an ability of a creature", "you activate
@@ -11158,6 +11208,16 @@ impl P {
             self.pos += 4;
             return Ok(Trigger::GainsLife { whose: Who::Any });
         }
+        // CR 119.3: "an opponent loses life".
+        for (words, whose) in [
+            (&["an", "opponent", "loses", "life"][..], Who::Opponents),
+            (&["a", "player", "loses", "life"][..], Who::Any),
+            (&["you", "lose", "life"][..], Who::You),
+        ] {
+            if self.eat_words(words) {
+                return Ok(Trigger::LosesLife { whose });
+            }
+        }
         // "you draw your second card each turn".
         if self.at_words(&["you", "draw", "your"])
             || self.at_words(&["an", "opponent", "draws", "their"])
@@ -11242,6 +11302,29 @@ impl P {
         }
         // CR 122.6: "you put one or more +1/+1 counters on a creature you
         // control".
+        // "you put a +1/+1 counter on another creature", "you put a
+        // counter on a creature you control": the older wording.
+        if self.at_words(&["you", "put", "a"])
+            && (self.word_at(3).as_deref() == Some("counter")
+                || matches!(self.peek_at(3), Some(Tok::Pt { .. })))
+        {
+            self.pos += 3;
+            let kind = if self.eat_word("counter") {
+                None
+            } else {
+                Some(self.counter_kind()?)
+            };
+            self.expect_word("on")?;
+            let obj = if self.eat_word("this") {
+                TriggerObj::This
+            } else {
+                TriggerObj::Filter(self.filter()?)
+            };
+            return Ok(Trigger::Each(Box::new(Trigger::YouPutCounters {
+                obj,
+                kind,
+            })));
+        }
         if self.eat_words(&["you", "put", "one", "or", "more"]) {
             let kind = if self.eat_word("counters") {
                 None
@@ -11309,6 +11392,14 @@ impl P {
             let n = self.number()?;
             return Ok(Trigger::Expends(u8::try_from(n).unwrap_or(u8::MAX)));
         }
+        // "the fourth plan counter is put on this enchantment".
+        if self.eat_word("nth") {
+            let n = self.number()?;
+            let kind = self.counter_kind()?;
+            self.eat_word("counter");
+            self.expect_words(&["put", "on", "this"])?;
+            return Ok(Trigger::NthCounterPut { kind, n });
+        }
         // CR 122.1: "one or more +1/+1 counters are put on this creature".
         if self.eat_words(&["one", "or", "more", "creatures", "you", "control", "attack"]) {
             return Ok(Trigger::CreaturesYouControlAttack);
@@ -11325,6 +11416,21 @@ impl P {
                 TriggerObj::Filter(self.filter()?)
             };
             return Ok(Trigger::CountersPut { obj, kind });
+        }
+        // "a card leaves your graveyard": once for each card.
+        if self.at_words(&["a", "card", "leaves", "your", "graveyard"]) {
+            self.pos += 5;
+            return Ok(Trigger::Each(Box::new(Trigger::LeavesGraveyard(
+                Filter::default(),
+            ))));
+        }
+        // "one or more players discard one or more cards".
+        if self.eat_words(&[
+            "one", "or", "more", "players", "discard", "one", "or", "more", "cards",
+        ]) {
+            return Ok(Trigger::Batch(Box::new(Trigger::DiscardsBatch {
+                whose: Who::Any,
+            })));
         }
         // "one or more cards leave your graveyard", "one or more creature
         // cards leave your graveyard" (CR 603.2c).
@@ -11344,6 +11450,24 @@ impl P {
         // CR 603.2c: "one or more artifacts you control enter".
         if self.eat_words(&["one", "or", "more"]) {
             let f = self.filter()?;
+            // "one or more creature cards are put into your graveyard from
+            // anywhere", "one or more creatures you control become tapped".
+            if self.eat_words(&[
+                "card",
+                "put",
+                "into",
+                "your",
+                "graveyard",
+                "from",
+                "anywhere",
+            ]) {
+                return Ok(Trigger::Batch(Box::new(Trigger::PutIntoGraveyard(f))));
+            }
+            if self.eat_words(&["become", "tapped"]) {
+                return Ok(Trigger::Batch(Box::new(Trigger::BecomesTapped(
+                    TriggerObj::Filter(f),
+                ))));
+            }
             // "one or more other creatures die", "... leave the
             // battlefield" (CR 603.10a).
             if self.eat_word("die") {
@@ -12200,6 +12324,22 @@ impl P {
                 to: Affects::DamagedThisWay,
             });
         }
+        // "Each Dragon you control enters with ...", "Other creatures you
+        // control enter with ..." (CR 614.1c).
+        if self.eat_word("each") {
+            let what = self.filter()?;
+            self.expect_word("enters")?;
+            return Ok(Replaces::OthersEnter { what, each: true });
+        }
+        {
+            let at = self.pos;
+            if let Ok(what) = self.filter()
+                && self.eat_word("enter")
+            {
+                return Ok(Replaces::OthersEnter { what, each: false });
+            }
+            self.pos = at;
+        }
         // `creature dealt damage by this this turn dies` (Frostwielder),
         // `<affects> dies` in general.
         if !self.at_word("damage") && !self.at_word("combat") && !self.at_word("noncombat") {
@@ -12679,7 +12819,10 @@ impl P {
 /// (`trigger_amount` is the damage, the counters, or a batch's size).
 fn no_trigger_amount(t: &Trigger) -> bool {
     match t {
-        Trigger::When(t) | Trigger::Next(t) => no_trigger_amount(t),
+        Trigger::When(t) | Trigger::Next(t) | Trigger::Each(t) | Trigger::OnNextTurn(t) => {
+            no_trigger_amount(t)
+        }
+        Trigger::Batch(_) => false,
         Trigger::Either(a, b) => no_trigger_amount(a) && no_trigger_amount(b),
         Trigger::CastsSpell { .. }
         | Trigger::CastsFiltered { .. }
@@ -12687,7 +12830,13 @@ fn no_trigger_amount(t: &Trigger) -> bool {
         | Trigger::CastsNth { .. }
         | Trigger::GainsLife { .. }
         | Trigger::GainsLifeFirst { .. } => true,
-        t => no_trigger_object(t) && !matches!(t, Trigger::CreaturesDealCombatDamage(_)),
+        t => {
+            no_trigger_object(t)
+                && !matches!(
+                    t,
+                    Trigger::CreaturesDealCombatDamage(_) | Trigger::LosesLife { .. }
+                )
+        }
     }
 }
 
@@ -12696,7 +12845,11 @@ fn no_trigger_amount(t: &Trigger) -> bool {
 /// would denote nothing.
 fn no_trigger_object(t: &Trigger) -> bool {
     match t {
-        Trigger::When(t) | Trigger::Next(t) => no_trigger_object(t),
+        Trigger::When(t)
+        | Trigger::Next(t)
+        | Trigger::Batch(t)
+        | Trigger::Each(t)
+        | Trigger::OnNextTurn(t) => no_trigger_object(t),
         Trigger::Either(a, b) => no_trigger_object(a) && no_trigger_object(b),
         Trigger::State(_)
         | Trigger::EveryStep(_)
@@ -12704,6 +12857,7 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::CreaturesYouControlAttack
         | Trigger::GainsLife { .. }
         | Trigger::GainsLifeFirst { .. }
+        | Trigger::LosesLife { .. }
         | Trigger::DayNight
         | Trigger::RollsDice { .. }
         | Trigger::WinsFlip { .. }

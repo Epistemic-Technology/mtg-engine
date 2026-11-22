@@ -1,0 +1,638 @@
+# Triggers, replacements, and durations of the sixth wave (feature-triggers-c).
+
+scenario "Torpor Orb: a creature entering triggers nothing, its own or another's" {
+  battlefield A: "Torpor Orb", "Soul Warden", 3 "Forest"
+  hand A: "Elvish Visionary"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Elvish Visionary"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Elvish Visionary"
+  assert hand A count 0
+  assert life A 20
+}
+
+scenario "Torpor Orb: an artifact entering still triggers" {
+  battlefield A: "Torpor Orb", 2 "Forest"
+  hand A: "Ichor Wellspring"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Ichor Wellspring"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Doorkeeper Thrull: an artifact entering triggers nothing" {
+  battlefield A: "Doorkeeper Thrull", 2 "Forest"
+  hand A: "Ichor Wellspring"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Ichor Wellspring"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Doorkeeper Thrull: its own entering triggers nothing" {
+  battlefield A: "Soul Warden", 2 "Plains"
+  hand A: "Doorkeeper Thrull"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Doorkeeper Thrull"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Doorkeeper Thrull"
+  assert life A 20
+}
+
+scenario "Karn, Argent Defender: a creature entering triggers nothing" {
+  battlefield A: "Karn, Argent Defender", "Soul Warden", 3 "Forest"
+  hand A: "Elvish Visionary"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Elvish Visionary"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+  assert life A 20
+}
+
+scenario "if you cast it: Iridescent Tiger adds five mana when cast" {
+  battlefield A: 5 "Mountain"
+  hand A: "Iridescent Tiger", "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Iridescent Tiger"
+  turn 2 A: wait
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert battlefield A contains "Iridescent Tiger"
+}
+
+scenario "if you cast it: Iridescent Tiger put onto the battlefield adds nothing" {
+  battlefield A: 4 "Swamp"
+  hand A: "Zombify"
+  graveyard A: "Iridescent Tiger"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Zombify" targeting "Iridescent Tiger"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Iridescent Tiger"
+  assert stack count 0
+}
+
+scenario "if you cast it: Yathan Roadwatcher mills four and returns a creature card" {
+  battlefield A: "Plains", "Swamp", 2 "Forest"
+  hand A: "Yathan Roadwatcher"
+  library A: "Island", "Grizzly Bears", "Island", "Island", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Yathan Roadwatcher"
+  turn 2 A: trigger "Yathan Roadwatcher" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A count 3
+}
+
+scenario "if you cast it: Yathan Roadwatcher returned from the graveyard mills nothing" {
+  battlefield A: 4 "Swamp"
+  hand A: "Zombify"
+  graveyard A: "Yathan Roadwatcher"
+  library A: "Island", "Grizzly Bears", "Island", "Island", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Zombify" targeting "Yathan Roadwatcher"
+  run_to turn 2 postcombat_main
+  assert graveyard A count 1
+  assert library A count 5
+}
+
+scenario "mana until end of turn: Brazen Collector's {R} pays for a spell in the end step" {
+  battlefield A: "Brazen Collector"
+  hand A: "Lightning Bolt"
+  start turn 2 A
+  turn 2 A: attack "Brazen Collector"
+  turn 2 end A: cast "Lightning Bolt" targeting player B
+  run_to turn 3 upkeep
+  assert life B 15
+}
+
+scenario "mana until end of turn: Brazen Collector's {R} is gone the next turn" {
+  battlefield A: "Brazen Collector"
+  hand A: "Lightning Bolt"
+  start turn 2 A
+  turn 2 A: attack "Brazen Collector"
+  illegal turn 3 upkeep A: cast "Lightning Bolt" targeting player B
+  run_to turn 3 draw
+  assert life B 18
+}
+
+scenario "mana until end of turn: Savage Ventmaw's mana lasts into the second main phase" {
+  battlefield A: "Savage Ventmaw"
+  hand A: "Grizzly Bears", "Lightning Bolt"
+  start turn 2 A
+  turn 2 A: attack "Savage Ventmaw"
+  turn 2 postcombat_main A: cast "Grizzly Bears"
+  turn 2 postcombat_main A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 end
+  assert battlefield A contains "Grizzly Bears"
+  assert life B 13
+}
+
+scenario "mana until end of turn: Raphael adds that much {R} as he is dealt damage" {
+  battlefield A: "Raphael, Ninja Destroyer"
+  battlefield B: "Mountain"
+  hand A: "Lightning Bolt", "Shock"
+  hand B: "Shock"
+  start turn 2 A precombat_main
+  turn 2 precombat_main B: cast "Shock" targeting "Raphael, Ninja Destroyer"
+  turn 2 end A: cast "Lightning Bolt" targeting player B
+  turn 2 end A: cast "Shock" targeting player B
+  run_to turn 3 upkeep
+  assert life B 15
+  assert damage "Raphael, Ninja Destroyer" 0
+}
+
+scenario "mana until end of turn: Branch of Vitu-Ghazi turned face up adds two mana of one color" {
+  battlefield A: 6 "Mountain"
+  hand A: "Branch of Vitu-Ghazi", "Lightning Bolt", "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Branch of Vitu-Ghazi" face_down
+  turn 2 A: unmorph "Branch of Vitu-Ghazi"
+  turn 2 A: choose red
+  turn 2 end A: cast "Lightning Bolt" targeting player B
+  turn 2 end A: cast "Shock" targeting player B
+  run_to turn 3 upkeep
+  assert life B 15
+}
+
+scenario "plan counters: Political Triumph's fourth plan counter sacrifices it" {
+  battlefield A: "Political Triumph" with 3 plan, "Hill Giant", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Political Triumph"
+  assert hand A count 1
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Hill Giant" +1/+1 1
+}
+
+scenario "plan counters: Political Triumph's third plan counter does nothing more" {
+  battlefield A: "Political Triumph" with 2 plan, 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Political Triumph"
+  assert counters "Political Triumph" plan 3
+  assert hand A count 0
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "plan counters: Claim the Kingdom puts an indestructible counter on its target" {
+  battlefield A: "Claim the Kingdom" with 3 plan, "Grizzly Bears"
+  hand A: "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: play "Forest"
+  turn 2 A: trigger "Claim the Kingdom" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Claim the Kingdom"
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Grizzly Bears" indestructible 1
+}
+
+scenario "plan counters: Death to Our Enemies deals 7 damage when sacrificed" {
+  battlefield A: "Death to Our Enemies" with 3 plan, "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  turn 2 A: trigger "Death to Our Enemies" targeting player B
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Death to Our Enemies"
+  assert battlefield A contains "Treasure"
+  assert life B 10
+}
+
+scenario "plan counters: Robot Domination triggers once for creature cards put into the graveyard together" {
+  battlefield A: "Robot Domination", 2 "Grizzly Bears", 2 "Mountain"
+  hand A: "Pyroclasm"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Pyroclasm"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains 2 "Grizzly Bears"
+  assert counters "Robot Domination" plan 1
+  assert hand A count 1
+  assert life A 19
+}
+
+scenario "plan counters: Robot Domination's third plan counter makes three Robots" {
+  battlefield A: "Robot Domination" with 2 plan, "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Robot Domination"
+  assert battlefield A contains 3 "Robot Villain"
+}
+
+scenario "plan counters: Rewrite History triggers once for creatures tapped together" {
+  battlefield A: "Rewrite History", "Grizzly Bears", "Hill Giant"
+  hand A: "Island"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert counters "Rewrite History" plan 1
+  assert hand A count 2
+  assert graveyard A count 1
+}
+
+scenario "plan counters: Rewrite History returns two instant and sorcery cards" {
+  battlefield A: "Rewrite History" with 3 plan, "Grizzly Bears"
+  graveyard A: "Lightning Bolt", "Pyroclasm"
+  hand A: "Island"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 declare_attackers A: discard "Island"
+  turn 2 A: trigger "Rewrite History" targeting "Lightning Bolt", "Pyroclasm"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Rewrite History"
+  assert hand A contains "Lightning Bolt"
+  assert hand A contains "Pyroclasm"
+}
+
+scenario "a card leaves your graveyard: Kishla Skimmer draws once each turn" {
+  battlefield A: "Kishla Skimmer", 8 "Swamp"
+  hand A: "Zombify", "Zombify"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Zombify" targeting "Grizzly Bears"
+  turn 2 A: wait
+  turn 2 A: cast "Zombify" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert hand A count 1
+}
+
+scenario "one or more players discard: Hostile Investigator investigates once each turn" {
+  battlefield A: 7 "Swamp"
+  hand A: "Hostile Investigator", "Mind Rot"
+  hand B: "Island", "Island", "Island", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Hostile Investigator"
+  turn 2 A: wait
+  turn 2 A: cast "Mind Rot" targeting player B
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 1 "Clue"
+  assert hand B count 1
+}
+
+scenario "a +1/+1 counter on another creature: Knight of Wundagore grows once each turn" {
+  battlefield A: "Knight of Wundagore", "Grizzly Bears", 2 "Forest"
+  hand A: "Battlegrowth", "Battlegrowth"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Battlegrowth" targeting "Grizzly Bears"
+  turn 2 A: wait
+  turn 2 A: cast "Battlegrowth" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert counters "Knight of Wundagore" +1/+1 1
+}
+
+scenario "a counter on a creature you control: Mikey & Leo draw once each turn" {
+  battlefield A: "Mikey & Leo, Chaos & Order", "Grizzly Bears", 2 "Forest"
+  hand A: "Battlegrowth", "Battlegrowth"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Battlegrowth" targeting "Grizzly Bears"
+  turn 2 A: wait
+  turn 2 A: cast "Battlegrowth" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "you tap an opponent's creature: Sharae draws as it taps one" {
+  battlefield A: "Plains", "Plains", "Island", "Island"
+  hand A: "Sharae of Numbing Depths"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Sharae of Numbing Depths"
+  turn 2 A: trigger "Sharae of Numbing Depths" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert counters "Grizzly Bears" stun 1
+  assert hand A count 1
+}
+
+scenario "Massacre Girl, Most Wanted: a creature dying deals 1 damage, and that damage grows her" {
+  battlefield A: "Massacre Girl, Most Wanted", "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 2 A: trigger "Massacre Girl, Most Wanted" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 19
+  assert life A 21
+  assert counters "Massacre Girl, Most Wanted" +1/+1 1
+}
+
+scenario "your next upkeep: Casey Jones discards three at random at its controller's next upkeep, not before" {
+  battlefield A: 4 "Mountain"
+  hand A: "Casey Jones, Vigilante"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Casey Jones, Vigilante"
+  run_to turn 3 draw
+  assert hand A count 3
+  assert graveyard A count 0
+  run_to turn 4 draw
+  assert graveyard A count 3
+  assert hand A count 1
+}
+
+scenario "the end step on your next turn: Kav Landseeker's Lander lasts through this turn and the next player's" {
+  battlefield A: 4 "Mountain"
+  hand A: "Kav Landseeker"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Kav Landseeker"
+  run_to turn 3 upkeep
+  assert battlefield A contains "Lander"
+  run_to turn 4 upkeep
+  assert battlefield A contains "Lander"
+  run_to turn 5 upkeep
+  assert battlefield A lacks "Lander"
+}
+
+scenario "others enter with counters: Dragonstorm Globe gives a Dragon one, not another creature" {
+  battlefield A: "Dragonstorm Globe", 6 "Mountain"
+  hand A: "Furnace Whelp", "Raging Goblin"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Furnace Whelp"
+  turn 2 A: wait
+  turn 2 A: cast "Raging Goblin"
+  run_to turn 2 postcombat_main
+  assert counters "Furnace Whelp" +1/+1 1
+  assert counters "Raging Goblin" +1/+1 0
+}
+
+scenario "others enter with counters: Gev gives one for each opponent who lost life this turn" {
+  battlefield A: "Gev, Scaled Scorch", 3 "Mountain"
+  hand A: "Lightning Bolt", "Raging Goblin"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  turn 2 A: wait
+  turn 2 A: cast "Raging Goblin"
+  run_to turn 2 postcombat_main
+  assert counters "Raging Goblin" +1/+1 1
+}
+
+scenario "others enter with counters: Gev gives none when no opponent lost life" {
+  battlefield A: "Gev, Scaled Scorch", 3 "Mountain"
+  hand A: "Raging Goblin"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Raging Goblin"
+  run_to turn 2 postcombat_main
+  assert counters "Raging Goblin" +1/+1 0
+}
+
+scenario "others enter with counters: Giada counts the Angels already there" {
+  battlefield A: "Giada, Font of Hope", "Serra Angel", 5 "Plains"
+  hand A: "Serra Angel"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert counters newest A "Serra Angel" +1/+1 2
+  assert counters oldest A "Serra Angel" +1/+1 0
+}
+
+scenario "Enduring Innocence returns as an enchantment, not a creature" {
+  battlefield A: "Enduring Innocence", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting "Enduring Innocence"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Enduring Innocence"
+  assert is "Enduring Innocence" enchantment
+  assert is not "Enduring Innocence" creature
+  assert is not "Enduring Innocence" "Sheep"
+}
+
+scenario "Enduring Innocence returned as an enchantment doesn't return again" {
+  battlefield A: "Enduring Innocence", "Mountain", "Forest", "Forest"
+  hand A: "Lightning Bolt", "Naturalize"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting "Enduring Innocence"
+  turn 2 A: wait
+  turn 2 A: cast "Naturalize" targeting "Enduring Innocence"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Enduring Innocence"
+}
+
+scenario "Enduring Innocence draws once each turn for small creatures entering" {
+  battlefield A: "Enduring Innocence", 4 "Mountain"
+  hand A: "Raging Goblin", "Raging Goblin"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Raging Goblin"
+  turn 2 A: wait
+  turn 2 A: cast "Raging Goblin"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Enduring Vitality: creatures you control tap for mana of any color" {
+  battlefield A: "Enduring Vitality", "Grizzly Bears"
+  hand A: "Raging Goblin"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Raging Goblin"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Raging Goblin"
+}
+
+scenario "Enduring Vitality returns as an enchantment" {
+  battlefield A: "Enduring Vitality", 2 "Swamp"
+  hand A: "Doom Blade"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Doom Blade" targeting "Enduring Vitality"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Enduring Vitality"
+  assert is not "Enduring Vitality" creature
+  assert is "Enduring Vitality" enchantment
+}
+
+scenario "Tom, Bert, and William return as an artifact" {
+  battlefield A: "Tom, Bert, and William", 3 "Swamp"
+  hand A: "Murder"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Murder" targeting "Tom, Bert, and William"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Tom, Bert, and William"
+  assert is "Tom, Bert, and William" artifact
+  assert is not "Tom, Bert, and William" creature
+}
+
+scenario "Spider-Woman: the tapped creature stays tapped while she's under your control" {
+  battlefield A: 4 "Plains"
+  hand A: "Spider-Woman, Secret Agent"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Spider-Woman, Secret Agent"
+  turn 2 A: trigger "Spider-Woman, Secret Agent" targeting "Grizzly Bears"
+  run_to turn 3 precombat_main
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Spider-Woman: the creature untaps once she's gone" {
+  battlefield A: 4 "Plains"
+  hand A: "Spider-Woman, Secret Agent"
+  battlefield B: "Grizzly Bears", "Mountain", "Mountain"
+  hand B: "Lightning Bolt", "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Spider-Woman, Secret Agent"
+  turn 2 A: trigger "Spider-Woman, Secret Agent" targeting "Grizzly Bears"
+  turn 2 end B: cast "Lightning Bolt" targeting "Spider-Woman, Secret Agent"
+  turn 2 end B: cast "Lightning Bolt" targeting "Spider-Woman, Secret Agent"
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Spider-Woman, Secret Agent"
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Elegy Acolyte draws and loses 1 life when creatures deal combat damage; void makes a Robot" {
+  battlefield A: "Elegy Acolyte", "Grizzly Bears"
+  battlefield B: "Raging Goblin", "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 A
+  turn 2 A: attack "Elegy Acolyte", "Grizzly Bears"
+  turn 2 postcombat_main B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 3 upkeep
+  assert life B 14
+  assert life A 23
+  assert hand A count 2
+  assert battlefield A contains "Robot"
+}
+
+scenario "Far Fortune at max speed: a spell you control deals 1 more damage to an opponent" {
+  battlefield A: "Far Fortune, End Boss", "Mountain"
+  hand A: "Lightning Bolt"
+  speed A: 4
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 16
+}
+
+scenario "Far Fortune at max speed: its attack trigger and combat damage get 1 more, damage to you doesn't" {
+  battlefield A: "Far Fortune, End Boss"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  speed A: 4
+  start turn 2 A
+  turn 2 A: attack "Far Fortune, End Boss"
+  turn 2 postcombat_main B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 end
+  assert life B 13
+  assert life A 17
+}
+
+scenario "Far Fortune below max speed adds nothing" {
+  battlefield A: "Far Fortune, End Boss", "Mountain"
+  hand A: "Lightning Bolt"
+  speed A: 2
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 17
+}
+
+scenario "an opponent loses life: Bloodthirsty Conqueror gains that much" {
+  battlefield A: "Bloodthirsty Conqueror", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert life A 23
+}
+
+scenario "an opponent loses life: Bloodthirsty Conqueror ignores your own loss" {
+  battlefield A: "Bloodthirsty Conqueror"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 17
+}
+
+scenario "for as long as you control Lightning: the exiled card stays playable" {
+  battlefield A: "Lightning, Security Sergeant", "Mountain"
+  library A: "Shock", "Island", "Island", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Lightning, Security Sergeant"
+  run_to turn 4 precombat_main
+  turn 4 A: cast "Shock" targeting player B
+  run_to turn 4 end
+  assert life B 16
+}
+
+scenario "for as long as you control Lightning: not once it's gone" {
+  battlefield A: "Lightning, Security Sergeant", "Mountain"
+  battlefield B: 2 "Mountain"
+  hand B: "Lightning Bolt"
+  library A: "Shock", "Island", "Island", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Lightning, Security Sergeant"
+  turn 2 end B: cast "Lightning Bolt" targeting "Lightning, Security Sergeant"
+  run_to turn 4 precombat_main
+  illegal turn 4 A: cast "Shock" targeting player B
+  run_to turn 4 end
+  assert exile A contains "Shock"
+}
+
+scenario "Sakura-Tribe Springcaller's {G} lasts through the upkeep into the main phase" {
+  battlefield A: "Sakura-Tribe Springcaller"
+  hand A: "Raging Goblin", "Giant Growth"
+  start turn 2 A
+  turn 2 precombat_main A: cast "Giant Growth" targeting "Sakura-Tribe Springcaller"
+  run_to turn 2 postcombat_main
+  assert power "Sakura-Tribe Springcaller" 5
+}
+
+scenario "Crawling Infestation: one Insect for creature cards put into the graveyard together, once each turn" {
+  battlefield A: "Crawling Infestation", 2 "Grizzly Bears", 4 "Mountain"
+  hand A: "Pyroclasm", "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Pyroclasm"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 1 "Insect"
+}
+
+scenario "Annie Flash cast returns a permanent card tapped" {
+  battlefield A: "Mountain", "Forest", "Plains", 3 "Mountain"
+  hand A: "Annie Flash, the Veteran"
+  graveyard A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Annie Flash, the Veteran"
+  turn 2 A: trigger "Annie Flash, the Veteran" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Ant-Man makes an Insect once each turn for +1/+1 counters" {
+  battlefield A: "Ant-Man, Colony Commander", "Grizzly Bears", 2 "Forest"
+  hand A: "Battlegrowth", "Battlegrowth"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Battlegrowth" targeting "Grizzly Bears"
+  turn 2 A: wait
+  turn 2 A: cast "Battlegrowth" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 1 "Insect"
+}
+
+scenario "if you cast it: Geological Appraiser discovers 3 when cast" {
+  battlefield A: 4 "Mountain"
+  hand A: "Geological Appraiser"
+  library A: "Island", "Grizzly Bears", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Geological Appraiser"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "if you cast it: Geological Appraiser put onto the battlefield discovers nothing" {
+  battlefield A: 4 "Swamp"
+  hand A: "Zombify"
+  graveyard A: "Geological Appraiser"
+  library A: "Island", "Grizzly Bears", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Zombify" targeting "Geological Appraiser"
+  run_to turn 2 postcombat_main
+  assert library A count 3
+}

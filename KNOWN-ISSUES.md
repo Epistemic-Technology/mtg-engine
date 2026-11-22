@@ -69,6 +69,17 @@ wrong thing in some case.
   until end of turn") may not trigger: only static grants are counted as
   granting abilities. Not reproduced; no such card yet.
 
+- **"Each Dragon you control enters with an additional +1/+1 counter"**
+  (`Replaces::OthersEnter`) judges the entering permanent by its printed
+  card, not as it would exist on the battlefield (CR 614.12), and an
+  entering permanent carries only one counter kind, so another kind it
+  would enter with drops the additional counters (Dragonstorm Globe,
+  Gev, Giada).
+- **Mana kept "until end of turn" and firebending's mana** assume the
+  player's other mana is spent first (`PlayerState::turn_mana`,
+  `combat_mana`): spending the kept mana in an earlier step leaves other
+  mana in the pool to be kept instead.
+
 ## 2. Forms that pass the gate with the wrong meaning
 
 The renderer prints the right Oracle text for these, but the compiled

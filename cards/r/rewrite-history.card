@@ -1,0 +1,7 @@
+card "Rewrite History" {
+  oracle_id f91c860e-3feb-4a5a-b7ef-4e7d38d61c75
+  cost {2}{U}
+  type Enchantment — Plan
+  triggered whenever one or more creature you control become tapped: draw 1 card, then discard 1 card and put 1 plan counter on this
+  triggered when nth 4 plan counter put on this: sacrifice this; when you do, return up to 2 target andor instant or sorcery card from your graveyard to hand
+}

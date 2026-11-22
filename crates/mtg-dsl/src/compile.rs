@@ -1017,6 +1017,7 @@ impl Compiler<'_> {
                         n: *n,
                     },
                     then: Vec::new(),
+                    condition: None,
                 }));
             }
             // "... and with first strike": abilities the permanent has as
@@ -1283,6 +1284,9 @@ impl Compiler<'_> {
             }
             AbilityDef::CostChange(cc) if cc.cond.is_none() => {
                 cc.cond = Some(self.pool.intern_condition(c));
+            }
+            AbilityDef::Replacement(r) if r.condition.is_none() => {
+                r.condition = Some(self.pool.intern_condition(c));
             }
             _ => {
                 return self.err(format!(
@@ -1650,6 +1654,7 @@ impl Compiler<'_> {
             StaticCond::NotCastFromHand => {
                 StaticCondition::NotCastFrom(mtg_core::state::Zone::Hand)
             }
+            StaticCond::WasCast => StaticCondition::WasCast,
             StaticCond::PutAnyCounterThisTurn => StaticCondition::PutAnyCounterThisTurn,
             StaticCond::AttackedWithAtLeast(f, n) => {
                 StaticCondition::AttackedWithAtLeast(self.filter(f), *n)
@@ -2531,6 +2536,17 @@ impl Compiler<'_> {
                     exile: *exile,
                 });
             }
+            Effect::IsNow { to, types } => out.push(CoreEffect::Animate {
+                to: r(*to),
+                types: TypeSet::of(types.iter().copied()),
+                subtypes: self.subtypes(&[]),
+                pt: None,
+                colors: None,
+                keywords: KeywordSet::NONE,
+                indefinite: true,
+                loses_abilities: false,
+                in_addition: false,
+            }),
             // Layer 6 alone: an animation that only removes abilities.
             Effect::LoseAllAbilities { to } => out.push(CoreEffect::Animate {
                 to: r(*to),
@@ -2866,6 +2882,10 @@ impl Compiler<'_> {
                     filter: Box::new(self.filter(f)),
                     then,
                 });
+            }
+            Effect::KeepMana(inner) => {
+                let effects = self.sentences(inner)?;
+                out.push(CoreEffect::KeepMana(effects));
             }
             Effect::IfKicked(inner) => {
                 let effects = self.sentences(inner)?;
@@ -3568,6 +3588,7 @@ impl Compiler<'_> {
                 TriggerSpec::DealsCombatDamageToPlayer(self.trigger_obj(o))
             }
             Trigger::GainsLife { whose } => TriggerSpec::GainsLife { whose: *whose },
+            Trigger::LosesLife { whose } => TriggerSpec::LosesLife { whose: *whose },
             Trigger::GainsLifeFirst { whose } => TriggerSpec::GainsLifeFirst { whose: *whose },
             Trigger::RollsDice { whose } => TriggerSpec::RollsDice { whose: *whose },
             Trigger::DayNight => TriggerSpec::DayNight,
@@ -3608,6 +3629,7 @@ impl Compiler<'_> {
                 what: self.trigger_obj(obj),
                 kind: *kind,
             },
+            Trigger::NthCounterPut { kind, n } => TriggerSpec::NthCounterPut { kind: *kind, n: *n },
             Trigger::YouPutCounters { obj, kind } => TriggerSpec::YouPutCounters {
                 what: self.trigger_obj(obj),
                 kind: *kind,
@@ -3638,6 +3660,9 @@ impl Compiler<'_> {
             },
             Trigger::CastThis { or_cycle: false } => TriggerSpec::CastThis,
             Trigger::Next(inner) => TriggerSpec::Next(Box::new(self.trigger(inner))),
+            Trigger::Batch(inner) => TriggerSpec::Batch(Box::new(self.trigger(inner))),
+            Trigger::Each(inner) => TriggerSpec::Each(Box::new(self.trigger(inner))),
+            Trigger::OnNextTurn(inner) => TriggerSpec::OnNextTurn(Box::new(self.trigger(inner))),
             Trigger::Sacrifices(f) => TriggerSpec::Sacrifices(self.filter(f)),
             Trigger::CastThis { or_cycle: true } => TriggerSpec::Either(Box::new((
                 TriggerSpec::CastThis,
@@ -3783,6 +3808,9 @@ impl Compiler<'_> {
                 to: self.affects(to),
             },
             Replaces::Enters => CoreReplaces::Enters,
+            Replaces::OthersEnter { what, .. } => CoreReplaces::OthersEnter {
+                what: self.filter(what),
+            },
         };
         let mut replacement = r.outcome;
         if let mtg_core::card::Replacement::PlusToken { token, .. } = &mut replacement {
@@ -3796,6 +3824,7 @@ impl Compiler<'_> {
             replaces,
             replacement,
             then: self.sentences(&r.then)?,
+            condition: None,
         })
     }
 
@@ -4217,6 +4246,7 @@ impl Compiler<'_> {
                         n: *n,
                     },
                     then: Vec::new(),
+                    condition: None,
                 })
             }
             // "enters tapped if it's not your turn" is "unless it's your
@@ -4228,6 +4258,7 @@ impl Compiler<'_> {
                     replaces: mtg_core::card::Replaces::Enters,
                     replacement: mtg_core::card::Replacement::EnterTappedUnless(i),
                     then: Vec::new(),
+                    condition: None,
                 })
             }
             Ability::EntersTappedUnless(c) => {
@@ -4237,6 +4268,7 @@ impl Compiler<'_> {
                     replaces: mtg_core::card::Replaces::Enters,
                     replacement: mtg_core::card::Replacement::EnterTappedUnless(i),
                     then: Vec::new(),
+                    condition: None,
                 })
             }
             Ability::AttackUnless {
@@ -4350,11 +4382,13 @@ impl Compiler<'_> {
                 entering,
                 battlefield,
                 cause,
+                suppress,
             } => AbilityDef::TriggerAgain {
                 filter: self.filter(filter),
                 entering: entering.as_ref().map(|f| self.filter(f)),
                 battlefield: *battlefield,
                 cause: *cause,
+                suppress: *suppress,
             },
             Ability::PlayerStatic { kind, cond } => {
                 let condition = match cond {
@@ -4381,6 +4415,7 @@ impl Compiler<'_> {
                             cond,
                         },
                         then: Vec::new(),
+                        condition: None,
                     })
                 }
                 Mechanic::Bloodthirst(n)
@@ -4399,6 +4434,7 @@ impl Compiler<'_> {
                             n: *n,
                         },
                         then: Vec::new(),
+                        condition: None,
                     })
                 }
                 Mechanic::Buyback(_)
@@ -4551,6 +4587,7 @@ impl Compiler<'_> {
                         haste: matches!(m, Mechanic::Riot),
                     },
                     then: Vec::new(),
+                    condition: None,
                 }),
                 // CR 702.184a: "Tap another untapped creature you control:
                 // Put a number of charge counters on this permanent equal
@@ -4622,6 +4659,7 @@ impl Compiler<'_> {
                             n: Num::Count(i),
                         },
                         then: Vec::new(),
+                        condition: None,
                     })
                 }
                 Mechanic::Station => {

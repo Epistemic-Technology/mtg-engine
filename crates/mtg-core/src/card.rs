@@ -2148,6 +2148,10 @@ pub enum PlayUntil {
     /// "You may play them." with no duration (Runestone Caverns): for as
     /// long as the card stays in exile.
     Forever,
+    /// "You may play that card for as long as you control Lightning": while
+    /// the source stays on the battlefield under the player's control
+    /// (the same object, CR 400.7).
+    WhileYouControlSource,
 }
 
 /// Where searched-for cards go.
@@ -2568,6 +2572,9 @@ pub enum StaticCondition {
     /// "this spell was cast from anywhere other than your hand": the
     /// source was cast (CR 601.2a), from another zone than this one.
     NotCastFrom(crate::state::Zone),
+    /// "if you cast it" (CR 601.2a): the source was cast, from any zone;
+    /// a permanent remembers it from its spell.
+    WasCast,
     /// "you put a counter on a creature this turn": a spell or ability you
     /// controlled put counters of any kind on a creature (CR 122.6).
     PutAnyCounterThisTurn,
@@ -2764,6 +2771,8 @@ pub enum CounterKind {
     DoubleStrike,
     /// A named counter with no rules of its own (Myojin of Night's Reach).
     Divinity,
+    /// Plan counters on a Plan enchantment (no rules of their own).
+    Plan,
     /// Not a kind: "remove a counter from this creature" (a cost), counters
     /// of every kind. `GameObject::counters` totals them; removing them
     /// takes -1/-1 counters first, then kinds that don't change power or
@@ -2783,7 +2792,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 47] = [
+    pub const NAMED: [(&'static str, CounterKind); 48] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -2831,6 +2840,7 @@ impl CounterKind {
         ("indestructible", CounterKind::Indestructible),
         ("double strike", CounterKind::DoubleStrike),
         ("divinity", CounterKind::Divinity),
+        ("plan", CounterKind::Plan),
     ];
 
     /// Power/toughness counters by their Oracle name, with what each adds
@@ -4354,6 +4364,11 @@ pub enum Effect {
     /// Firebending's effect (CR 702.189a): "add N {R}. Until end of
     /// combat, you don't lose this mana as steps and phases end."
     Firebend(Num),
+    /// "[add mana]. Until end of turn, you don't lose this mana as steps
+    /// and phases end." (CR 106.4, 500.4): the mana these effects add to
+    /// the controller's pool stays as steps end, until the cleanup step
+    /// ends.
+    KeepMana(Vec<Effect>),
     /// "unless you waterbend {2}" (CR 701.67a): pay this generic mana,
     /// each {1} by mana or by tapping an untapped artifact or creature the
     /// controller controls; inside "you may" or "unless", like `Pay`.
@@ -4728,6 +4743,7 @@ impl Effect {
                 | Effect::AddManaTimes { .. }
                 | Effect::AddManaCombination { .. }
                 | Effect::AddManaLandCould { .. }
+                | Effect::KeepMana(_)
                 | Effect::SacrificeChosen { .. }
                 | Effect::ReturnChosen { .. }
                 | Effect::ExileChosen { .. }
@@ -5072,6 +5088,11 @@ pub enum Replaces {
     Dies { to: Affects },
     /// How this permanent itself enters the battlefield (CR 614.1c).
     Enters,
+    /// How another permanent matching the filter enters ("Each Dragon you
+    /// control enters with an additional +1/+1 counter on it", CR
+    /// 614.1c), judged by its card as it enters, under the controller it
+    /// will have.
+    OthersEnter { what: ObjFilter },
     /// One or more tokens (`creature`: creature tokens) would be created
     /// under the controller's control (CR 111.1, 614.1a). `effect` prints
     /// the older "If an effect would create ..." (rendering only).
@@ -5172,6 +5193,11 @@ pub struct ReplacementAbility {
     /// Effects that happen when this applies (CR 615.5): Phantom Tiger's
     /// "Remove a +1/+1 counter from it".
     pub then: Vec<Effect>,
+    /// It applies only while the pool's condition holds for its
+    /// controller ("Max speed — If a source you control would deal
+    /// damage ...", CR 702.179f).
+    #[serde(default)]
+    pub condition: Option<u16>,
 }
 
 impl ReplacementAbility {
@@ -5310,6 +5336,11 @@ pub enum TriggerSpec {
     CommitsCrime { your_turn: bool },
     /// "Whenever you gain life".
     GainsLife { whose: Who },
+    /// "Whenever an opponent loses life", "Whenever a player loses life"
+    /// (CR 119.3): once per life-losing event, damage included; the player
+    /// is the triggering player and the amount lost the trigger's amount
+    /// ("that much").
+    LosesLife { whose: Who },
     /// "Whenever you gain life for the first time each turn": the life
     /// gain event that starts the player's life gained this turn.
     GainsLifeFirst { whose: Who },
@@ -5479,6 +5510,26 @@ pub enum TriggerSpec {
     /// 122.1): once per instruction putting counters of that kind on it,
     /// however many.
     CountersPut { what: TriggerObj, kind: CounterKind },
+    /// "When the fourth plan counter is put on this enchantment": counters
+    /// of that kind put on the source take their number from below `n` to
+    /// `n` or more.
+    NthCounterPut { kind: CounterKind, n: u32 },
+    /// The "one or more" form of a per-object trigger (CR 603.2c): "Whenever
+    /// one or more creature cards are put into your graveyard from
+    /// anywhere", "Whenever one or more creatures you control become
+    /// tapped": once for the matching objects of events that happen
+    /// together (before the next time a player would receive priority),
+    /// their number the trigger's amount.
+    Batch(Box<TriggerSpec>),
+    /// The per-object form of a "one or more" trigger: "Whenever a card
+    /// leaves your graveyard" (once for each card), "Whenever you put a
+    /// +1/+1 counter on a creature you control" (the same as "one or more",
+    /// in the older wording).
+    Each(Box<TriggerSpec>),
+    /// "At the beginning of the end step on your next turn" (a delayed
+    /// trigger's step, `BeginningOfStep` of yours): not in the turn the
+    /// delayed trigger was created.
+    OnNextTurn(Box<TriggerSpec>),
     /// "Whenever you put one or more +1/+1 counters on a creature you
     /// control", "... counters on a Goblin, Orc, or Army you control"
     /// (`kind` `None`: any kind): once per permanent counters are put on
@@ -5612,6 +5663,18 @@ pub enum DamageTo {
 }
 
 impl TriggerSpec {
+    /// A trigger on a permanent entering the battlefield (alone or as one
+    /// of two events): what Torpor Orb stops.
+    pub fn is_enters(&self) -> bool {
+        match self {
+            TriggerSpec::Enters(_)
+            | TriggerSpec::EntersBatch(_)
+            | TriggerSpec::EntersFromGraveyard(_) => true,
+            TriggerSpec::Either(pair) => pair.0.is_enters() || pair.1.is_enters(),
+            _ => false,
+        }
+    }
+
     /// Valiant's trigger, alone or as one of two events.
     pub fn is_valiant(&self) -> bool {
         match self {
@@ -5692,6 +5755,7 @@ impl TriggerSpec {
             | TriggerSpec::Reflexive
             | TriggerSpec::State(_) => 0,
             TriggerSpec::GainsLife { .. }
+            | TriggerSpec::LosesLife { .. }
             | TriggerSpec::GainsLifeFirst { .. }
             | TriggerSpec::GainsOrLosesLife { .. } => WATCH_LIFE_CHANGE,
             TriggerSpec::RollsDice { .. } | TriggerSpec::WinsFlip { .. } => WATCH_ROLL,
@@ -5712,7 +5776,10 @@ impl TriggerSpec {
             } => WATCH_DISCARD,
             TriggerSpec::Cycles { .. } => WATCH_CYCLE,
             TriggerSpec::Either(pair) => pair.0.watch_mask() | pair.1.watch_mask(),
-            TriggerSpec::Next(inner) => inner.watch_mask(),
+            TriggerSpec::Next(inner)
+            | TriggerSpec::Batch(inner)
+            | TriggerSpec::Each(inner)
+            | TriggerSpec::OnNextTurn(inner) => inner.watch_mask(),
             TriggerSpec::UnlocksDoor { .. }
             | TriggerSpec::BecomesStage(_)
             | TriggerSpec::FullyUnlocks { .. }
@@ -5723,6 +5790,7 @@ impl TriggerSpec {
             | TriggerSpec::Sacrificed { .. }
             | TriggerSpec::SacrificesBatch(_) => WATCH_SACRIFICE,
             TriggerSpec::CountersPut { .. }
+            | TriggerSpec::NthCounterPut { .. }
             | TriggerSpec::YouPutCounters { .. }
             | TriggerSpec::Chapter(_) => WATCH_COUNTERS,
             TriggerSpec::ScriesOrSurveils
@@ -6470,13 +6538,19 @@ pub enum AbilityDef {
     /// matching it entering (`battlefield`: worded "entering the
     /// battlefield"); with `cause` `Dies` or `Attacks`, "If a creature
     /// dying causes ...", "If a creature attacking causes ...". Counted
-    /// with the player-level statics.
+    /// with the player-level statics. With `suppress`, "Creatures entering
+    /// don't cause abilities to trigger." (Torpor Orb): an enters trigger
+    /// of a permanent matching the filter doesn't trigger at all on a
+    /// permanent matching `entering` entering (CR 603.2, 603.6a), whatever
+    /// would add to it.
     TriggerAgain {
         filter: ObjFilter,
         entering: Option<ObjFilter>,
         battlefield: bool,
         #[serde(default)]
         cause: TriggerCause,
+        #[serde(default)]
+        suppress: bool,
     },
     /// "If this card is in your opening hand, you may begin the game with
     /// it on the battlefield." (CR 103.6a; the Leylines).

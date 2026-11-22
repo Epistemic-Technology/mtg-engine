@@ -1,0 +1,7 @@
+card "Geological Appraiser" {
+  oracle_id a0a1cd2b-ed7c-4cce-8497-4873e1e5e3df
+  cost {2}{R}{R}
+  type Creature — Human Artificer
+  pt 3/2
+  triggered when this enters if you cast it: discover 3
+}

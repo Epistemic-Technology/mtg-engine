@@ -1,0 +1,7 @@
+card "Branch of Vitu-Ghazi" {
+  oracle_id 7a30316b-dcd5-4a4b-b959-eecde7ca92e7
+  type Land
+  mana {C}
+  disguise {3}
+  triggered when this is turned face up: keep mana add any 2
+}

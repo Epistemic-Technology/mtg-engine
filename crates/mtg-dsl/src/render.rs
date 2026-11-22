@@ -655,6 +655,20 @@ fn card_filter_phrase(f: &Filter, card: &Card) -> String {
 /// A cost changer's subject: "Goblin spells and Rogue spells", "Red
 /// spells and white spells" for two alternatives.
 /// "second", "third", "4th".
+/// "the fourth plan counter", "the seventh".
+fn nth_word(n: u32) -> String {
+    match n {
+        4 => "fourth".to_string(),
+        5 => "fifth".to_string(),
+        6 => "sixth".to_string(),
+        7 => "seventh".to_string(),
+        8 => "eighth".to_string(),
+        9 => "ninth".to_string(),
+        10 => "tenth".to_string(),
+        n => ordinal_word(n),
+    }
+}
+
 fn ordinal_word(n: u32) -> String {
     match n {
         1 => "first".to_string(),
@@ -798,7 +812,12 @@ fn sentence(s: &str) -> String {
 /// legendary permanent by its name, or the part of it before a comma
 /// ("Sacrifice Lunatic Pandora", "When Pol Jamaar enters"; CR 201.5).
 pub fn this_ref(card: &Card) -> String {
-    if card.kind != Kind::Token && card.supertypes.contains(&Supertype::Legendary) {
+    // `short_name` on a card that isn't legendary: it names itself in
+    // full ("When Enduring Innocence dies", a card that may not stay a
+    // creature).
+    if card.kind != Kind::Token
+        && (card.supertypes.contains(&Supertype::Legendary) || card.short_name.is_some())
+    {
         short_name(card).to_string()
     } else {
         format!("this {}", self_noun(card))
@@ -816,7 +835,7 @@ pub fn short_name(card: &Card) -> &str {
         }
         card.name.split(", ").next().unwrap_or(&card.name)
     } else {
-        &card.name
+        card.short_name.as_deref().unwrap_or(&card.name)
     }
 }
 
@@ -2599,6 +2618,12 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
         String::new()
     } else {
         format!("{} ", card_filter_phrase(&g, card))
+    };
+    // `andor`: "up to two target instant and/or sorcery cards".
+    let p = if plural_form && f.and_or {
+        p.replacen(" or ", " and/or ", 1)
+    } else {
+        p
     };
     let noun = if plural_form { "cards" } else { "card" };
     // "a card with flash": only qualities after the noun.
@@ -4533,18 +4558,27 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let body = if *until == PlayUntil::Forever {
                 // "You may play them." (no duration).
                 format!("You may play {}", if one { "it" } else { "them" })
+            } else if *until == PlayUntil::WhileYouControlSource {
+                format!(
+                    "You may play {what} for as long as you control {}",
+                    ctx.source_name()
+                )
             } else if *first {
                 let when = match until {
                     PlayUntil::ThisTurn => "Until end of turn",
                     PlayUntil::EndOfYourNextTurn => "Until the end of your next turn",
-                    PlayUntil::YourNextEndStep | PlayUntil::Forever => "Until your next end step",
+                    PlayUntil::YourNextEndStep
+                    | PlayUntil::Forever
+                    | PlayUntil::WhileYouControlSource => "Until your next end step",
                 };
                 format!("{when}, you may play {what}")
             } else {
                 let when = match until {
                     PlayUntil::ThisTurn => "this turn",
                     PlayUntil::EndOfYourNextTurn => "until the end of your next turn",
-                    PlayUntil::YourNextEndStep | PlayUntil::Forever => "until your next end step",
+                    PlayUntil::YourNextEndStep
+                    | PlayUntil::Forever
+                    | PlayUntil::WhileYouControlSource => "until your next end step",
                 };
                 format!("You may play {what} {when}")
             };
@@ -4646,7 +4680,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 let when = match until {
                     PlayUntil::ThisTurn => "Until end of turn",
                     PlayUntil::EndOfYourNextTurn => "Until the end of your next turn",
-                    PlayUntil::YourNextEndStep | PlayUntil::Forever => "Until your next end step",
+                    PlayUntil::YourNextEndStep
+                    | PlayUntil::Forever
+                    | PlayUntil::WhileYouControlSource => "Until your next end step",
                 };
                 Clause::imperative(format!("{when}, you may {verb} {what}{free}"))
             } else {
@@ -4655,6 +4691,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     PlayUntil::EndOfYourNextTurn => " until the end of your next turn",
                     PlayUntil::YourNextEndStep => " until your next end step",
                     PlayUntil::Forever => "",
+                    PlayUntil::WhileYouControlSource => {
+                        return Clause::imperative(format!(
+                            "you may {verb} {what}{free} for as long as you control {}",
+                            ctx.source_name()
+                        ));
+                    }
                 };
                 Clause::imperative(format!("you may {verb} {what}{free}{when}"))
             }
@@ -5608,7 +5650,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 format!("put {o} onto the battlefield{tapped} under its owner's control")
             } else if *under_you {
                 format!("return {o} to the battlefield{tapped} under your control")
-            } else if yours {
+            } else if yours
+                || (*what == Recipient::Source
+                    && ctx.card.pronoun == Some(crate::ast::Pronoun::They))
+            {
+                // "return them to the battlefield" (Tom, Bert, and William
+                // return themselves, their owner's ability).
                 format!("return {o} to the battlefield{tapped}")
             } else if matches!(what, Recipient::ThoseCards(..)) {
                 // "return those cards to the battlefield under their
@@ -6304,6 +6351,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 "you may cast {what} without paying its mana cost{tail}"
             ))
         }
+        // "It's an enchantment." / "They're an artifact." (the Enduring
+        // cycle, Tom, Bert, and William).
+        Effect::IsNow { types, .. } => {
+            let words: Vec<String> = types.iter().map(|t| type_noun(*t).to_string()).collect();
+            let they = ctx.card.pronoun == Some(crate::ast::Pronoun::They);
+            Clause::imperative(format!(
+                "{} {} {}",
+                if they { "they're" } else { "it's" },
+                article(&words[0]),
+                words.join(" ")
+            ))
+        }
         Effect::LoseAllAbilities { to } => {
             let s = ctx.subj(*to);
             let v = ctx.verb(*to, "loses", "lose");
@@ -6958,6 +7017,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         } => Clause::imperative(format!(
             "add {} mana of any one color",
             count_words(*n, "one")
+        )),
+        // "add that much {R}" (Raphael, after "is dealt damage").
+        Effect::AddManaTimes {
+            mana,
+            count: Num::ThatMuch,
+        } => Clause::imperative(format!(
+            "add that much {}",
+            mana_symbols(&[*mana], "mana of any one color")
         )),
         Effect::AddManaTimes { mana, .. } => Clause::imperative(format!(
             "add {}",
@@ -7895,6 +7962,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 lowercase_first(body.trim_end_matches('.'))
             ))
         }
+        Effect::KeepMana(inner) => {
+            let body = sentences(inner, ctx);
+            Clause::imperative(format!(
+                "{}. Until end of turn, you don't lose this mana as steps and phases end",
+                lowercase_first(body.trim_end_matches('.'))
+            ))
+        }
         Effect::IfKicked(inner) => {
             let body = sentences(inner, ctx);
             let body = if starts_with_name(&body, ctx.card) {
@@ -8520,6 +8594,15 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
             && clauses[i - 1].text.starts_with("deals ")
         {
             &c.text["deals ".len()..]
+        } else if i > 0
+            && s.joins.get(i - 1) == Some(&Join::And)
+            && matches!(s.effects[i], Effect::AddCounters { .. })
+            && matches!(s.effects[i - 1], Effect::AddCounters { .. })
+            && c.text.starts_with("put ")
+        {
+            // "put a +1/+1 counter on target creature you control and a
+            // plan counter on this enchantment" (`, and` repeats "put").
+            &c.text["put ".len()..]
         } else if same_subject
             && c.text.starts_with("gains \"")
             && clauses[i - 1].text.starts_with("gains ")
@@ -8682,6 +8765,52 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::Next(inner) => {
             trigger_text(inner, ctx, next).replacen("whenever you cast", "when you next cast", 1)
         }
+        // CR 603.2c.
+        Trigger::Batch(inner) => match &**inner {
+            Trigger::PutIntoGraveyard(f) => format!(
+                "whenever one or more {} cards are put into your graveyard from anywhere",
+                card_filter_phrase(f, ctx.card)
+            ),
+            Trigger::BecomesTapped(TriggerObj::Filter(f)) => format!(
+                "whenever one or more {} become tapped",
+                controller_first(f, filter_phrase(f, ctx.card, true))
+            ),
+            Trigger::DiscardsBatch { .. } => {
+                "whenever one or more players discard one or more cards".to_string()
+            }
+            Trigger::YouTap(f) => format!(
+                "whenever you tap one or more {}",
+                controller_first(f, filter_phrase(f, ctx.card, true))
+            ),
+            t => unreachable!("no batched form of {t:?}"),
+        },
+        // "At the beginning of the end step on your next turn".
+        Trigger::OnNextTurn(inner) => match &**inner {
+            Trigger::BeginningOfStep { step, .. } => format!(
+                "at the beginning of the {} on your next turn",
+                step_name(*step, Who::You).trim_start_matches("your ")
+            ),
+            t => unreachable!("no next-turn form of {t:?}"),
+        },
+        Trigger::Each(inner) => match &**inner {
+            Trigger::LeavesGraveyard(f) => format!(
+                "whenever {} leaves your graveyard",
+                with_article(&if *f == Filter::default() {
+                    "card".to_string()
+                } else {
+                    format!("{} card", card_filter_phrase(f, ctx.card))
+                })
+            ),
+            Trigger::YouPutCounters { obj, kind } => format!(
+                "whenever you put {} on {}",
+                with_article(&format!(
+                    "{}counter",
+                    kind.map_or(String::new(), |k| format!("{} ", counter_name(k)))
+                )),
+                trigger_subject(obj, ctx)
+            ),
+            t => unreachable!("no per-object form of {t:?}"),
+        },
         Trigger::State(c) => format!("when {}", static_cond_text(c, ctx.card)),
         Trigger::Either(a, b) => {
             let a = trigger_text(a, ctx, next);
@@ -8931,6 +9060,12 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::BeginningOfStep { step, whose } => {
             if next && *step == Step::Upkeep && *whose == Who::Any {
                 "at the beginning of the next turn's upkeep".to_string()
+            } else if next && *whose == Who::You {
+                // "At the beginning of your next upkeep".
+                format!(
+                    "at the beginning of your next {}",
+                    step_name(*step, Who::You).trim_start_matches("your ")
+                )
             } else if next {
                 format!(
                     "at the beginning of the next {}",
@@ -9106,6 +9241,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             Who::You => "whenever you gain life".to_string(),
             _ => "whenever a player gains life".to_string(),
         },
+        Trigger::LosesLife { whose } => match whose {
+            Who::You => "whenever you lose life".to_string(),
+            Who::Opponents => "whenever an opponent loses life".to_string(),
+            Who::Any => "whenever a player loses life".to_string(),
+        },
         Trigger::GainsLifeFirst { .. } => {
             "whenever you gain life for the first time each turn".to_string()
         }
@@ -9161,6 +9301,12 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             "whenever one or more {} counters are put on {}",
             counter_name(*kind),
             trigger_subject(obj, ctx)
+        ),
+        Trigger::NthCounterPut { kind, n } => format!(
+            "whenever the {} {} counter is put on {}",
+            nth_word(*n),
+            counter_name(*kind),
+            trigger_subject(&TriggerObj::This, ctx)
         ),
         Trigger::YouPutCounters { obj, kind } => format!(
             "whenever you put one or more {}counters on {}",
@@ -10034,6 +10180,52 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                     count_phrase(&count.expr, ctx.card, false)
                 )
             }
+        }
+        // "Each Dragon you control enters with an additional +1/+1 counter
+        // on it", "Other creatures you control enter with an additional
+        // +1/+1 counter on them for each opponent who lost life this turn".
+        (Replaces::OthersEnter { what, each }, Outcome::EnterWithCounters { kind, n }) => {
+            let (n, per) = match n {
+                Num::Count(i) => match ctx.card.counts.get(usize::from(*i)) {
+                    Some(count) if count.style == crate::ast::CountStyle::Each => {
+                        let (n, expr) = match &count.expr {
+                            crate::ast::CountExpr::Times(n, inner) => (*n, &**inner),
+                            e => (1, e),
+                        };
+                        // Counted before it enters: "for each Angel you
+                        // already control" (Giada).
+                        let p = count_phrase(expr, ctx.card, true);
+                        let p = match p.strip_suffix(" you control") {
+                            Some(head) => format!("{head} you already control"),
+                            None => p,
+                        };
+                        (Num::N(n), format!(" {p}"))
+                    }
+                    _ => (*n, String::new()),
+                },
+                n => (*n, String::new()),
+            };
+            let what_text = if *each {
+                format!(
+                    "Each {} enters",
+                    controller_first(what, filter_phrase(what, ctx.card, false))
+                )
+            } else {
+                format!(
+                    "{} enter",
+                    capitalize(&controller_first(what, filter_phrase(what, ctx.card, true)))
+                )
+            };
+            let c = counters(n, *kind);
+            let c = match c.split_once(' ') {
+                Some((a, rest)) if a == "a" || a == "an" => format!("an additional {rest}"),
+                Some((a, rest)) => format!("{a} additional {rest}"),
+                None => c,
+            };
+            format!(
+                "{what_text} with {c} on {}{per}.",
+                if *each { "it" } else { "them" }
+            )
         }
         (Replaces::Enters, Outcome::EnterWithCounters { kind, n }) => format!(
             "{} enters with {} on {}.",
@@ -11157,6 +11349,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 "it"
             }
         ),
+        StaticCond::WasCast => "you cast it".to_string(),
         StaticCond::PutAnyCounterThisTurn => {
             "you put a counter on a creature this turn".to_string()
         }
@@ -12093,6 +12286,21 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                         count_words(Num::N(u32::from(*at_least)), "one")
                     );
                 }
+                // "When Enduring Innocence dies, if it was a creature, ...":
+                // the permanent as it last existed (CR 603.10a).
+                Some(crate::ast::TrigCond::Static(c @ StaticCond::Is(f)))
+                    if !f.types.is_empty()
+                        && matches!(trigger, Trigger::Dies(TriggerObj::This)) =>
+                {
+                    let text = static_cond_text(c, card);
+                    let text = if card.pronoun == Some(crate::ast::Pronoun::They) {
+                        text.replacen("it's", "they were", 1)
+                    } else {
+                        text.replacen("it's", "it was", 1)
+                    };
+                    out.push_str(", if ");
+                    out.push_str(&text);
+                }
                 // "When an opponent casts a creature spell, if this
                 // permanent is an enchantment, it becomes ...": a card type
                 // the source may lose is asked of the permanent.
@@ -12856,12 +13064,24 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 "this card"
             }
         ),
+        // CR 603.6a: Torpor Orb.
+        Ability::TriggerAgain {
+            entering: Some(e),
+            battlefield,
+            suppress: true,
+            ..
+        } => format!(
+            "{} entering{} don't cause abilities to trigger.",
+            capitalize(&controller_first(e, filter_phrase(e, card, true))),
+            if *battlefield { " the battlefield" } else { "" },
+        ),
         // CR 603.2d.
         Ability::TriggerAgain {
             filter: f,
             entering: Some(e),
             battlefield,
             cause,
+            ..
         } => format!(
             "If {} {}{} causes a triggered ability of {} to trigger, that ability triggers an additional time.",
             with_article(&controller_first(e, filter_phrase(e, card, false))),

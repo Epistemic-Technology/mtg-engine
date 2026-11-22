@@ -526,6 +526,7 @@ impl Decompiler<'_> {
             StaticCondition::Void => StaticCond::Void,
             StaticCondition::NotYourMainPhase => StaticCond::NotYourMainPhase,
             StaticCondition::NotCastFrom(_) => StaticCond::NotCastFromHand,
+            StaticCondition::WasCast => StaticCond::WasCast,
             StaticCondition::PutAnyCounterThisTurn => StaticCond::PutAnyCounterThisTurn,
             StaticCondition::AttackedWithAtLeast(f, n) => {
                 StaticCond::AttackedWithAtLeast(self.filter(f), *n)
@@ -1223,6 +1224,7 @@ impl Decompiler<'_> {
                 inner: self.sentences(effects),
             },
             CoreEffect::IfKicked(inner) => Effect::IfKicked(self.sentences(inner)),
+            CoreEffect::KeepMana(inner) => Effect::KeepMana(self.sentences(inner)),
             CoreEffect::EachPutsFromGraveyard { who, filter } => Effect::EachPutsFromGraveyard {
                 who: Self::recipient(*who),
                 filter: self.filter(filter),
@@ -1786,6 +1788,7 @@ impl Decompiler<'_> {
                 Trigger::DealsCombatDamageToPlayer(self.trigger_obj(o))
             }
             TriggerSpec::GainsLife { whose } => Trigger::GainsLife { whose: *whose },
+            TriggerSpec::LosesLife { whose } => Trigger::LosesLife { whose: *whose },
             TriggerSpec::GainsLifeFirst { whose } => Trigger::GainsLifeFirst { whose: *whose },
             TriggerSpec::RollsDice { whose } => Trigger::RollsDice { whose: *whose },
             TriggerSpec::DayNight => Trigger::DayNight,
@@ -1826,6 +1829,7 @@ impl Decompiler<'_> {
                 obj: self.trigger_obj(what),
                 kind: *kind,
             },
+            TriggerSpec::NthCounterPut { kind, n } => Trigger::NthCounterPut { kind: *kind, n: *n },
             TriggerSpec::YouPutCounters { what, kind } => Trigger::YouPutCounters {
                 obj: self.trigger_obj(what),
                 kind: *kind,
@@ -1891,6 +1895,9 @@ impl Decompiler<'_> {
             },
             TriggerSpec::CastThis => Trigger::CastThis { or_cycle: false },
             TriggerSpec::Next(inner) => Trigger::Next(Box::new(self.trigger(inner))),
+            TriggerSpec::Batch(inner) => Trigger::Batch(Box::new(self.trigger(inner))),
+            TriggerSpec::Each(inner) => Trigger::Each(Box::new(self.trigger(inner))),
+            TriggerSpec::OnNextTurn(inner) => Trigger::OnNextTurn(Box::new(self.trigger(inner))),
             TriggerSpec::Sacrifices(f) => Trigger::Sacrifices(self.filter(f)),
             TriggerSpec::DiscardsBatch { whose } => Trigger::DiscardsBatch { whose: *whose },
             TriggerSpec::SacrificesBatch(f) => Trigger::SacrificesBatch(self.filter(f)),
@@ -2011,6 +2018,10 @@ impl Decompiler<'_> {
                     to: self.affects(to),
                 },
                 CoreReplaces::Enters => Replaces::Enters,
+                CoreReplaces::OthersEnter { what } => Replaces::OthersEnter {
+                    what: self.filter(what),
+                    each: true,
+                },
             },
             outcome: r.replacement,
             then: self.sentences(&r.then),
@@ -2096,11 +2107,13 @@ impl Decompiler<'_> {
                 entering,
                 battlefield,
                 cause,
+                suppress,
             } => Ability::TriggerAgain {
                 filter: self.filter(filter),
                 entering: entering.as_ref().map(|f| self.filter(f)),
                 battlefield: *battlefield,
                 cause: *cause,
+                suppress: *suppress,
             },
             AbilityDef::PlayerStatic { kind, condition } => Ability::PlayerStatic {
                 kind: *kind,

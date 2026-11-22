@@ -1,0 +1,8 @@
+card "Kishla Skimmer" {
+  oracle_id a3275d80-112b-4839-a014-e44ef48d2e6b
+  cost {G}{U}
+  type Creature — Bird Scout
+  pt 2/2
+  keywords flying
+  triggered once each turn whenever a card leaves your graveyard during your turn: draw 1 card
+}

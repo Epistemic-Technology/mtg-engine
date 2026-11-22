@@ -1,0 +1,6 @@
+card "Torpor Orb" {
+  oracle_id 97326cad-b13c-4e52-82ce-850a39e5ff08
+  cost {2}
+  type Artifact
+  trigger never permanent when creature enters
+}

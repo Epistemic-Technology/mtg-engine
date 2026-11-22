@@ -1,0 +1,9 @@
+card "Gev, Scaled Scorch" {
+  oracle_id 77b832a8-a3af-44fe-bc67-72510d292667
+  cost {B}{R}
+  type Legendary Creature — Lizard Mercenary
+  pt 3/2
+  ward pay 2 life
+  replace other creature you control enter: with count each opponents lost life this turn +1/+1 counters
+  triggered whenever you cast Lizard spell: deal 1 damage to target opponent
+}

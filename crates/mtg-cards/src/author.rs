@@ -2448,6 +2448,22 @@ impl Templates {
     /// counts targets declared so far in the ability.
     #[allow(clippy::too_many_lines)] // the sentence forms that need more than one rule
     fn effects(&self, text: &str, targets: &mut usize) -> Result<String, Skip> {
+        // "Add {R}. Until end of turn, you don't lose this mana as steps
+        // and phases end." (CR 500.4).
+        if let Some(head) = text
+            .strip_suffix(" Until end of turn, you don't lose this mana as steps and phases end.")
+            .or_else(|| {
+                text.strip_suffix(
+                    " Until end of turn, you don't lose this mana as steps and phases end",
+                )
+            })
+        {
+            let inner = self.effects(head, targets)?;
+            if inner.starts_with("add ") && !inner.contains(';') {
+                return Ok(format!("keep mana {inner}"));
+            }
+            return Err(Skip::Sentence(text.to_string()));
+        }
         // "Target opponent reveals their hand. You choose a nonland card
         // from it. That player discards that card." is one effect.
         let duress = Regex::new(
@@ -3180,6 +3196,43 @@ fn trigger_text(head: &str) -> Option<String> {
         | "Whenever one or more opponents are dealt noncombat damage" => {
             return Some(lowercase_first(head));
         }
+        // The per-object and batched forms (CR 603.2c).
+        "Whenever a card leaves your graveyard" => "whenever a card leaves your graveyard",
+        "Whenever one or more players discard one or more cards" => {
+            "whenever one or more players discard one or more cards"
+        }
+        "Whenever you put a +1/+1 counter on a creature" => {
+            "whenever you put a +1/+1 counter on creature"
+        }
+        "Whenever you put a +1/+1 counter on another creature" => {
+            "whenever you put a +1/+1 counter on other creature"
+        }
+        "Whenever you put a +1/+1 counter on a creature you control" => {
+            "whenever you put a +1/+1 counter on creature you control"
+        }
+        "Whenever you put a counter on a creature you control" => {
+            "whenever you put a counter on creature you control"
+        }
+        "Whenever one or more creature cards are put into your graveyard from anywhere" => {
+            "whenever one or more creature card put into your graveyard from anywhere"
+        }
+        "Whenever one or more creature cards are put into your graveyard from anywhere during your turn" => {
+            "whenever one or more creature card put into your graveyard from anywhere during your turn"
+        }
+        "Whenever one or more creatures you control become tapped" => {
+            "whenever one or more creature you control become tapped"
+        }
+        "Whenever you tap one or more untapped creatures your opponents control" => {
+            "whenever you tap one or more untapped creature your opponents control"
+        }
+        // CR 701.27: a transforming card's face names itself.
+        "Whenever this creature enters or transforms into ~" => {
+            "whenever this enters or transforms"
+        }
+        "When this creature transforms into ~" | "When this permanent transforms into ~" => {
+            "when this transforms"
+        }
+        "Whenever this creature transforms into ~" => "whenever this transforms",
         "Whenever a creature dealt damage by this creature this turn dies" => {
             "whenever creature dealt damage by this this turn dies"
         }
@@ -5002,6 +5055,7 @@ impl Builder<'_> {
                 // condition, judged as it enters).
                 let cond = static_condition(cap(&c, 3))
                     .or_else(|| (cap(&c, 3) == "you cast it from your hand").then(|| "cast from hand".to_string()))
+                    .or_else(|| (cap(&c, 3) == "you cast it").then(|| "you cast it".to_string()))
                     .ok_or_else(|| Skip::Sentence(line.to_string()))?;
                 let s = if n == "1" { "" } else { "s" };
                 self.statements
@@ -5347,6 +5401,12 @@ impl Builder<'_> {
                 .or_else(|| rest.strip_prefix("if the gift was promised, "))
             {
                 (" if kicked", r)
+            } else if let Some(r) = rest
+                .strip_prefix("if you cast it, ")
+                .filter(|_| trigger == "when this enters")
+            {
+                // The source's own cast (CR 601.2a), from any zone.
+                (" if you cast it", r)
             } else if let Some(r) = rest.strip_prefix("if no spells were cast last turn, ") {
                 (" if no spells were cast last turn", r)
             } else if let Some(r) =

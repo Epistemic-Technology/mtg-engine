@@ -1,0 +1,10 @@
+card "Tom, Bert, and William" {
+  oracle_id 0ea58cfe-b37c-49a6-a3be-7e60065b8238
+  cost {3}{B}{G}
+  type Legendary Creature — Troll
+  pt 5/5
+  short_name "Tom, Bert, and William"
+  pronoun they
+  activated {1}, sacrifice another creature: draw count equal power of the sacrificed creature cards, then discard 1 card
+  triggered when this dies if this is creature: return this to battlefield; it is now artifact
+}
