@@ -1316,6 +1316,12 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
             if land {
                 c.types = c.types.union(TypeSet::of([CardType::Land]));
             }
+            // CR 205.1a, 205.3d: an object that stops being a creature
+            // (or kindred) loses its creature types ("It's an enchantment":
+            // the Enduring cycle).
+            if !t.contains(CardType::Creature) && !t.contains(CardType::Kindred) {
+                c.subtypes.retain(|s| !s.is_creature_type());
+            }
         }
         Modification::SetTypes(t) => c.types = *t,
         Modification::AddLandType(color) => {

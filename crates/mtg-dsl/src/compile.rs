@@ -2436,6 +2436,17 @@ impl Compiler<'_> {
                     exile: *exile,
                 });
             }
+            Effect::IsNow { to, types } => out.push(CoreEffect::Animate {
+                to: r(*to),
+                types: TypeSet::of(types.iter().copied()),
+                subtypes: self.subtypes(&[]),
+                pt: None,
+                colors: None,
+                keywords: KeywordSet::NONE,
+                indefinite: true,
+                loses_abilities: false,
+                in_addition: false,
+            }),
             // Layer 6 alone: an animation that only removes abilities.
             Effect::LoseAllAbilities { to } => out.push(CoreEffect::Animate {
                 to: r(*to),

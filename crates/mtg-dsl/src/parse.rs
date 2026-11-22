@@ -5298,6 +5298,20 @@ impl P {
                     who: subject,
                 })
             }
+            // "It's an enchantment." (indefinitely, layer 4).
+            "is" if self.at_word("now") => {
+                self.pos += 1;
+                let mut types = Vec::new();
+                while let Some(Tok::Word(w)) = self.peek() {
+                    let Some(t) = card_type(w) else { break };
+                    types.push(t);
+                    self.pos += 1;
+                }
+                if types.is_empty() {
+                    return self.fail("expected a card type after `is now`");
+                }
+                Ok(Effect::IsNow { to: subject, types })
+            }
             // "loses all abilities" alone (layer 6).
             "lose" | "loses"
                 if self.at_words(&["all", "abilities"])

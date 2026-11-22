@@ -1,0 +1,10 @@
+card "Enduring Vitality" {
+  oracle_id 3577c47e-76d3-4659-b922-31c4b74be3a0
+  cost {1}{G}{G}
+  type Enchantment Creature — Elk Glimmer
+  pt 3/3
+  short_name "Enduring Vitality"
+  keywords vigilance
+  static creature you control: has ability { mana any }
+  triggered when this dies if this is creature: return this to battlefield; it is now enchantment
+}

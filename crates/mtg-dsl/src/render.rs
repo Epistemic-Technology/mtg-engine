@@ -812,7 +812,12 @@ fn sentence(s: &str) -> String {
 /// legendary permanent by its name, or the part of it before a comma
 /// ("Sacrifice Lunatic Pandora", "When Pol Jamaar enters"; CR 201.5).
 pub fn this_ref(card: &Card) -> String {
-    if card.kind != Kind::Token && card.supertypes.contains(&Supertype::Legendary) {
+    // `short_name` on a card that isn't legendary: it names itself in
+    // full ("When Enduring Innocence dies", a card that may not stay a
+    // creature).
+    if card.kind != Kind::Token
+        && (card.supertypes.contains(&Supertype::Legendary) || card.short_name.is_some())
+    {
         short_name(card).to_string()
     } else {
         format!("this {}", self_noun(card))
@@ -830,7 +835,7 @@ pub fn short_name(card: &Card) -> &str {
         }
         card.name.split(", ").next().unwrap_or(&card.name)
     } else {
-        &card.name
+        card.short_name.as_deref().unwrap_or(&card.name)
     }
 }
 
@@ -5530,7 +5535,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 format!("put {o} onto the battlefield{tapped} under its owner's control")
             } else if *under_you {
                 format!("return {o} to the battlefield{tapped} under your control")
-            } else if yours {
+            } else if yours
+                || (*what == Recipient::Source
+                    && ctx.card.pronoun == Some(crate::ast::Pronoun::They))
+            {
+                // "return them to the battlefield" (Tom, Bert, and William
+                // return themselves, their owner's ability).
                 format!("return {o} to the battlefield{tapped}")
             } else if matches!(what, Recipient::ThoseCards(..)) {
                 // "return those cards to the battlefield under their
@@ -6192,6 +6202,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(format!(
                 "you may cast {what} without paying its mana cost{tail}"
+            ))
+        }
+        // "It's an enchantment." / "They're an artifact." (the Enduring
+        // cycle, Tom, Bert, and William).
+        Effect::IsNow { types, .. } => {
+            let words: Vec<String> = types.iter().map(|t| type_noun(*t).to_string()).collect();
+            let they = ctx.card.pronoun == Some(crate::ast::Pronoun::They);
+            Clause::imperative(format!(
+                "{} {} {}",
+                if they { "they're" } else { "it's" },
+                article(&words[0]),
+                words.join(" ")
             ))
         }
         Effect::LoseAllAbilities { to } => {
@@ -12039,6 +12061,20 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                         ", if at least {} mana was spent to cast it",
                         count_words(Num::N(u32::from(*at_least)), "one")
                     );
+                }
+                // "When Enduring Innocence dies, if it was a creature, ...":
+                // the permanent as it last existed (CR 603.10a).
+                Some(crate::ast::TrigCond::Static(c @ StaticCond::Is(f)))
+                    if !f.types.is_empty() && matches!(trigger, Trigger::Dies(TriggerObj::This)) =>
+                {
+                    let text = static_cond_text(c, card);
+                    let text = if card.pronoun == Some(crate::ast::Pronoun::They) {
+                        text.replacen("it's", "they were", 1)
+                    } else {
+                        text.replacen("it's", "it was", 1)
+                    };
+                    out.push_str(", if ");
+                    out.push_str(&text);
                 }
                 // "When an opponent casts a creature spell, if this
                 // permanent is an enchantment, it becomes ...": a card type

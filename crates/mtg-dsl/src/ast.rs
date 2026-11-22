@@ -3368,6 +3368,14 @@ pub enum Effect {
         max: Option<Num>,
         exile: bool,
     },
+    /// `it is now enchantment`: "It's an enchantment." (the Enduring
+    /// cycle's returned permanent; "They're an artifact." with `pronoun
+    /// they`): its card types become these, indefinitely (layer 4), so it
+    /// loses its creature types.
+    IsNow {
+        to: Recipient,
+        types: Vec<CardType>,
+    },
     /// `target creature loses all abilities` (until end of turn; layer
     /// 6).
     LoseAllAbilities {

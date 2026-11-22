@@ -1587,6 +1587,15 @@ impl Fmt {
             Effect::LoseAllAbilities { to } => {
                 format!("{} loses all abilities", self.recipient(*to, t))
             }
+            Effect::IsNow { to, types } => format!(
+                "{} is now {}",
+                self.recipient(*to, t),
+                types
+                    .iter()
+                    .map(|k| format!("{k:?}").to_lowercase())
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            ),
             Effect::Strip { keywords: ks, to } => {
                 format!("{} loses {}", self.recipient(*to, t), keywords(ks))
             }

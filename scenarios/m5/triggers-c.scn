@@ -392,6 +392,71 @@ scenario "others enter with counters: Giada counts the Angels already there" {
   assert counters oldest A "Serra Angel" +1/+1 0
 }
 
+scenario "Enduring Innocence returns as an enchantment, not a creature" {
+  battlefield A: "Enduring Innocence", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting "Enduring Innocence"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Enduring Innocence"
+  assert is "Enduring Innocence" enchantment
+  assert is not "Enduring Innocence" creature
+  assert is not "Enduring Innocence" "Sheep"
+}
+
+scenario "Enduring Innocence returned as an enchantment doesn't return again" {
+  battlefield A: "Enduring Innocence", "Mountain", "Forest", "Forest"
+  hand A: "Lightning Bolt", "Naturalize"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting "Enduring Innocence"
+  turn 2 A: wait
+  turn 2 A: cast "Naturalize" targeting "Enduring Innocence"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Enduring Innocence"
+}
+
+scenario "Enduring Innocence draws once each turn for small creatures entering" {
+  battlefield A: "Enduring Innocence", 4 "Mountain"
+  hand A: "Raging Goblin", "Raging Goblin"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Raging Goblin"
+  turn 2 A: wait
+  turn 2 A: cast "Raging Goblin"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Enduring Vitality: creatures you control tap for mana of any color" {
+  battlefield A: "Enduring Vitality", "Grizzly Bears"
+  hand A: "Raging Goblin"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Raging Goblin"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Raging Goblin"
+}
+
+scenario "Enduring Vitality returns as an enchantment" {
+  battlefield A: "Enduring Vitality", 2 "Swamp"
+  hand A: "Doom Blade"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Doom Blade" targeting "Enduring Vitality"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Enduring Vitality"
+  assert is not "Enduring Vitality" creature
+  assert is "Enduring Vitality" enchantment
+}
+
+scenario "Tom, Bert, and William return as an artifact" {
+  battlefield A: "Tom, Bert, and William", 3 "Swamp"
+  hand A: "Murder"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Murder" targeting "Tom, Bert, and William"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Tom, Bert, and William"
+  assert is "Tom, Bert, and William" artifact
+  assert is not "Tom, Bert, and William" creature
+}
+
 scenario "if you cast it: Geological Appraiser discovers 3 when cast" {
   battlefield A: 4 "Mountain"
   hand A: "Geological Appraiser"

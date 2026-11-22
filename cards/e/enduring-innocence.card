@@ -1,0 +1,10 @@
+card "Enduring Innocence" {
+  oracle_id 98a389f4-2905-47f3-b60e-3d4afb3e5cb0
+  cost {1}{W}{W}
+  type Enchantment Creature — Sheep Glimmer
+  pt 2/1
+  short_name "Enduring Innocence"
+  keywords lifelink
+  triggered once each turn whenever one or more other creature you control with power 2 or less enter: draw 1 card
+  triggered when this dies if this is creature: return this to battlefield; it is now enchantment
+}
