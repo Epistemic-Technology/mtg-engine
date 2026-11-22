@@ -1633,9 +1633,19 @@ impl GameState {
                 tokens[self.choose_mid(p, DecisionKind::ChooseCard, options)]
             }
         };
-        let new = self.create_token_copy(of, p, None);
-        if self.objects.contains_key(new) {
-            ctx.created = Some(new);
+        // CR 614.1a: token-creation replacement effects apply.
+        let def = self.objects[of].def;
+        for (d, k) in self.tokens_to_create(p, def, 1) {
+            for _ in 0..k {
+                let new = if d == def {
+                    self.create_token_copy(of, p, None)
+                } else {
+                    self.create_token(d, p)
+                };
+                if self.objects.contains_key(new) {
+                    ctx.created = Some(new);
+                }
+            }
         }
     }
 
@@ -1659,10 +1669,12 @@ impl GameState {
             self.add_counters(ctx.source, CounterKind::PlusOnePlusOne, n);
             return;
         }
-        for _ in 0..n {
-            let new = self.create_token(token, p);
-            if self.objects.contains_key(new) {
-                ctx.created = Some(new);
+        for (d, k) in self.tokens_to_create(p, token, n) {
+            for _ in 0..k {
+                let new = self.create_token(d, p);
+                if self.objects.contains_key(new) {
+                    ctx.created = Some(new);
+                }
             }
         }
     }
@@ -5178,7 +5190,19 @@ impl GameState {
     ) {
         let o = &self.objects[spell];
         let index = o.targets.len();
-        if self.that_player_of(spec).is_some() {
+        // "that share a card type" (`SameWhat::SharesType`) relates to an
+        // earlier target too.
+        let shares = matches!(
+            self.pool.base_spec(spec),
+            TargetSpec::Filtered(f) if matches!(
+                self.pool.filter(f).same,
+                Some(crate::card::Same {
+                    what: crate::card::SameWhat::SharesType,
+                    ..
+                })
+            )
+        );
+        if shares || self.that_player_of(spec).is_some() {
             let trigger_player = o.ability.and_then(|a| a.trigger_player);
             options.retain(|c| match c {
                 Choice::Target(t) => self.that_player_ok(spec, *t, trigger_player, &o.targets),
@@ -8217,6 +8241,7 @@ impl GameState {
                     Some(d),
                     crate::mana::ColorSet::default(),
                     None,
+                    crate::card::TypeSet::default(),
                 ));
             }
             let of = match same.of {
@@ -10202,41 +10227,66 @@ impl GameState {
                 // CR 303.4f: an Aura token enters attached to what it was
                 // created attached to; with nothing it could enchant there
                 // (no target chosen, or one now illegal), it isn't created.
-                let host = match attached {
-                    Some(r) => {
+                // "For each Rat you control, create a Wicked Role token
+                // attached to that Rat": one creation for each object.
+                let hosts: SmallVec<[Option<ObjId>; 2]> = if let Some(r) = attached {
+                    {
                         let spec = self
                             .pool
                             .get(*token)
                             .enchant()
                             .unwrap_or(TargetSpec::Creature);
-                        let host = self
-                            .recipients(ctx, *r)
-                            .into_iter()
-                            .find_map(|t| on_battlefield(self, t))
-                            .filter(|h| self.is_legal_attachment(spec, *h));
-                        if host.is_none() {
+                        let mut hosts: SmallVec<[Option<ObjId>; 2]> = SmallVec::new();
+                        for t in self.recipients(ctx, *r) {
+                            if let Some(h) = on_battlefield(self, t)
+                                && self.is_legal_attachment(spec, h)
+                                && !hosts.contains(&Some(h))
+                            {
+                                hosts.push(Some(h));
+                            }
+                        }
+                        if hosts.is_empty() {
                             return;
                         }
-                        host
+                        hosts
                     }
-                    None => None,
+                } else {
+                    smallvec::smallvec![None]
                 };
                 ctx.created_tokens.clear();
-                for t in self.recipients(ctx, *who) {
-                    if let Target::Player(p) = t {
-                        let n = self.eval_num(*count, ctx);
-                        // CR 614.1a: token-creation replacement effects.
-                        for (def, k) in self.tokens_to_create(p, *token, n) {
-                            for _ in 0..k {
-                                // "then attach this Equipment to it".
-                                let id = self.create_token_with(def, p, *tapped && def == *token);
-                                if def == *token
-                                    && let Some(h) = host
-                                {
-                                    self.attach(id, h);
+                let sized = self.token_pt.take();
+                for host in hosts {
+                    for t in self.recipients(ctx, *who) {
+                        if let Target::Player(p) = t {
+                            let n = self.eval_num(*count, ctx);
+                            // CR 614.1a: token-creation replacement effects.
+                            for (def, k) in self.tokens_to_create(p, *token, n) {
+                                for _ in 0..k {
+                                    let id =
+                                        self.create_token_with(def, p, *tapped && def == *token);
+                                    if def == *token
+                                        && let Some(h) = host
+                                    {
+                                        self.attach(id, h);
+                                    }
+                                    // CR 111.3: "an X/X ... token".
+                                    if def == *token
+                                        && let Some(v) = sized
+                                        && self.objects[id].zone == Zone::Battlefield
+                                    {
+                                        self.effect_on(
+                                            ctx,
+                                            id,
+                                            smallvec::smallvec![Modification::SetPt {
+                                                power: PtValue::Fixed(v),
+                                                toughness: PtValue::Fixed(v),
+                                            }],
+                                            Duration::Permanent,
+                                        );
+                                    }
+                                    ctx.created = Some(id);
+                                    ctx.created_tokens.push(id);
                                 }
-                                ctx.created = Some(id);
-                                ctx.created_tokens.push(id);
                             }
                         }
                     }
@@ -11579,10 +11629,16 @@ impl GameState {
                     })
                 });
                 if target.is_none() {
-                    let new = self.create_token(*token, p);
-                    if self.objects.contains_key(new) {
-                        target = Some(new);
-                        ctx.created = Some(new);
+                    // CR 614.1a: an Army made twice is two Armies; one of
+                    // them gets the counters (CR 701.47a).
+                    for (d, k) in self.tokens_to_create(p, *token, 1) {
+                        for _ in 0..k {
+                            let new = self.create_token(d, p);
+                            if self.objects.contains_key(new) && d == *token && target.is_none() {
+                                target = Some(new);
+                                ctx.created = Some(new);
+                            }
+                        }
                     }
                 }
                 if let Some(id) = target {
@@ -11604,9 +11660,13 @@ impl GameState {
                     })
                 });
                 if target.is_none() {
-                    let new = self.create_token(*token, p);
-                    if self.objects.contains_key(new) {
-                        target = Some(new);
+                    for (d, k) in self.tokens_to_create(p, *token, 1) {
+                        for _ in 0..k {
+                            let new = self.create_token(d, p);
+                            if self.objects.contains_key(new) && d == *token && target.is_none() {
+                                target = Some(new);
+                            }
+                        }
                     }
                 }
                 if let Some(id) = target {
@@ -12016,6 +12076,69 @@ impl GameState {
                 self.cbump();
                 self.sync_control();
             }
+            Effect::TokenPtX(n) => {
+                self.token_pt = Some(i32::try_from(self.eval_num(*n, ctx)).unwrap_or(i32::MAX));
+            }
+            Effect::ExchangeLife { with } => {
+                ctx.did = false;
+                let me = ctx.controller;
+                let Some(them) = self
+                    .recipients(ctx, *with)
+                    .into_iter()
+                    .find_map(|t| match t {
+                        Target::Player(o) if o != me && self.player(o).lost.is_none() => Some(o),
+                        _ => None,
+                    })
+                else {
+                    return;
+                };
+                let (mine, theirs) = (self.player(me).life, self.player(them).life);
+                // CR 701.12c: each gains or loses the life necessary to
+                // equal the other's former total.
+                let (loser, gainer, diff) = match mine.cmp(&theirs) {
+                    std::cmp::Ordering::Equal => return,
+                    std::cmp::Ordering::Greater => (me, them, mine - theirs),
+                    std::cmp::Ordering::Less => (them, me, theirs - mine),
+                };
+                self.change_life(loser, -diff);
+                self.gain_life(gainer, diff.unsigned_abs());
+                ctx.did = loser == me;
+            }
+            Effect::GiveControl { of, to } => {
+                ctx.did = false;
+                let Some(p) = self.recipients(ctx, *to).into_iter().find_map(|t| match t {
+                    Target::Player(p) if self.player(p).lost.is_none() => Some(p),
+                    _ => None,
+                }) else {
+                    return;
+                };
+                let mut given = false;
+                for t in self.recipients(ctx, *of) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    if self.objects[id].controller == p {
+                        continue;
+                    }
+                    let timestamp = self.tick();
+                    self.effects.push(ContinuousEffect {
+                        source: Some(ctx.source),
+                        controller: p,
+                        timestamp,
+                        duration: Duration::Permanent,
+                        affected: Affected::Objects(smallvec::smallvec![id]),
+                        parts: smallvec::smallvec![Modification::Control],
+                    });
+                    self.control_effects += 1;
+                    given = true;
+                }
+                if given {
+                    self.cbump();
+                    self.sync_control();
+                }
+                // "If they do, you draw a card.": whether it changed hands.
+                ctx.did = given;
+            }
             Effect::EndTurn => {
                 // CR 724.1a: triggered abilities not yet on the stack cease
                 // to exist.
@@ -12036,17 +12159,25 @@ impl GameState {
             Effect::Incubate { count, token } => {
                 // CR 701.53a: it enters with the counters (CR 122.6).
                 let n = self.eval_num(*count, ctx);
-                let new = self.create_token_entering(
-                    *token,
-                    ctx.controller,
-                    super::replace::Enter {
-                        tapped: false,
-                        counters: (n > 0).then_some((CounterKind::PlusOnePlusOne, n)),
-                        ..super::replace::Enter::default()
-                    },
-                );
-                if self.objects.contains_key(new) {
-                    ctx.created = Some(new);
+                // CR 614.1a: token-creation replacement effects apply; each
+                // Incubator enters with the counters.
+                for (d, k) in self.tokens_to_create(ctx.controller, *token, 1) {
+                    for _ in 0..k {
+                        let counters =
+                            (d == *token && n > 0).then_some((CounterKind::PlusOnePlusOne, n));
+                        let new = self.create_token_entering(
+                            d,
+                            ctx.controller,
+                            super::replace::Enter {
+                                tapped: false,
+                                counters,
+                                ..super::replace::Enter::default()
+                            },
+                        );
+                        if self.objects.contains_key(new) {
+                            ctx.created = Some(new);
+                        }
+                    }
                 }
             }
             Effect::Fabricate { count, token } => self.fabricate(ctx, *count, *token),
@@ -12739,7 +12870,7 @@ impl GameState {
                 });
                 self.enter_attacking(new, defender);
             }
-            Effect::CreateTokenCopy { of, except } => {
+            Effect::CreateTokenCopy { of, except, count } => {
                 let x = except.then(|| {
                     self.objects
                         .get(ctx.source)
@@ -12747,6 +12878,8 @@ impl GameState {
                         .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.card))
                         .expect("a resolving spell or its last known information exists")
                 });
+                let n = self.eval_num(*count, ctx);
+                ctx.created_tokens.clear();
                 // "When this creature dies, ... create a token that's a copy
                 // of it": the copiable values it last had on the
                 // battlefield (CR 111.12, 707.2).
@@ -12767,8 +12900,17 @@ impl GameState {
                         .filter(|l| l.object.zone == Zone::Battlefield)
                     {
                         let (def, was) = (l.object.def, l.object.except);
-                        let new = self.create_token_copy_of(def, x.or(was), ctx.controller);
-                        ctx.created = Some(new);
+                        for (d, k) in self.tokens_to_create(ctx.controller, def, n) {
+                            for _ in 0..k {
+                                let new = if d == def {
+                                    self.create_token_copy_of(def, x.or(was), ctx.controller)
+                                } else {
+                                    self.create_token(d, ctx.controller)
+                                };
+                                ctx.created = Some(new);
+                                ctx.created_tokens.push(new);
+                            }
+                        }
                     }
                     return;
                 }
@@ -12778,7 +12920,7 @@ impl GameState {
                         // CR 614.1a: token-creation replacement effects
                         // ("twice that many of those tokens").
                         let def = self.objects[id].def;
-                        for (d, k) in self.tokens_to_create(ctx.controller, def, 1) {
+                        for (d, k) in self.tokens_to_create(ctx.controller, def, n) {
                             for _ in 0..k {
                                 let new = if d == def {
                                     self.create_token_copy(id, ctx.controller, x)
@@ -12786,6 +12928,7 @@ impl GameState {
                                     self.create_token(d, ctx.controller)
                                 };
                                 ctx.created = Some(new);
+                                ctx.created_tokens.push(new);
                             }
                         }
                     }
@@ -12912,27 +13055,33 @@ impl GameState {
             self.add_counters(id, CounterKind::PlusOnePlusOne, n);
             return;
         }
-        let new = self.create_token_with(token, p, false);
-        // An X/X Spirit: the 0/0 made that size.
-        if self.objects.contains_key(new)
-            && self
-                .pool
-                .get(token)
-                .printed
-                .is_some_and(|c| u32::try_from(c.power).ok() != Some(n))
-        {
-            let size = i32::try_from(n).unwrap_or(i32::MAX);
-            self.effect_on(
-                ctx,
-                new,
-                smallvec::smallvec![Modification::SetPt {
-                    power: PtValue::Fixed(size),
-                    toughness: PtValue::Fixed(size),
-                }],
-                Duration::Permanent,
-            );
+        // CR 614.1a: token-creation replacement effects apply.
+        for (d, k) in self.tokens_to_create(p, token, 1) {
+            for _ in 0..k {
+                let new = self.create_token_with(d, p, false);
+                // An X/X Spirit: the 0/0 made that size.
+                if d == token
+                    && self.objects.contains_key(new)
+                    && self
+                        .pool
+                        .get(token)
+                        .printed
+                        .is_some_and(|c| u32::try_from(c.power).ok() != Some(n))
+                {
+                    let size = i32::try_from(n).unwrap_or(i32::MAX);
+                    self.effect_on(
+                        ctx,
+                        new,
+                        smallvec::smallvec![Modification::SetPt {
+                            power: PtValue::Fixed(size),
+                            toughness: PtValue::Fixed(size),
+                        }],
+                        Duration::Permanent,
+                    );
+                }
+                ctx.created = Some(new);
+            }
         }
-        ctx.created = Some(new);
     }
 
     fn explore(&mut self, ctx: &EffectCtx, id: ObjId) {

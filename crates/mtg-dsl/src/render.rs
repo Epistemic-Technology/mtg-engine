@@ -1080,6 +1080,8 @@ struct Ctx<'a> {
     /// A spell was just countered unless its controller paid: "If they
     /// do" follows.
     they_paid: bool,
+    /// After "exchange life totals": "If you lost life this way".
+    lost_life_did: bool,
     /// "That player may pay {4}": a following "If you do" prints "If the
     /// player does".
     player_did: bool,
@@ -1131,6 +1133,7 @@ impl<'a> Ctx<'a> {
             in_won: false,
             in_excess: false,
             they_paid: false,
+            lost_life_did: false,
             player_did: false,
             before_if_you_dont: false,
             in_unless: false,
@@ -1351,6 +1354,7 @@ impl<'a> Ctx<'a> {
             Recipient::EachOpponent => "each opponent".to_string(),
             Recipient::EachOtherPlayer => "each other player".to_string(),
             Recipient::EachOfYourOpponents => "each of your opponents".to_string(),
+            Recipient::AnOpponent => "an opponent".to_string(),
             Recipient::Source => self.source(),
             Recipient::SourceNamed => {
                 self.source_mentioned = true;
@@ -1429,7 +1433,9 @@ impl<'a> Ctx<'a> {
                 "each permanent you control".to_string()
             }
             Recipient::SameObject if self.delayed_that => "that creature".to_string(),
-            Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
+            Recipient::CreatedTokens | Recipient::SameTokens | Recipient::CreatedThose => {
+                "those tokens".to_string()
+            }
             Recipient::CreatedThem | Recipient::SameThem => "them".to_string(),
             Recipient::Those(t) => crate::format::those_word(t).to_string(),
             Recipient::SameObject | Recipient::CreatedObject | Recipient::TriggeringIt => {
@@ -1923,6 +1929,7 @@ impl<'a> Ctx<'a> {
                 | Recipient::TargetAnd(..)
                 | Recipient::CreatedTokens
                 | Recipient::CreatedThem
+                | Recipient::CreatedThose
                 | Recipient::SameTokens
                 | Recipient::SameThem
                 | Recipient::Those(_)
@@ -2647,6 +2654,10 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
 /// relations to a target outside a recipient that names it (" with the
 /// same name as it").
 fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
+    // "a creature named Keimi" (a token's name).
+    if let Some(n) = &f.named_card {
+        return format!(" named {n}");
+    }
     match f.same {
         None => String::new(),
         Some(SameRef::NamedThis) => format!(" named {}", card.name),
@@ -2660,6 +2671,10 @@ fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
         Some(SameRef::ManaValueAtMostPower) => format!(
             " with mana value less than or equal to {}'s power",
             this_ref(card)
+        ),
+        Some(SameRef::ShareCardType) => format!(
+            " that {} a card type",
+            if plural_form { "share" } else { "shares" }
         ),
     }
 }
@@ -3433,6 +3448,15 @@ fn token_description_plain(
         return s;
     }
     let keywords_only = quoted.is_empty() && !bare.is_empty();
+    // An Equipment token with several quoted abilities puts the list's
+    // commas inside the quotation marks: "with \"Equipped creature gets
+    // +2/+0,\" \"Whenever equipped creature attacks, ...,\" and equip {2}"
+    // (Icingdeath, Frost Tyrant).
+    if equipment && bare.is_empty() && quoted.len() >= 2 && !equip_last.is_empty() && !it_has {
+        let q: Vec<String> = quoted.iter().map(|q| format!("\"{q},\"")).collect();
+        let _ = write!(s, " with {} and {}", q.join(" "), equip_last.join(" and "));
+        return s;
+    }
     let parts: Vec<String> = bare
         .into_iter()
         .chain(quoted.into_iter().map(|q| format!("\"{q}\"")))
@@ -3545,7 +3569,6 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::DistributeCounters { count, .. }
         | Effect::AddManaTimes { count, .. }
         | Effect::AddManaCombination { count, .. }
-        | Effect::CreateToken { count, .. }
         | Effect::EmpowerJace { count }
         | Effect::Amass { count, .. }
         | Effect::Dig { count, .. }
@@ -3553,6 +3576,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::ExileTop { count, .. }
         | Effect::Earthbend { count, .. }
         | Effect::InvestigateCount { count, .. } => vec![*count],
+        Effect::CreateToken { count, sized, .. } => std::iter::once(*count).chain(*sized).collect(),
         Effect::CopySpells { times, .. } => vec![*times],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         Effect::CounterUnlessPays { x, .. } => vec![*x],
@@ -4590,6 +4614,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             "return all {} from your graveyard to the battlefield",
             cards_phrase(filter, ctx.card, true)
         )),
+        Effect::ExchangeLife { with } => {
+            // "If you lost life this way, draw that many cards." (Mister
+            // Negative).
+            ctx.lost_life_did = true;
+            Clause::imperative(format!("exchange life totals with {}", ctx.obj(*with)))
+        }
+        Effect::GiveControl { of, to } => {
+            let s = ctx.subj(*to);
+            let v = ctx.verb(*to, "gains", "gain");
+            let o = ctx.obj(*of);
+            // "If they do, you draw a card." (Stiltzkin).
+            ctx.they_paid = true;
+            Clause::with_subject(*to, s, format!("{v} control of {o}"))
+        }
         Effect::ExchangeControl { what } => {
             let o = if what.len() == 1 {
                 ctx.obj_all(what[0])
@@ -5957,7 +5995,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj_list_tap(to);
             Clause::imperative(format!("untap {o}"))
         }
-        Effect::Grant { keywords, to } => {
+        Effect::Grant { keywords, to, each } => {
             if keywords.as_slice() == [Keyword::Lure] {
                 let o = ctx.obj(*to);
                 return Clause::imperative(lure_sentence(&o, true));
@@ -6021,7 +6059,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 *to,
                 s,
                 format!(
-                    "{also}{} {}",
+                    "{also}{}{} {}",
+                    if *each { "each " } else { "" },
                     ctx.verb(*to, "gains", "gain"),
                     keywords_list(keywords)
                 ),
@@ -6090,6 +6129,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             who,
             it_has,
             attached,
+            sized,
         } => {
             if !*tapped
                 && who.is_none()
@@ -6103,6 +6143,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             ctx.last_token = Some(token.clone());
             let mut what = token_description(token, *count, *tapped && !*attacking, *it_has, ctx);
+            // "an X/X green Elemental creature token" (the definition's
+            // power and toughness stand for X).
+            if sized.is_some()
+                && let Some(t) = ctx.lookup.get(token)
+                && let Some((p, q)) = t.pt
+            {
+                let pt = format!("{p}/{q} ");
+                if let Some(i) = what.find(&pt) {
+                    what.replace_range(i..i + pt.len(), "X/X ");
+                    // "a X/X" → "an X/X".
+                    if what[..i].ends_with("a ") && !what[..i].ends_with("an ") {
+                        what.insert(i - 1, 'n');
+                    }
+                }
+            }
             // CR 508.4: "a ... token that's tapped and attacking", "two ...
             // tokens that are tapped and attacking".
             if *attacking {
@@ -6119,7 +6174,32 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "Create a Wicked Role token attached to up to one target
             // creature you control", "... attached to it".
             if let Some(a) = attached {
-                let _ = write!(what, " attached to {}", ctx.obj(*a));
+                let o = ctx.obj(*a);
+                // One for each object: "For each Rat you control, create a
+                // Wicked Role token attached to that Rat", "For each of
+                // those creatures, create a Monster Role token attached to
+                // it".
+                let each = if let Some(rest) = o.strip_prefix("each ") {
+                    let head = [
+                        " you control",
+                        " your opponents control",
+                        " an opponent controls",
+                    ]
+                    .iter()
+                    .find_map(|c| rest.split_once(c).map(|(h, _)| h))
+                    .unwrap_or(rest);
+                    let noun = head.rsplit(' ').next().unwrap_or(head);
+                    Some((rest.to_string(), format!("that {noun}")))
+                } else if matches!(o.as_str(), "them" | "those creatures") {
+                    Some(("of those creatures".to_string(), "it".to_string()))
+                } else {
+                    None
+                };
+                if let Some((each, that)) = each {
+                    let _ = write!(what, " attached to {that}");
+                    return Clause::imperative(format!("for each {each}, create {what}"));
+                }
+                let _ = write!(what, " attached to {o}");
             }
             match who {
                 None => Clause::imperative(format!("create {what}")),
@@ -6203,20 +6283,33 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             ctx.those_tokens = None;
             Clause::imperative(text)
         }
-        Effect::CreateTokenCopy { of, except } => {
+        Effect::CreateTokenCopy { of, except, count } => {
             let o = ctx.obj(*of);
+            // "create a token that's a copy of", "create two tokens that are
+            // copies of", "Create X tokens that are copies of".
+            let copies = if *count == Num::N(1) {
+                "a token that's a copy of".to_string()
+            } else {
+                format!("{} tokens that are copies of", count_words(*count, "one"))
+            };
+            let noun = |rest: &str| {
+                if rest.contains("creature") {
+                    "creature"
+                } else {
+                    "permanent"
+                }
+            };
             // "For each nontoken creature you control, create a token
-            // that's a copy of that creature" (Multiversal Incursion).
+            // that's a copy of that creature" (Multiversal Incursion);
+            // "For each of X target permanents, create X tokens that are
+            // copies of that permanent." (Doppelgang).
+            let many = ctx.is_many(*of);
             let mut text = match o.strip_prefix("each ") {
                 Some(rest) => {
-                    let noun = if rest.contains("creature") {
-                        "creature"
-                    } else {
-                        "permanent"
-                    };
-                    format!("for each {rest}, create a token that's a copy of that {noun}")
+                    format!("for each {rest}, create {copies} that {}", noun(rest))
                 }
-                None => format!("create a token that's a copy of {o}"),
+                None if many => format!("for each of {o}, create {copies} that {}", noun(&o)),
+                None => format!("create {copies} {o}"),
             };
             if *except {
                 let _ = write!(text, ", except {}", except_text(ctx.card, ctx.current));
@@ -7674,7 +7767,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::IfYouDo(inner) => {
             // "Counter target spell unless its controller pays {2}. If they
             // do, ...".
-            let who = if std::mem::take(&mut ctx.player_did) {
+            let who = if std::mem::take(&mut ctx.lost_life_did) {
+                "you lost life this way"
+            } else if std::mem::take(&mut ctx.player_did) {
                 "the player does"
             } else if std::mem::take(&mut ctx.they_paid) {
                 "they do"
@@ -9080,6 +9175,14 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         } => {
             let a = trigger_text(first, ctx, next);
             let b = trigger_text(second, ctx, next);
+            // "Whenever a Detective you control enters or is turned face
+            // up": the words both events share printed once.
+            if matches!(**first, Trigger::Enters(crate::ast::TriggerObj::Filter(_))) {
+                let (wa, wb): (Vec<&str>, Vec<&str>) =
+                    (a.split(' ').collect(), b.split(' ').collect());
+                let k = wa.iter().zip(&wb).take_while(|(x, y)| x == y).count();
+                return format!("{} or {}", wa.join(" "), wb[k..].join(" "));
+            }
             // "Whenever this creature enters or transforms into ~": a
             // legendary one too.
             let named = format!("{} ", this_ref(ctx.card));
@@ -9173,6 +9276,9 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             if *your_turn { " during your turn" } else { "" }
         ),
         Trigger::YouTurnFaceUp => "whenever you turn a permanent face up".to_string(),
+        Trigger::OpponentGainsControl => {
+            "whenever an opponent gains control of a permanent from you".to_string()
+        }
         Trigger::DiscardsBatch { whose } => format!(
             "whenever {} one or more cards",
             crate::format::discards_words(*whose)
@@ -10356,8 +10462,20 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
         // your control, twice that many of those tokens are created
         // instead." (Mondrak); "If an effect would create ..." (Parallel
         // Lives).
-        (Replaces::CreateTokens { creature, effect }, Outcome::Double) => {
-            let c = if *creature { "creature " } else { "" };
+        (
+            Replaces::CreateTokens {
+                creature,
+                effect,
+                artifact,
+                ..
+            },
+            Outcome::Double,
+        ) => {
+            let c = match (*creature, *artifact) {
+                (true, _) => "creature ",
+                (false, true) => "artifact ",
+                _ => "",
+            };
             if *effect {
                 format!(
                     "If an effect would create one or more {c}tokens under your control, it creates twice that many of those tokens instead."
@@ -10370,13 +10488,61 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
         }
         // "those tokens plus a 1/1 green Frog creature token are created
         // instead" (Quina).
-        (Replaces::CreateTokens { creature, .. }, Outcome::PlusToken { that_many, .. }) => {
-            let c = if *creature { "creature " } else { "" };
+        (
+            Replaces::CreateTokens {
+                creature,
+                artifact,
+                you,
+                ..
+            },
+            Outcome::PlusToken { that_many, .. },
+        ) => {
+            let c = match (*creature, *artifact) {
+                (true, _) => "creature ",
+                (false, true) => "artifact ",
+                _ => "",
+            };
             let n = if *that_many { Num::ThatMuch } else { Num::N(1) };
             let desc =
                 token_description(r.token.as_deref().unwrap_or_default(), n, false, false, ctx);
+            // "If you would create one or more artifact tokens, instead
+            // create those tokens plus an additional Map token."
+            if *you {
+                let rest = desc
+                    .strip_prefix("an ")
+                    .or_else(|| desc.strip_prefix("a "))
+                    .unwrap_or(&desc);
+                return format!(
+                    "If you would create one or more {c}tokens, instead create those tokens plus an additional {rest}."
+                );
+            }
             format!(
                 "If one or more {c}tokens would be created under your control, those tokens plus {desc} are created instead."
+            )
+        }
+        // "If one or more artifact tokens would be created under your
+        // control, that many 5/5 red Dragon creature tokens with flying are
+        // created instead." (Draconic Visitor).
+        (
+            Replaces::CreateTokens {
+                creature, artifact, ..
+            },
+            Outcome::TokensInstead { .. },
+        ) => {
+            let c = match (*creature, *artifact) {
+                (true, _) => "creature ",
+                (false, true) => "artifact ",
+                _ => "",
+            };
+            let desc = token_description(
+                r.token.as_deref().unwrap_or_default(),
+                Num::ThatMuch,
+                false,
+                false,
+                ctx,
+            );
+            format!(
+                "If one or more {c}tokens would be created under your control, {desc} are created instead."
             )
         }
         // The card names itself: the ability works in every zone, where it
@@ -12256,6 +12422,7 @@ fn about_source(c: &StaticCond) -> bool {
             | StaticCond::Monstrous
             | StaticCond::Suspected(_)
             | StaticCond::Is(_)
+            | StaticCond::IsntToken
             | StaticCond::Modified
             | StaticCond::AttackingAlone
             | StaticCond::Blocked

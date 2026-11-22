@@ -1,0 +1,8 @@
+card "Jiang Yanggu, Never Alone" {
+  oracle_id 4ba661d7-1cb8-4fec-bfaa-5f2797235fcf
+  cost {3}{G}
+  type Legendary Creature — Human Druid
+  pt 2/2
+  triggered when this enters: create 1 "Mowu, a legendary 3/3 green Dog creature"
+  triggered at beginning of your end step: untap each token you control
+}

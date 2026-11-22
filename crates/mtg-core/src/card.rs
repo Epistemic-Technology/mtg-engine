@@ -1324,6 +1324,9 @@ pub enum SameWhat {
     /// Has mana value at most the source's power ("with mana value less
     /// than or equal to this creature's power"); no source, nothing.
     ManaValueAtMostPower,
+    /// Shares a card type (CR 205.2a: "two target permanents that share a
+    /// card type").
+    SharesType,
 }
 
 /// What a spell must target ("that targets a creature", "that targets you
@@ -1435,7 +1438,13 @@ impl ObjFilter {
     /// a color with a colorless object is impossible, CR 105.2c), and
     /// power (`None`: no object, so nothing has lesser power).
     #[must_use]
-    pub fn with_same(&self, def: Option<CardRef>, colors: ColorSet, power: Option<i16>) -> Self {
+    pub fn with_same(
+        &self,
+        def: Option<CardRef>,
+        colors: ColorSet,
+        power: Option<i16>,
+        types: TypeSet,
+    ) -> Self {
         let mut f = self.clone();
         let Some(same) = f.same.take() else {
             return f;
@@ -1453,6 +1462,11 @@ impl ObjFilter {
                 Some(p) => f.mana_value = Some((Cmp::AtMost, p)),
                 None => f.named = Some((CardRef(u32::MAX), true)),
             },
+            // No card types (or no object): nothing shares one.
+            SameWhat::SharesType if types.is_empty() => {
+                f.named = Some((CardRef(u32::MAX), true));
+            }
+            SameWhat::SharesType => f.any_types = types,
         }
         f
     }
@@ -2836,6 +2850,8 @@ pub enum CounterKind {
     Loot,
     Supply,
     Film,
+    Possession,
+    Wish,
     /// CR 122.1h: if a permanent with a finality counter on it would be
     /// put into a graveyard from the battlefield, it is exiled instead.
     Finality,
@@ -2887,7 +2903,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 48] = [
+    pub const NAMED: [(&'static str, CounterKind); 50] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -2922,6 +2938,8 @@ impl CounterKind {
         ("loot", CounterKind::Loot),
         ("supply", CounterKind::Supply),
         ("film", CounterKind::Film),
+        ("possession", CounterKind::Possession),
+        ("wish", CounterKind::Wish),
         ("finality", CounterKind::Finality),
         ("flying", CounterKind::Flying),
         ("first strike", CounterKind::FirstStrike),
@@ -4116,6 +4134,9 @@ pub enum Effect {
     CreateTokenCopy {
         of: Recipient,
         except: bool,
+        /// "create two tokens that are copies of it": how many for each
+        /// object (CR 111.4).
+        count: Num,
     },
     /// "Each opponent gets a poison counter" (CR 122.1f).
     AddPoison {
@@ -4510,6 +4531,12 @@ pub enum Effect {
     Airbend {
         what: Recipient,
     },
+    /// "Create an X/X green Elemental creature token, where X is ...":
+    /// fixes X as the effect resolves, before the token exists (CR
+    /// 608.2h); the next `CreateToken`'s tokens of its own definition get
+    /// base power and toughness X/X (CR 111.3: the values the creating
+    /// effect defines; a layer-7b effect from their creation on).
+    TokenPtX(Num),
     /// Exchange control of two permanents (CR 701.12a-b): `a` and `b`, or
     /// the two objects `a` names when `b` is `None` ("two target
     /// creatures"). Nothing happens unless both are still on the
@@ -4518,6 +4545,22 @@ pub enum Effect {
     ExchangeControl {
         a: Recipient,
         b: Option<Recipient>,
+    },
+    /// "Target opponent gains control of target permanent you control."
+    /// (CR 613.1b): the first player `to` names gains control of each
+    /// object `of` names, indefinitely. Sets the "if they do" flag when
+    /// any of them changed controller.
+    GiveControl {
+        of: Recipient,
+        to: Recipient,
+    },
+    /// "Exchange life totals with target opponent" (CR 701.12c): the
+    /// controller and the first player `with` names each gain or lose the
+    /// life needed to reach the other's former total. Sets the "if you do"
+    /// flag when the controller lost life ("If you lost life this way"),
+    /// which the resolution's life-lost log then holds.
+    ExchangeLife {
+        with: Recipient,
     },
     /// Recruit (CR 701.70a): "Draw a card, then discard a card. If you
     /// discarded a nonland card this way, create a 1/1 white Human Soldier
@@ -5210,10 +5253,16 @@ pub enum Replaces {
     /// 614.1c), judged by its card as it enters, under the controller it
     /// will have.
     OthersEnter { what: ObjFilter },
-    /// One or more tokens (`creature`: creature tokens) would be created
-    /// under the controller's control (CR 111.1, 614.1a). `effect` prints
-    /// the older "If an effect would create ..." (rendering only).
-    CreateTokens { creature: bool, effect: bool },
+    /// One or more tokens (`creature`: creature tokens; `artifact`:
+    /// artifact tokens) would be created under the controller's control
+    /// (CR 111.1, 614.1a). `effect` prints the older "If an effect would
+    /// create ...", `you` "If you would create ..." (rendering only).
+    CreateTokens {
+        creature: bool,
+        effect: bool,
+        artifact: bool,
+        you: bool,
+    },
 }
 
 /// What happens instead.
@@ -5233,6 +5282,10 @@ pub enum Replacement {
     /// instead" (Quina); `that_many`: "plus that many ... tokens"
     /// (Chatterfang).
     PlusToken { token: CardRef, that_many: bool },
+    /// "that many 5/5 red Dragon creature tokens with flying are created
+    /// instead" (Draconic Visitor): the tokens the event covers become as
+    /// many of this token.
+    TokensInstead { token: CardRef },
     /// "it deals that much damage plus 2 instead" (Torbran); `to_that`
     /// prints "to that permanent or player" after it (rendering only).
     PlusN { n: u32, to_that: bool },
@@ -5451,6 +5504,11 @@ pub enum TriggerSpec {
     /// "Whenever you commit a crime" (CR 700.13), `your_turn`: "...
     /// during your turn". The controller is the triggering player.
     CommitsCrime { your_turn: bool },
+    /// "Whenever an opponent gains control of a permanent from you" (CR
+    /// 613.1b): a permanent the controller controlled comes under an
+    /// opponent's control. It is the triggering object; the opponent is
+    /// the triggering player.
+    OpponentGainsControl,
     /// "Whenever you gain life".
     GainsLife { whose: Who },
     /// "Whenever an opponent loses life", "Whenever a player loses life"
@@ -5908,6 +5966,7 @@ impl TriggerSpec {
             | TriggerSpec::FullyUnlocks { .. }
             | TriggerSpec::CollectsEvidence { .. }
             | TriggerSpec::Forages { .. }
+            | TriggerSpec::OpponentGainsControl
             | TriggerSpec::DayNight => WATCH_DESIG,
             TriggerSpec::Sacrifices(_)
             | TriggerSpec::Sacrificed { .. }

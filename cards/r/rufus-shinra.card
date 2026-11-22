@@ -1,0 +1,7 @@
+card "Rufus Shinra" {
+  oracle_id 0caeb396-e574-4e80-a1f6-79988fe9ba19
+  cost {1}{W}{B}
+  type Legendary Creature — Human Noble
+  pt 2/4
+  triggered whenever this attacks if you don't control creature named "Darkstar": create 1 "Darkstar"
+}

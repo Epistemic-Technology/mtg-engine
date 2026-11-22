@@ -309,6 +309,7 @@ impl Fmt {
             Recipient::EachOpponent => "each opponent".to_string(),
             Recipient::EachOtherPlayer => "each other player".to_string(),
             Recipient::EachOfYourOpponents => "each of your opponents".to_string(),
+            Recipient::AnOpponent => "an opponent".to_string(),
             Recipient::Source => "this".to_string(),
             // The parser takes only its own list of nouns here; the
             // renderer prints the card's own ("this Spacecraft") whatever
@@ -360,6 +361,7 @@ impl Fmt {
             Recipient::SameThem => "them".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
             Recipient::CreatedThem => "each of them".to_string(),
+            Recipient::CreatedThose => "those copies".to_string(),
             Recipient::Manifested => "manifested creature".to_string(),
             // `all`, not `each`: "each creature you control" is the
             // built-in recipient, which prints differently.
@@ -586,9 +588,26 @@ impl Fmt {
                 s
             }
             Replaces::ThisToGraveyard => "this put into a graveyard".to_string(),
-            Replaces::CreateTokens { creature, effect } => format!(
-                "{}tokens created under your control{}",
+            Replaces::CreateTokens {
+                creature,
+                effect,
+                artifact,
+                you: true,
+            } => format!(
+                "{}{}tokens you create{}",
                 if *creature { "creature " } else { "" },
+                if *artifact { "artifact " } else { "" },
+                if *effect { " by an effect" } else { "" }
+            ),
+            Replaces::CreateTokens {
+                creature,
+                effect,
+                artifact,
+                you: false,
+            } => format!(
+                "{}{}tokens created under your control{}",
+                if *creature { "creature " } else { "" },
+                if *artifact { "artifact " } else { "" },
                 if *effect { " by an effect" } else { "" }
             ),
             Replaces::PlusCounters { on } => format!("+1/+1 counters put on {}", filter(on)),
@@ -1407,6 +1426,14 @@ impl Fmt {
             Effect::ExchangeControl { what } => {
                 format!("exchange control of {}", self.recipients(what, t))
             }
+            Effect::ExchangeLife { with } => {
+                format!("exchange life totals with {}", self.recipient(*with, t))
+            }
+            Effect::GiveControl { of, to } => format!(
+                "{} gains control of {}",
+                self.recipient(*to, t),
+                self.recipient(*of, t)
+            ),
             Effect::GraveyardToBattlefield { filter: f } => format!(
                 "return all {} card from your graveyard to battlefield",
                 filter(f)
@@ -1448,7 +1475,11 @@ impl Fmt {
             }
             Effect::Detain { what } => format!("detain {}", self.recipient(*what, t)),
             Effect::Untap { to } => format!("untap {}", self.recipients(to, t)),
-            Effect::Grant { keywords: ks, to } => {
+            Effect::Grant {
+                keywords: ks,
+                to,
+                each,
+            } => {
                 let v = if matches!(
                     to,
                     Recipient::You
@@ -1462,7 +1493,8 @@ impl Fmt {
                 } else {
                     "gains"
                 };
-                format!("{} {v} {}", self.recipient(*to, t), keywords(ks))
+                let each = if *each { " each" } else { "" };
+                format!("{}{each} {v} {}", self.recipient(*to, t), keywords(ks))
             }
             Effect::GainControl { of, forever } => format!(
                 "gain control of {}{}",
@@ -1487,6 +1519,7 @@ impl Fmt {
                 who,
                 it_has,
                 attached,
+                sized,
             } => {
                 let mut s = match who {
                     None => String::from("create"),
@@ -1509,10 +1542,21 @@ impl Fmt {
                 if let Some(a) = attached {
                     let _ = write!(s, " attached to {}", self.recipient(*a, t));
                 }
+                if let Some(n) = sized {
+                    let _ = write!(s, " sized {}", num(*n));
+                }
                 s
             }
-            Effect::CreateTokenCopy { of, except } => {
-                let mut s = format!("create token copy of {}", self.recipient(*of, t));
+            Effect::CreateTokenCopy { of, except, count } => {
+                let mut s = if *count == Num::N(1) {
+                    format!("create token copy of {}", self.recipient(*of, t))
+                } else {
+                    format!(
+                        "create {} token copies of {}",
+                        num(*count),
+                        self.recipient(*of, t)
+                    )
+                };
                 if *except {
                     s.push_str(" with exceptions");
                 }
@@ -2993,6 +3037,7 @@ fn outcome(o: &Outcome) -> String {
         Outcome::PreventNext(n) => format!("prevent next {}", num(*n)),
         Outcome::Double => "double".to_string(),
         Outcome::PlusToken { .. } => "plus \"\"".to_string(),
+        Outcome::TokensInstead { .. } => "that many \"\"".to_string(),
         Outcome::ShuffleIntoLibrary => "shuffle into library".to_string(),
         Outcome::PlusOne => "plus one".to_string(),
         Outcome::PlusN { n, to_that } => {
@@ -3459,6 +3504,9 @@ fn filter_one(f: &Filter) -> String {
     {
         words.push(same_ref(r));
     }
+    if let Some(n) = &f.named_card {
+        words.push(format!("named \"{n}\""));
+    }
     words.join(" ")
 }
 
@@ -3482,6 +3530,7 @@ pub fn same_ref(r: crate::ast::SameRef) -> String {
         SameRef::NotNamedThis => "not named this".to_string(),
         SameRef::SameNameAs(n) => format!("with same name as target {}", n + 1),
         SameRef::SharesColorWith(n) => format!("that shares color with target {}", n + 1),
+        SameRef::ShareCardType => "that share card type".to_string(),
         SameRef::LesserPower => "with lesser power".to_string(),
         SameRef::ManaValueAtMostPower => "with mana value at most this power".to_string(),
     }
@@ -4107,6 +4156,18 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::CastsNth { whose, nth } => format!("whenever {}", spell_ordinal(*nth, *whose)),
         Trigger::Either(a, b) => format!("{} and {}", trigger_text(a, next), trigger_text(b, next)),
         Trigger::Or {
+            first,
+            second,
+            whenever,
+        } if matches!(**first, Trigger::Enters(crate::ast::TriggerObj::Filter(_))) => {
+            let a = trigger_text(first, next);
+            let b = trigger_text(second, next);
+            let (wa, wb): (Vec<&str>, Vec<&str>) = (a.split(' ').collect(), b.split(' ').collect());
+            let k = wa.iter().zip(&wb).take_while(|(x, y)| x == y).count();
+            let _ = whenever;
+            format!("{} or {}", wa.join(" "), wb[k..].join(" "))
+        }
+        Trigger::Or {
             second, whenever, ..
         } => {
             let b = trigger_text(second, next);
@@ -4166,6 +4227,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             if *your_turn { " during your turn" } else { "" }
         ),
         Trigger::YouTurnFaceUp => "whenever you turn a permanent face up".to_string(),
+        Trigger::OpponentGainsControl => {
+            "whenever an opponent gains control of a permanent from you".to_string()
+        }
         Trigger::DiscardsBatch { whose } => {
             format!("whenever {} one or more cards", discards_words(*whose))
         }
@@ -5287,6 +5351,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     "replace {}: plus {}\"{}\"",
                     fmt.replaces(event, &[]),
                     if *that_many { "that many " } else { "" },
+                    rep.token.as_deref().unwrap_or_default()
+                ),
+                (event, Outcome::TokensInstead { .. }) => format!(
+                    "replace {}: that many \"{}\"",
+                    fmt.replaces(event, &[]),
                     rep.token.as_deref().unwrap_or_default()
                 ),
                 (event, o) => format!("replace {}: {}", fmt.replaces(event, &[]), outcome(o)),

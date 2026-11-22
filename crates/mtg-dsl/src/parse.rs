@@ -54,6 +54,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         in_spell: false,
         group_named: false,
         subject: None,
+        subject_each: false,
         votes: Vec::new(),
         returned: None,
         revealed: false,
@@ -582,6 +583,9 @@ struct P {
     group_named: bool,
     /// The subject of the previous clause of the sentence being parsed.
     subject: Option<Recipient>,
+    /// The sentence's subject was followed by `each` ("one or two target
+    /// creatures each gain haste").
+    subject_each: bool,
     /// The target an earlier effect of the ability returned to its
     /// owner's hand: "that player" is then its owner.
     returned: Option<usize>,
@@ -4742,7 +4746,7 @@ impl P {
         }
         // "They gain haste until end of turn." after creating tokens
         // (Salt Road Skirmish).
-        if self.at_words(&["those", "tokens"])
+        if (self.at_words(&["those", "tokens"]) || self.at_words(&["those", "copies"]))
             && matches!(
                 self.word_at(2).as_deref(),
                 Some("gain" | "gains" | "get" | "gets")
@@ -4756,7 +4760,8 @@ impl P {
         if w == "each" || w == "all" || w == "every" {
             return true;
         }
-        RECIPIENTS.iter().any(|(ws, _)| self.at_words(ws))
+        self.at_words(&["an", "opponent", "gains", "control"])
+            || RECIPIENTS.iter().any(|(ws, _)| self.at_words(ws))
     }
 
     /// Verbs that take the previous clause's subject when none is written
@@ -5564,8 +5569,9 @@ impl P {
                     .then_some(Recipient::Targets(*a, subjects.len())),
                 _ => None,
             };
+            self.subject_each = false;
             if group.is_some() || self.is_many_subject(&subjects) {
-                self.eat_word("each");
+                self.subject_each = self.eat_word("each");
             }
             let subject = if let Some(g) = group {
                 g
@@ -5653,6 +5659,11 @@ impl P {
                     self.pos += 1;
                     self.expect_word("of")?;
                     let of = self.recipient()?;
+                    // "Target opponent gains control of target permanent
+                    // you control.": another player, indefinitely.
+                    if subject != Recipient::You {
+                        return Ok(Effect::GiveControl { of, to: subject });
+                    }
                     self.until_end_of_turn();
                     return Ok(Effect::GainControl { of, forever: false });
                 }
@@ -5720,6 +5731,7 @@ impl P {
                     return Ok(Effect::Grant {
                         keywords,
                         to: subject,
+                        each: explicit && self.subject_each,
                     });
                 }
                 let amount = self.num()?;
@@ -6290,6 +6302,7 @@ impl P {
                 Ok(Effect::Grant {
                     keywords: vec![Keyword::MustAttack],
                     to: subject,
+                    each: false,
                 })
             }
             // "Target creature blocks this creature this turn if able".
@@ -6340,6 +6353,7 @@ impl P {
                 Ok(Effect::Grant {
                     keywords: vec![keyword],
                     to: subject,
+                    each: false,
                 })
             }
             // "Target creature can't block this creature this turn".
@@ -6397,6 +6411,7 @@ impl P {
                 Ok(Effect::Grant {
                     keywords,
                     to: subject,
+                    each: explicit && self.subject_each,
                 })
             }
             "get" | "gets"
@@ -6713,6 +6728,7 @@ impl P {
                         attacking,
                         it_has,
                         attached,
+                        sized,
                         ..
                     } => Ok(Effect::CreateToken {
                         token,
@@ -6722,6 +6738,7 @@ impl P {
                         who: Some(subject),
                         it_has,
                         attached,
+                        sized,
                     }),
                     _ => self.fail("expected a token after `create`"),
                 }
@@ -7764,6 +7781,9 @@ impl P {
                 },
             }),
             "populate" => Ok(Effect::Populate),
+            "exchange" if self.eat_words(&["life", "totals", "with"]) => Ok(Effect::ExchangeLife {
+                with: self.recipient()?,
+            }),
             "exchange" if self.eat_words(&["control", "of"]) => Ok(Effect::ExchangeControl {
                 what: if self.at_many() {
                     vec![self.many_target()?]
@@ -8432,7 +8452,25 @@ impl P {
                     let of = self.recipient()?;
                     let except = self.except_clause();
                     self.created_at = Some(self.targets.len());
-                    return Ok(Effect::CreateTokenCopy { of, except });
+                    return Ok(Effect::CreateTokenCopy {
+                        of,
+                        except,
+                        count: Num::N(1),
+                    });
+                }
+                // `create 2 token copies of this`, `create x token copies
+                // of target ...`.
+                if (matches!(self.peek(), Some(Tok::Num(_))) || self.at_word("x"))
+                    && self.word_at(1).as_deref() == Some("token")
+                    && self.word_at(2).as_deref() == Some("copies")
+                {
+                    let count = self.num()?;
+                    self.pos += 2;
+                    self.expect_word("of")?;
+                    let of = self.recipient()?;
+                    let except = self.except_clause();
+                    self.created_at = Some(self.targets.len());
+                    return Ok(Effect::CreateTokenCopy { of, except, count });
                 }
                 let count = self.num()?;
                 self.created_at = (count == Num::N(1)).then_some(self.targets.len());
@@ -8447,6 +8485,13 @@ impl P {
                 } else {
                     None
                 };
+                // `sized count where land you control`: "an X/X ...
+                // token, where X is ...".
+                let sized = if self.eat_word("sized") {
+                    Some(self.num()?)
+                } else {
+                    None
+                };
                 Ok(Effect::CreateToken {
                     token,
                     count,
@@ -8455,6 +8500,7 @@ impl P {
                     who: None,
                     it_has,
                     attached,
+                    sized,
                 })
             }
             "attach" => {
@@ -9523,6 +9569,7 @@ impl P {
             in_spell: self.in_spell,
             group_named: self.group_named,
             subject: None,
+            subject_each: false,
             votes: self.votes.clone(),
             returned: self.returned,
             revealed: self.revealed,
@@ -9859,6 +9906,10 @@ impl P {
         if self.in_delayed && self.eat_word("them") {
             return Ok(Recipient::SameThem);
         }
+        // "Those tokens gain haste until end of turn." as a subject.
+        if !self.in_delayed && self.eat_words(&["those", "copies"]) {
+            return Ok(Recipient::CreatedThose);
+        }
         // "Sacrifice those tokens at the beginning of the next end step."
         if self.eat_words(&["those", "tokens"]) {
             return Ok(if self.in_delayed {
@@ -10058,6 +10109,11 @@ impl P {
             self.pos += 2;
             return Ok(Recipient::ThatTarget(self.targets.len() - 1));
         }
+        // "An opponent gains control of this artifact."
+        if self.at_words(&["an", "opponent", "gains", "control"]) {
+            self.pos += 2;
+            return Ok(Recipient::AnOpponent);
+        }
         for (ws, r) in RECIPIENTS {
             if self.at_words(ws) {
                 // "each creature with flying" is a group, not "each creature";
@@ -10246,6 +10302,7 @@ impl P {
                         in_spell: false,
                         group_named: false,
                         subject: None,
+                        subject_each: false,
                         votes: Vec::new(),
                         returned: None,
                         revealed: false,
@@ -10271,7 +10328,7 @@ impl P {
                         | (Some("an"), Some("opponent"))
                         | (Some("target"), Some("player" | "opponent"))
                         | (Some("defending" | "your"), Some("player" | "opponents"))
-                        | (Some("that"), Some("was" | "entered" | "dealt" | "blocked" | "player"))
+                        | (Some("that"), Some("was" | "entered" | "dealt" | "blocked" | "player" | "share"))
                         | (Some("other"), Some("than"))
                         | (Some("controller"), Some("of"))
                         | (Some("with" | "without"), Some("aura"))
@@ -10959,6 +11016,13 @@ impl P {
                     named_before_who = f.who.is_none();
                     self.pos += 2;
                 }
+                // `named "Keimi"`: a token's name.
+                "named"
+                    if matches!(self.peek_at(1), Some(Tok::Str(_))) && f.named_card.is_none() =>
+                {
+                    self.pos += 1;
+                    f.named_card = Some(self.string()?);
+                }
                 "not" if self.at_words(&["not", "named", "this"]) && f.same.is_none() => {
                     f.same = Some(SameRef::NotNamedThis);
                     named_before_who = f.who.is_none();
@@ -10982,6 +11046,10 @@ impl P {
                     self.pos += 5;
                     let n = self.declared_target()?;
                     f.same = Some(SameRef::SharesColorWith(n));
+                }
+                "that" if self.at_words(&["that", "share", "card", "type"]) && f.same.is_none() => {
+                    self.pos += 4;
+                    f.same = Some(SameRef::ShareCardType);
                 }
                 // "with lesser power" (mentor, CR 702.134a).
                 "with" if self.at_words(&["with", "lesser", "power"]) && f.same.is_none() => {
@@ -11789,6 +11857,19 @@ impl P {
             let your_turn = self.eat_words(&["during", "your", "turn"]);
             return Ok(Trigger::CommitsCrime { your_turn });
         }
+        if self.eat_words(&[
+            "an",
+            "opponent",
+            "gains",
+            "control",
+            "of",
+            "a",
+            "permanent",
+            "from",
+            "you",
+        ]) {
+            return Ok(Trigger::OpponentGainsControl);
+        }
         if self.eat_words(&["you", "turn", "a", "permanent", "face", "up"]) {
             return Ok(Trigger::YouTurnFaceUp);
         }
@@ -12074,6 +12155,18 @@ impl P {
             ) {
                 return self.fail("`this enters or` takes `dies`, `leaves the battlefield`, `attacks`, `transforms`, or `is turned face up`");
             }
+            return Ok(Trigger::Or {
+                first: Box::new(first),
+                second: Box::new(second),
+                whenever,
+            });
+        }
+        // "Whenever a Detective you control enters or is turned face up".
+        if let Trigger::Enters(TriggerObj::Filter(_)) = &first
+            && self.at_words(&["or", "is", "turned", "face", "up"])
+        {
+            self.pos += 1;
+            let second = self.trigger_verb(obj, whenever)?;
             return Ok(Trigger::Or {
                 first: Box::new(first),
                 second: Box::new(second),
@@ -12706,6 +12799,15 @@ impl P {
                 token: mtg_core::card::CardRef::default(),
                 that_many,
             }
+        } else if self.at_words(&["that", "many"]) && matches!(self.peek_at(2), Some(Tok::Str(_))) {
+            // `that many "5/5 red Dragon creature with flying"`: those
+            // tokens become as many of this one (Draconic Visitor).
+            self.pos += 2;
+            token = Some(self.string()?);
+            self.eat_word("instead");
+            Outcome::TokensInstead {
+                token: mtg_core::card::CardRef::default(),
+            }
         } else {
             self.outcome()?
         };
@@ -12744,12 +12846,33 @@ impl P {
         // for the older wording.
         if self.at_words(&["tokens", "created"])
             || self.at_words(&["creature", "tokens", "created"])
+            || self.at_words(&["artifact", "tokens", "created"])
         {
             let creature = self.eat_word("creature");
+            let artifact = self.eat_word("artifact");
             self.pos += 2;
             self.expect_words(&["under", "your", "control"])?;
             let effect = self.eat_words(&["by", "an", "effect"]);
-            return Ok(Replaces::CreateTokens { creature, effect });
+            return Ok(Replaces::CreateTokens {
+                creature,
+                effect,
+                artifact,
+                you: false,
+            });
+        }
+        // `artifact tokens you create`: "If you would create one or more
+        // artifact tokens".
+        if self.at_words(&["tokens", "you", "create"])
+            || self.at_words(&["artifact", "tokens", "you", "create"])
+        {
+            let artifact = self.eat_word("artifact");
+            self.pos += 3;
+            return Ok(Replaces::CreateTokens {
+                creature: false,
+                effect: false,
+                artifact,
+                you: true,
+            });
         }
         // `this put into a graveyard` (CR 113.6b: from anywhere).
         if self.eat_words(&["this", "put", "into", "a", "graveyard"]) {

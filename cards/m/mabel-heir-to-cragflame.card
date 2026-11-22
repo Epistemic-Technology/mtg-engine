@@ -1,0 +1,8 @@
+card "Mabel, Heir to Cragflame" {
+  oracle_id 4b11e435-5888-4e3b-a255-db817392163f
+  cost {1}{R}{W}
+  type Legendary Creature — Mouse Soldier
+  pt 3/3
+  static other Mouse you control: +1/+1
+  triggered when this enters: create 1 "Cragflame"
+}

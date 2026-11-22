@@ -1,0 +1,8 @@
+card "Tuktuk the Explorer" {
+  oracle_id 754e227b-ff31-4b5c-b612-2221c2b44246
+  cost {2}{R}
+  type Legendary Creature — Goblin
+  pt 1/1
+  keywords haste
+  triggered when this dies: create 1 "Tuktuk the Returned"
+}

@@ -1427,6 +1427,7 @@ fn same_filled<'f>(
         def,
         c.map(|c| c.colors).unwrap_or_default(),
         c.map(|c| c.power),
+        c.map(|c| c.types).unwrap_or_default(),
     ))
 }
 

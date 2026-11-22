@@ -1,0 +1,8 @@
+card "Sleeper Agent" {
+  oracle_id 627c9546-85b0-4b4d-93c6-e2ca8c3adf4f
+  cost {B}
+  type Creature — Phyrexian Minion
+  pt 3/3
+  triggered when this enters: target opponent gains control of it
+  triggered at beginning of your upkeep: deal 2 damage to you
+}

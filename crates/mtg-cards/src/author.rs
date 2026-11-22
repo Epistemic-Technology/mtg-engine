@@ -422,6 +422,42 @@ fn token_block(key: &str) -> Option<String> {
     ))
 }
 
+/// "Create Mowu, a legendary 3/3 green Dog creature token" (CR 111.4: a
+/// named token): the key is the description from the name on ("Mowu, a
+/// legendary 3/3 green Dog creature", keywords included).
+const LEGENDARY_TOKEN_PHRASE: &str = r"^([Cc]reate|[Yy]ou may create) ((?:[A-Z][^,]*?)(?:, [A-Za-z ]+?)?, a legendary \d+/\d+ (?:colorless|(?:white|blue|black|red|green)(?: and (?:white|blue|black|red|green))?) (?:[A-Z][a-z]+ )+(?:artifact )?creature) token((?: with [a-z ,]+)?)$";
+
+/// The token block for a key from `LEGENDARY_TOKEN_PHRASE`: a legendary
+/// creature token named by its key's first part.
+fn legendary_token_block(key: &str) -> Option<String> {
+    let re = Regex::new(
+        r"^(.+?), a legendary (\d+)/(\d+) (colorless|(?:white|blue|black|red|green)(?: and (?:white|blue|black|red|green))?) ((?:[A-Z][a-z]+ )+)(artifact )?creature(?: with ([a-z ,]+))?$",
+    )
+    .unwrap();
+    let c = re.captures(key)?;
+    let name = cap(&c, 1);
+    let subtypes = cap(&c, 5).trim();
+    let color = match cap(&c, 4) {
+        "colorless" => String::new(),
+        cs => format!(" {}", cs.replace(" and ", " ")),
+    };
+    let types = if cap(&c, 6).is_empty() {
+        "Creature"
+    } else {
+        "Artifact Creature"
+    };
+    let keywords = if cap(&c, 7).is_empty() {
+        String::new()
+    } else {
+        format!("  keywords {}\n", keyword_list(cap(&c, 7))?)
+    };
+    Some(format!(
+        "token \"{key}\" {{\n  name \"{name}\"\n  type Legendary {types} — {subtypes}\n  pt {}/{}\n  color{color}\n{keywords}}}\n",
+        cap(&c, 2),
+        cap(&c, 3)
+    ))
+}
+
 #[derive(Debug, Default)]
 pub struct Report {
     /// Cards in the format with a normal layout.
@@ -1349,6 +1385,39 @@ impl Templates {
                     ))
                 },
             ),
+            // CR 111.3: "Create an X/X green Elemental creature token,
+            // where X is the number of lands you control."
+            (
+                r(
+                    r"^[Cc]reate an X/X ((?:colorless|(?:white|blue|black|red|green)(?: and (?:white|blue|black|red|green))?) (?:[A-Z][a-z]+ )+(?:artifact )?creature) token((?: with [a-z ,]+)?)(?:, where X is (the number of .+|the greatest power among creatures you control))?$",
+                ),
+                |c, _| {
+                    let key = format!("0/0 {}{}", cap(c, 1), cap(c, 2));
+                    token_block(&key)?;
+                    // Without "where", X is the spell's or ability's X.
+                    let n = match cap(c, 3) {
+                        "" => "x".to_string(),
+                        "the greatest power among creatures you control" => {
+                            "count where greatest power".to_string()
+                        }
+                        s => format!(
+                            "count where {}",
+                            count_expr(s.strip_prefix("the number of ")?)?
+                        ),
+                    };
+                    Some(format!("create 1 \"{key}\" sized {n}"))
+                },
+            ),
+            (r(LEGENDARY_TOKEN_PHRASE), |c, _| {
+                let key = format!("{}{}", cap(c, 2), cap(c, 3));
+                legendary_token_block(&key)?;
+                let may = if cap(c, 1).starts_with(['Y', 'y']) {
+                    "you may "
+                } else {
+                    ""
+                };
+                Some(format!("{may}create 1 \"{key}\""))
+            }),
             // "Its controller creates a Treasure token", "Each player
             // creates a Treasure token".
             (
@@ -1876,6 +1945,24 @@ impl Templates {
                     Some(format!("create token copy of {what}"))
                 },
             ),
+            // "Create two tokens that are copies of target creature you
+            // control", "Create X tokens that are copies of ...".
+            (
+                r(r"^[Cc]reate (\S+) tokens that are copies of ([^,]+)$"),
+                |c, t| {
+                    let n = number(cap(c, 1))?;
+                    let what = match cap(c, 2) {
+                        w @ ("this creature" | "this artifact" | "this enchantment") => {
+                            w.to_string()
+                        }
+                        w => recipient(w, t)?,
+                    };
+                    Some(format!(
+                        "create {} token copies of {what}",
+                        n.to_lowercase()
+                    ))
+                },
+            ),
             (r(r"^Surveil (\d+)$"), |c, _| {
                 Some(format!("surveil {}", cap(c, 1)))
             }),
@@ -1950,12 +2037,47 @@ impl Templates {
                     Some(format!("exchange control of 2 target {}", cap(c, 1)))
                 },
             ),
+            // CR 205.2a: "two target permanents that share a card type".
+            (
+                r(
+                    r"^[Ee]xchange control of two target (nonland )?permanents that share a card type$",
+                ),
+                |c, t| {
+                    *t += 2;
+                    Some(format!(
+                        "exchange control of 2 target {}permanent that share card type",
+                        cap(c, 1)
+                    ))
+                },
+            ),
             (
                 r(r"^[Ee]xchange control of (.+?) and (target .+)$"),
                 |c, t| {
                     let a = recipient(cap(c, 1), t)?;
                     let b = recipient(cap(c, 2), t)?;
                     Some(format!("exchange control of {a} and {b}"))
+                },
+            ),
+            // CR 613.1b: another player gains control.
+            (
+                r(r"^(Target opponent|Target player) gains control of (.+)$"),
+                |c, t| {
+                    *t += 1;
+                    let who = lowercase_first(cap(c, 1));
+                    // "it" is the source, not the player just targeted.
+                    let of = match cap(c, 2) {
+                        "it" => "it".to_string(),
+                        w => recipient(w, t)?,
+                    };
+                    Some(format!("{who} gains control of {of}"))
+                },
+            ),
+            // CR 701.12c.
+            (
+                r(r"^[Ee]xchange life totals with target opponent$"),
+                |_, t| {
+                    *t += 1;
+                    Some("exchange life totals with target opponent".to_string())
                 },
             ),
             // CR 608.2d: a punisher.
@@ -6340,8 +6462,9 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         if corpus.iter().any(|t| t.name == key) || tokens.iter().any(|(k, _)| k == key) {
             continue;
         }
-        let block =
-            token_block(key).ok_or_else(|| Skip::Sentence(format!("unknown token {key}")))?;
+        let block = token_block(key)
+            .or_else(|| legendary_token_block(key))
+            .ok_or_else(|| Skip::Sentence(format!("unknown token {key}")))?;
         token_cards.extend(
             mtg_dsl::parse(&block).map_err(|e| Skip::Sentence(format!("token parse: {e}")))?,
         );

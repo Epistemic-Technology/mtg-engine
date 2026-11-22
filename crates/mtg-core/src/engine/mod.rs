@@ -485,6 +485,7 @@ impl GameState {
             resolution_number: 0,
             limited_this_turn: Vec::new(),
             doing_once: None,
+            token_pt: None,
             activated_ever: Vec::new(),
             modes_chosen: Vec::new(),
             attackers_this_turn: Vec::new(),

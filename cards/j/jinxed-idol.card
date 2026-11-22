@@ -1,0 +1,7 @@
+card "Jinxed Idol" {
+  oracle_id 89b1eab9-4d24-4367-99f7-263349f69c3a
+  cost {2}
+  type Artifact
+  triggered at beginning of your upkeep: deal 2 damage to you
+  activated sacrifice creature: target opponent gains control of this
+}

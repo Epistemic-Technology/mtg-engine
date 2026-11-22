@@ -1,0 +1,8 @@
+card "Zidane, Tantalus Thief" {
+  oracle_id f267fb54-1881-464c-81af-9e03c3f3b41d
+  cost {3}{R}{W}
+  type Legendary Creature — Human Mutant Scout
+  pt 3/3
+  triggered when this enters: gain control of target creature an opponent controls; untap target 1; target 1 gains lifelink, haste
+  triggered whenever an opponent gains control of a permanent from you: you create 1 "Treasure"
+}

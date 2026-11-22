@@ -1,0 +1,14 @@
+card "Bilbo, Luckwearer // Burglar's Plot" {
+  oracle_id a73d9109-36e0-40ea-ab06-5c5f7eb4ac54
+  layout adventure
+  cost {1}{U}
+  type Legendary Creature — Halfling Rogue
+  pt 1/1
+  keywords can't be blocked
+  triggered whenever this deals combat damage to a player: draw 1 card then discard 1 card
+  face "Burglar's Plot" {
+    cost {4}{U}
+    type Sorcery — Adventure
+    spell: exchange control of 2 target nonland permanent that share card type
+  }
+}

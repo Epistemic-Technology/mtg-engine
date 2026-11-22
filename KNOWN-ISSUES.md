@@ -35,13 +35,21 @@ wrong thing in some case.
   kinds that don't change power or toughness, then the rest); several
   mechanics from the first wave have the engine choose where the player
   should.
+- **Token copy of a creature that has died before its enters trigger
+  resolves** (Gruff Triplets, in; Sphinx of False Conclusions, not in):
+  made from last known information, but no scenario covers it (the
+  runner can't answer the trigger while the creature spell is on the
+  stack).
 - **Thousand-Year Storm:** the "cast before it this turn" count has an
   edge case with spells cast while it is on the stack.
-- **Token-creation replacements apply only to `create` and `create
-  token copy` effects.** Amass, fabricate, incubate, populate, offspring,
-  embalm and other token makers ignore Parallel Lives, Quina, and the
-  like; the replacements' order is fixed (added tokens, then doubling)
-  rather than chosen (CR 616.1).
+- **Token-creation replacements apply in a fixed order** (tokens
+  instead of others, then added tokens, then doubling) rather than the
+  order the player chooses (CR 616.1).
+- **A copy of an X/X token is 0/0.** "Create an X/X ... token, where X
+  is ..." (`sized`, Tumbleweed Rising, Slime Molding) gives the token base
+  power and toughness X/X with a layer-7b effect, not as a copiable value
+  (CR 111.3, 707.2), so a Clone or populate copying it gets the
+  definition's 0/0.
 - **Reflexive trigger on a token:** "it" may read the token where the
   text means the triggering object.
 - **A player's protection from a color** (Seht's Tiger) stops targeting

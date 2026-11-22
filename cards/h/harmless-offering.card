@@ -1,0 +1,6 @@
+card "Harmless Offering" {
+  oracle_id f5d32e5f-066b-42cf-8dd1-072a96275313
+  cost {2}{R}
+  type Sorcery
+  spell: target opponent gains control of target permanent you control
+}

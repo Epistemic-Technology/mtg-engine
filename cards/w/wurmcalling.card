@@ -1,0 +1,7 @@
+card "Wurmcalling" {
+  oracle_id 8dd0f86d-6f9e-47e3-97dd-3a3fc075ea93
+  cost {X}{G}
+  type Sorcery
+  buyback {2}{G}
+  spell: create 1 "0/0 green Wurm creature" sized x
+}

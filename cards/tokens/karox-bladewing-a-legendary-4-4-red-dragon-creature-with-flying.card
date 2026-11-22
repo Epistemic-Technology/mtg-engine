@@ -1,0 +1,7 @@
+token "Karox Bladewing, a legendary 4/4 red Dragon creature with flying" {
+  name "Karox Bladewing"
+  type Legendary Creature — Dragon
+  pt 4/4
+  color red
+  keywords flying
+}

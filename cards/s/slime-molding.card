@@ -1,0 +1,6 @@
+card "Slime Molding" {
+  oracle_id e01c8122-9159-4f28-ac6c-338bd889650e
+  cost {X}{G}
+  type Sorcery
+  spell: create 1 "0/0 green Ooze creature" sized x
+}

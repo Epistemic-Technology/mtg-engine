@@ -1304,7 +1304,9 @@ impl Compiler<'_> {
             // creature": other than the target (`TargetAndGroup`), not the
             // source.
             relation: match f.same {
-                Some(SameRef::SameNameAs(_) | SameRef::SharesColorWith(_)) => Relation::Any,
+                Some(
+                    SameRef::SameNameAs(_) | SameRef::SharesColorWith(_) | SameRef::ShareCardType,
+                ) => Relation::Any,
                 _ => f.relation,
             },
             same: f.same.map(|r| {
@@ -1325,6 +1327,10 @@ impl Compiler<'_> {
                         of: target(n),
                         what: SameWhat::Name,
                     },
+                    SameRef::ShareCardType => Same {
+                        of: target(0),
+                        what: SameWhat::SharesType,
+                    },
                     SameRef::SharesColorWith(n) => Same {
                         of: target(n),
                         what: SameWhat::Color,
@@ -1339,7 +1345,16 @@ impl Compiler<'_> {
                     },
                 }
             }),
-            named: None,
+            // `named "Keimi"`: a token definition's name; an unknown one
+            // matches nothing.
+            named: f.named_card.as_ref().map(|n| {
+                (
+                    self.pool
+                        .lookup(n)
+                        .unwrap_or(mtg_core::card::CardRef(u32::MAX)),
+                    true,
+                )
+            }),
             enchanted: f.enchanted,
             paired: f.paired.is_some(),
             no_abilities: f.no_abilities,
@@ -1531,6 +1546,7 @@ impl Compiler<'_> {
             who: Some(R::EachOpponent),
             it_has: false,
             attached: None,
+            sized: None,
         };
         let e = match kind {
             GiftKind::Card => E::DrawCards {
@@ -2235,7 +2251,8 @@ impl Compiler<'_> {
             Recipient::You => CoreRecipient::You,
             Recipient::EachOpponent
             | Recipient::EachOtherPlayer
-            | Recipient::EachOfYourOpponents => CoreRecipient::EachOpponent,
+            | Recipient::EachOfYourOpponents
+            | Recipient::AnOpponent => CoreRecipient::EachOpponent,
             Recipient::Source
             | Recipient::SourceNamed
             | Recipient::SourceCard
@@ -2265,7 +2282,9 @@ impl Compiler<'_> {
             | Recipient::SameToken
             | Recipient::SameTokens
             | Recipient::SameThem => CoreRecipient::SameObject,
-            Recipient::CreatedTokens | Recipient::CreatedThem => CoreRecipient::CreatedTokens,
+            Recipient::CreatedTokens | Recipient::CreatedThem | Recipient::CreatedThose => {
+                CoreRecipient::CreatedTokens
+            }
             Recipient::Manifested
             | Recipient::CreatedObject
             | Recipient::CreatedThat
@@ -2619,6 +2638,13 @@ impl Compiler<'_> {
                 }),
                 _ => return self.err("exchange control of two permanents"),
             },
+            Effect::ExchangeLife { with } => {
+                out.push(CoreEffect::ExchangeLife { with: r(*with) });
+            }
+            Effect::GiveControl { of, to } => out.push(CoreEffect::GiveControl {
+                of: r(*of),
+                to: r(*to),
+            }),
             Effect::Airbend { what } => {
                 for w in what {
                     out.push(CoreEffect::Airbend { what: r(*w) });
@@ -2659,7 +2685,7 @@ impl Compiler<'_> {
                     out.push(CoreEffect::Untap { to: r(*t) });
                 }
             }
-            Effect::Grant { keywords, to } => out.push(CoreEffect::Grant {
+            Effect::Grant { keywords, to, .. } => out.push(CoreEffect::Grant {
                 keywords: KeywordSet::of(keywords.iter().copied()),
                 to: r(*to),
             }),
@@ -2679,11 +2705,16 @@ impl Compiler<'_> {
                 attacking,
                 who,
                 attached,
+                sized,
                 ..
             } => {
                 let Some(token_ref) = self.pool.lookup(token) else {
                     return self.err(format!("unknown token \"{token}\""));
                 };
+                // CR 111.3: X fixed before the token exists.
+                if let Some(n) = sized {
+                    out.push(CoreEffect::TokenPtX(*n));
+                }
                 if attached.is_some() && self.pool.get(token_ref).enchant().is_none() {
                     return self.err(format!("token \"{token}\" created attached is not an Aura"));
                 }
@@ -2699,10 +2730,13 @@ impl Compiler<'_> {
                     out.push(CoreEffect::CreatedAttack);
                 }
             }
-            Effect::CreateTokenCopy { of, except } => out.push(CoreEffect::CreateTokenCopy {
-                of: r(*of),
-                except: *except,
-            }),
+            Effect::CreateTokenCopy { of, except, count } => {
+                out.push(CoreEffect::CreateTokenCopy {
+                    of: r(*of),
+                    except: *except,
+                    count: *count,
+                });
+            }
             Effect::CopySpells {
                 what,
                 times,
@@ -3997,6 +4031,7 @@ impl Compiler<'_> {
             Trigger::CommitsCrime { your_turn } => TriggerSpec::CommitsCrime {
                 your_turn: *your_turn,
             },
+            Trigger::OpponentGainsControl => TriggerSpec::OpponentGainsControl,
             Trigger::YouTurnFaceUp => TriggerSpec::TurnedFaceUp(self.trigger_obj(
                 &crate::ast::TriggerObj::Filter(Filter {
                     who: Some(Who::You),
@@ -4087,9 +4122,16 @@ impl Compiler<'_> {
                 from_battlefield: *from_battlefield,
             },
             Replaces::ThisToGraveyard => CoreReplaces::ThisToGraveyard,
-            Replaces::CreateTokens { creature, effect } => CoreReplaces::CreateTokens {
+            Replaces::CreateTokens {
+                creature,
+                effect,
+                artifact,
+                you,
+            } => CoreReplaces::CreateTokens {
                 creature: *creature,
                 effect: *effect,
+                artifact: *artifact,
+                you: *you,
             },
             Replaces::PlusCounters { on } => CoreReplaces::PlusCounters {
                 on: self.filter(on),
@@ -4106,7 +4148,9 @@ impl Compiler<'_> {
             },
         };
         let mut replacement = r.outcome;
-        if let mtg_core::card::Replacement::PlusToken { token, .. } = &mut replacement {
+        if let mtg_core::card::Replacement::PlusToken { token, .. }
+        | mtg_core::card::Replacement::TokensInstead { token } = &mut replacement
+        {
             let name = r.token.as_deref().unwrap_or_default();
             let Some(t) = self.pool.lookup(name) else {
                 return self.err(format!("unknown token \"{name}\""));
@@ -5611,6 +5655,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 who: None,
                 it_has: false,
                 attached: None,
+                sized: None,
             }),
         },
         // CR 702.134a: "Whenever this creature attacks, put a +1/+1
@@ -5656,6 +5701,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         who: None,
                         it_has: false,
                         attached: None,
+                        sized: None,
                     },
                     E::Attach {
                         what: Recipient::Source,
@@ -5980,6 +6026,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         who: None,
                         it_has: false,
                         attached: None,
+                        sized: None,
                     },
                     E::Attach {
                         what: Recipient::Source,
@@ -6141,6 +6188,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                     E::Grant {
                         keywords: vec![mtg_core::card::Keyword::Haste],
                         to: Recipient::Source,
+                        each: false,
                     },
                     E::Delayed {
                         about: Recipient::Source,

@@ -1,0 +1,5 @@
+token "Lotus" {
+  name "Lotus"
+  type Artifact
+  activated {T}, sacrifice this: add any 3
+}

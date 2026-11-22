@@ -852,6 +852,9 @@ pub struct Filter {
     /// `named this`, `not named this`, `with same name as target 1`,
     /// `that shares color with target 1` (`ObjFilter::same`).
     pub same: Option<SameRef>,
+    /// `named "Keimi"`: "named Keimi", a token's name (CR 201.2; the
+    /// token definition keyed so).
+    pub named_card: Option<String>,
     /// `named this` written before the controller or place ("creatures
     /// named ~ on the battlefield", "creature named ~ you control") rather
     /// than after it ("creature you control named ~").
@@ -984,6 +987,10 @@ pub enum SameRef {
     SameNameAs(usize),
     /// `that shares color with target 1`: "that shares a color with it".
     SharesColorWith(usize),
+    /// `that share card type`, in the spec of a spell's first targets:
+    /// "two target nonland permanents that share a card type" (each
+    /// shares one with the first).
+    ShareCardType,
     /// `with lesser power`: "with lesser power" (than the source's power,
     /// as it is or last existed; mentor, CR 702.134a).
     LesserPower,
@@ -2584,6 +2591,11 @@ pub enum Replaces {
     CreateTokens {
         creature: bool,
         effect: bool,
+        /// `artifact tokens created under your control`.
+        artifact: bool,
+        /// `artifact tokens you create`: "If you would create one or more
+        /// artifact tokens, instead create ...".
+        you: bool,
     },
     /// `this put into a graveyard`: "If ~ would be put into a graveyard
     /// from anywhere" (CR 113.6b).
@@ -2954,6 +2966,8 @@ pub enum Trigger {
     CommitsCrime {
         your_turn: bool,
     },
+    /// `whenever an opponent gains control of a permanent from you`.
+    OpponentGainsControl,
     /// `whenever you turn a permanent face up` (CR 708.8): a permanent you
     /// control is turned face up; it is "it".
     YouTurnFaceUp,
@@ -3147,6 +3161,10 @@ pub enum Recipient {
     /// `each of your opponents`: "each of your opponents" (each opponent;
     /// wording only, Everything Pizza).
     EachOfYourOpponents,
+    /// `an opponent` as the subject of `gains control of`: "An opponent
+    /// gains control of this artifact." (the first opponent; the game
+    /// has one).
+    AnOpponent,
     /// `this`: the source, "this creature" (a spell's or a legendary
     /// permanent's name, CR 201.5) at its first mention, "it" after.
     Source,
@@ -3226,6 +3244,10 @@ pub enum Recipient {
     /// `them` after creating tokens: `those tokens` printed "them" ("Put
     /// X +1/+1 counters on each of them").
     CreatedThem,
+    /// `those copies`: `those tokens` printed "those tokens" as a subject
+    /// too ("Those tokens gain haste until end of turn.", where `those
+    /// tokens` prints "They gain ...").
+    CreatedThose,
     /// `manifested creature`: the creature the resolution manifested
     /// (manifest dread, CR 701.62), printed "that creature" ("manifest
     /// dread, then put three +1/+1 counters on that creature").
@@ -3468,6 +3490,9 @@ pub enum Effect {
     Grant {
         keywords: Vec<Keyword>,
         to: Recipient,
+        /// `one or two target creature each gain haste`: "each" after a
+        /// variable target group, as some Oracle texts print it.
+        each: bool,
     },
     /// `gain control of target creature` (until end of turn); with
     /// `indefinitely`, for good.
@@ -3508,10 +3533,18 @@ pub enum Effect {
         /// `attached to up to 1 target creature you control`: an Aura token
         /// (a Role, CR 303.7) enters attached to it.
         attached: Option<Recipient>,
+        /// `sized <num>`: the token is X/X, X fixed as it is created ("an
+        /// X/X green Elemental creature token, where X is ..."); its
+        /// definition's power and toughness print as "X/X".
+        sized: Option<Num>,
     },
+    /// `create token copy of <what>`, `create 2 token copies of this`
+    /// ("create two tokens that are copies of it"), `create x token copies
+    /// of target ...` ("Create X tokens that are copies of ...").
     CreateTokenCopy {
         of: Recipient,
         except: bool,
+        count: Num,
     },
     /// `copy target instant or sorcery spell you control [times N] [new
     /// targets] [with exceptions]` (CR 707.10): "Copy target instant or
@@ -4174,6 +4207,18 @@ pub enum Effect {
     /// target creatures."
     ExchangeControl {
         what: Vec<Recipient>,
+    },
+    /// `target opponent gains control of target permanent you control`,
+    /// `an opponent gains control of this` (CR 613.1b): another player
+    /// gains control indefinitely.
+    GiveControl {
+        of: Recipient,
+        to: Recipient,
+    },
+    /// `exchange life totals with target opponent` (CR 701.12c); a
+    /// following `if you do,` prints "If you lost life this way, ...".
+    ExchangeLife {
+        with: Recipient,
     },
     /// `return all creature card from your graveyard to battlefield`:
     /// "Return all creature cards from your graveyard to the battlefield."

@@ -1,0 +1,9 @@
+card "Unwilling Vessel" {
+  oracle_id d2593334-ce0b-43e1-97ad-b00950bfae2b
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 3/2
+  keywords vigilance
+  label "Eerie" triggered whenever enchantment you control enters and whenever you fully unlock a Room: put 1 possession counters on this
+  triggered when this dies: create 1 "0/0 blue Spirit creature with flying" sized count where counters on this
+}

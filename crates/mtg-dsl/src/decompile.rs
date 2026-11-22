@@ -249,9 +249,11 @@ impl Decompiler<'_> {
                     (SameOf::Target(n), SameWhat::Color) => {
                         SameRef::SharesColorWith(usize::from(n))
                     }
+                    (SameOf::Target(_), SameWhat::SharesType) => SameRef::ShareCardType,
                     (SameOf::Target(n), _) => SameRef::SameNameAs(usize::from(n)),
                 }
             }),
+            named_card: f.named.map(|(d, _)| self.pool.get(d).name.clone()),
             named_first: false,
             enchanted_late: false,
             equipped_late: false,
@@ -714,6 +716,7 @@ impl Decompiler<'_> {
 
     fn sentences(&self, effects: &[CoreEffect]) -> Vec<Sentence> {
         let mut out = Vec::new();
+        let mut sized = None;
         for e in effects {
             // CR 611.2b: one sentence with its duration.
             if let CoreEffect::Lasting { lasting, effects } = e {
@@ -760,6 +763,21 @@ impl Decompiler<'_> {
             {
                 out.push(Sentence::new(vec![Effect::Clash]));
                 out.push(Sentence::new(vec![Effect::IfWonClash(self.sentences(won))]));
+                continue;
+            }
+            // "an X/X ... token, where X is ...": X is fixed first.
+            if let CoreEffect::TokenPtX(n) = e {
+                sized = Some(*n);
+                continue;
+            }
+            if let Some(n) = sized.take()
+                && let CoreEffect::CreateToken { .. } = e
+            {
+                let mut c = self.effect(e);
+                if let Effect::CreateToken { sized, .. } = &mut c {
+                    *sized = Some(n);
+                }
+                out.push(Sentence::new(vec![c]));
                 continue;
             }
             // "create a ... token that's tapped and attacking".
@@ -904,6 +922,7 @@ impl Decompiler<'_> {
             CoreEffect::Grant { keywords: k, to } => Effect::Grant {
                 keywords: keywords(*k),
                 to: r(*to),
+                each: false,
             },
             CoreEffect::GainControl { of, forever } => Effect::GainControl {
                 of: r(*of),
@@ -928,10 +947,12 @@ impl Decompiler<'_> {
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
                 it_has: false,
                 attached: attached.map(r),
+                sized: None,
             },
-            CoreEffect::CreateTokenCopy { of, except } => Effect::CreateTokenCopy {
+            CoreEffect::CreateTokenCopy { of, except, count } => Effect::CreateTokenCopy {
                 of: r(*of),
                 except: *except,
+                count: *count,
             },
             CoreEffect::CopySpells {
                 what,
@@ -1429,6 +1450,7 @@ impl Decompiler<'_> {
             | CoreEffect::Exploit
             | CoreEffect::EnterAttacking
             | CoreEffect::CreatedAttack
+            | CoreEffect::TokenPtX(_)
             | CoreEffect::EnteredAttack
             | CoreEffect::ReturnTransformed
             | CoreEffect::BecomeSaddled => {
@@ -1469,6 +1491,11 @@ impl Decompiler<'_> {
             CoreEffect::CloakTop { .. } => Effect::CloakTop,
             CoreEffect::ExchangeControl { a, b } => Effect::ExchangeControl {
                 what: std::iter::once(*a).chain(*b).map(r).collect(),
+            },
+            CoreEffect::ExchangeLife { with } => Effect::ExchangeLife { with: r(*with) },
+            CoreEffect::GiveControl { of, to } => Effect::GiveControl {
+                of: r(*of),
+                to: r(*to),
             },
             CoreEffect::Airbend { what } => Effect::Airbend {
                 what: vec![r(*what)],
@@ -1922,6 +1949,7 @@ impl Decompiler<'_> {
                     batch: *batch,
                 }
             }
+            TriggerSpec::OpponentGainsControl => Trigger::OpponentGainsControl,
             TriggerSpec::CommitsCrime { your_turn } => Trigger::CommitsCrime {
                 your_turn: *your_turn,
             },
@@ -2036,9 +2064,16 @@ impl Decompiler<'_> {
                     from_battlefield: *from_battlefield,
                 },
                 CoreReplaces::ThisToGraveyard => Replaces::ThisToGraveyard,
-                CoreReplaces::CreateTokens { creature, effect } => Replaces::CreateTokens {
+                CoreReplaces::CreateTokens {
+                    creature,
+                    effect,
+                    artifact,
+                    you,
+                } => Replaces::CreateTokens {
                     creature: *creature,
                     effect: *effect,
+                    artifact: *artifact,
+                    you: *you,
                 },
                 CoreReplaces::PlusCounters { on } => Replaces::PlusCounters {
                     on: self.filter(on),
@@ -2058,7 +2093,8 @@ impl Decompiler<'_> {
             outcome: r.replacement,
             then: self.sentences(&r.then),
             token: match r.replacement {
-                mtg_core::card::Replacement::PlusToken { token, .. } => {
+                mtg_core::card::Replacement::PlusToken { token, .. }
+                | mtg_core::card::Replacement::TokensInstead { token } => {
                     Some(self.pool.get(token).name.clone())
                 }
                 _ => None,

@@ -1,0 +1,204 @@
+# Giving control to another player (CR 613.1b, layer 2): "Target opponent
+# gains control of target permanent you control." lasts indefinitely; "If
+# they do" holds only if the permanent changed hands. Exchanging life
+# totals (CR 701.12c).
+
+scenario "give control: Harmless Offering hands a creature over for good" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Harmless Offering"
+  turn 1 A: cast "Harmless Offering" targeting player B, "Grizzly Bears"
+  run_to turn 3 upkeep
+  assert battlefield B contains "Grizzly Bears"
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "give control: Harmless Offering can't target an opponent's permanent" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Harmless Offering"
+  illegal turn 1 A: cast "Harmless Offering" targeting player B, "Hill Giant"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "give control: Stiltzkin gives a permanent away and draws" {
+  battlefield A: "Stiltzkin, Moogle Merchant", 2 "Plains", "Ornithopter"
+  library A: "Island", "Forest"
+  turn 1 A: activate "Stiltzkin, Moogle Merchant" targeting player B, "Ornithopter"
+  run_to turn 1 end
+  assert battlefield B contains "Ornithopter"
+  assert hand A count 1
+  assert hand A contains "Island"
+}
+
+scenario "give control: Stiltzkin can't give itself away" {
+  battlefield A: "Stiltzkin, Moogle Merchant", 2 "Plains"
+  illegal turn 1 A: activate "Stiltzkin, Moogle Merchant" targeting player B, "Stiltzkin, Moogle Merchant"
+  run_to turn 1 end
+  assert battlefield A contains "Stiltzkin, Moogle Merchant"
+}
+
+scenario "give control: no draw if the permanent is gone" {
+  battlefield A: "Stiltzkin, Moogle Merchant", 2 "Plains", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  library A: "Island", "Forest"
+  turn 1 A: activate "Stiltzkin, Moogle Merchant" targeting player B, "Grizzly Bears"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears" in response to "Stiltzkin, Moogle Merchant"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 0
+}
+
+scenario "exchange life: Mister Negative trades a low total up" {
+  life A 5
+  life B 18
+  battlefield A: 6 "Plains", "Swamp"
+  hand A: "Mister Negative"
+  library A: "Island", "Forest", "Swamp"
+  turn 1 A: cast "Mister Negative"
+  turn 1 A: trigger "Mister Negative" targeting player B
+  run_to turn 1 end
+  assert life A 18
+  assert life B 5
+  assert hand A count 0
+}
+
+scenario "exchange life: losing life draws that many cards" {
+  life A 20
+  life B 17
+  battlefield A: 6 "Plains", "Swamp"
+  hand A: "Mister Negative"
+  library A: "Island", "Forest", "Swamp", "Mountain"
+  turn 1 A: cast "Mister Negative"
+  turn 1 A: trigger "Mister Negative" targeting player B
+  run_to turn 1 end
+  assert life A 17
+  assert life B 20
+  assert hand A count 3
+}
+
+scenario "exchange life: declining keeps both totals" {
+  life A 5
+  life B 18
+  battlefield A: 6 "Plains", "Swamp"
+  hand A: "Mister Negative"
+  turn 1 A: cast "Mister Negative"
+  turn 1 A: trigger "Mister Negative" targeting player B
+  turn 1 A: decline "Mister Negative"
+  run_to turn 1 end
+  assert life A 5
+  assert life B 18
+}
+
+scenario "give control: Zidane steals a creature, untaps it, and gets a Treasure when it goes back" {
+  battlefield A: 3 "Mountain", 2 "Plains"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Zidane, Tantalus Thief"
+  turn 1 A: cast "Zidane, Tantalus Thief"
+  turn 1 A: trigger "Zidane, Tantalus Thief" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert untapped "Hill Giant"
+  assert has "Hill Giant" lifelink
+  assert battlefield A lacks "Treasure"
+  run_to turn 2 upkeep
+  assert battlefield B contains "Hill Giant"
+  assert battlefield A contains "Treasure"
+}
+
+scenario "give control: Humble Defector draws two and goes to the opponent" {
+  battlefield A: "Humble Defector"
+  library A: "Island", "Forest", "Swamp"
+  turn 1 A: activate "Humble Defector" targeting player B
+  run_to turn 1 end
+  assert battlefield B contains "Humble Defector"
+  assert hand A count 2
+}
+
+scenario "give control: Humble Defector only during its controller's turn" {
+  battlefield A: "Humble Defector"
+  start turn 2 B
+  illegal turn 2 A: activate "Humble Defector" targeting player B
+  run_to turn 2 end
+  assert battlefield A contains "Humble Defector"
+}
+
+scenario "give control: Jinxed Idol passed on by sacrificing a creature" {
+  battlefield A: "Jinxed Idol", "Grizzly Bears"
+  turn 1 A: activate "Jinxed Idol" sacrificing "Grizzly Bears" targeting player B
+  run_to turn 2 upkeep
+  assert battlefield B contains "Jinxed Idol"
+  assert graveyard A contains "Grizzly Bears"
+  run_to turn 2 draw
+  assert life B 18
+  assert life A 18
+}
+
+scenario "give control: Bazaar Trader gives a land to the opponent" {
+  battlefield A: "Bazaar Trader", "Forest"
+  turn 1 A: activate "Bazaar Trader" targeting player B, "Forest"
+  run_to turn 1 end
+  assert battlefield B contains "Forest"
+}
+
+scenario "exchange life: Magus of the Mirror during its controller's upkeep" {
+  life A 4
+  life B 16
+  battlefield A: "Magus of the Mirror"
+  start turn 2 A
+  turn 2 upkeep A: activate "Magus of the Mirror" targeting player B
+  run_to turn 2 draw
+  assert life A 16
+  assert life B 4
+  assert graveyard A contains "Magus of the Mirror"
+}
+
+scenario "give control: Zidane's trigger on a permanent given away" {
+  battlefield A: "Zidane, Tantalus Thief", 3 "Mountain", "Grizzly Bears"
+  hand A: "Harmless Offering"
+  turn 1 A: cast "Harmless Offering" targeting player B, "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield B contains "Grizzly Bears"
+  assert battlefield A contains 1 "Treasure"
+}
+
+scenario "give control: Akroan Horse goes to the opponent as it enters" {
+  battlefield A: 4 "Plains"
+  hand A: "Akroan Horse"
+  turn 1 A: cast "Akroan Horse"
+  run_to turn 2 draw
+  assert battlefield B contains "Akroan Horse"
+  assert battlefield A contains 1 "Soldier"
+}
+
+scenario "give control: Wishclaw Talisman tutors, then the opponent gets it" {
+  battlefield A: "Wishclaw Talisman" with 3 wish, "Swamp"
+  library A: "Lightning Bolt"
+  turn 1 A: activate "Wishclaw Talisman"
+  run_to turn 1 end
+  assert hand A contains "Lightning Bolt"
+  assert battlefield B contains "Wishclaw Talisman"
+  assert counters "Wishclaw Talisman" wish 2
+}
+
+scenario "give control: the opponent can use Wishclaw Talisman only on their turn" {
+  battlefield A: "Wishclaw Talisman" with 3 wish, "Swamp"
+  battlefield B: "Swamp"
+  turn 1 A: activate "Wishclaw Talisman"
+  illegal turn 1 B: activate "Wishclaw Talisman"
+  turn 2 B: activate "Wishclaw Talisman"
+  run_to turn 2 end
+  assert battlefield A contains "Wishclaw Talisman"
+  assert counters "Wishclaw Talisman" wish 1
+}
+
+scenario "give control: Sleeper Agent goes to the targeted opponent and hurts them" {
+  battlefield A: "Swamp"
+  hand A: "Sleeper Agent"
+  turn 1 A: cast "Sleeper Agent"
+  turn 1 A: trigger "Sleeper Agent" targeting player B
+  run_to turn 2 draw
+  assert battlefield B contains "Sleeper Agent"
+  assert life B 18
+  assert life A 20
+}

@@ -1,0 +1,9 @@
+card "Kwia Vigorbloom" {
+  oracle_id 07a28621-e617-46b0-af3e-2efb03b5056a
+  cost {3}{G}{W}{W}
+  type Legendary Creature — Elder Sphinx
+  pt 6/6
+  keywords flying, vigilance, lifelink
+  ward {2}
+  triggered once each turn whenever you gain life: create 1 "Lotus"
+}

@@ -1,0 +1,8 @@
+card "The Sentry, Golden Guardian" {
+  oracle_id 1fe549c3-79be-40ef-b57c-de59f24df5ab
+  cost {3}{W}
+  type Legendary Creature — Human Hero
+  pt 5/5
+  keywords flying, vigilance, indestructible
+  triggered when this enters: target opponent creates 1 "The Void"
+}

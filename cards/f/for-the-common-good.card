@@ -1,0 +1,6 @@
+card "For the Common Good" {
+  oracle_id de6e4aa2-23f1-46e5-a061-05522944e0c6
+  cost {X}{X}{G}
+  type Sorcery
+  spell: create x token copies of target token you control; then each token you control gains indestructible until your next turn; you gain count each token you control life
+}

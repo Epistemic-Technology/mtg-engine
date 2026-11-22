@@ -1,0 +1,9 @@
+card "Verix Bladewing" {
+  oracle_id d7315b3b-6e5d-4d28-a503-bfae1daf6c43
+  cost {2}{R}{R}
+  type Legendary Creature — Dragon
+  pt 4/4
+  kicker {3}
+  keyword flying
+  triggered when this enters if kicked: create 1 "Karox Bladewing, a legendary 4/4 red Dragon creature with flying"
+}

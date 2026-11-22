@@ -1,0 +1,7 @@
+token "The Void" {
+  name "The Void"
+  type Legendary Creature — Horror Villain
+  pt 5/5
+  color black
+  keywords flying, indestructible, attacks each combat if able
+}

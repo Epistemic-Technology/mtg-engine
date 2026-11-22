@@ -1,0 +1,164 @@
+# Named legendary tokens (CR 111.4: the name the effect gives; CR 704.5j:
+# the legend rule applies to them like any legendary permanent).
+
+scenario "named tokens: Jiang Yanggu creates Mowu, a 3/3 Dog" {
+  battlefield A: 4 "Forest"
+  hand A: "Jiang Yanggu, Never Alone"
+  turn 1 A: cast "Jiang Yanggu, Never Alone"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mowu"
+  assert power "Mowu" 3
+  assert toughness "Mowu" 3
+  assert is "Mowu" legendary
+  assert is "Mowu" green
+  assert is "Mowu" "Dog"
+}
+
+scenario "named tokens: a second Voja goes to the graveyard under the legend rule" {
+  battlefield A: "Tolsimir Wolfblood"
+  turn 1 A: activate "Tolsimir Wolfblood"
+  run_to turn 3 precombat_main
+  turn 3 A: activate "Tolsimir Wolfblood"
+  run_to turn 3 end
+  assert battlefield A contains 1 "Voja"
+  assert power "Voja" 4
+}
+
+scenario "named tokens: Verix Bladewing kicked creates Karox Bladewing" {
+  battlefield A: 7 "Mountain"
+  hand A: "Verix Bladewing"
+  turn 1 A: cast "Verix Bladewing" kicked
+  run_to turn 1 end
+  assert battlefield A contains "Karox Bladewing"
+  assert has "Karox Bladewing" flying
+}
+
+scenario "named tokens: Verix Bladewing unkicked creates nothing" {
+  battlefield A: 4 "Mountain"
+  hand A: "Verix Bladewing"
+  turn 1 A: cast "Verix Bladewing"
+  run_to turn 1 end
+  assert battlefield A lacks "Karox Bladewing"
+}
+
+scenario "named tokens: The Sentry gives the opponent The Void, which must attack" {
+  battlefield A: 4 "Plains"
+  hand A: "The Sentry, Golden Guardian"
+  turn 1 A: cast "The Sentry, Golden Guardian"
+  turn 1 A: trigger "The Sentry, Golden Guardian" targeting player B
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "The Void"
+  assert has "The Void" indestructible
+  assert life A 15
+}
+
+scenario "named tokens: Mabel's Cragflame equips for {2}" {
+  battlefield A: 3 "Mountain", 2 "Plains", "Grizzly Bears"
+  hand A: "Mabel, Heir to Cragflame"
+  turn 1 A: cast "Mabel, Heir to Cragflame"
+  turn 1 A: activate "Cragflame" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Cragflame"
+  assert is "Cragflame" legendary
+  assert attached "Cragflame" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" trample
+  assert has "Grizzly Bears" haste
+}
+
+scenario "named tokens: Smaug dies into fourteen Treasures" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "There and Back Again" with 2 lore
+  hand A: "Murder"
+  start turn 2 B
+  turn 2 postcombat_main A: cast "Murder" targeting "Smaug"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Smaug"
+  assert has "Smaug" haste
+  assert is "Smaug" legendary
+  run_to turn 2 end
+  assert graveyard A contains "Murder"
+  assert battlefield B lacks "Smaug"
+  assert battlefield B contains 14 "Treasure"
+}
+
+scenario "named tokens: Tuktuk dies and returns as a 5/5 Golem" {
+  battlefield A: "Tuktuk the Explorer", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Tuktuk the Explorer"
+  run_to turn 1 end
+  assert battlefield A contains "Tuktuk the Returned"
+  assert is "Tuktuk the Returned" artifact
+  assert power "Tuktuk the Returned" 5
+}
+
+scenario "named tokens: Icingdeath dies into Icingdeath, Frost Tongue" {
+  battlefield A: "Icingdeath, Frost Tyrant", "Grizzly Bears", 3 "Plains"
+  battlefield B: "Hill Giant", "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Icingdeath, Frost Tyrant"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Icingdeath, Frost Tongue"
+  turn 3 A: activate "Icingdeath, Frost Tongue" targeting "Grizzly Bears"
+  turn 3 A: attack "Grizzly Bears"
+  turn 3 A: trigger "Icingdeath, Frost Tongue" targeting "Hill Giant"
+  run_to turn 3 end
+  assert power "Grizzly Bears" 4
+  assert tapped "Hill Giant"
+  assert life B 16
+}
+
+scenario "named tokens: White Tiger powers up into The Tiger God" {
+  battlefield A: "White Tiger, Ava Ayala", 6 "Forest"
+  turn 1 A: activate "White Tiger, Ava Ayala"
+  run_to turn 1 end
+  assert counters "White Tiger, Ava Ayala" +1/+1 1
+  assert battlefield A contains "The Tiger God"
+  assert power "The Tiger God" 4
+}
+
+scenario "named tokens: Kiora creates Scion of the Deep with threshold" {
+  battlefield A: "Kiora, the Rising Tide"
+  graveyard A: 7 "Island"
+  turn 1 A: attack "Kiora, the Rising Tide"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Scion of the Deep"
+  assert power "Scion of the Deep" 8
+}
+
+scenario "named tokens: Kiora without threshold creates nothing" {
+  battlefield A: "Kiora, the Rising Tide"
+  graveyard A: 6 "Island"
+  turn 1 A: attack "Kiora, the Rising Tide"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Scion of the Deep"
+}
+
+scenario "named tokens: Kwia makes one Lotus a turn, which taps for three mana of one color" {
+  battlefield A: "Kwia Vigorbloom", 4 "Plains"
+  hand A: "Reaping the Rewards", "Renewed Faith", "Wind Drake"
+  turn 1 A: cast "Reaping the Rewards"
+  turn 1 A: wait
+  turn 1 A: cast "Renewed Faith"
+  run_to turn 1 postcombat_main
+  assert life A 28
+  assert battlefield A contains 1 "Lotus"
+  turn 1 postcombat_main A: cast "Wind Drake"
+  run_to turn 1 end
+  assert battlefield A contains "Wind Drake"
+  assert battlefield A lacks "Lotus"
+}
+
+scenario "named tokens: Rufus Shinra makes Darkstar only if you don't control one" {
+  battlefield A: "Rufus Shinra"
+  turn 1 A: attack "Rufus Shinra"
+  turn 3 A: attack "Rufus Shinra"
+  run_to turn 1 end
+  assert battlefield A contains 1 "Darkstar"
+  assert is "Darkstar" white
+  assert is "Darkstar" black
+  run_to turn 3 end
+  assert battlefield A contains 1 "Darkstar"
+  assert life B 16
+}

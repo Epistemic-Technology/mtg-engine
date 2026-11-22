@@ -1,0 +1,6 @@
+token "Darkstar" {
+  name "Darkstar"
+  type Legendary Creature — Dog
+  pt 2/2
+  color white black
+}

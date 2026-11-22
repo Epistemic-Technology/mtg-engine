@@ -1,0 +1,7 @@
+card "Mask of the Jadecrafter" {
+  oracle_id b1870fff-b87e-434e-8d4c-d9e60f7f4284
+  cost {2}
+  type Artifact
+  activated {X}, {T}, sacrifice this, sorcery: create 1 "0/0 colorless Golem artifact creature" sized x
+  unearth {2}{G}
+}

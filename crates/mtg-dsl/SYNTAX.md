@@ -37,7 +37,7 @@ blocked by non-Spirit creature`, "This token can't block or be blocked by
 non-Spirit creatures."), and a creature token
 whose name is not its subtypes is named ("a 2/2 colorless Wizard Soldier
 creature token named Cadet"); so is a noncreature token with no subtype
-("a colorless artifact token named Munitions with \"...\""), and an Equipment token, its abilities quoted without their final period and its equip ability last ("a colorless Equipment artifact token named Axe with \"Equipped creature gets +1/+0\" and equip {2}"). A Role token (CR 111.10j–r: an `Enchantment
+("a colorless artifact token named Munitions with \"...\""), and an Equipment token, its abilities quoted without their final period and its equip ability last ("a colorless Equipment artifact token named Axe with \"Equipped creature gets +1/+0\" and equip {2}"; with several quoted abilities the list's commas go inside the quotation marks: "... token with \"Equipped creature gets +2/+0,\" \"Whenever equipped creature attacks, ...,\" and equip {2}"). A Role token (CR 111.10j–r: an `Enchantment
 — Aura Role` with `enchant creature` and `name "Wicked"`, keyed `"Wicked
 Role"`) prints by name too: "a Wicked Role token". If one player controls
 more than one Role on a permanent, all but the newest go to the graveyard
@@ -226,7 +226,7 @@ to its other face as well.
 | `top revealed`, `top revealed players` | "Play with the top card of your library revealed.", "Players play with the top card of their libraries revealed.": every player knows that top card (CR 401.2). |
 | `activated abilities of artifact you control cost {1} less min one`, `activated abilities of land you control cost {1} less`, `power-up abilities of other creature you control cost {3} less`, `exhaust abilities of other permanent you control cost {2} less` | "Activated abilities of artifacts you control cost {1} less to activate. This effect can't reduce the mana in that cost to less than one mana." (`min one`), "Power-up abilities of other creatures you control cost {3} less to activate." (CR 601.2f by way of 602.2b): the generic mana of the matching permanents' activated abilities (of that keyword: `power-up`, `exhaust`, `boast`, `ninjutsu`) is reduced as they are activated; with `min one`, never below one mana in all. |
 | `hand size none`, `hand size +1`, `hand size opponents -1` | "You have no maximum hand size.", "Your maximum hand size is increased by one.", "Each opponent's maximum hand size is reduced by one." (CR 402.2) |
-| `except { ... }` | What this card's copy effects add (CR 707.9b): `not legendary` ("it isn't legendary"; "the copy isn't legendary" for a spell copy), `types Artifact` and `subtypes Illusion` ("it's an artifact in addition to its other types", "it's a Vehicle artifact ..." together), `keywords haste`, `pt 1/1` and `colors red` ("it's a 1/1 red Balloon creature in addition to its other colors and types": base power and toughness, and colors added), and ability lines ("it has haste and \"At the beginning of the end step, sacrifice this token.\"": on an instant or sorcery, `this` in them is the token). They are part of the copy's copiable values; the legend rule reads its supertypes. A token copy of a creature that has left the battlefield ("When this creature dies, if it's not a token, create a token that's a copy of it"; `if this is nontoken`) is made as it last existed. |
+| `except { ... }` | What this card's copy effects add (CR 707.9b): `not legendary` ("it isn't legendary"; "the copy isn't legendary" for a spell copy), `types Artifact` and `subtypes Illusion` ("it's an artifact in addition to its other types", "it's a Vehicle artifact ..." together), `keywords haste`, `pt 1/1` and `colors red` ("it's a 1/1 red Balloon creature in addition to its other colors and types": base power and toughness, and colors added), and ability lines ("it has haste and \"At the beginning of the end step, sacrifice this token.\"": on an instant or sorcery, `this` in them is the token). They are part of the copy's copiable values; the legend rule reads its supertypes. A token copy of a creature that has left the battlefield ("When this creature dies, if it's not a token, create a token that's a copy of it"; `if this is nontoken`; `if this isnt token` prints "if it isn't a token") is made as it last existed. |
 
 Effects written after `:` sit on one line; write `{` instead of `:` and put
 one line per paragraph for text that spans paragraphs:
@@ -367,7 +367,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `when you cast this`, `when you cast or cycle this` | "When you cast this spell" (CR 603.2): triggers from the spell itself as it is cast, controlled by its caster, so it resolves before the spell and even if the spell is countered; "When you cast or cycle Warped Tusker" (the card's name) adds the cycle trigger. `when you cast this and when this dies` is one ability with both |
 | `whenever you sacrifice other Eldrazi` | "Whenever you sacrifice another Eldrazi" (CR 701.21a): the sacrificed permanent, matching as it is sacrificed, is the triggering object |
 | `when this enters and whenever you cast ...`, `when you cycle this and when this dies` | one ability with two trigger events, joined with "and". A `while` condition after them is the second event's only: `when this enters and whenever this attacks while saddled` ("When this creature enters and whenever it attacks while saddled", CR 603.2). |
-| `when this enters or dies`, `whenever this enters or attacks`, `when this enters or leaves the battlefield`, `when this enters or is turned face up` | one ability with two events of the source, the subject printed once: "When this creature enters or dies" ("When this artifact enters or is put into a graveyard from the battlefield" on a noncreature), "Whenever this creature enters or attacks"; the word written (`when` / `whenever`) is the word printed ("Whenever this creature enters or dies"). A face-down permanent has no abilities, so one cast face down triggers only as it turns face up (CR 708.8) |
+| `when this enters or dies`, `whenever this enters or attacks`, `when this enters or leaves the battlefield`, `when this enters or is turned face up` | one ability with two events of the source, the subject printed once: "When this creature enters or dies" ("When this artifact enters or is put into a graveyard from the battlefield" on a noncreature), "Whenever this creature enters or attacks"; the word written (`when` / `whenever`) is the word printed ("Whenever this creature enters or dies"); a filter's two events likewise: `whenever Detective you control enters or is turned face up` ("Whenever a Detective you control enters or is turned face up", each Detective the triggering object). A face-down permanent has no abilities, so one cast face down triggers only as it turns face up (CR 708.8) |
 | `whenever you sacrifice other permanent`, `whenever you sacrifice token`, `whenever a player sacrifices creature`, `whenever an opponent sacrifices ...`, `when this enters and when you sacrifice this` | a permanent is sacrificed (CR 701.21) by its controller, the player named: "Whenever you sacrifice another permanent", "Whenever a player sacrifices a creature", "When this artifact enters and when you sacrifice it". It triggers as the permanent is sacrificed, judged while it is still on the battlefield (so a permanent sacrificing itself sees it), whether by an effect, a cost, or a mana ability (a Treasure); a creature that dies otherwise doesn't. The sacrificed permanent is the triggering object |
 | `whenever permanent is turned face up`, `whenever this or permanent is turned face up`, `whenever Detective you control is turned face up` | "Whenever a permanent is turned face up", "Whenever this creature or another permanent is turned face up": the permanent judged as it is face up (CR 708.8) |
 | `whenever you draw a card`, `whenever a player draws a card`, `whenever an opponent draws a card` | once per card drawn (CR 121.2); the card is the triggering object |
@@ -902,11 +902,19 @@ instead."); `replace creature tokens created under your control: plus
 "1/1 white Soldier creature"` prints "If one or more creature tokens would
 be created under your control, those tokens plus a 1/1 white Soldier
 creature token are created instead." (`plus that many "..."`: "plus that
-many ... tokens"). Each applies once to each `create` or `create token
-copy` effect's tokens for one player; tokens added this way come before
-doubling, so a doubler doubles them too (the order is the player's choice,
-CR 616.1). Other token makers (amass, fabricate, incubate, populate, ...)
-aren't replaced yet.
+many ... tokens"). `replace artifact tokens created under your control:
+that many "5/5 red Dragon creature with flying"` prints "If one or more
+artifact tokens would be created under your control, that many 5/5 red
+Dragon creature tokens with flying are created instead." (the covered
+tokens become as many of that token); `replace artifact tokens you create:
+plus "Map"` prints "If you would create one or more artifact tokens,
+instead create those tokens plus an additional Map token." Each applies
+once to each token-making effect's tokens for one player (`create`, token
+copies, amass, fabricate, incubate, populate, endure, ...): tokens made
+instead come first, then tokens added, then doubling, so a doubler doubles
+the added ones too (the order is the player's choice, CR 616.1, fixed
+here). An amassed Army made twice is two Armies, one of which gets the
+counters.
 `replace this put into a graveyard: shuffle into library` prints "If
 Darksteel Colossus would be put into a graveyard from anywhere, reveal
 Darksteel Colossus and shuffle it into its owner's library instead.": the
@@ -924,12 +932,33 @@ player sacrifices a creature of their choice". The player chooses as it
 resolves (in a scenario `choose "1"` sacrifices, `"2"` discards, `"3"`
 takes the penalty).
 `exchange control of 2 target creature` (CR 701.12) prints "Exchange
-control of two target creatures."; `exchange control of this and target
+control of two target creatures."; `exchange control of 2 target nonland
+permanent that share card type` prints "... two target nonland permanents
+that share a card type." (`that share card type`, in the spell's first
+target spec: each target must share a card type with the first, as
+chosen and as the spell resolves); `exchange control of this and target
 nonland permanent`, `exchange control of target land you control and
 target land an opponent controls` name the two. Nothing happens unless
 both are still on the battlefield (CR 701.12a) under different
 controllers (701.12b); then each controller gains control of the other's
 permanent indefinitely.
+`target opponent gains control of target permanent you control` (a
+player subject other than `you`; CR 613.1b) prints "Target opponent gains
+control of target permanent you control.": that player gains control
+indefinitely (`an opponent gains control of this artifact`: "An opponent
+gains control of this artifact.", the game's one opponent). A following
+`if they do,` prints "If they do, ..." and holds
+only if the permanent changed hands (Stiltzkin); `you may have` prints "you
+may have target opponent gain control of ...". `whenever an opponent gains
+control of a permanent from you` triggers on each permanent its
+controller loses to an opponent, an "until end of turn" effect ending
+included (the permanent is the triggering object, the opponent the
+triggering player).
+`exchange life totals with target opponent` (CR 701.12c): each player
+gains or loses the life needed to reach the other's former total; a
+following `if you do,` prints "If you lost life this way, ..." and holds
+only if the controller lost life, and `count that many life lost this way`
+is that loss ("draw that many cards", Mister Negative).
 `end the turn` (CR 724.1) prints "End the turn.": triggered abilities
 waiting to be put on the stack cease to exist, every object on the stack
 (the resolving spell or ability too) is exiled (an ability or a copy of a
@@ -1227,7 +1256,8 @@ effect resolves). With nothing chosen, nothing matches. `named this` is
 "named ~", the card's own name (CR 201.4b), printed after the controller
 (`creature you control named this`: "creature you control named Timberpack
 Wolf") unless written before it (`creature named this you control`); `not
-named this` is "not named ~" (`target permanent not named this`). Cards
+named this` is "not named ~" (`target permanent not named this`). `named "Darkstar"` is a token's name ("you don't
+control a creature named Darkstar"), the token definition keyed by it. Cards
 take the name after the noun: `search card named this ...`, `target card
 named this from your graveyard`, `graveyard named this` ("cards named ~ in
 your graveyard"). A face-down permanent has no name (CR 708.2). As an effect's
@@ -1753,18 +1783,36 @@ battlefield tapped and attacking`, `return this to battlefield tapped and
 attacking` from the graveyard, and `put target 1 onto battlefield under your
 control tapped and attacking` ("... onto the battlefield under your control
 tapped and attacking"),
+`create 1 "0/0 green Elemental creature" sized count where land you
+control` ("Create an X/X green Elemental creature token, where X is the
+number of lands you control."; `sized x` is the spell's or ability's X,
+"Create an X/X green Ooze creature token."): X is fixed as the effect
+resolves, before the token exists (CR 608.2h), and the token has base
+power and toughness X/X from its creation on (CR 111.3; a layer-7b effect,
+so a copy of the token is 0/0); the definition's power and toughness print
+as "X/X",
 `create 1 "Eldrazi Scion" it has` (the token's abilities after the
 sentence: "Create a 1/1 colorless Eldrazi Scion creature token. It has
 \"Sacrifice this token: Add {C}.\""; "They have" for more than one),
 `create 1 "Wicked Role" attached to up to 1 target creature you control`
 (an Aura token, such as a Role, enters attached to it; if there is nothing
-it could enchant, no token is created, CR 303.4f), `<who> creates 2
+it could enchant, no token is created, CR 303.4f; attached to several
+objects, one is created for each: `create 1 "Monster Role" attached to
+target 1` after `1 to 2 target creature each gain haste` prints "For each
+of those creatures, create a Monster Role token attached to it.", and
+`attached to each Rat you control` "For each Rat you control, create a
+Wicked Role token attached to that Rat."; `each` after a variable target
+group before `gain` prints "One or two target creatures each gain haste"), `<who> creates 2
 "Treasure"` (`its controller creates`, `each player creates`, `you
 create`: "Its controller creates two Treasure tokens"),
 `create token copy of <what> [with exceptions]` (of a group, `create
 token copy of each nontoken creature you control` prints "For each
 nontoken creature you control, create a token that's a copy of that
-creature"), `copy <what> [times
+creature"; `create 2 token copies of it` prints "create two tokens that
+are copies of it", `create x token copies of x target permanent` "For
+each of X target permanents, create X tokens that are copies of that
+permanent."; `those copies gain haste` then prints "Those tokens gain
+haste until end of turn." where `those tokens` prints "They"), `copy <what> [times
 <num>] [new targets] [with exceptions]` (CR 707.10: `copy target instant
 or sorcery spell you control new targets` prints "Copy target instant or
 sorcery spell you control. You may choose new targets for the copy.";

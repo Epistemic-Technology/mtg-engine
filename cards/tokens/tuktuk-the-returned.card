@@ -1,0 +1,5 @@
+token "Tuktuk the Returned" {
+  name "Tuktuk the Returned"
+  type Legendary Artifact Creature — Goblin Golem
+  pt 5/5
+}

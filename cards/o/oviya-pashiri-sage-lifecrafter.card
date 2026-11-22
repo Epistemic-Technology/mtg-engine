@@ -1,0 +1,8 @@
+card "Oviya Pashiri, Sage Lifecrafter" {
+  oracle_id 41e03224-bcdd-4127-a19a-fe66196339b9
+  cost {G}
+  type Legendary Creature — Human Artificer
+  pt 1/2
+  activated {2}{G}, {T}: create 1 "1/1 colorless Servo artifact creature"
+  activated {4}{G}, {T}: create 1 "0/0 colorless Construct artifact creature" sized count where creature you control
+}

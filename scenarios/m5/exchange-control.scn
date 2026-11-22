@@ -65,3 +65,51 @@ scenario "exchange control: Shifting Grift's creature and artifact modes" {
   assert battlefield B contains "Grizzly Bears"
   assert battlefield B contains "Ornithopter"
 }
+
+scenario "exchange control: Shifting Loyalties swaps two creatures" {
+  battlefield A: 6 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Shifting Loyalties"
+  turn 1 A: cast "Shifting Loyalties" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "exchange control: Shifting Loyalties needs a shared card type" {
+  battlefield A: 6 "Island", "Grizzly Bears"
+  battlefield B: "Sol Ring"
+  hand A: "Shifting Loyalties"
+  illegal turn 1 A: cast "Shifting Loyalties" targeting "Grizzly Bears", "Sol Ring"
+  run_to turn 1 end
+  assert battlefield B contains "Sol Ring"
+}
+
+scenario "exchange control: an artifact creature shares a type with an artifact" {
+  battlefield A: 6 "Island", "Ornithopter"
+  battlefield B: "Sol Ring"
+  hand A: "Shifting Loyalties"
+  turn 1 A: cast "Shifting Loyalties" targeting "Ornithopter", "Sol Ring"
+  run_to turn 1 end
+  assert battlefield A contains "Sol Ring"
+  assert battlefield B contains "Ornithopter"
+}
+
+scenario "exchange control: Burglar's Plot swaps nonland permanents sharing a type" {
+  battlefield A: 5 "Island", "Ornithopter"
+  battlefield B: "Sol Ring", "Forest"
+  hand A: "Bilbo, Luckwearer // Burglar's Plot"
+  turn 1 A: cast "Burglar's Plot" targeting "Ornithopter", "Sol Ring"
+  run_to turn 1 end
+  assert battlefield A contains "Sol Ring"
+  assert exile A contains "Bilbo, Luckwearer"
+}
+
+scenario "exchange control: Burglar's Plot can't take a land" {
+  battlefield A: 5 "Island", "Mountain"
+  battlefield B: "Forest"
+  hand A: "Bilbo, Luckwearer // Burglar's Plot"
+  illegal turn 1 A: cast "Burglar's Plot" targeting "Mountain", "Forest"
+  run_to turn 1 end
+  assert battlefield B contains "Forest"
+}

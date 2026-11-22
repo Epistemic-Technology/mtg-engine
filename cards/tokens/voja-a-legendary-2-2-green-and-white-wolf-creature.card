@@ -1,0 +1,6 @@
+token "Voja, a legendary 2/2 green and white Wolf creature" {
+  name "Voja"
+  type Legendary Creature — Wolf
+  pt 2/2
+  color green white
+}

@@ -1,0 +1,8 @@
+card "Stiltzkin, Moogle Merchant" {
+  oracle_id 958c2a27-9fb1-42b4-a0ef-296584763a98
+  cost {W}
+  type Legendary Creature — Moogle
+  pt 1/2
+  keywords lifelink
+  activated {2}, {T}: target opponent gains control of another target permanent you control; if they do, you draw 1 card
+}
