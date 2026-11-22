@@ -10830,20 +10830,72 @@ impl GameState {
                     ctx.created = Some(new);
                 }
             }
-            Effect::BecomeCopy { of, except } => {
-                let Some(source) = self
-                    .current_object(ctx.source)
-                    .filter(|s| self.objects[*s].zone == Zone::Battlefield)
-                else {
+            Effect::BecomeCopy {
+                of,
+                except,
+                who,
+                until,
+            } => {
+                // The exceptions are the source card's (`except` block).
+                let x = if *except {
+                    self.objects
+                        .get(ctx.source)
+                        .map(|o| o.card)
+                        .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.card))
+                } else {
+                    None
+                };
+                let copiers: SmallVec<[ObjId; 4]> = match who {
+                    None => self
+                        .current_object(ctx.source)
+                        .filter(|s| self.objects[*s].zone == Zone::Battlefield)
+                        .into_iter()
+                        .collect(),
+                    Some(w) => self
+                        .recipients(ctx, *w)
+                        .into_iter()
+                        .filter_map(|t| on_battlefield(self, t))
+                        .collect(),
+                };
+                // What is copied: a permanent, or a card in a graveyard or
+                // exile ("a creature card exiled with it").
+                let of_obj = self.recipients(ctx, *of).into_iter().find_map(|t| {
+                    on_battlefield(self, t).or_else(|| match t {
+                        Target::Object(id)
+                            if self.objects.get(id).is_some_and(|o| {
+                                matches!(o.zone, Zone::Graveyard | Zone::Exile)
+                            }) =>
+                        {
+                            Some(id)
+                        }
+                        _ => None,
+                    })
+                });
+                let Some(of_obj) = of_obj else {
                     return;
                 };
-                let x = except.then_some(self.objects[source].card);
-                for t in self.recipients(ctx, *of) {
-                    if let Some(id) = on_battlefield(self, t)
-                        && id != source
-                    {
-                        self.become_copy(source, id, x);
+                for id in copiers {
+                    if id == of_obj {
+                        continue;
                     }
+                    let (def, before) = {
+                        let o = &self.objects[id];
+                        (o.def, o.except)
+                    };
+                    self.become_copy(id, of_obj, x);
+                    let next_turn_of = match until {
+                        crate::card::CopyUntil::Permanent => continue,
+                        crate::card::CopyUntil::EndOfTurn => None,
+                        crate::card::CopyUntil::YourNextTurn => Some(ctx.controller),
+                    };
+                    let copied = self.objects[id].def;
+                    self.temp_copies.push(crate::state::TempCopy {
+                        obj: id,
+                        def,
+                        except: before,
+                        copied,
+                        next_turn_of,
+                    });
                 }
             }
             Effect::AddEnergy { count, who } => {

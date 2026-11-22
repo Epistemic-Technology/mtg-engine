@@ -1,0 +1,6 @@
+card "Mirrorweave" {
+  oracle_id 026b7221-0caf-4c8b-8c1b-e7de836797b7
+  cost {2}{W/U}{W/U}
+  type Instant
+  spell: each single other creature becomes a copy of target nonlegendary creature until end of turn
+}

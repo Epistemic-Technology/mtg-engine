@@ -3339,10 +3339,22 @@ fn except_text(card: &Card, current: Option<&Ability>) -> String {
     }
     // "it's a Vehicle artifact in addition to its other types".
     if !x.subtypes.is_empty() || !x.types.is_empty() {
-        let mut words = x.subtypes.clone();
+        // "it's a 1/1 red Balloon creature in addition to its other
+        // colors and types".
+        let mut words: Vec<String> = Vec::new();
+        if let Some((p, t)) = x.pt {
+            words.push(format!("{p}/{t}"));
+        }
+        words.extend(x.colors.iter().map(|c| color_name(*c).to_string()));
+        words.extend(x.subtypes.iter().cloned());
         words.extend(x.types.iter().map(|t| type_noun(*t).to_string()));
+        let other = if x.colors.is_empty() {
+            "types"
+        } else {
+            "colors and types"
+        };
         parts.push(format!(
-            "it's {} in addition to its other types",
+            "it's {} in addition to its other {other}",
             with_article(&words.join(" "))
         ));
     }
@@ -6005,14 +6017,32 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             Clause::imperative(text)
         }
-        Effect::BecomeCopy { of, except } => {
-            let s = ctx.source_subj();
+        Effect::BecomeCopy {
+            of,
+            except,
+            who,
+            until,
+        } => {
+            let source = matches!(
+                who,
+                Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt
+            );
+            let s = if source {
+                ctx.source_subj()
+            } else {
+                ctx.subj(*who)
+            };
             let o = ctx.obj(*of);
             let mut text = format!("becomes a copy of {o}");
+            match until {
+                mtg_core::card::CopyUntil::Permanent => {}
+                mtg_core::card::CopyUntil::EndOfTurn => text.push_str(" until end of turn"),
+                mtg_core::card::CopyUntil::YourNextTurn => text.push_str(" until your next turn"),
+            }
             if *except {
                 let _ = write!(text, ", except {}", except_text(ctx.card, ctx.current));
             }
-            Clause::with_subject(Recipient::Source, s, text)
+            Clause::with_subject(if source { Recipient::Source } else { *who }, s, text)
         }
         // Where a countered spell goes is added in `clause`, after a count.
         Effect::Counter { to, .. } => {
@@ -7903,7 +7933,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::YouMay(inner) => {
             if let [one] = inner.as_slice()
-                && let [Effect::BecomeCopy { of, except }] = one.effects.as_slice()
+                && let [
+                    Effect::BecomeCopy {
+                        of,
+                        except,
+                        who: Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt,
+                        until: mtg_core::card::CopyUntil::Permanent,
+                    },
+                ] = one.effects.as_slice()
             {
                 let s = ctx.source();
                 let o = ctx.obj(*of);

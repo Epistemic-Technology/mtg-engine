@@ -1,0 +1,8 @@
+card "Shapesharer" {
+  oracle_id 400c9fd8-c307-4b27-af6a-73e100717881
+  cost {1}{U}
+  type Creature — Shapeshifter
+  pt 1/1
+  keywords changeling
+  activated {2}{U}: target Shapeshifter becomes a copy of target creature until your next turn
+}

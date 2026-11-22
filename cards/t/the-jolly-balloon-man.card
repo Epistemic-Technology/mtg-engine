@@ -1,0 +1,15 @@
+card "The Jolly Balloon Man" {
+  oracle_id 82ea519f-0e14-43d3-bf46-a1c5352e9600
+  cost {1}{R}{W}
+  type Legendary Creature — Human Clown
+  pt 1/4
+  keywords haste
+  activated {1}, {T}, sorcery: create token copy of another target creature you control with exceptions; delayed that token: sacrifice it at beginning of the next end step
+  except {
+    pt 1/1
+    colors red
+    subtypes Balloon
+    types Creature
+    keywords flying, haste
+  }
+}

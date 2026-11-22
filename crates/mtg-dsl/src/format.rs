@@ -154,6 +154,17 @@ fn format_inner(card: &Card) -> String {
         if x.not_legendary {
             out.push_str("    not legendary\n");
         }
+        if let Some((p, t)) = x.pt {
+            let _ = writeln!(out, "    pt {p}/{t}");
+        }
+        if !x.colors.is_empty() {
+            let cs: Vec<&str> = x
+                .colors
+                .iter()
+                .map(|c| crate::render::color_name(*c))
+                .collect();
+            let _ = writeln!(out, "    colors {}", cs.join(" "));
+        }
         if !x.types.is_empty() {
             let ts: Vec<String> = x.types.iter().map(|t| format!("{t:?}")).collect();
             let _ = writeln!(out, "    types {}", ts.join(" "));
@@ -1480,10 +1491,26 @@ impl Fmt {
                 }
                 s
             }
-            Effect::BecomeCopy { of, except } => {
-                let mut s = format!("this becomes a copy of {}", self.recipient(*of, t));
+            Effect::BecomeCopy {
+                of,
+                except,
+                who,
+                until,
+            } => {
+                let subject = match who {
+                    Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt => {
+                        "this".to_string()
+                    }
+                    w => self.recipient(*w, t),
+                };
+                let mut s = format!("{subject} becomes a copy of {}", self.recipient(*of, t));
                 if *except {
                     s.push_str(" with exceptions");
+                }
+                match until {
+                    mtg_core::card::CopyUntil::Permanent => {}
+                    mtg_core::card::CopyUntil::EndOfTurn => s.push_str(" until end of turn"),
+                    mtg_core::card::CopyUntil::YourNextTurn => s.push_str(" until your next turn"),
                 }
                 s
             }

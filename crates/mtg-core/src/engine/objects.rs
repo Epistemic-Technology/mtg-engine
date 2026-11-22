@@ -1008,6 +1008,39 @@ impl GameState {
             let o = &self.objects[of];
             (o.def, except.or(o.except))
         };
+        self.set_copy_def(id, def, x);
+        self.emit(Event::BecameCopy { obj: id, of: def });
+    }
+
+    /// CR 611.2b: the copy effects whose duration ends now (`None`: "until
+    /// end of turn", at cleanup; `Some(p)`: "until your next turn", as
+    /// `p`'s turn begins): each permanent still the same object, and
+    /// still that copy, gets back the values it had.
+    #[cold]
+    #[inline(never)]
+    pub(super) fn end_temp_copies(&mut self, next_turn_of: Option<PlayerId>) {
+        let mut ending: SmallVec<[crate::state::TempCopy; 2]> = SmallVec::new();
+        self.temp_copies.retain(|t| {
+            let ends = t.next_turn_of == next_turn_of;
+            if ends {
+                ending.push(*t);
+            }
+            !ends
+        });
+        // The latest first, so an earlier copy's values come back last.
+        for t in ending.into_iter().rev() {
+            if self
+                .objects
+                .get(t.obj)
+                .is_some_and(|o| o.zone == Zone::Battlefield && o.def == t.copied)
+            {
+                self.set_copy_def(t.obj, t.def, t.except);
+            }
+        }
+    }
+
+    /// Give `id` the copiable values of `def` with `x`'s exceptions.
+    fn set_copy_def(&mut self, id: ObjId, def: CardRef, x: Option<CardRef>) {
         let (old_flags, old_legend) = {
             let o = &self.objects[id];
             (self.flags_of(o), self.pool.get(o.def).is_legendary())
@@ -1022,7 +1055,6 @@ impl GameState {
         };
         self.count_sources(flags, legend, true);
         self.cbump();
-        self.emit(Event::BecameCopy { obj: id, of: def });
     }
 
     /// CR 701.21: sacrifice a permanent. Indestructible does not matter.

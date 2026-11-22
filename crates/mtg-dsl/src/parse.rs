@@ -1145,6 +1145,24 @@ impl P {
                             except.keywords.extend(self.keyword_list()?);
                             self.end_stmt()?;
                         }
+                        // "it's a 1/1 ..." (CR 707.9b).
+                        Some("pt") => {
+                            self.pos += 1;
+                            match self.next() {
+                                Some(Tok::Pt {
+                                    power,
+                                    toughness,
+                                    signed: false,
+                                }) => except.pt = Some((power, toughness)),
+                                _ => return self.fail("expected power/toughness such as 1/1"),
+                            }
+                            self.end_stmt()?;
+                        }
+                        Some("color" | "colors") => {
+                            self.pos += 1;
+                            except.colors = self.color_list()?;
+                            self.end_stmt()?;
+                        }
                         // "it isn't legendary" (CR 707.9b).
                         Some("not") if self.word_at(1).as_deref() == Some("legendary") => {
                             self.pos += 2;
@@ -6091,19 +6109,24 @@ impl P {
             "become" | "becomes" => {
                 self.eat_word("a");
                 if self.eat_word("copy") {
-                    // The source becomes the copy (`Effect::BecomeCopy`);
-                    // another subject ("target artifact becomes a copy of
-                    // ...") would be dropped.
-                    if !matches!(
-                        subject,
-                        Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt
-                    ) {
-                        return self.fail("only `this` can become a copy");
-                    }
+                    // The subject becomes the copy (`Effect::BecomeCopy`):
+                    // the source, a target, or a group.
                     self.expect_word("of")?;
                     let of = self.recipient()?;
                     let except = self.except_clause();
-                    return Ok(Effect::BecomeCopy { of, except });
+                    let until = if self.eat_words(&["until", "end", "of", "turn"]) {
+                        mtg_core::card::CopyUntil::EndOfTurn
+                    } else if self.eat_words(&["until", "your", "next", "turn"]) {
+                        mtg_core::card::CopyUntil::YourNextTurn
+                    } else {
+                        mtg_core::card::CopyUntil::Permanent
+                    };
+                    return Ok(Effect::BecomeCopy {
+                        of,
+                        except,
+                        who: subject,
+                        until,
+                    });
                 }
                 // "becomes that type": chosen earlier in the resolution.
                 if self.eat_words(&["that", "type"]) {

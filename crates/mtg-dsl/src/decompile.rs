@@ -142,6 +142,8 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             abilities: x.abilities.iter().map(|a| d.ability(a)).collect(),
             not_legendary: x.not_legendary,
             types: x.types.iter().collect(),
+            pt: x.pt,
+            colors: x.colors.iter().collect(),
         }),
         mismatch: None,
         line: 0,
@@ -914,9 +916,16 @@ impl Decompiler<'_> {
                 new_targets: *new_targets,
                 except: *except,
             },
-            CoreEffect::BecomeCopy { of, except } => Effect::BecomeCopy {
+            CoreEffect::BecomeCopy {
+                of,
+                except,
+                who,
+                until,
+            } => Effect::BecomeCopy {
                 of: r(*of),
                 except: *except,
+                who: who.map_or(Recipient::Source, r),
+                until: *until,
             },
             CoreEffect::CreateEmblem { emblem } => Effect::CreateEmblem {
                 emblem: self.pool.get(*emblem).name.clone(),

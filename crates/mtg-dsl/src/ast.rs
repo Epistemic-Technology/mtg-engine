@@ -524,6 +524,11 @@ pub struct Except {
     pub not_legendary: bool,
     /// `types Artifact`: "it's an artifact in addition to its other types".
     pub types: Vec<mtg_core::card::CardType>,
+    /// `pt 1/1`: "it's a 1/1 ..." (its base power and toughness).
+    pub pt: Option<(i32, i32)>,
+    /// `colors red`: "a ... red ... in addition to its other colors and
+    /// types".
+    pub colors: Vec<mtg_core::mana::Color>,
 }
 
 /// What takes an activated ability's cost down (`reduced {1} each Town you
@@ -3281,9 +3286,14 @@ pub enum Effect {
         new_targets: bool,
         except: bool,
     },
+    /// `this becomes a copy of <what> [with exceptions]`; another subject
+    /// (`target artifact becomes ...`, `each other creature becomes ...`)
+    /// and `until end of turn` / `until your next turn` after it.
     BecomeCopy {
         of: Recipient,
         except: bool,
+        who: Recipient,
+        until: mtg_core::card::CopyUntil,
     },
     CreateEmblem {
         emblem: String,

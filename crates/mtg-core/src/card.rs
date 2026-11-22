@@ -3188,6 +3188,17 @@ pub enum Recipient {
     ThoseObjects,
 }
 
+/// How long a "becomes a copy" effect lasts (CR 611.2b).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum CopyUntil {
+    #[default]
+    Permanent,
+    /// "until end of turn" (CR 514.2).
+    EndOfTurn,
+    /// "until your next turn": the effect's controller's.
+    YourNextTurn,
+}
+
 /// A number in an effect's text: a constant, or X as chosen when the spell
 /// was cast (CR 107.3).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -3950,10 +3961,17 @@ pub enum Effect {
         attached: Option<Recipient>,
     },
     /// The ability's source becomes a copy of the recipient (CR 707),
-    /// keeping its own definition's `copy_except` if `except`.
+    /// keeping its own definition's `copy_except` if `except`. With `who`,
+    /// those objects become copies instead ("target artifact becomes a
+    /// copy of ...", "each other creature becomes a copy of ..."); `until`
+    /// ends the copy effect ("until end of turn", "until your next turn").
     BecomeCopy {
         of: Recipient,
         except: bool,
+        #[serde(default)]
+        who: Option<Recipient>,
+        #[serde(default)]
+        until: CopyUntil,
     },
     /// Create a token that is a copy of the recipient (CR 707.2, 111.4),
     /// with the source definition's `copy_except` if `except`.
@@ -6302,6 +6320,13 @@ pub struct CopyExcept {
     /// "except it's an artifact in addition to its other types".
     #[serde(default)]
     pub types: TypeSet,
+    /// "except it's a 1/1 ...": its base power and toughness.
+    #[serde(default)]
+    pub pt: Option<(i32, i32)>,
+    /// "a ... red Balloon creature in addition to its other colors and
+    /// types": colors added to its own.
+    #[serde(default)]
+    pub colors: ColorSet,
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]

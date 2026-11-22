@@ -213,7 +213,7 @@ to its other face as well.
 | `play from top lands`, `play from top spells creature`, `play from top lands and spells`, `play from top once spells instant or sorcery` | "You may play lands from the top of your library.", "You may cast creature spells from the top of your library.", "You may play lands and cast spells from the top of your library.", "Once each turn, you may cast an instant or sorcery spell from the top of your library." (CR 601.3, 305.1): the controller may play the top card of their library, paying its costs, with the usual timing and a land only with a land play left. The spells' filter is any filter (`Spider or noncreature`: "Spider spells and noncreature spells"; `with mana value 4 or greater`: "spells with mana value 4 or greater"; `with flash or flying`); `once` allows one spell a turn by that permanent's permission. |
 | `top revealed`, `top revealed players` | "Play with the top card of your library revealed.", "Players play with the top card of their libraries revealed.": every player knows that top card (CR 401.2). |
 | `hand size none`, `hand size +1`, `hand size opponents -1` | "You have no maximum hand size.", "Your maximum hand size is increased by one.", "Each opponent's maximum hand size is reduced by one." (CR 402.2) |
-| `except { ... }` | What this card's copy effects add (CR 707.9b): `not legendary` ("it isn't legendary"; "the copy isn't legendary" for a spell copy), `types Artifact` and `subtypes Illusion` ("it's an artifact in addition to its other types", "it's a Vehicle artifact ..." together), `keywords haste`, and ability lines ("it has haste and \"At the beginning of the end step, sacrifice this token.\"": on an instant or sorcery, `this` in them is the token). They are part of the copy's copiable values; the legend rule reads its supertypes. A token copy of a creature that has left the battlefield ("When this creature dies, if it's not a token, create a token that's a copy of it"; `if this is nontoken`) is made as it last existed. |
+| `except { ... }` | What this card's copy effects add (CR 707.9b): `not legendary` ("it isn't legendary"; "the copy isn't legendary" for a spell copy), `types Artifact` and `subtypes Illusion` ("it's an artifact in addition to its other types", "it's a Vehicle artifact ..." together), `keywords haste`, `pt 1/1` and `colors red` ("it's a 1/1 red Balloon creature in addition to its other colors and types": base power and toughness, and colors added), and ability lines ("it has haste and \"At the beginning of the end step, sacrifice this token.\"": on an instant or sorcery, `this` in them is the token). They are part of the copy's copiable values; the legend rule reads its supertypes. A token copy of a creature that has left the battlefield ("When this creature dies, if it's not a token, create a token that's a copy of it"; `if this is nontoken`) is made as it last existed. |
 
 Effects written after `:` sit on one line; write `{` instead of `:` and put
 one line per paragraph for text that spans paragraphs:
@@ -1560,7 +1560,13 @@ didn't have defender` ("can attack this turn as though it didn't have
 defender"), `<what> gains lure` ("All creatures able to block <what> this turn
 do so."), `<what> fights <what>`, `<what> has base power and toughness 4/4`,
 `<what> becomes 2/2 Assembly-Worker artifact creature`, `this becomes a
-copy of <what> [with exceptions]`, `<what> bites <what>` ("deals damage
+copy of <what> [with exceptions]` (any subject: `target Shapeshifter
+becomes a copy of target creature until your next turn`, `each single
+other creature becomes a copy of target nonlegendary creature until end of
+turn`, "Each other creature becomes ..."; `until end of turn` and `until
+your next turn` end the copy effect, the permanent getting back what it
+was unless it has become a copy of something else since; a card in a
+graveyard or exile can be copied too), `<what> bites <what>` ("deals damage
 equal to its power to"; the creature is the damage's source, so its
 deathtouch, lifelink, infect, and wither apply, and it deals none if
 either target is illegal as the spell resolves), `<what> bites itself`

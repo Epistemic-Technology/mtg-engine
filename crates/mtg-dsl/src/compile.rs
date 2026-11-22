@@ -1043,6 +1043,11 @@ impl Compiler<'_> {
                 abilities,
                 not_legendary: x.not_legendary,
                 types: mtg_core::card::TypeSet::of(x.types.iter().copied()),
+                pt: x.pt,
+                colors: x
+                    .colors
+                    .iter()
+                    .fold(mtg_core::mana::ColorSet::default(), |s, c| s.with(*c)),
             });
         }
         if let Some(c) = self.cast_snapshot.take() {
@@ -2346,9 +2351,20 @@ impl Compiler<'_> {
                 new_targets: *new_targets,
                 except: *except,
             }),
-            Effect::BecomeCopy { of, except } => out.push(CoreEffect::BecomeCopy {
+            Effect::BecomeCopy {
+                of,
+                except,
+                who,
+                until,
+            } => out.push(CoreEffect::BecomeCopy {
                 of: r(*of),
                 except: *except,
+                who: (!matches!(
+                    who,
+                    Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt
+                ))
+                .then(|| r(*who)),
+                until: *until,
             }),
             Effect::Counter { to, dest } => out.push(CoreEffect::Counter {
                 to: r(*to),
