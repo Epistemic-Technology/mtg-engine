@@ -1,0 +1,8 @@
+card "Avengers Assemble!" {
+  oracle_id 3477e1cc-46af-46f4-9ea2-bdf0bf1f880e
+  cost {4}{W}
+  type Enchantment
+  keywords flash
+  static Hero you control: +2/+2
+  triggered at beginning of every end step if either attacked with Hero this turn else entered Hero this turn: draw 1 card
+}

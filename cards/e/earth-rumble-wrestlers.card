@@ -1,0 +1,8 @@
+card "Earth Rumble Wrestlers" {
+  oracle_id 1de17747-27e8-40bb-b6f7-6d5402d4705c
+  cost {3}{R/G}
+  type Creature — Human Warrior Performer
+  pt 3/4
+  keywords reach
+  static this: +1/+0, has trample as long as either you control land creature else entered land this turn
+}

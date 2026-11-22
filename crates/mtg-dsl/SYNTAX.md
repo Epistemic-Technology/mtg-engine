@@ -444,7 +444,11 @@ have 4 creature cards in your graveyard`, `there is land card in your
 graveyard` ("there is a land card in your graveyard"; `there's Lesson card
 in your graveyard` prints "there's a"), `1 artifact card is in your
 graveyard` ("an artifact card is in your graveyard"), `you control Desert
-or there is Desert card in your graveyard` (either holds), `5 mana values in your
+or there is Desert card in your graveyard` (either holds; any two
+conditions: `either you control land creature else entered land this
+turn`, "you control a land creature or a land entered the battlefield
+under your control this turn", `else` where a filter's own `or` would run
+on), `5 mana values in your
 graveyard`, `opponent graveyard 8 or more` ("an opponent has eight or more
 cards in their graveyard"), `opponent controls Human`, `this is untapped`,
 `this is Wall` ("it's untapped", "it's a Wall"), `modified` ("it's

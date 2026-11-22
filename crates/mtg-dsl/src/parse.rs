@@ -3369,6 +3369,14 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one branch per condition
     fn static_cond_one(&mut self) -> R<StaticCond> {
+        // `either you control land creature else land entered this turn`:
+        // either holds (`else`, where a filter's own `or` would run on).
+        if self.eat_word("either") {
+            let a = self.static_cond_one()?;
+            self.expect_word("else")?;
+            let b = self.static_cond()?;
+            return Ok(StaticCond::Or(Box::new(a), Box::new(b)));
+        }
         // `flash if pay {2} more` (Mystical Tether).
         if self.at_word("pay")
             && matches!(self.peek_at(1), Some(Tok::Sym(_)))
