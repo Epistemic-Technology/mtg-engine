@@ -1,0 +1,22 @@
+scenario "Optimistic Scavenger puts a counter on target creature when an enchantment enters" {
+  battlefield A: "Optimistic Scavenger", "Grizzly Bears", 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Pacifism"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pacifism" targeting "Hill Giant"
+  turn 1 A: trigger "Optimistic Scavenger" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Grizzly Bears" 3
+  assert counters "Optimistic Scavenger" +1/+1 0
+}
+
+scenario "Optimistic Scavenger ignores a creature entering" {
+  battlefield A: "Optimistic Scavenger", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+  assert counters "Optimistic Scavenger" +1/+1 0
+}

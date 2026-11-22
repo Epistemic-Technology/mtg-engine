@@ -1,0 +1,25 @@
+scenario "Glade Watcher attacks with formidable" {
+  battlefield A: "Glade Watcher", "Serra Angel", "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Glade Watcher"
+  turn 1 A: attack "Glade Watcher"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert tapped "Forest"
+}
+
+scenario "Glade Watcher needs total power 8" {
+  battlefield A: "Glade Watcher", "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Glade Watcher"
+  run_to turn 1 postcombat_main
+  assert untapped "Forest"
+}
+
+scenario "Glade Watcher can't attack without activating" {
+  battlefield A: "Glade Watcher", "Serra Angel", "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  illegal turn 1 A: attack "Glade Watcher"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

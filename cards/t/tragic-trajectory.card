@@ -1,0 +1,9 @@
+card "Tragic Trajectory" {
+  oracle_id e5e19326-3e90-439c-a3b2-749d43a1af0c
+  cost {B}
+  type Sorcery
+  spell {
+    target creature gets -2/-2
+    label "Void" that target 1 gets -10/-10 instead if void
+  }
+}

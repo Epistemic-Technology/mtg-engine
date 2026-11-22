@@ -1,0 +1,24 @@
+scenario "Concealed Weapon turned face up attaches to a creature" {
+  battlefield A: "Grizzly Bears", 6 "Mountain"
+  hand A: "Concealed Weapon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Concealed Weapon" face_down
+  turn 1 postcombat_main A: unmorph "Concealed Weapon"
+  turn 1 postcombat_main A: trigger "Concealed Weapon" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert attached "Concealed Weapon" to "Grizzly Bears"
+  assert power "Grizzly Bears" 5
+  assert is not "Concealed Weapon" creature
+}
+
+scenario "Concealed Weapon equips for its equip cost" {
+  battlefield A: "Grizzly Bears", 4 "Mountain"
+  hand A: "Concealed Weapon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Concealed Weapon"
+  turn 1 A: activate "Concealed Weapon" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Concealed Weapon" to "Grizzly Bears"
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 2
+}

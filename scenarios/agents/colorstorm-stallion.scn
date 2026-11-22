@@ -1,0 +1,32 @@
+scenario "Colorstorm Stallion gets +1/+1 from a cheap spell and makes no copy" {
+  battlefield A: "Colorstorm Stallion", 3 "Island"
+  hand A: "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert power "Colorstorm Stallion" 4
+  assert toughness "Colorstorm Stallion" 4
+  assert battlefield A contains 1 "Colorstorm Stallion"
+}
+
+scenario "Colorstorm Stallion copies itself when five mana is spent" {
+  battlefield A: "Colorstorm Stallion", 5 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Blaze"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blaze" x 4 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Colorstorm Stallion"
+  assert power oldest "Colorstorm Stallion" 4
+  assert power newest "Colorstorm Stallion" 3
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Colorstorm Stallion wears off at end of turn" {
+  battlefield A: "Colorstorm Stallion", 3 "Island"
+  hand A: "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divination"
+  run_to turn 2 upkeep
+  assert power "Colorstorm Stallion" 3
+}

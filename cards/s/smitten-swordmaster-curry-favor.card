@@ -1,0 +1,13 @@
+card "Smitten Swordmaster // Curry Favor" {
+  oracle_id 11ad6e75-9bbd-40ea-b04a-e6a61db3bcda
+  layout adventure
+  cost {1}{B}
+  type Creature — Human Knight
+  pt 2/1
+  keywords lifelink
+  face "Curry Favor" {
+    cost {B}
+    type Sorcery — Adventure
+    spell: you gain count where Knight you control life and each opponent loses count where Knight you control life
+  }
+}

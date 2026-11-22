@@ -1,0 +1,16 @@
+scenario "Syr Armont: Monster Role on another creature; enchanted creatures you control get +1/+1" {
+  battlefield A: "Grizzly Bears", "Wind Drake", 4 "Forest", "Plains", "Holy Strength" on "Wind Drake"
+  battlefield B: "Hill Giant", "Pacifism" on "Hill Giant"
+  hand A: "Syr Armont, the Redeemer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Syr Armont, the Redeemer"
+  turn 1 A: trigger "Syr Armont, the Redeemer" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert has "Grizzly Bears" trample
+  assert power "Wind Drake" 4
+  assert toughness "Wind Drake" 5
+  assert power "Syr Armont, the Redeemer" 4
+  assert power "Hill Giant" 3
+}

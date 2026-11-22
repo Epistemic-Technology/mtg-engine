@@ -1,0 +1,9 @@
+card "Barrage of Boulders" {
+  oracle_id 71a756f3-cd1e-4047-90ac-eda096b90647
+  cost {2}{R}
+  type Sorcery
+  spell {
+    deal 1 damage to each creature you don't control
+    label "Ferocious" if you control creature with power 4 or greater, all creature can't block
+  }
+}

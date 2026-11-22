@@ -1,0 +1,20 @@
+scenario "Uthros Psionicist: the second spell costs {2} less" {
+  battlefield A: "Uthros Psionicist", 3 "Mountain"
+  hand A: "Lightning Bolt", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Uthros Psionicist: the first spell is not reduced" {
+  battlefield A: "Uthros Psionicist", 3 "Mountain"
+  hand A: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}

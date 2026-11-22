@@ -1,0 +1,23 @@
+scenario "Downhill Charge cast normally counts Mountains you control" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Downhill Charge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Downhill Charge" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 2
+  assert graveyard A contains "Downhill Charge"
+}
+
+scenario "Downhill Charge for its alternative cost sacrifices a Mountain" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Downhill Charge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Downhill Charge" alternative sacrificing "Mountain" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert battlefield A contains 2 "Mountain"
+  assert graveyard A contains "Mountain"
+  assert untapped oldest "Mountain"
+}

@@ -1,0 +1,8 @@
+card "Craterclaw Colossus" {
+  oracle_id 71355b51-e70e-47b0-8460-933af3567141
+  cost {4}{R}{R}{R}
+  type Artifact Creature — Beast Construct
+  pt 5/5
+  keywords haste
+  triggered when this enters: creatures you control gain trample and get +1/+0 count where artifact you control
+}

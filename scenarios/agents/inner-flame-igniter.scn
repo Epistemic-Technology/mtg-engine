@@ -1,0 +1,31 @@
+scenario "Inner-Flame Igniter: the third resolution grants first strike" {
+  battlefield A: "Inner-Flame Igniter", "Grizzly Bears", 9 "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Inner-Flame Igniter"
+  turn 1 A: wait
+  turn 1 A: activate "Inner-Flame Igniter"
+  turn 1 A: wait
+  turn 1 A: activate "Inner-Flame Igniter"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 5
+  assert power "Inner-Flame Igniter" 5
+  assert power B "Hill Giant" 3
+  assert has "Grizzly Bears" first_strike
+  assert has "Inner-Flame Igniter" first_strike
+  assert has not "Hill Giant" first_strike
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" first_strike
+}
+
+scenario "Inner-Flame Igniter: two resolutions only pump" {
+  battlefield A: "Inner-Flame Igniter", "Grizzly Bears", 6 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Inner-Flame Igniter"
+  turn 1 A: wait
+  turn 1 A: activate "Inner-Flame Igniter"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert has not "Grizzly Bears" first_strike
+}

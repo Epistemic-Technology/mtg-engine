@@ -1,0 +1,24 @@
+scenario "Raph & Leo untap two attackers and add one more combat phase" {
+  battlefield A: "Raph & Leo, Sibling Rivals", "Grizzly Bears"
+  start turn 3 A precombat_main
+  turn 3 A: attack "Raph & Leo, Sibling Rivals", "Grizzly Bears"
+  turn 3 declare_attackers A: trigger "Raph & Leo, Sibling Rivals" targeting "Raph & Leo, Sibling Rivals", "Grizzly Bears"
+  turn 3 declare_attackers combat 2 A: attack "Raph & Leo, Sibling Rivals", "Grizzly Bears"
+  run_to turn 3 declare_blockers
+  assert untapped "Grizzly Bears"
+  assert untapped "Raph & Leo, Sibling Rivals"
+  run_to turn 3 end
+  assert life B 12
+  assert tapped "Grizzly Bears"
+  assert tapped "Raph & Leo, Sibling Rivals"
+}
+
+scenario "Raph & Leo untapping one target only" {
+  battlefield A: "Raph & Leo, Sibling Rivals", "Grizzly Bears"
+  start turn 3 A precombat_main
+  turn 3 A: attack "Raph & Leo, Sibling Rivals", "Grizzly Bears"
+  turn 3 declare_attackers A: trigger "Raph & Leo, Sibling Rivals" targeting "Grizzly Bears"
+  run_to turn 3 declare_blockers
+  assert untapped "Grizzly Bears"
+  assert tapped "Raph & Leo, Sibling Rivals"
+}

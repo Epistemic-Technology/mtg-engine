@@ -1,0 +1,13 @@
+scenario "Turtle Power!: Turtles you control get +2/+2, others don't" {
+  battlefield A: "Aegis Turtle", "Grizzly Bears", 3 "Forest"
+  battlefield B: "Aegis Turtle"
+  hand A: "Turtle Power!"
+  start turn 2 B precombat_main
+  turn 2 end A: cast "Turtle Power!"
+  run_to turn 2 cleanup
+  assert power A "Aegis Turtle" 2
+  assert toughness A "Aegis Turtle" 7
+  assert power B "Aegis Turtle" 0
+  assert toughness B "Aegis Turtle" 5
+  assert power "Grizzly Bears" 2
+}

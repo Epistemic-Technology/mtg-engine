@@ -1,0 +1,9 @@
+card "Foolish Fate" {
+  oracle_id 9c51893f-9118-4d95-b88a-e264f4cbd7a8
+  cost {2}{B}
+  type Instant
+  spell {
+    destroy target creature
+    label "Infusion" if gained life this turn, controller of that target 1 loses 3 life
+  }
+}

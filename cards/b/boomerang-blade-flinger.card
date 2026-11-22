@@ -1,0 +1,8 @@
+card "Boomerang, Blade Flinger" {
+  oracle_id bbd84035-3efd-4301-9778-913898efd57a
+  cost {1}{B}
+  type Legendary Creature — Human Villain
+  pt 1/3
+  pronoun he
+  triggered whenever this attacks: this deals 1 damage to each opponent and you gain 1 life
+}

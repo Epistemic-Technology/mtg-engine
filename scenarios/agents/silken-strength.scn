@@ -1,0 +1,20 @@
+scenario "Silken Strength: flashed onto an attacker, untaps it, +1/+2 and reach blocks a flier" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  battlefield B: "Wind Drake"
+  hand A: "Silken Strength"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 end A: cast "Silken Strength" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert untapped "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 4
+  assert has "Grizzly Bears" reach
+  assert life B 18
+  turn 2 B: attack "Wind Drake"
+  turn 2 A: block "Wind Drake" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Wind Drake"
+  assert attached "Silken Strength" to "Grizzly Bears"
+}

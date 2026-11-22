@@ -1,0 +1,7 @@
+card "Shu General" {
+  oracle_id 0fef6729-b044-4daf-834a-ac8c9711ad8a
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords vigilance, horsemanship
+}

@@ -1,0 +1,9 @@
+card "Spell Snuff" {
+  oracle_id 19f3ec61-f334-4708-ad93-04ebe15c1798
+  cost {1}{U}{U}
+  type Instant
+  spell {
+    counter target spell
+    label "Fateful hour" if your life 5 or less, draw 1 card
+  }
+}

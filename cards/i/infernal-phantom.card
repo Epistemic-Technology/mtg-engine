@@ -1,0 +1,8 @@
+card "Infernal Phantom" {
+  oracle_id a8225b2e-62bf-45b7-b573-e3ce301a1eab
+  cost {3}{R}
+  type Creature — Spirit
+  pt 2/3
+  label "Eerie" triggered whenever enchantment you control enters and whenever you fully unlock a Room: this gets +2/+0
+  triggered whenever this dies: deal damage equal power to any target
+}

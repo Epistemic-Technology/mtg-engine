@@ -1,0 +1,20 @@
+scenario "Runner's Bane taps and locks down a small creature" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Runner's Bane"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Runner's Bane" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert attached "Runner's Bane" to "Hill Giant"
+  assert tapped "Hill Giant"
+}
+
+scenario "Runner's Bane can't enchant a creature with power 4" {
+  battlefield A: 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Runner's Bane"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Runner's Bane" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Runner's Bane"
+}

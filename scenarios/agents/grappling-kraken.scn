@@ -1,0 +1,24 @@
+scenario "Grappling Kraken taps and stuns an opponent's creature on landfall" {
+  battlefield A: "Grappling Kraken"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: play "Island"
+  turn 1 A: trigger "Grappling Kraken" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 0
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Grappling Kraken can't target your own creature" {
+  battlefield A: "Grappling Kraken", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: play "Island"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 1
+}

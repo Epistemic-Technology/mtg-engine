@@ -1,0 +1,30 @@
+scenario "Systems Override steals a creature, untaps it, and it attacks with haste" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Systems Override"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Systems Override" targeting "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield A contains "Hill Giant"
+  assert counters "Hill Giant" charge 0
+  run_to turn 2 precombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Systems Override charges a stolen Spacecraft for the turn" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Sledge-Class Seedship"
+  hand A: "Systems Override"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Systems Override" targeting "Sledge-Class Seedship"
+  turn 1 A: attack "Sledge-Class Seedship"
+  run_to turn 1 postcombat_main
+  assert counters "Sledge-Class Seedship" charge 10
+  assert has "Sledge-Class Seedship" flying
+  assert life B 16
+  run_to turn 2 precombat_main
+  assert counters "Sledge-Class Seedship" charge 0
+  assert battlefield B contains "Sledge-Class Seedship"
+}

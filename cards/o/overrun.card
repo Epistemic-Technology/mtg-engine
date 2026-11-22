@@ -1,0 +1,6 @@
+card "Overrun" {
+  oracle_id 204f9afe-c20b-4933-b5cd-aa572784762a
+  cost {2}{G}{G}{G}
+  type Sorcery
+  spell: each creature you control gets +3/+3 and each creature you control gain trample
+}

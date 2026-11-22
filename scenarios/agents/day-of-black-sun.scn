@@ -1,0 +1,23 @@
+scenario "Day of Black Sun strips abilities and destroys creatures with mana value X or less" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Grizzly Bears", "Darksteel Myr", "Hill Giant", "Serra Angel"
+  hand A: "Day of Black Sun"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Day of Black Sun" x 3
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Darksteel Myr"
+  assert battlefield B contains "Hill Giant"
+  assert battlefield B contains "Serra Angel"
+  assert has "Serra Angel" flying
+}
+
+scenario "Day of Black Sun with X 0 spares two-drops" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Day of Black Sun"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Day of Black Sun" x 0
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}

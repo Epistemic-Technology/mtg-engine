@@ -1,0 +1,8 @@
+card "Jazal Goldmane" {
+  oracle_id 609d13dc-c850-4877-8ad3-e84171b58069
+  cost {2}{W}{W}
+  type Legendary Creature — Cat Warrior
+  pt 4/4
+  keywords first strike
+  activated {3}{W}{W}: each attacking creature you control gets +1/+1 count where attacking creature
+}

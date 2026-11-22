@@ -1,0 +1,32 @@
+scenario "job select Hero is a 2/2 Ninja; combat damage loots and drains the discarded card's mana value" {
+  hand A: "Ninja's Blades"
+  battlefield A: 3 "Swamp"
+  library A: "Hill Giant", "Grizzly Bears", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ninja's Blades"
+  run_to turn 1 postcombat_main
+  assert attached "Ninja's Blades" to "Hero"
+  assert power "Hero" 2
+  assert toughness "Hero" 2
+  assert is "Hero" Ninja
+  turn 3 A: attack "Hero"
+  turn 3 combat_damage A: discard "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert hand A contains "Grizzly Bears"
+  assert life B 14
+}
+
+scenario "discarding the cheaper card drains less" {
+  hand A: "Ninja's Blades"
+  battlefield A: 3 "Swamp"
+  library A: "Hill Giant", "Grizzly Bears", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ninja's Blades"
+  turn 3 A: attack "Hero"
+  turn 3 combat_damage A: discard "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert life B 16
+}

@@ -1,0 +1,29 @@
+scenario "Splash Lasher taps a creature and stuns it" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Splash Lasher"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Splash Lasher"
+  turn 1 A: trigger "Splash Lasher" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 0
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Splash Lasher with offspring makes a 1/1 copy that also stuns" {
+  battlefield A: 6 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Splash Lasher"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Splash Lasher" kicked
+  turn 1 A: trigger "Splash Lasher" targeting "Hill Giant"
+  turn 1 A: trigger "Splash Lasher" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Splash Lasher"
+  assert power newest A "Splash Lasher" 1
+  assert tapped "Hill Giant"
+  assert tapped "Grizzly Bears"
+  assert counters "Hill Giant" stun 1
+  assert counters "Grizzly Bears" stun 1
+}

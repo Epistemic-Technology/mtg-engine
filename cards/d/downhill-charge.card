@@ -1,0 +1,7 @@
+card "Downhill Charge" {
+  oracle_id 8018419c-ea19-499b-a33a-7c20b35bce7b
+  cost {2}{R}
+  type Instant
+  alternative cost sacrifice Mountain
+  spell: target creature gets +1/+0 count where Mountain you control
+}

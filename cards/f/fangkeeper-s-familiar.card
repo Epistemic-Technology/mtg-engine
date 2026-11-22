@@ -1,0 +1,12 @@
+card "Fangkeeper's Familiar" {
+  oracle_id 06343800-b555-4a13-ad4d-19e37d200138
+  cost {1}{B}{G}{U}
+  type Creature — Snake
+  pt 3/3
+  keywords flash
+  triggered when this enters: choose one {
+    mode: you gains 3 life and surveil 3
+    mode: destroy target enchantment
+    mode: counter target creature spell
+  }
+}

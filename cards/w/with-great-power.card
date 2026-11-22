@@ -1,0 +1,8 @@
+card "With Great Power . . ." {
+  oracle_id dfedb968-f27c-4117-aff6-da707dd43e82
+  cost {3}{W}
+  type Enchantment — Aura
+  enchant creature you control
+  static enchanted: +2/+2 count each Aura or Equipment attached to attached
+  replace damage to you: redirect to attached
+}

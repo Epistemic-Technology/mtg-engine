@@ -1,0 +1,25 @@
+scenario "With Great Power: +2/+2 per Aura and Equipment, damage to you goes to the creature" {
+  battlefield A: "Grizzly Bears", 4 "Plains", "Holy Strength" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "With Great Power . . ."
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "With Great Power . . ." targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 7
+  assert toughness "Grizzly Bears" 8
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting player A
+  run_to turn 1 end
+  assert life A 20
+  assert damage "Grizzly Bears" 3
+}
+
+scenario "With Great Power: one Aura gives +2/+2" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  hand A: "With Great Power . . ."
+  start turn 1 A precombat_main
+  turn 1 A: cast "With Great Power . . ." targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}

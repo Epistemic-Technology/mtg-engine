@@ -1,0 +1,8 @@
+card "Torpid Moloch" {
+  oracle_id 48f78611-13a7-4b5b-a52a-317ecf658ea3
+  cost {R}
+  type Creature — Lizard
+  pt 3/2
+  keywords defender
+  activated sacrifice 3 land: this loses defender
+}

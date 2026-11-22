@@ -1,0 +1,25 @@
+scenario "Raving Oni-Slave without a Demon costs 3 life entering and leaving" {
+  battlefield A: 2 "Swamp"
+  battlefield B: 3 "Swamp"
+  hand A: "Raving Oni-Slave"
+  hand B: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raving Oni-Slave"
+  turn 1 A: wait
+  run_to turn 1 begin_combat
+  assert life A 17
+  turn 2 B: cast "Murder" targeting "Raving Oni-Slave"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Raving Oni-Slave"
+  assert life A 14
+}
+
+scenario "Raving Oni-Slave with a Demon costs nothing" {
+  battlefield A: 2 "Swamp", "Shefet Archfiend"
+  hand A: "Raving Oni-Slave"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raving Oni-Slave"
+  run_to turn 1 begin_combat
+  assert life A 20
+  assert battlefield A contains "Raving Oni-Slave"
+}

@@ -1,0 +1,8 @@
+card "Wartime Protestors" {
+  oracle_id 6557813b-4ee7-4881-a37c-10c8ea097360
+  cost {3}{R}
+  type Creature — Human Rebel Ally
+  pt 4/4
+  keywords haste
+  triggered whenever other Ally you control enters: put 1 +1/+1 counter on that creature and it gains haste
+}

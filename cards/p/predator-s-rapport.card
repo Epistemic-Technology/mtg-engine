@@ -1,0 +1,6 @@
+card "Predator's Rapport" {
+  oracle_id 7121b877-d262-4627-acd8-a159f8a779b1
+  cost {2}{G}
+  type Instant
+  spell: choose target creature you control; you gain count equal power of that target 1 plus toughness of target 1 life
+}

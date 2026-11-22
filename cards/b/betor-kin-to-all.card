@@ -1,0 +1,8 @@
+card "Betor, Kin to All" {
+  oracle_id 826a0db6-195a-4697-9bd6-f544b279e3cf
+  cost {2}{W}{B}{G}
+  type Legendary Creature — Spirit Dragon
+  pt 5/7
+  keywords flying
+  triggered at beginning of your end step if total toughness 10 or more: draw 1 card; then if total toughness 20 or more, untap each creature you control; then if total toughness 40 or more, each opponent loses half life
+}

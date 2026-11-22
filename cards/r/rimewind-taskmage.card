@@ -1,0 +1,7 @@
+card "Rimewind Taskmage" {
+  oracle_id f5d9248e-9cff-4f80-b6ed-7d368099e97b
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/2
+  activated {1}, {T}, if you control 4 snow permanent: you may tap or untap target permanent
+}

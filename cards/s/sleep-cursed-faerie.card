@@ -1,0 +1,11 @@
+card "Sleep-Cursed Faerie" {
+  oracle_id a17633aa-b1a7-4ae5-b051-6747975d8a2f
+  cost {U}
+  type Creature — Faerie Wizard
+  pt 3/3
+  keywords flying
+  ward {2}
+  enters tapped
+  enters with 3 stun counters
+  activated {1}{U}: untap this
+}

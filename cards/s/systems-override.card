@@ -1,0 +1,6 @@
+card "Systems Override" {
+  oracle_id 4c9d9d47-1eb6-4981-ba83-d5ec04906e71
+  cost {2}{R}
+  type Sorcery
+  spell: gain control of target artifact or creature; untap that target 1; target 1 gains haste; if target 1 is Spacecraft, put 10 charge counters on target 1; if you do, delayed target 1: remove 10 charge counters from it at beginning of the next end step
+}

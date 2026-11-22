@@ -1,0 +1,28 @@
+scenario "Winter: sacrifice a creature, opponent sacrifices one; power counts creature and planeswalker cards" {
+  battlefield A: "Grizzly Bears", 3 "Swamp"
+  hand A: "Winter, Tormented Loner"
+  graveyard A: "Jace Beleren", "Lightning Bolt"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Winter, Tormented Loner"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Winter, Tormented Loner"
+  assert power "Winter, Tormented Loner" 2
+  assert toughness "Winter, Tormented Loner" 3
+}
+
+scenario "Winter: declining the sacrifice spares the opponent's creature" {
+  battlefield A: "Grizzly Bears", 3 "Swamp"
+  hand A: "Winter, Tormented Loner"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Winter, Tormented Loner"
+  turn 1 A: decline "Winter, Tormented Loner"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  assert power "Winter, Tormented Loner" 0
+}

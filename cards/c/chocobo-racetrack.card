@@ -1,0 +1,6 @@
+card "Chocobo Racetrack" {
+  oracle_id 7522f7fd-6fda-4ed3-9131-21bf91616a73
+  cost {3}{G}{G}
+  type Artifact
+  label "Landfall" triggered whenever a land you control enters: create 1 "2/2 green Bird creature with landfall pump"
+}

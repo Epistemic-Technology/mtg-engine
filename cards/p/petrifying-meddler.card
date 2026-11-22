@@ -1,0 +1,9 @@
+card "Petrifying Meddler" {
+  oracle_id bd9b3009-f389-4831-b250-80c4bb8f25e5
+  cost {4}{U}
+  type Creature — Eldrazi
+  pt 4/5
+  keywords devoid
+  triggered when you cast this: tap up to 1 target creature and put 1 stun counter on target 1
+  keyword reach
+}

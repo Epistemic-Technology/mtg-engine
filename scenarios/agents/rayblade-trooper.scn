@@ -1,0 +1,26 @@
+scenario "counter on a creature; it dies and makes a Human Soldier" {
+  hand A: "Rayblade Trooper"
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  hand B: "Murder"
+  battlefield B: 3 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rayblade Trooper"
+  turn 1 A: trigger "Rayblade Trooper" targeting "Grizzly Bears"
+  turn 1 begin_combat B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert counters "Grizzly Bears" +1/+1 1
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains 1 "Human Soldier"
+}
+
+scenario "a creature without a +1/+1 counter dying makes nothing" {
+  battlefield A: "Rayblade Trooper", "Grizzly Bears"
+  hand B: "Murder"
+  battlefield B: 3 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A lacks "Human Soldier"
+}

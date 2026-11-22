@@ -1,0 +1,9 @@
+card "Sphinx's Insight" {
+  oracle_id 01f675c3-d1c4-45c8-8a2e-75f535db3025
+  cost {2}{W}{U}
+  type Instant
+  spell {
+    draw 2 cards
+    label "Addendum" if cast during main phase, you gain 2 life
+  }
+}

@@ -1,0 +1,26 @@
+scenario "Petrifying Meddler taps and stuns a creature when cast" {
+  battlefield A: 5 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Petrifying Meddler"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Petrifying Meddler"
+  turn 1 A: trigger "Petrifying Meddler" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Petrifying Meddler"
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 1
+  assert has "Petrifying Meddler" reach
+  assert is "Petrifying Meddler" colorless
+}
+
+scenario "Petrifying Meddler's stun keeps the creature tapped through an untap" {
+  battlefield A: 5 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Petrifying Meddler"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Petrifying Meddler"
+  turn 1 A: trigger "Petrifying Meddler" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 0
+}

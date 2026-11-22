@@ -1,0 +1,12 @@
+card "Cheeky House-Mouse // Squeak By" {
+  oracle_id db70ddae-0ac1-47f2-9158-8448e337a08f
+  layout adventure
+  cost {W}
+  type Creature — Mouse
+  pt 2/1
+  face "Squeak By" {
+    cost {W}
+    type Sorcery — Adventure
+    spell: target creature you control gets +1/+1; it gains ability { can't be blocked by creature with power 3 or greater }
+  }
+}

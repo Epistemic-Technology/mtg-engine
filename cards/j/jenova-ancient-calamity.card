@@ -1,0 +1,8 @@
+card "Jenova, Ancient Calamity" {
+  oracle_id 9370f6bf-d6a0-4c5b-828f-7229f563cc07
+  cost {2}{B}{G}
+  type Legendary Creature — Alien
+  pt 1/5
+  triggered at beginning of your combat: put +1/+1 counters equal power on up to 1 another target creature; that target 1 becomes Mutant in addition indefinitely
+  triggered whenever Mutant you control dies during your turn: you draw count equal power of it cards
+}

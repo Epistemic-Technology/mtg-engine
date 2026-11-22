@@ -1,0 +1,7 @@
+card "Living Library" {
+  oracle_id 81f022a7-fd19-4340-b8a0-6b11ab3e9d91
+  cost {2}
+  type Artifact Creature — Book Illusion
+  pt 0/4
+  activated {6}, sacrifice this: choose target creature or planeswalker an opponent controls; owner shuffles target 1 into library
+}

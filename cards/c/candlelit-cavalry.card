@@ -1,0 +1,7 @@
+card "Candlelit Cavalry" {
+  oracle_id edfd2614-8875-4741-b64b-390afc0d2376
+  cost {4}{G}
+  type Creature — Human Knight
+  pt 5/5
+  label "Coven" triggered at beginning of your combat if 3 different powers: this gains trample
+}

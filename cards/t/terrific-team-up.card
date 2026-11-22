@@ -1,0 +1,7 @@
+card "Terrific Team-Up" {
+  oracle_id 431c5b04-7387-4724-adfa-d1eb7874e79e
+  cost {3}{G}
+  type Instant
+  this spell costs {2} less if you control permanent with mana value 4 or greater
+  spell: 1 to 2 target creature you control each get +1/+0 until end of turn; target 1 each bites target creature an opponent controls
+}

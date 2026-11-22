@@ -1,0 +1,26 @@
+scenario "Generous Plunderer: Treasures for both, then attack damage equal to defender's artifacts" {
+  battlefield A: "Generous Plunderer"
+  battlefield B: "Darksteel Relic"
+  start turn 3 A untap
+  turn 3 upkeep A: trigger "Generous Plunderer" targeting player B
+  turn 3 A: attack "Generous Plunderer"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Treasure"
+  assert battlefield B contains "Treasure"
+  assert tapped B "Treasure"
+  run_to turn 3 declare_blockers
+  assert life B 18
+  run_to turn 3 postcombat_main
+  assert life B 16
+}
+
+scenario "Generous Plunderer: declining makes no Treasures" {
+  battlefield A: "Generous Plunderer"
+  start turn 3 A untap
+  turn 3 upkeep A: decline "Generous Plunderer"
+  turn 3 A: attack "Generous Plunderer"
+  run_to turn 3 postcombat_main
+  assert battlefield A lacks "Treasure"
+  assert battlefield B lacks "Treasure"
+  assert life B 18
+}

@@ -1,0 +1,11 @@
+scenario "attacking gives other Villains flying until end of turn" {
+  battlefield A: "Vulture, Scheming Scavenger", "Armed Assailant", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Vulture, Scheming Scavenger"
+  run_to turn 1 postcombat_main
+  assert has "Armed Assailant" flying
+  assert has not "Grizzly Bears" flying
+  assert life B 16
+  run_to turn 2 upkeep
+  assert has not "Armed Assailant" flying
+}

@@ -1,0 +1,28 @@
+scenario "Thranduil makes an Elf on landfall and pumps other Elves" {
+  battlefield A: "Thranduil, Sindarin Liege // Silvan Rally"
+  hand A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Elf"
+  assert power "Elf" 2
+  assert toughness "Elf" 2
+  assert power "Thranduil, Sindarin Liege" 2
+}
+
+scenario "Silvan Rally mills four and returns up to two lands" {
+  battlefield A: 3 "Forest"
+  hand A: "Thranduil, Sindarin Liege // Silvan Rally"
+  library A: "Forest", "Shock", "Island", "Hill Giant", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Silvan Rally"
+  turn 1 A: choose "Forest"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert hand A contains "Island"
+  assert hand A count 2
+  assert graveyard A contains "Shock"
+  assert graveyard A contains "Hill Giant"
+  assert exile A contains "Thranduil, Sindarin Liege"
+}

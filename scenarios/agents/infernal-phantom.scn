@@ -1,0 +1,26 @@
+scenario "Infernal Phantom dies and deals damage equal to its pumped power" {
+  battlefield A: "Infernal Phantom", 2 "Plains", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Pacifism", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pacifism" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Infernal Phantom"
+  turn 1 A: trigger "Infernal Phantom" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Infernal Phantom"
+  assert life B 16
+}
+
+scenario "Infernal Phantom dies at base power and deals 2" {
+  battlefield A: "Infernal Phantom", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Infernal Phantom"
+  turn 1 A: trigger "Infernal Phantom" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Infernal Phantom"
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 20
+}

@@ -1,0 +1,9 @@
+card "You Meet in a Tavern" {
+  oracle_id c735077a-fae8-4c5f-a5bf-35969696460c
+  cost {2}{G}{G}
+  type Sorcery
+  choose one {
+    mode "Form a Party": dig 5 take any creature card may revealing that card rest bottom random
+    mode "Start a Brawl": each creature you control gets +2/+2
+  }
+}

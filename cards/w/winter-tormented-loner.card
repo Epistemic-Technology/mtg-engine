@@ -1,0 +1,8 @@
+card "Winter, Tormented Loner" {
+  oracle_id 84eaac2e-74ce-4a16-9faa-409df7c58eb3
+  cost {2}{B}
+  type Legendary Creature — Human Warlock
+  pt 0/3
+  triggered when this enters: you may sacrifice 1 creature or planeswalker chosen; when you do, each opponent sacrifices 1 creature
+  static this: +1/+0 count each graveyard creature or planeswalker
+}

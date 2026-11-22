@@ -1,0 +1,30 @@
+scenario "Spell Snuff counters and draws at 5 life" {
+  life A 5
+  battlefield A: 3 "Island"
+  battlefield B: "Mountain"
+  hand A: "Spell Snuff"
+  hand B: "Lightning Bolt"
+  library A: "Swamp", "Plains"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: cast "Spell Snuff" targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 2 postcombat_main
+  assert life A 5
+  assert graveyard B contains "Lightning Bolt"
+  assert hand A contains "Swamp"
+}
+
+scenario "Spell Snuff doesn't draw above 5 life" {
+  life A 6
+  battlefield A: 3 "Island"
+  battlefield B: "Mountain"
+  hand A: "Spell Snuff"
+  hand B: "Lightning Bolt"
+  library A: "Swamp", "Plains"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: cast "Spell Snuff" targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 2 postcombat_main
+  assert life A 6
+  assert hand A count 0
+}

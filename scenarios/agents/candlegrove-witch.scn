@@ -1,0 +1,22 @@
+scenario "Candlegrove Witch gains flying with coven" {
+  battlefield A: "Candlegrove Witch", "Hill Giant", "Serra Angel"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert has "Candlegrove Witch" flying
+  run_to turn 2 upkeep
+  assert has not "Candlegrove Witch" flying
+}
+
+scenario "Candlegrove Witch without three different powers stays grounded" {
+  battlefield A: "Candlegrove Witch", "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert has not "Candlegrove Witch" flying
+}
+
+scenario "Candlegrove Witch does not trigger on the opponent's combat" {
+  battlefield A: "Candlegrove Witch", "Hill Giant", "Serra Angel"
+  start turn 2 B precombat_main
+  run_to turn 2 declare_attackers
+  assert has not "Candlegrove Witch" flying
+}

@@ -1,0 +1,7 @@
+card "Mild-Mannered Librarian" {
+  oracle_id fb7070ab-c234-4d54-8cdc-caf106bf24a6
+  cost {G}
+  type Creature — Human
+  pt 1/1
+  activated {3}{G}, once ever: this becomes Werewolf indefinitely; put 2 +1/+1 counters on this and you draw 1 card
+}

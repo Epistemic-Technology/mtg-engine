@@ -1,0 +1,9 @@
+card "Ambrosia Whiteheart" {
+  oracle_id 2bcc9f11-5b12-433e-9680-0f4b18aa521c
+  cost {1}{W}
+  type Legendary Creature — Bird
+  pt 2/2
+  keywords flash
+  triggered when this enters: you may return 1 other permanent you control chosen
+  label "Landfall" triggered whenever a land you control enters: this gets +1/+0
+}

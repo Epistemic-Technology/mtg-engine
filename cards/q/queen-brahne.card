@@ -1,0 +1,8 @@
+card "Queen Brahne" {
+  oracle_id 0527b7b5-a55d-4720-af1f-17fc1178f4a6
+  cost {2}{R}
+  type Legendary Creature — Human Noble
+  pt 2/1
+  keywords prowess
+  triggered whenever this attacks: create 1 "0/1 black Wizard creature that pings"
+}

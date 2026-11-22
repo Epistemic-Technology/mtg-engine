@@ -1,0 +1,14 @@
+scenario "Tombstone returns a Villain card, which then costs {1} less" {
+  battlefield A: 5 "Swamp"
+  hand A: "Tombstone, Career Criminal"
+  graveyard A: "Grizzly Bears", "Armed Assailant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tombstone, Career Criminal"
+  turn 1 A: trigger "Tombstone, Career Criminal" targeting "Armed Assailant"
+  turn 1 A: wait
+  turn 1 A: cast "Armed Assailant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Armed Assailant"
+  assert graveyard A contains "Grizzly Bears"
+
+}

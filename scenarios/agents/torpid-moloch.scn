@@ -1,0 +1,27 @@
+scenario "Torpid Moloch sacrifices three lands to lose defender and attack" {
+  battlefield A: "Torpid Moloch", 4 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Torpid Moloch" sacrificing "Mountain"
+  turn 1 A: attack "Torpid Moloch"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield A contains 1 "Mountain"
+  assert graveyard A contains 3 "Mountain"
+}
+
+scenario "Torpid Moloch can't attack with defender" {
+  battlefield A: "Torpid Moloch", 4 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: attack "Torpid Moloch"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert has "Torpid Moloch" defender
+}
+
+scenario "Torpid Moloch can't pay with only two lands" {
+  battlefield A: "Torpid Moloch", 2 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Torpid Moloch"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Mountain"
+}

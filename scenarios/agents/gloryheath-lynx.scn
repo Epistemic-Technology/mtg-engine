@@ -1,0 +1,20 @@
+scenario "saddled Gloryheath Lynx fetches a basic Plains and gains life" {
+  battlefield A: "Gloryheath Lynx", "Grizzly Bears"
+  library A: "Forest", "Plains", "Island"
+  turn 1 A: activate "Gloryheath Lynx"
+  turn 1 A: attack "Gloryheath Lynx"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Plains"
+  assert tapped "Grizzly Bears"
+  assert life B 18
+  assert life A 22
+}
+
+scenario "unsaddled Gloryheath Lynx doesn't search" {
+  battlefield A: "Gloryheath Lynx", "Grizzly Bears"
+  library A: "Forest", "Plains", "Island"
+  turn 1 A: attack "Gloryheath Lynx"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert life B 18
+}

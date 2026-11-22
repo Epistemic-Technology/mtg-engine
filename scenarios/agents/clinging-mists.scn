@@ -1,0 +1,33 @@
+scenario "Clinging Mists prevents combat damage; above 5 life attackers are not tapped" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Serra Angel", "Hill Giant"
+  hand A: "Clinging Mists"
+  start turn 2 B
+  turn 2 B: attack "Serra Angel", "Hill Giant"
+  turn 2 declare_attackers A: cast "Clinging Mists"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert untapped "Serra Angel"
+  assert tapped "Hill Giant"
+  run_to turn 4 upkeep
+  assert untapped "Hill Giant"
+}
+
+scenario "Clinging Mists fateful hour taps attackers and keeps them tapped" {
+  life A 5
+  battlefield A: 3 "Forest"
+  battlefield B: "Serra Angel", "Hill Giant"
+  hand A: "Clinging Mists"
+  start turn 2 B
+  turn 2 B: attack "Serra Angel", "Hill Giant"
+  turn 2 declare_attackers A: cast "Clinging Mists"
+  run_to turn 2 postcombat_main
+  assert life A 5
+  assert tapped "Serra Angel"
+  assert tapped "Hill Giant"
+  run_to turn 4 upkeep
+  assert tapped "Serra Angel"
+  assert tapped "Hill Giant"
+  run_to turn 6 upkeep
+  assert untapped "Serra Angel"
+}

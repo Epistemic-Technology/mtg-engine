@@ -1,0 +1,9 @@
+card "First Day of Class" {
+  oracle_id e0b5c772-e029-4b8d-be67-b1584700e377
+  cost {1}{R}
+  type Instant
+  spell {
+    delayed this: whenever creature you control enters this turn, put 1 +1/+1 counter on it and it gains haste
+    learn
+  }
+}

@@ -1,0 +1,29 @@
+scenario "Squeak By: +1/+1 and unblockable by power 3 or greater; then the Mouse from exile" {
+  hand A: "Cheeky House-Mouse // Squeak By"
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Squeak By" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 postcombat_main A: cast "Cheeky House-Mouse"
+  run_to turn 1 end
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert life B 17
+  assert battlefield A contains "Cheeky House-Mouse"
+}
+
+scenario "a power 2 creature can still block" {
+  hand A: "Cheeky House-Mouse // Squeak By"
+  battlefield A: "Plains", "Grizzly Bears"
+  battlefield B: "Savannah Lions"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Squeak By" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Savannah Lions"
+  assert battlefield A contains "Grizzly Bears"
+  assert life B 20
+}

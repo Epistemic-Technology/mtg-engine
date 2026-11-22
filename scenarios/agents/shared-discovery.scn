@@ -1,0 +1,23 @@
+scenario "Shared Discovery taps four creatures and draws three" {
+  battlefield A: "Island", 2 "Grizzly Bears", 2 "Hill Giant"
+  hand A: "Shared Discovery"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shared Discovery"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Shared Discovery"
+  assert hand A count 3
+  assert tapped oldest "Grizzly Bears"
+  assert tapped newest "Grizzly Bears"
+  assert tapped oldest "Hill Giant"
+  assert tapped newest "Hill Giant"
+}
+
+scenario "Shared Discovery can't be cast with only three creatures" {
+  battlefield A: "Island", 2 "Grizzly Bears", "Hill Giant"
+  hand A: "Shared Discovery"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Shared Discovery"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shared Discovery"
+  assert hand A count 1
+}

@@ -1,0 +1,7 @@
+card "Uthros Psionicist" {
+  oracle_id 7f51aede-fb86-4b7e-9027-2ba8be62b567
+  cost {2}{U}
+  type Creature — Jellyfish Scientist
+  pt 2/4
+  static as long as spell number 2 this turn, spells you cast cost {2} less
+}

@@ -1,0 +1,27 @@
+scenario "Barrage of Boulders with ferocious stops blockers" {
+  battlefield A: "Serra Angel", 3 "Mountain"
+  battlefield B: "Hill Giant", "Wind Drake"
+  hand A: "Barrage of Boulders"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Barrage of Boulders"
+  turn 1 A: attack "Serra Angel"
+  illegal turn 1 B: block "Serra Angel" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 1
+  assert damage "Serra Angel" 0
+  assert damage "Wind Drake" 1
+  assert life B 16
+}
+
+scenario "Barrage of Boulders without ferocious allows blocks" {
+  battlefield A: "Grizzly Bears", 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Barrage of Boulders"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Barrage of Boulders"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert life B 20
+}

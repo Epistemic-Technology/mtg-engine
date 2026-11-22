@@ -1,0 +1,20 @@
+scenario "Living Library shuffles an opponent's creature into its owner's library" {
+  battlefield A: "Living Library", 6 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Living Library" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B lacks "Hill Giant"
+  assert library B contains "Hill Giant"
+  assert graveyard B lacks "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+  assert graveyard A contains "Living Library"
+}
+
+scenario "Living Library can't target its controller's own creature" {
+  battlefield A: "Living Library", 6 "Island", "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Living Library" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Living Library"
+}

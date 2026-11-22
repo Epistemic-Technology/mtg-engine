@@ -1,0 +1,23 @@
+scenario "Hellspur Posse Boss makes two Mercenaries that attack at once" {
+  battlefield A: 4 "Mountain"
+  hand A: "Hellspur Posse Boss"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hellspur Posse Boss"
+  turn 1 A: attack "Mercenary", "Mercenary"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Mercenary"
+  assert life B 18
+}
+
+scenario "Hellspur Posse Boss doesn't give itself or non-outlaws haste" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  hand A: "Hellspur Posse Boss"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hellspur Posse Boss"
+  illegal turn 1 A: attack "Hellspur Posse Boss"
+  run_to turn 1 postcombat_main
+  assert has not "Grizzly Bears" haste
+  assert has not "Hellspur Posse Boss" haste
+  assert has oldest "Mercenary" haste
+  assert life B 20
+}

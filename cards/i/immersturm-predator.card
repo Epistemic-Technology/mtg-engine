@@ -1,0 +1,9 @@
+card "Immersturm Predator" {
+  oracle_id fcb6c6d4-ea8d-49cf-b6df-377084bdb757
+  cost {2}{B}{R}
+  type Creature — Vampire Dragon
+  pt 3/3
+  keywords flying
+  triggered whenever this becomes tapped: exile up to 1 target card from a graveyard and put 1 +1/+1 counter on this creature
+  activated sacrifice other creature: this gains indestructible; tap it
+}

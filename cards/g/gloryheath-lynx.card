@@ -1,0 +1,9 @@
+card "Gloryheath Lynx" {
+  oracle_id 28673657-f05f-4b0a-b80c-939773abdefb
+  cost {1}{W}
+  type Creature — Cat Mount
+  pt 2/3
+  keywords lifelink
+  triggered whenever this attacks while saddled: search basic Plains card reveal to hand
+  saddle 2
+}

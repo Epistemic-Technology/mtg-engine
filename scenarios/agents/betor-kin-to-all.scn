@@ -1,0 +1,35 @@
+scenario "Betor draws with total toughness 10 but doesn't untap" {
+  battlefield A: "Betor, Kin to All", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 cleanup
+  assert hand A count 1
+  assert tapped "Hill Giant"
+  assert life B 17
+}
+
+scenario "Betor doesn't draw below total toughness 10" {
+  battlefield A: "Betor, Kin to All", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 cleanup
+  assert hand A count 0
+}
+
+scenario "Betor untaps at total toughness 20" {
+  battlefield A: "Betor, Kin to All", 4 "Serra Angel", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 cleanup
+  assert hand A count 1
+  assert untapped "Hill Giant"
+  assert life B 17
+}
+
+scenario "Betor halves the opponent's life at total toughness 40" {
+  battlefield A: "Betor, Kin to All", 9 "Serra Angel"
+  life B 15
+  start turn 1 A precombat_main
+  run_to turn 1 cleanup
+  assert hand A count 1
+  assert life B 7
+}

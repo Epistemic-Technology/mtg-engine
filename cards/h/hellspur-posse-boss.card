@@ -1,0 +1,8 @@
+card "Hellspur Posse Boss" {
+  oracle_id 15260fa6-6062-423a-a248-81292ea46178
+  cost {2}{R}{R}
+  type Creature — Lizard Rogue
+  pt 2/4
+  static other outlaw you control: has haste
+  triggered when this enters: create 2 "Mercenary"
+}

@@ -1,0 +1,22 @@
+scenario "Fractal Anomaly counts the cards drawn this turn" {
+  battlefield A: 2 "Plains", "Island"
+  hand A: "Fractal Anomaly", "Revitalize"
+  start turn 2 A upkeep
+  turn 2 A: cast "Revitalize"
+  turn 2 A: wait
+  turn 2 A: cast "Fractal Anomaly"
+  run_to turn 2 postcombat_main
+  assert counters "Fractal" +1/+1 2
+  assert power "Fractal" 2
+  assert toughness "Fractal" 2
+}
+
+scenario "Fractal Anomaly with no cards drawn makes a 0/0 that dies" {
+  battlefield A: "Island"
+  hand A: "Fractal Anomaly"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fractal Anomaly"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Fractal"
+  assert graveyard A contains "Fractal Anomaly"
+}

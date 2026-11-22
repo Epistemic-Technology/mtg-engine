@@ -1,0 +1,9 @@
+card "Concealed Weapon" {
+  oracle_id 104565b1-2db8-4c01-ae3d-14087768be45
+  cost {1}{R}
+  type Artifact — Equipment
+  static enchanted: +3/+0
+  disguise {2}{R}
+  triggered when this is turned face up: attach to target creature you control
+  equip {1}{R}
+}

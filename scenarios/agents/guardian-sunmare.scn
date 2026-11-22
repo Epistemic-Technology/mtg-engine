@@ -1,0 +1,24 @@
+scenario "Guardian Sunmare: attacking while saddled fetches a permanent with mana value 3 or less" {
+  battlefield A: "Guardian Sunmare", "Hill Giant", "Grizzly Bears"
+  library A: "Serra Angel", "Wind Drake", "Shock", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Guardian Sunmare"
+  turn 1 A: attack "Guardian Sunmare"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wind Drake"
+  assert library A contains 2 "Serra Angel"
+  assert library A contains "Shock"
+  assert tapped "Hill Giant"
+  assert life B 15
+}
+
+scenario "Guardian Sunmare: no search when not saddled" {
+  battlefield A: "Guardian Sunmare", "Hill Giant", "Grizzly Bears"
+  library A: "Wind Drake", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Guardian Sunmare"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Wind Drake"
+  assert library A contains "Wind Drake"
+  assert life B 15
+}

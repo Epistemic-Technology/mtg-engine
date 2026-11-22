@@ -1,0 +1,14 @@
+card "Thranduil, Sindarin Liege // Silvan Rally" {
+  oracle_id f6771d32-395e-4832-b33d-cbc12dff1516
+  layout adventure
+  cost {2}{G/U}{G/U}
+  type Legendary Creature — Elf Noble
+  pt 2/3
+  static other Elf you control: +1/+1
+  label "Landfall" triggered whenever land you control enters: create 1 "1/1 green Elf creature"
+  face "Silvan Rally" {
+    cost {1}{G/U}{G/U}
+    type Sorcery — Adventure
+    spell: mill 4 cards then put up to 2 land card from among them into hand chosen
+  }
+}

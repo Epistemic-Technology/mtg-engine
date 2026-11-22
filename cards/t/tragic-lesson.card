@@ -1,0 +1,6 @@
+card "Tragic Lesson" {
+  oracle_id 516d1ac4-e831-44b6-8266-131dde7fe802
+  cost {2}{U}
+  type Instant
+  spell: draw 2 cards; then discard 1 card unless you return 1 land you control to hand chosen
+}

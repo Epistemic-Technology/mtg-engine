@@ -1,0 +1,7 @@
+card "Living Brain, Mechanical Marvel" {
+  oracle_id b255e13d-01b2-4348-80bd-8d9a8f29be91
+  cost {4}
+  type Legendary Artifact Creature — Robot Villain
+  pt 3/3
+  triggered at beginning of your combat: target non-Equipment artifact you control becomes artifact creature base 3/3 until end of turn; untap target 1
+}

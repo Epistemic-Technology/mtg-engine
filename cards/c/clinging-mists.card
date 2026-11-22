@@ -1,0 +1,9 @@
+card "Clinging Mists" {
+  oracle_id 9be48462-2ec0-4d28-9977-f0232e8a1333
+  cost {2}{G}
+  type Instant
+  spell {
+    prevent all combat damage this turn
+    label "Fateful hour" if your life 5 or less, tap every attacking creature; those creatures doesn't untap next untap step
+  }
+}

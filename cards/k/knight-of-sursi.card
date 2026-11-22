@@ -1,0 +1,8 @@
+card "Knight of Sursi" {
+  oracle_id 8dfe5fb5-89f1-42be-9038-40d3c71ce59a
+  cost {3}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords flying, flanking
+  suspend 3 {W}
+}

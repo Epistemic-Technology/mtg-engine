@@ -1,0 +1,24 @@
+scenario "Tragic Trajectory without void gives -2/-2" {
+  battlefield A: "Swamp"
+  hand A: "Tragic Trajectory"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tragic Trajectory" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+  assert power "Serra Angel" 2
+  assert toughness "Serra Angel" 2
+}
+
+scenario "Tragic Trajectory with void gives -10/-10" {
+  battlefield A: "Swamp", "Mountain"
+  hand A: "Tragic Trajectory", "Lightning Bolt"
+  battlefield B: "Serra Angel", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Tragic Trajectory" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Serra Angel"
+}

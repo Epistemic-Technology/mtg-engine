@@ -1,0 +1,6 @@
+card "Drown in Filth" {
+  oracle_id 59af03ba-28d0-4f15-b877-2cf3c81d66e1
+  cost {B}{G}
+  type Sorcery
+  spell: choose target creature; mill 4 cards then that target 1 gets -1/-1 count each graveyard land
+}

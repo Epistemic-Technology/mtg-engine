@@ -1,0 +1,9 @@
+card "Silken Strength" {
+  oracle_id 53a59ba9-f4e9-460b-928a-ce6d7ae883f7
+  cost {1}{G}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature or Vehicle
+  triggered when this enters: untap enchanted permanent
+  static enchanted permanent: +1/+2 and has reach
+}

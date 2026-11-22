@@ -1,0 +1,13 @@
+scenario "Jazal Goldmane pumps attackers by the number of attacking creatures" {
+  battlefield A: "Jazal Goldmane", "Grizzly Bears", "Llanowar Elves", 5 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Jazal Goldmane", "Grizzly Bears"
+  turn 1 declare_attackers A: activate "Jazal Goldmane"
+  run_to turn 1 declare_blockers
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert power "Jazal Goldmane" 6
+  assert power "Llanowar Elves" 1
+  run_to turn 1 postcombat_main
+  assert life B 10
+}

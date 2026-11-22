@@ -1,0 +1,9 @@
+card "Colorstorm Stallion" {
+  oracle_id 47ee6837-2e2f-4344-ab9f-6b8887874f77
+  cost {1}{U}{R}
+  type Creature — Elemental Horse
+  pt 3/3
+  ward {1}
+  keyword haste
+  label "Opus" triggered whenever you cast an instant or sorcery spell: this gets +1/+1; if that spell spent 5 mana, create token copy of this creature
+}

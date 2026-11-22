@@ -1,0 +1,6 @@
+card "Broken Fall" {
+  oracle_id 79791c7f-dd33-406a-8c2e-6b722abd5161
+  cost {2}{G}
+  type Enchantment
+  activated return this: regenerate target creature
+}

@@ -1,0 +1,7 @@
+token "1/1 green Human Monk creature that adds G" {
+  name "Human Monk"
+  type Creature — Human Monk
+  pt 1/1
+  color green
+  mana {G}
+}

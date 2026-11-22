@@ -1,0 +1,15 @@
+scenario "Mild-Mannered Librarian: becomes a Werewolf for good, two counters, draws, only once" {
+  battlefield A: "Mild-Mannered Librarian", 8 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Mild-Mannered Librarian"
+  run_to turn 1 postcombat_main
+  assert counters "Mild-Mannered Librarian" +1/+1 2
+  assert power "Mild-Mannered Librarian" 3
+  assert hand A count 1
+  assert is "Mild-Mannered Librarian" Werewolf
+  assert is not "Mild-Mannered Librarian" Human
+  illegal turn 3 A: activate "Mild-Mannered Librarian"
+  run_to turn 3 postcombat_main
+  assert is "Mild-Mannered Librarian" Werewolf
+  assert counters "Mild-Mannered Librarian" +1/+1 2
+}

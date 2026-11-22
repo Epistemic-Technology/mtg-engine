@@ -1,0 +1,24 @@
+scenario "enters dealing 2 to any target; sacrifice another artifact for a Golem" {
+  hand A: "Legion Extruder"
+  battlefield A: 4 "Mountain", "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Legion Extruder"
+  turn 1 A: trigger "Legion Extruder" targeting player B
+  turn 1 A: wait
+  turn 1 A: activate "Legion Extruder" sacrificing "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Ornithopter"
+  assert battlefield A contains 1 "Golem"
+  assert power "Golem" 3
+  assert is "Golem" artifact
+  assert tapped "Legion Extruder"
+}
+
+scenario "can't sacrifice itself" {
+  battlefield A: "Legion Extruder", 2 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Legion Extruder" sacrificing "Legion Extruder"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Legion Extruder"
+}

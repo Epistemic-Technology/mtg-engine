@@ -1,0 +1,14 @@
+scenario "Living Brain animates and untaps a tapped artifact, which attacks as a 3/3" {
+  battlefield A: "Living Brain, Mechanical Marvel", "Darksteel Relic" tapped
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: trigger "Living Brain, Mechanical Marvel" targeting "Darksteel Relic"
+  turn 1 A: attack "Darksteel Relic"
+  run_to turn 1 declare_blockers
+  assert is "Darksteel Relic" creature
+  assert power "Darksteel Relic" 3
+  assert toughness "Darksteel Relic" 3
+  run_to turn 1 postcombat_main
+  assert life B 17
+  run_to turn 2 precombat_main
+  assert is not "Darksteel Relic" creature
+}

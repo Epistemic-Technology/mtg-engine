@@ -1,0 +1,8 @@
+card "Doc Ock's Tentacles" {
+  oracle_id a5a18764-eb29-4bd8-a2e9-0ce55f4f6c88
+  cost {1}
+  type Artifact — Equipment
+  triggered whenever creature you control with mana value 5 or greater enters: you may attach to it
+  static equipped creature: +4/+4
+  equip {5}
+}

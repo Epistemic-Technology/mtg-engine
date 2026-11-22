@@ -1,0 +1,28 @@
+scenario "Rimewind Taskmage taps a creature with four snow permanents" {
+  battlefield A: "Rimewind Taskmage", 4 "Snow-Covered Island"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rimewind Taskmage" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert tapped "Rimewind Taskmage"
+}
+
+scenario "Rimewind Taskmage untaps a tapped permanent" {
+  battlefield A: "Rimewind Taskmage", 4 "Snow-Covered Island", "Hill Giant" tapped
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rimewind Taskmage" targeting "Hill Giant"
+  turn 1 A: accept "Rimewind Taskmage"
+  turn 1 A: decline "Rimewind Taskmage"
+  run_to turn 1 postcombat_main
+  assert untapped "Hill Giant"
+}
+
+scenario "Rimewind Taskmage can't be activated with three snow permanents" {
+  battlefield A: "Rimewind Taskmage", 3 "Snow-Covered Island", 2 "Island"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Rimewind Taskmage" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert untapped "Hill Giant"
+}

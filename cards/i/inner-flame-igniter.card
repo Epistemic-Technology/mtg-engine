@@ -1,0 +1,7 @@
+card "Inner-Flame Igniter" {
+  oracle_id 059788eb-2c55-4da2-bf54-aa2fa7954169
+  cost {2}{R}
+  type Creature — Elemental Warrior
+  pt 2/2
+  activated {2}{R}: each creature you control gets +1/+0; if resolution 3, all creature you control gain first strike
+}

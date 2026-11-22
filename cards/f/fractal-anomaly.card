@@ -1,0 +1,6 @@
+card "Fractal Anomaly" {
+  oracle_id 644379e7-782e-48e1-9b47-c4dc62e62d85
+  cost {U}
+  type Instant
+  spell: create 1 "0/0 green and blue Fractal creature" and put count where drawn this turn +1/+1 counters on that token
+}

@@ -1,0 +1,14 @@
+card "Tarkir Duneshaper // Burnished Dunestomper" {
+  oracle_id c554ae68-0201-4958-aa63-8159911acb50
+  layout transform
+  cost {W}
+  type Creature — Dog Warrior
+  pt 1/2
+  activated {4}{G/P}, sorcery: transform this
+  face "Burnished Dunestomper" {
+    type Creature — Phyrexian Dog Warrior
+    pt 4/3
+    color green white
+    keywords trample
+  }
+}

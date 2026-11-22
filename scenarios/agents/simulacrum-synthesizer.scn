@@ -1,0 +1,29 @@
+scenario "Simulacrum Synthesizer makes a Construct counting artifacts" {
+  battlefield A: "Simulacrum Synthesizer", "Ornithopter", 4 "Island"
+  hand A: "Jayemdae Tome"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Jayemdae Tome"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Construct"
+  assert power "Construct" 4
+  assert toughness "Construct" 4
+}
+
+scenario "Simulacrum Synthesizer ignores an artifact with mana value 2" {
+  battlefield A: "Simulacrum Synthesizer", 2 "Island"
+  hand A: "Mind Stone"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mind Stone"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Construct"
+}
+
+scenario "Simulacrum Synthesizer enters alone and makes no Construct" {
+  battlefield A: 3 "Island"
+  hand A: "Simulacrum Synthesizer"
+  library A: "Forest", "Mountain", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Simulacrum Synthesizer"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Construct"
+}

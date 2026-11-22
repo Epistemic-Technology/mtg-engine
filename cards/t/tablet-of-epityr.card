@@ -1,0 +1,6 @@
+card "Tablet of Epityr" {
+  oracle_id 691896d7-9894-4845-be1d-08b053897fdb
+  cost {1}
+  type Artifact
+  triggered whenever an artifact you control dies: you may pay {1}; if you do, you gain 1 life
+}

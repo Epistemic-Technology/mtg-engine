@@ -1,0 +1,7 @@
+card "Simulacrum Synthesizer" {
+  oracle_id eb7a1f21-a66d-415b-8520-710b44890bb6
+  cost {2}{U}
+  type Artifact
+  triggered when this enters: scry 2
+  triggered whenever other artifact you control with mana value 3 or greater enters: create 1 "0/0 colorless Construct artifact creature with artifact pump"
+}

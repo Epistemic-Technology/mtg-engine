@@ -1,0 +1,9 @@
+card "Lead Pipe" {
+  oracle_id ed2ef95e-8851-4226-9c63-4c19ea323b82
+  cost {B}
+  type Artifact — Clue Equipment
+  static equipped creature: +2/+0
+  triggered whenever equipped creature dies: each opponent loses 1 life
+  activated {2}, sacrifice this: draw 1 card
+  equip {2}
+}

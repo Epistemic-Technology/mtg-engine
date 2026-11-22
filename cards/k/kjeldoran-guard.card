@@ -1,0 +1,7 @@
+card "Kjeldoran Guard" {
+  oracle_id bd699cf8-56c7-4375-920e-8dd22c83a82c
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 1/1
+  activated {T}, during combat, if defending player controls no snow land: target creature gets +1/+1 until end of turn; delayed target 1: when that creature leaves the battlefield this turn, sacrifice this creature
+}

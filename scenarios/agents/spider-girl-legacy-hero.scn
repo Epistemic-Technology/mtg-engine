@@ -1,0 +1,22 @@
+scenario "Spider-Girl: flying only during your turn" {
+  battlefield A: "Spider-Girl, Legacy Hero"
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert has "Spider-Girl, Legacy Hero" flying
+  run_to turn 2 precombat_main
+  assert has not "Spider-Girl, Legacy Hero" flying
+}
+
+scenario "Spider-Girl: leaving the battlefield creates a 1/1 Human Citizen" {
+  battlefield A: "Spider-Girl, Legacy Hero"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Spider-Girl, Legacy Hero"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Spider-Girl, Legacy Hero"
+  assert battlefield A contains "Human Citizen"
+  assert power "Human Citizen" 1
+  assert is "Human Citizen" green
+  assert is "Human Citizen" white
+}

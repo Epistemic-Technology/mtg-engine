@@ -1,0 +1,25 @@
+scenario "Gallant Pie-Wielder has double strike after two nonland permanents enter" {
+  battlefield A: "Gallant Pie-Wielder"
+  hand A: "Ornithopter", "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: wait
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: attack "Gallant Pie-Wielder"
+  run_to turn 1 postcombat_main
+  assert has "Gallant Pie-Wielder" double_strike
+  assert life B 16
+}
+
+scenario "Gallant Pie-Wielder has only first strike after one" {
+  battlefield A: "Gallant Pie-Wielder"
+  hand A: "Ornithopter", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: play "Forest"
+  turn 1 A: attack "Gallant Pie-Wielder"
+  run_to turn 1 postcombat_main
+  assert has not "Gallant Pie-Wielder" double_strike
+  assert has "Gallant Pie-Wielder" first_strike
+  assert life B 18
+}

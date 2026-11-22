@@ -1,0 +1,7 @@
+card "April, Reporter of the Weird" {
+  oracle_id 1c371003-e4f0-4d7c-b021-273176772f97
+  cost {2}{U}
+  type Legendary Creature — Human Detective
+  pt 2/2
+  triggered whenever this deals combat damage to a player: draw that much cards then discard 1 card
+}

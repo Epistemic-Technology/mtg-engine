@@ -1,0 +1,28 @@
+scenario "Tarkir Duneshaper transforms paying green" {
+  battlefield A: 4 "Plains", "Forest", "Tarkir Duneshaper"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Tarkir Duneshaper"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Burnished Dunestomper"
+  assert power "Burnished Dunestomper" 4
+  assert toughness "Burnished Dunestomper" 3
+  assert has "Burnished Dunestomper" trample
+  assert life A 20
+}
+
+scenario "Tarkir Duneshaper transforms paying 2 life for the Phyrexian symbol" {
+  battlefield A: 4 "Plains", "Tarkir Duneshaper"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Tarkir Duneshaper"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Burnished Dunestomper"
+  assert life A 18
+}
+
+scenario "Tarkir Duneshaper transforms only as a sorcery" {
+  battlefield A: 4 "Plains", "Forest", "Tarkir Duneshaper"
+  start turn 1 A precombat_main
+  illegal turn 1 begin_combat A: activate "Tarkir Duneshaper"
+  run_to turn 1 end
+  assert battlefield A contains "Tarkir Duneshaper"
+}

@@ -1,0 +1,8 @@
+card "Splash Lasher" {
+  oracle_id 0d0c4c91-683a-4563-a0b0-39f3c04f6307
+  cost {3}{U}
+  type Creature — Frog Wizard
+  pt 3/3
+  offspring {1}{U}
+  triggered whenever this enters: tap up to 1 target creature and put 1 stun counter on target 1
+}

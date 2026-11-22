@@ -1,0 +1,6 @@
+card "Troll Negotiations" {
+  oracle_id 6e275711-eb76-4924-ba38-c38a36d9d82a
+  cost {2}{G}{G}
+  type Sorcery
+  spell: put 2 +1/+1 counters on target creature you control; then target 1 fights target creature an opponent controls
+}

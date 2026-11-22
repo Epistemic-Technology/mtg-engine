@@ -1,0 +1,8 @@
+card "Gelid Shackles" {
+  oracle_id 45ca8431-befd-4542-9dd7-503bf1afaac5
+  cost {W}
+  type Snow Enchantment — Aura
+  enchant creature
+  static enchanted: has can't block, can't activate
+  activated {S}: enchanted creature gains defender
+}

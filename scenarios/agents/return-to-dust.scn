@@ -1,0 +1,32 @@
+scenario "Return to Dust in main phase exiles two" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Darksteel Relic", "Ornithopter"
+  hand A: "Return to Dust"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Return to Dust" targeting "Darksteel Relic", "Ornithopter"
+  run_to turn 1 end
+  assert exile B contains "Darksteel Relic"
+  assert exile B contains "Ornithopter"
+}
+
+scenario "Return to Dust in opponent main phase exiles only the first" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Darksteel Relic", "Ornithopter"
+  hand A: "Return to Dust"
+  start turn 2 B precombat_main
+  turn 2 precombat_main A: cast "Return to Dust" targeting "Darksteel Relic", "Ornithopter"
+  run_to turn 2 end
+  assert exile B contains "Darksteel Relic"
+  assert battlefield B contains "Ornithopter"
+}
+
+scenario "Return to Dust during combat on own turn exiles only one" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Darksteel Relic", "Ornithopter"
+  hand A: "Return to Dust"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: cast "Return to Dust" targeting "Darksteel Relic", "Ornithopter"
+  run_to turn 1 end
+  assert exile B contains "Darksteel Relic"
+  assert battlefield B contains "Ornithopter"
+}

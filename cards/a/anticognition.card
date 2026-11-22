@@ -1,0 +1,6 @@
+card "Anticognition" {
+  oracle_id 4728e320-d29b-4019-8ab5-e45319c77c40
+  cost {1}{U}
+  type Instant
+  spell: counter target creature or planeswalker spell unless its controller pays {2}; if opponent graveyard 8 or more, instead counter that target 1, then scry 2
+}

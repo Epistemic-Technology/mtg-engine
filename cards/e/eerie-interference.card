@@ -1,0 +1,6 @@
+card "Eerie Interference" {
+  oracle_id 35ba0e70-da7c-4ed9-b8ec-7dd5c5ce110e
+  cost {2}{W}
+  type Instant
+  spell: prevent all damage to you and creature you control this turn from creature
+}

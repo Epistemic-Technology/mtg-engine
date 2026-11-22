@@ -1,0 +1,29 @@
+scenario "Doc Ock's Tentacles attaches to an entering creature with mana value 5" {
+  battlefield A: "Doc Ock's Tentacles", 5 "Plains"
+  hand A: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert attached "Doc Ock's Tentacles" to "Serra Angel"
+  assert power "Serra Angel" 8
+  assert toughness "Serra Angel" 8
+}
+
+scenario "Doc Ock's Tentacles ignores a creature with mana value 4" {
+  battlefield A: "Doc Ock's Tentacles", 4 "Mountain"
+  hand A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 3
+}
+
+scenario "Doc Ock's Tentacles equips for 5" {
+  battlefield A: "Doc Ock's Tentacles", "Grizzly Bears", 5 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Doc Ock's Tentacles" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Doc Ock's Tentacles" to "Grizzly Bears"
+  assert power "Grizzly Bears" 6
+  assert toughness "Grizzly Bears" 6
+}

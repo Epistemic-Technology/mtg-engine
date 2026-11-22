@@ -1,0 +1,8 @@
+card "Runner's Bane" {
+  oracle_id 31c30c4f-12f4-4cbc-b7c1-123f36b8df75
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature with power 3 or less
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+}

@@ -1,0 +1,8 @@
+card "Dragon Mage" {
+  oracle_id eab71e4e-27c3-4c41-b95f-259c1d14b97a
+  cost {5}{R}{R}
+  type Creature — Dragon Wizard
+  pt 5/5
+  keywords flying
+  triggered whenever this deals combat damage to a player: each player discards hand then draws 7 cards
+}

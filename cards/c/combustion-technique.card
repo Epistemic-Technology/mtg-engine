@@ -1,0 +1,6 @@
+card "Combustion Technique" {
+  oracle_id 522a04ff-cbfe-47b0-bd29-ef6fc27a6905
+  cost {1}{R}
+  type Instant — Lesson
+  spell: deal damage equal plus 2 graveyard Lesson to target creature; this turn, replace target 1 dies: exile
+}

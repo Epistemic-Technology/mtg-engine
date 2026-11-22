@@ -1,0 +1,31 @@
+scenario "Jenova: counters equal to her power on another creature, which becomes a Mutant; Mutant dying on your turn draws its power" {
+  battlefield A: "Jenova, Ancient Calamity", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Serra Angel", "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: trigger "Jenova, Ancient Calamity" targeting "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Grizzly Bears" 3
+  assert is "Grizzly Bears" Mutant
+  assert is "Grizzly Bears" Bear
+  assert is not "Hill Giant" Mutant
+  assert counters "Jenova, Ancient Calamity" +1/+1 0
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 3
+}
+
+scenario "Jenova: a Mutant dying on the opponent's turn draws nothing" {
+  battlefield A: "Jenova, Ancient Calamity", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: trigger "Jenova, Ancient Calamity" targeting "Grizzly Bears"
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 0
+}

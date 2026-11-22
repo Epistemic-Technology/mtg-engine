@@ -1,0 +1,23 @@
+scenario "Ash gets a counter attacking after two nonland permanents entered" {
+  battlefield A: "Mountain", "Plains"
+  hand A: "Ash, Party Crasher", "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ash, Party Crasher"
+  turn 1 A: wait
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: attack "Ash, Party Crasher"
+  run_to turn 1 postcombat_main
+  assert counters "Ash, Party Crasher" +1/+1 1
+  assert life B 17
+}
+
+scenario "Ash gets no counter with only one nonland permanent entering" {
+  battlefield A: "Mountain", "Plains"
+  hand A: "Ash, Party Crasher"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ash, Party Crasher"
+  turn 1 A: attack "Ash, Party Crasher"
+  run_to turn 1 postcombat_main
+  assert counters "Ash, Party Crasher" +1/+1 0
+  assert life B 18
+}

@@ -1,0 +1,7 @@
+card "Ainok Wayfarer" {
+  oracle_id 8134f3fd-197a-4b44-a370-311cc955dea3
+  cost {1}{G}
+  type Creature — Dog Scout
+  pt 1/1
+  triggered whenever this enters: mill 3 cards; you may put 1 land card from among them into hand chosen; if you dont, put 1 +1/+1 counter on this creature
+}

@@ -1,0 +1,9 @@
+card "The Mighty Thor, Jane Foster" {
+  oracle_id 57d02dc8-e22e-4874-9f02-490a2528a28f
+  cost {1}{W}{U}
+  type Legendary Creature — Human God Hero
+  pt 3/3
+  keywords flying
+  triggered whenever this attacks: exile up to 1 target nontoken artifact or creature then return that card to battlefield tapped under its owner's control
+  triggered whenever Equipment you control enters: draw 1 card
+}

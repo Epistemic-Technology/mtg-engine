@@ -1,0 +1,7 @@
+card "Shared Discovery" {
+  oracle_id dd8e9f28-39da-4336-9259-0e34358749d9
+  cost {U}
+  type Sorcery
+  additional cost tap 4 untapped creature you control
+  spell: draw 3 cards
+}

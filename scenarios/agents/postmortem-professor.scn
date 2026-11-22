@@ -1,0 +1,24 @@
+scenario "Postmortem Professor: returns from the graveyard by exiling an instant or sorcery card" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Postmortem Professor", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Postmortem Professor"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Postmortem Professor"
+  assert exile A contains "Lightning Bolt"
+  assert graveyard A lacks "Postmortem Professor"
+  assert tapped newest A "Swamp"
+  assert tapped oldest A "Swamp"
+}
+
+scenario "Postmortem Professor: attack drains 1, and it can't block" {
+  battlefield A: "Postmortem Professor"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Postmortem Professor"
+  illegal turn 2 A: block "Grizzly Bears" with "Postmortem Professor"
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert life A 19
+}

@@ -1,0 +1,30 @@
+scenario "Predator's Rapport gains life equal to power plus toughness" {
+  battlefield A: 3 "Forest", "Hill Giant"
+  hand A: "Predator's Rapport"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Predator's Rapport" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life A 26
+  assert graveyard A contains "Predator's Rapport"
+}
+
+scenario "Predator's Rapport counts a pumped creature" {
+  battlefield A: 4 "Forest", "Grizzly Bears"
+  hand A: "Predator's Rapport", "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Predator's Rapport" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 30
+}
+
+scenario "Predator's Rapport can't target an opponent's creature" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Predator's Rapport"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Predator's Rapport" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life A 20
+}

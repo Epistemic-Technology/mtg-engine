@@ -1,0 +1,39 @@
+scenario "Ravenous Gigamole puts a milled creature card into hand" {
+  battlefield A: 4 "Swamp"
+  hand A: "Ravenous Gigamole"
+  library A: "Plains", "Hill Giant", "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ravenous Gigamole"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert graveyard A contains "Plains"
+  assert graveyard A contains "Island"
+  assert library A count 1
+  assert counters "Ravenous Gigamole" +1/+1 0
+  assert power "Ravenous Gigamole" 2
+}
+
+scenario "Ravenous Gigamole gets a counter when no creature is taken" {
+  battlefield A: 4 "Swamp"
+  hand A: "Ravenous Gigamole"
+  library A: "Plains", "Island", "Forest", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ravenous Gigamole"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 3
+  assert hand A count 0
+  assert counters "Ravenous Gigamole" +1/+1 1
+  assert power "Ravenous Gigamole" 3
+}
+
+scenario "Ravenous Gigamole declining the creature gives a counter" {
+  battlefield A: 4 "Swamp"
+  hand A: "Ravenous Gigamole"
+  library A: "Hill Giant", "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ravenous Gigamole"
+  turn 1 A: decline "Ravenous Gigamole"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert counters "Ravenous Gigamole" +1/+1 1
+}

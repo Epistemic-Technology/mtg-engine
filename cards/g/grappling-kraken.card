@@ -1,0 +1,7 @@
+card "Grappling Kraken" {
+  oracle_id 1ba99ade-df8d-4654-882a-a5f4256ada3d
+  cost {4}{U}{U}
+  type Creature — Kraken
+  pt 5/6
+  label "Landfall" triggered whenever land you control enters: tap target creature an opponent controls and put 1 stun counter on target 1
+}

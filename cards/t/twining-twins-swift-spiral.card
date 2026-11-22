@@ -1,0 +1,14 @@
+card "Twining Twins // Swift Spiral" {
+  oracle_id 105aea98-8eb9-4fb2-a0cb-7c7513317c5b
+  layout adventure
+  cost {2}{U}{U}
+  type Creature — Faerie Wizard
+  pt 4/4
+  keywords flying, vigilance
+  ward {1}
+  face "Swift Spiral" {
+    cost {1}{W}
+    type Instant — Adventure
+    spell: exile target nontoken creature; delayed target 1: return it to battlefield under its owner's control at beginning of the next end step
+  }
+}

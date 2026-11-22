@@ -1,0 +1,28 @@
+scenario "Tragic Lesson returns a land instead of discarding" {
+  battlefield A: 3 "Island", "Forest"
+  hand A: "Tragic Lesson"
+  library A: "Grizzly Bears", "Hill Giant", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tragic Lesson"
+  turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert hand A count 3
+  assert graveyard A count 1
+  assert battlefield A lacks "Forest"
+}
+
+scenario "Tragic Lesson discards when declining to return" {
+  battlefield A: 3 "Island"
+  hand A: "Tragic Lesson"
+  library A: "Grizzly Bears", "Hill Giant", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tragic Lesson"
+  turn 1 A: decline "Tragic Lesson"
+  turn 1 precombat_main A: discard "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains 3 "Island"
+}

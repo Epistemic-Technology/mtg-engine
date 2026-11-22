@@ -1,0 +1,14 @@
+card "Cease // Desist" {
+  oracle_id ba4d644f-1931-4fc4-aed5-681a476a5a58
+  layout split
+  face "Cease" {
+    cost {1}{B/G}
+    type Instant
+    spell: exile up to 2 target card from a graveyard; target player gains 2 life and target 3 draws 1 card
+  }
+  face "Desist" {
+    cost {4}{G/W}{G/W}
+    type Sorcery
+    spell: destroy all artifact or enchantment
+  }
+}

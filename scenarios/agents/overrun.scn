@@ -1,0 +1,17 @@
+scenario "Overrun pumps and gives trample to own creatures only" {
+  battlefield A: "Grizzly Bears", 5 "Forest"
+  battlefield B: "Wind Drake"
+  hand A: "Overrun"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Overrun"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  turn 1 combat_damage A: assign "Grizzly Bears" to "Wind Drake" 2, player B 3
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert has "Grizzly Bears" trample
+  assert power "Wind Drake" 2
+  assert graveyard B contains "Wind Drake"
+  assert life B 17
+}

@@ -1,0 +1,13 @@
+scenario "Fortified Area pumps Walls you control and gives banding" {
+  battlefield A: "Fortified Area", "Wall of Wood", "Grizzly Bears"
+  battlefield B: "Wall of Air"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Wall of Wood" 1
+  assert toughness "Wall of Wood" 3
+  assert has "Wall of Wood" banding
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" banding
+  assert power "Wall of Air" 1
+  assert has not "Wall of Air" banding
+}

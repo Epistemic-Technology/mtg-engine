@@ -1,0 +1,34 @@
+scenario "Gadwick's First Duel chapter I curses target creature" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Gadwick's First Duel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gadwick's First Duel"
+  turn 1 A: trigger "Gadwick's First Duel" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+  assert battlefield A contains "Cursed"
+  assert attached "Cursed" to "Hill Giant"
+}
+
+scenario "Gadwick's First Duel chapter III copies the next cheap instant" {
+  battlefield A: "Gadwick's First Duel" with 2 lore, "Mountain"
+  hand A: "Shock"
+  start turn 3 A
+  turn 3 A: wait
+  turn 3 A: cast "Shock" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 16
+  assert graveyard A contains "Gadwick's First Duel"
+}
+
+scenario "Gadwick's First Duel chapter III lasts only this turn" {
+  battlefield A: "Gadwick's First Duel" with 2 lore, "Mountain"
+  hand A: "Shock"
+  start turn 3 A
+  turn 4 A: cast "Shock" targeting player B
+  run_to turn 4 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Gadwick's First Duel"
+}

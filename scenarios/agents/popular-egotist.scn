@@ -1,0 +1,33 @@
+scenario "Popular Egotist sacrifices for indestructible, taps, and drains" {
+  battlefield A: "Popular Egotist", "Grizzly Bears", 2 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Popular Egotist" sacrificing "Grizzly Bears"
+  turn 1 A: trigger "Popular Egotist" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert has "Popular Egotist" indestructible
+  assert tapped "Popular Egotist"
+  assert life B 19
+  assert life A 21
+}
+
+scenario "Popular Egotist survives Murder after activating" {
+  battlefield A: "Popular Egotist", "Grizzly Bears", 2 "Swamp"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Popular Egotist" sacrificing "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 postcombat_main B: cast "Murder" targeting "Popular Egotist"
+  run_to turn 1 end
+  assert battlefield A contains "Popular Egotist"
+  assert graveyard B contains "Murder"
+}
+
+scenario "Popular Egotist can't sacrifice itself" {
+  battlefield A: "Popular Egotist", 2 "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Popular Egotist"
+  run_to turn 1 postcombat_main
+  assert untapped "Popular Egotist"
+}

@@ -1,0 +1,6 @@
+card "Return to Dust" {
+  oracle_id 3029df1d-d02a-4fed-8ab4-000a2096f823
+  cost {2}{W}{W}
+  type Instant
+  spell: exile target artifact or enchantment; if cast during main phase, you may exile up to 1 another target artifact or enchantment
+}

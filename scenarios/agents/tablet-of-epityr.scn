@@ -1,0 +1,23 @@
+scenario "Tablet of Epityr: an artifact dying lets you pay {1} to gain 1 life" {
+  battlefield A: "Tablet of Epityr", "Ornithopter", "Plains"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Ornithopter"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Ornithopter"
+  assert life A 21
+  assert tapped "Plains"
+}
+
+scenario "Tablet of Epityr: declining the payment gains nothing" {
+  battlefield A: "Tablet of Epityr", "Ornithopter", "Plains"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Ornithopter"
+  turn 2 A: decline "Tablet of Epityr"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert untapped "Plains"
+}

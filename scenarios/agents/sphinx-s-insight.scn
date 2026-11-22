@@ -1,0 +1,20 @@
+scenario "Sphinx's Insight in main phase draws two and gains 2 life" {
+  battlefield A: 2 "Plains", 2 "Island"
+  hand A: "Sphinx's Insight"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sphinx's Insight"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert hand A count 2
+  assert graveyard A contains "Sphinx's Insight"
+}
+
+scenario "Sphinx's Insight on opponent's turn draws two without life" {
+  battlefield A: 2 "Plains", 2 "Island"
+  hand A: "Sphinx's Insight"
+  start turn 2 B upkeep
+  turn 2 upkeep A: cast "Sphinx's Insight"
+  run_to turn 2 precombat_main
+  assert life A 20
+  assert hand A count 2
+}

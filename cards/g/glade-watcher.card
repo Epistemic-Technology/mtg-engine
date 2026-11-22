@@ -1,0 +1,8 @@
+card "Glade Watcher" {
+  oracle_id f696b727-083e-4825-80d9-4bac35289958
+  cost {1}{G}
+  type Creature — Elemental
+  pt 3/3
+  keywords defender
+  label "Formidable" activated {G}, if total power 8 or more: this can attack this turn as though it didn't have defender
+}

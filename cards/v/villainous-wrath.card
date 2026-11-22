@@ -1,0 +1,6 @@
+card "Villainous Wrath" {
+  oracle_id 1c7c1867-20cb-4035-bb2a-42760edf0a55
+  cost {3}{B}{B}
+  type Sorcery
+  spell: target opponent loses count equal creature they control life; then destroy all creatures
+}

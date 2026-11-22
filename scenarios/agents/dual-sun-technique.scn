@@ -1,0 +1,30 @@
+scenario "Dual-Sun Technique gives double strike and draws with a +1/+1 counter" {
+  battlefield A: 2 "Plains", "Grizzly Bears" with 1 +1/+1
+  hand A: "Dual-Sun Technique"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dual-Sun Technique" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" double_strike
+  assert hand A count 1
+}
+
+scenario "Dual-Sun Technique draws nothing without a counter" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Dual-Sun Technique"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dual-Sun Technique" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" double_strike
+  assert hand A count 0
+}
+
+scenario "Dual-Sun Technique can't target an opponent's creature" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Dual-Sun Technique"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Dual-Sun Technique" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Dual-Sun Technique"
+}

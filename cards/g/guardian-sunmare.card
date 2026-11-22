@@ -1,0 +1,9 @@
+card "Guardian Sunmare" {
+  oracle_id 3b319540-4db1-43d3-8f4d-f5a276ad78e4
+  cost {3}{W}{W}
+  type Creature — Horse Mount
+  pt 5/5
+  ward {2}
+  triggered whenever this attacks while saddled: search nonland permanent card with mana value 3 or less to battlefield
+  saddle 4
+}

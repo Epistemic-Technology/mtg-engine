@@ -1,0 +1,8 @@
+card "Gallant Pie-Wielder" {
+  oracle_id fba2fa87-3f2a-4a9f-a19e-a1f9dada4118
+  cost {2}{W}
+  type Creature — Dwarf Knight
+  pt 2/3
+  keywords first strike
+  label "Celebration" static this: has double strike as long as 2 nonland entered this turn
+}

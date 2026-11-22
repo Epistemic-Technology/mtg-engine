@@ -1,0 +1,8 @@
+card "Ash, Party Crasher" {
+  oracle_id 1bc701e2-913a-45d5-bc3f-16f87e7e2653
+  cost {R}{W}
+  type Legendary Creature — Human Peasant
+  pt 2/2
+  keywords haste
+  label "Celebration" triggered whenever this attacks if 2 nonland entered this turn: put 1 +1/+1 counter on this
+}

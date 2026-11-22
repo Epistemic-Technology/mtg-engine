@@ -1,0 +1,8 @@
+card "The Chief Warg" {
+  oracle_id 5ebe8de1-aa3d-410d-b43d-1685259c7a97
+  cost {2}{B}{G}
+  type Legendary Creature — Wolf
+  pt 3/3
+  keywords menace
+  label "Ferocious" triggered whenever you attack while you control creature with power 4 or greater: you draw 1 card and you lose 1 life
+}

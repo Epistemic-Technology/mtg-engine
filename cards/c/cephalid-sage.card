@@ -1,0 +1,7 @@
+card "Cephalid Sage" {
+  oracle_id 29182a24-3bdb-4fd0-8a1d-a196340c0858
+  cost {3}{U}
+  type Creature — Octopus
+  pt 2/3
+  label "Threshold" static as long as 7 cards in your graveyard, this: has ability { triggered when this enters: draw 3 cards, then discard 2 cards }
+}

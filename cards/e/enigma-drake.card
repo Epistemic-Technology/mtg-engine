@@ -1,0 +1,8 @@
+card "Enigma Drake" {
+  oracle_id 62007675-8a0d-4211-83b2-0daf3641dedc
+  cost {1}{U}{R}
+  type Creature — Drake
+  pt */4
+  keywords flying
+  static this: cda power graveyard instant or sorcery
+}

@@ -1,0 +1,8 @@
+card "Raph & Leo, Sibling Rivals" {
+  oracle_id 57f39ce2-ecbb-4262-8140-03aba5c4303f
+  cost {1}{R/W}{R/W}
+  type Legendary Creature — Mutant Ninja Turtle
+  pt 2/4
+  pronoun they
+  triggered whenever this attacks if first combat phase: untap 1 to 2 target attacking creature; after this phase, additional combat phase
+}

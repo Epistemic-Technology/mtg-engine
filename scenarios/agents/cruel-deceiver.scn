@@ -1,0 +1,37 @@
+scenario "Cruel Deceiver: a revealed land gives it the destroy trigger" {
+  battlefield A: "Cruel Deceiver", 2 "Swamp"
+  battlefield B: "Hill Giant"
+  library A: "Forest", "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Cruel Deceiver" ability 2
+  turn 2 A: attack "Cruel Deceiver"
+  turn 2 B: block "Cruel Deceiver" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Cruel Deceiver"
+  assert library A count 2
+}
+
+scenario "Cruel Deceiver: a revealed nonland gives nothing" {
+  battlefield A: "Cruel Deceiver", 2 "Swamp"
+  battlefield B: "Hill Giant"
+  library A: "Shock", "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Cruel Deceiver" ability 2
+  turn 2 A: attack "Cruel Deceiver"
+  turn 2 B: block "Cruel Deceiver" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+  assert graveyard A contains "Cruel Deceiver"
+}
+
+scenario "Cruel Deceiver: the reveal can be activated only once each turn" {
+  battlefield A: "Cruel Deceiver", 4 "Swamp"
+  library A: "Forest", "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Cruel Deceiver" ability 2
+  illegal turn 2 postcombat_main A: activate "Cruel Deceiver" ability 2
+  run_to turn 2 end
+  assert untapped newest "Swamp"
+}

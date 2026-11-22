@@ -1,0 +1,25 @@
+scenario "Claim Territory: one Forest tapped onto the battlefield, one to hand, card shuffled into library" {
+  hand A: "Bloomvine Regent // Claim Territory"
+  battlefield A: 3 "Forest"
+  library A: "Plains", "Forest", "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Claim Territory"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Forest"
+  assert tapped newest A "Forest"
+  assert hand A contains "Forest"
+  assert library A contains "Bloomvine Regent"
+  assert library A count 3
+}
+
+scenario "Regent and another Dragon entering each gain 3 life" {
+  hand A: "Bloomvine Regent // Claim Territory", "Shivan Dragon"
+  battlefield A: 9 "Forest", 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bloomvine Regent"
+  turn 1 A: wait
+  turn 1 A: cast "Shivan Dragon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Shivan Dragon"
+  assert life A 26
+}

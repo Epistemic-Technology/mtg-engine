@@ -1,0 +1,8 @@
+card "Popular Egotist" {
+  oracle_id e6377683-1c36-4786-bd8d-c62ff2d25767
+  cost {2}{B}
+  type Creature — Human Rogue
+  pt 3/2
+  activated {1}{B}, sacrifice other creature or enchantment: this gains indestructible; tap this
+  triggered whenever you sacrifice permanent: target opponent loses 1 life and you gain 1 life
+}

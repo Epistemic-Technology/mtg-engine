@@ -1,0 +1,38 @@
+scenario "Fangkeeper's Familiar: gain 3 life and surveil 3" {
+  battlefield A: "Swamp", "Forest", "Island", "Plains"
+  hand A: "Fangkeeper's Familiar"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fangkeeper's Familiar"
+  turn 1 A: trigger "Fangkeeper's Familiar" mode 1
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert battlefield A contains "Fangkeeper's Familiar"
+}
+
+scenario "Fangkeeper's Familiar: destroy target enchantment" {
+  battlefield A: "Swamp", "Forest", "Island", "Plains"
+  battlefield B: "Grizzly Bears", "Pacifism" on "Grizzly Bears"
+  hand A: "Fangkeeper's Familiar"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fangkeeper's Familiar"
+  turn 1 A: trigger "Fangkeeper's Familiar" mode 2 targeting "Pacifism"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Pacifism"
+  assert life A 20
+}
+
+scenario "Fangkeeper's Familiar: flashed in to counter a creature spell" {
+  battlefield A: "Swamp", "Forest", "Island", "Plains"
+  battlefield B: "Forest", "Forest"
+  hand A: "Fangkeeper's Familiar"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Fangkeeper's Familiar" in response to "Grizzly Bears"
+  turn 2 A: trigger "Fangkeeper's Familiar" mode 3 targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+  assert battlefield A contains "Fangkeeper's Familiar"
+}

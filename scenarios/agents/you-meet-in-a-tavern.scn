@@ -1,0 +1,23 @@
+scenario "You Meet in a Tavern: Form a Party takes the creature cards among the top five" {
+  battlefield A: 4 "Forest"
+  hand A: "You Meet in a Tavern"
+  library A: "Grizzly Bears", "Island", "Hill Giant", "Serra Angel", "Shock", "Plains"
+  turn 1 A: cast "You Meet in a Tavern" mode 1
+  run_to turn 1 end
+  assert hand A count 3
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Serra Angel"
+  assert library A count 3
+}
+
+scenario "You Meet in a Tavern: Start a Brawl gives creatures you control +2/+2" {
+  battlefield A: 4 "Forest", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Wind Drake"
+  hand A: "You Meet in a Tavern"
+  turn 1 A: cast "You Meet in a Tavern" mode 2
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Hill Giant" 5
+  assert power "Wind Drake" 2
+}

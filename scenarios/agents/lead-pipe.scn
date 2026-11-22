@@ -1,0 +1,24 @@
+scenario "Lead Pipe: equipped creature gets +2/+0; when it dies, each opponent loses 1 life" {
+  battlefield A: "Grizzly Bears", "Lead Pipe", 2 "Swamp"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Lead Pipe" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+  turn 1 end B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Grizzly Bears"
+  assert life B 19
+  assert battlefield A contains "Lead Pipe"
+}
+
+scenario "Lead Pipe: {2}, sacrifice it: draw a card" {
+  battlefield A: "Lead Pipe", 2 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Lead Pipe" ability 1
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Lead Pipe"
+  assert hand A count 1
+}

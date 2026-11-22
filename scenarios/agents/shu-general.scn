@@ -1,0 +1,10 @@
+scenario "shu general: horsemanship can't be blocked by flyer, vigilance" {
+  battlefield A: "Shu General"
+  battlefield B: "Wind Drake"
+  start turn 2 A
+  turn 2 A: attack "Shu General"
+  illegal turn 2 B: block "Shu General" with "Wind Drake"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert untapped "Shu General"
+}

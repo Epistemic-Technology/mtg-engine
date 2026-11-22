@@ -1,0 +1,14 @@
+card "Bloomvine Regent // Claim Territory" {
+  oracle_id da1e019c-2ffb-412d-90d7-f2e5e5c44c4b
+  layout omen
+  cost {3}{G}{G}
+  type Creature — Dragon
+  pt 4/5
+  keywords flying
+  triggered whenever this or Dragon you control enters: you gain 3 life
+  face "Claim Territory" {
+    cost {2}{G}
+    type Sorcery — Omen
+    spell: search up to 2 basic Forest card reveal to battlefield tapped and hand
+  }
+}

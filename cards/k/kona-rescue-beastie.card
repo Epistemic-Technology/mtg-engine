@@ -1,0 +1,7 @@
+card "Kona, Rescue Beastie" {
+  oracle_id 76372327-41ec-4516-abff-3b612e073629
+  cost {3}{G}
+  type Legendary Creature — Beast Survivor
+  pt 4/3
+  label "Survival" triggered at beginning of your second main if this is tapped: you may put permanent card from hand onto battlefield
+}

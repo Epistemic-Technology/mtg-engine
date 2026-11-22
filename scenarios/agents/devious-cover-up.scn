@@ -1,0 +1,19 @@
+scenario "devious cover-up exiles the countered spell and shuffles graveyard cards back" {
+  battlefield A: 4 "Island"
+  battlefield B: "Mountain"
+  hand A: "Devious Cover-Up"
+  hand B: "Lightning Bolt"
+  graveyard A: "Shock", "Murder", "Divination"
+  library A: "Plains"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: cast "Devious Cover-Up" targeting "Lightning Bolt", "Shock", "Murder" in response to "Lightning Bolt"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert exile B contains "Lightning Bolt"
+  assert graveyard B lacks "Lightning Bolt"
+  assert library A count 3
+  assert graveyard A contains "Divination"
+  assert graveyard A lacks "Shock"
+  assert graveyard A contains "Devious Cover-Up"
+}

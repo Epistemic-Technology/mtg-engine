@@ -1,0 +1,19 @@
+scenario "Candlelit Cavalry gains trample with coven" {
+  battlefield A: "Candlelit Cavalry", "Hill Giant", "Wind Drake"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Candlelit Cavalry"
+  turn 1 B: block "Candlelit Cavalry" with "Grizzly Bears"
+  turn 1 combat_damage A: assign "Candlelit Cavalry" to "Grizzly Bears" 2, player B 3
+  run_to turn 1 postcombat_main
+  assert has "Candlelit Cavalry" trample
+  assert life B 17
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Candlelit Cavalry needs three different powers" {
+  battlefield A: "Candlelit Cavalry", "Wind Drake", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert has not "Candlelit Cavalry" trample
+}

@@ -1,0 +1,9 @@
+card "Generous Plunderer" {
+  oracle_id 91c835d1-22ca-4c90-9ba6-c8e01bbc0347
+  cost {1}{R}
+  type Creature — Human Rogue
+  pt 2/2
+  keywords menace
+  triggered at beginning of your upkeep: you may create 1 "Treasure"; when you do, target opponent creates 1 tapped "Treasure"
+  triggered whenever this attacks: deal count equal artifact they control damage to that defending player
+}

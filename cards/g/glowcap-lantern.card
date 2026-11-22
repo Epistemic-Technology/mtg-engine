@@ -1,0 +1,7 @@
+card "Glowcap Lantern" {
+  oracle_id 2034d41b-5e77-49a6-884e-d3a6017f84d0
+  cost {G}
+  type Artifact — Equipment
+  static enchanted: has ability { may look top }, has ability { triggered whenever this attacks: this explores }
+  equip {2}
+}

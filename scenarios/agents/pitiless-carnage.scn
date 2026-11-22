@@ -1,0 +1,28 @@
+scenario "Pitiless Carnage: sacrifice two permanents, draw two" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Wind Drake", 4 "Swamp"
+  hand A: "Pitiless Carnage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pitiless Carnage"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: choose done
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains "Wind Drake"
+  assert hand A count 2
+}
+
+scenario "Pitiless Carnage: plotted, then cast free on a later turn" {
+  battlefield A: "Grizzly Bears", 3 "Swamp"
+  hand A: "Pitiless Carnage"
+  start turn 1 A precombat_main
+  turn 1 A: plot "Pitiless Carnage"
+  turn 3 A: cast "Pitiless Carnage"
+  turn 3 A: choose "Grizzly Bears"
+  turn 3 A: choose done
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Pitiless Carnage"
+  assert hand A count 2
+}

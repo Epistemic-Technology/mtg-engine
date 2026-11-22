@@ -1,0 +1,8 @@
+card "Vulture, Scheming Scavenger" {
+  oracle_id 0409765a-bbb4-465e-99b3-3687bffc3cf9
+  cost {5}{U/B}
+  type Legendary Creature — Human Artificer Villain
+  pt 4/6
+  keywords flying
+  triggered whenever this attacks: each other Villain you control gains flying
+}

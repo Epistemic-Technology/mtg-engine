@@ -1,0 +1,39 @@
+scenario "First Day of Class gives entering creatures a counter and haste" {
+  battlefield A: 4 "Mountain", "Forest"
+  hand A: "First Day of Class", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "First Day of Class"
+  turn 1 A: decline "First Day of Class"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Grizzly Bears" 3
+  assert life B 17
+  assert graveyard A contains "First Day of Class"
+}
+
+scenario "First Day of Class: creatures entering later turns are unaffected" {
+  battlefield A: 4 "Mountain", "Forest"
+  hand A: "First Day of Class", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 end A: cast "First Day of Class"
+  turn 1 end A: decline "First Day of Class"
+  turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+  assert power "Grizzly Bears" 2
+}
+
+scenario "First Day of Class learn discards a card to draw one" {
+  battlefield A: 2 "Mountain"
+  hand A: "First Day of Class", "Shock"
+  library A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "First Day of Class"
+  turn 1 A: accept "First Day of Class"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Shock"
+  assert hand A contains "Grizzly Bears"
+}

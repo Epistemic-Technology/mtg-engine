@@ -1,0 +1,7 @@
+card "Candlegrove Witch" {
+  oracle_id 95f47e9b-0290-4ec4-a1ba-bc5a432ffab2
+  cost {1}{W}
+  type Creature — Human Warlock
+  pt 2/2
+  label "Coven" triggered at beginning of your combat if 3 different powers: this gains flying
+}

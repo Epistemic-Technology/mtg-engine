@@ -1,0 +1,8 @@
+card "Cruel Deceiver" {
+  oracle_id e0256da6-21f3-4019-9da0-75962b7f295c
+  cost {1}{B}
+  type Creature — Spirit
+  pt 2/1
+  activated {1}: look at top card
+  activated {2}, once: reveal top card; if it is land card, this gains ability { triggered whenever this deals damage to creature: destroy that creature }
+}

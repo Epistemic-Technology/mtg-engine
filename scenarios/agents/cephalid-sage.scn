@@ -1,0 +1,24 @@
+scenario "Cephalid Sage: with threshold it draws three then discards two as it enters" {
+  battlefield A: 4 "Island"
+  hand A: "Cephalid Sage"
+  graveyard A: 7 "Plains"
+  library A: "Shock", "Hill Giant", "Divination", "Island"
+  turn 1 A: cast "Cephalid Sage"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Cephalid Sage"
+  assert hand A count 1
+  assert graveyard A count 9
+  assert library A count 1
+}
+
+scenario "Cephalid Sage: without threshold nothing happens" {
+  battlefield A: 4 "Island"
+  hand A: "Cephalid Sage"
+  graveyard A: 6 "Plains"
+  library A: "Shock", "Hill Giant", "Divination", "Island"
+  turn 1 A: cast "Cephalid Sage"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert graveyard A count 6
+  assert library A count 4
+}

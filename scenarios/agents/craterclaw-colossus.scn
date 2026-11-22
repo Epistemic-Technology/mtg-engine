@@ -1,0 +1,32 @@
+scenario "Craterclaw Colossus: creatures you control gain trample and get +X/+0, X artifacts you control" {
+  battlefield A: "Grizzly Bears", "Darksteel Relic", 7 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Craterclaw Colossus"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Craterclaw Colossus"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+  assert power "Craterclaw Colossus" 7
+  assert has "Grizzly Bears" trample
+  assert has "Craterclaw Colossus" trample
+  assert has not B "Hill Giant" trample
+  assert power "Hill Giant" 3
+  run_to turn 2 untap
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" trample
+}
+
+scenario "Craterclaw Colossus: haste and trample through a blocker" {
+  battlefield A: 7 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Craterclaw Colossus"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Craterclaw Colossus"
+  turn 1 A: attack "Craterclaw Colossus"
+  turn 1 B: block "Craterclaw Colossus" with "Grizzly Bears"
+  turn 1 A: assign "Craterclaw Colossus" to "Grizzly Bears" 2, player B 4
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert graveyard B contains "Grizzly Bears"
+}

@@ -1,0 +1,39 @@
+scenario "Cease exiles two cards from one graveyard; target player gains 2 and draws" {
+  battlefield A: 2 "Swamp"
+  graveyard B: "Grizzly Bears", "Hill Giant", "Shock"
+  hand A: "Cease // Desist"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cease" targeting "Grizzly Bears", "Hill Giant", player B
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+  assert graveyard B contains "Shock"
+  assert life B 22
+  assert hand B count 1
+  assert hand A count 0
+  assert life A 20
+}
+
+scenario "Desist destroys all artifacts and enchantments" {
+  battlefield A: 6 "Forest"
+  battlefield B: "Ornithopter", "Grizzly Bears", "Pacifism" on "Grizzly Bears"
+  hand A: "Cease // Desist"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Desist"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert graveyard B contains "Pacifism"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Cease with one card targeted still gives the player life and a card" {
+  battlefield A: 2 "Swamp"
+  graveyard B: "Grizzly Bears"
+  hand A: "Cease // Desist"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cease" targeting "Grizzly Bears", none, player A
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert life A 22
+  assert hand A count 1
+}

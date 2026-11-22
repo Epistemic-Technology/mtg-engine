@@ -1,0 +1,7 @@
+card "Pitiless Carnage" {
+  oracle_id 186bfdac-ce9c-476f-89b6-ef467487fca5
+  cost {3}{B}
+  type Sorcery
+  spell: sacrifice any number permanent you control chosen then draw count that many sacrificed this way cards
+  plot {1}{B}{B}
+}

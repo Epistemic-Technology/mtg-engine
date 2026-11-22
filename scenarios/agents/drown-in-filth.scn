@@ -1,0 +1,25 @@
+scenario "drown in filth mills four and shrinks per land card in graveyard" {
+  battlefield A: "Swamp", "Forest"
+  battlefield B: "Serra Angel"
+  hand A: "Drown in Filth"
+  graveyard A: "Island"
+  library A: "Forest", "Grizzly Bears", "Plains", "Shock", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Drown in Filth" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert library A count 1
+  assert graveyard A contains "Plains"
+  assert power "Serra Angel" 1
+  assert toughness "Serra Angel" 1
+}
+
+scenario "drown in filth kills when enough lands" {
+  battlefield A: "Swamp", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Drown in Filth"
+  library A: "Forest", "Island", "Plains", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Drown in Filth" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}

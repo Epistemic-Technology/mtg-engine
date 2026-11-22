@@ -1,0 +1,7 @@
+card "Optimistic Scavenger" {
+  oracle_id 0180c67b-c5c8-4a67-9562-d51f9e7ffff5
+  cost {W}
+  type Creature — Human Scout
+  pt 1/1
+  label "Eerie" triggered whenever enchantment you control enters and whenever you fully unlock a Room: put 1 +1/+1 counter on target creature
+}

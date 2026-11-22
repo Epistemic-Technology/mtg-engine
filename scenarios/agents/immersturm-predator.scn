@@ -1,0 +1,29 @@
+scenario "attacking taps it: exile a graveyard card and grow" {
+  battlefield A: "Immersturm Predator"
+  graveyard B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Immersturm Predator"
+  turn 1 declare_attackers A: trigger "Immersturm Predator" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert counters "Immersturm Predator" +1/+1 1
+  assert life B 16
+}
+
+scenario "sacrifice another creature: indestructible and tapped, which triggers" {
+  battlefield A: "Immersturm Predator", "Grizzly Bears"
+  graveyard B: "Hill Giant"
+  hand B: "Murder"
+  battlefield B: 3 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Immersturm Predator" sacrificing "Grizzly Bears"
+  turn 1 A: trigger "Immersturm Predator" targeting "Hill Giant"
+  turn 1 begin_combat B: cast "Murder" targeting "Immersturm Predator"
+  run_to turn 1 postcombat_main
+  assert tapped "Immersturm Predator"
+  assert graveyard A contains "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+  assert counters "Immersturm Predator" +1/+1 1
+  assert battlefield A contains "Immersturm Predator"
+  assert graveyard B contains "Murder"
+}

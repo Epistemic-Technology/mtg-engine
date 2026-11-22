@@ -1,0 +1,20 @@
+scenario "Dutiful Griffin returns from graveyard to hand by sacrificing two enchantments" {
+  battlefield A: "Glorious Anthem", "Crusade", 3 "Plains"
+  graveyard A: "Dutiful Griffin"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Dutiful Griffin"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Dutiful Griffin"
+  assert graveyard A contains "Glorious Anthem"
+  assert graveyard A contains "Crusade"
+}
+
+scenario "Dutiful Griffin can't return with only one enchantment" {
+  battlefield A: "Glorious Anthem", 3 "Plains"
+  graveyard A: "Dutiful Griffin"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Dutiful Griffin"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Dutiful Griffin"
+  assert battlefield A contains "Glorious Anthem"
+}

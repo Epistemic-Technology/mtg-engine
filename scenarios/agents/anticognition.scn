@@ -1,0 +1,54 @@
+scenario "Anticognition: the controller pays {2} and the creature resolves" {
+  battlefield A: 2 "Island"
+  battlefield B: 4 "Forest"
+  hand A: "Anticognition"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Anticognition" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert graveyard A contains "Anticognition"
+}
+
+scenario "Anticognition: the controller can't pay and the creature is countered" {
+  battlefield A: 2 "Island"
+  battlefield B: 2 "Forest"
+  hand A: "Anticognition"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Anticognition" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Anticognition: with eight cards in an opponent's graveyard it counters outright and scries 2" {
+  battlefield A: 2 "Island"
+  battlefield B: 4 "Forest"
+  graveyard B: 8 "Plains"
+  library A: "Hill Giant", "Serra Angel", "Island"
+  hand A: "Anticognition"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Anticognition" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+  assert known A "Hill Giant"
+  assert known A "Serra Angel"
+  assert unknown A "Island"
+}
+
+scenario "Anticognition can't target a noncreature spell" {
+  battlefield A: 2 "Island"
+  battlefield B: 4 "Island"
+  hand A: "Anticognition"
+  hand B: "Divination"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Divination"
+  illegal turn 2 A: cast "Anticognition" targeting "Divination" in response to "Divination"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Anticognition"
+}

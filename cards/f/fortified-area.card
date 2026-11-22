@@ -1,0 +1,6 @@
+card "Fortified Area" {
+  oracle_id cef37acf-ee97-48bf-a605-b17efcce5ce8
+  cost {1}{W}{W}
+  type Enchantment
+  static Wall creature you control: +1/+0, has banding
+}

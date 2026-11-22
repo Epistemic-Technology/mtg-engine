@@ -1,0 +1,6 @@
+card "Dual-Sun Technique" {
+  oracle_id 89ec0f03-47d0-4657-8987-95e680404f24
+  cost {1}{W}
+  type Instant
+  spell: target creature you control gains double strike; if target 1 is permanent with +1/+1 counter, draw 1 card
+}

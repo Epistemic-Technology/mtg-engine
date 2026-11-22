@@ -1,0 +1,16 @@
+scenario "Wartime Protestors gives an entering Ally a +1/+1 counter and haste" {
+  battlefield A: "Wartime Protestors", "Plains", 2 "Forest"
+  hand A: "Cliffside Lookout", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cliffside Lookout"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: attack "Cliffside Lookout"
+  run_to turn 1 declare_blockers
+  assert counters "Cliffside Lookout" +1/+1 1
+  assert has "Cliffside Lookout" haste
+  assert counters "Grizzly Bears" +1/+1 0
+  assert has not "Grizzly Bears" haste
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

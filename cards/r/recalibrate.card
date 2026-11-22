@@ -1,0 +1,6 @@
+card "Recalibrate" {
+  oracle_id e6331b3a-81a8-48e8-8a28-237d381f9062
+  cost {1}{U}
+  type Instant
+  spell: return target creature to hand; if discarded this turn, draw 1 card
+}

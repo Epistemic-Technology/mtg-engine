@@ -1,0 +1,25 @@
+scenario "Villainous Wrath drains by the opponent's creature count, then wipes the board" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel", "Wind Drake"
+  hand A: "Villainous Wrath"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Villainous Wrath" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 20
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Serra Angel"
+  assert graveyard B contains "Wind Drake"
+}
+
+scenario "Villainous Wrath counts only the opponent's creatures" {
+  battlefield A: 5 "Swamp", "Grizzly Bears", "Hill Giant", "Serra Angel"
+  battlefield B: "Wind Drake"
+  hand A: "Villainous Wrath"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Villainous Wrath" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert battlefield A lacks "Serra Angel"
+}

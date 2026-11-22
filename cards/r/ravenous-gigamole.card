@@ -1,0 +1,7 @@
+card "Ravenous Gigamole" {
+  oracle_id 68f4e3e5-2f0d-4d2d-84f6-d1e824a0dcf0
+  cost {3}{B}
+  type Creature — Mole Horror
+  pt 2/3
+  triggered when this enters: mill 3 cards; you may put 1 creature card from among milled this way cards into hand chosen; if you dont, put 1 +1/+1 counter on this creature
+}

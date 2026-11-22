@@ -1,0 +1,27 @@
+scenario "Eerie Interference prevents creature damage to you and your creatures" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Eerie Interference"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant", "Serra Angel"
+  turn 2 declare_attackers A: cast "Eerie Interference"
+  turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+  assert damage "Hill Giant" 2
+}
+
+scenario "Eerie Interference doesn't prevent damage from noncreature sources" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Eerie Interference"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 A: cast "Eerie Interference" in response to "Shock"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Eerie Interference"
+  assert life A 18
+}

@@ -1,0 +1,8 @@
+card "Syr Armont, the Redeemer" {
+  oracle_id 53fc09e1-1e5d-4f22-b623-2c5c770183ab
+  cost {3}{G}{W}
+  type Legendary Creature — Human Knight
+  pt 4/4
+  triggered when this enters: create 1 "Monster Role" attached to another target creature you control
+  static creature you control with aura: +1/+1
+}

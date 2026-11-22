@@ -1,0 +1,24 @@
+scenario "Foolish Fate destroys a creature; no life loss without life gained" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Foolish Fate"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Foolish Fate" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 20
+}
+
+scenario "Foolish Fate with infusion makes the creature's controller lose 3" {
+  battlefield A: 3 "Swamp", 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Foolish Fate", "Revitalize"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Revitalize"
+  turn 1 A: wait
+  turn 1 A: cast "Foolish Fate" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 17
+  assert life A 23
+}

@@ -1,0 +1,30 @@
+scenario "Careful Cultivation: enchanted creature gets +1/+3, reach, and taps for {G}{G}" {
+  battlefield A: "Grizzly Bears", "Careful Cultivation" on "Grizzly Bears"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" reach
+  assert power "Grizzly Bears" 6
+  assert toughness "Grizzly Bears" 8
+  assert tapped "Grizzly Bears"
+  assert graveyard A contains "Giant Growth"
+}
+
+scenario "Careful Cultivation: channel makes a Human Monk that taps for {G}" {
+  battlefield A: 2 "Forest"
+  hand A: "Careful Cultivation", 3 "Giant Growth"
+  turn 1 A: activate "Careful Cultivation"
+  turn 3 A: cast "Giant Growth" targeting "Human Monk"
+  turn 3 A: wait
+  turn 3 A: cast "Giant Growth" targeting "Human Monk"
+  turn 3 A: wait
+  turn 3 A: cast "Giant Growth" targeting "Human Monk"
+  library A: 5 "Plains"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Human Monk"
+  assert graveyard A contains "Careful Cultivation"
+  assert power "Human Monk" 1
+  run_to turn 3 postcombat_main
+  assert power "Human Monk" 10
+  assert tapped "Human Monk"
+}

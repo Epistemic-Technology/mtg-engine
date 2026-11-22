@@ -1,0 +1,23 @@
+scenario "Gelid Shackles: enchanted creature can't block or activate abilities" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Prodigal Sorcerer", "Gelid Shackles" on "Prodigal Sorcerer"
+  start turn 2 A
+  illegal turn 2 upkeep B: activate "Prodigal Sorcerer" targeting player A
+  turn 2 A: attack "Hill Giant"
+  illegal turn 2 B: block "Hill Giant" with "Prodigal Sorcerer"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert life A 20
+}
+
+scenario "Gelid Shackles: {S} gives the enchanted creature defender" {
+  battlefield A: "Snow-Covered Plains", "Gelid Shackles" on "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 upkeep A: activate "Gelid Shackles"
+  illegal turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert has "Grizzly Bears" defender
+  assert tapped "Snow-Covered Plains"
+  assert life A 20
+}

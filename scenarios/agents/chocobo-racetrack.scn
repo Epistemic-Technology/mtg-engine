@@ -1,0 +1,14 @@
+scenario "landfall makes a Bird; later landfall pumps the earlier Bird" {
+  battlefield A: "Chocobo Racetrack"
+  hand A: "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Bird"
+  assert power "Bird" 2
+  turn 3 A: play "Forest"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains 2 "Bird"
+  assert power oldest A "Bird" 3
+  assert power newest A "Bird" 2
+}

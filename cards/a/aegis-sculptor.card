@@ -1,0 +1,9 @@
+card "Aegis Sculptor" {
+  oracle_id 3a75c56a-bdf7-490d-aa41-51d5eb8be46c
+  cost {3}{U}
+  type Creature — Bird Wizard
+  pt 2/3
+  keywords flying
+  ward {2}
+  triggered at beginning of your upkeep: you may exile 2 cards from your graveyard chosen; if you do, put 1 +1/+1 counter on this creature
+}

@@ -1,0 +1,21 @@
+scenario "enters tapped with three stun counters; untap ability removes one" {
+  hand A: "Sleep-Cursed Faerie"
+  battlefield A: 3 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sleep-Cursed Faerie"
+  turn 1 A: wait
+  turn 1 A: activate "Sleep-Cursed Faerie"
+  run_to turn 1 postcombat_main
+  assert tapped "Sleep-Cursed Faerie"
+  assert counters "Sleep-Cursed Faerie" stun 2
+}
+
+scenario "untap step removes a stun counter instead" {
+  hand A: "Sleep-Cursed Faerie"
+  battlefield A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sleep-Cursed Faerie"
+  run_to turn 3 precombat_main
+  assert tapped "Sleep-Cursed Faerie"
+  assert counters "Sleep-Cursed Faerie" stun 2
+}

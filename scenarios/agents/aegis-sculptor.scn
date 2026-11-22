@@ -1,0 +1,31 @@
+scenario "Aegis Sculptor exiles two graveyard cards for a counter" {
+  battlefield A: "Aegis Sculptor"
+  graveyard A: "Lightning Bolt", "Shock", "Murder"
+  start turn 3 A untap
+  turn 3 upkeep A: accept "Aegis Sculptor"
+  run_to turn 3 precombat_main
+  assert counters "Aegis Sculptor" +1/+1 1
+  assert power "Aegis Sculptor" 3
+  assert graveyard A count 1
+  assert exile A count 2
+}
+
+scenario "Aegis Sculptor with one graveyard card gets no counter" {
+  battlefield A: "Aegis Sculptor"
+  graveyard A: "Lightning Bolt"
+  start turn 3 A untap
+  run_to turn 3 precombat_main
+  assert counters "Aegis Sculptor" +1/+1 0
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "Aegis Sculptor has ward 2" {
+  battlefield A: "Aegis Sculptor"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Aegis Sculptor"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Aegis Sculptor"
+  assert graveyard B contains "Lightning Bolt"
+}

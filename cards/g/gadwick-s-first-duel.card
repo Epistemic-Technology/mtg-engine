@@ -1,0 +1,8 @@
+card "Gadwick's First Duel" {
+  oracle_id 322e3bc1-2dfa-4d5f-848f-a82d9ce02a67
+  cost {1}{U}
+  type Enchantment — Saga
+  triggered chapter 1: create 1 "Cursed Role" attached to up to 1 target creature
+  triggered chapter 2: scry 2
+  triggered chapter 3: delayed this: when next you cast instant or sorcery with mana value 3 or less spell this turn, copy that spell new targets
+}

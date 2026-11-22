@@ -1,0 +1,19 @@
+scenario "Kona tapped at second main puts a permanent card from hand onto the battlefield" {
+  battlefield A: "Kona, Rescue Beastie"
+  hand A: "Lightning Bolt", "Serra Angel"
+  start turn 3 A precombat_main
+  turn 3 A: attack "Kona, Rescue Beastie"
+  run_to turn 3 end
+  assert life B 16
+  assert battlefield A contains "Serra Angel"
+  assert hand A contains "Lightning Bolt"
+}
+
+scenario "Kona untapped: no Survival trigger" {
+  battlefield A: "Kona, Rescue Beastie"
+  hand A: "Serra Angel"
+  start turn 3 A precombat_main
+  run_to turn 3 end
+  assert hand A contains "Serra Angel"
+  assert battlefield A lacks "Serra Angel"
+}
