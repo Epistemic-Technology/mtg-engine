@@ -1,0 +1,38 @@
+scenario "Jet's Brainwashing: target can't block, and a Clue is created" {
+  battlefield A: "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Jet's Brainwashing"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Jet's Brainwashing" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 declare_blockers B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Clue"
+  assert life B 17
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Jet's Brainwashing kicked: steal, untap, haste" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Jet's Brainwashing"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Jet's Brainwashing" kicked targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Clue"
+}
+
+scenario "Jet's Brainwashing kicked: control returns at end of turn" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Jet's Brainwashing"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Jet's Brainwashing" kicked targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert battlefield B contains "Hill Giant"
+}

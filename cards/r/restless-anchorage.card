@@ -1,0 +1,8 @@
+card "Restless Anchorage" {
+  oracle_id 91320daf-f69c-4350-b0fc-4bb37a6904b1
+  type Land
+  enters tapped
+  activated {T}: add {W} or {U}
+  activated {1}{W}{U}: until end of turn, this becomes 2/3 white blue Bird creature with flying
+  triggered whenever this attacks: create 1 "Map"
+}

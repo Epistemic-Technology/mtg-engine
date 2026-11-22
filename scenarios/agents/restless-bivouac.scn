@@ -1,0 +1,25 @@
+scenario "becomes a 2/2 Ox, attacks, puts a counter on target" {
+  battlefield A: "Restless Bivouac", "Grizzly Bears", "Mountain", "Plains", "Mountain"
+  turn 1 precombat_main A: activate "Restless Bivouac" ability 2
+  turn 1 declare_attackers A: attack "Restless Bivouac"
+  turn 1 declare_attackers A: trigger "Restless Bivouac" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert is "Restless Bivouac" creature
+  assert is "Restless Bivouac" land
+  assert is "Restless Bivouac" red
+  assert is "Restless Bivouac" white
+  assert is "Restless Bivouac" "Ox"
+  assert power "Restless Bivouac" 2
+  assert counters "Grizzly Bears" +1/+1 1
+  assert life B 18
+  run_to turn 2 untap
+  assert is not "Restless Bivouac" creature
+}
+
+scenario "enters tapped" {
+  hand A: "Restless Bivouac"
+  start turn 1 A precombat_main
+  turn 1 A: play "Restless Bivouac"
+  run_to turn 1 postcombat_main
+  assert tapped "Restless Bivouac"
+}

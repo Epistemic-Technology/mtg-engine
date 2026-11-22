@@ -1,0 +1,26 @@
+scenario "counters on each of a player's creatures; chosen keyword; flashback" {
+  battlefield A: 6 "Plains", "Grizzly Bears", "Hill Giant"
+  hand A: "Practiced Offense"
+  turn 1 precombat_main A: cast "Practiced Offense" targeting player A, "Grizzly Bears"
+  turn 1 precombat_main A: choose "2"
+  run_to turn 1 begin_combat
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Hill Giant" +1/+1 1
+  assert has "Grizzly Bears" lifelink
+  assert has not "Hill Giant" lifelink
+  assert has not "Grizzly Bears" double_strike
+  assert graveyard A contains "Practiced Offense"
+}
+scenario "flashback, double strike, opponent's creatures" {
+  battlefield A: 6 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  graveyard A: "Practiced Offense"
+  turn 1 precombat_main A: cast "Practiced Offense" from graveyard targeting player B, "Grizzly Bears"
+  turn 1 precombat_main A: choose "1"
+  run_to turn 1 begin_combat
+  assert counters "Hill Giant" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 0
+  assert power "Hill Giant" 4
+  assert has "Grizzly Bears" double_strike
+  assert exile A contains "Practiced Offense"
+}

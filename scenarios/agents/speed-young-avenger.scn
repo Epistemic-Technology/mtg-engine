@@ -1,0 +1,39 @@
+scenario "paying {1} makes the hasty creature unblockable except by haste" {
+  battlefield A: "Speed, Young Avenger", "Forest", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Giant Growth"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Giant Growth" targeting "Speed, Young Avenger"
+  turn 2 A: accept "Speed, Young Avenger"
+  turn 2 A: trigger "Speed, Young Avenger" targeting "Speed, Young Avenger"
+  turn 2 A: attack "Speed, Young Avenger"
+  illegal turn 2 B: block "Speed, Young Avenger" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert tapped "Mountain"
+  assert life B 15
+}
+
+scenario "declining the payment leaves it blockable" {
+  battlefield A: "Speed, Young Avenger", "Forest", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Giant Growth"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Giant Growth" targeting "Speed, Young Avenger"
+  turn 2 A: decline "Speed, Young Avenger"
+  turn 2 A: attack "Speed, Young Avenger"
+  turn 2 B: block "Speed, Young Avenger" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "a creature without haste can't be targeted" {
+  battlefield A: "Speed, Young Avenger", "Grizzly Bears", "Forest", "Mountain"
+  hand A: "Giant Growth"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 2 A: accept "Speed, Young Avenger"
+  illegal turn 2 A: trigger "Speed, Young Avenger" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 5
+}

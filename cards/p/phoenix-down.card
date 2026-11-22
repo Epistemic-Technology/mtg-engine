@@ -1,0 +1,9 @@
+card "Phoenix Down" {
+  oracle_id 8cc7e418-cc5e-4aef-9757-874223fccd74
+  cost {W}
+  type Artifact
+  activated {1}{W}, {T}, exile this: choose one {
+    mode: return target creature card with mana value 4 or less from your graveyard to battlefield tapped
+    mode: exile target Skeleton, Spirit, or Zombie
+  }
+}

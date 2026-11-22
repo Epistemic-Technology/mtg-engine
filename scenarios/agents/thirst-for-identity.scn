@@ -1,0 +1,23 @@
+scenario "Thirst for Identity: discard one creature card" {
+  battlefield A: 3 "Island"
+  hand A: "Thirst for Identity"
+  library A: "Grizzly Bears", "Forest", "Plains", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Thirst for Identity"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A contains "Forest"
+  assert hand A contains "Plains"
+}
+
+scenario "Thirst for Identity: no creature, discard two" {
+  battlefield A: 3 "Island"
+  hand A: "Thirst for Identity"
+  library A: "Lightning Bolt", "Forest", "Plains", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Thirst for Identity"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert library A count 1
+}

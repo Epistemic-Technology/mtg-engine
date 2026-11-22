@@ -1,0 +1,28 @@
+scenario "becomes a 5/5 trampler; attack trigger sets another creature to 3/3" {
+  battlefield A: "Restless Vinestalk", "Grizzly Bears", 3 "Forest", 2 "Island"
+  battlefield B: "Serra Angel"
+  turn 1 precombat_main A: activate "Restless Vinestalk" ability 2
+  turn 1 declare_attackers A: attack "Restless Vinestalk"
+  turn 1 declare_attackers A: trigger "Restless Vinestalk" targeting "Serra Angel"
+  run_to turn 1 declare_blockers
+  assert power "Restless Vinestalk" 5
+  assert has "Restless Vinestalk" trample
+  assert is "Restless Vinestalk" "Plant"
+  assert is "Restless Vinestalk" land
+  assert power "Serra Angel" 3
+  assert toughness "Serra Angel" 3
+  assert power "Grizzly Bears" 2
+  run_to turn 2 untap
+  assert power "Serra Angel" 4
+  assert is not "Restless Vinestalk" creature
+}
+
+scenario "the trigger can't target the land itself" {
+  battlefield A: "Restless Vinestalk", 3 "Forest", 2 "Island"
+  turn 1 precombat_main A: activate "Restless Vinestalk" ability 2
+  turn 1 declare_attackers A: attack "Restless Vinestalk"
+  illegal turn 1 declare_attackers A: trigger "Restless Vinestalk" targeting "Restless Vinestalk"
+  run_to turn 1 postcombat_main
+  assert power "Restless Vinestalk" 5
+  assert life B 15
+}

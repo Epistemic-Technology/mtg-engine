@@ -1,0 +1,36 @@
+scenario "Grizzly Bears dies: gain 2, opponent loses 1" {
+  battlefield A: "South Wind Avatar", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  life A 10
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert life A 12
+  assert life B 19
+}
+
+scenario "Hill Giant dies: gain 3, opponent loses 1" {
+  battlefield A: "South Wind Avatar", "Hill Giant", 3 "Swamp"
+  hand A: "Murder"
+  life A 10
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard A contains "Hill Giant"
+  assert life A 13
+  assert life B 19
+}
+
+scenario "an opponent's creature dying does nothing" {
+  battlefield A: "South Wind Avatar", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  life A 10
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 10
+  assert life B 20
+}

@@ -1,0 +1,22 @@
+scenario "steals, untaps, hastes until end of turn" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Take for a Ride"
+  turn 1 precombat_main A: cast "Take for a Ride" targeting "Hill Giant"
+  turn 1 declare_attackers A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert life B 17
+  run_to turn 2 upkeep
+  assert battlefield B contains "Hill Giant"
+}
+scenario "flash only after a crime this turn" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Take for a Ride", "Lightning Bolt"
+  illegal turn 1 end A: cast "Take for a Ride" targeting "Hill Giant"
+  turn 2 upkeep A: cast "Lightning Bolt" targeting player B
+  turn 2 draw A: cast "Take for a Ride" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert battlefield A contains "Hill Giant"
+}

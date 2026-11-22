@@ -1,0 +1,8 @@
+card "Saheeli, Jewel of Avishkar" {
+  oracle_id 83705258-1f42-41db-a32e-de99ffd759eb
+  cost {2}{U}{R}
+  type Legendary Creature — Human Artificer
+  pt 2/4
+  static Thopter you control: has haste
+  triggered whenever you cast noncreature spell: create 1 "1/1 colorless Thopter artifact creature with flying"
+}

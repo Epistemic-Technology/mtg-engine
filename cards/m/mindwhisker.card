@@ -1,0 +1,8 @@
+card "Mindwhisker" {
+  oracle_id f823b122-94ac-42ba-b511-9e54d64db112
+  cost {2}{U}
+  type Creature — Rat Wizard
+  pt 3/2
+  triggered at beginning of your upkeep: surveil 1
+  label "Threshold" static as long as threshold, creature your opponents control: -1/-0
+}

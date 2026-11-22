@@ -1,0 +1,38 @@
+scenario "no Mount: card returns to hand" {
+  battlefield A: 5 "Plains"
+  hand A: "Shepherd of the Clouds"
+  graveyard A: "Grizzly Bears", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shepherd of the Clouds"
+  turn 1 A: trigger "Shepherd of the Clouds" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A lacks "Grizzly Bears"
+  assert has "Shepherd of the Clouds" flying
+  assert has "Shepherd of the Clouds" vigilance
+}
+
+scenario "with a Mount: card returns to the battlefield" {
+  battlefield A: 5 "Plains", "Alacrian Jaguar"
+  hand A: "Shepherd of the Clouds"
+  graveyard A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shepherd of the Clouds"
+  turn 1 A: trigger "Shepherd of the Clouds" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A lacks "Grizzly Bears"
+}
+
+scenario "only permanent cards with mana value 3 or less" {
+  battlefield A: 5 "Plains"
+  hand A: "Shepherd of the Clouds"
+  graveyard A: "Serra Angel", "Shock", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shepherd of the Clouds"
+  illegal turn 1 A: trigger "Shepherd of the Clouds" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Serra Angel"
+  assert graveyard A contains "Shock"
+  assert hand A contains "Forest"
+}

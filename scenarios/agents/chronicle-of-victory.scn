@@ -1,0 +1,30 @@
+scenario "chosen type gets +2/+2, first strike, trample; casting one draws" {
+  battlefield A: 8 "Forest", "Grizzly Bears", "Hill Giant"
+  hand A: "Chronicle of Victory", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Chronicle of Victory"
+  turn 1 A: choose Bear
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A count 1
+  assert power oldest "Grizzly Bears" 4
+  assert toughness oldest "Grizzly Bears" 4
+  assert has oldest "Grizzly Bears" first_strike
+  assert has oldest "Grizzly Bears" trample
+  assert power "Hill Giant" 3
+  assert has not "Hill Giant" trample
+}
+
+scenario "a spell of another type draws nothing" {
+  battlefield A: 6 "Forest", 4 "Mountain"
+  hand A: "Chronicle of Victory", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Chronicle of Victory"
+  turn 1 A: choose Bear
+  turn 1 A: wait
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert hand A count 0
+  assert power "Hill Giant" 3
+}

@@ -1,0 +1,12 @@
+scenario "flying on your turn only; tutors Aura or Equipment" {
+  battlefield A: 4 "Plains"
+  hand A: "Sun-Spider, Nimble Webber"
+  library A: "Grizzly Bears", "Bonesplitter", "Flight"
+  turn 1 precombat_main A: cast "Sun-Spider, Nimble Webber"
+  run_to turn 1 postcombat_main
+  assert has "Sun-Spider, Nimble Webber" flying
+  assert hand A contains "Bonesplitter"
+  assert library A lacks "Bonesplitter"
+  run_to turn 2 precombat_main
+  assert has not "Sun-Spider, Nimble Webber" flying
+}

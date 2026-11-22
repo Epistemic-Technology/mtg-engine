@@ -1,0 +1,26 @@
+scenario "finds a Spacecraft and gets no counter" {
+  battlefield A: 2 "Plains"
+  hand A: "Pulsar Squadron Ace"
+  library A: "Plains", "Grizzly Bears", "Atmospheric Greenhouse", "Island", "Forest", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pulsar Squadron Ace"
+  turn 1 A: choose "Atmospheric Greenhouse"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Atmospheric Greenhouse"
+  assert hand A count 1
+  assert counters "Pulsar Squadron Ace" +1/+1 0
+  assert power "Pulsar Squadron Ace" 1
+}
+
+scenario "no Spacecraft, gets a counter" {
+  battlefield A: 2 "Plains"
+  hand A: "Pulsar Squadron Ace"
+  library A: "Plains", "Grizzly Bears", "Hill Giant", "Island", "Forest", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pulsar Squadron Ace"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert counters "Pulsar Squadron Ace" +1/+1 1
+  assert power "Pulsar Squadron Ace" 2
+  assert library A count 6
+}

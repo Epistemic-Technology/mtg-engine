@@ -1,0 +1,9 @@
+card "Neva, Stalked by Nightmares" {
+  oracle_id ba5895e1-f12b-43c7-b47c-376588d9d2d2
+  cost {2}{W}{B}
+  type Legendary Creature — Human Noble
+  pt 2/2
+  keywords menace
+  triggered when this enters: return target creature or enchantment card from your graveyard to hand
+  triggered whenever enchantment you control is put into a graveyard from the battlefield: put 1 +1/+1 counter on this then scry 1
+}

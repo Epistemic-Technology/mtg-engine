@@ -1,0 +1,36 @@
+scenario "enters: Spider token and life per Spider" {
+  battlefield A: 4 "Forest"
+  hand A: "Wall Crawl"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wall Crawl"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Spider"
+  assert power "Spider" 3
+  assert toughness "Spider" 2
+  assert has "Spider" reach
+  assert life A 21
+}
+
+scenario "Spiders can't be blocked by defenders" {
+  battlefield A: "Wall Crawl", 4 "Forest"
+  hand A: "Wall Crawl"
+  battlefield B: "Wall of Wood", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wall Crawl"
+  run_to turn 3 precombat_main
+  assert life A 21
+  turn 3 A: attack "Spider"
+  illegal turn 3 B: block "Spider" with "Wall of Wood"
+  run_to turn 3 postcombat_main
+  assert life B 16
+}
+
+scenario "life counts every Spider you control" {
+  battlefield A: 4 "Forest", 2 "Spider"
+  hand A: "Wall Crawl"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wall Crawl"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Spider"
+  assert life A 23
+}

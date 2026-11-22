@@ -1,0 +1,27 @@
+scenario "tapped without a Glimmer: create one" {
+  battlefield A: "Glimmer Seeker"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Glimmer Seeker"
+  run_to turn 1 end
+  assert battlefield A contains 1 "Glimmer"
+  assert is "Glimmer" enchantment
+  assert hand A count 0
+  assert life B 17
+}
+
+scenario "tapped with a Glimmer: draw instead" {
+  battlefield A: "Glimmer Seeker", "Glimmer"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Glimmer Seeker"
+  run_to turn 1 end
+  assert battlefield A contains 1 "Glimmer"
+  assert hand A count 1
+}
+
+scenario "untapped: nothing" {
+  battlefield A: "Glimmer Seeker"
+  start turn 1 A precombat_main
+  run_to turn 1 end
+  assert battlefield A lacks "Glimmer"
+  assert hand A count 0
+}

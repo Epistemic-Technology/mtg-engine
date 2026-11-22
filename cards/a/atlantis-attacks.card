@@ -1,0 +1,10 @@
+card "Atlantis Attacks" {
+  oracle_id b5c8e24a-f4d7-42dc-8117-905ad0bad888
+  cost {5}{U}{U}
+  type Sorcery
+  teamwork 4
+  choose one or both if teamwork {
+    mode: target player creates 1 "6/5 blue Leviathan creature with hexproof"
+    mode: return 1 to 2 target nonland permanent to hand
+  }
+}

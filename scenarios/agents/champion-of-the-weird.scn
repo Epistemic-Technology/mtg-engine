@@ -1,0 +1,29 @@
+scenario "behold exiles a Goblin; blight; leaves returns the card" {
+  battlefield A: 4 "Swamp", "Skinbrand Goblin"
+  battlefield B: "Hill Giant"
+  hand A: "Champion of the Weird"
+  hand B: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Champion of the Weird"
+  turn 1 A: wait
+  turn 1 A: activate "Champion of the Weird" targeting player B
+  run_to turn 1 postcombat_main
+  assert exile A contains "Skinbrand Goblin"
+  assert life A 19
+  assert counters "Champion of the Weird" -1/-1 2
+  assert counters "Hill Giant" -1/-1 2
+  assert power "Hill Giant" 1
+}
+scenario "dies: exiled Goblin card returns to hand" {
+  battlefield A: 4 "Swamp", "Skinbrand Goblin"
+  battlefield B: 3 "Swamp"
+  hand A: "Champion of the Weird"
+  hand B: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Champion of the Weird"
+  turn 1 postcombat_main B: cast "Murder" targeting "Champion of the Weird"
+  run_to turn 2 upkeep
+  assert exile A lacks "Skinbrand Goblin"
+  assert hand A contains "Skinbrand Goblin"
+  assert graveyard A contains "Champion of the Weird"
+}

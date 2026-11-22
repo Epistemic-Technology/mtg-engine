@@ -1,0 +1,6 @@
+card "Space-Time Anomaly" {
+  oracle_id 241117a0-8305-48bb-9cb9-9b01e86e08f7
+  cost {2}{W}{U}
+  type Sorcery
+  spell: target player mills count equal life cards
+}

@@ -1,0 +1,6 @@
+card "Cathartic Parting" {
+  oracle_id 0ea80bd9-ab7e-4a8f-85b0-167fe7fae43a
+  cost {1}{G}
+  type Sorcery
+  spell: owner of target artifact or enchantment an opponent controls shuffles it into library; you may shuffle up to 4 target card from your graveyard into library
+}

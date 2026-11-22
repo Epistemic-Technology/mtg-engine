@@ -1,0 +1,18 @@
+scenario "two nontoken Merfolk attacking together make one token" {
+  battlefield A: "Deeproot Pilgrimage", "Coral Merfolk", "Coral Commando", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Coral Merfolk", "Coral Commando", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 1 "Merfolk"
+  assert has "Merfolk" hexproof
+  assert life B 13
+}
+
+scenario "a non-Merfolk or token Merfolk tapping does not trigger" {
+  battlefield A: "Deeproot Pilgrimage", "Grizzly Bears", "Merfolk"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears", "Merfolk"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 1 "Merfolk"
+  assert life B 17
+}

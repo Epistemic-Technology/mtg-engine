@@ -1,0 +1,9 @@
+card "Krang, Master Mind" {
+  oracle_id 52562194-4a97-40d2-aa73-7827f7834f2f
+  cost {6}{U}{U}
+  type Legendary Artifact Creature — Utrom Warrior
+  pt 1/4
+  affinity for artifact
+  triggered whenever this enters if hand fewer than 4: draw count equal difference 4 hand cards
+  static this: +1/+0 count each other artifact you control
+}

@@ -1,0 +1,36 @@
+scenario "Neva returns a creature card from the graveyard" {
+  battlefield A: 2 "Plains", 2 "Swamp"
+  hand A: "Neva, Stalked by Nightmares"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Neva, Stalked by Nightmares"
+  turn 1 A: trigger "Neva, Stalked by Nightmares" targeting "Hill Giant"
+  run_to turn 1 end
+  assert hand A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Neva, Stalked by Nightmares"
+}
+
+scenario "an enchantment of yours going to the graveyard grows Neva and scries" {
+  battlefield A: "Neva, Stalked by Nightmares", "Grizzly Bears", "Holy Strength" on "Grizzly Bears", 3 "Swamp"
+  hand A: "Murder"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  turn 1 A: scry "Forest"
+  run_to turn 1 end
+  assert graveyard A contains "Holy Strength"
+  assert counters "Neva, Stalked by Nightmares" +1/+1 1
+  assert power "Neva, Stalked by Nightmares" 3
+}
+
+scenario "an opponent's enchantment does not trigger" {
+  battlefield A: "Neva, Stalked by Nightmares", "Plains", "Plains"
+  battlefield B: "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  hand A: "Disenchant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Disenchant" targeting "Holy Strength"
+  run_to turn 1 end
+  assert graveyard B contains "Holy Strength"
+  assert counters "Neva, Stalked by Nightmares" +1/+1 0
+}

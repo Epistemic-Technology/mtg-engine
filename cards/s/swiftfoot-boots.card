@@ -1,0 +1,7 @@
+card "Swiftfoot Boots" {
+  oracle_id c8b143ad-43ec-4e0d-a440-e348daa31391
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: has hexproof, haste
+  equip {1}
+}

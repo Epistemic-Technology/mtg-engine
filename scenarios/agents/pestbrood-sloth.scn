@@ -1,0 +1,21 @@
+scenario "Pestbrood Sloth dies and leaves two Pests" {
+  battlefield A: "Pestbrood Sloth", 3 "Swamp"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Pestbrood Sloth"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Pestbrood Sloth"
+  assert battlefield A contains 2 "Pest"
+  assert is newest A "Pest" black
+}
+
+scenario "Pestbrood Sloth's Pests gain life when they attack" {
+  battlefield A: "Pestbrood Sloth", 3 "Swamp"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Pestbrood Sloth"
+  turn 3 A: attack "Pest", "Pest"
+  run_to turn 3 postcombat_main
+  assert life A 22
+  assert life B 18
+}

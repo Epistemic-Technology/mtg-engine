@@ -1,0 +1,8 @@
+card "The Great Goblin" {
+  oracle_id 83dcfac0-6efd-4e37-9402-15f9889e84e1
+  cost {1}{B/R}{B/R}
+  type Legendary Creature — Goblin Noble
+  pt 3/2
+  triggered whenever you put one or more counters on Goblin, Orc, or Army you control: deal 2 damage to target opponent
+  triggered whenever other Goblin, Orc, or Army you control dies: impulse 1 next turn it
+}

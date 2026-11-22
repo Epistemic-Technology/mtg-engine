@@ -1,0 +1,6 @@
+card "Thirst for Identity" {
+  oracle_id 045ece1e-23aa-4122-8726-86b2af4345ba
+  cost {2}{U}
+  type Instant
+  spell: draw 3 cards; then discard 2 cards unless you discard creature card
+}

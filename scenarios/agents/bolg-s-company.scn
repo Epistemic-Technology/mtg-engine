@@ -1,0 +1,18 @@
+scenario "haste only while another Goblin is controlled" {
+  battlefield A: "Bolg's Company", "Skinbrand Goblin"
+  assert has "Bolg's Company" haste
+}
+scenario "no other Goblin: no haste" {
+  battlefield A: "Bolg's Company", "Grizzly Bears"
+  assert has not "Bolg's Company" haste
+}
+scenario "tap and sacrifice another Goblin for BR" {
+  battlefield A: "Bolg's Company", "Skinbrand Goblin"
+  hand A: "Lightning Bolt", "Murder"
+  turn 1 precombat_main A: activate "Bolg's Company" sacrificing "Skinbrand Goblin"
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Skinbrand Goblin"
+  assert tapped "Bolg's Company"
+  assert life B 17
+}

@@ -1,0 +1,30 @@
+scenario "attacking adds a counter then makes that many attacking Gnomes" {
+  battlefield A: "Anim Pakal, Thousandth Moon"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Anim Pakal, Thousandth Moon"
+  run_to turn 2 postcombat_main
+  assert counters "Anim Pakal, Thousandth Moon" +1/+1 1
+  assert battlefield A contains 1 "Gnome"
+  assert tapped "Gnome"
+  assert life B 17
+}
+
+scenario "X counts all counters on Anim Pakal" {
+  battlefield A: "Anim Pakal, Thousandth Moon" with 2 +1/+1, "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert counters "Anim Pakal, Thousandth Moon" +1/+1 3
+  assert battlefield A contains 3 "Gnome"
+  assert life B 15
+}
+
+scenario "attacking with only Gnomes does not trigger" {
+  battlefield A: "Anim Pakal, Thousandth Moon", "Gnome"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Gnome"
+  run_to turn 2 postcombat_main
+  assert counters "Anim Pakal, Thousandth Moon" +1/+1 0
+  assert battlefield A contains 1 "Gnome"
+  assert life B 19
+}

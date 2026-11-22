@@ -1,0 +1,8 @@
+card "Rimefire Torque" {
+  oracle_id c33e99c6-189e-4dcf-8b6a-64937dbad361
+  cost {1}{U}
+  type Artifact
+  as this enters choose creature type
+  triggered whenever permanent you control of chosen type enters: put 1 charge counter on this
+  activated {T}, remove 3 charge counter from this: delayed this: when next you cast an instant or sorcery spell this turn, copy it new targets
+}

@@ -1,0 +1,8 @@
+card "Speed, Young Avenger" {
+  oracle_id 2fb0f2d2-ed1f-4181-91f2-684a71c34998
+  cost {1}{R}
+  type Legendary Creature — Mutant Hero
+  pt 2/2
+  keywords haste
+  triggered whenever you cast noncreature spell: you may pay {1}; when you do, target creature with haste gains ability { can't be blocked except by creature with haste }
+}

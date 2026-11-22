@@ -1,0 +1,8 @@
+card "Restless Vinestalk" {
+  oracle_id 0935faa2-fb90-48db-8a92-906ba0f374c7
+  type Land
+  enters tapped
+  activated {T}: add {G} or {U}
+  activated {3}{G}{U}: until end of turn, this becomes 5/5 green blue Plant creature with trample
+  triggered whenever this attacks: up to 1 another target creature has base power and toughness 3/3 until end of turn
+}

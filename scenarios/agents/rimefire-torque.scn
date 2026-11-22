@@ -1,0 +1,33 @@
+scenario "Rimefire Torque counts permanents of the chosen type entering" {
+  battlefield A: 4 "Island", "Forest"
+  hand A: "Rimefire Torque", "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rimefire Torque"
+  turn 1 A: choose Bear
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Rimefire Torque" charge 1
+}
+
+scenario "Rimefire Torque ignores other types" {
+  battlefield A: 4 "Island", "Mountain", "Forest", "Plains"
+  hand A: "Rimefire Torque", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rimefire Torque"
+  turn 1 A: choose Bear
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Rimefire Torque" charge 0
+}
+
+scenario "Rimefire Torque copies the next instant" {
+  battlefield A: "Rimefire Torque" with 3 charge, "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rimefire Torque"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Rimefire Torque" charge 0
+  assert life B 14
+}

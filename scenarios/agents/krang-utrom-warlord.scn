@@ -1,0 +1,21 @@
+scenario "Krang, Utrom Warlord gives other artifact creatures its keywords" {
+  battlefield A: "Krang, Utrom Warlord", "Phyrexian Walker", "Grizzly Bears"
+  start turn 1 A precombat_main
+  assert has "Phyrexian Walker" flying
+  assert has "Phyrexian Walker" trample
+  assert has "Phyrexian Walker" indestructible
+  assert has "Phyrexian Walker" haste
+  assert has not "Grizzly Bears" flying
+  assert has not "Grizzly Bears" haste
+  assert has "Krang, Utrom Warlord" haste
+  assert has "Krang, Utrom Warlord" indestructible
+}
+
+scenario "Krang, Utrom Warlord survives Murder" {
+  battlefield A: "Krang, Utrom Warlord", "Phyrexian Walker", 3 "Swamp"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Krang, Utrom Warlord"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Krang, Utrom Warlord"
+}

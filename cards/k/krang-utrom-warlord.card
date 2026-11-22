@@ -1,0 +1,8 @@
+card "Krang, Utrom Warlord" {
+  oracle_id 2d56a491-b3eb-4f3e-82ab-981d3036c45d
+  cost {9}
+  type Legendary Artifact Creature — Utrom Robot
+  pt 9/9
+  keywords flying, trample, indestructible, haste
+  static other artifact creature you control: has flying, trample, indestructible, haste
+}

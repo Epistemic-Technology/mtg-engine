@@ -1,0 +1,10 @@
+card "Jet's Brainwashing" {
+  oracle_id 5cca85e0-43e8-4b97-a43b-1b8f23f541d1
+  cost {R}
+  type Sorcery
+  kicker {3}
+  spell {
+    target creature can't block until end of turn; if kicked, gain control of that target 1 until end of turn, untap target 1 and target 1 gains haste until end of turn
+    create 1 "Clue"
+  }
+}

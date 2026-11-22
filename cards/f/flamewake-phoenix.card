@@ -1,0 +1,8 @@
+card "Flamewake Phoenix" {
+  oracle_id 9e43805d-3576-47d4-9331-524869ab99d0
+  cost {1}{R}{R}
+  type Creature — Phoenix
+  pt 2/2
+  keywords flying, haste, attacks each combat if able
+  label "Ferocious" triggered from graveyard at beginning of your combat if you control creature with power 4 or greater: you may pay {R}; if you do, return this to battlefield
+}

@@ -1,0 +1,32 @@
+scenario "exhaust counts other Mounts and Vehicles" {
+  battlefield A: "Spire Mechcycle", "Marshals' Pathcruiser", "Strixhaven Skycoach"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Spire Mechcycle"
+  run_to turn 1 begin_combat
+  assert is "Spire Mechcycle" creature
+  assert counters "Spire Mechcycle" +1/+1 2
+  assert power "Spire Mechcycle" 7
+  assert toughness "Spire Mechcycle" 6
+  illegal turn 1 postcombat_main A: activate "Spire Mechcycle"
+  run_to turn 1 end
+}
+
+scenario "no other Vehicle, no exhaust" {
+  battlefield A: "Spire Mechcycle", "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Spire Mechcycle"
+  run_to turn 1 end
+  assert is not "Spire Mechcycle" creature
+}
+
+scenario "crewed it attacks with haste" {
+  battlefield A: "Grizzly Bears", "Grizzly Bears"
+  hand A: "Spire Mechcycle"
+  battlefield A: 5 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spire Mechcycle"
+  turn 1 begin_combat A: activate "Spire Mechcycle"
+  turn 1 A: attack "Spire Mechcycle"
+  run_to turn 1 end
+  assert life B 15
+}

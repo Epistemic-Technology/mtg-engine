@@ -1,0 +1,26 @@
+scenario "pathcruiser enters and fetches a basic land" {
+  battlefield A: 3 "Plains"
+  hand A: "Marshals' Pathcruiser"
+  library A: "Grizzly Bears", "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Marshals' Pathcruiser"
+  turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert battlefield A contains "Marshals' Pathcruiser"
+  assert is not "Marshals' Pathcruiser" creature
+}
+
+scenario "exhaust makes it a creature with two counters, once" {
+  battlefield A: "Marshals' Pathcruiser", "Plains", "Island", "Swamp", "Mountain", "Forest", "Plains", "Island", "Swamp", "Mountain", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Marshals' Pathcruiser"
+  run_to turn 1 begin_combat
+  assert is "Marshals' Pathcruiser" creature
+  assert counters "Marshals' Pathcruiser" +1/+1 2
+  assert power "Marshals' Pathcruiser" 8
+  assert toughness "Marshals' Pathcruiser" 7
+  illegal turn 1 postcombat_main A: activate "Marshals' Pathcruiser"
+  run_to turn 2 untap
+  assert is "Marshals' Pathcruiser" creature
+}

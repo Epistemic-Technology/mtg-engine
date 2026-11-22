@@ -1,0 +1,9 @@
+card "Vibrance" {
+  oracle_id 52867cdd-8bf2-4cae-bb8d-0f16a18a455b
+  cost {3}{R/G}{R/G}
+  type Creature — Elemental Incarnation
+  pt 4/4
+  triggered when this enters if spent {R}{R}: this creature deals 3 damage to any target
+  triggered when this enters if spent {G}{G}: search land card reveal to hand; you gain 2 life
+  evoke {R/G}{R/G}
+}

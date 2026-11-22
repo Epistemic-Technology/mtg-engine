@@ -1,0 +1,39 @@
+scenario "two attacking Dinosaurs make two Treasures" {
+  battlefield A: "Poetic Ingenuity", 2 "Dinosaur", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Dinosaur", "Dinosaur", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Treasure"
+  assert life B 16
+}
+
+scenario "no Dinosaur attacking, no Treasure" {
+  battlefield A: "Poetic Ingenuity", "Dinosaur", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "artifact spells make one Dinosaur per turn" {
+  battlefield A: "Poetic Ingenuity", 6 "Plains"
+  hand A: 2 "Marshals' Pathcruiser"
+  library A: "Forest", "Forest", "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Marshals' Pathcruiser"
+  turn 1 A: wait
+  turn 1 A: cast "Marshals' Pathcruiser"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Marshals' Pathcruiser"
+  assert battlefield A contains 1 "Dinosaur"
+  assert power "Dinosaur" 3
+  assert toughness "Dinosaur" 1
+}
+
+scenario "only attacking Dinosaurs count" {
+  battlefield A: "Poetic Ingenuity", 2 "Dinosaur", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Dinosaur", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Treasure"
+}

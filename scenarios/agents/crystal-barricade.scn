@@ -1,0 +1,33 @@
+scenario "noncombat damage to other creatures you control is prevented" {
+  battlefield A: "Crystal Barricade", "Grizzly Bears"
+  battlefield B: "Mountain", "Mountain"
+  hand B: "Shock", "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 2 B: wait
+  turn 2 B: cast "Shock" targeting "Crystal Barricade"
+  run_to turn 2 end
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+  assert damage "Crystal Barricade" 2
+}
+
+scenario "you have hexproof" {
+  battlefield A: "Crystal Barricade"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  illegal turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 end
+  assert life A 20
+}
+
+scenario "combat damage to other creatures is not prevented" {
+  battlefield A: "Crystal Barricade", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}

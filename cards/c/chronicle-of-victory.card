@@ -1,0 +1,8 @@
+card "Chronicle of Victory" {
+  oracle_id e949b362-4988-4482-ac51-c1049af9040c
+  cost {6}
+  type Legendary Artifact
+  as this enters choose creature type
+  static creature you control of chosen type: +2/+2, has first strike, trample
+  triggered whenever you cast of chosen type spell: draw 1 card
+}

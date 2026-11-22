@@ -1,0 +1,8 @@
+card "Sun-Spider, Nimble Webber" {
+  oracle_id 2d961997-4f5f-4ce2-b062-11411147e2f7
+  cost {3}{W/U}
+  type Legendary Creature — Spider Human Hero
+  pt 3/2
+  static during your turn, this: has flying
+  triggered whenever this enters: search Aura or Equipment card reveal to hand
+}

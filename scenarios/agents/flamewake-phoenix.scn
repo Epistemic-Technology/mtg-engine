@@ -1,0 +1,19 @@
+scenario "ferocious returns the Phoenix at beginning of combat and it must attack" {
+  battlefield A: "Serra Angel", "Mountain"
+  graveyard A: "Flamewake Phoenix"
+  start turn 2 A precombat_main
+  turn 2 begin_combat A: accept "Flamewake Phoenix"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Flamewake Phoenix"
+  assert tapped "Mountain"
+  assert life B 18
+}
+
+scenario "no creature with power 4 or greater, no return" {
+  battlefield A: "Hill Giant", "Mountain"
+  graveyard A: "Flamewake Phoenix"
+  start turn 2 A precombat_main
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Flamewake Phoenix"
+  assert untapped "Mountain"
+}

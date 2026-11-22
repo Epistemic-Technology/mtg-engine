@@ -1,0 +1,25 @@
+scenario "opponent's artifact shuffled away, graveyard cards shuffled back" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Marshals' Pathcruiser"
+  hand A: "Cathartic Parting"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Shock"
+  library B:
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cathartic Parting" targeting "Marshals' Pathcruiser", "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B lacks "Marshals' Pathcruiser"
+  assert library B contains "Marshals' Pathcruiser"
+  assert library A contains "Grizzly Bears"
+  assert library A contains "Hill Giant"
+  assert graveyard A contains "Shock"
+  assert graveyard A contains "Cathartic Parting"
+}
+
+scenario "can't target your own artifact" {
+  battlefield A: 2 "Forest", "Marshals' Pathcruiser"
+  hand A: "Cathartic Parting"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Cathartic Parting" targeting "Marshals' Pathcruiser"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Cathartic Parting"
+}

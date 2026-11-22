@@ -1,0 +1,6 @@
+card "Goblin Negotiation" {
+  oracle_id 79824266-bffa-476c-bdd3-976e9d789a42
+  cost {X}{R}{R}
+  type Sorcery
+  spell: deal X damage to target creature; create count equal excess damage dealt to that creature this way "Goblin"
+}

@@ -1,0 +1,15 @@
+scenario "flash cast; power-up discounted the turn she enters; only once" {
+  battlefield A: 8 "Plains"
+  hand A: "Captain Marvel, Earth's Protector"
+  turn 1 precombat_main A: cast "Captain Marvel, Earth's Protector"
+  turn 1 precombat_main A: wait
+  turn 1 precombat_main A: activate "Captain Marvel, Earth's Protector"
+  illegal turn 1 postcombat_main A: activate "Captain Marvel, Earth's Protector"
+  run_to turn 1 end
+  assert counters "Captain Marvel, Earth's Protector" +1/+1 1
+  assert counters "Captain Marvel, Earth's Protector" indestructible 1
+  assert power "Captain Marvel, Earth's Protector" 6
+  assert toughness "Captain Marvel, Earth's Protector" 5
+  assert has "Captain Marvel, Earth's Protector" flying
+  assert has "Captain Marvel, Earth's Protector" lifelink
+}

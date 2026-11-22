@@ -1,0 +1,8 @@
+card "Inti, Seneschal of the Sun" {
+  oracle_id 176f5ba8-6e7b-4234-a298-b6164f51656f
+  cost {1}{R}
+  type Legendary Creature — Human Knight
+  pt 2/2
+  triggered whenever you attack: you may discard 1 card; when you do, put 1 +1/+1 counter on target attacking creature; target 1 gains trample until end of turn
+  triggered whenever you discard one or more cards: impulse 1 next end step
+}

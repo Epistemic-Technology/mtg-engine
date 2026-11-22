@@ -1,0 +1,7 @@
+card "Take for a Ride" {
+  oracle_id 4f815ca4-0197-48c7-bfa2-5eb937c615e6
+  cost {2}{R}
+  type Sorcery
+  flash named as long as committed crime this turn
+  spell: gain control of target creature until end of turn; untap that target 1; target 1 gains haste
+}

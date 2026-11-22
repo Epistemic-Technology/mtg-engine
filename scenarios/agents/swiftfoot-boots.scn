@@ -1,0 +1,17 @@
+scenario "equip grants hexproof and haste" {
+  battlefield A: "Swiftfoot Boots", "Grizzly Bears", "Plains"
+  turn 1 precombat_main A: activate "Swiftfoot Boots" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert attached "Swiftfoot Boots" to "Grizzly Bears"
+  assert has "Grizzly Bears" hexproof
+  assert has "Grizzly Bears" haste
+}
+scenario "hexproof stops opposing targeting" {
+  battlefield A: "Swiftfoot Boots", "Grizzly Bears", "Plains"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 precombat_main A: activate "Swiftfoot Boots" targeting "Grizzly Bears"
+  illegal turn 1 postcombat_main B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+}

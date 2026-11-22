@@ -1,0 +1,6 @@
+card "Deeproot Pilgrimage" {
+  oracle_id 188656d8-4ea8-4e58-88da-b010a16eb6f2
+  cost {1}{U}
+  type Enchantment
+  triggered whenever one or more nontoken Merfolk you control become tapped: create 1 "1/1 blue Merfolk creature with hexproof"
+}

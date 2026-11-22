@@ -1,0 +1,21 @@
+scenario "excess damage makes that many Goblins" {
+  battlefield A: 7 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Goblin Negotiation"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Goblin Negotiation" x 5 targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains 3 "Goblin"
+}
+
+scenario "no excess damage, no Goblins" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Goblin Negotiation"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Goblin Negotiation" x 2 targeting "Hill Giant"
+  run_to turn 1 end
+  assert damage "Hill Giant" 2
+  assert battlefield A contains 0 "Goblin"
+}

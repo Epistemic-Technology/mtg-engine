@@ -1,0 +1,19 @@
+scenario "counter on a Goblin deals 2 damage; non-Goblin does not" {
+  battlefield A: "The Great Goblin", "Hill Giant", 8 "Forest"
+  hand A: "Lifecrafter's Gift", "Lifecrafter's Gift"
+  turn 1 precombat_main A: cast "Lifecrafter's Gift" targeting "Hill Giant"
+  turn 1 begin_combat A: cast "Lifecrafter's Gift" targeting "The Great Goblin"
+  run_to turn 1 begin_combat
+  assert life B 20
+  run_to turn 1 postcombat_main
+  assert life B 16  # two instructions each put a counter on it
+}
+scenario "another Goblin dying exiles the top card" {
+  battlefield A: "The Great Goblin", "Skinbrand Goblin", "Mountain"
+  hand A: "Lightning Bolt"
+  library A: "Grizzly Bears", "Forest"
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting "Skinbrand Goblin"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Skinbrand Goblin"
+  assert exile A contains "Grizzly Bears"
+}

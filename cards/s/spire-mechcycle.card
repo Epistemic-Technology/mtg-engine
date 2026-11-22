@@ -1,0 +1,9 @@
+card "Spire Mechcycle" {
+  oracle_id 7d347d59-0cd5-4207-86cb-5d6244c7c70a
+  cost {4}{R}
+  type Artifact — Vehicle
+  pt 5/4
+  keywords haste
+  exhaust tap other untapped Mount or Vehicle you control: this becomes artifact creature indefinitely; put count each andor Mount or Vehicle you control other than this +1/+1 counters on this
+  crew 2
+}

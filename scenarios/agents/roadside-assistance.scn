@@ -1,0 +1,26 @@
+scenario "the Aura makes a Pilot and gives +1/+1 and lifelink" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  hand A: "Roadside Assistance"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Roadside Assistance" targeting "Grizzly Bears"
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 1 "Pilot"
+  assert attached "Roadside Assistance" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert life B 17
+  assert life A 23
+}
+
+scenario "the Pilot crews a crew 3 Vehicle alone" {
+  battlefield A: "Apocalypse Runner", 3 "Plains"
+  hand A: "Roadside Assistance"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Roadside Assistance" targeting "Apocalypse Runner"
+  turn 2 A: wait
+  turn 2 A: activate "Apocalypse Runner" ability 2
+  run_to turn 2 end
+  assert tapped "Pilot"
+  assert is "Apocalypse Runner" creature
+  assert power "Apocalypse Runner" 7
+}

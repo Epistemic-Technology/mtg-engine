@@ -1,0 +1,27 @@
+scenario "Mindwhisker shrinks opposing creatures with threshold" {
+  battlefield A: "Mindwhisker"
+  battlefield B: "Grizzly Bears"
+  graveyard A: 7 "Forest"
+  start turn 1 A precombat_main
+  assert power "Grizzly Bears" 1
+  assert toughness "Grizzly Bears" 2
+  assert power "Mindwhisker" 3
+}
+
+scenario "Mindwhisker does nothing without threshold" {
+  battlefield A: "Mindwhisker"
+  battlefield B: "Grizzly Bears"
+  graveyard A: 6 "Forest"
+  start turn 1 A precombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Mindwhisker surveils each upkeep" {
+  battlefield A: "Mindwhisker"
+  library A: "Island", "Swamp", "Forest"
+  start turn 1 A upkeep
+  turn 1 A: surveil "Island"
+  run_to turn 1 precombat_main
+  assert graveyard A contains "Island"
+  assert graveyard A count 1
+}

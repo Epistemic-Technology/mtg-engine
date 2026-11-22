@@ -1,0 +1,8 @@
+card "Bolg's Company" {
+  oracle_id fa602f8f-1d80-4f6d-8b8f-d1a1f36037bd
+  cost {B}{R}
+  type Creature — Goblin Soldier
+  pt 2/2
+  static this: has haste as long as you control other Goblin
+  activated {T}, sacrifice other Goblin: add {B}{R}
+}

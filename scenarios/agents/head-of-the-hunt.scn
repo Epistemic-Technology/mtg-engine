@@ -1,0 +1,32 @@
+scenario "opponent's dying creature is exiled and makes a Wolf" {
+  battlefield A: "Head of the Hunt", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert graveyard B lacks "Hill Giant"
+  assert battlefield A contains 1 "Wolf"
+  assert power "Wolf" 2
+  assert is "Wolf" green
+}
+
+scenario "your own creature dies normally" {
+  battlefield A: "Head of the Hunt", "Grizzly Bears", 3 "Swamp"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A lacks "Wolf"
+}
+
+scenario "flash in during the opponent's turn" {
+  battlefield A: 4 "Swamp"
+  hand A: "Head of the Hunt"
+  start turn 2 B precombat_main
+  turn 2 end A: cast "Head of the Hunt"
+  run_to turn 3 upkeep
+  assert battlefield A contains "Head of the Hunt"
+}

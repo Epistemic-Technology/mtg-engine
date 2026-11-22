@@ -1,0 +1,19 @@
+scenario "becomes a 2/3 menace creature, attacks, loots" {
+  battlefield A: "Restless Vents", 2 "Swamp", "Mountain"
+  hand A: "Grizzly Bears"
+  library A: "Forest", "Island"
+  turn 1 precombat_main A: activate "Restless Vents" ability 2
+  turn 1 declare_attackers A: attack "Restless Vents"
+  turn 1 declare_attackers A: discard "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert is "Restless Vents" creature
+  assert is "Restless Vents" land
+  assert power "Restless Vents" 2
+  assert toughness "Restless Vents" 3
+  assert has "Restless Vents" menace
+  assert is "Restless Vents" black
+  assert is "Restless Vents" red
+  assert life B 18
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A contains "Forest"
+}

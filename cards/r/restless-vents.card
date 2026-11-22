@@ -1,0 +1,8 @@
+card "Restless Vents" {
+  oracle_id 696e7ddb-bdc7-40ee-bc5c-59e98f4a7401
+  type Land
+  enters tapped
+  activated {T}: add {B} or {R}
+  activated {1}{B}{R}: until end of turn, this becomes 2/3 black red Insect creature with menace
+  triggered whenever this attacks: you may discard 1 card; if you do, draw 1 card
+}

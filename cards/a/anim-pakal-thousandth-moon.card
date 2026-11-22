@@ -1,0 +1,7 @@
+card "Anim Pakal, Thousandth Moon" {
+  oracle_id 05551d91-50c6-46d1-86a4-cd3d177d0923
+  cost {1}{R}{W}
+  type Legendary Creature — Human Soldier
+  pt 1/2
+  triggered whenever you attack with one or more non-Gnome creature: put 1 +1/+1 counter on this, then create count where +1/+1 counters on this tapped and attacking "1/1 colorless Gnome artifact creature"
+}

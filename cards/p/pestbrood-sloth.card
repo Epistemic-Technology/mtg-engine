@@ -1,0 +1,8 @@
+card "Pestbrood Sloth" {
+  oracle_id 2970d09b-4bef-468e-8de5-f994c820ccc0
+  cost {3}{G}
+  type Creature — Plant Sloth
+  pt 4/4
+  keywords reach
+  triggered whenever this dies: create 2 "1/1 black and green Pest creature that gains life when attacking"
+}

@@ -1,0 +1,8 @@
+card "Roadside Assistance" {
+  oracle_id 814f30a1-c0d6-4243-839d-0645d7bcbe4c
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature or Vehicle
+  triggered when this enters: create 1 "1/1 colorless Pilot creature with saddles and crews plus 2"
+  static enchanted permanent: +1/+1 and has lifelink
+}

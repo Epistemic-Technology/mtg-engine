@@ -1,0 +1,7 @@
+card "Glimmer Seeker" {
+  oracle_id cbb5526b-3aa1-43d9-acdb-bd230ce3fe63
+  cost {2}{W}
+  type Creature — Human Survivor
+  pt 3/3
+  label "Survival" triggered at beginning of your second main if this is tapped: draw 1 card if you control Glimmer creature; if you don't control Glimmer creature, create 1 "1/1 white Glimmer enchantment creature"
+}

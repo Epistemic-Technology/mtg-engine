@@ -1,0 +1,7 @@
+card "Detective's Satchel" {
+  oracle_id e4ecfccd-b8b4-4b18-b989-30de79b4971e
+  cost {2}{U}{R}
+  type Artifact
+  triggered whenever this enters: investigate twice
+  activated {T}, if sacrificed artifact this turn: create 1 "1/1 colorless Thopter artifact creature with flying"
+}

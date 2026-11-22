@@ -1,0 +1,38 @@
+scenario "Krang, Master Mind draws up to four and grows with artifacts" {
+  battlefield A: 6 "Phyrexian Walker", 2 "Island"
+  hand A: "Krang, Master Mind"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Krang, Master Mind"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Krang, Master Mind"
+  assert hand A count 4
+  assert power "Krang, Master Mind" 7
+  assert toughness "Krang, Master Mind" 4
+}
+
+scenario "Krang, Master Mind draws only the difference" {
+  battlefield A: 6 "Phyrexian Walker", 2 "Island"
+  hand A: "Krang, Master Mind", 3 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Krang, Master Mind"
+  run_to turn 1 postcombat_main
+  assert hand A count 4
+}
+
+scenario "Krang, Master Mind draws nothing with four cards in hand" {
+  battlefield A: 6 "Phyrexian Walker", 2 "Island"
+  hand A: "Krang, Master Mind", 4 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Krang, Master Mind"
+  run_to turn 1 postcombat_main
+  assert hand A count 4
+}
+
+scenario "Krang, Master Mind is not cheap without artifacts" {
+  battlefield A: 2 "Island"
+  hand A: "Krang, Master Mind"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Krang, Master Mind"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Krang, Master Mind"
+}

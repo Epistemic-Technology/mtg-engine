@@ -1,0 +1,8 @@
+card "Shepherd of the Clouds" {
+  oracle_id c0535854-e4e7-43e4-bc5c-7cc95fb17929
+  cost {4}{W}
+  type Creature — Pegasus
+  pt 4/3
+  keywords flying, vigilance
+  triggered when this enters: return target permanent card with mana value 3 or less from your graveyard to hand; return that target 1 to battlefield instead if you control Mount
+}

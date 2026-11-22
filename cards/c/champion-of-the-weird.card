@@ -1,0 +1,9 @@
+card "Champion of the Weird" {
+  oracle_id 1726f9cd-6f18-4509-b95b-bca82ba795a4
+  cost {3}{B}
+  type Creature — Goblin Berserker
+  pt 5/5
+  additional cost behold and exile Goblin
+  activated pay 1 life, blight 2, sorcery: target opponent blights 2
+  triggered whenever this leaves the battlefield: return exiled card to hand
+}

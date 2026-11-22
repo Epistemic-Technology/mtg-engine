@@ -1,0 +1,27 @@
+scenario "unblockable loot without threshold" {
+  battlefield A: "Shoreline Looter"
+  battlefield B: "Wind Drake"
+  hand A: "Shock"
+  library A: "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Shoreline Looter"
+  illegal turn 1 B: block "Shoreline Looter" with "Wind Drake"
+  turn 1 combat_damage A: discard "Shock"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert hand A count 1
+  assert hand A contains "Island"
+  assert graveyard A contains "Shock"
+}
+
+scenario "with threshold, draw without discarding" {
+  battlefield A: "Shoreline Looter"
+  hand A: "Shock"
+  graveyard A: 7 "Forest"
+  library A: "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Shoreline Looter"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A count 7
+}

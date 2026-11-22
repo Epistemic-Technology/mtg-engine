@@ -1,0 +1,8 @@
+card "Restless Bivouac" {
+  oracle_id b3c7b46f-c9ab-40ca-b50b-a4e0d0bd9be8
+  type Land
+  enters tapped
+  activated {T}: add {R} or {W}
+  activated {1}{R}{W}: this becomes 2/2 red white Ox creature until end of turn
+  triggered whenever this attacks: put 1 +1/+1 counter on target creature you control
+}

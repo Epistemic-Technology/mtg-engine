@@ -1,0 +1,8 @@
+card "Captain Marvel, Earth's Protector" {
+  oracle_id 2e665a03-bece-43df-bd15-b4496e233f2e
+  cost {3}{W}{W}
+  type Legendary Creature — Human Kree Hero
+  pt 5/4
+  keywords flash, flying, lifelink
+  power-up {5}{W}{W}: put 1 +1/+1 counter and 1 indestructible counter on this
+}

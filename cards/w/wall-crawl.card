@@ -1,0 +1,7 @@
+card "Wall Crawl" {
+  oracle_id 4a09536e-dfc1-4b15-adc1-07ef866ebda0
+  cost {3}{G}
+  type Enchantment
+  triggered when this enters: create 1 "2/1 green Spider creature with reach" then you gain count each Spider you control life
+  static Spider you control: +1/+1, has ability { can't be blocked by creature with defender }
+}

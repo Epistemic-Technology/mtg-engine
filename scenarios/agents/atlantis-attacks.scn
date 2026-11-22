@@ -1,0 +1,38 @@
+scenario "Atlantis Attacks: target player creates a 6/5 Leviathan" {
+  battlefield A: 7 "Island"
+  hand A: "Atlantis Attacks"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Atlantis Attacks" mode 1 targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Leviathan"
+  assert power "Leviathan" 6
+  assert toughness "Leviathan" 5
+  assert has "Leviathan" hexproof
+  assert is "Leviathan" blue
+}
+
+scenario "Atlantis Attacks: bounce two nonland permanents" {
+  battlefield A: 7 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Forest"
+  hand A: "Atlantis Attacks"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Atlantis Attacks" mode 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+  assert battlefield B contains "Forest"
+  assert battlefield A contains 0 "Leviathan"
+}
+
+scenario "Atlantis Attacks: teamwork chooses both modes" {
+  battlefield A: 7 "Island", "Hill Giant", "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  hand A: "Atlantis Attacks"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Atlantis Attacks" teamwork mode 3 targeting player A, "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Serra Angel"
+  assert battlefield A contains "Leviathan"
+  assert tapped "Hill Giant"
+  assert tapped "Grizzly Bears"
+}

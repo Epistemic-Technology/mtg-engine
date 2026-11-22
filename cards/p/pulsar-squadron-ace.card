@@ -1,0 +1,7 @@
+card "Pulsar Squadron Ace" {
+  oracle_id 8019e879-cfea-40a2-ac0d-86b47ec02b48
+  cost {1}{W}
+  type Creature — Human Pilot
+  pt 1/2
+  triggered when this enters: dig 5 take Spacecraft card may revealing rest bottom random; if you didnt put into hand this way, put 1 +1/+1 counter on this
+}

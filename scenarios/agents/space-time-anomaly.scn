@@ -1,0 +1,17 @@
+scenario "mills cards equal to caster's life total, not the target's" {
+  life A 7
+  life B 12
+  battlefield A: 2 "Plains", 2 "Island"
+  hand A: "Space-Time Anomaly"
+  turn 1 precombat_main A: cast "Space-Time Anomaly" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains 7 "Plains"
+}
+scenario "can target yourself" {
+  life A 5
+  battlefield A: 2 "Plains", 2 "Island"
+  hand A: "Space-Time Anomaly"
+  turn 1 precombat_main A: cast "Space-Time Anomaly" targeting player A
+  run_to turn 1 postcombat_main
+  assert graveyard A contains 5 "Plains"
+}

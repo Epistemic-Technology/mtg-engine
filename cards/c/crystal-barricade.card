@@ -1,0 +1,9 @@
+card "Crystal Barricade" {
+  oracle_id 291c7abf-9d64-4ba0-ae21-e3459edc9a95
+  cost {1}{W}
+  type Artifact Creature — Wall
+  pt 0/4
+  keywords defender
+  you have hexproof
+  replace noncombat damage to other creature you control: prevent
+}

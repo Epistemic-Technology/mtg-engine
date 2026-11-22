@@ -1,0 +1,8 @@
+card "Case of the Ransacked Lab" {
+  oracle_id f85eea8f-5887-4921-a943-d15e0ad1e028
+  cost {2}{U}
+  type Enchantment — Case
+  spells instant or sorcery you cast cost {1} less
+  to solve cast 4 andlist instant or sorcery spell this turn
+  solved triggered whenever you cast an instant or sorcery spell: draw 1 card
+}

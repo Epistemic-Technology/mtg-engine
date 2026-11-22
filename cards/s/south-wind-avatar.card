@@ -1,0 +1,9 @@
+card "South Wind Avatar" {
+  oracle_id 003e5dc6-8b26-4a0a-a50b-5f0806a7bacd
+  cost {3}{B}
+  type Creature — Snake Spirit Avatar
+  pt 3/4
+  keywords deathtouch
+  triggered whenever other creature you control dies: you gain count equal toughness of it life
+  triggered whenever you gain life: each opponent loses 1 life
+}

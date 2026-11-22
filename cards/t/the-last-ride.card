@@ -1,0 +1,9 @@
+card "The Last Ride" {
+  oracle_id 3ef03540-b538-466d-aa3c-da6750117ba4
+  cost {B}
+  type Legendary Artifact — Vehicle
+  pt 13/13
+  static this: -1/-1 count where life
+  activated {2}{B}, pay 2 life: draw 1 card
+  crew 2
+}

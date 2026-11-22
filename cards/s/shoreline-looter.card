@@ -1,0 +1,8 @@
+card "Shoreline Looter" {
+  oracle_id c15cad77-e70f-42cc-a9f5-50e1fd8c9c96
+  cost {1}{U}
+  type Creature — Rat Rogue
+  pt 1/1
+  keywords can't be blocked
+  label "Threshold" triggered whenever this deals combat damage to a player: draw 1 card; then discard 1 card unless 7 cards in your graveyard
+}

@@ -1,0 +1,39 @@
+scenario "evoked with red deals 3 damage" {
+  hand A: "Vibrance"
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vibrance" evoked
+  turn 1 A: trigger "Vibrance" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Vibrance"
+  assert life A 20
+}
+
+scenario "cast with green finds a land and gains 2 life" {
+  hand A: "Vibrance"
+  battlefield A: 5 "Forest"
+  library A: "Grizzly Bears", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vibrance"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Vibrance"
+  assert hand A contains "Island"
+  assert hand A count 1
+  assert life A 22
+  assert life B 20
+}
+
+scenario "one red and one green does neither" {
+  hand A: "Vibrance"
+  battlefield A: "Forest", "Mountain"
+  library A: "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vibrance" evoked
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert life B 20
+  assert hand A count 0
+}
