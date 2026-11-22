@@ -1,0 +1,7 @@
+card "Orb of Dragonkind" {
+  oracle_id d9c36ed5-629c-4709-bff5-2f10fcde608a
+  cost {1}{R}
+  type Artifact
+  activated {1}, {T}: add 2 mana any combination only to cast Dragon spells or activate of Dragon bare
+  activated {R}, {T}, sacrifice this: dig 7 take Dragon card may revealing rest bottom random
+}

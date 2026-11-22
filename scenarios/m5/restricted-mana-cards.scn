@@ -509,3 +509,27 @@ scenario "Metamorphosis's mana can't cast a sorcery" {
   run_to turn 1 postcombat_main
   assert hand A contains "Divination"
 }
+
+scenario "Orb of Dragonkind's mana casts a Dragon" {
+  battlefield A: "Orb of Dragonkind", "Mountain", "Mountain", "Mountain"
+  hand A: "Archwing Dragon"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Orb of Dragonkind" ability 1
+  turn 1 A: choose red
+  turn 1 A: choose red
+  turn 1 A: cast "Archwing Dragon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Archwing Dragon"
+}
+
+scenario "Orb of Dragonkind's mana can't cast another creature" {
+  battlefield A: "Orb of Dragonkind", "Mountain", "Mountain", "Mountain"
+  hand A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Orb of Dragonkind" ability 1
+  turn 1 A: choose red
+  turn 1 A: choose red
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}
