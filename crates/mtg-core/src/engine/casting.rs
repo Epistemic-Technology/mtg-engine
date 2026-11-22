@@ -1407,7 +1407,7 @@ impl GameState {
                 })
                 .collect(),
             // "from among the milled cards": those still in the graveyard.
-            ChooseAct::MilledToHand =>self.this_way.as_ref().map_or_else(Vec::new, |log| {
+            ChooseAct::MilledToHand => self.this_way.as_ref().map_or_else(Vec::new, |log| {
                 log.moved
                     .iter()
                     .filter(|m| m.is(crate::card::ThisWay::Milled))
@@ -13060,8 +13060,7 @@ impl GameState {
                         .get(&left)
                         .filter(|l| l.object.zone == Zone::Battlefield)
                     {
-                        let (def, was, sized) =
-                            (l.object.def, l.object.except, l.object.sized);
+                        let (def, was, sized) = (l.object.def, l.object.except, l.object.sized);
                         for (d, k) in self.tokens_to_create(ctx.controller, def, n) {
                             for _ in 0..k {
                                 let new = if d == def {

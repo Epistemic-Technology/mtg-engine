@@ -2453,7 +2453,9 @@ impl Fmt {
                         let mut rest = filter_ref.clone();
                         rest.who = None;
                         if rest == Filter::default() {
-                            format!("put {n} {cs} an opponent owns from exile into graveyard chosen")
+                            format!(
+                                "put {n} {cs} an opponent owns from exile into graveyard chosen"
+                            )
                         } else {
                             format!(
                                 "put {n} {} {cs} an opponent owns from exile into graveyard chosen",

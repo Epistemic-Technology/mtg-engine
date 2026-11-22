@@ -2112,7 +2112,7 @@ impl GameState {
             Condition::TriggerHadCounters => trigger_obj.is_some_and(|o| self.had_any_counters(o)),
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
-            Condition::EchoDue => self.objects.get(source).is_some_and(|o| o.echo_due()),
+            Condition::EchoDue => self.objects.get(source).is_some_and(crate::state::GameObject::echo_due),
             Condition::NotRenowned => self.objects.get(source).is_some_and(|o| !o.renowned()),
             Condition::NotPrepared => self.objects.get(source).is_some_and(|o| !o.prepared()),
             Condition::Evolves => {
@@ -2167,7 +2167,7 @@ impl GameState {
             Condition::TriggerHadCounters => trigger_obj.is_some_and(|o| self.had_any_counters(o)),
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
-            Condition::EchoDue => self.objects.get(w.source).is_some_and(|o| o.echo_due()),
+            Condition::EchoDue => self.objects.get(w.source).is_some_and(crate::state::GameObject::echo_due),
             Condition::NotRenowned => self.objects.get(w.source).is_some_and(|o| !o.renowned()),
             Condition::NotPrepared => self.objects.get(w.source).is_some_and(|o| !o.prepared()),
             Condition::Evolves => self.evolves(Some(&w.chars), trigger_obj),

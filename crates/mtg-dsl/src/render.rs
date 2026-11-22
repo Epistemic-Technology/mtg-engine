@@ -8457,7 +8457,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // a new target for that copy." (Chain Lightning): the player
             // of the "may" before.
             let again = ctx.player_they;
-            let who = if again { "they".to_string() } else { ctx.obj(*who) };
+            let who = if again {
+                "they".to_string()
+            } else {
+                ctx.obj(*who)
+            };
             if let [one] = inner.as_slice()
                 && let [
                     Effect::CopySpells {

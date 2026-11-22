@@ -2695,7 +2695,8 @@ impl GameState {
                 // values are the copiable values here; skipping the check
                 // keeps this hot path a plain copy.
                 debug_assert!(
-                    !matches!(derived, Derived::Printed) || (obj.except.is_none() && obj.sized == 0)
+                    !matches!(derived, Derived::Printed)
+                        || (obj.except.is_none() && obj.sized == 0)
                 );
                 let out = match derived {
                     Derived::Printed => Some(self.printed(obj.def)),

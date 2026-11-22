@@ -6955,7 +6955,13 @@ impl P {
                     let at = self.pos;
                     let ex = card_filter(self).is_ok()
                         && self.at_words(&[
-                            "an", "opponent", "owns", "from", "exile", "into", "graveyard",
+                            "an",
+                            "opponent",
+                            "owns",
+                            "from",
+                            "exile",
+                            "into",
+                            "graveyard",
                         ]);
                     self.pos = at;
                     ex
@@ -12627,7 +12633,13 @@ impl P {
                         let n = self.count()?;
                         self.pos += 1;
                         self.expect_words(&[
-                            "an", "opponent", "owns", "from", "exile", "into", "graveyard",
+                            "an",
+                            "opponent",
+                            "owns",
+                            "from",
+                            "exile",
+                            "into",
+                            "graveyard",
                         ])?;
                         cost.process = n;
                         cost.order.push(CostItem::Process);
