@@ -7710,7 +7710,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "It's a Skeleton ... and has no abilities".
             if *is_word {
                 let noun = with_article(&subtypes.join(" "));
-                let rest = format!("in addition to its other types");
+                let rest = "in addition to its other types";
                 let text = if keywords.is_empty() {
                     format!("is {noun} {rest}")
                 } else {
