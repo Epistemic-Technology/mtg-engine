@@ -1929,6 +1929,10 @@ pub enum CountExpr {
     /// Opponents who lost life this turn ("for each opponent who lost life
     /// this turn"; CR 119.3).
     OpponentsLostLife,
+    /// Creatures that entered the battlefield under your control this
+    /// turn ("the number of creatures that entered the battlefield under
+    /// your control this turn").
+    CreaturesEnteredThisTurn,
     /// Opponents who have more cards in hand than you.
     OpponentsMoreCards,
     /// The total power, toughness, or mana value of the battlefield
@@ -1953,7 +1957,8 @@ impl CountExpr {
             CountExpr::LifeGainedThisTurn
             | CountExpr::SacrificedThisTurn
             | CountExpr::AttackedThisTurn
-            | CountExpr::OpponentsLostLife => true,
+            | CountExpr::OpponentsLostLife
+            | CountExpr::CreaturesEnteredThisTurn => true,
             CountExpr::Times(_, c) | CountExpr::Plus(_, c) => c.reads_history(),
             CountExpr::Divided { inner, .. } => inner.reads_history(),
             CountExpr::Sum(a, b) => a.reads_history() || b.reads_history(),
@@ -1992,6 +1997,7 @@ impl CountExpr {
             | CountExpr::SacrificedThisTurn
             | CountExpr::AttackedThisTurn
             | CountExpr::OpponentsLostLife
+            | CountExpr::CreaturesEnteredThisTurn
             | CountExpr::OpponentsMoreCards
             | CountExpr::Life => true,
             // Total power and toughness would read the characteristics
@@ -2527,6 +2533,11 @@ pub enum StaticCondition {
     NoEnduringStory,
     /// Max speed (CR 702.179e): "you have max speed", speed 4.
     MaxSpeed,
+    /// "you haven't cast a spell this turn"; with `from_hand`, "you
+    /// haven't cast a spell from your hand this turn" (CR 601.2a).
+    NoSpellsCastThisTurn {
+        from_hand: bool,
+    },
     /// "If {B} was spent to cast this spell", "if at least three red mana
     /// was spent to cast it" (adamant), "if mana from a Treasure was spent
     /// to cast it": at least `at_least` of the mana paid to cast the
@@ -8639,6 +8650,7 @@ impl CardPool {
                     | StaticCondition::MoreCardsInHand
                     | StaticCondition::DrawnThisTurn(_)
                     | StaticCondition::CastThisTurn { .. }
+                    | StaticCondition::NoSpellsCastThisTurn { .. }
                     | StaticCondition::DiscardedThisTurn
             )))
         });

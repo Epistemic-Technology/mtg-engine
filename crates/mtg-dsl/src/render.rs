@@ -3879,6 +3879,10 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "opponent who lost life this turn".to_string(),
             "opponents who lost life this turn".to_string(),
         ),
+        CountExpr::CreaturesEnteredThisTurn => (
+            "creature that entered the battlefield under your control this turn".to_string(),
+            "creatures that entered the battlefield under your control this turn".to_string(),
+        ),
         CountExpr::OpponentsMoreCards => (
             "opponent who has more cards in hand than you".to_string(),
             "opponents who have more cards in hand than you".to_string(),
@@ -11477,6 +11481,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::EnduringStory => "you have an enduring story".to_string(),
         StaticCond::NoEnduringStory => "you don't have an enduring story".to_string(),
         StaticCond::MaxSpeed => "you have max speed".to_string(),
+        StaticCond::NoSpellsCastThisTurn { from_hand } => format!(
+            "you haven't cast a spell{} this turn",
+            if *from_hand { " from your hand" } else { "" }
+        ),
         StaticCond::TotalPower(n) => {
             format!("creatures you control have total power {n} or greater")
         }

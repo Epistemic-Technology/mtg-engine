@@ -1,0 +1,7 @@
+card "Kinbinding" {
+  oracle_id da35de40-6fde-4018-bda8-b0ae91ed872a
+  cost {3}{W}{W}
+  type Enchantment
+  static creature you control: +1/+1 count where creatures entered this turn
+  triggered at beginning of your combat: create 1 "1/1 green and white Kithkin creature"
+}

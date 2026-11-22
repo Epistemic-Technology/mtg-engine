@@ -1654,6 +1654,11 @@ impl Compiler<'_> {
             StaticCond::EnduringStory => StaticCondition::EnduringStory,
             StaticCond::NoEnduringStory => StaticCondition::NoEnduringStory,
             StaticCond::MaxSpeed => StaticCondition::MaxSpeed,
+            StaticCond::NoSpellsCastThisTurn { from_hand } => {
+                StaticCondition::NoSpellsCastThisTurn {
+                    from_hand: *from_hand,
+                }
+            }
             StaticCond::TotalPower(n) => StaticCondition::TotalPower(*n),
             StaticCond::DifferentPowers(n) => StaticCondition::DifferentPowers(*n),
             StaticCond::During(t) => StaticCondition::During(*t),
@@ -1759,6 +1764,7 @@ impl Compiler<'_> {
             A::TwoToX => C::TwoToX,
             A::AttackedThisTurn => C::AttackedThisTurn,
             A::OpponentsLostLife => C::OpponentsLostLife,
+            A::CreaturesEnteredThisTurn => C::CreaturesEnteredThisTurn,
             A::OpponentsMoreCards => C::OpponentsMoreCards,
             A::Total(stat, f) => C::Total(*stat, self.filter(f)),
         }

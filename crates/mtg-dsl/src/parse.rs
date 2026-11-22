@@ -3388,6 +3388,12 @@ impl P {
         if self.eat_words(&["max", "speed"]) {
             return Ok(StaticCond::MaxSpeed);
         }
+        if self.eat_words(&["not", "cast", "this", "turn"]) {
+            return Ok(StaticCond::NoSpellsCastThisTurn { from_hand: false });
+        }
+        if self.eat_words(&["not", "cast", "from", "hand", "this", "turn"]) {
+            return Ok(StaticCond::NoSpellsCastThisTurn { from_hand: true });
+        }
         if self.eat_words(&["you", "own", "card", "in", "exile"]) {
             return Ok(StaticCond::OwnCardInExile);
         }
@@ -8535,6 +8541,9 @@ impl P {
         }
         if self.eat_words(&["opponents", "lost", "life", "this", "turn"]) {
             return Ok(CountExpr::OpponentsLostLife);
+        }
+        if self.eat_words(&["creatures", "entered", "this", "turn"]) {
+            return Ok(CountExpr::CreaturesEnteredThisTurn);
         }
         if self.eat_words(&["opponents", "more", "cards", "in", "hand"]) {
             return Ok(CountExpr::OpponentsMoreCards);

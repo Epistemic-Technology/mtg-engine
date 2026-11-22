@@ -634,6 +634,11 @@ impl Decompiler<'_> {
             StaticCondition::EnduringStory => StaticCond::EnduringStory,
             StaticCondition::NoEnduringStory => StaticCond::NoEnduringStory,
             StaticCondition::MaxSpeed => StaticCond::MaxSpeed,
+            StaticCondition::NoSpellsCastThisTurn { from_hand } => {
+                StaticCond::NoSpellsCastThisTurn {
+                    from_hand: *from_hand,
+                }
+            }
             StaticCondition::TotalPower(n) => StaticCond::TotalPower(*n),
             StaticCondition::DifferentPowers(n) => StaticCond::DifferentPowers(*n),
             StaticCondition::During(t) => StaticCond::During(*t),

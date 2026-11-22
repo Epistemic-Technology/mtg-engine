@@ -1,0 +1,53 @@
+# "if you haven't cast a spell [from your hand] this turn"
+# (StaticCondition::NoSpellsCastThisTurn).
+
+scenario "Stoic Sphinx has hexproof until its controller casts a spell" {
+  battlefield A: "Stoic Sphinx", "Mountain"
+  hand A: "Lightning Bolt"
+  run_to turn 1 precombat_main
+  assert has "Stoic Sphinx" hexproof
+}
+
+scenario "Stoic Sphinx loses hexproof once a spell is cast" {
+  battlefield A: "Stoic Sphinx", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert has not "Stoic Sphinx" hexproof
+}
+
+scenario "Jem Lightfoote draws when no spell was cast from hand" {
+  battlefield A: "Jem Lightfoote, Sky Explorer"
+  library A: "Grizzly Bears", "Hill Giant"
+  start turn 2 A
+  run_to turn 2 cleanup
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Jem Lightfoote doesn't draw after a spell from hand" {
+  battlefield A: "Jem Lightfoote, Sky Explorer", "Mountain"
+  hand A: "Lightning Bolt"
+  library A: "Grizzly Bears", "Hill Giant"
+  start turn 2 A
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 cleanup
+  assert hand A count 1
+  assert hand A lacks "Hill Giant"
+}
+
+scenario "Wrangler of the Damned: a spell cast from the graveyard doesn't count" {
+  battlefield A: "Wrangler of the Damned", 5 "Mountain"
+  graveyard A: "Firebolt"
+  start turn 2 A
+  turn 2 A: cast "Firebolt" from graveyard targeting player B
+  run_to turn 2 cleanup
+  assert battlefield A contains "Spirit"
+}
+
+scenario "Canyon Crab loots at end step without a spell from hand" {
+  battlefield A: "Canyon Crab"
+  library A: "Grizzly Bears", "Hill Giant"
+  start turn 2 A
+  run_to turn 2 cleanup
+  assert graveyard A count 1
+}

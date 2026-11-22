@@ -1,0 +1,8 @@
+card "Wrangler of the Damned" {
+  oracle_id 0d8fded4-0393-43c2-82a1-383f29de65ce
+  cost {3}{W}{U}
+  type Creature — Human Soldier
+  pt 1/4
+  keywords flash
+  triggered at beginning of your end step if not cast from hand this turn: create 1 "2/2 white Spirit creature with flying"
+}

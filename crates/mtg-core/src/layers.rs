@@ -1146,6 +1146,9 @@ fn per_count(
             .players_in_game()
             .filter(|p| *p != you && state.lost_life_this_turn & (1 << p.index().min(7)) != 0)
             .count(),
+        CountExpr::CreaturesEnteredThisTurn => {
+            usize::from(state.turn_log.creatures_entered[you.index().min(3)])
+        }
         CountExpr::OpponentsMoreCards => {
             let mine = state.player(you).hand.len();
             state

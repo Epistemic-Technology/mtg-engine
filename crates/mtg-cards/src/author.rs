@@ -3437,6 +3437,10 @@ fn trigger_general(head: &str) -> Option<String> {
 fn static_condition(s: &str) -> Option<String> {
     match s {
         "you attacked this turn" => return Some("attacked this turn".to_string()),
+        "you haven't cast a spell this turn" => return Some("not cast this turn".to_string()),
+        "you haven't cast a spell from your hand this turn" => {
+            return Some("not cast from hand this turn".to_string());
+        }
         "a creature died this turn" => return Some("creature died this turn".to_string()),
         "you have no cards in hand" => return Some("hand 0 or less".to_string()),
         "it's your turn" => return Some("your turn".to_string()),

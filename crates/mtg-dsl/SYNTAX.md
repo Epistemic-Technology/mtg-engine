@@ -469,7 +469,10 @@ entered this turn` (celebration: "two or more nonland permanents entered
 the battlefield under your control this turn"), `artifact or creature to
 graveyard this turn` ("an artifact or creature was put into a graveyard
 from the battlefield this turn"; any card types joined by `or`),
-`discarded this turn`, `more cards in hand than each
+`discarded this turn`, `not cast this turn` ("you haven't cast a
+spell this turn"), `not cast from hand this turn` ("you haven't cast a
+spell from your hand this turn": a spell cast from a graveyard or exile
+doesn't count), `more cards in hand than each
 opponent`, `opponent poisoned` ("an opponent is poisoned"), `opponent poison
 3 or more`, `you own card in exile`, `total power 8 or more` ("creatures you
 control have total power 8 or greater", formidable), `total toughness 10
@@ -720,7 +723,9 @@ control"); filter `defending player controls` (two players: the
 attacker's opponent). `half down <count>`, `half up <count>`: "half the
 number of Zombies you control, rounded down" (CR 107.1a; `create count
 where half down Zombie you control "2/2 black Zombie creature"`);
-`every 7 <count>`: "for every seven cards in your graveyard", rounded
+`creatures entered this turn`: "the number of creatures that entered
+the battlefield under your control this turn" (a static ability's count
+too). `every 7 <count>`: "for every seven cards in your graveyard", rounded
 down (`static this: +2/+0 count each every 7 graveyard`). Both work in
 static abilities.
 `if you control Treefolk, draw 1 card`: a static condition judged as the

@@ -2780,6 +2780,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::TwoToX => "two to x".to_string(),
         CountExpr::AttackedThisTurn => "creature attacked this turn".to_string(),
         CountExpr::OpponentsLostLife => "opponents lost life this turn".to_string(),
+        CountExpr::CreaturesEnteredThisTurn => "creatures entered this turn".to_string(),
         CountExpr::OpponentsMoreCards => "opponents more cards in hand".to_string(),
         CountExpr::Total(stat, f) => format!("total {} {}", stat_word(*stat), filter(f)),
     }
@@ -4666,6 +4667,10 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::EnduringStory => "enduring story".to_string(),
         StaticCond::NoEnduringStory => "no enduring story".to_string(),
         StaticCond::MaxSpeed => "max speed".to_string(),
+        StaticCond::NoSpellsCastThisTurn { from_hand: false } => "not cast this turn".to_string(),
+        StaticCond::NoSpellsCastThisTurn { from_hand: true } => {
+            "not cast from hand this turn".to_string()
+        }
         StaticCond::TotalPower(n) => format!("total power {n} or more"),
         StaticCond::DifferentPowers(n) => format!("{n} different powers"),
         StaticCond::During(t) => {

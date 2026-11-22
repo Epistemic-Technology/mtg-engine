@@ -1517,6 +1517,9 @@ pub struct TurnLog {
     pub nonland_left: bool,
     /// Void: a spell was cast for its warp cost (CR 702.185a).
     pub warped: bool,
+    /// Players who cast a spell from their hand ("if you haven't cast a
+    /// spell from your hand this turn").
+    pub cast_from_hand: u8,
 }
 
 /// Day and night (CR 731): neither until something makes it day.
@@ -3608,6 +3611,12 @@ impl GameState {
             C::EnduringStory => self.desig.storied(you),
             C::NoEnduringStory => !self.desig.storied(you),
             C::MaxSpeed => self.desig.speed(you) >= 4,
+            C::NoSpellsCastThisTurn { from_hand: true } => {
+                self.turn_log.cast_from_hand & (1 << you.index().min(7)) == 0
+            }
+            C::NoSpellsCastThisTurn { from_hand: false } => {
+                !self.cast_this_turn.iter().any(|(p, _)| *p == you)
+            }
             C::During(crate::card::TurnTime::AttackedThisStep) => {
                 self.step == crate::turn::Step::DeclareAttackers
                     && self.combat.as_ref().is_some_and(|c| {

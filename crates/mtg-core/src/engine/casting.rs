@@ -1138,6 +1138,9 @@ impl GameState {
                 .players_in_game()
                 .filter(|p| *p != you && self.lost_life_this_turn & (1 << p.index().min(7)) != 0)
                 .count(),
+            CountExpr::CreaturesEnteredThisTurn => {
+                usize::from(self.turn_log.creatures_entered[you.index().min(3)])
+            }
             CountExpr::OpponentsMoreCards => {
                 let mine = self.player(you).hand.len();
                 self.players_in_game()
@@ -6550,6 +6553,9 @@ impl GameState {
         // this spell, its total cost paid (CR 601.2f-h).
         self.next_spell_less[caster.index().min(3)] = 0;
         self.cast_this_turn.push((caster, def_ref));
+        if self.objects[spell].cast.cast_from() == Some(Zone::Hand) {
+            self.turn_log.cast_from_hand |= 1 << caster.index().min(7);
+        }
         // Void: "a spell was warped this turn" (CR 702.185).
         if self.objects[spell].alt == crate::state::AltCast::Warp && !self.turn_log.warped {
             self.turn_log.warped = true;

@@ -492,6 +492,9 @@ pub enum CountExpr {
     /// `opponents lost life this turn`: "for each opponent who lost life
     /// this turn".
     OpponentsLostLife,
+    /// `creatures entered this turn`: "the number of creatures that
+    /// entered the battlefield under your control this turn".
+    CreaturesEnteredThisTurn,
     /// `opponents more cards in hand`: "for each opponent who has more
     /// cards in hand than you".
     OpponentsMoreCards,
@@ -2108,6 +2111,11 @@ pub enum StaticCond {
     /// `max speed`: "you have max speed" (CR 702.179e). Usually written
     /// as the ability word `label "Max speed"` instead.
     MaxSpeed,
+    /// `not cast this turn`: "you haven't cast a spell this turn"; `not
+    /// cast from hand this turn`: "... a spell from your hand this turn".
+    NoSpellsCastThisTurn {
+        from_hand: bool,
+    },
     /// `total power 8 or more` (formidable): "creatures you control have
     /// total power 8 or greater".
     TotalPower(u32),
