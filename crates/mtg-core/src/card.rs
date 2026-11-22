@@ -4284,6 +4284,11 @@ pub enum Effect {
     /// Firebending's effect (CR 702.189a): "add N {R}. Until end of
     /// combat, you don't lose this mana as steps and phases end."
     Firebend(Num),
+    /// "[add mana]. Until end of turn, you don't lose this mana as steps
+    /// and phases end." (CR 106.4, 500.4): the mana these effects add to
+    /// the controller's pool stays as steps end, until the cleanup step
+    /// ends.
+    KeepMana(Vec<Effect>),
     /// "unless you waterbend {2}" (CR 701.67a): pay this generic mana,
     /// each {1} by mana or by tapping an untapped artifact or creature the
     /// controller controls; inside "you may" or "unless", like `Pay`.
@@ -4658,6 +4663,7 @@ impl Effect {
                 | Effect::AddManaTimes { .. }
                 | Effect::AddManaCombination { .. }
                 | Effect::AddManaLandCould { .. }
+                | Effect::KeepMana(_)
                 | Effect::SacrificeChosen { .. }
                 | Effect::ReturnChosen { .. }
                 | Effect::ExileChosen { .. }

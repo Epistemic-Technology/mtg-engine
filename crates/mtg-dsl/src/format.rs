@@ -2088,6 +2088,7 @@ impl Fmt {
                 format!("{who} may {}", self.line(inner, t))
             }
             Effect::IfKicked(inner) => format!("if kicked, {}", self.line(inner, t)),
+            Effect::KeepMana(inner) => format!("keep mana {}", self.line(inner, t)),
             Effect::EachPutsFromGraveyard { who, filter: f } => format!(
                 "{} puts 1 {} card from graveyard onto battlefield",
                 self.recipient(*who, t),

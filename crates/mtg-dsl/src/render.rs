@@ -6791,6 +6791,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             "add {} mana of any one color",
             count_words(*n, "one")
         )),
+        // "add that much {R}" (Raphael, after "is dealt damage").
+        Effect::AddManaTimes {
+            mana,
+            count: Num::ThatMuch,
+        } => Clause::imperative(format!(
+            "add that much {}",
+            mana_symbols(&[*mana], "mana of any one color")
+        )),
         Effect::AddManaTimes { mana, .. } => Clause::imperative(format!(
             "add {}",
             mana_symbols(&[*mana], "X mana of any one color")
@@ -7716,6 +7724,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!(
                 "for each {} who can't, {}",
                 if *opponent { "opponent" } else { "player" },
+                lowercase_first(body.trim_end_matches('.'))
+            ))
+        }
+        Effect::KeepMana(inner) => {
+            let body = sentences(inner, ctx);
+            Clause::imperative(format!(
+                "{}. Until end of turn, you don't lose this mana as steps and phases end",
                 lowercase_first(body.trim_end_matches('.'))
             ))
         }

@@ -854,6 +854,11 @@ pub struct PlayerState {
     /// CR 702.189a): at most this much red stays as each combat step
     /// ends (the player spends their other mana first).
     pub combat_mana: u32,
+    /// Mana in the pool that lasts until end of turn ("Until end of turn,
+    /// you don't lose this mana as steps and phases end."): at most this
+    /// much of each kind stays as a step ends (the player's other mana is
+    /// taken to be spent first).
+    pub turn_mana: crate::mana::ManaPool,
 }
 
 impl PlayerState {

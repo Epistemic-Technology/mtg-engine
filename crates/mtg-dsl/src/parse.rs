@@ -4864,6 +4864,15 @@ impl P {
             self.pos += 1;
             return Ok(Effect::Venture { undercity: false });
         }
+        // "Add {R}. Until end of turn, you don't lose this mana as steps
+        // and phases end."
+        if self.at_words(&["keep", "mana"]) {
+            self.pos += 2;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::KeepMana(vec![s]));
+        }
         // "you may ..." before "you" as a subject.
         if self.at_words(&["you", "may"]) {
             self.pos += 2;
@@ -7798,7 +7807,8 @@ impl P {
                     }
                     return Ok(Effect::AddManaOneOf(out));
                 }
-                if out.len() == 1 && self.at_word("count") {
+                // `add {R} that much` (Raphael's "add that much {R}").
+                if out.len() == 1 && (self.at_word("count") || self.at_words(&["that", "much"])) {
                     let count = self.num()?;
                     return Ok(Effect::AddManaTimes {
                         mana: out[0],

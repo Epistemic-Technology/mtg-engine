@@ -3845,6 +3845,9 @@ pub enum Effect {
     /// Firebending's effect (CR 702.189a), from its expansion: "add N {R}
     /// that lasts until end of combat".
     Firebend(Num),
+    /// `keep mana add {R}`: "Add {R}. Until end of turn, you don't lose
+    /// this mana as steps and phases end."
+    KeepMana(Vec<Sentence>),
     /// `waterbend {2}` (CR 701.67a), inside "unless" or "you may": pay
     /// the mana, artifacts and creatures tapped to help.
     Waterbend(ManaCost),

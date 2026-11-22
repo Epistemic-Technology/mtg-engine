@@ -91,6 +91,11 @@ impl GameState {
                 if sorcery_timing && self.may_play_another_land(p) {
                     options.push(Choice::PlayLand(*id));
                 }
+                // CR 702.168a, 708.4: a land card with disguise (Branch of
+                // Vitu-Ghazi) may be cast face down as a 2/2 creature.
+                if def.morph.is_some() && sorcery_timing {
+                    self.face_down_option(p, *id, &sources, &mut options);
+                }
                 // CR 715.3: a land with an Adventure (Midgar, City of Mako
                 // // Reactor Raid) is played as a land or cast as the
                 // Adventure.
@@ -11478,6 +11483,18 @@ impl GameState {
                         }
                     }
                 }
+            }
+            Effect::KeepMana(inner) => {
+                let before = self.player(ctx.controller).mana_pool;
+                for e in inner {
+                    self.apply_effect(ctx, e);
+                }
+                let ps = self.player_mut(ctx.controller);
+                let after = ps.mana_pool;
+                for c in 0..5 {
+                    ps.turn_mana.colored[c] += after.colored[c].saturating_sub(before.colored[c]);
+                }
+                ps.turn_mana.colorless += after.colorless.saturating_sub(before.colorless);
             }
             Effect::Firebend(n) => {
                 let n = self.eval_num(*n, ctx);

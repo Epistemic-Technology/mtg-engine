@@ -1,0 +1,8 @@
+card "Savage Ventmaw" {
+  oracle_id f743d85f-754e-4e70-9907-af54acb9e8d4
+  cost {4}{R}{G}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  triggered whenever this attacks: keep mana add {R}{R}{R}{G}{G}{G}
+}

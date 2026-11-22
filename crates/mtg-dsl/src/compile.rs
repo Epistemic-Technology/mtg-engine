@@ -2742,6 +2742,10 @@ impl Compiler<'_> {
                     then,
                 });
             }
+            Effect::KeepMana(inner) => {
+                let effects = self.sentences(inner)?;
+                out.push(CoreEffect::KeepMana(effects));
+            }
             Effect::IfKicked(inner) => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::IfKicked(effects));
