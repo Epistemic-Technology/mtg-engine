@@ -3028,6 +3028,12 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 }
                 None => {}
             },
+            CostItem::RemoveCounters if cost.remove_from_creature => {
+                if let Some((k, n)) = cost.remove_counters {
+                    let what = counters(Num::N(n), k);
+                    parts.push(format!("Remove {what} from a creature you control"));
+                }
+            }
             CostItem::RemoveCounters => {
                 if let Some((k, n)) = cost.remove_counters {
                     let what = counters(Num::N(n), k);
@@ -5766,7 +5772,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*to);
             Clause::imperative(format!("distribute {c} among {o}"))
         }
-        Effect::RemoveCounterChosen { to } => {
+        Effect::RemoveCounterChosen { to, up_to } if *up_to > 0 => {
+            let o = ctx.obj(*to);
+            Clause::imperative(format!(
+                "remove up to {} counters from {o}",
+                count_words(Num::N(u32::from(*up_to)), "one")
+            ))
+        }
+        Effect::RemoveCounterChosen { to, .. } => {
             let o = ctx.obj(*to);
             Clause::imperative(format!("remove a counter from {o}"))
         }

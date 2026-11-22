@@ -7702,7 +7702,21 @@ impl P {
                 {
                     self.pos += 3;
                     let to = self.recipient()?;
-                    return Ok(Effect::RemoveCounterChosen { to });
+                    return Ok(Effect::RemoveCounterChosen { to, up_to: 0 });
+                }
+                // `remove up to 3 counters from target creature`.
+                if self.at_words(&["up", "to"])
+                    && matches!(self.peek_at(2), Some(Tok::Num(_)))
+                    && self.word_at(3).as_deref() == Some("counters")
+                {
+                    self.pos += 2;
+                    let n = self.number()?;
+                    self.expect_words(&["counters", "from"])?;
+                    let to = self.recipient()?;
+                    return Ok(Effect::RemoveCounterChosen {
+                        to,
+                        up_to: u8::try_from(n).unwrap_or(u8::MAX).max(1),
+                    });
                 }
                 let count = self.num()?;
                 let kind = self.counter_kind()?;
@@ -12583,6 +12597,23 @@ impl P {
                         };
                         self.expect_words(&["from", "this"])?;
                         cost.remove_counters = Some((k, n));
+                        cost.order.push(CostItem::RemoveCounters);
+                    }
+                    // `remove 1 +1/+1 counter from creature you control`.
+                    "remove"
+                        if (2..5).any(|k| {
+                            self.word_at(k).as_deref() == Some("from")
+                                && self.word_at(k + 1).as_deref() == Some("creature")
+                                && self.word_at(k + 2).as_deref() == Some("you")
+                                && self.word_at(k + 3).as_deref() == Some("control")
+                        }) =>
+                    {
+                        self.pos += 1;
+                        let n = self.count()?;
+                        let k = self.counter_kind()?;
+                        self.expect_words(&["from", "creature", "you", "control"])?;
+                        cost.remove_counters = Some((k, n));
+                        cost.remove_from_creature = true;
                         cost.order.push(CostItem::RemoveCounters);
                     }
                     // `put 1 card an opponent owns from exile into

@@ -455,6 +455,7 @@ impl GameState {
             // revealing: costs with a choice the planner doesn't make.
             || cost.blight > 0
             || cost.process > 0
+            || cost.remove_from_creature
             || cost.evidence > 0
             || cost.behold.is_some()
             || cost.reveal_hand

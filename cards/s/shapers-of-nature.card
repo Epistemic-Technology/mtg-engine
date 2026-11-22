@@ -1,0 +1,8 @@
+card "Shapers of Nature" {
+  oracle_id 744f79da-240f-4d14-a98c-e2796645ae88
+  cost {1}{G}{U}
+  type Creature — Merfolk Shaman
+  pt 3/3
+  activated {3}{G}: put 1 +1/+1 counter on target creature
+  activated {2}{U}, remove 1 +1/+1 counter from creature you control: draw 1 card
+}

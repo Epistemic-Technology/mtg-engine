@@ -688,6 +688,9 @@ pub struct Cost {
     /// `put 1 card an opponent owns from exile into graveyard`: "Put a
     /// card an opponent owns from exile into that player's graveyard".
     pub process: u32,
+    /// `remove 1 +1/+1 counter from creature you control`: the
+    /// `remove_counters` from a creature the payer controls.
+    pub remove_from_creature: bool,
 }
 
 /// `behold Kithkin`: "behold a Kithkin" (CR 701.69a); `and exile`: "and
@@ -3417,9 +3420,11 @@ pub enum Effect {
         to: Recipient,
     },
     /// `remove 1 counter from target permanent`: "remove a counter from
-    /// target permanent" (of a kind the controller chooses).
+    /// target permanent" (of a kind the controller chooses); `remove up to
+    /// 3 counters from target creature` (`up_to` 3).
     RemoveCounterChosen {
         to: Recipient,
+        up_to: u8,
     },
     ReturnToHand {
         what: Vec<Recipient>,

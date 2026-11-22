@@ -3242,6 +3242,15 @@ impl GameState {
                 .is_none_or(|f| !self.craft_candidates(p, f, except).is_empty())
     }
 
+    /// The creature `p` controls a "Remove a +1/+1 counter from a creature
+    /// you control" cost takes `n` counters of `k` from: the one with the
+    /// most of them.
+    pub fn counter_cost_creature(&self, p: PlayerId, k: CounterKind, n: u32) -> Option<ObjId> {
+        self.creatures_of(p)
+            .filter(|id| self.objects[*id].counters(k) >= n)
+            .max_by_key(|id| self.objects[*id].counters(k))
+    }
+
     /// Cards in exile a processor's cost may put into a graveyard: those
     /// `p`'s opponents own, the longest exiled first.
     pub fn process_candidates(&self, p: PlayerId) -> Vec<ObjId> {

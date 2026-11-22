@@ -2242,6 +2242,7 @@ impl Compiler<'_> {
             life_x: c.life_x,
             blight_put: c.blight_put,
             process: c.process,
+            remove_from_creature: c.remove_from_creature,
             chosen: c.chosen,
             life: c.life,
             discard: c.discard,
@@ -2655,8 +2656,11 @@ impl Compiler<'_> {
                 count: *count,
                 to: r(*to),
             }),
-            Effect::RemoveCounterChosen { to } => {
-                out.push(CoreEffect::RemoveCounterChosen { to: r(*to) });
+            Effect::RemoveCounterChosen { to, up_to } => {
+                out.push(CoreEffect::RemoveCounterChosen {
+                    to: r(*to),
+                    up_to: *up_to,
+                });
             }
             Effect::RemoveAllCounters { to } => {
                 out.push(CoreEffect::RemoveAllCounters { to: r(*to) });

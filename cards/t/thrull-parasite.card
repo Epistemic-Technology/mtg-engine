@@ -1,0 +1,8 @@
+card "Thrull Parasite" {
+  oracle_id 577eb51d-7979-4f97-a8b1-e31242720611
+  cost {B}
+  type Creature — Thrull
+  pt 1/1
+  extort
+  activated {T}, pay 2 life: remove 1 counter from target nonland permanent
+}

@@ -4379,7 +4379,11 @@ impl GameState {
                     continue;
                 }
                 if let Some((k, n)) = ab.cost.remove_counters
-                    && o.counters(k) < n
+                    && if ab.cost.remove_from_creature {
+                        self.counter_cost_creature(p, k, n).is_none()
+                    } else {
+                        o.counters(k) < n
+                    }
                 {
                     continue;
                 }
@@ -6032,7 +6036,15 @@ impl GameState {
             self.change_life(p, -i32::try_from(x).unwrap_or(i32::MAX));
         }
         if let Some((k, n)) = cost.remove_counters {
-            self.remove_counters(this, k, n);
+            // "Remove a +1/+1 counter from a creature you control".
+            let from = if cost.remove_from_creature {
+                self.counter_cost_creature(p, k, n)
+            } else {
+                Some(this)
+            };
+            if let Some(from) = from {
+                self.remove_counters(from, k, n);
+            }
         }
         // CR 701.43a: an exerted permanent won't untap during its
         // controller's next untap step.
@@ -9137,7 +9149,7 @@ impl GameState {
                     }
                 }
             }
-            Effect::RemoveCounterChosen { to } => {
+            Effect::RemoveCounterChosen { to, up_to } => {
                 let def = self
                     .objects
                     .get(ctx.source)
@@ -9147,22 +9159,38 @@ impl GameState {
                     let Some(id) = on_battlefield(self, t) else {
                         continue;
                     };
-                    let kinds: SmallVec<[CounterKind; 4]> = self.objects[id]
-                        .counters
-                        .iter()
-                        .filter(|(_, n)| *n > 0)
-                        .map(|(k, _)| *k)
-                        .collect();
-                    let i = match (kinds.len(), def) {
-                        (0, _) => continue,
-                        (1, _) | (_, None) => 0,
-                        (n, Some(def)) => self.choose_mid(
-                            ctx.controller,
-                            DecisionKind::ChooseOption { def },
-                            (0..n).map(Choice::Mode).collect(),
-                        ),
-                    };
-                    self.remove_counters(id, kinds[i.min(kinds.len() - 1)], 1);
+                    // "up to three": a counter at a time, the controller
+                    // choosing its kind or to stop (`Choice::Done`, last).
+                    for _ in 0..(*up_to).max(1) {
+                        let kinds: SmallVec<[CounterKind; 4]> = self.objects[id]
+                            .counters
+                            .iter()
+                            .filter(|(_, n)| *n > 0)
+                            .map(|(k, _)| *k)
+                            .collect();
+                        let n = kinds.len();
+                        if n == 0 {
+                            break;
+                        }
+                        let i = match def {
+                            Some(def) if n > 1 || *up_to > 0 => {
+                                let mut options: Vec<Choice> = (0..n).map(Choice::Mode).collect();
+                                if *up_to > 0 {
+                                    options.push(Choice::Done);
+                                }
+                                self.choose_mid(
+                                    ctx.controller,
+                                    DecisionKind::ChooseOption { def },
+                                    options,
+                                )
+                            }
+                            _ => 0,
+                        };
+                        if i >= n {
+                            break;
+                        }
+                        self.remove_counters(id, kinds[i], 1);
+                    }
                 }
             }
             Effect::RemoveAllCounters { to } => {
@@ -10903,7 +10931,7 @@ impl GameState {
                 // (Leatherhead, Swamp Stalker).
                 let no_counter = inner.iter().any(|e| {
                     let (to, kind, n) = match e {
-                        Effect::RemoveCounterChosen { to } => (*to, None, 1),
+                        Effect::RemoveCounterChosen { to, .. } => (*to, None, 1),
                         Effect::RemoveCounters { kind, count, to } => {
                             (*to, Some(*kind), self.eval_num(*count, ctx).max(1))
                         }

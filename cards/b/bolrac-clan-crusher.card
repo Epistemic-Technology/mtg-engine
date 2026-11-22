@@ -1,0 +1,7 @@
+card "Bolrac-Clan Crusher" {
+  oracle_id dbfa5409-5706-4de8-8152-e74b8d93910a
+  cost {3}{R}{G}
+  type Creature — Ogre Warrior
+  pt 4/4
+  activated {T}, remove 1 +1/+1 counter from creature you control: deal 2 damage to any target
+}

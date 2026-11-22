@@ -564,7 +564,10 @@ counter on it." (judged by its card's types)), and the keyword counters `flying`
 keyword; `double_strike` in scenarios). A cost may
 `remove 1 charge counter from this`, `remove 1 counter from this` ("Remove
 a counter from this creature": any kind; the engine removes -1/-1 counters
-first, then kinds that don't change power or toughness, then the rest), or
+first, then kinds that don't change power or toughness, then the rest),
+`remove 1 +1/+1 counter from creature you control` ("Remove a +1/+1
+counter from a creature you control": the engine takes it from the
+creature with the most such counters, the source included), or
 `put 1 -1/-1 counter on this`
 ("Put a -1/-1 counter on this creature", CR 118.3: put on as the cost is
 paid, so a creature it kills is gone before the ability resolves; a mana
@@ -1714,7 +1717,7 @@ on target creature"), `put up to x +1/+0 counters on this capped 4` ("Put
 up to X +1/+0 counters on this creature. This ability can't cause the
 total number of +1/+0 counters on this creature to be greater than
 four.": the engine puts as many as it may),
-`remove 1 +1/+1 counter from <what>`, `remove 1 counter from <what>` ("remove a counter from target permanent": a counter of a kind the controller chooses), `remove all counters from <what>`,
+`remove 1 +1/+1 counter from <what>`, `remove 1 counter from <what>` ("remove a counter from target permanent": a counter of a kind the controller chooses), `remove up to 3 counters from <what>` ("remove up to three counters from target permanent": one at a time, each of a kind the controller chooses, or stop; scenarios `choose "1"` the first kind on it, `choose done`; unscripted, all three), `remove all counters from <what>`,
 `return <what> to hand`, `return <what> to battlefield [with 1 +1/+1 counter]`,
 `regenerate <what>`, `exile <what> [and <what>]` (a permanent or a graveyard card),
 `return all card exiled with this to battlefield under your control`

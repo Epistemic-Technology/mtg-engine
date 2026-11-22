@@ -1,0 +1,9 @@
+card "Ray Fillet, Man Ray" {
+  oracle_id 698098b8-b8e4-4e88-b13a-6b039579d192
+  cost {3}{U}
+  type Legendary Creature — Fish Mutant
+  pt 3/3
+  keywords flying
+  triggered when this enters: create 1 "Mutagen"
+  activated {2}, remove 1 +1/+1 counter from creature you control: draw 1 card
+}

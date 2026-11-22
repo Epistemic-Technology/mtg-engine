@@ -407,6 +407,7 @@ impl Decompiler<'_> {
             life_x: c.life_x,
             blight_put: c.blight_put,
             process: c.process,
+            remove_from_creature: c.remove_from_creature,
             chosen: c.chosen,
             count: c.count,
             exile_cards: c.exile_cards.as_ref().map(|g| {
@@ -886,7 +887,10 @@ impl Decompiler<'_> {
                 to: r(*to),
             },
             CoreEffect::RemoveAllCounters { to } => Effect::RemoveAllCounters { to: r(*to) },
-            CoreEffect::RemoveCounterChosen { to } => Effect::RemoveCounterChosen { to: r(*to) },
+            CoreEffect::RemoveCounterChosen { to, up_to } => Effect::RemoveCounterChosen {
+                to: r(*to),
+                up_to: *up_to,
+            },
             CoreEffect::ReturnToHand { what } => Effect::ReturnToHand {
                 what: vec![r(*what)],
                 owner_hand: false,

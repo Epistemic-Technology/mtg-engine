@@ -1,0 +1,8 @@
+card "Korozda Gorgon" {
+  oracle_id e9e18a5a-d265-456f-a049-fa4b7e223263
+  cost {3}{B}{G}
+  type Creature — Gorgon
+  pt 2/5
+  keywords deathtouch
+  activated {2}, remove 1 +1/+1 counter from creature you control: target creature gets -1/-1 until end of turn
+}

@@ -3480,9 +3480,13 @@ pub enum Effect {
         to: Recipient,
     },
     /// "Remove a counter from target permanent": one counter of a kind
-    /// the controller chooses among those on it.
+    /// the controller chooses among those on it. With `up_to` N, "remove
+    /// up to three counters from target creature": up to N counters, one
+    /// at a time, each of a kind chosen (or stop).
     RemoveCounterChosen {
         to: Recipient,
+        #[serde(default)]
+        up_to: u8,
     },
     /// Give the recipient a regeneration shield until end of turn (CR
     /// 701.15).
@@ -6275,6 +6279,11 @@ pub struct Cost {
     /// picks: the longest exiled first).
     #[serde(default)]
     pub process: u32,
+    /// "Remove a +1/+1 counter from a creature you control": the
+    /// `remove_counters` come off a creature the payer controls rather
+    /// than the source (the engine picks the one with the most of them).
+    #[serde(default)]
+    pub remove_from_creature: bool,
 }
 
 /// A behold cost (CR 701.69a): `n` objects matching `filter`, each a
@@ -6354,6 +6363,7 @@ impl Cost {
             life_x: false,
             blight_put: false,
             process: 0,
+            remove_from_creature: false,
         }
     }
 

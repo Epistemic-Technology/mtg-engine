@@ -1393,8 +1393,14 @@ impl Fmt {
                 counter(*kind, *count),
                 self.recipient(*to, t)
             ),
-            Effect::RemoveCounterChosen { to } => {
+            Effect::RemoveCounterChosen { to, up_to: 0 } => {
                 format!("remove 1 counter from {}", self.recipient(*to, t))
+            }
+            Effect::RemoveCounterChosen { to, up_to } => {
+                format!(
+                    "remove up to {up_to} counters from {}",
+                    self.recipient(*to, t)
+                )
             }
             Effect::RemoveAllCounters { to } => {
                 format!("remove all counters from {}", self.recipient(*to, t))
@@ -4370,7 +4376,12 @@ fn cost_text(c: &Cost) -> String {
             },
             CostItem::RemoveCounters => {
                 if let Some((k, n)) = c.remove_counters {
-                    parts.push(format!("remove {n} {} from this", counter(k, Num::N(n))));
+                    let from = if c.remove_from_creature {
+                        "creature you control"
+                    } else {
+                        "this"
+                    };
+                    parts.push(format!("remove {n} {} from {from}", counter(k, Num::N(n))));
                 }
             }
             CostItem::PutCounters => {
