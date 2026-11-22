@@ -7054,6 +7054,31 @@ impl GameState {
         }
     }
 
+    /// Pay the "exile cards from your graveyard" cost of mana ability `a`
+    /// of `id` as payment activates it: the oldest that match, sparing
+    /// what the spell or ability being paid for targets (as
+    /// `pay_other_costs`).
+    #[cold]
+    fn exile_for_cost(&mut self, p: PlayerId, id: ObjId, a: crate::card::AbilityId) {
+        let pool = std::sync::Arc::clone(&self.pool);
+        let AbilityDef::Activated(ab) = pool.ability(a) else {
+            return;
+        };
+        let Some(g) = &ab.cost.exile_cards else {
+            return;
+        };
+        let mut cands = self.exile_candidates(p, g.filter.as_ref(), id);
+        if g.top {
+            cands.reverse();
+        }
+        if let Some(top) = self.stack.last().and_then(|t| self.objects.get(*t)) {
+            cands.sort_by_key(|c| top.targets.contains(&Target::Object(*c)));
+        }
+        for c in cands.into_iter().take(g.n as usize) {
+            self.move_object(c, Zone::Exile, true);
+        }
+    }
+
     /// CR 601.2g–h with mana abilities activated along the way: tap the
     /// plain sources, activate each ability (its mana cost from the pool,
     /// then {T}, life, the mana it adds, and last its sacrifice), then pay.
@@ -7073,6 +7098,9 @@ impl GameState {
             }
             if act.life > 0 {
                 self.change_life(p, -i32::try_from(act.life).unwrap_or(i32::MAX));
+            }
+            if act.exile {
+                self.exile_for_cost(p, act.id, act.ability);
             }
             if let Some((k, n)) = act.remove {
                 self.remove_counters(act.id, k, n);

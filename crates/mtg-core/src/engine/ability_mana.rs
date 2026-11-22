@@ -153,6 +153,10 @@ pub(super) struct AbilityMana {
     /// It does more than add mana ("If there are no depletion counters on
     /// this land, sacrifice it."): the rest is applied after the mana.
     rest: bool,
+    /// It exiles cards from its controller's graveyard as a cost ("{T},
+    /// Exile a card from your graveyard: Add one mana of any color."):
+    /// the oldest that match, as when it is activated by hand.
+    exile: bool,
     /// How many times it may be activated now.
     times: u8,
     /// The kinds each mana it adds may be.
@@ -179,6 +183,7 @@ pub(super) struct Activation {
     pub remove: Option<(CounterKind, u32)>,
     pub put: Option<(CounterKind, u32)>,
     pub rest: bool,
+    pub exile: bool,
     /// The mana it adds, colors chosen (CR 106.1b), triggered mana
     /// abilities' included.
     pub mana: SmallVec<[Mana; 4]>,
@@ -278,6 +283,7 @@ impl GameState {
                 remove: None,
                 put: None,
                 rest: false,
+                exile: false,
                 times: 1,
                 out: made,
                 tie: Tie::Free,
@@ -451,7 +457,9 @@ impl GameState {
             || cost.life_x
             || cost.discard > 0
             || cost.discard_x
-            || cost.exile_cards.is_some()
+            || cost.exile_cards.as_ref().is_some_and(|g| {
+                g.x || self.exile_candidates(p, g.filter.as_ref(), id).len() < g.n as usize
+            })
             // CR 701.61a: foraging exiles cards or sacrifices a Food, which
             // paying for a spell doesn't do on the way.
             || cost.forage
@@ -492,6 +500,14 @@ impl GameState {
         } else {
             used.min(MAX_TIMES)
         };
+        // Each activation exiles its own cards.
+        let times = match &cost.exile_cards {
+            Some(g) if g.n > 0 => {
+                let have = self.exile_candidates(p, g.filter.as_ref(), id).len() / g.n as usize;
+                times.min(u8::try_from(have).unwrap_or(u8::MAX))
+            }
+            _ => times,
+        };
         let (mut out, tie, rest) = self.mana_made(p, id, &ab.effects)?;
         // CR 605.1b: tapping it for mana triggers mana abilities that add
         // to what it makes.
@@ -509,7 +525,7 @@ impl GameState {
             + 3 * req.total()
             + 2 * cost.life
             + u32::from(!cost.tap && !sac && req.total() == 0)
-            + 2 * u32::from(rest || counters);
+            + 2 * u32::from(rest || counters || cost.exile_cards.is_some());
         Some(AbilityMana {
             id,
             ability: a,
@@ -522,6 +538,7 @@ impl GameState {
             remove: cost.remove_counters,
             put: cost.put_counters,
             rest,
+            exile: cost.exile_cards.is_some(),
             times,
             out,
             tie,
@@ -1117,6 +1134,7 @@ fn matching(
             remove: a.remove,
             put: a.put,
             rest: a.rest,
+            exile: a.exile,
             mana: out.iter().map(|k| some_mana(*k)).collect(),
         })
         .collect();
