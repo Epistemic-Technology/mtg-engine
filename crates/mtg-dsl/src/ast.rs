@@ -1422,6 +1422,9 @@ pub enum Mechanic {
     /// CR 702.39: attacks, you may have target creature defending player
     /// controls untap and block it if able.
     Provoke,
+    /// CR 702.119: `emerge {6}{B}`: an alternative cost, sacrificing a
+    /// creature, reduced by its mana value.
+    Emerge(ManaCost),
     /// CR 702.94: `miracle {R}`: as it's drawn, the first card drawn this
     /// turn, it may be cast for this cost.
     Miracle(ManaCost),

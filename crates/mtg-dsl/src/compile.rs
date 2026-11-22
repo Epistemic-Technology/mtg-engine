@@ -598,6 +598,12 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Miracle(c)) => {
                     b = b.miracle(c.clone());
                 }
+                Ability::Mechanic(Mechanic::Emerge(c)) => {
+                    if card.alt_cost.is_some() {
+                        return self.err("emerge and an alternative cost of the card's own");
+                    }
+                    b = b.emerge(c.clone());
+                }
                 Ability::Mechanic(Mechanic::Blitz(c)) => {
                     if card.alt_cost.is_some() {
                         return self.err("blitz and an alternative cost of the card's own");
@@ -1151,6 +1157,7 @@ impl Compiler<'_> {
                             | Mechanic::Escalate(_)
                             | Mechanic::Prowl(_)
                             | Mechanic::Miracle(_)
+                            | Mechanic::Emerge(_)
                             | Mechanic::Replicate(_)
                             | Mechanic::Multikicker(_)
                             | Mechanic::Disturb(_)
@@ -4548,6 +4555,7 @@ impl Compiler<'_> {
                 | Mechanic::Escalate(_)
                 | Mechanic::Prowl(_)
                 | Mechanic::Miracle(_)
+                | Mechanic::Emerge(_)
                 | Mechanic::Replicate(_)
                 | Mechanic::Multikicker(_)
                 | Mechanic::Disturb(_)
@@ -5969,6 +5977,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Escalate(_)
         | Mechanic::Prowl(_)
         | Mechanic::Miracle(_)
+        | Mechanic::Emerge(_)
         | Mechanic::BattleCry
         | Mechanic::Rampage(_)
         | Mechanic::Replicate(_)

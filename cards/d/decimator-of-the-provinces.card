@@ -1,0 +1,9 @@
+card "Decimator of the Provinces" {
+  oracle_id 7f522ded-09fd-457e-9efe-0a6324925e4c
+  cost {10}
+  type Creature — Eldrazi Boar
+  pt 7/7
+  emerge {6}{G}{G}{G}
+  triggered when you cast this: each creature you control gets +2/+2 and gains trample
+  keyword trample, haste
+}

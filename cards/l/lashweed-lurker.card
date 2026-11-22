@@ -1,0 +1,8 @@
+card "Lashweed Lurker" {
+  oracle_id a7dd75bf-ecda-406c-baa2-8c051f138809
+  cost {8}
+  type Creature — Eldrazi Horror
+  pt 5/4
+  emerge {5}{G}{U}
+  triggered when you cast this: you may put target nonland permanent on top of library
+}

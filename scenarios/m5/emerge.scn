@@ -1,0 +1,113 @@
+# Emerge (CR 702.119a): "You may cast this spell by sacrificing a creature
+# and paying the emerge cost reduced by that creature's mana value."
+# (`alternative` in scenarios, `sacrificing` the creature).
+
+scenario "emerge: sacrifice a creature, pay the cost less its mana value" {
+  battlefield A: 5 "Swamp", "Hill Giant"
+  hand A: "Abundant Maw"
+  turn 1 A: cast "Abundant Maw" alternative sacrificing "Hill Giant"
+  turn 1 A: trigger "Abundant Maw" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Abundant Maw"
+  assert graveyard A contains "Hill Giant"
+  assert life B 17
+  assert life A 23
+}
+
+scenario "emerge: not enough mana without a big enough creature" {
+  battlefield A: 4 "Swamp", "Grizzly Bears"
+  hand A: "Abundant Maw"
+  illegal turn 1 A: cast "Abundant Maw" alternative sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Abundant Maw"
+}
+
+scenario "emerge: no creature to sacrifice, no emerge" {
+  battlefield A: 7 "Swamp"
+  hand A: "Abundant Maw"
+  illegal turn 1 A: cast "Abundant Maw" alternative
+  run_to turn 1 postcombat_main
+  assert hand A contains "Abundant Maw"
+}
+
+scenario "emerge: the cast trigger happens cast normally too" {
+  battlefield A: 8 "Swamp"
+  hand A: "Abundant Maw"
+  turn 1 A: cast "Abundant Maw"
+  turn 1 A: trigger "Abundant Maw" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "emerge: It of the Horrid Swarm makes two Insects" {
+  battlefield A: 4 "Forest", "Hill Giant"
+  hand A: "It of the Horrid Swarm"
+  turn 1 A: cast "It of the Horrid Swarm" alternative sacrificing "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Insect"
+  assert battlefield A contains "It of the Horrid Swarm"
+}
+
+scenario "emerge: Wretched Gryff draws a card" {
+  battlefield A: 4 "Island", "Grizzly Bears"
+  hand A: "Wretched Gryff"
+  library A: "Forest", "Plains"
+  turn 1 A: cast "Wretched Gryff" alternative sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert has "Wretched Gryff" flying
+}
+
+scenario "emerge: Elder Deep-Fiend with flash taps attackers' blockers" {
+  battlefield A: 5 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Elder Deep-Fiend"
+  start turn 2 B
+  turn 2 upkeep A: cast "Elder Deep-Fiend" alternative sacrificing "Grizzly Bears"
+  turn 2 upkeep A: trigger "Elder Deep-Fiend" targeting "Hill Giant", "Serra Angel"
+  run_to turn 2 precombat_main
+  assert tapped "Hill Giant"
+  assert tapped "Serra Angel"
+  assert battlefield A contains "Elder Deep-Fiend"
+}
+
+scenario "emerge: Decimator of the Provinces pumps the team as it's cast" {
+  battlefield A: 9 "Forest", "Hill Giant", "Grizzly Bears"
+  hand A: "Decimator of the Provinces"
+  turn 1 A: cast "Decimator of the Provinces" alternative sacrificing "Hill Giant"
+  turn 1 A: attack "Decimator of the Provinces", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert power "Decimator of the Provinces" 7
+  assert life B 9
+}
+
+scenario "emerge: Lashweed Lurker puts a permanent on top" {
+  battlefield A: 6 "Forest", 2 "Island", "Hill Giant"
+  battlefield B: "Serra Angel"
+  hand A: "Lashweed Lurker"
+  turn 1 A: cast "Lashweed Lurker" alternative sacrificing "Hill Giant"
+  turn 1 A: trigger "Lashweed Lurker" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert library B contains "Serra Angel"
+}
+
+scenario "emerge: Mockery of Nature destroys an artifact" {
+  battlefield A: 4 "Forest", "Hill Giant"
+  battlefield B: "Ornithopter"
+  hand A: "Mockery of Nature"
+  turn 1 A: cast "Mockery of Nature" alternative sacrificing "Hill Giant"
+  turn 1 A: trigger "Mockery of Nature" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+}
+
+scenario "emerge: Vexing Scuttler returns an instant" {
+  battlefield A: 3 "Island", "Hill Giant"
+  graveyard A: "Lightning Bolt"
+  hand A: "Vexing Scuttler"
+  turn 1 A: cast "Vexing Scuttler" alternative sacrificing "Hill Giant"
+  turn 1 A: trigger "Vexing Scuttler" targeting "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Lightning Bolt"
+}

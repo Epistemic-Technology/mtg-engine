@@ -1,0 +1,9 @@
+card "Elder Deep-Fiend" {
+  oracle_id 4eafe717-4ba4-4901-8c67-11757230eb54
+  cost {8}
+  type Creature — Eldrazi Octopus
+  pt 5/6
+  keywords flash
+  emerge {5}{U}{U}
+  triggered when you cast this: tap up to four target permanents
+}

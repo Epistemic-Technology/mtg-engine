@@ -2892,6 +2892,20 @@ impl GameState {
         // CR 601.2f: cost reductions (affinity) apply to an alternative
         // cost too.
         let mut req = alt.cost.mana.requirements(0);
+        // CR 702.119a: emerge, reduced by the mana value of the creature
+        // sacrificed (at best, the greatest).
+        if def.emerge
+            && let Some(SacCost::Filter(f)) = &alt.cost.sacrifice
+        {
+            let best = self
+                .sacrifice_candidates(p, f, id)
+                .into_iter()
+                .filter_map(|c| self.characteristics(c))
+                .map(|c| self.pool.get(c.def).mana_cost.mana_value())
+                .max()
+                .unwrap_or(0);
+            adjust_generic(&mut req, -i32::try_from(best).unwrap_or(i32::MAX));
+        }
         if def.self_cost.is_some()
             || def.cond_cost.is_some()
             || !changers.is_empty()
@@ -6284,7 +6298,16 @@ impl GameState {
         let targets: Vec<Target> = obj.targets.iter().copied().collect();
         let pool = std::sync::Arc::clone(&self.pool);
         let def = pool.get(def_ref);
-        let req = self.spell_requirements(spell, x);
+        let mut req = self.spell_requirements(spell, x);
+        // CR 702.119a: emerge's cost is reduced by the sacrificed
+        // creature's mana value (generic mana only, CR 601.2f).
+        if def.emerge
+            && obj.alt == AltCast::AltCost
+            && let Some(c) = sacrifice.and_then(|c| self.characteristics(c))
+        {
+            let mv = pool.get(c.def).mana_cost.mana_value();
+            adjust_generic(&mut req, -i32::try_from(mv).unwrap_or(i32::MAX));
+        }
         // "Tap three untapped white creatures you control": tapped before
         // the mana is paid, so they don't also tap for it (CR 601.2h).
         let mut sacrifice = sacrifice;

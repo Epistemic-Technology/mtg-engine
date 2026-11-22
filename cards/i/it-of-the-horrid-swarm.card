@@ -1,0 +1,8 @@
+card "It of the Horrid Swarm" {
+  oracle_id f4ad190a-6c82-4923-af54-b4cce8d6465f
+  cost {8}
+  type Creature — Eldrazi Insect
+  pt 4/4
+  emerge {6}{G}
+  triggered when you cast this: create 2 "1/1 green Insect creature"
+}

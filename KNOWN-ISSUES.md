@@ -67,6 +67,12 @@ The renderer prints the right Oracle text for these, but the compiled
 card does something else. Scenarios catch them; the gate does not. Fix
 by rejecting the form at compile time or by binding it correctly.
 
+- **`put 1 stun counters on each of them` after targets** (Rime Chill,
+  Homesickness: "Tap up to two target creatures. Put a stun counter on
+  each of them."): `each of them` is `Recipient::CreatedThem`, the tokens
+  the resolution created, so no counter is put on the targets. Twisted
+  Riddlekeeper is left out for this.
+
 - **"any other target" meaning other than the enchanted creature**
   (Pain for All: "enchanted creature deals damage ... to any other
   target"): `another target any` excludes the source (the Aura), not

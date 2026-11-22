@@ -1,0 +1,8 @@
+card "Abundant Maw" {
+  oracle_id 3676b745-001d-46e6-880f-2fe26476a38d
+  cost {8}
+  type Creature — Eldrazi Leech
+  pt 6/4
+  emerge {6}{B}
+  triggered when you cast this: target opponent loses 3 life and you gains 3 life
+}

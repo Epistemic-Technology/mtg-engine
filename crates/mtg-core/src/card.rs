@@ -6890,6 +6890,11 @@ pub struct CardDef {
     /// prowl cost; cast for it, the permanent is `AltCast::Prowl`.
     #[serde(default)]
     pub prowl: bool,
+    /// Emerge (CR 702.119a): the card's alternative cost (`alt_cost`) is
+    /// its emerge cost with a creature sacrificed, reduced by that
+    /// creature's mana value.
+    #[serde(default)]
+    pub emerge: bool,
     /// Awaken N (CR 702.113): an alternative cost; cast for it, the spell
     /// also puts N +1/+1 counters on target land you control, which
     /// becomes a 0/0 Elemental creature with haste (`awaken_face`).
@@ -9073,6 +9078,7 @@ impl Builder {
             prototype_face: None,
             blitz: false,
             prowl: false,
+            emerge: false,
             miracle: None,
             awaken: None,
             awaken_face: None,
@@ -9349,6 +9355,25 @@ impl Builder {
             others_gain: 0,
         }));
         self.0.prowl = true;
+        self
+    }
+
+    /// Emerge (CR 702.119a): "You may cast this spell by sacrificing a
+    /// creature and paying the emerge cost reduced by that creature's mana
+    /// value."
+    #[must_use]
+    pub fn emerge(mut self, cost: ManaCost) -> Self {
+        self.0.alt_cost = Some(Box::new(AltCost {
+            cost: Cost {
+                mana: cost,
+                sacrifice: Some(SacCost::Filter(ObjFilter::creatures())),
+                ..Cost::default()
+            },
+            count: 1,
+            condition: None,
+            others_gain: 0,
+        }));
+        self.0.emerge = true;
         self
     }
 
