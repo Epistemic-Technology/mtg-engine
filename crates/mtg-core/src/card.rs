@@ -1124,6 +1124,16 @@ pub struct ObjFilter {
     /// "target creature other than enchanted creature": not what the source
     /// is attached to. Judged for targets of an ability of the source.
     pub not_attached: bool,
+    /// "creatures enchanted player controls" (CR 303.4): controlled by the
+    /// player the source, a Curse, is attached to. A placeholder the engine
+    /// fills in (`with_enchanted_player`) where the source is known: a
+    /// static ability's affected objects, a trigger's filter, an effect's
+    /// group; unfilled, nothing matches.
+    #[serde(default)]
+    pub enchanted_player: bool,
+    /// Controlled by this player: `enchanted_player` filled in.
+    #[serde(default)]
+    pub controlled_by: Option<crate::ids::PlayerId>,
 }
 
 /// The player a filter's `that_player` means.
@@ -1414,6 +1424,22 @@ impl ObjFilter {
         self
     }
 
+    /// The filter with "enchanted player controls" filled in: controlled
+    /// by `player`, the player the source is attached to; with none, a
+    /// filter nothing matches.
+    #[must_use]
+    pub fn with_enchanted_player(&self, player: Option<crate::ids::PlayerId>) -> Self {
+        let mut f = self.clone();
+        if player.is_some() {
+            f.enchanted_player = false;
+            f.controlled_by = player;
+        }
+        if let Some(alt) = &f.or {
+            f.or = Some(Box::new(alt.with_enchanted_player(player)));
+        }
+        f
+    }
+
     /// The filter with "the chosen color/type" filled in: that color or
     /// that subtype; with nothing chosen, a filter nothing matches.
     #[must_use]
@@ -1498,9 +1524,13 @@ impl ObjFilter {
         source: Option<crate::ids::ObjId>,
         controller: Option<crate::ids::PlayerId>,
     ) -> bool {
-        // An unfilled "of the chosen type" (`with_chosen`) or "named ~"
-        // (`with_same`) matches nothing.
-        if self.chosen || self.same.is_some() {
+        // An unfilled "of the chosen type" (`with_chosen`), "named ~"
+        // (`with_same`), or "enchanted player controls"
+        // (`with_enchanted_player`) matches nothing.
+        if self.chosen || self.same.is_some() || self.enchanted_player {
+            return false;
+        }
+        if self.controlled_by.is_some_and(|p| p != obj_controller) {
             return false;
         }
         if let Some((def, named)) = self.named

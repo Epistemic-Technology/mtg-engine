@@ -884,6 +884,9 @@ pub struct Filter {
     /// `other than enchanted`: "other than enchanted creature"
     /// (`ObjFilter::not_attached`).
     pub not_attached: bool,
+    /// `enchanted player controls`: "creatures enchanted player controls"
+    /// on a Curse (`ObjFilter::enchanted_player`).
+    pub enchanted_player: bool,
     /// `other than this`: "other than this creature", the relation
     /// `Other` worded after the noun (Weed-Pruner Poplar).
     pub other_than_this: bool,

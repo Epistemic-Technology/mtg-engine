@@ -280,6 +280,7 @@ impl Decompiler<'_> {
             that_player: f.that_player,
             that_opponent: false,
             not_attached: f.not_attached,
+            enchanted_player: f.enchanted_player,
             other_than_this: false,
             and_or: false,
             and_list: false,

@@ -2077,6 +2077,8 @@ fn enchanted_noun(card: &Card) -> &'static str {
         _ => None,
     });
     match enchant.map(Target::base) {
+        // "Enchant player" (CR 303.4): a Curse.
+        Some(Target::Spec(TargetSpec::Player)) => "player",
         Some(Target::Spec(TargetSpec::Land)) => "land",
         Some(Target::Spec(TargetSpec::Artifact)) => "artifact",
         Some(Target::Spec(TargetSpec::Enchantment)) => "enchantment",
@@ -2538,6 +2540,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         }) => s.push_str(" that player or that planeswalker's controller controls"),
         Some(_) => s.push_str(" that player controls"),
         None => {}
+    }
+    if f.enchanted_player {
+        s.push_str(" enchanted player controls");
     }
     if f.other_than_this {
         let _ = write!(s, " other than {}", this_ref(card));
@@ -9417,6 +9422,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         } => "at end of combat".to_string(),
         // "At the beginning of the upkeep of enchanted creature's
         // controller", "... the end step of enchanted artifact's controller".
+        // "At the beginning of enchanted player's upkeep" (a Curse).
+        Trigger::AttachedStep(step) if enchanted_noun(ctx.card) == "player" => format!(
+            "at the beginning of enchanted player's {}",
+            step_name(*step, Who::You).trim_start_matches("your ")
+        ),
         Trigger::AttachedStep(step) => format!(
             "at the beginning of the {} of enchanted {}'s controller",
             step_name(*step, Who::You).trim_start_matches("your "),
@@ -10834,8 +10844,11 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
             } else if !restricted.is_empty() {
                 let r = restriction_phrase(&restricted);
                 parts.push(if plural_form {
-                    // "can attack as though they didn't have defender".
+                    // "can attack as though they didn't have defender";
+                    // "Creatures enchanted player controls attack each
+                    // combat if able".
                     r.replace("though it didn't", "though they didn't")
+                        .replace("attacks each combat", "attack each combat")
                 } else {
                     r
                 });
@@ -11037,6 +11050,7 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
         )
     } else {
         let bare = filter.who.is_none()
+            && !filter.enchanted_player
             && filter.colors.is_none()
             && filter.not_types.is_empty()
             && filter.not_supertypes.is_empty()

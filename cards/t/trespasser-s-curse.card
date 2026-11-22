@@ -1,0 +1,7 @@
+card "Trespasser's Curse" {
+  oracle_id 2769751d-ca67-4d6e-93c9-9587367ae8ab
+  cost {1}{B}
+  type Enchantment — Aura Curse
+  enchant player
+  triggered whenever creature enchanted player controls enters: that player loses 1 life and you gain 1 life
+}

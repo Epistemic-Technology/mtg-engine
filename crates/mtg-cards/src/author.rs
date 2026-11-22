@@ -3299,6 +3299,10 @@ fn trigger_text(head: &str) -> Option<String> {
         }
         "Whenever another creature you control dies" => "whenever other creature you control dies",
         "At the beginning of your upkeep" => "at beginning of your upkeep",
+        // A Curse (CR 303.4): "enchanted controller" is the player.
+        "At the beginning of enchanted player's upkeep" => {
+            "at beginning of enchanted controller's upkeep"
+        }
         "At the beginning of each player's upkeep" => "at beginning of each upkeep",
         "At the beginning of each upkeep" => "at beginning of every upkeep",
         "At the beginning of your end step" => "at beginning of your end step",
@@ -4715,6 +4719,7 @@ impl Builder<'_> {
                 "creature or Vehicle" => "creature or Vehicle",
                 "tapped creature" => "tapped creature",
                 "nonland permanent" => "nonland permanent",
+                "player" => "player",
                 _ => return Err(Skip::Sentence(line.to_string())),
             };
             self.statements.push(format!("enchant {spec}"));

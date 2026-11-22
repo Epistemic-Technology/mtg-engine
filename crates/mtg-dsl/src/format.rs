@@ -3443,6 +3443,9 @@ fn filter_one(f: &Filter) -> String {
         ),
         None => {}
     }
+    if f.enchanted_player {
+        words.push("enchanted player controls".to_string());
+    }
     if f.not_attached {
         words.push("other than enchanted".to_string());
     }

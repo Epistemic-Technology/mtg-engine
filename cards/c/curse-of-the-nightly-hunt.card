@@ -1,0 +1,7 @@
+card "Curse of the Nightly Hunt" {
+  oracle_id cc6f2b79-8fcd-4542-904b-943c7493b8ad
+  cost {2}{R}
+  type Enchantment — Aura Curse
+  enchant player
+  static creature enchanted player controls: has attacks each combat if able
+}

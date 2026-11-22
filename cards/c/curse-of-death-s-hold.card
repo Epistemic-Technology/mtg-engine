@@ -1,0 +1,7 @@
+card "Curse of Death's Hold" {
+  oracle_id 7194cf15-69fc-46f0-987a-2cea8b498f50
+  cost {3}{B}{B}
+  type Enchantment — Aura Curse
+  enchant player
+  static creature enchanted player controls: -1/-1
+}

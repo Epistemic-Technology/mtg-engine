@@ -4736,6 +4736,7 @@ impl GameState {
             targets: SmallVec::new(),
             counters: SmallVec::new(),
             attached_to: None,
+            attached_player: None,
             ability: Some(StackAbility {
                 ability,
                 source,
@@ -7933,9 +7934,16 @@ impl GameState {
                 };
                 if let Some(t) = attached.filter(|t| self.objects.contains_key(*t)) {
                     out.push(Target::Object(t));
+                } else if let Some(p) = self.attached_player_of(ctx.source) {
+                    // "enchanted player" (CR 303.4).
+                    out.push(Target::Player(p));
                 }
             }
             Recipient::AttachedController => {
+                if let Some(p) = self.attached_player_of(ctx.source) {
+                    out.push(Target::Player(p));
+                    return out;
+                }
                 let attached = match self.objects.get(ctx.source) {
                     Some(o) if o.zone == Zone::Battlefield => o.attached_to,
                     _ => self.lki.get(&ctx.source).and_then(|l| l.object.attached_to),
@@ -8242,9 +8250,15 @@ impl GameState {
         f: &'f crate::card::ObjFilter,
         ctx: &EffectCtx,
     ) -> std::borrow::Cow<'f, crate::card::ObjFilter> {
-        if !f.chosen && f.same.is_none() && !f.status.mana_value_x {
+        if !f.chosen && f.same.is_none() && !f.status.mana_value_x && !f.enchanted_player {
             return std::borrow::Cow::Borrowed(f);
         }
+        // "each creature enchanted player controls" (CR 303.4).
+        let f = &if f.enchanted_player {
+            f.with_enchanted_player(self.attached_player_of(ctx.source))
+        } else {
+            f.clone()
+        };
         let mut g = if f.chosen {
             f.with_chosen(self.resolution_chosen(ctx))
         } else {

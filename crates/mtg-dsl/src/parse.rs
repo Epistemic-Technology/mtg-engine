@@ -10706,6 +10706,10 @@ impl P {
                     f.relation = Relation::This;
                     self.pos += 1;
                 }
+                "enchanted" if self.at_words(&["enchanted", "player", "controls"]) => {
+                    f.enchanted_player = true;
+                    self.pos += 3;
+                }
                 "enchanted" | "equipped" => {
                     f.enchanted = true;
                     f.enchanted_permanent =

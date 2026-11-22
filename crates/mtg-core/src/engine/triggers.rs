@@ -835,6 +835,14 @@ impl GameState {
         let filter_on_battlefield = |f: &crate::card::ObjFilter, obj: ObjId| -> Option<PlayerId> {
             let o = self.objects.get(obj)?;
             let c = self.characteristics(obj)?;
+            // "Whenever a creature enchanted player controls enters".
+            let filled;
+            let f = if f.enchanted_player {
+                filled = f.with_enchanted_player(self.attached_player_of(w.source));
+                &filled
+            } else {
+                f
+            };
             (f.matches(obj, o.controller, &c, Some(w.source), Some(w.controller))
                 && self.status_ok(f, obj)
                 && (!f.enchanted || enchants(obj)))
@@ -898,7 +906,13 @@ impl GameState {
                 if s != step {
                     return None;
                 }
-                let host = self.objects.get(w.source)?.attached_to?;
+                let aura = self.objects.get(w.source)?;
+                // "At the beginning of enchanted player's upkeep" (CR
+                // 303.4): an Aura attached to a player.
+                if let Some(p) = aura.attached_player {
+                    return (p == self.active_player).then_some((None, Some(p)));
+                }
+                let host = aura.attached_to?;
                 (self.objects.get(host)?.controller == self.active_player)
                     .then_some((Some(host), Some(self.active_player)))
             }
@@ -1902,6 +1916,7 @@ impl GameState {
             targets: SmallVec::new(),
             counters: SmallVec::new(),
             attached_to: None,
+            attached_player: None,
             ability: Some(t.ability),
             revealed: 0,
         });

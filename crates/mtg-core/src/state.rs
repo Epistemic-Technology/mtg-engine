@@ -227,6 +227,10 @@ pub struct GameObject {
     pub counters: SmallVec<[(CounterKind, u32); 2]>,
     /// For Auras and Equipment: what this is attached to (CR 301.5, 303.4).
     pub attached_to: Option<ObjId>,
+    /// For an Aura with "Enchant player" (CR 303.4, 702.5): the player it
+    /// is attached to ("enchanted player"). A new object has none (CR
+    /// 400.7).
+    pub attached_player: Option<PlayerId>,
     /// For `ObjKind::Ability` objects.
     pub ability: Option<StackAbility>,
     /// The players (bit `i` for player `i`) who have seen this card while
@@ -2997,6 +3001,16 @@ impl GameState {
                 &self.pool,
             ),
             _ => false,
+        }
+    }
+
+    /// The player an "Enchant player" Aura is attached to ("enchanted
+    /// player", CR 303.4), as it last was on the battlefield if it has left
+    /// (CR 608.2h).
+    pub fn attached_player_of(&self, aura: ObjId) -> Option<PlayerId> {
+        match self.objects.get(aura) {
+            Some(o) if o.zone == Zone::Battlefield => o.attached_player,
+            _ => self.lki.get(&aura).and_then(|l| l.object.attached_player),
         }
     }
 

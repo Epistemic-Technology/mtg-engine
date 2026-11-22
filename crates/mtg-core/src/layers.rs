@@ -939,7 +939,11 @@ fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
                 // "Creatures of the chosen type": the source's choice
                 // (CR 607.2a).
                 // "Other creatures named ~ get +1/+1": the source's name.
-                filter: Some(if sa.affected.chosen {
+                filter: Some(if sa.affected.enchanted_player {
+                    // "Creatures enchanted player controls" (CR 303.4).
+                    sa.affected
+                        .with_enchanted_player(work.state.attached_player_of(*id))
+                } else if sa.affected.chosen {
                     sa.affected.with_chosen(obj.chosen)
                 } else if sa.affected.same.is_some() {
                     same_filled(work, &sa.affected, Some(*id)).into_owned()
