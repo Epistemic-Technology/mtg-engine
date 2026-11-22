@@ -4625,7 +4625,10 @@ fn cost_text(c: &Cost) -> String {
             }
             CostItem::FromGraveyard => parts.push("from graveyard".to_string()),
             CostItem::Discard if c.discard_exile => {
-                let what = c.discard_filter.as_ref().map_or(String::new(), |f| filter(f) + " ");
+                let what = c
+                    .discard_filter
+                    .as_ref()
+                    .map_or(String::new(), |f| filter(f) + " ");
                 let n = if c.discard > 1 {
                     format!("{} ", c.discard)
                 } else {
@@ -6201,7 +6204,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let _ = writeln!(out, "{indent}this spell can't be countered");
         }
         Ability::EquipDiscount(n) => {
-            let _ = writeln!(out, "{indent}equip abilities targeting this cost {{{n}}} less");
+            let _ = writeln!(
+                out,
+                "{indent}equip abilities targeting this cost {{{n}}} less"
+            );
         }
         Ability::AuraStays => {
             let _ = writeln!(out, "{indent}protection doesn't remove this");

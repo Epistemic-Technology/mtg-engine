@@ -1342,7 +1342,8 @@ impl GameState {
                     if next_target == 0
                         && is_ability
                         && let Some(sa) = self.objects[spell].ability
-                        && let crate::card::AbilityDef::Activated(ab) = self.pool.ability(sa.ability)
+                        && let crate::card::AbilityDef::Activated(ab) =
+                            self.pool.ability(sa.ability)
                         && self.target_reduces(ab)
                     {
                         options.retain(|c| {

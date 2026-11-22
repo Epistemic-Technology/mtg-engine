@@ -4264,10 +4264,9 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         // "the number of +1/+1 counters on this creature", "for each
         // scream counter on this Aura", "the number of age counters on it".
         // "for each +1/+1 counter on it" of the triggering object.
-        CountExpr::TriggerCounters(mtg_core::card::CounterKind::Any) => (
-            "counter on it".to_string(),
-            "counters on it".to_string(),
-        ),
+        CountExpr::TriggerCounters(mtg_core::card::CounterKind::Any) => {
+            ("counter on it".to_string(), "counters on it".to_string())
+        }
         CountExpr::TriggerCounters(kind) => (
             format!("{} counter on it", counter_name(*kind)),
             format!("{} counters on it", counter_name(*kind)),

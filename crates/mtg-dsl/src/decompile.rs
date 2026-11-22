@@ -131,13 +131,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             .map(|a| match a {
                 // CR 702.172a: the single modes are the sets of one bit.
                 mtg_core::card::AbilityDef::Modal(modes) if !def.tiered.is_empty() => {
-                    crate::ast::Ability::Tiered(
-                        def.tiered
-                            .iter()
-                            .zip(modes)
-                            .map(|(c, m)| (c.clone(), d.mode(m)))
-                            .collect(),
-                    )
+                    crate::ast::Ability::Tiered(d.tiered(&def.tiered, modes))
                 }
                 mtg_core::card::AbilityDef::Modal(modes) if !def.spree.is_empty() => {
                     crate::ast::Ability::Spree(
@@ -344,6 +338,19 @@ impl Decompiler<'_> {
             }
             other => Target::Spec(other),
         }
+    }
+
+    /// Tiered (CR 702.183): each mode with its cost.
+    fn tiered(
+        &self,
+        costs: &[mtg_core::mana::ManaCost],
+        modes: &[mtg_core::card::Mode],
+    ) -> Vec<(mtg_core::mana::ManaCost, Mode)> {
+        costs
+            .iter()
+            .zip(modes)
+            .map(|(c, m)| (c.clone(), self.mode(m)))
+            .collect()
     }
 
     fn mode(&self, m: &mtg_core::card::Mode) -> Mode {

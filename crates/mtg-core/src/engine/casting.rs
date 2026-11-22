@@ -5142,7 +5142,14 @@ impl GameState {
             sources.retain(|(s, _)| *s != sa.source);
         }
         let ps = self.player(o.controller);
-        self.payable(o.controller, &sources, &ps.mana_pool, &req, ps.life, Some(sa.source))
+        self.payable(
+            o.controller,
+            &sources,
+            &ps.mana_pool,
+            &req,
+            ps.life,
+            Some(sa.source),
+        )
     }
 
     /// CR 601.2f (by way of 602.2b): "This ability costs {1} less to
@@ -7339,13 +7346,7 @@ impl GameState {
                     s.pay_other_costs(caster, &one, spell, None, alt_discard);
                 }
                 for (i, c) in chosen.into_iter().enumerate() {
-                    s.pay_other_costs(
-                        caster,
-                        &one,
-                        spell,
-                        Some(c),
-                        alt_discard.filter(|_| i == 0),
-                    );
+                    s.pay_other_costs(caster, &one, spell, Some(c), alt_discard.filter(|_| i == 0));
                 }
                 // "have each other player gain 6 life".
                 if alt.others_gain > 0 {

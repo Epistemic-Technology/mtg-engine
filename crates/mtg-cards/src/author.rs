@@ -2316,7 +2316,9 @@ impl Templates {
             // "Discard any number of cards, then draw that many cards plus
             // one", "discard up to two cards, then draw that many cards".
             (
-                r(r"^[Dd]iscard (any number of|up to \w+) cards, then draw that many cards( plus one)?$"),
+                r(
+                    r"^[Dd]iscard (any number of|up to \w+) cards, then draw that many cards( plus one)?$",
+                ),
                 |c, _| {
                     let how = match cap(c, 1) {
                         "any number of" => "any number".to_string(),
@@ -5021,10 +5023,14 @@ impl Builder<'_> {
         {
             let skip = || Skip::Sentence(line.to_string());
             let mut parts = Vec::new();
-            let hand = Regex::new(r"^exile (a|an|two|three) ((?:[a-z]+ )*?)cards? from your hand$").unwrap();
+            let hand = Regex::new(r"^exile (a|an|two|three) ((?:[a-z]+ )*?)cards? from your hand$")
+                .unwrap();
             let sac = Regex::new(r"^sacrifice (a|an|two|three|four|five) ([A-Za-z ]+)$").unwrap();
             for part in cap(&c, 2).split(" and ") {
-                let part = part.strip_prefix("pay ").filter(|p| p.starts_with('{')).unwrap_or(part);
+                let part = part
+                    .strip_prefix("pay ")
+                    .filter(|p| p.starts_with('{'))
+                    .unwrap_or(part);
                 // "exile a blue card from your hand" (a pitch spell).
                 if let Some(h) = hand.captures(part) {
                     let n = match cap(&h, 1) {
