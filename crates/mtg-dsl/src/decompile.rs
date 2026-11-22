@@ -428,6 +428,7 @@ impl Decompiler<'_> {
             order: Vec::new(),
             conditions: Vec::new(),
             once_ever: false,
+            activators: None,
             restrict: Vec::new(),
             reduce: None,
             reveal_hand: c.reveal_hand,
@@ -2486,6 +2487,7 @@ impl Decompiler<'_> {
                     cost.restrict.push(Restrict::OnceEver);
                 }
                 cost.keyword = act.keyword;
+                cost.activators = act.activators;
                 Ability::Activated {
                     cost,
                     targets: act.targets.iter().map(|t| self.target(*t)).collect(),

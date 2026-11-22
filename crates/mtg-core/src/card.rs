@@ -6913,6 +6913,12 @@ pub struct ActivatedAbility {
     /// control" (CR 601.2f, by way of 602.2b).
     #[serde(default)]
     pub reduction: Option<Box<ActivationReduction>>,
+    /// Who may activate it (CR 602.1): `None`, its controller; `Any`,
+    /// "Any player may activate this ability."; `Opponents`, "Only your
+    /// opponents may activate this ability." The activating player pays
+    /// the cost and controls the ability on the stack (CR 602.2a).
+    #[serde(default)]
+    pub activators: Option<Who>,
 }
 
 /// What an activated ability's own text takes off its cost: `by` once for
@@ -8104,6 +8110,10 @@ impl DefFlags {
     /// (`AbilityDef::PlayFromTop`, `TopRevealed`): priority then looks
     /// at the top card.
     const TOP_PLAY: u32 = 134_217_728;
+    /// An activated ability another player may activate ("Any player may
+    /// activate this ability."): priority then looks at other players'
+    /// permanents.
+    const FOREIGN_ACTIVATED: u32 = 268_435_456;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
@@ -8226,6 +8236,10 @@ impl DefFlags {
         self.has(DefFlags::TOP_PLAY)
     }
 
+    pub const fn has_foreign_activated(self) -> bool {
+        self.has(DefFlags::FOREIGN_ACTIVATED)
+    }
+
     /// Flags describing a list of abilities (and trigger keywords).
     #[allow(clippy::too_many_lines)] // one flag per hot-path fact
     fn of(abilities: &[AbilityDef], keywords: KeywordSet) -> DefFlags {
@@ -8338,6 +8352,12 @@ impl DefFlags {
             abilities
                 .iter()
                 .any(|a| matches!(a, AbilityDef::CostChange(_))),
+        );
+        flags.set(
+            DefFlags::FOREIGN_ACTIVATED,
+            abilities
+                .iter()
+                .any(|a| matches!(a, AbilityDef::Activated(ab) if ab.activators.is_some())),
         );
         flags.set(
             DefFlags::TOP_PLAY,

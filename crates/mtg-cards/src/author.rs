@@ -5943,6 +5943,17 @@ impl Builder<'_> {
         {
             // Where the cost ends and its restrictions begin.
             let base_len = cost.len();
+            // CR 602.1: who may activate it, printed last.
+            let activators = if let Some(r) = rest.strip_suffix(" Any player may activate this ability.") {
+                Some((r, "any player"))
+            } else {
+                rest.strip_suffix(" Only your opponents may activate this ability.")
+                    .map(|r| (r, "opponents only"))
+            };
+            let rest = match activators {
+                Some((r, _)) => r,
+                None => rest,
+            };
             let rest = match rest.strip_suffix(" Activate only once each turn.") {
                 Some(r) => {
                     cost.push_str(", once");
@@ -6022,6 +6033,9 @@ impl Builder<'_> {
             } else {
                 rest
             };
+            if let Some((_, who)) = activators {
+                let _ = write!(cost, ", {who}");
+            }
             // "{2}{B}: Return this card from your graveyard to your hand."
             // is activated from the graveyard.
             let from_graveyard = match rest.trim_end_matches('.') {

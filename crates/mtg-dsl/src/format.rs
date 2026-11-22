@@ -4738,6 +4738,11 @@ fn cost_text(c: &Cost) -> String {
     if c.per_turn > 1 {
         parts.push(format!("{} times per turn", c.per_turn));
     }
+    match c.activators {
+        Some(Who::Any) => parts.push("any player".to_string()),
+        Some(Who::Opponents) => parts.push("opponents only".to_string()),
+        _ => {}
+    }
     match c.reduce.as_deref() {
         Some((by, crate::ast::ReduceBy::Each(e))) => {
             parts.push(format!("reduced {by} each {}", count_expr_text(e)));

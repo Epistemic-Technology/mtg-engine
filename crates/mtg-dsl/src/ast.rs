@@ -690,6 +690,9 @@ pub struct Cost {
     /// `once ever`: "Activate only once." (for as long as the source is the
     /// same object).
     pub once_ever: bool,
+    /// `any player`: "Any player may activate this ability."; `opponents
+    /// only`: "Only your opponents may activate this ability." (CR 602.1).
+    pub activators: Option<Who>,
     /// The restrictions (`sorcery`, `once`, conditions) in the order
     /// written; printed as one sentence in that order. Empty: sorcery,
     /// then once.

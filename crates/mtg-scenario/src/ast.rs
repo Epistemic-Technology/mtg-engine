@@ -234,6 +234,10 @@ pub enum Action {
     /// `activate "Source" [sacrificing "X"] [targeting ...]`: activate an
     /// ability of a permanent the player controls (CR 602).
     Activate {
+        /// `activate B "Flailing Soldier"`: a permanent that player
+        /// controls ("Any player may activate this ability.", CR 602.1);
+        /// unqualified, the acting player's.
+        of: Option<PlayerId>,
         source: String,
         /// `ability N` (1-based among the permanent's activated abilities).
         ability: Option<usize>,

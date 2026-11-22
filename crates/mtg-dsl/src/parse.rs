@@ -13646,6 +13646,15 @@ impl P {
                         cost.once_ever = true;
                         cost.restrict.push(Restrict::OnceEver);
                     }
+                    // CR 602.1: "Any player may activate this ability."
+                    "any" if self.at_words(&["any", "player"]) => {
+                        self.pos += 2;
+                        cost.activators = Some(Who::Any);
+                    }
+                    "opponents" if self.at_words(&["opponents", "only"]) => {
+                        self.pos += 2;
+                        cost.activators = Some(Who::Opponents);
+                    }
                     "once" => {
                         self.pos += 1;
                         self.eat_words(&["per", "turn"]);

@@ -4654,11 +4654,26 @@ impl GameState {
         let pool = self.player(p).mana_pool;
         let life = self.player(p).life;
         let all_sources = sources;
-        for id in self.permanents_of(p) {
+        // CR 602.1: "Any player may activate this ability." on another
+        // player's permanent.
+        let foreign: Vec<ObjId> = if self.foreign_activated_sources > 0 {
+            self.battlefield
+                .iter()
+                .copied()
+                .filter(|id| {
+                    let o = &self.objects[*id];
+                    o.controller != p && self.flags_of(o).has_foreign_activated()
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
+        for id in self.permanents_of(p).chain(foreign) {
             let o = &self.objects[id];
             if !grants && !self.flags_of(o).has_activated() {
                 continue;
             }
+            let own = o.controller == p;
             let Some(c) = self.characteristics(id) else {
                 continue;
             };
@@ -4676,6 +4691,15 @@ impl GameState {
                     continue;
                 };
                 if barred || (barred_nonmana && !ab.is_mana_ability()) {
+                    continue;
+                }
+                // CR 602.1: who may activate it.
+                let allowed = match ab.activators {
+                    None => own,
+                    Some(crate::card::Who::Opponents) => !own,
+                    Some(_) => true,
+                };
+                if !allowed {
                     continue;
                 }
                 if ab.sorcery_speed && !sorcery_timing {

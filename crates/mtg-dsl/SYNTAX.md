@@ -339,6 +339,12 @@ source stays the same object, CR 400.7). `sorcery`, `once`, and the
 restrictions print as one
 sentence in the order written: `if you control enchantment, sorcery` is
 "Activate only if you control an enchantment and only as a sorcery".
+`any player` ("Any player may activate this ability.") and `opponents
+only` ("Only your opponents may activate this ability.") say who may
+activate it (CR 602.1): the activating player pays the cost and controls
+the ability (CR 602.2a). `replace destroy this: regenerate` prints "If this
+creature would be destroyed, regenerate it." (a regeneration that is never
+used up; "can't be regenerated" stops it, CR 701.15c).
 `reduced {1} each <count>` ("This ability costs {1} less to activate for
 each Town you control.") and `reduced {4}{B} if <static condition>` ("...
 less to activate if you've drawn three or more cards this turn.") take

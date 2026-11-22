@@ -2124,6 +2124,10 @@ pub struct GameState {
     /// the top of the library or reveal it (`DefFlags::TOP_PLAY`):
     /// priority and the views look only when there are any.
     pub top_play_sources: u32,
+    /// Permanents on the battlefield with an activated ability another
+    /// player may activate (`DefFlags::FOREIGN_ACTIVATED`): priority looks
+    /// at other players' permanents only when there are any.
+    pub foreign_activated_sources: u32,
     /// Sagas with chapter abilities on the battlefield (CR 714): the
     /// precombat main phase and state-based actions look for them only
     /// when there are any.

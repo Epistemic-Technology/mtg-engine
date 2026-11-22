@@ -853,6 +853,11 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
         "unlock" => (Action::Unlock(line.string()?), Some(Step::PrecombatMain)),
         "wait" => (Action::Wait, Some(Step::PrecombatMain)),
         "activate" => {
+            let of = if line.peek_player() {
+                Some(line.player()?)
+            } else {
+                None
+            };
             let source = line.string()?;
             let ability = if line.peek_ident("ability") {
                 line.pos += 1;
@@ -897,6 +902,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             }
             (
                 Action::Activate {
+                    of,
                     source,
                     ability,
                     mode,

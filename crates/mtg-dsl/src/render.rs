@@ -11591,6 +11591,12 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
         }
         // CR 702.89a: an Aura's keyword ability.
         (Replaces::Destroy { .. }, Outcome::UmbraArmor) => "Umbra armor".to_string(),
+        // A static regeneration (CR 701.15, 614.8): "If this creature
+        // would be destroyed, regenerate it." (Clergy of the Holy Nimbus).
+        (Replaces::Destroy { to }, Outcome::Regenerate) if !this_turn => {
+            let to = affects_to(to, ctx);
+            format!("If {to} would be destroyed, regenerate it.")
+        }
         (Replaces::Destroy { to }, Outcome::Regenerate) => {
             let to = affects_to(to, ctx);
             format!("Regenerate {to}.")
@@ -13524,6 +13530,12 @@ fn restrictions_text(cost: &Cost, card: &Card) -> String {
             n => format!("{n} times"),
         };
         let _ = write!(out, " Activate no more than {n} each turn.");
+    }
+    // CR 602.1.
+    match cost.activators {
+        Some(Who::Any) => out.push_str(" Any player may activate this ability."),
+        Some(Who::Opponents) => out.push_str(" Only your opponents may activate this ability."),
+        _ => {}
     }
     out
 }

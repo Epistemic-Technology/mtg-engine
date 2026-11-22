@@ -1,0 +1,8 @@
+card "Zerapa Minotaur" {
+  oracle_id 4520c630-3650-462f-ab01-215eb2bdbbf5
+  cost {2}{R}{R}
+  type Creature — Minotaur
+  pt 3/3
+  keywords first strike
+  activated {2}, any player: this loses first strike until end of turn
+}

@@ -1,0 +1,8 @@
+card "Ribbon Snake" {
+  oracle_id 98b53af9-af1b-4d5d-ae5a-bd444c1339d2
+  cost {1}{U}{U}
+  type Creature — Snake
+  pt 2/3
+  keywords flying
+  activated {2}, any player: this loses flying until end of turn
+}
