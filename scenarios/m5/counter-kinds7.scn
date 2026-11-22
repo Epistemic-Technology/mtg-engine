@@ -149,3 +149,27 @@ scenario "Sting enters with a hone counter per creature the opponent controls" {
   assert power "Grizzly Bears" 4
   assert toughness "Grizzly Bears" 2
 }
+
+scenario "Rotisserie Elemental: sacrifice it to exile the top X, X its skewer counters" {
+  battlefield A: "Rotisserie Elemental" with 1 skewer
+  library A: "Mountain", "Island", "Forest", "Plains"
+  turn 1 A: attack "Rotisserie Elemental"
+  turn 1 A: accept "Rotisserie Elemental"
+  turn 1 postcombat_main A: play "Island"
+  run_to turn 1 end
+  assert graveyard A contains "Rotisserie Elemental"
+  assert battlefield A contains "Island"
+  assert exile A contains "Mountain"
+  assert library A contains "Forest"
+  assert life B 19
+}
+
+scenario "Rotisserie Elemental: declining keeps it and its counters" {
+  battlefield A: "Rotisserie Elemental"
+  library A: "Mountain", "Island"
+  turn 1 A: attack "Rotisserie Elemental"
+  turn 1 A: decline "Rotisserie Elemental"
+  run_to turn 1 postcombat_main
+  assert counters "Rotisserie Elemental" skewer 1
+  assert library A contains "Mountain"
+}
