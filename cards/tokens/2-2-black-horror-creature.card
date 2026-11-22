@@ -1,0 +1,6 @@
+token "2/2 black Horror creature" {
+  name "Horror"
+  type Creature — Horror
+  pt 2/2
+  color black
+}

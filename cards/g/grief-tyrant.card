@@ -1,0 +1,8 @@
+card "Grief Tyrant" {
+  oracle_id ce855b35-4a31-4e42-9dbc-fea8d244fbe0
+  cost {5}{B/R}
+  type Creature — Horror
+  pt 8/8
+  enters with 4 -1/-1 counters
+  triggered when this dies: put count each -1/-1 counters on this -1/-1 counters on target creature
+}

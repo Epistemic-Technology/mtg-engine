@@ -1,0 +1,7 @@
+card "The Final Days" {
+  oracle_id f2b88031-bfb7-46c4-abdd-3b6b5f5acfa4
+  cost {2}{B}{B}
+  type Sorcery
+  spell: create 2 tapped "2/2 black Horror creature"; if cast from graveyard, instead create count where graveyard creature tapped "2/2 black Horror creature"
+  flashback {4}{B}{B}
+}

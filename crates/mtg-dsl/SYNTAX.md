@@ -837,7 +837,9 @@ enters`, `whenever this attacks`, `when this is turned face up`), a spell
 your turn`), `that creature` after an object target is that target too: `when this enters:
 attach to target creature you control; that creature gains hexproof`
 ("When this Equipment enters, attach it to target creature you control.
-That creature gains hexproof ..."). In a trigger with no triggering object (`at beginning
+That creature gains hexproof ..."); with no object target before it, there
+it is an error ("When this Aura enters, ... untap that creature" names no
+creature: write `this`, `attached`, or a target). In a trigger with no triggering object (`at beginning
 of ...`, `whenever you gain life`, `whenever you attack`) `it` is an
 error: write `this` or `target N`. In any ability, `it` after `create 1
 "..."` (or a token copy), before another target, is that token ("Create a
@@ -1035,7 +1037,8 @@ then shuffled.
 `target opponent loses 3 life unless they sacrifice nonland permanent
 else discard 1 card` prints "... unless they sacrifice a nonland permanent
 of their choice or discard a card" (CR 608.2d; `else`, since `or` would
-start another clause); `each opponent loses 3 life unless each opponent
+start another clause; in a spell, `sacrifice another ...` is an error:
+`another` excludes the source, not the spell's target, Torment of Venom); `each opponent loses 3 life unless each opponent
 sacrifices nonland permanent else discards 1 card` prints "... unless that
 player sacrifices ... or discards a card"; `it deals 5 damage to target
 opponent unless target 1 sacrifices creature` prints "... unless that
@@ -1240,7 +1243,10 @@ Jones). In a triggered ability, `put its counters on this` moves the
 triggering object's counters, as it last existed ("Whenever another
 creature you control dies, if it had counters on it, put its counters on
 this creature."; the condition `if it had counters` is any kind on the
-triggering object). `impulse 2 next turn it` prints "You may play them
+triggering object). So does `put its counters on target creature` in a
+trigger about another object ("Whenever another creature you control
+dies, put its counters on target creature you control"); in a trigger
+about the source itself (`when this dies`) they are the source's. `impulse 2 next turn it` prints "You may play them
 until the end of your next turn."
 
 An optional additional cost (CR 601.2b): `additional cost may collect
@@ -1421,7 +1427,9 @@ A chosen color or type comes last: `creature you control of chosen color`
 as it entered, CR 607.2a), `creature of chosen type`, `permanent you
 control of that type` (chosen earlier as the effect resolved), `enchantment
 of color of choice`, `creature of creature type of choice` (chosen as the
-effect resolves). With nothing chosen, nothing matches. `named this` is
+effect resolves). With nothing chosen, nothing matches; a delayed trigger
+doesn't keep what its ability chose, so `of that color` there is an error
+(Zombie Boa). `named this` is
 "named ~", the card's own name (CR 201.4b), printed after the controller
 (`creature you control named this`: "creature you control named Timberpack
 Wolf") unless written before it (`creature named this you control`); `not
@@ -1449,7 +1457,8 @@ Game-state qualifiers (`ObjFilter::status`, judged with the game state like
 `tapped`): `blocked` and `unblocked` ("target blocked creature": an
 attacking creature once blockers are declared, CR 509.1h; before then it is
 neither), `with aura` and `without aura` ("target enchanted permanent",
-"creature that isn't enchanted": an Aura is attached to it, CR 303.4; the
+"creature that isn't enchanted": an Aura is attached to it, CR 303.4; who
+controls the Aura isn't checked, so `with aura you control` is an error; the
 word `enchanted` is the permanent this is attached to), `that entered this
 turn` (its timestamp is from this turn, CR 613.7e; `as long as this is that
 entered this turn` prints "As long as this creature entered this turn"),
@@ -2422,7 +2431,10 @@ other cards with the same name as that card from your graveyard to your
 hand", the cards in its graveyard), `target enchantment and each other
 enchantment that shares color with target 1` ("... and each other
 enchantment that shares a color with it": none but the target if it is
-colorless, CR 105.2c), and targets.
+colorless, CR 105.2c), and targets. After such a recipient, `those
+creatures` is the target and the group together ("Untap target creature
+and each other creature that shares a color with it. Those creatures get
++2/+0 until end of turn.", Rally the Righteous).
 creatures you control get +2/+2" as a subject; `each creature your
 opponents control`), and targets. A group is "they" again within its
 sentence and named in full in a later one ("... to each creature your
@@ -2527,7 +2539,12 @@ Targets relative to a player: `target creature that player controls` (the
 triggering player: "Whenever this creature deals combat damage to a
 player, ... target creature that player controls"; outside a triggered
 ability there is no triggering player, and the bare `that player
-controls` is an error), `another target
+controls` is an error; so it is in a trigger on the source's own event,
+`when this enters`, `when this dies`, `when this leaves`, `when this is
+turned face up`, `when you cast this`: "... target nonland permanent an
+opponent controls and all other nonland permanents that player controls
+with the same name as that permanent" is `controller of target 1
+controls`, Deputy of Detention), `another target
 creature controller of target 1 controls` ("Target creature an opponent
 controls deals damage equal to its power to another target creature that
 player controls": the first target's controller; a first target is offered

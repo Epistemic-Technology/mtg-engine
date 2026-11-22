@@ -8655,6 +8655,10 @@ impl GameState {
                 let mut group = SmallVec::new();
                 self.group_into(ctx, f, &mut group);
                 out.extend(group.into_iter().filter(|g| g != t));
+                // "Untap target creature and each other creature that
+                // shares a color with it. Those creatures get +2/+0": the
+                // target and the group (CR 608.2c).
+                self.note_group(&out);
             }
         }
         out
@@ -14207,6 +14211,18 @@ impl GameState {
             (Some(l), None) => l.object.controller,
             (None, None) => return false,
         };
+        // "If that creature is a token" (CR 111.1), as it last existed if it
+        // has left.
+        if let Some(token) = filter.status.token {
+            let kind = match (self.objects.get(id), self.lki.get(&id)) {
+                (Some(o), _) => o.kind,
+                (None, Some(l)) => l.object.kind,
+                (None, None) => return false,
+            };
+            if (kind == crate::state::ObjKind::Token) != token {
+                return false;
+            }
+        }
         // "If it was dealt damage this turn": the damage marked on it, as
         // it last existed if it has left (CR 608.2h).
         if filter.damaged {

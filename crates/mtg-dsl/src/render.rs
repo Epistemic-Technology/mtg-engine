@@ -1059,6 +1059,10 @@ struct Ctx<'a> {
     /// instead").
     last_token: Option<String>,
     those_tokens: Option<String>,
+    /// The last token was created tapped: "those tokens" are made the same
+    /// way ("Create two tapped 2/2 ... tokens. ... instead create X of
+    /// those tokens", The Final Days).
+    last_token_tapped: bool,
     /// The controller was just told to discard one card ("draw a card,
     /// then discard a card"): a reflexive trigger after it is "When you
     /// discard a card this way".
@@ -1137,6 +1141,7 @@ impl<'a> Ctx<'a> {
             trigger: None,
             last_token: None,
             those_tokens: None,
+            last_token_tapped: false,
             discarded_one: false,
             attached_mentioned: false,
             attached_by_cond: false,
@@ -6544,7 +6549,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             attached,
             sized,
         } => {
-            if !*tapped
+            if *tapped == ctx.last_token_tapped
+                && !*attacking
                 && who.is_none()
                 && attached.is_none()
                 && ctx.those_tokens.as_deref() == Some(token.as_str())
@@ -6555,6 +6561,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ));
             }
             ctx.last_token = Some(token.clone());
+            ctx.last_token_tapped = *tapped && !*attacking;
             let mut what = token_description(token, *count, *tapped && !*attacking, *it_has, ctx);
             // "an X/X green Elemental creature token" (the definition's
             // power and toughness stand for X).
