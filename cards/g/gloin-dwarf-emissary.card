@@ -1,0 +1,8 @@
+card "Glóin, Dwarf Emissary" {
+  oracle_id 29375a7a-af4e-46aa-8d1c-e8d22d3c0ea7
+  cost {2}{R}
+  type Legendary Creature — Dwarf Advisor
+  pt 3/3
+  triggered once each turn whenever you cast historic spell: create 1 "Treasure"
+  activated {T}, sacrifice Treasure: goad target creature
+}

@@ -86,3 +86,40 @@ scenario "goad: an Aura's goad on its controller's own creature: not at a planes
   run_to turn 1 postcombat_main
   assert life B 15
 }
+
+scenario "Glóin: a historic spell makes a Treasure, once each turn" {
+  battlefield A: "Glóin, Dwarf Emissary"
+  hand A: "Ornithopter", "Ornithopter", "Grizzly Bears"
+  battlefield A: 2 "Forest"
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: wait
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Treasure"
+}
+
+scenario "Glóin: a nonhistoric spell makes no Treasure" {
+  battlefield A: "Glóin, Dwarf Emissary", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "Glóin: sacrifice a Treasure to goad a creature" {
+  battlefield A: "Glóin, Dwarf Emissary", "Treasure"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Glóin, Dwarf Emissary" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A lacks "Treasure"
+  assert life A 18
+}
+
+scenario "Glóin: no Treasure, no goad" {
+  battlefield A: "Glóin, Dwarf Emissary"
+  battlefield B: "Grizzly Bears"
+  illegal turn 1 A: activate "Glóin, Dwarf Emissary" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
