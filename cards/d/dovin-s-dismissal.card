@@ -1,0 +1,6 @@
+card "Dovin's Dismissal" {
+  oracle_id 6db5f1a7-4cd8-42e2-a5d8-1603206ad0cc
+  cost {2}{W}{U}
+  type Instant
+  spell: put up to 1 target tapped creature on top of library; you may search library or graveyard card named "Dovin, Architect of Law" reveal to hand
+}

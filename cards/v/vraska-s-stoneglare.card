@@ -1,0 +1,6 @@
+card "Vraska's Stoneglare" {
+  oracle_id c39e2046-173a-44b6-8e93-b22ede35485d
+  cost {4}{B}{G}
+  type Sorcery
+  spell: destroy target creature; you gain count equal toughness of target 1 life; you may search library or graveyard card named "Vraska, Regal Gorgon" reveal to hand
+}

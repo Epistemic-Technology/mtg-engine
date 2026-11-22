@@ -1,0 +1,6 @@
+card "Angrath's Fury" {
+  oracle_id 61f3a549-77b4-4403-afa2-a0f02603f2e6
+  cost {3}{B}{R}
+  type Sorcery
+  spell: destroy target creature; deal 3 damage to target player or planeswalker; you may search library or graveyard card named "Angrath, Minotaur Pirate" reveal to hand
+}

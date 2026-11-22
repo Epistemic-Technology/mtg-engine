@@ -46,3 +46,70 @@ scenario "Ral's Dispersal: bounce, then Ral from the graveyard" {
   assert hand B contains "Hill Giant"
   assert hand A contains "Ral, Caller of Storms"
 }
+
+scenario "Vraska's Stoneglare: destroy, gain its toughness, no Vraska to find" {
+  battlefield A: 4 "Swamp", 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Vraska's Stoneglare"
+  library A: 5 "Island"
+  turn 1 A: cast "Vraska's Stoneglare" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 23
+  assert hand A count 0
+}
+
+scenario "Dovin's Dismissal: a tapped creature onto its owner's library" {
+  battlefield A: 2 "Plains", 2 "Island"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Dovin's Dismissal"
+  library B: 5 "Island"
+  turn 1 A: cast "Dovin's Dismissal" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert library B count 6
+  assert battlefield B lacks "Hill Giant"
+}
+
+scenario "Basri's Aegis: a counter on each of two creatures" {
+  battlefield A: 4 "Plains", "Grizzly Bears", "Hill Giant"
+  hand A: "Basri's Aegis"
+  turn 1 A: cast "Basri's Aegis" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Hill Giant" +1/+1 1
+}
+
+scenario "Oko's Hospitality: your creatures are 3/3 until end of turn" {
+  battlefield A: 3 "Forest", 2 "Island", "Hill Giant", "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  hand A: "Oko's Hospitality"
+  turn 1 A: cast "Oko's Hospitality"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Hill Giant" 3
+  assert power "Serra Angel" 4
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Angrath's Fury: destroy a creature and 3 damage to a player" {
+  battlefield A: 3 "Swamp", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Angrath's Fury"
+  turn 1 A: cast "Angrath's Fury" targeting "Hill Giant", player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 17
+}
+
+scenario "Chandra's Flame Wave: 2 damage to a player and each of their creatures" {
+  battlefield A: 5 "Mountain", "Grizzly Bears"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Chandra's Flame Wave"
+  turn 1 A: cast "Chandra's Flame Wave" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert battlefield A contains "Grizzly Bears"
+}
