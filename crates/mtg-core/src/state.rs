@@ -984,6 +984,9 @@ pub struct CombatState {
     /// from combat, or whose attacker has ("if this creature attacked or
     /// blocked this combat").
     pub left: Vec<ObjId>,
+    /// The total power of the creatures declared as attackers this
+    /// combat, as they were declared (pack tactics).
+    pub attacked_power: i32,
 }
 
 impl CombatState {
@@ -3998,6 +4001,13 @@ impl GameState {
                 .combat
                 .as_ref()
                 .is_some_and(|c| c.attackers.len() == 1 && c.attackers[0].id == source),
+            C::AttackedTotalPower(n) => {
+                self.active_player == you
+                    && self
+                        .combat
+                        .as_ref()
+                        .is_some_and(|c| c.attacked_power >= i32::from(*n))
+            }
             C::SourceAttackedOrBlocked => self.combat.as_ref().is_some_and(|c| {
                 c.attacker(source).is_some()
                     || c.attackers.iter().any(|a| a.blockers.contains(&source))

@@ -2342,6 +2342,9 @@ pub enum StaticCond {
     /// `attacked or blocked this combat`: "this creature attacked or
     /// blocked this combat".
     AttackedOrBlocked,
+    /// `attacked total power 6`: "you attacked with creatures with total
+    /// power 6 or greater this combat" (pack tactics).
+    AttackedTotalPower(u16),
     /// `blocked`: "this creature is blocked".
     Blocked,
     /// `being blocked`: "at least one creature is blocking this creature".

@@ -1,0 +1,8 @@
+card "Targ Nar, Demon-Fang Gnoll" {
+  oracle_id d53ef172-8c26-4469-94c6-bf7fe4d48dbf
+  cost {R}{G}
+  type Legendary Creature — Gnoll
+  pt 2/2
+  label "Pack tactics" triggered whenever this attacks if attacked total power 6: each attacking creature gets +1/+0 until end of turn
+  activated {2}{R}{G}: double this power and toughness
+}

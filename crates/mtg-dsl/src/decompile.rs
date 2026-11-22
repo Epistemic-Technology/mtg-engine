@@ -600,6 +600,7 @@ impl Decompiler<'_> {
             StaticCondition::SourceModified => StaticCond::Modified,
             StaticCondition::SourceAttackingAlone => StaticCond::AttackingAlone,
             StaticCondition::SourceAttackedOrBlocked => StaticCond::AttackedOrBlocked,
+            StaticCondition::AttackedTotalPower(n) => StaticCond::AttackedTotalPower(*n),
             StaticCondition::SourceBlocked => StaticCond::Blocked,
             StaticCondition::SourceBeingBlocked => StaticCond::BeingBlocked,
             StaticCondition::AttachedIs(f) => StaticCond::AttachedIs(unowned(f)),

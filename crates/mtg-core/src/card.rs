@@ -2663,6 +2663,10 @@ pub enum StaticCondition {
     /// creatures): it is an attacking or blocking creature of the combat
     /// now ending.
     SourceAttackedOrBlocked,
+    /// Pack tactics: "if you attacked with creatures with total power 6 or
+    /// greater this combat": the creatures you declared as attackers this
+    /// combat, their total power as they were declared.
+    AttackedTotalPower(u16),
     /// "this creature is blocked" (CR 509.1h).
     SourceBlocked,
     /// "at least one creature is blocking this creature": blocked, by a

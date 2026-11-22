@@ -1,0 +1,8 @@
+card "Intrepid Outlander" {
+  oracle_id ff8d3532-bf4f-4209-ac01-351ddc9b9423
+  cost {1}{G}
+  type Creature — Orc Ranger
+  pt 2/3
+  keywords reach
+  label "Pack tactics" triggered whenever this attacks if attacked total power 6: venture
+}

@@ -2310,6 +2310,7 @@ impl Compiler<'_> {
             StaticCond::Modified => StaticCondition::SourceModified,
             StaticCond::AttackingAlone => StaticCondition::SourceAttackingAlone,
             StaticCond::AttackedOrBlocked => StaticCondition::SourceAttackedOrBlocked,
+            StaticCond::AttackedTotalPower(n) => StaticCondition::AttackedTotalPower(*n),
             StaticCond::Blocked => StaticCondition::SourceBlocked,
             StaticCond::BeingBlocked => StaticCondition::SourceBeingBlocked,
             StaticCond::AttachedIs(filter) => StaticCondition::AttachedIs(self.filter(filter)),

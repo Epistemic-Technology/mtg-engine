@@ -5247,6 +5247,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Modified => "modified".to_string(),
         StaticCond::AttackingAlone => "attacking alone".to_string(),
         StaticCond::AttackedOrBlocked => "attacked or blocked this combat".to_string(),
+        StaticCond::AttackedTotalPower(n) => format!("attacked total power {n}"),
         StaticCond::Blocked => "blocked".to_string(),
         StaticCond::BeingBlocked => "being blocked".to_string(),
         StaticCond::AttachedIs(fl)

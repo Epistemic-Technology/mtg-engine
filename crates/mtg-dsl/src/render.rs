@@ -13253,6 +13253,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::AttackedOrBlocked => {
             format!("{} attacked or blocked this combat", this_ref(card))
         }
+        StaticCond::AttackedTotalPower(n) => format!(
+            "you attacked with creatures with total power {n} or greater this combat"
+        ),
         StaticCond::Blocked => "it's blocked".to_string(),
         StaticCond::BeingBlocked => "at least one creature is blocking it".to_string(),
         // "As long as enchanted permanent is a creature" (an Aura that

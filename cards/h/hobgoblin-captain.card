@@ -1,0 +1,7 @@
+card "Hobgoblin Captain" {
+  oracle_id 4d92b3d3-d34b-430f-af6a-db512d204d06
+  cost {1}{R}
+  type Creature — Goblin Barbarian
+  pt 3/1
+  label "Pack tactics" triggered whenever this attacks if attacked total power 6: this gains first strike until end of turn
+}

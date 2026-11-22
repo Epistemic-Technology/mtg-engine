@@ -3776,6 +3776,12 @@ impl P {
         if self.eat_words(&["attacked", "or", "blocked", "this", "combat"]) {
             return Ok(StaticCond::AttackedOrBlocked);
         }
+        if self.eat_words(&["attacked", "total", "power"]) {
+            let n = self.number()?;
+            return Ok(StaticCond::AttackedTotalPower(
+                u16::try_from(n).unwrap_or(u16::MAX),
+            ));
+        }
         if self.eat_word("blocked") {
             return Ok(StaticCond::Blocked);
         }

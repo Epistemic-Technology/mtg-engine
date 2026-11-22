@@ -3916,6 +3916,14 @@ fn trigger_general(head: &str) -> Option<String> {
 /// graveyard`, and the other conditions `static_cond` parses.
 #[allow(clippy::too_many_lines)] // one arm per condition phrase
 fn static_condition(s: &str) -> Option<String> {
+    // Pack tactics.
+    if let Some(n) = s
+        .strip_prefix("you attacked with creatures with total power ")
+        .and_then(|r| r.strip_suffix(" or greater this combat"))
+        .and_then(|n| n.parse::<u16>().ok())
+    {
+        return Some(format!("attacked total power {n}"));
+    }
     match s {
         "you attacked this turn" => return Some("attacked this turn".to_string()),
         "you haven't cast a spell this turn" => return Some("not cast this turn".to_string()),

@@ -530,7 +530,9 @@ modified", CR 700.9), `attacking alone`, `blocked`, `being blocked` ("at
 least one creature is blocking this creature"), `attacked or blocked this
 combat` ("this creature attacked or blocked this combat", in an "at end
 of combat" trigger; one removed from combat, or whose attacker was, still
-counts; "it" follows), `attached is legendary`
+counts; "it" follows), `attacked total power 6` ("you attacked with
+creatures with total power 6 or greater this combat", pack tactics: the
+total power of your attackers as they were declared), `attached is legendary`
 ("equipped creature is legendary"; "enchanted" on an Aura), `this is with
 power 5 or greater` ("this creature's power is 5 or greater"), `this has 1
 or more +1/+1 counters` ("this creature has a +1/+1 counter on it"),
