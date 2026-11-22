@@ -1,0 +1,6 @@
+card "Klothys's Design" {
+  oracle_id 85c20c39-7b9c-4661-9372-e659b321773f
+  cost {5}{G}
+  type Sorcery
+  spell: each creature you control gets +1/+1 count where devotion green
+}

@@ -1,0 +1,7 @@
+card "Life's Legacy" {
+  oracle_id cb7baa46-7963-4d45-9a6e-e3c34db3c0e6
+  cost {1}{G}
+  type Sorcery
+  additional cost sacrifice creature
+  spell: draw count equal power of the sacrificed creature cards
+}

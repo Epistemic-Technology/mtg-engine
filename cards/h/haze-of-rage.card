@@ -1,0 +1,8 @@
+card "Haze of Rage" {
+  oracle_id f17d0fb8-c157-43b8-be26-f5ba4c6aed14
+  cost {1}{R}
+  type Sorcery
+  buyback {2}
+  spell: each creature you control gets +1/+0
+  storm
+}

@@ -1,0 +1,7 @@
+card "Rising Miasma" {
+  oracle_id 83fb7dfb-64a4-4320-b544-830c29f24df9
+  cost {3}{B}
+  type Sorcery
+  spell: all creatures gets -2/-2
+  awaken 3 {5}{B}{B}
+}

@@ -1,0 +1,6 @@
+card "Cleaver Riot" {
+  oracle_id 49f42896-90cd-4a05-bcca-12b19f780446
+  cost {4}{R}
+  type Sorcery
+  spell: each creature you control gains double strike
+}

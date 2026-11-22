@@ -1,0 +1,6 @@
+card "Make Obsolete" {
+  oracle_id 3ce755f5-855f-4b88-aa10-22f4ee76b28a
+  cost {2}{B}
+  type Instant
+  spell: each creature your opponents control gets -1/-1
+}

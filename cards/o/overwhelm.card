@@ -1,0 +1,7 @@
+card "Overwhelm" {
+  oracle_id caeaad5e-2d68-481c-9a35-c2c3b345963d
+  cost {5}{G}{G}
+  type Sorcery
+  keywords convoke
+  spell: each creature you control gets +3/+3
+}

@@ -1704,6 +1704,20 @@ impl Templates {
             (r(r"^Draw cards equal to the number of (.+)$"), |c, _| {
                 Some(format!("draw count equal {} cards", count_expr(cap(c, 1))?))
             }),
+            // "Draw cards equal to the greatest power among creatures you
+            // control", "... to the sacrificed creature's power".
+            (r(r"^Draw cards equal to (.+)$"), |c, _| {
+                let e = match cap(c, 1) {
+                    "the sacrificed creature's power" => {
+                        "power of the sacrificed creature".to_string()
+                    }
+                    "the sacrificed creature's toughness" => {
+                        "toughness of the sacrificed creature".to_string()
+                    }
+                    a => bound_amount(a)?,
+                };
+                Some(format!("draw count equal {e} cards"))
+            }),
             (r(r"^Draw a card for each (.+)$"), |c, _| {
                 Some(format!("draw count each {} cards", count_expr(cap(c, 1))?))
             }),
