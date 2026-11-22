@@ -46,6 +46,9 @@ wrong thing in some case.
   rather than chosen (CR 616.1).
 - **Reflexive trigger on a token:** "it" may read the token where the
   text means the triggering object.
+- **A player's protection from a color** (Seht's Tiger) stops targeting
+  and damage but not an Aura of that color enchanting the player (a
+  Curse, CR 702.16c). No card in the corpus combines them yet.
 - **"Whenever you activate an ability of a creature" misses automatic
   mana payment:** the engine taps a creature's mana ability to pay a
   cost without activating it as an ability, so it doesn't trigger (CR
@@ -147,6 +150,15 @@ named the feature; a card may need more than one.
   creature (Sita Varma), base power alone (Turtle-Duck); attack tax;
   "must be blocked"; "unless they sacrifice another ..." (Torment of
   Venom).
+- **Most often named in the fourth wave** (299 unsupported of 400):
+  wording near-misses (about 45); legendary named tokens ("create Mowu,
+  a legendary ... token"); "transforms into" triggers; token-creation
+  replacement; trigger doubling ("triggers an additional time"); cards
+  exiled and linked to their source for later casting; giving control
+  of a permanent to an opponent; "cards you own in exile"; a choice
+  among three keywords or counter kinds printed with commas; void;
+  tiered; "X is your speed"; non-mana kicker; teamwork "choose both
+  instead".
 - **Mechanics not yet in:** tiered, devour, battle cry, harness, hideaway,
   meld, the Everywhere land token, "when this land enters untapped".
 - **Scenario runner:** a trigger cannot be answered while its source
@@ -165,21 +177,3 @@ named the feature; a card may need more than one.
   `Keyword::ALL`. Only `CastInfo` is checked automatically.
 - **The census scripts** (`scripts/coverage/census/`) still name Pauper
   and have not been run over the union of the three pools.
-
-## 5. Reported in the fourth wave's card batches (to be sorted)
-
-Wrong behaviour that reaches accepted cards:
-
-
-Forms that pass the gate with the wrong meaning:
-
-
-
-Missing features most often named (fourth wave, 299 unsupported of 400):
-wording near-misses (about 45); legendary named tokens ("create Mowu, a
-legendary ... token"); "transforms into" triggers; token-creation
-replacement; trigger doubling ("triggers an additional time"); cards
-exiled and linked to their source for later casting; giving control of
-a permanent to an opponent; "cards you own in exile"; a choice among
-three keywords or counter kinds printed with commas; void; tiered;
-"X is your speed"; non-mana kicker; teamwork "choose both instead".
