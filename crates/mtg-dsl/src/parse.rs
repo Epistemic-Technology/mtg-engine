@@ -5104,7 +5104,15 @@ impl P {
         }
         // "If excess damage was dealt this way, ..." (CR 120.4a).
         let to_that = self.at_words(&[
-            "if", "excess", "damage", "dealt", "to", "that", "permanent", "this", "way",
+            "if",
+            "excess",
+            "damage",
+            "dealt",
+            "to",
+            "that",
+            "permanent",
+            "this",
+            "way",
         ]);
         if to_that || self.at_words(&["if", "excess", "damage", "dealt", "this", "way"]) {
             self.pos += if to_that { 9 } else { 6 };
@@ -8279,8 +8287,7 @@ impl P {
             && (matches!(
                 self.word_at(1).as_deref(),
                 Some("where" | "equal" | "each" | "foreach")
-            )
-                || self.at_words(&["count", "that", "many"]))
+            ) || self.at_words(&["count", "that", "many"]))
         {
             self.pos += 1;
             let style = match self.word()?.as_str() {

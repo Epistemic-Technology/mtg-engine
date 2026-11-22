@@ -1637,9 +1637,7 @@ impl Decompiler<'_> {
             CoreEffect::IfThisWay { cond, then } => {
                 Effect::IfThisWay(self.this_way_cond(cond), self.sentences(then))
             }
-            CoreEffect::IfExcessDamage(then) => {
-                Effect::IfExcessDamage(self.sentences(then), false)
-            }
+            CoreEffect::IfExcessDamage(then) => Effect::IfExcessDamage(self.sentences(then), false),
             CoreEffect::ChooseAct {
                 act,
                 filter,

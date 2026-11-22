@@ -4461,9 +4461,10 @@ fn static_cond(c: &StaticCond) -> String {
             f.who = None;
             format!("any player controls {}", filter(&f))
         }
-        StaticCond::OnBattlefield { filter: fl, at_least }
-            if fl.who == Some(Who::Opponents) && fl.your_opponents =>
-        {
+        StaticCond::OnBattlefield {
+            filter: fl,
+            at_least,
+        } if fl.who == Some(Who::Opponents) && fl.your_opponents => {
             let mut f = fl.clone();
             f.who = None;
             f.your_opponents = false;

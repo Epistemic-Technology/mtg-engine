@@ -109,6 +109,7 @@ pub enum Pronoun {
 
 /// One definition: a `card`, `token`, or `emblem` block.
 #[derive(Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::struct_excessive_bools)] // each is one printed wording
 pub struct Card {
     pub kind: Kind,
     pub name: String,

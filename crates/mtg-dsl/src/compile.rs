@@ -1904,9 +1904,7 @@ impl Compiler<'_> {
             Recipient::Target(i)
             | Recipient::ThatTarget(i)
             | Recipient::TheTarget(i)
-            | Recipient::ChosenTarget(i) => {
-                CoreRecipient::Target(ti(i))
-            }
+            | Recipient::ChosenTarget(i) => CoreRecipient::Target(ti(i)),
             Recipient::Targets(a, n)
             | Recipient::ThoseCards(a, n)
             | Recipient::ThoseTargets(a, n) => CoreRecipient::Targets(
@@ -1951,9 +1949,7 @@ impl Compiler<'_> {
             | Recipient::CreatedObject
             | Recipient::CreatedThat
             | Recipient::CreatedThatToken
-            | Recipient::CreatedThatLand => {
-                CoreRecipient::CreatedObject
-            }
+            | Recipient::CreatedThatLand => CoreRecipient::CreatedObject,
             Recipient::Attached => CoreRecipient::Attached,
             Recipient::AttachedController => CoreRecipient::AttachedController,
             Recipient::BlockingIt => CoreRecipient::BlockingIt,

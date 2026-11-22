@@ -1348,7 +1348,7 @@ impl<'a> Ctx<'a> {
                 "that creature".to_string()
             }
             Recipient::TheTriggeringObject => "the creature".to_string(),
-            Recipient::SameToken => "that token".to_string(),
+            Recipient::SameToken | Recipient::CreatedThatToken => "that token".to_string(),
             Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
             Recipient::TriggeringCard | Recipient::SameCard => "that card".to_string(),
             Recipient::TriggeringController { that: true } => {
@@ -1391,7 +1391,6 @@ impl<'a> Ctx<'a> {
                 "it".to_string()
             }
             Recipient::CreatedThat => "that creature".to_string(),
-            Recipient::CreatedThatToken => "that token".to_string(),
             Recipient::CreatedThatLand => "that land".to_string(),
             Recipient::Group(i) => {
                 self.groups_mentioned.insert(r);
@@ -4116,11 +4115,7 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 if matches!(e, Effect::CreateToken { .. }) {
                     c.text = c.text.replacen(" tokens", " token", 1);
                 }
-                c.text = format!(
-                    "{}, {}",
-                    count_phrase(&count.expr, ctx.card, true),
-                    c.text
-                );
+                c.text = format!("{}, {}", count_phrase(&count.expr, ctx.card, true), c.text);
             }
             CountStyle::Each => {
                 // "gain 1 life for each", "deals 1 damage ... for each".
@@ -8145,7 +8140,7 @@ fn this_way_text(c: &crate::ast::ThisWayCond, card: &Card) -> String {
                         }) == Filter::default()
                         && (mtg_core::card::StatusQuals {
                             suspected: None,
-                            ..f.status.clone()
+                            ..f.status
                         }) == mtg_core::card::StatusQuals::default() =>
                 {
                     "suspected".to_string()
@@ -10750,10 +10745,12 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
                 let last = run.pop().expect("nonempty");
                 let head: Vec<String> = run
                     .iter()
-                    .map(|p| match p.strip_suffix(".\"").or_else(|| p.strip_suffix('"')) {
-                        Some(q) => format!("{q},\""),
-                        None => format!("{p},"),
-                    })
+                    .map(
+                        |p| match p.strip_suffix(".\"").or_else(|| p.strip_suffix('"')) {
+                            Some(q) => format!("{q},\""),
+                            None => format!("{p},"),
+                        },
+                    )
                     .collect();
                 format!("{} and {last}", head.join(" "))
             };
@@ -11467,7 +11464,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 && (Filter {
                     status: mtg_core::card::StatusQuals {
                         counter: None,
-                        ..f.status.clone()
+                        ..f.status
                     },
                     ..f.clone()
                 }) == Filter::default() =>
@@ -11856,7 +11853,11 @@ fn conditional_static(
     // "as long as it's enchanted" about the subject; "as long as this
     // creature is enchanted" when the subject is something else.
     if about_source(c) && !body.starts_with(&capitalize(&this_ref(card))) {
-        cond = cond.replacen("it has a counter", &format!("{} has a counter", this_ref(card)), 1);
+        cond = cond.replacen(
+            "it has a counter",
+            &format!("{} has a counter", this_ref(card)),
+            1,
+        );
         cond = cond.replace("it's", &format!("{} is", this_ref(card)));
         cond = cond.replace("it entered", &format!("{} entered", this_ref(card)));
     }
@@ -11870,7 +11871,11 @@ fn conditional_static(
             body.to_string()
         } else if about_source(c) && body.starts_with(&this) {
             // "As long as this creature is equipped, it gets +1/+1."
-            cond = cond.replacen("it has a counter", &format!("{} has a counter", this_ref(card)), 1);
+            cond = cond.replacen(
+                "it has a counter",
+                &format!("{} has a counter", this_ref(card)),
+                1,
+            );
             cond = cond.replace("it's", &format!("{} is", this_ref(card)));
             cond = cond.replace("it entered", &format!("{} entered", this_ref(card)));
             // "As long as this creature's power is 5 or greater, ..."
@@ -12165,10 +12170,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     // -1/-1 counter on it" (Encumbered Reejerey): named
                     // once already.
                     let this = this_ref(card);
-                    if out.contains(&capitalize(&this)) || out.contains(&format!(" {this} ")) {
-                        if let Some(rest) = text.strip_prefix(&format!("{this} ")) {
-                            text = format!("{} {rest}", it_subj(card));
-                        }
+                    if (out.contains(&capitalize(&this)) || out.contains(&format!(" {this} ")))
+                        && let Some(rest) = text.strip_prefix(&format!("{this} "))
+                    {
+                        text = format!("{} {rest}", it_subj(card));
                     }
                     out.push_str(&text);
                 }
