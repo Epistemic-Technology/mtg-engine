@@ -1,0 +1,172 @@
+# Cards exiled with a permanent (CR 607.2a): what its abilities exile is
+# linked to it, for "cards exiled with this", counts, conditions, and
+# permissions to play them. Also "cards you own in exile".
+
+scenario "Keen-Eyed Curator: four card types among its exiled cards" {
+  battlefield A: "Keen-Eyed Curator", 4 "Forest"
+  graveyard B: "Grizzly Bears", "Shock", "Forest", "Ornithopter"
+  turn 1 A: activate "Keen-Eyed Curator" targeting "Grizzly Bears"
+  turn 1 A: activate "Keen-Eyed Curator" targeting "Shock"
+  turn 1 A: activate "Keen-Eyed Curator" targeting B "Forest"
+  run_to turn 1 begin_combat
+  assert exile B count 3
+  assert power "Keen-Eyed Curator" 3
+  assert has not "Keen-Eyed Curator" trample
+  turn 1 main2 A: activate "Keen-Eyed Curator" targeting "Ornithopter"
+  run_to turn 1 end
+  assert power "Keen-Eyed Curator" 7
+  assert toughness "Keen-Eyed Curator" 7
+  assert has "Keen-Eyed Curator" trample
+}
+
+scenario "Keen-Eyed Curator: cards exiled by something else don't count" {
+  battlefield A: "Keen-Eyed Curator", "Forest"
+  exile B: "Grizzly Bears", "Shock", "Forest"
+  graveyard B: "Ornithopter"
+  turn 1 A: activate "Keen-Eyed Curator" targeting "Ornithopter"
+  run_to turn 1 end
+  assert power "Keen-Eyed Curator" 3
+}
+
+scenario "Veteran Survivor: three cards exiled with it" {
+  battlefield A: "Veteran Survivor"
+  graveyard B: "Grizzly Bears", "Shock", "Hill Giant"
+  turn 1 A: attack "Veteran Survivor"
+  turn 1 main2 A: trigger "Veteran Survivor" targeting "Grizzly Bears"
+  turn 3 A: attack "Veteran Survivor"
+  turn 3 main2 A: trigger "Veteran Survivor" targeting "Shock"
+  run_to turn 3 end
+  assert exile B count 2
+  assert power "Veteran Survivor" 2
+  assert has not "Veteran Survivor" hexproof
+  turn 5 A: attack "Veteran Survivor"
+  turn 5 main2 A: trigger "Veteran Survivor" targeting "Hill Giant"
+  run_to turn 5 end
+  assert exile B count 3
+  assert power "Veteran Survivor" 5
+  assert toughness "Veteran Survivor" 4
+  assert has "Veteran Survivor" hexproof
+}
+
+scenario "Synod Sanctum returns what it exiled, under your control" {
+  battlefield A: "Synod Sanctum", 4 "Plains", "Grizzly Bears" with 1 +1/+1
+  exile A: "Hill Giant"
+  turn 1 A: activate "Synod Sanctum" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert exile A contains "Grizzly Bears"
+  turn 1 main2 A: activate "Synod Sanctum" ability 2
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Synod Sanctum"
+  # Only what it exiled; a new object without the counter (CR 400.7).
+  assert exile A contains "Hill Giant"
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Endless Sands returns each creature card exiled with it" {
+  battlefield A: "Endless Sands", 6 "Plains", "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Endless Sands" targeting "Grizzly Bears"
+  run_to turn 2 untap
+  assert exile A contains "Grizzly Bears"
+  turn 3 A: activate "Endless Sands" targeting "Hill Giant"
+  run_to turn 3 begin_combat
+  assert exile A count 2
+  turn 5 A: activate "Endless Sands" ability 2
+  run_to turn 5 end
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert exile A count 0
+}
+
+scenario "Rona: cast a spell from among cards exiled with it" {
+  battlefield A: 2 "Island", "Swamp"
+  hand A: "Rona, Disciple of Gix"
+  graveyard A: "Ornithopter"
+  exile A: "Memnite"
+  turn 1 A: cast "Rona, Disciple of Gix"
+  turn 1 A: trigger "Rona, Disciple of Gix" targeting "Ornithopter"
+  turn 1 main2 A: cast "Ornithopter"
+  illegal turn 1 main2 A: cast "Memnite"
+  run_to turn 1 end
+  assert battlefield A contains "Ornithopter"
+  assert exile A contains "Memnite"
+}
+
+scenario "Rona: its {4}, {T} ability exiles the top card, which it lets you cast" {
+  battlefield A: "Rona, Disciple of Gix", 4 "Island"
+  library A: "Ornithopter", "Island"
+  turn 1 A: activate "Rona, Disciple of Gix"
+  run_to turn 1 begin_combat
+  assert exile A contains "Ornithopter"
+  turn 1 main2 A: cast "Ornithopter"
+  run_to turn 1 end
+  assert battlefield A contains "Ornithopter"
+}
+
+scenario "Rona: a land exiled with it can't be played" {
+  battlefield A: "Rona, Disciple of Gix", 4 "Island"
+  library A: "Forest", "Island"
+  turn 1 A: activate "Rona, Disciple of Gix"
+  illegal turn 1 main2 A: play "Forest"
+  run_to turn 1 end
+  assert exile A contains "Forest"
+}
+
+scenario "Nightveil Specter: play a land the opponent exiled" {
+  battlefield A: "Nightveil Specter"
+  library B: "Forest", "Hill Giant"
+  turn 1 A: attack "Nightveil Specter"
+  turn 1 main2 A: play "Forest"
+  run_to turn 1 end
+  assert battlefield A contains "Forest"
+  assert life B 18
+}
+
+scenario "Nightveil Specter: the permission ends when it leaves" {
+  battlefield A: "Nightveil Specter", "Mountain"
+  hand A: "Shock"
+  library B: "Forest", "Hill Giant"
+  turn 1 A: attack "Nightveil Specter"
+  turn 1 main2 A: cast "Shock" targeting "Nightveil Specter"
+  illegal turn 1 main2 A: play "Forest"
+  run_to turn 1 end
+  assert exile B contains "Forest"
+}
+
+scenario "Cosmogoyf counts the cards you own in exile" {
+  battlefield A: "Cosmogoyf"
+  exile A: "Grizzly Bears", "Shock"
+  exile B: "Hill Giant", "Forest", "Island"
+  run_to turn 1 precombat_main
+  assert power "Cosmogoyf" 2
+  assert toughness "Cosmogoyf" 3
+}
+
+scenario "Crackling Drake: instants and sorceries in exile and in the graveyard" {
+  battlefield A: "Crackling Drake"
+  exile A: "Shock", "Grizzly Bears"
+  graveyard A: "Lightning Bolt", "Divination", "Hill Giant"
+  graveyard B: "Shock"
+  run_to turn 1 precombat_main
+  assert power "Crackling Drake" 3
+}
+
+scenario "Huskburster Swarm costs {1} less per creature card in exile and graveyard" {
+  battlefield A: 5 "Swamp"
+  hand A: "Huskburster Swarm"
+  exile A: "Grizzly Bears"
+  graveyard A: "Hill Giant", "Serra Angel", "Shock"
+  turn 1 A: cast "Huskburster Swarm"
+  run_to turn 1 end
+  assert battlefield A contains "Huskburster Swarm"
+}
+
+scenario "Huskburster Swarm: an opponent's cards don't count" {
+  battlefield A: 5 "Swamp"
+  hand A: "Huskburster Swarm"
+  exile A: "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  graveyard B: "Serra Angel"
+  illegal turn 1 A: cast "Huskburster Swarm"
+  run_to turn 1 end
+}

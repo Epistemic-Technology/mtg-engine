@@ -1623,6 +1623,31 @@ impl P {
                     once,
                 })
             }
+            "play" if self.at_words(&["play", "exiled"]) => {
+                self.pos += 2;
+                let your_turn = self.eat_words(&["your", "turn"]);
+                let owned = self.eat_word("owned");
+                let lands = self.eat_word("lands");
+                let spells = if (!lands || self.eat_word("and")) && self.eat_word("spells") {
+                    if self.at_stmt_end() {
+                        Some(Filter::default())
+                    } else {
+                        Some(self.filter()?)
+                    }
+                } else {
+                    None
+                };
+                if !lands && spells.is_none() {
+                    return self.fail("expected `lands` or `spells`".to_string());
+                }
+                self.end_stmt()?;
+                Ok(Ability::PlayExiled {
+                    lands,
+                    spells,
+                    your_turn,
+                    owned,
+                })
+            }
             "top" if self.at_words(&["top", "revealed"]) => {
                 self.pos += 2;
                 let players = self.eat_word("players");
@@ -3668,6 +3693,12 @@ impl P {
         let n = self.number()?;
         if self.eat_words(&["cards", "in", "your", "graveyard"]) {
             return Ok(StaticCond::CardsInGraveyard(n));
+        }
+        if self.eat_words(&["cards", "exiled", "with", "this"]) {
+            return Ok(StaticCond::ExiledWith(n));
+        }
+        if self.eat_words(&["card", "types", "exiled", "with", "this"]) {
+            return Ok(StaticCond::TypesExiledWith(n));
         }
         if self.eat_words(&["card", "types", "in", "your", "graveyard"]) {
             return Ok(StaticCond::CardTypesInGraveyard(n));
@@ -8674,6 +8705,32 @@ impl P {
             self.pos += 1;
             return Ok(CountExpr::SourceToughness);
         }
+        // "cards exiled with this enchantment" (CR 607.2a), "cards you
+        // own in exile [and in your graveyard]".
+        let exiled_with = self.eat_words(&["exiled", "with", "this"]);
+        let in_exile = !exiled_with && self.eat_word("exile");
+        if exiled_with || in_exile {
+            let graveyard = in_exile && self.eat_words(&["and", "graveyard"]);
+            let f = if self.eat_word("card")
+                || self.at_stmt_end()
+                || !self.word_at(0).is_some_and(|w| {
+                    card_type(&w).is_some() || w.starts_with("non") || color(&w).is_some()
+                }) {
+                None
+            } else {
+                let f = self.filter()?;
+                self.eat_word("card");
+                Some(f)
+            };
+            return Ok(if exiled_with {
+                CountExpr::ExiledWith(f)
+            } else {
+                CountExpr::CardsInExile {
+                    filter: f,
+                    graveyard,
+                }
+            });
+        }
         if self.eat_words(&["opponents", "graveyards"]) {
             let f = if self.at_stmt_end()
                 || !self.word_at(0).is_some_and(|w| {
@@ -9440,6 +9497,8 @@ impl P {
                                 | "dealt"
                                 | "blocked"
                                 | "token"
+                                | "card"
+                                | "exiled"
                         )
                     ) || self.word_at(ws.len()).as_deref() == Some("or")
                         && self.word_at(ws.len() + 1).as_deref() == Some("planeswalker")
@@ -9497,16 +9556,37 @@ impl P {
             // toxic 1`: printed one at a time, "Each other creature ...
             // gains".
             let single = !all && self.eat_word("single");
-            let mut f = self.filter()?;
+            // `all card exiled with this`: any card.
+            let mut f = if self.at_words(&["card", "exiled", "with", "this"]) {
+                self.pos += 1;
+                Filter::default()
+            } else {
+                let f = self.filter()?;
+                if self.at_words(&["card", "exiled", "with", "this"]) {
+                    self.pos += 1;
+                }
+                f
+            };
             f.all |= all;
             f.all_word |= every;
             f.each = single;
+            // `all card exiled with this`: the cards this permanent's
+            // abilities exiled (CR 607.2a).
+            let exiled = self.eat_words(&["exiled", "with", "this"]);
             let i = if let Some(i) = self.groups.iter().position(|g| *g == f) {
                 i
             } else {
                 self.groups.push(f);
                 self.groups.len() - 1
             };
+            if exiled {
+                return Ok(Recipient::ExiledWith(u16::try_from(i).map_err(|_| {
+                    ParseError {
+                        line: self.line(),
+                        message: "too many groups".to_string(),
+                    }
+                })?));
+            }
             return Ok(Recipient::Group(u16::try_from(i).map_err(|_| {
                 ParseError {
                     line: self.line(),

@@ -1,0 +1,8 @@
+card "Veteran Survivor" {
+  oracle_id cc5b1276-d13e-4392-988d-1315bc90a9b1
+  cost {W}
+  type Creature — Human Survivor
+  pt 2/1
+  label "Survival" triggered at beginning of your second main if this is tapped: exile up to 1 target card from a graveyard
+  static as long as 3 cards exiled with this, this: +3/+3, has hexproof
+}

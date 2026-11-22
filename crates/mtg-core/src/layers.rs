@@ -402,6 +402,8 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         // 111.8, 704.5d).
         StaticCondition::CardsInGraveyard(n) => state.cards_in_graveyard(you) >= *n as usize,
         StaticCondition::UnlockedDoors(n) => state.unlocked_doors(you) >= *n,
+        StaticCondition::ExiledWith(n) => state.count_exiled_with(source, None, you) >= *n as usize,
+        StaticCondition::TypesExiledWith(n) => state.types_exiled_with(source) >= *n,
         // Permanents still on the battlefield are judged with the
         // characteristics worked out so far, the rest as they last existed.
         StaticCondition::EnteredWith { filter, .. } => {
@@ -1019,6 +1021,12 @@ fn per_count(
         return 0;
     };
     let n = match count {
+        CountExpr::ExiledWith(f) => {
+            source.map_or(0, |s| state.count_exiled_with(s, f.as_ref(), you))
+        }
+        CountExpr::CardsInExile { filter, graveyard } => {
+            state.owned_in_exile(you, filter.as_ref(), *graveyard)
+        }
         // "for each Aura and Equipment attached to it": judged from the
         // characteristics computed so far ("Aura or Equipment" needs no
         // state, and asking for it here would compute them again).

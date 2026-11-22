@@ -604,6 +604,7 @@ impl GameState {
             this_way: None,
             paid_costs: Vec::new(),
             linked_exiles: Vec::new(),
+            linking: None,
             spent_mana: Vec::new(),
             spending: None,
             spent_watchers: 0,
@@ -1757,7 +1758,10 @@ impl GameState {
             }
             (Flow::Priority, Choice::PlayLand(id)) => {
                 self.consecutive_passes = 0;
-                let new = self.move_object(id, Zone::Battlefield, true);
+                // CR 305.1, 110.2a: under the control of the player who
+                // played it, even a card they don't own (played from
+                // exile).
+                let new = self.put_onto_battlefield(id, player);
                 self.player_mut(player).lands_played_this_turn += 1;
                 self.emit(Event::LandPlayed { player, land: new });
             }

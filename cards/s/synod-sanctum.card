@@ -1,0 +1,7 @@
+card "Synod Sanctum" {
+  oracle_id 643ddf81-bbd3-4398-b5a7-1169c6e2b081
+  cost {1}
+  type Artifact
+  activated {2}, {T}: exile target permanent you control
+  activated {2}, sacrifice this: return all card exiled with this to battlefield under your control
+}

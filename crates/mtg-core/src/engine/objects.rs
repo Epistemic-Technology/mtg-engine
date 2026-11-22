@@ -434,6 +434,14 @@ impl GameState {
         if let Some(l) = self.lki.get_mut(&id) {
             l.moved_to = Some(new);
         }
+        // CR 607.2a: a card the resolving ability of a permanent that
+        // refers to "cards exiled with" it exiles is linked to it.
+        if let Some(src) = self.linking
+            && to == Zone::Exile
+            && old.zone != Zone::Exile
+        {
+            self.link_exile(src, new, false);
+        }
         // CR 607.2a: what the spell's costs exiled ("behold a Kithkin and
         // exile it") is linked to the permanent it becomes.
         if !self.linked_exiles.is_empty() && old.zone == Zone::Stack && to == Zone::Battlefield {
@@ -682,6 +690,91 @@ impl GameState {
             self.return_exiled_until(id);
         }
         new
+    }
+
+    /// Link `card`, in exile, to the permanent `source` (CR 607.2a), or
+    /// mark an existing link as lasting until it leaves (CR 610.3).
+    pub(super) fn link_exile(&mut self, source: ObjId, card: ObjId, until: bool) {
+        if let Some(l) = self
+            .linked_exiles
+            .iter_mut()
+            .find(|l| l.source == source && l.card == card)
+        {
+            l.until |= until;
+        } else {
+            self.linked_exiles.push(crate::state::LinkedExile {
+                source,
+                card,
+                until,
+            });
+        }
+        // Counts and conditions read the links.
+        self.cbump();
+    }
+
+    /// How many cards `source` exiled are still in exile, all or
+    /// matching `f` (CR 607.2a).
+    pub(crate) fn count_exiled_with(
+        &self,
+        source: ObjId,
+        f: Option<&crate::card::ObjFilter>,
+        you: PlayerId,
+    ) -> usize {
+        self.exiled_with(source)
+            .filter(|id| self.card_matches(*id, f, you))
+            .count()
+    }
+
+    /// The card types among the cards `source` exiled (CR 607.2a).
+    pub(crate) fn types_exiled_with(&self, source: ObjId) -> u32 {
+        let mut types = crate::card::TypeSet::default();
+        for id in self.exiled_with(source) {
+            types = types.union(self.pool.get(self.objects[id].def).types);
+        }
+        types.len()
+    }
+
+    /// Cards `you` own in exile, and with `graveyard` in their graveyard
+    /// too, all or matching `f` ("cards you own in exile and in your
+    /// graveyard"). A token is not a card (CR 111.8).
+    pub(crate) fn owned_in_exile(
+        &self,
+        you: PlayerId,
+        f: Option<&crate::card::ObjFilter>,
+        graveyard: bool,
+    ) -> usize {
+        let ps = self.player(you);
+        let yard: &[ObjId] = if graveyard { &ps.graveyard } else { &[] };
+        ps.exile
+            .iter()
+            .chain(yard.iter())
+            .filter(|id| self.objects[**id].kind != crate::state::ObjKind::Token)
+            .filter(|id| self.card_matches(**id, f, you))
+            .count()
+    }
+
+    /// Whether a card outside the battlefield matches `f` (all do without
+    /// one), judged by its card's characteristics.
+    fn card_matches(&self, id: ObjId, f: Option<&crate::card::ObjFilter>, you: PlayerId) -> bool {
+        f.is_none_or(|f| {
+            let o = &self.objects[id];
+            let c = self.base_characteristics(o);
+            f.matches(id, o.owner, &c, None, Some(you))
+        })
+    }
+
+    /// The cards `source` exiled that are still in exile (CR 607.2a).
+    pub(crate) fn exiled_with(&self, source: ObjId) -> impl Iterator<Item = ObjId> + '_ {
+        self.linked_exiles
+            .iter()
+            .filter(move |l| {
+                l.source == source
+                    && self
+                        .objects
+                        .get(l.card)
+                        .is_some_and(|o| o.zone == Zone::Exile)
+            })
+            .map(|l| l.card)
     }
 
     /// CR 610.3: the cards `left` exiled "until this leaves the

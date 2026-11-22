@@ -381,6 +381,16 @@ pub enum CountExpr {
     /// `opponents graveyards [<filter>]`: "cards in your opponents'
     /// graveyards".
     CardsInOpponentsGraveyards(Option<Filter>),
+    /// `exiled with this [<filter>]`: "cards exiled with this
+    /// enchantment" (CR 607.2a).
+    ExiledWith(Option<Filter>),
+    /// `exile [<filter>]`: "cards you own in exile"; `exile and graveyard
+    /// [<filter>]`: "... you own in exile and in your graveyard" ("the
+    /// total number of ..." as a number).
+    CardsInExile {
+        filter: Option<Filter>,
+        graveyard: bool,
+    },
     /// `opponents attacked`: "opponents you're attacking".
     OpponentsAttacked,
     /// `attacked with this turn`: "creatures you attacked with this turn".
@@ -1297,6 +1307,18 @@ pub enum Ability {
         spells: Option<Filter>,
         once: bool,
     },
+    /// `play exiled spells`: "You may cast spells from among cards exiled
+    /// with this creature."; `play exiled lands and spells` "You may play
+    /// lands and cast spells from among ..."; `play exiled your turn lands
+    /// and spells`: "During your turn, you may play cards exiled with
+    /// this artifact."; `owned`: "cards you own exiled with ..." (CR
+    /// 607.2a, 601.3).
+    PlayExiled {
+        lands: bool,
+        spells: Option<Filter>,
+        your_turn: bool,
+        owned: bool,
+    },
     /// `top revealed`: "Play with the top card of your library
     /// revealed."; `top revealed players`: "Players play with the top card
     /// of their libraries revealed."
@@ -2068,6 +2090,12 @@ pub enum StaticCond {
     OpponentPoison(u32),
     /// `you own card in exile`: "you own a card in exile".
     OwnCardInExile,
+    /// `3 cards exiled with this`: "there are three or more cards exiled
+    /// with this creature" (CR 607.2a).
+    ExiledWith(u32),
+    /// `4 card types exiled with this`: "there are four or more card types
+    /// among cards exiled with this creature".
+    TypesExiledWith(u32),
     /// `you are monarch`: "you're the monarch" (CR 725).
     Monarch,
     /// `completed dungeon`: "you've completed a dungeon" (CR 309.7).
@@ -2983,6 +3011,10 @@ pub enum Recipient {
     /// `exiled card`: "the exiled card", what this permanent's linked
     /// ability exiled (CR 607.2a).
     ExiledCard,
+    /// `all card exiled with this`, `each creature card exiled with this`:
+    /// "all cards exiled with this artifact", what this permanent's
+    /// abilities exiled (CR 607.2a) matching the `n`th group's filter.
+    ExiledWith(u16),
     /// `those cards`: the targets declared so far (`first`, `count`),
     /// after an effect moved them ("Exile two target creatures you
     /// control, then return those cards to the battlefield").

@@ -1901,6 +1901,18 @@ pub enum CountExpr {
     /// control"): the values as they are, negative ones included, and 0
     /// if the sum is negative (CR 107.1b).
     Total(Stat, ObjFilter),
+    /// Cards exiled with the source (CR 607.2a), all or matching the
+    /// filter, still in exile ("for each card exiled with this
+    /// enchantment").
+    ExiledWith(Option<ObjFilter>),
+    /// Cards you own in exile, all or matching the filter ("the number of
+    /// cards you own in exile"); with `graveyard`, and in your graveyard
+    /// too ("for each creature card you own in exile and in your
+    /// graveyard").
+    CardsInExile {
+        filter: Option<ObjFilter>,
+        graveyard: bool,
+    },
 }
 
 impl CountExpr {
@@ -1949,6 +1961,8 @@ impl CountExpr {
             | CountExpr::AttackedThisTurn
             | CountExpr::OpponentsLostLife
             | CountExpr::OpponentsMoreCards
+            | CountExpr::ExiledWith(_)
+            | CountExpr::CardsInExile { .. }
             | CountExpr::Life => true,
             // Total power and toughness would read the characteristics
             // being computed; total mana value does not.
@@ -2463,6 +2477,12 @@ pub enum StaticCondition {
     OpponentPoison(u32),
     /// "you own a card in exile".
     OwnCardInExile,
+    /// "there are three or more cards exiled with this creature" (CR
+    /// 607.2a: what the source's abilities exiled, still in exile).
+    ExiledWith(u32),
+    /// "there are four or more card types among cards exiled with this
+    /// creature".
+    TypesExiledWith(u32),
     /// Formidable: "creatures you control have total power 8 or greater".
     TotalPower(u32),
     /// Coven: "you control three or more creatures with different powers".
@@ -3153,6 +3173,11 @@ pub enum Recipient {
     /// battlefield, return the exiled card ..."), still in exile; see
     /// `Effect::ExileLinked`.
     ExiledCard,
+    /// The cards the source's abilities exiled (CR 607.2a), still in
+    /// exile, that match the pool's `n`th filter: "Return all cards
+    /// exiled with this artifact to their owner's hand", "each creature
+    /// card exiled with this land".
+    ExiledWith(u16),
     /// The objects the most recent group of this resolution denoted
     /// (`Group`, `EachCreature`, `EachCreatureYouControl`,
     /// `EachPermanentYouControl`), those still on the battlefield: "Gain
@@ -6415,6 +6440,19 @@ pub enum AbilityDef {
         spells: Option<ObjFilter>,
         once: bool,
     },
+    /// "You may cast spells from among cards exiled with this creature.",
+    /// "You may play lands and cast spells from among ...", "During your
+    /// turn, you may play cards exiled with this artifact." (`your_turn`):
+    /// the controller may play the cards the source's abilities exiled
+    /// (CR 607.2a), paying their costs with the usual timing and land-play
+    /// rules (CR 601.3, 305.1). `spells` filters the spells ("Dinosaur
+    /// creature spells"); `owned`, "cards you own exiled with ...".
+    PlayExiled {
+        lands: bool,
+        spells: Option<ObjFilter>,
+        your_turn: bool,
+        owned: bool,
+    },
     /// "Play with the top card of your library revealed." (`players`:
     /// "Players play with the top card of their libraries revealed."):
     /// every player knows that top card while it stays there (CR 401.2).
@@ -6469,6 +6507,7 @@ impl AbilityDef {
             | AbilityDef::ExtraVote { .. }
             | AbilityDef::MayLook { .. }
             | AbilityDef::PlayFromTop { .. }
+            | AbilityDef::PlayExiled { .. }
             | AbilityDef::TopRevealed { .. }
             | AbilityDef::AsTurnedFaceUp { .. }
             | AbilityDef::CrewsAs { .. }
@@ -6504,6 +6543,7 @@ impl AbilityDef {
             | AbilityDef::ExtraVote { .. }
             | AbilityDef::MayLook { .. }
             | AbilityDef::PlayFromTop { .. }
+            | AbilityDef::PlayExiled { .. }
             | AbilityDef::TopRevealed { .. }
             | AbilityDef::AsTurnedFaceUp { .. }
             | AbilityDef::CrewsAs { .. }
@@ -6785,6 +6825,12 @@ pub struct CardDef {
     /// instead." (a disturb card's back face, CR 614.1a).
     #[serde(default)]
     pub graveyard_exile: bool,
+    /// CR 607.2a: an ability of this card refers to the cards exiled with
+    /// it ("cards exiled with this artifact"), so what its triggered and
+    /// activated abilities exile is linked to it
+    /// (`GameState::linked_exiles`).
+    #[serde(default)]
+    pub links_exile: bool,
     /// Multikicker (CR 702.33c): a kicker cost paid any number of times.
     #[serde(default)]
     pub multikicker: Option<Box<ManaCost>>,
@@ -8942,6 +8988,7 @@ impl Builder {
             multikicker: None,
             disturb: None,
             graveyard_exile: false,
+            links_exile: false,
             teamwork: 0,
             optional_cost: None,
             ripple: 0,

@@ -1943,6 +1943,10 @@ pub struct GameState {
     /// 610.3); see `Effect::ExileLinked`. Empty on most boards: zone
     /// changes check it only when it isn't.
     pub linked_exiles: Vec<LinkedExile>,
+    /// While an ability of a permanent whose card refers to "cards exiled
+    /// with" it resolves (`CardDef::links_exile`): that permanent, so what
+    /// the resolution exiles is linked to it (CR 607.2a).
+    pub linking: Option<ObjId>,
     /// The mana spent to cast spells whose text asks about it (CR
     /// 601.2h; `CardDef::spent`), keyed by the spell and then by the
     /// permanent it became ("if {B} was spent to cast it"). Kept until the
@@ -3602,6 +3606,8 @@ impl GameState {
                 .players_in_game()
                 .any(|p| p != you && self.player(p).poison >= *n),
             C::OwnCardInExile => !self.player(you).exile.is_empty(),
+            C::ExiledWith(n) => self.count_exiled_with(source, None, you) >= *n as usize,
+            C::TypesExiledWith(n) => self.types_exiled_with(source) >= *n,
             C::Monarch => self.desig.monarch == Some(you),
             C::CompletedDungeon => self.desig.completed(you) > 0,
             C::CityBlessing => self.desig.blessed(you),

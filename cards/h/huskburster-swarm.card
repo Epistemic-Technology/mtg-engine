@@ -1,0 +1,8 @@
+card "Huskburster Swarm" {
+  oracle_id faefb352-575c-49f7-9f7a-96f2279a077b
+  cost {7}{B}
+  type Creature — Elemental Insect
+  pt 6/6
+  this spell costs {1} less count each exile and graveyard creature card
+  keywords menace, deathtouch
+}

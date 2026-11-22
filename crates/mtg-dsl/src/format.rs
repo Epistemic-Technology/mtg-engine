@@ -364,6 +364,25 @@ impl Fmt {
                 Some(f) => format!("each opponent who doesn't control {}", filter(f)),
                 None => "each opponent".to_string(),
             },
+            Recipient::ExiledWith(i) => {
+                let f = self.groups.get(usize::from(i)).cloned().unwrap_or_default();
+                let all = f.all;
+                let g = Filter {
+                    all: false,
+                    all_word: false,
+                    each: false,
+                    ..f
+                };
+                let noun = if g == Filter::default() {
+                    "card".to_string()
+                } else {
+                    format!("{} card", filter(&g))
+                };
+                format!(
+                    "{} {noun} exiled with this",
+                    if all { "all" } else { "each" }
+                )
+            }
             Recipient::RandomOf(i) => match self.groups.get(usize::from(i)) {
                 Some(f) => format!("random {}", filter(f)),
                 None => "random permanent".to_string(),
@@ -2716,6 +2735,21 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::TimesKicked => "times kicked".to_string(),
         CountExpr::SpentTreasure => "treasure spent".to_string(),
         CountExpr::CardsInOpponentsGraveyards(None) => "opponents graveyards".to_string(),
+        CountExpr::ExiledWith(None) => "exiled with this".to_string(),
+        CountExpr::ExiledWith(Some(f)) => format!("exiled with this {} card", card_filter(f)),
+        CountExpr::CardsInExile { filter, graveyard } => {
+            let mut s = if *graveyard {
+                "exile and graveyard".to_string()
+            } else {
+                "exile".to_string()
+            };
+            if let Some(f) = filter {
+                s.push(' ');
+                s.push_str(&card_filter(f));
+                s.push_str(" card");
+            }
+            s
+        }
         CountExpr::CardsInOpponentsGraveyards(Some(f)) => {
             format!("opponents graveyards {}", card_filter(f))
         }
@@ -4641,6 +4675,8 @@ fn static_cond(c: &StaticCond) -> String {
         }
         StaticCond::MoreCardsInHand => "more cards in hand than each opponent".to_string(),
         StaticCond::OwnCardInExile => "you own card in exile".to_string(),
+        StaticCond::ExiledWith(n) => format!("{n} cards exiled with this"),
+        StaticCond::TypesExiledWith(n) => format!("{n} card types exiled with this"),
         StaticCond::Monarch => "you are monarch".to_string(),
         StaticCond::CompletedDungeon => "completed dungeon".to_string(),
         StaticCond::CityBlessing => "city's blessing".to_string(),
@@ -5436,6 +5472,33 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let mut s = format!("{indent}play from top");
             if *once {
                 s.push_str(" once");
+            }
+            if *lands {
+                s.push_str(" lands");
+            }
+            if let Some(f) = spells {
+                if *lands {
+                    s.push_str(" and");
+                }
+                s.push_str(" spells");
+                if *f != Filter::default() {
+                    let _ = write!(s, " {}", filter(f));
+                }
+            }
+            let _ = writeln!(out, "{s}");
+        }
+        Ability::PlayExiled {
+            lands,
+            spells,
+            your_turn,
+            owned,
+        } => {
+            let mut s = format!("{indent}play exiled");
+            if *your_turn {
+                s.push_str(" your turn");
+            }
+            if *owned {
+                s.push_str(" owned");
             }
             if *lands {
                 s.push_str(" lands");

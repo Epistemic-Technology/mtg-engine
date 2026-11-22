@@ -209,6 +209,7 @@ to its other face as well.
 | `hexproof from black`, `hexproof from monocolored`, `hexproof from instant` | "Hexproof from black" (CR 702.11d): this permanent can't be the target of spells or abilities your opponents control from sources matching the filter (a color, `multicolored`, `monocolored`, a card type: "instants", "planeswalkers"). In a keyword line ("Flying, hexproof from multicolored") write the keywords first, then this line. |
 | `trigger again Ninja creature you control`, `trigger again other Elemental you control`, `trigger again permanent you control when permanent enters the battlefield`, `trigger again permanent you control when artifact or creature enters`, `trigger again permanent you control when creature dies`, `trigger again permanent you control when creature attacks` | CR 603.2d: "If a triggered ability of a Ninja creature you control triggers, that ability triggers an additional time." ("it triggers" after `other`, as Twinflame Travelers prints); with `when ... enters`, only when that permanent entering caused it ("If a permanent entering the battlefield causes a triggered ability of a permanent you control to trigger, that ability triggers an additional time.", `the battlefield` printed where written); `when creature dies` ("If a creature dying causes ...", the creature judged as it last existed) and `when creature attacks` ("If a creature attacking causes ...") likewise. Only such abilities on the battlefield as the event happens count (one dying with the creature doesn't). Each such ability adds one more instance; each instance is put on the stack with its own targets and choices |
 | `opening hand` | "If this card is in your opening hand, you may begin the game with it on the battlefield." (CR 103.6a; a legendary card names itself: "If Quicksilver is in your opening hand, ..."). After mulligans, starting with the starting player, each player is asked about each such card in their hand. |
+| `play exiled spells`, `play exiled lands and spells`, `play exiled your turn lands and spells`, `play exiled owned spells Dinosaur creature` | "You may cast spells from among cards exiled with Rona.", "You may play lands and cast spells from among cards exiled with this creature.", "During your turn, you may play cards exiled with this artifact.", "You may cast Dinosaur creature spells from among cards you own exiled with this creature." (CR 607.2a, 601.3): the controller may play the cards this permanent's abilities exiled while they stay in exile, paying their costs with the usual timing and land plays. |
 | `play from top lands`, `play from top spells creature`, `play from top lands and spells`, `play from top once spells instant or sorcery` | "You may play lands from the top of your library.", "You may cast creature spells from the top of your library.", "You may play lands and cast spells from the top of your library.", "Once each turn, you may cast an instant or sorcery spell from the top of your library." (CR 601.3, 305.1): the controller may play the top card of their library, paying its costs, with the usual timing and a land only with a land play left. The spells' filter is any filter (`Spider or noncreature`: "Spider spells and noncreature spells"; `with mana value 4 or greater`: "spells with mana value 4 or greater"; `with flash or flying`); `once` allows one spell a turn by that permanent's permission. |
 | `top revealed`, `top revealed players` | "Play with the top card of your library revealed.", "Players play with the top card of their libraries revealed.": every player knows that top card (CR 401.2). |
 | `hand size none`, `hand size +1`, `hand size opponents -1` | "You have no maximum hand size.", "Your maximum hand size is increased by one.", "Each opponent's maximum hand size is reduced by one." (CR 402.2) |
@@ -470,7 +471,10 @@ graveyard this turn` ("an artifact or creature was put into a graveyard
 from the battlefield this turn"; any card types joined by `or`),
 `discarded this turn`, `more cards in hand than each
 opponent`, `opponent poisoned` ("an opponent is poisoned"), `opponent poison
-3 or more`, `you own card in exile`, `total power 8 or more` ("creatures you
+3 or more`, `you own card in exile`, `3 cards exiled with this` ("there
+are three or more cards exiled with this creature", CR 607.2a), `4 card
+types exiled with this` ("there are four or more card types among cards
+exiled with this creature"), `total power 8 or more` ("creatures you
 control have total power 8 or greater", formidable), `total toughness 10
 or more` ("creatures you control have total toughness 10 or greater"), `3
 different powers` ("you control three or more creatures with different
@@ -1444,7 +1448,12 @@ you control"; vivid, `label "Vivid"`; also a characteristic-defining
 power, `static this: cda power colors among permanents`), `colors spent` (converge: "the number of colors of mana
 spent to cast this spell"), `treasure spent` ("for each mana from a
 Treasure spent to cast it"), `opponents graveyards [<filter>]` ("creature cards in your
-opponents' graveyards"), `opponents attacked` ("opponents you're
+opponents' graveyards"), `exiled with this [<filter> card]` ("cards
+exiled with this enchantment", CR 607.2a), `exile [<filter> card]`
+("cards you own in exile"; `static this: cda pt exile +1` is Cosmogoyf),
+`exile and graveyard instant or sorcery card` ("instant and sorcery
+cards you own in exile and in your graveyard", "the total number of
+..." as a number), `opponents attacked` ("opponents you're
 attacking"), `attacked with this turn` ("creatures you attacked with this
 turn"), `Zubera died this turn` ("for each Zubera that died this turn",
 "the number of Zubera that died this turn": creatures put into a graveyard
@@ -1573,6 +1582,15 @@ on target creature"),
 `remove 1 +1/+1 counter from <what>`, `remove 1 counter from <what>` ("remove a counter from target permanent": a counter of a kind the controller chooses), `remove all counters from <what>`,
 `return <what> to hand`, `return <what> to battlefield [with 1 +1/+1 counter]`,
 `regenerate <what>`, `exile <what> [and <what>]` (a permanent or a graveyard card),
+`return all card exiled with this to battlefield under your control`
+("Return all cards exiled with this artifact to the battlefield under
+your control"; `each creature card exiled with this` "each creature card
+exiled with this land"): the cards this permanent's abilities exiled,
+still in exile, matching the filter (CR 607.2a). A card whose text says
+"exiled with" links every card its triggered and activated abilities
+exile to the permanent (by any exile effect: a target, the top of a
+library, a graveyard card); a new object after a zone change links
+nothing (CR 400.7).
 `exile <what> until this leaves` ("exile target creature an opponent
 controls until this enchantment leaves the battlefield", CR 610.3: nothing
 is exiled if the source has already left, and the card returns under its
