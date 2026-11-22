@@ -2775,3 +2775,33 @@ layer pass is re-entered (the cause of two stack overflows). Per-game
 throughput fell about 2% (3,615 to 3,560 games/s). Coverage: 89.8% of
 Pauper, 65.6% of Standard, 58.8% of Modern; gate 15,915 match; 8,209
 scenarios pass; fuzz clean in release and debug builds.
+
+Status 2026-11-22: the fifth wave. Twelve card batches accepted 116 of
+480: 32% of fresh Standard cards, 17% of Pauper cards (Pauper's tail had
+not been through card agents before). Eight feature agents, each given
+the still-uncovered cards whose earlier report named its area: missing
+keywords and layouts (fading, annihilator, rampage, battle cry,
+training, melee, dethrone, myriad, For Mirrodin!, level up, prototype,
+blitz, forecast, split second, recover, escalate, prowl, miracle,
+emerge; 140 cards); counts, conditions, and statics (71); wording (67);
+named legendary tokens, X/X tokens, token copies with a count, giving
+control to an opponent (47); modal heads, the Sieges, searching library
+and/or graveyard (43); triggers, kept mana, other permanents entering
+with counters (38); cards exiled with a permanent, cards you own in
+exile, any permanent becoming a copy for a duration (23); and the open
+bugs (14). The bug agent found that mass removal moved permanents one at
+a time (a Wrath with three creatures gave a death-counting trigger two),
+that mana value was ignored when choosing cards outside the battlefield,
+and that a player gaining shroud or hexproof gained nothing; all fixed,
+with "one or more" triggers now grouped by effect and "triggers an
+additional time" looking back. Fixed on main: a static's condition on
+power that gates an ability read the power before pump effects (a second
+layer pass, taken only when such a condition is on the battlefield);
+"put a stun counter on each of them" after a tap put none. A ward cost
+that is a sacrifice was never enforced and is a compile error now (two
+cards removed). The fuzz found emerge offering a cast it could not pay
+for; the fuzz script had been hiding panicking runs behind a line limit.
+Per-game throughput fell 3.4% (3,498 to 3,379 games/s), about 12% over
+five waves, still not bisected. Coverage: 91.0% of Pauper, 70.7% of
+Standard, 61.1% of Modern; gate 16,471 match; 9,087 scenarios pass; fuzz
+clean in release and debug builds.

@@ -254,9 +254,9 @@ named the feature; a card may need more than one.
 
 ## 4. Process
 
-- **Per-game throughput has fallen about 6.7% over three waves** (2.8%
-  in the first, 4.0% in the third; mono-red mirror, pinned best of
-  five). Neither drop has been bisected.
+- **Per-game throughput has fallen about 12% over five waves** (2.8%,
+  none measured, 4.0%, about 2%, 3.4%; mono-red mirror, pinned best of
+  five; 3,379 games/s after the fifth). None of it has been bisected.
 - **The optional additional cost was built twice:** behold's "you may
   behold" and the path for collect evidence and blight are separate.
 - **Cost reductions on a prepared spell copy** have no scenario.
