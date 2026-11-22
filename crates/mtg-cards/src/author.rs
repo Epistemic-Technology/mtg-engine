@@ -3194,6 +3194,7 @@ fn split_sentences(text: &str) -> Vec<String> {
 }
 
 /// A cost prefix of an activated ability as the DSL writes it.
+#[allow(clippy::too_many_lines)] // one arm per cost item
 fn cost_text(s: &str) -> Option<String> {
     let remove = Regex::new(
         r"^Remove (an?|two|three|\w+) ([a-z+/1-]+(?: strike)?) counters? from this (?:artifact|creature|land|enchantment|permanent)$",
@@ -4626,11 +4627,9 @@ impl Builder<'_> {
             }
             return Ok(());
         }
-        if let Some(c) = Regex::new(
-            r"^(Basic land|[A-Z][a-z]+)cycling ((?:\{[0-9XWUBRGC]+\})+)$",
-        )
-        .unwrap()
-        .captures(line)
+        if let Some(c) = Regex::new(r"^(Basic land|[A-Z][a-z]+)cycling ((?:\{[0-9XWUBRGC]+\})+)$")
+            .unwrap()
+            .captures(line)
         {
             self.statements.push(format!(
                 "{}cycling {}",
@@ -6334,10 +6333,11 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         return Err(Skip::Subtypes);
     }
     for k in &s.keywords {
+        // Typecycling of any type (CR 702.29e): "Wizardcycling {2}".
+        let typecycling = k.ends_with("cycling") && k.len() > "cycling".len();
         if !KEYWORDS.contains(&k.as_str())
             && !TEMPLATED_TAGS.contains(&k.as_str())
-            // Typecycling of any type (CR 702.29e): "Wizardcycling {2}".
-            && !(k.ends_with("cycling") && k.len() > "cycling".len())
+            && !typecycling
             && !ABILITY_WORDS.contains(&k.as_str())
             // A flavor word before equip ("Hagneia — Equip {3}") is tagged
             // as a keyword; the line is templated as a labeled equip.

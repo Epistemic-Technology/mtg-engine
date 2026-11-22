@@ -3443,8 +3443,9 @@ impl GameState {
                 at_least,
                 that: false,
             } => self.spent_on(source).count(*kind) >= u32::from(*at_least),
-            // Judged by `condition_for`, which knows the triggering spell.
-            C::ManaSpent { that: true, .. } => false,
+            // Judged by `condition_for`, which knows the triggering spell;
+            // the vote is the resolution's (`IfCondition` reads it).
+            C::ManaSpent { that: true, .. } | C::MoreVotes { .. } => false,
             C::NoManaSpent => self.spent_on(source).count(crate::card::SpentKind::Total) == 0,
             C::Impending => self.objects.get(source).is_some_and(|o| {
                 o.alt == AltCast::Impending && o.counters(crate::card::CounterKind::Time) > 0
@@ -3456,8 +3457,6 @@ impl GameState {
                     .get(&source)
                     .is_some_and(|l| l.object.alt == AltCast::WebSlinging),
             },
-            // The vote is the resolution's (`IfCondition` reads it).
-            C::MoreVotes { .. } => false,
             // CR 702.76a: the spell (cast for the card's alternative cost)
             // or the permanent it became.
             C::ProwlPaid => match self.objects.get(source) {

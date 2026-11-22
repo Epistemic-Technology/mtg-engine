@@ -955,13 +955,13 @@ impl GameState {
                 .filter(|(o, note)| {
                     *o == ctx.source
                         && matches!(note, crate::state::EnterNote::Devoured(d)
-                            if self.lki.get(d).is_some_and(|l| f.matches(
-                                *d,
-                                l.object.controller,
-                                &l.characteristics,
-                                Some(ctx.source),
-                                Some(you),
-                            )))
+                        if self.lki.get(d).is_some_and(|l| f.matches(
+                            *d,
+                            l.object.controller,
+                            &l.characteristics,
+                            Some(ctx.source),
+                            Some(you),
+                        )))
                 })
                 .count(),
             CountExpr::DifferentlyNamed(f) => {
@@ -10648,22 +10648,20 @@ impl GameState {
                 // CR 701.38: "If death gets more votes", the tally of this
                 // resolution's vote.
                 let holds = match c {
-                    crate::card::StaticCondition::MoreVotes { index, ties } => {
-                        match &ctx.chosen {
-                            Chosen::Votes(v) => {
-                                let mine = v.get(usize::from(index)).copied().unwrap_or(0);
-                                let best = v
-                                    .iter()
-                                    .enumerate()
-                                    .filter(|(i, _)| *i != usize::from(index))
-                                    .map(|(_, n)| *n)
-                                    .max()
-                                    .unwrap_or(0);
-                                mine > best || (ties && mine == best)
-                            }
-                            _ => false,
+                    crate::card::StaticCondition::MoreVotes { index, ties } => match &ctx.chosen {
+                        Chosen::Votes(v) => {
+                            let mine = v.get(usize::from(index)).copied().unwrap_or(0);
+                            let best = v
+                                .iter()
+                                .enumerate()
+                                .filter(|(i, _)| *i != usize::from(index))
+                                .map(|(_, n)| *n)
+                                .max()
+                                .unwrap_or(0);
+                            mine > best || (ties && mine == best)
                         }
-                    }
+                        _ => false,
+                    },
                     _ => self.condition_for(&c, ctx.controller, ctx.source, ctx.trigger_obj),
                 };
                 if holds {
@@ -11317,12 +11315,13 @@ impl GameState {
                     .permanents_of(p)
                     .filter(|id| {
                         *id != me
-                            && self.characteristics(*id).is_some_and(|c| {
-                                filter.matches(*id, p, &c, Some(me), Some(p))
-                            })
+                            && self
+                                .characteristics(*id)
+                                .is_some_and(|c| filter.matches(*id, p, &c, Some(me), Some(p)))
                     })
                     .collect();
-                let mut options: Vec<Choice> = cands.iter().map(|id| Choice::Sacrifice(*id)).collect();
+                let mut options: Vec<Choice> =
+                    cands.iter().map(|id| Choice::Sacrifice(*id)).collect();
                 options.push(Choice::Done);
                 let k = self.choose_mid(p, DecisionKind::ChooseCard, options.clone());
                 if let Choice::Sacrifice(id) = options[k] {

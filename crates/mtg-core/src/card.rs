@@ -2646,7 +2646,10 @@ pub enum StaticCondition {
     /// its `index`th choice more votes than any other; with `ties`, "or
     /// the vote is tied", at least as many. Judged only by an
     /// `Effect::IfCondition` after the vote; elsewhere false.
-    MoreVotes { index: u8, ties: bool },
+    MoreVotes {
+        index: u8,
+        ties: bool,
+    },
     /// Prowl's condition (CR 702.76a): "if you dealt combat damage to a
     /// player this turn with a [creature of one of these types]".
     ProwlDamage(Vec<Subtype>),
@@ -9856,12 +9859,14 @@ impl Builder {
     #[must_use]
     pub fn read_ahead(mut self) -> Self {
         self.0.read_ahead = true;
-        self.0.abilities.push(AbilityDef::Replacement(ReplacementAbility {
-            replaces: Replaces::Enters,
-            replacement: Replacement::EnterReadAhead,
-            then: Vec::new(),
-            condition: None,
-        }));
+        self.0
+            .abilities
+            .push(AbilityDef::Replacement(ReplacementAbility {
+                replaces: Replaces::Enters,
+                replacement: Replacement::EnterReadAhead,
+                then: Vec::new(),
+                condition: None,
+            }));
         self
     }
 

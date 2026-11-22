@@ -4869,7 +4869,10 @@ fn static_cond(c: &StaticCond) -> String {
         ),
         StaticCond::ProwlPaid => "prowl paid".to_string(),
         StaticCond::MoreVotes { word, ties, .. } => {
-            format!("more votes for {word}{}", if *ties { " or tied" } else { "" })
+            format!(
+                "more votes for {word}{}",
+                if *ties { " or tied" } else { "" }
+            )
         }
         StaticCond::SneakPaid(p) => format!(
             "{}sneak paid",

@@ -1528,7 +1528,7 @@ impl GameState {
                                 .is_some_and(|c| c.types.contains(kind))
                     })
                     .collect();
-                let eaten = self.choose_some(controller, &mut cands, |id| Choice::Sacrifice(id));
+                let eaten = self.choose_some(controller, &mut cands, Choice::Sacrifice);
                 for id in &eaten {
                     self.sacrifice(*id);
                     self.enter_notes
@@ -1624,7 +1624,11 @@ impl GameState {
                             .iter()
                             .map(|p| Choice::Target(crate::state::Target::Player(*p)))
                             .collect();
-                        let k = self.choose_mid(controller, DecisionKind::ChooseOption { def }, options);
+                        let k = self.choose_mid(
+                            controller,
+                            DecisionKind::ChooseOption { def },
+                            options,
+                        );
                         many.get(k).copied()
                     }
                 };
