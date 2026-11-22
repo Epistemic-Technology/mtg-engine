@@ -162,6 +162,37 @@ scenario "Spell Blast: a spell's X counts in its mana value on the stack" {
   assert graveyard B contains "Blaze"
 }
 
+# "If it's an enchanted creature or enchantment creature": the Aura is
+# judged on the battlefield, not ignored.
+scenario "Karametra's Blessing: an unenchanted creature gets only +2/+2" {
+  battlefield A: "Plains", "Grizzly Bears"
+  hand A: "Karametra's Blessing"
+  turn 1 A: cast "Karametra's Blessing" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has not "Grizzly Bears" hexproof
+  assert has not "Grizzly Bears" indestructible
+}
+
+scenario "Karametra's Blessing: an enchanted creature also gains hexproof and indestructible" {
+  battlefield A: "Plains", "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  hand A: "Karametra's Blessing"
+  turn 1 A: cast "Karametra's Blessing" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert has "Grizzly Bears" hexproof
+  assert has "Grizzly Bears" indestructible
+}
+
+scenario "Karametra's Blessing: an enchantment creature also gains them" {
+  battlefield A: "Plains", "Nyxborn Shieldmate"
+  hand A: "Karametra's Blessing"
+  turn 1 A: cast "Karametra's Blessing" targeting "Nyxborn Shieldmate"
+  run_to turn 1 postcombat_main
+  assert has "Nyxborn Shieldmate" hexproof
+  assert has "Nyxborn Shieldmate" indestructible
+}
+
 # "If a triggered ability of another creature you control of the chosen
 # type triggers, it triggers an additional time": the type Roaming Throne
 # chose (CR 603.2d).

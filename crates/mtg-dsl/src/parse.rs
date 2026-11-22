@@ -4933,6 +4933,19 @@ impl P {
         })
     }
 
+    /// A target check can't ask whether the target is what the source
+    /// enchants: `enchanted creature` there would mean that, and print
+    /// "an enchanted creature" (Karametra's Blessing), which is `creature
+    /// with aura`.
+    fn no_host_check(f: &Filter) -> Result<(), String> {
+        if f.enchanted || f.or.as_ref().is_some_and(|g| g.enchanted) {
+            return Err(
+                "`if target N is enchanted ...`: write `creature with aura` (an Aura on it) or `creature with equipment`".to_string(),
+            );
+        }
+        Ok(())
+    }
+
     /// `if target 1 was Human, ...`: "If that creature was a Human, ...",
     /// judged on the target's last state.
     fn if_target(&mut self) -> R<Effect> {
@@ -4948,6 +4961,7 @@ impl P {
             // the target as it resolves ("If it's a Vampire, it also gains
             // lifelink until end of turn").
             let filter = self.filter()?;
+            Self::no_host_check(&filter).or_else(|m| self.fail(m))?;
             self.expect(&Tok::Comma)?;
             let tense = if that {
                 crate::ast::TargetTense::ThatIs
@@ -4992,6 +5006,7 @@ impl P {
             crate::ast::TargetTense::Was
         };
         let f = self.filter()?;
+        Self::no_host_check(&f).or_else(|m| self.fail(m))?;
         self.expect(&Tok::Comma)?;
         let saved = self.subject.take();
         let s = self.sentence()?;

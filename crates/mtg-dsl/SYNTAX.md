@@ -2417,7 +2417,10 @@ resolves: `if target 1 is Human, ...` ("If it's a Human, ..."), `if that
 target 1 is other Hero, ...` ("If that creature is another Hero, ..."),
 or as it last existed: `if that target 1 was with mana value 2 or less,
 ...` ("If that spell's mana value was 2 or less, ...", after countering
-it).
+it). State on the battlefield counts: `if target 1 is creature with aura
+or enchantment creature, also ...` ("If it's an enchanted creature or
+enchantment creature, it also ..."); `enchanted creature` (what the
+source enchants) is an error in a target check.
 `label "Hellbent"` before the sentence prints an ability word (CR 207.2c,
 no rules meaning): "Hellbent — Cackling Flames deals 5 damage instead if
 you have no cards in hand." In a `spell { ... }` block it starts its own
