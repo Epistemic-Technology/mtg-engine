@@ -8947,7 +8947,8 @@ impl GameState {
                             filter.as_ref().is_none_or(|f| {
                                 let o = &self.objects[*id];
                                 let c = self.base_characteristics(o);
-                                f.matches(*id, p, &c, Some(ctx.source), Some(ctx.controller)) && self.status_ok(f, *id)
+                                f.matches(*id, p, &c, Some(ctx.source), Some(ctx.controller))
+                                    && self.status_ok(f, *id)
                             })
                         })
                         .collect();
@@ -9557,7 +9558,8 @@ impl GameState {
                         .filter(|id| {
                             let o = &self.objects[**id];
                             let c = self.base_characteristics(o);
-                            filter.matches(**id, p, &c, Some(ctx.source), Some(ctx.controller)) && self.status_ok(filter, **id)
+                            filter.matches(**id, p, &c, Some(ctx.source), Some(ctx.controller))
+                                && self.status_ok(filter, **id)
                         })
                         .map(|id| Choice::Discard {
                             card: *id,
@@ -9616,7 +9618,8 @@ impl GameState {
                     .filter(|id| {
                         let o = &self.objects[*id];
                         let c = self.base_characteristics(o);
-                        filter.matches(*id, o.owner, &c, Some(ctx.source), Some(you)) && self.status_ok(filter, *id)
+                        filter.matches(*id, o.owner, &c, Some(ctx.source), Some(you))
+                            && self.status_ok(filter, *id)
                     })
                     .collect();
                 if cards.is_empty() {
@@ -9979,9 +9982,7 @@ impl GameState {
                 let recipients = self.recipients(ctx, *to);
                 // "You gain protection from the color of your choice until
                 // end of turn" (CR 702.16): a player.
-                if *protection
-                    && let [Target::Player(p)] = recipients[..]
-                {
+                if *protection && let [Target::Player(p)] = recipients[..] {
                     if let Chosen::Color(c) = self.choose_kind(ctx.controller, *kind) {
                         self.grant_player(ctx, p, KeywordSet::of([Keyword::protection_from(c)]));
                     }
@@ -10135,7 +10136,8 @@ impl GameState {
                         .filter(|id| {
                             let o = &self.objects[**id];
                             let c = self.base_characteristics(o);
-                            filter.matches(**id, p, &c, None, Some(p)) && self.status_ok(filter, **id)
+                            filter.matches(**id, p, &c, None, Some(p))
+                                && self.status_ok(filter, **id)
                         })
                         .map(|id| Choice::Discard {
                             card: *id,
@@ -10398,8 +10400,8 @@ impl GameState {
                 // pay; later "X" in the resolution, and in the reflexive
                 // ability, is that value.
                 let x = if mana.has_x() {
-                    let max = (0u32..)
-                        .take_while(|&n| n <= 99 && self.can_pay(p, &mana.requirements(n)))
+                    let max = (0u32..=99)
+                        .take_while(|&n| self.can_pay(p, &mana.requirements(n)))
                         .last()
                         .unwrap_or(0);
                     let pick = self.choose_mid(
@@ -10551,7 +10553,8 @@ impl GameState {
                             continue;
                         }
                         options.push(Choice::Decline);
-                        let i = self.choose_mid(p, DecisionKind::PayOrCounter { def }, options.clone());
+                        let i =
+                            self.choose_mid(p, DecisionKind::PayOrCounter { def }, options.clone());
                         if options.get(i) != Some(&Choice::Accept) {
                             continue;
                         }
@@ -11178,7 +11181,8 @@ impl GameState {
                             continue;
                         }
                         let c = self.base_characteristics(o);
-                        if filter.matches(new, o.owner, &c, Some(ctx.source), Some(ctx.controller)) && self.status_ok(filter, new)
+                        if filter.matches(new, o.owner, &c, Some(ctx.source), Some(ctx.controller))
+                            && self.status_ok(filter, new)
                         {
                             ctx.created = Some(new);
                             break;
@@ -11226,7 +11230,8 @@ impl GameState {
                             &c,
                             Some(ctx.source),
                             Some(ctx.controller),
-                        ) && self.status_ok(filter, *id) {
+                        ) && self.status_ok(filter, *id)
+                        {
                             ctx.created = Some(*id);
                             break;
                         }
@@ -11659,7 +11664,8 @@ impl GameState {
                     .filter(|id| {
                         let o = &self.objects[*id];
                         let c = self.base_characteristics(o);
-                        filter.matches(*id, p, &c, Some(ctx.source), Some(ctx.controller)) && self.status_ok(filter, *id)
+                        filter.matches(*id, p, &c, Some(ctx.source), Some(ctx.controller))
+                            && self.status_ok(filter, *id)
                     })
                     .collect();
                 for id in cards {

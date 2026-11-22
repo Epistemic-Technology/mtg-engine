@@ -76,8 +76,7 @@ impl GameState {
                 let (mut copies, limit) = (chapter_copies(&t.trigger, event), t.limit);
                 // A source of "triggers an additional time" leaving in the
                 // same event still counts (CR 603.10a, `extra_triggers`).
-                if (self.player_static_sources > 0 || self.lookback.is_some()) && !w.in_graveyard
-                {
+                if (self.player_static_sources > 0 || self.lookback.is_some()) && !w.in_graveyard {
                     copies += self.extra_triggers(w, event);
                 }
                 // CR 603.2c: "one or more ... enter", once per batch.
@@ -362,7 +361,11 @@ impl GameState {
     /// each such ability whose filter the watcher matches.
     #[cold]
     #[inline(never)]
+    #[allow(clippy::too_many_lines)] // the look-back and the cause
     fn extra_triggers(&self, w: &Watcher, event: &Event) -> usize {
+        // Each: the permanent, its controller, its characteristics, and
+        // what it is attached to.
+        type Source = (ObjId, PlayerId, Characteristics, Option<ObjId>);
         use crate::card::TriggerCause;
         // The object whose event this is, as the cause filter judges it.
         let cause = match event {
@@ -412,42 +415,41 @@ impl GameState {
                 ..
             }
         );
-        let sources: SmallVec<[(ObjId, PlayerId, Characteristics, Option<ObjId>); 4]> =
-            match &self.lookback {
-                Some(lb) if leaves => lb
-                    .iter()
-                    .filter(|l| {
-                        self.pool
-                            .get(l.characteristics.def)
-                            .flags()
-                            .has_player_static()
-                    })
-                    .map(|l| {
-                        let attached = self
-                            .objects
-                            .get(l.id)
-                            .filter(|o| o.zone == Zone::Battlefield)
-                            .map(|o| o.attached_to)
-                            .or_else(|| self.lki.get(&l.id).map(|k| k.object.attached_to))
-                            .flatten();
-                        (l.id, l.controller, l.characteristics, attached)
-                    })
-                    .collect(),
-                _ => self
-                    .battlefield
-                    .iter()
-                    .filter(|id| {
-                        self.pool
-                            .get(self.objects[**id].def)
-                            .flags()
-                            .has_player_static()
-                    })
-                    .filter_map(|&id| {
-                        let o = &self.objects[id];
-                        Some((id, o.controller, self.characteristics(id)?, o.attached_to))
-                    })
-                    .collect(),
-            };
+        let sources: SmallVec<[Source; 4]> = match &self.lookback {
+            Some(lb) if leaves => lb
+                .iter()
+                .filter(|l| {
+                    self.pool
+                        .get(l.characteristics.def)
+                        .flags()
+                        .has_player_static()
+                })
+                .map(|l| {
+                    let attached = self
+                        .objects
+                        .get(l.id)
+                        .filter(|o| o.zone == Zone::Battlefield)
+                        .map(|o| o.attached_to)
+                        .or_else(|| self.lki.get(&l.id).map(|k| k.object.attached_to))
+                        .flatten();
+                    (l.id, l.controller, l.characteristics, attached)
+                })
+                .collect(),
+            _ => self
+                .battlefield
+                .iter()
+                .filter(|id| {
+                    self.pool
+                        .get(self.objects[**id].def)
+                        .flags()
+                        .has_player_static()
+                })
+                .filter_map(|&id| {
+                    let o = &self.objects[id];
+                    Some((id, o.controller, self.characteristics(id)?, o.attached_to))
+                })
+                .collect(),
+        };
         let mut n = 0;
         for (id, controller, c, attached_to) in sources {
             for &a in &c.abilities {
@@ -1836,7 +1838,10 @@ impl GameState {
             self.x_values.push((obj, x));
         }
         if !self.reflexive_x.is_empty()
-            && let Some(i) = self.reflexive_x.iter().position(|(ts, _)| *ts == t.timestamp)
+            && let Some(i) = self
+                .reflexive_x
+                .iter()
+                .position(|(ts, _)| *ts == t.timestamp)
         {
             let (_, x) = self.reflexive_x.swap_remove(i);
             self.x_values.push((obj, x));

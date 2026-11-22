@@ -4724,7 +4724,7 @@ impl Compiler<'_> {
                             life: cost.life,
                             discard: cost.discard,
                             waterbend: cost.waterbend,
-                        discard_random: cost.discard_random,
+                            discard_random: cost.discard_random,
                             order: cost.order.clone(),
                             ..Default::default()
                         } =>

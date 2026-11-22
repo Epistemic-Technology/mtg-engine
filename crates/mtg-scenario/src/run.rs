@@ -798,13 +798,13 @@ impl Runner {
     /// in any order; unscripted, all stay on top.
     fn choose_down(&mut self, d: &Decision, pos: Position) -> Res<ChoiceId> {
         let surveil = matches!(d.kind, DecisionKind::Surveil { .. });
-        let idxs = self.matching(
+        let scripted = self.matching(
             d.player,
             pos,
             true,
             |a| matches!(a, Action::Down { surveil: s, .. } if *s == surveil),
         );
-        let Some(&i) = idxs.first() else {
+        let Some(&i) = scripted.first() else {
             return Ok(0);
         };
         self.fired[i] = true;
