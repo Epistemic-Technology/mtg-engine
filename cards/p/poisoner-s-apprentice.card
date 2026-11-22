@@ -1,0 +1,7 @@
+card "Poisoner's Apprentice" {
+  oracle_id 4b0e5626-0282-42e5-abef-a079b26a8e5f
+  cost {2}{B}
+  type Creature — Orc Warlock
+  pt 2/2
+  label "Infusion" triggered when this enters: target creature an opponent controls gets -4/-4 until end of turn if gained life this turn
+}

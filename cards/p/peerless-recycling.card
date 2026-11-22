@@ -1,0 +1,7 @@
+card "Peerless Recycling" {
+  oracle_id 938c03fc-8adf-4c7a-8ae1-eca8401f7a83
+  cost {1}{G}
+  type Instant
+  gift card
+  spell: return target permanent card from your graveyard to hand; if kicked, instead return 2 target permanent cards from your graveyard to hand
+}

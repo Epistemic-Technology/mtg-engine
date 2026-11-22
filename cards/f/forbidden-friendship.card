@@ -1,0 +1,6 @@
+card "Forbidden Friendship" {
+  oracle_id d6192840-5e5d-48fa-a256-3b1e8c1c307a
+  cost {1}{R}
+  type Sorcery
+  spell: create 1 "1/1 red Dinosaur creature with haste" and create 1 "1/1 white Human Soldier creature"
+}

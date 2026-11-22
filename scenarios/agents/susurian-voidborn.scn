@@ -1,0 +1,34 @@
+scenario "itself and another creature dying drain" {
+  battlefield A: "Susurian Voidborn", "Grizzly Bears"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Lightning Bolt"
+  life A 10
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 2 B: wait
+  turn 2 B: cast "Lightning Bolt" targeting "Susurian Voidborn"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Susurian Voidborn"
+  assert life A 12
+  assert life B 18
+}
+
+scenario "opponent's creature dying does nothing" {
+  battlefield A: "Susurian Voidborn", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert life B 20
+}
+
+scenario "warp: cast for {B}, exiled at end step" {
+  battlefield A: "Swamp"
+  hand A: "Susurian Voidborn"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Susurian Voidborn" warped
+  run_to turn 2 upkeep
+  assert exile A contains "Susurian Voidborn"
+}

@@ -1,0 +1,31 @@
+scenario "Entrust the Spark trades a planeswalker for one from the library" {
+  battlefield A: 3 "Forest", 2 "Island", "Jace Beleren"
+  hand A: "Entrust the Spark"
+  library A: "Island", "Ajani Goldmane", "Forest"
+  turn 1 A: cast "Entrust the Spark"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Jace Beleren"
+  assert battlefield A contains "Ajani Goldmane"
+  assert library A lacks "Ajani Goldmane"
+}
+
+scenario "Entrust the Spark does nothing if declined" {
+  battlefield A: 3 "Forest", 2 "Island", "Jace Beleren"
+  hand A: "Entrust the Spark"
+  library A: "Island", "Ajani Goldmane", "Forest"
+  turn 1 A: cast "Entrust the Spark"
+  turn 1 A: decline "Entrust the Spark"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Jace Beleren"
+  assert library A contains "Ajani Goldmane"
+}
+
+scenario "Entrust the Spark without a planeswalker finds nothing" {
+  battlefield A: 3 "Forest", 2 "Island"
+  hand A: "Entrust the Spark"
+  library A: "Island", "Ajani Goldmane", "Forest"
+  turn 1 A: cast "Entrust the Spark"
+  run_to turn 1 postcombat_main
+  assert library A contains "Ajani Goldmane"
+  assert graveyard A contains "Entrust the Spark"
+}

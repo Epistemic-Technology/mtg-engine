@@ -1,0 +1,21 @@
+scenario "Nasty Little Rabbit grows with a power 4 creature" {
+  battlefield A: "Nasty Little Rabbit", "Serra Angel"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert counters "Nasty Little Rabbit" +1/+1 1
+  assert power "Nasty Little Rabbit" 2
+}
+scenario "Nasty Little Rabbit doesn't grow without one" {
+  battlefield A: "Nasty Little Rabbit", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert power "Nasty Little Rabbit" 1
+}
+scenario "Hill Giant is 3/3, so it counts only once pumped" {
+  battlefield A: "Nasty Little Rabbit", "Hill Giant", "Forest"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Hill Giant"
+  run_to turn 1 declare_attackers
+  assert power "Nasty Little Rabbit" 2
+}

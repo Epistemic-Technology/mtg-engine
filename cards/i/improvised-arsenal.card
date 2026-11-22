@@ -1,0 +1,8 @@
+card "Improvised Arsenal" {
+  oracle_id 4f02aa99-481c-4089-8f7c-cfe7eaa7dda0
+  cost {1}{R}
+  type Artifact — Equipment
+  static enchanted: +1/+0 count each artifact you control
+  activated {4}{R}: create token copy of this
+  equip {R}
+}

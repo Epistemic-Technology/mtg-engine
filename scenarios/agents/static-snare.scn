@@ -1,0 +1,22 @@
+scenario "static snare costs 1 less per attacker and exiles an attacker" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Static Snare"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant", "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Static Snare"
+  turn 2 declare_attackers A: trigger "Static Snare" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Static Snare"
+  assert exile B contains "Hill Giant"
+  assert life A 18
+}
+
+scenario "static snare can't be cast for three with no attackers" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Static Snare"
+  illegal turn 1 A: cast "Static Snare"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Static Snare"
+}

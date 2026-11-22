@@ -1,0 +1,27 @@
+scenario "Mentor of the Meek: a power 2 creature enters, pay {1} to draw" {
+  battlefield A: "Mentor of the Meek", 3 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: accept "Mentor of the Meek"
+  run_to turn 1 end
+  assert hand A count 1
+  assert library A count 39
+}
+
+scenario "Mentor of the Meek: a power 3 creature draws nothing" {
+  battlefield A: "Mentor of the Meek", 5 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert hand A count 0
+  assert library A count 40
+}
+
+scenario "Mentor of the Meek: declining the payment draws nothing" {
+  battlefield A: "Mentor of the Meek", 3 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: decline "Mentor of the Meek"
+  run_to turn 1 end
+  assert hand A count 0
+}

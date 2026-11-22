@@ -1,0 +1,6 @@
+card "Thirst for Knowledge" {
+  oracle_id 939e6f71-185e-41f2-9d54-72cce06f1dce
+  cost {2}{U}
+  type Instant
+  spell: draw 3 cards; then discard 2 cards unless you discard artifact card
+}

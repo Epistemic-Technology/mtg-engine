@@ -1,0 +1,24 @@
+scenario "Yoshimaru adds a counter to its own ability" {
+  battlefield A: "Yoshimaru, Beloved Companion", 6 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Yoshimaru, Beloved Companion" targeting "Yoshimaru, Beloved Companion"
+  run_to turn 1 postcombat_main
+  assert counters "Yoshimaru, Beloved Companion" +1/+1 2
+  assert power "Yoshimaru, Beloved Companion" 4
+}
+
+scenario "Yoshimaru targets only legendary creatures" {
+  battlefield A: "Yoshimaru, Beloved Companion", "Grizzly Bears", 6 "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Yoshimaru, Beloved Companion" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Yoshimaru boosts counters from another source" {
+  battlefield A: "Yoshimaru, Beloved Companion", "Stature, Size Shifter", 4 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Stature, Size Shifter" x 2
+  run_to turn 1 postcombat_main
+  assert counters "Stature, Size Shifter" +1/+1 3
+}

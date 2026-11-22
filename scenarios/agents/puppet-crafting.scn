@@ -1,0 +1,31 @@
+scenario "puppet crafting makes the enchanted artifact a 5/5 Construct creature, nothing else" {
+  battlefield A: "Darksteel Relic", "Grizzly Bears", "Holy Strength" on "Grizzly Bears", 2 "Forest"
+  hand A: "Puppet Crafting"
+  turn 1 A: cast "Puppet Crafting" targeting "Darksteel Relic"
+  run_to turn 1 postcombat_main
+  assert attached "Puppet Crafting" to "Darksteel Relic"
+  assert is "Darksteel Relic" creature
+  assert is "Darksteel Relic" artifact
+  assert is "Darksteel Relic" Construct
+  assert power "Darksteel Relic" 5
+  assert toughness "Darksteel Relic" 5
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 4
+  assert is not "Grizzly Bears" Construct
+}
+
+scenario "puppet crafting can't enchant a creature that isn't an artifact" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  hand A: "Puppet Crafting"
+  illegal turn 1 A: cast "Puppet Crafting" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Puppet Crafting"
+}
+
+scenario "puppet crafting returns from graveyard to hand" {
+  battlefield A: 5 "Forest"
+  graveyard A: "Puppet Crafting"
+  turn 1 A: activate "Puppet Crafting"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Puppet Crafting"
+}

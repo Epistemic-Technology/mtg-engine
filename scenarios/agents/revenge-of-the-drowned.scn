@@ -1,0 +1,32 @@
+scenario "Revenge of the Drowned: owner puts it on top, caster gets a Zombie" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  library B: "Swamp", "Swamp"
+  hand A: "Revenge of the Drowned"
+  turn 1 A: cast "Revenge of the Drowned" targeting "Hill Giant"
+  turn 1 B: accept "Hill Giant"
+  run_to turn 2 precombat_main
+  assert battlefield B lacks "Hill Giant"
+  assert hand B contains "Hill Giant"
+  assert battlefield A contains "Zombie"
+  assert battlefield B lacks "Zombie"
+  assert is "Zombie" black
+  assert power "Zombie" 2
+  assert toughness "Zombie" 2
+}
+
+scenario "Revenge of the Drowned: bottom; the decayed Zombie can't block" {
+  battlefield A: 4 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  library A: "Island", "Island"
+  hand A: "Revenge of the Drowned"
+  turn 1 A: cast "Revenge of the Drowned" targeting "Grizzly Bears"
+  turn 1 A: decline "Grizzly Bears"
+  turn 2 B: attack "Hill Giant"
+  illegal turn 2 A: block "Hill Giant" with "Zombie"
+  run_to turn 2 postcombat_main
+  assert library A contains "Grizzly Bears"
+  assert library A count 3
+  assert battlefield A contains "Zombie"
+  assert life A 17
+}

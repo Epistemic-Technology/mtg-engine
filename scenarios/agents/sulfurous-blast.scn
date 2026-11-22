@@ -1,0 +1,24 @@
+scenario "sulfurous blast: 3 damage to each creature and player in your main phase" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Sulfurous Blast"
+  turn 1 A: cast "Sulfurous Blast"
+  run_to turn 1 begin_combat
+  assert life A 17
+  assert life B 17
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "sulfurous blast: 2 damage outside your main phase" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Sulfurous Blast"
+  turn 1 begin_combat A: cast "Sulfurous Blast"
+  run_to turn 1 end_combat
+  assert life A 18
+  assert life B 18
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+  assert graveyard A contains "Grizzly Bears"
+}

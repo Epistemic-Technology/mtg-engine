@@ -1,0 +1,20 @@
+scenario "enters with two Soldiers" {
+  battlefield A: 4 "Plains"
+  hand A: "Okoye, Dora Milaje Leader"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Okoye, Dora Milaje Leader"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Soldier"
+  assert has not A "Soldier" first_strike
+}
+
+scenario "attacking tokens have first strike, nontokens don't" {
+  battlefield A: "Okoye, Dora Milaje Leader", "Soldier", "Grizzly Bears"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Soldier", "Okoye, Dora Milaje Leader"
+  run_to turn 1 declare_blockers
+  assert has "Soldier" first_strike
+  assert has not "Okoye, Dora Milaje Leader" first_strike
+  assert has not A "Grizzly Bears" first_strike
+}

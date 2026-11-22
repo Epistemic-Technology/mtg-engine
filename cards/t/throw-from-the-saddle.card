@@ -1,0 +1,6 @@
+card "Throw from the Saddle" {
+  oracle_id d6780d29-0dd7-4f04-95b8-4ca6a55308f2
+  cost {1}{G}
+  type Sorcery
+  spell: target creature you control gets +1/+1; put 1 +1/+1 counter on it instead if target 1 is Mount; then target 1 bites target creature you don't control
+}

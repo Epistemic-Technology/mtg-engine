@@ -1,0 +1,7 @@
+card "Fallaji Archaeologist" {
+  oracle_id bf037457-82e3-45fd-bc17-5bc25e66c15e
+  cost {1}{U}
+  type Creature — Human Scout
+  pt 0/3
+  triggered when this enters: mill 3 cards; you may put 1 noncreature nonland card from among milled this way cards into hand chosen; if you dont, put 1 +1/+1 counter on this creature
+}

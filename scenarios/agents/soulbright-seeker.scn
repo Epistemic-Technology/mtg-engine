@@ -1,0 +1,35 @@
+scenario "Soulbright Seeker adds four red on the third resolution" {
+  battlefield A: "Soulbright Seeker", 3 "Mountain"
+  hand A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Soulbright Seeker" targeting "Soulbright Seeker"
+  turn 1 A: wait
+  turn 1 A: activate "Soulbright Seeker" targeting "Soulbright Seeker"
+  turn 1 A: wait
+  turn 1 A: activate "Soulbright Seeker" targeting "Soulbright Seeker"
+  turn 1 A: wait
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert has "Soulbright Seeker" trample
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Soulbright Seeker pays {2} without an Elemental" {
+  battlefield A: 3 "Mountain"
+  hand A: "Soulbright Seeker"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Soulbright Seeker" other_cost
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Soulbright Seeker"
+  assert tapped oldest "Mountain"
+  assert tapped newest "Mountain"
+}
+
+scenario "Soulbright Seeker can't be cast for {R} alone without an Elemental" {
+  battlefield A: 2 "Mountain"
+  hand A: "Soulbright Seeker"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Soulbright Seeker"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Soulbright Seeker"
+}

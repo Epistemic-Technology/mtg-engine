@@ -1,0 +1,8 @@
+card "Astrologian's Planisphere" {
+  oracle_id 4dcd0583-cee0-46a6-ba43-93bca5eb0428
+  cost {1}{U}
+  type Artifact — Equipment
+  job select
+  static equipped creature: add subtype Wizard, has ability { triggered whenever you cast a noncreature spell and whenever you draw your third card each turn: put 1 +1/+1 counter on this }
+  label "Diana" equip {2}
+}

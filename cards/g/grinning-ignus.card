@@ -1,0 +1,7 @@
+card "Grinning Ignus" {
+  oracle_id eca27964-accc-46cc-8aff-a06183e61e9c
+  cost {2}{R}
+  type Creature — Elemental
+  pt 2/2
+  activated {R}, sorcery, return this: add {C}{C}{R}
+}

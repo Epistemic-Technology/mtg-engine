@@ -1,0 +1,8 @@
+card "Dark Maze" {
+  oracle_id 44c65424-9c44-4bd8-9022-7ef5bb5b898e
+  cost {4}{U}
+  type Creature — Wall
+  pt 4/5
+  keywords defender
+  activated {0}: this gains can attack as though it didn't have defender; delayed this: exile it at beginning of the next end step
+}

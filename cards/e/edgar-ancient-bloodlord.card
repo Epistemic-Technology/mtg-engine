@@ -1,0 +1,9 @@
+card "Edgar, Ancient Bloodlord" {
+  oracle_id cab2bc93-f38b-4301-ac42-05765615586b
+  cost {W}{B}
+  type Legendary Creature — Vampire Noble
+  pt 2/3
+  pronoun he
+  triggered whenever another creature or planeswalker you control dies: you gain 1 life
+  activated {2}, sacrifice another creature or planeswalker: put 1 +1/+1 counters on this; this gains menace
+}

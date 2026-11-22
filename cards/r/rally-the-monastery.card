@@ -1,0 +1,11 @@
+card "Rally the Monastery" {
+  oracle_id 3f6101a5-3038-45b0-8302-b2e4127b9510
+  cost {3}{W}
+  type Instant
+  this spell costs {2} less if cast another spell this turn
+  choose one {
+    mode: create 2 "1/1 white Monk creature with prowess"
+    mode: up to 2 target creature you control each get +2/+2 until end of turn
+    mode: destroy target creature with power 4 or greater
+  }
+}

@@ -1,0 +1,6 @@
+card "Multiply by Zero" {
+  oracle_id d940611f-f84d-43fa-82d6-eecb4fb54164
+  cost {1}{B}
+  type Instant
+  spell: target creature has base power and toughness 0/0
+}

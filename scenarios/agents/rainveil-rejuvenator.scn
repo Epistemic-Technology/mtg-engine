@@ -1,0 +1,28 @@
+scenario "Rainveil Rejuvenator taps for G equal to its power" {
+  battlefield A: "Rainveil Rejuvenator" with 1 +1/+1, "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert tapped "Rainveil Rejuvenator"
+}
+
+scenario "Rainveil Rejuvenator power 2 can't pay for a four-drop alone" {
+  battlefield A: "Rainveil Rejuvenator", "Mountain"
+  hand A: "Hill Giant"
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Rainveil Rejuvenator may mill three on entering" {
+  battlefield A: 4 "Forest"
+  hand A: "Rainveil Rejuvenator"
+  library A: "Grizzly Bears", "Shock", "Island", "Hill Giant"
+  turn 1 A: cast "Rainveil Rejuvenator"
+  turn 1 A: accept "Rainveil Rejuvenator"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Shock"
+  assert graveyard A contains "Island"
+  assert library A contains "Hill Giant"
+}

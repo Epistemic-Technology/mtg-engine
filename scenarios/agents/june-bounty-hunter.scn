@@ -1,0 +1,38 @@
+scenario "june: sacrifice another creature for a Clue during your turn" {
+  battlefield A: "June, Bounty Hunter", "Grizzly Bears", "Swamp"
+  start turn 2 A
+  turn 2 A: activate "June, Bounty Hunter" sacrificing "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Clue"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "june: can't activate on an opponent's turn" {
+  battlefield A: "June, Bounty Hunter", "Grizzly Bears", "Swamp"
+  start turn 2 B
+  illegal turn 2 B: activate "June, Bounty Hunter" sacrificing "Grizzly Bears"
+  run_to turn 2 end
+  assert battlefield A lacks "Clue"
+}
+
+scenario "june can't be blocked after two draws this turn" {
+  battlefield A: "June, Bounty Hunter", 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Divination"
+  start turn 2 A
+  turn 2 A: cast "Divination"
+  turn 2 A: attack "June, Bounty Hunter"
+  illegal turn 2 B: block "June, Bounty Hunter" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 18
+}
+
+scenario "june can be blocked with only one draw" {
+  battlefield A: "June, Bounty Hunter"
+  battlefield B: "Hill Giant"
+  start turn 2 A
+  turn 2 A: attack "June, Bounty Hunter"
+  turn 2 B: block "June, Bounty Hunter" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "June, Bounty Hunter"
+}

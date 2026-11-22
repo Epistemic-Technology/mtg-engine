@@ -1,0 +1,29 @@
+scenario "attentive skywarden: combat damage to a player transforms an Incubator" {
+  battlefield A: "Attentive Skywarden", "Incubator" with 2 +1/+1
+  turn 1 A: attack "Attentive Skywarden"
+  turn 1 A: trigger "Attentive Skywarden" targeting "Incubator"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A lacks "Incubator"
+  assert is "Phyrexian Token" creature
+  assert power "Phyrexian Token" 2
+}
+
+scenario "attentive skywarden: no damage, no transform" {
+  battlefield A: "Attentive Skywarden", "Incubator" with 2 +1/+1
+  battlefield B: "Serra Angel"
+  turn 1 A: attack "Attentive Skywarden"
+  turn 1 B: block "Attentive Skywarden" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Incubator"
+  assert is not "Incubator" creature
+}
+
+scenario "attentive skywarden: can't target an opponent's Incubator" {
+  battlefield A: "Attentive Skywarden"
+  battlefield B: "Incubator" with 2 +1/+1
+  turn 1 A: attack "Attentive Skywarden"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield B contains "Incubator"
+}

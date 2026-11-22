@@ -1,0 +1,7 @@
+card "Ooze Patrol" {
+  oracle_id a9e3e8b0-4276-419d-9326-be56af3c41be
+  cost {3}{G}
+  type Creature — Ooze
+  pt 2/2
+  triggered when this enters: mill 2 cards then put count each andor graveyard artifact or creature +1/+1 counters on this creature
+}

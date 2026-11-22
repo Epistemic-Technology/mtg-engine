@@ -1,0 +1,35 @@
+scenario "Ultros: a four-mana noncreature spell taps and stuns" {
+  battlefield A: "Ultros, Obnoxious Octopus", 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Concentrate"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Concentrate"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 1
+  assert counters "Ultros, Obnoxious Octopus" +1/+1 0
+}
+scenario "Ultros: a three-mana spell does nothing" {
+  battlefield A: "Ultros, Obnoxious Octopus", 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert untapped "Hill Giant"
+  assert counters "Hill Giant" stun 0
+}
+scenario "Ultros: an eight-mana spell does both" {
+  battlefield A: "Ultros, Obnoxious Octopus", 8 "Mountain"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Blaze"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blaze" x 7 targeting player B
+  turn 1 A: trigger "Ultros, Obnoxious Octopus" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 13
+  assert tapped "Serra Angel"
+  assert counters "Serra Angel" stun 1
+  assert counters "Ultros, Obnoxious Octopus" +1/+1 8
+  assert power "Ultros, Obnoxious Octopus" 10
+}

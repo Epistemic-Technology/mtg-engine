@@ -1,0 +1,9 @@
+card "Krovod Haunch" {
+  oracle_id 85fdfa3c-4912-496a-bbcb-1ae13a34e917
+  cost {W}
+  type Artifact — Food Equipment
+  static equipped: +2/+0
+  activated {2}, {T}, sacrifice this: you gain 3 life
+  triggered when this dies: you may pay {1}{W}; if you do, create 2 "1/1 white Dog creature"
+  equip {2}
+}

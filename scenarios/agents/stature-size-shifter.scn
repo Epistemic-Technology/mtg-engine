@@ -1,0 +1,25 @@
+scenario "Stature can't be blocked at power 1" {
+  battlefield A: "Stature, Size Shifter"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Stature, Size Shifter"
+  illegal turn 1 B: block "Stature, Size Shifter" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "Stature powers up once and can then be blocked" {
+  battlefield A: "Stature, Size Shifter", 8 "Island"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Stature, Size Shifter" x 2
+  turn 1 A: wait
+  illegal turn 1 A: activate "Stature, Size Shifter" x 1
+  turn 1 A: attack "Stature, Size Shifter"
+  turn 1 B: block "Stature, Size Shifter" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Stature, Size Shifter" +1/+1 2
+  assert power "Stature, Size Shifter" 3
+  assert life B 20
+  assert graveyard B contains "Grizzly Bears"
+}

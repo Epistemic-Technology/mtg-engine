@@ -1,0 +1,48 @@
+scenario "The Last Ronin chapter I destroys all creatures" {
+  battlefield A: "Grizzly Bears", 3 "Swamp", 3 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "The Last Ronin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Last Ronin"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert counters "The Last Ronin" lore 1
+}
+
+scenario "The Last Ronin chapter II mills four and returns a creature card" {
+  battlefield A: "The Last Ronin" with 1 lore
+  library A: "Island", "Hill Giant", "Island", "Island", "Grizzly Bears"
+  start turn 3 A upkeep
+  turn 3 precombat_main A: trigger "The Last Ronin" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert hand A count 2
+  assert graveyard A contains 2 "Island"
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "The Last Ronin" lore 2
+}
+
+scenario "The Last Ronin chapter III pumps a lone attacker" {
+  battlefield A: "The Last Ronin" with 2 lore, "Grizzly Bears", "Wind Drake"
+  start turn 3 A upkeep
+  turn 3 A: attack "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 3
+  assert has "Grizzly Bears" trample
+  assert has "Grizzly Bears" lifelink
+  assert has "Grizzly Bears" indestructible
+  assert counters "Wind Drake" +1/+1 0
+  assert life B 15
+  assert life A 25
+  assert graveyard A contains "The Last Ronin"
+}
+
+scenario "The Last Ronin chapter III ignores two attackers" {
+  battlefield A: "The Last Ronin" with 2 lore, "Grizzly Bears", "Wind Drake"
+  start turn 3 A upkeep
+  turn 3 A: attack "Grizzly Bears", "Wind Drake"
+  run_to turn 3 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+  assert life B 16
+}

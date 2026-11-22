@@ -1,0 +1,14 @@
+scenario "Myr Landshaper makes a land an artifact until end of turn" {
+  battlefield A: "Myr Landshaper"
+  battlefield B: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Myr Landshaper" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert is "Forest" artifact
+  assert is "Forest" land
+  assert is "Forest" forest
+  assert tapped "Myr Landshaper"
+  run_to turn 2 upkeep
+  assert is not "Forest" artifact
+  assert is "Forest" land
+}

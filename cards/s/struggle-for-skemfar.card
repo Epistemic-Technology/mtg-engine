@@ -1,0 +1,7 @@
+card "Struggle for Skemfar" {
+  oracle_id a3bdb026-e09d-443f-ba02-fe0d5412fc97
+  cost {3}{G}
+  type Sorcery
+  spell: put 1 +1/+1 counter on target creature you control; then that target 1 fights up to one target creature you don't control
+  foretell {G}
+}

@@ -1,0 +1,25 @@
+scenario "Gastal Thrillroller: a creature the turn it enters, attacks with haste" {
+  battlefield A: 3 "Mountain"
+  hand A: "Gastal Thrillroller"
+  start turn 2 A
+  turn 2 A: cast "Gastal Thrillroller"
+  turn 2 A: attack "Gastal Thrillroller"
+  run_to turn 2 postcombat_main
+  assert life B 16
+  assert is "Gastal Thrillroller" creature
+  run_to turn 3 upkeep
+  assert is not "Gastal Thrillroller" creature
+}
+
+scenario "Gastal Thrillroller: returns from the graveyard with a finality counter" {
+  battlefield A: 3 "Mountain"
+  graveyard A: "Gastal Thrillroller"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Gastal Thrillroller" discarding "Shock"
+  run_to turn 2 end
+  assert battlefield A contains "Gastal Thrillroller"
+  assert counters "Gastal Thrillroller" finality 1
+  assert graveyard A contains "Shock"
+  assert hand A count 0
+}

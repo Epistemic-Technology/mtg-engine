@@ -1,0 +1,36 @@
+scenario "Dowsing Device: enters, a creature gets +1/+0 and haste (one trigger)" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  hand A: "Dowsing Device"
+  turn 1 A: cast "Dowsing Device"
+  turn 1 A: trigger "Dowsing Device" targeting "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" haste
+  assert is "Dowsing Device" artifact
+}
+
+scenario "Dowsing Device: a fourth artifact transforms it; Geode Grotto pumps by artifacts" {
+  battlefield A: "Dowsing Device", 2 "Ornithopter", "Grizzly Bears", 3 "Mountain"
+  hand A: "Ornithopter"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Ornithopter"
+  turn 2 A: trigger "Dowsing Device" targeting "Grizzly Bears"
+  turn 2 A: wait
+  turn 2 A: activate "Geode Grotto" targeting "Grizzly Bears"
+  run_to turn 2 declare_attackers
+  assert is "Geode Grotto" land
+  assert is not "Geode Grotto" artifact
+  assert power "Grizzly Bears" 6
+  assert tapped "Geode Grotto"
+}
+
+scenario "Dowsing Device: with fewer than four artifacts it stays" {
+  battlefield A: "Dowsing Device", "Ornithopter", "Grizzly Bears"
+  hand A: "Ornithopter"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Ornithopter"
+  turn 2 A: trigger "Dowsing Device" targeting "Grizzly Bears"
+  run_to turn 2 declare_attackers
+  assert battlefield A contains "Dowsing Device"
+  assert power "Grizzly Bears" 3
+}

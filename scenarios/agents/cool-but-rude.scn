@@ -1,0 +1,40 @@
+scenario "Cool but Rude level 1: attack, discard a card to draw one" {
+  battlefield A: "Cool but Rude", "Grizzly Bears"
+  hand A: "Shock"
+  library A: "Island", "Forest", "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 declare_attackers A: accept "Cool but Rude"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Shock"
+  assert hand A contains "Island"
+  assert hand A count 1
+  assert life B 18
+}
+
+scenario "Cool but Rude level 2: each discard deals 2 damage to each opponent" {
+  battlefield A: "Cool but Rude", "Grizzly Bears", 2 "Mountain"
+  hand A: "Shock"
+  library A: "Island", "Forest", "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Cool but Rude"
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 declare_attackers A: accept "Cool but Rude"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Shock"
+  assert life B 16
+}
+
+scenario "Cool but Rude level 3: search a card, then discard at random (2 damage)" {
+  battlefield A: "Cool but Rude", 4 "Mountain"
+  library A: "Island", "Forest", "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Cool but Rude"
+  turn 2 A: wait
+  turn 2 A: activate "Cool but Rude"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+  assert graveyard A count 1
+  assert library A count 2
+  assert life B 18
+}

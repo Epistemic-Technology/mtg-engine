@@ -1,0 +1,9 @@
+card "Syr Ginger, the Meal Ender" {
+  oracle_id 2eb16535-718f-4b88-92bc-96429d796327
+  cost {2}
+  type Legendary Artifact Creature — Food Knight
+  pt 3/1
+  static this: has trample, hexproof, and haste as long as opponent controls planeswalker
+  triggered whenever another artifact you control is put into a graveyard from the battlefield: put 1 +1/+1 counters on this and scry 1
+  activated {2}, {T}, sacrifice this: you gain count equal power life
+}

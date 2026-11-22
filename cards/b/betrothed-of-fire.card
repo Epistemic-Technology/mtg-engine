@@ -1,0 +1,8 @@
+card "Betrothed of Fire" {
+  oracle_id 77849657-c872-4d54-9149-a08bbe90f787
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  activated sacrifice untapped creature: enchanted creature gets +2/+0
+  activated sacrifice enchanted creature: each creature you control gets +2/+0
+}

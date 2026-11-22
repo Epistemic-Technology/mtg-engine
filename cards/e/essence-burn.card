@@ -1,0 +1,6 @@
+card "Essence Burn" {
+  oracle_id f1216f36-00fd-4d03-85c1-f4910a02d4d0
+  cost {1}{R}
+  type Instant
+  spell: deal 5 damage to target black or green creature or planeswalker; this turn, replace target 1 dies: exile
+}

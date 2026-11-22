@@ -1,0 +1,15 @@
+scenario "Forbidden Friendship makes a hasty Dinosaur and a Human Soldier" {
+  battlefield A: 2 "Mountain"
+  hand A: "Forbidden Friendship"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Forbidden Friendship"
+  turn 1 declare_attackers A: attack "Dinosaur"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Dinosaur"
+  assert battlefield A contains "Human Soldier"
+  assert is "Dinosaur" red
+  assert is "Human Soldier" white
+  assert power "Human Soldier" 1
+  assert life B 19
+  assert graveyard A contains "Forbidden Friendship"
+}

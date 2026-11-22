@@ -1,0 +1,29 @@
+scenario "Castle Doom sacrifices an artifact for a Doombot" {
+  battlefield A: "Castle Doom", "Ornithopter", 3 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Castle Doom" sacrificing "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ornithopter"
+  assert battlefield A contains "Doombot"
+  assert power "Doombot" 3
+  assert is "Doombot" artifact
+  assert tapped "Castle Doom"
+}
+
+scenario "Castle Doom's colored mana pays for an artifact spell" {
+  battlefield A: "Castle Doom", "Plains"
+  hand A: "Edge Rover"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Edge Rover"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Edge Rover"
+}
+
+scenario "Castle Doom's colored mana can't pay for a nonartifact spell" {
+  battlefield A: "Castle Doom", "Plains"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}

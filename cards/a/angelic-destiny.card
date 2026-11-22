@@ -1,0 +1,8 @@
+card "Angelic Destiny" {
+  oracle_id 8ba36878-0816-44c7-b543-8ebfc28c2ecd
+  cost {2}{W}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +4/+4, has flying and first strike, add subtype Angel
+  triggered when enchanted creature dies: return this card to its owner's hand
+}

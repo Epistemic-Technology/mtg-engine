@@ -1,0 +1,7 @@
+card "Midnight Reaper" {
+  oracle_id e8c7566d-7cc0-48af-a986-83223ec7e06c
+  cost {2}{B}
+  type Creature — Zombie Knight
+  pt 3/2
+  triggered whenever a nontoken creature you control dies: this creature deals 1 damage to you and you draw 1 card
+}

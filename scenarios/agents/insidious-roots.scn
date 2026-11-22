@@ -1,0 +1,21 @@
+scenario "Insidious Roots: a creature card leaves the graveyard, a Plant and counters on each Plant" {
+  battlefield A: "Insidious Roots", "Swamp", "Plant"
+  graveyard A: "Grizzly Bears"
+  hand A: "Raise Dead"
+  turn 1 A: cast "Raise Dead" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains 2 "Plant"
+  assert counters oldest A "Plant" +1/+1 1
+  assert counters newest A "Plant" +1/+1 1
+  assert toughness newest A "Plant" 2
+}
+
+scenario "Insidious Roots: creature tokens tap for mana of any color" {
+  battlefield A: "Insidious Roots", "Plant"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert tapped "Plant"
+}

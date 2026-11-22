@@ -1,0 +1,8 @@
+card "Lilysplash Mentor" {
+  oracle_id 20194297-f2a4-4473-95bc-7c6835e5b6b3
+  cost {2}{G}{U}
+  type Creature — Frog Druid
+  pt 4/4
+  keywords reach
+  activated {1}{G}{U}, sorcery: exile another target creature you control, then return target 1 to battlefield with 1 +1/+1 counter
+}

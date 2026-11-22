@@ -1,0 +1,7 @@
+card "Nasty Little Rabbit" {
+  oracle_id ee86cce6-c7c1-40a6-896b-cde9b86bb532
+  cost {G}
+  type Creature — Rabbit
+  pt 1/2
+  label "Ferocious" triggered at beginning of your combat step if you control creature with power 4 or greater: put 1 +1/+1 counter on this
+}

@@ -1,0 +1,13 @@
+scenario "Short Bow gives +1/+1, reach, and vigilance" {
+  battlefield A: "Short Bow", "Grizzly Bears", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Short Bow" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Short Bow" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert has "Grizzly Bears" reach
+  assert untapped "Grizzly Bears"
+  assert life B 17
+}

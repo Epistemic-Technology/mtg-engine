@@ -1,0 +1,35 @@
+scenario "dead reckoning: card on top of library, damage equal to its power" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Serra Angel"
+  battlefield B: "Hill Giant"
+  hand A: "Dead Reckoning"
+  turn 1 A: cast "Dead Reckoning" targeting "Serra Angel", "Hill Giant"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A lacks "Serra Angel"
+  assert library A contains "Serra Angel"
+}
+
+scenario "dead reckoning: damage equals the card's power" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Dead Reckoning"
+  turn 1 A: cast "Dead Reckoning" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 begin_combat
+  assert damage "Hill Giant" 2
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "dead reckoning: declining deals no damage" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Serra Angel"
+  battlefield B: "Hill Giant"
+  hand A: "Dead Reckoning"
+  turn 1 A: cast "Dead Reckoning" targeting "Serra Angel", "Hill Giant"
+  turn 1 A: decline "Dead Reckoning"
+  run_to turn 1 begin_combat
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 0
+  assert graveyard A contains "Serra Angel"
+}

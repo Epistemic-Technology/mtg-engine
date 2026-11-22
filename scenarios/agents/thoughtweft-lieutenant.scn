@@ -1,0 +1,26 @@
+scenario "thoughtweft lieutenant entering pumps a creature you control" {
+  battlefield A: "Grizzly Bears", "Forest", "Plains"
+  hand A: "Thoughtweft Lieutenant"
+  turn 1 A: cast "Thoughtweft Lieutenant"
+  turn 1 A: trigger "Thoughtweft Lieutenant" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert has "Grizzly Bears" trample
+  assert power "Thoughtweft Lieutenant" 2
+}
+
+scenario "thoughtweft lieutenant: another Kithkin entering triggers, a non-Kithkin doesn't" {
+  battlefield A: "Thoughtweft Lieutenant", "Plains", 2 "Forest", "Plains"
+  hand A: "Apothecary Initiate", "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Apothecary Initiate"
+  turn 1 A: trigger "Thoughtweft Lieutenant" targeting "Thoughtweft Lieutenant"
+  run_to turn 1 postcombat_main
+  assert power "Thoughtweft Lieutenant" 3
+  assert has "Thoughtweft Lieutenant" trample
+  assert power "Grizzly Bears" 2
+  run_to turn 2
+  assert power "Thoughtweft Lieutenant" 2
+}

@@ -1,0 +1,27 @@
+scenario "Plumecreed Mentor entering puts a counter on a creature without flying" {
+  battlefield A: "Plains", "Island", "Plains", "Grizzly Bears"
+  hand A: "Plumecreed Mentor"
+  turn 1 A: cast "Plumecreed Mentor"
+  turn 1 A: trigger "Plumecreed Mentor" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "Plumecreed Mentor: another flier entering triggers it; can't target a flier" {
+  battlefield A: "Plumecreed Mentor", 4 "Island", "Grizzly Bears", "Serra Angel"
+  hand A: "Wind Drake"
+  illegal turn 1 A: trigger "Plumecreed Mentor" targeting "Serra Angel"
+  run_to turn 1 precombat_main
+  turn 1 A: cast "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "Plumecreed Mentor: a creature without flying entering doesn't trigger" {
+  battlefield A: "Plumecreed Mentor", 2 "Forest", "Hill Giant"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 0
+  assert counters "Grizzly Bears" +1/+1 0
+}

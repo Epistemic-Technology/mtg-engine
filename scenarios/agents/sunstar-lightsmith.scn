@@ -1,0 +1,15 @@
+scenario "sunstar lightsmith: second spell gives a counter and a card, first and third don't" {
+  battlefield A: "Sunstar Lightsmith", 3 "Mountain"
+  hand A: "Shock", "Shock", "Shock"
+  library A: "Island", "Forest", "Plains"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert counters "Sunstar Lightsmith" +1/+1 1
+  assert hand A count 1
+  assert hand A contains "Island"
+}

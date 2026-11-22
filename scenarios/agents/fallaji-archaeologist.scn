@@ -1,0 +1,38 @@
+scenario "Fallaji Archaeologist takes a milled noncreature nonland card" {
+  battlefield A: 2 "Island"
+  hand A: "Fallaji Archaeologist"
+  library A: "Grizzly Bears", "Shock", "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fallaji Archaeologist"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Forest"
+  assert library A count 1
+  assert counters "Fallaji Archaeologist" +1/+1 0
+}
+
+scenario "Fallaji Archaeologist gets a counter when only creatures and lands are milled" {
+  battlefield A: 2 "Island"
+  hand A: "Fallaji Archaeologist"
+  library A: "Grizzly Bears", "Forest", "Hill Giant", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fallaji Archaeologist"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 3
+  assert hand A count 0
+  assert counters "Fallaji Archaeologist" +1/+1 1
+  assert power "Fallaji Archaeologist" 1
+}
+
+scenario "Fallaji Archaeologist declining gives a counter" {
+  battlefield A: 2 "Island"
+  hand A: "Fallaji Archaeologist"
+  library A: "Shock", "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fallaji Archaeologist"
+  turn 1 A: decline "Fallaji Archaeologist"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Shock"
+  assert counters "Fallaji Archaeologist" +1/+1 1
+}

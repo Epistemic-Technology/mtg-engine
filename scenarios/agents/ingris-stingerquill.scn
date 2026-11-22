@@ -1,0 +1,18 @@
+scenario "each attacking creature pings each opponent" {
+  battlefield A: "Ingris Stingerquill", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Ingris Stingerquill", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "make a hasty Cadet and attack with it" {
+  battlefield A: "Ingris Stingerquill", 4 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ingris Stingerquill"
+  turn 1 A: attack "Cadet"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Cadet"
+  assert power "Cadet" 2
+  assert life B 17
+}

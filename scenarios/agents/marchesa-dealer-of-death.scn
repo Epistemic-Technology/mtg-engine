@@ -1,0 +1,36 @@
+scenario "Marchesa: a crime and {1} digs two, one to hand, one to graveyard" {
+  battlefield A: "Marchesa, Dealer of Death", 2 "Mountain"
+  hand A: "Shock"
+  library A: "Forest", "Hill Giant", "Island"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: accept "Marchesa, Dealer of Death"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand A count 1
+  assert graveyard A count 2
+  assert library A count 1
+  assert tapped oldest "Mountain"
+  assert tapped newest "Mountain"
+}
+
+scenario "Marchesa: targeting your own creature is no crime" {
+  battlefield A: "Marchesa, Dealer of Death", 2 "Mountain", "Grizzly Bears"
+  hand A: "Shock"
+  library A: "Forest", "Hill Giant", "Island"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A contains "Forest"
+  assert untapped newest "Mountain"
+}
+
+scenario "Marchesa: declining to pay digs nothing" {
+  battlefield A: "Marchesa, Dealer of Death", 2 "Mountain"
+  hand A: "Shock"
+  library A: "Forest", "Hill Giant", "Island"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: decline "Marchesa, Dealer of Death"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A count 3
+}

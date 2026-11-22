@@ -1,0 +1,26 @@
+scenario "second spell gives counter and card" {
+  battlefield A: "Kraum, Violent Cacophony", 2 "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  library A: "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert counters "Kraum, Violent Cacophony" +1/+1 1
+  assert power "Kraum, Violent Cacophony" 3
+  assert hand A count 1
+}
+
+scenario "first spell alone does nothing" {
+  battlefield A: "Kraum, Violent Cacophony", "Mountain"
+  hand A: "Shock"
+  library A: "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert power "Kraum, Violent Cacophony" 2
+  assert hand A count 0
+}

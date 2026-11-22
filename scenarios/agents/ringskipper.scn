@@ -1,0 +1,23 @@
+scenario "Ringskipper returns to hand when it wins the clash" {
+  battlefield A: "Ringskipper", "Mountain"
+  hand A: "Lightning Bolt"
+  library A: "Hill Giant", "Plains"
+  library B: "Forest", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting "Ringskipper"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Ringskipper"
+  assert graveyard A lacks "Ringskipper"
+}
+
+scenario "Ringskipper stays in the graveyard when it loses the clash" {
+  battlefield A: "Ringskipper", "Mountain"
+  hand A: "Lightning Bolt"
+  library A: "Forest", "Plains"
+  library B: "Hill Giant", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting "Ringskipper"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Ringskipper"
+  assert hand A lacks "Ringskipper"
+}

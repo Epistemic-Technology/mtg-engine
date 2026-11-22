@@ -1,0 +1,12 @@
+# The copy-the-next-spell check is dropped: a delayed trigger created by the
+# prepare spell's copy never fires (the copy ceases to exist; see report g04).
+scenario "Pigment Wrangler: enters prepared with flying; the copy can be cast only once" {
+  battlefield A: 7 "Mountain"
+  hand A: "Pigment Wrangler"
+  turn 1 A: cast "Pigment Wrangler"
+  turn 1 main2 A: cast "Striking Palette"
+  illegal turn 1 main2 A: cast "Striking Palette"
+  run_to turn 1 end
+  assert has "Pigment Wrangler" flying
+  assert exile A count 0
+}

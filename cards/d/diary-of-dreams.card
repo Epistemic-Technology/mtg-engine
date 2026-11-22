@@ -1,0 +1,7 @@
+card "Diary of Dreams" {
+  oracle_id 98b43c61-4563-4a29-8cf0-fb8b34f337ce
+  cost {2}
+  type Artifact — Book
+  triggered whenever you cast an instant or sorcery spell: put 1 page counter on this
+  activated {5}, {T}, reduced {1} each page counters on this: draw 1 card
+}

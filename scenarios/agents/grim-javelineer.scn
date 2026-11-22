@@ -1,0 +1,24 @@
+scenario "Grim Javelineer pumps an attacker by +1/+0" {
+  battlefield A: "Grim Javelineer", "Grizzly Bears"
+  turn 1 A: attack "Grim Javelineer", "Grizzly Bears"
+  turn 1 A: trigger "Grim Javelineer" targeting "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 2
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+scenario "Grim Javelineer: the pumped creature dying lets you surveil 1" {
+  battlefield A: "Grim Javelineer", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  library A: "Shock", "Forest"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 A: trigger "Grim Javelineer" targeting "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 combat_damage A: surveil "Shock"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Shock"
+  assert library A contains "Forest"
+}

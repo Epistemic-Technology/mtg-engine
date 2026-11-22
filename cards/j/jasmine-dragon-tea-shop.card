@@ -1,0 +1,7 @@
+card "Jasmine Dragon Tea Shop" {
+  oracle_id d9a24444-289f-473f-9985-8df275257555
+  type Land
+  mana {C}
+  mana any only to cast Ally spell or activate of Ally
+  activated {5}, {T}: create 1 "1/1 white Ally creature"
+}

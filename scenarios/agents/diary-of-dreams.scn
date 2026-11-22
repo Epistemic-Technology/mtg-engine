@@ -1,0 +1,24 @@
+scenario "Diary of Dreams gains a page counter per instant or sorcery" {
+  battlefield A: "Diary of Dreams", "Mountain", 2 "Forest"
+  hand A: "Lightning Bolt", "Grizzly Bears"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Diary of Dreams" page 1
+}
+
+scenario "Diary of Dreams costs {1} less per page counter" {
+  battlefield A: "Diary of Dreams" with 3 page, 2 "Forest"
+  turn 1 A: activate "Diary of Dreams"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert tapped "Diary of Dreams"
+}
+
+scenario "Diary of Dreams can't be activated without enough counters" {
+  battlefield A: "Diary of Dreams" with 2 page, 2 "Forest"
+  illegal turn 1 A: activate "Diary of Dreams"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}

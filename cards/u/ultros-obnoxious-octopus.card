@@ -1,0 +1,8 @@
+card "Ultros, Obnoxious Octopus" {
+  oracle_id b6f4b524-1081-4263-b7e4-9aee93131b31
+  cost {1}{U}
+  type Legendary Creature — Octopus
+  pt 2/1
+  triggered whenever you cast a noncreature spell if that spell spent 4 mana: tap target creature an opponent controls and put 1 stun counter on target 1
+  triggered whenever you cast a noncreature spell if that spell spent 8 mana: put 8 +1/+1 counters on this
+}

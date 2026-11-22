@@ -1,0 +1,25 @@
+scenario "Vampire Gourmand: sacrifice another creature, draw and can't be blocked" {
+  battlefield A: "Vampire Gourmand", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 A
+  turn 2 A: attack "Vampire Gourmand"
+  turn 2 declare_attackers A: accept "Vampire Gourmand"
+  illegal turn 2 B: block "Vampire Gourmand" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 2
+  assert life B 18
+}
+
+scenario "Vampire Gourmand: declining keeps the creature and it can be blocked" {
+  battlefield A: "Vampire Gourmand", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 A
+  turn 2 A: attack "Vampire Gourmand"
+  turn 2 declare_attackers A: decline "Vampire Gourmand"
+  turn 2 B: block "Vampire Gourmand" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 1
+  assert graveyard A contains "Vampire Gourmand"
+}

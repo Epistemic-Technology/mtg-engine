@@ -1,0 +1,25 @@
+scenario "Angelic Destiny pumps, grants flying and first strike, makes an Angel" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  hand A: "Angelic Destiny"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Angelic Destiny" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 6
+  assert toughness "Grizzly Bears" 6
+  assert has "Grizzly Bears" flying
+  assert has "Grizzly Bears" first_strike
+  assert is "Grizzly Bears" Angel
+  assert is "Grizzly Bears" Bear
+}
+scenario "Angelic Destiny returns to hand when the creature dies" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  battlefield B: 3 "Swamp"
+  hand A: "Angelic Destiny"
+  hand B: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Angelic Destiny" targeting "Grizzly Bears"
+  turn 1 postcombat_main B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A contains "Angelic Destiny"
+}

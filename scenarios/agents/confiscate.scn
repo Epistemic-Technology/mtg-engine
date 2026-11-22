@@ -1,0 +1,20 @@
+scenario "Confiscate: take control of an opponent's land" {
+  battlefield A: 6 "Island"
+  battlefield B: "Forest"
+  hand A: "Confiscate"
+  turn 1 A: cast "Confiscate" targeting B "Forest"
+  run_to turn 1 end
+  assert battlefield A contains "Forest"
+  assert battlefield B lacks "Forest"
+  assert attached "Confiscate" to "Forest"
+}
+
+scenario "Confiscate: take control of a creature" {
+  battlefield A: 6 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Confiscate"
+  turn 1 A: cast "Confiscate" targeting "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert battlefield B lacks "Hill Giant"
+}

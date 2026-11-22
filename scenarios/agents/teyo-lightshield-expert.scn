@@ -1,0 +1,23 @@
+scenario "creature target gets hexproof and a +1/+1 counter" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  hand A: "Teyo, Lightshield Expert"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Teyo, Lightshield Expert"
+  turn 1 A: trigger "Teyo, Lightshield Expert" targeting "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert has "Grizzly Bears" hexproof
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Grizzly Bears" 3
+}
+
+scenario "planeswalker target gets a loyalty counter, no +1/+1" {
+  battlefield A: "Jace Beleren", 2 "Plains"
+  hand A: "Teyo, Lightshield Expert"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Teyo, Lightshield Expert"
+  turn 1 A: trigger "Teyo, Lightshield Expert" targeting "Jace Beleren"
+  run_to turn 1 combat_damage
+  assert counters "Jace Beleren" loyalty 4
+  assert counters "Jace Beleren" +1/+1 0
+  assert has "Jace Beleren" hexproof
+}

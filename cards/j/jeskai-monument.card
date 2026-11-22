@@ -1,0 +1,7 @@
+card "Jeskai Monument" {
+  oracle_id 0b2b7d04-73f3-43f6-86e0-fa00cbbc6469
+  cost {2}
+  type Artifact
+  triggered when this enters: search basic Island or basic Mountain or basic Plains card reveal to hand
+  activated {1}{U}{R}{W}, {T}, sacrifice this, sorcery: create 2 "1/1 white Bird creature with flying"
+}

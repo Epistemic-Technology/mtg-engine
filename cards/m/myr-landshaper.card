@@ -1,0 +1,7 @@
+card "Myr Landshaper" {
+  oracle_id 7432fbe1-dce6-4b3c-a6b4-764f4612a6b6
+  cost {3}
+  type Artifact Creature — Myr
+  pt 1/1
+  activated {T}: target land becomes artifact in addition
+}

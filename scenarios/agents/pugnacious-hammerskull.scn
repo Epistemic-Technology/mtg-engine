@@ -1,0 +1,20 @@
+scenario "Pugnacious Hammerskull: attacking without another Dinosaur gets a stun counter" {
+  battlefield A: "Pugnacious Hammerskull"
+  start turn 2 A
+  turn 2 A: attack "Pugnacious Hammerskull"
+  run_to turn 2 postcombat_main
+  assert life B 14
+  assert counters "Pugnacious Hammerskull" stun 1
+  run_to turn 4 upkeep
+  assert tapped "Pugnacious Hammerskull"
+  assert counters "Pugnacious Hammerskull" stun 0
+}
+
+scenario "Pugnacious Hammerskull: with another Dinosaur, no stun counter" {
+  battlefield A: "Pugnacious Hammerskull", "Ancient Brontodon"
+  start turn 2 A
+  turn 2 A: attack "Pugnacious Hammerskull"
+  run_to turn 2 postcombat_main
+  assert life B 14
+  assert counters "Pugnacious Hammerskull" stun 0
+}

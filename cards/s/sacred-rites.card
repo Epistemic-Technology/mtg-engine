@@ -1,0 +1,6 @@
+card "Sacred Rites" {
+  oracle_id 860a0e32-135b-4972-a1af-ebac60cae08f
+  cost {W}
+  type Instant
+  spell: discard any number cards chosen; each creature you control gets +0/+1 count each discarded this way
+}

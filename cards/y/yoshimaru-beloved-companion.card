@@ -1,0 +1,8 @@
+card "Yoshimaru, Beloved Companion" {
+  oracle_id c00a0be5-d9a9-4263-a87e-7bf2d128ab3a
+  cost {2}{W}
+  type Legendary Creature — Dog
+  pt 2/2
+  replace +1/+1 counters put on creature you control: plus one
+  activated {6}: put 1 +1/+1 counter on target legendary creature
+}

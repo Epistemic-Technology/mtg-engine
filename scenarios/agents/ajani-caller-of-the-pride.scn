@@ -1,0 +1,29 @@
+scenario "ajani caller +1: a +1/+1 counter on a creature" {
+  battlefield A: "Ajani, Caller of the Pride", "Grizzly Bears"
+  turn 1 A: activate "Ajani, Caller of the Pride" ability 1 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Grizzly Bears" 3
+  assert counters "Ajani, Caller of the Pride" loyalty 5
+}
+
+scenario "ajani caller -3: flying and double strike" {
+  battlefield A: "Ajani, Caller of the Pride", "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: activate "Ajani, Caller of the Pride" ability 2 targeting "Grizzly Bears"
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert counters "Ajani, Caller of the Pride" loyalty 1
+  assert has "Grizzly Bears" flying
+  assert has "Grizzly Bears" double_strike
+  assert life B 16
+}
+
+scenario "ajani caller -8: X Cats where X is your life total" {
+  life A 5
+  battlefield A: "Ajani, Caller of the Pride" with 9 loyalty
+  turn 1 A: activate "Ajani, Caller of the Pride" ability 3
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 5 "Cat"
+  assert counters "Ajani, Caller of the Pride" loyalty 1
+}

@@ -1,0 +1,7 @@
+card "Villainous Hideout" {
+  oracle_id cd2888aa-71f3-47ee-ba33-7bb95d5bc836
+  type Land
+  mana {C}
+  mana any only to cast Villain spell or to activate of Villain
+  activated {3}, {T}, sorcery: target Villain you control connives
+}

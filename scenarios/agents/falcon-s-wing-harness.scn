@@ -1,0 +1,23 @@
+scenario "Falcon's Wing Harness attaches on entering and grants its bonuses" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  hand A: "Falcon's Wing Harness"
+  turn 1 A: cast "Falcon's Wing Harness"
+  turn 1 A: trigger "Falcon's Wing Harness" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Falcon's Wing Harness" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert has "Grizzly Bears" flying
+}
+
+scenario "Falcon's Wing Harness ward counters an unpaid spell" {
+  battlefield A: "Grizzly Bears", "Falcon's Wing Harness" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Lightning Bolt"
+  assert damage "Grizzly Bears" 0
+}

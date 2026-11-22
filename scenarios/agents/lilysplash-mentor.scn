@@ -1,0 +1,21 @@
+scenario "Lilysplash Mentor blinks another creature with a +1/+1 counter" {
+  battlefield A: "Lilysplash Mentor", "Hill Giant", "Forest", "Island", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Lilysplash Mentor" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert counters "Hill Giant" +1/+1 1
+  assert power "Hill Giant" 4
+}
+scenario "Lilysplash Mentor can't target itself" {
+  battlefield A: "Lilysplash Mentor", "Forest", "Island", "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Lilysplash Mentor" targeting "Lilysplash Mentor"
+  run_to turn 1 postcombat_main
+}
+scenario "Lilysplash Mentor only as a sorcery" {
+  battlefield A: "Lilysplash Mentor", "Hill Giant", "Forest", "Island", "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 begin_combat A: activate "Lilysplash Mentor" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+}

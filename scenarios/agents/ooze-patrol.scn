@@ -1,0 +1,13 @@
+scenario "mill two, then a counter per artifact and/or creature card in graveyard" {
+  battlefield A: 4 "Forest"
+  hand A: "Ooze Patrol"
+  graveyard A: "Ornithopter", "Shock"
+  library A: "Grizzly Bears", "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ooze Patrol"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Forest"
+  assert counters "Ooze Patrol" +1/+1 2
+  assert power "Ooze Patrol" 4
+}

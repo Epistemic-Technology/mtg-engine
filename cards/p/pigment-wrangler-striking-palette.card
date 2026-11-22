@@ -1,0 +1,14 @@
+card "Pigment Wrangler // Striking Palette" {
+  oracle_id c008d60a-ee06-4411-b8e7-c2df13616105
+  layout prepare
+  cost {4}{R}
+  type Creature — Orc Sorcerer
+  pt 4/4
+  keywords flying
+  enters prepared
+  face "Striking Palette" {
+    cost {R}
+    type Sorcery
+    spell: delayed this: when next you cast an instant or sorcery spell this turn, copy that spell new targets
+  }
+}

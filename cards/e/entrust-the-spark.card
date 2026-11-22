@@ -1,0 +1,6 @@
+card "Entrust the Spark" {
+  oracle_id b796ecc8-a2e8-4ab9-8736-6825b650434d
+  cost {3}{G}{U}
+  type Sorcery
+  spell: you may sacrifice 1 planeswalker chosen; if you do, search planeswalker card to battlefield
+}

@@ -1,0 +1,26 @@
+scenario "woodland sleuth returns a creature card if a creature died this turn" {
+  battlefield A: 4 "Forest", "Mountain", "Grizzly Bears"
+  hand A: "Lightning Bolt", "Woodland Sleuth"
+  graveyard A: "Forest", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Woodland Sleuth"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Woodland Sleuth"
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A lacks "Grizzly Bears"
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Shock"
+}
+
+scenario "woodland sleuth does nothing if no creature died" {
+  battlefield A: 4 "Forest"
+  hand A: "Woodland Sleuth"
+  graveyard A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Woodland Sleuth"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert hand A lacks "Hill Giant"
+}

@@ -1,0 +1,23 @@
+scenario "Peerless Recycling: no gift returns one permanent card" {
+  battlefield A: 2 "Forest"
+  hand A: "Peerless Recycling"
+  graveyard A: "Grizzly Bears", "Forest"
+  turn 1 A: cast "Peerless Recycling" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Forest"
+  assert hand B count 0
+  assert graveyard A contains "Peerless Recycling"
+}
+
+scenario "Peerless Recycling: gift promised returns two, opponent draws" {
+  battlefield A: 2 "Forest"
+  hand A: "Peerless Recycling"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Shock"
+  turn 1 A: cast "Peerless Recycling" gift targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert graveyard A contains "Shock"
+  assert hand B count 1
+}

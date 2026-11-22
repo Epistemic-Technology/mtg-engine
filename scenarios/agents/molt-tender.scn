@@ -1,0 +1,30 @@
+scenario "Molt Tender mills a card" {
+  battlefield A: "Molt Tender"
+  library A: "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Molt Tender" ability 1
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert tapped "Molt Tender"
+}
+scenario "Molt Tender exiles a graveyard card for red mana" {
+  battlefield A: "Molt Tender"
+  graveyard A: "Grizzly Bears"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Molt Tender" ability 2
+  turn 1 A: choose red
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert exile A contains "Grizzly Bears"
+  assert tapped "Molt Tender"
+}
+scenario "Molt Tender needs a graveyard card for mana" {
+  battlefield A: "Molt Tender"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

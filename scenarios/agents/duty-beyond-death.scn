@@ -1,0 +1,14 @@
+scenario "Duty Beyond Death: sacrifice, then indestructible and a counter on each" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Serra Angel", 2 "Plains", 3 "Swamp"
+  hand A: "Duty Beyond Death", "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Duty Beyond Death" sacrificing "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Murder" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Hill Giant" +1/+1 1
+  assert counters "Serra Angel" +1/+1 1
+  assert battlefield A contains "Hill Giant"
+  assert has "Serra Angel" indestructible
+}

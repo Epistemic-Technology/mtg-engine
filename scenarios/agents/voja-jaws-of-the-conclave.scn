@@ -1,0 +1,13 @@
+scenario "attack: X counters on each creature (X = Elves), draw per Wolf" {
+  battlefield A: "Voja, Jaws of the Conclave", 2 "Llanowar Elves", "Arlinn's Wolf"
+  library A: "Forest", "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Voja, Jaws of the Conclave"
+  run_to turn 1 postcombat_main
+  assert counters "Voja, Jaws of the Conclave" +1/+1 2
+  assert counters "Arlinn's Wolf" +1/+1 2
+  assert counters newest A "Llanowar Elves" +1/+1 2
+  assert hand A count 2
+  assert life B 13
+  assert untapped "Voja, Jaws of the Conclave"
+}

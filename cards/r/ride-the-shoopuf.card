@@ -1,0 +1,7 @@
+card "Ride the Shoopuf" {
+  oracle_id 81b67745-0b1f-4433-963d-9b9653fb4d95
+  cost {1}{G}
+  type Enchantment
+  label "Landfall" triggered whenever land you control enters: put 1 +1/+1 counter on target creature you control
+  activated {5}{G}{G}: this becomes 7/7 Beast creature in addition indefinitely
+}

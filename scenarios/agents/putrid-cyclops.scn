@@ -1,0 +1,31 @@
+scenario "putrid cyclops: gets -X/-X for the revealed card's mana value" {
+  battlefield A: 3 "Swamp"
+  hand A: "Putrid Cyclops"
+  library A: "Grizzly Bears", "Forest"
+  turn 1 A: cast "Putrid Cyclops"
+  run_to turn 1 begin_combat
+  assert power "Putrid Cyclops" 1
+  assert toughness "Putrid Cyclops" 1
+  run_to turn 2 upkeep
+  assert power "Putrid Cyclops" 3
+}
+
+scenario "putrid cyclops: scry the card away first; a land reveals 0" {
+  battlefield A: 3 "Swamp"
+  hand A: "Putrid Cyclops"
+  library A: "Hill Giant", "Forest"
+  turn 1 A: cast "Putrid Cyclops"
+  turn 1 A: scry "Hill Giant"
+  run_to turn 1 begin_combat
+  assert power "Putrid Cyclops" 3
+  assert battlefield A contains "Putrid Cyclops"
+}
+
+scenario "putrid cyclops: mana value 3 kills it" {
+  battlefield A: 3 "Swamp"
+  hand A: "Putrid Cyclops"
+  library A: "Hill Giant", "Forest"
+  turn 1 A: cast "Putrid Cyclops"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Putrid Cyclops"
+}

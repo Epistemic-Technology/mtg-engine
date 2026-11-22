@@ -1,0 +1,8 @@
+card "Eriette's Tempting Apple" {
+  oracle_id b26a2875-c704-491a-b82d-07c316e53611
+  cost {4}
+  type Legendary Artifact — Food
+  triggered when this enters: gain control of target creature until end of turn; untap that target 1; target 1 gains haste
+  activated {2}, {T}, sacrifice this: you gain 3 life
+  activated {2}, {T}, sacrifice this: target opponent loses 3 life
+}

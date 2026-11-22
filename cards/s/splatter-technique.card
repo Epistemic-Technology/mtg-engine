@@ -1,0 +1,9 @@
+card "Splatter Technique" {
+  oracle_id 2620dcfe-8738-4f81-b23d-0c1c60cf9047
+  cost {1}{U}{U}{R}{R}
+  type Sorcery
+  choose one {
+    mode: draw 4 cards
+    mode: deal 4 damage to each andlist creature or planeswalker
+  }
+}

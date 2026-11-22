@@ -1,0 +1,9 @@
+card "Kheru Goldkeeper" {
+  oracle_id aef4ab0e-c81f-428c-ab23-64504a9fb989
+  cost {1}{B}{G}{U}
+  type Creature — Dragon
+  pt 3/3
+  keywords flying
+  triggered whenever one or more cards leave your graveyard during your turn: create 1 "Treasure"
+  label "Renew" activated {2}{B}{G}{U}, sorcery, exile this from graveyard: put 2 +1/+1 counters and 1 flying counter on target creature
+}

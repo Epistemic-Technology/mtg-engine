@@ -1,0 +1,7 @@
+card "Mentor of the Meek" {
+  oracle_id b9f4f96b-6e54-4fe6-8df7-623e0fc72409
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  triggered whenever other creature you control with power 2 or less enters: you may pay {1}; if you do, draw 1 card
+}

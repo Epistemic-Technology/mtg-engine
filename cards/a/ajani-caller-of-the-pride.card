@@ -1,0 +1,9 @@
+card "Ajani, Caller of the Pride" {
+  oracle_id 1d5ff280-7f4d-4801-aefd-9b6e6b1f2818
+  cost {1}{W}{W}
+  type Legendary Planeswalker — Ajani
+  loyalty 4
+  loyalty +1: put 1 +1/+1 counter on up to 1 target creature
+  loyalty -3: target creature gains flying and double strike until end of turn
+  loyalty -8: create count where life "2/2 white Cat creature"
+}

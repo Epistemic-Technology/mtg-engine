@@ -1,0 +1,6 @@
+card "Form a Posse" {
+  oracle_id 8923462f-0540-41e8-931e-97b5f1dadd51
+  cost {X}{R}{W}
+  type Sorcery
+  spell: create X "Mercenary"
+}

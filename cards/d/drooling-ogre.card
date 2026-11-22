@@ -1,0 +1,7 @@
+card "Drooling Ogre" {
+  oracle_id 97b37822-b030-4792-bcd7-c84499f51b18
+  cost {1}{R}
+  type Creature — Ogre
+  pt 3/3
+  triggered whenever a player casts artifact spell: that player gains control of this
+}

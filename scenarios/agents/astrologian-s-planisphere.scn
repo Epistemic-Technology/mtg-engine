@@ -1,0 +1,23 @@
+scenario "job select makes a Hero Wizard; noncreature spell adds a counter" {
+  battlefield A: 2 "Island", "Mountain"
+  hand A: "Astrologian's Planisphere", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Astrologian's Planisphere"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert attached "Astrologian's Planisphere" to "Hero"
+  assert is "Hero" Wizard
+  assert counters "Hero" +1/+1 1
+  assert power "Hero" 2
+}
+
+scenario "third card drawn in a turn adds a counter" {
+  battlefield A: "Grizzly Bears", "Astrologian's Planisphere" on "Grizzly Bears", 3 "Island"
+  hand A: "Divination"
+  start turn 3 A upkeep
+  turn 3 A: cast "Divination"
+  run_to turn 3 postcombat_main
+  assert hand A count 3
+  assert counters "Grizzly Bears" +1/+1 2
+}

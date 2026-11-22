@@ -1,0 +1,7 @@
+card "Seymour Flux" {
+  oracle_id 7312efc2-8a02-47cd-874b-c3338241435e
+  cost {4}{B}
+  type Legendary Creature — Spirit Avatar
+  pt 5/5
+  triggered at beginning of your upkeep step: you may pay 1 life; if you do, draw 1 card and put 1 +1/+1 counter on this
+}

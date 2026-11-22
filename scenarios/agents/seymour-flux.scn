@@ -1,0 +1,20 @@
+scenario "Seymour Flux pays 1 life to draw and grow" {
+  battlefield A: "Seymour Flux"
+  start turn 3 A untap
+  turn 3 upkeep A: accept "Seymour Flux"
+  run_to turn 3 precombat_main
+  assert life A 19
+  assert hand A count 2
+  assert counters "Seymour Flux" +1/+1 1
+  assert power "Seymour Flux" 6
+}
+
+scenario "Seymour Flux may decline" {
+  battlefield A: "Seymour Flux"
+  start turn 3 A untap
+  turn 3 upkeep A: decline "Seymour Flux"
+  run_to turn 3 precombat_main
+  assert life A 20
+  assert hand A count 1
+  assert counters "Seymour Flux" +1/+1 0
+}

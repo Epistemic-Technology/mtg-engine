@@ -1,0 +1,18 @@
+scenario "roots taps the creature and it stays tapped" {
+  battlefield A: 4 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Roots"
+  turn 1 A: cast "Roots" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert attached "Roots" to "Hill Giant"
+  assert tapped "Hill Giant"
+}
+
+scenario "roots can't enchant a flyer" {
+  battlefield A: 4 "Forest"
+  battlefield B: "Serra Angel"
+  hand A: "Roots"
+  illegal turn 1 A: cast "Roots" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Roots"
+}

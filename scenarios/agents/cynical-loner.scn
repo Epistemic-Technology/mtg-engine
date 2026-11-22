@@ -1,0 +1,31 @@
+scenario "cynical loner tapped at second main: search a card into the graveyard" {
+  battlefield A: "Cynical Loner"
+  library A: "Forest", "Hill Giant", "Hill Giant"
+  start turn 2 A
+  turn 2 A: attack "Cynical Loner"
+  run_to turn 2 end
+  assert life B 17
+  assert graveyard A count 1
+  assert graveyard A contains 1 "Hill Giant"
+  assert library A count 1
+}
+
+scenario "cynical loner: the search may be declined" {
+  battlefield A: "Cynical Loner"
+  library A: "Forest", "Hill Giant", "Hill Giant"
+  start turn 2 A
+  turn 2 A: attack "Cynical Loner"
+  turn 2 postcombat_main A: decline "Cynical Loner"
+  run_to turn 2 end
+  assert graveyard A count 0
+  assert library A count 2
+}
+
+scenario "cynical loner untapped: no search" {
+  battlefield A: "Cynical Loner"
+  library A: "Forest", "Hill Giant", "Hill Giant"
+  start turn 2 A
+  run_to turn 2 end
+  assert graveyard A count 0
+  assert library A count 2
+}

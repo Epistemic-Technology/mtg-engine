@@ -1,0 +1,9 @@
+card "Summon: G.F. Cerberus" {
+  oracle_id b6b22bac-853a-45a8-a74d-9904ec2b34fd
+  cost {2}{R}{R}
+  type Enchantment Creature — Saga Dog
+  pt 3/3
+  triggered chapter 1: surveil 1
+  label "Double" triggered chapter 2: delayed this: when next you cast instant or sorcery spell this turn, copy it new targets
+  label "Triple" triggered chapter 3: delayed this: when next you cast instant or sorcery spell this turn, copy it times 2 new targets
+}

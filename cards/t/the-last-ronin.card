@@ -1,0 +1,8 @@
+card "The Last Ronin" {
+  oracle_id e1865bec-1744-40c2-9031-7d6363be5333
+  cost {4}{B}{G}
+  type Enchantment — Saga
+  triggered chapter 1: destroy all creature
+  triggered chapter 2: mill 4 cards; when you do, return target creature card from your graveyard to hand
+  triggered chapter 3: delayed this: whenever creature you control attacks alone this turn, put 3 +1/+1 counters on it; it gains trample, lifelink, indestructible
+}

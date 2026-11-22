@@ -1,0 +1,22 @@
+scenario "Multiply by Zero kills a creature with no boosts" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Multiply by Zero"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Multiply by Zero" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Multiply by Zero leaves counters applying, and ends at end of turn" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Grizzly Bears" with 1 +1/+1
+  hand A: "Multiply by Zero"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Multiply by Zero" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 1
+  assert toughness "Grizzly Bears" 1
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 3
+}

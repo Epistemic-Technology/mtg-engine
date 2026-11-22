@@ -1,0 +1,19 @@
+scenario "Morcant's Eyes makes an Elf for each Elf card in the graveyard, itself included" {
+  battlefield A: "Morcant's Eyes", 6 "Forest"
+  graveyard A: "Llanowar Elves", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Morcant's Eyes"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Morcant's Eyes"
+  assert battlefield A contains 2 "Elf"
+}
+
+scenario "Morcant's Eyes surveils in the upkeep" {
+  battlefield A: "Morcant's Eyes"
+  library A: "Hill Giant", "Island"
+  start turn 3 A untap
+  turn 3 upkeep A: surveil "Hill Giant"
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Hill Giant"
+  assert hand A contains "Island"
+}

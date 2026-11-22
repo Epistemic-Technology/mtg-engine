@@ -1,0 +1,8 @@
+card "Molt Tender" {
+  oracle_id 9a39ca64-e1a9-42ef-8efd-6aa3edde3d93
+  cost {G}
+  type Creature — Insect Druid
+  pt 1/1
+  activated {T}: mill 1 card
+  activated {T}, exile 1 card from graveyard: add any
+}

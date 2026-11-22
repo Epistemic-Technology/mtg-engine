@@ -1,0 +1,7 @@
+card "Insidious Roots" {
+  oracle_id d75b2b8e-05c9-47da-b359-a867256d78ea
+  cost {B}{G}
+  type Enchantment
+  static creature token you control: has ability { mana any }
+  triggered whenever one or more creature cards leave your graveyard: create 1 "0/1 green Plant creature" then put 1 +1/+1 counter on each Plant you control
+}

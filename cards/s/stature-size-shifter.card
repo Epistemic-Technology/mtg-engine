@@ -1,0 +1,9 @@
+card "Stature, Size Shifter" {
+  oracle_id bd49a05c-ed51-4d69-ab9b-11192442ec17
+  cost {U}
+  type Legendary Creature — Human Hero
+  pt 1/1
+  pronoun she
+  static this: has can't be blocked if this is with power 1 or less
+  power-up {X}{U}{U}: put X +1/+1 counters on this
+}

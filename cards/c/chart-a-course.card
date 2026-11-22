@@ -1,0 +1,6 @@
+card "Chart a Course" {
+  oracle_id 05878e49-93ad-4144-9c50-a0bb86126c2e
+  cost {1}{U}
+  type Sorcery
+  spell: draw 2 cards; then discard 1 card unless attacked this turn
+}

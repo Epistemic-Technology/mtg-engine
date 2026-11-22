@@ -1,0 +1,10 @@
+card "Gastal Thrillroller" {
+  oracle_id 86d67952-19b8-4bb8-b7d7-b2751e86591c
+  cost {2}{R}
+  type Artifact — Vehicle
+  pt 4/2
+  keywords trample, haste
+  triggered when this enters: this becomes artifact creature until end of turn
+  crew 2
+  activated {2}{R}, discard 1 card, from graveyard, sorcery: return this to battlefield with 1 finality counter
+}

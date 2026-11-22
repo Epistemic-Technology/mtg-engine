@@ -1,0 +1,7 @@
+card "Short Bow" {
+  oracle_id ce5f5ff9-13f7-41eb-ada0-7f73de42acef
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +1/+1, has reach and vigilance
+  equip {1}
+}

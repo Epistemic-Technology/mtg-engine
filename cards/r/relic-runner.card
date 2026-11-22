@@ -1,0 +1,7 @@
+card "Relic Runner" {
+  oracle_id 69e4e5bf-f0e2-4ed1-8b17-c8c7a9381551
+  cost {1}{U}
+  type Creature — Human Rogue
+  pt 2/1
+  static this: has can't be blocked if cast historic spell this turn
+}

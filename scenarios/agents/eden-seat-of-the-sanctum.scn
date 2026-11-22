@@ -1,0 +1,37 @@
+scenario "Eden mills two, is sacrificed, and returns a permanent card" {
+  battlefield A: "Eden, Seat of the Sanctum", 5 "Plains"
+  graveyard A: "Grizzly Bears"
+  library A: "Hill Giant", "Serra Angel", "Island"
+  turn 1 A: activate "Eden, Seat of the Sanctum"
+  turn 1 A: accept "Eden, Seat of the Sanctum"
+  turn 1 A: trigger "Eden, Seat of the Sanctum" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Serra Angel"
+  assert library A contains "Island"
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Eden, Seat of the Sanctum"
+}
+
+scenario "Eden can't return itself" {
+  battlefield A: "Eden, Seat of the Sanctum", 5 "Plains"
+  library A: "Island", "Island", "Island"
+  turn 1 A: activate "Eden, Seat of the Sanctum"
+  turn 1 A: accept "Eden, Seat of the Sanctum"
+  illegal turn 1 A: trigger "Eden, Seat of the Sanctum" targeting "Eden, Seat of the Sanctum"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Eden, Seat of the Sanctum"
+  assert hand A lacks "Eden, Seat of the Sanctum"
+}
+
+scenario "Eden may be kept" {
+  battlefield A: "Eden, Seat of the Sanctum", 5 "Plains"
+  graveyard A: "Grizzly Bears"
+  library A: "Hill Giant", "Serra Angel", "Island"
+  turn 1 A: activate "Eden, Seat of the Sanctum"
+  turn 1 A: decline "Eden, Seat of the Sanctum"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Eden, Seat of the Sanctum"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}

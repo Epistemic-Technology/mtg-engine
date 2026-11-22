@@ -1,0 +1,22 @@
+scenario "drooling ogre: the player who casts an artifact spell gains control" {
+  battlefield A: "Drooling Ogre"
+  hand B: "Ornithopter"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Ornithopter"
+  run_to turn 2 end
+  assert battlefield B contains "Drooling Ogre"
+  assert battlefield B contains "Ornithopter"
+  assert battlefield A lacks "Drooling Ogre"
+}
+
+scenario "drooling ogre: a nonartifact spell does nothing; own artifact keeps it" {
+  battlefield A: "Drooling Ogre", "Forest", "Forest"
+  hand A: "Ornithopter"
+  hand B: "Grizzly Bears"
+  battlefield B: 2 "Forest"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  turn 3 A: cast "Ornithopter"
+  run_to turn 3 end
+  assert battlefield A contains "Drooling Ogre"
+}

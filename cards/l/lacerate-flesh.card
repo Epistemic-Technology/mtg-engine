@@ -1,0 +1,6 @@
+card "Lacerate Flesh" {
+  oracle_id 201c8de7-9675-475b-8f9e-7b1935234488
+  cost {4}{R}
+  type Sorcery
+  spell: deal 4 damage to target creature; create count equal excess damage dealt to that creature this way "Blood"
+}

@@ -1,0 +1,31 @@
+scenario "Krovod Haunch: equipped creature gets +2/+0" {
+  battlefield A: "Krovod Haunch", "Grizzly Bears", 2 "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Krovod Haunch" ability 2 targeting "Grizzly Bears"
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert attached "Krovod Haunch" to "Grizzly Bears"
+  assert life B 16
+}
+
+scenario "Krovod Haunch: sacrifice for 3 life, then pay {1}{W} for two Dogs" {
+  battlefield A: "Krovod Haunch", 4 "Plains"
+  life A 10
+  start turn 2 A precombat_main
+  turn 2 A: activate "Krovod Haunch" ability 1
+  turn 2 A: accept "Krovod Haunch"
+  run_to turn 2 end
+  assert life A 13
+  assert battlefield A contains 2 "Dog"
+  assert graveyard A contains "Krovod Haunch"
+}
+
+scenario "Krovod Haunch: declining the payment makes no Dogs" {
+  battlefield A: "Krovod Haunch", 4 "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Krovod Haunch" ability 1
+  turn 2 A: decline "Krovod Haunch"
+  run_to turn 2 end
+  assert life A 23
+  assert battlefield A lacks "Dog"
+}

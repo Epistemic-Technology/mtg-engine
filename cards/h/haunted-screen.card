@@ -1,0 +1,8 @@
+card "Haunted Screen" {
+  oracle_id 49f92c0b-16ac-4cf0-8ec3-e3638990ee75
+  cost {3}
+  type Artifact
+  mana {W} or {B}
+  activated {T}, pay 1 life: add {G} or {U} or {R}
+  activated {7}, once ever: put 7 +1/+1 counters on this; this becomes 0/0 Spirit creature in addition indefinitely
+}

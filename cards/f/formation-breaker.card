@@ -1,0 +1,8 @@
+card "Formation Breaker" {
+  oracle_id 82f59ac4-bf94-4fa2-9457-f0bec8360bd9
+  cost {1}{G}
+  type Creature — Beast
+  pt 2/1
+  can't be blocked by creature with lesser power
+  static as long as you control creature with counter, this: +1/+2
+}

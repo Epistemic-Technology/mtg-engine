@@ -1,0 +1,9 @@
+card "Waxen Shapethief" {
+  oracle_id 6c540822-4ceb-4ebf-b777-da172ada3f1b
+  cost {3}{U}
+  type Creature — Shapeshifter
+  pt 0/0
+  keywords flash
+  enters as copy of artifact or creature you control
+  cycling {2}
+}

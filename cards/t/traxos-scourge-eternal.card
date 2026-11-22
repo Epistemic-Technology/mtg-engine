@@ -1,0 +1,8 @@
+card "Traxos, Scourge Eternal" {
+  oracle_id acf4abde-4034-4fcf-b531-78c935aecd8c
+  cost {4}
+  type Legendary Artifact Creature — Dragon Construct
+  pt 5/4
+  keywords trample, doesn't untap
+  triggered whenever you cast artifact or creature spell: untap this
+}

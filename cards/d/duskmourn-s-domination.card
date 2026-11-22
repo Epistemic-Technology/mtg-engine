@@ -1,0 +1,8 @@
+card "Duskmourn's Domination" {
+  oracle_id ebdace8f-8e8e-411b-b1d5-5b27cca7d9fb
+  cost {4}{U}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: control
+  static enchanted: -3/-0, loses all abilities
+}

@@ -1,0 +1,9 @@
+card "Burning-Tree Bloodscale" {
+  oracle_id a9be4be0-71fe-41d9-8f30-351385753fc9
+  cost {2}{R}{G}
+  type Creature — Lizard Berserker
+  pt 2/2
+  bloodthirst 1
+  activated {2}{R}: target creature can't block this
+  activated {2}{G}: target creature blocks this if able
+}

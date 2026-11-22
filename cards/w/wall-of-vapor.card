@@ -1,0 +1,8 @@
+card "Wall of Vapor" {
+  oracle_id 7d08d128-863c-4cca-837f-847ff44acef5
+  cost {3}{U}
+  type Creature — Wall
+  pt 0/1
+  keywords defender
+  replace damage from creature blocked by it to this: prevent
+}

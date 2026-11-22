@@ -1,0 +1,7 @@
+card "Abzan Monument" {
+  oracle_id 93563b7b-5685-4832-b164-0701dbf3cf18
+  cost {2}
+  type Artifact
+  triggered when this enters: search basic Plains or basic Swamp or basic Forest card reveal to hand
+  activated {1}{W}{B}{G}, {T}, sacrifice this, sorcery: create 1 "0/0 white Spirit creature" sized count where greatest toughness creature you control
+}

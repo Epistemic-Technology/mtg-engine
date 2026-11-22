@@ -1,0 +1,9 @@
+card "Ingris Stingerquill" {
+  oracle_id bda098cb-31ec-41a1-a9d7-122877cc69d2
+  cost {B}{R}{R}
+  type Legendary Creature — Elder Sphinx
+  pt 1/4
+  keywords flying
+  triggered whenever creature you control attacks: that creature deals 1 damage to each opponent
+  activated {4}: create 1 "Cadet"; then each creature you control gains haste
+}

@@ -1,0 +1,9 @@
+card "Circle of Power" {
+  oracle_id 2d41fd1f-4a98-45dd-a3c5-f7c5e0152109
+  cost {3}{B}
+  type Sorcery
+  spell {
+    you draw 2 cards, and you lose 2 life; create 1 "0/1 black Wizard creature that pings"
+    each Wizard you control gets +1/+0 and gains lifelink
+  }
+}

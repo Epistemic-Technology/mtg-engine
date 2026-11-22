@@ -1,0 +1,27 @@
+scenario "Jeskai Monument: enters, search a basic Island, Mountain, or Plains" {
+  battlefield A: 2 "Forest"
+  hand A: "Jeskai Monument"
+  library A: "Forest", "Swamp", "Mountain", "Forest"
+  turn 1 A: cast "Jeskai Monument"
+  run_to turn 1 end
+  assert hand A contains "Mountain"
+  assert library A count 3
+  assert library A lacks "Mountain"
+}
+
+scenario "Jeskai Monument: sacrifice for two 1/1 flying Birds" {
+  battlefield A: "Jeskai Monument", "Island", "Mountain", "Plains", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Jeskai Monument"
+  run_to turn 2 end
+  assert battlefield A contains 2 "Bird"
+  assert has oldest A "Bird" flying
+  assert graveyard A contains "Jeskai Monument"
+}
+
+scenario "Jeskai Monument: only as a sorcery" {
+  battlefield A: "Jeskai Monument", "Island", "Mountain", "Plains", "Forest"
+  start turn 2 B precombat_main
+  illegal turn 2 A: activate "Jeskai Monument"
+  run_to turn 2 end
+}

@@ -1,0 +1,17 @@
+scenario "dark maze: can attack after activating, exiled at end step" {
+  battlefield A: "Dark Maze"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Dark Maze"
+  turn 1 A: attack "Dark Maze"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  run_to turn 2 upkeep
+  assert exile A contains "Dark Maze"
+}
+
+scenario "dark maze: can't attack without activating" {
+  battlefield A: "Dark Maze"
+  illegal turn 1 A: attack "Dark Maze"
+  run_to turn 1 end
+  assert battlefield A contains "Dark Maze"
+}

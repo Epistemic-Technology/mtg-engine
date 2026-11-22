@@ -1,0 +1,12 @@
+scenario "confectioner makes a Food; sacrificing it makes a Rat that can't block" {
+  battlefield A: 5 "Swamp"
+  hand A: "Experimental Confectioner"
+  turn 1 A: cast "Experimental Confectioner"
+  turn 1 A: wait
+  turn 1 A: activate "Food"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Experimental Confectioner"
+  assert battlefield A lacks "Food"
+  assert battlefield A contains 1 "Rat"
+  assert life A 23
+}

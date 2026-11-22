@@ -1,0 +1,10 @@
+card "Meldweb Strider" {
+  oracle_id b66dd751-fef7-4310-9c09-8d1b1fc78fef
+  cost {4}{U}
+  type Artifact — Vehicle
+  pt 5/5
+  keywords vigilance
+  enters with 1 oil counter
+  activated remove 1 oil counter from this: this becomes artifact creature until end of turn
+  crew 3
+}

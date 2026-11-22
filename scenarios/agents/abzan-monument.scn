@@ -1,0 +1,19 @@
+scenario "Abzan Monument fetches a basic Plains, Swamp, or Forest" {
+  battlefield A: 2 "Island"
+  hand A: "Abzan Monument"
+  library A: "Island", "Mountain", "Swamp", "Island"
+  turn 1 A: cast "Abzan Monument"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Swamp"
+  assert hand A count 1
+}
+
+scenario "Abzan Monument makes a Spirit as big as your toughest creature" {
+  battlefield A: "Abzan Monument", "Grizzly Bears", "Hill Giant", "Plains", "Swamp", "Forest", "Island"
+  turn 1 A: activate "Abzan Monument"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Abzan Monument"
+  assert battlefield A contains "Spirit"
+  assert power "Spirit" 3
+  assert toughness "Spirit" 3
+}

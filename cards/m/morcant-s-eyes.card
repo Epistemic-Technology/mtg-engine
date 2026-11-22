@@ -1,0 +1,7 @@
+card "Morcant's Eyes" {
+  oracle_id c55a27cc-8e25-4714-b1da-86e5c1c6661a
+  cost {1}{G}
+  type Kindred Enchantment — Elf
+  triggered at beginning of your upkeep step: surveil 1
+  activated {4}{G}{G}, sorcery, sacrifice this: create count where graveyard Elf "2/2 black and green Elf creature"
+}

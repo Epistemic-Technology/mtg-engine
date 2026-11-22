@@ -1,0 +1,17 @@
+scenario "Essence Burn exiles a green creature it kills" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Essence Burn"
+  turn 1 A: cast "Essence Burn" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert graveyard B lacks "Grizzly Bears"
+}
+
+scenario "Essence Burn can't target a red creature" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Essence Burn"
+  illegal turn 1 A: cast "Essence Burn" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+}

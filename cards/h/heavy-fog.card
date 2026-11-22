@@ -1,0 +1,7 @@
+card "Heavy Fog" {
+  oracle_id a2006755-8812-4aad-8567-e8df6e8923da
+  cost {1}{G}
+  type Instant
+  cast only during declare attackers if attacked
+  spell: prevent all damage to you this turn from attacking creature
+}

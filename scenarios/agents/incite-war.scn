@@ -1,0 +1,36 @@
+scenario "Incite War mode 1 forces target player's creatures to attack" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Incite War"
+  start turn 2 B upkeep
+  turn 2 upkeep A: cast "Incite War" mode 1 targeting player B
+  run_to turn 2 postcombat_main
+  assert life A 17
+}
+
+scenario "Incite War mode 2 gives your creatures first strike" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  hand A: "Incite War"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Incite War" mode 2
+  turn 2 A: block "Grizzly Bears" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Grizzly Bears"
+  assert has A "Grizzly Bears" first_strike
+  assert has not B "Grizzly Bears" first_strike
+}
+
+scenario "Incite War entwined does both" {
+  battlefield A: 5 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Incite War"
+  start turn 2 B upkeep
+  turn 2 upkeep A: cast "Incite War" mode 3 targeting player B
+  run_to turn 2 postcombat_main
+  assert has "Grizzly Bears" first_strike
+  assert life A 17
+  
+}

@@ -1,0 +1,6 @@
+card "Relm's Sketching" {
+  oracle_id dd6601c6-810d-4883-89d2-5d31419fb1cc
+  cost {2}{U}{U}
+  type Sorcery
+  spell: create token copy of target artifact, creature, or land
+}

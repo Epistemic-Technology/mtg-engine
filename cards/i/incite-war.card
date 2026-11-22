@@ -1,0 +1,10 @@
+card "Incite War" {
+  oracle_id 8a640369-59ab-4506-b473-1f804721414c
+  cost {2}{R}
+  type Instant
+  choose one {
+    mode: each creature target player controls gains attacks each combat if able
+    mode: each creature you control gains first strike
+  }
+  entwine {2}
+}

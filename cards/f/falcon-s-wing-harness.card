@@ -1,0 +1,8 @@
+card "Falcon's Wing Harness" {
+  oracle_id e69db5f0-beed-48e8-bc25-768b1e8be5ea
+  cost {1}{U}
+  type Artifact — Equipment
+  triggered when this enters: attach this to target creature you control
+  static equipped creature: +1/+1, has flying, has ward {1}
+  equip {2}{U}
+}

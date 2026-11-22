@@ -1,0 +1,24 @@
+scenario "Overprotect: +3/+3, trample, hexproof, indestructible" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Overprotect"
+  hand B: "Shock"
+  turn 1 A: cast "Overprotect" targeting "Grizzly Bears"
+  illegal turn 1 end B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert has "Grizzly Bears" trample
+  assert has "Grizzly Bears" hexproof
+  assert has "Grizzly Bears" indestructible
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Overprotect can't target an opponent's creature" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Overprotect"
+  illegal turn 1 A: cast "Overprotect" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+}

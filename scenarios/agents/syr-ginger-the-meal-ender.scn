@@ -1,0 +1,34 @@
+scenario "keywords only while opponent controls a planeswalker" {
+  battlefield A: "Syr Ginger, the Meal Ender"
+  battlefield B: "Jace Beleren"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert has "Syr Ginger, the Meal Ender" trample
+  assert has "Syr Ginger, the Meal Ender" hexproof
+  assert has "Syr Ginger, the Meal Ender" haste
+}
+
+scenario "no planeswalker, no keywords" {
+  battlefield A: "Syr Ginger, the Meal Ender"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert has not "Syr Ginger, the Meal Ender" trample
+  assert has not "Syr Ginger, the Meal Ender" haste
+}
+
+scenario "another artifact dies: counter and scry, then sacrifice for life" {
+  battlefield A: "Syr Ginger, the Meal Ender", "Ornithopter", 2 "Plains"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  library A: "Forest", "Island"
+  life A 10
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Ornithopter"
+  turn 2 A: scry "Forest"
+  turn 3 A: activate "Syr Ginger, the Meal Ender"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Ornithopter"
+  assert graveyard A contains "Syr Ginger, the Meal Ender"
+  assert life A 14
+  assert hand A contains "Island"
+}

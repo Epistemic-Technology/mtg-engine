@@ -1,0 +1,9 @@
+card "Soulbright Seeker" {
+  oracle_id 762679dd-4345-43c3-929b-15959443aeb0
+  cost {R}
+  type Creature — Elemental Sorcerer
+  pt 2/1
+  additional cost behold Elemental
+  additional cost or {2}
+  activated {R}: target creature you control gains trample; if resolution 3, add {R}{R}{R}{R}
+}

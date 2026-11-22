@@ -1,0 +1,9 @@
+card "Venus, Torn Between Worlds" {
+  oracle_id 7b3d364d-6581-43de-a80a-d5b07f5d21ed
+  cost {4}{G}
+  type Legendary Creature — Mutant Frog Turtle
+  pt 5/5
+  pronoun she
+  triggered whenever this is dealt damage: put that much +1/+1 counters on this
+  triggered whenever creature with counter you control deals combat damage to a player: you may pay {U}; if you do, draw 1 card
+}

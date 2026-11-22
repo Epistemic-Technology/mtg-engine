@@ -1,0 +1,30 @@
+scenario "Formation Breaker gets +1/+2 with a -1/-1 counter on a creature you control" {
+  battlefield A: "Formation Breaker", "Hill Giant" with 1 -1/-1
+  run_to turn 1 precombat_main
+  assert power "Formation Breaker" 3
+  assert toughness "Formation Breaker" 3
+}
+
+scenario "Formation Breaker: no counters, base 2/1; smaller creatures can't block" {
+  battlefield A: "Formation Breaker"
+  battlefield B: "Llanowar Elves", "Grizzly Bears"
+  start turn 2 A
+  run_to turn 2 precombat_main
+  assert power "Formation Breaker" 2
+  assert toughness "Formation Breaker" 1
+  turn 2 A: attack "Formation Breaker"
+  illegal turn 2 B: block "Formation Breaker" with "Llanowar Elves"
+  run_to turn 2 postcombat_main
+  assert life B 18
+}
+
+scenario "Formation Breaker: an equal-power creature can block" {
+  battlefield A: "Formation Breaker"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Formation Breaker"
+  turn 2 B: block "Formation Breaker" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Formation Breaker"
+}

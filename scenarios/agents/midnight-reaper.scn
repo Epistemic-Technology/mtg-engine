@@ -1,0 +1,32 @@
+scenario "Midnight Reaper pings and draws when a nontoken creature dies" {
+  battlefield A: "Midnight Reaper", "Grizzly Bears", 3 "Swamp"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert life A 19
+  assert hand A count 1
+}
+
+scenario "Midnight Reaper ignores tokens" {
+  battlefield A: "Midnight Reaper", "Soldier", 3 "Swamp"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Soldier"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Soldier"
+  assert life A 20
+  assert hand A count 0
+}
+
+scenario "Midnight Reaper triggers on its own death" {
+  battlefield A: "Midnight Reaper", 3 "Swamp"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Midnight Reaper"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Midnight Reaper"
+  assert life A 19
+  assert hand A count 1
+}

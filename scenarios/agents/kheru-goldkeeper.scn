@@ -1,0 +1,23 @@
+scenario "Kheru Goldkeeper makes a Treasure when a card leaves the graveyard on your turn" {
+  battlefield A: "Kheru Goldkeeper", "Grizzly Bears", 5 "Forest"
+  graveyard A: "Sagu Pummeler"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sagu Pummeler" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Sagu Pummeler"
+  assert counters "Grizzly Bears" +1/+1 2
+  assert battlefield A contains 1 "Treasure"
+}
+
+scenario "Kheru Goldkeeper renews from the graveyard" {
+  battlefield A: "Grizzly Bears", 2 "Island", 2 "Swamp", 1 "Forest"
+  graveyard A: "Kheru Goldkeeper"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kheru Goldkeeper" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Kheru Goldkeeper"
+  assert counters "Grizzly Bears" +1/+1 2
+  assert counters "Grizzly Bears" flying 1
+  assert has "Grizzly Bears" flying
+  assert power "Grizzly Bears" 4
+}

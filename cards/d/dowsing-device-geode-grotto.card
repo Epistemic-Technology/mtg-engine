@@ -1,0 +1,12 @@
+card "Dowsing Device // Geode Grotto" {
+  oracle_id 2f4374f6-c695-4a5d-a6d6-0e41eaa587ca
+  layout transform
+  cost {1}{R}
+  type Artifact
+  triggered whenever this or artifact you control enters: up to 1 target creature you control gets +1/+0 and gains haste; then transform this if you control 4 artifact
+  face "Geode Grotto" {
+    type Land — Cave
+    mana {R}
+    activated {2}{R}, {T}, sorcery: until end of turn, target creature gains haste and gets +1/+0 count where artifact you control
+  }
+}

@@ -1,0 +1,8 @@
+card "Teyo, Lightshield Expert" {
+  oracle_id 77a9fac6-3c26-4456-9e0b-f5839a3dcae2
+  cost {1}{W}
+  type Legendary Creature — Human Cleric
+  pt 1/1
+  keywords flash
+  triggered when this enters: target permanent you control gains hexproof until end of turn; put 1 +1/+1 counter on target 1 if target 1 is creature; put 1 loyalty counter on target 1 if target 1 is planeswalker
+}

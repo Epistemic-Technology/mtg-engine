@@ -1,0 +1,25 @@
+scenario "without void: draw two, lose 2" {
+  battlefield A: 3 "Swamp"
+  hand A: "Decode Transmissions"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Decode Transmissions"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert life A 18
+  assert life B 20
+}
+
+scenario "void: draw two, opponent loses 2" {
+  battlefield A: 3 "Swamp", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Decode Transmissions", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Decode Transmissions"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert hand A count 2
+  assert life A 20
+  assert life B 18
+}

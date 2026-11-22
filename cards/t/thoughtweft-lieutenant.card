@@ -1,0 +1,7 @@
+card "Thoughtweft Lieutenant" {
+  oracle_id 50dd9e17-6dae-4ff6-8a38-50088c71283f
+  cost {G}{W}
+  type Creature — Kithkin Soldier
+  pt 2/2
+  triggered whenever this or Kithkin you control enters: target creature you control gets +1/+1 and target 1 gains trample
+}

@@ -1,0 +1,8 @@
+card "Plumecreed Mentor" {
+  oracle_id 0eb8983e-4e44-4bfe-81dd-ddb41007a166
+  cost {1}{W}{U}
+  type Creature — Bird Scout
+  pt 2/3
+  keywords flying
+  triggered whenever this or creature you control with flying enters: put 1 +1/+1 counter on target creature you control without flying
+}

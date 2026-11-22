@@ -1,0 +1,24 @@
+scenario "Circle of Power draws, drains, and makes a lifelinking Wizard" {
+  battlefield A: 4 "Swamp", "Mountain"
+  hand A: "Circle of Power", "Lightning Bolt"
+  turn 1 A: cast "Circle of Power"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert battlefield A contains "Wizard"
+  assert power "Wizard" 1
+  assert has "Wizard" lifelink
+  assert life B 16
+  assert life A 19
+}
+
+scenario "Circle of Power's pump ends with the turn" {
+  battlefield A: 4 "Swamp"
+  hand A: "Circle of Power"
+  turn 1 A: cast "Circle of Power"
+  run_to turn 2 upkeep
+  assert power "Wizard" 0
+  assert has not "Wizard" lifelink
+  assert life A 18
+}

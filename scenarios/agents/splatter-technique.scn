@@ -1,0 +1,22 @@
+scenario "Splatter Technique draws four" {
+  battlefield A: 3 "Island", 2 "Mountain"
+  hand A: "Splatter Technique"
+  turn 1 A: cast "Splatter Technique" mode 1
+  run_to turn 1 postcombat_main
+  assert hand A count 4
+  assert graveyard A contains "Splatter Technique"
+}
+
+scenario "Splatter Technique deals 4 to each creature and planeswalker" {
+  battlefield A: 3 "Island", 2 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Jace Beleren", "Aegis Angel"
+  hand A: "Splatter Technique"
+  turn 1 A: cast "Splatter Technique" mode 2
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Jace Beleren"
+  assert battlefield B contains "Aegis Angel"
+  assert damage "Aegis Angel" 4
+}

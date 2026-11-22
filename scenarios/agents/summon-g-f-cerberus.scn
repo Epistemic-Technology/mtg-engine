@@ -1,0 +1,35 @@
+scenario "chapter I surveils" {
+  battlefield A: 4 "Mountain"
+  hand A: "Summon: G.F. Cerberus"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Summon: G.F. Cerberus"
+  turn 1 A: surveil "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert counters "Summon: G.F. Cerberus" lore 1
+}
+
+scenario "chapter II copies the next instant once" {
+  battlefield A: "Summon: G.F. Cerberus" with 1 lore, "Mountain"
+  hand A: "Shock"
+  start turn 3 A upkeep
+  turn 3 A: wait
+  turn 3 A: cast "Shock" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 16
+  assert counters "Summon: G.F. Cerberus" lore 2
+}
+
+scenario "chapter III copies the next instant twice, then the saga is sacrificed" {
+  battlefield A: "Summon: G.F. Cerberus" with 2 lore, "Mountain", "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  start turn 5 A upkeep
+  turn 5 A: wait
+  turn 5 A: cast "Shock" targeting player B
+  turn 5 A: wait
+  turn 5 A: cast "Lightning Bolt" targeting player B
+  run_to turn 5 postcombat_main
+  assert life B 11
+  assert graveyard A contains "Summon: G.F. Cerberus"
+}

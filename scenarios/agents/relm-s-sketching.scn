@@ -1,0 +1,20 @@
+scenario "Relm's Sketching copies an opponent's creature" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Relm's Sketching"
+  turn 1 A: cast "Relm's Sketching" targeting B "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield B contains "Hill Giant"
+  assert power A "Hill Giant" 3
+}
+
+scenario "Relm's Sketching copies a land" {
+  battlefield A: 4 "Island"
+  battlefield B: "Forest"
+  hand A: "Relm's Sketching"
+  turn 1 A: cast "Relm's Sketching" targeting B "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+  assert is A "Forest" land
+}

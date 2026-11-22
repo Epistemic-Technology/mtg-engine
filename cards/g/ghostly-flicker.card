@@ -1,0 +1,6 @@
+card "Ghostly Flicker" {
+  oracle_id ad0070db-6454-41cb-861f-8f5b8fc2a3b8
+  cost {2}{U}
+  type Instant
+  spell: exile 2 target andor artifact or creature or land you control then return those cards to battlefield under your control
+}

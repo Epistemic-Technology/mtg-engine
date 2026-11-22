@@ -1,0 +1,26 @@
+scenario "Poisoner's Apprentice shrinks a creature after life gain" {
+  battlefield A: 3 "Swamp", 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Revitalize", "Poisoner's Apprentice"
+  library A: "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Revitalize"
+  turn 1 A: wait
+  turn 1 A: cast "Poisoner's Apprentice"
+  turn 1 A: trigger "Poisoner's Apprentice" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Poisoner's Apprentice does nothing without life gain" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Poisoner's Apprentice"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Poisoner's Apprentice"
+  turn 1 A: trigger "Poisoner's Apprentice" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+}

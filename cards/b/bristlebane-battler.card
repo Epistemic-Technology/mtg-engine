@@ -1,0 +1,10 @@
+card "Bristlebane Battler" {
+  oracle_id 592689f2-f17c-40d6-b880-431f4b6a6b0c
+  cost {1}{G}
+  type Creature — Kithkin Soldier
+  pt 6/6
+  keywords trample
+  ward {2}
+  enters with 5 -1/-1 counters
+  triggered whenever other creature you control enters while this has 1 or more -1/-1 counters: remove 1 -1/-1 counter from this
+}

@@ -1,0 +1,6 @@
+card "Eden, Seat of the Sanctum" {
+  oracle_id 84856b92-5ce8-47f3-9a1c-78d6a3e26aca
+  type Land — Town
+  mana {C}
+  activated {5}, {T}: mill 2 cards; then you may sacrifice this; when you do, return another target permanent card from your graveyard to hand
+}

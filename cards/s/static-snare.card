@@ -1,0 +1,8 @@
+card "Static Snare" {
+  oracle_id b5b742d2-f19b-47c9-84bd-e85d975900e6
+  cost {4}{W}
+  type Enchantment
+  keywords flash
+  this spell costs {1} less count each attacking creature
+  triggered whenever this enters: exile target artifact or creature an opponent controls until this leaves
+}

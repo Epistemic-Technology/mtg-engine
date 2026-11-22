@@ -1,0 +1,8 @@
+card "Kraum, Violent Cacophony" {
+  oracle_id 1d764f70-985e-4cf0-9482-f30f73b9baf1
+  cost {2}{U}{R}
+  type Legendary Creature — Zombie Horror
+  pt 2/3
+  keywords flying
+  triggered whenever you cast your second spell each turn: put 1 +1/+1 counters on this and draw 1 card
+}

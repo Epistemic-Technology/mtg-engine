@@ -1,0 +1,7 @@
+card "Parting Gust" {
+  oracle_id 367bb252-41e1-4f98-9d22-442dd332cccf
+  cost {W}{W}
+  type Instant
+  gift tapped fish
+  spell: exile target nontoken creature; if not kicked, delayed target 1: return that card to battlefield under its owner's control with 1 +1/+1 counter at beginning of the next end step
+}

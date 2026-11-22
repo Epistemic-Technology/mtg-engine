@@ -1,0 +1,7 @@
+card "Voidforged Titan" {
+  oracle_id f7afe534-fbb0-4f8b-9e98-aa49d4005465
+  cost {4}{B}
+  type Artifact Creature — Robot Warrior
+  pt 5/4
+  label "Void" triggered at beginning of your end step if void: you draw 1 card and you lose 1 life
+}

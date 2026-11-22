@@ -1,0 +1,8 @@
+card "Ringskipper" {
+  oracle_id 8e353b5f-0692-430e-9558-59818275b13b
+  cost {1}{U}
+  type Creature — Faerie Wizard
+  pt 1/1
+  keywords flying
+  triggered when this dies: clash; if you win, return this card to its owner's hand
+}

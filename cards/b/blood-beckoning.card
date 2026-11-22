@@ -1,0 +1,7 @@
+card "Blood Beckoning" {
+  oracle_id 67a48e3f-2388-42a9-a8b1-97c08761f807
+  cost {B}
+  type Sorcery
+  kicker {3}
+  spell: return target creature card from your graveyard to hand; if kicked, instead return 2 target creature card from your graveyard to hand
+}

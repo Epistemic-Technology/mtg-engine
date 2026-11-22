@@ -1,0 +1,12 @@
+scenario "Improvised Arsenal: equip, copy itself, +1/+0 per artifact" {
+  battlefield A: "Improvised Arsenal", "Grizzly Bears", 6 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Improvised Arsenal" ability 2 targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 postcombat_main A: activate "Improvised Arsenal" ability 1
+  run_to turn 1 end
+  assert battlefield A contains 2 "Improvised Arsenal"
+  assert attached oldest "Improvised Arsenal" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+}

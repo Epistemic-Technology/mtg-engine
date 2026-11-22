@@ -1,0 +1,8 @@
+card "Okoye, Dora Milaje Leader" {
+  oracle_id 6d397d26-7e52-47b2-9880-2c10e90cfba4
+  cost {3}{W}
+  type Legendary Creature — Human Warrior Hero
+  pt 3/2
+  triggered when this enters: create 2 "1/1 white Soldier creature"
+  static attacking token creature you control: has first strike
+}

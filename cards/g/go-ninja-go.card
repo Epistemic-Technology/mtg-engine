@@ -1,0 +1,9 @@
+card "Go Ninja Go" {
+  oracle_id 46f77c8c-6817-4aea-a80a-d91f508ccbd0
+  cost {R}{W}
+  type Sorcery
+  choose one or both {
+    mode: exile target creature you control, then return target 1 to battlefield under its owner's control
+    mode: deal damage equal greatest power to target creature an opponent controls
+  }
+}

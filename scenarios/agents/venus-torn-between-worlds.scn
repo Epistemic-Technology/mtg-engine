@@ -1,0 +1,33 @@
+scenario "venus gets counters equal to damage" {
+  battlefield A: "Venus, Torn Between Worlds"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Venus, Torn Between Worlds"
+  run_to turn 2 postcombat_main
+  assert counters "Venus, Torn Between Worlds" +1/+1 2
+  assert power "Venus, Torn Between Worlds" 7
+}
+
+scenario "creature with counter connects, pay U to draw" {
+  battlefield A: "Grizzly Bears" with 1 +1/+1, "Hill Giant", "Island"
+  library A: "Forest", "Plains"
+  start turn 1 A precombat_main
+  battlefield A: "Venus, Torn Between Worlds"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert hand A count 1
+  assert tapped "Island"
+}
+
+scenario "declining pay draws nothing" {
+  battlefield A: "Venus, Torn Between Worlds", "Grizzly Bears" with 1 +1/+1, "Island"
+  library A: "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 combat_damage A: decline "Venus, Torn Between Worlds"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand A count 0
+}

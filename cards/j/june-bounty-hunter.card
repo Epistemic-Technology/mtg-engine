@@ -1,0 +1,8 @@
+card "June, Bounty Hunter" {
+  oracle_id 1779869a-5e54-4ab5-86b8-d4d20e2e1ba4
+  cost {1}{B}
+  type Legendary Creature — Human Mercenary
+  pt 2/2
+  static this: has can't be blocked as long as drew 2 this turn
+  activated {1}, sacrifice another creature, during your turn: create 1 "Clue"
+}

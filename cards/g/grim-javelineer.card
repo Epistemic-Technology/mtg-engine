@@ -1,0 +1,7 @@
+card "Grim Javelineer" {
+  oracle_id bd31487e-e95a-4d90-8c85-742aa83c3e90
+  cost {2}{B}
+  type Creature — Human Warrior
+  pt 3/2
+  triggered whenever you attack: target attacking creature gets +1/+0 until end of turn; delayed target 1: when that creature dies this turn, surveil 1
+}

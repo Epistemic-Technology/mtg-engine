@@ -1,0 +1,9 @@
+card "Tractor Beam" {
+  oracle_id ed99a0b8-d82d-4c80-af97-cabd333620df
+  cost {2}{U}{U}
+  type Enchantment — Aura
+  enchant creature or Spacecraft
+  triggered when this enters: tap enchanted permanent
+  static enchanted permanent: control
+  static enchanted permanent: has doesn't untap
+}

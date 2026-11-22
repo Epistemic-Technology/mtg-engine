@@ -1,0 +1,28 @@
+scenario "Grinning Ignus returns to hand for {C}{C}{R}, paying for Hill Giant" {
+  battlefield A: "Mountain", "Mountain", "Grinning Ignus"
+  hand A: "Hill Giant"
+  turn 1 A: activate "Grinning Ignus"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert hand A contains "Grinning Ignus"
+  assert battlefield A lacks "Grinning Ignus"
+}
+
+scenario "Grinning Ignus nets only two mana" {
+  battlefield A: "Mountain", "Grinning Ignus"
+  hand A: "Hill Giant"
+  turn 1 A: activate "Grinning Ignus"
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grinning Ignus"
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Grinning Ignus can't be activated at instant speed" {
+  battlefield A: "Mountain", "Grinning Ignus"
+  start turn 2 B
+  illegal turn 2 upkeep A: activate "Grinning Ignus"
+  run_to turn 2 draw
+  assert battlefield A contains "Grinning Ignus"
+}

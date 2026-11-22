@@ -1,0 +1,11 @@
+card "Stingerquill Charm" {
+  oracle_id 987aadac-d6a6-4e50-9468-9e8e53cc5529
+  cost {B}{R}
+  type Instant
+  short_name "Stingerquill Charm"
+  choose one {
+    mode: deal 3 damage to any target
+    mode: target creature gains first strike and deathtouch until end of turn
+    mode: create 1 "Cadet"; it gains haste until end of turn
+  }
+}

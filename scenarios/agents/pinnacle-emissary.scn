@@ -1,0 +1,21 @@
+scenario "pinnacle emissary: artifact spell makes a Drone, others don't" {
+  battlefield A: "Pinnacle Emissary", 2 "Mountain"
+  hand A: "Ornithopter", "Shock"
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Drone"
+  assert has "Drone" flying
+  assert life B 18
+}
+
+scenario "pinnacle emissary warped is exiled at end step" {
+  battlefield A: "Island"
+  hand A: "Pinnacle Emissary"
+  turn 1 A: cast "Pinnacle Emissary" warped
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Pinnacle Emissary"
+  run_to turn 2
+  assert exile A contains "Pinnacle Emissary"
+}

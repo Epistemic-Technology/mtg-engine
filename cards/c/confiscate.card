@@ -1,0 +1,7 @@
+card "Confiscate" {
+  oracle_id d599a38c-7719-443e-bb59-55bd43a8fee6
+  cost {4}{U}{U}
+  type Enchantment — Aura
+  enchant permanent
+  static enchanted: control
+}

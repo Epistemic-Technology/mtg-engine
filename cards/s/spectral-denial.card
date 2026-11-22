@@ -1,0 +1,7 @@
+card "Spectral Denial" {
+  oracle_id f8536726-993b-4100-918c-e3c7177d4c65
+  cost {X}{U}
+  type Instant
+  this spell costs {1} less count each creature you control with power 4 or greater
+  spell: counter target spell unless its controller pays {X}
+}

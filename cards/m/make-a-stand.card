@@ -1,0 +1,6 @@
+card "Make a Stand" {
+  oracle_id 531f78d5-5004-4b02-99c7-b390cb342fd9
+  cost {2}{W}
+  type Instant
+  spell: each creature you control gets +1/+0 and each creature you control gain indestructible
+}

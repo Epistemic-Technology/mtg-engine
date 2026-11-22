@@ -1,0 +1,6 @@
+card "Fancy Footwork" {
+  oracle_id c5648a32-98b0-4625-aae1-ae56e0ef0197
+  cost {2}{W}
+  type Instant — Lesson
+  spell: untap 1 to 2 target creature; target 1 each get +2/+2
+}

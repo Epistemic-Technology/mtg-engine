@@ -1,0 +1,38 @@
+scenario "Rally the Monastery mode 1 for {1}{W} after another spell" {
+  battlefield A: "Mountain", 2 "Plains"
+  hand A: "Shock", "Rally the Monastery"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Rally the Monastery" mode 1
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Monk"
+  assert has oldest "Monk" prowess
+  assert life B 18
+}
+
+scenario "Rally the Monastery costs full price as the first spell" {
+  battlefield A: 3 "Plains"
+  hand A: "Rally the Monastery"
+  illegal turn 1 A: cast "Rally the Monastery" mode 1
+  run_to turn 1 postcombat_main
+}
+
+scenario "Rally the Monastery mode 2: two creatures get +2/+2" {
+  battlefield A: 4 "Plains", "Grizzly Bears", "Hill Giant"
+  hand A: "Rally the Monastery"
+  turn 1 A: cast "Rally the Monastery" mode 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Hill Giant" 5
+}
+
+scenario "Rally the Monastery mode 3: destroy power 4 or greater only" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Serra Angel", "Hill Giant"
+  hand A: "Rally the Monastery"
+  illegal turn 1 A: cast "Rally the Monastery" mode 3 targeting "Hill Giant"
+  turn 1 A: cast "Rally the Monastery" mode 3 targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield B contains "Hill Giant"
+}

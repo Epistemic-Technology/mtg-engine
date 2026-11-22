@@ -1,0 +1,7 @@
+card "Vampire Gourmand" {
+  oracle_id 3386414c-32fa-40ae-9b30-dab976a158c1
+  cost {1}{B}
+  type Creature — Vampire
+  pt 2/2
+  triggered whenever this attacks: you may sacrifice 1 other creature chosen; if you do, draw 1 card and this creature gains can't be blocked
+}

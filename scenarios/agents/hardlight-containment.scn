@@ -1,0 +1,27 @@
+scenario "exiles opponent creature until the aura leaves" {
+  battlefield A: "Ornithopter", "Plains"
+  hand A: "Hardlight Containment"
+  battlefield B: "Grizzly Bears", 2 "Forest"
+  hand B: "Naturalize"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hardlight Containment" targeting "Ornithopter"
+  turn 1 A: trigger "Hardlight Containment" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert attached "Hardlight Containment" to "Ornithopter"
+  turn 2 B: cast "Naturalize" targeting "Hardlight Containment"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert graveyard A contains "Hardlight Containment"
+}
+
+scenario "enchanted artifact has ward 1" {
+  battlefield A: "Ornithopter", "Hardlight Containment" on "Ornithopter"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Ornithopter"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Ornithopter"
+  assert graveyard B contains "Shock"
+}

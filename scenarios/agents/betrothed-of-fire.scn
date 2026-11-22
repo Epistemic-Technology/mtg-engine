@@ -1,0 +1,27 @@
+scenario "Betrothed of Fire: sacrifice an untapped creature pumps the enchanted creature" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Betrothed of Fire" on "Grizzly Bears"
+  turn 1 A: activate "Betrothed of Fire" ability 1 sacrificing "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Betrothed of Fire: a tapped creature can't be sacrificed" {
+  battlefield A: "Grizzly Bears" tapped, "Hill Giant" tapped, "Betrothed of Fire" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Betrothed of Fire" ability 1 sacrificing "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Betrothed of Fire: sacrifice the enchanted creature pumps your creatures" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Betrothed of Fire" on "Grizzly Bears"
+  battlefield B: "Wind Drake"
+  turn 1 A: activate "Betrothed of Fire" ability 2 sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Betrothed of Fire"
+  assert power "Hill Giant" 5
+  assert power "Wind Drake" 2
+}

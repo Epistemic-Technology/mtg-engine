@@ -1,0 +1,22 @@
+scenario "relic runner: can't be blocked after casting a historic spell" {
+  battlefield A: "Relic Runner"
+  battlefield B: "Grizzly Bears"
+  hand A: "Ornithopter"
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: attack "Relic Runner"
+  illegal turn 1 B: block "Relic Runner" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "relic runner: blockable otherwise" {
+  battlefield A: "Relic Runner", "Forest", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: attack "Relic Runner"
+  turn 1 B: block "Relic Runner" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Relic Runner"
+}

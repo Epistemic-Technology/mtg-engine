@@ -1,0 +1,9 @@
+card "Marauding Sphinx" {
+  oracle_id 70bea459-f6e9-411a-bd33-339bf95ea47a
+  cost {3}{U}{U}
+  type Creature — Sphinx Rogue
+  pt 3/5
+  keywords flying, vigilance
+  ward {2}
+  triggered once each turn whenever you commit a crime: surveil 2
+}

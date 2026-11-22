@@ -1,0 +1,6 @@
+card "Sulfurous Blast" {
+  oracle_id f2b4f37b-270b-4746-83b3-51ff88ee3491
+  cost {2}{R}{R}
+  type Instant
+  spell: deal 2 damage to each creature and each player; if cast during main phase, this deals 3 damage to each creature and each player instead
+}

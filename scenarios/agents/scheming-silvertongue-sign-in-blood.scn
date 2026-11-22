@@ -1,0 +1,21 @@
+scenario "Scheming Silvertongue: gained 2 life, prepared in the second main; Sign in Blood" {
+  battlefield A: "Scheming Silvertongue" with 1 +1/+1, 2 "Swamp"
+  start turn 2 A
+  turn 2 A: attack "Scheming Silvertongue"
+  turn 2 postcombat_main A: wait
+  turn 2 postcombat_main A: cast "Sign in Blood" targeting player B
+  run_to turn 2 end
+  assert life A 22
+  assert life B 16
+  assert hand B count 2
+}
+
+scenario "Scheming Silvertongue: only 1 life gained, not prepared" {
+  battlefield A: "Scheming Silvertongue", 2 "Swamp"
+  start turn 2 A
+  turn 2 A: attack "Scheming Silvertongue"
+  illegal turn 2 postcombat_main A: cast "Sign in Blood" targeting player B
+  run_to turn 2 end
+  assert life A 21
+  assert life B 19
+}

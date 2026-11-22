@@ -1,0 +1,17 @@
+scenario "Traxos stays tapped; an instant doesn't untap it" {
+  battlefield A: "Traxos, Scourge Eternal" tapped, "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert tapped "Traxos, Scourge Eternal"
+  assert life B 18
+}
+
+scenario "Traxos untaps when a creature spell is cast" {
+  battlefield A: "Traxos, Scourge Eternal" tapped, 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: attack "Traxos, Scourge Eternal"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}

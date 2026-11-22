@@ -1,0 +1,7 @@
+card "Putrid Cyclops" {
+  oracle_id 8bcb0f45-902d-41d6-a10c-60bc27befd30
+  cost {2}{B}
+  type Creature — Zombie Cyclops
+  pt 3/3
+  triggered when this enters: scry 1, then reveal top card; this creature gets -1/-1 count where mana value of that card
+}

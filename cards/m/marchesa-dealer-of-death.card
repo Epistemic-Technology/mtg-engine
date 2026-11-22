@@ -1,0 +1,7 @@
+card "Marchesa, Dealer of Death" {
+  oracle_id 37449c93-4d32-4f1a-982f-8f3416214368
+  cost {U}{B}{R}
+  type Legendary Creature — Human Rogue
+  pt 3/4
+  triggered whenever you commit a crime: you may pay {1}; if you do, dig 2 take card rest graveyard
+}

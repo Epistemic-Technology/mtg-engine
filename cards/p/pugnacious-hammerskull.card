@@ -1,0 +1,7 @@
+card "Pugnacious Hammerskull" {
+  oracle_id da989677-3647-46b8-aa56-b2cfb60f7a2a
+  cost {2}{G}
+  type Creature — Dinosaur
+  pt 6/6
+  triggered whenever this attacks while you don't control other Dinosaur: put 1 stun counter on it
+}

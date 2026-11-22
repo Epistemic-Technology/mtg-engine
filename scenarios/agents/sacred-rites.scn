@@ -1,0 +1,27 @@
+scenario "Sacred Rites: two cards discarded give +0/+2" {
+  battlefield A: "Plains", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Sacred Rites", "Forest", "Island", "Shock"
+  turn 1 A: cast "Sacred Rites"
+  turn 1 A: choose "Forest"
+  turn 1 A: choose "Island"
+  turn 1 A: choose done
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Island"
+  assert hand A contains "Shock"
+  assert toughness A "Grizzly Bears" 4
+  assert toughness "Hill Giant" 5
+  assert power A "Grizzly Bears" 2
+  assert toughness B "Grizzly Bears" 2
+}
+
+scenario "Sacred Rites: nothing discarded gives nothing" {
+  battlefield A: "Plains", "Grizzly Bears"
+  hand A: "Sacred Rites", "Forest"
+  turn 1 A: cast "Sacred Rites"
+  turn 1 A: choose done
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert toughness "Grizzly Bears" 2
+}

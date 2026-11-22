@@ -1,0 +1,31 @@
+scenario "sacrifice another creature: counter, menace, and 1 life" {
+  battlefield A: "Edgar, Ancient Bloodlord", "Grizzly Bears", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Edgar, Ancient Bloodlord" sacrificing "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Edgar, Ancient Bloodlord" +1/+1 1
+  assert has "Edgar, Ancient Bloodlord" menace
+  assert life A 21
+}
+
+scenario "a planeswalker can be sacrificed, and its death gains life" {
+  battlefield A: "Edgar, Ancient Bloodlord", "Jace Beleren", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Edgar, Ancient Bloodlord" sacrificing "Jace Beleren"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Jace Beleren"
+  assert power "Edgar, Ancient Bloodlord" 3
+  assert has not "Edgar, Ancient Bloodlord" menace
+  assert life A 21
+}
+
+scenario "opponent's creature dying gains nothing" {
+  battlefield A: "Edgar, Ancient Bloodlord", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 20
+}

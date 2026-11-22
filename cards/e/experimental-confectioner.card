@@ -1,0 +1,8 @@
+card "Experimental Confectioner" {
+  oracle_id 87f82d15-5b6b-400f-8a15-d45a2a735f7d
+  cost {2}{B}
+  type Creature — Human Peasant
+  pt 2/3
+  triggered whenever this enters: create 1 "Food"
+  triggered whenever you sacrifice Food: create 1 "1/1 black Rat creature that can't block"
+}

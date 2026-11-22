@@ -1,0 +1,23 @@
+scenario "Fancy Footwork untaps two creatures and pumps both" {
+  battlefield A: "Grizzly Bears" tapped, "Hill Giant" tapped, 3 "Plains"
+  hand A: "Fancy Footwork"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fancy Footwork" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert untapped "Hill Giant"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert power "Hill Giant" 5
+  assert toughness "Hill Giant" 5
+}
+scenario "Fancy Footwork with one target" {
+  battlefield A: "Grizzly Bears" tapped, "Hill Giant", 3 "Plains"
+  hand A: "Fancy Footwork"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fancy Footwork" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert power "Hill Giant" 3
+}

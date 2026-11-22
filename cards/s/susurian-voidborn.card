@@ -1,0 +1,8 @@
+card "Susurian Voidborn" {
+  oracle_id 4f754f11-3b6d-4a4e-86d7-7495e475ef74
+  cost {2}{B}
+  type Creature — Vampire Soldier
+  pt 2/2
+  triggered whenever this or creature or artifact you control dies: target opponent loses 1 life and you gain 1 life
+  warp {B}
+}

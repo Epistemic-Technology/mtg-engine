@@ -1,0 +1,28 @@
+scenario "meldweb strider removes its oil counter to become a creature and attack" {
+  battlefield A: "Meldweb Strider" with 1 oil
+  start turn 1 A precombat_main
+  turn 1 A: activate "Meldweb Strider" ability 1
+  turn 1 A: attack "Meldweb Strider"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert counters "Meldweb Strider" oil 0
+  assert untapped "Meldweb Strider"
+  assert is "Meldweb Strider" creature
+}
+
+scenario "meldweb strider can't use its ability without an oil counter" {
+  battlefield A: "Meldweb Strider"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Meldweb Strider" ability 1
+  run_to turn 1 postcombat_main
+  assert is not "Meldweb Strider" creature
+}
+
+scenario "meldweb strider enters with an oil counter" {
+  battlefield A: 5 "Island"
+  hand A: "Meldweb Strider"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Meldweb Strider"
+  run_to turn 1 postcombat_main
+  assert counters "Meldweb Strider" oil 1
+}

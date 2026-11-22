@@ -1,0 +1,23 @@
+scenario "marauding sphinx: a crime surveils 2" {
+  battlefield A: "Marauding Sphinx", "Mountain"
+  hand A: "Shock"
+  library A: "Hill Giant", "Forest", "Island"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: surveil "Hill Giant", "Forest"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Forest"
+  assert library A count 1
+}
+
+scenario "marauding sphinx: targeting your own creature is no crime" {
+  battlefield A: "Marauding Sphinx", "Mountain", "Grizzly Bears"
+  hand A: "Shock"
+  library A: "Hill Giant", "Forest", "Island"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert stack count 0
+  assert library A count 3
+}

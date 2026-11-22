@@ -1,0 +1,25 @@
+scenario "Spectral Denial: X=2 for {1}{U} with a power 4 creature; the spell is countered" {
+  battlefield A: "Serra Angel", 2 "Island"
+  battlefield B: "Mountain"
+  hand A: "Spectral Denial"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: cast "Spectral Denial" x 2 targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 2 end
+  assert life A 20
+  assert graveyard B contains "Lightning Bolt"
+  assert graveyard A contains "Spectral Denial"
+}
+
+scenario "Spectral Denial: the controller pays {X}" {
+  battlefield A: "Serra Angel", 2 "Island"
+  battlefield B: 3 "Mountain"
+  hand A: "Spectral Denial"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: cast "Spectral Denial" x 2 targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 2 end
+  assert life A 17
+}

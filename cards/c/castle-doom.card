@@ -1,0 +1,7 @@
+card "Castle Doom" {
+  oracle_id 9bd013df-ad75-4099-940b-1765c58faf26
+  type Land
+  mana {C}
+  mana any only to cast artifact spell
+  activated {3}, {T}, sorcery, sacrifice artifact: create 1 "Doombot"
+}

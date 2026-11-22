@@ -1,0 +1,24 @@
+scenario "Jasmine Dragon Tea Shop's colored mana casts an Ally" {
+  battlefield A: "Jasmine Dragon Tea Shop"
+  hand A: "Expedition Envoy"
+  turn 1 A: cast "Expedition Envoy"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Expedition Envoy"
+}
+
+scenario "Jasmine Dragon Tea Shop's colored mana can't cast a non-Ally" {
+  battlefield A: "Jasmine Dragon Tea Shop"
+  hand A: "Savannah Lions"
+  illegal turn 1 A: cast "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Savannah Lions"
+}
+
+scenario "Jasmine Dragon Tea Shop makes an Ally token" {
+  battlefield A: "Jasmine Dragon Tea Shop", 5 "Plains"
+  turn 1 A: activate "Jasmine Dragon Tea Shop"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ally"
+  assert tapped "Jasmine Dragon Tea Shop"
+  assert power "Ally" 1
+}

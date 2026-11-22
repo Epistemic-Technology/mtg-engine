@@ -1,0 +1,13 @@
+scenario "Duskmourn's Domination steals a creature, -3/-0 and no abilities" {
+  battlefield A: 6 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Duskmourn's Domination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Duskmourn's Domination" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert power "Serra Angel" 1
+  assert toughness "Serra Angel" 4
+  assert has not "Serra Angel" flying
+  assert has not "Serra Angel" vigilance
+}

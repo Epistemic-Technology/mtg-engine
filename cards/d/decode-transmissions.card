@@ -1,0 +1,9 @@
+card "Decode Transmissions" {
+  oracle_id 42510758-6167-420b-bb70-65f914b7a259
+  cost {2}{B}
+  type Sorcery
+  spell {
+    you draw 2 cards and lose 2 life
+    label "Void" if void, instead you draw 2 cards and each opponent loses 2 life
+  }
+}

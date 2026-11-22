@@ -1,0 +1,20 @@
+scenario "Bristlebane Battler enters with five -1/-1 counters and sheds one per creature" {
+  battlefield A: 4 "Forest"
+  hand A: "Bristlebane Battler", "Grizzly Bears"
+  turn 1 A: cast "Bristlebane Battler"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Bristlebane Battler" -1/-1 4
+  assert power "Bristlebane Battler" 2
+  assert toughness "Bristlebane Battler" 2
+}
+
+scenario "Bristlebane Battler without counters doesn't trigger" {
+  battlefield A: "Bristlebane Battler", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Bristlebane Battler" 6
+  assert stack count 0
+}

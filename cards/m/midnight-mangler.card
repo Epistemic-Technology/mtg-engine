@@ -1,0 +1,8 @@
+card "Midnight Mangler" {
+  oracle_id c9f8651a-4118-4d80-902e-60473e81d3a9
+  cost {1}{U}
+  type Artifact — Vehicle
+  pt 3/3
+  static during turns other than yours, this: set type artifact creature
+  crew 2
+}

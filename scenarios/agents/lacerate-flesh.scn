@@ -1,0 +1,32 @@
+scenario "Lacerate Flesh: 4 damage to a 2/2 makes two Blood tokens" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lacerate Flesh"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lacerate Flesh" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains 2 "Blood"
+}
+
+scenario "Lacerate Flesh: 4 damage to a 3/3 makes one Blood token" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Lacerate Flesh"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lacerate Flesh" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains 1 "Blood"
+}
+
+scenario "Lacerate Flesh: no excess on a 4-toughness creature, no Blood" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Lacerate Flesh"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lacerate Flesh" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield A lacks "Blood"
+}

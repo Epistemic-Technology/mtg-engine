@@ -1,0 +1,17 @@
+scenario "Make a Stand pumps and saves creatures you control" {
+  battlefield A: "Grizzly Bears", 3 "Plains", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Make a Stand", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Make a Stand"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" indestructible
+  assert has not "Hill Giant" indestructible
+  assert power "Hill Giant" 3
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}
