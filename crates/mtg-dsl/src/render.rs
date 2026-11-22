@@ -6134,7 +6134,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // sorcery card from your graveyard to your hand": one graveyard
             // for the list.
             let o = if yours && what.len() > 1 {
-                format!("{} from your graveyard", o.replace(" from your graveyard", ""))
+                format!(
+                    "{} from your graveyard",
+                    o.replace(" from your graveyard", "")
+                )
             } else {
                 o
             };

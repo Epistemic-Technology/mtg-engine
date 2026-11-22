@@ -563,11 +563,9 @@ fn compiles(
         ),
     };
     let mut text = String::new();
+    let head = Regex::new(r#"^\w+ "([^"]+)""#).unwrap();
     for (_, block) in &a.tokens {
-        let name = Regex::new(r#"^\w+ "([^"]+)""#)
-            .unwrap()
-            .captures(block)
-            .map(|c| c[1].to_string());
+        let name = head.captures(block).map(|c| c[1].to_string());
         if name.is_some_and(|n| pool.lookup(&n).is_none()) {
             text.push_str(block);
             text.push('\n');
@@ -1244,9 +1242,8 @@ impl Templates {
                     let x = match c.get(6) {
                         Some(w) => {
                             let w = w.as_str();
-                            let e = bound_amount(w).or_else(|| {
-                                count_expr(w.strip_prefix("the number of ")?)
-                            })?;
+                            let e = bound_amount(w)
+                                .or_else(|| count_expr(w.strip_prefix("the number of ")?))?;
                             format!("count where {e}")
                         }
                         None => "X".to_string(),
@@ -7292,6 +7289,10 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         r"^Choose one\. If (.+), (you may )?choose (both|one or more|any number) instead\.$",
     )
     .unwrap();
+    let strive = Regex::new(
+        r"^Strive — This spell costs (\{[^ ]+\}) more to cast for each target beyond the first\.$",
+    )
+    .unwrap();
     while i < lines.len() {
         let line = lines[i];
         // CR 702.172: "Spree" and its "+ {1} — ..." modes.
@@ -7310,12 +7311,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         }
         // Strive: "This spell costs {2}{B} more to cast for each target
         // beyond the first." (the ability word's cost, `strive {2}{B}`).
-        if let Some(c) = Regex::new(
-            r"^Strive — This spell costs (\{[^ ]+\}) more to cast for each target beyond the first\.$",
-        )
-        .unwrap()
-        .captures(line)
-        {
+        if let Some(c) = strive.captures(line) {
             b.statements.push(format!("strive {}", cap(&c, 1)));
             i += 1;
             continue;
