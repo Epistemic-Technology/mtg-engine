@@ -1,0 +1,11 @@
+card "Dreamshackle Geist" {
+  oracle_id aa40d270-63d7-4022-ade9-67c1ab65ef70
+  cost {1}{U}{U}
+  type Creature — Spirit
+  pt 3/1
+  keywords flying
+  triggered at beginning of your combat: choose up to 1 {
+    mode: tap target creature
+    mode: target creature doesn't untap next untap step
+  }
+}

@@ -3843,6 +3843,12 @@ impl GameState {
         {
             req.add(&e.requirements(0));
         }
+        // CR 702.120a: escalate, once for each mode beyond the first.
+        if let Some(e) = &def.escalate {
+            for _ in 1..(u32::from(mode) + 1).count_ones() {
+                req.add(&e.requirements(0));
+            }
+        }
         // CR 702.172a: the chosen spree modes' costs.
         if !def.spree.is_empty() {
             let bits = u32::from(mode) + 1;
@@ -5439,19 +5445,28 @@ impl GameState {
                     .is_none_or(|a| !self.mode_used(a.source, a.ability, *i, m))
             })
             .filter(|(_, m)| self.mode_targets_available(o.controller, m, source))
-            .filter(|(_, m)| {
-                // Entwined, the spell costs more (CR 702.42a).
-                m.split.is_none()
-                    || o.kind == ObjKind::Ability
-                    || def.entwine.as_ref().is_none_or(|e| {
-                        let mut req = def.mana_cost.requirements(0);
-                        req.add(&e.requirements(0));
-                        adjust_generic(
-                            &mut req,
-                            self.cost_delta(o.controller, def, spell, &self.cost_changers()),
-                        );
-                        self.spell_payable(o.controller, spell, &req)
-                    })
+            .filter(|(i, m)| {
+                // Entwined or escalated, the spell costs more (CR 702.42a,
+                // 702.120a).
+                if m.split.is_none() || o.kind == ObjKind::Ability {
+                    return true;
+                }
+                let (e, times) = if let Some(e) = &def.escalate {
+                    (e, u32::try_from(*i + 1).unwrap_or(0).count_ones() - 1)
+                } else if let Some(e) = &def.entwine {
+                    (e, 1)
+                } else {
+                    return true;
+                };
+                let mut req = def.mana_cost.requirements(0);
+                for _ in 0..times {
+                    req.add(&e.requirements(0));
+                }
+                adjust_generic(
+                    &mut req,
+                    self.cost_delta(o.controller, def, spell, &self.cost_changers()),
+                );
+                self.spell_payable(o.controller, spell, &req)
             })
             .map(|(i, _)| Choice::Mode(i))
             .collect()

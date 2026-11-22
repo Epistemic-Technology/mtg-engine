@@ -590,14 +590,23 @@ impl Compiler<'_> {
                 // CR 702.120a: with two modes, choosing both pays the
                 // escalate cost once: entwine's cost on the both-mode.
                 Ability::Mechanic(Mechanic::Escalate(c)) => {
-                    if !card
+                    if card
+                        .abilities
+                        .iter()
+                        .any(|a| matches!(a, Ability::ModalOf(crate::ast::ModeHead::OneOrMore, _)))
+                    {
+                        b = b.escalate(c.clone());
+                    } else if card
                         .abilities
                         .iter()
                         .any(|a| matches!(a, Ability::ModalBoth(_)))
                     {
-                        return self.err("escalate on a `choose one or both` spell");
+                        b = b.entwine(c.clone());
+                    } else {
+                        return self.err(
+                            "escalate on a `choose one or both` or `choose one or more` spell",
+                        );
                     }
-                    b = b.entwine(c.clone());
                 }
                 // CR 702.76a: "You may cast this for its prowl cost if you
                 // dealt combat damage to a player this turn with a [creature

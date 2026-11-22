@@ -1,0 +1,13 @@
+card "Gandalf the Grey" {
+  oracle_id dfd12e3c-2b2a-4461-a08d-09d4e6c4626e
+  cost {3}{U}{R}
+  type Legendary Creature — Avatar Wizard
+  pt 3/4
+  short_name "Gandalf"
+  triggered whenever you cast an instant or sorcery spell: choose one unchosen {
+    mode: you may tap or untap target permanent
+    mode: deal 3 damage to each opponent
+    mode: copy target instant or sorcery spell you control new targets
+    mode: put this on top of library
+  }
+}

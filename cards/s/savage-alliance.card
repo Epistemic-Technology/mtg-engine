@@ -1,0 +1,11 @@
+card "Savage Alliance" {
+  oracle_id 57da1d3f-7469-4efa-9b82-b2d915177d89
+  cost {2}{R}
+  type Instant
+  escalate {1}
+  choose one or more {
+    mode: each creature target player controls gains trample
+    mode: deal 2 damage to target creature
+    mode: deal 1 damage to each creature target opponent controls
+  }
+}

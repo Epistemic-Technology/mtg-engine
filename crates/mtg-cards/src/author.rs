@@ -5897,8 +5897,8 @@ impl Builder<'_> {
     }
 
     /// "When this creature enters, choose one —" with its modes.
-    fn modal_trigger(&mut self, trigger: &str, modes: &[String]) -> Result<(), Skip> {
-        let mut lines = vec![format!("triggered {trigger}: choose one {{")];
+    fn modal_trigger(&mut self, trigger: &str, head: &str, modes: &[String]) -> Result<(), Skip> {
+        let mut lines = vec![format!("triggered {trigger}: {head} {{")];
         for m in modes {
             lines.push(format!("  {}", self.mode(m)?));
         }
@@ -6345,6 +6345,9 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
             "Choose one —" => Some("choose one"),
             "Choose one or both —" => Some("choose one or both"),
             "Choose two —" => Some("choose two"),
+            "Choose one or more —" => Some("choose one or more"),
+            "Choose up to one —" => Some("choose up to 1"),
+            "Choose up to two —" => Some("choose up to 2"),
             _ => None,
         };
         if let Some(head) = head {
@@ -6358,7 +6361,27 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
             continue;
         }
         // "When this creature enters, choose one —" and its modes.
-        if let Some(head) = line.strip_suffix(", choose one —") {
+        // Other modal heads (CR 700.2): "choose one or more —", "choose up
+        // to one —", "choose one that hasn't been chosen —".
+        let trigger_head = [
+            (", choose one —", "choose one"),
+            (", choose one or both —", "choose one or both"),
+            (", choose two —", "choose two"),
+            (", choose one or more —", "choose one or more"),
+            (", choose up to one —", "choose up to 1"),
+            (", choose up to two —", "choose up to 2"),
+            (
+                ", choose one that hasn't been chosen —",
+                "choose one unchosen",
+            ),
+            (
+                ", choose one that hasn't been chosen this turn —",
+                "choose one unchosen this turn",
+            ),
+        ]
+        .iter()
+        .find_map(|(suffix, dsl)| line.strip_suffix(suffix).map(|h| (h, *dsl)));
+        if let Some((head, dsl_head)) = trigger_head {
             // "Landfall — Whenever a land you control enters, choose one —".
             let (label, head) = match head.split_once(" — ") {
                 Some((word, h)) if ABILITY_WORDS.contains(&word) => (Some(word), h),
@@ -6373,7 +6396,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
                 modes.push(lines[i][3..].to_string());
                 i += 1;
             }
-            b.modal_trigger(&trigger, &modes)?;
+            b.modal_trigger(&trigger, dsl_head, &modes)?;
             if let Some(l) = label
                 && let Some(st) = b.statements.last_mut()
             {

@@ -7378,6 +7378,12 @@ pub struct CardDef {
     /// Entwine (CR 702.42): every mode of a "choose one" spell for this
     /// cost on top.
     pub entwine: Option<Box<ManaCost>>,
+    /// Escalate (CR 702.120a) on a "choose one or more" spell: this cost
+    /// for each mode chosen beyond the first. (On a "choose one or both"
+    /// spell it is `entwine`.) The modes are the sets of modes as bits,
+    /// mode index `bits - 1`.
+    #[serde(default)]
+    pub escalate: Option<Box<ManaCost>>,
     /// Escape—cost, exile N other cards from your graveyard (CR 702.138).
     pub escape: Option<Box<(ManaCost, u32)>>,
     /// Mayhem—cost: cast from the graveyard for this cost if its owner
@@ -9507,6 +9513,7 @@ impl Builder {
             spree: Vec::new(),
             gift: None,
             entwine: None,
+            escalate: None,
             escape: None,
             mayhem: None,
             modular: 0,
@@ -10058,6 +10065,13 @@ impl Builder {
     #[must_use]
     pub fn entwine(mut self, cost: ManaCost) -> Self {
         self.0.entwine = Some(Box::new(cost));
+        self
+    }
+
+    /// Escalate (CR 702.120a) on a "choose one or more" spell.
+    #[must_use]
+    pub fn escalate(mut self, cost: ManaCost) -> Self {
+        self.0.escalate = Some(Box::new(cost));
         self
     }
 

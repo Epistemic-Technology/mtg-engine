@@ -1,0 +1,11 @@
+card "Satsuki, the Living Lore" {
+  oracle_id e41be9ad-3717-4f25-a8e0-c9947a2a0227
+  cost {G}{W}
+  type Legendary Creature — Human Druid
+  pt 1/3
+  activated {T}, sorcery: put 1 lore counters on each Saga you control
+  triggered when this dies: choose up to 1 {
+    mode: return target Saga or enchantment creature you control to hand
+    mode: return target Saga card from your graveyard to hand
+  }
+}

@@ -1,0 +1,10 @@
+card "Clash of the Eikons" {
+  oracle_id b1c38b70-575d-4d87-bc50-0b77b48ee823
+  cost {G}
+  type Sorcery
+  choose one or more {
+    mode: target creature you control fights target creature an opponent controls
+    mode: remove 1 lore counters from target Saga you control
+    mode: put 1 lore counters on target Saga you control
+  }
+}

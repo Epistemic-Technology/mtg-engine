@@ -1,0 +1,11 @@
+card "Blessed Alliance" {
+  oracle_id 48b67778-6616-4563-8456-62f302649768
+  cost {1}{W}
+  type Instant
+  escalate {2}
+  choose one or more {
+    mode: target player gains 4 life
+    mode: untap up to two target creatures
+    mode: target opponent sacrifices 1 attacking creature
+  }
+}

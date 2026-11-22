@@ -1,0 +1,11 @@
+card "Collective Resistance" {
+  oracle_id bffdfe7b-f17a-41b6-a460-80280fe497d4
+  cost {1}{G}
+  type Instant
+  escalate {G}
+  choose one or more {
+    mode: destroy target artifact
+    mode: destroy target enchantment
+    mode: target creature gains hexproof, indestructible
+  }
+}

@@ -1,0 +1,10 @@
+card "Rain of Thorns" {
+  oracle_id 363b0504-27bf-40df-96ec-9e3cb1e47588
+  cost {4}{G}{G}
+  type Sorcery
+  choose one or more {
+    mode: destroy target artifact
+    mode: destroy target enchantment
+    mode: destroy target land
+  }
+}

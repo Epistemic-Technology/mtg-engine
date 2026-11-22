@@ -1,0 +1,137 @@
+# Cards whose modal heads the template author now writes (CR 700.2):
+# "Choose one or more —", "choose up to one —", "choose one that hasn't
+# been chosen —". `mode N` for "one or more" is the set of modes as bits.
+
+scenario "Rain of Thorns: all three modes" {
+  battlefield A: 6 "Forest"
+  battlefield B: "Ornithopter", "Pacifism" on "Grizzly Bears", "Grizzly Bears", "Plains"
+  hand A: "Rain of Thorns"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rain of Thorns" mode 7 targeting "Ornithopter", "Pacifism", "Plains"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert graveyard B contains "Pacifism"
+  assert graveyard B contains "Plains"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Blessed Alliance: escalated, gain life and untap" {
+  battlefield A: 5 "Plains", "Grizzly Bears" tapped, "Hill Giant" tapped
+  hand A: "Blessed Alliance"
+  life A 10
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blessed Alliance" mode 3 targeting player A, "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life A 14
+  assert untapped "Grizzly Bears"
+  assert untapped "Hill Giant"
+}
+
+scenario "Blessed Alliance: escalate costs {2} per extra mode" {
+  battlefield A: 3 "Plains", "Grizzly Bears" tapped
+  hand A: "Blessed Alliance"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Blessed Alliance" mode 3 targeting player A, "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Clan Defiance: X damage to a flier and to a player" {
+  battlefield A: 2 "Mountain", 2 "Forest"
+  battlefield B: "Wind Drake", "Hill Giant"
+  hand A: "Clan Defiance"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Clan Defiance" mode 5 x 2 targeting "Wind Drake", player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert damage "Hill Giant" 0
+  assert life B 18
+}
+
+scenario "Clan Defiance: the flying mode can't target a creature without flying" {
+  battlefield A: 2 "Mountain", 2 "Forest"
+  battlefield B: "Hill Giant", "Wind Drake"
+  hand A: "Clan Defiance"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Clan Defiance" mode 1 x 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Collective Resistance: escalated, artifact and enchantment" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Ornithopter", "Pacifism" on "Grizzly Bears", "Grizzly Bears"
+  hand A: "Collective Resistance"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Collective Resistance" mode 3 targeting "Ornithopter", "Pacifism"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert graveyard B contains "Pacifism"
+}
+
+scenario "Savage Alliance: 2 to a creature and 1 to each of an opponent's" {
+  battlefield A: 4 "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears", "Llanowar Elves"
+  hand A: "Savage Alliance"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Savage Alliance" mode 6 targeting "Grizzly Bears", player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Hill Giant" 0
+}
+
+scenario "Clash of the Eikons: fight" {
+  battlefield A: "Forest", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Clash of the Eikons"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Clash of the Eikons" mode 1 targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Dreamshackle Geist: tap a creature at the beginning of combat" {
+  battlefield A: "Dreamshackle Geist"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: trigger "Dreamshackle Geist" mode 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+}
+
+scenario "Sawblade Slinger: destroy an opponent's artifact" {
+  battlefield A: 4 "Forest"
+  battlefield B: "Ornithopter"
+  hand A: "Sawblade Slinger"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sawblade Slinger"
+  turn 1 A: trigger "Sawblade Slinger" mode 1 targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+}
+
+scenario "Satsuki, the Living Lore: return a Saga card when it dies" {
+  battlefield A: "Satsuki, the Living Lore"
+  battlefield B: "Mountain"
+  graveyard A: "Elspeth's Nightmare"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting "Satsuki, the Living Lore"
+  turn 1 A: trigger "Satsuki, the Living Lore" mode 2 targeting "Elspeth's Nightmare"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Elspeth's Nightmare"
+}
+
+scenario "Gandalf the Grey: each mode once" {
+  battlefield A: "Gandalf the Grey", 2 "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: trigger "Gandalf the Grey" mode 2
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  # Shock 2, Gandalf 3, Bolt 3: mode 2 can't be chosen again, so the
+  # second trigger takes the first mode left (tap or untap).
+  assert life B 12
+}
