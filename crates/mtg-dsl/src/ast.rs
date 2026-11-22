@@ -1861,6 +1861,11 @@ pub enum Mechanic {
     /// `riot` (CR 702.136): enters with your choice of a +1/+1 counter or
     /// haste.
     Riot,
+    /// `haunt` (CR 702.55): "When this creature dies [this spell card is
+    /// put into a graveyard after resolving], exile it haunting target
+    /// creature."; its `when haunted dies` ability then watches that
+    /// creature from exile.
+    Haunt,
     /// `devour 2`, `devour artifact 1`, `devour land 3` (CR 702.82): as it
     /// enters, sacrifice any number of creatures (artifacts, lands); it
     /// enters with N +1/+1 counters for each.
@@ -2915,6 +2920,10 @@ pub enum Trigger {
     /// `when this enters and whenever you cast ...`: one ability, two
     /// trigger events.
     Either(Box<Trigger>, Box<Trigger>),
+    /// `when haunted dies`: "When the creature this card haunts dies"
+    /// (CR 702.55b), a card with `haunt`; `when this enters or haunted
+    /// dies`: "When this creature enters or the creature it haunts dies".
+    HauntedDies,
     /// `when this enters or dies`, `whenever this enters or attacks`,
     /// `when this enters or leaves the battlefield`, `when this enters or
     /// is turned face up`: one ability, two events of the source, printed

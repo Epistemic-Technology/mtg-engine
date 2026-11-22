@@ -68,6 +68,7 @@ const KEYWORDS: &[&str] = &[
 
 /// Scryfall keyword tags that templates below handle as abilities.
 const TEMPLATED_TAGS: &[&str] = &[
+    "Haunt",
     "Devour",
     "Amplify",
     "Tribute",
@@ -3323,6 +3324,11 @@ fn trigger_text(head: &str) -> Option<String> {
         | "When this permanent enters"
         | "When this Aura enters" => "when this enters",
         "Whenever another creature enters" => "whenever other creature enters",
+        // CR 702.55b-c: haunt.
+        "When this creature enters or the creature it haunts dies" => {
+            "when this enters or haunted dies"
+        }
+        "When the creature this card haunts dies" => "when haunted dies",
         "Whenever a creature you control enters" => "whenever creature you control enters",
         "Whenever another creature you control enters" => {
             "whenever other creature you control enters"
@@ -4621,6 +4627,11 @@ impl Builder<'_> {
                 cap(&c, 1).to_lowercase(),
                 cap(&c, 2)
             ));
+            return Ok(());
+        }
+        // CR 702.55a.
+        if line == "Haunt" {
+            self.statements.push("haunt".to_string());
             return Ok(());
         }
         if let Some(c) = Regex::new(r"^Cycling ((?:\{[0-9XWUBRGC]+\})+)$")

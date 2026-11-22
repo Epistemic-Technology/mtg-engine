@@ -3792,6 +3792,7 @@ pub fn natural_when(t: &Trigger) -> bool {
             }
             | Trigger::TurnedFaceUp(TriggerObj::This)
             | Trigger::Exploits
+            | Trigger::HauntedDies
             | Trigger::BecomesPlotted
             | Trigger::BecomesTarget(TriggerObj::This)
             | Trigger::When(_)
@@ -4084,6 +4085,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         }
         Trigger::TurnedFaceUp(o) => format!("whenever {} is turned face up", trigger_obj(o)),
         Trigger::Exploits => "when this exploits a creature".to_string(),
+        Trigger::HauntedDies => "when haunted dies".to_string(),
         Trigger::BecomesPlotted => "when this becomes plotted".to_string(),
         Trigger::DrawsNth {
             whose,
@@ -4174,6 +4176,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             let k = wa.iter().zip(&wb).take_while(|(x, y)| x == y).count();
             let _ = whenever;
             format!("{} or {}", wa.join(" "), wb[k..].join(" "))
+        }
+        Trigger::Or { second, .. } if **second == Trigger::HauntedDies => {
+            "when this enters or haunted dies".to_string()
         }
         Trigger::Or {
             second, whenever, ..
@@ -5717,6 +5722,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Extort => "extort".to_string(),
                 crate::ast::Mechanic::Mentor => "mentor".to_string(),
                 crate::ast::Mechanic::Riot => "riot".to_string(),
+                crate::ast::Mechanic::Haunt => "haunt".to_string(),
                 crate::ast::Mechanic::Devour(None, n) => format!("devour {n}"),
                 crate::ast::Mechanic::Devour(Some(k), n) => {
                     format!("devour {} {n}", format!("{k:?}").to_lowercase())

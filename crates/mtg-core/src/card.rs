@@ -4090,6 +4090,11 @@ pub enum Effect {
         about: Recipient,
         this_turn: bool,
     },
+    /// Haunt (CR 702.55a): "exile it haunting target creature": the
+    /// source card, from its owner's graveyard, is exiled and haunts the
+    /// target: its `CardDef::haunted` ability becomes a delayed trigger
+    /// about that creature (702.55b-c).
+    ExileHaunting,
     /// Exile a permanent.
     Exile {
         what: Recipient,
@@ -7273,6 +7278,17 @@ pub struct CardDef {
     /// blitz cost; cast for it, the permanent is `AltCast::Blitz`.
     #[serde(default)]
     pub blitz: bool,
+    /// Haunt (CR 702.55): "When the creature it haunts dies, ...", the
+    /// ability a card exiled haunting a creature has: a delayed trigger
+    /// about that creature, created as the card is exiled
+    /// (`Effect::ExileHaunting`), whose source is the card in exile.
+    #[serde(default)]
+    pub haunted: Option<AbilityId>,
+    /// Haunt on an instant or sorcery (CR 702.55a): "When this spell is
+    /// put into a graveyard during its resolution, exile it haunting
+    /// target creature.", triggered as the resolved spell goes there.
+    #[serde(default)]
+    pub haunt_spell: Option<AbilityId>,
     /// Prowl (CR 702.76a): the card's alternative cost (`alt_cost`) is its
     /// prowl cost; cast for it, the permanent is `AltCast::Prowl`.
     #[serde(default)]
@@ -9465,6 +9481,8 @@ impl Builder {
             prototype: None,
             prototype_face: None,
             blitz: false,
+            haunted: None,
+            haunt_spell: None,
             prowl: false,
             emerge: false,
             miracle: None,
@@ -9763,6 +9781,15 @@ impl Builder {
             others_gain: 0,
         }));
         self.0.emerge = true;
+        self
+    }
+
+    /// Haunt (CR 702.55): the haunted creature's dies ability, and an
+    /// instant's or sorcery's trigger as it goes to the graveyard.
+    #[must_use]
+    pub fn haunt(mut self, haunted: Option<AbilityId>, spell: Option<AbilityId>) -> Self {
+        self.0.haunted = haunted;
+        self.0.haunt_spell = spell;
         self
     }
 

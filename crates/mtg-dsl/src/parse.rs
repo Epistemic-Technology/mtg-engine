@@ -2059,6 +2059,11 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Firebending(n)))
             }
+            "haunt" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Haunt))
+            }
             "evolve" | "unleash" | "increment" => {
                 self.pos += 1;
                 self.end_stmt()?;
@@ -11595,6 +11600,10 @@ impl P {
         if !(self.eat_word("when") || self.eat_word("whenever")) {
             return self.unexpected("`when`, `whenever`, or `at`");
         }
+        // CR 702.55b: "When the creature this card haunts dies".
+        if !whenever && self.eat_words(&["haunted", "dies"]) {
+            return Ok(Trigger::HauntedDies);
+        }
         // `when next you cast instant or sorcery spell`: "When you next
         // cast an instant or sorcery spell" (a delayed trigger, once).
         if !whenever && self.at_words(&["next", "you", "cast"]) {
@@ -12177,6 +12186,15 @@ impl P {
         // "this enters or dies", "this enters or attacks": one ability,
         // two events of the same object.
         if first == Trigger::Enters(TriggerObj::This) && self.eat_word("or") {
+            // CR 702.55b: "When this creature enters or the creature it
+            // haunts dies".
+            if !whenever && self.eat_words(&["haunted", "dies"]) {
+                return Ok(Trigger::Or {
+                    first: Box::new(first),
+                    second: Box::new(Trigger::HauntedDies),
+                    whenever,
+                });
+            }
             let second = self.trigger_verb(obj, whenever)?;
             if !matches!(
                 second,

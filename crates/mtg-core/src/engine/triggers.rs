@@ -341,6 +341,19 @@ impl GameState {
             let mut gone = false;
             let at = dt.ability.trigger_obj == Some(old)
                 && match self.pool.ability(dt.ability.ability) {
+                    // CR 702.55c: the haunting card's ability triggers from
+                    // exile, only while the card is still there; the
+                    // haunted creature leaving any other way ends it.
+                    AbilityDef::Triggered(_)
+                        if self.pool.get(dt.ability.def).haunted == Some(dt.ability.ability) =>
+                    {
+                        gone = true;
+                        to == Zone::Graveyard
+                            && self
+                                .objects
+                                .get(dt.ability.source)
+                                .is_some_and(|o| o.zone == Zone::Exile)
+                    }
                     AbilityDef::Triggered(t) => match &t.trigger {
                         TriggerSpec::Dies(TriggerObj::This) => to == Zone::Graveyard,
                         TriggerSpec::Leaves(TriggerObj::This) => true,

@@ -1034,7 +1034,81 @@ impl Compiler<'_> {
         }
         // CR 711.2: the level symbol the abilities being compiled follow.
         let mut band: Option<StaticCond> = None;
+        // CR 702.55: haunt's abilities.
+        let (mut haunted, mut haunt_spell) = (None, None);
+        let has_haunt = card
+            .abilities
+            .iter()
+            .any(|a| matches!(a, Ability::Mechanic(Mechanic::Haunt)));
         for a in &card.abilities {
+            // CR 702.55a: "When this creature dies, exile it haunting
+            // target creature." ("When this spell card is put into a
+            // graveyard after resolving" on an instant or sorcery, which
+            // the engine triggers itself).
+            if let Ability::Mechanic(Mechanic::Haunt) = a {
+                let exile = AbilityDef::Triggered(TriggeredAbility {
+                    limit: mtg_core::card::TurnLimit::None,
+                    from_graveyard: false,
+                    trigger: TriggerSpec::Dies(CoreTriggerObj::This),
+                    condition: None,
+                    targets: vec![TargetSpec::Creature],
+                    effects: vec![CoreEffect::ExileHaunting],
+                });
+                if card.types.iter().any(|t| {
+                    matches!(
+                        t,
+                        mtg_core::card::CardType::Instant | mtg_core::card::CardType::Sorcery
+                    )
+                }) {
+                    haunt_spell = Some(self.pool.register_ability(exile));
+                } else {
+                    b = b.ability(exile);
+                }
+                continue;
+            }
+            // CR 702.55b-c: "When the creature it haunts dies, ...": a
+            // delayed trigger about the haunted creature once the card is
+            // exiled haunting it; "When this creature enters or the
+            // creature it haunts dies" is also the creature's own enters
+            // trigger.
+            if let Ability::Triggered {
+                trigger,
+                condition,
+                targets,
+                effects,
+                from_graveyard,
+                limit,
+            } = a
+                && let Some(enters) = match trigger {
+                    crate::ast::Trigger::HauntedDies => Some(None),
+                    crate::ast::Trigger::Or { first, second, .. }
+                        if **second == crate::ast::Trigger::HauntedDies =>
+                    {
+                        Some(Some((**first).clone()))
+                    }
+                    _ => None,
+                }
+            {
+                if !has_haunt {
+                    return self.err("`when haunted dies` on a card without `haunt`");
+                }
+                let with = |trigger: crate::ast::Trigger| Ability::Triggered {
+                    trigger,
+                    condition: condition.clone(),
+                    targets: targets.clone(),
+                    effects: effects.clone(),
+                    from_graveyard: *from_graveyard,
+                    limit: *limit,
+                };
+                let dies = self.ability(&with(crate::ast::Trigger::Dies(
+                    crate::ast::TriggerObj::This,
+                )))?;
+                haunted = Some(self.pool.register_ability(dies));
+                if let Some(first) = enters {
+                    b = b.ability(self.ability(&with(first))?);
+                }
+                continue;
+            }
             if let Ability::LevelBand { min, max, pt } = a {
                 let at_least = StaticCond::SourceCounters {
                     kind: mtg_core::card::CounterKind::Level,
@@ -1283,6 +1357,9 @@ impl Compiler<'_> {
                     .iter()
                     .fold(mtg_core::mana::ColorSet::default(), |s, c| s.with(*c)),
             });
+        }
+        if haunted.is_some() || haunt_spell.is_some() {
+            b = b.haunt(haunted, haunt_spell);
         }
         if let Some(c) = self.cast_snapshot.take() {
             b = b.cast_snapshot(self.pool.intern_condition(c));
@@ -3962,6 +4039,8 @@ impl Compiler<'_> {
             Trigger::TargetedByYouFirstTime => TriggerSpec::TargetedByYouFirstTime,
             Trigger::TurnedFaceUp(o) => TriggerSpec::TurnedFaceUp(self.trigger_obj(o)),
             Trigger::Exploits => TriggerSpec::Exploits,
+            // Compiled by the card (`haunted`), as a dies trigger.
+            Trigger::HauntedDies => TriggerSpec::Dies(CoreTriggerObj::This),
             Trigger::BecomesPlotted => TriggerSpec::BecomesPlotted,
             Trigger::DrawsNth { whose, n, .. } => TriggerSpec::DrawsNth {
                 whose: *whose,
@@ -6384,6 +6463,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Fabricate(_)
         | Mechanic::Renown(_)
         | Mechanic::Unleash
+        | Mechanic::Haunt
         | Mechanic::Devour(..)
         | Mechanic::Amplify(_)
         | Mechanic::Tribute(_)

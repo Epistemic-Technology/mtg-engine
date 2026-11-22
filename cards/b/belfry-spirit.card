@@ -1,0 +1,9 @@
+card "Belfry Spirit" {
+  oracle_id c171065f-7947-4161-a481-1ea2d3ce8422
+  cost {3}{W}{W}
+  type Creature — Spirit
+  pt 1/1
+  keywords flying
+  haunt
+  triggered when this enters or haunted dies: create 2 "1/1 black Bat creature with flying"
+}

@@ -1,0 +1,9 @@
+card "Blind Hunter" {
+  oracle_id a731f5bc-892c-4857-9590-4fa31c1caf00
+  cost {2}{W}{B}
+  type Creature — Bat
+  pt 2/2
+  keywords flying
+  haunt
+  triggered when this enters or haunted dies: target player loses 2 life and you gain 2 life
+}

@@ -7202,6 +7202,26 @@ impl GameState {
                 && self.encode(spell, obj.controller))
             {
                 self.leave_stack(spell);
+                // CR 702.55a: haunt on an instant or sorcery triggers as it
+                // is put into a graveyard during its resolution.
+                if let Some(ability) = def.haunt_spell
+                    && let Some(card) = self.current_object(spell)
+                    && self.objects[card].zone == Zone::Graveyard
+                {
+                    let timestamp = self.tick();
+                    self.pending_triggers.push(crate::state::PendingTrigger {
+                        controller: obj.controller,
+                        ability: StackAbility {
+                            ability,
+                            source: card,
+                            def: self.objects[card].def,
+                            trigger_obj: None,
+                            trigger_player: None,
+                            trigger_amount: 0,
+                        },
+                        timestamp,
+                    });
+                }
             }
         }
     }
@@ -11248,6 +11268,45 @@ impl GameState {
                             }
                         }
                     }
+                }
+            }
+            // CR 702.55a: "exile it haunting target creature": the card,
+            // still in its owner's graveyard, is exiled; its "When the
+            // creature it haunts dies" ability watches that creature from
+            // exile (702.55c).
+            Effect::ExileHaunting => {
+                let Some(card) = self
+                    .current_object(ctx.source)
+                    .filter(|id| self.objects[*id].zone == Zone::Graveyard)
+                else {
+                    return;
+                };
+                let Some(Target::Object(creature)) = self
+                    .recipients(ctx, crate::card::Recipient::Target(0))
+                    .first()
+                    .copied()
+                else {
+                    return;
+                };
+                let (def, owner) = (self.objects[card].def, self.objects[card].owner);
+                let new = self.move_object(card, Zone::Exile, true);
+                if let Some(ability) = self.pool.get(def).haunted
+                    && self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile)
+                {
+                    self.delayed_triggers.push(DelayedTrigger {
+                        controller: owner,
+                        ability: StackAbility {
+                            ability,
+                            source: new,
+                            def,
+                            trigger_obj: Some(creature),
+                            trigger_player: None,
+                            trigger_amount: 0,
+                        },
+                        this_turn: false,
+                        forever: false,
+                        turn: self.turn_number,
+                    });
                 }
             }
             Effect::Delayed {

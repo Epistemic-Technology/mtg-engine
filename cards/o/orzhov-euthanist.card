@@ -1,0 +1,8 @@
+card "Orzhov Euthanist" {
+  oracle_id 3cc82a02-2906-4411-aebf-474b0735bb53
+  cost {2}{B}
+  type Creature — Human Assassin
+  pt 2/2
+  haunt
+  triggered when this enters or haunted dies: destroy target creature that was dealt damage this turn
+}

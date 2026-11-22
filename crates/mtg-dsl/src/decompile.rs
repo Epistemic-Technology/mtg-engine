@@ -1418,6 +1418,7 @@ impl Decompiler<'_> {
                 unreachable!("built-in abilities and dungeon rooms only")
             }
             CoreEffect::Ascend => unreachable!("ascend is decompiled as a keyword line"),
+            CoreEffect::ExileHaunting => unreachable!("haunt is decompiled as a keyword line"),
             CoreEffect::Lasting { .. } => unreachable!("a sentence's duration, by `sentences`"),
             CoreEffect::Explore { what } => Effect::Explore {
                 what: Self::recipient(*what),

@@ -9205,6 +9205,12 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         }
         // "When this creature enters or dies", "Whenever this creature
         // enters or attacks": the subject printed once.
+        // "When this creature enters or the creature it haunts dies".
+        Trigger::Or { first, second, .. } if **second == Trigger::HauntedDies => {
+            let a = trigger_text(first, ctx, next);
+            ctx.source_mentioned = true;
+            format!("{a} or the creature it haunts dies")
+        }
         Trigger::Or {
             first,
             second,
@@ -9838,6 +9844,8 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             format!("whenever {} is turned face up", trigger_subject(o, ctx))
         }
         Trigger::Exploits => format!("when {} exploits a creature", this(ctx)),
+        // CR 702.55b.
+        Trigger::HauntedDies => "when the creature this card haunts dies".to_string(),
         // It is a card in exile, not yet a creature (CR 702.170).
         Trigger::BecomesPlotted => {
             ctx.source_mentioned = true;
@@ -13509,6 +13517,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Extort => "Extort".to_string(),
             crate::ast::Mechanic::Mentor => "Mentor".to_string(),
             crate::ast::Mechanic::Riot => "Riot".to_string(),
+            crate::ast::Mechanic::Haunt => "Haunt".to_string(),
             crate::ast::Mechanic::Devour(None, n) => format!("Devour {n}"),
             crate::ast::Mechanic::Devour(Some(k), n) => {
                 format!("Devour {} {n}", format!("{k:?}").to_lowercase())
