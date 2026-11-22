@@ -85,11 +85,6 @@ The renderer prints the right Oracle text for these, but the compiled
 card does something else. Scenarios catch them; the gate does not. Fix
 by rejecting the form at compile time or by binding it correctly.
 
-- **`attach to target creature you control; that creature gains ...`**
-  (Celestial Armor: "When this Equipment enters, attach it to target
-  creature you control. That creature gains hexproof and indestructible
-  until end of turn."): the Equipment attaches but the creature gains
-  nothing. Celestial Armor is not in (the template author writes it).
 - **Found by the fifth wave's card batches; none is used by a card in
   the corpus** (each card named was rejected):
   - `counter target with mana value X spell`: X is not checked against

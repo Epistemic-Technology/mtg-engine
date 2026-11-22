@@ -35,3 +35,91 @@ scenario "Chandra's Flame Wave: the target player's creatures, not the caster's"
   assert damage "Hill Giant" 2
   assert battlefield A contains "Grizzly Bears"
 }
+
+# "When this enters, ... target creature ... That creature ...": the
+# triggering object is the source, so "that creature" is the target.
+scenario "Bladed Battle-Fan: the creature it attaches to gains indestructible until end of turn" {
+  battlefield A: 2 "Swamp", "Grizzly Bears"
+  hand A: "Bladed Battle-Fan"
+  turn 1 A: cast "Bladed Battle-Fan"
+  turn 1 A: trigger "Bladed Battle-Fan" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Bladed Battle-Fan" to "Grizzly Bears"
+  assert has "Grizzly Bears" indestructible
+  assert power "Grizzly Bears" 3
+  run_to turn 2 upkeep
+  assert has not "Grizzly Bears" indestructible
+}
+
+scenario "Celestial Armor: the creature gains hexproof and indestructible, and gets +2/+0 and flying" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Celestial Armor"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Celestial Armor"
+  turn 1 A: trigger "Celestial Armor" targeting "Grizzly Bears"
+  illegal turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert attached "Celestial Armor" to "Grizzly Bears"
+  assert has "Grizzly Bears" hexproof
+  assert has "Grizzly Bears" indestructible
+  assert has "Grizzly Bears" flying
+  assert power "Grizzly Bears" 4
+  run_to turn 2 upkeep
+  assert has not "Grizzly Bears" hexproof
+  assert has "Grizzly Bears" flying
+}
+
+scenario "Galadhrim Bow: the creature it attaches to untaps" {
+  battlefield A: 3 "Forest", "Grizzly Bears" tapped
+  hand A: "Galadhrim Bow"
+  turn 1 A: cast "Galadhrim Bow"
+  turn 1 A: trigger "Galadhrim Bow" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert has "Grizzly Bears" reach
+}
+
+scenario "Conquering Manticore: the stolen creature untaps and gains haste" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Conquering Manticore"
+  turn 1 A: cast "Conquering Manticore"
+  turn 1 A: trigger "Conquering Manticore" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Hill Giant"
+  assert untapped "Hill Giant"
+  assert has "Hill Giant" haste
+}
+
+scenario "Blitz Leech: the counters come off the target" {
+  battlefield A: 6 "Swamp"
+  battlefield B: "Hill Giant" with 2 +1/+1
+  hand A: "Blitz Leech"
+  turn 1 A: cast "Blitz Leech"
+  turn 1 A: trigger "Blitz Leech" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 0
+  assert power "Hill Giant" 1
+}
+
+scenario "Kor Hookmaster: the tapped creature doesn't untap" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Kor Hookmaster"
+  turn 1 A: cast "Kor Hookmaster"
+  turn 1 A: trigger "Kor Hookmaster" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert tapped "Hill Giant"
+}
+
+scenario "Bazaar Krovod: the other attacker gets +0/+2 and untaps, Krovod stays tapped" {
+  battlefield A: "Bazaar Krovod", "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Bazaar Krovod", "Grizzly Bears"
+  turn 2 A: trigger "Bazaar Krovod" targeting "Grizzly Bears"
+  run_to turn 2 declare_blockers
+  assert untapped "Grizzly Bears"
+  assert toughness "Grizzly Bears" 4
+  assert tapped "Bazaar Krovod"
+}

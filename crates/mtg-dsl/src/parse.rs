@@ -49,6 +49,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         in_trigger: false,
         it_source: false,
         no_trigger_obj: false,
+        self_trigger: false,
         created_at: None,
         no_trigger_amount: false,
         in_spell: false,
@@ -567,6 +568,11 @@ struct P {
     /// beginning of your upkeep", "whenever you gain life"): there is no
     /// triggering object for `it` to be.
     no_trigger_obj: bool,
+    /// Inside "When this enters", "Whenever this attacks", "When this is
+    /// turned face up" (the triggering object is the source):
+    /// "that creature" after an object target is that target ("attach it
+    /// to target creature you control. That creature gains hexproof").
+    self_trigger: bool,
     /// An effect of this ability created one token, with this many
     /// targets declared then: `it` after it is that token ("Create a 1/1
     /// ... token. Put X +1/+1 counters on it.") until a target is named.
@@ -1435,6 +1441,7 @@ impl P {
         self.in_trigger = false;
         self.it_source = false;
         self.no_trigger_obj = false;
+        self.self_trigger = false;
         self.created_at = None;
         self.no_trigger_amount = false;
         self.in_spell = false;
@@ -2631,6 +2638,12 @@ impl P {
                         }
                     );
                 self.no_trigger_obj = no_trigger_object(&trigger);
+                self.self_trigger = matches!(
+                    trigger,
+                    Trigger::Enters(TriggerObj::This)
+                        | Trigger::Attacks(TriggerObj::This)
+                        | Trigger::TurnedFaceUp(TriggerObj::This)
+                );
                 self.no_trigger_amount = no_trigger_amount(&trigger);
                 if when && !crate::format::natural_when(&trigger) {
                     trigger = Trigger::When(Box::new(trigger));
@@ -9564,6 +9577,7 @@ impl P {
             in_trigger: self.in_trigger,
             it_source: self.it_source,
             no_trigger_obj: self.no_trigger_obj,
+            self_trigger: self.self_trigger,
             created_at: self.created_at,
             no_trigger_amount: self.no_trigger_amount,
             in_spell: self.in_spell,
@@ -10081,6 +10095,16 @@ impl P {
             self.pos += 2;
             return Ok(Recipient::ThatTarget(self.targets.len() - 1));
         }
+        // "When this Equipment enters, attach it to target creature you
+        // control. That creature gains ...": the triggering object is the
+        // source, which "that creature" never names; it is the target.
+        if self.self_trigger
+            && (self.at_words(&["that", "creature"]) || self.at_words(&["that", "permanent"]))
+            && let Some(n) = self.last_object_target()
+        {
+            self.pos += 2;
+            return Ok(Recipient::ThatTarget(n));
+        }
         // "Return target permanent to its owner's hand. Then that player
         // discards a card.": the returned card's owner.
         if let Some(i) = self.returned
@@ -10297,6 +10321,7 @@ impl P {
                         in_trigger: false,
                         it_source: false,
                         no_trigger_obj: false,
+                        self_trigger: false,
                         created_at: None,
                         no_trigger_amount: false,
                         in_spell: false,

@@ -738,7 +738,12 @@ after a target the ability names (other than a player) it is that target,
 as in a spell: `put 2 +1/+1 counters on target creature you control; it
 gains vigilance until end of turn`, `you lose count equal mana value of it
 life` after `return up to 1 target Vampire card ...`; `it deals` stays the
-triggering object. In a trigger with no triggering object (`at beginning
+triggering object. Where the triggering object is the source (`when this
+enters`, `whenever this attacks`, `when this is turned face up`), `that
+creature` after an object target is that target too: `when this enters:
+attach to target creature you control; that creature gains hexproof`
+("When this Equipment enters, attach it to target creature you control.
+That creature gains hexproof ..."). In a trigger with no triggering object (`at beginning
 of ...`, `whenever you gain life`, `whenever you attack`) `it` is an
 error: write `this` or `target N`. In any ability, `it` after `create 1
 "..."` (or a token copy), before another target, is that token ("Create a
