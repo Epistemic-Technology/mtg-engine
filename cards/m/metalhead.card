@@ -1,0 +1,9 @@
+card "Metalhead" {
+  oracle_id 7df45a2a-75bc-4343-8dad-3a642efd13ee
+  cost {4}{U}
+  type Legendary Artifact Creature — Robot Turtle
+  pt 4/4
+  pronoun he
+  triggered when this enters: return up to 1 another target artifact or creature to hand
+  activated {R}, sacrifice other artifact: put 1 +1/+1 counter on this; it gains menace, haste
+}

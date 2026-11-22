@@ -109,6 +109,7 @@ pub enum Pronoun {
 
 /// One definition: a `card`, `token`, or `emblem` block.
 #[derive(Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::struct_excessive_bools)] // each is one printed wording
 pub struct Card {
     pub kind: Kind,
     pub name: String,
@@ -145,6 +146,10 @@ pub struct Card {
     pub flash_if: Option<StaticCond>,
     /// `flash if you control Human`: the same, printed "You may cast this
     /// spell as though it had flash if you control a Human."
+    /// `flash named as long as you control Desert`: "Colossal Rattlewurm
+    /// has flash as long as you control a Desert." (the card's name, not
+    /// "This spell"); wording only.
+    pub flash_if_named: bool,
     pub flash_if_may: bool,
     /// `flash with cleanup sacrifice`: "You may cast this spell as though
     /// it had flash. If you cast it any time a sorcery couldn't have been
@@ -168,6 +173,10 @@ pub struct Card {
     /// `cast only during combat`, `cast only if you control creature`:
     /// "Cast this spell only during combat." (CR 601.3).
     pub cast_only: Option<StaticCond>,
+    /// `cast only unless threshold`: "Threshold — You can't cast this
+    /// spell unless there are seven or more cards in your graveyard."
+    /// (Proft, Sinister Mastermind); wording only.
+    pub cast_only_cant: bool,
     /// `kicker {R}` (CR 702.33).
     pub kicker: Option<ManaCost>,
     /// The spell's targets from this index on are declared in its `if
@@ -221,12 +230,14 @@ impl Card {
             alt_cost: None,
             flash_if: None,
             flash_if_may: false,
+            flash_if_named: false,
             flash_cleanup: false,
             pronoun: None,
             short_name: None,
             unkicked_targets: None,
             kicked_drops: None,
             cast_only: None,
+            cast_only_cant: false,
             kicker: None,
             kicker_targets: None,
             flashback: None,
@@ -257,6 +268,9 @@ pub enum CountStyle {
     Equal,
     /// `count each ...`: "... for each ...".
     Each,
+    /// `count foreach ...`: "For each ..., <clause>" (Brass's Bounty:
+    /// "For each land you control, create a Treasure token.").
+    ForEach,
     /// `count that many ...`: "draw that many cards".
     ThatMany,
     /// `deal damage equal <expr> to <what>`: "deals damage equal to ... to
@@ -552,6 +566,11 @@ pub struct AltCost {
     /// Forest`: "you may have each other player gain 6 life rather than
     /// pay this spell's mana cost".
     pub others_gain: u32,
+    /// `alternative cost {B}, if on battlefield 13 creature late`: the
+    /// condition printed last ("You may pay {B} rather than pay this
+    /// spell's mana cost if there are thirteen or more creatures on the
+    /// battlefield."); wording only.
+    pub cond_late: bool,
 }
 
 /// A cost (CR 118): of an activated ability or the additional cost of a
@@ -869,6 +888,16 @@ pub struct Filter {
     /// opponent controls") rather than before them ("target creature an
     /// opponent controls with flying"). Wording only.
     pub control_late: bool,
+    /// `non-Faerie, nonland permanent`: a negated subtype written before a
+    /// negated type prints first ("non-Faerie, nonland permanent",
+    /// Nurturing Pixie) rather than after it. Wording only.
+    pub subtype_neg_first: bool,
+    /// `static plural artifact you control: add subtype Food`: a static
+    /// ability's subject printed plural even with a type it adds
+    /// ("Artifacts you control are Foods in addition to their other
+    /// types", Ragost) rather than one at a time ("Each artifact you
+    /// control is a Food ..."). Wording only.
+    pub plural: bool,
 }
 
 impl Filter {
@@ -1781,6 +1810,9 @@ pub enum GraveyardWording {
     Theres,
     /// "an artifact card is in your graveyard".
     IsIn,
+    /// `8 cards are in your graveyard`: "eight or more cards are in your
+    /// graveyard" (Sidequest: Card Collection).
+    AreIn,
 }
 
 /// What a conditional static ability checks.
@@ -2003,6 +2035,9 @@ pub enum StaticCond {
     /// `this is untapped`, `this is Wall`, `this is creature`: "it's
     /// untapped", "it's a Wall", "this permanent is a creature".
     Is(Filter),
+    /// `this isnt token`: "it isn't a token" (Sphinx of False
+    /// Conclusions); `this is nontoken` prints "it's not a token".
+    IsntToken,
     /// `modified`: "it's modified" (CR 700.9).
     Modified,
     /// `attacking alone`: "it's attacking alone".
@@ -2959,6 +2994,9 @@ pub enum Recipient {
     /// `the target 1`: the `n`th target, "the creature" (Dark Temper's
     /// "destroy the creature instead").
     TheTarget(usize),
+    /// `the chosen target 1`: "the chosen creature", a target declared by
+    /// "choose target creature" (Vengeful Villagers).
+    ChosenTarget(usize),
     /// `controller of the creature` in a triggered ability: the triggering
     /// object's controller, "the creature's controller" (Creature Bond).
     TheTriggeringController,
@@ -3042,6 +3080,15 @@ pub enum Recipient {
     /// printed "that creature" ("Create a 1/1 ... Otter creature token
     /// ... put a +1/+1 counter on that creature").
     CreatedThat,
+    /// `that created token`: the token just created, printed "that token"
+    /// ("Then if this spell was cast from a graveyard, put two +1/+1
+    /// counters on that token.", Retrieve the Esper); `that token` prints
+    /// "it".
+    CreatedThatToken,
+    /// `that created land`: the land card just put onto the battlefield,
+    /// printed "that land" ("Then if you control four or more lands, untap
+    /// that land.", Fabled Passage).
+    CreatedThatLand,
     /// `those tokens`: every token the last token-creating sentence
     /// created; inside a delayed trigger about them, each in turn
     /// (`SameTokens`, the core `SameObject`).
@@ -3194,6 +3241,9 @@ pub enum Effect {
     },
     ReturnToHand {
         what: Vec<Recipient>,
+        /// `to owner's hand`: a group returned "to their owner's hand"
+        /// (Oracle's singular, River's Rebuke); wording only.
+        owner_hand: bool,
     },
     /// `return that card to battlefield tapped under your control`;
     /// `return this to battlefield attached to triggering object`: "...
@@ -4177,6 +4227,9 @@ pub enum Effect {
     IfYouDontPut {
         to: mtg_core::card::CardDest,
         then: Vec<Sentence>,
+        /// `if you dont put it itself into hand`: "If you don't put it
+        /// into your hand" (Bucolic Ranch); wording only.
+        it: bool,
     },
     /// `reveal it`: "reveal it", the card looked at before.
     RevealIt,
@@ -4374,7 +4427,10 @@ pub enum Effect {
     IfThisWay(ThisWayCond, Vec<Sentence>),
     /// `if excess damage dealt this way, <sentence>`: "If excess damage
     /// was dealt this way, ..." (CR 120.4a).
-    IfExcessDamage(Vec<Sentence>),
+    /// `if excess damage dealt this way, ...`; `if excess damage dealt to
+    /// that permanent this way, ...` (`true`): "If excess damage was dealt
+    /// to that permanent this way, ..." (Violent Echoes; wording only).
+    IfExcessDamage(Vec<Sentence>, bool),
     /// `tap 1 other untapped Citizen you control chosen`, `exile 2
     /// creature card from your graveyard chosen`, `return up to 2 land you
     /// control chosen`: the controller chooses what to act on.

@@ -1,0 +1,9 @@
+card "Proft, Sinister Mastermind" {
+  oracle_id a350856c-87f2-4605-999f-4e26aa362a55
+  cost {2}{B}
+  type Legendary Creature — Human Rogue
+  pt 5/5
+  cast only unless threshold
+  keywords menace
+  activated {B}, discard this: target creature gets -3/-1
+}

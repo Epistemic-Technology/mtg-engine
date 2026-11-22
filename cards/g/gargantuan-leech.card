@@ -1,0 +1,8 @@
+card "Gargantuan Leech" {
+  oracle_id 073f12d1-eaa1-4d08-bc1d-b216a3dc0c67
+  cost {7}{B}
+  type Creature — Leech
+  pt 5/5
+  this spell costs {1} less count each Cave you control plus graveyard Cave
+  keywords lifelink
+}

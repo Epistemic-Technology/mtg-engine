@@ -1,0 +1,9 @@
+card "Triceraton Commander" {
+  oracle_id 45d40cdb-21cc-4569-a894-83dd3026c947
+  cost {X}{X}{W}{W}
+  type Creature — Dinosaur Soldier
+  pt 2/2
+  keywords flying
+  triggered when this enters: create X "2/2 white Dinosaur Soldier creature"
+  triggered whenever this attacks: each Dinosaur you control other than this gets +1/+1 and gains flying
+}

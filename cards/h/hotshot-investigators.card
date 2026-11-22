@@ -1,0 +1,7 @@
+card "Hotshot Investigators" {
+  oracle_id 288fcf5c-f5aa-4f62-9dd8-ba295df48f7a
+  cost {5}{U}
+  type Creature — Vedalken Detective
+  pt 4/4
+  triggered when this enters: return up to 1 another target creature to hand; if you controlled it, investigate
+}

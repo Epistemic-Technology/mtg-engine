@@ -1,0 +1,7 @@
+card "Swashbuckler's Whip" {
+  oracle_id 5cdb69e5-9395-4ef6-be18-71e3dd70df66
+  cost {1}
+  type Artifact — Equipment
+  static equipped creature: has reach, has ability { activated {2}, {T}: tap target artifact or creature }, has ability { activated {8}, {T}: discover 10 }
+  equip {1}
+}

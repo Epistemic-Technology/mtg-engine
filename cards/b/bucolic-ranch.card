@@ -1,0 +1,7 @@
+card "Bucolic Ranch" {
+  oracle_id 8f5902bf-4bc4-4d0c-84ea-a425307a4eb2
+  type Land — Desert
+  mana {C}
+  mana any only to cast Mount spell
+  activated {3}, {T}: look at top card; if it is Mount card, you may reveal it and put it into hand; if you dont put it itself into hand, you may put it on bottom of library
+}

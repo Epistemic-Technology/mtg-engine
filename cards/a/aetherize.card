@@ -1,0 +1,6 @@
+card "Aetherize" {
+  oracle_id 7c779721-cd1b-4696-9ae9-68ccc284ed2a
+  cost {3}{U}
+  type Instant
+  spell: return all attacking creature to owner's hand
+}

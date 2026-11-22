@@ -1669,6 +1669,13 @@ impl Compiler<'_> {
                 }
             }
             StaticCond::Is(filter) => StaticCondition::SourceIs(self.filter(filter)),
+            StaticCond::IsntToken => StaticCondition::SourceIs(self.filter(&Filter {
+                status: mtg_core::card::StatusQuals {
+                    token: Some(false),
+                    ..Default::default()
+                },
+                ..Filter::default()
+            })),
             StaticCond::Modified => StaticCondition::SourceModified,
             StaticCond::AttackingAlone => StaticCondition::SourceAttackingAlone,
             StaticCond::Blocked => StaticCondition::SourceBlocked,
@@ -1980,9 +1987,10 @@ impl Compiler<'_> {
             Recipient::Target(i) if Some(i) == many => {
                 CoreRecipient::Targets(u8::try_from(ti(i)).unwrap_or(u8::MAX), u8::MAX)
             }
-            Recipient::Target(i) | Recipient::ThatTarget(i) | Recipient::TheTarget(i) => {
-                CoreRecipient::Target(ti(i))
-            }
+            Recipient::Target(i)
+            | Recipient::ThatTarget(i)
+            | Recipient::TheTarget(i)
+            | Recipient::ChosenTarget(i) => CoreRecipient::Target(ti(i)),
             Recipient::Targets(a, n)
             | Recipient::ThoseCards(a, n)
             | Recipient::ThoseTargets(a, n) => CoreRecipient::Targets(
@@ -2023,9 +2031,11 @@ impl Compiler<'_> {
             | Recipient::SameTokens
             | Recipient::SameThem => CoreRecipient::SameObject,
             Recipient::CreatedTokens | Recipient::CreatedThem => CoreRecipient::CreatedTokens,
-            Recipient::Manifested | Recipient::CreatedObject | Recipient::CreatedThat => {
-                CoreRecipient::CreatedObject
-            }
+            Recipient::Manifested
+            | Recipient::CreatedObject
+            | Recipient::CreatedThat
+            | Recipient::CreatedThatToken
+            | Recipient::CreatedThatLand => CoreRecipient::CreatedObject,
             Recipient::Attached => CoreRecipient::Attached,
             Recipient::AttachedController => CoreRecipient::AttachedController,
             Recipient::BlockingIt => CoreRecipient::BlockingIt,
@@ -2285,7 +2295,7 @@ impl Compiler<'_> {
             Effect::RemoveAllCounters { to } => {
                 out.push(CoreEffect::RemoveAllCounters { to: r(*to) });
             }
-            Effect::ReturnToHand { what } => {
+            Effect::ReturnToHand { what, .. } => {
                 for w in what {
                     out.push(CoreEffect::ReturnToHand { what: r(*w) });
                 }
@@ -3456,7 +3466,7 @@ impl Compiler<'_> {
                 let cond = self.this_way_cond(c);
                 out.push(CoreEffect::IfThisWay { cond, then });
             }
-            Effect::IfExcessDamage(inner) => {
+            Effect::IfExcessDamage(inner, _) => {
                 let then = self.sentences(inner)?;
                 out.push(CoreEffect::IfExcessDamage(then));
             }
@@ -5505,6 +5515,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             }],
             effects: one(E::YouMay(one(E::ReturnToHand {
                 what: vec![Recipient::Target(0)],
+                owner_hand: false,
             }))),
         },
         Mechanic::Ward(cost) => Ability::Triggered {

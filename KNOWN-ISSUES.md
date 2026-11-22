@@ -35,8 +35,6 @@ wrong thing in some case.
   kinds that don't change power or toughness, then the rest); several
   mechanics from the first wave have the engine choose where the player
   should.
-- **Token copy of a creature that has died** (Sphinx of False
-  Conclusions, Gruff Triplets): not supported; neither card is in.
 - **Thousand-Year Storm:** the "cast before it this turn" count has an
   edge case with spells cast while it is on the stack.
 - **Token-creation replacements apply only to `create` and `create
@@ -231,6 +229,9 @@ Wrong behaviour that reaches accepted cards:
   object.** On Hellish Sideswipe (rejected) it looked at what the
   resolution destroyed, not what was sacrificed for the cost. Nasty End,
   Falkenrath Torturer, and Foundry Helix use the condition; not checked.
+  Agency Coroner (not added) drew two cards for a sacrificed Grizzly
+  Bears that wasn't suspected (`if the sacrificed creature was
+  suspected, draw 2 cards instead`).
 
 Forms that pass the gate with the wrong meaning:
 
@@ -253,6 +254,12 @@ Forms that pass the gate with the wrong meaning:
 - **`tapped` after `create count each <filter>`** is read into the
   filter ("for each tapped multicolored permanent", Infinite Guideline
   Station).
+- **`whenever you cast of chosen color spell`** renders "Whenever you
+  cast a spell of the chosen color" but never triggered in a scenario
+  (red chosen, Lightning Bolt cast; Diamond Mare, not added).
+- **The sacrificed creature in a reflexive trigger:** `you may sacrifice
+  1 other creature chosen; when you do, deal damage equal power of the
+  sacrificed creature to ...` deals 0 (Bolg of the North, not added).
 - **`return all <filter> card from your graveyard`** finds `card` only
   within seven words of `all` (`parse.rs`), so a long filter fails to
   parse (Raise the Past).

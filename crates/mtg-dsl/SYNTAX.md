@@ -2777,3 +2777,32 @@ Vehicle` is the attacking Vehicle.
 
 `replace this dies: exile`: "If this creature would die, exile it
 instead."
+
+### Wording variants
+
+Forms that change only how Oracle words what an existing form does:
+
+| Form | Oracle text |
+|---|---|
+| `return all attacking creature to owner's hand` | "Return all attacking creatures to their owner's hand." (the newer singular; `to hand` prints "their owners' hands") |
+| `if you dont put it itself into hand, ...` | "If you don't put it into your hand, ..." (`put it` prints "the card") |
+| `alternative cost {B}, if on battlefield 13 creature late` | "You may pay {B} rather than pay this spell's mana cost if there are thirteen or more creatures on the battlefield." (the condition last) |
+| `cast only unless threshold` | "Threshold — You can't cast this spell unless there are seven or more cards in your graveyard." (other conditions print without the label) |
+| `flash named as long as you control Desert` | "Colossal Rattlewurm has flash as long as you control a Desert." |
+| `non-Faerie, nonland permanent` | A negated subtype written before a negated type prints first: "non-Faerie, nonland permanent". |
+| `this isnt token` | "it isn't a token" (`this is nontoken` prints "it's not a token") |
+| `static plural artifact you control: add subtype Food, ...` | "Artifacts you control are Foods in addition to their other types and have ..." rather than "Each artifact you control is a Food ...". An added subtype and the card types added after it are one noun ("are Food artifacts", "is a Golem creature with base power and toughness 5/4"), and a quoted ability of a holder given a card type names "this permanent". |
+| `reduced {1} during your turn` | "This ability costs {1} less to activate during your turn." |
+| `the chosen target 1` | "the chosen creature", after "choose target creature" |
+| `if this sneak paid` | "If this creature's sneak cost was paid" |
+| `count foreach land you control` | "For each land you control, create a Treasure token." (the count leads the sentence; the template author writes it for "For each ..., create a ... token") |
+| `your opponents control 3 creature` | "your opponents control three or more creatures" (a static condition: the opponents' permanents counted together) |
+| `at beginning of your next end step` | In a delayed trigger: "at the beginning of your next end step". |
+| `this is with counter` | "this creature has a counter on it" (any kind) |
+| `if excess damage dealt to that permanent this way, ...` | "If excess damage was dealt to that permanent this way, ..."; inside either form a `count where excess damage dealt this way` prints "where X is that excess damage" |
+| `8 cards are in your graveyard` | "eight or more cards are in your graveyard" (`8 cards in your graveyard`: "there are eight or more cards in your graveyard") |
+| `if you controlled it, ...` | "If you controlled it, ..." about the last target (`if you controlled target 1` prints "that creature") |
+| `that created token` | "that token", the token just created (`that token` prints "it") |
+| `that created land` | "that land", the land card just put onto the battlefield (Fabled Passage) |
+| `target creature card with power 2 or less from your graveyard` | "target creature card with power 2 or less from your graveyard" (the power after the noun) |
+

@@ -1,0 +1,10 @@
+card "Champion of the Clachan" {
+  oracle_id 4a220e0c-e463-4264-9a96-658cf842b82e
+  cost {3}{W}
+  type Creature — Kithkin Knight
+  pt 4/5
+  keywords flash
+  additional cost behold and exile Kithkin
+  static other Kithkin you control: +1/+1
+  triggered when this leaves the battlefield: return exiled card to hand
+}

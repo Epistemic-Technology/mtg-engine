@@ -104,11 +104,14 @@ fn format_inner(card: &Card) -> String {
                 format!("{gain}, {text}")
             };
         }
-        let _ = writeln!(out, "  alternative cost {text}");
+        let late = if a.cond_late { " late" } else { "" };
+        let _ = writeln!(out, "  alternative cost {text}{late}");
     }
     if let Some(c) = &card.flash_if {
         let how = if card.flash_if_may {
             "if"
+        } else if card.flash_if_named {
+            "named as long as"
         } else {
             "as long as"
         };
@@ -134,7 +137,9 @@ fn format_inner(card: &Card) -> String {
     }
     if let Some(c) = &card.cast_only {
         let c = static_cond(c);
-        if c.starts_with("during") || c.starts_with("before") {
+        if card.cast_only_cant {
+            let _ = writeln!(out, "  cast only unless {c}");
+        } else if c.starts_with("during") || c.starts_with("before") {
             let _ = writeln!(out, "  cast only {c}");
         } else {
             let _ = writeln!(out, "  cast only if {c}");
@@ -281,6 +286,10 @@ impl Fmt {
                 self.mentioned[i] = true;
                 format!("the target {}", i + 1)
             }
+            Recipient::ChosenTarget(i) => {
+                self.mentioned[i] = true;
+                format!("the chosen target {}", i + 1)
+            }
             // "up to 2 target creature": declares them together.
             Recipient::Targets(a, n) if self.mentioned[a] => {
                 format!("targets {} to {}", a + 1, a + n)
@@ -345,6 +354,8 @@ impl Fmt {
             }
             Recipient::CreatedObject | Recipient::SameToken => "that token".to_string(),
             Recipient::CreatedThat => "that created creature".to_string(),
+            Recipient::CreatedThatToken => "that created token".to_string(),
+            Recipient::CreatedThatLand => "that created land".to_string(),
             Recipient::SameCard => "that card".to_string(),
             Recipient::SameThem => "them".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
@@ -857,8 +868,9 @@ impl Fmt {
                 if *cant { "cant" } else { "dont" },
                 self.line(then, t)
             ),
-            Effect::IfYouDontPut { to, then } => format!(
-                "if you dont put it {}, {}",
+            Effect::IfYouDontPut { to, then, it } => format!(
+                "if you dont put it {}{}, {}",
+                if *it { "itself " } else { "" },
                 match to {
                     mtg_core::card::CardDest::Hand => "into hand",
                     mtg_core::card::CardDest::Graveyard => "into graveyard",
@@ -1351,7 +1363,11 @@ impl Fmt {
             Effect::RemoveAllCounters { to } => {
                 format!("remove all counters from {}", self.recipient(*to, t))
             }
-            Effect::ReturnToHand { what } => format!("return {} to hand", self.recipients(what, t)),
+            Effect::ReturnToHand { what, owner_hand } => format!(
+                "return {} to {}",
+                self.recipients(what, t),
+                if *owner_hand { "owner's hand" } else { "hand" }
+            ),
             Effect::ReturnToBattlefield {
                 what,
                 counters,
@@ -2222,6 +2238,13 @@ impl Fmt {
                 if *opponent { "opponent" } else { "player" },
                 self.line(inner, t)
             ),
+            Effect::IfTarget(_, f, inner, check)
+                if check.tense == crate::ast::TargetTense::Is
+                    && !check.after
+                    && *f == Filter::controlled_by_you() =>
+            {
+                format!("if you controlled it, {}", self.line(inner, t))
+            }
             Effect::IfTarget(n, f, inner, check)
                 if matches!(
                     check.tense,
@@ -2288,9 +2311,11 @@ impl Fmt {
             Effect::IfThisWay(c, inner) => {
                 format!("if {}, {}", this_way_cond(c), self.line(inner, t))
             }
-            Effect::IfExcessDamage(inner) => {
-                format!("if excess damage dealt this way, {}", self.line(inner, t))
-            }
+            Effect::IfExcessDamage(inner, to_that) => format!(
+                "if excess damage dealt {}this way, {}",
+                if *to_that { "to that permanent " } else { "" },
+                self.line(inner, t)
+            ),
             Effect::ChooseAct {
                 act,
                 count,
@@ -2710,6 +2735,7 @@ fn count_text(c: &crate::ast::Count) -> String {
         CountStyle::Where => "where",
         CountStyle::Equal => "equal",
         CountStyle::Each => "each",
+        CountStyle::ForEach => "foreach",
         CountStyle::ThatMany => "that many",
         // Printed by the damage clause: `deal damage equal <expr> to`.
         CountStyle::EqualBefore => return count_expr_text(&c.expr),
@@ -3029,6 +3055,14 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
         g.each = false;
         mv = format!("{each} with mana value {n}{}", cmp_suffix(cmp));
     }
+    // "creature card with power 2 or less".
+    if f.same.is_none()
+        && f.or.is_none()
+        && mv.is_empty()
+        && let Some((cmp, n)) = g.power.take()
+    {
+        mv = format!(" with power {n}{}", cmp_suffix(cmp));
+    }
     if g == Filter::default() {
         format!("target card{named}{mv} from {whose}")
     } else {
@@ -3118,6 +3152,9 @@ fn filter_one(f: &Filter) -> String {
     if f.each {
         words.push("each".to_string());
     }
+    if f.plural {
+        words.push("plural".to_string());
+    }
     match f.relation {
         Relation::Other if f.other_than_this => {}
         Relation::Other => words.push("other".to_string()),
@@ -3149,11 +3186,15 @@ fn filter_one(f: &Filter) -> String {
             .to_string(),
         );
     }
+    let not_subtypes: Vec<String> = f.not_subtypes.iter().map(|s| format!("non-{s}")).collect();
+    if f.subtype_neg_first {
+        words.extend(not_subtypes.iter().cloned());
+    }
     for t in &f.not_types {
         words.push(format!("non{}", format!("{t:?}").to_lowercase()));
     }
-    for s in &f.not_subtypes {
-        words.push(format!("non-{s}"));
+    if !f.subtype_neg_first {
+        words.extend(not_subtypes);
     }
     for c in &f.not_colors {
         words.push(format!("non{}", color_name(*c)));
@@ -3822,6 +3863,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         } => "at end of combat".to_string(),
         Trigger::BeginningOfStep { step, whose } => {
             let whose = match whose {
+                Who::You if next => "your next",
                 Who::You => "your",
                 Who::Opponents => "each opponent's",
                 Who::Any => {
@@ -4302,6 +4344,9 @@ fn cost_text(c: &Cost) -> String {
         Some((by, crate::ast::ReduceBy::Each(e))) => {
             parts.push(format!("reduced {by} each {}", count_expr_text(e)));
         }
+        Some((by, crate::ast::ReduceBy::If(StaticCond::DuringYourTurn))) => {
+            parts.push(format!("reduced {by} during your turn"));
+        }
         Some((by, crate::ast::ReduceBy::If(d))) => {
             parts.push(format!("reduced {by} if {}", static_cond(d)));
         }
@@ -4597,6 +4642,15 @@ fn static_cond(c: &StaticCond) -> String {
         }
         StaticCond::OnBattlefield {
             filter: fl,
+            at_least,
+        } if fl.who == Some(Who::Opponents) && fl.your_opponents => {
+            let mut f = fl.clone();
+            f.who = None;
+            f.your_opponents = false;
+            format!("your opponents control {at_least} {}", filter(&f))
+        }
+        StaticCond::OnBattlefield {
+            filter: fl,
             at_least: 1,
         } => format!("on battlefield {}", filter(fl)),
         StaticCond::OnBattlefield {
@@ -4701,6 +4755,7 @@ fn static_cond(c: &StaticCond) -> String {
             match p {
                 1 => "his ",
                 2 => "her ",
+                3 => "this ",
                 _ => "",
             }
         ),
@@ -4725,6 +4780,7 @@ fn static_cond(c: &StaticCond) -> String {
             use crate::ast::GraveyardWording as W;
             match wording {
                 W::ThereAre => format!("{at_least} {} cards in your graveyard", filter(fl)),
+                W::AreIn => format!("{at_least} cards are in your graveyard"),
                 W::YouHave => {
                     format!("you have {at_least} {} cards in your graveyard", filter(fl))
                 }
@@ -4746,6 +4802,7 @@ fn static_cond(c: &StaticCond) -> String {
             at_least,
         } => format!("opponent controls {at_least} {}", filter(fl)),
         StaticCond::Is(fl) => format!("this is {}", filter(fl)),
+        StaticCond::IsntToken => "this isnt token".to_string(),
         StaticCond::Modified => "modified".to_string(),
         StaticCond::AttackingAlone => "attacking alone".to_string(),
         StaticCond::Blocked => "blocked".to_string(),

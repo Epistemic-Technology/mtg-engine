@@ -1,0 +1,9 @@
+card "Sphinx of False Conclusions" {
+  oracle_id 9f004382-c57b-4fde-af97-0c85516c3cf4
+  cost {2}{U}{U}
+  type Creature — Sphinx Illusion
+  pt 4/2
+  keywords flash, flying
+  triggered whenever this attacks: draw 1 card then discard 1 card
+  triggered when this dies if this isnt token: create token copy of it
+}

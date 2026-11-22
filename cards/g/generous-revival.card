@@ -1,0 +1,7 @@
+card "Generous Revival" {
+  oracle_id f8601f5f-0f7c-4689-9d15-137f1e82c49c
+  cost {2}{W}
+  type Sorcery
+  spell: return target creature card with mana value 3 or less from your graveyard to battlefield with 1 additional +1/+1 counter
+  flashback {4}{W}
+}

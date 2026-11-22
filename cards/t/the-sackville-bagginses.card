@@ -1,0 +1,9 @@
+card "The Sackville-Bagginses" {
+  oracle_id e3a665f9-6e51-4e0d-923b-e9552d5978a4
+  cost {1}{B}
+  type Legendary Creature — Halfling Citizen
+  pt 2/2
+  pronoun they
+  triggered when this enters: you may sacrifice 1 other creature or artifact chosen; if you do, draw 1 card and create 1 "Treasure"
+  triggered whenever you sacrifice a token: target opponent loses 1 life
+}

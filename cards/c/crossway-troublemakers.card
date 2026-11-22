@@ -1,0 +1,8 @@
+card "Crossway Troublemakers" {
+  oracle_id 1a362e4d-6c02-4b67-ab63-c6622e505195
+  cost {5}{B}
+  type Creature — Vampire
+  pt 5/5
+  static attacking Vampire you control: has deathtouch, lifelink
+  triggered whenever a Vampire you control dies: you may pay 2 life; if you do, draw 1 card
+}

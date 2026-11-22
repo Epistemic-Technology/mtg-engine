@@ -1,0 +1,8 @@
+card "Ureni, the Song Unending" {
+  oracle_id 1c995c80-3301-409b-822b-9297aa260823
+  cost {5}{G}{U}{R}
+  type Legendary Creature — Spirit Dragon
+  pt 10/10
+  keywords flying, protection from white, protection from black
+  triggered when this enters: deal count where land you control damage divided among any number of target andor creature or planeswalker your opponents control
+}

@@ -1,0 +1,8 @@
+card "Dreamdew Entrancer" {
+  oracle_id b6b2d63f-5b8c-47ee-8712-58596e0e9e94
+  cost {2}{G}{U}
+  type Creature — Frog Wizard
+  pt 3/4
+  keywords reach
+  triggered when this enters: tap up to 1 target creature and put 3 stun counters on target 1; if that target 1 is you control, draw 2 cards
+}

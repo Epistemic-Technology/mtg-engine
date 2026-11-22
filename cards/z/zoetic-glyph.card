@@ -1,0 +1,8 @@
+card "Zoetic Glyph" {
+  oracle_id 1c21efcf-1007-45bb-ba21-ac33c2a8d751
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant artifact
+  static enchanted: add subtype Golem, add type creature, base 5/4
+  triggered when this is put into a graveyard from the battlefield: discover 3
+}

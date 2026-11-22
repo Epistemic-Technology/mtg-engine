@@ -1,0 +1,7 @@
+card "Medic's Kitesail" {
+  oracle_id eacfe895-5106-437c-b8c1-2ff03c107744
+  cost {2}
+  type Artifact — Equipment
+  static equipped creature: +1/+0, has flying, has ability { triggered whenever this attacks: you gain 1 life }
+  equip {2}
+}

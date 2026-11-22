@@ -101,16 +101,19 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
                 cost,
                 count: a.count,
                 others_gain: a.others_gain,
+                cond_late: false,
             }
         }),
         flash_if: def.flash_if.map(|c| d.static_cond(pool.condition(c))),
         flash_if_may: false,
+        flash_if_named: false,
         flash_cleanup: def.flash_cleanup,
         pronoun: None,
         short_name: None,
         unkicked_targets: def.unkicked_targets.map(usize::from),
         kicked_drops: def.kicked_drops.map(usize::from),
         cast_only: def.cast_only.map(|c| d.static_cond(pool.condition(c))),
+        cast_only_cant: false,
         kicker: def.kicker.as_deref().cloned(),
         kicker_targets: def.kicker_targets,
         flashback: def.flashback.as_ref().map(|c| d.cost(c)),
@@ -271,6 +274,8 @@ impl Decompiler<'_> {
             all_word: false,
             article: false,
             control_late: false,
+            subtype_neg_first: false,
+            plural: false,
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
             alt_article: false,
             targeting: f.targeting.as_ref().map(|t| {
@@ -833,6 +838,7 @@ impl Decompiler<'_> {
             CoreEffect::RemoveCounterChosen { to } => Effect::RemoveCounterChosen { to: r(*to) },
             CoreEffect::ReturnToHand { what } => Effect::ReturnToHand {
                 what: vec![r(*what)],
+                owner_hand: false,
             },
             CoreEffect::ReturnToBattlefield {
                 what,
@@ -1661,7 +1667,7 @@ impl Decompiler<'_> {
             CoreEffect::IfThisWay { cond, then } => {
                 Effect::IfThisWay(self.this_way_cond(cond), self.sentences(then))
             }
-            CoreEffect::IfExcessDamage(then) => Effect::IfExcessDamage(self.sentences(then)),
+            CoreEffect::IfExcessDamage(then) => Effect::IfExcessDamage(self.sentences(then), false),
             CoreEffect::ChooseAct {
                 act,
                 filter,

@@ -1,0 +1,8 @@
+card "Restless Cottage" {
+  oracle_id 7e16595f-bdeb-422e-b99a-bfc0ed52e9f8
+  type Land
+  enters tapped
+  mana {B} or {G}
+  activated {2}{B}{G}: this becomes 4/4 black green Horror creature until end of turn
+  triggered whenever this attacks: create 1 "Food" and exile up to 1 target card from a graveyard
+}

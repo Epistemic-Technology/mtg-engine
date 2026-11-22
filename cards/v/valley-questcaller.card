@@ -1,0 +1,8 @@
+card "Valley Questcaller" {
+  oracle_id 81c509b2-3164-47e9-94b3-bdba0487d2f1
+  cost {1}{W}
+  type Creature — Rabbit Warrior
+  pt 2/3
+  triggered whenever one or more andor other Rabbit or Bat or Bird or Mouse you control enter: scry 1
+  static andlist other Rabbit or Bat or Bird or Mouse you control: +1/+1
+}

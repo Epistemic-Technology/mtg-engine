@@ -1,0 +1,5 @@
+card "Fabled Passage" {
+  oracle_id 0c85b8f7-0bd0-4680-9ec5-d4b110460a54
+  type Land
+  activated {T}, sacrifice this: search basic land card to battlefield tapped; then if you control 4 land, untap that created land
+}

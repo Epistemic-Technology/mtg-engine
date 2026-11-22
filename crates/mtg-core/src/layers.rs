@@ -741,6 +741,12 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             ) && filter
                 .tapped
                 .is_none_or(|t| state.objects[source].tapped == t)
+                // "As long as this creature has a counter on it" (Demon
+                // Wall, CR 122.1).
+                && filter
+                    .status
+                    .counter
+                    .is_none_or(|q| state.objects[source].counters_match(q))
                 // "As long as this creature entered this turn": a new turn
                 // bumps `cversion`.
                 && (!filter.status.entered_this_turn

@@ -1,0 +1,15 @@
+card "Sidequest: Card Collection // Magicked Card" {
+  oracle_id 0c2095b0-478d-45b4-a34d-b19eb77cea4c
+  layout transform
+  cost {3}{U}
+  type Enchantment
+  triggered when this enters: draw 3 cards then discard 2 cards
+  triggered at beginning of your end step if 8 cards are in your graveyard: transform this
+  face "Magicked Card" {
+    type Artifact — Vehicle
+    pt 4/4
+    color blue
+    keywords flying
+    crew 1
+  }
+}

@@ -1,0 +1,9 @@
+card "Ragost, Deft Gastronaut" {
+  oracle_id 76f5445a-5193-4794-8593-b44f961334b6
+  cost {R}{W}
+  type Legendary Creature — Lobster Citizen
+  pt 2/2
+  static plural artifact you control: add subtype Food, has ability { activated {2}, {T}, sacrifice this: you gain 3 life }
+  activated {1}, {T}, sacrifice Food: deal 3 damage to each opponent
+  triggered at beginning of every end step if gained life this turn: untap this
+}

@@ -1,0 +1,8 @@
+card "Moon-Vigil Adherents" {
+  oracle_id d0fa43f6-d8f6-4674-b538-6d546b7dcf40
+  cost {2}{G}{G}
+  type Creature — Elf Druid
+  pt 0/0
+  keywords trample
+  static this: +1/+1 count each creature you control plus graveyard creature
+}

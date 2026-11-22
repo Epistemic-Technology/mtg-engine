@@ -1,0 +1,8 @@
+card "Lotus Ring" {
+  oracle_id ca4d3d27-ea3a-44ac-96e9-b52b563129f8
+  cost {3}
+  type Artifact — Equipment
+  keywords indestructible
+  static equipped creature: +3/+3, has vigilance, has ability { activated {T}, sacrifice this: add any 3 }
+  equip {3}
+}

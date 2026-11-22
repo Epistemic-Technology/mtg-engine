@@ -1,0 +1,7 @@
+card "Death Baron" {
+  oracle_id 99024aa8-5687-4d38-8a4b-feef42d6c1ff
+  cost {1}{B}{B}
+  type Creature — Zombie Wizard
+  pt 2/2
+  static Skeleton you control or other Zombie you control: +1/+1, has deathtouch
+}
