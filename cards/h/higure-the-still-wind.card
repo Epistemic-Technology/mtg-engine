@@ -1,0 +1,9 @@
+card "Higure, the Still Wind" {
+  oracle_id 01197456-62f1-4bc0-9f2f-127f97f9b05d
+  cost {3}{U}{U}
+  type Legendary Creature — Human Ninja
+  pt 3/4
+  ninjutsu {2}{U}{U}
+  triggered whenever this deals combat damage to a player: you may search Ninja card reveal to hand
+  activated {2}: target Ninja creature can't be blocked
+}

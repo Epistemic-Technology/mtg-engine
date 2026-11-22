@@ -1,0 +1,7 @@
+card "Reshape" {
+  oracle_id 42a3855d-25ab-45b3-9e5d-9a0f3da35a05
+  cost {X}{U}{U}
+  type Sorcery
+  additional cost sacrifice artifact
+  spell: search artifact card with mana value X or less to battlefield
+}

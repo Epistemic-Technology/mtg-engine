@@ -7290,7 +7290,7 @@ impl P {
     /// before the clause ends or another verb starts. `return N <filter>
     /// chosen` alone is `ReturnChosen`.
     fn chosen_act_ahead(&self) -> bool {
-        const VERBS: [&str; 11] = [
+        const VERBS: [&str; 12] = [
             "tap",
             "untap",
             "sacrifice",
@@ -7299,6 +7299,7 @@ impl P {
             "return",
             "put",
             "attach",
+            "reveal",
             "create",
             "draw",
             "destroy",
@@ -7306,7 +7307,7 @@ impl P {
         let Some(verb) = self.word_at(0) else {
             return false;
         };
-        if !VERBS[..8].contains(&verb.as_str()) {
+        if !VERBS[..9].contains(&verb.as_str()) {
             return false;
         }
         let mut hand = false;
@@ -7371,6 +7372,13 @@ impl P {
             "untap" => (ChooseAct::Untap, self.filter()?),
             "sacrifice" => (ChooseAct::Sacrifice, self.filter()?),
             "discard" => (ChooseAct::Discard, card_filter(self)?),
+            // `reveal any number green card in hand chosen`: "Reveal any
+            // number of green cards in your hand".
+            "reveal" => {
+                let f = card_filter(self)?;
+                self.expect_words(&["in", "hand"])?;
+                (ChooseAct::RevealFromHand, f)
+            }
             // `attach 1 Equipment you control to target 1 chosen`.
             "attach" => {
                 let f = self.filter()?;
@@ -7784,6 +7792,16 @@ impl P {
         }
         let main = self.eat_words(&["then", "main", "phase"]);
         Ok((combats, main))
+    }
+
+    /// `exile same name as target 1 from its controller zones`, out of
+    /// `verb_first` (whose frame is large in a debug build).
+    #[inline(never)]
+    fn exile_same_name(&mut self) -> R<Effect> {
+        self.pos += 3;
+        let what = self.recipient()?;
+        self.expect_words(&["from", "its", "controller", "zones"])?;
+        Ok(Effect::ExileSameName { what })
     }
 
     #[allow(clippy::too_many_lines)]
@@ -8324,6 +8342,13 @@ impl P {
             "exile" => {
                 if self.eat_words(&["all", "graveyards"]) {
                     return Ok(Effect::ExileAllGraveyards);
+                }
+                // `exile same name as target 1 from its controller zones`:
+                // "Search its controller's graveyard, hand, and library for
+                // all cards with the same name as that spell and exile
+                // them. Then that player shuffles."
+                if self.at_words(&["same", "name", "as"]) {
+                    return self.exile_same_name();
                 }
                 // `exile until nonland card`.
                 if self.eat_word("until") {
@@ -11904,6 +11929,13 @@ impl P {
                     self.pos += 4;
                     f.same = Some(SameRef::ShareCardType);
                 }
+                "that"
+                    if self.at_words(&["that", "share", "creature", "type"])
+                        && f.same.is_none() =>
+                {
+                    self.pos += 4;
+                    f.same = Some(SameRef::ShareCreatureType);
+                }
                 // "with lesser power" (mentor, CR 702.134a).
                 "with" if self.at_words(&["with", "lesser", "power"]) && f.same.is_none() => {
                     self.pos += 3;
@@ -14198,6 +14230,16 @@ impl P {
             }
             // "return it to its owner's hand instead".
             "hand" => Outcome::Instead(Zone::Hand),
+            // "put it on top of its owner's library instead" (`library
+            // top`), "on the bottom ..." (`library bottom`).
+            "library" => {
+                if self.eat_word("top") {
+                    Outcome::IntoLibrary { top: true }
+                } else {
+                    self.expect_word("bottom")?;
+                    Outcome::IntoLibrary { top: false }
+                }
+            }
             "plus" => {
                 if self.eat_word("one") {
                     Outcome::PlusOne

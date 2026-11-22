@@ -1,0 +1,7 @@
+card "Lifespinner" {
+  oracle_id 0fb26acd-891d-471d-98d8-73c6f940052b
+  cost {3}{G}
+  type Creature — Spirit
+  pt 3/3
+  activated {T}, sacrifice 3 Spirit: search legendary Spirit permanent card to battlefield
+}

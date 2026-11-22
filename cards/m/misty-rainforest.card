@@ -1,0 +1,5 @@
+card "Misty Rainforest" {
+  oracle_id 09dd85aa-47bc-4713-a9b9-8b52ff2285ed
+  type Land
+  activated {T}, pay 1 life, sacrifice this: search Forest or Island card to battlefield
+}

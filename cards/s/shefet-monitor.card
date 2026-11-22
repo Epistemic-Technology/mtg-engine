@@ -1,0 +1,8 @@
+card "Shefet Monitor" {
+  oracle_id 14f081bb-dd7a-4419-af9b-f75d91e1a6d0
+  cost {5}{G}
+  type Creature — Lizard
+  pt 6/5
+  cycling {3}{G}
+  triggered when you cycle this: you may search basic land card or a Desert card to battlefield
+}

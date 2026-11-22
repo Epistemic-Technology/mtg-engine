@@ -1,0 +1,6 @@
+card "Scent of Ivy" {
+  oracle_id b6db81e5-b7ca-45dc-a72d-1ff12935a3e4
+  cost {G}
+  type Instant
+  spell: reveal any number green card in hand chosen; target creature gets +1/+1 count where revealed this way until end of turn
+}

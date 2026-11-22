@@ -1,0 +1,6 @@
+card "Open the Armory" {
+  oracle_id 2ecf7771-8061-4710-ad2e-80b092ae0b4b
+  cost {1}{W}
+  type Sorcery
+  spell: search Aura or Equipment card reveal to hand
+}

@@ -2834,6 +2834,10 @@ fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             " that {} a card type",
             if plural_form { "share" } else { "shares" }
         ),
+        Some(SameRef::ShareCreatureType) => format!(
+            " that {} a creature type",
+            if plural_form { "share" } else { "shares" }
+        ),
     }
 }
 
@@ -2880,6 +2884,13 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
         && let Some((cmp, n)) = g.power.take()
     {
         mv = format!(" with power {n}{}", cmp_words(cmp));
+    }
+    // "creature card with toughness 2 or less" (Recruiter of the Guard).
+    if g.or.is_none()
+        && mv.is_empty()
+        && let Some((cmp, n)) = g.toughness.take()
+    {
+        mv = format!(" with toughness {n}{}", cmp_words(cmp));
     }
     // "creature card with mana value less than or equal to this
     // creature's power".
@@ -6393,6 +6404,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*to);
             Clause::imperative(format!("tap or untap {o}"))
         }
+        // "Search its controller's graveyard, hand, and library for all
+        // cards with the same name as that spell and exile them. Then that
+        // player shuffles."
+        Effect::ExileSameName { what } => {
+            let o = match what {
+                // The target's own noun, though it has been exiled since
+                // ("that creature", not "that card").
+                Recipient::Target(i) if *i < ctx.targets.len() => {
+                    ctx.target_mentioned[*i] = true;
+                    format!("that {}", target_noun(&ctx.targets[*i]))
+                }
+                other => ctx.obj(*other),
+            };
+            Clause::imperative(format!(
+                "search its controller's graveyard, hand, and library for all cards with the same name as {o} and exile them. Then that player shuffles"
+            ))
+        }
         Effect::FaceDownSpellsLess(n) => Clause::imperative(format!(
             "face-down spells you cast this turn cost {{{n}}} less to cast"
         )),
@@ -7447,6 +7475,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     if one { "its" } else { "their" }
                 ),
                 ChooseAct::Discard => format!("discard {}", cards()),
+                ChooseAct::RevealFromHand => format!("reveal {} in your hand", cards()),
                 ChooseAct::HandToBottom => format!(
                     "put {} from your hand on the bottom of your library",
                     cards()
@@ -7699,6 +7728,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 with_article(&cards_phrase(filter, ctx.card, false))
             } else if one {
                 with_article(&format!("{} card", filter_phrase(filter, ctx.card, false)))
+            } else if filter.or.is_none() && filter.mana_value.is_some() {
+                // "up to two creature cards with mana value 1 or less": the
+                // mana value after the noun.
+                format!(
+                    "{}{} {}",
+                    if *up_to { "up to " } else { "" },
+                    count_words(*count, "a"),
+                    cards_phrase(filter, ctx.card, true)
+                )
             } else {
                 format!(
                     "{}{} {} cards",
@@ -11571,6 +11609,15 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             counters(*n, *kind),
             it_obj(ctx.card)
         ),
+        // "If this creature would die, put it on top of its owner's
+        // library instead." (Gravebane Zombie; "on the bottom", Nissa's
+        // Chosen).
+        (Replaces::Dies { to }, Outcome::IntoLibrary { top }) => {
+            let who = affects_to(to, ctx);
+            let when = if this_turn { " this turn" } else { "" };
+            let place = if *top { "on top" } else { "on the bottom" };
+            format!("If {who} would die{when}, put it {place} of its owner's library instead.")
+        }
         (Replaces::Dies { to }, Outcome::Instead(zone)) => {
             let who = match to {
                 Affects::Target(i) => {

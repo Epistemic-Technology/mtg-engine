@@ -1,0 +1,6 @@
+card "Eerie Procession" {
+  oracle_id 58dde1b0-bb01-4f72-9408-21c0404c1cfd
+  cost {2}{U}
+  type Sorcery — Arcane
+  spell: search Arcane card reveal to hand that card
+}

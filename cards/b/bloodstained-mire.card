@@ -1,0 +1,5 @@
+card "Bloodstained Mire" {
+  oracle_id fc0707c7-d504-4ccf-a0d2-3eb6e26e7a57
+  type Land
+  activated {T}, pay 1 life, sacrifice this: search Swamp or Mountain card to battlefield
+}

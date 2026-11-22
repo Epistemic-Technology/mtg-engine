@@ -1,0 +1,7 @@
+card "Nissa's Chosen" {
+  oracle_id d14c9d2b-41c7-4c9a-a66a-cda34d29c7ba
+  cost {G}{G}
+  type Creature — Elf Warrior
+  pt 2/3
+  replace this dies: library bottom
+}

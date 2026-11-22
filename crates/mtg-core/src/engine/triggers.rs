@@ -304,11 +304,15 @@ impl GameState {
                 continue;
             }
             let source = dt.ability.source;
+            // CR 603.7: once created, a delayed trigger doesn't depend on
+            // its source: a copy of a spell that made it (a prepared
+            // permanent's spell, CR 722.3c) has ceased to exist and left
+            // no last known information, so its printed values stand in.
             let chars = match self.objects.get(source) {
                 Some(o) => self.base_characteristics(o),
                 None => match self.lki.get(&source) {
                     Some(l) => l.characteristics,
-                    None => continue,
+                    None => self.printed(dt.ability.def),
                 },
             };
             let w = Watcher {

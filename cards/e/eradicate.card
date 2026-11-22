@@ -1,0 +1,6 @@
+card "Eradicate" {
+  oracle_id 782ff740-ff43-4c07-af0b-433cb9770661
+  cost {2}{B}{B}
+  type Sorcery
+  spell: exile target nonblack creature; exile same name as target 1 from its controller zones
+}

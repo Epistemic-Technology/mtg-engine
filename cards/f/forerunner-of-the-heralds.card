@@ -1,0 +1,8 @@
+card "Forerunner of the Heralds" {
+  oracle_id 56e2bdcf-d1d8-4c56-af3a-388cd42353e6
+  cost {3}{G}
+  type Creature — Merfolk Scout
+  pt 3/2
+  triggered when this enters: you may search Merfolk card reveal to top that card
+  triggered whenever other Merfolk you control enters: put 1 +1/+1 counters on this
+}

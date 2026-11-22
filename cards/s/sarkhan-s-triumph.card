@@ -1,0 +1,6 @@
+card "Sarkhan's Triumph" {
+  oracle_id c4f7cdb7-aef9-4ab8-995b-4e5180d47214
+  cost {2}{R}
+  type Instant
+  spell: search Dragon creature card reveal to hand
+}

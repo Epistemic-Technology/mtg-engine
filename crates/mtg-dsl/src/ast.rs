@@ -1061,6 +1061,9 @@ pub enum SameRef {
     /// "two target nonland permanents that share a card type" (each
     /// shares one with the first).
     ShareCardType,
+    /// `that share creature type`: "that share a creature type" (with the
+    /// first target).
+    ShareCreatureType,
     /// `with lesser power`: "with lesser power" (than the source's power,
     /// as it is or last existed; mentor, CR 702.134a).
     LesserPower,
@@ -3697,6 +3700,13 @@ pub enum Effect {
     FaceDownSpellsLess(u32),
     TapOrUntap {
         to: Recipient,
+    },
+    /// `exile same name as target 1 from its controller zones`: "Search its
+    /// controller's graveyard, hand, and library for all cards with the
+    /// same name as that spell and exile them. Then that player
+    /// shuffles."
+    ExileSameName {
+        what: Recipient,
     },
     /// `turn face up target face-down creature opponent controls` (CR
     /// 708.8): "Turn target face-down creature an opponent controls face

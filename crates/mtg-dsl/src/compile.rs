@@ -1637,7 +1637,10 @@ impl Compiler<'_> {
             // source.
             relation: match f.same {
                 Some(
-                    SameRef::SameNameAs(_) | SameRef::SharesColorWith(_) | SameRef::ShareCardType,
+                    SameRef::SameNameAs(_)
+                    | SameRef::SharesColorWith(_)
+                    | SameRef::ShareCardType
+                    | SameRef::ShareCreatureType,
                 ) => Relation::Any,
                 _ => f.relation,
             },
@@ -1662,6 +1665,10 @@ impl Compiler<'_> {
                     SameRef::ShareCardType => Same {
                         of: target(0),
                         what: SameWhat::SharesType,
+                    },
+                    SameRef::ShareCreatureType => Same {
+                        of: target(0),
+                        what: SameWhat::SharesCreatureType,
                     },
                     SameRef::SharesColorWith(n) => Same {
                         of: target(n),
@@ -3053,6 +3060,9 @@ impl Compiler<'_> {
                 out.push(CoreEffect::Sacrifice { what: r(*what) });
             }
             Effect::TapOrUntap { to } => out.push(CoreEffect::TapOrUntap { to: r(*to) }),
+            Effect::ExileSameName { what } => {
+                out.push(CoreEffect::ExileSameName { what: r(*what) });
+            }
             Effect::NextSpellLess(n) => out.push(CoreEffect::NextSpellLess(*n)),
             Effect::ExtraLandPlays(n) => out.push(CoreEffect::ExtraLandPlays(*n)),
             Effect::FaceDownSpellsLess(n) => out.push(CoreEffect::FaceDownSpellsLess(*n)),

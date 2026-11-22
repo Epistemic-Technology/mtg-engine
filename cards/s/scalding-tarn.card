@@ -1,0 +1,5 @@
+card "Scalding Tarn" {
+  oracle_id cb027150-848c-4a66-88ad-e20222304dd8
+  type Land
+  activated {T}, pay 1 life, sacrifice this: search Island or Mountain card to battlefield
+}

@@ -1514,6 +1514,10 @@ impl Fmt {
             ),
             Effect::Tap { to } => format!("tap {}", self.recipients(to, t)),
             Effect::TapOrUntap { to } => format!("tap or untap {}", self.recipient(*to, t)),
+            Effect::ExileSameName { what } => format!(
+                "exile same name as {} from its controller zones",
+                self.recipient(*what, t)
+            ),
             Effect::NextSpellLess(n) => format!("next spell costs {{{n}}} less"),
             Effect::ExtraLandPlays(1) => "play additional land this turn".to_string(),
             Effect::ExtraLandPlays(n) => format!("play {n} additional land this turn"),
@@ -2517,6 +2521,10 @@ impl Fmt {
                     ChooseAct::Bounce => format!("return {n} {f} to hand chosen"),
                     ChooseAct::Discard if unfiltered => format!("discard {n} {cs} chosen"),
                     ChooseAct::Discard => format!("discard {n} {f} {cs} chosen"),
+                    ChooseAct::RevealFromHand if unfiltered => {
+                        format!("reveal {n} {cs} in hand chosen")
+                    }
+                    ChooseAct::RevealFromHand => format!("reveal {n} {f} {cs} in hand chosen"),
                     // "put a card from your hand": no filter, no word for it.
                     ChooseAct::HandToBottom if unfiltered => {
                         format!("put {n} {cs} from hand on bottom of library chosen")
@@ -2547,6 +2555,14 @@ impl Fmt {
                                 filter(&rest)
                             )
                         }
+                    }
+                    // "return two cards at random from your graveyard": no
+                    // filter.
+                    ChooseAct::ReturnFromGraveyard if unfiltered => {
+                        format!("return {n} {cs} from your graveyard to hand chosen")
+                    }
+                    ChooseAct::ReturnRandomFromGraveyard if unfiltered => {
+                        format!("return {n} {cs} from your graveyard to hand at random")
                     }
                     ChooseAct::ReturnFromGraveyard => {
                         format!("return {n} {f} {cs} from your graveyard to hand chosen")
@@ -3212,6 +3228,8 @@ fn outcome(o: &Outcome) -> String {
         }
         Outcome::PlusCount(n) => format!("plus {}", num(*n)),
         Outcome::Instead(mtg_core::state::Zone::Hand) => "hand".to_string(),
+        Outcome::IntoLibrary { top: true } => "library top".to_string(),
+        Outcome::IntoLibrary { top: false } => "library bottom".to_string(),
         Outcome::Instead(_) => "exile".to_string(),
         Outcome::DrawTwo => "draw two".to_string(),
         Outcome::WinGame => "win".to_string(),
@@ -3268,13 +3286,22 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     };
     // "target card named this from your graveyard"; "creature card with
     // mana value at most this power".
+    // `2 target creature that share creature type card`: part of the
+    // filter, before `card`.
+    let shares = matches!(
+        f.same,
+        Some(crate::ast::SameRef::ShareCreatureType | crate::ast::SameRef::ShareCardType)
+    );
     let named = match f.same {
+        _ if shares => "",
         Some(crate::ast::SameRef::ManaValueAtMostPower) => " with mana value at most this power",
         Some(_) => " named this",
         None => "",
     };
     let mut g = f.clone();
-    g.same = None;
+    if !shares {
+        g.same = None;
+    }
     g.that_player = None;
     // "creature card with mana value X or less": the mana value after the
     // noun.
@@ -3736,6 +3763,7 @@ pub fn same_ref(r: crate::ast::SameRef) -> String {
         SameRef::SameNameAs(n) => format!("with same name as target {}", n + 1),
         SameRef::SharesColorWith(n) => format!("that shares color with target {}", n + 1),
         SameRef::ShareCardType => "that share card type".to_string(),
+        SameRef::ShareCreatureType => "that share creature type".to_string(),
         SameRef::LesserPower => "with lesser power".to_string(),
         SameRef::ManaValueAtMostPower => "with mana value at most this power".to_string(),
     }

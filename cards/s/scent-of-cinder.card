@@ -1,0 +1,6 @@
+card "Scent of Cinder" {
+  oracle_id ff50d002-834e-4b5e-8db0-b0c8b4efb21f
+  cost {1}{R}
+  type Sorcery
+  spell: reveal any number red card in hand chosen; deal count where revealed this way damage to any target
+}

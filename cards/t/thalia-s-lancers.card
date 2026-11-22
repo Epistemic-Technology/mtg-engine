@@ -1,0 +1,8 @@
+card "Thalia's Lancers" {
+  oracle_id 58b349ec-9987-4832-a8f3-8e92027ea75b
+  cost {3}{W}{W}
+  type Creature — Human Knight
+  pt 4/4
+  keywords first strike
+  triggered when this enters: you may search legendary card reveal to hand
+}

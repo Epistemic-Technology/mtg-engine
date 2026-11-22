@@ -1,0 +1,7 @@
+card "Treasure Mage" {
+  oracle_id 0848bb49-5758-41d6-a3e8-0c62e1768f52
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this enters: you may search artifact card with mana value 6 or greater reveal to hand
+}

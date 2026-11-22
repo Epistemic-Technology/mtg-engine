@@ -1,0 +1,6 @@
+card "Eladamri's Call" {
+  oracle_id 4acb6612-54e8-428d-acb6-c7259a5ad6a8
+  cost {G}{W}
+  type Instant
+  spell: search creature card reveal to hand that card
+}

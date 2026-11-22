@@ -1,0 +1,728 @@
+# Graveyard, library, hand, and exile forms from the zones branch of the
+# seventh wave.
+
+# "If this creature would die, put it on top of its owner's library
+# instead." (Gravebane Zombie) and "on the bottom" (Nissa's Chosen): a
+# replacement of the zone change (CR 614.1a, 700.4).
+
+scenario "dies to library: Gravebane Zombie goes on top of its owner's library" {
+  battlefield A: "Gravebane Zombie"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  library A: "Island", "Forest"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Gravebane Zombie"
+  run_to turn 3 precombat_main
+  assert graveyard A lacks "Gravebane Zombie"
+  assert hand A contains "Gravebane Zombie"
+  assert hand A lacks "Island"
+}
+
+scenario "dies to library: Nissa's Chosen goes on the bottom" {
+  battlefield A: "Nissa's Chosen"
+  battlefield B: "Swamp", "Swamp", "Swamp"
+  hand B: "Murder"
+  library A: "Island", "Forest"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Nissa's Chosen"
+  run_to turn 3 precombat_main
+  assert graveyard A lacks "Nissa's Chosen"
+  assert hand A contains "Island"
+  assert hand A lacks "Nissa's Chosen"
+  assert library A contains "Nissa's Chosen"
+  assert library A count 2
+}
+
+scenario "dies to library: sacrificed, it is put on top too" {
+  battlefield A: "Gravebane Zombie", "Cartel Aristocrat"
+  library A: "Island", "Forest"
+  turn 1 A: activate "Cartel Aristocrat" sacrificing "Gravebane Zombie"
+  run_to turn 1 end
+  assert graveyard A lacks "Gravebane Zombie"
+  assert library A count 3
+}
+
+scenario "dies to library: exiled, it is not dying, so it stays in exile" {
+  battlefield A: "Plains", "Plains", "Plains", "Plains", "Plains"
+  battlefield B: "Gravebane Zombie"
+  hand A: "Banish from Edoras"
+  turn 1 A: cast "Banish from Edoras" targeting "Gravebane Zombie"
+  run_to turn 1 end
+  assert exile B contains "Gravebane Zombie"
+}
+
+# "Reveal any number of green cards in your hand." (CR 701.20a): chosen as
+# the spell resolves; the cards stay in the hand, known to every player,
+# and "cards revealed this way" counts them.
+
+scenario "reveal from hand: Scent of Ivy counts the green cards revealed" {
+  battlefield A: "Forest", "Grizzly Bears"
+  hand A: "Scent of Ivy", "Giant Growth", "Grizzly Bears", "Serra Angel"
+  turn 1 A: cast "Scent of Ivy" targeting A "Grizzly Bears"
+  turn 1 A: choose "Giant Growth"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert hand A contains "Giant Growth"
+  assert hand A contains "Grizzly Bears"
+  assert known B "Giant Growth"
+  assert unknown B "Serra Angel"
+}
+
+scenario "reveal from hand: only cards of the color are offered" {
+  battlefield A: "Plains"
+  hand A: "Scent of Jasmine", "Serra Angel", "Grizzly Bears"
+  turn 1 A: cast "Scent of Jasmine"
+  illegal turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 22
+}
+
+scenario "reveal from hand: revealing nothing counts zero" {
+  battlefield A: "Plains"
+  hand A: "Scent of Jasmine", "Serra Angel"
+  turn 1 A: cast "Scent of Jasmine"
+  turn 1 A: choose done
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "reveal from hand: Scent of Cinder deals X damage" {
+  battlefield A: "Mountain", "Mountain"
+  hand A: "Scent of Cinder", "Lightning Bolt", "Shock"
+  turn 1 A: cast "Scent of Cinder" targeting player B
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand A count 2
+}
+
+scenario "reveal from hand: Scent of Brine counters unless {1} per card revealed is paid" {
+  battlefield A: "Island", "Island"
+  battlefield B: "Mountain", "Mountain"
+  hand A: "Scent of Brine", "Wind Drake", "Divination"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: cast "Scent of Brine" targeting "Lightning Bolt"
+  turn 2 A: choose "Wind Drake"
+  turn 2 A: choose "Divination"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Lightning Bolt"
+}
+
+scenario "reveal from hand: Scent of Nightshade gives -X/-X" {
+  battlefield A: "Swamp", "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Scent of Nightshade", "Murder"
+  turn 1 A: cast "Scent of Nightshade" targeting "Hill Giant"
+  turn 1 A: choose "Murder"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 2
+  assert toughness "Hill Giant" 2
+}
+
+# Striking Palette, Pigment Wrangler's prepare spell: "When you next cast
+# an instant or sorcery spell this turn, copy that spell." The delayed
+# trigger is made by a copy of the spell (CR 722.3c), which ceases to
+# exist as it resolves; the trigger still fires (CR 603.7).
+
+scenario "Pigment Wrangler: the prepare spell's delayed trigger copies the next instant" {
+  battlefield A: 7 "Mountain"
+  hand A: "Pigment Wrangler", "Lightning Bolt"
+  turn 1 A: cast "Pigment Wrangler"
+  turn 1 main2 A: cast "Striking Palette"
+  turn 1 main2 A: wait
+  turn 1 main2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 14
+}
+
+scenario "Pigment Wrangler: the delayed trigger fires only once" {
+  battlefield A: 8 "Mountain"
+  hand A: "Pigment Wrangler", "Lightning Bolt", "Shock"
+  turn 1 A: cast "Pigment Wrangler"
+  turn 1 main2 A: cast "Striking Palette"
+  turn 1 main2 A: wait
+  turn 1 main2 A: cast "Lightning Bolt" targeting player B
+  turn 1 main2 A: wait
+  turn 1 main2 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 12
+}
+
+# "Then discard two cards unless you discard an artifact card." (CR
+# 608.2d): the player chooses, and may discard two cards although they
+# hold an artifact card (`choose done` declines the artifact).
+
+scenario "Thirst for Knowledge: discard two cards although an artifact could be discarded" {
+  battlefield A: 3 "Island"
+  hand A: "Thirst for Knowledge"
+  library A: "Ornithopter", "Forest", "Plains", "Swamp"
+  turn 1 A: cast "Thirst for Knowledge"
+  turn 1 A: choose done
+  turn 1 precombat_main A: discard "Forest"
+  turn 1 precombat_main A: discard "Plains"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Ornithopter"
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Plains"
+}
+
+scenario "Thirst for Knowledge: the player chooses which artifact card" {
+  battlefield A: 3 "Island"
+  hand A: "Thirst for Knowledge"
+  library A: "Ornithopter", "Forest", "Millstone", "Swamp"
+  turn 1 A: cast "Thirst for Knowledge"
+  turn 1 precombat_main A: discard "Millstone"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Millstone"
+  assert hand A contains "Ornithopter"
+}
+
+# "Search its controller's graveyard, hand, and library for all cards with
+# the same name as that creature and exile them. Then that player
+# shuffles." The name and controller are the target's as it last existed
+# (CR 608.2h).
+
+scenario "same name: Eradicate exiles the creature and every card of its name its controller has" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Eradicate"
+  hand B: "Grizzly Bears", "Shock"
+  graveyard B: "Grizzly Bears"
+  library B: "Forest", "Grizzly Bears", "Island"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: cast "Eradicate" targeting B "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains 4 "Grizzly Bears"
+  assert hand B lacks "Grizzly Bears"
+  assert graveyard B lacks "Grizzly Bears"
+  assert library B lacks "Grizzly Bears"
+  assert library B count 2
+  assert battlefield B contains "Hill Giant"
+  assert hand B contains "Shock"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "same name: Eradicate can't target a black creature" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Typhoid Rats"
+  hand A: "Eradicate"
+  illegal turn 1 A: cast "Eradicate" targeting "Typhoid Rats"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Typhoid Rats"
+}
+
+scenario "same name: Counterbore counters the spell and exiles its copies, the countered card too" {
+  battlefield A: 5 "Island"
+  battlefield B: "Mountain"
+  hand A: "Counterbore"
+  hand B: "Lightning Bolt", "Lightning Bolt"
+  graveyard B: "Lightning Bolt"
+  library B: "Lightning Bolt", "Mountain"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: cast "Counterbore" targeting "Lightning Bolt"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert exile B contains 4 "Lightning Bolt"
+  assert hand B count 0
+  assert library B count 1
+}
+
+scenario "same name: Quash counters an instant and exiles the others" {
+  battlefield A: 4 "Island"
+  battlefield B: 3 "Island"
+  hand A: "Quash"
+  hand B: "Divination", "Divination"
+  start turn 2 B
+  turn 2 B: cast "Divination"
+  turn 2 A: cast "Quash" targeting "Divination"
+  run_to turn 2 postcombat_main
+  assert exile B contains 2 "Divination"
+}
+
+scenario "same name: Sowing Salt exiles a nonbasic land and its copies, not a basic" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Mishra's Factory", "Forest"
+  hand A: "Sowing Salt"
+  library B: "Mishra's Factory", "Forest"
+  turn 1 A: cast "Sowing Salt" targeting "Mishra's Factory"
+  run_to turn 1 postcombat_main
+  assert exile B contains 2 "Mishra's Factory"
+  assert library B count 1
+  assert battlefield B contains "Forest"
+}
+
+scenario "same name: Sowing Salt can't target a basic land" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Forest"
+  hand A: "Sowing Salt"
+  illegal turn 1 A: cast "Sowing Salt" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Forest"
+}
+
+scenario "same name: Scour and Splinter" {
+  battlefield A: 4 "Plains", 4 "Forest"
+  battlefield B: "Pacifism" on "Grizzly Bears", "Grizzly Bears", "Ornithopter"
+  hand A: "Scour", "Splinter"
+  hand B: "Pacifism", "Ornithopter"
+  turn 1 A: cast "Scour" targeting "Pacifism"
+  turn 1 A: wait
+  turn 1 A: cast "Splinter" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert exile B contains 2 "Pacifism"
+  assert exile B contains 2 "Ornithopter"
+  assert hand B count 0
+}
+
+# Dig paragraphs the template author now writes: after another sentence,
+# with "If you didn't put a card into your hand this way, ...", and a
+# filtered take that isn't optional.
+
+scenario "dig: Adventure Awaits takes a creature card" {
+  battlefield A: 2 "Forest"
+  hand A: "Adventure Awaits"
+  library A: "Island", "Grizzly Bears", "Island", "Hill Giant", "Island", "Swamp"
+  turn 1 A: cast "Adventure Awaits"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Hill Giant"
+  assert library A count 5
+}
+
+scenario "dig: Adventure Awaits draws a card when no card was put into the hand" {
+  battlefield A: 2 "Forest"
+  hand A: "Adventure Awaits"
+  library A: "Island", "Island", "Island", "Island", "Island", "Swamp"
+  turn 1 A: cast "Adventure Awaits"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Swamp"
+}
+
+scenario "dig: Rosecot Knight gets a counter only if it took nothing" {
+  battlefield A: 5 "Plains"
+  hand A: "Rosecot Knight"
+  library A: "Island", "Island", "Island", "Island", "Island", "Island", "Forest"
+  turn 1 A: cast "Rosecot Knight"
+  run_to turn 1 postcombat_main
+  assert counters "Rosecot Knight" +1/+1 1
+  assert hand A count 0
+}
+
+scenario "dig: Rosecot Knight takes an enchantment card" {
+  battlefield A: 5 "Plains"
+  hand A: "Rosecot Knight"
+  library A: "Island", "Pacifism", "Island", "Island", "Island", "Island", "Forest"
+  turn 1 A: cast "Rosecot Knight"
+  run_to turn 1 postcombat_main
+  assert counters "Rosecot Knight" +1/+1 0
+  assert hand A contains "Pacifism"
+}
+
+scenario "dig: Inscribed Tablet puts a land card into the hand" {
+  battlefield A: "Inscribed Tablet", "Plains", "Plains"
+  library A: "Shock", "Forest", "Shock", "Shock", "Shock", "Island"
+  turn 1 A: activate "Inscribed Tablet"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Forest"
+  assert graveyard A contains "Inscribed Tablet"
+}
+
+scenario "dig: Inscribed Tablet draws when there was no land card" {
+  battlefield A: "Inscribed Tablet", "Plains", "Plains"
+  library A: "Shock", "Shock", "Shock", "Shock", "Shock", "Island"
+  turn 1 A: activate "Inscribed Tablet"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Island"
+}
+
+scenario "dig: Maestros Charm puts one into the hand and the rest into the graveyard" {
+  battlefield A: "Island", "Swamp", "Mountain"
+  hand A: "Maestros Charm"
+  library A: "Shock", "Forest", "Island", "Plains", "Swamp", "Mountain"
+  turn 1 A: cast "Maestros Charm" mode 1
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert graveyard A count 5
+  assert library A count 1
+}
+
+scenario "dig: Memorial to Unity reveals a creature card" {
+  battlefield A: "Memorial to Unity", 3 "Forest"
+  library A: "Island", "Island", "Grizzly Bears", "Island", "Island", "Island"
+  turn 1 A: activate "Memorial to Unity"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Memorial to Unity"
+  assert library A count 5
+}
+
+scenario "dig: Ral's Outburst deals 3 damage, then one card to the hand and the other to the graveyard" {
+  battlefield A: 2 "Island", 2 "Mountain"
+  hand A: "Ral's Outburst"
+  library A: "Shock", "Forest", "Island"
+  turn 1 A: cast "Ral's Outburst" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand A count 1
+  assert graveyard A count 2
+  assert library A count 1
+}
+
+scenario "dig: Reality Heist reveals up to two artifact cards" {
+  battlefield A: 7 "Island"
+  hand A: "Reality Heist"
+  library A: "Ornithopter", "Island", "Millstone", "Island", "Island", "Island", "Island", "Forest"
+  turn 1 A: cast "Reality Heist"
+  turn 1 A: choose "Ornithopter"
+  turn 1 A: choose "Millstone"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert hand A contains "Ornithopter"
+  assert hand A contains "Millstone"
+  assert library A count 6
+}
+
+# "Put target creature card from a graveyard onto the battlefield under
+# your control."
+
+scenario "reanimate: Endless Obedience takes an opponent's creature card" {
+  battlefield A: 6 "Swamp"
+  graveyard B: "Hill Giant"
+  hand A: "Endless Obedience"
+  turn 1 A: cast "Endless Obedience" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert graveyard B lacks "Hill Giant"
+}
+
+scenario "reanimate: Vat Emergence returns a creature card, then proliferates" {
+  battlefield A: 5 "Swamp", "Grizzly Bears" with 1 +1/+1
+  graveyard A: "Hill Giant"
+  hand A: "Vat Emergence"
+  turn 1 A: cast "Vat Emergence" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert counters "Grizzly Bears" +1/+1 2
+}
+
+scenario "reanimate: Demon of Dark Schemes puts it onto the battlefield tapped" {
+  energy A: 4
+  battlefield A: "Demon of Dark Schemes", 3 "Swamp"
+  graveyard B: "Hill Giant"
+  turn 1 A: activate "Demon of Dark Schemes" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert tapped "Hill Giant"
+  assert energy A 0
+}
+
+scenario "reanimate: The Cruelty of Gix read ahead to chapter III" {
+  battlefield A: 5 "Swamp"
+  graveyard B: "Hill Giant"
+  hand A: "The Cruelty of Gix"
+  turn 1 A: cast "The Cruelty of Gix"
+  turn 1 A: choose "3"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A contains "The Cruelty of Gix"
+}
+
+# "Return two target creature cards that share a creature type from your
+# graveyard to your hand." (CR 205.3m; a changeling has every creature
+# type, CR 702.73a).
+
+scenario "share a creature type: Unbury returns two Bears" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Grizzly Bears", "Grizzly Bears", "Hill Giant"
+  hand A: "Unbury"
+  turn 1 A: cast "Unbury" mode 2 targeting oldest "Grizzly Bears", newest "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains 2 "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "share a creature type: a Bear and a Giant can't be chosen together" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Return from Extinction"
+  illegal turn 1 A: cast "Return from Extinction" mode 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "share a creature type: a changeling shares one with a Giant" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Changeling Outcast", "Hill Giant"
+  hand A: "Raise the Draugr"
+  turn 1 A: cast "Raise the Draugr" mode 2 targeting "Changeling Outcast", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Changeling Outcast"
+  assert hand A contains "Hill Giant"
+}
+
+scenario "share a creature type: the first mode returns one creature card" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "Raise the Draugr"
+  turn 1 A: cast "Raise the Draugr" mode 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}
+
+# Graveyard sentences the template author now writes.
+
+scenario "graveyard to top: Academy Ruins puts an artifact card on top of the library" {
+  battlefield A: "Academy Ruins", 2 "Island"
+  graveyard A: "Ornithopter"
+  library A: "Forest", "Island"
+  turn 1 A: activate "Academy Ruins" targeting "Ornithopter"
+  run_to turn 3 precombat_main
+  assert hand A contains "Ornithopter"
+  assert graveyard A lacks "Ornithopter"
+}
+
+scenario "graveyard to top: Academy Ruins can't target a creature card" {
+  battlefield A: "Academy Ruins", 2 "Island"
+  graveyard A: "Grizzly Bears"
+  illegal turn 1 A: activate "Academy Ruins" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "graveyard to top: Hall of Heliod's Generosity puts an enchantment card on top" {
+  battlefield A: "Hall of Heliod's Generosity", 2 "Plains"
+  graveyard A: "Pacifism"
+  library A: "Forest", "Island"
+  turn 1 A: activate "Hall of Heliod's Generosity" targeting "Pacifism"
+  run_to turn 3 precombat_main
+  assert hand A contains "Pacifism"
+}
+
+scenario "graveyard to top: Arcbound Reclaimer removes a counter to put an artifact card on top" {
+  battlefield A: "Arcbound Reclaimer" with 2 +1/+1
+  graveyard A: "Ornithopter"
+  library A: "Forest", "Island"
+  turn 1 A: activate "Arcbound Reclaimer" targeting "Ornithopter"
+  run_to turn 1 end
+  assert counters "Arcbound Reclaimer" +1/+1 1
+  assert library A contains "Ornithopter"
+  assert graveyard A lacks "Ornithopter"
+}
+
+scenario "random from graveyard: Make a Wish returns two cards" {
+  battlefield A: 4 "Forest"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Shock"
+  hand A: "Make a Wish"
+  turn 1 A: cast "Make a Wish"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A count 2
+}
+
+scenario "random from graveyard: Reap the Past returns X cards and exiles itself" {
+  battlefield A: 2 "Mountain", 2 "Forest"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Shock"
+  hand A: "Reap the Past"
+  turn 1 A: cast "Reap the Past" x 2
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A count 1
+  assert exile A contains "Reap the Past"
+}
+
+scenario "reanimate: Debtors' Knell takes a creature card at the beginning of the upkeep" {
+  battlefield A: "Debtors' Knell"
+  graveyard B: "Hill Giant"
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "reanimate: The Eldest Reborn's chapter III" {
+  battlefield A: "The Eldest Reborn" with 2 lore
+  graveyard B: "Hill Giant"
+  start turn 3 A
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A contains "The Eldest Reborn"
+}
+
+scenario "reanimate: Junji's second mode" {
+  battlefield A: "Junji, the Midnight Sky"
+  battlefield B: 3 "Swamp"
+  graveyard B: "Hill Giant"
+  hand B: "Murder"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Junji, the Midnight Sky"
+  turn 2 A: trigger "Junji, the Midnight Sky" mode 2 targeting "Hill Giant"
+  run_to turn 2 end
+  assert battlefield A contains "Hill Giant"
+  assert life A 18
+}
+
+scenario "reanimate: Teneb pays {2}{B} after combat damage" {
+  battlefield A: "Teneb, the Harvester", 3 "Swamp"
+  graveyard B: "Hill Giant"
+  turn 1 A: attack "Teneb, the Harvester"
+  turn 1 A: trigger "Teneb, the Harvester" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert battlefield A contains "Hill Giant"
+}
+
+# Impulse wordings the template author now writes.
+
+scenario "impulse: Opera Love Song's cards are played until the next end step" {
+  battlefield A: 2 "Mountain", 2 "Forest"
+  hand A: "Opera Love Song"
+  library A: "Grizzly Bears", "Mountain", "Island", "Island"
+  turn 1 A: cast "Opera Love Song" mode 1
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: play "Mountain"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains 3 "Mountain"
+}
+
+scenario "impulse: Opera Love Song's permission ends at the next end step" {
+  battlefield A: 2 "Mountain", 2 "Forest"
+  hand A: "Opera Love Song"
+  library A: "Grizzly Bears", "Mountain", "Island", "Island", "Island"
+  turn 1 A: cast "Opera Love Song" mode 1
+  illegal turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 end
+  assert exile A contains "Grizzly Bears"
+}
+
+scenario "impulse: Escape to the Wilds lasts through the next turn, with a land play more" {
+  battlefield A: 3 "Mountain", 2 "Forest"
+  hand A: "Escape to the Wilds", "Forest"
+  library A: "Mountain", "Grizzly Bears", "Island", "Island", "Island", "Island", "Island"
+  turn 1 A: cast "Escape to the Wilds"
+  turn 1 A: wait
+  turn 1 A: play "Forest"
+  turn 1 A: play "Mountain"
+  turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 end
+  assert battlefield A contains 4 "Mountain"
+  assert battlefield A contains 3 "Forest"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+# "Reveal cards from the top of your library until you reveal an artifact
+# card. Put that card onto the battlefield and the rest on the bottom of
+# your library in a random order."
+
+scenario "reveal until: Identity Echo exiles a creature and finds a creature card" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  library A: "Island", "Hill Giant", "Forest"
+  battlefield A: "Identity Echo"
+  turn 1 A: activate "Identity Echo" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert library A count 2
+}
+
+scenario "reveal until: Recross the Paths finds a land" {
+  battlefield A: 3 "Forest"
+  hand A: "Recross the Paths"
+  library A: "Shock", "Plains", "Island"
+  library B: "Island"
+  turn 1 A: cast "Recross the Paths"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Plains"
+}
+
+# "When this creature dies, put target creature card from your graveyard
+# on top of your library."
+
+scenario "graveyard to top: Golgari Thug puts a creature card on top as it dies" {
+  battlefield A: "Golgari Thug"
+  battlefield B: "Mountain"
+  graveyard A: "Hill Giant"
+  hand B: "Shock"
+  library A: "Island", "Island"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Golgari Thug"
+  turn 2 A: trigger "Golgari Thug" targeting "Hill Giant"
+  run_to turn 3 precombat_main
+  assert hand A contains "Hill Giant"
+}
+
+# "Return target creature card from your graveyard to the battlefield
+# with a lifelink counter on it." (CR 122.1b)
+
+scenario "reanimate with a counter: Unbreakable Bond" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "Unbreakable Bond"
+  turn 1 A: cast "Unbreakable Bond" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert counters "Hill Giant" lifelink 1
+  assert has "Hill Giant" lifelink
+}
+
+scenario "reanimate with a counter: Graceful Restoration's first mode" {
+  battlefield A: 3 "Plains", 2 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "Graceful Restoration"
+  turn 1 A: cast "Graceful Restoration" mode 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 1
+  assert power "Hill Giant" 4
+}
+
+scenario "reanimate: Graceful Restoration's second mode returns two creature cards with power 2 or less" {
+  battlefield A: 3 "Plains", 2 "Swamp"
+  graveyard A: "Grizzly Bears", "Typhoid Rats", "Hill Giant"
+  hand A: "Graceful Restoration"
+  turn 1 A: cast "Graceful Restoration" mode 2 targeting "Grizzly Bears", "Typhoid Rats"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Typhoid Rats"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "reanimate: Graceful Restoration's second mode can't take power 3" {
+  battlefield A: 3 "Plains", 2 "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Graceful Restoration"
+  illegal turn 1 A: cast "Graceful Restoration" mode 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+}
+
+# "Search your library for up to two basic land cards, reveal them, put
+# one onto the battlefield tapped and the other into your hand, then
+# shuffle."
+
+scenario "search: Troop of Ponies puts one land onto the battlefield tapped and the other into the hand" {
+  battlefield A: "Troop of Ponies", 2 "Plains"
+  library A: "Forest", "Island", "Shock"
+  turn 1 A: activate "Troop of Ponies"
+  turn 1 A: choose "Forest"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Troop of Ponies"
+  assert library A count 1
+  assert hand A count 1
+  assert battlefield A contains "Forest"
+  assert tapped "Forest"
+  assert hand A contains "Island"
+}

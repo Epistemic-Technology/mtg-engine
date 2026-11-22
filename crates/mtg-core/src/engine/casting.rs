@@ -1528,7 +1528,7 @@ impl GameState {
                         && self.status_ok(filter, *id)
                 })
                 .collect(),
-            ChooseAct::Discard | ChooseAct::HandToBottom => self
+            ChooseAct::Discard | ChooseAct::HandToBottom | ChooseAct::RevealFromHand => self
                 .player(p)
                 .hand
                 .iter()
@@ -1706,6 +1706,12 @@ impl GameState {
                 ChooseAct::Untap => self.untap(id),
                 ChooseAct::Sacrifice => self.sacrifice(id),
                 ChooseAct::Discard => self.discard_card(p, id),
+                // CR 701.20a: revealed where it is, for "cards revealed
+                // this way".
+                ChooseAct::RevealFromHand => {
+                    self.reveal_in_library(id);
+                    ctx.revealed.push(id);
+                }
                 ChooseAct::HandToBottom => {
                     self.move_object(id, Zone::Library, false);
                 }
@@ -5637,10 +5643,10 @@ impl GameState {
         // earlier target too.
         let shares = matches!(
             self.pool.base_spec(spec),
-            TargetSpec::Filtered(f) if matches!(
+            TargetSpec::Filtered(f) | TargetSpec::GraveyardCard { filter: f, .. } if matches!(
                 self.pool.filter(f).same,
                 Some(crate::card::Same {
-                    what: crate::card::SameWhat::SharesType,
+                    what: crate::card::SameWhat::SharesType | crate::card::SameWhat::SharesCreatureType,
                     ..
                 })
             )
@@ -10286,6 +10292,41 @@ impl GameState {
                 let i = ctx.controller.index().min(3);
                 self.next_spell_less[i] =
                     self.next_spell_less[i].saturating_add(u16::try_from(*n).unwrap_or(u16::MAX));
+            }
+            Effect::ExileSameName { what } => {
+                for t in self.recipients(ctx, *what) {
+                    let Target::Object(id) = t else {
+                        continue;
+                    };
+                    // As it last existed (CR 608.2h): a countered spell or
+                    // an exiled permanent has moved since.
+                    let Some((owner_ctl, def)) = self
+                        .objects
+                        .get(id)
+                        .map(|o| (o.controller, o.def))
+                        .or_else(|| {
+                            self.lki
+                                .get(&id)
+                                .map(|l| (l.object.controller, l.object.def))
+                        })
+                    else {
+                        continue;
+                    };
+                    let name = self.pool.get(def).name.clone();
+                    let ps = self.player(owner_ctl);
+                    let cards: Vec<ObjId> = ps
+                        .graveyard
+                        .iter()
+                        .chain(ps.hand.iter())
+                        .chain(ps.library.iter())
+                        .copied()
+                        .filter(|c| self.pool.get(self.objects[*c].def).name == name)
+                        .collect();
+                    for c in cards {
+                        self.move_object(c, Zone::Exile, true);
+                    }
+                    self.shuffle_library(owner_ctl);
+                }
             }
             Effect::TapOrUntap { to } => {
                 for t in self.recipients(ctx, *to) {

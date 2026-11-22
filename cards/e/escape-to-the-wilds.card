@@ -1,0 +1,9 @@
+card "Escape to the Wilds" {
+  oracle_id 45a8c126-5396-4736-a37e-460a50706a98
+  cost {3}{R}{G}
+  type Sorcery
+  spell {
+    impulse 5 next turn this way
+    play additional land this turn
+  }
+}

@@ -1420,6 +1420,10 @@ pub enum SameWhat {
     /// Shares a card type (CR 205.2a: "two target permanents that share a
     /// card type").
     SharesType,
+    /// Shares a creature type (CR 205.3m; a changeling has every one, CR
+    /// 702.73a): "two target creature cards that share a creature type".
+    /// Only a relation between targets (`GameState::that_player_ok`).
+    SharesCreatureType,
 }
 
 /// What a spell must target ("that targets a creature", "that targets you
@@ -1580,6 +1584,8 @@ impl ObjFilter {
                 f.named = Some((CardRef(u32::MAX), true));
             }
             SameWhat::SharesType => f.any_types = types,
+            // Judged against the other target (`that_player_ok`).
+            SameWhat::SharesCreatureType => {}
         }
         f
     }
@@ -4065,6 +4071,15 @@ pub enum Effect {
     TapOrUntap {
         to: Recipient,
     },
+    /// "Search its controller's graveyard, hand, and library for all
+    /// cards with the same name as that spell and exile them. Then that
+    /// player shuffles." (Counterbore, Eradicate): the object's controller
+    /// and name as it last existed (CR 608.2h); every card of that name
+    /// in those zones is exiled (CR 701.19b lets a searcher fail to find
+    /// them; the engine finds them all), then that library is shuffled.
+    ExileSameName {
+        what: Recipient,
+    },
     Untap {
         to: Recipient,
     },
@@ -5347,6 +5362,10 @@ pub enum ChooseAct {
     /// graveyard" (a processor, CR 400.3: to its owner's graveyard): cards
     /// in exile whose owner the filter's `who` names.
     ExileToGraveyard,
+    /// "Reveal any number of green cards in your hand" (CR 701.20a): cards
+    /// in your hand, revealed where they are; "cards revealed this way"
+    /// (`ThisWay::Revealed`) counts them.
+    RevealFromHand,
 }
 
 /// What a player chooses as a permanent enters ("As this land enters,
@@ -5604,6 +5623,10 @@ pub enum Replacement {
     /// Reveal the card and shuffle it into its owner's library instead
     /// (Darksteel Colossus).
     ShuffleIntoLibrary,
+    /// Put the card on top (`top`) or the bottom of its owner's library
+    /// instead ("If this creature would die, put it on top of its owner's
+    /// library instead.", Gravebane Zombie; Nissa's Chosen).
+    IntoLibrary { top: bool },
     /// Draw two cards instead of one.
     DrawTwo,
     /// The player wins the game instead.

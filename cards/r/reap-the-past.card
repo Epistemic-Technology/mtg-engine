@@ -1,0 +1,6 @@
+card "Reap the Past" {
+  oracle_id 27bc0219-3fc1-4c84-92cc-da2273a5fd16
+  cost {X}{R}{G}
+  type Sorcery
+  spell: return X card from your graveyard to hand at random; exile this
+}

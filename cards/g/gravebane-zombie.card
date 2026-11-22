@@ -1,0 +1,7 @@
+card "Gravebane Zombie" {
+  oracle_id d04a836b-7e42-424d-9600-42a40d0dfccd
+  cost {3}{B}
+  type Creature — Zombie
+  pt 3/2
+  replace this dies: library top
+}

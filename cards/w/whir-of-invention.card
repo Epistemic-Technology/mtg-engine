@@ -1,0 +1,7 @@
+card "Whir of Invention" {
+  oracle_id 152b91c9-cc07-4ca8-944f-9bc2242a2283
+  cost {X}{U}{U}{U}
+  type Instant
+  keywords improvise
+  spell: search artifact card with mana value X or less to battlefield
+}

@@ -1,0 +1,6 @@
+card "Scour" {
+  oracle_id f18622da-81f3-4854-a1bb-8d658751d8db
+  cost {2}{W}{W}
+  type Instant
+  spell: exile target enchantment; exile same name as target 1 from its controller zones
+}

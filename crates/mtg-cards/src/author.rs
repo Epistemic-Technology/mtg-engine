@@ -654,6 +654,249 @@ const NUMBER_WORDS: [&str; 20] = [
 ];
 
 /// "two" → "2", "a" → "1", "X" → "X", digits unchanged.
+/// "X, where X is ..." for a dig's count: `count where <expr>`.
+fn x_count(s: &str) -> Option<String> {
+    if let Some(rest) = s.strip_prefix("the number of ") {
+        return count_expr(rest).map(|e| format!("count where {e}"));
+    }
+    match s {
+        "this creature's power" | "~'s power" | "its power" => {
+            Some("count where power".to_string())
+        }
+        "your life total" => Some("count where life".to_string()),
+        _ => None,
+    }
+}
+
+/// What a dig takes: "a creature card with mana value 4 or less", "up to
+/// two artifact cards", "any number of creature and/or land cards", "a
+/// creature card and/or a land card" as `take`'s count and filter
+/// (`take 2 artifact card`, `take creature with mana value 4 or less
+/// card`).
+fn dig_what(s: &str) -> Option<(String, String)> {
+    let plural = |r: &str| -> Option<String> {
+        let (a, b) = r.split_once(" cards")?;
+        let a = a.replace(" and/or ", " or ");
+        Some(format!("{a}{b} card").trim().to_string())
+    };
+    if let Some(r) = s.strip_prefix("any number of ") {
+        return Some(("any ".to_string(), plural(r)?));
+    }
+    if let Some(r) = s.strip_prefix("up to ") {
+        let (k, r) = r.split_once(' ')?;
+        let k = number(k)?;
+        return Some((format!("{k} "), plural(r)?));
+    }
+    let r = s.strip_prefix("an ").or_else(|| s.strip_prefix("a "))?;
+    // "a creature card and/or a land card".
+    if let Some((x, y)) = r.split_once(" card and/or ") {
+        let y = y.strip_prefix("an ").or_else(|| y.strip_prefix("a "))?;
+        let y = y.strip_suffix(" card")?;
+        if x.contains(',') || y.contains(',') {
+            return None;
+        }
+        return Some((String::new(), format!("{x} card and {y} card")));
+    }
+    if r == "card" {
+        return Some((String::new(), "card".to_string()));
+    }
+    let (a, b) = r.split_once(" card")?;
+    if a.contains(',') {
+        return None;
+    }
+    Some((String::new(), format!("{a}{b} card").trim().to_string()))
+}
+
+/// Where a dig puts the rest: `bottom`, `bottom random`, `graveyard`.
+fn dig_rest(s: &str) -> Option<&'static str> {
+    match s {
+        "on the bottom of your library in a random order" => Some("bottom random"),
+        "on the bottom of your library in any order" | "on the bottom of your library" => {
+            Some("bottom")
+        }
+        "into your graveyard" => Some("graveyard"),
+        _ => None,
+    }
+}
+
+/// The dig paragraphs the fixed templates miss: "Look at the top X cards
+/// of your library, where X is ...", "You may reveal a creature card with
+/// mana value 4 or less from among them ...", "You may reveal up to two
+/// artifact cards from among them and put them into your hand", "You may
+/// put any number of ... onto the battlefield", "Then put the rest ...".
+/// Returns the dig and the sentences after it.
+#[allow(clippy::too_many_lines)] // one arm per dig wording
+fn dig_general(text: &str) -> Option<(String, String)> {
+    // "Reveal cards from the top of your library until you reveal a
+    // creature card. Put that card into your hand and the rest on the
+    // bottom of your library in a random order."
+    if let Some(c) = Regex::new(
+        r"^Reveal cards from the top of your library until you reveal an? (.+?) card\. Put that card (into your hand|onto the battlefield(?: tapped)?) and the rest on the bottom of your library in (a random|any) order\.?\s*(.*)$",
+    )
+    .unwrap()
+    .captures(text)
+    {
+        let filter = cap(&c, 1);
+        if filter.contains(',') {
+            return None;
+        }
+        let to = match cap(&c, 2) {
+            "into your hand" => "into hand",
+            "onto the battlefield" => "onto battlefield",
+            _ => "onto battlefield tapped",
+        };
+        let random = if cap(&c, 3) == "a random" { " random" } else { "" };
+        // "the number of cards revealed this way" after the card was put
+        // somewhere would miss it (Madcap Experiment).
+        if cap(&c, 4).contains("revealed this way") {
+            return None;
+        }
+        return Some((
+            format!(
+                "reveal until {filter} card; put that card {to} and the rest on bottom of library{random}"
+            ),
+            cap(&c, 4).to_string(),
+        ));
+    }
+    let head = Regex::new(
+        r"^(Look at|Reveal) the top (\w+) cards of your library(?:, where X is ([^.]+?))?\. (.+)$",
+    )
+    .unwrap();
+    let c = head.captures(text)?;
+    let n = match (cap(&c, 2), c.get(3)) {
+        ("X", Some(x)) => x_count(x.as_str())?,
+        (_, Some(_)) => return None,
+        (w, None) => number(w)?,
+    };
+    let reveal_top = if cap(&c, 1) == "Reveal" {
+        " reveal"
+    } else {
+        ""
+    };
+    let body = cap(&c, 4);
+    // A filter's "mana value X" is the spell's X (CR 107.3), not a count
+    // the dig names ("where X is the number of creature cards in your
+    // graveyard", Hatchery Spider).
+    if c.get(3).is_some() && body.contains(" X ") {
+        return None;
+    }
+    let reveal = Regex::new(
+        r"^You may reveal (.+?) from among them and put (it|that card|them) into your hand\. (Then put|Put) the rest (.+?)\.\s*(.*)$",
+    )
+    .unwrap();
+    let put_hand = Regex::new(
+        r"^You may put (.+?) from among them into your hand\. Put the rest (.+?)\.\s*(.*)$",
+    )
+    .unwrap();
+    let onto = Regex::new(
+        r"^You may put (.+?) from among them onto the battlefield( tapped)?\. Put the rest (.+?)\.\s*(.*)$",
+    )
+    .unwrap();
+    let one = Regex::new(
+        r"^Put one of (them|those cards) into your hand and the (?:rest|other) (.+?)\.\s*(.*)$",
+    )
+    .unwrap();
+    let several = Regex::new(
+        r"^Put (up to )?(two|three) of (them|those cards) into your hand and the rest (.+?)\.\s*(.*)$",
+    )
+    .unwrap();
+    if let Some(c) = reveal.captures(body) {
+        let (take, what) = dig_what(cap(&c, 1))?;
+        let several = !take.is_empty() || what.contains(" and ");
+        // `revealing that card` prints "that card", or "them" for several.
+        let that = match (cap(&c, 2), several) {
+            ("it", false) => "",
+            ("them", true) | ("that card", false) => " that card",
+            _ => return None,
+        };
+        let reword = if cap(&c, 3) == "Then put" {
+            " reword"
+        } else {
+            ""
+        };
+        let rest = dig_rest(cap(&c, 4))?;
+        return Some((
+            format!(
+                "dig {n}{reveal_top} take {take}{what} may revealing{that} rest {rest}{reword}"
+            ),
+            cap(&c, 5).to_string(),
+        ));
+    }
+    if let Some(c) = put_hand.captures(body) {
+        let (take, what) = dig_what(cap(&c, 1))?;
+        if !take.is_empty() && take != "any " {
+            return None;
+        }
+        let rest = dig_rest(cap(&c, 2))?;
+        return Some((
+            format!("dig {n}{reveal_top} take {take}{what} may rest {rest}"),
+            cap(&c, 3).to_string(),
+        ));
+    }
+    if let Some(c) = onto.captures(body) {
+        let (take, what) = dig_what(cap(&c, 1))?;
+        let tapped = if c.get(2).is_some() { " tapped" } else { "" };
+        let reword = if take.is_empty() || take == "any " {
+            ""
+        } else {
+            " reword"
+        };
+        let rest = dig_rest(cap(&c, 3))?;
+        return Some((
+            format!(
+                "dig {n}{reveal_top} take {take}{what} may onto battlefield{tapped} rest {rest}{reword}"
+            ),
+            cap(&c, 4).to_string(),
+        ));
+    }
+    // "Put a land card from among them into your hand and the rest ...".
+    if let Some(c) =
+        Regex::new(r"^Put (an? .+?) from among them into your hand and the rest (.+?)\.\s*(.*)$")
+            .unwrap()
+            .captures(body)
+    {
+        let (take, what) = dig_what(cap(&c, 1))?;
+        if !take.is_empty() {
+            return None;
+        }
+        let rest = dig_rest(cap(&c, 2))?;
+        return Some((
+            format!("dig {n}{reveal_top} take {what} rest {rest}"),
+            cap(&c, 3).to_string(),
+        ));
+    }
+    if let Some(c) = one.captures(body) {
+        let reword = if cap(&c, 1) == "those cards" {
+            " reword"
+        } else {
+            ""
+        };
+        let rest = dig_rest(cap(&c, 2))?;
+        return Some((
+            format!("dig {n}{reveal_top} take card rest {rest}{reword}"),
+            cap(&c, 3).to_string(),
+        ));
+    }
+    if let Some(c) = several.captures(body) {
+        let k = number(cap(&c, 2))?;
+        let up_to = c.get(1).is_some();
+        let those = cap(&c, 3) == "those cards";
+        // `reword` prints "two of them"; "up to" is only "of them".
+        let (may, reword) = match (up_to, those) {
+            (true, false) => (" may", ""),
+            (true, true) => return None,
+            (false, true) => ("", ""),
+            (false, false) => ("", " reword"),
+        };
+        let rest = dig_rest(cap(&c, 4))?;
+        return Some((
+            format!("dig {n}{reveal_top} take {k} card{may} rest {rest}{reword}"),
+            cap(&c, 5).to_string(),
+        ));
+    }
+    None
+}
+
 fn number(w: &str) -> Option<String> {
     if w == "X" {
         return Some("X".to_string());
@@ -727,6 +970,10 @@ fn count_expr(s: &str) -> Option<String> {
         // Parley.
         "nonland card revealed this way" => {
             return Some("nonland card revealed this way".to_string());
+        }
+        // "Reveal any number of green cards in your hand."
+        "cards revealed this way" | "card revealed this way" => {
+            return Some("revealed this way".to_string());
         }
         "cards you've discarded this turn" | "card you've discarded this turn" => {
             return Some("discarded this turn".to_string());
@@ -1718,6 +1965,18 @@ impl Templates {
             (r(r"^Draw a card for each (.+)$"), |c, _| {
                 Some(format!("draw count each {} cards", count_expr(cap(c, 1))?))
             }),
+            // CR 701.20a: "Reveal any number of green cards in your hand."
+            (
+                r(
+                    r"^Reveal any number of (white|blue|black|red|green|[A-Z][a-z]+) cards in your hand$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "reveal any number {} card in hand chosen",
+                        cap(c, 1)
+                    ))
+                },
+            ),
             (
                 r(r"^(.+?) sacrifices? (a|an|one|two|three|four|five) (.+?) of their choice$"),
                 |c, t| {
@@ -1775,7 +2034,7 @@ impl Templates {
             }),
             (
                 r(
-                    r"^Search your library for (a|an|up to \S+) (basic land|land|Plains|Island|Swamp|Mountain|Forest|creature|artifact|enchantment|instant|sorcery)? ?cards?, (reveal (?:it|them), )?(?:put (it|them|that card) (into your hand or graveyard|into your hand|into your graveyard|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
+                    r"^Search your library for (a|an|up to \S+) ([A-Za-z][A-Za-z -]*?)? ?cards?( with [^,]+)?, (reveal (?:it|them|that card), )?(?:put (it|them|that card|one) (into your hand or graveyard|into your hand|into your graveyard|onto the battlefield tapped and the other into your hand|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
                 ),
                 |c, _| {
                     let n = cap(c, 1);
@@ -1790,20 +2049,37 @@ impl Templates {
                     if !cap(c, 2).is_empty() {
                         let _ = write!(t, "{} ", cap(c, 2));
                     }
-                    t.push_str("card");
-                    if !cap(c, 3).is_empty() {
+                    // "with power 2 or less": part of the filter, before
+                    // `card`; "with mana value 1 or less" after it.
+                    let with = cap(c, 3);
+                    if with.starts_with(" with power ") || with.starts_with(" with toughness ") {
+                        let _ = write!(t, "{} ", with.trim_start());
+                        t.push_str("card");
+                    } else {
+                        t.push_str("card");
+                        t.push_str(with);
+                    }
+                    if !cap(c, 4).is_empty() {
                         t.push_str(" reveal");
                     }
-                    t.push_str(match cap(c, 5) {
+                    t.push_str(match cap(c, 6) {
                         "into your hand" => " to hand",
                         "into your hand or graveyard" => " to hand or graveyard",
+                        // "put one onto the battlefield tapped and the other
+                        // into your hand" (Cultivate).
+                        "onto the battlefield tapped and the other into your hand" => {
+                            " to battlefield tapped and hand"
+                        }
                         "into your graveyard" => " to graveyard",
                         "onto the battlefield tapped" => " to battlefield tapped",
                         "onto the battlefield" => " to battlefield",
                         _ => " to top",
                     });
                     // "then shuffle and put that card on top".
-                    if cap(c, 4) == "that card" || cap(c, 5).is_empty() {
+                    if cap(c, 5) == "that card"
+                        || cap(c, 4) == "reveal that card, "
+                        || cap(c, 6).is_empty()
+                    {
                         t.push_str(" that card");
                     }
                     Some(t)
@@ -2188,6 +2464,20 @@ impl Templates {
                     Some(format!("exchange control of 2 target {}", cap(c, 1)))
                 },
             ),
+            // CR 205.3m: "Return two target creature cards that share a
+            // creature type from your graveyard to your hand."
+            (
+                r(
+                    r"^Return two target (creature|[A-Z][a-z]+) cards that share a creature type from your graveyard to your hand$",
+                ),
+                |c, t| {
+                    *t += 2;
+                    Some(format!(
+                        "return 2 target {} that share creature type card from your graveyard to hand",
+                        cap(c, 1)
+                    ))
+                },
+            ),
             // CR 205.2a: "two target permanents that share a card type".
             (
                 r(
@@ -2299,6 +2589,91 @@ impl Templates {
                 |c, t| {
                     Some(format!(
                         "return {} to battlefield{}",
+                        recipient(cap(c, 1), t)?,
+                        cap(c, 2)
+                    ))
+                },
+            ),
+            // "... to the battlefield with a lifelink counter on it", "with
+            // an additional +1/+1 counter on it" (CR 122.1b).
+            (
+                r(
+                    r"^Return (.+? from your graveyard) to the battlefield( tapped)? with (a|an|two|three) (additional )?(\S+(?: strike)?) counters? on it$",
+                ),
+                |c, t| {
+                    let what = recipient(cap(c, 1), t)?;
+                    if cap(c, 5) == "finality" {
+                        return None;
+                    }
+                    Some(format!(
+                        "return {what} to battlefield{} with {} {}{} counter{}",
+                        cap(c, 2),
+                        number(cap(c, 3))?,
+                        cap(c, 4),
+                        cap(c, 5),
+                        if matches!(cap(c, 3), "a" | "an") {
+                            ""
+                        } else {
+                            "s"
+                        }
+                    ))
+                },
+            ),
+            // "Put target artifact card from your graveyard on top of your
+            // library" (Academy Ruins).
+            (
+                r(r"^[Pp]ut (target .+? card from your graveyard) on top of your library$"),
+                |c, t| {
+                    Some(format!(
+                        "put {} on top of library",
+                        recipient(cap(c, 1), t)?
+                    ))
+                },
+            ),
+            // "Mill two cards, then you may return a creature card from
+            // your graveyard to your hand."
+            (
+                r(
+                    r"^[Mm]ill (\w+) cards?, then (you may )?return an? (.+?) card from your graveyard to your hand$",
+                ),
+                |c, _| {
+                    let n = number(cap(c, 1))?;
+                    Some(format!(
+                        "mill {n} cards, then {}return 1 {} card from your graveyard to hand chosen",
+                        cap(c, 2),
+                        cap(c, 3)
+                    ))
+                },
+            ),
+            // "Return two cards at random from your graveyard to your hand."
+            (
+                r(r"^Return (\w+) cards at random from your graveyard to your hand$"),
+                |c, _| {
+                    let n = number(cap(c, 1))?;
+                    Some(format!(
+                        "return {n} card from your graveyard to hand at random"
+                    ))
+                },
+            ),
+            (
+                r(
+                    r"^Look at the top (\w+) cards of target (opponent|player)'s library, then put them back in any order$",
+                ),
+                |c, t| {
+                    let n = number(cap(c, 1))?;
+                    *t += 1;
+                    Some(format!("look at top {n} of target {}", cap(c, 2)))
+                },
+            ),
+            // "Put target creature card from a graveyard onto the
+            // battlefield under your control" (Rise from the Grave).
+            (
+                r(
+                    r"^[Pp]ut (target .+? card from a graveyard) onto the battlefield( tapped)? under your control$",
+                ),
+                |c, t| {
+                    Some(format!(
+                        "return {} to battlefield{} under your control",
                         recipient(cap(c, 1), t)?,
                         cap(c, 2)
                     ))
@@ -2758,6 +3133,26 @@ impl Templates {
     /// Put the rest ..."), with whatever follows authored as usual.
     #[allow(clippy::too_many_lines)] // one arm per dig wording
     fn dig(&self, text: &str, targets: &mut usize) -> Result<Option<String>, Skip> {
+        // A dig after other sentences ("Creative Outburst deals 5 damage
+        // to any target. Look at the top five cards ..."): those first,
+        // then the dig with what follows it.
+        for at in [
+            ". Look at the top ",
+            ". Reveal the top ",
+            ". Reveal cards from the top ",
+        ] {
+            if let Some(i) = text.find(at)
+                && !text[..i].contains(" top ")
+            {
+                let (head, rest) = (&text[..=i], &text[i + 2..]);
+                let mut t = *targets;
+                if let Some(dig) = self.dig(rest, &mut t)? {
+                    let first = self.effects(head.trim_end_matches('.'), targets)?;
+                    let dig = self.dig(rest, targets)?.unwrap_or(dig);
+                    return Ok(Some(format!("{first}; {dig}")));
+                }
+            }
+        }
         let text = capitalize(text);
         let rest_of = |s: &str| -> &'static str {
             if s.contains("graveyard") {
@@ -2878,6 +3273,8 @@ impl Templates {
                 ),
                 cap(&c, 4).to_string(),
             )
+        } else if let Some((dsl, tail)) = dig_general(&text) {
+            (dsl, tail)
         } else {
             return Ok(None);
         };
@@ -3084,11 +3481,21 @@ impl Templates {
             })
             .into_owned()
         });
+        // "Exile target artifact. Search its controller's graveyard, hand,
+        // and library for all cards with the same name as that artifact
+        // and exile them. Then that player shuffles." (Splinter).
+        let text = Regex::new(
+            r"(^|\. )Search its controller's graveyard, hand, and library for all cards with the same name as that [a-z]+ and exile them\. Then that player shuffles\.?",
+        )
+        .map_or(text.clone(), |re| {
+            re.replace_all(&text, "$1\u{1}exile same name as target 1 from its controller zones.")
+                .into_owned()
+        });
         let text = text.as_str();
         let mut out: Vec<String> = Vec::new();
         let extra_land =
             Regex::new(r"^[Yy]ou may play (an|up to two) additional lands? this turn$").unwrap();
-        for sentence in merge_impulse(split_sentences(text)) {
+        for sentence in merge_impulse(&split_sentences(text)) {
             // A sentence pair `merge_impulse` already wrote as DSL.
             if let Some(dsl) = sentence.strip_prefix('\u{1}') {
                 out.push(dsl.to_string());
@@ -3229,6 +3636,14 @@ impl Templates {
                 ("you may ", rest.to_string())
             } else if let Some(rest) = sentence.strip_prefix("If you do, ") {
                 ("if you do, ", rest.to_string())
+            } else if let Some(rest) =
+                sentence.strip_prefix("If you didn't put a card into your hand this way, ")
+            {
+                ("if you didnt put into hand this way, ", rest.to_string())
+            } else if let Some(rest) =
+                sentence.strip_prefix("If you don't put a card into your hand this way, ")
+            {
+                ("if you dont put into hand this way, ", rest.to_string())
             } else if let Some(rest) = sentence
                 .strip_prefix("If this spell was kicked, ")
                 .or_else(|| sentence.strip_prefix("If the gift was promised, "))
@@ -3366,20 +3781,29 @@ impl Templates {
 /// library. Until the end of your next turn, you may play those cards."
 /// is one effect, `impulse 2 next turn first`; the pair becomes one
 /// sentence holding that DSL after a `\u{1}` marker.
-fn merge_impulse(sentences: Vec<String>) -> Vec<String> {
+fn merge_impulse(sentences: &[String]) -> Vec<String> {
     let exile = Regex::new(
-        r"^(If you do, |you may |You may )?[Ee]xile the top (card|\w+ cards) of your library$",
+        r"^(If you do, |you may |You may )?[Ee]xile the top (card|\w+ cards) of your library(?:, where X is (.+))?$",
     )
     .unwrap();
     let mut out: Vec<String> = Vec::new();
-    let mut it = sentences.into_iter().peekable();
-    while let Some(s) = it.next() {
-        let merged = exile.captures(&s).and_then(|c| {
-            let n = match cap(&c, 2) {
-                "card" => "1".to_string(),
-                w => number(w.strip_suffix(" cards")?)?,
+    let mut i = 0;
+    while i < sentences.len() {
+        let s = &sentences[i];
+        // "Choose one of them." between the exile and the permission:
+        // `choose`.
+        let chosen = sentences
+            .get(i + 1)
+            .is_some_and(|n| n == "Choose one of them");
+        let next_at = if chosen { i + 2 } else { i + 1 };
+        let merged = exile.captures(s).and_then(|c| {
+            let n = match (cap(&c, 2), c.get(3)) {
+                ("X cards", Some(x)) => x_count(x.as_str())?,
+                (_, Some(_)) => return None,
+                ("card", None) => "1".to_string(),
+                (w, None) => number(w.strip_suffix(" cards")?)?,
             };
-            let next = it.peek()?;
+            let next = sentences.get(next_at)?;
             let when = match next
                 .replace("that card", "those cards")
                 .replace("them", "it")
@@ -3390,6 +3814,11 @@ fn merge_impulse(sentences: Vec<String>) -> Vec<String> {
                 "Until your next end step, you may play those cards" => "next end step first",
                 "You may play those cards this turn" => "this turn",
                 "You may play those cards until the end of your next turn" => "next turn",
+                "You may play those cards until your next end step" => "next end step",
+                "You may play cards exiled this way until the end of your next turn" => {
+                    "next turn this way"
+                }
+                "You may play cards exiled this way this turn" => "this turn this way",
                 "You may play it this turn" => "this turn it",
                 "You may play it until the end of your next turn" => "next turn it",
                 "You may play it until your next end step" => "next end step it",
@@ -3400,24 +3829,28 @@ fn merge_impulse(sentences: Vec<String>) -> Vec<String> {
                 "" => "",
                 _ => "you may ",
             };
-            Some(format!("\u{1}{prefix}impulse {n} {when}"))
+            let choose = if chosen { " choose" } else { "" };
+            Some(format!("\u{1}{prefix}impulse {n} {when}{choose}"))
         });
+        if let Some(m) = merged {
+            out.push(m);
+            i = next_at + 1;
+            continue;
+        }
         // "... without paying its mana cost. If that spell would be put
         // into your graveyard, exile it instead.": one sentence, marked.
-        let merged = merged.or_else(|| {
-            let next = it.peek()?;
-            (s.ends_with("without paying its mana cost")
-                && next.trim_end_matches('.')
-                    == "If that spell would be put into your graveyard, exile it instead")
-                .then(|| format!("{s}\u{2}"))
-        });
-        match merged {
-            Some(m) => {
-                it.next();
-                out.push(m);
-            }
-            None => out.push(s),
+        if s.ends_with("without paying its mana cost")
+            && sentences.get(i + 1).is_some_and(|n| {
+                n.trim_end_matches('.')
+                    == "If that spell would be put into your graveyard, exile it instead"
+            })
+        {
+            out.push(format!("{s}\u{2}"));
+            i += 2;
+            continue;
         }
+        out.push(s.clone());
+        i += 1;
     }
     out
 }
@@ -4690,6 +5123,24 @@ impl Builder<'_> {
         {
             self.statements
                 .push("replace this put into a graveyard: shuffle into library".to_string());
+            return Ok(());
+        }
+        // "If this creature would die, put it on top of its owner's
+        // library instead." (Gravebane Zombie), "exile it instead".
+        if let Some(c) = Regex::new(
+            r"^If this creature would die, (exile it|return it to its owner's hand|put it on top of its owner's library|put it on the bottom of its owner's library) instead\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let outcome = match cap(&c, 1) {
+                "exile it" => "exile",
+                "return it to its owner's hand" => "hand",
+                "put it on top of its owner's library" => "library top",
+                _ => "library bottom",
+            };
+            self.statements
+                .push(format!("replace this dies: {outcome}"));
             return Ok(());
         }
         if line

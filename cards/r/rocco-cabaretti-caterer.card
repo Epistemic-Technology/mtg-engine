@@ -1,0 +1,7 @@
+card "Rocco, Cabaretti Caterer" {
+  oracle_id 41c765a4-a9c9-4169-a9f1-74ededeb793c
+  cost {X}{R}{G}{W}
+  type Legendary Creature — Elf Druid
+  pt 3/1
+  triggered when this enters if you cast it: you may search creature card with mana value X or less to battlefield
+}

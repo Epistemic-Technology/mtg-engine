@@ -1,0 +1,8 @@
+card "Blood Speaker" {
+  oracle_id 2659c0ea-9ae0-4be3-b9f7-5a38230815ad
+  cost {3}{B}
+  type Creature — Ogre Shaman
+  pt 3/2
+  triggered at beginning of your upkeep: you may sacrifice this; if you do, search Demon card reveal to hand that card
+  triggered from graveyard whenever Demon you control enters: return this to hand
+}

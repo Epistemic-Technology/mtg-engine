@@ -1050,7 +1050,11 @@ control of two target creatures."; `exchange control of 2 target nonland
 permanent that share card type` prints "... two target nonland permanents
 that share a card type." (`that share card type`, in the spell's first
 target spec: each target must share a card type with the first, as
-chosen and as the spell resolves); `exchange control of this and target
+chosen and as the spell resolves; `return 2 target creature that share
+creature type card from your graveyard to hand`: "Return two target
+creature cards that share a creature type from your graveyard to your
+hand.", each sharing a creature type with the first, a changeling every
+one, CR 702.73a); `exchange control of this and target
 nonland permanent`, `exchange control of target land you control and
 target land an opponent controls` name the two. Nothing happens unless
 both are still on the battlefield (CR 701.12a) under different
@@ -2111,7 +2115,12 @@ controller may search their library for ..., put it onto the battlefield
 tapped, then shuffle": declining before finding anything is not
 searching, so nothing is shuffled), `target player searches basic land
 card to battlefield tapped` ("Target player searches their library for
-..., puts it onto the battlefield tapped, then shuffles"). A card
+..., puts it onto the battlefield tapped, then shuffles"), `exile same
+name as target 1 from its controller zones` ("Search its controller's
+graveyard, hand, and library for all cards with the same name as that
+spell and exile them. Then that player shuffles.": the target's name and
+controller as it last existed, CR 608.2h, after it was countered or
+exiled; the engine finds every such card, CR 701.19b). A card
 revealed and put into a hand (`reveal to hand`), like every card of a
 revealed hand, is known to every player until it moves (CR 701.20):
 `determinize` keeps it in place),
@@ -2654,6 +2663,11 @@ do` then sees:
   Citizen you control"), `tap 2 other untapped creature you control chosen`
 - `sacrifice 1 creature chosen` ("sacrifice a creature")
 - `discard 1 creature card chosen` ("discard a creature card")
+- `reveal any number green card in hand chosen` ("reveal any number of
+  green cards in your hand", CR 701.20a): the cards stay in the hand,
+  known to every player; `count where revealed this way` ("the number of
+  cards revealed this way") and `count each revealed this way` ("for each
+  card revealed this way") count them
 - `exile 2 creature card from your graveyard chosen`
 - `attach 1 Equipment you control to target 1 chosen` ("attach an Equipment
   you control to it": permanents you control, attached to that target)
@@ -3128,7 +3142,9 @@ Vehicles." In a trigger on `Vehicle you control attacks`, `that
 Vehicle` is the attacking Vehicle.
 
 `replace this dies: exile`: "If this creature would die, exile it
-instead."
+instead."; `replace this dies: library top`: "If this creature would die,
+put it on top of its owner's library instead." (`library bottom`: "on the
+bottom of its owner's library").
 
 ### Wording variants
 

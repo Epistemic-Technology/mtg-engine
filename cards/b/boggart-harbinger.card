@@ -1,0 +1,7 @@
+card "Boggart Harbinger" {
+  oracle_id 56508ae7-6013-4149-8935-96b8d5091baa
+  cost {2}{B}
+  type Creature — Goblin Shaman
+  pt 2/1
+  triggered when this enters: you may search Goblin card reveal to top that card
+}

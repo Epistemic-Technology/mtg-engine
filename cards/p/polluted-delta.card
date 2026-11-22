@@ -1,0 +1,5 @@
+card "Polluted Delta" {
+  oracle_id ef86989d-ce80-4e55-aece-7d11710eeffa
+  type Land
+  activated {T}, pay 1 life, sacrifice this: search Island or Swamp card to battlefield
+}

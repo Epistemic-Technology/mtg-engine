@@ -1,0 +1,6 @@
+card "Solve the Equation" {
+  oracle_id f02682f0-26c0-4032-9df3-273b6a45d0a8
+  cost {2}{U}
+  type Sorcery
+  spell: search instant or sorcery card reveal to hand
+}

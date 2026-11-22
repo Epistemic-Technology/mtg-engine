@@ -2242,6 +2242,18 @@ impl Runner {
     }
 
     fn discard(&mut self, d: &Decision, pos: Position) -> Res<ChoiceId> {
+        // "Discard two cards unless you discard an artifact card" (CR
+        // 608.2d): `choose done` declines the one matching card, so the
+        // player discards the others instead.
+        if let Some(done) = d.options.iter().position(|c| matches!(c, Choice::Done)) {
+            let idxs = self.matching(d.player, pos, true, |a| matches!(a, Action::Choose(_)));
+            if let Some(&i) = idxs.iter().find(|i| {
+                matches!(&self.actions[**i].action, Action::Choose(w) if w.eq_ignore_ascii_case("done"))
+            }) {
+                self.fired[i] = true;
+                return Ok(idx_u32(done));
+            }
+        }
         let idxs = self.matching(d.player, pos, false, |a| matches!(a, Action::Discard(_)));
         let Some(&i) = idxs.first() else {
             return Ok(0);

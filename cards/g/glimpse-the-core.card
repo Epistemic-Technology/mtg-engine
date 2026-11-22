@@ -1,0 +1,9 @@
+card "Glimpse the Core" {
+  oracle_id fa44fa48-d270-4f0f-b672-d63e1c1942ce
+  cost {1}{G}
+  type Sorcery
+  choose one {
+    mode: search basic Forest card to battlefield tapped that card
+    mode: return target Cave card from your graveyard to battlefield tapped
+  }
+}

@@ -1,0 +1,8 @@
+card "From Beyond" {
+  oracle_id 31b27775-196b-4022-bff5-25b34290ff7f
+  cost {3}{G}
+  type Enchantment
+  keywords devoid
+  triggered at beginning of your upkeep: create 1 "Eldrazi Scion" it has
+  activated {1}{G}, sacrifice this: search Eldrazi card reveal to hand
+}

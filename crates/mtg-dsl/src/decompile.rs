@@ -255,6 +255,7 @@ impl Decompiler<'_> {
                         SameRef::SharesColorWith(usize::from(n))
                     }
                     (SameOf::Target(_), SameWhat::SharesType) => SameRef::ShareCardType,
+                    (SameOf::Target(_), SameWhat::SharesCreatureType) => SameRef::ShareCreatureType,
                     (SameOf::Target(n), _) => SameRef::SameNameAs(usize::from(n)),
                 }
             }),
@@ -941,6 +942,7 @@ impl Decompiler<'_> {
             CoreEffect::Sacrifice { what } => Effect::Sacrifice { what: r(*what) },
             CoreEffect::Tap { to } => Effect::Tap { to: vec![r(*to)] },
             CoreEffect::TapOrUntap { to } => Effect::TapOrUntap { to: r(*to) },
+            CoreEffect::ExileSameName { what } => Effect::ExileSameName { what: r(*what) },
             CoreEffect::NextSpellLess(n) => Effect::NextSpellLess(*n),
             CoreEffect::ExtraLandPlays(n) => Effect::ExtraLandPlays(*n),
             CoreEffect::FaceDownSpellsLess(n) => Effect::FaceDownSpellsLess(*n),

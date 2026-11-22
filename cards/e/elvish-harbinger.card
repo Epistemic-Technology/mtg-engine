@@ -1,0 +1,8 @@
+card "Elvish Harbinger" {
+  oracle_id 28ddc23c-5b0b-4747-9a33-6845acf27bec
+  cost {2}{G}
+  type Creature — Elf Druid
+  pt 1/2
+  triggered when this enters: you may search Elf card reveal to top that card
+  mana any
+}

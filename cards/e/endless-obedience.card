@@ -1,0 +1,7 @@
+card "Endless Obedience" {
+  oracle_id 312a831a-5da9-4a22-9974-f2d90ae3eb75
+  cost {4}{B}{B}
+  type Sorcery
+  keywords convoke
+  spell: return target creature card from a graveyard to battlefield under your control
+}

@@ -1,0 +1,9 @@
+card "Opera Love Song" {
+  oracle_id 22f259b3-9de1-44a1-a89d-f2f1b1249d4d
+  cost {1}{R}
+  type Instant
+  choose one {
+    mode: impulse 2 next end step
+    mode: 1 to 2 target creatures each gets +2/+0
+  }
+}

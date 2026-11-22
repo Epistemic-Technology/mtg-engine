@@ -1,0 +1,5 @@
+card "Wooded Foothills" {
+  oracle_id 6587a463-a108-4854-b6d1-944e89b8c8a4
+  type Land
+  activated {T}, pay 1 life, sacrifice this: search Mountain or Forest card to battlefield
+}

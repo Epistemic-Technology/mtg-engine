@@ -1,0 +1,9 @@
+card "The Cruelty of Gix" {
+  oracle_id 2b5c62af-af5f-4beb-9688-19604ca46918
+  cost {3}{B}{B}
+  type Enchantment — Saga
+  read ahead
+  triggered chapter 1: target opponent reveals hand discarding creature or planeswalker card
+  triggered chapter 2: search card to hand that card; you loses 3 life
+  triggered chapter 3: return target creature card from a graveyard to battlefield under your control
+}

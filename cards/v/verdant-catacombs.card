@@ -1,0 +1,5 @@
+card "Verdant Catacombs" {
+  oracle_id 67d60b24-d429-4ded-90d9-06e49f28c396
+  type Land
+  activated {T}, pay 1 life, sacrifice this: search Swamp or Forest card to battlefield
+}

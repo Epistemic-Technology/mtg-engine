@@ -1,0 +1,7 @@
+card "Quandrix Cultivator" {
+  oracle_id 73a63c92-6dce-4804-bcd4-3fcc942cf270
+  cost {1}{G}{G/U}{U}
+  type Creature — Turtle Druid
+  pt 3/4
+  triggered when this enters: you may search basic Forest or Island card to battlefield
+}

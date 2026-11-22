@@ -1,0 +1,6 @@
+card "Make a Wish" {
+  oracle_id 888ccda6-896f-40f3-93a1-efc48254af34
+  cost {3}{G}
+  type Sorcery
+  spell: return 2 card from your graveyard to hand at random
+}
