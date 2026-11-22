@@ -1891,7 +1891,10 @@ impl P {
                             set = true;
                             Some(i32::try_from(n).unwrap_or(i32::MAX))
                         }
-                        _ => return self.fail("expected `none`, a size, or a signed number such as +1"),
+                        _ => {
+                            return self
+                                .fail("expected `none`, a size, or a signed number such as +1");
+                        }
                     }
                 };
                 self.end_stmt()?;
@@ -10978,9 +10981,7 @@ impl P {
                     self.pos += 4;
                 }
                 // "with toughness greater than its power".
-                "with"
-                    if self.at_words(&["with", "toughness", "greater", "than", "power"]) =>
-                {
+                "with" if self.at_words(&["with", "toughness", "greater", "than", "power"]) => {
                     f.status.toughness_over_power = true;
                     self.pos += 5;
                 }

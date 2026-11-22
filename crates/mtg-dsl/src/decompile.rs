@@ -2508,7 +2508,7 @@ impl Decompiler<'_> {
                 condition: s.condition.as_ref().map(|c| self.static_cond(c)),
                 cond_first: false,
                 cond_if: false,
-                    otherwise: Vec::new(),
+                otherwise: Vec::new(),
             },
             AbilityDef::EntersAsCopy(f) => Ability::EntersAsCopy(self.filter(f)),
             AbilityDef::AsEntersChoose(k) => Ability::AsEntersChoose {

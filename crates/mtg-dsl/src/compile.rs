@@ -974,7 +974,9 @@ impl Compiler<'_> {
         }
         if let Some(c) = &card.kicker_cost {
             if card.additional.is_some() || card.kicker.is_some() || c.tap {
-                return self.err("a kicker cost other than mana has no {T}, and the card no additional cost");
+                return self.err(
+                    "a kicker cost other than mana has no {T}, and the card no additional cost",
+                );
             }
             let c = self.cost(c);
             b = b.kicker_cost(c);
@@ -1090,7 +1092,7 @@ impl Compiler<'_> {
                         condition: Some(cond.clone()),
                         cond_first: false,
                         cond_if: false,
-                    otherwise: Vec::new(),
+                        otherwise: Vec::new(),
                     })?
                 } else {
                     let compiled = self.ability(a)?;
@@ -1109,7 +1111,7 @@ impl Compiler<'_> {
                             condition: Some(cond.clone()),
                             cond_first: false,
                             cond_if: false,
-                    otherwise: Vec::new(),
+                            otherwise: Vec::new(),
                         })?
                     }
                 };
