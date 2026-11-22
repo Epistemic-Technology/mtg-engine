@@ -5233,6 +5233,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Fading(n) => format!("fading {n}"),
                 crate::ast::Mechanic::LevelUp(c) => format!("level up {c}"),
                 crate::ast::Mechanic::Recover(c) => format!("recover {c}"),
+                crate::ast::Mechanic::Escalate(c) => format!("escalate {c}"),
                 crate::ast::Mechanic::Blitz(c) => format!("blitz {}", cost_text(c)),
                 crate::ast::Mechanic::Prototype(c, p, t) => format!("prototype {c} {p}/{t}"),
                 crate::ast::Mechanic::Annihilator(n) => format!("annihilator {n}"),

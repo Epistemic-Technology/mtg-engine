@@ -1,0 +1,10 @@
+card "Borrowed Grace" {
+  oracle_id e858d26f-db45-4c56-b40a-bbaeedbf5549
+  cost {2}{W}
+  type Instant
+  escalate {1}{W}
+  choose one or both {
+    mode: each creature you control gets +2/+0
+    mode: each creature you control gets +0/+2
+  }
+}

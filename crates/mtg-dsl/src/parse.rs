@@ -1475,12 +1475,16 @@ impl P {
                 let each_player = self.eat_words(&["each", "player"]);
                 self.player_static(mtg_core::card::PlayerStaticKind::ExtraLands { n, each_player })
             }
-            // CR 702.59a: recover.
-            "recover" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
+            // CR 702.59a: recover; CR 702.120a: escalate.
+            "recover" | "escalate" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
                 self.pos += 1;
                 let c = self.mana_cost()?;
                 self.end_stmt()?;
-                Ok(Ability::Mechanic(Mechanic::Recover(c)))
+                Ok(Ability::Mechanic(if w == "recover" {
+                    Mechanic::Recover(c)
+                } else {
+                    Mechanic::Escalate(c)
+                }))
             }
             // CR 702.152a: blitz.
             "blitz" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {

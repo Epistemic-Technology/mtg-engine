@@ -565,6 +565,18 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Fading(n)) => {
                     b = b.fading(*n);
                 }
+                // CR 702.120a: with two modes, choosing both pays the
+                // escalate cost once: entwine's cost on the both-mode.
+                Ability::Mechanic(Mechanic::Escalate(c)) => {
+                    if !card
+                        .abilities
+                        .iter()
+                        .any(|a| matches!(a, Ability::ModalBoth(_)))
+                    {
+                        return self.err("escalate on a `choose one or both` spell");
+                    }
+                    b = b.entwine(c.clone());
+                }
                 Ability::Mechanic(Mechanic::Blitz(c)) => {
                     if card.alt_cost.is_some() {
                         return self.err("blitz and an alternative cost of the card's own");
@@ -1115,6 +1127,7 @@ impl Compiler<'_> {
                             | Mechanic::Myriad
                             | Mechanic::Prototype(..)
                             | Mechanic::Blitz(_)
+                            | Mechanic::Escalate(_)
                             | Mechanic::Replicate(_)
                             | Mechanic::Multikicker(_)
                             | Mechanic::Disturb(_)
@@ -4508,6 +4521,7 @@ impl Compiler<'_> {
                 | Mechanic::Myriad
                 | Mechanic::Prototype(..)
                 | Mechanic::Blitz(_)
+                | Mechanic::Escalate(_)
                 | Mechanic::Replicate(_)
                 | Mechanic::Multikicker(_)
                 | Mechanic::Disturb(_)
@@ -5926,6 +5940,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Myriad
         | Mechanic::Prototype(..)
         | Mechanic::Blitz(_)
+        | Mechanic::Escalate(_)
         | Mechanic::BattleCry
         | Mechanic::Rampage(_)
         | Mechanic::Replicate(_)

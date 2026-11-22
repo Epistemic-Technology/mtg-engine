@@ -1422,6 +1422,10 @@ pub enum Mechanic {
     /// CR 702.39: attacks, you may have target creature defending player
     /// controls untap and block it if able.
     Provoke,
+    /// CR 702.120: `escalate {1}{W}`: "Pay this cost for each mode chosen
+    /// beyond the first." On a `choose one or both` spell, the cost of
+    /// choosing both.
+    Escalate(ManaCost),
     /// CR 702.59: `recover {2}{B}`: "When a creature is put into your
     /// graveyard from the battlefield, you may pay [cost]. If you do,
     /// return this card from your graveyard to your hand. Otherwise, exile
