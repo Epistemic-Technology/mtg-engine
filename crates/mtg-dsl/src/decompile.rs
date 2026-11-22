@@ -130,6 +130,15 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             .filter(|a| **a != crate::compile::unleash_static())
             .map(|a| match a {
                 // CR 702.172a: the single modes are the sets of one bit.
+                mtg_core::card::AbilityDef::Modal(modes) if !def.tiered.is_empty() => {
+                    crate::ast::Ability::Tiered(
+                        def.tiered
+                            .iter()
+                            .zip(modes)
+                            .map(|(c, m)| (c.clone(), d.mode(m)))
+                            .collect(),
+                    )
+                }
                 mtg_core::card::AbilityDef::Modal(modes) if !def.spree.is_empty() => {
                     crate::ast::Ability::Spree(
                         def.spree

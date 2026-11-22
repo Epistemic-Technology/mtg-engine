@@ -2633,6 +2633,12 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Spree(modes))
             }
+            "tiered" if self.peek_at(1) == Some(&Tok::LBrace) => {
+                self.pos += 1;
+                let modes = self.tiered_block()?;
+                self.end_stmt()?;
+                Ok(Ability::Tiered(modes))
+            }
             "choose" => {
                 if let Some((head, n)) = self.peek_mode_head() {
                     self.pos += n;
@@ -3457,6 +3463,44 @@ impl P {
         self.targets = outer;
         if !(1..=3).contains(&modes.len()) {
             return self.fail("`spree` takes one to three modes");
+        }
+        Ok(modes)
+    }
+
+    /// `{ mode "Thunder" {0}: ... }` after `tiered`: each mode's name, its
+    /// cost, then its effects (CR 702.183).
+    fn tiered_block(&mut self) -> R<Vec<(ManaCost, Mode)>> {
+        self.expect(&Tok::LBrace)?;
+        self.end_stmt()?;
+        let outer = std::mem::take(&mut self.targets);
+        let mut modes = Vec::new();
+        loop {
+            self.skip_newlines();
+            if self.peek() == Some(&Tok::RBrace) {
+                self.pos += 1;
+                break;
+            }
+            self.expect_word("mode")?;
+            let Some(Tok::Str(name)) = self.next() else {
+                return self.fail("a tiered mode has a name: `mode \"Thunder\" {0}: ...`");
+            };
+            let cost = self.mana_cost()?;
+            self.targets.clear();
+            self.subject = None;
+            self.revealed = false;
+            let effects = self.effects_body()?;
+            modes.push((
+                cost,
+                Mode {
+                    targets: std::mem::take(&mut self.targets),
+                    effects,
+                    name: Some(name),
+                },
+            ));
+        }
+        self.targets = outer;
+        if modes.len() < 2 {
+            return self.fail("`tiered` takes two or more modes");
         }
         Ok(modes)
     }

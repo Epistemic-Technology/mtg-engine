@@ -1249,6 +1249,10 @@ pub enum Ability {
     /// `spree { mode {2}: ... mode {1}: ... }` (CR 702.172): one or more
     /// modes, each with an additional cost (at most three).
     Spree(Vec<(ManaCost, Mode)>),
+    /// `tiered { mode "Thunder" {0}: ... mode "Thundara" {3}: ... }` (CR
+    /// 702.183): choose exactly one mode and pay its additional cost; each
+    /// mode is named.
+    Tiered(Vec<(ManaCost, Mode)>),
     /// `pawprint 5 { mode 1: ... mode 2: ... mode 3: ... }` (CR 700.2i):
     /// "Choose up to five {P} worth of modes. You may choose the same mode
     /// more than once." with each mode's number of pawprints.

@@ -1,0 +1,10 @@
+card "Ice Magic" {
+  oracle_id 88b0bd3b-d832-4059-b0d9-04630917ae94
+  cost {1}{U}
+  type Instant
+  tiered {
+  mode "Blizzard" {0}: return target creature to hand
+  mode "Blizzara" {2}: owner puts target creature on top or bottom of library
+  mode "Blizzaga" {5}{U}: owner shuffles target creature into library
+  }
+}

@@ -7905,6 +7905,11 @@ pub struct CardDef {
     /// modes: seven sets); the caster chooses one and pays its costs.
     #[serde(default)]
     pub spree: Vec<ManaCost>,
+    /// Tiered (CR 702.183): the additional cost of each mode of the
+    /// spell's "choose one" modal ability, in order; the caster chooses
+    /// exactly one mode and pays its cost.
+    #[serde(default)]
+    pub tiered: Vec<ManaCost>,
     /// Entwine (CR 702.42): every mode of a "choose one" spell for this
     /// cost on top.
     pub entwine: Option<Box<ManaCost>>,
@@ -10149,6 +10154,7 @@ impl Builder {
             plot: None,
             suspend: None,
             spree: Vec::new(),
+            tiered: Vec::new(),
             gift: None,
             entwine: None,
             escalate: None,
@@ -10732,6 +10738,13 @@ impl Builder {
     #[must_use]
     pub fn spree(mut self, costs: Vec<ManaCost>) -> Self {
         self.0.spree = costs;
+        self
+    }
+
+    /// Tiered (CR 702.183): each mode's additional cost.
+    #[must_use]
+    pub fn tiered(mut self, costs: Vec<ManaCost>) -> Self {
+        self.0.tiered = costs;
         self
     }
 

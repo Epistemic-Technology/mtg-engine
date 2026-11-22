@@ -597,6 +597,9 @@ impl Compiler<'_> {
                 Ability::Spree(modes) => {
                     b = b.spree(modes.iter().map(|(c, _)| c.clone()).collect());
                 }
+                Ability::Tiered(modes) => {
+                    b = b.tiered(modes.iter().map(|(c, _)| c.clone()).collect());
+                }
                 Ability::Mechanic(Mechanic::Sneak(cost)) => {
                     b = b.sneak(cost.clone());
                 }
@@ -1094,6 +1097,7 @@ impl Compiler<'_> {
                         | Ability::ModalOf(..)
                         | Ability::ModalIf { .. }
                         | Ability::Spree(_)
+                        | Ability::Tiered(_)
                         | Ability::Pawprint { .. }
                 )
             })
@@ -4888,6 +4892,10 @@ impl Compiler<'_> {
                 more: true, modes, ..
             } => AbilityDef::Modal(self.head_modes(crate::ast::ModeHead::OneOrMore, modes)?),
             Ability::Spree(modes) => AbilityDef::Modal(self.spree_modes(modes)?),
+            Ability::Tiered(modes) => {
+                let singles: Vec<crate::ast::Mode> = modes.iter().map(|(_, m)| m.clone()).collect();
+                AbilityDef::Modal(self.modes(&singles, false, false)?)
+            }
             Ability::Pawprint { limit, modes } => {
                 AbilityDef::Modal(self.pawprint_modes(*limit, modes)?)
             }

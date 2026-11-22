@@ -1,0 +1,82 @@
+# Tiered (CR 702.183): choose exactly one mode and pay its additional
+# cost on top of the mana cost.
+
+scenario "Thunder Magic's first tier costs nothing extra" {
+  battlefield A: "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Thunder Magic"
+  turn 1 A: cast "Thunder Magic" mode 1 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Thunder Magic's second tier costs {3} more and deals 4" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Thunder Magic"
+  turn 1 A: cast "Thunder Magic" mode 2 targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "With one land Thunder Magic is cast for its first tier" {
+  battlefield A: "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Thunder Magic"
+  turn 1 A: cast "Thunder Magic" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "Thunder Magic's first tier deals only 2" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Thunder Magic"
+  turn 1 A: cast "Thunder Magic" mode 1 targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "Thunder Magic's third tier costs {5}{R} more and deals 8" {
+  battlefield A: 7 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Thunder Magic"
+  turn 1 A: cast "Thunder Magic" mode 3 targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Ice Magic's first tier returns the creature to hand" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Ice Magic"
+  turn 1 A: cast "Ice Magic" mode 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+}
+
+scenario "Ice Magic's third tier shuffles the creature into its owner's library" {
+  battlefield A: 8 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Ice Magic"
+  turn 1 A: cast "Ice Magic" mode 3 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert library B contains "Hill Giant"
+}
+
+scenario "Ice Magic with no creature to target can't be cast" {
+  battlefield A: 8 "Island"
+  hand A: "Ice Magic"
+  illegal turn 1 A: cast "Ice Magic"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Thunder Magic's second tier spends all four lands" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Thunder Magic", "Shock"
+  turn 1 A: cast "Thunder Magic" mode 2 targeting "Serra Angel"
+  illegal turn 1 postcombat_main A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 20
+}

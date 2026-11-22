@@ -5463,6 +5463,20 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             }
             let _ = writeln!(out, "{indent}}}");
         }
+        Ability::Tiered(modes) => {
+            let _ = writeln!(out, "{indent}tiered {{");
+            for (c, m) in modes {
+                body(
+                    out,
+                    &format!("{indent}  "),
+                    &format!("mode \"{}\" {c}", m.name.as_deref().unwrap_or_default()),
+                    &m.effects,
+                    &m.targets,
+                    groups,
+                );
+            }
+            let _ = writeln!(out, "{indent}}}");
+        }
         Ability::Spree(modes) => {
             let _ = writeln!(out, "{indent}spree {{");
             for (c, m) in modes {

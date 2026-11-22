@@ -2305,6 +2305,18 @@ impl GameState {
                     && self.payable(p, srcs, pool, &more, self.player(p).life, None)
             });
         }
+        // CR 702.183a: a tiered spell, likewise, needs a mode with its
+        // targets whose cost it can pay.
+        if !def.tiered.is_empty()
+            && let Some(modes) = def.modes()
+        {
+            return def.tiered.iter().zip(modes).any(|(c, m)| {
+                let mut more = req;
+                more.add(&c.requirements(0));
+                self.targets_available(p, &m.targets, Some(id))
+                    && self.payable(p, srcs, pool, &more, self.player(p).life, None)
+            });
+        }
         match def.modes() {
             Some(modes) => modes
                 .iter()
@@ -4225,6 +4237,10 @@ impl GameState {
                 req.add(&e.requirements(0));
             }
         }
+        // CR 702.183a: the chosen tiered mode's cost.
+        if let Some(c) = def.tiered.get(usize::from(mode)) {
+            req.add(&c.requirements(0));
+        }
         // CR 702.172a: the chosen spree modes' costs.
         if !def.spree.is_empty() {
             let bits = u32::from(mode) + 1;
@@ -5814,7 +5830,7 @@ impl GameState {
         // CR 702.172a: a spree spell's modes cost more; those the caster
         // can pay for (all of them if none, so the cast can go on to fail
         // at payment rather than offer nothing).
-        if !def.spree.is_empty() && o.kind == ObjKind::Card {
+        if (!def.spree.is_empty() || !def.tiered.is_empty()) && o.kind == ObjKind::Card {
             let with_targets: Vec<usize> = modes
                 .iter()
                 .enumerate()

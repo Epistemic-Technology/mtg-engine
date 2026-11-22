@@ -13733,6 +13733,22 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             }
             out
         }
+        // CR 702.183: "Tiered (Choose one additional cost.)", then
+        // "• Thunder — {3} — <effects>" per mode.
+        Ability::Tiered(modes) => {
+            let mut out = "Tiered (Choose one additional cost.)".to_string();
+            for (c, m) in modes {
+                let mut ctx = Ctx::new(card, lookup, &m.targets);
+                ctx.current = Some(a);
+                let _ = write!(
+                    out,
+                    "\n• {} — {c} — {}",
+                    m.name.as_deref().unwrap_or_default(),
+                    sentences(&m.effects, &mut ctx)
+                );
+            }
+            out
+        }
         Ability::Spree(modes) => {
             let mut out = "Spree".to_string();
             for (c, m) in modes {
