@@ -1,0 +1,7 @@
+card "Reality Heist" {
+  oracle_id 569da5d3-6af2-4021-a464-b30ebaaf6fa0
+  cost {5}{U}{U}
+  type Instant
+  affinity for artifact
+  spell: dig 7 take 2 artifact card may revealing that card rest bottom random
+}

@@ -1,0 +1,6 @@
+card "Adventure Awaits" {
+  oracle_id 70235727-e330-46fa-b057-ddbb55cd1ac3
+  cost {1}{G}
+  type Sorcery
+  spell: dig 5 take creature card may revealing rest bottom random; if you didnt put into hand this way, draw 1 cards
+}

@@ -282,3 +282,160 @@ scenario "same name: Scour and Splinter" {
   assert exile B contains 2 "Ornithopter"
   assert hand B count 0
 }
+
+# Dig paragraphs the template author now writes: after another sentence,
+# with "If you didn't put a card into your hand this way, ...", and a
+# filtered take that isn't optional.
+
+scenario "dig: Adventure Awaits takes a creature card" {
+  battlefield A: 2 "Forest"
+  hand A: "Adventure Awaits"
+  library A: "Island", "Grizzly Bears", "Island", "Hill Giant", "Island", "Swamp"
+  turn 1 A: cast "Adventure Awaits"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Hill Giant"
+  assert library A count 5
+}
+
+scenario "dig: Adventure Awaits draws a card when no card was put into the hand" {
+  battlefield A: 2 "Forest"
+  hand A: "Adventure Awaits"
+  library A: "Island", "Island", "Island", "Island", "Island", "Swamp"
+  turn 1 A: cast "Adventure Awaits"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Swamp"
+}
+
+scenario "dig: Rosecot Knight gets a counter only if it took nothing" {
+  battlefield A: 5 "Plains"
+  hand A: "Rosecot Knight"
+  library A: "Island", "Island", "Island", "Island", "Island", "Island", "Forest"
+  turn 1 A: cast "Rosecot Knight"
+  run_to turn 1 postcombat_main
+  assert counters "Rosecot Knight" +1/+1 1
+  assert hand A count 0
+}
+
+scenario "dig: Rosecot Knight takes an enchantment card" {
+  battlefield A: 5 "Plains"
+  hand A: "Rosecot Knight"
+  library A: "Island", "Pacifism", "Island", "Island", "Island", "Island", "Forest"
+  turn 1 A: cast "Rosecot Knight"
+  run_to turn 1 postcombat_main
+  assert counters "Rosecot Knight" +1/+1 0
+  assert hand A contains "Pacifism"
+}
+
+scenario "dig: Inscribed Tablet puts a land card into the hand" {
+  battlefield A: "Inscribed Tablet", "Plains", "Plains"
+  library A: "Shock", "Forest", "Shock", "Shock", "Shock", "Island"
+  turn 1 A: activate "Inscribed Tablet"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Forest"
+  assert graveyard A contains "Inscribed Tablet"
+}
+
+scenario "dig: Inscribed Tablet draws when there was no land card" {
+  battlefield A: "Inscribed Tablet", "Plains", "Plains"
+  library A: "Shock", "Shock", "Shock", "Shock", "Shock", "Island"
+  turn 1 A: activate "Inscribed Tablet"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Island"
+}
+
+scenario "dig: Maestros Charm puts one into the hand and the rest into the graveyard" {
+  battlefield A: "Island", "Swamp", "Mountain"
+  hand A: "Maestros Charm"
+  library A: "Shock", "Forest", "Island", "Plains", "Swamp", "Mountain"
+  turn 1 A: cast "Maestros Charm" mode 1
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert graveyard A count 5
+  assert library A count 1
+}
+
+scenario "dig: Memorial to Unity reveals a creature card" {
+  battlefield A: "Memorial to Unity", 3 "Forest"
+  library A: "Island", "Island", "Grizzly Bears", "Island", "Island", "Island"
+  turn 1 A: activate "Memorial to Unity"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Memorial to Unity"
+  assert library A count 5
+}
+
+scenario "dig: Ral's Outburst deals 3 damage, then one card to the hand and the other to the graveyard" {
+  battlefield A: 2 "Island", 2 "Mountain"
+  hand A: "Ral's Outburst"
+  library A: "Shock", "Forest", "Island"
+  turn 1 A: cast "Ral's Outburst" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand A count 1
+  assert graveyard A count 2
+  assert library A count 1
+}
+
+scenario "dig: Reality Heist reveals up to two artifact cards" {
+  battlefield A: 7 "Island"
+  hand A: "Reality Heist"
+  library A: "Ornithopter", "Island", "Millstone", "Island", "Island", "Island", "Island", "Forest"
+  turn 1 A: cast "Reality Heist"
+  turn 1 A: choose "Ornithopter"
+  turn 1 A: choose "Millstone"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert hand A contains "Ornithopter"
+  assert hand A contains "Millstone"
+  assert library A count 6
+}
+
+# "Put target creature card from a graveyard onto the battlefield under
+# your control."
+
+scenario "reanimate: Endless Obedience takes an opponent's creature card" {
+  battlefield A: 6 "Swamp"
+  graveyard B: "Hill Giant"
+  hand A: "Endless Obedience"
+  turn 1 A: cast "Endless Obedience" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert graveyard B lacks "Hill Giant"
+}
+
+scenario "reanimate: Vat Emergence returns a creature card, then proliferates" {
+  battlefield A: 5 "Swamp", "Grizzly Bears" with 1 +1/+1
+  graveyard A: "Hill Giant"
+  hand A: "Vat Emergence"
+  turn 1 A: cast "Vat Emergence" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert counters "Grizzly Bears" +1/+1 2
+}
+
+scenario "reanimate: Demon of Dark Schemes puts it onto the battlefield tapped" {
+  energy A: 4
+  battlefield A: "Demon of Dark Schemes", 3 "Swamp"
+  graveyard B: "Hill Giant"
+  turn 1 A: activate "Demon of Dark Schemes" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert tapped "Hill Giant"
+  assert energy A 0
+}
+
+scenario "reanimate: The Cruelty of Gix read ahead to chapter III" {
+  battlefield A: 5 "Swamp"
+  graveyard B: "Hill Giant"
+  hand A: "The Cruelty of Gix"
+  turn 1 A: cast "The Cruelty of Gix"
+  turn 1 A: choose "3"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A contains "The Cruelty of Gix"
+}

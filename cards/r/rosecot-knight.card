@@ -1,0 +1,8 @@
+card "Rosecot Knight" {
+  oracle_id b81a9cf5-4059-45fb-a4e1-f2fe6aa3c841
+  cost {4}{W}
+  type Creature — Human Knight
+  pt 3/4
+  keywords vigilance
+  triggered when this enters: dig 6 take artifact or enchantment card may revealing rest bottom random; if you didnt put into hand this way, put 1 +1/+1 counters on this
+}

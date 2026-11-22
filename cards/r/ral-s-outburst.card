@@ -1,0 +1,6 @@
+card "Ral's Outburst" {
+  oracle_id 5e715875-28e0-44b4-af25-f6bb8ddec823
+  cost {2}{U}{R}
+  type Instant
+  spell: deal 3 damage to any target; dig 2 take card rest graveyard
+}

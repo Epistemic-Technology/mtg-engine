@@ -618,6 +618,211 @@ const NUMBER_WORDS: [&str; 20] = [
 ];
 
 /// "two" → "2", "a" → "1", "X" → "X", digits unchanged.
+/// "X, where X is ..." for a dig's count: `count where <expr>`.
+fn x_count(s: &str) -> Option<String> {
+    if let Some(rest) = s.strip_prefix("the number of ") {
+        return count_expr(rest).map(|e| format!("count where {e}"));
+    }
+    match s {
+        "this creature's power" | "~'s power" | "its power" => {
+            Some("count where power".to_string())
+        }
+        "your life total" => Some("count where life".to_string()),
+        _ => None,
+    }
+}
+
+/// What a dig takes: "a creature card with mana value 4 or less", "up to
+/// two artifact cards", "any number of creature and/or land cards", "a
+/// creature card and/or a land card" as `take`'s count and filter
+/// (`take 2 artifact card`, `take creature with mana value 4 or less
+/// card`).
+fn dig_what(s: &str) -> Option<(String, String)> {
+    let plural = |r: &str| -> Option<String> {
+        let (a, b) = r.split_once(" cards")?;
+        let a = a.replace(" and/or ", " or ");
+        Some(format!("{a}{b} card").trim().to_string())
+    };
+    if let Some(r) = s.strip_prefix("any number of ") {
+        return Some(("any ".to_string(), plural(r)?));
+    }
+    if let Some(r) = s.strip_prefix("up to ") {
+        let (k, r) = r.split_once(' ')?;
+        let k = number(k)?;
+        return Some((format!("{k} "), plural(r)?));
+    }
+    let r = s.strip_prefix("an ").or_else(|| s.strip_prefix("a "))?;
+    // "a creature card and/or a land card".
+    if let Some((x, y)) = r.split_once(" card and/or ") {
+        let y = y.strip_prefix("an ").or_else(|| y.strip_prefix("a "))?;
+        let y = y.strip_suffix(" card")?;
+        if x.contains(',') || y.contains(',') {
+            return None;
+        }
+        return Some((String::new(), format!("{x} card and {y} card")));
+    }
+    if r == "card" {
+        return Some((String::new(), "card".to_string()));
+    }
+    let (a, b) = r.split_once(" card")?;
+    if a.contains(',') {
+        return None;
+    }
+    Some((String::new(), format!("{a}{b} card").trim().to_string()))
+}
+
+/// Where a dig puts the rest: `bottom`, `bottom random`, `graveyard`.
+fn dig_rest(s: &str) -> Option<&'static str> {
+    match s {
+        "on the bottom of your library in a random order" => Some("bottom random"),
+        "on the bottom of your library in any order" | "on the bottom of your library" => {
+            Some("bottom")
+        }
+        "into your graveyard" => Some("graveyard"),
+        _ => None,
+    }
+}
+
+/// The dig paragraphs the fixed templates miss: "Look at the top X cards
+/// of your library, where X is ...", "You may reveal a creature card with
+/// mana value 4 or less from among them ...", "You may reveal up to two
+/// artifact cards from among them and put them into your hand", "You may
+/// put any number of ... onto the battlefield", "Then put the rest ...".
+/// Returns the dig and the sentences after it.
+fn dig_general(text: &str) -> Option<(String, String)> {
+    let head = Regex::new(
+        r"^(Look at|Reveal) the top (\w+) cards of your library(?:, where X is ([^.]+?))?\. (.+)$",
+    )
+    .unwrap();
+    let c = head.captures(text)?;
+    let n = match (cap(&c, 2), c.get(3)) {
+        ("X", Some(x)) => x_count(x.as_str())?,
+        (_, Some(_)) => return None,
+        (w, None) => number(w)?,
+    };
+    let reveal_top = if cap(&c, 1) == "Reveal" {
+        " reveal"
+    } else {
+        ""
+    };
+    let body = cap(&c, 4);
+    let reveal = Regex::new(
+        r"^You may reveal (.+?) from among them and put (it|that card|them) into your hand\. (Then put|Put) the rest (.+?)\.\s*(.*)$",
+    )
+    .unwrap();
+    let put_hand = Regex::new(
+        r"^You may put (.+?) from among them into your hand\. Put the rest (.+?)\.\s*(.*)$",
+    )
+    .unwrap();
+    let onto = Regex::new(
+        r"^You may put (.+?) from among them onto the battlefield( tapped)?\. Put the rest (.+?)\.\s*(.*)$",
+    )
+    .unwrap();
+    let one = Regex::new(
+        r"^Put one of (them|those cards) into your hand and the (?:rest|other) (.+?)\.\s*(.*)$",
+    )
+    .unwrap();
+    let several = Regex::new(
+        r"^Put (up to )?(two|three) of (them|those cards) into your hand and the rest (.+?)\.\s*(.*)$",
+    )
+    .unwrap();
+    if let Some(c) = reveal.captures(body) {
+        let (take, what) = dig_what(cap(&c, 1))?;
+        let several = !take.is_empty() || what.contains(" and ");
+        // `revealing that card` prints "that card", or "them" for several.
+        let that = match (cap(&c, 2), several) {
+            ("it", false) => "",
+            ("them", true) | ("that card", false) => " that card",
+            _ => return None,
+        };
+        let reword = if cap(&c, 3) == "Then put" {
+            " reword"
+        } else {
+            ""
+        };
+        let rest = dig_rest(cap(&c, 4))?;
+        return Some((
+            format!(
+                "dig {n}{reveal_top} take {take}{what} may revealing{that} rest {rest}{reword}"
+            ),
+            cap(&c, 5).to_string(),
+        ));
+    }
+    if let Some(c) = put_hand.captures(body) {
+        let (take, what) = dig_what(cap(&c, 1))?;
+        if !take.is_empty() && take != "any " {
+            return None;
+        }
+        let rest = dig_rest(cap(&c, 2))?;
+        return Some((
+            format!("dig {n}{reveal_top} take {take}{what} may rest {rest}"),
+            cap(&c, 3).to_string(),
+        ));
+    }
+    if let Some(c) = onto.captures(body) {
+        let (take, what) = dig_what(cap(&c, 1))?;
+        let tapped = if c.get(2).is_some() { " tapped" } else { "" };
+        let reword = if take.is_empty() || take == "any " {
+            ""
+        } else {
+            " reword"
+        };
+        let rest = dig_rest(cap(&c, 3))?;
+        return Some((
+            format!(
+                "dig {n}{reveal_top} take {take}{what} may onto battlefield{tapped} rest {rest}{reword}"
+            ),
+            cap(&c, 4).to_string(),
+        ));
+    }
+    // "Put a land card from among them into your hand and the rest ...".
+    if let Some(c) =
+        Regex::new(r"^Put (an? .+?) from among them into your hand and the rest (.+?)\.\s*(.*)$")
+            .unwrap()
+            .captures(body)
+    {
+        let (take, what) = dig_what(cap(&c, 1))?;
+        if !take.is_empty() {
+            return None;
+        }
+        let rest = dig_rest(cap(&c, 2))?;
+        return Some((
+            format!("dig {n}{reveal_top} take {what} rest {rest}"),
+            cap(&c, 3).to_string(),
+        ));
+    }
+    if let Some(c) = one.captures(body) {
+        let reword = if cap(&c, 1) == "those cards" {
+            " reword"
+        } else {
+            ""
+        };
+        let rest = dig_rest(cap(&c, 2))?;
+        return Some((
+            format!("dig {n}{reveal_top} take card rest {rest}{reword}"),
+            cap(&c, 3).to_string(),
+        ));
+    }
+    if let Some(c) = several.captures(body) {
+        let k = number(cap(&c, 2))?;
+        let up_to = c.get(1).is_some();
+        let those = cap(&c, 3) == "those cards";
+        // `reword` prints "two of them"; "up to" is only "of them".
+        let (may, reword) = match (up_to, those) {
+            (true, false) => (" may", ""),
+            (true, true) => return None,
+            (false, true) => ("", ""),
+            (false, false) => ("", " reword"),
+        };
+        let rest = dig_rest(cap(&c, 4))?;
+        return Some((
+            format!("dig {n}{reveal_top} take {k} card{may} rest {rest}{reword}"),
+            cap(&c, 5).to_string(),
+        ));
+    }
+    None
+}
+
 fn number(w: &str) -> Option<String> {
     if w == "X" {
         return Some("X".to_string());
@@ -2235,6 +2440,20 @@ impl Templates {
                     ))
                 },
             ),
+            // "Put target creature card from a graveyard onto the
+            // battlefield under your control" (Rise from the Grave).
+            (
+                r(
+                    r"^Put (target .+? card from a graveyard) onto the battlefield( tapped)? under your control$",
+                ),
+                |c, t| {
+                    Some(format!(
+                        "return {} to battlefield{} under your control",
+                        recipient(cap(c, 1), t)?,
+                        cap(c, 2)
+                    ))
+                },
+            ),
             (r(r"^[Vv]enture into the dungeon$"), |_, _| {
                 Some("venture".to_string())
             }),
@@ -2617,6 +2836,22 @@ impl Templates {
     /// Put the rest ..."), with whatever follows authored as usual.
     #[allow(clippy::too_many_lines)] // one arm per dig wording
     fn dig(&self, text: &str, targets: &mut usize) -> Result<Option<String>, Skip> {
+        // A dig after other sentences ("Creative Outburst deals 5 damage
+        // to any target. Look at the top five cards ..."): those first,
+        // then the dig with what follows it.
+        for at in [". Look at the top ", ". Reveal the top "] {
+            if let Some(i) = text.find(at)
+                && !text[..i].contains(" top ")
+            {
+                let (head, rest) = (&text[..=i], &text[i + 2..]);
+                let mut t = *targets;
+                if let Some(dig) = self.dig(rest, &mut t)? {
+                    let first = self.effects(head.trim_end_matches('.'), targets)?;
+                    let dig = self.dig(rest, targets)?.unwrap_or(dig);
+                    return Ok(Some(format!("{first}; {dig}")));
+                }
+            }
+        }
         let text = capitalize(text);
         let rest_of = |s: &str| -> &'static str {
             if s.contains("graveyard") {
@@ -2737,6 +2972,8 @@ impl Templates {
                 ),
                 cap(&c, 4).to_string(),
             )
+        } else if let Some((dsl, tail)) = dig_general(&text) {
+            (dsl, tail)
         } else {
             return Ok(None);
         };
@@ -2943,6 +3180,16 @@ impl Templates {
             })
             .into_owned()
         });
+        // "Exile target artifact. Search its controller's graveyard, hand,
+        // and library for all cards with the same name as that artifact
+        // and exile them. Then that player shuffles." (Splinter).
+        let text = Regex::new(
+            r"(^|\. )Search its controller's graveyard, hand, and library for all cards with the same name as that [a-z]+ and exile them\. Then that player shuffles\.?",
+        )
+        .map_or(text.clone(), |re| {
+            re.replace_all(&text, "$1\u{1}exile same name as target 1 from its controller zones.")
+                .into_owned()
+        });
         let text = text.as_str();
         let mut out: Vec<String> = Vec::new();
         let extra_land =
@@ -3088,6 +3335,14 @@ impl Templates {
                 ("you may ", rest.to_string())
             } else if let Some(rest) = sentence.strip_prefix("If you do, ") {
                 ("if you do, ", rest.to_string())
+            } else if let Some(rest) =
+                sentence.strip_prefix("If you didn't put a card into your hand this way, ")
+            {
+                ("if you didnt put into hand this way, ", rest.to_string())
+            } else if let Some(rest) =
+                sentence.strip_prefix("If you don't put a card into your hand this way, ")
+            {
+                ("if you dont put into hand this way, ", rest.to_string())
             } else if let Some(rest) = sentence
                 .strip_prefix("If this spell was kicked, ")
                 .or_else(|| sentence.strip_prefix("If the gift was promised, "))

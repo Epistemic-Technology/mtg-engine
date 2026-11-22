@@ -1,0 +1,7 @@
+card "Memorial to Unity" {
+  oracle_id a74494ef-aa35-4830-9b4c-47bff5270efc
+  type Land
+  enters tapped
+  mana {G}
+  activated {2}{G}, {T}, sacrifice this: dig 5 take creature card may revealing rest bottom random reword
+}

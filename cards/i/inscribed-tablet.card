@@ -1,0 +1,6 @@
+card "Inscribed Tablet" {
+  oracle_id 399d19cd-e6fa-4959-8d2a-9f1cfd52dce7
+  cost {1}
+  type Artifact
+  activated {1}, {T}, sacrifice this: dig 5 reveal take land card rest bottom random; if you didnt put into hand this way, draw 1 cards
+}
