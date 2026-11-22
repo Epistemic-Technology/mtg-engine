@@ -72,3 +72,25 @@ scenario "when you discard this card: not when it dies" {
   assert graveyard A contains "Titanbones, Towering Heart"
   assert life A 20
 }
+
+scenario "plus X, where X is its power: noncombat damage to an opponent and their permanents" {
+  battlefield A: "Hawkeye, Young Avenger", 2 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Shock", "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "plus X, where X is its power: not combat damage, nor damage to you" {
+  battlefield A: "Hawkeye, Young Avenger", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player A
+  turn 1 A: attack "Hawkeye, Young Avenger"
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert life B 18
+}

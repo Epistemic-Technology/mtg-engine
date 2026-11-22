@@ -911,7 +911,11 @@ control to opponent and permanent an opponent controls: plus 2` prints
 that` adds "to that permanent or player" (`replace damage from other red
 permanent you control to any: plus 1 to that`, Jaya). For life, `replace
 you gain life: plus one` prints "If you would gain life, you gain that much
-life plus 1 instead."; for counters, `replace +1/+1 counters put on
+life plus 1 instead."; `plus count where power` adds a count of the source's, evaluated as the
+damage would be dealt: `replace noncombat damage from permanent you
+control to opponent and permanent an opponent controls: plus count where
+power` prints "..., instead it deals that much damage plus X, where X is
+Hawkeye's power." (Hawkeye, Young Avenger); for counters, `replace +1/+1 counters put on
 creature you control: double` prints "If one or more +1/+1 counters would
 be put on a creature you control, twice that many +1/+1 counters are put
 on that creature instead." (also the counters it enters with, CR 122.6).

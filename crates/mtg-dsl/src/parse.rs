@@ -13224,6 +13224,10 @@ impl P {
             "plus" => {
                 if self.eat_word("one") {
                     Outcome::PlusOne
+                } else if self.at_word("count") {
+                    // `plus count where power`: "instead it deals that much
+                    // damage plus X, where X is Hawkeye's power".
+                    Outcome::PlusCount(self.num()?)
                 } else {
                     // `plus 2`, `plus 1 to that`: damage (Torbran, Jaya).
                     let n = self.number()?;

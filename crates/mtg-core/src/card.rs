@@ -5315,6 +5315,10 @@ pub enum Replacement {
     /// "it deals that much damage plus 2 instead" (Torbran); `to_that`
     /// prints "to that permanent or player" after it (rendering only).
     PlusN { n: u32, to_that: bool },
+    /// "instead it deals that much damage plus X, where X is Hawkeye's
+    /// power": `n` (the source card's count) evaluated as the damage would
+    /// be dealt.
+    PlusCount(Num),
     /// Put the card into this zone instead.
     Instead(crate::state::Zone),
     /// Reveal the card and shuffle it into its owner's library instead

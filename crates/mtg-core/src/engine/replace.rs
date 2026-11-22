@@ -1152,6 +1152,24 @@ impl GameState {
                     combat,
                 })
             }
+            (
+                Replacement::PlusCount(n),
+                Proposed::Damage {
+                    source,
+                    target,
+                    amount,
+                    combat,
+                },
+            ) => {
+                let more = self.eval_num_of(n, c.source, c.controller);
+                self.emit(Event::Replaced { by: c.def });
+                Outcome::Event(Proposed::Damage {
+                    source,
+                    target,
+                    amount: amount.saturating_add(more),
+                    combat,
+                })
+            }
             // "twice that many +1/+1 counters are put on that creature
             // instead" (Branching Evolution), also as it enters (CR 122.6).
             (Replacement::Double, Proposed::AddCounters { obj, kind, n }) => {

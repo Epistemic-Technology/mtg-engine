@@ -3069,6 +3069,7 @@ fn outcome(o: &Outcome) -> String {
         Outcome::PlusN { n, to_that } => {
             format!("plus {n}{}", if *to_that { " to that" } else { "" })
         }
+        Outcome::PlusCount(n) => format!("plus {}", num(*n)),
         Outcome::Instead(mtg_core::state::Zone::Hand) => "hand".to_string(),
         Outcome::Instead(_) => "exile".to_string(),
         Outcome::DrawTwo => "draw two".to_string(),

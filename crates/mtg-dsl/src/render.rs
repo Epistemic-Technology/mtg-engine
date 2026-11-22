@@ -10403,7 +10403,7 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             Replaces::Damage {
                 from, to, combat, ..
             },
-            outcome @ (Outcome::Double | Outcome::PlusN { .. }),
+            outcome @ (Outcome::Double | Outcome::PlusN { .. } | Outcome::PlusCount(_)),
         ) => {
             let kind = match combat {
                 Some(true) => "combat damage",
@@ -10426,10 +10426,11 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                     let that = if *to_that { that } else { "" };
                     format!("that much damage plus {n}{that}")
                 }
+                Outcome::PlusCount(_) => "that much damage plus X".to_string(),
                 _ if matches!(to, Affects::OpponentsAnd(_)) => format!("double that {kind}"),
                 _ => format!("double that {kind}{that}"),
             };
-            match from {
+            let text = match from {
                 None => format!(
                     "If a source would deal {kind} to {to_text}, it deals {} instead.",
                     deals(&that)
@@ -10462,6 +10463,25 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                         deals("")
                     )
                 }
+            };
+            // "..., instead it deals that much damage plus X, where X is
+            // Hawkeye's power." (Hawkeye, Young Avenger).
+            match outcome {
+                Outcome::PlusCount(Num::Count(i)) => {
+                    let what = ctx.card.counts.get(usize::from(*i)).map_or_else(
+                        || "X".to_string(),
+                        |c| count_phrase(&c.expr, ctx.card, false),
+                    );
+                    let what = match what.as_str() {
+                        "its power" => format!("{}'s power", this_ref(ctx.card)),
+                        _ => what,
+                    };
+                    text.replace(
+                        " it deals that much damage plus X instead.",
+                        &format!(" instead it deals that much damage plus X, where X is {what}."),
+                    )
+                }
+                _ => text,
             }
         }
         // "If a source you control would deal damage to an opponent,
