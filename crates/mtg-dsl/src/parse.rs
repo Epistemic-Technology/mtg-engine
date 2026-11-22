@@ -7678,9 +7678,20 @@ impl P {
                         owner_hand,
                     });
                 }
-                if all.len() > 1 {
-                    return self.fail("only one recipient returns to the battlefield");
-                }
+                // "Return up to two target creature cards ... to the
+                // battlefield": the targets of one phrase, together.
+                let what = match all.as_slice() {
+                    [Recipient::Target(a), rest @ ..]
+                        if !rest.is_empty()
+                            && rest.iter().enumerate().all(|(k, r)| {
+                                *r == Recipient::Target(a + k + 1)
+                            }) =>
+                    {
+                        Recipient::Targets(*a, all.len())
+                    }
+                    [_] => what,
+                    _ => return self.fail("only one recipient returns to the battlefield"),
+                };
                 self.battlefield_tail(what, false)
             }
             "regenerate" => {
@@ -10353,7 +10364,10 @@ impl P {
                             .is_some_and(|w| CounterKind::NAMED.iter().any(|(n, _)| *n == w))
                         && self.word_at(ws.len() + 2).as_deref() == Some("counter"))
                     || (matches!(next.as_deref(), Some("with"))
-                        && matches!(after.as_deref(), Some("power" | "toughness" | "mana")))
+                        && matches!(after.as_deref(), Some("power" | "toughness" | "mana" | "total")))
+                    // "target creature that's one or more colors".
+                    || (matches!(next.as_deref(), Some("that's"))
+                        && matches!(after.as_deref(), Some("one")))
                     || next.as_deref().and_then(card_type).is_some()
                     || (matches!(next.as_deref(), Some("spell" | "spells"))
                         && !ws.ends_with(&["spell"]))
@@ -10444,6 +10458,8 @@ impl P {
             } else {
                 f.mana_value = g.mana_value;
                 f.status.mana_value_x = g.status.mana_value_x;
+                // "with mana value at most count equal power".
+                f.status.bound = g.status.bound;
                 if g.same == Some(SameRef::ManaValueAtMostPower) {
                     f.same = g.same;
                 }
@@ -10792,6 +10808,46 @@ impl P {
                     self.expect_words(&["colors", "spent", "or", "less"])?;
                     f.status.spent_colors = true;
                 }
+                // `with power at most count equal creature you control`:
+                // "with power less than or equal to the number of creatures
+                // you control"; `less than` is strict, `count where` prints
+                // "X or less, where X is ...".
+                "with" if f.status.bound.is_none() && self.stat_bound_ahead().is_some() => {
+                    let (stat, len) = self.stat_bound_ahead().expect("checked");
+                    self.pos += 1 + len;
+                    let strict = if self.eat_words(&["at", "most"]) {
+                        false
+                    } else {
+                        self.expect_words(&["less", "than"])?;
+                        true
+                    };
+                    let n = self.num()?;
+                    // `with power at most X`: "with power X or less", X of
+                    // the spell or ability (CR 107.3).
+                    let i = match n {
+                        Num::Count(i) => i,
+                        Num::X => u8::MAX,
+                        _ => {
+                            return self
+                                .fail("expected a count (`count equal ...`) or X after `at most`");
+                        }
+                    };
+                    // The count is judged where the targets may not be
+                    // chosen yet ("with power less than or equal to that
+                    // creature's power" isn't supported).
+                    if matches!(
+                        self.counts.get(usize::from(i)).map(|c| &c.expr),
+                        Some(crate::ast::CountExpr::TargetStat { .. })
+                    ) {
+                        return self.fail("a target's stat can't bound a filter");
+                    }
+                    f.status.bound = Some(mtg_core::card::StatBound {
+                        stat,
+                        cmp: Cmp::AtMost,
+                        n,
+                        strict,
+                    });
+                }
                 // "with three or more level counters on it".
                 "with"
                     if f.status.counter.is_none()
@@ -11104,13 +11160,38 @@ impl P {
                         }
                     });
                 }
-                "multicolored" | "monocolored" | "colorless" => {
+                "multicolored" | "monocolored" | "colorless" | "colored" => {
                     f.color_count = Some(match w.as_str() {
                         "multicolored" => ColorCount::Multicolored,
                         "monocolored" => ColorCount::Monocolored,
+                        "colored" => ColorCount::Colored,
                         _ => ColorCount::Colorless,
                     });
                     self.pos += 1;
+                }
+                // "that's one or more colors": `colored`.
+                "that's"
+                    if self.at_words(&["that's", "one", "or", "more", "colors"])
+                        && f.color_count.is_none() =>
+                {
+                    f.color_count = Some(ColorCount::Colored);
+                    self.pos += 5;
+                }
+                // "with total power and toughness 5 or less" (Cut Down).
+                "with"
+                    if self.at_words(&["with", "total", "power", "and", "toughness"])
+                        && f.status.pt_total.is_none() =>
+                {
+                    self.pos += 5;
+                    let n = self.number()?;
+                    let cmp = if self.eat_words(&["or", "less"]) {
+                        Cmp::AtMost
+                    } else if self.eat_words(&["or", "greater"]) {
+                        Cmp::AtLeast
+                    } else {
+                        Cmp::Exactly
+                    };
+                    f.status.pt_total = Some((cmp, i16::try_from(n).unwrap_or(i16::MAX)));
                 }
                 // "green or white creature"; "green creature or white
                 // creature" is two alternatives.
@@ -11214,6 +11295,9 @@ impl P {
                         } else if rest == "snow" {
                             // "nonsnow" (CR 205.4g).
                             f.not_supertypes.push(Supertype::Snow);
+                        } else if rest_raw == crate::ast::OUTLAW {
+                            // "non-outlaw" (CR 700.12): none of the five.
+                            f.not_subtypes.push(crate::ast::OUTLAW.to_string());
                         } else if rest_raw.chars().next().is_some_and(char::is_uppercase) {
                             f.not_subtypes.push(rest_raw.to_string());
                         } else {
@@ -11290,6 +11374,30 @@ impl P {
             f.attached_to = alt.attached_to.take();
         }
         Ok(f)
+    }
+
+    /// At `with power at most count ...` (or `toughness`, `mana value`,
+    /// `less than`): the stat and how many words name it.
+    fn stat_bound_ahead(&self) -> Option<(mtg_core::card::Stat, usize)> {
+        use mtg_core::card::Stat;
+        if self.word_at(0).as_deref() != Some("with") {
+            return None;
+        }
+        let (stat, len) = match self.word_at(1).as_deref() {
+            Some("power") => (Stat::Power, 1),
+            Some("toughness") => (Stat::Toughness, 1),
+            Some("mana") if self.word_at(2).as_deref() == Some("value") => (Stat::ManaValue, 2),
+            _ => return None,
+        };
+        let at = 1 + len;
+        let cmp_ok = (self.word_at(at).as_deref() == Some("at")
+            && self.word_at(at + 1).as_deref() == Some("most"))
+            || (self.word_at(at).as_deref() == Some("less")
+                && self.word_at(at + 1).as_deref() == Some("than"));
+        let n_ok = self.word_at(at + 2).as_deref() == Some("count")
+            || (self.word_at(at + 2).is_some_and(|w| w.eq_ignore_ascii_case("x"))
+                && self.word_at(at).as_deref() == Some("at"));
+        (cmp_ok && n_ok).then_some((stat, len))
     }
 
     /// `<n>` after `target`: a target declared before, 0-based.

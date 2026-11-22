@@ -1,0 +1,6 @@
+card "Ghastly Demise" {
+  oracle_id e02e7239-304b-4755-b913-bb65bc693e86
+  cost {B}
+  type Instant
+  spell: destroy target nonblack creature if target 1 is with toughness at most count equal graveyard
+}

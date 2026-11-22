@@ -1,0 +1,7 @@
+card "Zar Ojanen, Scion of Efrava" {
+  oracle_id 1402c792-6e2f-4a85-8a0c-8db3c8ce5f1f
+  cost {3}{G}{W}
+  type Legendary Creature — Cat Warrior
+  pt 4/4
+  label "Domain" triggered whenever this becomes tapped: put 1 +1/+1 counters on each creature you control with toughness less than count equal domain
+}

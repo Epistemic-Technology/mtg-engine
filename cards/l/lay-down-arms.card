@@ -1,0 +1,6 @@
+card "Lay Down Arms" {
+  oracle_id aa91d092-7f4a-4e4d-85db-e200692f3d9d
+  cost {W}
+  type Sorcery
+  spell: exile target creature with mana value at most count equal Plains you control; its controller gains 3 life
+}

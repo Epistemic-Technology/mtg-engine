@@ -1246,7 +1246,29 @@ this power` ("with mana value less than or equal to this creature's
 power", "... to Alesha's power": the source's power as it is, or as it
 last existed once it has left the battlefield, CR 608.2h; after `card`
 too, `return target creature card with mana value at most this power
-from your graveyard to battlefield`).
+from your graveyard to battlefield`). A characteristic compared with a
+count: `with power at most count equal creature you control` ("with power
+less than or equal to the number of creatures you control"), `with
+toughness less than count equal power` ("with toughness less than this
+creature's power"), `with mana value at most count where Faerie you
+control` ("with mana value X or less, where X is the number of Faeries you
+control", for a filter that ends the sentence), and `with power at most X`
+("with power X or less", X of the spell or ability, CR 107.3); also on a
+card (`another target creature card with mana value at most count equal
+power from your graveyard`) and a spell (`counter target with mana value
+at most count where Faerie you control spell`). The count is the source's,
+for its controller, as the target is chosen and again as the effect
+resolves (CR 608.2b); for a group, as the effect happens. A target's stat
+(`power of that target 1`) can't be the count. As a target check, `if
+target 1 is with toughness at most count equal graveyard` prints "if its
+toughness is less than or equal to the number of cards in your
+graveyard" (Ghastly Demise; `counter target spell if target 1 is with mana
+value at most count equal greatest mana value`, a spell's mana value on
+the stack), and `destroy target creature if target 1 is tapped` "if it's
+tapped". `with total power and toughness 5 or less` ("target creature
+with total power and toughness 5 or less", the sum of the two, Cut Down);
+`colored` ("target creature that's one or more colors", not colorless,
+CR 105.2; also written `that's one or more colors`).
 A chosen color or type comes last: `creature you control of chosen color`
 ("creatures you control of the chosen color", the color the source chose
 as it entered, CR 607.2a), `creature of chosen type`, `permanent you

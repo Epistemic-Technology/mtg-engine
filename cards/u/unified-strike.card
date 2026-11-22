@@ -1,0 +1,6 @@
+card "Unified Strike" {
+  oracle_id 4649991c-4f2c-49c8-9e18-d0ae36328553
+  cost {W}
+  type Instant
+  spell: exile target attacking creature if target 1 is with power at most count equal Soldier on battlefield
+}

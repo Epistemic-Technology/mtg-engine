@@ -1044,7 +1044,7 @@ fn singular(s: &str) -> String {
             "Dwarves" => "Dwarf".to_string(),
             "Wolves" => "Wolf".to_string(),
             // A planeswalker type spelled with "s" in the singular.
-            "Bolas" => "Bolas".to_string(),
+            "Bolas" | "Plains" => w.to_string(),
             other
                 if other.len() > 3
                     && other.ends_with('s')
@@ -5999,7 +5999,21 @@ fn singular_type(w: &str) -> &str {
 fn filter_phrases(st: &str, oracle: &str) -> String {
     const COLORS: &str = "white|blue|black|red|green";
     let re = |p: &str| Regex::new(p).expect("a filter phrase pattern");
-    let mut s = st.to_string();
+    // "Counter target spell if it's red.": the line's one target as it
+    // resolves.
+    let its = re(r"^(.*\btarget [a-z].*) if it's (?:an? )?([a-z]+)$");
+    let mut s = st
+        .lines()
+        .map(|l| {
+            let l = bound_phrases(l);
+            if l.matches("target ").count() == 1 {
+                its.replace(&l, "$1 if target 1 is $2").into_owned()
+            } else {
+                l
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
     s = re(r"with an? ([+-]\d+/[+-]\d+|[a-z]+) counter on (?:it|them)")
         .replace_all(&s, "with $1 counter")
         .into_owned();
@@ -6066,6 +6080,11 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
         )
         .replace("exile each graveyards", "exile all graveyards")
         .replace("to each of two targets", "to 2 targets");
+    // "for each tapped artifact, creature, and land you control": any of
+    // them, the list printed with "and".
+    s = re(r"count each (tapped |untapped )?(\w+), (\w+), and (\w+) you control")
+        .replace_all(&s, "count each andlist $1$2, $3, or $4 you control")
+        .into_owned();
     // "Destroy all artifacts and enchantments": either type, every one.
     s = re(r"(destroy|exile|return) each (\w+), (\w+), and (\w+)\b")
         .replace_all(&s, |c: &regex::Captures| {
@@ -6104,6 +6123,110 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
         })
         .into_owned();
     s
+}
+
+/// An amount a filter compares a characteristic with, in the DSL's words:
+/// "this creature's power" (`power`), "the number of creatures you
+/// control" (`creature you control`).
+fn bound_amount(a: &str) -> Option<String> {
+    let fixed = match a {
+        "this creature's power" | "~'s power" => Some("power"),
+        "this creature's toughness" | "~'s toughness" => Some("toughness"),
+        "that creature's power" => Some("power of that target 1"),
+        "the greatest mana value among permanents you control" => Some("greatest mana value"),
+        "the greatest power among creatures you control" => Some("greatest power"),
+        _ => None,
+    };
+    // The templates write "lands" singular before a count.
+    let fixed = fixed.or(
+        (a == "the number of basic land types among land you control").then_some("domain"),
+    );
+    if let Some(f) = fixed {
+        return Some(f.to_string());
+    }
+    count_expr(a.strip_prefix("the number of ")?)
+}
+
+/// "with power less than or equal to the number of creatures you
+/// control" (`with power at most count equal creature you control`),
+/// "with power less than this creature's power" (`less than`), "with mana
+/// value X or less, where X is ..." (`count where`), and "if its toughness
+/// is less than or equal to ..." (`if target 1 is with toughness at most
+/// ...`, the statement's one target): a characteristic compared with a
+/// count.
+fn bound_phrases(st: &str) -> String {
+    let head = Regex::new(
+        r"(with|if its) (power|toughness|mana value) (is )?(less than or equal to|less than|X or less, where X is) ",
+    )
+    .expect("a bound pattern");
+    let mut s = st.to_string();
+    let mut from = 0;
+    while let Some(c) = head.captures_at(&s, from) {
+        let m = c.get(0).expect("the match");
+        let (lead, stat) = (c[1].to_string(), c[2].to_string());
+        let how = c[4].to_string();
+        let rest = &s[m.end()..];
+        // The shortest run of words that is an amount ("the number of
+        // Vampires you control", not "... you control; untap ...").
+        let words: Vec<(usize, &str)> = rest
+            .match_indices(' ')
+            .map(|(i, _)| (i, &rest[..i]))
+            .chain(std::iter::once((rest.len(), rest)))
+            .collect();
+        let found = words.iter().find_map(|(_, a)| {
+            let a = a.trim_end_matches([';', ',']);
+            bound_amount(a).map(|e| (a.len(), e))
+        });
+        let Some((end, expr)) = found else {
+            from = m.end();
+            continue;
+        };
+        let (cmp, style) = match how.as_str() {
+            "less than" => ("less than", "equal"),
+            "X or less, where X is" => ("at most", "where"),
+            _ => ("at most", "equal"),
+        };
+        // A "where X is" amount ends the sentence.
+        if style == "where" && end != rest.len() {
+            from = m.end();
+            continue;
+        }
+        let dsl = if lead == "with" {
+            format!("with {stat} {cmp} count {style} {expr}")
+        } else {
+            if st.matches("target ").count() != 1 || c.get(3).is_none() {
+                from = m.end();
+                continue;
+            }
+            format!("if target 1 is with {stat} {cmp} count {style} {expr}")
+        };
+        let mut tail = rest[end..].to_string();
+        // "target creature with power ... an opponent controls": the
+        // controller after the quality, as Oracle has it.
+        if let Some(t) = tail.strip_prefix(" an opponent controls") {
+            tail = format!(" an opponent controls late{t}");
+        }
+        let at = m.start();
+        s = format!("{}{dsl}{tail}", &s[..at]);
+        from = at + dsl.len();
+    }
+    // "target creature with power X or less": X of the spell.
+    let s = Regex::new(r"with (power|toughness) X or less\b(,? where)?")
+        .expect("a bound pattern")
+        .replace_all(&s, |c: &regex::Captures| {
+            if c.get(2).is_some() {
+                c[0].to_string()
+            } else {
+                format!("with {} at most X", &c[1])
+            }
+        })
+        .into_owned();
+    // "counter target spell with mana value at most ...": the qualities
+    // before `spell`.
+    Regex::new(r"counter target spell (with (?:power|toughness|mana value) (?:at most|less than) count [a-z]+ .+)$")
+        .expect("a bound pattern")
+        .replace(&s, "counter target $1 spell")
+        .into_owned()
 }
 
 /// A card type or another lowercase filter word, never a subtype.

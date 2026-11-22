@@ -337,6 +337,37 @@ scenario "Elven Riders: a creature with flying can block it" {
   assert life B 20
 }
 
+scenario "Ember Gale: 1 damage to each white and/or blue creature that player controls" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Storm Crow", "Savannah Lions", "Grizzly Bears"
+  hand A: "Ember Gale"
+  turn 1 A: cast "Ember Gale" targeting player B
+  run_to turn 1 postcombat_main
+  assert damage "Storm Crow" 1
+  assert graveyard B contains "Savannah Lions"
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Ignite Disorder: divides 3 damage among white and/or blue creatures" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Storm Crow", "Savannah Lions", "Grizzly Bears"
+  hand A: "Ignite Disorder"
+  illegal turn 1 A: cast "Ignite Disorder" targeting "Grizzly Bears"
+  turn 1 A: cast "Ignite Disorder" targeting "Storm Crow", "Savannah Lions" dividing 2, 1
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Storm Crow"
+  assert graveyard B contains "Savannah Lions"
+}
+
+scenario "Toil to Renown: 1 life for each tapped artifact, creature, and land you control" {
+  battlefield A: 2 "Forest", "Mind Stone" tapped, "Grizzly Bears" tapped, "Savannah Lions", "Plains" tapped
+  hand A: "Toil to Renown"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Toil to Renown"
+  run_to turn 1 postcombat_main
+  assert life A 25
+}
+
 # ---- colors on each type ----
 
 scenario "Devout Decree: exiles a black or red creature, not a green one" {
@@ -759,4 +790,36 @@ scenario "Rattlechains: Spirit spells have flash" {
   turn 1 end A: cast "Accursed Spirit"
   run_to turn 1 cleanup
   assert battlefield A contains "Accursed Spirit"
+}
+
+# ---- non-outlaw ----
+
+scenario "Shoot the Sheriff: destroys a non-outlaw creature, not a Rogue" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Ali Baba", "Grizzly Bears"
+  hand A: "Shoot the Sheriff"
+  illegal turn 1 A: cast "Shoot the Sheriff" targeting "Ali Baba"
+  turn 1 A: cast "Shoot the Sheriff" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Caught in the Crossfire: 2 damage to each non-outlaw creature" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Ali Baba", "Grizzly Bears"
+  hand A: "Caught in the Crossfire"
+  turn 1 A: cast "Caught in the Crossfire" mode 2
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Ali Baba"
+}
+
+scenario "Caught in the Crossfire: 2 damage to each outlaw creature" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Ali Baba", "Grizzly Bears"
+  hand A: "Caught in the Crossfire"
+  turn 1 A: cast "Caught in the Crossfire" mode 1
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ali Baba"
+  assert battlefield B contains "Grizzly Bears"
 }

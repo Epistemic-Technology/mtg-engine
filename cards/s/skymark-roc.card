@@ -1,0 +1,8 @@
+card "Skymark Roc" {
+  oracle_id b7564801-e35c-4d5c-afa9-99b33b35309c
+  cost {2}{W}{U}
+  type Creature — Bird
+  pt 3/3
+  keywords flying
+  triggered whenever this attacks: you may return target creature defending player controls with toughness 2 or less to hand
+}

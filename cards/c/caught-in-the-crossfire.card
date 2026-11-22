@@ -1,0 +1,9 @@
+card "Caught in the Crossfire" {
+  oracle_id d262f3e1-b5bc-4dab-86c2-cd89c2419e54
+  cost {R}{R}
+  type Instant
+  spree {
+    mode {1}: deal 2 damage to each outlaw creature
+    mode {1}: deal 2 damage to each non-outlaw creature
+  }
+}

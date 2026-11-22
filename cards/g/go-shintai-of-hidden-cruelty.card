@@ -1,0 +1,8 @@
+card "Go-Shintai of Hidden Cruelty" {
+  oracle_id ff8cf669-a38a-44ae-baff-420f59492371
+  cost {3}{B}
+  type Legendary Enchantment Creature — Shrine
+  pt 2/2
+  keywords deathtouch
+  triggered at beginning of your end step: you may pay {1}; when you do, destroy target creature with toughness at most count where Shrine you control
+}

@@ -1,0 +1,7 @@
+card "Goma Fada Vanguard" {
+  oracle_id 74027d31-6efb-471d-9499-cdb1cefc9eae
+  cost {1}{R}
+  type Creature — Human Warrior
+  pt 2/2
+  triggered whenever this attacks: target creature an opponent controls with power at most count equal Warrior you control can't block
+}

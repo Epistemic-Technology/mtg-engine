@@ -1,0 +1,9 @@
+card "Earthshaker Khenra" {
+  oracle_id df660a8e-39c2-455d-8860-522e2998a95e
+  cost {1}{R}
+  type Creature — Jackal Warrior
+  pt 2/1
+  keywords haste
+  triggered when this enters: target creature with power at most count equal power can't block
+  eternalize {4}{R}{R}
+}

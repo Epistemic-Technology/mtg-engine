@@ -1,0 +1,6 @@
+card "Ignite Disorder" {
+  oracle_id 8f66317c-06fe-4320-9d98-eaedaef67c85
+  cost {1}{R}
+  type Instant
+  spell: deal 3 damage divided among 1 to 3 target andor white or blue creatures
+}

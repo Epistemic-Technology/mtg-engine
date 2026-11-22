@@ -1,0 +1,7 @@
+card "Beguiler of Wills" {
+  oracle_id 20c20c86-4435-49e0-bbf3-b51c49c2eadd
+  cost {3}{U}{U}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {T}: gain control of target creature with power at most count equal creature you control indefinitely
+}

@@ -1229,6 +1229,28 @@ pub struct StatusQuals {
     /// A characteristic, not game state: `any` leaves it out.
     #[serde(default)]
     pub pt_either: bool,
+    /// "with power less than or equal to the number of creatures you
+    /// control", "if its toughness is less than or equal to the number of
+    /// cards in your graveyard": a characteristic compared with a count of
+    /// the source's, filled in by the engine where the source is known
+    /// (`GameState::fill_bound`); elsewhere it doesn't restrict.
+    #[serde(default)]
+    pub bound: Option<StatBound>,
+    /// "with total power and toughness 5 or less": the sum compared. A
+    /// characteristic, not game state: `any` leaves it out.
+    #[serde(default)]
+    pub pt_total: Option<(Cmp, i16)>,
+}
+
+/// A characteristic compared with an amount the source counts
+/// (`StatusQuals::bound`): `stat` is at most `n` (less than `n` with
+/// `strict`), or `n` exactly with `Cmp::Exactly`.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct StatBound {
+    pub stat: Stat,
+    pub cmp: Cmp,
+    pub n: Num,
+    pub strict: bool,
 }
 
 /// The kind of permanent `StatusQuals::on` asks the object to be attached
@@ -1271,6 +1293,7 @@ impl StatusQuals {
             || self.face_down
             || self.morph
             || self.suspected.is_some()
+            || self.bound.is_some()
     }
 }
 
@@ -1365,6 +1388,8 @@ pub enum ColorCount {
     Colorless,
     Monocolored,
     Multicolored,
+    /// "that's one or more colors": not colorless (CR 105.2).
+    Colored,
 }
 
 impl ObjFilter {
@@ -1558,6 +1583,12 @@ impl ObjFilter {
         if !self.any_types.is_empty() && !c.types.intersects(self.any_types) {
             return false;
         }
+        // "with total power and toughness 5 or less" (Cut Down).
+        if let Some((cmp, n)) = self.status.pt_total
+            && !cmp.holds(i32::from(c.power) + i32::from(c.toughness), i32::from(n))
+        {
+            return false;
+        }
         if self.status.pt_either {
             // "with power or toughness 1 or less": either is enough.
             let p = self.power.is_some_and(|(cmp, n)| cmp.holds(c.power, n));
@@ -1585,6 +1616,7 @@ impl ObjFilter {
                 ColorCount::Colorless => n == 0,
                 ColorCount::Monocolored => n == 1,
                 ColorCount::Multicolored => n >= 2,
+                ColorCount::Colored => n >= 1,
             };
             if !ok {
                 return false;

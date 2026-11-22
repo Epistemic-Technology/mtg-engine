@@ -1,0 +1,341 @@
+# A characteristic compared with a count (`with power at most count
+# equal ...`, `with toughness less than count equal power`, `with mana
+# value at most count where ...`): judged with the count as the target is
+# chosen and as the effect resolves; and the trailing "if it's red", "if
+# its toughness is less than or equal to ..." on the one target.
+
+# ---- if it's ----
+
+scenario "Pyroblast: counters a blue spell" {
+  battlefield A: "Mountain"
+  battlefield B: 3 "Island"
+  hand B: "Divination"
+  hand A: "Pyroblast"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Divination"
+  turn 1 A: cast "Pyroblast" mode 1 targeting "Divination"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Divination"
+  assert hand B count 0
+}
+
+scenario "Pyroblast: targets a spell that isn't blue, and does nothing" {
+  battlefield A: "Mountain"
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  hand A: "Pyroblast"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Grizzly Bears"
+  turn 1 A: cast "Pyroblast" mode 1 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert graveyard A contains "Pyroblast"
+}
+
+scenario "Hydroblast: destroys a red permanent, not a green one" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Hydroblast", "Hydroblast"
+  turn 1 A: cast "Hydroblast" mode 2 targeting "Hill Giant"
+  turn 1 A: cast "Hydroblast" mode 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Deathbringer Liege: a black spell destroys target creature if it's tapped" {
+  battlefield A: "Deathbringer Liege", 2 "Swamp"
+  battlefield B: "Hill Giant" tapped, "Grizzly Bears"
+  hand A: "Typhoid Rats"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Typhoid Rats"
+  turn 1 A: trigger "Deathbringer Liege" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Deathbringer Liege: an untapped target survives" {
+  battlefield A: "Deathbringer Liege", 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Typhoid Rats"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Typhoid Rats"
+  turn 1 A: trigger "Deathbringer Liege" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+# ---- if its ... is less than or equal to ----
+
+scenario "Ghastly Demise: toughness at most the cards in your graveyard" {
+  battlefield A: "Swamp"
+  battlefield B: "Hill Giant"
+  graveyard A: "Shock", "Opt", "Ponder"
+  hand A: "Ghastly Demise"
+  turn 1 A: cast "Ghastly Demise" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Ghastly Demise: too few cards, the creature survives" {
+  battlefield A: "Swamp"
+  battlefield B: "Hill Giant"
+  graveyard A: "Shock"
+  hand A: "Ghastly Demise"
+  turn 1 A: cast "Ghastly Demise" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Rending Vines: mana value at most the cards in your hand" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Mind Stone", "Glorious Anthem"
+  hand A: "Rending Vines", "Rending Vines", "Opt", "Ponder"
+  turn 1 A: cast "Rending Vines" targeting "Mind Stone"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Mind Stone"
+}
+
+scenario "Rending Vines: mana value above the cards in hand, still draws" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Glorious Anthem"
+  hand A: "Rending Vines", "Opt"
+  turn 1 A: cast "Rending Vines" targeting "Glorious Anthem"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Glorious Anthem"
+  assert hand A count 2
+}
+
+scenario "Unified Strike: exiles an attacker with power at most the Soldiers" {
+  battlefield A: "Plains", "Soldier", "Elite Vanguard"
+  battlefield B: "Grizzly Bears"
+  hand A: "Unified Strike"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Unified Strike" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert exile B contains "Grizzly Bears"
+}
+
+scenario "Unified Strike: one Soldier isn't enough for a 3/3" {
+  battlefield A: "Plains", "Soldier"
+  battlefield B: "Hill Giant"
+  hand A: "Unified Strike"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Unified Strike" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert life A 17
+}
+
+scenario "Dispersal Shield: counters a spell no greater than your greatest mana value" {
+  battlefield A: 2 "Island", "Craw Wurm"
+  battlefield B: 4 "Mountain"
+  hand B: "Hill Giant"
+  hand A: "Dispersal Shield"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Hill Giant"
+  turn 1 A: cast "Dispersal Shield" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Dispersal Shield: a greater mana value resolves" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  battlefield B: 4 "Mountain"
+  hand B: "Hill Giant"
+  hand A: "Dispersal Shield"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Hill Giant"
+  turn 1 A: cast "Dispersal Shield" targeting B "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+# ---- target filters ----
+
+scenario "Spellstutter Sprite: counters a spell with mana value up to the Faeries" {
+  battlefield A: 2 "Island"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  hand A: "Spellstutter Sprite"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Shock" targeting player A
+  turn 1 A: cast "Spellstutter Sprite"
+  turn 1 A: trigger "Spellstutter Sprite" targeting "Shock"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Shock"
+}
+
+scenario "Beguiler of Wills: power at most the creatures you control" {
+  battlefield A: "Beguiler of Wills", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Savannah Lions"
+  illegal turn 1 A: activate "Beguiler of Wills" targeting "Hill Giant"
+  turn 1 A: activate "Beguiler of Wills" targeting "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Savannah Lions"
+}
+
+scenario "Lay Down Arms: mana value at most the Plains you control" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Lay Down Arms"
+  illegal turn 1 A: cast "Lay Down Arms" targeting "Hill Giant"
+  turn 1 A: cast "Lay Down Arms" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert life B 23
+}
+
+scenario "Unliving Psychopath: power less than its own" {
+  battlefield A: "Unliving Psychopath", 3 "Swamp"
+  battlefield B: "Savannah Lions", "Typhoid Rats"
+  turn 1 A: activate "Unliving Psychopath" ability 1
+  turn 1 A: activate "Unliving Psychopath" ability 1
+  illegal turn 1 A: activate "Unliving Psychopath" ability 2 targeting "Savannah Lions"
+  turn 1 A: activate "Unliving Psychopath" ability 2 targeting "Typhoid Rats"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Typhoid Rats"
+  assert battlefield B contains "Savannah Lions"
+}
+
+scenario "Stone Giant: toughness less than its power gains flying, then dies" {
+  battlefield A: "Stone Giant", "Grizzly Bears", "Hill Giant"
+  illegal turn 1 A: activate "Stone Giant" targeting "Hill Giant"
+  turn 1 A: activate "Stone Giant" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert has "Grizzly Bears" flying
+  run_to turn 1 cleanup
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Earthshaker Khenra: power at most its power can't block" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Savannah Lions"
+  hand A: "Earthshaker Khenra"
+  turn 1 A: cast "Earthshaker Khenra"
+  turn 1 A: trigger "Earthshaker Khenra" targeting "Savannah Lions"
+  turn 1 A: attack "Earthshaker Khenra"
+  illegal turn 1 B: block "Earthshaker Khenra" with "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Goma Fada Vanguard: power at most the Warriors can't block" {
+  battlefield A: "Goma Fada Vanguard", "Blood-Chin Rager"
+  battlefield B: "Savannah Lions"
+  turn 1 A: attack "Goma Fada Vanguard"
+  turn 1 A: trigger "Goma Fada Vanguard" targeting "Savannah Lions"
+  illegal turn 1 B: block "Goma Fada Vanguard" with "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Radha's Firebrand: power less than its power can't block" {
+  battlefield A: "Radha's Firebrand"
+  battlefield B: "Savannah Lions"
+  turn 1 A: attack "Radha's Firebrand"
+  turn 1 A: trigger "Radha's Firebrand" targeting "Savannah Lions"
+  illegal turn 1 B: block "Radha's Firebrand" with "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Dominating Vampire: mana value at most the Vampires you control" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Savannah Lions"
+  hand A: "Dominating Vampire"
+  turn 1 A: cast "Dominating Vampire"
+  turn 1 A: trigger "Dominating Vampire" targeting "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Savannah Lions"
+  assert has "Savannah Lions" haste
+}
+
+scenario "Zar Ojanen: counters on creatures with toughness less than the basic land types" {
+  battlefield A: "Zar Ojanen, Scion of Efrava", "Savannah Lions", "Hill Giant", "Plains", "Island", "Swamp"
+  turn 1 A: attack "Zar Ojanen, Scion of Efrava"
+  run_to turn 1 declare_blockers
+  assert counters "Savannah Lions" +1/+1 1
+  assert counters "Hill Giant" +1/+1 0
+}
+
+scenario "Gurgling Anointer: dying, returns a card with mana value at most its power" {
+  battlefield A: "Gurgling Anointer", "Mountain"
+  graveyard A: "Llanowar Elves", "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Gurgling Anointer"
+  turn 1 A: trigger "Gurgling Anointer" targeting "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Llanowar Elves"
+}
+
+scenario "Go-Shintai of Hidden Cruelty: toughness X or less, X the Shrines" {
+  battlefield A: "Go-Shintai of Hidden Cruelty", "Swamp"
+  battlefield B: "Savannah Lions"
+  start turn 1 A precombat_main
+  turn 1 end A: trigger "Go-Shintai of Hidden Cruelty" targeting "Savannah Lions"
+  run_to turn 1 cleanup
+  assert graveyard B contains "Savannah Lions"
+}
+
+scenario "Skymark Roc: returns a creature defending player controls with toughness 2 or less" {
+  battlefield A: "Skymark Roc"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Skymark Roc"
+  turn 1 A: trigger "Skymark Roc" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+}
+
+scenario "Cut Down: total power and toughness 5 or less" {
+  battlefield A: "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Cut Down"
+  illegal turn 1 A: cast "Cut Down" targeting "Hill Giant"
+  turn 1 A: cast "Cut Down" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Reach of Shadows: a creature that's one or more colors, not a colorless one" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Ornithopter", "Hill Giant"
+  hand A: "Reach of Shadows"
+  illegal turn 1 A: cast "Reach of Shadows" targeting "Ornithopter"
+  turn 1 A: cast "Reach of Shadows" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Killing Glare: X 3 destroys a 3/3" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Killing Glare"
+  turn 1 A: cast "Killing Glare" x 3 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Killing Glare: X 2 can't target a 3/3" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Killing Glare"
+  illegal turn 1 A: cast "Killing Glare" x 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Minamo Sightbender: X 2 makes a 2/2 unblockable, not a 3/3" {
+  battlefield A: "Minamo Sightbender", "Grizzly Bears", "Hill Giant", 2 "Island"
+  battlefield B: "Savannah Lions"
+  illegal turn 1 A: activate "Minamo Sightbender" x 2 targeting "Hill Giant"
+  turn 1 A: activate "Minamo Sightbender" x 2 targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

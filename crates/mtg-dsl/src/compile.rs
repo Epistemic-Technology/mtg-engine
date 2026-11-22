@@ -1307,6 +1307,14 @@ impl Compiler<'_> {
             }
             return self.filter(&chain.expect("five alternatives"));
         }
+        // "non-outlaw": none of the five creature types.
+        if let Some(i) = f.not_subtypes.iter().position(|s| s == crate::ast::OUTLAW) {
+            let mut g = f.clone();
+            g.not_subtypes.remove(i);
+            g.not_subtypes
+                .extend(crate::ast::OUTLAW_TYPES.iter().map(|t| (*t).to_string()));
+            return self.filter(&g);
+        }
         if let Some(h) = historic(f) {
             return self.filter(&h);
         }

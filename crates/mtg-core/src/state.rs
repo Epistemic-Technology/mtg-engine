@@ -3978,6 +3978,7 @@ impl GameState {
         source: Option<ObjId>,
         x: Option<u32>,
     ) -> std::borrow::Cow<'f, crate::card::ObjFilter> {
+        let announced_x = x;
         let x = if f.status.mana_value_x {
             x.or_else(|| source.and_then(|s| self.x_chosen(s)))
         } else {
@@ -4012,7 +4013,53 @@ impl GameState {
         {
             Self::fill_spent_colors(out.to_mut(), self.spent_on(s).colors());
         }
+        // "target creature with power less than or equal to the number of
+        // creatures you control": counted for the source's controller.
+        if let Some(b) = f.status.bound
+            && let Some(s) = source
+        {
+            let controller = self
+                .objects
+                .get(s)
+                .map(|o| o.controller)
+                .or_else(|| self.lki.get(&s).map(|l| l.object.controller));
+            // `with power X or less`: X of the source spell (CR 107.3).
+            let x = (b.n == crate::card::Num::X)
+                .then(|| announced_x.or_else(|| self.x_chosen(s)))
+                .flatten();
+            if let Some(x) = x {
+                Self::fill_bound(out.to_mut(), x);
+            } else if b.n != crate::card::Num::X
+                && let Some(controller) = controller
+            {
+                let v = self.eval_num_of(b.n, s, controller);
+                Self::fill_bound(out.to_mut(), v);
+            }
+        }
         out
+    }
+
+    /// A characteristic compared with a count (`StatusQuals::bound`),
+    /// filled in with the count's value `v`: the power, toughness, or mana
+    /// value threshold. "Less than 0" matches no mana value.
+    pub fn fill_bound(g: &mut crate::card::ObjFilter, v: u32) {
+        use crate::card::{Cmp, Stat};
+        let Some(b) = g.status.bound.take() else {
+            return;
+        };
+        let v = i64::from(v) - i64::from(b.strict);
+        match b.stat {
+            Stat::Power | Stat::Toughness => {
+                let n = i16::try_from(v).unwrap_or(i16::MAX);
+                if b.stat == Stat::Power {
+                    g.power = Some((b.cmp, n));
+                } else {
+                    g.toughness = Some((b.cmp, n));
+                }
+            }
+            Stat::ManaValue if v < 0 => g.mana_value = Some((Cmp::Exactly, u8::MAX)),
+            Stat::ManaValue => g.mana_value = Some((b.cmp, u8::try_from(v).unwrap_or(u8::MAX))),
+        }
     }
 
     /// Converge in a filter (`StatusQuals::spent_colors`): its mana value

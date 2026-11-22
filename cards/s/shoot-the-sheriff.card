@@ -1,0 +1,6 @@
+card "Shoot the Sheriff" {
+  oracle_id 2038138e-2e52-41e4-90fc-443fa054c5c0
+  cost {1}{B}
+  type Instant
+  spell: destroy target non-outlaw creature
+}

@@ -3303,7 +3303,11 @@ fn filter_one(f: &Filter) -> String {
         words.push("modified".to_string());
     }
     if let Some(cc) = f.color_count {
-        words.push(format!("{cc:?}").to_lowercase());
+        words.push(if cc == mtg_core::card::ColorCount::Colored {
+            "colored".to_string()
+        } else {
+            format!("{cc:?}").to_lowercase()
+        });
     }
     if let Some(colors) = &f.colors {
         let names: Vec<String> = colors.iter().map(|c| color_name(*c).to_string()).collect();
@@ -3353,6 +3357,17 @@ fn filter_one(f: &Filter) -> String {
         } else {
             words.push(format!("with mana value {n}{}", cmp_suffix(cmp)));
         }
+    }
+    if let Some((cmp, n)) = f.status.pt_total {
+        words.push(format!("with total power and toughness {n}{}", cmp_suffix(cmp)));
+    }
+    if let Some(b) = f.status.bound {
+        words.push(format!(
+            "with {} {} {}",
+            stat_word(b.stat),
+            if b.strict { "less than" } else { "at most" },
+            num(b.n)
+        ));
     }
     if let Some(e) = f.status.enchanted {
         words.push(

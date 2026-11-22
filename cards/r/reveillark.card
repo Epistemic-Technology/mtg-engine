@@ -1,0 +1,9 @@
+card "Reveillark" {
+  oracle_id 1be13ede-98f8-497e-800c-03e5802932b3
+  cost {4}{W}
+  type Creature — Elemental
+  pt 4/3
+  keywords flying
+  triggered when this leaves the battlefield: return up to 2 target creature card with power 2 or less from your graveyard to battlefield
+  evoke {5}{W}
+}

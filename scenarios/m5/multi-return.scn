@@ -1,0 +1,56 @@
+# "Return up to two target creature cards ... from your graveyard to the
+# battlefield": the targets of one phrase return together (CR 608.2b:
+# a target illegal as the effect happens doesn't).
+
+scenario "Reveillark: leaving, returns up to two creature cards with power 2 or less" {
+  battlefield A: "Reveillark", "Mountain"
+  graveyard A: "Grizzly Bears", "Savannah Lions", "Hill Giant"
+  hand A: "Lightning Bolt"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting "Reveillark"
+  turn 1 A: cast "Lightning Bolt" targeting "Reveillark"
+  turn 1 A: trigger "Reveillark" targeting "Grizzly Bears", "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Savannah Lions"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Sigardian Savior: cast, returns two creature cards with mana value 2 or less" {
+  battlefield A: 5 "Plains"
+  graveyard A: "Grizzly Bears", "Savannah Lions", "Hill Giant"
+  hand A: "Sigardian Savior"
+  turn 1 A: cast "Sigardian Savior"
+  turn 1 A: trigger "Sigardian Savior" targeting "Grizzly Bears", "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Savannah Lions"
+}
+
+scenario "Proclamation of Rebirth: returns up to three creature cards with mana value 1 or less" {
+  battlefield A: 3 "Plains"
+  graveyard A: "Savannah Lions", "Llanowar Elves", "Elite Vanguard", "Grizzly Bears"
+  hand A: "Proclamation of Rebirth"
+  illegal turn 1 A: cast "Proclamation of Rebirth" targeting "Grizzly Bears", "Savannah Lions", "Llanowar Elves"
+  turn 1 A: cast "Proclamation of Rebirth" targeting "Savannah Lions", "Llanowar Elves", "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Savannah Lions"
+  assert battlefield A contains "Llanowar Elves"
+  assert battlefield A contains "Elite Vanguard"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Pull Through the Weft: two permanent cards to hand, two lands to the battlefield tapped" {
+  battlefield A: 5 "Forest"
+  graveyard A: "Grizzly Bears", "Mind Stone", "Plains", "Island", "Shock"
+  hand A: "Pull Through the Weft"
+  turn 1 A: cast "Pull Through the Weft" targeting "Grizzly Bears", "Mind Stone", "Plains", "Island"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Mind Stone"
+  assert tapped "Plains"
+  assert tapped "Island"
+  assert graveyard A contains "Shock"
+}

@@ -1,0 +1,8 @@
+card "Radha's Firebrand" {
+  oracle_id 0d6d5509-41e5-4099-98a0-18ae7531df7d
+  cost {1}{R}
+  type Creature — Human Warrior
+  pt 3/1
+  triggered whenever this attacks: target creature defending player controls with power less than count equal power can't block
+  label "Domain" activated {5}{R}, reduced {1} each Domain, once: this gets +2/+2
+}

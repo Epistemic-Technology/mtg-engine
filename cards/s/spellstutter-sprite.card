@@ -1,0 +1,8 @@
+card "Spellstutter Sprite" {
+  oracle_id 32e60fb4-e841-4f82-9c83-5e63766e8e6f
+  cost {1}{U}
+  type Creature — Faerie Wizard
+  pt 1/1
+  keywords flash, flying
+  triggered when this enters: counter target with mana value at most count where Faerie you control spell
+}

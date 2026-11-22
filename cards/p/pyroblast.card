@@ -1,0 +1,9 @@
+card "Pyroblast" {
+  oracle_id ecc435e2-deb1-420a-a79f-01dd08747314
+  cost {R}
+  type Instant
+  choose one {
+    mode: counter target spell if target 1 is blue
+    mode: destroy target permanent if target 1 is blue
+  }
+}

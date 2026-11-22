@@ -1,0 +1,8 @@
+card "Sigardian Savior" {
+  oracle_id 14bc9e20-a6ad-4eca-8c5c-5459ce078d9a
+  cost {3}{W}{W}
+  type Creature — Angel
+  pt 3/3
+  keywords flying
+  triggered when this enters if you cast it: return up to 2 target creature card with mana value 2 or less from your graveyard to battlefield
+}
