@@ -1,0 +1,7 @@
+card "Hazardroot Herbalist" {
+  oracle_id f40cb1af-3db6-4e90-830f-86ff4b60e239
+  cost {2}{G}
+  type Creature — Rabbit Druid
+  pt 1/4
+  triggered whenever you attack: target creature you control gets +1/+0 until end of turn; if that target 1 is token, also target 1 gains deathtouch until end of turn
+}

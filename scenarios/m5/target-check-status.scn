@@ -1,0 +1,22 @@
+# A target check of a token or of "entered this turn" is judged as the
+# effect happens ("If that creature is a token, it also gains deathtouch").
+
+scenario "Hazardroot Herbalist: a token gains deathtouch" {
+  battlefield A: "Hazardroot Herbalist", "Soldier"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Soldier"
+  turn 1 A: trigger "Hazardroot Herbalist" targeting "Soldier"
+  run_to turn 1 declare_blockers
+  assert has "Soldier" deathtouch
+  assert power "Soldier" 2
+}
+
+scenario "Hazardroot Herbalist: a nontoken creature doesn't" {
+  battlefield A: "Hazardroot Herbalist", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 A: trigger "Hazardroot Herbalist" targeting "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert has not "Grizzly Bears" deathtouch
+  assert power "Grizzly Bears" 3
+}

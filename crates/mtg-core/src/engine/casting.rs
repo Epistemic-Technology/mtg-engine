@@ -14202,6 +14202,10 @@ impl GameState {
                 || f.status.equipped
                 || f.status.modified
                 || f.status.on.is_some()
+                // "If the creature you control entered this turn", "if
+                // that creature is a token".
+                || f.status.entered_this_turn
+                || f.status.token.is_some()
         }
         // Converge: "if its mana value is less than or equal to the number
         // of colors of mana spent to cast this spell".
@@ -14299,6 +14303,11 @@ impl GameState {
                         && filter.tapped.is_none_or(|t| l.object.tapped == t)
                         && (!filter.attacking || l.attacking)
                         && (!filter.blocking || l.blocking)
+                        && filter.status.token.is_none_or(|t| {
+                            (l.object.kind == crate::state::ObjKind::Token) == t
+                        })
+                        && (!filter.status.entered_this_turn
+                            || l.object.timestamp >= self.turn_started_at)
                 })))
     }
 
