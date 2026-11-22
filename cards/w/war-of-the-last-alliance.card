@@ -1,0 +1,7 @@
+card "War of the Last Alliance" {
+  oracle_id e376702a-f56e-4e47-aa8c-3f80384d12a9
+  cost {3}{W}
+  type Enchantment — Saga
+  triggered chapter 1, 2: search legendary creature card reveal to hand
+  triggered chapter 3: each creature you control gains double strike; the ring tempts you
+}

@@ -1,0 +1,7 @@
+card "Treefolk Harbinger" {
+  oracle_id 98c387bd-c9ba-464a-8380-839a5604a37f
+  cost {G}
+  type Creature — Treefolk Druid
+  pt 0/3
+  triggered when this enters: you may search Treefolk or Forest card reveal to top that card
+}

@@ -1,0 +1,6 @@
+card "Unmarked Grave" {
+  oracle_id 134dfb35-0c32-4143-aa63-7701f406b59e
+  cost {1}{B}
+  type Sorcery
+  spell: search nonlegendary card to graveyard that card
+}

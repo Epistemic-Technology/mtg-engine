@@ -1,0 +1,6 @@
+card "Steelshaper's Gift" {
+  oracle_id d9abda7e-6ca2-42ea-ab24-c542e57014f1
+  cost {W}
+  type Sorcery
+  spell: search Equipment card reveal to hand that card
+}

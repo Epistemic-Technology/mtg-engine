@@ -1,0 +1,5 @@
+card "Marsh Flats" {
+  oracle_id dab520d0-20b4-4273-ba6b-eb07f85ea433
+  type Land
+  activated {T}, pay 1 life, sacrifice this: search Plains or Swamp card to battlefield
+}

@@ -1,0 +1,8 @@
+card "Merrow Harbinger" {
+  oracle_id 035ee753-232f-4ba2-afbf-8d1eb162e6f8
+  cost {3}{U}
+  type Creature — Merfolk Wizard
+  pt 2/3
+  keywords islandwalk
+  triggered when this enters: you may search Merfolk card reveal to top that card
+}

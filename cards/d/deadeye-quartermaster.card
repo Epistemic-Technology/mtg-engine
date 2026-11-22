@@ -1,0 +1,7 @@
+card "Deadeye Quartermaster" {
+  oracle_id 40abba38-533b-4f51-99e9-a2b337d65171
+  cost {3}{U}
+  type Creature — Human Pirate
+  pt 2/2
+  triggered when this enters: you may search Equipment or Vehicle card reveal to hand
+}

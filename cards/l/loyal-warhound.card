@@ -1,0 +1,8 @@
+card "Loyal Warhound" {
+  oracle_id cc6a83c7-e645-4a53-9550-be79b42cd851
+  cost {1}{W}
+  type Creature — Dog
+  pt 3/1
+  keywords vigilance
+  triggered when this enters if opponent controls more lands: search basic Plains card to battlefield tapped
+}

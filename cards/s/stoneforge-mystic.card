@@ -1,0 +1,8 @@
+card "Stoneforge Mystic" {
+  oracle_id 358789f9-7d87-411d-919e-d597da665cbd
+  cost {1}{W}
+  type Creature — Kor Artificer
+  pt 1/2
+  triggered when this enters: you may search Equipment card reveal to hand
+  activated {1}{W}, {T}: you may put Equipment card from hand onto battlefield
+}

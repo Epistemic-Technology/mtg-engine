@@ -1,0 +1,7 @@
+card "Chord of Calling" {
+  oracle_id 6789a170-f2c5-4fc0-8a45-2b2361e67410
+  cost {X}{G}{G}{G}
+  type Instant
+  keywords convoke
+  spell: search creature card with mana value X or less to battlefield
+}

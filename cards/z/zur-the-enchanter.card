@@ -1,0 +1,9 @@
+card "Zur the Enchanter" {
+  oracle_id d7950018-d744-48a8-81aa-0d8384703f48
+  cost {1}{W}{U}{B}
+  type Legendary Creature — Human Wizard
+  pt 1/4
+  short_name "Zur"
+  keywords flying
+  triggered whenever this attacks: you may search enchantment card with mana value 3 or less to battlefield
+}

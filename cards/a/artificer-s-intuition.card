@@ -1,0 +1,6 @@
+card "Artificer's Intuition" {
+  oracle_id be14b10a-7cac-47fc-a954-685091990291
+  cost {1}{U}
+  type Enchantment
+  activated {U}, discard artifact card: search artifact card with mana value 1 or less reveal to hand
+}

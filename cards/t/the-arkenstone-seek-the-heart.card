@@ -1,0 +1,13 @@
+card "The Arkenstone // Seek the Heart" {
+  oracle_id 09f09d0a-6054-4545-b81e-0295773cc5f0
+  layout adventure
+  cost {5}
+  type Legendary Artifact
+  static creature you control: +1/+1
+  triggered at beginning of your end step: draw 1 cards
+  face "Seek the Heart" {
+    cost {2}{W}
+    type Sorcery — Adventure
+    spell: search legendary creature card reveal to hand
+  }
+}

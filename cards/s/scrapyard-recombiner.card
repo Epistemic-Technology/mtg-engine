@@ -1,0 +1,8 @@
+card "Scrapyard Recombiner" {
+  oracle_id ecf09f2d-a886-4ec8-8ff6-fe15d87b1375
+  cost {3}
+  type Artifact Creature — Construct
+  pt 0/0
+  modular 2
+  activated {T}, sacrifice artifact: search Construct card reveal to hand
+}

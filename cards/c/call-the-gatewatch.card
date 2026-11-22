@@ -1,0 +1,6 @@
+card "Call the Gatewatch" {
+  oracle_id 652bfa31-b2eb-4cba-850f-1db02a83bb35
+  cost {2}{W}
+  type Sorcery
+  spell: search planeswalker card reveal to hand
+}

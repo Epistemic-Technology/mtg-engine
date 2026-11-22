@@ -1,0 +1,8 @@
+card "The Cave of Two Lovers" {
+  oracle_id c2df54f1-a2db-4de3-bc96-5c07f4594752
+  cost {3}{R}
+  type Enchantment — Saga
+  triggered chapter 1: create 2 "1/1 white Ally creature"
+  triggered chapter 2: search Mountain or Cave card reveal to hand
+  triggered chapter 3: earthbend 3
+}

@@ -1,0 +1,7 @@
+card "Dragonstorm" {
+  oracle_id d74c3871-018a-4450-a613-f67703bb0d72
+  cost {8}{R}
+  type Sorcery
+  spell: search Dragon permanent card to battlefield
+  storm
+}

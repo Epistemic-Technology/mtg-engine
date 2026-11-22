@@ -1,0 +1,811 @@
+# Library searches the template author now writes (CR 701.19): any filter
+# the language has ("a legendary creature card", "an artifact card with
+# mana value 6 or greater", "a Forest or Island card"), with "reveal that
+# card", to the hand, the battlefield, the graveyard, or the top of the
+# library.
+
+# Fetch lands: "{T}, Pay 1 life, Sacrifice this land: Search your library
+# for a Forest or Island card, put it onto the battlefield, then shuffle."
+
+scenario "search: Misty Rainforest finds a Forest or an Island" {
+  battlefield A: "Misty Rainforest"
+  library A: "Mountain", "Island", "Plains"
+  turn 1 A: activate "Misty Rainforest"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Island"
+  assert graveyard A contains "Misty Rainforest"
+  assert life A 19
+}
+
+scenario "search: Misty Rainforest can't find a Mountain" {
+  battlefield A: "Misty Rainforest"
+  library A: "Mountain", "Plains"
+  turn 1 A: activate "Misty Rainforest"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Mountain"
+  assert library A count 2
+}
+
+scenario "search: Arid Mesa" {
+  battlefield A: "Arid Mesa"
+  library A: "Island", "Mountain"
+  turn 1 A: activate "Arid Mesa"
+  turn 1 A: choose "Mountain"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mountain"
+}
+
+scenario "search: Bloodstained Mire" {
+  battlefield A: "Bloodstained Mire"
+  library A: "Island", "Swamp"
+  turn 1 A: activate "Bloodstained Mire"
+  turn 1 A: choose "Swamp"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Swamp"
+}
+
+scenario "search: Flooded Strand" {
+  battlefield A: "Flooded Strand"
+  library A: "Forest", "Plains"
+  turn 1 A: activate "Flooded Strand"
+  turn 1 A: choose "Plains"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Plains"
+}
+
+scenario "search: Marsh Flats" {
+  battlefield A: "Marsh Flats"
+  library A: "Forest", "Swamp"
+  turn 1 A: activate "Marsh Flats"
+  turn 1 A: choose "Swamp"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Swamp"
+}
+
+scenario "search: Polluted Delta" {
+  battlefield A: "Polluted Delta"
+  library A: "Forest", "Island"
+  turn 1 A: activate "Polluted Delta"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Island"
+}
+
+scenario "search: Scalding Tarn" {
+  battlefield A: "Scalding Tarn"
+  library A: "Forest", "Mountain"
+  turn 1 A: activate "Scalding Tarn"
+  turn 1 A: choose "Mountain"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mountain"
+}
+
+scenario "search: Verdant Catacombs" {
+  battlefield A: "Verdant Catacombs"
+  library A: "Island", "Forest"
+  turn 1 A: activate "Verdant Catacombs"
+  turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+}
+
+scenario "search: Windswept Heath" {
+  battlefield A: "Windswept Heath"
+  library A: "Island", "Plains"
+  turn 1 A: activate "Windswept Heath"
+  turn 1 A: choose "Plains"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Plains"
+}
+
+scenario "search: Wooded Foothills" {
+  battlefield A: "Wooded Foothills"
+  library A: "Island", "Mountain"
+  turn 1 A: activate "Wooded Foothills"
+  turn 1 A: choose "Mountain"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mountain"
+}
+
+# "... reveal it, then shuffle and put that card on top": the Harbingers
+# and Forerunners. The card is drawn on the next draw.
+
+scenario "search to top: Boggart Harbinger" {
+  battlefield A: 3 "Swamp"
+  hand A: "Boggart Harbinger"
+  library A: "Island", "Goblin Bully", "Island"
+  turn 1 A: cast "Boggart Harbinger"
+  turn 1 A: choose "Goblin Bully"
+  run_to turn 3 precombat_main
+  assert hand A contains "Goblin Bully"
+}
+
+scenario "search to top: Elvish Harbinger" {
+  battlefield A: 3 "Forest"
+  hand A: "Elvish Harbinger"
+  library A: "Island", "Cylian Elf", "Island"
+  turn 1 A: cast "Elvish Harbinger"
+  turn 1 A: choose "Cylian Elf"
+  run_to turn 3 precombat_main
+  assert hand A contains "Cylian Elf"
+}
+
+scenario "search to top: Faerie Harbinger" {
+  battlefield A: 4 "Island"
+  hand A: "Faerie Harbinger"
+  library A: "Forest", "Bitterblossom", "Forest"
+  turn 1 A: cast "Faerie Harbinger"
+  turn 1 A: choose "Bitterblossom"
+  run_to turn 3 precombat_main
+  assert hand A contains "Bitterblossom"
+}
+
+scenario "search to top: Flamekin Harbinger" {
+  battlefield A: "Mountain"
+  hand A: "Flamekin Harbinger"
+  library A: "Island", "Fire Elemental", "Island"
+  turn 1 A: cast "Flamekin Harbinger"
+  turn 1 A: choose "Fire Elemental"
+  run_to turn 3 precombat_main
+  assert hand A contains "Fire Elemental"
+}
+
+scenario "search to top: Giant Harbinger" {
+  battlefield A: 5 "Mountain"
+  hand A: "Giant Harbinger"
+  library A: "Island", "Hill Giant", "Island"
+  turn 1 A: cast "Giant Harbinger"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 3 precombat_main
+  assert hand A contains "Hill Giant"
+}
+
+scenario "search to top: Kithkin Harbinger" {
+  battlefield A: 3 "Plains"
+  hand A: "Kithkin Harbinger"
+  library A: "Island", "Amrou Kithkin", "Island"
+  turn 1 A: cast "Kithkin Harbinger"
+  turn 1 A: choose "Amrou Kithkin"
+  run_to turn 3 precombat_main
+  assert hand A contains "Amrou Kithkin"
+}
+
+scenario "search to top: Merrow Harbinger" {
+  battlefield A: 4 "Island"
+  hand A: "Merrow Harbinger"
+  library A: "Forest", "Coral Merfolk", "Forest"
+  turn 1 A: cast "Merrow Harbinger"
+  turn 1 A: choose "Coral Merfolk"
+  run_to turn 3 precombat_main
+  assert hand A contains "Coral Merfolk"
+}
+
+scenario "search to top: Treefolk Harbinger finds a Forest" {
+  battlefield A: "Forest"
+  hand A: "Treefolk Harbinger"
+  library A: "Island", "Forest", "Island"
+  turn 1 A: cast "Treefolk Harbinger"
+  turn 1 A: choose "Forest"
+  run_to turn 3 precombat_main
+  assert hand A contains "Forest"
+}
+
+scenario "search to top: Treefolk Harbinger finds a Treefolk" {
+  battlefield A: "Forest"
+  hand A: "Treefolk Harbinger"
+  library A: "Island", "Ironroot Treefolk", "Island"
+  turn 1 A: cast "Treefolk Harbinger"
+  turn 1 A: choose "Ironroot Treefolk"
+  run_to turn 3 precombat_main
+  assert hand A contains "Ironroot Treefolk"
+}
+
+scenario "search to top: Forerunner of the Coalition" {
+  battlefield A: 3 "Swamp"
+  hand A: "Forerunner of the Coalition"
+  library A: "Island", "Talas Merchant", "Island"
+  turn 1 A: cast "Forerunner of the Coalition"
+  turn 1 A: choose "Talas Merchant"
+  run_to turn 3 precombat_main
+  assert hand A contains "Talas Merchant"
+}
+
+scenario "search to top: Forerunner of the Heralds" {
+  battlefield A: 4 "Forest"
+  hand A: "Forerunner of the Heralds"
+  library A: "Island", "Coral Merfolk", "Island"
+  turn 1 A: cast "Forerunner of the Heralds"
+  turn 1 A: choose "Coral Merfolk"
+  run_to turn 3 precombat_main
+  assert hand A contains "Coral Merfolk"
+}
+
+scenario "search to top: Forerunner of the Legion" {
+  battlefield A: 3 "Plains"
+  hand A: "Forerunner of the Legion"
+  library A: "Island", "Barony Vampire", "Island"
+  turn 1 A: cast "Forerunner of the Legion"
+  turn 1 A: choose "Barony Vampire"
+  run_to turn 3 precombat_main
+  assert hand A contains "Barony Vampire"
+}
+
+# To the hand.
+
+scenario "search to hand: Artificer's Intuition finds an artifact card with mana value 1 or less" {
+  battlefield A: "Artificer's Intuition", "Island", "Island"
+  hand A: "Ornithopter"
+  library A: "Alpha Myr", "Memnite", "Island"
+  turn 1 A: activate "Artificer's Intuition" discarding "Ornithopter"
+  turn 1 A: choose "Memnite"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Memnite"
+  assert library A contains "Alpha Myr"
+}
+
+scenario "search to hand: Artificer's Intuition can't find mana value 2" {
+  battlefield A: "Artificer's Intuition", "Island", "Island"
+  hand A: "Ornithopter"
+  library A: "Alpha Myr", "Island"
+  turn 1 A: activate "Artificer's Intuition" discarding "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert hand A lacks "Alpha Myr"
+}
+
+scenario "search to hand: Blood Speaker is sacrificed for a Demon card" {
+  battlefield A: "Blood Speaker"
+  library A: "Island", "Renegade Demon", "Island"
+  start turn 3 A
+  turn 3 upkeep A: choose "Renegade Demon"
+  run_to turn 3 precombat_main
+  assert hand A contains "Renegade Demon"
+  assert graveyard A contains "Blood Speaker"
+}
+
+scenario "search to hand: Call the Gatewatch" {
+  battlefield A: 3 "Plains"
+  hand A: "Call the Gatewatch"
+  library A: "Island", "Jaya, Venerated Firemage", "Island"
+  turn 1 A: cast "Call the Gatewatch"
+  turn 1 A: choose "Jaya, Venerated Firemage"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Jaya, Venerated Firemage"
+}
+
+scenario "search to hand: Citanul Flute finds a creature card with mana value X or less" {
+  battlefield A: "Citanul Flute", 2 "Forest"
+  library A: "Hill Giant", "Grizzly Bears", "Island"
+  turn 1 A: activate "Citanul Flute" x 2
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "search to hand: Citanul Flute's X limits the mana value" {
+  battlefield A: "Citanul Flute", 2 "Forest"
+  library A: "Hill Giant", "Island"
+  turn 1 A: activate "Citanul Flute" x 2
+  run_to turn 1 postcombat_main
+  assert hand A lacks "Hill Giant"
+}
+
+scenario "search to hand: Deadeye Quartermaster finds a Vehicle" {
+  battlefield A: 4 "Island"
+  hand A: "Deadeye Quartermaster"
+  library A: "Island", "Sleek Schooner", "Island"
+  turn 1 A: cast "Deadeye Quartermaster"
+  turn 1 A: choose "Sleek Schooner"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Sleek Schooner"
+}
+
+scenario "search to hand: District Guide finds a Gate" {
+  battlefield A: 3 "Forest"
+  hand A: "District Guide"
+  library A: "Island", "Boros Guildgate", "Grizzly Bears"
+  turn 1 A: cast "District Guide"
+  turn 1 A: choose "Boros Guildgate"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Boros Guildgate"
+}
+
+scenario "search to hand: Eerie Procession finds an Arcane card" {
+  battlefield A: 3 "Island"
+  hand A: "Eerie Procession"
+  library A: "Island", "Blind with Anger", "Island"
+  turn 1 A: cast "Eerie Procession"
+  turn 1 A: choose "Blind with Anger"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Blind with Anger"
+}
+
+scenario "search to hand: Eladamri's Call" {
+  battlefield A: "Forest", "Plains"
+  hand A: "Eladamri's Call"
+  library A: "Island", "Hill Giant", "Island"
+  turn 1 A: cast "Eladamri's Call"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}
+
+scenario "search to hand: From Beyond finds an Eldrazi card" {
+  battlefield A: "From Beyond", 2 "Forest"
+  library A: "Island", "Breaker of Armies", "Island"
+  turn 1 A: activate "From Beyond"
+  turn 1 A: choose "Breaker of Armies"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Breaker of Armies"
+  assert graveyard A contains "From Beyond"
+}
+
+scenario "search to hand: Higure finds a Ninja after combat damage" {
+  battlefield A: "Higure, the Still Wind"
+  library A: "Island", "Foot Elite", "Island"
+  turn 1 A: attack "Higure, the Still Wind"
+  turn 1 A: choose "Foot Elite"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand A contains "Foot Elite"
+}
+
+scenario "search to hand: Ignite the Beacon finds up to two planeswalker cards" {
+  battlefield A: 5 "Plains"
+  hand A: "Ignite the Beacon"
+  library A: "Jaya, Venerated Firemage", "Island", "Huatli, the Sun's Heart"
+  turn 1 A: cast "Ignite the Beacon"
+  turn 1 A: choose "Jaya, Venerated Firemage"
+  turn 1 A: choose "Huatli, the Sun's Heart"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Jaya, Venerated Firemage"
+  assert hand A contains "Huatli, the Sun's Heart"
+}
+
+scenario "search to hand: Krosan Tusker when cycled" {
+  battlefield A: 3 "Forest"
+  hand A: "Krosan Tusker"
+  library A: "Island", "Forest", "Ornithopter"
+  turn 1 A: activate "Krosan Tusker"
+  turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert hand A count 2
+  assert graveyard A contains "Krosan Tusker"
+}
+
+scenario "search to hand: Open the Armory finds an Aura" {
+  battlefield A: 2 "Plains"
+  hand A: "Open the Armory"
+  library A: "Island", "Agility", "Island"
+  turn 1 A: cast "Open the Armory"
+  turn 1 A: choose "Agility"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Agility"
+}
+
+scenario "search to hand: Ratcatcher at the beginning of the upkeep" {
+  battlefield A: "Ratcatcher"
+  library A: "Island", "Muck Rats", "Island"
+  start turn 3 A
+  turn 3 upkeep A: choose "Muck Rats"
+  run_to turn 3 precombat_main
+  assert hand A contains "Muck Rats"
+}
+
+scenario "search to hand: Sarkhan's Triumph finds a Dragon creature card" {
+  battlefield A: 3 "Mountain"
+  hand A: "Sarkhan's Triumph"
+  library A: "Island", "Brimstone Dragon", "Island"
+  turn 1 A: cast "Sarkhan's Triumph"
+  turn 1 A: choose "Brimstone Dragon"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Brimstone Dragon"
+}
+
+scenario "search to hand: Scrapyard Recombiner finds a Construct" {
+  battlefield A: "Scrapyard Recombiner" with 2 +1/+1, "Ornithopter"
+  library A: "Island", "Memnite", "Island"
+  turn 1 A: activate "Scrapyard Recombiner" sacrificing "Ornithopter"
+  turn 1 A: choose "Memnite"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Memnite"
+}
+
+scenario "search to hand: Solve the Equation finds an instant" {
+  battlefield A: 3 "Island"
+  hand A: "Solve the Equation"
+  library A: "Island", "Lightning Bolt", "Grizzly Bears"
+  turn 1 A: cast "Solve the Equation"
+  turn 1 A: choose "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Lightning Bolt"
+}
+
+scenario "search to hand: Solve the Equation can't find a creature" {
+  battlefield A: 3 "Island"
+  hand A: "Solve the Equation"
+  library A: "Island", "Grizzly Bears"
+  turn 1 A: cast "Solve the Equation"
+  run_to turn 1 postcombat_main
+  assert hand A lacks "Grizzly Bears"
+}
+
+scenario "search to hand: Sphinx Summoner finds an artifact creature" {
+  battlefield A: 4 "Island", "Swamp"
+  hand A: "Sphinx Summoner"
+  library A: "Ornithopter", "Alpha Myr", "Island"
+  turn 1 A: cast "Sphinx Summoner"
+  turn 1 A: choose "Alpha Myr"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Alpha Myr"
+}
+
+scenario "search to hand: Spirit of the Aldergard finds a snow land" {
+  battlefield A: 4 "Forest"
+  hand A: "Spirit of the Aldergard"
+  library A: "Forest", "Snow-Covered Forest", "Island"
+  turn 1 A: cast "Spirit of the Aldergard"
+  turn 1 A: choose "Snow-Covered Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Snow-Covered Forest"
+}
+
+scenario "search to hand: Steelshaper's Gift finds an Equipment" {
+  battlefield A: "Plains"
+  hand A: "Steelshaper's Gift"
+  library A: "Island", "Accorder's Shield", "Island"
+  turn 1 A: cast "Steelshaper's Gift"
+  turn 1 A: choose "Accorder's Shield"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Accorder's Shield"
+}
+
+scenario "search to hand: Stoneforge Mystic finds an Equipment" {
+  battlefield A: 2 "Plains"
+  hand A: "Stoneforge Mystic"
+  library A: "Island", "Accorder's Shield", "Island"
+  turn 1 A: cast "Stoneforge Mystic"
+  turn 1 A: choose "Accorder's Shield"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Accorder's Shield"
+}
+
+scenario "search to hand: Demand finds a multicolored card" {
+  battlefield A: "Plains", "Island", "Island"
+  hand A: "Supply // Demand"
+  library A: "Island", "Cartel Aristocrat", "Grizzly Bears"
+  turn 1 A: cast "Demand"
+  turn 1 A: choose "Cartel Aristocrat"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Cartel Aristocrat"
+}
+
+scenario "search to hand: Thalia's Lancers finds a legendary card" {
+  battlefield A: 5 "Plains"
+  hand A: "Thalia's Lancers"
+  library A: "Island", "Academy Ruins", "Island"
+  turn 1 A: cast "Thalia's Lancers"
+  turn 1 A: choose "Academy Ruins"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Academy Ruins"
+}
+
+scenario "search to hand: Seek the Heart finds a legendary creature card" {
+  battlefield A: 3 "Plains"
+  hand A: "The Arkenstone // Seek the Heart"
+  library A: "Island", "Barktooth Warbeard", "Island"
+  turn 1 A: cast "Seek the Heart"
+  turn 1 A: choose "Barktooth Warbeard"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Barktooth Warbeard"
+  assert exile A contains "The Arkenstone"
+}
+
+scenario "search to hand: Time of Need finds a legendary creature card" {
+  battlefield A: 2 "Forest"
+  hand A: "Time of Need"
+  library A: "Academy Ruins", "Barktooth Warbeard", "Island"
+  turn 1 A: cast "Time of Need"
+  turn 1 A: choose "Barktooth Warbeard"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Barktooth Warbeard"
+}
+
+scenario "search to hand: Time of Need doesn't find a legendary land" {
+  battlefield A: 2 "Forest"
+  hand A: "Time of Need"
+  library A: "Academy Ruins", "Island"
+  turn 1 A: cast "Time of Need"
+  run_to turn 1 postcombat_main
+  assert hand A lacks "Academy Ruins"
+  assert library A count 2
+}
+
+scenario "search to hand: Treasure Mage finds mana value 6 or greater" {
+  battlefield A: 3 "Island"
+  hand A: "Treasure Mage"
+  library A: "Citanul Flute", "Planar Bridge", "Island"
+  turn 1 A: cast "Treasure Mage"
+  turn 1 A: choose "Planar Bridge"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Planar Bridge"
+}
+
+scenario "search to hand: Treasure Mage doesn't find mana value 5" {
+  battlefield A: 3 "Island"
+  hand A: "Treasure Mage"
+  library A: "Citanul Flute", "Island"
+  turn 1 A: cast "Treasure Mage"
+  run_to turn 1 postcombat_main
+  assert hand A lacks "Citanul Flute"
+}
+
+scenario "search to hand: Tribute Mage finds mana value 2 exactly" {
+  battlefield A: 3 "Island"
+  hand A: "Tribute Mage"
+  library A: "Memnite", "Alpha Myr", "Island"
+  turn 1 A: cast "Tribute Mage"
+  turn 1 A: choose "Alpha Myr"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Alpha Myr"
+}
+
+scenario "search to hand: Tribute Mage doesn't find mana value 0" {
+  battlefield A: 3 "Island"
+  hand A: "Tribute Mage"
+  library A: "Memnite", "Island"
+  turn 1 A: cast "Tribute Mage"
+  run_to turn 1 postcombat_main
+  assert hand A lacks "Memnite"
+}
+
+scenario "search to hand: Trophy Mage finds mana value 3 exactly" {
+  battlefield A: 3 "Island"
+  hand A: "Trophy Mage"
+  library A: "Alpha Myr", "Scrapyard Recombiner", "Island"
+  turn 1 A: cast "Trophy Mage"
+  turn 1 A: choose "Scrapyard Recombiner"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Scrapyard Recombiner"
+}
+
+scenario "search to hand: The Cave of Two Lovers' chapter II finds a Cave" {
+  battlefield A: "The Cave of Two Lovers" with 1 lore
+  library A: "Island", "Captivating Cave", "Island", "Island"
+  start turn 3 A
+  turn 3 precombat_main A: choose "Captivating Cave"
+  run_to turn 3 postcombat_main
+  assert hand A contains "Captivating Cave"
+}
+
+scenario "search to hand: War of the Last Alliance's chapter I" {
+  battlefield A: 4 "Plains"
+  hand A: "War of the Last Alliance"
+  library A: "Island", "Barktooth Warbeard", "Island"
+  turn 1 A: cast "War of the Last Alliance"
+  turn 1 A: choose "Barktooth Warbeard"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Barktooth Warbeard"
+}
+
+# To the battlefield.
+
+scenario "search to battlefield: Chord of Calling, X 2" {
+  battlefield A: 5 "Forest"
+  hand A: "Chord of Calling"
+  library A: "Hill Giant", "Grizzly Bears", "Island"
+  turn 1 A: cast "Chord of Calling" x 2
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "search to battlefield: Chord of Calling's X limits the mana value" {
+  battlefield A: 5 "Forest"
+  hand A: "Chord of Calling"
+  library A: "Hill Giant", "Island"
+  turn 1 A: cast "Chord of Calling" x 2
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Hill Giant"
+}
+
+scenario "search to battlefield: Dragonstorm finds a Dragon permanent card" {
+  battlefield A: 9 "Mountain"
+  hand A: "Dragonstorm"
+  library A: "Island", "Brimstone Dragon", "Island"
+  turn 1 A: cast "Dragonstorm"
+  turn 1 A: choose "Brimstone Dragon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Brimstone Dragon"
+}
+
+scenario "search to battlefield: Glimpse the Core finds a basic Forest tapped" {
+  battlefield A: 2 "Forest"
+  hand A: "Glimpse the Core"
+  library A: "Island", "Forest", "Island"
+  turn 1 A: cast "Glimpse the Core" mode 1
+  turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Forest"
+  assert tapped newest A "Forest"
+}
+
+scenario "search to battlefield: Lifespinner finds a legendary Spirit" {
+  battlefield A: "Lifespinner", "Kami of Old Stone", "Kami of Old Stone"
+  library A: "Island", "Arashi, the Sky Asunder", "Island"
+  turn 1 A: activate "Lifespinner"
+  turn 1 A: choose "Arashi, the Sky Asunder"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Arashi, the Sky Asunder"
+  assert graveyard A contains 2 "Kami of Old Stone"
+  assert graveyard A contains "Lifespinner"
+}
+
+scenario "search to battlefield: Loyal Warhound when an opponent has more lands" {
+  battlefield A: 2 "Plains"
+  battlefield B: 3 "Swamp"
+  hand A: "Loyal Warhound"
+  library A: "Island", "Plains", "Island"
+  turn 1 A: cast "Loyal Warhound"
+  turn 1 A: choose "Plains"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Plains"
+  assert tapped newest A "Plains"
+}
+
+scenario "search to battlefield: Loyal Warhound doesn't search with as many lands" {
+  battlefield A: 2 "Plains"
+  battlefield B: 2 "Swamp"
+  hand A: "Loyal Warhound"
+  library A: "Island", "Plains", "Island"
+  turn 1 A: cast "Loyal Warhound"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Plains"
+  assert library A count 3
+}
+
+scenario "search to battlefield: Planar Bridge finds a permanent card" {
+  battlefield A: "Planar Bridge", 8 "Plains"
+  library A: "Lightning Bolt", "Hill Giant", "Island"
+  turn 1 A: activate "Planar Bridge"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "search to battlefield: Planar Bridge doesn't find an instant" {
+  battlefield A: "Planar Bridge", 8 "Plains"
+  library A: "Lightning Bolt", "Shock"
+  turn 1 A: activate "Planar Bridge"
+  run_to turn 1 postcombat_main
+  assert library A count 2
+}
+
+scenario "search to battlefield: Quandrix Cultivator finds a basic Forest or Island" {
+  battlefield A: 2 "Forest", 2 "Island"
+  hand A: "Quandrix Cultivator"
+  library A: "Mountain", "Island", "Plains"
+  turn 1 A: cast "Quandrix Cultivator"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Island"
+}
+
+scenario "search to battlefield: Reshape finds an artifact card with mana value X or less" {
+  battlefield A: 3 "Island", "Ornithopter"
+  hand A: "Reshape"
+  library A: "Alpha Myr", "Memnite", "Island"
+  turn 1 A: cast "Reshape" x 1 sacrificing "Ornithopter"
+  turn 1 A: choose "Memnite"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Memnite"
+  assert graveyard A contains "Ornithopter"
+}
+
+scenario "search to battlefield: Reshape's X limits the mana value" {
+  battlefield A: 3 "Island", "Ornithopter"
+  hand A: "Reshape"
+  library A: "Alpha Myr", "Island"
+  turn 1 A: cast "Reshape" x 1 sacrificing "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Alpha Myr"
+}
+
+scenario "search to battlefield: Rocco finds a creature card with mana value X or less" {
+  battlefield A: 2 "Mountain", 2 "Forest", "Plains"
+  hand A: "Rocco, Cabaretti Caterer"
+  library A: "Hill Giant", "Grizzly Bears", "Island"
+  turn 1 A: cast "Rocco, Cabaretti Caterer" x 2
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "search to battlefield: Rocco's X limits the mana value" {
+  battlefield A: 2 "Mountain", 2 "Forest", "Plains"
+  hand A: "Rocco, Cabaretti Caterer"
+  library A: "Hill Giant", "Island"
+  turn 1 A: cast "Rocco, Cabaretti Caterer" x 2
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Hill Giant"
+}
+
+scenario "search to battlefield: Shefet Monitor when cycled finds a Desert" {
+  battlefield A: 4 "Forest"
+  hand A: "Shefet Monitor"
+  library A: "Island", "Desert", "Ornithopter"
+  turn 1 A: activate "Shefet Monitor"
+  turn 1 A: choose "Desert"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Desert"
+  assert hand A count 1
+}
+
+scenario "search to battlefield: Wargate finds a permanent card with mana value X or less" {
+  battlefield A: 2 "Forest", 2 "Plains", "Island"
+  hand A: "Wargate"
+  library A: "Hill Giant", "Grizzly Bears", "Island"
+  turn 1 A: cast "Wargate" x 2
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "search to battlefield: Wargate's X limits the mana value" {
+  battlefield A: 2 "Forest", 2 "Plains", "Island"
+  hand A: "Wargate"
+  library A: "Hill Giant", "Island"
+  turn 1 A: cast "Wargate" x 2
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Hill Giant"
+}
+
+scenario "search to battlefield: Whir of Invention finds an artifact card" {
+  battlefield A: 4 "Island"
+  hand A: "Whir of Invention"
+  library A: "Alpha Myr", "Island", "Memnite"
+  turn 1 A: cast "Whir of Invention" x 1
+  turn 1 A: choose "Memnite"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Memnite"
+}
+
+scenario "search to battlefield: Whir of Invention's X limits the mana value" {
+  battlefield A: 4 "Island"
+  hand A: "Whir of Invention"
+  library A: "Alpha Myr", "Island"
+  turn 1 A: cast "Whir of Invention" x 1
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Alpha Myr"
+}
+
+scenario "search to battlefield: Zur finds an enchantment card with mana value 3 or less as it attacks" {
+  battlefield A: "Zur the Enchanter"
+  library A: "Island", "Bitterblossom", "Island"
+  turn 1 A: attack "Zur the Enchanter"
+  turn 1 A: choose "Bitterblossom"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bitterblossom"
+}
+
+# To the graveyard.
+
+scenario "search to graveyard: Unmarked Grave finds a nonlegendary card" {
+  battlefield A: 2 "Swamp"
+  hand A: "Unmarked Grave"
+  library A: "Barktooth Warbeard", "Hill Giant", "Island"
+  turn 1 A: cast "Unmarked Grave"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "search to graveyard: Unmarked Grave doesn't find a legendary card" {
+  battlefield A: 2 "Swamp"
+  hand A: "Unmarked Grave"
+  library A: "Barktooth Warbeard"
+  turn 1 A: cast "Unmarked Grave"
+  run_to turn 1 postcombat_main
+  assert library A contains "Barktooth Warbeard"
+}

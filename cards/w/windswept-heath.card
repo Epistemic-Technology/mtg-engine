@@ -1,0 +1,5 @@
+card "Windswept Heath" {
+  oracle_id 29737a60-3ebd-40d9-b935-c4f54b90d45d
+  type Land
+  activated {T}, pay 1 life, sacrifice this: search Forest or Plains card to battlefield
+}

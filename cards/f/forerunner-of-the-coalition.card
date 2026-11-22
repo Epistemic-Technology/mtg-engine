@@ -1,0 +1,8 @@
+card "Forerunner of the Coalition" {
+  oracle_id d6458cf6-eb1f-448b-8205-1b5d887ff2bf
+  cost {2}{B}
+  type Creature — Human Pirate
+  pt 2/2
+  triggered when this enters: you may search Pirate card reveal to top that card
+  triggered whenever other Pirate you control enters: each opponent loses 1 life
+}

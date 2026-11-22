@@ -1,0 +1,6 @@
+card "Time of Need" {
+  oracle_id 4f2adfd0-c8ab-4bcc-ae55-cb0e798aec7f
+  cost {1}{G}
+  type Sorcery
+  spell: search legendary creature card reveal to hand
+}

@@ -1,0 +1,8 @@
+card "Krosan Tusker" {
+  oracle_id 82406175-63b3-4972-be8b-db0e70c908cb
+  cost {5}{G}{G}
+  type Creature — Boar Beast
+  pt 6/5
+  cycling {2}{G}
+  triggered when you cycle this: you may search basic land card reveal to hand that card
+}

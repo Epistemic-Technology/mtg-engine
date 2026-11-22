@@ -1,0 +1,6 @@
+card "Wargate" {
+  oracle_id 26f39abe-ea0b-400d-b11c-03ee4cf50915
+  cost {X}{G}{W}{U}
+  type Sorcery
+  spell: search permanent card with mana value X or less to battlefield
+}

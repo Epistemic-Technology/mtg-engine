@@ -1,0 +1,8 @@
+card "Forerunner of the Legion" {
+  oracle_id 439537ca-53c1-47cb-9174-5872c3c46288
+  cost {2}{W}
+  type Creature — Vampire Knight
+  pt 2/2
+  triggered when this enters: you may search Vampire card reveal to top that card
+  triggered whenever other Vampire you control enters: target creature gets +1/+1
+}

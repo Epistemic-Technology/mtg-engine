@@ -1,0 +1,7 @@
+card "District Guide" {
+  oracle_id 1eb4c001-1115-4b99-bbbf-703eb551a381
+  cost {2}{G}
+  type Creature — Elf Scout
+  pt 2/2
+  triggered when this enters: you may search basic land card or Gate card reveal to hand
+}

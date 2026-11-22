@@ -1,0 +1,5 @@
+card "Arid Mesa" {
+  oracle_id c5acf2a5-40f4-433d-a74d-1cb56c521464
+  type Land
+  activated {T}, pay 1 life, sacrifice this: search Mountain or Plains card to battlefield
+}

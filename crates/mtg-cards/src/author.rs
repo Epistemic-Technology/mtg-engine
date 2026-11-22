@@ -1917,7 +1917,7 @@ impl Templates {
             }),
             (
                 r(
-                    r"^Search your library for (a|an|up to \S+) (basic land|land|Plains|Island|Swamp|Mountain|Forest|creature|artifact|enchantment|instant|sorcery)? ?cards?, (reveal (?:it|them), )?(?:put (it|them|that card) (into your hand or graveyard|into your hand|into your graveyard|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
+                    r"^Search your library for (a|an|up to \S+) ([A-Za-z][A-Za-z -]*?)? ?cards?( with [^,]+)?, (reveal (?:it|them|that card), )?(?:put (it|them|that card) (into your hand or graveyard|into your hand|into your graveyard|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
                 ),
                 |c, _| {
                     let n = cap(c, 1);
@@ -1933,10 +1933,12 @@ impl Templates {
                         let _ = write!(t, "{} ", cap(c, 2));
                     }
                     t.push_str("card");
-                    if !cap(c, 3).is_empty() {
+                    // "with mana value 1 or less".
+                    t.push_str(cap(c, 3));
+                    if !cap(c, 4).is_empty() {
                         t.push_str(" reveal");
                     }
-                    t.push_str(match cap(c, 5) {
+                    t.push_str(match cap(c, 6) {
                         "into your hand" => " to hand",
                         "into your hand or graveyard" => " to hand or graveyard",
                         "into your graveyard" => " to graveyard",
@@ -1945,7 +1947,10 @@ impl Templates {
                         _ => " to top",
                     });
                     // "then shuffle and put that card on top".
-                    if cap(c, 4) == "that card" || cap(c, 5).is_empty() {
+                    if cap(c, 5) == "that card"
+                        || cap(c, 4) == "reveal that card, "
+                        || cap(c, 6).is_empty()
+                    {
                         t.push_str(" that card");
                     }
                     Some(t)

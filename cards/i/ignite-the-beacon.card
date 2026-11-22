@@ -1,0 +1,6 @@
+card "Ignite the Beacon" {
+  oracle_id 1f74d046-e695-4ad9-a27c-8ff1f30d4c23
+  cost {4}{W}
+  type Instant
+  spell: search up to 2 planeswalker card reveal to hand
+}

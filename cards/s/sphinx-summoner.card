@@ -1,0 +1,8 @@
+card "Sphinx Summoner" {
+  oracle_id 77ae7caa-e180-4efb-9348-ab389364b186
+  cost {3}{U}{B}
+  type Artifact Creature — Sphinx
+  pt 3/3
+  keywords flying
+  triggered when this enters: you may search artifact creature card reveal to hand
+}

@@ -1,0 +1,8 @@
+card "Spirit of the Aldergard" {
+  oracle_id ff3bc67b-f435-4bb7-9c21-8d24d8808c1a
+  cost {3}{G}
+  type Snow Creature — Bear Spirit
+  pt 0/4
+  triggered when this enters: search snow land card reveal to hand
+  static this: +1/+0 count each other snow permanent you control
+}
