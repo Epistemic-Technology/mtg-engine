@@ -21,7 +21,8 @@ impl GameState {
 
     #[allow(clippy::too_many_lines)] // one block per zone cast from
     pub(super) fn priority_options(&self, p: PlayerId) -> Vec<Choice> {
-        let mut options = Vec::new();
+        // Room for a typical listing, so it isn't regrown push by push.
+        let mut options = Vec::with_capacity(8);
         let sorcery_timing =
             p == self.active_player && self.step.is_main() && self.stack.is_empty();
         let ps = self.player(p);
@@ -5692,11 +5693,13 @@ impl GameState {
             let cache = self.mana_cache.borrow();
             let (cv, taps, turn, cached) = &cache[slot];
             if (*cv, *taps, *turn) == key && *cv != 0 {
-                return cached.clone();
+                // A copy of the slice, not `clone` (which pushes entry by
+                // entry): this runs at every priority.
+                return Sources::from_slice(cached);
             }
         }
         let fresh = self.mana_sources_uncached(p);
-        self.mana_cache.borrow_mut()[slot] = (key.0, key.1, key.2, fresh.clone());
+        self.mana_cache.borrow_mut()[slot] = (key.0, key.1, key.2, Sources::from_slice(&fresh));
         fresh
     }
 
