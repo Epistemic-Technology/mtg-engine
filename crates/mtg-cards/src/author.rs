@@ -1230,6 +1230,34 @@ impl Templates {
                     Some(s)
                 },
             ),
+            // "Target creature gets +X/+0 and gains trample until end of
+            // turn", "gets -X/-X": the unit pump, X times (`+1/+0 X`).
+            (
+                r(
+                    r"^(.+?) gets? ([+-])X/([+-])(X|0)(?: and gains? ([a-z ,]+?))?(?: until end of turn)?(?:, where X is (.+))?$",
+                ),
+                |c, t| {
+                    let who = all_subject(cap(c, 1), recipient(&subject(cap(c, 1)), t)?);
+                    let y = if cap(c, 4) == "X" { "1" } else { "0" };
+                    // "where X is the number of lands you control": the
+                    // count in place of X.
+                    let x = match c.get(6) {
+                        Some(w) => {
+                            let w = w.as_str();
+                            let e = bound_amount(w).or_else(|| {
+                                count_expr(w.strip_prefix("the number of ")?)
+                            })?;
+                            format!("count where {e}")
+                        }
+                        None => "X".to_string(),
+                    };
+                    let mut s = format!("{who} gets {}1/{}{y} {x}", cap(c, 2), cap(c, 3));
+                    if !cap(c, 5).is_empty() {
+                        let _ = write!(s, " and gains {}", keyword_list(cap(c, 5))?);
+                    }
+                    Some(s)
+                },
+            ),
             // "Choose a creature type." as the effect resolves, for "of
             // that type" and "becomes that type" after it.
             (

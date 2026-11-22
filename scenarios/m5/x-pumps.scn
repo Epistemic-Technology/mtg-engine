@@ -1,0 +1,71 @@
+# "+X/+0", "+X/+X" pumps (`+1/+0 X`), now written by the template author.
+
+scenario "Enrage: +X/+0 until end of turn" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  hand A: "Enrage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Enrage" x 3 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 2
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Lunar Frenzy: +X/+0, first strike and trample" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Lunar Frenzy"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lunar Frenzy" x 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" first_strike
+  assert has "Grizzly Bears" trample
+}
+
+scenario "Lunar Frenzy: only a creature you control" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Lunar Frenzy"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Lunar Frenzy" x 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Tyvar's Stand: +X/+X, hexproof and indestructible" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  hand A: "Tyvar's Stand"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tyvar's Stand" x 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert has "Grizzly Bears" hexproof
+  assert has "Grizzly Bears" indestructible
+}
+
+scenario "Kessig Wolf Run: +X/+0 and trample" {
+  battlefield A: "Kessig Wolf Run", 2 "Mountain", 2 "Forest", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kessig Wolf Run" x 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" trample
+  assert tapped "Kessig Wolf Run"
+}
+
+scenario "Unwilling Recruit: gain control until end of turn, untap, +X/+0 and haste" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Unwilling Recruit"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Unwilling Recruit" x 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert untapped "Hill Giant"
+  assert power "Hill Giant" 5
+  assert has "Hill Giant" haste
+  run_to turn 2 upkeep
+  assert battlefield B contains "Hill Giant"
+  assert power "Hill Giant" 3
+}

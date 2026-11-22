@@ -1,0 +1,6 @@
+card "Lunar Frenzy" {
+  oracle_id d95fc2cb-5e49-4a22-a93e-d21cf64dcd84
+  cost {X}{R}
+  type Instant
+  spell: target creature you control gets +1/+0 X and gains first strike, trample
+}

@@ -1,0 +1,6 @@
+card "Unwilling Recruit" {
+  oracle_id 03a0f7ac-de8a-43cf-be15-07d31e9d6188
+  cost {X}{R}{R}{R}
+  type Sorcery
+  spell: gain control of target creature; untap that creature; target 1 gets +1/+0 X and gains haste
+}
