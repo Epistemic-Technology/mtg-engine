@@ -1,0 +1,7 @@
+card "Knockout Blow" {
+  oracle_id 7068637c-b025-41a5-be31-df1850f33b68
+  cost {2}{W}
+  type Instant
+  this spell costs {2} less if it targets red creature
+  spell: deal 4 damage to target attacking or blocking creature and you gains 2 life
+}

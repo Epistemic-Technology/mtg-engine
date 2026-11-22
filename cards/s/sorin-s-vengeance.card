@@ -1,0 +1,6 @@
+card "Sorin's Vengeance" {
+  oracle_id 75d9c036-4f0d-4b55-b0a4-096ca84748ca
+  cost {4}{B}{B}{B}
+  type Sorcery
+  spell: deal 10 damage to target player or planeswalker and you gains 10 life
+}

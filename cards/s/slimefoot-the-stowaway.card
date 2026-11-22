@@ -1,0 +1,8 @@
+card "Slimefoot, the Stowaway" {
+  oracle_id fd541139-de13-4b32-93ba-070ecf711d33
+  cost {1}{B}{G}
+  type Legendary Creature — Fungus
+  pt 2/3
+  triggered whenever a Saproling you control dies: deal 1 damage to each opponent and you gains 1 life
+  activated {4}: create 1 "1/1 green Saproling creature"
+}

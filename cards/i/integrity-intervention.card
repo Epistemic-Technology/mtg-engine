@@ -1,0 +1,14 @@
+card "Integrity // Intervention" {
+  oracle_id 12f252b1-d3da-43af-ab31-0c8a6807c3c4
+  layout split
+  face "Integrity" {
+    cost {R/W}
+    type Instant
+    spell: target creature gets +2/+2
+  }
+  face "Intervention" {
+    cost {2}{R}{W}
+    type Instant
+    spell: deal 3 damage to any target and you gains 3 life
+  }
+}

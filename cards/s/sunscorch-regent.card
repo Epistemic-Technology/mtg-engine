@@ -1,0 +1,8 @@
+card "Sunscorch Regent" {
+  oracle_id c8ff464f-0059-4055-a2f2-556fe6db8fbf
+  cost {3}{W}{W}
+  type Creature — Dragon
+  pt 4/3
+  keywords flying
+  triggered whenever an opponent casts a spell: put 1 +1/+1 counters on this and you gains 1 life
+}
