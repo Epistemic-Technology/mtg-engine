@@ -166,10 +166,8 @@ named the feature; a card may need more than one.
   Venom).
 - **Mechanics not yet in:** tiered, devour, battle cry, harness, hideaway,
   meld, the Everywhere land token, "when this land enters untapped".
-- **Scenario runner:** `trigger` cannot take `dividing`; surveil cannot
-  be scripted; tokens named in a battlefield setup line are not tokens
-  (Baylen's "tap two untapped tokens"); a trigger cannot be answered
-  while its source spell is still on the stack.
+- **Scenario runner:** a trigger cannot be answered while its source
+  spell is still on the stack.
 
 ## 4. Process
 
@@ -193,9 +191,6 @@ Wrong behaviour that reaches accepted cards:
 Forms that pass the gate with the wrong meaning:
 
 
-Scenario runner: surveil's choice still cannot be scripted (Umbral
-Collar Zealot, Arid Archway); a token named in a battlefield setup line
-is still not a token.
 
 Missing features most often named (fourth wave, 299 unsupported of 400):
 wording near-misses (about 45); legendary named tokens ("create Mowu, a

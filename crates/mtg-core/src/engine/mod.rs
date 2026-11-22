@@ -227,7 +227,13 @@ impl Engine {
                         .contains(crate::card::CardType::Planeswalker)
                         .then_some(d.loyalty)
                 };
+                // A token definition set up on the battlefield is a token
+                // (CR 111.1), not a card.
+                let token = state.pool.get(perm.def).token;
                 let o = &mut state.objects[id];
+                if token {
+                    o.kind = crate::state::ObjKind::Token;
+                }
                 o.tapped = perm.tapped;
                 o.controlled_since_turn_start = true;
                 for (kind, n) in &perm.counters {

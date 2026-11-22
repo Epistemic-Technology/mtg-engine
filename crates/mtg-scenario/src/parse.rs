@@ -792,11 +792,46 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                     }
                 }
             }
+            let mut divide = Vec::new();
+            if line.peek_ident("dividing") {
+                line.pos += 1;
+                loop {
+                    divide.push(line.unsigned()?);
+                    if line.peek() == Some(&Tok::Comma) {
+                        line.pos += 1;
+                    } else {
+                        break;
+                    }
+                }
+            }
             (
                 Action::Trigger {
                     source,
                     mode,
                     targets,
+                    divide,
+                },
+                None,
+            )
+        }
+        "surveil" | "scry" => {
+            let mut cards = Vec::new();
+            if line.peek_ident("none") {
+                line.pos += 1;
+            } else {
+                loop {
+                    cards.push(line.string()?);
+                    if line.peek() == Some(&Tok::Comma) {
+                        line.pos += 1;
+                    } else {
+                        break;
+                    }
+                }
+            }
+            (
+                Action::Down {
+                    surveil: verb == "surveil",
+                    cards,
                 },
                 None,
             )
