@@ -487,6 +487,21 @@ fn lower_spell_subject(f: &Filter) -> bool {
 }
 
 fn a_spell(f: &Filter, card: &Card) -> String {
+    // "a spell that's both white and black" (CR 105.2).
+    if f.status.all_colors
+        && let Some(cs) = &f.colors
+    {
+        let mut g = f.clone();
+        g.colors = None;
+        g.status.all_colors = false;
+        let names: Vec<&str> = cs.iter().map(|c| color_name(*c)).collect();
+        let a = if g == Filter::default() {
+            "a spell".to_string()
+        } else {
+            a_spell(&g, card)
+        };
+        return format!("{a} that's both {}", names.join(" and "));
+    }
     // "a Lesson or Shrine spell": two creature or card types alone share
     // the article and the noun (`Lesson spell or Shrine spell` prints each
     // whole).
@@ -2392,6 +2407,21 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
 
 #[allow(clippy::too_many_lines)] // one clause per qualifier
 fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
+    // "a spell that's both white and black" (CR 105.2).
+    if f.status.all_colors
+        && let Some(cs) = &f.colors
+    {
+        let mut g = f.clone();
+        g.colors = None;
+        g.status.all_colors = false;
+        let names: Vec<&str> = cs.iter().map(|c| color_name(*c)).collect();
+        return format!(
+            "{} {} both {}",
+            filter_phrase_one(&g, card, plural_form),
+            if plural_form { "that are" } else { "that's" },
+            names.join(" and ")
+        );
+    }
     if f.enchanted {
         if is_equipment(card) {
             return "equipped creature".to_string();
@@ -9562,8 +9592,18 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
         .collect::<Vec<_>>()
         .windows(2)
         .any(|w| w[0] != w[1]);
+    // "this creature has base power and toughness 4/4 until end of turn
+    // and gains flying until end of turn" (the Mimics): a base power and
+    // toughness keeps its own duration, unless the duration comes first
+    // ("Until end of turn, target creature you control has base power and
+    // toughness 4/4 and gains flying").
+    let base_pt_apart = s
+        .effects
+        .iter()
+        .any(|e| matches!(e, Effect::SetBasePt { .. }));
     let shared_suffix = clauses.len() > 1
         && !pumps_apart
+        && !base_pt_apart
         && clauses[0].suffix.is_some()
         && clauses.iter().all(|c| c.suffix == clauses[0].suffix);
     // CR 611.2b: a duration other than "until end of turn" in its place.
@@ -9665,12 +9705,13 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
         out.push_str(text);
         // "creatures you control get +1/+0 and gain haste until end of
         // turn": the same subject's clauses share one duration.
-        let next_shares = clauses.get(i + 1).is_some_and(|d| {
-            s.joins.get(i) == Some(&Join::And)
-                && d.suffix == c.suffix
-                && d.subject.as_ref().map(|(r, _)| *r) == prev_subject
-                && c.subject.is_some()
-        });
+        let next_shares = !base_pt_apart
+            && clauses.get(i + 1).is_some_and(|d| {
+                s.joins.get(i) == Some(&Join::And)
+                    && d.suffix == c.suffix
+                    && d.subject.as_ref().map(|(r, _)| *r) == prev_subject
+                    && c.subject.is_some()
+            });
         if let Some(suffix) = c.suffix
             && !shared_suffix
             && !s.eot_first
@@ -10555,6 +10596,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             });
             if base == Filter::default() {
                 return format!("whenever {who} a spell{that}");
+            }
+            // "Whenever you cast a spell that's both white and black" (the
+            // Shadowmoor Mimics, CR 105.2).
+            if base.status.all_colors && base.colors.is_some() && base.targeting.is_none() {
+                return format!("whenever {who} {}{that}", a_spell(&base, ctx.card));
             }
             // "an instant or sorcery spell with mana value 4 or less".
             if !base.any_types.is_empty() {

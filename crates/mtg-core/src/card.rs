@@ -1320,6 +1320,11 @@ pub struct StatusQuals {
     /// its back face up (CR 701.27g).
     #[serde(default)]
     pub transformed: bool,
+    /// "a spell that's both white and black": `ObjFilter::colors` must
+    /// all be the object's, not just one (CR 105.2). A characteristic, not
+    /// game state: `any` leaves it out.
+    #[serde(default)]
+    pub all_colors: bool,
 }
 
 /// A characteristic compared with an amount the source counts
@@ -1667,7 +1672,11 @@ impl ObjFilter {
             return false;
         }
         if let Some(cs) = self.colors
-            && !c.colors.intersects(cs)
+            && !(if self.status.all_colors {
+                c.colors.union(cs) == c.colors
+            } else {
+                c.colors.intersects(cs)
+            })
         {
             return false;
         }

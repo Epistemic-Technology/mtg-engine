@@ -1681,6 +1681,24 @@ impl Templates {
                 ),
                 |_, _| Some("transform this".to_string()),
             ),
+            // The Mimics: "this creature has base power and toughness 4/4
+            // until end of turn and gains flying until end of turn".
+            (
+                r(
+                    r"^(?:[Tt]his creature|~) has base power and toughness (\d+)/(\d+) until end of turn and (?:gains ([a-z ]+) until end of turn|(can't be blocked) this turn)$",
+                ),
+                |c, _| {
+                    let rest = match c.get(4) {
+                        Some(_) => "can't be blocked this turn".to_string(),
+                        None => format!("gains {}", cap(c, 3)),
+                    };
+                    Some(format!(
+                        "this has base power and toughness {}/{} and {rest}",
+                        cap(c, 1),
+                        cap(c, 2)
+                    ))
+                },
+            ),
             // CR 701.27: "Transform target Incubator token you control",
             // "transform an Incubator token you control" (chosen as it
             // resolves), "transform all Humans".
@@ -3721,6 +3739,19 @@ fn trigger_text(head: &str) -> Option<String> {
             if let Some(c) = mv.captures(head) {
                 return Some(format!(
                     "whenever you cast with mana value {} or {} spell",
+                    cap(&c, 1),
+                    cap(&c, 2)
+                ));
+            }
+            // "Whenever you cast a spell that's both white and black" (CR
+            // 105.2: every one of the colors).
+            let both = Regex::new(
+                r"^Whenever you cast a spell that's both (white|blue|black|red|green) and (white|blue|black|red|green)$",
+            )
+            .unwrap();
+            if let Some(c) = both.captures(head) {
+                return Some(format!(
+                    "whenever you cast both {} or {} spell",
                     cap(&c, 1),
                     cap(&c, 2)
                 ));

@@ -11715,6 +11715,18 @@ impl P {
                     f.status.face_down = true;
                     self.pos += 1;
                 }
+                // "a spell that's both white and black": `both white or
+                // black spell`.
+                "both"
+                    if !f.status.all_colors
+                        && self
+                            .word_at(1)
+                            .as_deref()
+                            .is_some_and(|w| color(w).is_some()) =>
+                {
+                    f.status.all_colors = true;
+                    self.pos += 1;
+                }
                 // CR 701.27g: "transformed permanent".
                 "transformed" if !f.status.transformed => {
                     f.status.transformed = true;

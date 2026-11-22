@@ -1352,7 +1352,10 @@ planeswalker.
 
 A filter names a kind of permanent, in the singular: `creature`,
 `creature you control`, `creature an opponent controls`, `creature you
-don't control`, `white creature`, `nonblack creature`, `nonbasic land`,
+don't control`, `white creature`, `nonblack creature`, `both white or
+black spell` (every one of the colors, not just one: "Whenever you cast a
+spell that's both white and black", the colors printed in the order
+written), `nonbasic land`,
 `other non-Aura enchantment`, `creature with flying`, `creature without
 flying`, `creature with no abilities`, `all Sliver creature` (a static
 ability's subject then prints "All Sliver creatures", as old Slivers do), `Goblin`, `Swamp you control`, `nonplaneswalker permanent you

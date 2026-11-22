@@ -1,0 +1,88 @@
+# "Whenever you cast a spell that's both white and black" (the Shadowmoor
+# Mimics): the spell must have every one of the named colors (CR 105.2), a
+# spell of just one of them doesn't count. The Mimic has the base power and
+# toughness until end of turn (layer 7b) and gains the keyword.
+
+scenario "both colors: a white and black spell" {
+  battlefield A: "Nightsky Mimic", 2 "Plains"
+  hand A: "Nightsky Mimic"
+  turn 1 A: cast "Nightsky Mimic"
+  run_to turn 1 postcombat_main
+  assert power oldest "Nightsky Mimic" 4
+  assert toughness oldest "Nightsky Mimic" 4
+  assert has oldest "Nightsky Mimic" flying
+  assert power newest "Nightsky Mimic" 2
+  run_to turn 2 upkeep
+  assert power oldest "Nightsky Mimic" 2
+  assert has not oldest "Nightsky Mimic" flying
+}
+
+scenario "both colors: a spell of only one of them doesn't count" {
+  battlefield A: "Nightsky Mimic", 5 "Plains"
+  hand A: "Serra Angel"
+  turn 1 A: cast "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert power "Nightsky Mimic" 2
+  assert has not "Nightsky Mimic" flying
+}
+
+scenario "both colors: an opponent's spell doesn't count" {
+  battlefield A: "Nightsky Mimic"
+  battlefield B: 2 "Plains"
+  hand B: "Nightsky Mimic"
+  start turn 2 B
+  turn 2 B: cast "Nightsky Mimic"
+  run_to turn 2 postcombat_main
+  assert power A "Nightsky Mimic" 2
+}
+
+scenario "both colors: Shorecrasher Mimic, green and blue" {
+  battlefield A: "Shorecrasher Mimic", 2 "Forest"
+  hand A: "Shorecrasher Mimic"
+  turn 1 A: cast "Shorecrasher Mimic"
+  run_to turn 1 postcombat_main
+  assert power oldest "Shorecrasher Mimic" 5
+  assert toughness oldest "Shorecrasher Mimic" 3
+  assert has oldest "Shorecrasher Mimic" trample
+}
+
+scenario "both colors: Woodlurker Mimic, black and green" {
+  battlefield A: "Woodlurker Mimic", 2 "Swamp"
+  hand A: "Woodlurker Mimic"
+  turn 1 A: cast "Woodlurker Mimic"
+  run_to turn 1 postcombat_main
+  assert power oldest "Woodlurker Mimic" 4
+  assert toughness oldest "Woodlurker Mimic" 5
+  assert has oldest "Woodlurker Mimic" wither
+}
+
+scenario "both colors: Battlegate Mimic, red and white" {
+  battlefield A: "Battlegate Mimic", 2 "Mountain"
+  hand A: "Battlegate Mimic"
+  turn 1 A: cast "Battlegate Mimic"
+  run_to turn 1 postcombat_main
+  assert power oldest "Battlegate Mimic" 4
+  assert toughness oldest "Battlegate Mimic" 2
+  assert has oldest "Battlegate Mimic" first_strike
+}
+
+scenario "both colors: Riverfall Mimic can't be blocked this turn (a gold spell counts)" {
+  battlefield A: "Riverfall Mimic", 2 "Island", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Electrolyze"
+  turn 1 A: cast "Electrolyze" targeting player B dividing 2
+  turn 1 A: attack "Riverfall Mimic"
+  illegal turn 1 B: block "Riverfall Mimic" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Riverfall Mimic" 3
+  assert life B 15
+}
+
+scenario "both colors: Riverfall Mimic, a red spell alone" {
+  battlefield A: "Riverfall Mimic", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert power "Riverfall Mimic" 2
+}

@@ -3503,6 +3503,9 @@ fn filter_one(f: &Filter) -> String {
     }
     if let Some(colors) = &f.colors {
         let names: Vec<String> = colors.iter().map(|c| color_name(*c).to_string()).collect();
+        if f.status.all_colors {
+            words.push("both".to_string());
+        }
         words.push(names.join(" or "));
     }
     words.extend(f.subtypes.iter().cloned());
