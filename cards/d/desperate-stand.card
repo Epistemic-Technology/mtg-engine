@@ -1,0 +1,7 @@
+card "Desperate Stand" {
+  oracle_id f8252564-3e61-4ed5-bef1-6ec22882854b
+  cost {R}{W}
+  type Sorcery
+  strive {R}{W}
+  spell: any number of target creatures each gets +2/+0 and gains first strike, vigilance
+}

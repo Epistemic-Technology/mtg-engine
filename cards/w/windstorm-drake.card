@@ -1,0 +1,8 @@
+card "Windstorm Drake" {
+  oracle_id 16977ebd-6384-4c28-b9c3-448563a07807
+  cost {4}{U}
+  type Creature — Drake
+  pt 3/3
+  keywords flying
+  static other creature you control with flying: +1/+0
+}

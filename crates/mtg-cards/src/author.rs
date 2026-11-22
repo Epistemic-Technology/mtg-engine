@@ -2647,7 +2647,7 @@ impl Templates {
     /// Merfolk" (the second "put" left out). Each clause is authored on
     /// its own, so a target's phrase doesn't swallow the second clause.
     fn and_split(&self, s: &str, targets: &mut usize) -> Option<String> {
-        const VERBS: [&str; 12] = [
+        const VERBS: [&str; 14] = [
             "put ",
             "tap ",
             "untap ",
@@ -2660,6 +2660,9 @@ impl Templates {
             "scry ",
             "surveil ",
             "mill ",
+            // "~ deals 3 damage to any target and you gain 3 life".
+            "you gain ",
+            "you lose ",
         ];
         let counters = Regex::new(
             r"^(a|an|one|two|three|four|five|X) ([+-]\d/[+-]\d|stun|loyalty|charge|oil|shield|lore|time|level) counters? on ",
@@ -6010,7 +6013,7 @@ impl Builder<'_> {
         // creatures get -2/-2 until end of turn." is a spell's effect).
         if !line.contains(" until end of turn")
             && let Some(c) = Regex::new(
-            r"^(Enchanted creature|Equipped creature|Creatures you control|Other creatures you control|Creatures your opponents control|All creatures|White creatures|Blue creatures|Black creatures|Red creatures|Green creatures|Enchanted land|Enchanted permanent) (.+)\.$",
+            r"^(Enchanted creature|Equipped creature|Creatures you control|Other creatures you control with flying|Other creatures you control|Creatures your opponents control|All creatures|White creatures|Blue creatures|Black creatures|Red creatures|Green creatures|Enchanted land|Enchanted permanent) (.+)\.$",
         )
         .unwrap()
         .captures(line)
@@ -6020,6 +6023,9 @@ impl Builder<'_> {
                 "Enchanted land" | "Enchanted permanent" => return Err(Skip::Sentence(line.to_string())),
                 "Creatures you control" => "creature you control".to_string(),
                 "Other creatures you control" => "other creature you control".to_string(),
+                "Other creatures you control with flying" => {
+                    "other creature you control with flying".to_string()
+                }
                 "Creatures your opponents control" => "creature your opponents control".to_string(),
                 "All creatures" => "creature".to_string(),
                 colored => format!(
@@ -7300,6 +7306,18 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
                 i += 1;
             }
             b.spree(&modes)?;
+            continue;
+        }
+        // Strive: "This spell costs {2}{B} more to cast for each target
+        // beyond the first." (the ability word's cost, `strive {2}{B}`).
+        if let Some(c) = Regex::new(
+            r"^Strive — This spell costs (\{[^ ]+\}) more to cast for each target beyond the first\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            b.statements.push(format!("strive {}", cap(&c, 1)));
+            i += 1;
             continue;
         }
         // "Choose one. If this spell was cast using teamwork, choose both

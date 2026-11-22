@@ -1,0 +1,6 @@
+card "Feast of Sanity" {
+  oracle_id af384946-e22a-45cd-ba07-1a5fbd4a3f0c
+  cost {3}{B}
+  type Enchantment
+  triggered whenever you discard a card: deal 1 damage to any target and you gains 1 life
+}

@@ -1,0 +1,7 @@
+card "Consign to Dust" {
+  oracle_id 8ac493f2-9519-44d7-b6ac-8c020ad2cede
+  cost {2}{G}
+  type Instant
+  strive {2}{G}
+  spell: destroy any number of target andor artifact or enchantment
+}
