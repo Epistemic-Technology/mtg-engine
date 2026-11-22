@@ -1,0 +1,7 @@
+card "Word of Seizing" {
+  oracle_id b80d2841-03b0-42d3-ac9b-51e793b1dc24
+  cost {3}{R}{R}
+  type Instant
+  keywords split second
+  spell: untap target permanent and gain control of it until end of turn; target 1 gains haste
+}

@@ -1,0 +1,8 @@
+card "Sulfur Elemental" {
+  oracle_id 60e6a140-c7fb-4fbe-bd74-6bbb925080e7
+  cost {2}{R}
+  type Creature — Elemental
+  pt 3/2
+  keywords flash, split second
+  static white creature: +1/-1
+}

@@ -349,6 +349,10 @@ pub enum Keyword {
     /// may be cast free at the beginning of each of their precombat main
     /// phases for the rest of the game (`Builtin::Paradigm`).
     Paradigm,
+    /// CR 702.61a: "As long as this spell is on the stack, players can't
+    /// cast other spells or activate abilities that aren't mana
+    /// abilities."
+    SplitSecond,
 }
 
 /// The pool's built-in triggered abilities that aren't keywords on a
@@ -529,7 +533,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 70] = [
+    pub const ALL: [Keyword; 71] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -600,6 +604,7 @@ impl Keyword {
         Keyword::Cipher,
         Keyword::HexproofFromFilter,
         Keyword::Paradigm,
+        Keyword::SplitSecond,
     ];
 
     /// The keyword as Oracle prints it.
@@ -659,6 +664,7 @@ impl Keyword {
             Keyword::Cipher => "cipher",
             Keyword::HexproofFromFilter => "hexproof from",
             Keyword::Paradigm => "paradigm",
+            Keyword::SplitSecond => "split second",
             Keyword::Convoke => "convoke",
             Keyword::Improvise => "improvise",
             Keyword::Evoke => "evoke",

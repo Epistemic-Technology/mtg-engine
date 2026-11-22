@@ -625,6 +625,30 @@ impl GameState {
                 _ => true,
             });
         }
+        // CR 702.61a: with a split second spell on the stack, no spells
+        // are cast and no abilities other than mana abilities activated;
+        // special actions remain (CR 702.61b).
+        if !self.stack.is_empty()
+            && self.stack.iter().any(|s| {
+                self.objects.get(*s).is_some_and(|o| {
+                    self.pool
+                        .get(o.def)
+                        .keywords
+                        .contains(crate::card::Keyword::SplitSecond)
+                })
+            })
+        {
+            options.retain(|c| {
+                matches!(
+                    c,
+                    Choice::TurnFaceUp(_)
+                        | Choice::Unlock { .. }
+                        | Choice::Suspend(_)
+                        | Choice::Foretell(_)
+                        | Choice::Plot(_)
+                )
+            });
+        }
         options.push(Choice::Pass);
         options
     }

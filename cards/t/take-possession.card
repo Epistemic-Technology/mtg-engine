@@ -1,0 +1,8 @@
+card "Take Possession" {
+  oracle_id 112df1e4-01aa-4e01-b56f-b5ae519c87fd
+  cost {5}{U}{U}
+  type Enchantment — Aura
+  keywords split second
+  enchant permanent
+  static enchanted: control
+}

@@ -1,0 +1,8 @@
+card "Celestial Crusader" {
+  oracle_id af06a811-7a57-4f68-9d87-7903e043f36d
+  cost {2}{W}{W}
+  type Creature — Spirit
+  pt 2/2
+  keywords flash, split second, flying
+  static other white creature: +1/+1
+}
