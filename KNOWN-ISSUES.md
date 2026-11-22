@@ -90,9 +90,6 @@ by rejecting the form at compile time or by binding it correctly.
   - `each player loses count each creature they control life` is an
     error now (it counted the other player's creatures): a count per
     player isn't in (Stronghold Discipline).
-  - `static enchanted: has ... as long as this is with power 3 or less`
-    reads the Equipment's power, and the `attached` form prints
-    "equipped creature's power" for "its power" (Thieves' Tools).
 - **`whenever you cast of chosen color spell`** renders "Whenever you
   cast a spell of the chosen color" but never triggered (Diamond Mare,
   not added).

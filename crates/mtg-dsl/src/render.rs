@@ -12544,6 +12544,11 @@ fn conditional_static(
         );
         cond = cond.replace("it's", &format!("{} is", this_ref(card)));
         cond = cond.replace("it entered", &format!("{} entered", this_ref(card)));
+        // "as long as this Equipment's power ...": not the subject's.
+        if !first {
+            cond = cond.replace("its power", &format!("{}'s power", this_ref(card)));
+            cond = cond.replace("its toughness", &format!("{}'s toughness", this_ref(card)));
+        }
     }
     if first {
         let this = format!("{} ", capitalize(&this_ref(card)));
@@ -12594,6 +12599,24 @@ fn conditional_static(
         }
     } else {
         let stem = body.strip_suffix('.').unwrap_or(body);
+        // "Equipped creature can't be blocked as long as its power is 3 or
+        // less.": the condition is about the subject.
+        if let StaticCond::AttachedIs(_) = c {
+            let noun = if card.subtypes.iter().any(|s| s == "Equipment") {
+                "equipped creature".to_string()
+            } else {
+                format!("enchanted {}", enchanted_noun(card))
+            };
+            if lowercase_first(body).starts_with(&format!("{noun} ")) {
+                if let Some(rest) = cond.strip_prefix(&format!("{noun}'s ")) {
+                    cond = format!("its {rest}");
+                } else if let Some(rest) = cond.strip_prefix(&format!("{noun} is ")) {
+                    cond = format!("it's {rest}");
+                } else if let Some(rest) = cond.strip_prefix(&format!("{noun} ")) {
+                    cond = format!("it {rest}");
+                }
+            }
+        }
         // "This creature has flying as long as it has a +1/+1 counter on
         // it."
         if matches!(c, StaticCond::SourceCounters { at_least: true, .. })
