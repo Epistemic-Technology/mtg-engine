@@ -1415,6 +1415,33 @@ impl GameState {
                     && filter.matches(*new, owner, &c, Some(w.source), Some(w.controller)))
                 .then_some((None, Some(owner)))
             }
+            // "is put into your graveyard from the battlefield": the
+            // permanent as it last existed, owned by the source's
+            // controller.
+            (
+                TriggerSpec::PutIntoGraveyardFromBattlefield(filter),
+                Event::ZoneChange {
+                    old,
+                    new,
+                    from: Zone::Battlefield,
+                    to: Zone::Graveyard,
+                    ..
+                },
+            ) => {
+                if self.objects.get(*new)?.owner != w.controller {
+                    return None;
+                }
+                let l = self.lki.get(old)?;
+                filter
+                    .matches(
+                        *old,
+                        l.object.controller,
+                        &l.characteristics,
+                        Some(w.source),
+                        Some(w.controller),
+                    )
+                    .then_some((Some(*old), Some(w.controller)))
+            }
             // "is put into your graveyard from anywhere": the card in the
             // graveyard, a new object (CR 400.7).
             (

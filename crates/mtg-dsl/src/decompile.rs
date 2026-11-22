@@ -1846,6 +1846,9 @@ impl Decompiler<'_> {
             },
             TriggerSpec::LeavesGraveyard(f) => Trigger::LeavesGraveyard(self.filter(f)),
             TriggerSpec::PutIntoGraveyard(f) => Trigger::PutIntoGraveyard(self.filter(f)),
+            TriggerSpec::PutIntoGraveyardFromBattlefield(f) => {
+                Trigger::PutIntoGraveyardFromBattlefield(self.filter(f))
+            }
             TriggerSpec::EntersFromGraveyard(f) => Trigger::EntersFromGraveyard(self.filter(f)),
             TriggerSpec::Expends(n) => Trigger::Expends(*n),
             TriggerSpec::CollectsEvidence { .. } => Trigger::CollectsEvidence,

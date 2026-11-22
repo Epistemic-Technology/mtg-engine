@@ -1,0 +1,7 @@
+card "Resize" {
+  oracle_id 2c092ed4-4dbb-41ec-9e07-e59b9676802e
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +3/+3
+  recover {1}{G}
+}

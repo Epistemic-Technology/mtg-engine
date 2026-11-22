@@ -1475,6 +1475,13 @@ impl P {
                 let each_player = self.eat_words(&["each", "player"]);
                 self.player_static(mtg_core::card::PlayerStaticKind::ExtraLands { n, each_player })
             }
+            // CR 702.59a: recover.
+            "recover" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
+                self.pos += 1;
+                let c = self.mana_cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Recover(c)))
+            }
             // CR 702.152a: blitz.
             "blitz" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
                 self.pos += 1;
@@ -11341,6 +11348,20 @@ impl P {
             ])
         {
             return Ok(Trigger::PutIntoGraveyard(f.clone()));
+        }
+        // "a creature is put into your graveyard from the battlefield".
+        if let TriggerObj::Filter(f) = &obj
+            && self.eat_words(&[
+                "is",
+                "put",
+                "into",
+                "your",
+                "graveyard",
+                "from",
+                "battlefield",
+            ])
+        {
+            return Ok(Trigger::PutIntoGraveyardFromBattlefield(f.clone()));
         }
         // "a creature enters from your graveyard".
         if let TriggerObj::Filter(f) = &obj

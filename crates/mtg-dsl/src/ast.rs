@@ -1422,6 +1422,11 @@ pub enum Mechanic {
     /// CR 702.39: attacks, you may have target creature defending player
     /// controls untap and block it if able.
     Provoke,
+    /// CR 702.59: `recover {2}{B}`: "When a creature is put into your
+    /// graveyard from the battlefield, you may pay [cost]. If you do,
+    /// return this card from your graveyard to your hand. Otherwise, exile
+    /// this card." (from the graveyard).
+    Recover(ManaCost),
     /// CR 702.152: `blitz {3}{G}`, `blitz {2}{B}{B}, pay 2 life`: the
     /// card's alternative cost; the permanent has haste and "When this
     /// creature dies, draw a card" and is sacrificed at the beginning of
@@ -2737,6 +2742,10 @@ pub enum Trigger {
     LeavesGraveyard(Filter),
     /// `whenever land card is put into your graveyard from anywhere`.
     PutIntoGraveyard(Filter),
+    /// `whenever creature is put into your graveyard from battlefield`:
+    /// "Whenever a creature is put into your graveyard from the
+    /// battlefield" (a permanent you own; recover, CR 702.59a).
+    PutIntoGraveyardFromBattlefield(Filter),
     /// `whenever creature enters from your graveyard`.
     EntersFromGraveyard(Filter),
     /// `whenever you expend 4` (CR 700.14).

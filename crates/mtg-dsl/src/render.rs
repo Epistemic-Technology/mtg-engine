@@ -8591,6 +8591,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             "whenever {} enters from your graveyard",
             filter_a(f, ctx.card)
         ),
+        Trigger::PutIntoGraveyardFromBattlefield(f) => format!(
+            "whenever {} is put into your graveyard from the battlefield",
+            filter_a(f, ctx.card)
+        ),
         Trigger::Expends(n) => format!("whenever you expend {n}"),
         Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
         Trigger::Forages => "whenever you forage".to_string(),
@@ -12261,6 +12265,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Provoke => "Provoke".to_string(),
             crate::ast::Mechanic::Fading(n) => format!("Fading {n}"),
             crate::ast::Mechanic::LevelUp(c) => format!("Level up {c}"),
+            crate::ast::Mechanic::Recover(c) => format!("Recover {c}"),
             // CR 702.152a: "Blitz {3}{G}"; with a cost other than mana,
             // "Blitz—{2}{B}{B}, Pay 2 life."
             crate::ast::Mechanic::Blitz(c) => {

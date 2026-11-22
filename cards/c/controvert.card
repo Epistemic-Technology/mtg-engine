@@ -1,0 +1,7 @@
+card "Controvert" {
+  oracle_id f7ad79e3-d128-4aee-8542-99fd3527f9d3
+  cost {2}{U}{U}
+  type Instant
+  spell: counter target spell
+  recover {2}{U}{U}
+}

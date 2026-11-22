@@ -1,0 +1,7 @@
+card "Krovikan Rot" {
+  oracle_id f9a272c5-6ebc-4d29-a47c-a2d570184196
+  cost {2}{B}
+  type Instant
+  spell: destroy target creature with power 2 or less
+  recover {1}{B}{B}
+}

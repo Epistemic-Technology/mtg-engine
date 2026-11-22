@@ -1,0 +1,7 @@
+card "Icefall" {
+  oracle_id 30baca42-50e2-45f8-8f99-8e2f9795b4da
+  cost {2}{R}{R}
+  type Sorcery
+  spell: destroy target artifact or land
+  recover {R}{R}
+}

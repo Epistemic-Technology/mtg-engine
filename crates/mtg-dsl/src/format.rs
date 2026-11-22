@@ -3892,6 +3892,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::EntersFromGraveyard(f) => {
             format!("whenever {} enters from your graveyard", filter(f))
         }
+        Trigger::PutIntoGraveyardFromBattlefield(f) => format!(
+            "whenever {} is put into your graveyard from battlefield",
+            filter(f)
+        ),
         Trigger::Expends(n) => format!("whenever you expend {n}"),
         Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
         Trigger::Forages => "whenever you forage".to_string(),
@@ -5228,6 +5232,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Provoke => "provoke".to_string(),
                 crate::ast::Mechanic::Fading(n) => format!("fading {n}"),
                 crate::ast::Mechanic::LevelUp(c) => format!("level up {c}"),
+                crate::ast::Mechanic::Recover(c) => format!("recover {c}"),
                 crate::ast::Mechanic::Blitz(c) => format!("blitz {}", cost_text(c)),
                 crate::ast::Mechanic::Prototype(c, p, t) => format!("prototype {c} {p}/{t}"),
                 crate::ast::Mechanic::Annihilator(n) => format!("annihilator {n}"),

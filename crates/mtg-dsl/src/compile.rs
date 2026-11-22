@@ -49,13 +49,21 @@ pub fn compile_all(cards: &[Card]) -> Result<CardPool, CompileError> {
 /// another card's.
 const KEYWORD_EXPANSIONS: &str = "card \"Keywords\" {
   triggered whenever this attacks: defending player sacrifices N permanent
+  triggered from graveyard whenever creature is put into your graveyard from battlefield: you may pay COST; if you do, return this to hand; otherwise, exile this
 }";
 
-/// The `i`th ability of `KEYWORD_EXPANSIONS`, its `N` replaced by `n`.
-fn keyword_expansion(i: usize, n: u32) -> Ability {
-    let text = KEYWORD_EXPANSIONS.replace('N', &n.to_string());
-    let mut cards = crate::parse(&text).expect("keyword expansions parse");
-    cards.remove(0).abilities.remove(i)
+/// The `i`th ability of `KEYWORD_EXPANSIONS`, its `N` replaced by `n` and
+/// `COST` by `cost`.
+fn keyword_expansion(i: usize, n: u32, cost: Option<&mtg_core::mana::ManaCost>) -> Ability {
+    let line = KEYWORD_EXPANSIONS
+        .lines()
+        .nth(i + 1)
+        .expect("a keyword expansion")
+        .replace("COST", &cost.map(ToString::to_string).unwrap_or_default())
+        .replace('N', &n.to_string());
+    let mut cards = crate::parse(&format!("card \"Keywords\" {{\n{line}\n}}"))
+        .expect("keyword expansions parse");
+    cards.remove(0).abilities.remove(0)
 }
 
 const MOBILIZE: &str = "card \"Mobilize\" {
@@ -3713,6 +3721,9 @@ impl Compiler<'_> {
             },
             Trigger::LeavesGraveyard(f) => TriggerSpec::LeavesGraveyard(self.filter(f)),
             Trigger::PutIntoGraveyard(f) => TriggerSpec::PutIntoGraveyard(self.filter(f)),
+            Trigger::PutIntoGraveyardFromBattlefield(f) => {
+                TriggerSpec::PutIntoGraveyardFromBattlefield(self.filter(f))
+            }
             Trigger::EntersFromGraveyard(f) => TriggerSpec::EntersFromGraveyard(self.filter(f)),
             Trigger::Expends(n) => TriggerSpec::Expends(*n),
             Trigger::CollectsEvidence => TriggerSpec::CollectsEvidence { whose: Who::You },
@@ -5550,7 +5561,11 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         },
         // CR 702.86a: "Whenever this creature attacks, defending player
         // sacrifices N permanents of their choice."
-        Mechanic::Annihilator(n) => keyword_expansion(0, *n),
+        Mechanic::Annihilator(n) => keyword_expansion(0, *n, None),
+        // CR 702.59a: "When a creature is put into your graveyard from the
+        // battlefield, you may pay [cost]. If you do, return this card
+        // from your graveyard to your hand. Otherwise, exile this card."
+        Mechanic::Recover(c) => keyword_expansion(1, 0, Some(c)),
         // CR 702.149a: "Whenever this creature and at least one other
         // creature with power greater than this creature's power attack,
         // put a +1/+1 counter on this creature."

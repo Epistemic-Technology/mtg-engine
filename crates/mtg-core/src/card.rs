@@ -5405,6 +5405,11 @@ pub enum TriggerSpec {
     /// once per matching card its controller owns going to a graveyard,
     /// the card (as it was) the triggering object.
     PutIntoGraveyard(ObjFilter),
+    /// "Whenever a creature is put into your graveyard from the
+    /// battlefield": a matching permanent (as it last existed) its
+    /// controller owns dies, whoever controlled it; the permanent the
+    /// triggering object.
+    PutIntoGraveyardFromBattlefield(ObjFilter),
     /// "Whenever a creature enters from your graveyard": a matching
     /// permanent that entered from its controller's graveyard (the
     /// source's controller's), the triggering object.
@@ -5593,6 +5598,7 @@ impl TriggerSpec {
             | TriggerSpec::LeavesBatch { .. }
             | TriggerSpec::LeavesGraveyard(_)
             | TriggerSpec::PutIntoGraveyard(_)
+            | TriggerSpec::PutIntoGraveyardFromBattlefield(_)
             | TriggerSpec::EntersFromGraveyard(_) => WATCH_ZONE_CHANGE,
             TriggerSpec::AttacksOrBlocks(_) => WATCH_ATTACK | WATCH_BLOCK,
             TriggerSpec::BeginningOfStep { .. } | TriggerSpec::AttachedControllersStep(_) => {
