@@ -1,0 +1,13 @@
+card "Thaumatic Compass // Spires of Orazca" {
+  oracle_id f9085e55-2833-41b7-9100-a35dc04dee93
+  layout transform
+  cost {2}
+  type Artifact
+  activated {3}, {T}: search basic land card reveal to hand
+  triggered at beginning of your end step if you control 7 land: transform this
+  face "Spires of Orazca" {
+    type Land
+    mana {C}
+    activated {T}: untap target attacking creature an opponent controls and remove it from combat
+  }
+}

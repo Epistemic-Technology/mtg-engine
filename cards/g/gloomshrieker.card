@@ -1,0 +1,9 @@
+card "Gloomshrieker" {
+  oracle_id b58737a4-180e-4e2f-95ae-afd6d446d608
+  cost {1}{B}{G}
+  type Enchantment Creature — Cat Beast
+  pt 2/1
+  keywords menace
+  triggered when this enters: return target permanent card from your graveyard to hand
+  replace this dies: exile
+}

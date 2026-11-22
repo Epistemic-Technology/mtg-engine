@@ -1,0 +1,16 @@
+card "The Restoration of Eiganjo // Architect of Restoration" {
+  oracle_id 9d9b52b2-2edc-4f7f-a8d9-e024b1398847
+  layout transform
+  cost {2}{W}
+  type Enchantment — Saga
+  triggered chapter 1: search basic Plains card reveal to hand
+  triggered chapter 2: you may discard 1 cards; when you do, return target permanent card with mana value 2 or less from your graveyard to battlefield tapped
+  triggered chapter 3: exile this then return this to battlefield transformed under your control
+  face "Architect of Restoration" {
+    type Enchantment Creature — Fox Monk
+    pt 3/4
+    color white
+    keywords vigilance
+    triggered whenever this attacks or blocks: create 1 "1/1 colorless Spirit creature"
+  }
+}

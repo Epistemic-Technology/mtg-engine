@@ -1,0 +1,42 @@
+scenario "Persist returns a creature with a -1/-1 counter" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Persist"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Persist" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Grizzly Bears" 1
+  assert toughness "Grizzly Bears" 1
+}
+
+scenario "Gloomshrieker is exiled instead of dying" {
+  battlefield A: "Gloomshrieker", "Swamp"
+  hand A: "Disfigure"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Disfigure" targeting "Gloomshrieker"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Gloomshrieker"
+}
+
+scenario "Colossal Plow adds three white mana and gains 3 life when it attacks" {
+  battlefield A: "Colossal Plow", "Colossal Dreadmaw"
+  hand A: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: activate "Colossal Plow"
+  turn 1 A: attack "Colossal Plow"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert life B 14
+}
+
+scenario "Westvale Abbey transforms for five creatures and untaps" {
+  battlefield A: "Westvale Abbey", 5 "Swamp", 5 "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Westvale Abbey" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ormendahl, Profane Prince"
+  assert untapped "Ormendahl, Profane Prince"
+  assert graveyard A count 5
+  assert power "Ormendahl, Profane Prince" 9
+}

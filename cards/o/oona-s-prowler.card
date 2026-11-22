@@ -1,0 +1,8 @@
+card "Oona's Prowler" {
+  oracle_id 4f87252e-3218-4759-accc-a4f186fa8857
+  cost {1}{B}
+  type Creature — Faerie Rogue
+  pt 3/1
+  keywords flying
+  activated discard 1 card, any player: this gets -2/-0
+}

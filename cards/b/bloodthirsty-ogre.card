@@ -1,0 +1,8 @@
+card "Bloodthirsty Ogre" {
+  oracle_id 9778dd66-6770-4230-9ee1-9b9419e322e6
+  cost {2}{B}
+  type Creature — Ogre Warrior Shaman
+  pt 3/1
+  activated {T}: put 1 devotion counters on this
+  activated {T}, if you control Demon: target creature gets -1/-1 count where devotion counters on this
+}

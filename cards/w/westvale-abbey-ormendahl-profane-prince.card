@@ -1,0 +1,14 @@
+card "Westvale Abbey // Ormendahl, Profane Prince" {
+  oracle_id 04eeb9ad-5c59-411b-8809-db8349838588
+  layout transform
+  type Land
+  mana {C}
+  activated {5}, {T}, pay 1 life: create 1 "1/1 white and black Human Cleric creature"
+  activated {5}, {T}, sacrifice 5 creature: transform this then untap this
+  face "Ormendahl, Profane Prince" {
+    type Legendary Creature — Demon
+    pt 9/7
+    color black
+    keywords flying, lifelink, indestructible, haste
+  }
+}

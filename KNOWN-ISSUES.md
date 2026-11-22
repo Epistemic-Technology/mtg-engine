@@ -101,16 +101,31 @@ wrong thing in some case.
   intervening-if trigger `when this enters if this is untapped`: tapping
   the land with its trigger on the stack stops it (CR 603.4); the printed
   trigger event is judged only as the land enters.
-- **A delayed trigger made by a copy of a prepared spell never fires**
-  (Pigment Wrangler // Striking Palette: "when you next cast an instant
-  or sorcery spell this turn, copy that spell"): it is tied to the copy,
-  which ceases to exist. The same line on Doublecast works.
-- **A mana ability with a cost other than {T} uses the stack** (Grinning
-  Ignus: "{R}, Return this creature to its owner's hand: Add {C}{C}{R}";
-  CR 605.3a says it resolves at once), and one with an exile cost isn't
-  used for automatic payment (Molt Tender).
-- **Thirst for Knowledge:** the engine chooses between discarding an
-  artifact card and discarding two cards.
+- **Restricted mana in the pool** (CR 106.6; `GameState::restricted_pool`):
+  payment spends unrestricted floating mana before restricted units,
+  which is legal but not what a player would choose; restricted and
+  rider mana can't pay a cost an effect asks for (ward, "unless its
+  controller pays", cumulative upkeep); it always empties at the end of
+  the step (`keep mana` doesn't combine with a restriction); and payment
+  never activates an ability whose `add` carries `only to ...` or `spent
+  on ...`, nor a mana ability with a rider (Twitching Doll, Pyramid of
+  the Pantheon): the player activates it first.
+- **Thirst for Identity, Sunscour, Fury of the Horde:** more
+  engine-picks-for-player cases. For "exile two white cards from your
+  hand" the caster chooses the first card and the engine the rest, as
+  for "discard two cards".
+- **"As this creature enters, it becomes your choice of ..." isn't a
+  copiable value** (Primal Plasma, Corrupted Shapeshifter, Primal Clay):
+  a copy doesn't get the chosen values (CR 707.2 says it should), and a
+  copy entering doesn't get to choose.
+- **"For each opponent, ..." assumes two players** (Hapatra, the Desert
+  Frost, Lich's Relic, Riptide Gearhulk, Celebrate the Mountain-king,
+  The Theorist, Jace Beleren): it happens once.
+- **Conditions on the starting life total** read 20 in a scenario's
+  prepared position, whatever `life A N` says.
+- **A leaves-the-battlefield trigger granted by another permanent that
+  leaves at the same time** may still be missed: the pre-check looks at
+  the departing object's own grants, not at grants that left with it.
 
 ## 2. Forms that pass the gate with the wrong meaning
 
@@ -118,40 +133,29 @@ The renderer prints the right Oracle text for these, but the compiled
 card does something else. Scenarios catch them; the gate does not. Fix
 by rejecting the form at compile time or by binding it correctly.
 
-- **Found by the parse-forms branch; not used by a card in the corpus**
-  (the template author writes both; each card was rejected):
-  - `exile target nonland permanent ... and all other nonland permanents
-    that player controls with same name as target 1 until this leaves`
-    exiles only the target (Deputy of Detention).
-  - `triggered when this dies: put count each -1/-1 counters on this
-    -1/-1 counters on target creature` puts none: the count doesn't read
-    the counters it had as it died (Grief Tyrant).
-- **Found by the sixth wave's card batches, before the feature
-  branches merged; none is used by a card in the corpus** (each card
-  named was rejected; not re-checked since):
-  - `unless they sacrifice another nonland` in a spell lets the targeted
-    creature itself be sacrificed (Torment of Venom).
-  - `choose color; delayed this: whenever this becomes blocked by a
-    creature of that color this turn` never fires (Zombie Boa).
-  - `untap target creature and each other creature that shares color
-    with target 1; those creatures get +2/+0` pumps only the target
-    (Rally the Righteous).
-  - `untap that creature` on an Aura's enters trigger untaps nothing;
-    `untap attached` works but prints "untap it" (Howl of the Hunt).
-  - `if that target 1 is token, also ...`: the `token` check is ignored
-    (Hazardroot Herbalist).
-  - `whenever face-down permanent you control is turned face up` never
-    triggers (Sumala Sentry).
-  - `whenever attacking creature you control dies`: "attacking" is
-    ignored (Ares, God of War).
-  - "instead create X of those tokens" renders only without `tapped`,
-    and the tokens then enter untapped (The Final Days).
-  - `creature you control with aura you control`: "you control" is
-    dropped from the Aura (Archon of the Wild Rose).
+- **Found in the seventh wave; none is used by a card in the corpus**
+  (each card named was rejected):
+  - `pay x life` as an activated ability's cost pays no life (Krumar
+    Initiate). As a spell's additional cost it works (Toxic Deluge).
+  - A dig's "with mana value X or less" reads the spell's X, not the
+    dig's count (Hatchery Spider).
+  - "cards revealed this way" after `reveal until ...; put that card
+    onto battlefield` misses the card that was moved (Madcap
+    Experiment).
+  - A target first named after "If this spell was bargained, ..." is
+    required even when the spell isn't bargained (Brave the Wilds):
+    `kicker_targets` covers "if kicked" only.
+  - A target check (`if target 1 is ...`) judges only the state
+    qualifiers `live_state` lists (attacking, blocking, tapped, counters,
+    suspected, enchanted, equipped, modified, attached-to, token,
+    entered this turn); `face-down`, `that dealt damage this turn`, `that
+    attacked this turn` and the rest pass for any target.
+  - "As long as you control <filter>" in the layers ignores most status
+    qualifiers (tapped, token, attacking): only counters and
+    `transformed` are checked. Worth an audit.
 - **`put its counters on <target>` in a trigger about another object**
-  moves the source's counters, not the triggering object's (`put its
-  counters on this` and `put those counters on ...` take the triggering
-  object's). No card in the corpus writes it.
+  now moves the triggering object's counters but renders "put those
+  counters on" (Host of the Hereafter does not gate).
 - **Template-author cards written before the first wave's catch-up**
   may read "it" as the source where the text means another object. Not
   audited.
@@ -294,19 +298,40 @@ named the feature; a card may need more than one.
   or base toughness alone (Withercrown, Maha); "would die" replaced by
   the top or bottom of the library; reveal X cards from a hand and
   choose one to discard (Thieving Sprite, Mire's Toll).
-- **Left by the sixth wave's counts branch:** restricted mana of more
-  than one symbol or added by an effect (about 40 cards: Great Hall of
-  the Citadel, Resonating Lute, Eldrazi Temple, Boommobile; restricted
-  mana is spent as its source is tapped and never sits in the pool, so a
-  two-mana restricted ability needs the pool to keep restricted mana);
-  "half their library", "half the cards in their hand", "half the
+- **Left by the sixth wave's counts branch:** "half their library", "half the cards in their hand", "half the
   permanents they control" (no count of a player's library; Cut Your
   Losses, Curse of the Cabal, Lord Xander); "deals twice that much damage
   instead" (Chocobo Kick) and "it deals 3 damage to another target"
   (Magma Burst) after kicker, wording only; "Then if it has no oil
   counters on it" (Evolved Spinoderm, which the `otherwise` form
   otherwise covers).
-- **Mechanics not yet in:** tiered, harness, hideaway, cloak, epic,
+- **Most often named in the seventh wave** (88 unsupported of 138
+  Standard cards): wording near-misses (about 20: "they lose" for "that player
+  loses", "one or more other Heroes", "at least five other", "their
+  owners' control", "are lands in addition to their other types"); a
+  quoted ability gained with no duration; casting a card as an effect
+  while paying its cost (Tinybones, Boiling Rock Rioter); changing a
+  spell's target (Return the Favor, Untimely Malfunction); milled or
+  graveyard cards put onto the battlefield (Random Encounter, Bonny
+  Pall); "choose up to one target" and what follows it; non-targeting
+  "choose a creature you control" effects; conditions "scried or
+  surveilled this turn", "two or more creatures entered this turn",
+  "if a Rat is attacking"; filters "you own", "spell you control", "with
+  {X} in its mana cost"; pay {0} for the first equip or exile cast each
+  turn.
+- **Left by the seventh wave's branches:** restricted mana for ability
+  kinds and spell properties (power-up, equip, cast from exile or
+  graveyard, kicked, face-down, {X} costs, Class level), "and that spell
+  can't be countered" (Cavern of Souls), conditions on the mana spent
+  (Tokka & Rahzar, Unravel); "As an additional cost ... reveal a card
+  from your hand" (about 20 cards); opening-hand reveals, three-way dig
+  splits, searches for up to X cards, linked-exile returns; two static
+  abilities on one Oracle line (Elenda, Akawalli), setting a life total,
+  odd or even; conditional transforms, Phyrexian-hybrid activation
+  costs, "all creature types" in an indefinite becomes; "target spell,
+  activated ability, or triggered ability" (7 cards), "nonattacking",
+  total-mana-value target groups.
+- **Mechanics not yet in:** harness, hideaway, cloak, epic,
   offering, compleated, companion, mutate, the Everywhere land token;
   "Each Sliver card in each player's hand has slivercycling {3}" (an
   ability granted to cards in hands, Homing Sliver); "has flying and
@@ -317,9 +342,10 @@ named the feature; a card may need more than one.
 - **Scenario runner:** a mana ability can't be scripted as an action
   (the engine offers none at priority; it taps for mana while paying);
   `x N` on a spell cast by a trigger isn't passed on (no corpus card
-  pays X for such a cast: the free ones have X 0); a discard chosen as
-  a spell resolves (Thirst for Knowledge) and a "you may cast the copy" or "you may
-  choose a card from it" can't be declined; `illegal ... cast "X" mode
+  pays X for such a cast: the free ones have X 0); a "you may cast the copy", a "you may choose a card from it" or an
+  optional take (Pulsar Squadron Ace) can't be declined; `illegal cast
+  ... targeting` with two "up to one" targets passes an illegal first
+  target as declined (Pull from the Deep); `illegal ... cast "X" mode
   N` doesn't check that mode N is offered; `activate` can't tell two
   permanents of one name apart; a fused or aftermath spell's targets
   can't be scripted (`cast_needs` reads the split card's root

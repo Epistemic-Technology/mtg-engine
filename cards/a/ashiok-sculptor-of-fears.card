@@ -1,0 +1,9 @@
+card "Ashiok, Sculptor of Fears" {
+  oracle_id ce79bbd2-edf0-4d5e-9aaf-717ec3960c48
+  cost {4}{U}{B}
+  type Legendary Planeswalker — Ashiok
+  loyalty 4
+  loyalty +2: draw 1 cards; each player mills 2 cards
+  loyalty -5: return target creature card from a graveyard to battlefield under your control
+  loyalty -11: gain control of all creature target opponent controls indefinitely
+}

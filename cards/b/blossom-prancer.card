@@ -1,0 +1,8 @@
+card "Blossom Prancer" {
+  oracle_id 69e92c4f-df05-4297-a453-8e4644c31a90
+  cost {3}{G}{G}
+  type Creature — Spirit
+  pt 4/4
+  keywords reach
+  triggered when this enters: dig 5 take creature or enchantment card may revealing rest bottom random; if you didnt put into hand this way, you gains 4 life
+}

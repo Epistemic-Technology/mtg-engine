@@ -1,0 +1,7 @@
+card "Soul Spike" {
+  oracle_id be979bfc-998d-43d5-a7a4-44548d9a14c4
+  cost {5}{B}{B}
+  type Instant
+  alternative cost exile 2 black cards from hand
+  spell: deal 4 damage to any target and you gains 4 life
+}

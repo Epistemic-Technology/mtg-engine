@@ -1,0 +1,8 @@
+card "Possessed Skaab" {
+  oracle_id a42b567d-6bfc-49e7-8f91-917e2bb3046c
+  cost {3}{U}{B}
+  type Creature — Zombie
+  pt 3/2
+  triggered when this enters: return target instant, sorcery, or creature card from your graveyard to hand
+  replace this dies: exile
+}

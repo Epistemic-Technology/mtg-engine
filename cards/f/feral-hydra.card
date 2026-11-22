@@ -1,0 +1,8 @@
+card "Feral Hydra" {
+  oracle_id b5d5dd1f-2d31-4849-8cb9-08354dd48d31
+  cost {X}{G}
+  type Creature — Hydra Beast
+  pt 0/0
+  enters with X +1/+1 counters
+  activated {3}, any player: put 1 +1/+1 counters on this
+}

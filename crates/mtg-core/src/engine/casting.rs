@@ -14698,6 +14698,7 @@ impl GameState {
     /// "If that creature was a Human" / "If it's a Human": whether the
     /// `n`th target matches, judged as it last existed if it has left
     /// (CR 608.2h).
+    #[allow(clippy::too_many_lines)] // one arm per qualifier
     fn nth_target_matches(&self, ctx: &EffectCtx, n: u8, filter: &crate::card::ObjFilter) -> bool {
         // What only the permanent's state on the battlefield answers
         // ("If it's an enchanted creature", "if it's attacking").

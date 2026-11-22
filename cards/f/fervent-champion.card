@@ -1,0 +1,9 @@
+card "Fervent Champion" {
+  oracle_id 8de50bda-1ef6-4ccf-9efc-fab10b7eb2e5
+  cost {R}
+  type Creature — Human Knight
+  pt 1/1
+  keywords first strike, haste
+  triggered whenever this attacks: another target attacking Knight you control gets +1/+0
+  equip abilities targeting this cost {3} less
+}

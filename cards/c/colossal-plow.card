@@ -1,0 +1,8 @@
+card "Colossal Plow" {
+  oracle_id 4cdf524a-1a99-4143-823b-d3c5c867c580
+  cost {2}
+  type Artifact — Vehicle
+  pt 6/3
+  triggered whenever this attacks: keep mana add {W}{W}{W} and you gains 3 life
+  crew 6
+}

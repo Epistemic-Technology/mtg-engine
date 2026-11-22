@@ -1,0 +1,14 @@
+card "Flower // Flourish" {
+  oracle_id 2f8243a4-f347-4e18-9094-570b34df903b
+  layout split
+  face "Flower" {
+    cost {G/W}
+    type Sorcery
+    spell: search basic Forest or Plains card reveal to hand
+  }
+  face "Flourish" {
+    cost {4}{G}{W}
+    type Sorcery
+    spell: each creature you control gets +2/+2
+  }
+}

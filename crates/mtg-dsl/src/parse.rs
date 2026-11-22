@@ -1391,6 +1391,7 @@ impl P {
     // ---- abilities ----
 
     /// After `add`: the mana to add (CR 106.4).
+    #[allow(clippy::too_many_lines)] // one arm per form of `add`
     fn add_effect(&mut self) -> R<Effect> {
         if self.eat_word("chosen") {
             return Ok(Effect::AddMana(vec![Mana::Chosen]));

@@ -1,0 +1,6 @@
+card "Trapmaker's Snare" {
+  oracle_id 8aa0125c-29fe-4f31-985c-de2da3dbc602
+  cost {1}{U}
+  type Instant
+  spell: search Trap card reveal to hand
+}
