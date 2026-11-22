@@ -234,6 +234,7 @@ impl Decompiler<'_> {
                     (SameOf::Target(n), SameWhat::Color) => {
                         SameRef::SharesColorWith(usize::from(n))
                     }
+                    (SameOf::Target(_), SameWhat::SharesType) => SameRef::ShareCardType,
                     (SameOf::Target(n), _) => SameRef::SameNameAs(usize::from(n)),
                 }
             }),

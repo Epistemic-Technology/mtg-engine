@@ -4919,7 +4919,19 @@ impl GameState {
     ) {
         let o = &self.objects[spell];
         let index = o.targets.len();
-        if self.that_player_of(spec).is_some() {
+        // "that share a card type" (`SameWhat::SharesType`) relates to an
+        // earlier target too.
+        let shares = matches!(
+            self.pool.base_spec(spec),
+            TargetSpec::Filtered(f) if matches!(
+                self.pool.filter(f).same,
+                Some(crate::card::Same {
+                    what: crate::card::SameWhat::SharesType,
+                    ..
+                })
+            )
+        );
+        if shares || self.that_player_of(spec).is_some() {
             let trigger_player = o.ability.and_then(|a| a.trigger_player);
             options.retain(|c| match c {
                 Choice::Target(t) => self.that_player_ok(spec, *t, trigger_player, &o.targets),
@@ -7886,6 +7898,7 @@ impl GameState {
                     Some(d),
                     crate::mana::ColorSet::default(),
                     None,
+                    crate::card::TypeSet::default(),
                 ));
             }
             let of = match same.of {

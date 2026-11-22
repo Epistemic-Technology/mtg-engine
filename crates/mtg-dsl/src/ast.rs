@@ -922,6 +922,10 @@ pub enum SameRef {
     SameNameAs(usize),
     /// `that shares color with target 1`: "that shares a color with it".
     SharesColorWith(usize),
+    /// `that share card type`, in the spec of a spell's first targets:
+    /// "two target nonland permanents that share a card type" (each
+    /// shares one with the first).
+    ShareCardType,
     /// `with lesser power`: "with lesser power" (than the source's power,
     /// as it is or last existed; mentor, CR 702.134a).
     LesserPower,

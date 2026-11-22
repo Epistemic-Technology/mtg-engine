@@ -881,7 +881,11 @@ player sacrifices a creature of their choice". The player chooses as it
 resolves (in a scenario `choose "1"` sacrifices, `"2"` discards, `"3"`
 takes the penalty).
 `exchange control of 2 target creature` (CR 701.12) prints "Exchange
-control of two target creatures."; `exchange control of this and target
+control of two target creatures."; `exchange control of 2 target nonland
+permanent that share card type` prints "... two target nonland permanents
+that share a card type." (`that share card type`, in the spell's first
+target spec: each target must share a card type with the first, as
+chosen and as the spell resolves); `exchange control of this and target
 nonland permanent`, `exchange control of target land you control and
 target land an opponent controls` name the two. Nothing happens unless
 both are still on the battlefield (CR 701.12a) under different

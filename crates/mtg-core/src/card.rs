@@ -1296,6 +1296,9 @@ pub enum SameWhat {
     /// Has lesser power ("target attacking creature with lesser power",
     /// mentor, CR 702.134a).
     LesserPower,
+    /// Shares a card type (CR 205.2a: "two target permanents that share a
+    /// card type").
+    SharesType,
 }
 
 /// What a spell must target ("that targets a creature", "that targets you
@@ -1405,7 +1408,13 @@ impl ObjFilter {
     /// a color with a colorless object is impossible, CR 105.2c), and
     /// power (`None`: no object, so nothing has lesser power).
     #[must_use]
-    pub fn with_same(&self, def: Option<CardRef>, colors: ColorSet, power: Option<i16>) -> Self {
+    pub fn with_same(
+        &self,
+        def: Option<CardRef>,
+        colors: ColorSet,
+        power: Option<i16>,
+        types: TypeSet,
+    ) -> Self {
         let mut f = self.clone();
         let Some(same) = f.same.take() else {
             return f;
@@ -1418,6 +1427,11 @@ impl ObjFilter {
             SameWhat::LesserPower => {
                 f.power = Some((Cmp::AtMost, power.map_or(i16::MIN, |p| p.saturating_sub(1))));
             }
+            // No card types (or no object): nothing shares one.
+            SameWhat::SharesType if types.is_empty() => {
+                f.named = Some((CardRef(u32::MAX), true));
+            }
+            SameWhat::SharesType => f.any_types = types,
         }
         f
     }

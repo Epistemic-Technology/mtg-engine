@@ -1087,7 +1087,9 @@ impl Compiler<'_> {
             // creature": other than the target (`TargetAndGroup`), not the
             // source.
             relation: match f.same {
-                Some(SameRef::SameNameAs(_) | SameRef::SharesColorWith(_)) => Relation::Any,
+                Some(
+                    SameRef::SameNameAs(_) | SameRef::SharesColorWith(_) | SameRef::ShareCardType,
+                ) => Relation::Any,
                 _ => f.relation,
             },
             same: f.same.map(|r| {
@@ -1107,6 +1109,10 @@ impl Compiler<'_> {
                     SameRef::SameNameAs(n) => Same {
                         of: target(n),
                         what: SameWhat::Name,
+                    },
+                    SameRef::ShareCardType => Same {
+                        of: target(0),
+                        what: SameWhat::SharesType,
                     },
                     SameRef::SharesColorWith(n) => Same {
                         of: target(n),

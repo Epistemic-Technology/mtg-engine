@@ -9671,7 +9671,7 @@ impl P {
                         | (Some("an"), Some("opponent"))
                         | (Some("target"), Some("player" | "opponent"))
                         | (Some("defending" | "your"), Some("player" | "opponents"))
-                        | (Some("that"), Some("was" | "entered" | "dealt" | "blocked" | "player"))
+                        | (Some("that"), Some("was" | "entered" | "dealt" | "blocked" | "player" | "share"))
                         | (Some("other"), Some("than"))
                         | (Some("controller"), Some("of"))
                         | (Some("with" | "without"), Some("aura"))
@@ -10354,6 +10354,10 @@ impl P {
                     self.pos += 5;
                     let n = self.declared_target()?;
                     f.same = Some(SameRef::SharesColorWith(n));
+                }
+                "that" if self.at_words(&["that", "share", "card", "type"]) && f.same.is_none() => {
+                    self.pos += 4;
+                    f.same = Some(SameRef::ShareCardType);
                 }
                 // "with lesser power" (mentor, CR 702.134a).
                 "with" if self.at_words(&["with", "lesser", "power"]) && f.same.is_none() => {

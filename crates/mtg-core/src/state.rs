@@ -3750,7 +3750,8 @@ impl GameState {
             .map(|c| c.def)
             .filter(|d| *d != self.pool.face_down(false) && *d != self.pool.face_down(true));
         let power = c.as_ref().map(|c| c.power);
-        f.with_same(def, c.map(|c| c.colors).unwrap_or_default(), power)
+        let types = c.as_ref().map(|c| c.types).unwrap_or_default();
+        f.with_same(def, c.map(|c| c.colors).unwrap_or_default(), power, types)
     }
 
     /// A filter with "named ~" filled in from the source ("target
@@ -3768,10 +3769,20 @@ impl GameState {
         } else {
             None
         };
-        let mut out = if f.same.is_some() {
-            std::borrow::Cow::Owned(self.with_same_of(f, source))
-        } else {
-            std::borrow::Cow::Borrowed(f)
+        let mut out = match f.same {
+            // A relation to another target ("two target permanents that
+            // share a card type") is judged with the targets
+            // (`that_player_ok`).
+            Some(crate::card::Same {
+                of: crate::card::SameOf::Target(_),
+                what: crate::card::SameWhat::SharesType,
+            }) => {
+                let mut g = f.clone();
+                g.same = None;
+                std::borrow::Cow::Owned(g)
+            }
+            Some(_) => std::borrow::Cow::Owned(self.with_same_of(f, source)),
+            None => std::borrow::Cow::Borrowed(f),
         };
         if f.status.mana_value_x
             && let Some(x) = x
@@ -3929,7 +3940,34 @@ impl GameState {
         else {
             return true;
         };
-        let Some(rel) = self.pool.filter(f).that_player else {
+        let filter = self.pool.filter(f);
+        // "two target permanents that share a card type": against the
+        // earlier target, as it is or last existed.
+        if let Some(
+            same @ crate::card::Same {
+                of: crate::card::SameOf::Target(n),
+                what: crate::card::SameWhat::SharesType,
+            },
+        ) = filter.same
+            && let Some(Target::Object(other)) = targets.get(usize::from(n))
+            && let Target::Object(id) = t
+            && *other != id
+        {
+            let g = self.with_same_of(
+                &crate::card::ObjFilter {
+                    same: Some(same),
+                    ..crate::card::ObjFilter::default()
+                },
+                Some(*other),
+            );
+            if !self
+                .characteristics_or_lki(id)
+                .is_some_and(|c| g.matches_characteristics(&c))
+            {
+                return false;
+            }
+        }
+        let Some(rel) = filter.that_player else {
             return true;
         };
         let player = match rel {

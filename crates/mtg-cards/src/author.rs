@@ -1934,6 +1934,19 @@ impl Templates {
                     Some(format!("exchange control of 2 target {}", cap(c, 1)))
                 },
             ),
+            // CR 205.2a: "two target permanents that share a card type".
+            (
+                r(
+                    r"^[Ee]xchange control of two target (nonland )?permanents that share a card type$",
+                ),
+                |c, t| {
+                    *t += 2;
+                    Some(format!(
+                        "exchange control of 2 target {}permanent that share card type",
+                        cap(c, 1)
+                    ))
+                },
+            ),
             (
                 r(r"^[Ee]xchange control of (.+?) and (target .+)$"),
                 |c, t| {

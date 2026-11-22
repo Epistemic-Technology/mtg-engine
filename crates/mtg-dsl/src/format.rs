@@ -3320,6 +3320,7 @@ pub fn same_ref(r: crate::ast::SameRef) -> String {
         SameRef::NotNamedThis => "not named this".to_string(),
         SameRef::SameNameAs(n) => format!("with same name as target {}", n + 1),
         SameRef::SharesColorWith(n) => format!("that shares color with target {}", n + 1),
+        SameRef::ShareCardType => "that share card type".to_string(),
         SameRef::LesserPower => "with lesser power".to_string(),
     }
 }

@@ -2545,6 +2545,10 @@ fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             if plural_form { "share" } else { "shares" }
         ),
         Some(SameRef::LesserPower) => " with lesser power".to_string(),
+        Some(SameRef::ShareCardType) => format!(
+            " that {} a card type",
+            if plural_form { "share" } else { "shares" }
+        ),
     }
 }
 
