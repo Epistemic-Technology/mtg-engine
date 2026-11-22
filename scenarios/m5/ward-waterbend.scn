@@ -1,0 +1,62 @@
+# "Ward—Waterbend {4}" (CR 702.21a, 701.67a): the opponent may tap their
+# artifacts and creatures to pay the generic mana.
+
+scenario "The Unagi of Kyoshi Island: ward paid with three lands and a creature" {
+  battlefield A: "The Unagi of Kyoshi Island"
+  battlefield B: 4 "Mountain", "Grizzly Bears"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "The Unagi of Kyoshi Island"
+  run_to turn 2 postcombat_main
+  assert damage "The Unagi of Kyoshi Island" 2
+  assert tapped "Grizzly Bears"
+  assert graveyard B contains "Shock"
+}
+
+scenario "The Unagi of Kyoshi Island: without enough to tap, the spell is countered" {
+  battlefield A: "The Unagi of Kyoshi Island"
+  battlefield B: 4 "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "The Unagi of Kyoshi Island"
+  run_to turn 2 postcombat_main
+  assert damage "The Unagi of Kyoshi Island" 0
+  assert graveyard B contains "Shock"
+}
+
+scenario "The Unagi of Kyoshi Island: declining to pay counters it" {
+  battlefield A: "The Unagi of Kyoshi Island"
+  battlefield B: 5 "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "The Unagi of Kyoshi Island"
+  turn 2 B: decline "The Unagi of Kyoshi Island"
+  run_to turn 2 postcombat_main
+  assert damage "The Unagi of Kyoshi Island" 0
+}
+
+scenario "The Unagi of Kyoshi Island: an opponent's second card draws two" {
+  battlefield A: "The Unagi of Kyoshi Island"
+  battlefield B: 3 "Island"
+  hand B: "Divination"
+  library A: 5 "Forest"
+  start turn 2 B
+  turn 2 B: cast "Divination"
+  run_to turn 2 postcombat_main
+  assert hand A count 2
+}
+
+# "Ward—Discard a card at random." (CR 701.9b): the payer doesn't choose
+# (a scripted `discard` isn't asked for).
+scenario "Alpharael, Stonechosen: ward discards at random" {
+  battlefield A: "Alpharael, Stonechosen"
+  battlefield B: "Mountain"
+  hand B: "Shock", "Forest", "Island", "Plains"
+  seed 3
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Alpharael, Stonechosen"
+  run_to turn 2 postcombat_main
+  assert damage "Alpharael, Stonechosen" 2
+  assert hand B count 3
+  assert graveyard B count 2
+}

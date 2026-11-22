@@ -7283,6 +7283,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             mana,
             life,
             discard,
+            waterbend,
+            discard_random,
             effect,
         } => {
             ctx.in_unless = true;
@@ -7300,13 +7302,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     (p, Some((s, _))) if p == s => "they discard".to_string(),
                     (p, _) => format!("{} discards", ctx.obj(*p)),
                 };
-                let _ = write!(c.tail, " unless {who} {what}");
+                let random = if *discard_random { " at random" } else { "" };
+                let _ = write!(c.tail, " unless {who} {what}{random}");
                 return c;
             }
             let amount = if *life > 0 && *mana != mtg_core::mana::ManaCost::default() {
                 format!("{mana} or {life} life")
             } else if *life > 0 {
                 format!("{life} life")
+            } else if *waterbend {
+                // Not an Oracle form outside ward ("Ward—Waterbend {4}"),
+                // which prints from the keyword.
+                format!("waterbend {mana}")
             } else {
                 mana.to_string()
             };

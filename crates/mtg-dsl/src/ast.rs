@@ -3709,6 +3709,13 @@ pub enum Effect {
         /// `unless that player discards 1 card`: cards the payer
         /// discards, of their choice, as the payment.
         discard: u32,
+        /// `unless that player pays waterbend {4}` ("Ward—Waterbend {4}",
+        /// CR 701.67a): artifacts and creatures may be tapped for the
+        /// generic part.
+        waterbend: bool,
+        /// `ward discard 1 card at random`: the cards are chosen at
+        /// random (CR 701.9b).
+        discard_random: bool,
         effect: Box<Effect>,
     },
     /// `<clause> unless they sacrifice nonland permanent or discard 1

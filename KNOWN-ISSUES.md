@@ -192,8 +192,6 @@ Wrong behaviour that reaches accepted cards:
 
 Forms that pass the gate with the wrong meaning:
 
-- **`ward waterbend {4}`** is paid as plain {4}: creatures and
-  artifacts cannot be tapped toward it (The Unagi of Kyoshi Island).
 - **`flashback {1}{R}, behold 3 Elemental`** parses and drops the
   behold part (Kindle the Inner Flame).
 - **Gift with `if kicked/gift, instead <targeted effect>`**: cast

@@ -10424,6 +10424,8 @@ impl GameState {
                 mana,
                 life,
                 discard,
+                waterbend,
+                discard_random,
                 effects,
             } => {
                 let def = self
@@ -10461,6 +10463,32 @@ impl GameState {
                 let either = *life > 0 && *mana != crate::mana::ManaCost::default();
                 let mut paid = false;
                 for p in payers {
+                    // "Ward—Waterbend {4}": artifacts and creatures tapped
+                    // for the generic mana (CR 701.67a).
+                    let bend = waterbend.then(|| {
+                        let mut sources = self.mana_sources(p);
+                        sources.extend(self.waterbend_sources(p, req.generic, None));
+                        sources
+                    });
+                    if let Some(sources) = &bend {
+                        let ps = self.player(p);
+                        let ok = self.payable(p, sources, &ps.mana_pool, &req, ps.life, None);
+                        let mut options = Vec::new();
+                        if ok {
+                            options.push(Choice::Accept);
+                        }
+                        if options.is_empty() {
+                            continue;
+                        }
+                        options.push(Choice::Decline);
+                        let i = self.choose_mid(p, DecisionKind::PayOrCounter { def }, options.clone());
+                        if options.get(i) != Some(&Choice::Accept) {
+                            continue;
+                        }
+                        self.pay_from(p, &req, sources, None);
+                        paid = true;
+                        break;
+                    }
                     let mana_ok = (either || *life == 0) && self.can_pay(p, &req);
                     let life_ok = *life > 0 && self.player(p).life >= life_n;
                     let mut options = Vec::new();
@@ -10496,8 +10524,19 @@ impl GameState {
                             if *life > 0 {
                                 self.change_life(p, -life_n);
                             }
-                            // CR 701.9: the payer chooses what to discard.
-                            if *discard > 0 {
+                            // CR 701.9: the payer chooses what to discard,
+                            // or it is chosen at random (CR 701.9b).
+                            if *discard > 0 && *discard_random {
+                                for _ in 0..*discard {
+                                    let n = self.player(p).hand.len();
+                                    if n == 0 {
+                                        break;
+                                    }
+                                    let i = rand::Rng::random_range(&mut self.rng, 0..n);
+                                    let card = self.player(p).hand[i];
+                                    self.discard_card(p, card);
+                                }
+                            } else if *discard > 0 {
                                 self.discard_n(p, *discard);
                             }
                         }

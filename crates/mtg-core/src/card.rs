@@ -3823,6 +3823,11 @@ pub enum Effect {
         mana: ManaCost,
         life: u32,
         discard: u32,
+        /// "Ward—Waterbend {4}" (CR 701.67a): the payer may tap their
+        /// untapped artifacts and creatures for the generic part.
+        waterbend: bool,
+        /// "Ward—Discard a card at random." (CR 701.9b).
+        discard_random: bool,
         effects: Vec<Effect>,
     },
     /// "... unless they sacrifice a nonland permanent of their choice or

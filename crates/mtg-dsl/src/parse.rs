@@ -4241,11 +4241,14 @@ impl P {
             if !self.eat_word("cards") {
                 self.expect_word("card")?;
             }
+            let discard_random = self.eat_words(&["at", "random"]);
             return Ok(Effect::UnlessPays {
                 payer,
                 mana: ManaCost::default(),
                 life: 0,
                 discard,
+                waterbend: false,
+                discard_random,
                 effect: Box::new(e),
             });
         }
@@ -4264,6 +4267,7 @@ impl P {
             self.expect_word("pays")?;
             r
         };
+        let waterbend = self.eat_word("waterbend");
         let (mana, mut life) = self.pay_amount()?;
         // "unless that player pays {1} or 1 life": either.
         if life == 0 && self.at_word("or") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
@@ -4276,6 +4280,8 @@ impl P {
             mana,
             life,
             discard: 0,
+            waterbend,
+            discard_random: false,
             effect: Box::new(e),
         })
     }

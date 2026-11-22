@@ -1263,12 +1263,16 @@ impl Decompiler<'_> {
                 mana,
                 life,
                 discard,
+                waterbend,
+                discard_random,
                 effects,
             } => Effect::UnlessPays {
                 payer: Self::recipient(*payer),
                 mana: mana.clone(),
                 life: *life,
                 discard: *discard,
+                waterbend: *waterbend,
+                discard_random: *discard_random,
                 effect: Box::new(
                     effects
                         .first()

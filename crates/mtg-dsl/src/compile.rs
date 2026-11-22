@@ -2842,6 +2842,8 @@ impl Compiler<'_> {
                 mana,
                 life,
                 discard,
+                waterbend,
+                discard_random,
                 effect,
             } => {
                 let mut effects = Vec::new();
@@ -2851,6 +2853,8 @@ impl Compiler<'_> {
                     mana: mana.clone(),
                     life: *life,
                     discard: *discard,
+                    waterbend: *waterbend,
+                    discard_random: *discard_random,
                     effects,
                 });
             }
@@ -4698,6 +4702,25 @@ impl Compiler<'_> {
                     let expanded = extort(i);
                     return self.ability(&expanded);
                 }
+                // "Ward—..." and "Echo—..." are paid as the trigger resolves:
+                // mana (waterbend too), life, and discarded cards only. Any
+                // other part would be dropped, so it is an error.
+                Mechanic::WardCost(cost) | Mechanic::EchoCost(cost)
+                    if *cost
+                        != crate::ast::Cost {
+                            mana: cost.mana.clone(),
+                            life: cost.life,
+                            discard: cost.discard,
+                            waterbend: cost.waterbend,
+                        discard_random: cost.discard_random,
+                            order: cost.order.clone(),
+                            ..Default::default()
+                        } =>
+                {
+                    return self.err(
+                        "a ward or echo cost may be only mana (or waterbend), life, and discarded cards",
+                    );
+                }
                 other => {
                     let expanded = expand_mechanic(other);
                     return self.ability(&expanded);
@@ -5344,6 +5367,8 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 mana: cost.mana.clone(),
                 life: cost.life,
                 discard: cost.discard,
+                waterbend: cost.waterbend,
+                discard_random: cost.discard_random,
                 effect: Box::new(E::Counter {
                     to: Recipient::TriggeringObject,
                     dest: crate::ast::CounteredTo::Graveyard,
@@ -5374,6 +5399,8 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         mana: cost.mana.clone(),
                         life: cost.life,
                         discard: cost.discard,
+                        waterbend: cost.waterbend,
+                        discard_random: cost.discard_random,
                         effect: Box::new(E::Sacrifice {
                             what: Recipient::Source,
                         }),
