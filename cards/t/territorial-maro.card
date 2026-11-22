@@ -1,0 +1,6 @@
+card "Territorial Maro" {
+  oracle_id 478eeed5-8170-4fb3-8ec2-bcebc0265622
+  cost {4}{G}
+  type Creature — Elemental
+  label "Domain" static this: cda pt 2 domain
+}

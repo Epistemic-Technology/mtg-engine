@@ -1276,7 +1276,8 @@ entered), `switch pt`,
 color-defining ability, CR 604.3, so the card is colorless in every zone,
 the stack included), `cda pt card types in graveyards +1`,
 `cda pt creature cards in graveyards +1`, `cda pt count Swamp you control`,
-`cda pt your life`, `cda pt domain` (a power/toughness-defining ability,
+`cda pt your life`, `cda pt domain`, `cda pt 2 hand` ("... each equal to
+twice the number of cards in your hand") (a power/toughness-defining ability,
 layer 7a, counting any count a static ability can (a count only a resolving effect has, such as `drawn this turn`, `greatest power ...`, `party`, or a target's or the triggering object's, is a compile error in a static ability: it would read 0): "~'s power and
 toughness are each equal to ..."; the count is judged from its controller
 as the layer applies), `cda power count Rat you control` ("~'s power is
@@ -2126,7 +2127,9 @@ any`, Boulder Dash). `another target blocking creature` prints "another
 target blocking creature". `another` before a target with no "other"
 form is an error rather than dropped.
 `deal X plus 1 damage divided among any number of targets` ("X plus 1
-damage"; also wherever a number goes). The same damage to several targets
+damage"; also wherever a number goes; `2 times X`, "twice X", likewise:
+`deal 2 times X damage to target creature`, `you gain 2 times X life`,
+`put 2 times X stun counters on it`). The same damage to several targets
 of one phrase prints "each of": `deal 1 damage to up to 2 target creature`
 ("deals 1 damage to each of up to two target creatures"); `those targets`
 names every target declared so far again ("Those creatures can't block

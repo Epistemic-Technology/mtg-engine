@@ -547,6 +547,10 @@ fn number(w: &str) -> Option<String> {
     if w == "X" {
         return Some("X".to_string());
     }
+    // "twice X", made one word by `sentence_rules`.
+    if w == "twiceX" {
+        return Some("2 times X".to_string());
+    }
     if w == "a" || w == "an" {
         return Some("1".to_string());
     }
@@ -2284,6 +2288,14 @@ impl Templates {
     }
 
     fn sentence_rules(&self, s: &str, targets: &mut usize) -> Option<String> {
+        // "deals twice X damage": one word, so a number's `(\w+)` takes it.
+        let twice;
+        let s = if s.contains("twice X ") {
+            twice = s.replace("twice X ", "twiceX ");
+            twice.as_str()
+        } else {
+            s
+        };
         // The first rule that matches and makes something; a rule that
         // matches but declines leaves the next one a chance.
         for (re, f) in &self.rules {

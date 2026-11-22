@@ -2533,6 +2533,7 @@ fn num(n: Num) -> String {
         Num::N(n) => n.to_string(),
         Num::X => "X".to_string(),
         Num::XPlus(n) => format!("X plus {n}"),
+        Num::XTimes(n) => format!("{n} times X"),
         Num::ThatMuch => "that much".to_string(),
         Num::Count(i) => COUNTS.with(|c| {
             c.borrow()

@@ -1,0 +1,6 @@
+card "Masumaro, First to Live" {
+  oracle_id 8af347b8-89fa-499e-8e5a-77463edd6773
+  cost {3}{G}{G}{G}
+  type Legendary Creature — Spirit
+  static this: cda pt 2 hand
+}

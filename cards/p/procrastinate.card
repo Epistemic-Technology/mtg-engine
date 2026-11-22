@@ -1,0 +1,6 @@
+card "Procrastinate" {
+  oracle_id 6f8fa68e-e961-4ae1-b27d-22d87e90f26b
+  cost {X}{U}
+  type Sorcery
+  spell: tap target creature; put 2 times X stun counters on it
+}

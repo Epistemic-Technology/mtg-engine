@@ -8242,6 +8242,17 @@ impl P {
             return self.push_count(crate::ast::Count { expr, style });
         }
         match self.peek() {
+            // `2 times X`: "twice X".
+            Some(Tok::Num(n))
+                if self.word_at(1).as_deref() == Some("times")
+                    && self
+                        .word_at(2)
+                        .is_some_and(|w| w.eq_ignore_ascii_case("x")) =>
+            {
+                let n = *n;
+                self.pos += 3;
+                Ok(Num::XTimes(n))
+            }
             Some(Tok::Num(n)) => {
                 let n = *n;
                 self.pos += 1;
@@ -8261,6 +8272,11 @@ impl P {
                 if lw == "a" || lw == "an" {
                     self.pos += 1;
                     return Ok(Num::N(1));
+                }
+                // `2 times X`: "twice X".
+                if lw == "twice" && self.word_at(1).as_deref() == Some("x") {
+                    self.pos += 2;
+                    return Ok(Num::XTimes(2));
                 }
                 if let Some(i) = NUMBER_WORDS.iter().position(|x| *x == lw) {
                     self.pos += 1;
@@ -8289,7 +8305,7 @@ impl P {
     fn count(&mut self) -> R<u32> {
         match self.num()? {
             Num::N(n) => Ok(n),
-            Num::X | Num::XPlus(_) | Num::Count(_) | Num::ThatMuch => {
+            Num::X | Num::XPlus(_) | Num::XTimes(_) | Num::Count(_) | Num::ThatMuch => {
                 self.fail("X is not allowed here")
             }
         }

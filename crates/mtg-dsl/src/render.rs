@@ -93,6 +93,7 @@ fn count_words(n: Num, article: &str) -> String {
         Num::ThatMuch => "that many".to_string(),
         Num::X | Num::Count(_) => "X".to_string(),
         Num::XPlus(n) => format!("X plus {n}"),
+        Num::XTimes(n) => times_x(n),
         Num::N(1) => article.to_string(),
         Num::N(n) => NUMBER_WORDS
             .get(n as usize - 1)
@@ -105,7 +106,21 @@ fn digits(n: Num) -> String {
         Num::ThatMuch => "that much".to_string(),
         Num::X | Num::Count(_) => "X".to_string(),
         Num::XPlus(n) => format!("X plus {n}"),
+        Num::XTimes(n) => times_x(n),
         Num::N(n) => n.to_string(),
+    }
+}
+
+/// "twice X", "three times X".
+fn times_x(n: u32) -> String {
+    match n {
+        2 => "twice X".to_string(),
+        n => format!(
+            "{} times X",
+            NUMBER_WORDS
+                .get(n as usize - 1)
+                .map_or_else(|| n.to_string(), |w| (*w).to_string())
+        ),
     }
 }
 
@@ -10098,6 +10113,9 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
 fn cda_count_text(c: &crate::ast::CountExpr, card: &Card) -> String {
     use crate::ast::CountExpr;
     match c {
+        // "twice the number of instant and sorcery cards in your
+        // graveyard".
+        CountExpr::Times(2, inner) => format!("twice {}", cda_count_text(inner, card)),
         CountExpr::Permanents(f) => format!(
             "the number of {}{}",
             filter_phrase(f, card, true),

@@ -3198,6 +3198,8 @@ pub enum Num {
     X,
     /// "X plus 1": X and then some (Meteor Shower).
     XPlus(u32),
+    /// "twice X": X times this (Torch the Witness).
+    XTimes(u32),
     /// The `i`th of the source card's `CardDef::counts` ("the number of
     /// creatures you control"), evaluated as the effect happens
     /// (`GameState::eval_num`).
@@ -3219,6 +3221,7 @@ impl Num {
             Num::N(n) => n,
             Num::X => x,
             Num::XPlus(n) => x.saturating_add(n),
+            Num::XTimes(n) => x.saturating_mul(n),
             Num::Count(_) | Num::ThatMuch => 0,
         }
     }
@@ -3229,6 +3232,7 @@ impl Num {
             Num::N(n) => n,
             Num::X | Num::Count(_) | Num::ThatMuch => 3,
             Num::XPlus(n) => 3 + n,
+            Num::XTimes(n) => 3 * n,
         }
     }
 }
