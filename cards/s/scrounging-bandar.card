@@ -1,0 +1,8 @@
+card "Scrounging Bandar" {
+  oracle_id 8e1eff5a-77e8-4ea2-96b8-547504f83b45
+  cost {1}{G}
+  type Creature — Cat Monkey
+  pt 0/0
+  enters with 2 +1/+1 counters
+  triggered at beginning of your upkeep: you may move any number +1/+1 counters from this onto another target creature
+}

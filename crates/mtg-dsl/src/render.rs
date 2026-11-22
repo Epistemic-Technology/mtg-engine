@@ -4846,6 +4846,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 let o = ctx.obj(*to);
                 Clause::imperative(format!("put its {} counters on {o}", counter_name(*kind)))
             }
+            // "move any number of +1/+1 counters from this creature onto
+            // another target creature" (Scrounging Bandar).
+            (Some(kind), Some(mtg_core::card::MOVE_ANY_NUMBER)) => {
+                let src = ctx.obj(*from);
+                let dst = ctx.obj(*to);
+                Clause::imperative(format!(
+                    "move any number of {} counters from {src} onto {dst}",
+                    counter_name(*kind)
+                ))
+            }
             (Some(kind), Some(n)) => {
                 let what = counters(Num::N(*n), *kind);
                 let src = ctx.obj(*from);

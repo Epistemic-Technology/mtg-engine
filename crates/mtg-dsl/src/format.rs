@@ -826,6 +826,12 @@ impl Fmt {
                     counter(*k, Num::N(2)),
                     self.recipient(*to, t)
                 ),
+                (Some(k), Some(mtg_core::card::MOVE_ANY_NUMBER)) => format!(
+                    "move any number {} from {} onto {}",
+                    counter(*k, Num::N(2)),
+                    self.recipient(*from, t),
+                    self.recipient(*to, t)
+                ),
                 (Some(k), Some(n)) => format!(
                     "move {n} {} from {} onto {}",
                     counter(*k, Num::N(*n)),

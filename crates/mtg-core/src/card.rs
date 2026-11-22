@@ -4442,6 +4442,8 @@ pub enum Effect {
         from: Recipient,
         to: Recipient,
         kind: Option<CounterKind>,
+        /// `None`: all of them; `Some(MOVE_ANY_NUMBER)`: "any number of",
+        /// chosen as it resolves.
         count: Option<u32>,
     },
     /// "Then that player shuffles" (CR 701.24): each recipient player
@@ -5072,6 +5074,10 @@ pub enum SkipWhat {
     /// "their next combat phase this turn".
     CombatPhaseThisTurn,
 }
+
+/// `Effect::MoveCounters::count` for "move any number of +1/+1 counters":
+/// the controller chooses how many as it resolves.
+pub const MOVE_ANY_NUMBER: u32 = u32::MAX;
 
 /// What `Effect::ChooseAct` does to each object its controller chooses.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]

@@ -7500,6 +7500,10 @@ impl P {
             "move" => {
                 let (kind, count) = if self.eat_words(&["all", "counters"]) {
                     (None, None)
+                } else if self.eat_words(&["any", "number"]) {
+                    // `move any number +1/+1 counters from ...`.
+                    let k = self.counter_kind()?;
+                    (Some(k), Some(mtg_core::card::MOVE_ANY_NUMBER))
                 } else {
                     let n = self.number()?;
                     let k = self.counter_kind()?;

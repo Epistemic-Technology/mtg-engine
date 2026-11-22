@@ -1,0 +1,8 @@
+card "Simic Fluxmage" {
+  oracle_id 68af451d-82f9-4c78-8bb1-36503e3f2e34
+  cost {2}{U}
+  type Creature — Merfolk Wizard
+  pt 1/2
+  evolve
+  activated {1}{U}, {T}: move 1 +1/+1 counter from this onto target creature
+}

@@ -2665,7 +2665,10 @@ activated {2}, once: reveal top card; if it is land card, this gets +1/+0 and ga
 and `move 1 +1/+1 counter from this onto target creature` ("Move a +1/+1
 counter from this artifact onto target creature") take the counters off
 the first permanent and put them on the second (CR 122.5); nothing moves
-if the second is gone. `put its counters on target creature you control`
+if the second is gone. `move any number +1/+1 counters from this onto
+another target creature` ("Move any number of +1/+1 counters from this
+creature onto another target creature", Scrounging Bandar): how many is
+chosen as it resolves (scenarios: `choose "2"`; unscripted, all). `put its counters on target creature you control`
 in a dies trigger puts the counters the source had as it last existed on
 the battlefield, of every kind (CR 608.2h); `put its +1/+1 counters on
 target creature you control` only those of one kind (Selfless Police

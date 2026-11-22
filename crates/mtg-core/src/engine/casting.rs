@@ -13310,6 +13310,24 @@ impl GameState {
         if dest.is_empty() {
             return;
         }
+        // "Move any number of +1/+1 counters": how many, chosen now (most
+        // first, so the engine's default moves them all).
+        let count = if count == Some(crate::card::MOVE_ANY_NUMBER) {
+            let have: u32 = counters
+                .iter()
+                .filter(|(k, _)| kind.is_none_or(|x| x == *k))
+                .map(|(_, n)| *n)
+                .sum();
+            let options: Vec<Choice> = (0..=have).rev().map(Choice::X).collect();
+            let k = self.choose_mid(
+                ctx.controller,
+                DecisionKind::ChooseX { spell: ctx.source },
+                options,
+            );
+            Some(have.saturating_sub(u32::try_from(k).unwrap_or(0)))
+        } else {
+            count
+        };
         let mut left = count.unwrap_or(u32::MAX);
         for (k, n) in counters {
             if kind.is_some_and(|x| x != k) {
