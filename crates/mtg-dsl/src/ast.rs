@@ -112,6 +112,7 @@ pub enum Kind {
 /// What restricted mana may be spent on (CR 106.6); see
 /// `mtg_core::card::ManaRestriction`.
 #[derive(Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::struct_excessive_bools)] // independent permissions and wordings
 pub struct ManaRestriction {
     pub spells: Option<Filter>,
     pub abilities: bool,

@@ -2358,6 +2358,7 @@ impl Compiler<'_> {
         }
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per count
     fn count_expr(&mut self, c: &crate::ast::CountExpr) -> mtg_core::card::CountExpr {
         use crate::ast::CountExpr as A;
         use mtg_core::card::CountExpr as C;

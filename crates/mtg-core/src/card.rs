@@ -6821,6 +6821,7 @@ impl Cost {
 /// anything else (a cost an effect asks for, a special action) is never
 /// allowed.
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+#[allow(clippy::struct_excessive_bools)] // independent permissions and wordings
 pub struct ManaRestriction {
     /// The spells it may be spent to cast; `None` for none. With
     /// `SpendWording::CantCast`, the spells it may *not* be spent on.

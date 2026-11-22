@@ -2837,10 +2837,11 @@ impl Templates {
         if let Some((head, rule)) = text.split_once(" Spend this mana only to ") {
             let rule = rule.trim_end_matches('.');
             let inner = self.effects(head, targets)?;
-            if inner.starts_with("add ") && !inner.contains(';') {
-                if let Some(r) = spend_rule(rule) {
-                    return Ok(format!("{inner} {r}"));
-                }
+            if inner.starts_with("add ")
+                && !inner.contains(';')
+                && let Some(r) = spend_rule(rule)
+            {
+                return Ok(format!("{inner} {r}"));
             }
             return Err(Skip::Sentence(text.to_string()));
         }
