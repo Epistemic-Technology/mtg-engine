@@ -5519,9 +5519,24 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             });
             let _ = writeln!(out, "{indent}trigger again {}{when}", filter(f));
         }
+        Ability::ActivationCost {
+            filter: f,
+            by,
+            min_one,
+            keyword,
+        } => {
+            let _ = writeln!(
+                out,
+                "{indent}{} abilities of {} cost {{{by}}} less{}",
+                keyword.map_or("activated", activated_keyword_word),
+                filter(f),
+                if *min_one { " min one" } else { "" }
+            );
+        }
         Ability::PlayerStatic { kind, cond } => {
             use mtg_core::card::PlayerStaticKind as K;
             let head = match kind {
+                K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
                 K::CantLose => "you can't lose the game".to_string(),
@@ -5686,5 +5701,15 @@ pub(crate) fn those_word(t: crate::ast::Those) -> &'static str {
         crate::ast::Those::Them => "them",
         crate::ast::Those::Creatures => "those creatures",
         crate::ast::Those::Permanents => "those permanents",
+    }
+}
+
+/// An activated ability keyword as a word: `power-up`, `exhaust`.
+pub fn activated_keyword_word(k: mtg_core::card::ActivatedKeyword) -> &'static str {
+    match k {
+        mtg_core::card::ActivatedKeyword::Boast => "boast",
+        mtg_core::card::ActivatedKeyword::Exhaust => "exhaust",
+        mtg_core::card::ActivatedKeyword::PowerUp => "power-up",
+        mtg_core::card::ActivatedKeyword::Ninjutsu => "ninjutsu",
     }
 }

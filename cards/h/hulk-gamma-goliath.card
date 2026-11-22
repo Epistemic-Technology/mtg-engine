@@ -1,0 +1,9 @@
+card "Hulk, Gamma Goliath" {
+  oracle_id 3508fd7d-ca02-47f9-8b0a-525f7bde4f57
+  cost {3}{R}{G}
+  type Legendary Creature — Gamma Berserker Hero
+  pt 6/5
+  keywords reach, trample
+  power-up abilities of other creature you control cost {3} less
+  power-up {6}{R}{G}: put 5 +1/+1 counters on this
+}

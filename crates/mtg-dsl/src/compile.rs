@@ -4225,6 +4225,23 @@ impl Compiler<'_> {
                 battlefield: *battlefield,
                 cause: *cause,
             },
+            Ability::ActivationCost {
+                filter,
+                by,
+                min_one,
+                keyword,
+            } => {
+                let f = self.filter(filter);
+                AbilityDef::PlayerStatic {
+                    kind: mtg_core::card::PlayerStaticKind::ActivationCost {
+                        sources: self.pool.intern_filter(f),
+                        by: *by,
+                        min_one: *min_one,
+                        keyword: *keyword,
+                    },
+                    condition: None,
+                }
+            }
             Ability::PlayerStatic { kind, cond } => {
                 let condition = match cond {
                     Some(c) => {

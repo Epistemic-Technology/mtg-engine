@@ -2078,6 +2078,21 @@ impl Decompiler<'_> {
                 battlefield: *battlefield,
                 cause: *cause,
             },
+            AbilityDef::PlayerStatic {
+                kind:
+                    mtg_core::card::PlayerStaticKind::ActivationCost {
+                        sources,
+                        by,
+                        min_one,
+                        keyword,
+                    },
+                ..
+            } => Ability::ActivationCost {
+                filter: self.filter(self.pool.filter(*sources)),
+                by: *by,
+                min_one: *min_one,
+                keyword: *keyword,
+            },
             AbilityDef::PlayerStatic { kind, condition } => Ability::PlayerStatic {
                 kind: *kind,
                 cond: condition.map(|c| self.static_cond(self.pool.condition(c))),

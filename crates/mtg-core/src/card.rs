@@ -4913,6 +4913,19 @@ pub enum PlayerStaticKind {
     /// "Players can't gain life.", "Damage can't be prevented." (CR
     /// 614.17; `GameState::rule_in_force`).
     Rule(RuleKind),
+    /// "Activated abilities of artifacts you control cost {1} less to
+    /// activate." (CR 602.2b, 601.2f): the generic mana of the activated
+    /// abilities (of that `keyword`, if any: "Power-up abilities of other
+    /// creatures you control ...") of permanents matching the pooled
+    /// filter `sources` (judged for this source) is reduced by `by`; with
+    /// `min_one`, "This effect can't reduce the mana in that cost to less
+    /// than one mana."
+    ActivationCost {
+        sources: u16,
+        by: u8,
+        min_one: bool,
+        keyword: Option<ActivatedKeyword>,
+    },
 }
 
 /// Effects that modify the rules rather than objects (CR 613.11, 614.17).

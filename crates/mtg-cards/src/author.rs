@@ -4862,6 +4862,29 @@ impl Builder<'_> {
             ));
             return Ok(());
         }
+        // "Activated abilities of artifacts you control cost {1} less to
+        // activate.", "Power-up abilities of other creatures you control
+        // cost {3} less to activate."
+        if let Some(c) = Regex::new(
+            r"^(Activated|Power-up|Exhaust|Boast|Ninjutsu) abilities of (.+?) you control cost \{(\d+)\} less to activate\.( This effect can't reduce the mana in that cost to less than one mana\.)?$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let what = cap(&c, 2);
+            let subject = if let Some(rest) = what.strip_prefix("other ") {
+                format!("other {}", singular(rest))
+            } else {
+                singular(what)
+            };
+            self.statements.push(format!(
+                "{} abilities of {subject} you control cost {{{}}} less{}",
+                cap(&c, 1).to_ascii_lowercase(),
+                cap(&c, 3),
+                if c.get(4).is_some() { " min one" } else { "" }
+            ));
+            return Ok(());
+        }
         // "Untap this creature during each other player's untap step."
         // (CR 502.3); "Untap all artifacts you control during ...".
         if Regex::new(r"^Untap this (?:creature|artifact|land|permanent) during each other player's untap step\.$")
@@ -5274,6 +5297,26 @@ impl Builder<'_> {
                     let _ = write!(cost, ", {restriction}");
                 }
                 r
+            } else {
+                rest
+            };
+            // "This ability costs {1} less to activate for each Shrine you
+            // control." (or "... if <condition>."), before the
+            // restrictions in the cost.
+            let reduced = Regex::new(
+                r"^(.*?) This ability costs (\{\d+\}) less to activate (for each|if) (.+)\.$",
+            )
+            .unwrap();
+            let rest = if let Some(c) = reduced.captures(rest) {
+                let by = cap(&c, 2);
+                let what = if cap(&c, 3) == "if" {
+                    static_condition(cap(&c, 4)).map(|s| format!("if {s}"))
+                } else {
+                    count_expr(cap(&c, 4)).map(|s| format!("each {s}"))
+                };
+                let what = what.ok_or_else(|| Skip::Sentence(line.to_string()))?;
+                cost.insert_str(base_len, &format!(", reduced {by} {what}"));
+                c.get(1).map_or("", |m| m.as_str())
             } else {
                 rest
             };

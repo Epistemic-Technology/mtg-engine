@@ -12730,9 +12730,29 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             };
             format!("If a triggered ability of {what} triggers, {it} triggers an additional time.")
         }
+        // "Activated abilities of artifacts you control cost {1} less to
+        // activate."
+        Ability::ActivationCost {
+            filter,
+            by,
+            min_one,
+            keyword,
+        } => {
+            let what = keyword.map_or("Activated", mtg_core::card::ActivatedKeyword::name);
+            let min = if *min_one {
+                " This effect can't reduce the mana in that cost to less than one mana."
+            } else {
+                ""
+            };
+            format!(
+                "{what} abilities of {} cost {{{by}}} less to activate.{min}",
+                filter_phrase(filter, card, true)
+            )
+        }
         Ability::PlayerStatic { kind, cond } => {
             use mtg_core::card::PlayerStaticKind as K;
             let s = match kind {
+                K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
                 K::CantLose => {

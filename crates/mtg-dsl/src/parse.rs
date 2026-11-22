@@ -1432,6 +1432,34 @@ impl P {
                     cause,
                 })
             }
+            // "Activated abilities of artifacts you control cost {1} less
+            // to activate."
+            "activated" | "power-up" | "exhaust" | "boast" | "ninjutsu"
+                if self.word_at(1).as_deref() == Some("abilities")
+                    && self.word_at(2).as_deref() == Some("of") =>
+            {
+                use mtg_core::card::ActivatedKeyword as K;
+                let keyword = match w.as_str() {
+                    "power-up" => Some(K::PowerUp),
+                    "exhaust" => Some(K::Exhaust),
+                    "boast" => Some(K::Boast),
+                    "ninjutsu" => Some(K::Ninjutsu),
+                    _ => None,
+                };
+                self.pos += 3;
+                let filter = self.filter()?;
+                self.expect_word("cost")?;
+                let by = u8::try_from(self.mana_cost()?.mana_value()).unwrap_or(u8::MAX);
+                self.expect_word("less")?;
+                let min_one = self.eat_words(&["min", "one"]);
+                self.end_stmt()?;
+                Ok(Ability::ActivationCost {
+                    filter,
+                    by,
+                    min_one,
+                    keyword,
+                })
+            }
             "you" if self.at_words(&["you", "have", "hexproof"]) => {
                 self.pos += 3;
                 self.player_static(mtg_core::card::PlayerStaticKind::Hexproof)

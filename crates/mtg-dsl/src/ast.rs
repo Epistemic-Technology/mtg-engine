@@ -1216,6 +1216,17 @@ pub enum Ability {
         kind: mtg_core::card::PlayerStaticKind,
         cond: Option<StaticCond>,
     },
+    /// `activated abilities of artifact you control cost {1} less min
+    /// one`, `power-up abilities of other creature you control cost {3}
+    /// less`: "Activated abilities of artifacts you control cost {1} less
+    /// to activate. This effect can't reduce the mana in that cost to less
+    /// than one mana." (`PlayerStaticKind::ActivationCost`).
+    ActivationCost {
+        filter: Filter,
+        by: u8,
+        min_one: bool,
+        keyword: Option<mtg_core::card::ActivatedKeyword>,
+    },
     /// `opening hand`: "If this card is in your opening hand, you may begin
     /// the game with it on the battlefield." (CR 103.6a).
     OpeningHand,
