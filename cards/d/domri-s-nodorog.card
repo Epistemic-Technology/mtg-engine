@@ -1,0 +1,8 @@
+card "Domri's Nodorog" {
+  oracle_id 3992209a-0a28-449d-8ba5-f75e861a79b4
+  cost {3}{R}{G}
+  type Creature — Beast
+  pt 5/2
+  keywords trample
+  triggered when this enters: you may search library or graveyard card named "Domri, City Smasher" reveal to hand
+}

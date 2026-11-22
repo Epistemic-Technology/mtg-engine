@@ -248,6 +248,8 @@ pub enum Chosen {
     /// A resolution's vote (CR 701.38): the votes for each of its two
     /// choices.
     Votes([u8; 2]),
+    /// One of a permanent's named options (`ChoiceKind::Named`), by index.
+    Option(u8),
 }
 
 impl Chosen {
@@ -3632,6 +3634,11 @@ impl GameState {
             C::EnduringStory => self.desig.storied(you),
             C::NoEnduringStory => !self.desig.storied(you),
             C::MaxSpeed => self.desig.speed(you) >= 4,
+            C::Chose(i) => self
+                .objects
+                .get(source)
+                .or_else(|| self.lki.get(&source).map(|l| &l.object))
+                .is_some_and(|o| o.chosen == Chosen::Option(*i)),
             C::During(crate::card::TurnTime::AttackedThisStep) => {
                 self.step == crate::turn::Step::DeclareAttackers
                     && self.combat.as_ref().is_some_and(|c| {

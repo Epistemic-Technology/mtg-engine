@@ -1,0 +1,7 @@
+card "Niambi, Faithful Healer" {
+  oracle_id 0c107664-a9fc-4684-8a1b-fa750401a6dd
+  cost {1}{W}{U}
+  type Legendary Creature — Human Cleric
+  pt 2/2
+  triggered when this enters: you may search library or graveyard card named "Teferi, Timebender" reveal to hand
+}

@@ -1,0 +1,7 @@
+card "Rowan's Stalwarts" {
+  oracle_id 9171248e-045e-4ed4-aa06-eea3ae3d8df0
+  cost {4}{R}
+  type Creature — Human Knight
+  pt 5/2
+  triggered when this enters: you may search library or graveyard card named "Rowan, Fearless Sparkmage" reveal to hand
+}

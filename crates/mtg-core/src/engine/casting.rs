@@ -7218,8 +7218,19 @@ impl GameState {
 
     /// The player chooses a color, creature type, or basic land type (as
     /// a permanent enters, CR 614.12, or as an effect resolves, CR 608.2d).
-    pub(super) fn choose_kind(&mut self, p: PlayerId, kind: ChoiceKind) -> Chosen {
+    pub(super) fn choose_kind(
+        &mut self,
+        p: PlayerId,
+        kind: ChoiceKind,
+        def: crate::card::CardRef,
+    ) -> Chosen {
         let (decision, options): (DecisionKind, Vec<Choice>) = match kind {
+            // "Choose Khans or Dragons": `choose "1"` or `"2"` in a
+            // scenario.
+            ChoiceKind::Named(n) => (
+                DecisionKind::ChooseOption { def },
+                (0..usize::from(n)).map(Choice::Mode).collect(),
+            ),
             ChoiceKind::Colors => (
                 DecisionKind::ChooseColor,
                 Color::ALL.into_iter().map(Choice::Color).collect(),
@@ -7258,6 +7269,7 @@ impl GameState {
         match options[k.min(options.len() - 1)] {
             Choice::Color(c) => Chosen::Color(c),
             Choice::Subtype(s) => Chosen::Subtype(s),
+            Choice::Mode(i) => Chosen::Option(u8::try_from(i).unwrap_or(0)),
             _ => Chosen::None,
         }
     }
@@ -7832,6 +7844,15 @@ impl GameState {
     /// resolve: the choice made earlier in the resolution (CR 608.2d), or
     /// else the one the source made as it entered (CR 607.2a), as it last
     /// existed if it has left.
+    /// The definition of the resolving spell or ability's source.
+    fn source_def(&self, ctx: &EffectCtx) -> crate::card::CardRef {
+        self.objects
+            .get(ctx.source)
+            .map(|o| o.def)
+            .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+            .unwrap_or(crate::card::CardRef(u32::MAX))
+    }
+
     fn resolution_chosen(&self, ctx: &EffectCtx) -> Chosen {
         if ctx.chosen != Chosen::None {
             return ctx.chosen;
@@ -8096,16 +8117,24 @@ impl GameState {
         to: SearchTo,
         may: bool,
         reveal: bool,
+        (graveyard, name): (bool, Option<&str>),
     ) {
         let to = &to;
         let filter = &*self.chosen_filter(filter, ctx);
         let mut found = Vec::new();
         let mut declined = false;
         for _ in 0..self.eval_num(count, ctx) {
-            // One option per distinct card (copies are alike).
+            // One option per distinct card (copies are alike) in each
+            // zone searched.
             let mut seen = Vec::new();
             let mut options = Vec::new();
-            for id in self.player(p).library.iter().rev() {
+            let ps = self.player(p);
+            let graveyard_cards = if graveyard {
+                ps.graveyard.as_slice()
+            } else {
+                &[]
+            };
+            for id in ps.library.iter().rev().chain(graveyard_cards.iter().rev()) {
                 if found.contains(id) {
                     continue;
                 }
@@ -8113,9 +8142,10 @@ impl GameState {
                 let c = self.base_characteristics(o);
                 if filter.matches(*id, p, &c, Some(ctx.source), Some(p))
                     && self.status_ok(filter, *id)
-                    && !seen.contains(&o.def)
+                    && name.is_none_or(|n| self.pool.get(o.def).name == n)
+                    && !seen.contains(&(o.def, o.zone))
                 {
-                    seen.push(o.def);
+                    seen.push((o.def, o.zone));
                     options.push(Choice::Target(Target::Object(*id)));
                 }
             }
@@ -8135,6 +8165,16 @@ impl GameState {
         if may && declined && found.is_empty() {
             return;
         }
+        // "If you search your library this way, shuffle." (and/or
+        // graveyard): searched if a card was found there, or if none was
+        // found at all.
+        let from_library = !graveyard
+            || found.is_empty()
+            || found.iter().any(|id| {
+                self.objects
+                    .get(*id)
+                    .is_some_and(|o| o.zone == Zone::Library)
+            });
         let mut top = Vec::new();
         // Cultivate: the searcher chooses the one that goes onto the
         // battlefield tapped; the other goes to the hand (one found
@@ -8204,7 +8244,9 @@ impl GameState {
                 }
             }
         }
-        self.shuffle_library(p);
+        if from_library {
+            self.shuffle_library(p);
+        }
         for id in top {
             let lib = &mut self.player_mut(p).library;
             lib.retain(|x| *x != id);
@@ -8676,6 +8718,8 @@ impl GameState {
                 who,
                 may,
                 reveal,
+                graveyard,
+                name,
             } => {
                 // "Its controller may search their library": each searcher
                 // searches their own library.
@@ -8691,7 +8735,16 @@ impl GameState {
                         .collect()
                 };
                 for p in searchers {
-                    self.search_library(ctx, p, filter, *count, *to, *may, *reveal);
+                    self.search_library(
+                        ctx,
+                        p,
+                        filter,
+                        *count,
+                        *to,
+                        *may,
+                        *reveal,
+                        (*graveyard, name.as_deref()),
+                    );
                 }
             }
             Effect::Transform { what } => {
@@ -9877,7 +9930,10 @@ impl GameState {
                 }
             }
             // CR 608.2d: chosen as the effect resolves, for what follows.
-            Effect::Choose(kind) => ctx.chosen = self.choose_kind(ctx.controller, *kind),
+            Effect::Choose(kind) => {
+                let def = self.source_def(ctx);
+                ctx.chosen = self.choose_kind(ctx.controller, *kind, def);
+            }
             Effect::ProtectionFromChosen { to } => {
                 let Some(c) = self.resolution_chosen(ctx).color() else {
                     return;
@@ -9897,7 +9953,7 @@ impl GameState {
                         Some(c) => Modification::SetLandType(c),
                         None => Modification::SetCreatureType(s),
                     },
-                    Chosen::None | Chosen::Votes(_) => return,
+                    Chosen::None | Chosen::Votes(_) | Chosen::Option(_) => return,
                 };
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
@@ -9958,7 +10014,8 @@ impl GameState {
                     }
                     return;
                 }
-                let part = match (self.choose_kind(ctx.controller, *kind), *protection) {
+                let def = self.source_def(ctx);
+                let part = match (self.choose_kind(ctx.controller, *kind, def), *protection) {
                     (Chosen::Color(c), true) => {
                         Modification::AddKeywords(KeywordSet::of([Keyword::protection_from(c)]))
                     }
@@ -9970,7 +10027,7 @@ impl GameState {
                         _ if *in_addition => Modification::AddSubtype(s),
                         _ => Modification::SetCreatureType(s),
                     },
-                    (Chosen::None | Chosen::Votes(_), _) => return,
+                    (Chosen::None | Chosen::Votes(_) | Chosen::Option(_), _) => return,
                 };
                 for t in recipients {
                     if let Some(id) = on_battlefield(self, t) {

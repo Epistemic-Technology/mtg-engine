@@ -1,0 +1,8 @@
+card "Teferi's Wavecaster" {
+  oracle_id b3f6e68e-9490-4719-8d2e-d1ec22a96132
+  cost {3}{U}{U}
+  type Creature — Merfolk Wizard
+  pt 3/3
+  keywords flash
+  triggered when this enters: you may search library or graveyard card named "Teferi, Timeless Voyager" reveal to hand
+}

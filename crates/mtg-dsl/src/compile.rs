@@ -1267,6 +1267,15 @@ impl Compiler<'_> {
                 let i = self.pool.intern_condition(c);
                 ta.condition = Some(mtg_core::card::Condition::Static(i));
             }
+            // A trigger with an "if" of its own: both.
+            AbilityDef::Triggered(ta)
+                if let Some(mtg_core::card::Condition::Static(j)) = ta.condition =>
+            {
+                let both =
+                    StaticCondition::And(Box::new(c), Box::new(self.pool.condition(j).clone()));
+                let i = self.pool.intern_condition(both);
+                ta.condition = Some(mtg_core::card::Condition::Static(i));
+            }
             AbilityDef::CostChange(cc) if cc.cond.is_none() => {
                 cc.cond = Some(self.pool.intern_condition(c));
             }
@@ -2107,6 +2116,9 @@ impl Compiler<'_> {
             ChoiceKind::LandType(lands) => {
                 CoreChoiceKind::LandType(ColorSet::of(lands.iter().copied()))
             }
+            ChoiceKind::Named(names) => {
+                CoreChoiceKind::Named(u8::try_from(names.len()).unwrap_or(u8::MAX))
+            }
         }
     }
 
@@ -2617,12 +2629,36 @@ impl Compiler<'_> {
             }
             Effect::Transform { what } => out.push(CoreEffect::Transform { what: r(*what) }),
             Effect::Search {
+                count,
+                up_to,
+                to,
+                graveyard,
+                name,
+                or_card,
+                ..
+            } if (*graveyard || name.is_some())
+                && (*count != Num::N(1)
+                    || *up_to
+                    || *or_card != crate::ast::OrCard::No
+                    || !matches!(
+                        to,
+                        mtg_core::card::SearchTo::Hand
+                            | mtg_core::card::SearchTo::Battlefield { .. }
+                    )) =>
+            {
+                return self.err(
+                    "`search library or graveyard` and `card named \"...\"` find one card for a hand or the battlefield",
+                );
+            }
+            Effect::Search {
                 filter,
                 count,
                 to,
                 reveal,
                 who,
                 may,
+                graveyard,
+                name,
                 ..
             } => out.push(CoreEffect::Search {
                 filter: self.filter(filter),
@@ -2631,6 +2667,8 @@ impl Compiler<'_> {
                 who: who.map_or(CoreRecipient::You, r),
                 may: *may,
                 reveal: *reveal,
+                graveyard: *graveyard,
+                name: name.as_deref().map(Box::from),
             }),
             Effect::Investigate(_) | Effect::Investigates(_) | Effect::InvestigateCount { .. } => {
                 let Some(token) = self.pool.lookup("Clue") else {
@@ -4205,6 +4243,12 @@ impl Compiler<'_> {
                 });
                 return self.while_holds(a, c, "a station level");
             }
+            // "• Khans — ...": the ability while that option was chosen as
+            // the permanent entered (CR 614.12).
+            Ability::Labeled { label, ability } if let Some(i) = named_option(self.card, label) => {
+                let a = self.ability(ability)?;
+                return self.while_holds(a, StaticCondition::Chose(i), "a named option");
+            }
             Ability::Labeled { ability, .. } => return self.ability(ability),
             Ability::BlockRule(r) => AbilityDef::BlockRule(match r {
                 crate::ast::BlockRule::NotBy(f) => mtg_core::card::BlockRule::NotBy(self.filter(f)),
@@ -4520,6 +4564,8 @@ impl Compiler<'_> {
                             reveal: true,
                             that_card: false,
                             or_card: crate::ast::OrCard::No,
+                            graveyard: false,
+                            name: None,
                             who: None,
                             may: false,
                         }])],
@@ -5832,4 +5878,19 @@ fn combined_mode(parts: &[&CoreMode]) -> CoreMode {
             .join(" and ")
     };
     m
+}
+
+/// The index of `label` among the card's "As this enters, choose <A> or
+/// <B>" options, if it is one.
+pub(crate) fn named_option(card: &Card, label: &str) -> Option<u8> {
+    card.abilities.iter().find_map(|a| match a {
+        Ability::AsEntersChoose {
+            kind: ChoiceKind::Named(names),
+            ..
+        } => names
+            .iter()
+            .position(|n| n == label)
+            .and_then(|i| u8::try_from(i).ok()),
+        _ => None,
+    })
 }

@@ -1,0 +1,7 @@
+card "Gideon's Resolve" {
+  oracle_id 71c5718f-580d-4993-8492-81b7a557d10c
+  cost {4}{W}
+  type Enchantment
+  triggered when this enters: you may search library or graveyard card named "Gideon, Martial Paragon" reveal to hand
+  static creature you control: +1/+1
+}

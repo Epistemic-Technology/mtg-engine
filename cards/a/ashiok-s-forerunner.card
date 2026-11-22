@@ -1,0 +1,8 @@
+card "Ashiok's Forerunner" {
+  oracle_id 06d2a96c-4f4d-4a4a-ac48-6f0fbc9d0afd
+  cost {3}{U}{B}
+  type Creature — Human Wizard
+  pt 3/3
+  keywords flash
+  triggered when this enters: you may search library or graveyard card named "Ashiok, Sculptor of Fears" reveal to hand
+}

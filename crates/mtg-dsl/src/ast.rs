@@ -1044,6 +1044,10 @@ pub enum ChoiceKind {
     /// Basic land types, by the color they make; all five for "the basic
     /// land type of your choice".
     LandType(Vec<Color>),
+    /// `"Khans" or "Dragons"`: one of these named options (the Sieges);
+    /// abilities labeled with an option's name are the permanent's only
+    /// while it was chosen.
+    Named(Vec<String>),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -3496,6 +3500,12 @@ pub enum Effect {
         who: Option<Recipient>,
         /// `<who> may search`: the searcher may choose not to.
         may: bool,
+        /// `search library or graveyard ...`: "search your library and/or
+        /// graveyard for ... If you search your library this way,
+        /// shuffle."
+        graveyard: bool,
+        /// `card named "Ajani, Valiant Protector"`: "a card named ...".
+        name: Option<String>,
     },
     /// `add {B}{B}`, `add any`: "Add {B}{B}.", "Add one mana of any
     /// color." (CR 106.4).

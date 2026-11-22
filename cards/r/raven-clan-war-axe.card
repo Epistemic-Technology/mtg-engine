@@ -1,0 +1,8 @@
+card "Raven Clan War-Axe" {
+  oracle_id d306de95-a80e-4e85-b7d2-36c6ea769b15
+  cost {1}{R}{W}
+  type Artifact — Equipment
+  triggered when this enters: you may search library or graveyard card named "Eivor, Battle-Ready" reveal to hand
+  static equipped: +2/+0, has trample
+  equip {2}
+}

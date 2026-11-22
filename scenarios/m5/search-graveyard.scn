@@ -1,0 +1,48 @@
+# "You may search your library and/or graveyard for a card named X,
+# reveal it, and put it into your hand. If you search your library this
+# way, shuffle." One card with that name from either zone; nothing else
+# matches.
+
+scenario "Niambi: finds Teferi in the library" {
+  battlefield A: 2 "Plains", "Island"
+  hand A: "Niambi, Faithful Healer"
+  library A: "Teferi, Timebender", 5 "Island"
+  turn 1 A: cast "Niambi, Faithful Healer"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Teferi, Timebender"
+  assert library A count 5
+}
+
+scenario "Niambi: finds Teferi in the graveyard" {
+  battlefield A: 2 "Plains", "Island"
+  hand A: "Niambi, Faithful Healer"
+  library A: 5 "Island"
+  graveyard A: "Teferi, Timebender", "Grizzly Bears"
+  turn 1 A: cast "Niambi, Faithful Healer"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Teferi, Timebender"
+  assert graveyard A lacks "Teferi, Timebender"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Niambi: no card with that name, nothing else is found" {
+  battlefield A: 2 "Plains", "Island"
+  hand A: "Niambi, Faithful Healer"
+  library A: "Grizzly Bears", 5 "Island"
+  graveyard A: "Hill Giant"
+  turn 1 A: cast "Niambi, Faithful Healer"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Ral's Dispersal: bounce, then Ral from the graveyard" {
+  battlefield A: 5 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Ral's Dispersal"
+  graveyard A: "Ral, Caller of Storms"
+  turn 1 A: cast "Ral's Dispersal" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert hand A contains "Ral, Caller of Storms"
+}

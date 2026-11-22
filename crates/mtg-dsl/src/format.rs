@@ -1783,6 +1783,8 @@ impl Fmt {
                 or_card,
                 who,
                 may,
+                graveyard,
+                name,
             } => {
                 let searcher = who.map(|w| self.recipient(w, t));
                 let mut t = String::new();
@@ -1794,6 +1796,9 @@ impl Fmt {
                     (false, true) => "searches ",
                     (false, false) => "search ",
                 });
+                if *graveyard {
+                    t.push_str("library or graveyard ");
+                }
                 if *up_to {
                     t.push_str("up to ");
                 }
@@ -1834,6 +1839,9 @@ impl Fmt {
                 t.push_str("card");
                 if let Some(r) = f.same {
                     let _ = write!(t, " {}", same_ref(r));
+                }
+                if let Some(n) = name {
+                    let _ = write!(t, " named \"{n}\"");
                 }
                 if let Some(mv) = mv {
                     t.push_str(&mv);
@@ -5591,6 +5599,11 @@ fn choice_kind(k: &ChoiceKind, of_choice: bool) -> String {
         ChoiceKind::LandType(lands) => lands
             .iter()
             .map(|c| crate::render::basic_land_name(*c))
+            .collect::<Vec<_>>()
+            .join(" or "),
+        ChoiceKind::Named(names) => names
+            .iter()
+            .map(|n| format!("\"{n}\""))
             .collect::<Vec<_>>()
             .join(" or "),
     }

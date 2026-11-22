@@ -793,7 +793,27 @@ impl P {
             suffix(self)?;
             return Ok(ChoiceKind::LandType(Color::ALL.to_vec()));
         }
-        self.unexpected("`color`, `creature type` or `land type`")
+        // `"Khans" or "Dragons"`.
+        if let Some(Tok::Str(_)) = self.peek() {
+            let mut names = Vec::new();
+            loop {
+                match self.peek() {
+                    Some(Tok::Str(s)) => {
+                        names.push(s.clone());
+                        self.pos += 1;
+                    }
+                    _ => return self.fail("expected a quoted option name"),
+                }
+                if !self.eat_word("or") {
+                    break;
+                }
+            }
+            if names.len() < 2 {
+                return self.fail("a choice of named options takes two or more");
+            }
+            return Ok(ChoiceKind::Named(names));
+        }
+        self.unexpected("`color`, `creature type`, `land type` or quoted option names")
     }
 
     fn end_stmt(&mut self) -> R<()> {
@@ -2083,6 +2103,8 @@ impl P {
                         or_card: crate::ast::OrCard::No,
                         who: None,
                         may: false,
+                        graveyard: false,
+                        name: None,
                     }])],
                     equip: false,
                     cycling: true,
@@ -5730,6 +5752,8 @@ impl P {
                         reveal,
                         that_card,
                         or_card,
+                        graveyard,
+                        name,
                         ..
                     } => Ok(Effect::Search {
                         filter,
@@ -5741,6 +5765,8 @@ impl P {
                         or_card,
                         who: Some(subject),
                         may,
+                        graveyard,
+                        name,
                     }),
                     _ => self.fail("expected a search"),
                 }
@@ -7672,6 +7698,7 @@ impl P {
                 what: self.recipient()?,
             }),
             "search" | "searches" => {
+                let graveyard = self.eat_words(&["library", "or", "graveyard"]);
                 let up_to = self.eat_words(&["up", "to"]);
                 let count = if matches!(self.peek(), Some(Tok::Num(_))) {
                     self.num()?
@@ -7692,6 +7719,14 @@ impl P {
                 // "a card named ~".
                 if self.eat_words(&["named", "this"]) {
                     filter.same = Some(SameRef::NamedThis);
+                }
+                // "a card named Ajani, Valiant Protector".
+                let mut name = None;
+                if self.at_word("named")
+                    && let Some(Tok::Str(s)) = self.peek_at(1)
+                {
+                    name = Some(s.clone());
+                    self.pos += 2;
                 }
                 // "a creature card with mana value 6 or greater": the mana
                 // value after the noun.
@@ -7747,6 +7782,8 @@ impl P {
                     or_card,
                     who: None,
                     may: false,
+                    graveyard,
+                    name,
                 })
             }
             "add" => {

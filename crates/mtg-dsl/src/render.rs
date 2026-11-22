@@ -2602,6 +2602,7 @@ fn choice_noun(k: &ChoiceKind) -> String {
             format!("a creature type other than {t}")
         }
         ChoiceKind::LandType(lands) if lands.len() == 5 => "a basic land type".to_string(),
+        ChoiceKind::Named(names) => or_list(names),
         ChoiceKind::LandType(lands) => or_list(
             &lands
                 .iter()
@@ -6620,7 +6621,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             or_card,
             who,
             may,
+            graveyard,
+            name,
         } => {
+            if *graveyard || name.is_some() {
+                return search_named_text(e, ctx);
+            }
             let one = *count == Num::N(1) && !*up_to;
             let any = *count == Num::N(crate::ast::ANY_NUMBER);
             let what = if *or_card != crate::ast::OrCard::No
@@ -7163,6 +7169,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ChoiceKind::CreatureType { except: None } => {
                     "the creature type of your choice".to_string()
                 }
+                ChoiceKind::Named(names) => or_list(names),
                 // Imagecrafter: "Choose a creature type other than Wall.
                 // Target creature becomes that type until end of turn."
                 ChoiceKind::CreatureType { except: Some(t) } => {
@@ -12082,6 +12089,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             format!("{n}+ | {}", ability_text(card, ability, lookup))
         }
         // "I — Wark — Create ...": a chapter's name follows its numerals.
+        // "• Khans — At the beginning of ...".
+        Ability::Labeled { label, ability }
+            if crate::compile::named_option(card, label).is_some() =>
+        {
+            format!("• {label} — {}", ability_text(card, ability, lookup))
+        }
         Ability::Labeled { label, ability } => {
             let text = ability_text(card, ability, lookup);
             // A max speed dies trigger names no "this creature or
@@ -13094,5 +13107,82 @@ fn mode_head_text(head: crate::ast::ModeHead) -> String {
             "choose one that hasn't been chosen{}",
             if this_turn { " this turn" } else { "" }
         ),
+    }
+}
+
+/// "Search your library and/or graveyard for a card named Ajani, Valiant
+/// Protector, reveal it, and put it into your hand. If you search your
+/// library this way, shuffle." and "Search your library for a card named
+/// Nissa's Chosen, put it onto the battlefield, then shuffle."
+fn search_named_text(e: &Effect, ctx: &mut Ctx) -> Clause {
+    let Effect::Search {
+        filter,
+        to,
+        reveal,
+        who,
+        may,
+        graveyard,
+        name,
+        ..
+    } = e
+    else {
+        unreachable!("a search");
+    };
+    let what = match name {
+        Some(n) => format!("a card named {n}"),
+        None if filter == &Filter::default() => "a card".to_string(),
+        None => with_article(&cards_phrase(filter, ctx.card, false)),
+    };
+    let third = who.is_some_and(|w| w != Recipient::You);
+    let (search, reveal_v, put, library, hand, you, shuffle) = if third {
+        (
+            if *may { "may search" } else { "searches" },
+            "reveals",
+            "puts",
+            "their library",
+            "their hand",
+            "they",
+            "they shuffle",
+        )
+    } else {
+        (
+            if *may { "may search" } else { "search" },
+            "reveal",
+            "put",
+            "your library",
+            "your hand",
+            "you",
+            "shuffle",
+        )
+    };
+    let place = match to {
+        mtg_core::card::SearchTo::Hand => format!("into {hand}"),
+        mtg_core::card::SearchTo::Battlefield { tapped: false } => {
+            "onto the battlefield".to_string()
+        }
+        mtg_core::card::SearchTo::Battlefield { tapped: true } => {
+            "onto the battlefield tapped".to_string()
+        }
+        _ => "(unsupported)".to_string(),
+    };
+    let text = if *graveyard {
+        let zones = format!("{library} and/or graveyard");
+        let body = if *reveal {
+            format!("{search} {zones} for {what}, {reveal_v} it, and {put} it {place}")
+        } else {
+            format!("{search} {zones} for {what} and {put} it {place}")
+        };
+        format!("{body}. If {you} search {library} this way, {shuffle}")
+    } else if *reveal {
+        format!("{search} {library} for {what}, {reveal_v} it, {put} it {place}, then {shuffle}")
+    } else {
+        format!("{search} {library} for {what}, {put} it {place}, then {shuffle}")
+    };
+    match who {
+        Some(w) if *w != Recipient::You => {
+            let s = ctx.subj(*w);
+            Clause::with_subject(*w, s, text)
+        }
+        _ => Clause::imperative(text),
     }
 }

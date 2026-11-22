@@ -533,6 +533,7 @@ impl Decompiler<'_> {
             StaticCondition::WebSlung(p) => StaticCond::WebSlung(*p),
             StaticCondition::OptionalCostPaid => StaticCond::EvidenceCollected,
             StaticCondition::OffspringPaid => unreachable!("only offspring's trigger"),
+            StaticCondition::Chose(_) => unreachable!("only a named option's ability"),
             StaticCondition::Saddled => StaticCond::Saddled,
             StaticCondition::LandEnteredThisTurn => StaticCond::LandEnteredThisTurn,
             StaticCondition::ArtifactEnteredThisTurn => StaticCond::ArtifactEnteredThisTurn,
@@ -1062,7 +1063,11 @@ impl Decompiler<'_> {
                 who,
                 may,
                 reveal,
+                graveyard,
+                name,
             } => Effect::Search {
+                graveyard: *graveyard,
+                name: name.as_deref().map(str::to_string),
                 filter: self.filter(filter),
                 count: *count,
                 up_to: *count != mtg_core::card::Num::N(1),
@@ -2377,6 +2382,9 @@ impl Decompiler<'_> {
                 except: except.map(|s| self.pool.subtype_name(s).to_string()),
             },
             CoreChoiceKind::LandType(set) => ChoiceKind::LandType(colors(set)),
+            CoreChoiceKind::Named(n) => {
+                ChoiceKind::Named((1..=n).map(|i| format!("Option {i}")).collect())
+            }
         }
     }
 }

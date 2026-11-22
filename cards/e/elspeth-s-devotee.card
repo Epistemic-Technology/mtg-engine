@@ -1,0 +1,7 @@
+card "Elspeth's Devotee" {
+  oracle_id cacbdbcf-b5d2-40b3-bd8a-93636a248d3c
+  cost {2}{W}{W}
+  type Creature — Human Soldier
+  pt 3/3
+  triggered when this enters: you may search library or graveyard card named "Elspeth, Undaunted Hero" reveal to hand
+}

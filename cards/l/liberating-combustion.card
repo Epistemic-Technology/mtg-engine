@@ -1,0 +1,6 @@
+card "Liberating Combustion" {
+  oracle_id e3b40e34-edad-4838-a4d5-c167037d9ff7
+  cost {4}{R}
+  type Sorcery
+  spell: deal 6 damage to target creature; you may search library or graveyard card named "Chandra, Pyrogenius" reveal to hand
+}

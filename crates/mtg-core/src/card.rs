@@ -1392,7 +1392,9 @@ impl ObjFilter {
         match chosen {
             crate::state::Chosen::Color(c) => f.colors = Some(ColorSet::of([c])),
             crate::state::Chosen::Subtype(s) => f.subtypes.push(s),
-            crate::state::Chosen::None | crate::state::Chosen::Votes(_) => {
+            crate::state::Chosen::None
+            | crate::state::Chosen::Votes(_)
+            | crate::state::Chosen::Option(_) => {
                 f.colors = Some(ColorSet::default());
             }
         }
@@ -2483,6 +2485,9 @@ pub enum StaticCondition {
     NoEnduringStory,
     /// Max speed (CR 702.179e): "you have max speed", speed 4.
     MaxSpeed,
+    /// "• Khans — ...": the source's controller chose this one of its
+    /// named options as it entered (`ChoiceKind::Named`; the Sieges).
+    Chose(u8),
     /// "If {B} was spent to cast this spell", "if at least three red mana
     /// was spent to cast it" (adamant), "if mana from a Treasure was spent
     /// to cast it": at least `at_least` of the mana paid to cast the
@@ -3374,6 +3379,15 @@ pub enum Effect {
         who: Recipient,
         may: bool,
         reveal: bool,
+        /// "search your library and/or graveyard": the graveyard's cards
+        /// may be found too; the library is shuffled only if a card was
+        /// found there or none was found at all.
+        #[serde(default)]
+        graveyard: bool,
+        /// "a card named Ajani, Valiant Protector": only cards with this
+        /// name (another card's, so by name rather than definition).
+        #[serde(default)]
+        name: Option<Box<str>>,
     },
     /// "Put target creature on top of its owner's library", "on the
     /// bottom", "second from the top", "Its owner puts it on their choice
@@ -4862,6 +4876,9 @@ pub enum ChoiceKind {
     /// One of these basic land types: all five for "the basic land type
     /// of your choice", or "a Plains or an Island".
     LandType(ColorSet),
+    /// One of this many named options ("choose Khans or Dragons", CR
+    /// 614.12): `Chosen::Option` with its index.
+    Named(u8),
 }
 
 /// What a player-level static ability does (`AbilityDef::PlayerStatic`).

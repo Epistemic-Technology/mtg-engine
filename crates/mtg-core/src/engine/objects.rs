@@ -350,7 +350,7 @@ impl GameState {
             self.pool
                 .get(def)
                 .enters_choice()
-                .map_or(Chosen::None, |k| self.choose_kind(controller, k))
+                .map_or(Chosen::None, |k| self.choose_kind(controller, k, def))
         } else {
             Chosen::None
         };

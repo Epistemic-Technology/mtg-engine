@@ -323,6 +323,8 @@ pub fn add_dungeons(pool: &mut CardPool) {
                 who: Recipient::You,
                 may: false,
                 reveal: true,
+                graveyard: false,
+                name: None,
             }],
         ),
         room(

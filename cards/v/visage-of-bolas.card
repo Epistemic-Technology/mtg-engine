@@ -1,0 +1,7 @@
+card "Visage of Bolas" {
+  oracle_id 21bb3c03-c1c0-40ec-8df4-8d0054c3742b
+  cost {4}
+  type Artifact
+  triggered when this enters: you may search library or graveyard card named "Nicol Bolas, the Deceiver" reveal to hand
+  mana {U} or {B} or {R}
+}
