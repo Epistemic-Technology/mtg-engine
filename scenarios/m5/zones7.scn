@@ -125,6 +125,35 @@ scenario "reveal from hand: Scent of Nightshade gives -X/-X" {
   assert toughness "Hill Giant" 2
 }
 
+# Striking Palette, Pigment Wrangler's prepare spell: "When you next cast
+# an instant or sorcery spell this turn, copy that spell." The delayed
+# trigger is made by a copy of the spell (CR 722.3c), which ceases to
+# exist as it resolves; the trigger still fires (CR 603.7).
+
+scenario "Pigment Wrangler: the prepare spell's delayed trigger copies the next instant" {
+  battlefield A: 7 "Mountain"
+  hand A: "Pigment Wrangler", "Lightning Bolt"
+  turn 1 A: cast "Pigment Wrangler"
+  turn 1 main2 A: cast "Striking Palette"
+  turn 1 main2 A: wait
+  turn 1 main2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 14
+}
+
+scenario "Pigment Wrangler: the delayed trigger fires only once" {
+  battlefield A: 8 "Mountain"
+  hand A: "Pigment Wrangler", "Lightning Bolt", "Shock"
+  turn 1 A: cast "Pigment Wrangler"
+  turn 1 main2 A: cast "Striking Palette"
+  turn 1 main2 A: wait
+  turn 1 main2 A: cast "Lightning Bolt" targeting player B
+  turn 1 main2 A: wait
+  turn 1 main2 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 12
+}
+
 # "Then discard two cards unless you discard an artifact card." (CR
 # 608.2d): the player chooses, and may discard two cards although they
 # hold an artifact card (`choose done` declines the artifact).
