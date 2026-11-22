@@ -1422,6 +1422,9 @@ pub enum Mechanic {
     /// CR 702.39: attacks, you may have target creature defending player
     /// controls untap and block it if able.
     Provoke,
+    /// CR 702.94: `miracle {R}`: as it's drawn, the first card drawn this
+    /// turn, it may be cast for this cost.
+    Miracle(ManaCost),
     /// CR 702.76: `prowl {2}{U}`: an alternative cost, offered if you dealt
     /// combat damage to a player this turn with a creature of one of the
     /// card's creature types.

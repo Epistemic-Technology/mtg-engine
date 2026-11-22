@@ -595,6 +595,9 @@ impl Compiler<'_> {
                         .intern_condition(StaticCondition::ProwlDamage(types));
                     b = b.prowl(c.clone(), cond);
                 }
+                Ability::Mechanic(Mechanic::Miracle(c)) => {
+                    b = b.miracle(c.clone());
+                }
                 Ability::Mechanic(Mechanic::Blitz(c)) => {
                     if card.alt_cost.is_some() {
                         return self.err("blitz and an alternative cost of the card's own");
@@ -1147,6 +1150,7 @@ impl Compiler<'_> {
                             | Mechanic::Blitz(_)
                             | Mechanic::Escalate(_)
                             | Mechanic::Prowl(_)
+                            | Mechanic::Miracle(_)
                             | Mechanic::Replicate(_)
                             | Mechanic::Multikicker(_)
                             | Mechanic::Disturb(_)
@@ -4543,6 +4547,7 @@ impl Compiler<'_> {
                 | Mechanic::Blitz(_)
                 | Mechanic::Escalate(_)
                 | Mechanic::Prowl(_)
+                | Mechanic::Miracle(_)
                 | Mechanic::Replicate(_)
                 | Mechanic::Multikicker(_)
                 | Mechanic::Disturb(_)
@@ -5963,6 +5968,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Blitz(_)
         | Mechanic::Escalate(_)
         | Mechanic::Prowl(_)
+        | Mechanic::Miracle(_)
         | Mechanic::BattleCry
         | Mechanic::Rampage(_)
         | Mechanic::Replicate(_)

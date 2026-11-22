@@ -1,0 +1,7 @@
+card "Devastation Tide" {
+  oracle_id 4245ee98-2d4c-49d1-8d07-80760cae2bf9
+  cost {3}{U}{U}
+  type Sorcery
+  spell: return all nonland permanent to hand
+  miracle {1}{U}
+}

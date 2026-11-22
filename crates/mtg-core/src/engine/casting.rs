@@ -3561,6 +3561,9 @@ impl GameState {
             (_, false) if o.alt == AltCast::Madness && def.madness.is_some() => {
                 def.madness.as_ref().expect("checked").requirements(x)
             }
+            (_, false) if o.alt == AltCast::Miracle && def.miracle.is_some() => {
+                def.miracle.as_ref().expect("checked").requirements(x)
+            }
             (_, false) if o.alt == AltCast::Foretell && def.foretell.is_some() => {
                 def.foretell.as_ref().expect("checked").requirements(x)
             }
@@ -3816,6 +3819,7 @@ impl GameState {
         }
         let mut req = match alt {
             AltCast::Madness => def.madness.as_ref().map(|c| c.requirements(0)),
+            AltCast::Miracle => def.miracle.as_ref().map(|c| c.requirements(0)),
             AltCast::Foretell => def.foretell.as_ref().map(|c| c.requirements(0)),
             // CR 701.65a.
             AltCast::Airbend => Some(ManaRequirement {
@@ -11237,13 +11241,23 @@ impl GameState {
                 }
             }
             Effect::CastExiled(kind) => {
+                // CR 702.94a: a miracle card is cast from the hand.
+                let from = if *kind == crate::card::ExileCast::Miracle {
+                    Zone::Hand
+                } else {
+                    Zone::Exile
+                };
                 let Some(card) = self
                     .current_object(ctx.source)
-                    .filter(|c| self.objects[*c].zone == Zone::Exile)
+                    .filter(|c| self.objects[*c].zone == from)
                 else {
                     return;
                 };
                 let alt = match kind {
+                    crate::card::ExileCast::Miracle => {
+                        self.offer_exile_cast(card, AltCast::Miracle);
+                        return;
+                    }
                     crate::card::ExileCast::Madness => AltCast::Madness,
                     crate::card::ExileCast::Free => AltCast::Free,
                     crate::card::ExileCast::Transformed => {

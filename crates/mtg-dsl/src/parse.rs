@@ -1476,12 +1476,15 @@ impl P {
                 self.player_static(mtg_core::card::PlayerStaticKind::ExtraLands { n, each_player })
             }
             // CR 702.59a: recover; CR 702.120a: escalate.
-            "recover" | "escalate" | "prowl" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
+            "recover" | "escalate" | "prowl" | "miracle"
+                if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
+            {
                 self.pos += 1;
                 let c = self.mana_cost()?;
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(match w.as_str() {
                     "recover" => Mechanic::Recover(c),
+                    "miracle" => Mechanic::Miracle(c),
                     "prowl" => Mechanic::Prowl(c),
                     _ => Mechanic::Escalate(c),
                 }))

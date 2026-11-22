@@ -1122,6 +1122,20 @@ impl GameState {
             let new = self.move_object(top, Zone::Hand, false);
             let n = &mut self.drawn_this_turn[p.index().min(3)];
             *n = n.saturating_add(1);
+            // CR 702.94a: the first card drawn this turn, with miracle, is
+            // revealed (always: revealing costs nothing), and its trigger
+            // lets its owner cast it for the miracle cost.
+            let first = *n == 1;
+            if first
+                && let Some(o) = self.objects.get(new)
+                && o.zone == Zone::Hand
+                && self.pool.get(o.def).miracle.is_some()
+            {
+                let def = o.def;
+                self.objects[new].revealed = u8::MAX;
+                let ability = self.pool.builtin(crate::card::Builtin::Miracle);
+                self.queue_builtin(p, ability, new, def);
+            }
             // The move bumped before the count changed, and what it ran
             // may have cached characteristics since ("as long as you've
             // drawn two or more cards this turn").

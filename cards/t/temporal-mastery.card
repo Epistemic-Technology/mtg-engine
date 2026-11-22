@@ -1,0 +1,7 @@
+card "Temporal Mastery" {
+  oracle_id 5c58b8e6-c572-461e-893e-a8c05f20ba17
+  cost {5}{U}{U}
+  type Sorcery
+  spell: you take extra turn; exile this
+  miracle {1}{U}
+}

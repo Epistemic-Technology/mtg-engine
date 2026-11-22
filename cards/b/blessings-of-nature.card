@@ -1,0 +1,7 @@
+card "Blessings of Nature" {
+  oracle_id 1e77cf90-ac51-4ac7-b123-be04aabe1688
+  cost {4}{G}
+  type Sorcery
+  spell: distribute 4 +1/+1 counters among any number of target creatures
+  miracle {G}
+}

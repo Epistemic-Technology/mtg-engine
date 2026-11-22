@@ -416,6 +416,9 @@ pub enum Builtin {
     /// permanent this spell becomes at the beginning of the next end
     /// step."
     BlitzSacrifice,
+    /// CR 702.94a: "When you reveal this card this way, you may cast it
+    /// by paying [cost] rather than its mana cost."
+    Miracle,
 }
 
 /// How an exiled card is cast by a built-in trigger.
@@ -428,6 +431,8 @@ pub enum ExileCast {
     /// Transformed (its back face, CR 712.11), without paying its mana
     /// cost: a defeated Siege (CR 310.12b).
     Transformed,
+    /// From the hand, for its miracle cost (CR 702.94a).
+    Miracle,
 }
 
 /// A set of keywords: two words, aligned as one (a `u128` would align
@@ -6948,6 +6953,10 @@ pub struct CardDef {
     pub strive: Option<Box<ManaCost>>,
     /// Madness (CR 702.35): cast for this cost as it's discarded.
     pub madness: Option<Box<ManaCost>>,
+    /// Miracle (CR 702.94): cast for this cost as it's drawn, the first
+    /// card its owner drew this turn.
+    #[serde(default)]
+    pub miracle: Option<Box<ManaCost>>,
     /// Foretell (CR 702.143): exiled from hand for {2}, cast later for
     /// this cost.
     pub foretell: Option<Box<ManaCost>>,
@@ -7759,7 +7768,7 @@ pub struct CardPool {
     /// Decayed's "When this creature attacks, sacrifice it at end of
     /// combat" (CR 702.147a).
     decayed: AbilityId,
-    builtins: [AbilityId; 14],
+    builtins: [AbilityId; 15],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -7847,7 +7856,7 @@ impl CardPool {
             evoke: AbilityId(0),
             exploit: AbilityId(0),
             decayed: AbilityId(0),
-            builtins: [AbilityId(0); 14],
+            builtins: [AbilityId(0); 15],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
             dungeons: Vec::new(),
@@ -8081,6 +8090,15 @@ impl CardPool {
                     under_you: true,
                     attached: None,
                 }],
+            }));
+        pool.builtins[Builtin::Miracle as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                limit: crate::card::TurnLimit::None,
+                from_graveyard: false,
+                trigger: TriggerSpec::Reflexive,
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![Effect::CastExiled(ExileCast::Miracle)],
             }));
         pool.builtins[Builtin::BlitzSacrifice as usize] =
             pool.register(AbilityDef::Triggered(TriggeredAbility {
@@ -9055,6 +9073,7 @@ impl Builder {
             prototype_face: None,
             blitz: false,
             prowl: false,
+            miracle: None,
             awaken: None,
             awaken_face: None,
             goads: false,
@@ -9554,6 +9573,13 @@ impl Builder {
     #[must_use]
     pub fn madness(mut self, cost: ManaCost) -> Self {
         self.0.madness = Some(Box::new(cost));
+        self
+    }
+
+    /// Miracle (CR 702.94).
+    #[must_use]
+    pub fn miracle(mut self, cost: ManaCost) -> Self {
+        self.0.miracle = Some(Box::new(cost));
         self
     }
 

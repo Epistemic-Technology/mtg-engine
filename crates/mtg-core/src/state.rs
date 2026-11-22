@@ -359,6 +359,8 @@ pub enum AltCast {
     /// Cast transformed from the graveyard for its disturb cost (CR
     /// 702.146a): the spell is the back face.
     Disturb,
+    /// Cast for its miracle cost (CR 702.94a), from the hand.
+    Miracle,
     /// A permanent cast for its prowl cost (CR 702.76a, the card's
     /// alternative cost): "if its prowl cost was paid".
     Prowl,

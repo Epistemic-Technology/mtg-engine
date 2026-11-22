@@ -1,0 +1,7 @@
+card "Thunderous Wrath" {
+  oracle_id 78260893-c443-44c8-ab45-ce86ef347d98
+  cost {4}{R}{R}
+  type Instant
+  spell: deal 5 damage to any target
+  miracle {R}
+}

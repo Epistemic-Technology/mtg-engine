@@ -5236,6 +5236,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Recover(c) => format!("recover {c}"),
                 crate::ast::Mechanic::Escalate(c) => format!("escalate {c}"),
                 crate::ast::Mechanic::Prowl(c) => format!("prowl {c}"),
+                crate::ast::Mechanic::Miracle(c) => format!("miracle {c}"),
                 crate::ast::Mechanic::Blitz(c) => format!("blitz {}", cost_text(c)),
                 crate::ast::Mechanic::Prototype(c, p, t) => format!("prototype {c} {p}/{t}"),
                 crate::ast::Mechanic::Annihilator(n) => format!("annihilator {n}"),

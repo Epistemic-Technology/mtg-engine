@@ -1,0 +1,7 @@
+card "Banishing Stroke" {
+  oracle_id a6898364-c29e-4b97-a500-344efa3ec24a
+  cost {5}{W}
+  type Instant
+  spell: put target artifact, creature, or enchantment on bottom of library
+  miracle {W}
+}

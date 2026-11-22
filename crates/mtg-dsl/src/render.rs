@@ -12270,6 +12270,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Recover(c) => format!("Recover {c}"),
             crate::ast::Mechanic::Escalate(c) => format!("Escalate {c}"),
             crate::ast::Mechanic::Prowl(c) => format!("Prowl {c}"),
+            crate::ast::Mechanic::Miracle(c) => format!("Miracle {c}"),
             // CR 702.152a: "Blitz {3}{G}"; with a cost other than mana,
             // "Blitz—{2}{B}{B}, Pay 2 life."
             crate::ast::Mechanic::Blitz(c) => {
