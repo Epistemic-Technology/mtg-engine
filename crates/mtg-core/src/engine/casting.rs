@@ -3278,6 +3278,15 @@ impl GameState {
         {
             return false;
         }
+        // "exile a blue card from your hand", "discard two cards".
+        if alt.cost.discard > 0
+            && self
+                .discard_candidates(p, alt.cost.discard_filter.as_ref(), id)
+                .len()
+                < alt.cost.discard as usize
+        {
+            return false;
+        }
         // CR 119.4: life can be paid only if the life total is at least
         // the amount.
         if alt.cost.life > 0
@@ -6620,20 +6629,31 @@ impl GameState {
         } else if cost.discard > 0
             && let Some(c) = discard
         {
-            self.discard_card(p, c);
+            self.discard_or_exile(p, c, cost.discard_exile);
             // "Discard two cards": the chosen card, then the rest in hand
             // order (the engine picks them).
             for _ in 1..cost.discard {
                 let next = self.player(p).hand.iter().copied().find(|id| {
-                    cost.discard_filter.as_ref().is_none_or(|f| {
-                        let o = &self.objects[*id];
-                        let ch = self.base_characteristics(o);
-                        f.matches(*id, o.owner, &ch, None, Some(p)) && self.status_ok(f, *id)
-                    })
+                    *id != this
+                        && cost.discard_filter.as_ref().is_none_or(|f| {
+                            let o = &self.objects[*id];
+                            let ch = self.base_characteristics(o);
+                            f.matches(*id, o.owner, &ch, None, Some(p)) && self.status_ok(f, *id)
+                        })
                 });
                 let Some(n) = next else { break };
-                self.discard_card(p, n);
+                self.discard_or_exile(p, n, cost.discard_exile);
             }
+        }
+    }
+
+    /// A card leaving the hand for a cost: discarded, or with
+    /// `Cost::discard_exile` exiled ("exile a blue card from your hand").
+    fn discard_or_exile(&mut self, p: PlayerId, card: ObjId, exile: bool) {
+        if exile {
+            self.move_object(card, Zone::Exile, true);
+        } else {
+            self.discard_card(p, card);
         }
     }
 
@@ -7159,6 +7179,10 @@ impl GameState {
             .alt_cost
             .as_deref()
             .filter(|_| self.objects[spell].alt == AltCast::AltCost);
+        // The card chosen to discard (or exile, "exile a blue card from
+        // your hand") pays the alternative cost when it asks for one.
+        let alt_discard = alt.filter(|a| a.cost.discard > 0).and(discard);
+        let add_discard = if alt_discard.is_some() { None } else { discard };
         // CR 702.190a: sneak returns the chosen unblocked attacker; the
         // permanent will attack what it was attacking.
         let sneak = self.objects[spell].alt == AltCast::Sneak;
@@ -7203,9 +7227,9 @@ impl GameState {
                 {
                     g.n = x;
                 }
-                s.pay_other_costs(caster, &add, spell, add_sacrifice, discard);
+                s.pay_other_costs(caster, &add, spell, add_sacrifice, add_discard);
             } else {
-                s.pay_other_costs(caster, chosen, spell, add_sacrifice, discard);
+                s.pay_other_costs(caster, chosen, spell, add_sacrifice, add_discard);
             }
             if let Some(alt) = alt {
                 let mut chosen: Vec<ObjId> = sacrifice.into_iter().collect();
@@ -7223,10 +7247,16 @@ impl GameState {
                 if chosen.is_empty() {
                     // "You may pay 4 life rather than pay this spell's
                     // mana cost": nothing chosen.
-                    s.pay_other_costs(caster, &one, spell, None, None);
+                    s.pay_other_costs(caster, &one, spell, None, alt_discard);
                 }
-                for c in chosen {
-                    s.pay_other_costs(caster, &one, spell, Some(c), None);
+                for (i, c) in chosen.into_iter().enumerate() {
+                    s.pay_other_costs(
+                        caster,
+                        &one,
+                        spell,
+                        Some(c),
+                        alt_discard.filter(|_| i == 0),
+                    );
                 }
                 // "have each other player gain 6 life".
                 if alt.others_gain > 0 {

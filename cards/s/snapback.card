@@ -1,0 +1,7 @@
+card "Snapback" {
+  oracle_id e88de17c-086d-4e2a-b5b2-2f9f57ca7c0f
+  cost {1}{U}
+  type Instant
+  alternative cost exile blue card from hand
+  spell: return target creature to hand
+}

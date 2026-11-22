@@ -6651,6 +6651,11 @@ pub struct Cost {
     pub discard_random: bool,
     /// "Discard a creature card": what the discarded card must match.
     pub discard_filter: Option<ObjFilter>,
+    /// "Exile a blue card from your hand" (a pitch spell's alternative
+    /// cost, CR 118.9): the `discard` cards are exiled from the hand
+    /// rather than discarded.
+    #[serde(default)]
+    pub discard_exile: bool,
     /// A loyalty ability's cost (CR 606): +N puts, −N removes that many
     /// loyalty counters; nonzero marks the ability as a loyalty ability
     /// (sorcery speed, one per planeswalker per turn, CR 606.3).
@@ -6793,6 +6798,7 @@ impl Cost {
             discard_x: false,
             discard_random: false,
             discard_filter: None,
+            discard_exile: false,
             loyalty: 0,
             tap: false,
             sacrifice: None,

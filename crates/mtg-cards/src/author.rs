@@ -4996,6 +4996,62 @@ impl Builder<'_> {
             }
             return Ok(());
         }
+        // An alternative cost (CR 118.9): "You may pay {2}{U} rather than
+        // pay this spell's mana cost.", "If it's not your turn, you may
+        // exile a blue card from your hand rather than ...".
+        if let Some(c) = Regex::new(
+            r"^(?:If (.+?), )?[Yy]ou may (.+?) rather than pay this spell's mana cost\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let skip = || Skip::Sentence(line.to_string());
+            let mut parts = Vec::new();
+            let hand = Regex::new(r"^exile (a|an|two|three) ((?:[a-z]+ )*?)cards? from your hand$").unwrap();
+            let sac = Regex::new(r"^sacrifice (a|an|two|three|four|five) ([A-Za-z ]+)$").unwrap();
+            for part in cap(&c, 2).split(" and ") {
+                let part = part.strip_prefix("pay ").filter(|p| p.starts_with('{')).unwrap_or(part);
+                // "exile a blue card from your hand" (a pitch spell).
+                if let Some(h) = hand.captures(part) {
+                    let n = match cap(&h, 1) {
+                        "a" | "an" => String::new(),
+                        w => format!("{} ", number(w).ok_or_else(skip)?),
+                    };
+                    let cards = if n.is_empty() { "card" } else { "cards" };
+                    parts.push(format!("exile {n}{}{cards} from hand", cap(&h, 2)));
+                    continue;
+                }
+                // "sacrifice a nontoken blue creature", "sacrifice three
+                // artifacts".
+                if let Some(s) = sac.captures(part)
+                    && !cap(&s, 2).contains(" you ")
+                    && !cap(&s, 2).contains(" with ")
+                {
+                    let what = cap(&s, 2);
+                    parts.push(match cap(&s, 1) {
+                        "a" | "an" => format!("sacrifice {what}"),
+                        w => {
+                            let (head, last) = what.rsplit_once(' ').unwrap_or(("", what));
+                            let one = if head.is_empty() {
+                                singular(last)
+                            } else {
+                                format!("{head} {}", singular(last))
+                            };
+                            format!("sacrifice {} {one}", number(w).ok_or_else(skip)?)
+                        }
+                    });
+                    continue;
+                }
+                parts.push(cost_text(&capitalize(part)).ok_or_else(skip)?);
+            }
+            let mut cost = format!("alternative cost {}", parts.join(", "));
+            if !cap(&c, 1).is_empty() {
+                let cond = static_condition(cap(&c, 1)).ok_or_else(skip)?;
+                let _ = write!(cost, ", if {cond}");
+            }
+            self.statements.push(cost);
+            return Ok(());
+        }
         if let Some(rest) = line.strip_prefix("As an additional cost to cast this spell, ") {
             let rest = rest.trim_end_matches('.');
             // CR 701.69a: "behold a Kithkin or pay {2}", "behold an Elf

@@ -645,6 +645,10 @@ pub struct Cost {
     pub discard_random: bool,
     /// `discard a creature card`: what the discarded card must match.
     pub discard_filter: Option<Filter>,
+    /// `exile blue card from hand`, `exile 2 white cards from hand`: the
+    /// `discard` cards are exiled from the hand instead ("Exile a blue
+    /// card from your hand", a pitch spell's alternative cost).
+    pub discard_exile: bool,
     /// A loyalty ability's cost (CR 606).
     pub loyalty: Option<i32>,
     pub sacrifice: Option<SacCost>,

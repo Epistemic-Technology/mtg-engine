@@ -4624,6 +4624,16 @@ fn cost_text(c: &Cost) -> String {
                 }
             }
             CostItem::FromGraveyard => parts.push("from graveyard".to_string()),
+            CostItem::Discard if c.discard_exile => {
+                let what = c.discard_filter.as_ref().map_or(String::new(), |f| filter(f) + " ");
+                let n = if c.discard > 1 {
+                    format!("{} ", c.discard)
+                } else {
+                    String::new()
+                };
+                let cards = if c.discard > 1 { "cards" } else { "card" };
+                parts.push(format!("exile {n}{what}{cards} from hand"));
+            }
             CostItem::Discard => {
                 if c.discard_self {
                     parts.push("discard this".to_string());

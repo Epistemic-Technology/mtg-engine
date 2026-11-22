@@ -1,0 +1,7 @@
+card "Sunscour" {
+  oracle_id 155f14dd-1516-4b9f-ae39-0a6172c69a66
+  cost {5}{W}{W}
+  type Sorcery
+  alternative cost exile 2 white cards from hand
+  spell: destroy all creatures
+}

@@ -1,0 +1,7 @@
+card "Force of Despair" {
+  oracle_id 0f2d038e-6dab-4352-9ba7-ed9e063bb304
+  cost {1}{B}{B}
+  type Instant
+  alternative cost exile black card from hand, if not your turn
+  spell: destroy each creature that entered this turn
+}

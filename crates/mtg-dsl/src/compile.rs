@@ -968,6 +968,13 @@ impl Compiler<'_> {
             Kind::Emblem => b = b.emblem(),
             Kind::Card => {}
         }
+        if [&card.additional, &card.additional_or, &card.optional_cost]
+            .into_iter()
+            .flatten()
+            .any(|c| c.discard_exile)
+        {
+            return self.err("`exile ... from hand` is only an alternative cost");
+        }
         if let Some(cost) = &card.additional {
             b = b.additional_cost(self.cost(cost));
         }
@@ -987,7 +994,12 @@ impl Compiler<'_> {
             b = b.optional_cost(self.cost(cost));
         }
         if let Some(a) = &card.alt_cost {
-            if a.cost.conditions.len() > 1 || a.cost.tap || a.cost.discard > 0 {
+            // Cards from the hand only as exiled ones ("exile a blue card
+            // from your hand"); a discard there isn't paid.
+            if a.cost.conditions.len() > 1
+                || a.cost.tap
+                || (a.cost.discard > 0 && !a.cost.discard_exile)
+            {
                 return self.err("an alternative cost is mana and one kind of permanent");
             }
             let condition = match a.cost.conditions.first() {
@@ -2544,6 +2556,7 @@ impl Compiler<'_> {
             discard_x: c.discard_x,
             discard_random: c.discard_random,
             discard_filter: c.discard_filter.as_ref().map(|f| self.filter(f)),
+            discard_exile: c.discard_exile,
             loyalty: c.loyalty.unwrap_or(0),
             tap: c.tap,
             sacrifice: match &c.sacrifice {
@@ -4901,6 +4914,9 @@ impl Compiler<'_> {
             }
             Ability::Activated { cost, .. } if cost.discard_x => {
                 return self.err("`discard X cards` is only a spell's additional cost");
+            }
+            Ability::Activated { cost, .. } if cost.discard_exile => {
+                return self.err("`exile ... from hand` is only an alternative cost");
             }
             // The first of the two equip abilities; the card's ability list
             // gets the second (`equip_or_second`).

@@ -13635,10 +13635,19 @@ impl P {
                             Some(self.filter()?)
                         };
                         self.cards_word()?;
-                        self.expect_words(&["from", "graveyard"])?;
-                        cost.exile_cards =
-                            Some(Box::new(crate::ast::ExileCards { n, x, filter, top }));
-                        cost.order.push(CostItem::ExileCards);
+                        // `exile blue card from hand` (CR 118.9: a pitch
+                        // spell's cost): cards from the hand, chosen.
+                        if !top && !x && self.eat_words(&["from", "hand"]) {
+                            cost.discard = n;
+                            cost.discard_filter = filter;
+                            cost.discard_exile = true;
+                            cost.order.push(CostItem::Discard);
+                        } else {
+                            self.expect_words(&["from", "graveyard"])?;
+                            cost.exile_cards =
+                                Some(Box::new(crate::ast::ExileCards { n, x, filter, top }));
+                            cost.order.push(CostItem::ExileCards);
+                        }
                     }
                     "discard" if self.word_at(1).as_deref() == Some("hand") => {
                         self.pos += 2;

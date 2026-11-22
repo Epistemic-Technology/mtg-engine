@@ -3046,6 +3046,10 @@ fn alt_cost_line(card: &Card, a: &crate::ast::AltCost) -> String {
     if a.cost.life > 0 {
         parts.push(format!("pay {} life", a.cost.life));
     }
+    // "exile a blue card from your hand" (a pitch spell).
+    if a.cost.discard_exile {
+        parts.push(hand_exile_text(&a.cost, card));
+    }
     if a.cost.reveal_hand {
         parts.push("reveal your hand".to_string());
     }
@@ -3084,6 +3088,22 @@ fn alt_cost_line(card: &Card, a: &crate::ast::AltCost) -> String {
         "{you_may} {} rather than pay this spell's mana cost.",
         parts.join(" and ")
     )
+}
+
+/// "exile a blue card from your hand", "exile two white cards from your
+/// hand" (`Cost::discard_exile`).
+fn hand_exile_text(cost: &crate::ast::Cost, card: &Card) -> String {
+    let kind = cost
+        .discard_filter
+        .as_ref()
+        .map_or(String::new(), |f| card_filter_phrase(f, card) + " ");
+    let n = Num::N(cost.discard.max(1));
+    let what = if cost.discard <= 1 {
+        with_article(&format!("{kind}card"))
+    } else {
+        format!("{} {kind}cards", count_words(n, "a"))
+    };
+    format!("exile {what} from your hand")
 }
 
 fn filter_a(f: &Filter, card: &Card) -> String {
@@ -3248,6 +3268,9 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 } else if cost.exile_this {
                     parts.push(format!("Exile {}", ctx.source()));
                 }
+            }
+            CostItem::Discard if cost.discard_exile => {
+                parts.push(capitalize(&hand_exile_text(cost, ctx.card)));
             }
             CostItem::Discard => {
                 if cost.discard_self {

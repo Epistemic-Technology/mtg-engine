@@ -1,0 +1,9 @@
+card "Bringer of the Blue Dawn" {
+  oracle_id 7d4676fa-4bfe-43b4-9241-c2a33214852a
+  cost {7}{U}{U}
+  type Creature — Bringer
+  pt 5/5
+  alternative cost {W}{U}{B}{R}{G}
+  keyword trample
+  triggered at beginning of your upkeep: you may draw 2 cards
+}
