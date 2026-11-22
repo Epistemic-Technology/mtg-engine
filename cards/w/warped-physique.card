@@ -1,0 +1,6 @@
+card "Warped Physique" {
+  oracle_id f45fdef0-15b1-472b-9485-465c49a48a85
+  cost {U}{B}
+  type Instant
+  spell: target creature gets +1/-1 count where hand
+}

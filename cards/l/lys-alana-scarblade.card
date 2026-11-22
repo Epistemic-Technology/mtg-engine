@@ -1,0 +1,7 @@
+card "Lys Alana Scarblade" {
+  oracle_id b7ebd207-43e3-49eb-86ca-b5987ef9e22f
+  cost {2}{B}
+  type Creature — Elf Assassin
+  pt 1/1
+  activated {T}, discard Elf card: target creature gets -1/-1 count where Elf you control
+}

@@ -1,0 +1,7 @@
+card "Norn's Wellspring" {
+  oracle_id 56a55f45-2cc6-407d-b212-5619c98456d9
+  cost {1}{W}
+  type Artifact
+  triggered whenever a creature you control dies: scry 1 and put 1 oil counters on this
+  activated {1}, {T}, remove 2 oil counters from this: draw 1 cards
+}

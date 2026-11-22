@@ -1,0 +1,7 @@
+token "3/1 red Construct artifact creature with haste" {
+  name "Construct"
+  type Artifact Creature — Construct
+  pt 3/1
+  color red
+  keywords haste
+}

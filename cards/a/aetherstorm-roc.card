@@ -1,0 +1,9 @@
+card "Aetherstorm Roc" {
+  oracle_id 06f09e5a-5cfb-437f-9dd1-1682d71f4e7f
+  cost {2}{W}{W}
+  type Creature — Bird
+  pt 3/3
+  keywords flying
+  triggered whenever this or creature you control enters: you get 1 energy
+  triggered whenever this attacks: you may pay 2 energy; if you do, put 1 +1/+1 counters on this and tap up to 1 target creature defending player controls
+}

@@ -1,0 +1,7 @@
+card "Battle at the Bridge" {
+  oracle_id 3d63ad3a-4e9f-4968-a576-4be063f4ecbf
+  cost {X}{B}
+  type Sorcery
+  keywords improvise
+  spell: target creature gets -1/-1 X; you gains X life
+}

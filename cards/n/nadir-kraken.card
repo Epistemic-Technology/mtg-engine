@@ -1,0 +1,7 @@
+card "Nadir Kraken" {
+  oracle_id 5a73d439-bd78-42e1-90ae-eedd30536881
+  cost {1}{U}{U}
+  type Creature — Kraken
+  pt 2/3
+  triggered whenever you draw a card: you may pay {1}; if you do, put 1 +1/+1 counters on this and create 1 "1/1 blue Tentacle creature"
+}

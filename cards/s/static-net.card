@@ -1,0 +1,7 @@
+card "Static Net" {
+  oracle_id 3f285781-ee03-4a58-a85e-a33f5efffc9d
+  cost {3}{W}
+  type Enchantment
+  triggered when this enters: exile target nonland permanent an opponent controls until this leaves
+  triggered when this enters: you gains 2 life and create 1 tapped "Powerstone"
+}

@@ -1,0 +1,361 @@
+# Cards the Modern template run wrote once clauses joined by "and" and
+# "+X/+0" pumps were templated ("put a +1/+1 counter on this creature and
+# draw a card", "gets -X/-X until end of turn, where X is ...").
+
+scenario "Aetherstorm Roc: energy as creatures enter; pay two to grow and tap a blocker" {
+  battlefield A: "Aetherstorm Roc", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  energy A: 2
+  start turn 1 A precombat_main
+  turn 1 A: attack "Aetherstorm Roc"
+  turn 1 declare_attackers A: trigger "Aetherstorm Roc" targeting "Hill Giant"
+  run_to turn 1 declare_blockers
+  assert counters "Aetherstorm Roc" +1/+1 1
+  assert tapped "Hill Giant"
+  assert energy A 0
+}
+
+scenario "Aetherstorm Roc: another creature entering gives energy" {
+  battlefield A: "Aetherstorm Roc", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert energy A 1
+}
+
+scenario "Gideon's Company: two counters whenever you gain life" {
+  battlefield A: "Gideon's Company", "Plains"
+  hand A: "Healing Salve"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Healing Salve" targeting player A
+  run_to turn 1 postcombat_main
+  assert counters "Gideon's Company" +1/+1 2
+}
+
+scenario "Gideon's Company: not a loyalty counter on a non-Gideon planeswalker" {
+  battlefield A: "Gideon's Company", 4 "Plains", "Jace Beleren"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Gideon's Company" targeting "Jace Beleren"
+  run_to turn 1 postcombat_main
+  assert counters "Jace Beleren" loyalty 3
+}
+
+scenario "Jace's Projection: a counter per card drawn; loyalty on a Jace" {
+  battlefield A: "Jace's Projection", "Jace Beleren", 4 "Island"
+  start turn 2 A upkeep
+  turn 2 A: activate "Jace's Projection" targeting "Jace Beleren"
+  run_to turn 2 postcombat_main
+  assert counters "Jace's Projection" +1/+1 1
+  assert counters "Jace Beleren" loyalty 4
+}
+
+scenario "Juniper Order Ranger: a counter on the creature that entered and on this" {
+  battlefield A: "Juniper Order Ranger", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Juniper Order Ranger" +1/+1 1
+}
+
+scenario "Juniper Order Ranger: an opponent's creature doesn't trigger it" {
+  battlefield A: "Juniper Order Ranger"
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+  assert counters "Juniper Order Ranger" +1/+1 0
+}
+
+scenario "Raffine's Silencer dies: -X/-X, X its power as it died" {
+  battlefield A: "Raffine's Silencer" with 1 +1/+1
+  battlefield B: "Hill Giant", "Mountain"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Shock" targeting "Raffine's Silencer"
+  turn 1 A: trigger "Raffine's Silencer" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Raffine's Silencer"
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+}
+
+scenario "Raffine's Silencer enters and connives" {
+  battlefield A: 3 "Swamp"
+  library A: "Shock", "Forest"
+  hand A: "Raffine's Silencer", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raffine's Silencer"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Raffine's Silencer" +1/+1 1
+}
+
+scenario "Threnody Singer: -X/-0 by devotion to blue" {
+  battlefield A: 2 "Island", "Coral Merfolk"
+  battlefield B: "Hill Giant"
+  hand A: "Threnody Singer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Threnody Singer"
+  turn 1 A: trigger "Threnody Singer" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 3
+}
+
+scenario "Setessan Champion: an enchantment enters, a counter and a card" {
+  battlefield A: "Setessan Champion", 2 "Plains"
+  battlefield B: "Hill Giant"
+  library A: "Forest", "Forest"
+  hand A: "Pacifism"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pacifism" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Setessan Champion" +1/+1 1
+  assert hand A count 1
+}
+
+scenario "Battle at the Bridge: -X/-X and X life" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Battle at the Bridge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Battle at the Bridge" x 3 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 23
+}
+
+scenario "Static Net exiles until it leaves; 2 life and a tapped Powerstone" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Static Net"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Static Net"
+  turn 1 A: trigger "Static Net" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert life A 22
+  assert battlefield A contains "Powerstone"
+  assert tapped "Powerstone"
+}
+
+scenario "Boon of Boseiju: +X/+X by greatest mana value, and untap it" {
+  battlefield A: 2 "Forest", "Hill Giant" tapped, "Craw Wurm"
+  hand A: "Boon of Boseiju"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Boon of Boseiju" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 9
+  assert untapped "Hill Giant"
+}
+
+scenario "Deadly Dispute: sacrifice, draw two and a Treasure" {
+  battlefield A: 2 "Swamp", "Grizzly Bears"
+  library A: "Forest", "Forest", "Forest"
+  hand A: "Deadly Dispute"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Deadly Dispute" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 2
+  assert battlefield A contains "Treasure"
+}
+
+scenario "Dead of Winter: nonsnow creatures get -X/-X by snow permanents" {
+  battlefield A: 3 "Snow-Covered Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Dead of Winter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dead of Winter"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Nightmarish End: -X/-X by cards in hand" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Nightmarish End", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Nightmarish End" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+}
+
+scenario "Warped Physique: +X/-X by cards in hand" {
+  battlefield A: "Island", "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Warped Physique", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Warped Physique" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 5
+  assert toughness "Hill Giant" 1
+}
+
+scenario "Oboro Envoy: -X/-0 by cards in hand, after returning a land" {
+  battlefield A: "Oboro Envoy", 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Oboro Envoy" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+}
+
+scenario "Lys Alana Scarblade: -X/-X by Elves you control" {
+  battlefield A: "Lys Alana Scarblade", "Llanowar Elves"
+  battlefield B: "Hill Giant"
+  hand A: "Llanowar Elves"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Lys Alana Scarblade" discarding "Llanowar Elves" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+  assert graveyard A contains "Llanowar Elves"
+}
+
+scenario "Korvold enters: sacrifice another permanent, then a counter and a card" {
+  battlefield A: 2 "Swamp", 2 "Mountain", "Forest", "Grizzly Bears"
+  library A: "Forest", "Forest"
+  hand A: "Korvold, Fae-Cursed King"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Korvold, Fae-Cursed King"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Korvold, Fae-Cursed King" +1/+1 1
+  assert hand A count 1
+}
+
+scenario "Demonspine Whip: equipped creature gets +X/+0" {
+  battlefield A: "Demonspine Whip" on "Grizzly Bears", "Grizzly Bears", 3 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Demonspine Whip" x 3
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+}
+
+scenario "Luxurious Libation: +X/+X and a Citizen" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  hand A: "Luxurious Libation"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Luxurious Libation" x 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert battlefield A contains "Citizen"
+}
+
+scenario "Sorcerer's Strongbox: won flip sacrifices it and draws three" {
+  battlefield A: "Sorcerer's Strongbox", 2 "Island"
+  library A: "Forest", "Forest", "Forest", "Forest"
+  seed 1
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sorcerer's Strongbox"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Sorcerer's Strongbox"
+  assert hand A count 3
+}
+
+scenario "Sorcerer's Strongbox: lost flip, nothing" {
+  battlefield A: "Sorcerer's Strongbox", 2 "Island"
+  library A: "Forest", "Forest", "Forest", "Forest"
+  seed 2
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sorcerer's Strongbox"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sorcerer's Strongbox"
+  assert hand A count 0
+}
+
+scenario "Sokenzan Smelter: pay {1} and sacrifice an artifact for a 3/1 Construct" {
+  battlefield A: "Sokenzan Smelter", "Ornithopter", "Mountain"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert graveyard A contains "Ornithopter"
+  assert battlefield A contains "Construct"
+  assert power "Construct" 3
+  assert has "Construct" haste
+}
+
+scenario "Sokenzan Smelter: no artifact, no Construct" {
+  battlefield A: "Sokenzan Smelter", "Mountain"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert battlefield A lacks "Construct"
+  assert untapped "Mountain"
+}
+
+scenario "Geology Enthusiast: a tapped Powerstone at end step; draw and a counter" {
+  battlefield A: "Geology Enthusiast", 6 "Island"
+  library A: "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Geology Enthusiast"
+  run_to turn 1 cleanup
+  assert hand A count 1
+  assert counters "Geology Enthusiast" +1/+1 1
+  assert battlefield A contains "Powerstone"
+}
+
+scenario "Trelasarra: gaining life, a counter and a scry" {
+  battlefield A: "Trelasarra, Moon Dancer", "Plains"
+  hand A: "Healing Salve"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Healing Salve" targeting player A
+  run_to turn 1 postcombat_main
+  assert counters "Trelasarra, Moon Dancer" +1/+1 1
+}
+
+scenario "Thunderous Might: the attacker gets +X/+0 by devotion to red" {
+  battlefield A: "Thunderous Might" on "Grizzly Bears", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert power "Grizzly Bears" 3
+}
+
+scenario "Rubblebelt Rioters: +X/+0 by greatest power" {
+  battlefield A: "Rubblebelt Rioters", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Rubblebelt Rioters"
+  run_to turn 1 declare_blockers
+  assert power "Rubblebelt Rioters" 3
+}
+
+scenario "Norn's Wellspring: scry and an oil counter per creature death" {
+  battlefield A: "Norn's Wellspring", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Norn's Wellspring" oil 1
+}
+
+scenario "Nadir Kraken: pay {1} on a draw, a counter and a Tentacle" {
+  battlefield A: "Nadir Kraken", "Island"
+  start turn 2 A upkeep
+  run_to turn 2 precombat_main
+  assert counters "Nadir Kraken" +1/+1 1
+  assert battlefield A contains "Tentacle"
+}
+
+scenario "Mark of Mutiny: control until end of turn, a +1/+1 counter, untapped, haste" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Mark of Mutiny"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mark of Mutiny" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert untapped "Hill Giant"
+  assert counters "Hill Giant" +1/+1 1
+  assert has "Hill Giant" haste
+  run_to turn 2 upkeep
+  assert battlefield B contains "Hill Giant"
+  assert counters "Hill Giant" +1/+1 1
+  assert has not "Hill Giant" haste
+}

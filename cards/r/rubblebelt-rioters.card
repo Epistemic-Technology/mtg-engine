@@ -1,0 +1,8 @@
+card "Rubblebelt Rioters" {
+  oracle_id d750f1d1-a3f9-4180-a903-2bd3f4cb9674
+  cost {1}{R}{G}
+  type Creature — Human Berserker
+  pt 0/4
+  keywords haste
+  triggered whenever this attacks: this gets +1/+0 count where greatest power
+}

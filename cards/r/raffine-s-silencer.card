@@ -1,0 +1,8 @@
+card "Raffine's Silencer" {
+  oracle_id 2901948c-2a5a-4135-9135-27406e9d8652
+  cost {2}{B}
+  type Creature — Human Assassin
+  pt 1/1
+  triggered when this enters: this connives
+  triggered when this dies: target creature an opponent controls gets -1/-1 count where power
+}

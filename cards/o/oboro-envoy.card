@@ -1,0 +1,8 @@
+card "Oboro Envoy" {
+  oracle_id be70c6e8-6f9f-49fb-ab40-c6ce0ec2077c
+  cost {3}{U}
+  type Creature — Moonfolk Wizard
+  pt 1/3
+  keywords flying
+  activated {2}, return land you control: target creature gets -1/-0 count where hand
+}

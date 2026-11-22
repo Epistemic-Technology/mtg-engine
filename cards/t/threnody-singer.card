@@ -1,0 +1,8 @@
+card "Threnody Singer" {
+  oracle_id 2c0816bd-8ce2-4ddf-845a-bcdaf929fe28
+  cost {1}{U}
+  type Creature — Siren
+  pt 1/3
+  keywords flash, flying
+  triggered when this enters: target creature an opponent controls gets -1/-0 count where devotion blue
+}

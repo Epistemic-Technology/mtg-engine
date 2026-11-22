@@ -1,0 +1,6 @@
+card "Dead of Winter" {
+  oracle_id 4d877c28-5276-4ea6-91c6-eeed890ca545
+  cost {2}{B}
+  type Sorcery
+  spell: every nonsnow creature gets -1/-1 count where snow permanent you control
+}

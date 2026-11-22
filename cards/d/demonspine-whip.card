@@ -1,0 +1,7 @@
+card "Demonspine Whip" {
+  oracle_id a588f047-02b4-4c6b-bce2-6e4d564296ec
+  cost {B}{R}
+  type Artifact — Equipment
+  activated {X}: equipped creature gets +1/+0 X
+  equip {1}
+}

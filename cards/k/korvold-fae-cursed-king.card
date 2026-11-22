@@ -1,0 +1,9 @@
+card "Korvold, Fae-Cursed King" {
+  oracle_id 9ae669dd-7e60-4649-b96e-35da28be641a
+  cost {2}{B}{R}{G}
+  type Legendary Creature — Dragon Noble
+  pt 4/4
+  keywords flying
+  triggered whenever this enters or attacks: sacrifice 1 another permanent chosen
+  triggered whenever you sacrifice permanent: put 1 +1/+1 counters on this and draw 1 cards
+}
