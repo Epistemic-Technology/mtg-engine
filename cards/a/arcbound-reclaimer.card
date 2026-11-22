@@ -1,0 +1,8 @@
+card "Arcbound Reclaimer" {
+  oracle_id c6424a3e-dbc7-403f-867f-a81cccd17ab8
+  cost {4}
+  type Artifact Creature — Golem
+  pt 0/0
+  activated remove 1 +1/+1 counters from this: put target artifact card from your graveyard on top of library
+  modular 2
+}

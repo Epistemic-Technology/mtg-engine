@@ -706,6 +706,12 @@ fn dig_general(text: &str) -> Option<(String, String)> {
         ""
     };
     let body = cap(&c, 4);
+    // A filter's "mana value X" is the spell's X (CR 107.3), not a count
+    // the dig names ("where X is the number of creature cards in your
+    // graveyard", Hatchery Spider).
+    if c.get(3).is_some() && body.contains(" X ") {
+        return None;
+    }
     let reveal = Regex::new(
         r"^You may reveal (.+?) from among them and put (it|that card|them) into your hand\. (Then put|Put) the rest (.+?)\.\s*(.*)$",
     )
@@ -2454,11 +2460,57 @@ impl Templates {
                     ))
                 },
             ),
+            // "Put target artifact card from your graveyard on top of your
+            // library" (Academy Ruins).
+            (
+                r(r"^[Pp]ut (target .+? card from your graveyard) on top of your library$"),
+                |c, t| {
+                    Some(format!(
+                        "put {} on top of library",
+                        recipient(cap(c, 1), t)?
+                    ))
+                },
+            ),
+            // "Mill two cards, then you may return a creature card from
+            // your graveyard to your hand."
+            (
+                r(
+                    r"^[Mm]ill (\w+) cards?, then (you may )?return an? (.+?) card from your graveyard to your hand$",
+                ),
+                |c, _| {
+                    let n = number(cap(c, 1))?;
+                    Some(format!(
+                        "mill {n} cards, then {}return 1 {} card from your graveyard to hand chosen",
+                        cap(c, 2),
+                        cap(c, 3)
+                    ))
+                },
+            ),
+            // "Return two cards at random from your graveyard to your hand."
+            (
+                r(r"^Return (\w+) cards at random from your graveyard to your hand$"),
+                |c, _| {
+                    let n = number(cap(c, 1))?;
+                    Some(format!(
+                        "return {n} card from your graveyard to hand at random"
+                    ))
+                },
+            ),
+            (
+                r(
+                    r"^Look at the top (\w+) cards of target (opponent|player)'s library, then put them back in any order$",
+                ),
+                |c, t| {
+                    let n = number(cap(c, 1))?;
+                    *t += 1;
+                    Some(format!("look at top {n} of target {}", cap(c, 2)))
+                },
+            ),
             // "Put target creature card from a graveyard onto the
             // battlefield under your control" (Rise from the Grave).
             (
                 r(
-                    r"^Put (target .+? card from a graveyard) onto the battlefield( tapped)? under your control$",
+                    r"^[Pp]ut (target .+? card from a graveyard) onto the battlefield( tapped)? under your control$",
                 ),
                 |c, t| {
                     Some(format!(

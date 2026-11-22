@@ -1,0 +1,8 @@
+card "The Eldest Reborn" {
+  oracle_id 44ed4c0c-a012-4895-a547-b04150553bba
+  cost {4}{B}
+  type Enchantment — Saga
+  triggered chapter 1: each opponent sacrifices 1 creature or planeswalker
+  triggered chapter 2: each opponent discards 1 cards
+  triggered chapter 3: return target creature or planeswalker card from a graveyard to battlefield under your control
+}

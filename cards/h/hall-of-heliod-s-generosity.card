@@ -1,0 +1,6 @@
+card "Hall of Heliod's Generosity" {
+  oracle_id 2fc070dc-f2f7-4648-8069-31d74790a39c
+  type Legendary Land
+  mana {C}
+  activated {1}{W}, {T}: put target enchantment card from your graveyard on top of library
+}

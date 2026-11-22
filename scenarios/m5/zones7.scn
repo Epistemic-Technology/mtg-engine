@@ -481,3 +481,104 @@ scenario "share a creature type: the first mode returns one creature card" {
   run_to turn 1 postcombat_main
   assert hand A contains "Hill Giant"
 }
+
+# Graveyard sentences the template author now writes.
+
+scenario "graveyard to top: Academy Ruins puts an artifact card on top of the library" {
+  battlefield A: "Academy Ruins", 2 "Island"
+  graveyard A: "Ornithopter"
+  library A: "Forest", "Island"
+  turn 1 A: activate "Academy Ruins" targeting "Ornithopter"
+  run_to turn 3 precombat_main
+  assert hand A contains "Ornithopter"
+  assert graveyard A lacks "Ornithopter"
+}
+
+scenario "graveyard to top: Academy Ruins can't target a creature card" {
+  battlefield A: "Academy Ruins", 2 "Island"
+  graveyard A: "Grizzly Bears"
+  illegal turn 1 A: activate "Academy Ruins" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "graveyard to top: Hall of Heliod's Generosity puts an enchantment card on top" {
+  battlefield A: "Hall of Heliod's Generosity", 2 "Plains"
+  graveyard A: "Pacifism"
+  library A: "Forest", "Island"
+  turn 1 A: activate "Hall of Heliod's Generosity" targeting "Pacifism"
+  run_to turn 3 precombat_main
+  assert hand A contains "Pacifism"
+}
+
+scenario "graveyard to top: Arcbound Reclaimer removes a counter to put an artifact card on top" {
+  battlefield A: "Arcbound Reclaimer" with 2 +1/+1
+  graveyard A: "Ornithopter"
+  library A: "Forest", "Island"
+  turn 1 A: activate "Arcbound Reclaimer" targeting "Ornithopter"
+  run_to turn 1 end
+  assert counters "Arcbound Reclaimer" +1/+1 1
+  assert library A contains "Ornithopter"
+  assert graveyard A lacks "Ornithopter"
+}
+
+scenario "random from graveyard: Make a Wish returns two cards" {
+  battlefield A: 4 "Forest"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Shock"
+  hand A: "Make a Wish"
+  turn 1 A: cast "Make a Wish"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A count 2
+}
+
+scenario "random from graveyard: Reap the Past returns X cards and exiles itself" {
+  battlefield A: 2 "Mountain", 2 "Forest"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Shock"
+  hand A: "Reap the Past"
+  turn 1 A: cast "Reap the Past" x 2
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A count 1
+  assert exile A contains "Reap the Past"
+}
+
+scenario "reanimate: Debtors' Knell takes a creature card at the beginning of the upkeep" {
+  battlefield A: "Debtors' Knell"
+  graveyard B: "Hill Giant"
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "reanimate: The Eldest Reborn's chapter III" {
+  battlefield A: "The Eldest Reborn" with 2 lore
+  graveyard B: "Hill Giant"
+  start turn 3 A
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A contains "The Eldest Reborn"
+}
+
+scenario "reanimate: Junji's second mode" {
+  battlefield A: "Junji, the Midnight Sky"
+  battlefield B: 3 "Swamp"
+  graveyard B: "Hill Giant"
+  hand B: "Murder"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Junji, the Midnight Sky"
+  turn 2 A: trigger "Junji, the Midnight Sky" mode 2 targeting "Hill Giant"
+  run_to turn 2 end
+  assert battlefield A contains "Hill Giant"
+  assert life A 18
+}
+
+scenario "reanimate: Teneb pays {2}{B} after combat damage" {
+  battlefield A: "Teneb, the Harvester", 3 "Swamp"
+  graveyard B: "Hill Giant"
+  turn 1 A: attack "Teneb, the Harvester"
+  turn 1 A: trigger "Teneb, the Harvester" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert battlefield A contains "Hill Giant"
+}

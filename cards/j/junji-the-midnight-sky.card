@@ -1,0 +1,11 @@
+card "Junji, the Midnight Sky" {
+  oracle_id 78a48f4e-ba4c-4d8d-938a-9ddb342a885b
+  cost {3}{B}{B}
+  type Legendary Creature — Dragon Spirit
+  pt 5/5
+  keywords flying, menace
+  triggered when this dies: choose one {
+    mode: each opponent discards two cards and loses 2 life
+    mode: return target non-Dragon creature card from a graveyard to battlefield under your control; you loses 2 life
+  }
+}

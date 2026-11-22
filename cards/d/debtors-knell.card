@@ -1,0 +1,6 @@
+card "Debtors' Knell" {
+  oracle_id a9ff368b-5208-4ada-bb99-eccbf8eaea28
+  cost {4}{W/B}{W/B}{W/B}
+  type Enchantment
+  triggered at beginning of your upkeep: return target creature card from a graveyard to battlefield under your control
+}

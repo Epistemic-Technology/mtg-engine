@@ -1,0 +1,8 @@
+card "Teneb, the Harvester" {
+  oracle_id d41f0357-f1d6-45cc-b8ea-4efa41da1448
+  cost {3}{W}{B}{G}
+  type Legendary Creature — Dragon
+  pt 6/6
+  keywords flying
+  triggered whenever this deals combat damage to a player: you may pay {2}{B}; if you do, return target creature card from a graveyard to battlefield under your control
+}
