@@ -1,0 +1,8 @@
+card "Tempered Veteran" {
+  oracle_id c19f3f00-2c7b-4e85-a034-e65760d9cc13
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 1/2
+  activated {W}, {T}: put 1 +1/+1 counters on target creature with +1/+1 counter
+  activated {4}{W}{W}, {T}: put 1 +1/+1 counters on target creature
+}

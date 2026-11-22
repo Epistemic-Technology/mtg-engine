@@ -1,0 +1,7 @@
+card "Obliterate" {
+  oracle_id 47496941-8007-45a0-a981-76c683cbddc1
+  cost {6}{R}{R}
+  type Sorcery
+  this spell can't be countered
+  spell: destroy all andlist artifact or creature or land without regeneration
+}

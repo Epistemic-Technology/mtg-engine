@@ -1,0 +1,6 @@
+card "Reap What Is Sown" {
+  oracle_id dd6cec11-5c66-4f0e-a12f-9b483a09a777
+  cost {1}{G}{W}
+  type Instant
+  spell: put 1 +1/+1 counters on up to 3 target creature
+}

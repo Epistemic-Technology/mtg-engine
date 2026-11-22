@@ -1,0 +1,7 @@
+card "Razorfin Abolisher" {
+  oracle_id 38a2ded4-77c5-4d2b-b411-7dca8108aa02
+  cost {2}{U}
+  type Creature — Merfolk Wizard
+  pt 2/2
+  activated {1}{U}, {T}: return target creature with counter to hand
+}

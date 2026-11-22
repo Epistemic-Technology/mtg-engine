@@ -1,0 +1,6 @@
+card "Refute Destiny" {
+  oracle_id 2a18b3f0-8a78-46d8-b60f-3cd634062f1b
+  cost {1}{W}
+  type Sorcery
+  spell: exile target green or blue creature or green or blue planeswalker; surveil 1
+}

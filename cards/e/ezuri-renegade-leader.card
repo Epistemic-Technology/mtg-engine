@@ -1,0 +1,8 @@
+card "Ezuri, Renegade Leader" {
+  oracle_id 6734497c-16f0-4c4b-ba24-337333511fc6
+  cost {1}{G}{G}
+  type Legendary Creature — Elf Warrior
+  pt 2/2
+  activated {G}: regenerate another target Elf
+  activated {2}{G}{G}{G}: each Elf creature you control gets +3/+3 and gains trample
+}

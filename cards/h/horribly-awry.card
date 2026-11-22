@@ -1,0 +1,7 @@
+card "Horribly Awry" {
+  oracle_id 9cac23a1-a0b3-490c-aea2-dc2928f6dc9e
+  cost {1}{U}
+  type Instant
+  keywords devoid
+  spell: counter target creature with mana value 4 or less spell to exile
+}

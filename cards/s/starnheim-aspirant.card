@@ -1,0 +1,7 @@
+card "Starnheim Aspirant" {
+  oracle_id e7b92789-47a9-430a-ad57-be7b6c3d63cb
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 2/2
+  spells Angel you cast cost {2} less
+}

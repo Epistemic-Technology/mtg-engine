@@ -1,0 +1,10 @@
+card "Jund Charm" {
+  oracle_id 7bd2ac13-d598-4cf1-a483-2a6878aed93b
+  cost {B}{R}{G}
+  type Instant
+  choose one {
+    mode: exile graveyard of target player
+    mode: deal 2 damage to each creature
+    mode: put 2 +1/+1 counters on target creature
+  }
+}

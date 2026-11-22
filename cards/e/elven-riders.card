@@ -1,0 +1,7 @@
+card "Elven Riders" {
+  oracle_id 9a6ff511-3c8f-446e-8cad-b8997a753958
+  cost {3}{G}{G}
+  type Creature — Elf
+  pt 3/3
+  can't be blocked except by andor Wall or creature with flying
+}

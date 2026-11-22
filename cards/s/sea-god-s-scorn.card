@@ -1,0 +1,6 @@
+card "Sea God's Scorn" {
+  oracle_id d2497a5e-ff2b-4024-9b14-634304d583fe
+  cost {4}{U}{U}
+  type Sorcery
+  spell: return up to 3 target andor creature or enchantment to hand
+}

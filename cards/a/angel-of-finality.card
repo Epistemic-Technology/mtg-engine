@@ -1,0 +1,8 @@
+card "Angel of Finality" {
+  oracle_id 48d14b5c-711a-4f8a-9de5-55415cb7a79a
+  cost {3}{W}
+  type Creature — Angel
+  pt 3/4
+  keywords flying
+  triggered when this enters: exile graveyard of target player
+}

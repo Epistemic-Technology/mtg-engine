@@ -5975,6 +5975,165 @@ fn author_faces(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     })
 }
 
+/// A plural card type made singular, for a filter: "artifacts" →
+/// "artifact".
+fn singular_type(w: &str) -> &str {
+    match w {
+        "sorceries" => "sorcery",
+        "artifacts" | "creatures" | "enchantments" | "planeswalkers" | "lands" | "instants"
+        | "permanents" | "battles" => &w[..w.len() - 1],
+        _ => w,
+    }
+}
+
+/// Oracle's filter phrases a template copied into a statement, rewritten
+/// in the DSL's words: "with a +1/+1 counter on it" (`with +1/+1
+/// counter`), "named ~" (`named this`), "artifacts and/or enchantments"
+/// (`andor artifact or enchantment`), "creature or planeswalker that's
+/// black or red" (the colors on each type), "target spell with mana value
+/// 2 or less" (the qualities before `spell`), "each of up to two target
+/// creatures" (`up to 2 target creature`), "from a single graveyard",
+/// "target player's graveyard", "all artifacts and enchantments"
+/// (`andlist`), and a subtype the template lowercased ("Aura spells").
+/// The render check decides whether the result is the card's text.
+fn filter_phrases(st: &str, oracle: &str) -> String {
+    const COLORS: &str = "white|blue|black|red|green";
+    let re = |p: &str| Regex::new(p).expect("a filter phrase pattern");
+    let mut s = st.to_string();
+    s = re(r"with an? ([+-]\d+/[+-]\d+|[a-z]+) counter on (?:it|them)")
+        .replace_all(&s, "with $1 counter")
+        .into_owned();
+    s = s
+        .replace("with a counter on it", "with counter")
+        .replace("not named ~", "not named this")
+        .replace("named ~", "named this");
+    s = re(r"(\w+), (\w+), and/or (\w+)")
+        .replace_all(&s, |c: &regex::Captures| {
+            format!(
+                "andor {} or {} or {}",
+                singular_type(&c[1]),
+                singular_type(&c[2]),
+                singular_type(&c[3])
+            )
+        })
+        .into_owned();
+    s = re(r"(\w+) and/or (\w+)")
+        .replace_all(&s, |c: &regex::Captures| {
+            format!("andor {} or {}", singular_type(&c[1]), singular_type(&c[2]))
+        })
+        .into_owned();
+    s = re(&format!(
+        r"(\w+) or (\w+) that's ({COLORS}) or ({COLORS})"
+    ))
+    .replace_all(&s, "$3 or $4 $1 or $3 or $4 $2")
+    .into_owned();
+    s = re(r"counter target ((?:\w+ )?)spell (with (?:mana value|power or toughness|power|toughness) (?:\d+|X)(?: or (?:less|greater))?)")
+        .replace_all(&s, "counter target $1$2 spell")
+        .into_owned();
+    let num = |w: &str| match w {
+        "one" => "1",
+        "two" => "2",
+        "three" => "3",
+        "four" => "4",
+        _ => "5",
+    };
+    s = re(r"each of (up to |one or )?(one|two|three|four|five) (other )?target")
+        .replace_all(&s, |c: &regex::Captures| {
+            let pre = match c.get(1).map(|m| m.as_str()) {
+                Some("one or ") => "1 to ",
+                Some(p) => p,
+                None => "",
+            };
+            let other = if c.get(3).is_some() { "another " } else { "" };
+            format!("{pre}{} {other}target", num(&c[2]))
+        })
+        .into_owned();
+    s = re(r"up to (one|two|three|four|five) (other )?target")
+        .replace_all(&s, |c: &regex::Captures| {
+            let other = if c.get(2).is_some() { "another " } else { "" };
+            format!("up to {} {other}target", num(&c[1]))
+        })
+        .into_owned();
+    s = s
+        .replace("from a single graveyard", "from a graveyard")
+        .replace(
+            "exile target player's graveyard",
+            "exile graveyard of target player",
+        )
+        .replace(
+            "exile each opponents' graveyards",
+            "exile graveyard of each opponent",
+        )
+        .replace("exile each graveyards", "exile all graveyards")
+        .replace("to each of two targets", "to 2 targets");
+    // "Destroy all artifacts and enchantments": either type, every one.
+    s = re(r"(destroy|exile|return) each (\w+), (\w+), and (\w+)\b")
+        .replace_all(&s, |c: &regex::Captures| {
+            format!(
+                "{} all andlist {} or {} or {}",
+                &c[1],
+                singular_type(&c[2]),
+                singular_type(&c[3]),
+                singular_type(&c[4])
+            )
+        })
+        .into_owned();
+    s = re(r"(destroy|exile|return) each (\w+) and (\w+)\b")
+        .replace_all(&s, |c: &regex::Captures| {
+            format!(
+                "{} all andlist {} or {}",
+                &c[1],
+                singular_type(&c[2]),
+                singular_type(&c[3])
+            )
+        })
+        .into_owned();
+    // "Aura spells you cast", "each Warrior creature you control": a
+    // subtype the template lowercased, as Oracle capitalizes it.
+    s = re(r"\b(spells|each|every|sacrifice) ([a-z]+)\b")
+        .replace_all(&s, |c: &regex::Captures| {
+            let w = &c[2];
+            let mut cap = w.to_string();
+            cap[..1].make_ascii_uppercase();
+            let printed = re(&format!(r"\b{}s?\b", regex::escape(&cap)));
+            if card_type_word(w) || !printed.is_match(oracle) {
+                c[0].to_string()
+            } else {
+                format!("{} {cap}", &c[1])
+            }
+        })
+        .into_owned();
+    s
+}
+
+/// A card type or another lowercase filter word, never a subtype.
+fn card_type_word(w: &str) -> bool {
+    matches!(
+        w,
+        "artifact"
+            | "creature"
+            | "enchantment"
+            | "land"
+            | "planeswalker"
+            | "instant"
+            | "sorcery"
+            | "battle"
+            | "permanent"
+            | "card"
+            | "cards"
+            | "player"
+            | "opponent"
+            | "other"
+            | "single"
+            | "those"
+            | "these"
+            | "that"
+            | "this"
+            | "the"
+            | "of"
+    )
+}
+
 /// How much of two texts agrees: the common prefix and suffix lengths.
 fn similarity(a: &str, b: &str) -> usize {
     let pre = a.bytes().zip(b.bytes()).take_while(|(x, y)| x == y).count();
@@ -6379,6 +6538,10 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         b.line(line)?;
         i += 1;
     }
+    // Oracle's filter phrases the templates copied, in the DSL's words.
+    for st in b.statements.iter_mut().chain(b.spell_paragraphs.iter_mut()) {
+        *st = filter_phrases(st, &oracle);
+    }
     // Assemble the file.
     let mut text = format!("card \"{}\" {{\n", s.name);
     if let Some(id) = &s.oracle_id {
@@ -6486,7 +6649,12 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         }
         Ok(render::normalize(&render::oracle_text(&card, lookup)))
     };
-    let mut rendered = render_of(&text)?;
+    let mut rendered = render_of(&text).inspect_err(|_| {
+        // `MTG_AUTHOR_SHOW=1`: print the draft that failed to parse.
+        if std::env::var_os("MTG_AUTHOR_SHOW").is_some() {
+            eprintln!("{text}");
+        }
+    })?;
     // A near miss may be wording only: try the DSL's synonyms for the
     // same object (`each`/`all`, `this`/`this creature`/`it`), keeping
     // whichever brings the text closer, until it matches.

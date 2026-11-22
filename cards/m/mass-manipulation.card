@@ -1,0 +1,6 @@
+card "Mass Manipulation" {
+  oracle_id 68e87559-7cae-4dcf-b7cd-a61f19bcd840
+  cost {X}{X}{U}{U}{U}{U}
+  type Sorcery
+  spell: gain control of X target andor creature or planeswalker indefinitely
+}

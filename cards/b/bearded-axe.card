@@ -1,0 +1,7 @@
+card "Bearded Axe" {
+  oracle_id a231319d-5d72-4aa6-8868-5987694791cd
+  cost {2}{R}
+  type Artifact — Equipment
+  static enchanted: +1/+1 count each andor Dwarf or Equipment or Vehicle you control
+  equip {2}
+}

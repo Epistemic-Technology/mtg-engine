@@ -1,0 +1,762 @@
+# Oracle's filter phrases the template author now writes in the DSL's
+# words: "with a +1/+1 counter on it", "named ~", "and/or" between types,
+# "creature or planeswalker that's black or red", "spell with mana value N
+# or less", "each of up to two target creatures", "from a single
+# graveyard", "target player's graveyard", "all artifacts and
+# enchantments", and subtypes in "Aura spells", "Warrior creatures".
+
+# ---- counters on it ----
+
+scenario "Crumbling Ashes: destroys a creature with a -1/-1 counter on it" {
+  battlefield A: "Crumbling Ashes"
+  battlefield B: "Hill Giant" with 1 -1/-1, "Grizzly Bears"
+  turn 1 upkeep A: trigger "Crumbling Ashes" targeting "Hill Giant"
+  run_to turn 1 precombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Hunter of Eyeblights: only a creature with a counter on it" {
+  battlefield A: "Hunter of Eyeblights", 3 "Swamp"
+  battlefield B: "Hill Giant" with 1 +1/+1, "Grizzly Bears"
+  illegal turn 1 A: activate "Hunter of Eyeblights" targeting "Grizzly Bears"
+  turn 1 A: activate "Hunter of Eyeblights" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Liliana, Death Wielder: -3 destroys a creature with a -1/-1 counter" {
+  battlefield A: "Liliana, Death Wielder"
+  battlefield B: "Hill Giant" with 1 -1/-1, "Grizzly Bears"
+  illegal turn 1 A: activate "Liliana, Death Wielder" ability 2 targeting "Grizzly Bears"
+  turn 1 A: activate "Liliana, Death Wielder" ability 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert counters "Liliana, Death Wielder" loyalty 2
+}
+
+scenario "Lockjaw Snapper: dying, a -1/-1 counter on each creature that has one" {
+  battlefield A: "Lockjaw Snapper", "Mountain"
+  battlefield B: "Hill Giant" with 1 -1/-1, "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Lockjaw Snapper"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Lockjaw Snapper"
+  assert counters "Hill Giant" -1/-1 2
+  assert counters "Grizzly Bears" -1/-1 0
+}
+
+scenario "Dueling Coach: a counter on each creature you control with a +1/+1 counter" {
+  battlefield A: "Dueling Coach", "Grizzly Bears" with 1 +1/+1, "Savannah Lions", 5 "Plains"
+  battlefield B: "Hill Giant" with 1 +1/+1
+  turn 1 A: activate "Dueling Coach"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert counters "Savannah Lions" +1/+1 0
+  assert counters "Hill Giant" +1/+1 1
+}
+
+scenario "Patron of the Valiant: entering, counters on creatures that have one" {
+  battlefield A: "Grizzly Bears" with 1 +1/+1, "Savannah Lions", 5 "Plains"
+  hand A: "Patron of the Valiant"
+  turn 1 A: cast "Patron of the Valiant"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert counters "Savannah Lions" +1/+1 0
+}
+
+scenario "Scale Blessing: bolster 1, then a counter on each creature with one" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 4 "Plains"
+  hand A: "Scale Blessing"
+  turn 1 A: cast "Scale Blessing"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert counters "Hill Giant" +1/+1 0
+}
+
+scenario "Oran-Rief Ooze: attacking, a counter on each attacker that has one" {
+  battlefield A: "Oran-Rief Ooze", "Grizzly Bears" with 1 +1/+1, "Savannah Lions"
+  battlefield B: "Hill Giant" with 1 +1/+1
+  turn 1 A: attack "Oran-Rief Ooze", "Grizzly Bears", "Savannah Lions"
+  run_to turn 1 declare_blockers
+  assert counters "Grizzly Bears" +1/+1 2
+  assert counters "Savannah Lions" +1/+1 0
+  assert counters "Hill Giant" +1/+1 1
+}
+
+scenario "Ollenbock Escort: only a creature you control with a +1/+1 counter" {
+  battlefield A: "Ollenbock Escort", "Grizzly Bears" with 1 +1/+1, "Savannah Lions"
+  illegal turn 1 A: activate "Ollenbock Escort" targeting "Savannah Lions"
+  turn 1 A: activate "Ollenbock Escort" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" lifelink
+  assert has "Grizzly Bears" indestructible
+  assert graveyard A contains "Ollenbock Escort"
+}
+
+scenario "Steppe Glider: flying and vigilance for a creature with a +1/+1 counter" {
+  battlefield A: "Steppe Glider", "Grizzly Bears" with 1 +1/+1, "Savannah Lions", 2 "Plains"
+  illegal turn 1 A: activate "Steppe Glider" targeting "Savannah Lions"
+  turn 1 A: activate "Steppe Glider" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" flying
+  assert has "Grizzly Bears" vigilance
+}
+
+scenario "Tempered Veteran: a counter on a creature that has a +1/+1 counter" {
+  battlefield A: "Tempered Veteran", "Grizzly Bears" with 1 +1/+1, "Savannah Lions", "Plains"
+  illegal turn 1 A: activate "Tempered Veteran" targeting "Savannah Lions"
+  turn 1 A: activate "Tempered Veteran" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+}
+
+scenario "Razorfin Abolisher: returns a creature with a counter on it" {
+  battlefield A: "Razorfin Abolisher", 2 "Island"
+  battlefield B: "Hill Giant" with 1 -1/-1, "Grizzly Bears"
+  illegal turn 1 A: activate "Razorfin Abolisher" targeting "Grizzly Bears"
+  turn 1 A: activate "Razorfin Abolisher" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+}
+
+scenario "Unity of Purpose: support 2, then untap each creature with a +1/+1 counter" {
+  battlefield A: "Grizzly Bears" tapped, "Savannah Lions" tapped, "Hill Giant" tapped, 4 "Island"
+  hand A: "Unity of Purpose"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Unity of Purpose" targeting "Grizzly Bears", "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert untapped "Grizzly Bears"
+  assert untapped "Savannah Lions"
+  assert tapped "Hill Giant"
+}
+
+scenario "Zegana, Utopian Speaker: draws with another creature with a +1/+1 counter; trample for them" {
+  battlefield A: "Grizzly Bears" with 1 +1/+1, "Savannah Lions", 2 "Forest", 2 "Island"
+  hand A: "Zegana, Utopian Speaker"
+  turn 1 A: cast "Zegana, Utopian Speaker"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert has "Grizzly Bears" trample
+  assert has not "Savannah Lions" trample
+  assert has not "Zegana, Utopian Speaker" trample
+}
+
+scenario "Zegana, Utopian Speaker: no draw without one" {
+  battlefield A: "Savannah Lions", 2 "Forest", 2 "Island"
+  hand A: "Zegana, Utopian Speaker"
+  turn 1 A: cast "Zegana, Utopian Speaker"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+# ---- named ~ ----
+
+scenario "Genasi Enforcers: pumps each creature you control named Genasi Enforcers" {
+  battlefield A: "Genasi Enforcers", "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Genasi Enforcers"
+  turn 1 A: activate "Genasi Enforcers"
+  run_to turn 1 postcombat_main
+  assert power A "Genasi Enforcers" 2
+  assert power B "Genasi Enforcers" 1
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Dutiful Replicator: pays {1} and copies a token you control" {
+  battlefield A: "Soldier", 4 "Plains"
+  hand A: "Dutiful Replicator"
+  turn 1 A: cast "Dutiful Replicator"
+  turn 1 A: trigger "Dutiful Replicator" targeting "Soldier"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Soldier"
+}
+
+# ---- and/or ----
+
+scenario "All That Glitters: +1/+1 for each artifact and/or enchantment you control" {
+  battlefield A: "Grizzly Bears", "Ornithopter", "Mind Stone", 2 "Plains"
+  battlefield B: "Darksteel Relic"
+  hand A: "All That Glitters"
+  turn 1 A: cast "All That Glitters" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+}
+
+scenario "Nettlecyst: the Germ gets +1/+1 for each artifact and/or enchantment" {
+  battlefield A: "Mind Stone", 3 "Plains"
+  hand A: "Nettlecyst"
+  turn 1 A: cast "Nettlecyst"
+  run_to turn 1 postcombat_main
+  assert power "Phyrexian Germ" 2
+  assert toughness "Phyrexian Germ" 2
+}
+
+scenario "Bearded Axe: +1/+1 for each Dwarf, Equipment, and/or Vehicle you control" {
+  battlefield A: "Grizzly Bears", "Bearded Axe", "Bonesplitter", 2 "Mountain"
+  turn 1 A: activate "Bearded Axe" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "Strength of the Harvest: +1/+1 for each creature and/or enchantment you control" {
+  battlefield A: "Grizzly Bears", "Savannah Lions", 3 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Strength of the Harvest // Haven of the Harvest"
+  turn 1 A: cast "Strength of the Harvest" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+}
+
+scenario "Shambling Suit: power is the artifacts and/or enchantments you control" {
+  battlefield A: "Shambling Suit", "Mind Stone", "Pacifism" on "Grizzly Bears"
+  battlefield B: "Grizzly Bears", "Darksteel Relic"
+  run_to turn 1 precombat_main
+  assert power "Shambling Suit" 3
+  assert toughness "Shambling Suit" 3
+}
+
+scenario "Angel of the Ruins: exiles up to two target artifacts and/or enchantments" {
+  battlefield A: 7 "Plains"
+  battlefield B: "Mind Stone", "Glorious Anthem", "Grizzly Bears"
+  hand A: "Angel of the Ruins"
+  turn 1 A: cast "Angel of the Ruins"
+  turn 1 A: trigger "Angel of the Ruins" targeting "Mind Stone", "Glorious Anthem"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Mind Stone"
+  assert exile B contains "Glorious Anthem"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Archenemy's Charm: returns creature and/or planeswalker cards" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Grizzly Bears", "Jace Beleren", "Shock"
+  hand A: "Archenemy's Charm"
+  turn 1 A: cast "Archenemy's Charm" mode 2 targeting "Grizzly Bears", "Jace Beleren"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Jace Beleren"
+  assert graveyard A contains "Shock"
+}
+
+scenario "Baral's Expertise: bounces up to three artifacts and/or creatures" {
+  battlefield A: 5 "Island"
+  battlefield B: "Grizzly Bears", "Mind Stone", "Glorious Anthem"
+  hand A: "Baral's Expertise"
+  turn 1 A: cast "Baral's Expertise" targeting "Grizzly Bears", "Mind Stone"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert hand B contains "Mind Stone"
+  assert battlefield B contains "Glorious Anthem"
+}
+
+scenario "Sea God's Scorn: bounces up to three creatures and/or enchantments" {
+  battlefield A: 6 "Island"
+  battlefield B: "Grizzly Bears", "Mind Stone", "Glorious Anthem"
+  hand A: "Sea God's Scorn"
+  turn 1 A: cast "Sea God's Scorn" targeting "Grizzly Bears", "Glorious Anthem"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert hand B contains "Glorious Anthem"
+  assert battlefield B contains "Mind Stone"
+}
+
+scenario "Involuntary Cooldown: taps an artifact and a creature with two stun counters each" {
+  battlefield A: 4 "Island"
+  battlefield B: "Grizzly Bears", "Mind Stone"
+  hand A: "Involuntary Cooldown"
+  turn 1 A: cast "Involuntary Cooldown" targeting "Grizzly Bears", "Mind Stone"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Mind Stone"
+  assert counters "Grizzly Bears" stun 2
+  assert counters "Mind Stone" stun 2
+}
+
+scenario "Mass Manipulation: gains control of X creatures and/or planeswalkers" {
+  battlefield A: 8 "Island"
+  battlefield B: "Grizzly Bears", "Jace Beleren", "Hill Giant"
+  hand A: "Mass Manipulation"
+  turn 1 A: cast "Mass Manipulation" x 2 targeting "Grizzly Bears", "Jace Beleren"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Jace Beleren"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Meteor Swarm: divides 8 damage among a creature and a planeswalker" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Craw Wurm", "Jace Beleren"
+  hand A: "Meteor Swarm"
+  turn 1 A: cast "Meteor Swarm" x 2 targeting "Craw Wurm", "Jace Beleren" dividing 5, 3
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Craw Wurm"
+  assert graveyard B contains "Jace Beleren"
+}
+
+scenario "Scholar of the Ages: returns instant and/or sorcery cards" {
+  battlefield A: 7 "Island"
+  graveyard A: "Shock", "Divination", "Grizzly Bears"
+  hand A: "Scholar of the Ages"
+  turn 1 A: cast "Scholar of the Ages"
+  turn 1 A: trigger "Scholar of the Ages" targeting "Shock", "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+  assert hand A contains "Divination"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Faith & Grief: returns artifact and/or enchantment cards" {
+  battlefield A: 5 "Plains"
+  graveyard A: "Mind Stone", "Glorious Anthem", "Grizzly Bears"
+  hand A: "Ishgard, the Holy See // Faith & Grief"
+  turn 1 A: cast "Faith & Grief" targeting "Mind Stone", "Glorious Anthem"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Mind Stone"
+  assert hand A contains "Glorious Anthem"
+}
+
+scenario "Elven Riders: a creature without flying that isn't a Wall can't block it" {
+  battlefield A: "Elven Riders"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Elven Riders"
+  illegal turn 1 B: block "Elven Riders" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Elven Riders: a creature with flying can block it" {
+  battlefield A: "Elven Riders"
+  battlefield B: "Wind Drake"
+  turn 1 A: attack "Elven Riders"
+  turn 1 B: block "Elven Riders" with "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+# ---- colors on each type ----
+
+scenario "Devout Decree: exiles a black or red creature, not a green one" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Devout Decree"
+  illegal turn 1 A: cast "Devout Decree" targeting "Grizzly Bears"
+  turn 1 A: cast "Devout Decree" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Fry: 5 damage to a white or blue planeswalker, not a red creature" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant", "Jace Beleren"
+  hand A: "Fry"
+  illegal turn 1 A: cast "Fry" targeting "Hill Giant"
+  turn 1 A: cast "Fry" targeting "Jace Beleren"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Jace Beleren"
+}
+
+scenario "Noxious Grasp: destroys a green creature and gains 1 life" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Noxious Grasp"
+  illegal turn 1 A: cast "Noxious Grasp" targeting "Hill Giant"
+  turn 1 A: cast "Noxious Grasp" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 21
+}
+
+scenario "Refute Destiny: exiles a blue creature and surveils" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Hill Giant", "Storm Crow"
+  hand A: "Refute Destiny"
+  illegal turn 1 A: cast "Refute Destiny" targeting "Hill Giant"
+  turn 1 A: cast "Refute Destiny" targeting "Storm Crow"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Storm Crow"
+}
+
+# ---- spells with mana value or power ----
+
+scenario "Minor Misstep: counters a spell with mana value 1 or less" {
+  battlefield A: "Island"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  hand A: "Minor Misstep"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Shock" targeting player A
+  turn 1 A: cast "Minor Misstep" targeting "Shock"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Shock"
+}
+
+scenario "Minor Misstep: can't counter a spell with mana value 2" {
+  battlefield A: "Island"
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  hand A: "Minor Misstep"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Grizzly Bears"
+  illegal turn 1 A: cast "Minor Misstep" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Mesmeric Glare: counters a spell with mana value 3 or less" {
+  battlefield A: 3 "Island"
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  hand A: "Hypnotic Sprite // Mesmeric Glare"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Grizzly Bears"
+  turn 1 A: cast "Mesmeric Glare" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Horribly Awry: exiles a creature spell with mana value 4 or less" {
+  battlefield A: 2 "Island"
+  battlefield B: 4 "Mountain"
+  hand B: "Hill Giant"
+  hand A: "Horribly Awry"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Hill Giant"
+  turn 1 A: cast "Horribly Awry" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Horribly Awry: not a creature spell with mana value 6" {
+  battlefield A: 2 "Island"
+  battlefield B: 6 "Forest"
+  hand B: "Craw Wurm"
+  hand A: "Horribly Awry"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Craw Wurm"
+  illegal turn 1 A: cast "Horribly Awry" targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Craw Wurm"
+}
+
+scenario "Stern Scolding: counters a creature spell with power 2 or less" {
+  battlefield A: "Island"
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  hand A: "Stern Scolding"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Grizzly Bears"
+  turn 1 A: cast "Stern Scolding" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Stern Scolding: not a 3/3 creature spell" {
+  battlefield A: "Island"
+  battlefield B: 4 "Mountain"
+  hand B: "Hill Giant"
+  hand A: "Stern Scolding"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Hill Giant"
+  illegal turn 1 A: cast "Stern Scolding" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+# ---- each of up to N targets ----
+
+scenario "Gird for Battle: a counter on each of up to two target creatures" {
+  battlefield A: "Grizzly Bears", "Savannah Lions", "Plains"
+  hand A: "Gird for Battle"
+  turn 1 A: cast "Gird for Battle" targeting "Grizzly Bears", "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Savannah Lions" +1/+1 1
+}
+
+scenario "Reap What Is Sown: a counter on each of up to three target creatures" {
+  battlefield A: "Grizzly Bears", "Savannah Lions", "Hill Giant", "Forest", "Plains", "Island"
+  hand A: "Reap What Is Sown"
+  turn 1 A: cast "Reap What Is Sown" targeting "Grizzly Bears", "Savannah Lions", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Savannah Lions" +1/+1 1
+  assert counters "Hill Giant" +1/+1 1
+}
+
+scenario "Angelic Quartermaster: counters on up to two other target creatures" {
+  battlefield A: "Grizzly Bears", "Savannah Lions", 5 "Plains"
+  hand A: "Angelic Quartermaster"
+  turn 1 A: cast "Angelic Quartermaster"
+  turn 1 A: trigger "Angelic Quartermaster" targeting "Grizzly Bears", "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Savannah Lions" +1/+1 1
+  assert counters "Angelic Quartermaster" +1/+1 0
+}
+
+scenario "Vineshaper Mystic: counters on up to two target Merfolk you control" {
+  battlefield A: "Coral Merfolk", "Grizzly Bears", 3 "Forest"
+  hand A: "Vineshaper Mystic"
+  turn 1 A: cast "Vineshaper Mystic"
+  turn 1 A: trigger "Vineshaper Mystic" targeting "Coral Merfolk", "Vineshaper Mystic"
+  run_to turn 1 postcombat_main
+  assert counters "Coral Merfolk" +1/+1 1
+  assert counters "Vineshaper Mystic" +1/+1 1
+}
+
+scenario "White Widow, Free Agent: counters on each of up to two target creatures" {
+  battlefield A: "Grizzly Bears", "Savannah Lions", 4 "Plains"
+  hand A: "White Widow, Free Agent"
+  turn 1 A: cast "White Widow, Free Agent"
+  turn 1 A: trigger "White Widow, Free Agent" mode 1 targeting "Grizzly Bears", "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Savannah Lions" +1/+1 1
+}
+
+scenario "Smoldering Werewolf: 1 damage to each of up to two target creatures" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Grizzly Bears", "Savannah Lions"
+  hand A: "Smoldering Werewolf // Erupting Dreadwolf"
+  turn 1 A: cast "Smoldering Werewolf"
+  turn 1 A: trigger "Smoldering Werewolf" targeting "Grizzly Bears", "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert damage "Grizzly Bears" 1
+  assert graveyard B contains "Savannah Lions"
+}
+
+# ---- graveyards ----
+
+scenario "Shred Memory: exiles up to four target cards from a single graveyard" {
+  battlefield A: 2 "Swamp"
+  graveyard B: "Grizzly Bears", "Shock", "Hill Giant"
+  hand A: "Shred Memory"
+  turn 1 A: cast "Shred Memory" targeting "Grizzly Bears", "Shock"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Shock"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Feral Deathgorger: exiles up to two target cards from a single graveyard" {
+  battlefield A: 6 "Swamp"
+  graveyard B: "Grizzly Bears", "Shock"
+  hand A: "Feral Deathgorger // Dusk Sight"
+  turn 1 A: cast "Feral Deathgorger"
+  turn 1 A: trigger "Feral Deathgorger" targeting "Grizzly Bears", "Shock"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Shock"
+}
+
+scenario "Angel of Finality: exiles target player's graveyard" {
+  battlefield A: 4 "Plains"
+  graveyard B: "Grizzly Bears", "Shock"
+  graveyard A: "Hill Giant"
+  hand A: "Angel of Finality"
+  turn 1 A: cast "Angel of Finality"
+  turn 1 A: trigger "Angel of Finality" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 0
+  assert exile B contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Agent of Erebos: constellation exiles target player's graveyard" {
+  battlefield A: 4 "Swamp"
+  graveyard B: "Grizzly Bears"
+  hand A: "Agent of Erebos"
+  turn 1 A: cast "Agent of Erebos"
+  turn 1 A: trigger "Agent of Erebos" targeting player B
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+}
+
+scenario "Jund Charm: exiles target player's graveyard" {
+  battlefield A: "Swamp", "Mountain", "Forest"
+  graveyard B: "Grizzly Bears"
+  hand A: "Jund Charm"
+  turn 1 A: cast "Jund Charm" mode 1 targeting player B
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+}
+
+scenario "Remorseful Cleric: sacrificed, exiles target player's graveyard" {
+  battlefield A: "Remorseful Cleric"
+  graveyard B: "Grizzly Bears"
+  turn 1 A: activate "Remorseful Cleric" targeting player B
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert graveyard A contains "Remorseful Cleric"
+}
+
+scenario "Scavenger Grounds: sacrificing a Desert exiles all graveyards" {
+  battlefield A: "Scavenger Grounds", 2 "Plains"
+  graveyard A: "Hill Giant"
+  graveyard B: "Grizzly Bears"
+  turn 1 A: activate "Scavenger Grounds" sacrificing "Scavenger Grounds"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Hill Giant"
+  assert exile B contains "Grizzly Bears"
+  assert exile A contains "Scavenger Grounds"
+}
+
+# ---- all X and Y ----
+
+scenario "Cleansing Nova: destroys all artifacts and enchantments" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Ornithopter", "Glorious Anthem", "Grizzly Bears"
+  hand A: "Cleansing Nova"
+  turn 1 A: cast "Cleansing Nova" mode 2
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert graveyard B contains "Glorious Anthem"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Fated Retribution: destroys all creatures and planeswalkers" {
+  battlefield A: 7 "Plains"
+  battlefield B: "Grizzly Bears", "Jace Beleren", "Mind Stone"
+  hand A: "Fated Retribution"
+  turn 1 A: cast "Fated Retribution"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Jace Beleren"
+  assert battlefield B contains "Mind Stone"
+}
+
+scenario "Magus of the Disk: destroys all artifacts, creatures, and enchantments" {
+  battlefield A: "Magus of the Disk", "Plains"
+  battlefield B: "Grizzly Bears", "Mind Stone", "Glorious Anthem", "Forest"
+  turn 1 A: activate "Magus of the Disk"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Mind Stone"
+  assert graveyard B contains "Glorious Anthem"
+  assert battlefield B contains "Forest"
+  assert graveyard A contains "Magus of the Disk"
+}
+
+scenario "Nevinyrral's Disk: destroys all artifacts, creatures, and enchantments" {
+  battlefield A: "Nevinyrral's Disk", "Plains"
+  battlefield B: "Grizzly Bears", "Glorious Anthem", "Forest"
+  turn 1 A: activate "Nevinyrral's Disk"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Glorious Anthem"
+  assert battlefield B contains "Forest"
+  assert graveyard A contains "Nevinyrral's Disk"
+}
+
+scenario "Obliterate: destroys all artifacts, creatures, and lands" {
+  battlefield A: 8 "Mountain"
+  battlefield B: "Grizzly Bears", "Mind Stone", "Glorious Anthem", "Forest"
+  hand A: "Obliterate"
+  turn 1 A: cast "Obliterate"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Mind Stone"
+  assert graveyard B contains "Forest"
+  assert battlefield B contains "Glorious Anthem"
+  assert graveyard A contains 8 "Mountain"
+}
+
+scenario "Simple: destroys all Auras and Equipment" {
+  battlefield A: "Grizzly Bears", "Holy Strength" on "Grizzly Bears", "Bonesplitter", "Glorious Anthem", "Forest", "Plains", "Island"
+  hand A: "Pure // Simple"
+  turn 1 A: cast "Simple"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Holy Strength"
+  assert graveyard A contains "Bonesplitter"
+  assert battlefield A contains "Glorious Anthem"
+}
+
+scenario "Reduce to Dreams: returns all artifacts and enchantments" {
+  battlefield A: 5 "Island"
+  battlefield B: "Mind Stone", "Glorious Anthem", "Grizzly Bears"
+  hand A: "Reduce to Dreams"
+  turn 1 A: cast "Reduce to Dreams"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Mind Stone"
+  assert hand B contains "Glorious Anthem"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+# ---- subtypes ----
+
+scenario "Blood-Chin Rager: attacking, Warrior creatures you control gain menace" {
+  battlefield A: "Blood-Chin Rager", "Grizzly Bears"
+  turn 1 A: attack "Blood-Chin Rager"
+  run_to turn 1 declare_blockers
+  assert has "Blood-Chin Rager" menace
+  assert has not "Grizzly Bears" menace
+}
+
+scenario "Ezuri, Renegade Leader: Elf creatures you control get +3/+3 and trample" {
+  battlefield A: "Ezuri, Renegade Leader", "Llanowar Elves", "Grizzly Bears", 5 "Forest"
+  battlefield B: "Llanowar Elves"
+  turn 1 A: activate "Ezuri, Renegade Leader" ability 2
+  run_to turn 1 postcombat_main
+  assert power A "Llanowar Elves" 4
+  assert power B "Llanowar Elves" 1
+  assert power "Ezuri, Renegade Leader" 5
+  assert power "Grizzly Bears" 2
+  assert has A "Llanowar Elves" trample
+}
+
+scenario "Iizuka the Ruthless: sacrificing a Samurai, Samurai gain double strike" {
+  battlefield A: "Iizuka the Ruthless", "Nagao, Bound by Honor", "Grizzly Bears", 3 "Mountain"
+  turn 1 A: activate "Iizuka the Ruthless" sacrificing "Nagao, Bound by Honor"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Nagao, Bound by Honor"
+  assert has "Iizuka the Ruthless" double_strike
+  assert has not "Grizzly Bears" double_strike
+}
+
+scenario "Nagao, Bound by Honor: attacking, Samurai creatures you control get +1/+1" {
+  battlefield A: "Nagao, Bound by Honor", "Iizuka the Ruthless", "Grizzly Bears"
+  turn 1 A: attack "Nagao, Bound by Honor"
+  run_to turn 1 declare_blockers
+  assert power "Nagao, Bound by Honor" 4
+  assert power "Iizuka the Ruthless" 4
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Hero of Iroas: Aura spells cost {1} less" {
+  battlefield A: "Hero of Iroas", "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Pacifism"
+  turn 1 A: cast "Pacifism" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Pacifism" to "Grizzly Bears"
+}
+
+scenario "Otepec Huntmaster: Dinosaur spells cost {1} less" {
+  battlefield A: "Otepec Huntmaster", 4 "Plains"
+  hand A: "Armasaur Guide"
+  turn 1 A: cast "Armasaur Guide"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Armasaur Guide"
+}
+
+scenario "Starnheim Aspirant: Angel spells cost {2} less" {
+  battlefield A: "Starnheim Aspirant", 3 "Plains"
+  hand A: "Serra Angel"
+  turn 1 A: cast "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+}
+
+scenario "Rattlechains: Spirit spells have flash" {
+  battlefield A: "Rattlechains", 4 "Swamp"
+  hand A: "Accursed Spirit"
+  start turn 1 B precombat_main
+  turn 1 end A: cast "Accursed Spirit"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Accursed Spirit"
+}

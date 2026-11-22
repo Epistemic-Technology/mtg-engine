@@ -1,0 +1,8 @@
+card "Lockjaw Snapper" {
+  oracle_id fadb0d89-0345-4edd-9546-dd4664e751f7
+  cost {4}
+  type Artifact Creature — Scarecrow
+  pt 2/2
+  keywords wither
+  triggered when this dies: put 1 -1/-1 counters on each creature with -1/-1 counter
+}

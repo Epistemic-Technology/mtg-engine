@@ -1,0 +1,6 @@
+card "Scavenger Grounds" {
+  oracle_id 5ece7d03-9ee7-4953-a06e-9d8e41874903
+  type Land — Desert
+  mana {C}
+  activated {2}, {T}, sacrifice Desert: exile all graveyards
+}

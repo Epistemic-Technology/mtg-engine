@@ -1,0 +1,9 @@
+card "Zegana, Utopian Speaker" {
+  oracle_id 04260930-ff38-4b35-9ec4-e89196a4f2c7
+  cost {2}{G}{U}
+  type Legendary Creature — Merfolk Wizard
+  pt 4/4
+  triggered when this enters if you control other creature with +1/+1 counter: draw 1 cards
+  activated {4}{G}{U}: adapt 4
+  static each creature you control with +1/+1 counter: has trample
+}

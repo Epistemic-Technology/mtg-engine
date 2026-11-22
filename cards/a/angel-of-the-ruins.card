@@ -1,0 +1,9 @@
+card "Angel of the Ruins" {
+  oracle_id 14878a5f-7983-4133-a1a7-9d539531e092
+  cost {5}{W}{W}
+  type Artifact Creature — Angel
+  pt 5/7
+  keywords flying
+  triggered when this enters: exile up to 2 target andor artifact or enchantment
+  plainscycling {2}
+}

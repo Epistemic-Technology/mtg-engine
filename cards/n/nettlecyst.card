@@ -1,0 +1,8 @@
+card "Nettlecyst" {
+  oracle_id 04c7f4fe-2098-4311-866d-6733c08d5178
+  cost {3}
+  type Artifact — Equipment
+  living weapon
+  static enchanted: +1/+1 count each andor artifact or enchantment you control
+  equip {2}
+}

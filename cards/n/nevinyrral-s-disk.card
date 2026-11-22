@@ -1,0 +1,7 @@
+card "Nevinyrral's Disk" {
+  oracle_id 96230edf-568a-47dd-b877-9d92aa58fac8
+  cost {4}
+  type Artifact
+  enters tapped
+  activated {1}, {T}: destroy all andlist artifact or creature or enchantment
+}

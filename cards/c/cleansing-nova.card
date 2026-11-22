@@ -1,0 +1,9 @@
+card "Cleansing Nova" {
+  oracle_id aff34f28-f707-4458-8af3-1bd5b13a6b10
+  cost {3}{W}{W}
+  type Sorcery
+  choose one {
+    mode: destroy all creatures
+    mode: destroy all andlist artifact or enchantment
+  }
+}

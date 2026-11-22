@@ -1,0 +1,7 @@
+card "Shambling Suit" {
+  oracle_id 862b777a-4816-4a3e-be8d-ddfcb72268e8
+  cost {3}
+  type Artifact Creature — Construct
+  pt */3
+  static this: cda power count andor artifact or enchantment you control
+}

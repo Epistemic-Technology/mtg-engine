@@ -1,0 +1,6 @@
+card "Minor Misstep" {
+  oracle_id d91b3c6f-f8a1-4859-90ca-22cd79517552
+  cost {U}
+  type Instant
+  spell: counter target with mana value 1 or less spell
+}

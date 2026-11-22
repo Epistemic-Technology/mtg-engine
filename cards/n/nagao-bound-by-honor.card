@@ -1,0 +1,8 @@
+card "Nagao, Bound by Honor" {
+  oracle_id 6207ec81-342a-49e4-ae07-426397eef0ec
+  cost {3}{W}
+  type Legendary Creature — Human Samurai
+  pt 3/3
+  bushido 1
+  triggered whenever this attacks: each Samurai creature you control gets +1/+1
+}

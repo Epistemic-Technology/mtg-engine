@@ -1,0 +1,10 @@
+card "Archenemy's Charm" {
+  oracle_id edcb0248-e7c9-4df9-8dba-982048654fd2
+  cost {B}{B}{B}
+  type Instant
+  choose one {
+    mode: exile target creature or planeswalker
+    mode: return 1 to 2 target andor creature or planeswalker cards from your graveyard to hand
+    mode: put 2 +1/+1 counters on target creature you control; target 1 gains lifelink
+  }
+}

@@ -1,0 +1,6 @@
+card "Noxious Grasp" {
+  oracle_id b17f4960-9603-4a81-8dc8-e09e8b822357
+  cost {1}{B}
+  type Instant
+  spell: destroy target green or white creature or green or white planeswalker; you gains 1 life
+}
