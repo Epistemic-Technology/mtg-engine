@@ -613,6 +613,9 @@ pub struct Cost {
     pub order: Vec<CostItem>,
     /// `reveal hand`: "reveal your hand" (an alternative cost).
     pub reveal_hand: bool,
+    /// `reveal this`: "Reveal this card from your hand" (forecast, CR
+    /// 702.57a): the ability is activated from the hand.
+    pub reveal_this: bool,
     /// `blight 1`: "Blight 1" (CR 701.68a).
     pub blight: u32,
     /// `behold Kithkin`, `behold and exile Elf`, `behold 3 Elemental`,
@@ -675,6 +678,8 @@ pub enum CostItem {
     Life,
     /// `reveal hand`: "reveal your hand".
     RevealHand,
+    /// `reveal this`: "Reveal this card from your hand".
+    RevealThis,
     /// `blight 1`.
     Blight,
     /// `behold Kithkin`.

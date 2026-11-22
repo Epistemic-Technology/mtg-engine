@@ -40,6 +40,14 @@ impl GameState {
                         && ab.from_hand
                         && (!ab.sorcery_speed || sorcery_timing)
                         && self.activation_allowed(ab, *a, p, *id)
+                        // "only once each turn" (forecast, CR 702.57b).
+                        && (ab.per_turn == 0
+                            || self
+                                .activated_once
+                                .iter()
+                                .filter(|x| **x == (*id, *a))
+                                .count()
+                                < usize::from(ab.per_turn))
                         && (ab.cost.life == 0
                             || ps.life >= i32::try_from(ab.cost.life).unwrap_or(i32::MAX))
                         && self.payable_for(
@@ -5716,6 +5724,12 @@ impl GameState {
         }
         if cost.reveal_hand {
             self.reveal_hand(p);
+        }
+        // CR 702.57a: "Reveal this card from your hand".
+        if cost.reveal_self
+            && let Some(o) = self.objects.get_mut(this)
+        {
+            o.revealed = u8::MAX;
         }
         if cost.energy > 0 {
             let e = &mut self.player_mut(p).energy;

@@ -5852,6 +5852,10 @@ pub struct Cost {
     /// every card left in the payer's hand becomes known.
     #[serde(default)]
     pub reveal_hand: bool,
+    /// "Reveal this card from your hand" (forecast, CR 702.57a): the
+    /// ability is activated from the hand and the card becomes known.
+    #[serde(default)]
+    pub reveal_self: bool,
     /// "Blight N" (CR 701.68a): put N -1/-1 counters on a creature the
     /// payer controls (the engine picks the toughest).
     #[serde(default)]
@@ -5958,6 +5962,7 @@ impl Cost {
             count: 0,
             exile_cards: None,
             reveal_hand: false,
+            reveal_self: false,
             blight: 0,
             behold: None,
             evidence: 0,

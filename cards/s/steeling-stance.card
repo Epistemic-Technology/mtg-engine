@@ -1,0 +1,7 @@
+card "Steeling Stance" {
+  oracle_id c454d5af-5617-4ddf-a9be-dd7d154b55ad
+  cost {1}{W}{W}
+  type Instant
+  spell: each creature you control gets +1/+1
+  label "Forecast" activated {W}, reveal this: target creature gets +1/+1
+}

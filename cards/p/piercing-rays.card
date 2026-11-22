@@ -1,0 +1,7 @@
+card "Piercing Rays" {
+  oracle_id 8960a213-cb72-4d67-bb4e-bcb1f657b944
+  cost {1}{W}
+  type Sorcery
+  spell: exile target tapped creature
+  label "Forecast" activated {2}{W}, reveal this: tap target untapped creature
+}

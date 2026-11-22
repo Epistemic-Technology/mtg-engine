@@ -4061,6 +4061,7 @@ fn cost_text(c: &Cost) -> String {
             CostItem::Exert => parts.push("exert this".to_string()),
             CostItem::DiscardHand => parts.push("discard hand".to_string()),
             CostItem::RevealHand => parts.push("reveal hand".to_string()),
+            CostItem::RevealThis => parts.push("reveal this".to_string()),
             CostItem::Energy => parts.push(format!("pay {} energy", c.energy)),
             CostItem::Blight => {
                 if c.blight > 0 {

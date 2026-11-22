@@ -1,0 +1,7 @@
+card "Skyscribing" {
+  oracle_id c3416e6c-ec46-410c-ab80-6e8fdb89f42d
+  cost {X}{U}{U}
+  type Sorcery
+  spell: each player draws X cards
+  label "Forecast" activated {2}{U}, reveal this: each player draws 1 cards
+}

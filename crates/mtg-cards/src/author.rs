@@ -248,6 +248,9 @@ const TEMPLATED_TAGS: &[&str] = &[
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
 /// "Landfall — <ability>". Scryfall tags them like keywords.
 const ABILITY_WORDS: &[&str] = &[
+    // CR 702.57: a keyword printed as a label ("Forecast — {2}{W}, Reveal
+    // this card from your hand: ..."); the DSL's `label "Forecast"`.
+    "Forecast",
     // Scryfall tags jump-start "Jump" too; "Jump — During your turn, ..."
     // (Final Fantasy) is an ability word.
     "Jump",
@@ -2964,6 +2967,10 @@ fn cost_text(s: &str) -> Option<String> {
             format!("blight {n}")
         } else if part == "Discard this card" {
             "discard this".to_string()
+        } else if part == "Reveal this card from your hand"
+            || part == "Reveal this creature from your hand"
+        {
+            "reveal this".to_string()
         } else if let Some(c) = remove.captures(part) {
             let n = if matches!(cap(&c, 1), "a" | "an") {
                 "1".to_string()

@@ -2042,6 +2042,7 @@ impl Compiler<'_> {
                 })
             }),
             reveal_hand: c.reveal_hand,
+            reveal_self: c.reveal_this,
             behold: c.behold.as_ref().map(|b| {
                 Box::new(mtg_core::card::Behold {
                     filter: self.filter(&b.filter),
@@ -4127,7 +4128,7 @@ impl Compiler<'_> {
                     .map(|c| self.static_cond(c))
                     .collect(),
                 once_ever: cost.once_ever,
-                from_hand: *cycling || cost.discard_self,
+                from_hand: *cycling || cost.discard_self || cost.reveal_this,
                 cycling: *cycling,
                 from_graveyard: cost.from_graveyard || cost.exile_self,
                 keyword: cost.keyword,
@@ -4321,6 +4322,23 @@ impl Compiler<'_> {
                     at_least: true,
                 });
                 return self.while_holds(a, c, "a station level");
+            }
+            // CR 702.57a: "Forecast — [Activated ability]" means "[Activated
+            // ability]. Activate only during your upkeep and only once each
+            // turn." (from the hand, revealing the card).
+            Ability::Labeled { label, ability } if label == "Forecast" => {
+                let mut a = self.ability(ability)?;
+                let AbilityDef::Activated(aa) = &mut a else {
+                    return self.err("forecast labels an activated ability");
+                };
+                if !aa.from_hand {
+                    return self.err("a forecast ability reveals the card from the hand");
+                }
+                aa.conditions.push(StaticCondition::During(
+                    mtg_core::card::TurnTime::YourUpkeep,
+                ));
+                aa.per_turn = 1;
+                return Ok(a);
             }
             Ability::Labeled { ability, .. } => return self.ability(ability),
             Ability::BlockRule(r) => AbilityDef::BlockRule(match r {

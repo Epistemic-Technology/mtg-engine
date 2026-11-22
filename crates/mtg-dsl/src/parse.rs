@@ -11911,6 +11911,11 @@ impl P {
                         cost.reveal_hand = true;
                         cost.order.push(CostItem::RevealHand);
                     }
+                    "reveal" if self.word_at(1).as_deref() == Some("this") => {
+                        self.pos += 2;
+                        cost.reveal_this = true;
+                        cost.order.push(CostItem::RevealThis);
+                    }
                     "sorcery" => {
                         self.pos += 1;
                         cost.sorcery = true;

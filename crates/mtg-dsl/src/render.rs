@@ -2923,6 +2923,16 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
             CostItem::Exert => parts.push(format!("Exert {}", ctx.source())),
             CostItem::DiscardHand => parts.push("Discard your hand".to_string()),
             CostItem::RevealHand => parts.push("Reveal your hand".to_string()),
+            // CR 702.57a: "Reveal this card from your hand" ("this
+            // creature" on a creature card).
+            CostItem::RevealThis => parts.push(format!(
+                "Reveal this {} from your hand",
+                if ctx.card.types.contains(&mtg_core::card::CardType::Creature) {
+                    "creature"
+                } else {
+                    "card"
+                }
+            )),
             CostItem::Energy => parts.push(format!("Pay {}", energy(cost.energy))),
             CostItem::Blight => {
                 if cost.blight > 0 {

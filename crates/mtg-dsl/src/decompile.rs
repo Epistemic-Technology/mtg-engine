@@ -402,6 +402,7 @@ impl Decompiler<'_> {
             restrict: Vec::new(),
             reduce: None,
             reveal_hand: c.reveal_hand,
+            reveal_this: c.reveal_self,
             behold: c.behold.as_ref().map(|b| {
                 Box::new(crate::ast::Behold {
                     filter: self.filter(&b.filter),
