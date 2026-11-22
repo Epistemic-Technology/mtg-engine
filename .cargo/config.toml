@@ -1,0 +1,7 @@
+# Debug builds give the parser and compiler very large stack frames
+# (`Compiler::card` about 520 KB, `P::ability` about 400 KB), and a
+# mechanic that expands to nested abilities recurses through them. The
+# 2 MB default for test threads overflows while loading the corpus; a
+# release build is nowhere near it.
+[env]
+RUST_MIN_STACK = "16777216"
