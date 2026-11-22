@@ -154,6 +154,8 @@ impl GameState {
                 };
                 if let Some(reason) = reason {
                     self.player_mut(p).lost = Some(reason);
+                    // "each opponent" in a static no longer counts them.
+                    self.cbump();
                     self.emit(Event::PlayerLost { player: p, reason });
                     acted = true;
                 }

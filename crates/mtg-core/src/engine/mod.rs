@@ -1146,8 +1146,13 @@ impl GameState {
                         if sacrifice.is_none()
                             && let Some(SacCost::Filter(f)) = &add.sacrifice
                         {
+                            let emerge = self.pool.get(self.objects[spell].def).emerge
+                                && self.objects[spell].alt == crate::state::AltCast::AltCost;
                             let options: Vec<Choice> = if add.taps_chosen() {
                                 self.tap_first_options(spell, add)
+                            } else if emerge {
+                                // Only those that leave the rest payable.
+                                self.emerge_sacrifices(spell, f)
                             } else {
                                 self.sacrifice_candidates(caster, f, spell)
                             }

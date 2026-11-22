@@ -560,6 +560,9 @@ impl GameState {
         if let Some(c) = self.combat.as_mut() {
             c.attackers = attackers;
         }
+        // Attacking status feeds filters ("attacking creatures get +1/+0"),
+        // and the "attacks" triggers read characteristics.
+        self.combat_bump();
         // CR 702.22c: bands are formed as attackers are declared.
         if self.banding_sources > 0 && events.len() >= 2 && self.band_leader(&[]).is_some() {
             self.flow = crate::state::Flow::FormBands {

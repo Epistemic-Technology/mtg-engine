@@ -3045,20 +3045,6 @@ impl GameState {
         // CR 601.2f: cost reductions (affinity) apply to an alternative
         // cost too.
         let mut req = alt.cost.mana.requirements(0);
-        // CR 702.119a: emerge, reduced by the mana value of the creature
-        // sacrificed (at best, the greatest).
-        if def.emerge
-            && let Some(SacCost::Filter(f)) = &alt.cost.sacrifice
-        {
-            let best = self
-                .sacrifice_candidates(p, f, id)
-                .into_iter()
-                .filter_map(|c| self.characteristics(c))
-                .map(|c| self.pool.get(c.def).mana_cost.mana_value())
-                .max()
-                .unwrap_or(0);
-            adjust_generic(&mut req, -i32::try_from(best).unwrap_or(i32::MAX));
-        }
         if def.self_cost.is_some()
             || def.cond_cost.is_some()
             || !changers.is_empty()
@@ -3066,13 +3052,20 @@ impl GameState {
         {
             adjust_generic(&mut req, self.cost_delta(p, def, id, changers));
         }
-        if !self.payable_for(
-            p,
-            sources,
-            &req,
-            Spend::Spell(&self.printed(self.objects[id].def)),
-        ) || !self.additional_payable(p, &def.additional, id)
+        // CR 702.119a: emerge, reduced by the mana value of the creature
+        // sacrificed: some creature must leave the rest payable without
+        // its own mana.
+        let spend = Spend::Spell(&self.printed(self.objects[id].def));
+        let payable = if def.emerge
+            && let Some(SacCost::Filter(f)) = &alt.cost.sacrifice
         {
+            !self
+                .emerge_options(p, f, id, &req, sources, spend)
+                .is_empty()
+        } else {
+            self.payable_for(p, sources, &req, spend)
+        };
+        if !payable || !self.additional_payable(p, &def.additional, id) {
             return false;
         }
         match def.modes() {
@@ -4790,6 +4783,44 @@ impl GameState {
                 discard,
             }
         };
+    }
+
+    /// The creatures `spell`, being cast for its emerge cost, could
+    /// sacrifice and still be paid for.
+    pub(super) fn emerge_sacrifices(&self, spell: ObjId, f: &crate::card::ObjFilter) -> Vec<ObjId> {
+        let p = self.objects[spell].controller;
+        let sources = self.spell_sources(spell);
+        let req = self.spell_requirements(spell, self.x_of(spell));
+        let printed = self.printed(self.objects[spell].def);
+        self.emerge_options(p, f, spell, &req, &sources, Spend::Spell(&printed))
+    }
+
+    /// The creatures an emerge cost `req` (before its reduction) could be
+    /// paid with by sacrificing (CR 702.119a): each lowers the generic
+    /// part by its mana value and no longer taps for mana.
+    fn emerge_options(
+        &self,
+        p: PlayerId,
+        f: &crate::card::ObjFilter,
+        spell: ObjId,
+        req: &ManaRequirement,
+        sources: &[(ObjId, Mana)],
+        spend: Spend,
+    ) -> Vec<ObjId> {
+        self.sacrifice_candidates(p, f, spell)
+            .into_iter()
+            .filter(|c| {
+                let Some(ch) = self.characteristics(*c) else {
+                    return false;
+                };
+                let mv = self.pool.get(ch.def).mana_cost.mana_value();
+                let mut r = *req;
+                adjust_generic(&mut r, -i32::try_from(mv).unwrap_or(i32::MAX));
+                let left: Vec<(ObjId, Mana)> =
+                    sources.iter().filter(|(s, _)| s != c).copied().collect();
+                self.payable_for(p, &left, &r, spend)
+            })
+            .collect()
     }
 
     /// Permanents `p` could sacrifice for a "sacrifice a ..." cost of
@@ -8923,7 +8954,7 @@ impl GameState {
                         let reason = crate::state::LossReason::Effect;
                         self.player_mut(p).lost = Some(reason);
                         self.emit(Event::PlayerLost { player: p, reason });
-                        self.bump();
+                        self.cbump();
                     }
                 }
             }

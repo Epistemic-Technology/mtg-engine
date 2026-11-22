@@ -1619,6 +1619,6 @@ impl GameState {
                 reason: LossReason::OpponentWon,
             });
         }
-        self.bump();
+        self.cbump();
     }
 }
