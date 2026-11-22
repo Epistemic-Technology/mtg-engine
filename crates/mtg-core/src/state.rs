@@ -1226,7 +1226,62 @@ pub enum Derived {
     /// Nothing modifies anything: every object has its printed characteristics.
     Printed,
     /// Characteristics of battlefield objects; others are printed.
-    Battlefield(IdMap<Characteristics>),
+    Battlefield(CharMap),
+}
+
+/// Characteristics by object, indexed by the object's arena slot: a
+/// lookup is two array reads and a key compare. It replaced an `IdMap`
+/// whose probe was most of a cached `characteristics` call.
+pub struct CharMap {
+    /// Per arena slot: 1 + the position in `entries` of that slot's
+    /// object, or 0.
+    slots: Vec<u32>,
+    entries: Vec<(ObjId, Characteristics)>,
+}
+
+impl CharMap {
+    #[inline]
+    fn slot(id: ObjId) -> usize {
+        use slotmap::Key;
+        // The low half of the key is the arena index; the high half its
+        // version, which `entries` checks.
+        (id.data().as_ffi() & 0xffff_ffff) as usize
+    }
+
+    /// The map of `ids` to `chars`, pairwise; a repeated id keeps its last.
+    pub fn new(ids: Vec<ObjId>, chars: Vec<Characteristics>) -> CharMap {
+        let len = ids.iter().map(|id| Self::slot(*id) + 1).max().unwrap_or(0);
+        let mut slots = vec![0u32; len];
+        let entries: Vec<(ObjId, Characteristics)> = ids.into_iter().zip(chars).collect();
+        for (i, (id, _)) in entries.iter().enumerate() {
+            slots[Self::slot(*id)] = u32::try_from(i + 1).expect("fewer objects than u32::MAX");
+        }
+        CharMap { slots, entries }
+    }
+
+    #[inline]
+    pub fn get(&self, id: &ObjId) -> Option<&Characteristics> {
+        let i = *self.slots.get(Self::slot(*id))? as usize;
+        match self.entries.get(i.wrapping_sub(1)) {
+            Some((k, c)) if k == id => Some(c),
+            _ => None,
+        }
+    }
+
+    /// Takes `id`'s characteristics out: a later `get` or `remove` of it
+    /// finds nothing.
+    pub fn remove(&mut self, id: &ObjId) -> Option<Characteristics> {
+        let c = *self.get(id)?;
+        self.slots[Self::slot(*id)] = 0;
+        Some(c)
+    }
+}
+
+impl std::ops::Index<&ObjId> for CharMap {
+    type Output = Characteristics;
+    fn index(&self, id: &ObjId) -> &Characteristics {
+        self.get(id).expect("an object the pass derived")
+    }
 }
 
 /// Cache of derived characteristics, valid for one `GameState::cversion`.
@@ -2671,45 +2726,62 @@ impl GameState {
         if obj.zone != Zone::Battlefield {
             return Some(self.base_characteristics(obj));
         }
-        {
-            let cache = self.cache.0.borrow();
-            if let Some((v, derived)) = cache.as_ref()
-                && *v == self.cversion
-            {
-                // `Printed` is only derived when no battlefield object has
-                // an `except` (layers::compute_battlefield), so the printed
-                // values are the copiable values here; skipping the check
-                // keeps this hot path a plain copy.
-                debug_assert!(!matches!(derived, Derived::Printed) || obj.except.is_none());
-                let out = match derived {
-                    Derived::Printed => Some(self.printed(obj.def)),
-                    Derived::Battlefield(map) => map.get(&id).copied(),
-                };
-                #[cfg(debug_assertions)]
-                if self
-                    .cache
-                    .1
-                    .replace(self.cache.1.get().wrapping_add(1))
-                    .is_multiple_of(16)
-                {
-                    // The cache is only as good as the `cbump` discipline:
-                    // in debug builds, check a sample of hits against a
-                    // fresh pass (a stale cache stays stale until the next
-                    // bump, so sampling still catches it).
-                    let fresh = match crate::layers::compute_battlefield(self) {
-                        Derived::Printed => Some(self.base_characteristics(obj)),
-                        Derived::Battlefield(map) => map.get(&id).copied(),
-                    };
-                    assert_eq!(
-                        out,
-                        fresh,
-                        "stale characteristics cache for {}: a change that affects characteristics did not cbump",
-                        self.pool.get(obj.def).name
-                    );
-                }
-                return out;
-            }
+        // The hit path stays small: called about 4,000 times a game, its
+        // register saves and stack frame were a fifth of its cost while the
+        // miss path (a layer pass) was inline.
+        let cache = self.cache.0.borrow();
+        let Some((v, derived)) = cache.as_ref() else {
+            drop(cache);
+            return self.characteristics_miss(id, obj);
+        };
+        if *v != self.cversion {
+            drop(cache);
+            return self.characteristics_miss(id, obj);
         }
+        // `Printed` is only derived when no battlefield object has an
+        // `except` (layers::compute_battlefield), so the printed values are
+        // the copiable values here; skipping the check keeps this hot path
+        // a plain copy.
+        debug_assert!(!matches!(derived, Derived::Printed) || obj.except.is_none());
+        let out = match derived {
+            Derived::Printed => Some(self.printed(obj.def)),
+            Derived::Battlefield(map) => map.get(&id).copied(),
+        };
+        drop(cache);
+        #[cfg(debug_assertions)]
+        self.check_cache_hit(id, obj, out);
+        out
+    }
+
+    /// Debug builds: the cache is only as good as the `cbump` discipline;
+    /// check a sample of hits against a fresh pass (a stale cache stays
+    /// stale until the next bump, so sampling still catches it).
+    #[cfg(debug_assertions)]
+    fn check_cache_hit(&self, id: ObjId, obj: &GameObject, out: Option<Characteristics>) {
+        if self
+            .cache
+            .1
+            .replace(self.cache.1.get().wrapping_add(1))
+            .is_multiple_of(16)
+        {
+            let fresh = match crate::layers::compute_battlefield(self) {
+                Derived::Printed => Some(self.base_characteristics(obj)),
+                Derived::Battlefield(map) => map.get(&id).copied(),
+            };
+            assert_eq!(
+                out,
+                fresh,
+                "stale characteristics cache for {}: a change that affects characteristics did not cbump",
+                self.pool.get(obj.def).name
+            );
+        }
+    }
+
+    /// `characteristics` of a battlefield object when the cache is stale:
+    /// a layer pass, cached for this `cversion`.
+    #[cold]
+    #[inline(never)]
+    fn characteristics_miss(&self, id: ObjId, obj: &GameObject) -> Option<Characteristics> {
         let derived = crate::layers::compute_battlefield(self);
         debug_assert!(!matches!(derived, Derived::Printed) || obj.except.is_none());
         let out = match &derived {

@@ -239,7 +239,7 @@ fn compute(state: &GameState, entering: Option<(ObjId, PlayerId)>) -> Derived {
 fn pass(
     state: &GameState,
     entering: Option<(ObjId, PlayerId)>,
-    settled: Option<IdMap<Characteristics>>,
+    settled: Option<crate::state::CharMap>,
 ) -> (Derived, bool) {
     // Fast path: nothing can modify anything.
     let plain = |id: &ObjId| {
@@ -393,7 +393,7 @@ fn pass(
 
     let again = work.needs_settled.get() && work.settled.is_none();
     (
-        Derived::Battlefield(work.ids.into_iter().zip(work.chars).collect()),
+        Derived::Battlefield(crate::state::CharMap::new(work.ids, work.chars)),
         again,
     )
 }
