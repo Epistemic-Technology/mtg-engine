@@ -1,0 +1,9 @@
+card "Haughty Djinn" {
+  oracle_id 44036bb5-f300-40bd-9180-6b246315d886
+  cost {1}{U}{U}
+  type Creature — Djinn
+  pt */4
+  keywords flying
+  static this: cda power graveyard instant or sorcery
+  spells instant or sorcery you cast cost {1} less
+}

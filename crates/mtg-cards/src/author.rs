@@ -846,6 +846,14 @@ fn count_expr(s: &str) -> Option<String> {
         if f == "permanent" || f.ends_with(" permanent") {
             return Some(format!("graveyard {f} card"));
         }
+        // "instant and sorcery cards in your graveyard": cards of either
+        // type, `graveyard instant or sorcery`.
+        if let Some((a, b)) = f.split_once(" and ")
+            && !a.contains(' ')
+            && !b.contains(' ')
+        {
+            return Some(format!("graveyard {a} or {b}"));
+        }
         return Some(format!("graveyard {}", singular(f)));
     }
     if let Some(f) = s.strip_suffix(" on the battlefield") {

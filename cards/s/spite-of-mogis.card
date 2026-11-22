@@ -1,0 +1,6 @@
+card "Spite of Mogis" {
+  oracle_id aab5f76b-1eb0-4fbc-ab01-593161083c16
+  cost {R}
+  type Sorcery
+  spell: deal count equal graveyard instant or sorcery damage to target creature; scry 1
+}

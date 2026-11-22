@@ -1,0 +1,7 @@
+card "Warfire Javelineer" {
+  oracle_id 33a7a1e9-23b4-4cde-baf1-b1c0165c6729
+  cost {3}{R}
+  type Creature — Minotaur Warrior
+  pt 2/3
+  triggered when this enters: deal count where graveyard instant or sorcery damage to target creature an opponent controls
+}

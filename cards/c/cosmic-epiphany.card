@@ -1,0 +1,6 @@
+card "Cosmic Epiphany" {
+  oracle_id fad32e19-2eda-46b7-8d3c-b95a7dbeabc2
+  cost {4}{U}{U}
+  type Sorcery
+  spell: draw count equal graveyard instant or sorcery cards
+}

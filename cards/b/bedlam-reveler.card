@@ -1,0 +1,9 @@
+card "Bedlam Reveler" {
+  oracle_id 01a7e0ce-c98f-4cf2-aba3-360aa0a9b9a7
+  cost {6}{R}{R}
+  type Creature — Devil Horror
+  pt 3/4
+  this spell costs {1} less count each graveyard instant or sorcery
+  keyword prowess
+  triggered when this enters: discard hand then draw 3 cards
+}

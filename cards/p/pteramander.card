@@ -1,0 +1,8 @@
+card "Pteramander" {
+  oracle_id 00187de2-bc48-4137-97d8-a9a0fafc76c1
+  cost {U}
+  type Creature — Salamander Drake
+  pt 1/1
+  keywords flying
+  activated {7}{U}, reduced {1} each graveyard instant or sorcery: adapt 4
+}
