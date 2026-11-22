@@ -272,6 +272,7 @@ pub fn is_restriction(k: Keyword) -> bool {
             | Keyword::CantActivateNonMana
             | Keyword::CantCrew
             | Keyword::UntapsDuringOthers
+            | Keyword::AssignsToughness
     )
 }
 
@@ -342,6 +343,7 @@ fn restriction_phrase(ks: &[Keyword]) -> String {
                 | Keyword::Unblockable
                 | Keyword::DoesntUntap
                 | Keyword::CantBecomeUntapped
+                | Keyword::AssignsToughness
         ) || is_block_rule(*k)
         {
             parts.push(keyword_name(*k).to_string());
@@ -2486,6 +2488,12 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     let you_first = f.who == Some(Who::You) && f.or.is_none() && !f.named_first && !f.control_late;
     if you_first {
         s.push_str(" you control");
+    }
+    // "with toughness greater than its power" ("their power" in the
+    // plural).
+    if f.status.toughness_over_power {
+        let its = if plural_form { "their" } else { "its" };
+        let _ = write!(s, " with toughness greater than {its} power");
     }
     for (name, v) in [("power", f.power), ("toughness", f.toughness)] {
         if let Some((cmp, n)) = v {
@@ -12225,6 +12233,13 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 })
             {
                 return format!("you control {noun}");
+            }
+            // "As long as equipped creature's toughness is greater than its
+            // power" (Bark of Doran).
+            let mut bare = f.clone();
+            bare.status.toughness_over_power = false;
+            if f.status.toughness_over_power && bare == Filter::default() {
+                return format!("{noun}'s toughness is greater than its power");
             }
             let pred = is_predicate(f, card);
             // "if enchanted creature has toxic" (Maze's Mantle).

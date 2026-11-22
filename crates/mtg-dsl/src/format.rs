@@ -3335,6 +3335,9 @@ fn filter_one(f: &Filter) -> String {
     {
         words.push("permanent".to_string());
     }
+    if f.status.toughness_over_power {
+        words.push("with toughness greater than power".to_string());
+    }
     for (name, v) in [("power", f.power), ("toughness", f.toughness)] {
         if let Some((cmp, n)) = v {
             if f.status.pt_either {

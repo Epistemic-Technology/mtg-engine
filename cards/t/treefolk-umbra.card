@@ -1,0 +1,8 @@
+card "Treefolk Umbra" {
+  oracle_id fa321366-9bc1-48c7-873a-0b12a026ce49
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +0/+2, has assigns combat damage equal to toughness
+  replace destroy enchanted: umbra armor
+}

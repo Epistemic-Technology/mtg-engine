@@ -1,0 +1,9 @@
+card "Ghalta the Immovable" {
+  oracle_id 0d496c6e-8f7b-420f-9197-dacd2feb528f
+  cost {8}{W}
+  type Legendary Creature — Elder Dinosaur
+  pt 0/7
+  this spell costs {1} less count where greatest toughness creature you control
+  static creature you control: has can attack as though it didn't have defender
+  static each creature you control with toughness greater than power: has assigns combat damage equal to toughness
+}

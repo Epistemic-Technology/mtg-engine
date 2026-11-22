@@ -1,0 +1,8 @@
+card "Gauntlets of Light" {
+  oracle_id e5741c85-cd09-4ccb-ab39-3f3a62f98939
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +0/+2, has assigns combat damage equal to toughness
+  static enchanted: has ability { activated {2}{W}: untap this }
+}

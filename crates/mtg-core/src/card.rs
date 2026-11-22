@@ -334,6 +334,9 @@ pub enum Keyword {
     /// "Untap this creature during each other player's untap step." (CR
     /// 502.3): it untaps in every untap step, not only its controller's.
     UntapsDuringOthers,
+    /// "assigns combat damage equal to its toughness rather than its
+    /// power" (CR 510.1a): its combat damage is its toughness.
+    AssignsToughness,
     /// CR 702.147: "This creature can't block. When this creature
     /// attacks, sacrifice it at end of combat." Its triggered half is
     /// `CardPool::keyword_trigger`.
@@ -541,7 +544,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 72] = [
+    pub const ALL: [Keyword; 73] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -614,6 +617,7 @@ impl Keyword {
         Keyword::Paradigm,
         Keyword::SplitSecond,
         Keyword::UntapsDuringOthers,
+        Keyword::AssignsToughness,
     ];
 
     /// The keyword as Oracle prints it.
@@ -693,6 +697,9 @@ impl Keyword {
             }
             Keyword::CantCrew => "can't crew Vehicles",
             Keyword::UntapsDuringOthers => "untaps during each other player's untap step",
+            Keyword::AssignsToughness => {
+                "assigns combat damage equal to its toughness rather than its power"
+            }
         }
     }
 
@@ -1229,6 +1236,10 @@ pub struct StatusQuals {
     /// A characteristic, not game state: `any` leaves it out.
     #[serde(default)]
     pub pt_either: bool,
+    /// "with toughness greater than its power": a characteristic, like
+    /// `pt_either`.
+    #[serde(default)]
+    pub toughness_over_power: bool,
 }
 
 /// The kind of permanent `StatusQuals::on` asks the object to be attached
@@ -1556,6 +1567,9 @@ impl ObjFilter {
             return false;
         }
         if !self.any_types.is_empty() && !c.types.intersects(self.any_types) {
+            return false;
+        }
+        if self.status.toughness_over_power && c.toughness <= c.power {
             return false;
         }
         if self.status.pt_either {

@@ -4992,6 +4992,30 @@ impl Builder<'_> {
             self.statements.push(format!("static paired{named}: {rest}"));
             return Ok(());
         }
+        // CR 510.1a: "Each creature you control [with toughness greater
+        // than its power] assigns combat damage equal to its toughness
+        // rather than its power."
+        if let Some(c) = Regex::new(
+            r"^(Each creature|Each creature you control|This creature)( with toughness greater than its power)? assigns combat damage equal to its toughness rather than its power\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let who = match cap(&c, 1) {
+                "Each creature" => "each creature",
+                "This creature" => "this",
+                _ => "each creature you control",
+            };
+            let with = if c.get(2).is_some() {
+                " with toughness greater than power"
+            } else {
+                ""
+            };
+            self.statements.push(format!(
+                "static {who}{with}: has assigns combat damage equal to toughness"
+            ));
+            return Ok(());
+        }
         // CR 611.3a: "Enchanted creature gets +2/+2 as long as it's a
         // Vampire. Otherwise, it gets -2/-2."
         if let Some(c) = Regex::new(

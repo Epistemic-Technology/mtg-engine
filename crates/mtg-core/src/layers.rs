@@ -400,7 +400,10 @@ fn pass(
 
 /// Whether a filter looks at power or toughness.
 fn filter_reads_pt(f: &ObjFilter) -> bool {
-    f.power.is_some() || f.toughness.is_some() || f.or.as_deref().is_some_and(filter_reads_pt)
+    f.power.is_some()
+        || f.toughness.is_some()
+        || f.status.toughness_over_power
+        || f.or.as_deref().is_some_and(filter_reads_pt)
 }
 
 /// Whether a condition looks at power or toughness.

@@ -199,6 +199,10 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     ),
     (&["doesn't", "untap"], Keyword::DoesntUntap),
     (
+        &["assigns", "combat", "damage", "equal", "to", "toughness"],
+        Keyword::AssignsToughness,
+    ),
+    (
         &[
             "untaps", "during", "each", "other", "player's", "untap", "step",
         ],
@@ -10917,6 +10921,13 @@ impl P {
                 "that" if self.at_words(&["that", "attacked", "this", "turn"]) => {
                     f.status.attacked_this_turn = true;
                     self.pos += 4;
+                }
+                // "with toughness greater than its power".
+                "with"
+                    if self.at_words(&["with", "toughness", "greater", "than", "power"]) =>
+                {
+                    f.status.toughness_over_power = true;
+                    self.pos += 5;
                 }
                 "with"
                     if matches!(self.word_at(1).as_deref(), Some("power" | "toughness"))

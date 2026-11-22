@@ -1,0 +1,8 @@
+card "Huatli, the Sun's Heart" {
+  oracle_id e1a13723-a6b1-4160-8eb5-f7a4860898a3
+  cost {2}{G/W}
+  type Legendary Planeswalker — Huatli
+  loyalty 7
+  static each creature you control: has assigns combat damage equal to toughness
+  loyalty -3: you gain count equal greatest toughness creature you control life
+}

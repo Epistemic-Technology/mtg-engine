@@ -1,0 +1,7 @@
+card "Belligerent Brontodon" {
+  oracle_id fa2d8440-a44a-44fe-8624-0e8b4be53f44
+  cost {5}{G}{W}
+  type Creature — Dinosaur
+  pt 4/6
+  static each creature you control: has assigns combat damage equal to toughness
+}
