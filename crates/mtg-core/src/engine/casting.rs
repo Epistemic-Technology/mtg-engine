@@ -3464,6 +3464,11 @@ impl GameState {
         filter: Option<&crate::card::ObjFilter>,
         source: ObjId,
     ) -> Vec<ObjId> {
+        // Grandeur: "Discard another card named ~" (the source's name).
+        let filled = filter
+            .filter(|f| f.same.is_some())
+            .map(|f| self.with_same_of(f, Some(source)));
+        let filter = filled.as_ref().or(filter);
         self.player(p)
             .hand
             .iter()

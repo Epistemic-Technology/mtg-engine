@@ -261,6 +261,7 @@ const ABILITY_WORDS: &[&str] = &[
     // (Final Fantasy) is an ability word.
     "Jump",
     "Repartee",
+    "Grandeur",
     "Vivid",
     // CR 702.179e: a condition, not a bare label; the DSL compiles it.
     "Max speed",
@@ -3198,6 +3199,19 @@ fn cost_text(s: &str) -> Option<String> {
             format!("waterbend {mana}")
         } else if part == "Discard a card" {
             "discard 1 card".to_string()
+        } else if let Some((n, rest)) = part
+            .strip_prefix("Sacrifice ")
+            .and_then(|r| r.split_once(' '))
+            .and_then(|(n, rest)| Some((number(n)?, rest)))
+            .filter(|(n, rest)| {
+                n != "1" && n.bytes().all(|b| b.is_ascii_digit()) && !rest.contains(' ')
+            })
+        {
+            // "Sacrifice two Mountains".
+            format!("sacrifice {n} {}", singular(rest))
+        } else if part == "Discard another card named ~" {
+            // Grandeur (an ability word, CR 207.2c).
+            "discard other named this card".to_string()
         } else if part == "Forage" {
             // CR 701.61a.
             "forage".to_string()

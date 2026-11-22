@@ -1,0 +1,117 @@
+# Grandeur (an ability word, CR 207.2c): "Grandeur — Discard another card
+# named [this card]: [effect]." An activated ability of the permanent whose
+# cost is discarding a card of the same name from the hand.
+
+scenario "Skoa: discard another Skoa and two Mountains for 4 damage" {
+  battlefield A: "Skoa, Embermage", 2 "Mountain"
+  battlefield B: "Craw Wurm"
+  hand A: "Skoa, Embermage"
+  turn 1 A: activate "Skoa, Embermage" targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Skoa, Embermage"
+  assert graveyard A contains 2 "Mountain"
+  assert graveyard B contains "Craw Wurm"
+  assert hand A count 0
+}
+
+scenario "Skoa: another card of a different name can't be discarded" {
+  battlefield A: "Skoa, Embermage", 2 "Mountain"
+  battlefield B: "Craw Wurm"
+  hand A: "Hill Giant"
+  illegal turn 1 A: activate "Skoa, Embermage" targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert battlefield B contains "Craw Wurm"
+}
+
+scenario "Skoa: the sacrifice is part of the cost" {
+  battlefield A: "Skoa, Embermage", "Mountain"
+  battlefield B: "Craw Wurm"
+  hand A: "Skoa, Embermage"
+  illegal turn 1 A: activate "Skoa, Embermage" targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Skoa, Embermage"
+}
+
+scenario "Skoa enters and deals 4 damage" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Craw Wurm"
+  hand A: "Skoa, Embermage"
+  turn 1 A: cast "Skoa, Embermage"
+  turn 1 A: trigger "Skoa, Embermage" targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Craw Wurm"
+}
+
+scenario "Page: discard another Page, reveal until an instant or sorcery" {
+  battlefield A: "Page, Loose Leaf"
+  hand A: "Page, Loose Leaf"
+  library A: "Forest", "Grizzly Bears", "Shock", "Island"
+  turn 1 A: activate "Page, Loose Leaf"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+  assert hand A count 1
+  assert graveyard A contains "Page, Loose Leaf"
+  assert library A count 3
+}
+
+scenario "Page: needs another Page in hand" {
+  battlefield A: "Page, Loose Leaf"
+  hand A: "Shock"
+  library A: "Lightning Bolt"
+  illegal turn 1 A: activate "Page, Loose Leaf"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+}
+
+scenario "Korlash: two Swamps onto the battlefield tapped" {
+  battlefield A: "Korlash, Heir to Blackblade", 2 "Swamp"
+  hand A: "Korlash, Heir to Blackblade"
+  library A: "Swamp", "Forest", "Swamp", "Swamp"
+  turn 1 A: activate "Korlash, Heir to Blackblade" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Swamp"
+  assert power "Korlash, Heir to Blackblade" 4
+  assert toughness "Korlash, Heir to Blackblade" 4
+  assert library A count 2
+}
+
+scenario "Korlash: power and toughness count Swamps" {
+  battlefield A: "Korlash, Heir to Blackblade", 3 "Swamp", "Forest"
+  run_to turn 1 postcombat_main
+  assert power "Korlash, Heir to Blackblade" 3
+  assert toughness "Korlash, Heir to Blackblade" 3
+}
+
+scenario "Tarox Bladewing doubles its power" {
+  battlefield A: "Tarox Bladewing"
+  hand A: "Tarox Bladewing"
+  turn 1 A: activate "Tarox Bladewing"
+  run_to turn 1 end
+  assert power "Tarox Bladewing" 8
+  assert toughness "Tarox Bladewing" 7
+  run_to turn 2 upkeep
+  assert power "Tarox Bladewing" 4
+}
+
+scenario "Baru: an X/X Wurm, X the lands you control" {
+  battlefield A: "Baru, Fist of Krosa", 3 "Forest", "Swamp"
+  hand A: "Baru, Fist of Krosa"
+  turn 1 A: activate "Baru, Fist of Krosa"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wurm"
+  assert power "Wurm" 4
+  assert toughness "Wurm" 4
+}
+
+scenario "Baru: a Forest entering pumps green creatures only" {
+  battlefield A: "Baru, Fist of Krosa", "Grizzly Bears", "Savannah Lions"
+  hand A: "Forest"
+  turn 1 A: play "Forest"
+  run_to turn 1 end
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" trample
+  assert power "Savannah Lions" 2
+  assert has not "Savannah Lions" trample
+  assert power "Baru, Fist of Krosa" 5
+}

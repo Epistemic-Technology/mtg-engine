@@ -1,0 +1,8 @@
+card "Page, Loose Leaf" {
+  oracle_id 3bbad38b-7d88-4ff2-9fd3-5081536e7c56
+  cost {2}
+  type Legendary Artifact Creature — Construct
+  pt 0/2
+  mana {C}
+  label "Grandeur" activated discard other named this card: reveal until instant or sorcery card; put that card into hand and the rest on bottom of library random
+}

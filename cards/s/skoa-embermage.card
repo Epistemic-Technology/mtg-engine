@@ -1,0 +1,8 @@
+card "Skoa, Embermage" {
+  oracle_id 0e49ee63-a293-4b33-98cc-ebdcc2c64e82
+  cost {4}{R}{R}
+  type Legendary Creature — Goblin Wizard
+  pt 4/4
+  triggered when this enters: deal 4 damage to any target
+  label "Grandeur" activated discard other named this card, sacrifice 2 Mountain: deal 4 damage to any target
+}

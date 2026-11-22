@@ -1,0 +1,8 @@
+card "Baru, Fist of Krosa" {
+  oracle_id b6021700-992a-4faa-8f83-a9af03dc7296
+  cost {3}{G}{G}
+  type Legendary Creature — Human Druid
+  pt 4/4
+  triggered whenever Forest enters: each green creature you control gets +1/+1 and gains trample
+  label "Grandeur" activated discard other named this card: create 1 "0/0 green Wurm creature" sized count where land you control
+}

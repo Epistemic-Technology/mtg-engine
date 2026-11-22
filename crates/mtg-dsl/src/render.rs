@@ -2793,6 +2793,11 @@ fn card_filter_a(f: &Filter, card: &Card) -> String {
     if p.is_empty() {
         "a card".to_string()
     } else if f.or.is_none()
+        && let Some((before, name)) = p.split_once("permanent named ")
+    {
+        // Grandeur: "Discard another card named Skoa, Embermage".
+        with_article(&format!("{before}card named {name}"))
+    } else if f.or.is_none()
         && let Some((kind, quality)) = p.split_once(" with ")
     {
         // "a creature card with power 2 or less".
