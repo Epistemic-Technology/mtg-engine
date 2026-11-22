@@ -50,6 +50,16 @@ struct Work<'a> {
     entering: Option<(ObjId, PlayerId)>,
     /// CR 305.7: lost the abilities of its rules text.
     lost_printed: Vec<bool>,
+    /// The characteristics a first pass ended with, in `ids` order. A
+    /// condition on power or toughness that gates an effect in an earlier
+    /// layer ("as long as this creature's power is 5 or greater, it can
+    /// attack as though it didn't have defender") is judged against these,
+    /// since the working power is not final until the last layers.
+    settled: Option<Vec<Characteristics>>,
+    /// Set while such a condition is being judged.
+    use_settled: std::cell::Cell<bool>,
+    /// A first pass met such a condition: run the second.
+    needs_settled: std::cell::Cell<bool>,
 }
 
 impl Work<'_> {
@@ -217,6 +227,20 @@ impl Drop for PassGuard {
 fn compute(state: &GameState, entering: Option<(ObjId, PlayerId)>) -> Derived {
     #[cfg(debug_assertions)]
     let _guard = PassGuard::enter();
+    match pass(state, entering, None) {
+        (Derived::Battlefield(first), true) => pass(state, entering, Some(first)).0,
+        (d, _) => d,
+    }
+}
+
+/// One pass over the layers; the flag says a condition wanted the final
+/// power and toughness, which only a second pass given `settled` has.
+#[allow(clippy::too_many_lines)]
+fn pass(
+    state: &GameState,
+    entering: Option<(ObjId, PlayerId)>,
+    settled: Option<IdMap<Characteristics>>,
+) -> (Derived, bool) {
     // Fast path: nothing can modify anything.
     let plain = |id: &ObjId| {
         let o = &state.objects[*id];
@@ -236,7 +260,7 @@ fn compute(state: &GameState, entering: Option<(ObjId, PlayerId)>) -> Derived {
         && state.battlefield.iter().all(plain)
         && entering.is_none_or(|(e, _)| plain(&e));
     if simple {
-        return Derived::Printed;
+        return (Derived::Printed, false);
     }
     // Emblems (CR 114) are sources of static abilities but, being in the
     // command zone, never affected (`matching` skips them).
@@ -251,6 +275,9 @@ fn compute(state: &GameState, entering: Option<(ObjId, PlayerId)>) -> Derived {
         .collect();
     let index: IdMap<usize> = ids.iter().enumerate().map(|(i, id)| (*id, i)).collect();
     let lost_printed = vec![false; ids.len()];
+    // In `ids` order, as the working characteristics are.
+    let settled: Option<Vec<Characteristics>> =
+        settled.and_then(|mut m| ids.iter().map(|id| m.remove(id)).collect());
     let mut work = Work {
         state,
         ids,
@@ -258,6 +285,9 @@ fn compute(state: &GameState, entering: Option<(ObjId, PlayerId)>) -> Derived {
         chars: std::mem::take(&mut chars),
         lost_printed,
         entering,
+        settled,
+        use_settled: std::cell::Cell::new(false),
+        needs_settled: std::cell::Cell::new(false),
     };
 
     let mut live = stored_effects(state);
@@ -359,7 +389,37 @@ fn compute(state: &GameState, entering: Option<(ObjId, PlayerId)>) -> Derived {
         apply_counters(&mut work, layer);
     }
 
-    Derived::Battlefield(work.ids.into_iter().zip(work.chars).collect())
+    let again = work.needs_settled.get() && work.settled.is_none();
+    (
+        Derived::Battlefield(work.ids.into_iter().zip(work.chars).collect()),
+        again,
+    )
+}
+
+/// Whether a filter looks at power or toughness.
+fn filter_reads_pt(f: &ObjFilter) -> bool {
+    f.power.is_some() || f.toughness.is_some() || f.or.as_deref().is_some_and(filter_reads_pt)
+}
+
+/// Whether a condition looks at power or toughness.
+fn condition_reads_pt(cond: &StaticCondition) -> bool {
+    match cond {
+        StaticCondition::SourceIs(f)
+        | StaticCondition::AttachedIs(f)
+        | StaticCondition::YouControlNone(f)
+        | StaticCondition::YouControl { filter: f, .. }
+        | StaticCondition::OpponentControls { filter: f, .. }
+        | StaticCondition::OnBattlefield { filter: f, .. }
+        | StaticCondition::YouControlAtMost { filter: f, .. } => filter_reads_pt(f),
+        StaticCondition::YouControlEach(fs) => fs.iter().any(filter_reads_pt),
+        StaticCondition::TotalPower(_)
+        | StaticCondition::DifferentPowers(_)
+        | StaticCondition::TotalToughness(_) => true,
+        StaticCondition::And(a, b) | StaticCondition::Or(a, b) => {
+            condition_reads_pt(a) || condition_reads_pt(b)
+        }
+        _ => false,
+    }
 }
 
 /// Stored effects (from resolved spells and abilities) as live effects.
@@ -397,6 +457,10 @@ fn stored_effects(state: &GameState) -> Vec<Live> {
 fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId) -> bool {
     let state = work.state;
     let you = work.controller_of(source);
+    let chars: &[Characteristics] = match &work.settled {
+        Some(s) if work.use_settled.get() => s,
+        _ => &work.chars,
+    };
     match cond {
         // A token waiting on the state-based check is not a card (CR
         // 111.8, 704.5d).
@@ -433,7 +497,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                         && filter.matches(
                             **id,
                             work.controller_of(**id),
-                            &work.chars[work.index[*id]],
+                            &chars[work.index[*id]],
                             Some(source),
                             Some(you),
                         )
@@ -481,7 +545,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             work.ids.iter().any(|id| {
                 work.on_battlefield(*id)
                     && state.objects[*id].attached_to == Some(source)
-                    && work.chars[work.index[id]].has_subtype(want)
+                    && chars[work.index[id]].has_subtype(want)
             })
         }
         StaticCondition::OpponentLifeAtMost(n) => state
@@ -503,7 +567,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         StaticCondition::BasicLandTypes(n) => {
             let mut seen = crate::mana::ColorSet::default();
             for id in &work.ids {
-                let c = &work.chars[work.index[id]];
+                let c = &chars[work.index[id]];
                 if work.on_battlefield(*id) && work.controller_of(*id) == you && c.is_land() {
                     for s in &c.subtypes {
                         if let Some(col) = s.basic_color() {
@@ -535,7 +599,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                     && filter.matches(
                         *id,
                         work.controller_of(*id),
-                        &work.chars[work.index[id]],
+                        &chars[work.index[id]],
                         Some(source),
                         Some(you),
                     )
@@ -551,7 +615,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                         && filter.matches(
                             **id,
                             work.controller_of(**id),
-                            &work.chars[work.index[*id]],
+                            &chars[work.index[*id]],
                             Some(source),
                             Some(you),
                         )
@@ -567,7 +631,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                         && filter.matches(
                             **id,
                             work.controller_of(**id),
-                            &work.chars[work.index[*id]],
+                            &chars[work.index[*id]],
                             Some(source),
                             Some(you),
                         )
@@ -583,7 +647,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                 && filter.matches(
                     *id,
                     work.controller_of(*id),
-                    &work.chars[work.index[id]],
+                    &chars[work.index[id]],
                     Some(source),
                     Some(you),
                 )
@@ -653,7 +717,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                             && filter.matches(
                                 **id,
                                 p,
-                                &work.chars[work.index[*id]],
+                                &chars[work.index[*id]],
                                 Some(source),
                                 Some(p),
                             )
@@ -669,7 +733,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             filter.matches(
                 source,
                 work.controller_of(source),
-                &work.chars[*i],
+                &chars[*i],
                 Some(source),
                 Some(you),
             ) && filter
@@ -688,7 +752,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                     && filter.matches(
                         host,
                         work.controller_of(host),
-                        &work.chars[i],
+                        &chars[i],
                         Some(source),
                         Some(you),
                     )
@@ -697,7 +761,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                         .is_none_or(|t| state.objects[host].tapped == t)
                     // "As long as enchanted creature has toxic" (CR 702.164).
                     && (!filter.status.toxic
-                        || work.chars[i].abilities.iter().any(|a| {
+                        || chars[i].abilities.iter().any(|a| {
                             matches!(state.pool.ability(*a), AbilityDef::Toxic(_))
                         }))
             }),
@@ -705,7 +769,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             let has = |id: ObjId, sub: crate::card::Subtype| {
                 work.index
                     .get(&id)
-                    .is_some_and(|i| work.chars[*i].has_subtype(sub))
+                    .is_some_and(|i| chars[*i].has_subtype(sub))
             };
             state.modified(
                 source,
@@ -715,7 +779,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         }
         StaticCondition::TotalPower(_) | StaticCondition::DifferentPowers(_) => {
             let powers = work.ids.iter().filter_map(|id| {
-                let c = &work.chars[work.index[id]];
+                let c = &chars[work.index[id]];
                 (work.on_battlefield(*id) && work.controller_of(*id) == you && c.is_creature())
                     .then(|| c.power())
             });
@@ -748,7 +812,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                 .filter(|id| {
                     let (controller, c) = match work.index.get(*id) {
                         Some(wi) if work.on_battlefield(**id) => {
-                            (work.controller_of(**id), work.chars[*wi])
+                            (work.controller_of(**id), chars[*wi])
                         }
                         _ => match state.lki.get(*id) {
                             Some(l) => (l.object.controller, l.characteristics),
@@ -764,7 +828,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             work.ids
                 .iter()
                 .filter_map(|id| {
-                    let c = &work.chars[work.index[id]];
+                    let c = &chars[work.index[id]];
                     (work.on_battlefield(*id) && work.controller_of(*id) == you && c.is_creature())
                         .then(|| c.toughness().max(0))
                 })
@@ -778,7 +842,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                     .filter(|id| {
                         work.on_battlefield(**id)
                             && work.controller_of(**id) == p
-                            && work.chars[work.index[*id]].is_land()
+                            && chars[work.index[*id]].is_land()
                     })
                     .count()
             };
@@ -804,10 +868,20 @@ fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
             if !sa.parts.iter().any(|p| p.layer() == layer) {
                 continue;
             }
-            if let Some(cond) = &sa.condition
-                && !static_condition_holds(work, cond, *id)
-            {
-                continue;
+            if let Some(cond) = &sa.condition {
+                // Power and toughness are final only after the last
+                // layers: an earlier layer's condition on them waits for
+                // a second pass.
+                let late = layer < Layer::L7aCda && condition_reads_pt(cond);
+                if late {
+                    work.needs_settled.set(true);
+                }
+                work.use_settled.set(late);
+                let holds = static_condition_holds(work, cond, *id);
+                work.use_settled.set(false);
+                if !holds {
+                    continue;
+                }
             }
             let origin = Origin::Static {
                 source: *id,
@@ -974,6 +1048,9 @@ fn depends(work: &Work<'_>, _live: &[Live], a: &Live, b: &Live, layer: Layer) ->
         chars: scratch_chars,
         lost_printed: work.lost_printed.clone(),
         entering: work.entering,
+        settled: None,
+        use_settled: std::cell::Cell::new(false),
+        needs_settled: std::cell::Cell::new(false),
     };
     let after = scratch.matching(filter, a.source, a.controller);
     before != after

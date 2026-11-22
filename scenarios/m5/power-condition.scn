@@ -1,0 +1,19 @@
+# A condition on power gating an ability (layer 6) reads the final power,
+# after pump effects (layer 7c): a second layer pass.
+
+scenario "Karsus Depthguard: defender holds at power 4" {
+  battlefield A: "Karsus Depthguard", "Forest"
+  start turn 2 A precombat_main
+  illegal turn 2 A: attack "Karsus Depthguard"
+  run_to turn 2 postcombat_main
+  assert life B 20
+}
+scenario "Karsus Depthguard: pumped to 7, it can attack" {
+  battlefield A: "Karsus Depthguard", "Forest"
+  hand A: "Giant Growth"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Giant Growth" targeting "Karsus Depthguard"
+  turn 2 A: attack "Karsus Depthguard"
+  run_to turn 2 postcombat_main
+  assert life B 13
+}

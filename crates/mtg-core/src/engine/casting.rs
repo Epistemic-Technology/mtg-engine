@@ -466,6 +466,15 @@ impl GameState {
                             )
                             && self.targets_available(p, &ab.targets, Some(*id))
                         {
+                            // "Exile an instant or sorcery card from your
+                            // graveyard" beside it: other cards, enough.
+                            if let Some(g) = &ab.cost.exile_cards
+                                && !g.x
+                                && self.exile_candidates(p, g.filter.as_ref(), *id).len()
+                                    < g.n as usize
+                            {
+                                continue;
+                            }
                             // "{2}{B}, Tap an untapped creature you control:
                             // Return this card from your graveyard ...".
                             if ab.cost.taps_chosen() {
