@@ -6628,6 +6628,10 @@ impl P {
         let w = |k: usize| self.word_at(k);
         let zone = |k: usize| matches!(w(k).as_deref(), Some("graveyard" | "hand"));
         (zone(0) && w(1).as_deref() == Some("into"))
+            || (w(0).as_deref() == Some("hand")
+                && w(1).as_deref() == Some("and")
+                && w(2).as_deref() == Some("graveyard")
+                && w(3).as_deref() == Some("into"))
             || (w(0).as_deref() == Some("cards") && w(1).as_deref() == Some("from") && zone(2))
             || (w(0).as_deref() == Some("all")
                 && (1..7).any(|k| w(k).as_deref() == Some("from") && zone(k + 1)))
@@ -6666,6 +6670,8 @@ impl P {
             "graveyard" => false,
             _ => return self.unexpected("`hand` or `graveyard`"),
         };
+        // "their hand and graveyard into their library".
+        let both = hand && filter.is_none() && !cards && self.eat_words(&["and", "graveyard"]);
         let of = if self.eat_word("of") {
             Some(self.recipient()?)
         } else {
@@ -6676,6 +6682,7 @@ impl P {
             who,
             of,
             hand,
+            both,
             filter,
             cards,
         })

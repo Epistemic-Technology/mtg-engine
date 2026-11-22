@@ -8939,18 +8939,27 @@ impl GameState {
                     }
                 }
             }
-            Effect::ShuffleIntoLibrary { who, hand, filter } => {
+            Effect::ShuffleIntoLibrary {
+                who,
+                hand,
+                both,
+                filter,
+            } => {
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
                         continue;
                     };
-                    let zone = if *hand {
-                        &self.player(p).hand
+                    let ps = self.player(p);
+                    let (zone, also): (&[ObjId], &[ObjId]) = if *both {
+                        (&ps.hand, &ps.graveyard)
+                    } else if *hand {
+                        (&ps.hand, &[])
                     } else {
-                        &self.player(p).graveyard
+                        (&ps.graveyard, &[])
                     };
                     let cards: Vec<ObjId> = zone
                         .iter()
+                        .chain(also)
                         .copied()
                         .filter(|id| {
                             filter.as_ref().is_none_or(|f| {

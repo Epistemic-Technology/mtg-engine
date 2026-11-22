@@ -1944,6 +1944,7 @@ impl Fmt {
                 who,
                 of,
                 hand,
+                both,
                 filter: fl,
                 cards,
             } => {
@@ -1963,7 +1964,13 @@ impl Fmt {
                 } else if *cards {
                     s.push_str(" cards from");
                 }
-                s.push_str(if *hand { " hand" } else { " graveyard" });
+                s.push_str(if *both {
+                    " hand and graveyard"
+                } else if *hand {
+                    " hand"
+                } else {
+                    " graveyard"
+                });
                 if let Some(o) = of {
                     let _ = write!(s, " of {}", self.recipient(*o, t));
                 }

@@ -1094,7 +1094,13 @@ impl Decompiler<'_> {
                 bottom: *bottom,
                 shuffle: *shuffle,
             },
-            CoreEffect::ShuffleIntoLibrary { who, hand, filter } => Effect::ShuffleZone {
+            CoreEffect::ShuffleIntoLibrary {
+                who,
+                hand,
+                both,
+                filter,
+            } => Effect::ShuffleZone {
+                both: *both,
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
                 of: None,
                 hand: *hand,

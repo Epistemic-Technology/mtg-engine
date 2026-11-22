@@ -1,0 +1,58 @@
+# "Each player shuffles their hand and graveyard into their library, then
+# draws seven cards." Both zones go into the library, which is shuffled.
+
+scenario "Timetwister: hands and graveyards into libraries, then seven each" {
+  battlefield A: 3 "Island"
+  hand A: "Timetwister", "Forest", "Mountain"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand B: "Plains"
+  graveyard B: "Serra Angel"
+  library A: 5 "Island"
+  library B: 5 "Swamp"
+  turn 1 A: cast "Timetwister"
+  run_to turn 1 postcombat_main
+  assert hand A count 7
+  assert hand B count 7
+  assert graveyard A contains "Timetwister"
+  assert graveyard A lacks "Grizzly Bears"
+  assert graveyard B lacks "Serra Angel"
+  assert library A count 2
+  assert library B count 0
+}
+
+scenario "Time Reversal: exiled after, not into the library" {
+  battlefield A: 5 "Island"
+  hand A: "Time Reversal"
+  library A: 10 "Island"
+  library B: 10 "Swamp"
+  turn 1 A: cast "Time Reversal"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Time Reversal"
+  assert hand A count 7
+}
+
+scenario "Temporal Cascade: only the shuffle" {
+  battlefield A: 7 "Island"
+  hand A: "Temporal Cascade", "Forest"
+  graveyard B: "Serra Angel"
+  library A: 10 "Island"
+  library B: 10 "Swamp"
+  turn 1 A: cast "Temporal Cascade" mode 1
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A count 11
+  assert library B count 11
+}
+
+scenario "Echo of Eons: with flashback, exiled after" {
+  battlefield A: 3 "Island"
+  graveyard A: "Echo of Eons", "Grizzly Bears"
+  library A: 10 "Island"
+  library B: 10 "Swamp"
+  turn 1 A: cast "Echo of Eons" from graveyard
+  run_to turn 1 postcombat_main
+  assert exile A contains "Echo of Eons"
+  assert hand A count 7
+  assert hand B count 7
+  assert graveyard A lacks "Grizzly Bears"
+}

@@ -6909,10 +6909,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             who,
             of,
             hand,
+            both,
             filter,
             cards,
         } => {
-            let zone = if *hand { "hand" } else { "graveyard" };
+            let zone = if *both {
+                "hand and graveyard"
+            } else if *hand {
+                "hand"
+            } else {
+                "graveyard"
+            };
             // "Shuffle all creature cards from target player's graveyard
             // into that player's library".
             let (from, into) = match (who, of) {

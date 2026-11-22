@@ -1,0 +1,7 @@
+card "Echo of Eons" {
+  oracle_id 23d3e5fe-3f82-44cf-91a1-6646a12a0255
+  cost {4}{U}{U}
+  type Sorcery
+  spell: each player shuffles hand and graveyard into library then draws 7 cards
+  flashback {2}{U}
+}

@@ -3591,6 +3591,9 @@ pub enum Effect {
         who: Option<Recipient>,
         of: Option<Recipient>,
         hand: bool,
+        /// `hand and graveyard`: "shuffles their hand and graveyard into
+        /// their library" (both zones).
+        both: bool,
         filter: Option<Filter>,
         cards: bool,
     },

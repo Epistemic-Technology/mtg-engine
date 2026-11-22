@@ -3576,6 +3576,9 @@ pub enum Effect {
     ShuffleIntoLibrary {
         who: Recipient,
         hand: bool,
+        /// "their hand and graveyard": both zones (`hand` is then true).
+        #[serde(default)]
+        both: bool,
         filter: Option<ObjFilter>,
     },
     /// `a` fights `b` (CR 701.12): each deals damage equal to its power to

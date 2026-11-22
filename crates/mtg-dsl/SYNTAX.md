@@ -1596,7 +1596,9 @@ graveyard into library`: "You may shuffle up to one target card from
 your graveyard into your library"), `shuffle graveyard into library`
 ("Shuffle your graveyard into your library"; `target player shuffles
 graveyard into library`: "Target player shuffles their graveyard into
-their library"), `shuffle all creature card from graveyard of target
+their library"; `each player shuffles hand and graveyard into library then draws 7
+cards`: "Each player shuffles their hand and graveyard into their library,
+then draws seven cards.", both zones), `shuffle all creature card from graveyard of target
 player into library` ("Shuffle all creature cards from target player's
 graveyard into that player's library"), `shuffle cards from hand into
 library` ("shuffle the cards from your hand into your library"; `then

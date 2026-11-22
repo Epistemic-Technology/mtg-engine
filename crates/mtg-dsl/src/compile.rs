@@ -2733,6 +2733,7 @@ impl Compiler<'_> {
                 who,
                 of,
                 hand,
+                both,
                 filter,
                 ..
             } => {
@@ -2740,6 +2741,7 @@ impl Compiler<'_> {
                 out.push(CoreEffect::ShuffleIntoLibrary {
                     who: who.or(*of).map_or(CoreRecipient::You, r),
                     hand: *hand,
+                    both: *both,
                     filter,
                 });
             }
