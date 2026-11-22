@@ -35,11 +35,6 @@ wrong thing in some case.
   kinds that don't change power or toughness, then the rest); several
   mechanics from the first wave have the engine choose where the player
   should.
-- **Token copy of a creature that has died before its enters trigger
-  resolves** (Gruff Triplets, in; Sphinx of False Conclusions, not in):
-  made from last known information, but no scenario covers it (the
-  runner can't answer the trigger while the creature spell is on the
-  stack).
 - **Thousand-Year Storm:** the "cast before it this turn" count has an
   edge case with spells cast while it is on the stack.
 - **Token-creation replacements apply in a fixed order** (tokens
@@ -206,10 +201,7 @@ named the feature; a card may need more than one.
   (Shadowborn Apostle, not added).
 - **Mechanics not yet in:** tiered, devour, harness, hideaway, mutate,
   meld, the Everywhere land token, "when this land enters untapped".
-- **Scenario runner:** a trigger cannot be answered while its source
-  spell is still on the stack.
-  An edict-style choice ("return another permanent you control to its
-  owner's hand", Aviary Mechanic) always takes the first option; an
+- **Scenario runner:** an
   `illegal ... trigger` line followed by a legal `trigger` in the same
   step reports the legal one unreached; a mana ability can't be scripted
   as an action; no way to give X to a spell cast by a trigger, to choose

@@ -1171,6 +1171,15 @@ impl Runner {
             .iter()
             .map(|id| self.state().name_of(*id).to_string())
             .collect();
+        // The sources of the abilities on the stack (`in response to
+        // trigger "X"`).
+        let stack_abilities: Vec<String> = self
+            .state()
+            .stack
+            .iter()
+            .filter(|id| self.state().objects[**id].kind == ObjKind::Ability)
+            .map(|id| self.state().name_of(*id).to_string())
+            .collect();
         let special = self.matching(d.player, pos, true, |a| {
             matches!(
                 a,
@@ -1244,7 +1253,13 @@ impl Runner {
                 // A graveyard cast of its own (flashback, harmonize,
                 // disturb, an alternative cost) is made at priority.
                 let own = *from_graveyard || *harmonized || *disturbed || *alternative;
-                respond_to.as_ref().is_none_or(|n| stack_names.contains(n))
+                respond_to.as_ref().is_none_or(|(n, trigger)| {
+                    if *trigger {
+                        stack_abilities.contains(n)
+                    } else {
+                        stack_names.contains(n)
+                    }
+                })
                     && !self.waiting_in_exile(d.player, name)
                     && (own || !self.waiting_in_graveyard(d, name))
             }

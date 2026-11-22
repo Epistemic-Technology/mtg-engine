@@ -699,7 +699,11 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                 line.pos += 1;
                 line.keyword("response")?;
                 line.keyword("to")?;
-                Some(line.string()?)
+                let trigger = line.peek_ident("trigger");
+                if trigger {
+                    line.pos += 1;
+                }
+                Some((line.string()?, trigger))
             } else {
                 None
             };
