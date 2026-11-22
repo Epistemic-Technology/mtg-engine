@@ -145,10 +145,17 @@ impl GameState {
                     continue;
                 }
             }
-            if self.castable(p, def, *id, sorcery_timing, &sources, &pool, &changers)
+            // Timing first, as `castable` does: off-timing cards, most of
+            // the hand at most priorities, skip the call.
+            if (sorcery_timing || def.is_instant() || self.has_flash(p, def, *id))
+                && self.castable(p, def, *id, sorcery_timing, &sources, &pool, &changers)
                 && self.undone_cast != Some((*id, self.version))
             {
                 options.push(Choice::Cast(*id));
+            }
+            // Most cards have no other way to be cast from the hand.
+            if !def.other_casts {
+                continue;
             }
             // CR 702.74a: cast for the evoke cost instead.
             if let Some(ev) = &def.evoke

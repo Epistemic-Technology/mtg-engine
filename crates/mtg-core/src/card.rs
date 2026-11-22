@@ -7412,6 +7412,13 @@ pub struct CardDef {
     /// flag: those changes refresh it anyway.)
     #[serde(skip)]
     pub history_static: bool,
+    /// Filled in by `CardPool::add`: any way to cast it from the hand
+    /// besides its mana cost that the priority listing checks one by one
+    /// (evoke, an alternative cost, dash, warp, sneak, web-slinging,
+    /// impending, bestow, overload, awaken, face down, suspend, foretell,
+    /// plot). Most cards have none, and the listing skips them all.
+    #[serde(skip)]
+    pub other_casts: bool,
     /// Filled in by `CardPool::add`: what its text asks about the mana
     /// spent to cast it.
     #[serde(skip)]
@@ -9154,6 +9161,20 @@ impl CardPool {
             }),
         );
         def.flags = flags;
+        def.other_casts = def.evoke.is_some()
+            || def.alt_cost.is_some()
+            || def.dash.is_some()
+            || def.warp.is_some()
+            || def.sneak.is_some()
+            || def.web_slinging.is_some()
+            || def.impending.is_some()
+            || def.bestow_face.is_some()
+            || def.overload_face.is_some()
+            || def.awaken_face.is_some()
+            || def.morph.is_some()
+            || def.suspend.is_some()
+            || def.foretell.is_some()
+            || def.plot.is_some();
         def.printed = Some(crate::state::Characteristics {
             def: r,
             colors: def.colors(),
@@ -9386,6 +9407,7 @@ impl Builder {
             spent: SpentUse::default(),
             step_static: false,
             history_static: false,
+            other_casts: false,
             counts: Vec::new(),
             combat_static: false,
             layout: Layout::Normal,
