@@ -1,0 +1,8 @@
+card "Referee Squad" {
+  oracle_id e14532e9-ecc2-4028-b99e-3629533962bc
+  cost {2}{U}
+  type Creature — Homunculus
+  pt 2/2
+  keywords convoke, vigilance
+  triggered when this enters: tap target creature an opponent controls and put 1 stun counters on target 1
+}

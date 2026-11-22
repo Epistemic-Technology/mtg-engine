@@ -1,0 +1,8 @@
+card "Frostfist Strider" {
+  oracle_id 4e4a21a8-9332-4aeb-8519-949feb211294
+  cost {3}{U}{U}
+  type Creature — Elemental Giant
+  pt 4/4
+  ward {2}
+  triggered when this enters: tap target creature an opponent controls and put 1 stun counters on target 1
+}

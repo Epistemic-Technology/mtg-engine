@@ -1,0 +1,6 @@
+card "Brokers Ascendancy" {
+  oracle_id 809edfed-89a9-4327-b7db-1bcec63f3e66
+  cost {G}{W}{U}
+  type Enchantment
+  triggered at beginning of your end step: put 1 +1/+1 counters on each creature you control and put 1 loyalty counters on each planeswalker you control
+}

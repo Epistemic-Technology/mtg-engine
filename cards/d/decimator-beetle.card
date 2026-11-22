@@ -1,0 +1,8 @@
+card "Decimator Beetle" {
+  oracle_id c56e6715-80bc-4f9d-86ef-7c31b1ef0a17
+  cost {3}{B}{G}
+  type Creature — Insect
+  pt 4/5
+  triggered when this enters: put 1 -1/-1 counters on target creature you control
+  triggered whenever this attacks: remove 1 -1/-1 counters from target creature you control and put 1 -1/-1 counters on up to 1 target creature defending player controls
+}

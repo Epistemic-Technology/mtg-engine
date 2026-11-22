@@ -392,6 +392,10 @@ fn run() -> Result<ExitCode> {
             }
             for a in &report.authored {
                 println!("authored {}", a.name);
+                // Named cards: show the file that would be written.
+                if verbose && !names.is_empty() {
+                    print!("{}", a.text);
+                }
             }
             println!();
             println!(
