@@ -7312,6 +7312,14 @@ pub struct CardDef {
     /// after its own (CR 702.113a).
     #[serde(skip)]
     pub awaken_face: Option<CardRef>,
+    /// Cleave (CR 702.148): the spell ability with the bracketed words
+    /// removed, cast for the card's alternative cost (`alt_cost`).
+    #[serde(default)]
+    pub cleaved: Option<Box<AbilityDef>>,
+    /// Filled in by `CardPool::add` for a spell with cleave: the spell as
+    /// cast for its cleave cost (CR 702.148a).
+    #[serde(skip)]
+    pub cleave_face: Option<CardRef>,
     /// Splice onto Arcane (CR 702.47): revealed from hand as an Arcane
     /// spell is cast, this cost paid on top, the card's effects (and
     /// targets) are added to that spell. Mana, or mana and a permanent
@@ -8992,6 +9000,19 @@ impl CardPool {
                 others_gain: 0,
             }));
         }
+        // CR 702.148a: cast for its cleave cost, the spell is its text with
+        // the bracketed words removed.
+        if let Some(cleaved) = def.cleaved.take() {
+            let mut face = def.clone();
+            face.alt_cost = None;
+            for a in &mut face.abilities {
+                if matches!(a, AbilityDef::Spell { .. }) {
+                    *a = (*cleaved).clone();
+                }
+            }
+            def.cleave_face = Some(self.add(face));
+            def.cleaved = Some(cleaved);
+        }
         // CR 702.96b: the overloaded spell has no targets (and so is
         // not registered again).
         if def.overload.is_some() && def.spell_ability().is_some_and(|(t, _)| !t.is_empty()) {
@@ -9488,6 +9509,8 @@ impl Builder {
             haunted: None,
             haunt_spell: None,
             reconfigure: false,
+            cleaved: None,
+            cleave_face: None,
             prowl: false,
             emerge: false,
             miracle: None,
@@ -9786,6 +9809,23 @@ impl Builder {
             others_gain: 0,
         }));
         self.0.emerge = true;
+        self
+    }
+
+    /// Cleave (CR 702.148a): the alternative cost, and the spell ability
+    /// without the bracketed words.
+    #[must_use]
+    pub fn cleave(mut self, cost: ManaCost, cleaved: AbilityDef) -> Self {
+        self.0.alt_cost = Some(Box::new(AltCost {
+            cost: Cost {
+                mana: cost,
+                ..Cost::default()
+            },
+            count: 1,
+            condition: None,
+            others_gain: 0,
+        }));
+        self.0.cleaved = Some(Box::new(cleaved));
         self
     }
 

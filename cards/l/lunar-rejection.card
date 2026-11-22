@@ -1,0 +1,13 @@
+card "Lunar Rejection" {
+  oracle_id d2f693d9-f338-41d6-b7e2-ddaa5f4bcc3b
+  cost {1}{U}
+  type Instant
+  cleave {3}{U} {
+    return target creature to hand
+    draw 1 card
+  }
+  spell {
+    return target Wolf or Werewolf creature to hand
+    draw 1 card
+  }
+}

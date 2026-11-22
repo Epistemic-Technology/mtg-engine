@@ -3100,6 +3100,8 @@ impl GameState {
         if !payable || !self.additional_payable(p, &def.additional, id) {
             return false;
         }
+        // CR 702.148a: cleaved, the spell's targets are its cleave face's.
+        let def = def.cleave_face.map_or(def, |f| self.pool.get(f));
         match def.modes() {
             Some(modes) => modes
                 .iter()

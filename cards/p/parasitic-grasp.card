@@ -1,0 +1,7 @@
+card "Parasitic Grasp" {
+  oracle_id d9763c75-75f7-4766-8cca-84c899796e3c
+  cost {1}{B}
+  type Instant
+  cleave {1}{B}{B}: deal 3 damage to target creature; you gain 3 life
+  spell: deal 3 damage to target Human creature; you gain 3 life
+}

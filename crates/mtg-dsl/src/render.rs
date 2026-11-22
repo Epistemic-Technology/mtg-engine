@@ -13447,6 +13447,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Disguise(c) => format!("Disguise {c}"),
             crate::ast::Mechanic::Ninjutsu(c) => format!("Ninjutsu {c}"),
             crate::ast::Mechanic::Reconfigure(c) => format!("Reconfigure {c}"),
+            crate::ast::Mechanic::Cleave(c, _) => format!("Cleave {c}"),
             crate::ast::Mechanic::Scavenge(c) => format!("Scavenge {c}"),
             crate::ast::Mechanic::Dash(c) => format!("Dash {c}"),
             crate::ast::Mechanic::Warp(c) => format!("Warp {c}"),
@@ -14101,7 +14102,17 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             i += 2;
             continue;
         }
-        let text = ability_text(card, &card.abilities[i], lookup);
+        let mut text = ability_text(card, &card.abilities[i], lookup);
+        // CR 702.148a: the spell's words that cleave removes, in square
+        // brackets.
+        if matches!(card.abilities[i], Ability::Spell { .. })
+            && let Some(cleaved) = card.abilities.iter().find_map(|a| match a {
+                Ability::Mechanic(crate::ast::Mechanic::Cleave(_, s)) => Some(s),
+                _ => None,
+            })
+        {
+            text = bracket_removed(&text, &ability_text(card, cleaved, lookup));
+        }
         // "This land enters tapped. As it enters, choose a color." is one
         // line.
         // "{X}: ... Spend only black mana on X." after an activated ability
@@ -14149,6 +14160,91 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
         lines.push("Paradigm".to_string());
     }
     lines.join("\n")
+}
+
+/// Cleave (CR 702.148a): `full` with the words `cut` lacks in square
+/// brackets ("Return target nonland permanent [you control] to its
+/// owner's hand."), or `full` unchanged if `cut` isn't `full` with words
+/// removed.
+fn bracket_removed(full: &str, cut: &str) -> String {
+    fn tokens(s: &str) -> Vec<&str> {
+        let mut out = Vec::new();
+        for word in s.split(' ') {
+            let mut w = word;
+            // "control." is "control" and "."; a line break its own.
+            while let Some(i) = w.find('\n') {
+                let (a, b) = w.split_at(i);
+                out.extend(split_punct(a));
+                out.push("\n");
+                w = &b[1..];
+            }
+            out.extend(split_punct(w));
+        }
+        out
+    }
+    fn split_punct(w: &str) -> Vec<&str> {
+        match w.char_indices().last() {
+            Some((i, c)) if matches!(c, '.' | ',' | ';' | ':') && i > 0 => {
+                vec![&w[..i], &w[i..]]
+            }
+            _ if w.is_empty() => Vec::new(),
+            _ => vec![w],
+        }
+    }
+    let (a, b) = (tokens(full), tokens(cut));
+    // The longest common subsequence, matching each word as early as it
+    // can.
+    let mut lcs = vec![vec![0usize; b.len() + 1]; a.len() + 1];
+    for i in (0..a.len()).rev() {
+        for j in (0..b.len()).rev() {
+            lcs[i][j] = if a[i] == b[j] {
+                lcs[i + 1][j + 1] + 1
+            } else {
+                lcs[i + 1][j].max(lcs[i][j + 1])
+            };
+        }
+    }
+    if lcs[0][0] != b.len() {
+        return full.to_string();
+    }
+    let (mut i, mut j) = (0, 0);
+    let mut kept = vec![false; a.len()];
+    while i < a.len() {
+        if j < b.len() && a[i] == b[j] && lcs[i][j] == lcs[i + 1][j + 1] + 1 {
+            kept[i] = true;
+            j += 1;
+        }
+        i += 1;
+    }
+    let mut out = String::new();
+    let mut open = false;
+    for (k, t) in a.iter().enumerate() {
+        if *t == "\n" {
+            if open {
+                out.push(']');
+                open = false;
+            }
+            out.push('\n');
+            continue;
+        }
+        let punct = matches!(*t, "." | "," | ";" | ":");
+        if open && kept[k] {
+            out.push(']');
+            open = false;
+        }
+        if !punct && !out.is_empty() && !out.ends_with('\n') {
+            out.push(' ');
+        }
+        if !open && !kept[k] {
+            out.push('[');
+            open = true;
+        }
+        out.push_str(t);
+    }
+    if open {
+        out.push(']');
+    }
+    out
 }
 
 /// "This creature can't attack or block alone." for the `i`th and next

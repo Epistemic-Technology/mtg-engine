@@ -1050,6 +1050,16 @@ impl Compiler<'_> {
             // "[Cost]: Unattach this permanent. Activate only if this
             // permanent is attached to a creature and only as a sorcery.";
             // 702.151b: attached, it isn't a creature.
+            // CR 702.148a: "You may cast this spell for [cost]. If you do,
+            // remove the words in square brackets."
+            if let Ability::Mechanic(Mechanic::Cleave(c, spell)) = a {
+                if card.alt_cost.is_some() {
+                    return self.err("cleave and an alternative cost of the card's own");
+                }
+                let cleaved = self.ability(spell)?;
+                b = b.cleave(c.clone(), cleaved);
+                continue;
+            }
             if let Ability::Mechanic(Mechanic::Reconfigure(c)) = a {
                 let attached = StaticCondition::AttachedIs(ObjFilter {
                     types: TypeSet::of([mtg_core::card::CardType::Creature]),
@@ -6530,6 +6540,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Unleash
         | Mechanic::Haunt
         | Mechanic::Reconfigure(_)
+        | Mechanic::Cleave(..)
         | Mechanic::Devour(..)
         | Mechanic::Amplify(_)
         | Mechanic::Tribute(_)

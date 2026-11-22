@@ -1846,7 +1846,9 @@ impl GameState {
             (Flow::Priority, Choice::CastAlt(card)) => {
                 // CR 718.3: a prototype card's alternative cost casts it
                 // prototyped, the spell its prototype face.
-                match self.pool.get(self.objects[card].def).prototype_face {
+                // CR 702.148a: a cleaved spell is its cleave face.
+                let def = self.pool.get(self.objects[card].def);
+                match def.prototype_face.or(def.cleave_face) {
                     Some(face) => {
                         self.begin_cast_as(
                             player,

@@ -1861,6 +1861,11 @@ pub enum Mechanic {
     /// `riot` (CR 702.136): enters with your choice of a +1/+1 counter or
     /// haste.
     Riot,
+    /// `cleave {1}{U}: <effects>` (CR 702.148): the spell's alternative
+    /// cost, cast for which the spell is these effects: the `spell` text
+    /// with the words in square brackets removed. The `spell` line prints
+    /// with the words it has beyond these in brackets.
+    Cleave(ManaCost, Box<Ability>),
     /// `reconfigure {2}` (CR 702.151): "{2}: Attach to target creature you
     /// control; or unattach from a creature. Reconfigure only as a
     /// sorcery. While attached, this isn't a creature."

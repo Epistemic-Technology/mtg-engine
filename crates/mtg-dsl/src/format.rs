@@ -5128,6 +5128,18 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let _ = writeln!(out, "{indent}enchant {phrase}");
         }
         Ability::Spell { targets, effects } => body(out, indent, "spell", effects, targets, groups),
+        Ability::Mechanic(crate::ast::Mechanic::Cleave(c, spell)) => {
+            if let Ability::Spell { targets, effects } = &**spell {
+                body(
+                    out,
+                    indent,
+                    &format!("cleave {c}"),
+                    effects,
+                    targets,
+                    groups,
+                );
+            }
+        }
         Ability::Exert(effects) => body(out, indent, "exert", effects, &[], groups),
         Ability::EquipOr {
             mana,
@@ -5675,6 +5687,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Disguise(c) => format!("disguise {c}"),
                 crate::ast::Mechanic::Ninjutsu(c) => format!("ninjutsu {c}"),
                 crate::ast::Mechanic::Reconfigure(c) => format!("reconfigure {c}"),
+                crate::ast::Mechanic::Cleave(..) => unreachable!("a body of its own"),
                 crate::ast::Mechanic::Scavenge(c) => format!("scavenge {c}"),
                 crate::ast::Mechanic::Dash(c) => format!("dash {c}"),
                 crate::ast::Mechanic::Warp(c) => format!("warp {c}"),

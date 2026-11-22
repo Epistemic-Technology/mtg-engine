@@ -2431,6 +2431,23 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Enchant(t))
             }
+            // CR 702.148a: `cleave {1}{U}: <effects>`, the spell as cast
+            // for its cleave cost.
+            "cleave" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
+                self.pos += 1;
+                let c = self.mana_cost()?;
+                self.kicked_targets = None;
+                self.kicked_instead = None;
+                self.in_spell = true;
+                let effects = self.effects_body()?;
+                Ok(Ability::Mechanic(Mechanic::Cleave(
+                    c,
+                    Box::new(Ability::Spell {
+                        targets: std::mem::take(&mut self.targets),
+                        effects,
+                    }),
+                )))
+            }
             "spell" => {
                 self.pos += 1;
                 self.kicked_targets = None;

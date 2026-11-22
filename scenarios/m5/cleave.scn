@@ -1,0 +1,161 @@
+# Cleave (CR 702.148a): "You may cast this spell for [cost]. If you do,
+# remove the words in square brackets." (the card's alternative cost,
+# `alternative` in scenarios).
+
+scenario "cleave: cast normally, only your own nonland permanent" {
+  battlefield A: "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Alchemist's Retrieval"
+  turn 1 A: cast "Alchemist's Retrieval" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "cleave: cast normally, not an opponent's permanent" {
+  battlefield A: "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Alchemist's Retrieval"
+  illegal turn 1 A: cast "Alchemist's Retrieval" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "cleave: cleaved, any nonland permanent" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Alchemist's Retrieval"
+  turn 1 A: cast "Alchemist's Retrieval" alternative targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert graveyard A contains "Alchemist's Retrieval"
+}
+
+scenario "cleave: the cleave cost must be paid" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Alchemist's Retrieval"
+  illegal turn 1 A: cast "Alchemist's Retrieval" alternative targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Fierce Retribution: an attacking creature for {1}{W}" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Fierce Retribution"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Fierce Retribution" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 20
+}
+
+scenario "Fierce Retribution: not a creature that isn't attacking, unless cleaved" {
+  battlefield A: 6 "Plains"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Fierce Retribution"
+  illegal turn 1 A: cast "Fierce Retribution" targeting "Hill Giant"
+  turn 1 A: cast "Fierce Retribution" alternative targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Fierce Retribution: cleaved with no attacker" {
+  battlefield A: 6 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Fierce Retribution"
+  turn 1 A: cast "Fierce Retribution" alternative targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Dig Up: a basic land, or cleaved any card" {
+  battlefield A: 4 "Forest", 2 "Swamp"
+  hand A: "Dig Up"
+  library A: "Grizzly Bears"
+  turn 1 A: cast "Dig Up" alternative
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Dig Up: cast normally, only a basic land" {
+  battlefield A: "Forest"
+  hand A: "Dig Up"
+  library A: "Grizzly Bears", "Plains"
+  turn 1 A: cast "Dig Up"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Plains"
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "Lunar Rejection: a Wolf, or cleaved any creature, and a card" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant", "Snarling Warg"
+  hand A: "Lunar Rejection"
+  library A: "Island", "Forest"
+  illegal turn 1 A: cast "Lunar Rejection" targeting "Hill Giant"
+  turn 1 A: cast "Lunar Rejection" alternative targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert hand A count 1
+}
+
+scenario "Lunar Rejection: a Wolf for {1}{U}" {
+  battlefield A: 2 "Island"
+  battlefield B: "Snarling Warg"
+  hand A: "Lunar Rejection"
+  library A: "Island", "Forest"
+  turn 1 A: cast "Lunar Rejection" targeting "Snarling Warg"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Snarling Warg"
+}
+
+scenario "Parasitic Grasp: a Human, or cleaved any creature" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant", "Seasoned Marshal"
+  hand A: "Parasitic Grasp"
+  illegal turn 1 A: cast "Parasitic Grasp" targeting "Hill Giant"
+  turn 1 A: cast "Parasitic Grasp" alternative targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 23
+}
+
+scenario "Path of Peril: small creatures, or cleaved all of them" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Path of Peril"
+  turn 1 A: cast "Path of Peril"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Path of Peril: cleaved, every creature" {
+  battlefield A: 4 "Swamp", 2 "Plains"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Path of Peril"
+  turn 1 A: cast "Path of Peril" alternative
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Winged Portent: fliers, or cleaved every creature" {
+  battlefield A: 3 "Island", "Wind Drake", "Grizzly Bears"
+  hand A: "Winged Portent"
+  library A: "Island", "Forest", "Swamp"
+  turn 1 A: cast "Winged Portent"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Winged Portent: cleaved, every creature you control" {
+  battlefield A: 4 "Island", 2 "Forest", "Wind Drake", "Grizzly Bears"
+  hand A: "Winged Portent"
+  library A: "Island", "Forest", "Swamp"
+  turn 1 A: cast "Winged Portent" alternative
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}

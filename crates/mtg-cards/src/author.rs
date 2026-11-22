@@ -68,6 +68,7 @@ const KEYWORDS: &[&str] = &[
 
 /// Scryfall keyword tags that templates below handle as abilities.
 const TEMPLATED_TAGS: &[&str] = &[
+    "Cleave",
     "Haunt",
     "Reconfigure",
     "Devour",
@@ -2764,6 +2765,7 @@ impl Templates {
                 spell_paragraphs: Vec::new(),
                 spell_at: None,
                 spell_targets: 0,
+                cleave: None,
             }
             .quoted(cap(&c, 2));
             let who = recipient(&lowercase_first(cap(&c, 1)), targets);
@@ -4110,6 +4112,9 @@ struct Builder<'a> {
     /// spell's text prints after it).
     spell_at: Option<usize>,
     spell_targets: usize,
+    /// Cleave (CR 702.148a): its cost, and the spell's paragraphs with the
+    /// bracketed words removed.
+    cleave: Option<(String, Vec<String>)>,
 }
 
 impl Builder<'_> {
@@ -4126,6 +4131,7 @@ impl Builder<'_> {
             spell_paragraphs: Vec::new(),
             spell_at: None,
             spell_targets: 0,
+            cleave: None,
         };
         // A keyword alone ("has \"Flying\"") is not an ability statement.
         inner.statements.push(String::new());
@@ -4628,6 +4634,15 @@ impl Builder<'_> {
                 cap(&c, 1).to_lowercase(),
                 cap(&c, 2)
             ));
+            return Ok(());
+        }
+        // CR 702.148a: the spell's text follows.
+        if let Some(c) = Regex::new(r"^Cleave ((?:\{[0-9WUBRGCX]+\})+)$")
+            .unwrap()
+            .captures(line)
+            && self.is_spell
+        {
+            self.cleave = Some((cap(&c, 1).to_string(), Vec::new()));
             return Ok(());
         }
         // CR 702.55a.
@@ -5896,6 +5911,28 @@ impl Builder<'_> {
             ));
             return Ok(());
         }
+        if self.is_spell
+            && let Some((cost, cut)) = &mut self.cleave
+        {
+            // CR 702.148a: the text as printed, and with the words in
+            // square brackets removed.
+            let full = line.replace(['[', ']'], "");
+            let short = Regex::new(r" ?\[[^\]]*\]")
+                .unwrap()
+                .replace_all(line, "")
+                .into_owned();
+            let short = short.trim_start();
+            let mut t = 0;
+            let cleaved = self.templates.effects(short, &mut t)?;
+            let _ = cost;
+            cut.push(cleaved);
+            let mut targets = self.spell_targets;
+            let effects = self.templates.effects(&full, &mut targets)?;
+            self.spell_targets = targets;
+            self.spell_at.get_or_insert(self.statements.len());
+            self.spell_paragraphs.push(effects);
+            return Ok(());
+        }
         if self.is_spell {
             let mut targets = self.spell_targets;
             let effects = self.templates.effects(line, &mut targets)?;
@@ -6371,6 +6408,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         spell_paragraphs: Vec::new(),
         spell_at: None,
         spell_targets: 0,
+        cleave: None,
     };
     // CR 711.2: a leveler's "LEVEL 1-4" and the P/T box under it, one line.
     let leveler = Regex::new(r"(?m)^(LEVEL \d+(?:-\d+|\+))\n(\d+/\d+)$").unwrap();
@@ -6492,6 +6530,21 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     let split = b.spell_at.unwrap_or(b.statements.len());
     for st in &b.statements[..split] {
         let _ = writeln!(text, "  {st}");
+    }
+    // CR 702.148a: the cleaved spell, before the spell.
+    if let Some((cost, cut)) = &b.cleave {
+        match cut.as_slice() {
+            [one] => {
+                let _ = writeln!(text, "  cleave {cost}: {one}");
+            }
+            many => {
+                let _ = writeln!(text, "  cleave {cost} {{");
+                for p in many {
+                    let _ = writeln!(text, "    {p}");
+                }
+                text.push_str("  }\n");
+            }
+        }
     }
     match b.spell_paragraphs.as_slice() {
         [] => {}
