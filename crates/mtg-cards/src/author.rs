@@ -1961,7 +1961,11 @@ impl Templates {
                 |c, t| {
                     *t += 1;
                     let who = lowercase_first(cap(c, 1));
-                    let of = recipient(cap(c, 2), t)?;
+                    // "it" is the source, not the player just targeted.
+                    let of = match cap(c, 2) {
+                        "it" => "it".to_string(),
+                        w => recipient(w, t)?,
+                    };
                     Some(format!("{who} gains control of {of}"))
                 },
             ),

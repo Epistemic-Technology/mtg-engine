@@ -9704,8 +9704,8 @@ impl GameState {
                 // (no target chosen, or one now illegal), it isn't created.
                 // "For each Rat you control, create a Wicked Role token
                 // attached to that Rat": one creation for each object.
-                let hosts: SmallVec<[Option<ObjId>; 2]> = match attached {
-                    Some(r) => {
+                let hosts: SmallVec<[Option<ObjId>; 2]> = if let Some(r) = attached {
+                    {
                         let spec = self
                             .pool
                             .get(*token)
@@ -9725,7 +9725,8 @@ impl GameState {
                         }
                         hosts
                     }
-                    None => smallvec::smallvec![None],
+                } else {
+                    smallvec::smallvec![None]
                 };
                 ctx.created_tokens.clear();
                 let sized = self.token_pt.take();
@@ -11406,28 +11407,28 @@ impl GameState {
             }
             Effect::ExchangeLife { with } => {
                 ctx.did = false;
-                let p = ctx.controller;
-                let Some(q) = self
+                let me = ctx.controller;
+                let Some(them) = self
                     .recipients(ctx, *with)
                     .into_iter()
                     .find_map(|t| match t {
-                        Target::Player(q) if q != p && self.player(q).lost.is_none() => Some(q),
+                        Target::Player(o) if o != me && self.player(o).lost.is_none() => Some(o),
                         _ => None,
                     })
                 else {
                     return;
                 };
-                let (a, b) = (self.player(p).life, self.player(q).life);
+                let (mine, theirs) = (self.player(me).life, self.player(them).life);
                 // CR 701.12c: each gains or loses the life necessary to
                 // equal the other's former total.
-                let (loser, gainer, d) = match a.cmp(&b) {
+                let (loser, gainer, diff) = match mine.cmp(&theirs) {
                     std::cmp::Ordering::Equal => return,
-                    std::cmp::Ordering::Greater => (p, q, a - b),
-                    std::cmp::Ordering::Less => (q, p, b - a),
+                    std::cmp::Ordering::Greater => (me, them, mine - theirs),
+                    std::cmp::Ordering::Less => (them, me, theirs - mine),
                 };
-                self.change_life(loser, -d);
-                self.gain_life(gainer, d.unsigned_abs());
-                ctx.did = loser == p;
+                self.change_life(loser, -diff);
+                self.gain_life(gainer, diff.unsigned_abs());
+                ctx.did = loser == me;
             }
             Effect::GiveControl { of, to } => {
                 ctx.did = false;

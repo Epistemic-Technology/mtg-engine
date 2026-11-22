@@ -191,3 +191,14 @@ scenario "give control: the opponent can use Wishclaw Talisman only on their tur
   assert battlefield A contains "Wishclaw Talisman"
   assert counters "Wishclaw Talisman" wish 1
 }
+
+scenario "give control: Sleeper Agent goes to the targeted opponent and hurts them" {
+  battlefield A: "Swamp"
+  hand A: "Sleeper Agent"
+  turn 1 A: cast "Sleeper Agent"
+  turn 1 A: trigger "Sleeper Agent" targeting player B
+  run_to turn 2 draw
+  assert battlefield B contains "Sleeper Agent"
+  assert life B 18
+  assert life A 20
+}

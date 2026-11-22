@@ -35,3 +35,12 @@ scenario "per object: a target gone before resolution gets no Role" {
   assert battlefield A contains 1 "Monster"
   assert power "Hill Giant" 4
 }
+
+scenario "per object: Tale of Tinuviel's third chapter gives two creatures lifelink" {
+  battlefield A: "Tale of Tinúviel" with 2 lore, "Grizzly Bears", "Hill Giant"
+  start turn 2 A
+  turn 2 A: trigger "Tale of Tinúviel" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert has "Grizzly Bears" lifelink
+  assert has "Hill Giant" lifelink
+}
