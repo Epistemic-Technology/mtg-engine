@@ -3111,7 +3111,9 @@ Vehicles." In a trigger on `Vehicle you control attacks`, `that
 Vehicle` is the attacking Vehicle.
 
 `replace this dies: exile`: "If this creature would die, exile it
-instead."
+instead."; `replace this dies: library top`: "If this creature would die,
+put it on top of its owner's library instead." (`library bottom`: "on the
+bottom of its owner's library").
 
 ### Wording variants
 

@@ -14120,6 +14120,16 @@ impl P {
             }
             // "return it to its owner's hand instead".
             "hand" => Outcome::Instead(Zone::Hand),
+            // "put it on top of its owner's library instead" (`library
+            // top`), "on the bottom ..." (`library bottom`).
+            "library" => {
+                if self.eat_word("top") {
+                    Outcome::IntoLibrary { top: true }
+                } else {
+                    self.expect_word("bottom")?;
+                    Outcome::IntoLibrary { top: false }
+                }
+            }
             "plus" => {
                 if self.eat_word("one") {
                     Outcome::PlusOne

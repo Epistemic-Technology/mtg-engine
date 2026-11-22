@@ -4511,6 +4511,24 @@ impl Builder<'_> {
                 .push("replace this put into a graveyard: shuffle into library".to_string());
             return Ok(());
         }
+        // "If this creature would die, put it on top of its owner's
+        // library instead." (Gravebane Zombie), "exile it instead".
+        if let Some(c) = Regex::new(
+            r"^If this creature would die, (exile it|return it to its owner's hand|put it on top of its owner's library|put it on the bottom of its owner's library) instead\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let outcome = match cap(&c, 1) {
+                "exile it" => "exile",
+                "return it to its owner's hand" => "hand",
+                "put it on top of its owner's library" => "library top",
+                _ => "library bottom",
+            };
+            self.statements
+                .push(format!("replace this dies: {outcome}"));
+            return Ok(());
+        }
         if line
             == "If one or more +1/+1 counters would be put on a creature you control, twice that many +1/+1 counters are put on that creature instead."
         {

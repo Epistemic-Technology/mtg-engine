@@ -3212,6 +3212,8 @@ fn outcome(o: &Outcome) -> String {
         }
         Outcome::PlusCount(n) => format!("plus {}", num(*n)),
         Outcome::Instead(mtg_core::state::Zone::Hand) => "hand".to_string(),
+        Outcome::IntoLibrary { top: true } => "library top".to_string(),
+        Outcome::IntoLibrary { top: false } => "library bottom".to_string(),
         Outcome::Instead(_) => "exile".to_string(),
         Outcome::DrawTwo => "draw two".to_string(),
         Outcome::WinGame => "win".to_string(),

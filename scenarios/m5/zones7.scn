@@ -1,0 +1,52 @@
+# Graveyard, library, hand, and exile forms from the zones branch of the
+# seventh wave.
+
+# "If this creature would die, put it on top of its owner's library
+# instead." (Gravebane Zombie) and "on the bottom" (Nissa's Chosen): a
+# replacement of the zone change (CR 614.1a, 700.4).
+
+scenario "dies to library: Gravebane Zombie goes on top of its owner's library" {
+  battlefield A: "Gravebane Zombie"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  library A: "Island", "Forest"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Gravebane Zombie"
+  run_to turn 3 precombat_main
+  assert graveyard A lacks "Gravebane Zombie"
+  assert hand A contains "Gravebane Zombie"
+  assert hand A lacks "Island"
+}
+
+scenario "dies to library: Nissa's Chosen goes on the bottom" {
+  battlefield A: "Nissa's Chosen"
+  battlefield B: "Swamp", "Swamp", "Swamp"
+  hand B: "Murder"
+  library A: "Island", "Forest"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Nissa's Chosen"
+  run_to turn 3 precombat_main
+  assert graveyard A lacks "Nissa's Chosen"
+  assert hand A contains "Island"
+  assert hand A lacks "Nissa's Chosen"
+  assert library A contains "Nissa's Chosen"
+  assert library A count 2
+}
+
+scenario "dies to library: sacrificed, it is put on top too" {
+  battlefield A: "Gravebane Zombie", "Cartel Aristocrat"
+  library A: "Island", "Forest"
+  turn 1 A: activate "Cartel Aristocrat" sacrificing "Gravebane Zombie"
+  run_to turn 1 end
+  assert graveyard A lacks "Gravebane Zombie"
+  assert library A count 3
+}
+
+scenario "dies to library: exiled, it is not dying, so it stays in exile" {
+  battlefield A: "Plains", "Plains", "Plains", "Plains", "Plains"
+  battlefield B: "Gravebane Zombie"
+  hand A: "Banish from Edoras"
+  turn 1 A: cast "Banish from Edoras" targeting "Gravebane Zombie"
+  run_to turn 1 end
+  assert exile B contains "Gravebane Zombie"
+}

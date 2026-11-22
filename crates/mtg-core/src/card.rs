@@ -5604,6 +5604,10 @@ pub enum Replacement {
     /// Reveal the card and shuffle it into its owner's library instead
     /// (Darksteel Colossus).
     ShuffleIntoLibrary,
+    /// Put the card on top (`top`) or the bottom of its owner's library
+    /// instead ("If this creature would die, put it on top of its owner's
+    /// library instead.", Gravebane Zombie; Nissa's Chosen).
+    IntoLibrary { top: bool },
     /// Draw two cards instead of one.
     DrawTwo,
     /// The player wins the game instead.

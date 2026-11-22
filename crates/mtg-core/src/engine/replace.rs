@@ -1321,6 +1321,26 @@ impl GameState {
                     enter,
                 })
             }
+            // "put it on top of its owner's library instead" (Gravebane
+            // Zombie) or "on the bottom" (Nissa's Chosen).
+            (
+                Replacement::IntoLibrary { top },
+                Proposed::ZoneChange {
+                    obj,
+                    controller,
+                    enter,
+                    ..
+                },
+            ) => {
+                self.emit(Event::Replaced { by: c.def });
+                Outcome::Event(Proposed::ZoneChange {
+                    obj,
+                    to: Zone::Library,
+                    to_top: top,
+                    controller,
+                    enter,
+                })
+            }
             // "reveal this card and shuffle it into its owner's library
             // instead" (Darksteel Colossus).
             (

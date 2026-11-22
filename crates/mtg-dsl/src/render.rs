@@ -11536,6 +11536,15 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             counters(*n, *kind),
             it_obj(ctx.card)
         ),
+        // "If this creature would die, put it on top of its owner's
+        // library instead." (Gravebane Zombie; "on the bottom", Nissa's
+        // Chosen).
+        (Replaces::Dies { to }, Outcome::IntoLibrary { top }) => {
+            let who = affects_to(to, ctx);
+            let when = if this_turn { " this turn" } else { "" };
+            let place = if *top { "on top" } else { "on the bottom" };
+            format!("If {who} would die{when}, put it {place} of its owner's library instead.")
+        }
         (Replaces::Dies { to }, Outcome::Instead(zone)) => {
             let who = match to {
                 Affects::Target(i) => {
