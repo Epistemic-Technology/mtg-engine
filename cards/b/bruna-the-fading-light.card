@@ -1,0 +1,8 @@
+card "Bruna, the Fading Light" {
+  oracle_id bce7e45d-b2c5-43aa-91a6-3a3c24f30850
+  cost {5}{W}{W}
+  type Legendary Creature — Angel Horror
+  pt 5/7
+  triggered when you cast this: you may return target Angel or Human creature card from your graveyard to battlefield
+  keyword flying, vigilance
+}

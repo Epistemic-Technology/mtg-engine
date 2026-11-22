@@ -3704,6 +3704,15 @@ pub enum Effect {
     Transform {
         what: Recipient,
     },
+    /// "If you both own and control this creature and a creature named
+    /// `partner`, exile them, then meld them into `into`." (CR 701.42a):
+    /// both exiled, then, if both are cards of the pair, put onto the
+    /// battlefield as one permanent with `into`'s characteristics
+    /// (`GameState::melded`); otherwise they stay exiled (CR 701.42c).
+    Meld {
+        partner: Box<str>,
+        into: Box<str>,
+    },
     /// "Flip this creature" (CR 710): an unflipped flip card on the
     /// battlefield gets its flipped half's characteristics, for as long as
     /// it stays there (CR 710.4).
@@ -6081,6 +6090,11 @@ pub enum Condition {
     /// bonus "for each opponent you attacked" is one. Judged only as the
     /// ability triggers: attackers are declared once each combat.
     AttackedOpponent,
+    /// Meld's intervening "if" (CR 603.4, 701.42a): "if you both own and
+    /// control this creature and a creature named <its pair>", the pair
+    /// named by the ability's `Effect::Meld`. Set by the compiler on a
+    /// triggered ability that melds; the effect prints the words.
+    MeldPair,
 }
 
 /// A triggered ability (CR 603).

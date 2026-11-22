@@ -1870,6 +1870,7 @@ impl Fmt {
             }
             Effect::Transform { what } => format!("transform {}", self.recipient(*what, t)),
             Effect::Flip { what } => format!("flip {}", self.recipient(*what, t)),
+            Effect::Meld { partner, into } => format!("meld with {partner:?} into {into:?}"),
             Effect::AddMana(m) if m == &[Mana::Chosen] => "add chosen".to_string(),
             Effect::AddMana(m) => format!("add {}", crate::render::mana_symbols(m, "any")),
             Effect::AddManaLandCould { whose, basic } => format!(
@@ -5320,6 +5321,8 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Some(mtg_core::card::Condition::AttackedOpponent) => {
                     head.push_str(" if attacked opponent");
                 }
+                // Printed by the meld effect itself.
+                Some(mtg_core::card::Condition::MeldPair) => {}
                 Some(mtg_core::card::Condition::Evoked) => head.push_str(" if evoked"),
                 Some(mtg_core::card::Condition::Kicked) => head.push_str(" if kicked"),
                 Some(mtg_core::card::Condition::NoSpellsLastTurn) => {

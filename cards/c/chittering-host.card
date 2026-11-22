@@ -1,0 +1,7 @@
+card "Chittering Host" {
+  oracle_id 6923cf6b-7d3e-4d95-abaf-1df1a04ac7c1
+  type Creature — Eldrazi Horror
+  pt 5/6
+  keywords haste, menace
+  triggered when this enters: each other creature you control gets +1/+0 and gains menace
+}

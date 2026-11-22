@@ -3043,6 +3043,10 @@ impl Compiler<'_> {
             }
             Effect::Transform { what } => out.push(CoreEffect::Transform { what: r(*what) }),
             Effect::Flip { what } => out.push(CoreEffect::Flip { what: r(*what) }),
+            Effect::Meld { partner, into } => out.push(CoreEffect::Meld {
+                partner: partner.as_str().into(),
+                into: into.as_str().into(),
+            }),
             Effect::Search {
                 count,
                 up_to,
@@ -4552,6 +4556,14 @@ impl Compiler<'_> {
                 limit: *limit,
                 trigger: self.trigger(trigger),
                 condition: match condition {
+                    // Meld's intervening "if" (CR 603.4, 701.42a).
+                    None if effects
+                        .first()
+                        .and_then(|s| s.effects.first())
+                        .is_some_and(|e| matches!(e, crate::ast::Effect::Meld { .. })) =>
+                    {
+                        Some(mtg_core::card::Condition::MeldPair)
+                    }
                     None => None,
                     Some(crate::ast::TrigCond::Core(c)) => Some(*c),
                     Some(crate::ast::TrigCond::Static(c)) => {

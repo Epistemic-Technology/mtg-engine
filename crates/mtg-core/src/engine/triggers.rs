@@ -2130,6 +2130,10 @@ impl GameState {
                 .or_else(|| self.lki.get(&source).map(|l| l.object.cast.evoked()))
                 .unwrap_or(false),
             Condition::Blitzed => self.blitzed(source),
+            Condition::MeldPair => self
+                .objects
+                .get(source)
+                .is_some_and(|o| self.meld_partner(source, o.controller).is_some()),
             // Judged only as the ability triggered.
             Condition::While(_)
             | Condition::WhileSecond(_)
@@ -2180,6 +2184,7 @@ impl GameState {
             Condition::Blitzed => self.blitzed(w.source),
             Condition::Dethrones => self.dethrones(w.source),
             Condition::AttackedOpponent => self.attacked_opponent(w.controller),
+            Condition::MeldPair => self.meld_partner(w.source, w.controller).is_some(),
         }
     }
 

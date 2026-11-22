@@ -616,6 +616,7 @@ impl GameState {
             this_way: None,
             paid_costs: Vec::new(),
             linked_exiles: Vec::new(),
+            melded: Vec::new(),
             temp_copies: Vec::new(),
             linking: None,
             spent_mana: Vec::new(),

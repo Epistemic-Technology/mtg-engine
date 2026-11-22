@@ -7091,6 +7091,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*what);
             Clause::imperative(format!("transform {o}"))
         }
+        Effect::Meld { partner, into } => Clause::imperative(format!(
+            "if you both own and control {} and a creature named {partner}, exile them, then meld them into {into}",
+            this_ref(ctx.card)
+        )),
         Effect::Flip { what } => {
             let o = ctx.obj(*what);
             Clause::imperative(format!("flip {o}"))
@@ -9964,6 +9968,8 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
             "if it attacked the player with the most life or tied for most life".to_string()
         }
         Condition::AttackedOpponent => "if you attacked an opponent this combat".to_string(),
+        // Printed by the meld effect itself.
+        Condition::MeldPair => String::new(),
     }
 }
 

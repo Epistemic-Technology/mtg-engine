@@ -8184,6 +8184,13 @@ impl P {
             // source, printed "it", even in a trigger with no triggering
             // object ("..., if there are two or more ki counters on this
             // creature, you may flip it.").
+            "meld" => {
+                self.expect_word("with")?;
+                let partner = self.string()?;
+                self.expect_word("into")?;
+                let into = self.string()?;
+                Ok(Effect::Meld { partner, into })
+            }
             "flip" if self.eat_word("it") => Ok(Effect::Flip {
                 what: Recipient::SourceIt,
             }),

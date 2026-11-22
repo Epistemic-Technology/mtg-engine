@@ -3660,6 +3660,63 @@ impl GameState {
 
     /// Transform a double-faced permanent to its other face (CR 701.27);
     /// it stays the same object. Whether it did.
+    /// The creature named as `source`'s meld pair (its `Effect::Meld`)
+    /// that `you` own and control, if `you` also own and control `source`
+    /// on the battlefield (CR 701.42a's "if you both own and control ...").
+    pub(super) fn meld_partner(&self, source: ObjId, you: PlayerId) -> Option<ObjId> {
+        let o = self.objects.get(source)?;
+        if o.zone != Zone::Battlefield || o.owner != you || o.controller != you {
+            return None;
+        }
+        let partner = self.pool.get(o.def).abilities.iter().find_map(|a| {
+            a.effects().iter().find_map(|e| match e {
+                Effect::Meld { partner, .. } => Some(partner.clone()),
+                _ => None,
+            })
+        })?;
+        self.permanents_of(you).find(|id| {
+            *id != source
+                && self.objects[*id].owner == you
+                && self.name_of(*id) == &*partner
+                && self.characteristics(*id).is_some_and(|c| c.is_creature())
+        })
+    }
+
+    /// CR 701.42a, 712.4a: exile `source` and its pair, then put them onto
+    /// the battlefield as one permanent with `into`'s characteristics, if
+    /// both are still the pair's cards in exile (CR 701.42b-c: a token, or
+    /// a card a replacement moved elsewhere, isn't melded; the cards stay
+    /// where they are).
+    fn meld(&mut self, source: ObjId, you: PlayerId, partner: &str, into: &str) {
+        let Some(other) = self.meld_partner(source, you) else {
+            return;
+        };
+        let Some(into) = self.pool.lookup(into) else {
+            return;
+        };
+        let a = self.move_object(source, Zone::Exile, true);
+        let b = self.move_object(other, Zone::Exile, true);
+        let pair = |st: &Self, id: ObjId, name: Option<&str>| {
+            st.objects.get(id).is_some_and(|o| {
+                o.zone == Zone::Exile
+                    && o.kind == crate::state::ObjKind::Card
+                    && name.is_none_or(|n| st.pool.get(o.card).name == n)
+            })
+        };
+        if !pair(self, a, None) || !pair(self, b, Some(partner)) {
+            return;
+        }
+        self.objects[a].def = into;
+        let new = self.put_onto_battlefield(a, you);
+        if self
+            .objects
+            .get(new)
+            .is_some_and(|o| o.zone == Zone::Battlefield)
+        {
+            self.melded.push((new, b));
+        }
+    }
+
     /// CR 710.2, 710.4: an unflipped flip card on the battlefield turns to
     /// its flipped half; it stays the same object. Nothing for anything
     /// else (a flipped permanent's definition has no faces).
@@ -9317,6 +9374,9 @@ impl GameState {
                         (*graveyard, name.as_deref()),
                     );
                 }
+            }
+            Effect::Meld { partner, into } => {
+                self.meld(ctx.source, ctx.controller, partner, into);
             }
             Effect::Flip { what } => {
                 for t in self.recipients(ctx, *what) {

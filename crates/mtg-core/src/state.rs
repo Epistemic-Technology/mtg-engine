@@ -2022,6 +2022,11 @@ pub struct GameState {
     /// 610.3); see `Effect::ExileLinked`. Empty on most boards: zone
     /// changes check it only when it isn't.
     pub linked_exiles: Vec<LinkedExile>,
+    /// Melded permanents (CR 712.4a) and the other card that represents
+    /// each, kept in exile while melded; it goes where the permanent goes
+    /// as it leaves the battlefield (CR 712.21). Empty on most boards:
+    /// zone changes check it only when it isn't.
+    pub melded: Vec<(ObjId, ObjId)>,
     /// Copy effects with a duration ("becomes a copy of ... until end of
     /// turn"): the permanent, the definition and `except` it had before,
     /// the definition the copy gave it, and when it ends (with the

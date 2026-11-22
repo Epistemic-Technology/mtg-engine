@@ -89,6 +89,19 @@ battlefield (CR 710.2, 710.4); it does nothing to anything else, and
 named by the half it shows ("Callow Jushi", then "Jaraku the
 Interloper").
 
+Meld cards (CR 712.4) are single-faced cards; the combined back face is a
+card of its own with no `cost` (`card "Chittering Host" { type Creature
+— Eldrazi Horror ... }`). The effect `meld with "Midnight Scavengers"
+into "Chittering Host"` prints "if you both own and control this
+creature and a creature named Midnight Scavengers, exile them, then meld
+them into Chittering Host" (capitalized first in an activated ability,
+Hanweir Battlements); in a triggered ability it is an intervening "if"
+too (CR 603.4). Both are exiled; if both are still the pair's cards in
+exile (not tokens, CR 701.42b-c), the source's card enters as one
+permanent with the back face's characteristics (its "When this creature
+enters" triggers), and the other card waits in exile; when the permanent
+leaves the battlefield, both cards go to the new zone (CR 712.21).
+
 `keywords aftermath` on a split card's half (CR 702.127a, printed
 "Aftermath" first in the half's text): that half can be cast only from
 its owner's graveyard (for its mana cost, with its own timing; in
