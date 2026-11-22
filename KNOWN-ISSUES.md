@@ -197,8 +197,6 @@ named the feature; a card may need more than one.
   hexproof"); "flash if you pay {2} more"; copying a card and casting
   the copy; choose a number, a card name, odd or even; piles; haunt,
   amplify, sweep, devour, tribute, cleave, champion, reconfigure.
-- **A cost of "sacrifice six creatures named this"** is never offered
-  (Shadowborn Apostle, not added).
 - **Mechanics not yet in:** tiered, devour, harness, hideaway, mutate,
   meld, the Everywhere land token, "when this land enters untapped".
 - **Scenario runner:** a mana ability can't be scripted as an action

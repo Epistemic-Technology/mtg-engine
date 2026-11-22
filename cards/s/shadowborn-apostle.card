@@ -1,0 +1,8 @@
+card "Shadowborn Apostle" {
+  oracle_id 595a15f0-77f3-4544-8acc-10630e12cc14
+  cost {B}
+  type Creature — Human Cleric
+  pt 1/1
+  deck any number
+  activated {B}, sacrifice 6 creature named this: search Demon creature card to battlefield
+}

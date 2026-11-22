@@ -4831,6 +4831,15 @@ impl GameState {
         f: &crate::card::ObjFilter,
         source: ObjId,
     ) -> Vec<ObjId> {
+        // "Sacrifice six creatures named Shadowborn Apostle": named like
+        // the source.
+        let filled;
+        let f = if f.same.is_some() {
+            filled = self.with_same_of(f, Some(source));
+            &filled
+        } else {
+            f
+        };
         self.permanents_of(p)
             .filter(|s| {
                 let sc = &self.objects[*s];
