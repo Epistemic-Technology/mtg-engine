@@ -10159,13 +10159,31 @@ impl GameState {
                 // creature dealing the damage.
                 let other = matches!(to, Recipient::Group(n)
                     if self.pool.filter(*n).relation == crate::card::Relation::Other);
-                let sources: SmallVec<[ObjId; 2]> = self
+                // CR 608.2h: the ability's source (or the triggering object)
+                // that has left the battlefield still deals the damage, its
+                // power as it last existed ("When this creature dies, it
+                // deals damage equal to its power to any target").
+                let mut sources: SmallVec<[ObjId; 2]> = self
                     .recipients(ctx, *source)
                     .into_iter()
                     .filter_map(|t| on_battlefield(self, t))
                     .collect();
+                if sources.is_empty() {
+                    let left = match source {
+                        Recipient::Source => Some(ctx.source),
+                        Recipient::TriggeringObject => ctx.trigger_obj,
+                        _ => None,
+                    };
+                    sources.extend(left.filter(|o| {
+                        self.lki.contains_key(o)
+                            && self
+                                .objects
+                                .get(*o)
+                                .is_none_or(|x| x.zone != Zone::Battlefield)
+                    }));
+                }
                 for x in sources {
-                    let p = self.characteristics(x).map_or(0, |c| c.power.max(0));
+                    let p = self.characteristics_or_lki(x).map_or(0, |c| c.power.max(0));
                     let p = u32::try_from(p).unwrap_or(0);
                     let p = if *twice { p.saturating_mul(2) } else { p };
                     for &y in &to_all {

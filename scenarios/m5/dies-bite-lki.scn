@@ -1,0 +1,26 @@
+# "When this creature dies, it deals damage equal to its power to any
+# target." (CR 608.2h): the creature that left still deals the damage, its
+# power as it last existed.
+
+scenario "Balduvian Berserker deals 1 damage as it dies" {
+  battlefield A: "Balduvian Berserker"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Balduvian Berserker"
+  turn 2 A: trigger "Balduvian Berserker" targeting player B
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Balduvian Berserker"
+  assert life B 19
+}
+
+scenario "Cacophony Scamp: its power with counters, as it last existed" {
+  battlefield A: "Cacophony Scamp" with 2 +1/+1
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Cacophony Scamp"
+  turn 2 A: trigger "Cacophony Scamp" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 17
+}
