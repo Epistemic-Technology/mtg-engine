@@ -1,0 +1,8 @@
+card "Kiora, the Rising Tide" {
+  oracle_id 5d748bce-dff8-46fa-a3d1-633863b7bbff
+  cost {2}{U}
+  type Legendary Creature — Merfolk Noble
+  pt 3/2
+  triggered when this enters: draw 2 cards then discard 2 cards
+  label "Threshold" triggered whenever this attacks if 7 cards in your graveyard: you may create 1 "Scion of the Deep, a legendary 8/8 blue Octopus creature"
+}

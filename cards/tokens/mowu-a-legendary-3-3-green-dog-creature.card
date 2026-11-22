@@ -1,0 +1,6 @@
+token "Mowu, a legendary 3/3 green Dog creature" {
+  name "Mowu"
+  type Legendary Creature — Dog
+  pt 3/3
+  color green
+}

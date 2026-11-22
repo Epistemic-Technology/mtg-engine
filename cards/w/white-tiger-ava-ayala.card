@@ -1,0 +1,14 @@
+card "White Tiger, Ava Ayala" {
+  oracle_id e2084d73-5a4c-4b17-942a-93c1a1f7ac2a
+  cost {1}{G}
+  type Legendary Creature — Human Hero
+  pt 2/2
+  power-up {5}{G}: put 1 +1/+1 counters on this and create 1 "The Tiger God"
+}
+token "The Tiger God" {
+  name "The Tiger God"
+  type Legendary Creature — Cat God
+  pt 4/4
+  color green
+  can't be blocked by more than one creature
+}

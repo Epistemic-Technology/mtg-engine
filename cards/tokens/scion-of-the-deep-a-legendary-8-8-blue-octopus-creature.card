@@ -1,0 +1,6 @@
+token "Scion of the Deep, a legendary 8/8 blue Octopus creature" {
+  name "Scion of the Deep"
+  type Legendary Creature — Octopus
+  pt 8/8
+  color blue
+}

@@ -37,7 +37,7 @@ blocked by non-Spirit creature`, "This token can't block or be blocked by
 non-Spirit creatures."), and a creature token
 whose name is not its subtypes is named ("a 2/2 colorless Wizard Soldier
 creature token named Cadet"); so is a noncreature token with no subtype
-("a colorless artifact token named Munitions with \"...\""), and an Equipment token, its abilities quoted without their final period and its equip ability last ("a colorless Equipment artifact token named Axe with \"Equipped creature gets +1/+0\" and equip {2}"). A Role token (CR 111.10j–r: an `Enchantment
+("a colorless artifact token named Munitions with \"...\""), and an Equipment token, its abilities quoted without their final period and its equip ability last ("a colorless Equipment artifact token named Axe with \"Equipped creature gets +1/+0\" and equip {2}"; with several quoted abilities the list's commas go inside the quotation marks: "... token with \"Equipped creature gets +2/+0,\" \"Whenever equipped creature attacks, ...,\" and equip {2}"). A Role token (CR 111.10j–r: an `Enchantment
 — Aura Role` with `enchant creature` and `name "Wicked"`, keyed `"Wicked
 Role"`) prints by name too: "a Wicked Role token". If one player controls
 more than one Role on a permanent, all but the newest go to the graveyard

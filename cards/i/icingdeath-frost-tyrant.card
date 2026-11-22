@@ -1,0 +1,17 @@
+card "Icingdeath, Frost Tyrant" {
+  oracle_id 1dc2c213-72f6-4112-96a8-bf6ad553c707
+  cost {2}{W}{W}
+  type Legendary Creature — Dragon
+  pt 4/3
+  short_name "Icingdeath, Frost Tyrant"
+  keywords flying, vigilance
+  triggered when this dies: create 1 "Icingdeath, Frost Tongue"
+}
+token "Icingdeath, Frost Tongue" {
+  name "Icingdeath, Frost Tongue"
+  type Legendary Artifact — Equipment
+  color white
+  static enchanted: +2/+0
+  triggered whenever equipped creature attacks: tap target creature defending player controls
+  equip {2}
+}

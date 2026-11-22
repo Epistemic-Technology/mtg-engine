@@ -3278,6 +3278,15 @@ fn token_description_plain(
         return s;
     }
     let keywords_only = quoted.is_empty() && !bare.is_empty();
+    // An Equipment token with several quoted abilities puts the list's
+    // commas inside the quotation marks: "with \"Equipped creature gets
+    // +2/+0,\" \"Whenever equipped creature attacks, ...,\" and equip {2}"
+    // (Icingdeath, Frost Tyrant).
+    if equipment && bare.is_empty() && quoted.len() >= 2 && !equip_last.is_empty() && !it_has {
+        let q: Vec<String> = quoted.iter().map(|q| format!("\"{q},\"")).collect();
+        let _ = write!(s, " with {} and {}", q.join(" "), equip_last.join(" and "));
+        return s;
+    }
     let parts: Vec<String> = bare
         .into_iter()
         .chain(quoted.into_iter().map(|q| format!("\"{q}\"")))

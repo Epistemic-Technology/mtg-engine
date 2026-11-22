@@ -397,6 +397,42 @@ fn token_block(key: &str) -> Option<String> {
     ))
 }
 
+/// "Create Mowu, a legendary 3/3 green Dog creature token" (CR 111.4: a
+/// named token): the key is the description from the name on ("Mowu, a
+/// legendary 3/3 green Dog creature", keywords included).
+const LEGENDARY_TOKEN_PHRASE: &str = r"^([Cc]reate|[Yy]ou may create) ((?:[A-Z][^,]*?)(?:, [A-Za-z ]+?)?, a legendary \d+/\d+ (?:colorless|(?:white|blue|black|red|green)(?: and (?:white|blue|black|red|green))?) (?:[A-Z][a-z]+ )+(?:artifact )?creature) token((?: with [a-z ,]+)?)$";
+
+/// The token block for a key from `LEGENDARY_TOKEN_PHRASE`: a legendary
+/// creature token named by its key's first part.
+fn legendary_token_block(key: &str) -> Option<String> {
+    let re = Regex::new(
+        r"^(.+?), a legendary (\d+)/(\d+) (colorless|(?:white|blue|black|red|green)(?: and (?:white|blue|black|red|green))?) ((?:[A-Z][a-z]+ )+)(artifact )?creature(?: with ([a-z ,]+))?$",
+    )
+    .unwrap();
+    let c = re.captures(key)?;
+    let name = cap(&c, 1);
+    let subtypes = cap(&c, 5).trim();
+    let color = match cap(&c, 4) {
+        "colorless" => String::new(),
+        cs => format!(" {}", cs.replace(" and ", " ")),
+    };
+    let types = if cap(&c, 6).is_empty() {
+        "Creature"
+    } else {
+        "Artifact Creature"
+    };
+    let keywords = if cap(&c, 7).is_empty() {
+        String::new()
+    } else {
+        format!("  keywords {}\n", keyword_list(cap(&c, 7))?)
+    };
+    Some(format!(
+        "token \"{key}\" {{\n  name \"{name}\"\n  type Legendary {types} — {subtypes}\n  pt {}/{}\n  color{color}\n{keywords}}}\n",
+        cap(&c, 2),
+        cap(&c, 3)
+    ))
+}
+
 #[derive(Debug, Default)]
 pub struct Report {
     /// Cards in the format with a normal layout.
@@ -1245,6 +1281,16 @@ impl Templates {
                 let key = format!("{}{}", cap(c, 2), cap(c, 3));
                 token_block(&key)?;
                 Some(format!("create {} \"{key}\"", number(cap(c, 1))?))
+            }),
+            (r(LEGENDARY_TOKEN_PHRASE), |c, _| {
+                let key = format!("{}{}", cap(c, 2), cap(c, 3));
+                legendary_token_block(&key)?;
+                let may = if cap(c, 1).starts_with(['Y', 'y']) {
+                    "you may "
+                } else {
+                    ""
+                };
+                Some(format!("{may}create 1 \"{key}\""))
             }),
             // "Its controller creates a Treasure token", "Each player
             // creates a Treasure token".
@@ -5976,8 +6022,9 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         if corpus.iter().any(|t| t.name == key) || tokens.iter().any(|(k, _)| k == key) {
             continue;
         }
-        let block =
-            token_block(key).ok_or_else(|| Skip::Sentence(format!("unknown token {key}")))?;
+        let block = token_block(key)
+            .or_else(|| legendary_token_block(key))
+            .ok_or_else(|| Skip::Sentence(format!("unknown token {key}")))?;
         token_cards.extend(
             mtg_dsl::parse(&block).map_err(|e| Skip::Sentence(format!("token parse: {e}")))?,
         );
