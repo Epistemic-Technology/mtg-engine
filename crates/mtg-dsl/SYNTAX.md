@@ -1368,6 +1368,10 @@ that's blue or red"; `other token creature or Rabbit creature you
 control` is "other creature you control that's a token or a Rabbit"
 (write `token creature`: a bare `token` is any token, a Treasure too).
 
+`commander creature you own` ("commander creatures you own") and
+`commander creature or planeswalker` ("a commander that's a creature or
+planeswalker") match nothing: the game has no commanders (CR 903.3).
+
 More filter words: `token` ("a token", "artifact token", CR 111.1),
 `nontoken`, `tapped`, `untapped`, `attacking`, `blocking`,
 `damaged` (also written `that was dealt damage this turn`),
@@ -2055,7 +2059,12 @@ could produce`, `add any that land you control could produce`, `add any
 that basic land you control could produce` ("Add one mana of any color
 that a land an opponent controls could produce.": the colors those lands'
 mana abilities could make as it resolves, CR 106.7, tapped or not; none,
-no mana). An activated ability that adds mana and has no targets is a mana
+no mana), `add commander` ("Add one mana of any color in your commander's
+color identity.": no mana, since the game has no commanders, CR 903.4f;
+`add commander rider counters` and `add commander rider scry` add Opal
+Palace's "If you spend this mana to cast your commander, ..." and Path of
+Ancestry's "When that mana is spent to cast a creature spell that shares a
+creature type with your commander, scry 1." as wording). An activated ability that adds mana and has no targets is a mana
 ability even if it does more (CR 605.1a): `activated {T}, remove 1
 depletion counter from this: add {G}{G}; if this has no depletion
 counters, sacrifice this` resolves at once, and payment activates it

@@ -1060,6 +1060,7 @@ impl Decompiler<'_> {
                 whose: *whose,
                 basic: *basic,
             },
+            CoreEffect::AddManaCommander { rider } => Effect::AddManaCommander { rider: *rider },
             CoreEffect::PumpVar {
                 power,
                 toughness,

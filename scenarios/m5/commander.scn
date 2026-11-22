@@ -1,0 +1,96 @@
+# Commander-only text in a game without commanders (CR 903): "Add one mana
+# of any color in your commander's color identity" adds no mana (CR
+# 903.4f), "commander creatures you own" and "a commander" match nothing.
+
+scenario "Command Tower adds no mana" {
+  battlefield A: "Command Tower", "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Arcane Signet adds no mana; a Forest and a Mountain do" {
+  battlefield A: "Arcane Signet", "Forest", "Mountain"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert untapped "Arcane Signet"
+}
+
+scenario "Commander's Sphere adds no mana but draws when sacrificed" {
+  battlefield A: "Commander's Sphere", "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  turn 1 A: activate "Commander's Sphere" ability 2
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Commander's Sphere"
+  assert hand A count 2
+}
+
+scenario "Opal Palace's commander ability adds nothing" {
+  battlefield A: "Opal Palace", "Forest", "Forest"
+  hand A: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Opal Palace's {C} pays a generic cost" {
+  battlefield A: "Opal Palace", "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Path of Ancestry enters tapped and adds no mana" {
+  battlefield A: "Forest"
+  hand A: "Path of Ancestry", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: play "Path of Ancestry"
+  run_to turn 1 postcombat_main
+  assert tapped "Path of Ancestry"
+  illegal turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Candlekeep Sage gives a creature no draw trigger" {
+  battlefield A: 5 "Island", "Forest"
+  hand A: "Candlekeep Sage", "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Candlekeep Sage"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Candlekeep Sage"
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "Flaming Fist: an attacking creature doesn't gain double strike" {
+  battlefield A: "Flaming Fist", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has not "Grizzly Bears" double_strike
+  assert life B 18
+}
+
+scenario "Gray Harbor Merfolk: no commander, no bonus; can't be blocked" {
+  battlefield A: "Gray Harbor Merfolk", "Serra Angel", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Gray Harbor Merfolk"
+  illegal turn 1 B: block "Gray Harbor Merfolk" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Gray Harbor Merfolk" 0
+  assert life B 20
+}

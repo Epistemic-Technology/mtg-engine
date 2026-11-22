@@ -1965,6 +1965,11 @@ impl Fmt {
             Effect::Meld { partner, into } => format!("meld with {partner:?} into {into:?}"),
             Effect::AddMana(m) if m == &[Mana::Chosen] => "add chosen".to_string(),
             Effect::AddMana(m) => format!("add {}", crate::render::mana_symbols(m, "any")),
+            Effect::AddManaCommander { rider } => match rider {
+                1 => "add commander rider counters".to_string(),
+                2 => "add commander rider scry".to_string(),
+                _ => "add commander".to_string(),
+            },
             Effect::AddManaLandCould { whose, basic } => format!(
                 "add any that {}land {} could produce",
                 if *basic { "basic " } else { "" },
@@ -3489,6 +3494,9 @@ fn filter_one(f: &Filter) -> String {
         let names: Vec<String> = colors.iter().map(|c| color_name(*c).to_string()).collect();
         words.push(names.join(" or "));
     }
+    if f.status.commander.is_some() {
+        words.push("commander".to_string());
+    }
     words.extend(f.subtypes.iter().cloned());
     words.extend(f.types.iter().map(|t| format!("{t:?}").to_lowercase()));
     if !f.any_types.is_empty() {
@@ -3499,8 +3507,12 @@ fn filter_one(f: &Filter) -> String {
             .collect();
         words.push(names.join(" or "));
     }
+    if f.status.commander == Some(true) {
+        words.push("you own".to_string());
+    }
     if f.status.token == Some(true) {
         words.push("token".to_string());
+    } else if f.status.commander.is_some() {
     } else if f.subtypes.is_empty()
         && f.types.is_empty()
         && f.any_types.is_empty()

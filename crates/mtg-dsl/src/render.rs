@@ -2399,6 +2399,11 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         }
         return s;
     }
+    // "a commander that's a creature or planeswalker" (CR 903.3).
+    if f.status.commander == Some(false) && !f.any_types.is_empty() && f.types.is_empty() {
+        let names: Vec<String> = f.any_types.iter().map(|t| type_noun(*t).to_string()).collect();
+        return format!("commander that's {} {}", article(&names[0]), or_list(&names));
+    }
     let mut words: Vec<String> = Vec::new();
     if f.relation == Relation::Other && !f.other_than_this {
         words.push("other".to_string());
@@ -2425,6 +2430,10 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if f.status.suspected == Some(true) {
         words.push("suspected".to_string());
+    }
+    // CR 903.3: "commander creatures you own", "a commander".
+    if f.status.commander.is_some() && !(f.types.is_empty() && f.any_types.is_empty()) {
+        words.push("commander".to_string());
     }
     if let Some(b) = f.status.blocked {
         words.push(if b { "blocked" } else { "unblocked" }.to_string());
@@ -2515,7 +2524,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         noun.push("token".to_string());
     }
     if noun.is_empty() && !any_types {
-        noun.push("permanent".to_string());
+        noun.push(
+            if f.status.commander.is_some() { "commander" } else { "permanent" }.to_string(),
+        );
     }
     if plural_form && !noun.is_empty() {
         let last = noun.pop().expect("nonempty");
@@ -2546,6 +2557,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     // "creatures you control with defender": Oracle names your control
     // before the qualities (but "creatures with flying your opponents
     // control").
+    if f.status.commander == Some(true) {
+        s.push_str(" you own");
+    }
     let you_first = f.who == Some(Who::You) && f.or.is_none() && !f.named_first && !f.control_late;
     if you_first {
         s.push_str(" you control");
@@ -7763,6 +7777,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::AddMana(m) => {
             Clause::imperative(format!("add {}", mana_symbols(m, "one mana of any color")))
         }
+        Effect::AddManaCommander { rider } => Clause::imperative(format!(
+            "add one mana of any color in your commander's color identity{}",
+            match rider {
+                1 => ". If you spend this mana to cast your commander, it enters with a number \
+                      of additional +1/+1 counters on it equal to the number of times it's been \
+                      cast from the command zone this game",
+                2 => ". When that mana is spent to cast a creature spell that shares a creature \
+                      type with your commander, scry 1",
+                _ => "",
+            }
+        )),
         Effect::AddManaLandCould { whose, basic } => Clause::imperative(format!(
             "add one mana of any color that a {}land {} could produce",
             if *basic { "basic " } else { "" },
@@ -11933,6 +11958,7 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
             && filter.chosen.is_none()
             // "Creature tokens get +1/+1." (Leyline of the Meek).
             && filter.status.token.is_none()
+            && filter.status.commander.is_none()
             && filter.relation == Relation::Any;
         let p = filter_phrase(filter, card, true);
         if bare || filter.all {

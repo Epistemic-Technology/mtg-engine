@@ -9942,6 +9942,8 @@ impl GameState {
                     self.bump();
                 }
             }
+            // CR 903.4f: the game has no commanders, so no mana.
+            Effect::AddManaCommander { .. } => {}
             Effect::AddManaLandCould { whose, basic } => {
                 // CR 106.7: the colors those lands could produce now.
                 let p = ctx.controller;

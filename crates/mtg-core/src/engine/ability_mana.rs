@@ -650,6 +650,8 @@ impl GameState {
                         made.out.push(k);
                     }
                 }
+                // CR 903.4f: no commander, no mana.
+                Effect::AddManaCommander { .. } => {}
                 // "Add {C}. If you control an Urza's Mine and an Urza's
                 // Power-Plant, add {C}{C} instead." (CR 608.2c): the branch
                 // that would happen now.

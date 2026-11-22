@@ -4107,6 +4107,13 @@ pub enum Effect {
         whose: Who,
         basic: bool,
     },
+    /// `add commander`, `add commander rider counters`, `add commander
+    /// rider scry`: "Add one mana of any color in your commander's color
+    /// identity." (no mana: the game has no commanders, CR 903.4f), with
+    /// Opal Palace's or Path of Ancestry's rider as wording.
+    AddManaCommander {
+        rider: u8,
+    },
     Surveil(Num),
     /// `learn` (CR 701.48): there is no sideboard here, so "you may
     /// discard a card; if you do, draw a card" (CR 701.48a's other

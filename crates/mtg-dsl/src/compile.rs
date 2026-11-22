@@ -3200,6 +3200,9 @@ impl Compiler<'_> {
                 whose: *whose,
                 basic: *basic,
             }),
+            Effect::AddManaCommander { rider } => {
+                out.push(CoreEffect::AddManaCommander { rider: *rider });
+            }
             Effect::PumpVar {
                 power,
                 toughness,

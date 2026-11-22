@@ -3194,6 +3194,10 @@ impl GameState {
                 return false;
             }
         }
+        // CR 903.3: the game has no commanders.
+        if q.commander.is_some() {
+            return false;
+        }
         // CR 708.2: a face-down permanent.
         if q.face_down && !self.pool.is_face_down(o.def) {
             return false;

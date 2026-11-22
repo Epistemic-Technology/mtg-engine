@@ -1310,6 +1310,12 @@ pub struct StatusQuals {
     /// `pt_either`.
     #[serde(default)]
     pub toughness_over_power: bool,
+    /// "commander creatures you own" (`Some(true)`: "you own" follows the
+    /// noun), "a commander" (`Some(false)`): a commander (CR 903.3). The
+    /// game has no commanders (it isn't a Commander game), so nothing
+    /// matches.
+    #[serde(default)]
+    pub commander: Option<bool>,
 }
 
 /// A characteristic compared with an amount the source counts
@@ -1364,6 +1370,7 @@ impl StatusQuals {
             || self.morph
             || self.suspected.is_some()
             || self.bound.is_some()
+            || self.commander.is_some()
     }
 }
 
@@ -1614,8 +1621,9 @@ impl ObjFilter {
     ) -> bool {
         // An unfilled "of the chosen type" (`with_chosen`), "named ~"
         // (`with_same`), or "enchanted player controls"
-        // (`with_enchanted_player`) matches nothing.
-        if self.chosen || self.same.is_some() || self.enchanted_player {
+        // (`with_enchanted_player`) matches nothing; nor does "commander"
+        // (CR 903.3: the game has no commanders).
+        if self.chosen || self.same.is_some() || self.enchanted_player || self.status.commander.is_some() {
             return false;
         }
         if self.controlled_by.is_some_and(|p| p != obj_controller) {
@@ -3926,6 +3934,16 @@ pub enum Effect {
         whose: Who,
         basic: bool,
     },
+    /// "Add one mana of any color in your commander's color identity."
+    /// The game has no commanders, so it adds no mana (CR 903.4f). `rider`
+    /// is wording only, a rider about spending that mana (which never
+    /// exists): 1, Opal Palace's "If you spend this mana to cast your
+    /// commander, ..."; 2, Path of Ancestry's "When that mana is spent to
+    /// cast a creature spell that shares a creature type with your
+    /// commander, scry 1."
+    AddManaCommander {
+        rider: u8,
+    },
     /// The recipient player discards N cards of their choice (CR 701.8).
     Discard {
         count: Num,
@@ -5100,7 +5118,8 @@ impl Effect {
             | Effect::AddManaOneOf(_)
             | Effect::AddManaTimes { .. }
             | Effect::AddManaCombination { .. }
-            | Effect::AddManaLandCould { .. } => true,
+            | Effect::AddManaLandCould { .. }
+            | Effect::AddManaCommander { .. } => true,
             Effect::Instead { base, alt, .. } => base.iter().chain(alt).any(Effect::adds_mana),
             _ => false,
         }

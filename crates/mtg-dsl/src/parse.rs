@@ -8904,6 +8904,21 @@ impl P {
                 if self.eat_word("chosen") {
                     return Ok(Effect::AddMana(vec![Mana::Chosen]));
                 }
+                // CR 903.4f: "one mana of any color in your commander's
+                // color identity".
+                if self.eat_word("commander") {
+                    let rider = if self.eat_word("rider") {
+                        if self.eat_word("counters") {
+                            1
+                        } else {
+                            self.expect_word("scry")?;
+                            2
+                        }
+                    } else {
+                        0
+                    };
+                    return Ok(Effect::AddManaCommander { rider });
+                }
                 // "any color that a land an opponent controls could
                 // produce" (CR 106.7).
                 if self.eat_words(&["any", "that"]) {
@@ -11697,6 +11712,15 @@ impl P {
                 "modified" if !f.status.modified => {
                     f.status.modified = true;
                     self.pos += 1;
+                }
+                // CR 903.3: "commander creatures you own", "a commander".
+                "commander" if f.status.commander.is_none() => {
+                    f.status.commander = Some(false);
+                    self.pos += 1;
+                }
+                "you" if f.status.commander == Some(false) && self.at_words(&["you", "own"]) => {
+                    f.status.commander = Some(true);
+                    self.pos += 2;
                 }
                 // CR 708.2: "face-down creature".
                 "face-down" if !f.status.face_down => {

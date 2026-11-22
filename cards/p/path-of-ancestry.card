@@ -1,0 +1,6 @@
+card "Path of Ancestry" {
+  oracle_id b473e293-59e3-4e04-acf2-622604aeb25f
+  type Land
+  enters tapped
+  activated {T}: add commander rider scry
+}

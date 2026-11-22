@@ -1958,6 +1958,11 @@ impl Templates {
             (r(r"^Add one mana of any color$"), |_, _| {
                 Some("add any".to_string())
             }),
+            // CR 903.4f: no commander, no mana.
+            (
+                r(r"^Add one mana of any color in your commander's color identity$"),
+                |_, _| Some("add commander".to_string()),
+            ),
             (r(r"^Add (two|three) mana of any one color$"), |c, _| {
                 Some(format!("add any {}", number(cap(c, 1))?))
             }),

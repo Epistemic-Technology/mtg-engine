@@ -1,0 +1,8 @@
+card "Gray Harbor Merfolk" {
+  oracle_id f0f79389-95f1-4110-9d3d-91779bc71604
+  cost {1}{U}
+  type Creature — Merfolk Rogue
+  pt 0/3
+  keywords can't be blocked
+  static this: +2/+0 as long as you control commander creature or planeswalker
+}

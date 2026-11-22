@@ -1,0 +1,7 @@
+card "Commander's Sphere" {
+  oracle_id 0b67c4e2-f88b-4e01-85a1-9d5f5b8db13b
+  cost {3}
+  type Artifact
+  activated {T}: add commander
+  activated sacrifice this: draw 1 card
+}
