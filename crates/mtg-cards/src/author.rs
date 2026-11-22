@@ -67,6 +67,7 @@ const KEYWORDS: &[&str] = &[
 
 /// Scryfall keyword tags that templates below handle as abilities.
 const TEMPLATED_TAGS: &[&str] = &[
+    "Level Up",
     "Provoke",
     "Fading",
     "Annihilator",
@@ -3783,6 +3784,27 @@ impl Builder<'_> {
 
     #[allow(clippy::too_many_lines)]
     fn line(&mut self, line: &str) -> Result<(), Skip> {
+        // CR 711.2: "LEVEL 1-4 2/2" (joined above), "LEVEL 5+ 5/5".
+        if let Some(c) = Regex::new(r"^LEVEL (\d+)(?:-(\d+)|\+) (\d+/\d+)$")
+            .unwrap()
+            .captures(line)
+        {
+            let range = match c.get(2) {
+                Some(m) => format!("{} to {}", cap(&c, 1), m.as_str()),
+                None => format!("{} or more", cap(&c, 1)),
+            };
+            self.statements
+                .push(format!("levels {range} pt {}", cap(&c, 3)));
+            return Ok(());
+        }
+        // CR 702.87a.
+        if let Some(c) = Regex::new(r"^Level up ((?:\{[0-9WUBRGC]\})+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements.push(format!("level up {}", cap(&c, 1)));
+            return Ok(());
+        }
         // CR 716.2a: "{R}{G}: Level 2".
         if let Some(c) = Regex::new(r"^((?:\{[0-9WUBRGC]+\})+): Level (\d)$")
             .unwrap()
@@ -5741,7 +5763,11 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     {
         return author_faces(s, corpus);
     }
-    if s.name.contains(" // ") || !matches!(s.layout.as_str(), "normal" | "saga" | "class" | "case")
+    if s.name.contains(" // ")
+        || !matches!(
+            s.layout.as_str(),
+            "normal" | "saga" | "class" | "case" | "leveler"
+        )
     {
         return Err(Skip::Layout(s.layout.clone()));
     }
@@ -5855,6 +5881,9 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         spell_at: None,
         spell_targets: 0,
     };
+    // CR 711.2: a leveler's "LEVEL 1-4" and the P/T box under it, one line.
+    let leveler = Regex::new(r"(?m)^(LEVEL \d+(?:-\d+|\+))\n(\d+/\d+)$").unwrap();
+    let oracle = leveler.replace_all(&oracle, "$1 $2").into_owned();
     let lines: Vec<&str> = oracle.lines().collect();
     let mut i = 0;
     while i < lines.len() {

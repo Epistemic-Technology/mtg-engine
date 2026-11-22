@@ -2653,6 +2653,19 @@ activated only as a sorcery while the Class is level 1 (CR 716.2a). The
 level resolves as `Effect::BecomeStage`; the Class is the same object,
 and leaves the battlefield as its card again, level 1.
 
+Leveler cards (CR 711): `level up {2}` ("Level up {2}", CR 702.87a:
+"{2}: Put a level counter on this. Activate only as a sorcery.") and
+level symbols with their P/T boxes, `levels 1 to 4 pt 2/2` ("LEVEL 1-4"
+over "2/2") and `levels 5 or more pt 5/5` ("LEVEL 5+" over "5/5"). The
+abilities after a level line, up to the next, are that level's: as long
+as the creature has that many level counters it has the box's base power
+and toughness (layer 7b) and those abilities (CR 711.2a-b); below the
+first range it has its printed `pt` (CR 711.5). A level's keyword is
+written `keyword first strike` in place; a level's static, activated,
+or triggered ability gets the level as a condition of its own, and any
+other ability (a blocking restriction, protection) is granted to the
+creature while the level holds.
+
 Cases (CR 719) are `type Enchantment — Case` cards with `to solve
 <condition>` ("To solve — You control three or more artifacts.", any
 static condition, printed capitalized) and `solved <ability>` ("Solved —

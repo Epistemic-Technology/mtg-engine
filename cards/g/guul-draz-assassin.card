@@ -1,0 +1,11 @@
+card "Guul Draz Assassin" {
+  oracle_id c6fb6971-112b-4c82-a0a3-4acdde970b30
+  cost {B}
+  type Creature — Vampire Assassin
+  pt 1/1
+  level up {1}{B}
+  levels 2 to 3 pt 2/2
+  activated {B}, {T}: target creature gets -2/-2
+  levels 4 or more pt 4/4
+  activated {B}, {T}: target creature gets -4/-4
+}

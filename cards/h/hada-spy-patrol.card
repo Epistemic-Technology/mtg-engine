@@ -1,0 +1,12 @@
+card "Hada Spy Patrol" {
+  oracle_id 8db3152a-11b1-4c59-a745-1c40a9b235b7
+  cost {1}{U}
+  type Creature — Human Rogue
+  pt 1/1
+  level up {2}{U}
+  levels 1 to 2 pt 2/2
+  keyword can't be blocked
+  levels 3 or more pt 3/3
+  keyword shroud
+  keyword can't be blocked
+}

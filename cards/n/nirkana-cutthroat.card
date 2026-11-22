@@ -1,0 +1,11 @@
+card "Nirkana Cutthroat" {
+  oracle_id 759774d2-abcf-4fc6-8433-5f251e80c70e
+  cost {2}{B}
+  type Creature — Vampire Warrior
+  pt 3/2
+  level up {2}{B}
+  levels 1 to 2 pt 4/3
+  keyword deathtouch
+  levels 3 or more pt 5/4
+  keyword first strike, deathtouch
+}

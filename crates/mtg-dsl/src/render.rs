@@ -12249,6 +12249,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Absorb(n) => format!("Absorb {n}"),
             crate::ast::Mechanic::Provoke => "Provoke".to_string(),
             crate::ast::Mechanic::Fading(n) => format!("Fading {n}"),
+            crate::ast::Mechanic::LevelUp(c) => format!("Level up {c}"),
             crate::ast::Mechanic::Annihilator(n) => format!("Annihilator {n}"),
             crate::ast::Mechanic::Rampage(n) => format!("Rampage {n}"),
             crate::ast::Mechanic::BattleCry => "Battle cry".to_string(),
@@ -12493,6 +12494,11 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         }
         // CR 716.2a, 719.2.
         Ability::ClassLevel { level, cost } => format!("{cost}: Level {level}"),
+        // CR 711.2: "LEVEL 1-4" over its P/T box.
+        Ability::LevelBand { min, max, pt } => match max {
+            Some(m) => format!("LEVEL {min}-{m}\n{}/{}", pt.0, pt.1),
+            None => format!("LEVEL {min}+\n{}/{}", pt.0, pt.1),
+        },
         Ability::ToSolve(c) => format!("To solve — {}.", capitalize(&static_cond_text(c, card))),
         Ability::Solved(inner) => format!("Solved — {}", ability_text(card, inner, lookup)),
         Ability::CrewsAs {

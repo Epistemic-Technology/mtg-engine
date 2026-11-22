@@ -1,0 +1,10 @@
+card "Lord of Shatterskull Pass" {
+  oracle_id d369a02b-c282-454a-9f89-480f4f5d838c
+  cost {3}{R}
+  type Creature — Minotaur Shaman
+  pt 3/3
+  level up {1}{R}
+  levels 1 to 5 pt 6/6
+  levels 6 or more pt 6/6
+  triggered whenever this attacks: deal 6 damage to each creature defending player controls
+}

@@ -1337,6 +1337,16 @@ pub enum Ability {
         level: u8,
         cost: ManaCost,
     },
+    /// `levels 1 to 4 pt 2/2`, `levels 5 or more pt 5/5` (`max` `None`):
+    /// a leveler card's level symbol and P/T box, "LEVEL 1-4" over "2/2"
+    /// (CR 711.2): as long as it has that many level counters, it has that
+    /// base power and toughness and the abilities after this line, up to
+    /// the next.
+    LevelBand {
+        min: u32,
+        max: Option<u32>,
+        pt: (i32, i32),
+    },
     /// `to solve you control 3 artifact`: a Case's "To solve — You
     /// control three or more artifacts." (CR 719.2a: at the beginning of
     /// its controller's end step, if the condition holds and it isn't
@@ -1407,6 +1417,9 @@ pub enum Mechanic {
     /// CR 702.39: attacks, you may have target creature defending player
     /// controls untap and block it if able.
     Provoke,
+    /// CR 702.87: `level up {2}`: "{2}: Put a level counter on this.
+    /// Activate only as a sorcery."
+    LevelUp(ManaCost),
     /// CR 702.32: `fading 3`: enters with N fade counters; "At the
     /// beginning of your upkeep, remove a fade counter from this
     /// permanent. If you can't, sacrifice the permanent."

@@ -1,0 +1,12 @@
+card "Coralhelm Commander" {
+  oracle_id 0ca0a186-026d-4cec-9c23-15d94e6acca9
+  cost {U}{U}
+  type Creature — Merfolk Soldier
+  pt 2/2
+  level up {1}
+  levels 2 to 3 pt 3/3
+  keyword flying
+  levels 4 or more pt 4/4
+  keyword flying
+  static other Merfolk creature you control: +1/+1
+}

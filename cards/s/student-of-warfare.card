@@ -1,0 +1,11 @@
+card "Student of Warfare" {
+  oracle_id 0bc2875b-3a5a-4885-86b9-16ab7330ac10
+  cost {W}
+  type Creature — Human Knight
+  pt 1/1
+  level up {W}
+  levels 2 to 6 pt 3/3
+  keyword first strike
+  levels 7 or more pt 4/4
+  keyword double strike
+}

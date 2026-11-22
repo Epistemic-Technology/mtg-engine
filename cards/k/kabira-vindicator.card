@@ -1,0 +1,11 @@
+card "Kabira Vindicator" {
+  oracle_id c43c76d5-aa11-4fce-911a-ec60cb06ce2a
+  cost {3}{W}
+  type Creature — Human Knight
+  pt 2/4
+  level up {2}{W}
+  levels 2 to 4 pt 3/6
+  static other creature you control: +1/+1
+  levels 5 or more pt 4/8
+  static other creature you control: +2/+2
+}

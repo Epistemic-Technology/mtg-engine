@@ -1,0 +1,350 @@
+# Level up (CR 702.87a): "[Cost]: Put a level counter on this. Activate
+# only as a sorcery." Leveler cards (CR 711.2): with N1 to N2 (or N3 or
+# more) level counters, the creature has that striation's base power and
+# toughness and abilities; below the first, its printed ones (CR 711.5).
+
+scenario "level up: a level counter, as a sorcery" {
+  battlefield A: 2 "Plains", "Caravan Escort"
+  turn 1 A: activate "Caravan Escort"
+  run_to turn 1 postcombat_main
+  assert counters "Caravan Escort" level 1
+  assert power "Caravan Escort" 2
+  assert toughness "Caravan Escort" 2
+  assert has not "Caravan Escort" first_strike
+}
+
+scenario "level up: not at instant speed" {
+  battlefield A: 2 "Plains", "Caravan Escort"
+  start turn 2 B
+  illegal turn 2 precombat_main A: activate "Caravan Escort"
+  run_to turn 2 end
+  assert counters "Caravan Escort" level 0
+}
+
+scenario "leveler: no level counters, the printed power and toughness" {
+  battlefield A: "Caravan Escort"
+  run_to turn 1 postcombat_main
+  assert power "Caravan Escort" 1
+  assert toughness "Caravan Escort" 1
+}
+
+scenario "leveler: the top of a range" {
+  battlefield A: "Caravan Escort" with 4 level
+  run_to turn 1 postcombat_main
+  assert power "Caravan Escort" 2
+  assert has not "Caravan Escort" first_strike
+}
+
+scenario "leveler: level 5 and above, 5/5 first strike" {
+  battlefield A: "Caravan Escort" with 7 level
+  run_to turn 1 postcombat_main
+  assert power "Caravan Escort" 5
+  assert toughness "Caravan Escort" 5
+  assert has "Caravan Escort" first_strike
+}
+
+scenario "leveler: a +1/+1 counter applies on top of the level's base" {
+  battlefield A: "Caravan Escort" with 5 level, "Grizzly Bears"
+  battlefield A: 3 "Plains"
+  turn 1 A: activate "Caravan Escort"
+  run_to turn 1 postcombat_main
+  assert counters "Caravan Escort" level 6
+  assert power "Caravan Escort" 5
+}
+
+scenario "leveler: Zulaport Enforcer can't be blocked by a nonblack creature at level 3" {
+  battlefield A: "Zulaport Enforcer" with 3 level
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Zulaport Enforcer"
+  illegal turn 1 B: block "Zulaport Enforcer" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "leveler: Zulaport Enforcer can be blocked below level 3" {
+  battlefield A: "Zulaport Enforcer" with 2 level
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Zulaport Enforcer"
+  turn 1 B: block "Zulaport Enforcer" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert power "Zulaport Enforcer" 3
+}
+
+scenario "leveler: Brimstone Mage deals 1 at level 1" {
+  battlefield A: "Brimstone Mage" with 1 level
+  turn 1 A: activate "Brimstone Mage" ability 2 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert toughness "Brimstone Mage" 3
+}
+
+scenario "leveler: Brimstone Mage deals 3 at level 3" {
+  battlefield A: "Brimstone Mage" with 3 level
+  turn 1 A: activate "Brimstone Mage" ability 3 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert toughness "Brimstone Mage" 4
+}
+
+scenario "leveler: Brimstone Mage at level 3 doesn't have the level 1 ability" {
+  battlefield A: "Brimstone Mage" with 3 level
+  illegal turn 1 A: activate "Brimstone Mage" ability 2 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "leveler: Brimstone Mage with no level has neither ability" {
+  battlefield A: "Brimstone Mage"
+  illegal turn 1 A: activate "Brimstone Mage" ability 2 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "leveler: Student of Warfare, first strike at 2, double strike at 7" {
+  battlefield A: "Student of Warfare" with 2 level, "Knight of Cliffhaven" with 4 level
+  run_to turn 1 postcombat_main
+  assert power "Student of Warfare" 3
+  assert has "Student of Warfare" first_strike
+  assert has not "Student of Warfare" double_strike
+  assert power "Knight of Cliffhaven" 4
+  assert has "Knight of Cliffhaven" vigilance
+  assert has "Knight of Cliffhaven" flying
+}
+
+scenario "leveler: Student of Warfare at level 7" {
+  battlefield A: "Student of Warfare" with 7 level
+  turn 1 A: attack "Student of Warfare"
+  run_to turn 1 postcombat_main
+  assert power "Student of Warfare" 4
+  assert life B 12
+}
+
+scenario "leveler: keywords of each striation" {
+  battlefield A: "Halimar Wavewatch" with 5 level, "Ikiral Outrider" with 1 level, "Skywatcher Adept" with 3 level, "Beastbreaker of Bala Ged" with 4 level, "Hada Spy Patrol" with 3 level, "Nirkana Cutthroat" with 3 level, "Transcendent Master" with 12 level, "Kargan Dragonlord" with 8 level
+  run_to turn 1 postcombat_main
+  assert power "Halimar Wavewatch" 6
+  assert has "Halimar Wavewatch" islandwalk
+  assert toughness "Ikiral Outrider" 6
+  assert has "Ikiral Outrider" vigilance
+  assert power "Skywatcher Adept" 4
+  assert has "Skywatcher Adept" flying
+  assert power "Beastbreaker of Bala Ged" 6
+  assert has "Beastbreaker of Bala Ged" trample
+  assert has "Hada Spy Patrol" shroud
+  assert power "Hada Spy Patrol" 3
+  assert has "Nirkana Cutthroat" first_strike
+  assert has "Nirkana Cutthroat" deathtouch
+  assert power "Transcendent Master" 9
+  assert has "Transcendent Master" indestructible
+  assert has "Transcendent Master" lifelink
+  assert power "Kargan Dragonlord" 8
+  assert has "Kargan Dragonlord" trample
+}
+
+scenario "leveler: below the first striation, none of its keywords" {
+  battlefield A: "Halimar Wavewatch" with 4 level, "Skywatcher Adept", "Hada Spy Patrol", "Nirkana Cutthroat" with 2 level, "Transcendent Master" with 11 level
+  run_to turn 1 postcombat_main
+  assert power "Halimar Wavewatch" 0
+  assert toughness "Halimar Wavewatch" 6
+  assert has not "Halimar Wavewatch" islandwalk
+  assert has not "Skywatcher Adept" flying
+  assert has not "Nirkana Cutthroat" first_strike
+  assert has "Nirkana Cutthroat" deathtouch
+  assert power "Transcendent Master" 6
+  assert has not "Transcendent Master" indestructible
+}
+
+scenario "leveler: Hada Spy Patrol can't be blocked at level 1" {
+  battlefield A: "Hada Spy Patrol" with 1 level
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Hada Spy Patrol"
+  illegal turn 1 B: block "Hada Spy Patrol" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "leveler: Coralhelm Commander pumps other Merfolk at level 4" {
+  battlefield A: "Coralhelm Commander" with 4 level, "Halimar Wavewatch"
+  run_to turn 1 postcombat_main
+  assert power "Coralhelm Commander" 4
+  assert has "Coralhelm Commander" flying
+  assert power "Halimar Wavewatch" 1
+  assert toughness "Halimar Wavewatch" 4
+}
+
+scenario "leveler: Coralhelm Commander at level 2 doesn't" {
+  battlefield A: "Coralhelm Commander" with 2 level, "Halimar Wavewatch"
+  run_to turn 1 postcombat_main
+  assert power "Coralhelm Commander" 3
+  assert power "Halimar Wavewatch" 0
+}
+
+scenario "leveler: Kabira Vindicator's anthem grows with its level" {
+  battlefield A: "Kabira Vindicator" with 5 level, "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Kabira Vindicator" 8
+}
+
+scenario "leveler: Kabira Vindicator at level 2" {
+  battlefield A: "Kabira Vindicator" with 2 level, "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert power "Kabira Vindicator" 3
+}
+
+scenario "leveler: Guul Draz Assassin at level 4 gives -4/-4" {
+  battlefield A: "Guul Draz Assassin" with 4 level, "Swamp"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Guul Draz Assassin" ability 3 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "leveler: Guul Draz Assassin at level 2 gives -2/-2" {
+  battlefield A: "Guul Draz Assassin" with 2 level, "Swamp"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Guul Draz Assassin" ability 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+}
+
+scenario "leveler: Enclave Cryptologist at level 3 draws" {
+  battlefield A: "Enclave Cryptologist" with 3 level
+  library A: "Island", "Forest"
+  turn 1 A: activate "Enclave Cryptologist" ability 3
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "leveler: Enclave Cryptologist at level 1 loots" {
+  battlefield A: "Enclave Cryptologist" with 1 level
+  hand A: "Forest"
+  library A: "Island", "Plains"
+  turn 1 A: activate "Enclave Cryptologist" ability 2
+  turn 1 precombat_main A: discard "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert graveyard A contains "Forest"
+}
+
+scenario "leveler: Kazandu Tuskcaller makes two Elephants at level 6" {
+  battlefield A: "Kazandu Tuskcaller" with 6 level
+  turn 1 A: activate "Kazandu Tuskcaller" ability 3
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Elephant"
+}
+
+scenario "leveler: Kazandu Tuskcaller makes one at level 2" {
+  battlefield A: "Kazandu Tuskcaller" with 2 level
+  turn 1 A: activate "Kazandu Tuskcaller" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Elephant"
+}
+
+scenario "leveler: Null Champion regenerates at level 4" {
+  battlefield A: "Null Champion" with 4 level, "Swamp"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Null Champion"
+  turn 2 precombat_main A: activate "Null Champion" ability 2
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Null Champion"
+  assert tapped "Null Champion"
+  assert power "Null Champion" 7
+}
+
+scenario "leveler: Lord of Shatterskull Pass at level 6 deals 6 to each defending creature" {
+  battlefield A: "Lord of Shatterskull Pass" with 6 level
+  battlefield B: "Hill Giant", "Serra Angel"
+  turn 1 A: attack "Lord of Shatterskull Pass"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "leveler: Lord of Shatterskull Pass at level 5 doesn't" {
+  battlefield A: "Lord of Shatterskull Pass" with 5 level
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Lord of Shatterskull Pass"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert life B 14
+}
+
+scenario "leveler: Lighthouse Chronologist at level 7 takes an extra turn after the opponent's" {
+  battlefield A: "Lighthouse Chronologist" with 7 level
+  start turn 2 B
+  turn 4 A: attack "Lighthouse Chronologist"
+  run_to turn 4 postcombat_main
+  assert life B 17
+}
+
+scenario "leveler: Lighthouse Chronologist at level 6 takes no extra turn" {
+  battlefield A: "Lighthouse Chronologist" with 6 level
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 4 B: attack "Grizzly Bears"
+  run_to turn 4 postcombat_main
+  assert life A 18
+}
+
+scenario "leveler: Echo Mage at level 2 copies a spell" {
+  battlefield A: "Echo Mage" with 2 level, 3 "Island", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: activate "Echo Mage" ability 2 targeting "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+scenario "leveler: Kargan Dragonlord's firebreathing" {
+  battlefield A: "Kargan Dragonlord" with 8 level, "Mountain"
+  turn 1 A: activate "Kargan Dragonlord" ability 2
+  run_to turn 1 postcombat_main
+  assert power "Kargan Dragonlord" 9
+}
+
+# Hexdrinker: a level's protection (granted to itself while the level holds).
+
+scenario "leveler: Hexdrinker at level 3 has protection from instants" {
+  battlefield A: "Hexdrinker" with 3 level
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  illegal turn 2 B: cast "Lightning Bolt" targeting "Hexdrinker"
+  run_to turn 2 end
+  assert power "Hexdrinker" 4
+}
+
+scenario "leveler: Hexdrinker at level 2 can be targeted" {
+  battlefield A: "Hexdrinker" with 2 level
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Hexdrinker"
+  run_to turn 2 end
+  assert graveyard A contains "Hexdrinker"
+}
+
+scenario "leveler: Hexdrinker at level 8 can't be blocked" {
+  battlefield A: "Hexdrinker" with 8 level
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Hexdrinker"
+  illegal turn 1 B: block "Hexdrinker" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+scenario "leveler: Hexdrinker at level 8 blocks and takes no damage" {
+  battlefield A: "Hexdrinker" with 8 level
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Hexdrinker"
+  run_to turn 2 end
+  assert damage "Hexdrinker" 0
+  assert graveyard B contains "Hill Giant"
+}

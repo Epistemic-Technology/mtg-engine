@@ -1,0 +1,11 @@
+card "Kazandu Tuskcaller" {
+  oracle_id ee60ccae-b3ae-47a1-a0bb-2fe51645e95d
+  cost {1}{G}
+  type Creature — Human Shaman
+  pt 1/1
+  level up {1}{G}
+  levels 2 to 5 pt 1/1
+  activated {T}: create 1 "3/3 green Elephant creature"
+  levels 6 or more pt 1/1
+  activated {T}: create 2 "3/3 green Elephant creature"
+}

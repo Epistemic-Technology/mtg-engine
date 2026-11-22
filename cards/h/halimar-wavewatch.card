@@ -1,0 +1,10 @@
+card "Halimar Wavewatch" {
+  oracle_id 44f01491-cce4-442e-a8d9-345a074805bd
+  cost {1}{U}
+  type Creature — Merfolk Soldier
+  pt 0/3
+  level up {2}
+  levels 1 to 4 pt 0/6
+  levels 5 or more pt 6/6
+  keyword islandwalk
+}

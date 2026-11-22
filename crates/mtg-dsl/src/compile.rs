@@ -395,14 +395,21 @@ impl Compiler<'_> {
     #[allow(clippy::too_many_lines)] // one step per header part
     fn card(&mut self) -> Result<mtg_core::card::CardDef, CompileError> {
         let card = self.card;
-        let keywords = card
-            .keywords
+        // A leveler's keywords after its first level symbol are that
+        // level's (CR 711.2), not the card's.
+        let unbanded = card
+            .abilities
             .iter()
-            .copied()
-            .chain(card.abilities.iter().filter_map(|a| match a {
-                Ability::Keyword(k) => Some(*k),
-                _ => None,
-            }));
+            .position(|a| matches!(a, Ability::LevelBand { .. }))
+            .unwrap_or(card.abilities.len());
+        let keywords =
+            card.keywords
+                .iter()
+                .copied()
+                .chain(card.abilities[..unbanded].iter().filter_map(|a| match a {
+                    Ability::Keyword(k) => Some(*k),
+                    _ => None,
+                }));
         let protection = card
             .abilities
             .iter()
@@ -943,7 +950,77 @@ impl Compiler<'_> {
                 "more than one `spell`/`choose one`; put the paragraphs in one `spell { }` block",
             );
         }
+        // CR 711.2: the level symbol the abilities being compiled follow.
+        let mut band: Option<StaticCond> = None;
         for a in &card.abilities {
+            if let Ability::LevelBand { min, max, pt } = a {
+                let at_least = StaticCond::SourceCounters {
+                    kind: mtg_core::card::CounterKind::Level,
+                    n: *min,
+                    at_least: true,
+                };
+                let cond = match max {
+                    Some(m) => StaticCond::And(
+                        Box::new(at_least),
+                        Box::new(StaticCond::SourceCounters {
+                            kind: mtg_core::card::CounterKind::Level,
+                            n: *m,
+                            at_least: false,
+                        }),
+                    ),
+                    None => at_least,
+                };
+                // CR 711.2a-b: "it has base power and toughness [P/T]".
+                let set = Ability::Static {
+                    filter: crate::ast::Filter::this(),
+                    mods: vec![Mod::SetPt {
+                        power: mtg_core::card::PtValue::Fixed(pt.0),
+                        toughness: mtg_core::card::PtValue::Fixed(pt.1),
+                    }],
+                    condition: Some(cond.clone()),
+                    cond_first: false,
+                    cond_if: false,
+                };
+                b = b.ability(self.ability(&set)?);
+                band = Some(cond);
+                continue;
+            }
+            if let Some(cond) = &band {
+                let compiled = match a {
+                    // "and has [abilities]": a keyword of the level.
+                    Ability::Keyword(k) => self.ability(&Ability::Static {
+                        filter: crate::ast::Filter::this(),
+                        mods: vec![Mod::AddKeywords(vec![*k])],
+                        condition: Some(cond.clone()),
+                        cond_first: false,
+                        cond_if: false,
+                    })?,
+                    _ => {
+                        let compiled = self.ability(a)?;
+                        if matches!(
+                            compiled,
+                            AbilityDef::Static(_)
+                                | AbilityDef::Activated(_)
+                                | AbilityDef::Triggered(_)
+                        ) {
+                            let c = self.static_cond(cond);
+                            self.while_holds(compiled, c, "a level symbol")?
+                        } else {
+                            // A blocking restriction, protection, and the
+                            // like: granted to itself while the level holds.
+                            self.ability(&Ability::Static {
+                                filter: crate::ast::Filter::this(),
+                                mods: vec![Mod::AddAbility(Box::new(a.clone()))],
+                                condition: Some(cond.clone()),
+                                cond_first: false,
+                                cond_if: false,
+                            })?
+                        }
+                    }
+                };
+                b = b.ability(compiled);
+                continue;
+            }
             // CR 702.174b: an instant's or sorcery's gift happens as it
             // resolves; a permanent's is a triggered ability.
             if matches!(unlabeled(a), Ability::Mechanic(Mechanic::Gift(_)))
@@ -1310,10 +1387,27 @@ impl Compiler<'_> {
         what: &str,
     ) -> Result<AbilityDef, CompileError> {
         match &mut a {
-            AbilityDef::Static(sa) if sa.condition.is_none() => sa.condition = Some(c),
+            AbilityDef::Static(sa) => {
+                sa.condition = Some(match sa.condition.take() {
+                    Some(own) => StaticCondition::And(Box::new(own), Box::new(c)),
+                    None => c,
+                });
+            }
             AbilityDef::Activated(aa) => aa.conditions.push(c),
             AbilityDef::Triggered(ta) if ta.condition.is_none() => {
                 let i = self.pool.intern_condition(c);
+                ta.condition = Some(mtg_core::card::Condition::Static(i));
+            }
+            // An intervening "if" of its own: both hold.
+            AbilityDef::Triggered(ta)
+                if matches!(ta.condition, Some(mtg_core::card::Condition::Static(_))) =>
+            {
+                let Some(mtg_core::card::Condition::Static(j)) = ta.condition else {
+                    unreachable!("matched above");
+                };
+                let both =
+                    StaticCondition::And(Box::new(self.pool.condition(j).clone()), Box::new(c));
+                let i = self.pool.intern_condition(both);
                 ta.condition = Some(mtg_core::card::Condition::Static(i));
             }
             AbilityDef::CostChange(cc) if cc.cond.is_none() => {
@@ -3916,6 +4010,9 @@ impl Compiler<'_> {
         self.tmap = TargetMap::default();
         Ok(match a {
             Ability::Keyword(_) => return self.err("a keyword is not an ability definition"),
+            Ability::LevelBand { .. } => {
+                return self.err("a level symbol is not an ability definition");
+            }
             Ability::DeckAnyNumber => return self.err("a deck-building rule is not an ability"),
             Ability::Uncounterable => {
                 return self.err("\"can't be countered\" is a property of the spell");
@@ -5681,6 +5778,23 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 cycling: false,
             }
         }
+        // CR 702.87a: "[Cost]: Put a level counter on this permanent.
+        // Activate only as a sorcery."
+        Mechanic::LevelUp(cost) => Ability::Activated {
+            cost: Cost {
+                mana: cost.clone(),
+                sorcery: true,
+                ..Default::default()
+            },
+            targets: Vec::new(),
+            effects: one(E::AddCounters {
+                kind: mtg_core::card::CounterKind::Level,
+                count: Num::N(1),
+                to: Recipient::Source,
+            }),
+            equip: false,
+            cycling: false,
+        },
         Mechanic::Outlast(cost) => Ability::Activated {
             cost: Cost {
                 mana: cost.clone(),

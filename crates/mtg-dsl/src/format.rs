@@ -5225,6 +5225,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Absorb(n) => format!("absorb {n}"),
                 crate::ast::Mechanic::Provoke => "provoke".to_string(),
                 crate::ast::Mechanic::Fading(n) => format!("fading {n}"),
+                crate::ast::Mechanic::LevelUp(c) => format!("level up {c}"),
                 crate::ast::Mechanic::Annihilator(n) => format!("annihilator {n}"),
                 crate::ast::Mechanic::Rampage(n) => format!("rampage {n}"),
                 crate::ast::Mechanic::BattleCry => "battle cry".to_string(),
@@ -5382,6 +5383,13 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::DeckAnyNumber => {
             let _ = writeln!(out, "{indent}deck any number");
+        }
+        Ability::LevelBand { min, max, pt } => {
+            let range = match max {
+                Some(m) => format!("{min} to {m}"),
+                None => format!("{min} or more"),
+            };
+            let _ = writeln!(out, "{indent}levels {range} pt {}/{}", pt.0, pt.1);
         }
         Ability::Uncounterable => {
             let _ = writeln!(out, "{indent}this spell can't be countered");
