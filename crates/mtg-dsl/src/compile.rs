@@ -3908,6 +3908,10 @@ impl Compiler<'_> {
                 TriggerSpec::DealsCombatDamageToPlayerOrBattle(self.trigger_obj(o))
             }
             Trigger::AttacksAlone(o) => TriggerSpec::AttacksAlone(self.trigger_obj(o)),
+            Trigger::OneOrMoreAttack(f) => TriggerSpec::AttacksWithFilter {
+                filter: self.filter(f),
+                player: false,
+            },
             Trigger::CreaturesYouControlAttack => TriggerSpec::AttacksWith {
                 this: false,
                 min: 1,
@@ -3921,6 +3925,8 @@ impl Compiler<'_> {
             Trigger::BlocksOrBlocked(o) => TriggerSpec::BlocksOrBlocked(self.trigger_obj(o)),
             Trigger::AttacksOrBlocks(o) => TriggerSpec::AttacksOrBlocks(self.trigger_obj(o)),
             Trigger::Leaves(o) => TriggerSpec::Leaves(self.trigger_obj(o)),
+            Trigger::LeavesWithoutDying(o) => TriggerSpec::LeavesWithoutDying(self.trigger_obj(o)),
+            Trigger::ReturnedToHand(o) => TriggerSpec::ReturnedToHand(self.trigger_obj(o)),
             Trigger::Blocks(o) => TriggerSpec::Blocks(self.trigger_obj(o)),
             Trigger::BlockPair {
                 obj,

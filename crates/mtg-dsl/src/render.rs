@@ -3418,6 +3418,8 @@ fn token_description_plain(
     for a in &token.abilities {
         match a {
             Ability::Mechanic(crate::ast::Mechanic::Toxic(n)) => bare.push(format!("toxic {n}")),
+            // "a 3/2 colorless Vehicle artifact token with crew 1".
+            Ability::Mechanic(crate::ast::Mechanic::Crew(n)) => bare.push(format!("crew {n}")),
             // "a 2/2 red Soldier creature token with firebending 1".
             Ability::Mechanic(crate::ast::Mechanic::Firebending(Num::N(n))) => {
                 bare.push(format!("firebending {n}"));
@@ -9171,6 +9173,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 "whenever you tap one or more {}",
                 controller_first(f, filter_phrase(f, ctx.card, true))
             ),
+            Trigger::LeavesWithoutDying(TriggerObj::Filter(f)) => format!(
+                "whenever one or more {} leave the battlefield without dying",
+                controller_first(f, filter_phrase(f, ctx.card, true))
+            ),
             t => unreachable!("no batched form of {t:?}"),
         },
         // "At the beginning of the end step on your next turn".
@@ -9513,6 +9519,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             this: false,
             min: 1,
         } => "whenever you attack".to_string(),
+        Trigger::OneOrMoreAttack(f) => format!(
+            "whenever one or more {} attack",
+            controller_first(f, filter_phrase(f, ctx.card, true))
+        ),
         Trigger::CreaturesYouControlAttack => {
             "whenever one or more creatures you control attack".to_string()
         }
@@ -9551,6 +9561,16 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::Leaves(TriggerObj::This) => {
             format!("when {} leaves the battlefield", this(ctx))
         }
+        Trigger::LeavesWithoutDying(o) => format!(
+            "whenever {} leaves the battlefield without dying",
+            trigger_subject(o, ctx)
+        ),
+        // "Whenever another nonland permanent you control is returned to
+        // its owner's hand".
+        Trigger::ReturnedToHand(o) => format!(
+            "whenever {} is returned to its owner's hand",
+            trigger_subject(o, ctx)
+        ),
         Trigger::Leaves(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_))) => {
             format!(
                 "whenever {} leaves the battlefield",

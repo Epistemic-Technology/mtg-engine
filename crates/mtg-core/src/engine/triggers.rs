@@ -951,6 +951,26 @@ impl GameState {
                     from: Zone::Battlefield,
                     ..
                 },
+            )
+            // CR 700.4: "dies" is put into a graveyard from the
+            // battlefield.
+            | (
+                TriggerSpec::LeavesWithoutDying(what),
+                Event::ZoneChange {
+                    old,
+                    from: Zone::Battlefield,
+                    to: Zone::Exile | Zone::Hand | Zone::Library | Zone::Stack | Zone::Command,
+                    ..
+                },
+            )
+            | (
+                TriggerSpec::ReturnedToHand(what),
+                Event::ZoneChange {
+                    old,
+                    from: Zone::Battlefield,
+                    to: Zone::Hand,
+                    ..
+                },
             ) => {
                 let l = self.lki.get(old)?;
                 let ok = match what {

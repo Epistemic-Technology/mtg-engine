@@ -5488,6 +5488,15 @@ pub enum TriggerSpec {
     AttacksOrBlocks(TriggerObj),
     /// "When this creature leaves the battlefield" (to any zone).
     Leaves(TriggerObj),
+    /// "Whenever this creature or another creature you control leaves the
+    /// battlefield without dying": to any zone but a graveyard (CR 700.4),
+    /// judged as it last existed. `Batch` of it: "one or more ... leave
+    /// the battlefield without dying".
+    LeavesWithoutDying(TriggerObj),
+    /// "Whenever another nonland permanent you control is returned to its
+    /// owner's hand": leaves the battlefield for a hand, judged as it last
+    /// existed.
+    ReturnedToHand(TriggerObj),
     /// "When that land dies or is put into exile" (earthbend's delayed
     /// trigger, CR 701.66a), "When enchanted permanent dies or is put into
     /// exile" (Kaya's Ghostform): leaves the battlefield for a graveyard or
@@ -5944,6 +5953,8 @@ impl TriggerSpec {
             TriggerSpec::Enters(_)
             | TriggerSpec::Dies(_)
             | TriggerSpec::Leaves(_)
+            | TriggerSpec::LeavesWithoutDying(_)
+            | TriggerSpec::ReturnedToHand(_)
             | TriggerSpec::DiesOrExiled(_)
             | TriggerSpec::EntersBatch(_)
             | TriggerSpec::LeavesBatch { .. }

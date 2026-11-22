@@ -3930,6 +3930,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 "whenever one or more players discard one or more cards".to_string()
             }
             Trigger::YouTap(f) => format!("whenever you tap one or more {}", filter(f)),
+            Trigger::LeavesWithoutDying(TriggerObj::Filter(f)) => format!(
+                "whenever one or more {} leave the battlefield without dying",
+                filter(f)
+            ),
             t => unreachable!("no batched form of {t:?}"),
         },
         Trigger::OnNextTurn(inner) => format!("{} on your next turn", trigger_text(inner, next)),
@@ -4007,6 +4011,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             this: false,
             min: 1,
         } => "whenever you attack".to_string(),
+        Trigger::OneOrMoreAttack(f) => format!("whenever one or more {} attack", filter(f)),
         Trigger::CreaturesYouControlAttack => {
             "whenever one or more creatures you control attack".to_string()
         }
@@ -4034,6 +4039,11 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         } => block_pair_text(obj, other, *blocks, *blocked, *any),
         Trigger::AttacksOrBlocks(o) => format!("whenever {} attacks or blocks", trigger_obj(o)),
         Trigger::Leaves(o) => format!("whenever {} leaves the battlefield", trigger_obj(o)),
+        Trigger::LeavesWithoutDying(o) => format!(
+            "whenever {} leaves the battlefield without dying",
+            trigger_obj(o)
+        ),
+        Trigger::ReturnedToHand(o) => format!("whenever {} is returned to hand", trigger_obj(o)),
         Trigger::DealsCombatDamageToPlayer(o) => {
             format!(
                 "whenever {} deals combat damage to a player",

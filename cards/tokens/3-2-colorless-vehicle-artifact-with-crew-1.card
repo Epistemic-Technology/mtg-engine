@@ -1,0 +1,7 @@
+token "3/2 colorless Vehicle artifact with crew 1" {
+  name "Vehicle"
+  type Artifact — Vehicle
+  pt 3/2
+  color
+  crew 1
+}

@@ -1,0 +1,8 @@
+card "Clandestine Meddler" {
+  oracle_id f11ec1c9-347d-4d79-aaa9-5919db5f9044
+  cost {2}{B}
+  type Creature — Vampire Rogue
+  pt 3/2
+  triggered when this enters: suspect up to 1 another target creature you control
+  triggered whenever one or more suspected creature you control attack: surveil 1
+}

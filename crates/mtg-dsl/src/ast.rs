@@ -2714,6 +2714,9 @@ pub enum Trigger {
     /// `whenever one or more creatures you control attack`: the older
     /// wording of `whenever you attack` (CR 508.1m), the same trigger.
     CreaturesYouControlAttack,
+    /// `whenever one or more suspected creature you control attack`: the
+    /// older wording of `whenever you attack with one or more ...`.
+    OneOrMoreAttack(Filter),
     /// `whenever this attacks and isn't blocked`.
     AttacksUnblocked(TriggerObj),
     /// `whenever this attacks for the first time each turn`.
@@ -2738,6 +2741,12 @@ pub enum Trigger {
     AttacksOrBlocks(TriggerObj),
     /// `when this leaves the battlefield`.
     Leaves(TriggerObj),
+    /// `whenever this or creature you control leaves the battlefield
+    /// without dying`.
+    LeavesWithoutDying(TriggerObj),
+    /// `whenever other nonland permanent you control is returned to hand`:
+    /// "... is returned to its owner's hand".
+    ReturnedToHand(TriggerObj),
     /// `whenever you sacrifice other permanent`, `whenever a player
     /// sacrifices creature`, `when you sacrifice this` (CR 701.21).
     Sacrificed {

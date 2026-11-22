@@ -1830,6 +1830,8 @@ impl Decompiler<'_> {
             TriggerSpec::BlocksOrBlocked(o) => Trigger::BlocksOrBlocked(self.trigger_obj(o)),
             TriggerSpec::AttacksOrBlocks(o) => Trigger::AttacksOrBlocks(self.trigger_obj(o)),
             TriggerSpec::Leaves(o) => Trigger::Leaves(self.trigger_obj(o)),
+            TriggerSpec::LeavesWithoutDying(o) => Trigger::LeavesWithoutDying(self.trigger_obj(o)),
+            TriggerSpec::ReturnedToHand(o) => Trigger::ReturnedToHand(self.trigger_obj(o)),
             TriggerSpec::DiesOrExiled(o) => Trigger::DiesOrExiled(self.trigger_obj(o)),
             TriggerSpec::Blocks(o) => Trigger::Blocks(self.trigger_obj(o)),
             TriggerSpec::BlockPair {

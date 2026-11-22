@@ -11936,6 +11936,17 @@ impl P {
         if self.eat_words(&["one", "or", "more", "creatures", "you", "control", "attack"]) {
             return Ok(Trigger::CreaturesYouControlAttack);
         }
+        // "Whenever one or more suspected creatures you control attack".
+        if self.at_words(&["one", "or", "more"]) {
+            let before = self.pos;
+            self.pos += 3;
+            if let Ok(f) = self.filter()
+                && self.eat_word("attack")
+            {
+                return Ok(Trigger::OneOrMoreAttack(f));
+            }
+            self.pos = before;
+        }
         if self.at_words(&["one", "or", "more"]) && matches!(self.peek_at(3), Some(Tok::Pt { .. }))
         {
             self.pos += 3;
@@ -12007,6 +12018,11 @@ impl P {
                     filter: f,
                     dies: true,
                 });
+            }
+            if self.eat_words(&["leave", "the", "battlefield", "without", "dying"]) {
+                return Ok(Trigger::Batch(Box::new(Trigger::LeavesWithoutDying(
+                    TriggerObj::Filter(f),
+                ))));
             }
             if self.eat_words(&["leave", "the", "battlefield"]) {
                 return Ok(Trigger::LeavesBatch {
@@ -12265,6 +12281,10 @@ impl P {
                 self.pos += 3;
                 Ok(Trigger::TurnedFaceUp(obj))
             }
+            "is" if self.at_words(&["returned", "to", "hand"]) => {
+                self.pos += 3;
+                Ok(Trigger::ReturnedToHand(obj))
+            }
             "is" if self.at_words(&["dealt", "combat", "damage"]) => {
                 self.pos += 3;
                 Ok(Trigger::DealtCombatDamage(obj))
@@ -12294,6 +12314,10 @@ impl P {
                     "battlefield",
                 ])?;
                 Ok(Trigger::Dies(obj))
+            }
+            "leaves" if self.at_words(&["the", "battlefield", "without", "dying"]) => {
+                self.pos += 4;
+                Ok(Trigger::LeavesWithoutDying(obj))
             }
             "leaves" if self.at_words(&["the", "battlefield"]) => {
                 self.pos += 2;
@@ -13512,6 +13536,7 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::EveryStep(_)
         | Trigger::BeginningOfStep { .. }
         | Trigger::CreaturesYouControlAttack
+        | Trigger::OneOrMoreAttack(_)
         | Trigger::GainsLife { .. }
         | Trigger::GainsLifeFirst { .. }
         | Trigger::LosesLife { .. }
