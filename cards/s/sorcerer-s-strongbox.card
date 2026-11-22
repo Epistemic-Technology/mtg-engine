@@ -1,0 +1,6 @@
+card "Sorcerer's Strongbox" {
+  oracle_id c4f58768-35b2-4e17-9129-c9e39b8ed339
+  cost {4}
+  type Artifact
+  activated {2}, {T}: flip coin; if you win the flip, sacrifice this and draw 3 cards
+}

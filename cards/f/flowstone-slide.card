@@ -1,0 +1,6 @@
+card "Flowstone Slide" {
+  oracle_id ad779760-1197-4248-8e21-7a048122640f
+  cost {X}{2}{R}{R}
+  type Sorcery
+  spell: all creatures gets +1/-1 X
+}

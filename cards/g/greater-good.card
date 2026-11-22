@@ -1,0 +1,6 @@
+card "Greater Good" {
+  oracle_id dc0593c2-ccb4-4648-a592-c5bcd121dc72
+  cost {2}{G}{G}
+  type Enchantment
+  activated sacrifice creature: draw count equal power of the sacrificed creature cards then discard 3 cards
+}

@@ -1,0 +1,7 @@
+card "Sacred Fire" {
+  oracle_id 812bf52c-37f5-41c9-8a69-009fddbafb3f
+  cost {R}{W}
+  type Instant
+  spell: deal 2 damage to any target and you gains 2 life
+  flashback {4}{R}{W}
+}

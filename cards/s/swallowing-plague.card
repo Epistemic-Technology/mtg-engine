@@ -1,0 +1,6 @@
+card "Swallowing Plague" {
+  oracle_id 91cac048-90ca-41bc-9177-56c78453c4a2
+  cost {X}{B}{B}
+  type Sorcery — Arcane
+  spell: deal X damage to target creature and you gains X life
+}

@@ -1,0 +1,81 @@
+# "Gain control of target ... for as long as you control this creature" /
+# "... for as long as this creature remains on the battlefield", now
+# written by the template author.
+
+scenario "Sower of Temptation: control lasts while it remains" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant", 2 "Mountain"
+  hand A: "Sower of Temptation"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sower of Temptation"
+  turn 1 A: trigger "Sower of Temptation" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Hill Giant"
+  turn 2 B: cast "Shock" targeting "Sower of Temptation"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Sower of Temptation"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Master Thief: an artifact, for as long as you control it" {
+  battlefield A: 4 "Island"
+  battlefield B: "Bonesplitter", 2 "Island"
+  hand A: "Master Thief"
+  hand B: "Boomerang"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Master Thief"
+  turn 1 A: trigger "Master Thief" targeting "Bonesplitter"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Bonesplitter"
+  turn 2 B: cast "Boomerang" targeting "Master Thief"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Master Thief"
+  assert battlefield B contains "Bonesplitter"
+}
+
+scenario "Master Thief: only an artifact" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant", "Bonesplitter"
+  hand A: "Master Thief"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Master Thief"
+  illegal turn 1 A: trigger "Master Thief" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert battlefield A contains "Bonesplitter"
+}
+
+scenario "Dragonlord Silumgar takes a creature" {
+  battlefield A: 4 "Island", 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Dragonlord Silumgar"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dragonlord Silumgar"
+  turn 1 A: trigger "Dragonlord Silumgar" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Roil Elemental: landfall takes a creature while you control it" {
+  battlefield A: "Roil Elemental"
+  battlefield B: "Hill Giant", 2 "Mountain"
+  hand A: "Island"
+  hand B: "Shock", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: play "Island"
+  turn 1 A: trigger "Roil Elemental" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Cytoplast Manipulator: a creature with a +1/+1 counter on it" {
+  battlefield A: "Cytoplast Manipulator" with 2 +1/+1, "Island"
+  battlefield B: "Hill Giant" with 1 +1/+1, "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Cytoplast Manipulator" targeting "Grizzly Bears"
+  turn 1 A: activate "Cytoplast Manipulator" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+}

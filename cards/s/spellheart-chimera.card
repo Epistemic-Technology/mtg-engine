@@ -1,0 +1,8 @@
+card "Spellheart Chimera" {
+  oracle_id 9745fc92-4955-48e3-a6c8-1300891cf078
+  cost {1}{U}{R}
+  type Creature — Chimera
+  pt */3
+  keywords flying, trample
+  static this: cda power graveyard instant or sorcery
+}

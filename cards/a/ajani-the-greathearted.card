@@ -1,0 +1,9 @@
+card "Ajani, the Greathearted" {
+  oracle_id f5d9be71-91d0-4166-ba58-cbbf5d490c40
+  cost {2}{G}{W}
+  type Legendary Planeswalker — Ajani
+  loyalty 5
+  static creature you control: has vigilance
+  loyalty +1: you gains 3 life
+  loyalty -2: put 1 +1/+1 counters on each creature you control and put 1 loyalty counters on each other planeswalker you control
+}

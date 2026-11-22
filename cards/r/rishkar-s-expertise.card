@@ -1,0 +1,9 @@
+card "Rishkar's Expertise" {
+  oracle_id 97407cd0-2bd2-4074-94d3-4ec3d243fa78
+  cost {4}{G}{G}
+  type Sorcery
+  spell {
+    draw count equal greatest power cards
+    cast free spell from hand with mana value up to 5
+  }
+}

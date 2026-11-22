@@ -1,0 +1,7 @@
+card "Biting Rain" {
+  oracle_id 485cfaca-9348-418b-a751-2ecb19f3f210
+  cost {2}{B}{B}
+  type Sorcery
+  spell: all creatures gets -2/-2
+  madness {2}{B}
+}

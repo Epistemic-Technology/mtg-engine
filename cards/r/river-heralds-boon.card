@@ -1,0 +1,6 @@
+card "River Heralds' Boon" {
+  oracle_id 682eb224-cab4-4829-810b-72e63a9ceb5d
+  cost {1}{G}
+  type Instant
+  spell: put 1 +1/+1 counters on target creature and put 1 +1/+1 counters on up to 1 target Merfolk
+}

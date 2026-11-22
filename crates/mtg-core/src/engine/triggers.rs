@@ -1297,6 +1297,18 @@ impl GameState {
                 },
             ) => (*obj == w.source && chapters_crossed(*mask, *before, *n) != 0)
                 .then_some((Some(*obj), Some(w.controller))),
+            // "Whenever a face-down permanent you control is turned face up"
+            // (CR 708.8): it was face down until now; the rest of the filter
+            // is judged as it is face up.
+            (
+                TriggerSpec::TurnedFaceUp(TriggerObj::Filter(f)),
+                Event::TurnedFaceUp { obj },
+            ) if f.status.face_down => {
+                let mut g = f.clone();
+                g.status.face_down = false;
+                let p = filter_on_battlefield(&g, *obj)?;
+                Some((Some(*obj), Some(p)))
+            }
             // CR 716.2c: "When this Class becomes level 2".
             (TriggerSpec::BecomesStage(k), Event::StageChanged { obj, stage }) => {
                 (*obj == w.source && stage == k).then_some((Some(*obj), Some(w.controller)))

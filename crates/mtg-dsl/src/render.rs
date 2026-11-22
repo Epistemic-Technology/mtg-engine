@@ -710,6 +710,23 @@ fn cost_spells_subject(f: &Filter, card: &Card) -> String {
     let second = |s: String, keep_case: bool| if keep_case { s } else { lowercase_first(&s) };
     if let Some(alt) = &f.or {
         let (b, a) = crate::format::factor_qualifiers(f, alt);
+        // "Aura and Equipment spells you cast cost {1} less" (Danitha
+        // Capashen, Paragon): two noncreature subtypes share "spells";
+        // creature types don't ("Angel spells and Human spells").
+        let lone_sub = |g: &Filter| match g.subtypes.as_slice() {
+            [s] if matches!(s.as_str(), "Aura" | "Equipment" | "Vehicle")
+                && Filter {
+                    subtypes: Vec::new(),
+                    ..g.clone()
+                } == Filter::default() =>
+            {
+                Some(s.clone())
+            }
+            _ => None,
+        };
+        if let (Some(x), Some(y)) = (lone_sub(&b), lone_sub(&a)) {
+            return format!("{x} and {y} spells");
+        }
         return format!(
             "{} and {}",
             spells_subject(&b, card),
@@ -1059,6 +1076,10 @@ struct Ctx<'a> {
     /// instead").
     last_token: Option<String>,
     those_tokens: Option<String>,
+    /// The last token was created tapped: "those tokens" are made the same
+    /// way ("Create two tapped 2/2 ... tokens. ... instead create X of
+    /// those tokens", The Final Days).
+    last_token_tapped: bool,
     /// The controller was just told to discard one card ("draw a card,
     /// then discard a card"): a reflexive trigger after it is "When you
     /// discard a card this way".
@@ -1137,6 +1158,7 @@ impl<'a> Ctx<'a> {
             trigger: None,
             last_token: None,
             those_tokens: None,
+            last_token_tapped: false,
             discarded_one: false,
             attached_mentioned: false,
             attached_by_cond: false,
@@ -6108,6 +6130,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 ctx.obj_list(what, false)
             };
+            // "Return up to one target instant card and up to one target
+            // sorcery card from your graveyard to your hand": one graveyard
+            // for the list.
+            let o = if yours && what.len() > 1 {
+                format!(
+                    "{} from your graveyard",
+                    o.replace(" from your graveyard", "")
+                )
+            } else {
+                o
+            };
             // Activated from the graveyard: "Return this card from your
             // graveyard to your hand."
             let from_graveyard =
@@ -6544,7 +6577,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             attached,
             sized,
         } => {
-            if !*tapped
+            if *tapped == ctx.last_token_tapped
+                && !*attacking
                 && who.is_none()
                 && attached.is_none()
                 && ctx.those_tokens.as_deref() == Some(token.as_str())
@@ -6555,6 +6589,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ));
             }
             ctx.last_token = Some(token.clone());
+            ctx.last_token_tapped = *tapped && !*attacking;
             let mut what = token_description(token, *count, *tapped && !*attacking, *it_has, ctx);
             // "an X/X green Elemental creature token" (the definition's
             // power and toughness stand for X).

@@ -1,0 +1,9 @@
+card "Alela, Artful Provocateur" {
+  oracle_id 936ae5dc-9838-47f3-ba1f-66523a7f5b76
+  cost {1}{W}{U}{B}
+  type Legendary Creature — Faerie Warlock
+  pt 2/3
+  keywords flying, deathtouch, lifelink
+  static other creature you control with flying: +1/+0
+  triggered whenever you cast artifact or enchantment spell: create 1 "1/1 blue Faerie creature with flying"
+}

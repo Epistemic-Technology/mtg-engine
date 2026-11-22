@@ -1,0 +1,7 @@
+card "Great Teacher's Decree" {
+  oracle_id 9a6e5834-a89c-44af-b297-1b8ccbfbc907
+  cost {3}{W}
+  type Sorcery
+  keywords rebound
+  spell: each creature you control gets +2/+1
+}

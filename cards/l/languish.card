@@ -1,0 +1,6 @@
+card "Languish" {
+  oracle_id ef1a83f2-6707-41a2-b5ed-861c8e45ae07
+  cost {2}{B}{B}
+  type Sorcery
+  spell: all creatures gets -4/-4
+}

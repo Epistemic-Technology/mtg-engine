@@ -1,0 +1,8 @@
+card "Geology Enthusiast" {
+  oracle_id c7c1352a-0332-4495-a384-8d6fed01f91b
+  cost {3}{U}{U}
+  type Creature — Human Artificer
+  pt 2/5
+  triggered at beginning of your end step: create 1 tapped "Powerstone"
+  activated {6}: draw 1 cards and put 1 +1/+1 counters on this
+}

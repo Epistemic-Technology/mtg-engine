@@ -50,6 +50,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         it_source: false,
         no_trigger_obj: false,
         self_trigger: false,
+        no_trigger_player: false,
         created_at: None,
         no_trigger_amount: false,
         in_spell: false,
@@ -595,6 +596,10 @@ struct P {
     /// "that creature" after an object target is that target ("attach it
     /// to target creature you control. That creature gains hexproof").
     self_trigger: bool,
+    /// Inside "When this enters", "When this dies", "When this leaves the
+    /// battlefield", "When you cast this spell": the event names no player,
+    /// so `that player controls` would match nothing.
+    no_trigger_player: bool,
     /// An effect of this ability created one token, with this many
     /// targets declared then: `it` after it is that token ("Create a 1/1
     /// ... token. Put X +1/+1 counters on it.") until a target is named.
@@ -1494,6 +1499,7 @@ impl P {
         self.it_source = false;
         self.no_trigger_obj = false;
         self.self_trigger = false;
+        self.no_trigger_player = false;
         self.created_at = None;
         self.no_trigger_amount = false;
         self.in_spell = false;
@@ -2831,6 +2837,15 @@ impl P {
                         | Trigger::CastsFiltered { .. }
                         | Trigger::CastThis { .. }
                         | Trigger::CastsNth { .. }
+                );
+                self.no_trigger_player = matches!(
+                    trigger,
+                    Trigger::Enters(TriggerObj::This)
+                        | Trigger::Dies(TriggerObj::This)
+                        | Trigger::DiesOrExiled(TriggerObj::This)
+                        | Trigger::Leaves(TriggerObj::This)
+                        | Trigger::TurnedFaceUp(TriggerObj::This)
+                        | Trigger::CastThis { .. }
                 );
                 self.no_trigger_amount = no_trigger_amount(&trigger);
                 if when && !crate::format::natural_when(&trigger) {
@@ -4890,6 +4905,14 @@ impl P {
                 r
             };
             let filter = self.filter()?;
+            // "unless they sacrifice another nonland permanent" (Torment of
+            // Venom): other than the target, but `another` is other than
+            // the source, and a spell isn't on the battlefield.
+            if self.in_spell && filter.relation == Relation::Other {
+                return self.fail(
+                    "`unless they sacrifice another` in a spell: `another` excludes the source, not the target; this form isn't supported",
+                );
+            }
             // `else discard 1 card` (`or` would start another clause).
             let or_discard = self.at_word("else")
                 && matches!(self.word_at(1).as_deref(), Some("discard" | "discards"))
@@ -7959,7 +7982,7 @@ impl P {
                 let to = self.recipient()?;
                 // "put its counters on this creature" in a triggered
                 // ability: the triggering object's (Buzzard-Wasp Colony).
-                let from = if self.in_trigger && to == Recipient::Source {
+                let from = if self.its_counters_triggering(to) {
                     Recipient::TriggeringObject
                 } else {
                     Recipient::Source
@@ -7983,7 +8006,7 @@ impl P {
                 self.eat_word("counters");
                 self.expect_word("on")?;
                 let to = self.recipient()?;
-                let from = if self.in_trigger && to == Recipient::Source {
+                let from = if self.its_counters_triggering(to) {
                     Recipient::TriggeringObject
                 } else {
                     Recipient::Source
@@ -10258,6 +10281,7 @@ impl P {
             it_source: self.it_source,
             no_trigger_obj: self.no_trigger_obj,
             self_trigger: self.self_trigger,
+            no_trigger_player: self.no_trigger_player,
             created_at: self.created_at,
             no_trigger_amount: self.no_trigger_amount,
             in_spell: self.in_spell,
@@ -10393,6 +10417,18 @@ impl P {
 
     /// `them`, `they`, `those creatures`, `those permanents`: a group
     /// named earlier in the ability, if here.
+    /// Whose counters "put its counters on ..." moves: in a triggered
+    /// ability, the triggering object's ("put its counters on this
+    /// creature", Buzzard-Wasp Colony; "Whenever another creature you
+    /// control dies, put its counters on target creature"), unless the
+    /// trigger is about the source itself.
+    fn its_counters_triggering(&self, to: Recipient) -> bool {
+        self.in_trigger
+            && !self.in_delayed
+            && (to == Recipient::Source
+                || !(self.self_trigger || self.no_trigger_player || self.no_trigger_obj))
+    }
+
     fn at_those(&self) -> Option<(crate::ast::Those, usize)> {
         use crate::ast::Those;
         if self.at_words(&["those", "creatures"]) {
@@ -10791,6 +10827,18 @@ impl P {
             self.pos += 2;
             return Ok(Recipient::ThatTarget(n));
         }
+        // "When this Aura enters, ... untap that creature" (Howl of the
+        // Hunt): the triggering object is the source, which "that
+        // creature" doesn't name, and there is no target for it to be.
+        if self.self_trigger
+            && !self.in_delayed
+            && self.at_words(&["that", "creature"])
+            && self.last_object_target().is_none()
+        {
+            return self.fail(
+                "`that creature` in a trigger on this object's own event names no creature: write `this`, `attached`, or a target",
+            );
+        }
         // "Return target permanent to its owner's hand. Then that player
         // discards a card.": the returned card's owner.
         if let Some(i) = self.returned
@@ -11008,6 +11056,7 @@ impl P {
                         it_source: false,
                         no_trigger_obj: false,
                         self_trigger: false,
+                        no_trigger_player: false,
                         created_at: None,
                         no_trigger_amount: false,
                         in_spell: false,
@@ -11409,6 +11458,11 @@ impl P {
                     // player, so it would match nothing ("each creature
                     // that player controls" after a target player is
                     // `that player 1 controls`).
+                    if self.in_trigger && self.no_trigger_player && !self.in_delayed {
+                        return self.fail(
+                            "`that player controls` in a trigger on this object's own event: there is no triggering player; write `controller of target N controls` or `that player N controls` for the Nth target",
+                        );
+                    }
                     if !self.in_trigger && !self.in_delayed {
                         return self.fail(
                             "`that player controls` outside a triggered ability: there is no triggering player; write `that player N controls` for the Nth target",
@@ -11604,6 +11658,21 @@ impl P {
                 {
                     f.status.enchanted = Some(w == "with");
                     self.pos += 2;
+                    // "enchanted by Auras you control" (Archon of the Wild
+                    // Rose): who controls the Aura isn't checked, and "you
+                    // control" would be read as the creature's controller.
+                    // (`creature with aura you control` is the formatter's
+                    // order for "creatures you control that are enchanted":
+                    // the controller not yet given is the creature's.)
+                    if f.who.is_some()
+                        && (self.at_words(&["you", "control"])
+                            || self.at_words(&["an", "opponent", "controls"])
+                            || self.at_words(&["your", "opponents", "control"]))
+                    {
+                        return self.fail(
+                            "`with aura <controller>`: who controls the Aura isn't supported",
+                        );
+                    }
                     if w == "with" && self.eat_word("late") {
                         f.enchanted_late = true;
                     }
@@ -11782,6 +11851,15 @@ impl P {
                     .into_iter()
                     .find(|(words, _)| self.at_words(words));
                     let Some((words, c)) = of else { break };
+                    // "Whenever this creature becomes blocked by a creature
+                    // of that color this turn" (Zombie Boa): a delayed
+                    // trigger doesn't carry the color chosen as its ability
+                    // resolved, so it would never fire.
+                    if c == OfChosen::ThatColor && self.in_delayed {
+                        return self.fail(
+                            "`of that color` in a delayed trigger: the chosen color isn't kept for it",
+                        );
+                    }
                     self.pos += words.len();
                     f.chosen = Some(c);
                 }

@@ -1,0 +1,6 @@
+card "Luxurious Libation" {
+  oracle_id aa4f9618-8106-451e-889a-79a5e8159256
+  cost {X}{G}
+  type Instant
+  spell: target creature gets +1/+1 X; create 1 "1/1 green and white Citizen creature"
+}

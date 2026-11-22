@@ -1,0 +1,54 @@
+# Cards the template author writes once its wording variants try "all"
+# after "of", "it" for the source in its own attack and enters triggers,
+# and a group named again ("each single").
+
+scenario "Karrthus takes all Dragons and untaps them; other Dragons have haste" {
+  battlefield A: 2 "Swamp", 3 "Mountain", 2 "Forest", "Shivan Dragon" tapped
+  battlefield B: "Shivan Dragon" tapped, "Hill Giant"
+  hand A: "Karrthus, Tyrant of Jund"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Karrthus, Tyrant of Jund"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Shivan Dragon"
+  assert battlefield B contains "Hill Giant"
+  assert untapped oldest "Shivan Dragon"
+  assert untapped newest "Shivan Dragon"
+  assert has newest "Shivan Dragon" haste
+}
+
+scenario "Resplendent Griffin: with the city's blessing, a counter as it attacks" {
+  battlefield A: "Resplendent Griffin", 9 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Resplendent Griffin"
+  run_to turn 1 declare_blockers
+  assert counters "Resplendent Griffin" +1/+1 1
+}
+
+scenario "Resplendent Griffin: without it, none" {
+  battlefield A: "Resplendent Griffin", 5 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Resplendent Griffin"
+  run_to turn 1 declare_blockers
+  assert counters "Resplendent Griffin" +1/+1 0
+}
+
+scenario "Wild Onslaught: a counter on each creature you control" {
+  battlefield A: 4 "Forest", "Grizzly Bears", "Llanowar Elves"
+  battlefield B: "Hill Giant"
+  hand A: "Wild Onslaught"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wild Onslaught"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Llanowar Elves" +1/+1 1
+  assert counters "Hill Giant" +1/+1 0
+}
+
+scenario "Wild Onslaught kicked: two counters instead" {
+  battlefield A: 8 "Forest", "Grizzly Bears"
+  hand A: "Wild Onslaught"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wild Onslaught" kicked
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+}

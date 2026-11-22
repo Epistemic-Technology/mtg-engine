@@ -1,0 +1,6 @@
+card "Overcome" {
+  oracle_id 15353e27-96ca-48c7-83d7-efd57c094643
+  cost {3}{G}{G}
+  type Sorcery
+  spell: each creature you control gets +2/+2 and gains trample
+}

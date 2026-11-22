@@ -1,0 +1,10 @@
+card "Ajani Vengeant" {
+  oracle_id f953afdf-96f7-4851-994c-1617e8f5e5c9
+  cost {2}{R}{W}
+  type Legendary Planeswalker — Ajani
+  loyalty 3
+  short_name "Ajani"
+  loyalty +1: target permanent doesn't untap next untap step
+  loyalty -2: deal 3 damage to any target and you gains 3 life
+  loyalty -7: destroy each land target player controls
+}

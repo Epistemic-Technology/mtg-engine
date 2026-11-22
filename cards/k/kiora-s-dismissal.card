@@ -1,0 +1,7 @@
+card "Kiora's Dismissal" {
+  oracle_id 6f866b14-dcdd-4c7d-b935-6db431d83b86
+  cost {U}
+  type Instant
+  strive {U}
+  spell: return any number of target enchantments to hand
+}

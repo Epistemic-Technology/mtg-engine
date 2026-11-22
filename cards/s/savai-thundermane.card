@@ -1,0 +1,7 @@
+card "Savai Thundermane" {
+  oracle_id 620a2037-8bf5-48e0-af94-f4f7d3650c60
+  cost {R}{W}
+  type Creature — Elemental Cat
+  pt 3/2
+  triggered whenever you cycle a card: you may pay {2}; when you do, deal 2 damage to target creature and you gains 2 life
+}

@@ -1,0 +1,6 @@
+card "Infest" {
+  oracle_id d6850616-7db5-4141-9ab0-ae8d1f08114f
+  cost {1}{B}{B}
+  type Sorcery
+  spell: all creatures gets -2/-2
+}

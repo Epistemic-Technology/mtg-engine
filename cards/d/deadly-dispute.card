@@ -1,0 +1,7 @@
+card "Deadly Dispute" {
+  oracle_id 457af74a-02b3-4659-846d-63e482667f34
+  cost {1}{B}
+  type Instant
+  additional cost sacrifice artifact or creature
+  spell: draw 2 cards and create 1 "Treasure"
+}

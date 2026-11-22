@@ -1,0 +1,6 @@
+card "Warleader's Helix" {
+  oracle_id b1ea88f5-162b-4f08-bec3-be1f06dec392
+  cost {2}{R}{W}
+  type Instant
+  spell: deal 4 damage to any target and you gains 4 life
+}

@@ -1,0 +1,8 @@
+card "Danitha Capashen, Paragon" {
+  oracle_id 4b6377da-83e7-4519-9582-16a9c16b8faa
+  cost {2}{W}
+  type Legendary Creature — Human Knight
+  pt 2/2
+  keywords first strike, vigilance, lifelink
+  spells Aura or Equipment you cast cost {1} less
+}

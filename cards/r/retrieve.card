@@ -1,0 +1,6 @@
+card "Retrieve" {
+  oracle_id 157a4cba-b2e6-4c42-b7dc-62db19625c9c
+  cost {2}{G}
+  type Sorcery
+  spell: return up to 1 target creature card from your graveyard and up to 1 target noncreature noninstant nonsorcery permanent card from your graveyard to hand; exile this
+}

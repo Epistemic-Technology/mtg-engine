@@ -1,0 +1,8 @@
+card "Jace's Projection" {
+  oracle_id ff8db8aa-1d5a-42f8-8056-8da0da9846bc
+  cost {2}{U}{U}
+  type Creature — Wizard Illusion
+  pt 2/2
+  triggered whenever you draw a card: put 1 +1/+1 counters on this
+  activated {3}{U}: put 1 loyalty counters on target Jace planeswalker
+}

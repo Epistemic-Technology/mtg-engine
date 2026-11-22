@@ -1,0 +1,7 @@
+card "Phalanx Formation" {
+  oracle_id 799e7bb4-b03c-4568-b321-7810868bdcd7
+  cost {2}{W}
+  type Instant
+  strive {1}{W}
+  spell: any number of target creatures each gains double strike
+}

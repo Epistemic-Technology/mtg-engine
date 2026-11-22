@@ -1,0 +1,6 @@
+card "Mutilate" {
+  oracle_id 698e79ec-c2bc-4973-a095-f3c57b50e39c
+  cost {2}{B}{B}
+  type Sorcery
+  spell: all creatures gets -1/-1 count each Swamp you control
+}

@@ -1,0 +1,8 @@
+card "Cytoplast Manipulator" {
+  oracle_id 026ef98e-4f0a-4a6d-b74f-d17ac8b10e37
+  cost {2}{U}{U}
+  type Creature — Human Wizard Mutant
+  pt 0/0
+  graft 2
+  activated {U}, {T}: gain control of target creature with +1/+1 counter for as long as this remains
+}

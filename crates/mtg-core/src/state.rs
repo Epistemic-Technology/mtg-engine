@@ -4227,6 +4227,11 @@ impl GameState {
         if f.tapped.is_some_and(|t| obj.tapped != t) {
             return false;
         }
+        // "Whenever an attacking creature you control dies" (CR 506.4):
+        // attacking or blocking as it left the battlefield.
+        if (f.attacking && !last.attacking) || (f.blocking && !last.blocking) {
+            return false;
+        }
         let quals = f.status;
         if quals
             .token

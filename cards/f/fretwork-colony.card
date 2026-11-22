@@ -1,0 +1,8 @@
+card "Fretwork Colony" {
+  oracle_id 95f5ddb6-e3e5-4b35-88ac-eae192783eda
+  cost {1}{B}
+  type Creature — Insect
+  pt 1/1
+  keywords can't block
+  triggered at beginning of your upkeep: put 1 +1/+1 counters on this and you loses 1 life
+}

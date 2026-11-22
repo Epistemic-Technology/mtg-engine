@@ -1,0 +1,7 @@
+card "Blinding Flare" {
+  oracle_id 3c8b0a8a-8f80-4c3e-8f27-fb1df94aa0d4
+  cost {R}
+  type Sorcery
+  strive {R}
+  spell: any number of target creatures can't block
+}

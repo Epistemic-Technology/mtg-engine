@@ -519,6 +519,7 @@ pub fn author_format(
     let existing: HashSet<&str> = corpus.iter().map(|c| c.name.as_str()).collect();
     let path = data.scryfall_bulk("oracle_cards");
     let mut report = Report::default();
+    let mut pool = None;
     for card in scryfall::read_cards(&path).context("reading the Scryfall snapshot")? {
         let card = card?;
         if !only.is_empty() && !only.contains(&card.name) {
@@ -535,12 +536,47 @@ pub fn author_format(
             report.existing += 1;
             continue;
         }
-        match author_card(&card, corpus) {
+        match author_card(&card, corpus).and_then(|a| {
+            compiles(&mut pool, corpus, &a)?;
+            Ok(a)
+        }) {
             Ok(a) => report.authored.push(a),
             Err(skip) => report.skipped.push((card.name.clone(), skip)),
         }
     }
     Ok(report)
+}
+
+/// The authored card compiles against the corpus (built on first use),
+/// with the tokens it brings: a draft that renders right but doesn't
+/// compile (Ravager's Mace) is skipped.
+fn compiles(
+    pool: &mut Option<mtg_core::card::CardPool>,
+    corpus: &[Card],
+    a: &Authored,
+) -> Result<(), Skip> {
+    let pool = match pool {
+        Some(p) => p,
+        None => pool.insert(
+            mtg_dsl::compile::compile_all(corpus)
+                .map_err(|e| Skip::Sentence(format!("compile: the corpus: {e}")))?,
+        ),
+    };
+    let mut text = String::new();
+    let head = Regex::new(r#"^\w+ "([^"]+)""#).unwrap();
+    for (_, block) in &a.tokens {
+        let name = head.captures(block).map(|c| c[1].to_string());
+        if name.is_some_and(|n| pool.lookup(&n).is_none()) {
+            text.push_str(block);
+            text.push('\n');
+        }
+    }
+    if pool.lookup(&a.name).is_some() {
+        return Ok(());
+    }
+    text.push_str(&a.text);
+    mtg_dsl::load_into(pool, &text).map_err(|e| Skip::Sentence(format!("compile: {e}")))?;
+    Ok(())
 }
 
 /// Layouts that are not cards a deck can hold.
@@ -807,6 +843,14 @@ fn count_expr(s: &str) -> Option<String> {
         // "permanent cards" (CR 110.4a): `graveyard permanent card`.
         if f == "permanent" || f.ends_with(" permanent") {
             return Some(format!("graveyard {f} card"));
+        }
+        // "instant and sorcery cards in your graveyard": cards of either
+        // type, `graveyard instant or sorcery`.
+        if let Some((a, b)) = f.split_once(" and ")
+            && !a.contains(' ')
+            && !b.contains(' ')
+        {
+            return Some(format!("graveyard {a} or {b}"));
         }
         return Some(format!("graveyard {}", singular(f)));
     }
@@ -1180,6 +1224,33 @@ impl Templates {
                     let mut s = format!("{who} gets {}", cap(c, 2));
                     if !cap(c, 3).is_empty() {
                         let _ = write!(s, " and gains {}", keyword_list(cap(c, 3))?);
+                    }
+                    Some(s)
+                },
+            ),
+            // "Target creature gets +X/+0 and gains trample until end of
+            // turn", "gets -X/-X": the unit pump, X times (`+1/+0 X`).
+            (
+                r(
+                    r"^(.+?) gets? ([+-])X/([+-])(X|0)(?: and gains? ([a-z ,]+?))?(?: until end of turn)?(?:, where X is (.+))?$",
+                ),
+                |c, t| {
+                    let who = all_subject(cap(c, 1), recipient(&subject(cap(c, 1)), t)?);
+                    let y = if cap(c, 4) == "X" { "1" } else { "0" };
+                    // "where X is the number of lands you control": the
+                    // count in place of X.
+                    let x = match c.get(6) {
+                        Some(w) => {
+                            let w = w.as_str();
+                            let e = bound_amount(w)
+                                .or_else(|| count_expr(w.strip_prefix("the number of ")?))?;
+                            format!("count where {e}")
+                        }
+                        None => "X".to_string(),
+                    };
+                    let mut s = format!("{who} gets {}1/{}{y} {x}", cap(c, 2), cap(c, 3));
+                    if !cap(c, 5).is_empty() {
+                        let _ = write!(s, " and gains {}", keyword_list(cap(c, 5))?);
                     }
                     Some(s)
                 },
@@ -1629,6 +1700,20 @@ impl Templates {
             ),
             (r(r"^Draw cards equal to the number of (.+)$"), |c, _| {
                 Some(format!("draw count equal {} cards", count_expr(cap(c, 1))?))
+            }),
+            // "Draw cards equal to the greatest power among creatures you
+            // control", "... to the sacrificed creature's power".
+            (r(r"^Draw cards equal to (.+)$"), |c, _| {
+                let e = match cap(c, 1) {
+                    "the sacrificed creature's power" => {
+                        "power of the sacrificed creature".to_string()
+                    }
+                    "the sacrificed creature's toughness" => {
+                        "toughness of the sacrificed creature".to_string()
+                    }
+                    a => bound_amount(a)?,
+                };
+                Some(format!("draw count equal {e} cards"))
             }),
             (r(r"^Draw a card for each (.+)$"), |c, _| {
                 Some(format!("draw count each {} cards", count_expr(cap(c, 1))?))
@@ -2081,7 +2166,7 @@ impl Templates {
             // this creature leaves the battlefield" (Banishing Light).
             (
                 r(
-                    r"^Exile (.+) until (?:this (?:creature|enchantment|artifact|permanent|Aura|land)|~) leaves the battlefield$",
+                    r"^Exile (.+) until (?:this (?:creature|enchantment|artifact|permanent|Aura|land|Vehicle|Equipment)|~) leaves the battlefield$",
                 ),
                 |c, t| {
                     Some(format!(
@@ -2426,7 +2511,7 @@ impl Templates {
             }),
             (
                 r(
-                    r"^Put (\S+) ([+-]\d/[+-]\d|stun|charge|oil|spore|depletion|quest|ki|time|tide|shield|age|fade|ice|level|lore|page|arrowhead|javelin|polyp|healing|mining|scream|credit|brick|currency|sleep|net|flood|glyph|loot|supply|finality|flying|first strike|trample|lifelink|deathtouch|reach|menace|vigilance|hexproof|indestructible) counters? on (.+)$",
+                    r"^Put (\S+) ([+-]\d/[+-]\d|stun|loyalty|charge|oil|spore|depletion|quest|ki|time|tide|shield|age|fade|ice|level|lore|page|arrowhead|javelin|polyp|healing|mining|scream|credit|brick|currency|sleep|net|flood|glyph|loot|supply|finality|flying|first strike|trample|lifelink|deathtouch|reach|menace|vigilance|hexproof|indestructible) counters? on (.+)$",
                 ),
                 |c, t| {
                     Some(format!(
@@ -2477,6 +2562,11 @@ impl Templates {
             (
                 r(r"^Gain control of (.+?)( until end of turn)?$"),
                 |c, t| {
+                    // "for as long as you control this creature": the
+                    // sentence's duration, not part of the target.
+                    if cap(c, 1).contains(" for as long as ") {
+                        return None;
+                    }
                     // No duration: for good (CR 611.2a), `indefinitely`.
                     let forever = if cap(c, 2).is_empty() {
                         " indefinitely"
@@ -2548,6 +2638,64 @@ impl Templates {
         Templates { rules }
     }
 
+    /// Two imperative clauses joined by "and": "Tap target creature an
+    /// opponent controls and put a stun counter on it", "Put a +1/+1
+    /// counter on target creature and a +1/+1 counter on up to one target
+    /// Merfolk" (the second "put" left out). Each clause is authored on
+    /// its own, so a target's phrase doesn't swallow the second clause.
+    fn and_split(&self, s: &str, targets: &mut usize) -> Option<String> {
+        const VERBS: [&str; 14] = [
+            "put ",
+            "tap ",
+            "untap ",
+            "draw ",
+            "create ",
+            "exile ",
+            "destroy ",
+            "return ",
+            "sacrifice ",
+            "scry ",
+            "surveil ",
+            "mill ",
+            // "~ deals 3 damage to any target and you gain 3 life".
+            "you gain ",
+            "you lose ",
+        ];
+        let counters = Regex::new(
+            r"^(a|an|one|two|three|four|five|X) ([+-]\d/[+-]\d|stun|loyalty|charge|oil|shield|lore|time|level) counters? on ",
+        )
+        .unwrap();
+        let s = lowercase_first(s);
+        let mut from = 0;
+        while let Some(k) = s[from..].find(" and ") {
+            let at = from + k;
+            from = at + 5;
+            let (left, right) = (&s[..at], &s[at + 5..]);
+            let right = if VERBS.iter().any(|v| right.starts_with(v)) {
+                right.to_string()
+            } else if left.starts_with("put ") && counters.is_match(right) {
+                format!("put {right}")
+            } else {
+                continue;
+            };
+            let before = *targets;
+            let Some(a) = self.sentence(&capitalize(left), targets) else {
+                *targets = before;
+                continue;
+            };
+            let Some(b) = self.sentence(&capitalize(&right), targets) else {
+                *targets = before;
+                continue;
+            };
+            if a.contains(';') || b.contains(';') {
+                *targets = before;
+                continue;
+            }
+            return Some(format!("{a} and {b}"));
+        }
+        None
+    }
+
     fn sentence(&self, s: &str, targets: &mut usize) -> Option<String> {
         if let Some(out) = self.sentence_rules(s, targets) {
             return Some(out);
@@ -2566,6 +2714,15 @@ impl Templates {
         let Some(out) = out.filter(|o| !o.contains(';') && !o.contains("until end of turn")) else {
             *targets = before;
             return None;
+        };
+        // "Gain control of target creature for as long as ...": the
+        // duration takes the place of "for good".
+        let out = match out.strip_prefix("gain control of ") {
+            Some(rest) => format!(
+                "gain control of {}",
+                rest.strip_suffix(" indefinitely").unwrap_or(rest)
+            ),
+            None => out,
         };
         Some(if first {
             format!("{lasting}, {out}")
@@ -3139,7 +3296,31 @@ impl Templates {
                     parts.push("attach to that token".to_string());
                     continue;
                 }
-                let Some(e) = self.sentence(&capitalize(&head), targets) else {
+                // A rule whose target phrase took in a second clause ("tap
+                // target creature ... and put a stun counter on it" as one
+                // target) gives way to the clauses authored apart.
+                let before = *targets;
+                let whole = self.sentence(&capitalize(&head), targets);
+                let swallowed = whole.as_ref().is_some_and(|w| {
+                    head.split(" and ")
+                        .skip(1)
+                        .filter_map(|r| {
+                            let w3: Vec<&str> = r.split(' ').take(3).collect();
+                            (w3.len() == 3).then(|| w3.join(" "))
+                        })
+                        .any(|r| w.contains(&format!(" and {r}")))
+                });
+                let e = if swallowed || whole.is_none() {
+                    let after = *targets;
+                    *targets = before;
+                    self.and_split(&head, targets).or_else(|| {
+                        *targets = after;
+                        whole
+                    })
+                } else {
+                    whole
+                };
+                let Some(e) = e else {
                     return Err(Skip::Sentence(sentence.clone()));
                 };
                 parts.push(format!("{e}{tail}"));
@@ -5825,9 +6006,11 @@ impl Builder<'_> {
                 .push("static enchanted: set land chosen".to_string());
             return Ok(());
         }
-        // Statics on the attached or on a class of permanents.
-        if let Some(c) = Regex::new(
-            r"^(Enchanted creature|Equipped creature|Creatures you control|Other creatures you control|Creatures your opponents control|All creatures|White creatures|Blue creatures|Black creatures|Red creatures|Green creatures|Enchanted land|Enchanted permanent) (.+)\.$",
+        // Statics on the attached or on a class of permanents ("All
+        // creatures get -2/-2 until end of turn." is a spell's effect).
+        if !line.contains(" until end of turn")
+            && let Some(c) = Regex::new(
+            r"^(Enchanted creature|Equipped creature|Creatures you control|Other creatures you control with flying|Other creatures you control|Creatures your opponents control|All creatures|White creatures|Blue creatures|Black creatures|Red creatures|Green creatures|Enchanted land|Enchanted permanent) (.+)\.$",
         )
         .unwrap()
         .captures(line)
@@ -5837,6 +6020,9 @@ impl Builder<'_> {
                 "Enchanted land" | "Enchanted permanent" => return Err(Skip::Sentence(line.to_string())),
                 "Creatures you control" => "creature you control".to_string(),
                 "Other creatures you control" => "other creature you control".to_string(),
+                "Other creatures you control with flying" => {
+                    "other creature you control with flying".to_string()
+                }
                 "Creatures your opponents control" => "creature your opponents control".to_string(),
                 "All creatures" => "creature".to_string(),
                 colored => format!(
@@ -6191,6 +6377,7 @@ impl Builder<'_> {
     }
 
     fn modal(&mut self, modes: &[String], head: &str) -> Result<(), Skip> {
+        few_modes(modes.len())?;
         let mut lines = vec![format!("{head} {{")];
         for m in modes {
             lines.push(format!("  {}", self.mode(m)?));
@@ -6218,6 +6405,7 @@ impl Builder<'_> {
 
     /// "Spree" with its modes and their costs (CR 702.172).
     fn spree(&mut self, modes: &[(String, String)]) -> Result<(), Skip> {
+        few_modes(modes.len())?;
         let mut lines = vec!["spree {".to_string()];
         for (cost, m) in modes {
             let mut targets = 0;
@@ -6231,6 +6419,7 @@ impl Builder<'_> {
 
     /// "When this creature enters, choose one —" with its modes.
     fn modal_trigger(&mut self, trigger: &str, head: &str, modes: &[String]) -> Result<(), Skip> {
+        few_modes(modes.len())?;
         let mut lines = vec![format!("triggered {trigger}: {head} {{")];
         for m in modes {
             lines.push(format!("  {}", self.mode(m)?));
@@ -6239,6 +6428,17 @@ impl Builder<'_> {
         self.statements.push(lines.join("\n  "));
         Ok(())
     }
+}
+
+/// Five or more modes: written by hand, where a scenario checks each mode
+/// (the lead dropped Sublime Epiphany and Casualties of War).
+fn few_modes(n: usize) -> Result<(), Skip> {
+    if n >= 5 {
+        return Err(Skip::Sentence(format!(
+            "{n} modes (five or more are left to a card agent, to test each)"
+        )));
+    }
+    Ok(())
 }
 
 /// A multi-face card (CR 709, 712, 715): each face authored as a card of
@@ -6448,6 +6648,50 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
             .replace_all(&s, "with same name as target 1")
             .into_owned();
     }
+    // "Return up to one target instant card and up to one target sorcery
+    // card from your graveyard to your hand": each target names the
+    // graveyard.
+    s = re(r"\breturn ((?:up to \d+ )?target [^;,]+? card) and ((?:up to \d+ )?target [^;,]+? card) from your graveyard to hand")
+        .replace_all(&s, |c: &regex::Captures| {
+            // "a noncreature permanent card" (CR 110.4a), as `recipient`
+            // writes it.
+            let nonperm = re(r"\b(non[a-z]+) permanent card");
+            let item = |i: usize| {
+                nonperm
+                    .replace_all(&c[i], "$1 noninstant nonsorcery permanent card")
+                    .into_owned()
+            };
+            format!(
+                "return {} from your graveyard and {} from your graveyard to hand",
+                item(1),
+                item(2)
+            )
+        })
+        .into_owned();
+    // "Exile target nonland permanent an opponent controls and all other
+    // nonland permanents that player controls with the same name as that
+    // permanent": "that player" is the target's controller (or the target
+    // player), not a triggering player.
+    s = s
+        .lines()
+        .map(|l| {
+            let Some(c) = re(r"^(.*?\btarget ([a-z]+)\b[^;]*? and [^;]*?)\bthat player controls\b")
+                .captures(l)
+            else {
+                return l.to_string();
+            };
+            if re(r"\btarget [a-zA-Z]").find_iter(l).count() != 1 {
+                return l.to_string();
+            }
+            let who = if matches!(&c[2], "player" | "opponent") {
+                "that player 1 controls"
+            } else {
+                "controller of target 1 controls"
+            };
+            format!("{}{who}{}", &c[1], &l[c[0].len()..])
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
     // "Put X +1/+1 counters on target creature, where X is your life
     // total"; "Counter target spell unless its controller pays {X}, where X
     // is this creature's power": the count after the amount.
@@ -6696,7 +6940,7 @@ fn similarity(a: &str, b: &str) -> usize {
 /// names there.
 #[allow(clippy::too_many_lines)]
 fn wording_variants(text: &str) -> Vec<String> {
-    const VERBS: [&str; 10] = [
+    const VERBS: [&str; 11] = [
         "untap",
         "tap",
         "destroy",
@@ -6707,6 +6951,8 @@ fn wording_variants(text: &str) -> Vec<String> {
         "then",
         "and",
         "return",
+        // "gain control of all Dragons".
+        "of",
     ];
     const HEADS: [&str; 10] = [
         "card ",
@@ -6745,7 +6991,11 @@ fn wording_variants(text: &str) -> Vec<String> {
         .any(|p| ability.starts_with(p))
             || (ability.starts_with("triggered when")
                 && !ability.starts_with("triggered when this")
-                && !ability.starts_with("triggered whenever this"));
+                && !ability.starts_with("triggered whenever this"))
+            // "Whenever this creature attacks, put a +1/+1 counter on it":
+            // the triggering object is the source.
+            || ability.starts_with("triggered whenever this attacks")
+            || ability.starts_with("triggered when this enters");
         let indent = line.len() - body.len();
         if body.ends_with('{') {
             block_it_ok = opener_it_ok && !body.starts_with("triggered ");
@@ -6783,6 +7033,9 @@ fn wording_variants(text: &str) -> Vec<String> {
             let mut alts: Vec<String> = Vec::new();
             match *w {
                 "each" if after_clause && next != "counters" => alts.push("all".to_string()),
+                // "put two +1/+1 counters on each creature you control
+                // instead": the group named again, not "those creatures".
+                "each" if prev == "on" && next != "single" => alts.push("each single".to_string()),
                 "all" if after_clause && !matches!(next, "counters" | "graveyards") => {
                     alts.push("each".to_string());
                 }
@@ -6890,6 +7143,13 @@ fn neuter_pronouns(oracle: &str) -> (String, Option<&'static str>) {
 
 #[allow(clippy::too_many_lines)] // one step per part of the card
 pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
+    // A battle (CR 310) is left to a card agent, to test its defense and
+    // protector.
+    if s.type_line.as_deref().unwrap_or("").contains("Battle") {
+        return Err(Skip::Type(
+            "Battle (left to a card agent, to test)".to_string(),
+        ));
+    }
     if matches!(
         s.layout.as_str(),
         "adventure" | "transform" | "split" | "prepare" | "modal_dfc" | "flip"
@@ -7029,6 +7289,10 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         r"^Choose one\. If (.+), (you may )?choose (both|one or more|any number) instead\.$",
     )
     .unwrap();
+    let strive = Regex::new(
+        r"^Strive — This spell costs (\{[^ ]+\}) more to cast for each target beyond the first\.$",
+    )
+    .unwrap();
     while i < lines.len() {
         let line = lines[i];
         // CR 702.172: "Spree" and its "+ {1} — ..." modes.
@@ -7043,6 +7307,13 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
                 i += 1;
             }
             b.spree(&modes)?;
+            continue;
+        }
+        // Strive: "This spell costs {2}{B} more to cast for each target
+        // beyond the first." (the ability word's cost, `strive {2}{B}`).
+        if let Some(c) = strive.captures(line) {
+            b.statements.push(format!("strive {}", cap(&c, 1)));
+            i += 1;
             continue;
         }
         // "Choose one. If this spell was cast using teamwork, choose both
@@ -7245,6 +7516,17 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         let _ = writeln!(text, "  {st}");
     }
     text.push_str("}\n");
+    // CR 712.4: a meld card needs its melded permanent, the back face both
+    // cards share, in the corpus.
+    let meld = Regex::new(r#"meld with "[^"]+" into "([^"]+)""#).unwrap();
+    for c in meld.captures_iter(&text) {
+        if !corpus.iter().any(|t| t.name == c[1]) {
+            return Err(Skip::Sentence(format!(
+                "meld result {} is not in the corpus",
+                &c[1]
+            )));
+        }
+    }
     // Tokens it creates that the corpus lacks are generated from their key.
     let created = Regex::new(r#"create \S+ "([^"]+)""#).unwrap();
     let mut tokens = Vec::new();

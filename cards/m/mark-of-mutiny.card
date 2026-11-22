@@ -1,0 +1,6 @@
+card "Mark of Mutiny" {
+  oracle_id 5599ddb6-1404-4884-b6ca-c1852a521079
+  cost {2}{R}
+  type Sorcery
+  spell: gain control of target creature; put 1 +1/+1 counters on target 1 and untap target 1; that creature gains haste
+}

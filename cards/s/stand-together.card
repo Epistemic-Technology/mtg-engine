@@ -1,0 +1,6 @@
+card "Stand Together" {
+  oracle_id 54bfd255-cce6-4c67-8a18-2bc01400f4b6
+  cost {3}{G}{G}
+  type Instant
+  spell: put 2 +1/+1 counters on target creature and put 2 +1/+1 counters on another target creature
+}

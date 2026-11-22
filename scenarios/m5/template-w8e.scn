@@ -1,0 +1,159 @@
+# More "deals N damage to ... and you gain N life" and "put a +1/+1
+# counter on this creature and you gain 1 life" cards, from the Modern
+# template run.
+
+scenario "Vindictive Vampire: another creature dies, 1 damage to each opponent and 1 life" {
+  battlefield A: "Vindictive Vampire", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+}
+
+scenario "Integrity // Intervention: Intervention, 3 damage and 3 life" {
+  battlefield A: 2 "Mountain", 2 "Plains"
+  hand A: "Integrity // Intervention"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Intervention" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+}
+
+scenario "Integrity // Intervention: Integrity, +2/+2" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  hand A: "Integrity // Intervention"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Integrity" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Essence Extraction: 3 damage to a creature and 3 life" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Essence Extraction"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Essence Extraction" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 23
+}
+
+scenario "Savai Thundermane: cycling, pay {2}, 2 damage and 2 life" {
+  battlefield A: "Savai Thundermane", 4 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Angelsong"
+  library A: "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Angelsong"
+  turn 1 A: trigger "Savai Thundermane" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 22
+}
+
+scenario "Knockout Blow: 4 damage to an attacker and 2 life" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Knockout Blow"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Knockout Blow" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 22
+}
+
+scenario "Knockout Blow: not a creature that isn't attacking or blocking" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Knockout Blow"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Knockout Blow" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Sorin's Vengeance: 10 damage and 10 life" {
+  battlefield A: 7 "Swamp"
+  hand A: "Sorin's Vengeance"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sorin's Vengeance" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 10
+  assert life A 30
+}
+
+scenario "Swallowing Plague: X damage and X life" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Swallowing Plague"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Swallowing Plague" x 3 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 23
+}
+
+scenario "Alela: other fliers +1/+0; an artifact spell makes a Faerie" {
+  battlefield A: "Alela, Artful Provocateur", "Serra Angel"
+  hand A: "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert power "Serra Angel" 5
+  assert battlefield A contains "Faerie"
+  assert power "Faerie" 2
+  assert power "Ornithopter" 1
+}
+
+scenario "Fretwork Colony: a counter and 1 life lost each upkeep" {
+  battlefield A: "Fretwork Colony"
+  start turn 2 A untap
+  run_to turn 2 draw
+  assert counters "Fretwork Colony" +1/+1 1
+  assert life A 19
+}
+
+scenario "Sunscorch Regent: an opponent's spell, a counter and 1 life" {
+  battlefield A: "Sunscorch Regent"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert counters "Sunscorch Regent" +1/+1 1
+  assert life A 19
+}
+
+scenario "Ajani Vengeant: -2, 3 damage and 3 life" {
+  battlefield A: "Ajani Vengeant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ajani Vengeant" ability 2 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+  assert counters "Ajani Vengeant" loyalty 1
+}
+
+scenario "Ajani Vengeant: +1, the permanent doesn't untap" {
+  battlefield A: "Ajani Vengeant"
+  battlefield B: "Hill Giant" tapped
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ajani Vengeant" ability 1 targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert tapped "Hill Giant"
+  run_to turn 3 precombat_main
+  assert counters "Ajani Vengeant" loyalty 4
+}
+
+scenario "Slimefoot: a Saproling dies, 1 damage and 1 life; {4} makes one" {
+  battlefield A: "Slimefoot, the Stowaway", 5 "Forest"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Slimefoot, the Stowaway"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Saproling"
+}

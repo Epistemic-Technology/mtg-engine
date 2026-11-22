@@ -1,0 +1,6 @@
+card "Rally the Righteous" {
+  oracle_id 5d4d064e-c4f4-4eca-955c-4539e66d230b
+  cost {1}{R}{W}
+  type Instant
+  label "Radiance" spell: untap target creature and each other creature that shares color with target 1; those creatures get +2/+0
+}

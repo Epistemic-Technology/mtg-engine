@@ -1,0 +1,150 @@
+# Strive ("This spell costs {R} more to cast for each target beyond the
+# first"), "~ deals N damage to any target and you gain N life", and
+# "Other creatures you control with flying get +N/+N", written by the
+# template author.
+
+scenario "Warleader's Helix: 4 damage and 4 life" {
+  battlefield A: 2 "Mountain", 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Warleader's Helix"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Warleader's Helix" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 24
+}
+
+scenario "Smiting Helix: 3 damage to a player and 3 life" {
+  battlefield A: 4 "Swamp"
+  hand A: "Smiting Helix"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Smiting Helix" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+}
+
+scenario "Smiting Helix flashed back" {
+  battlefield A: "Mountain", "Plains"
+  graveyard A: "Smiting Helix"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Smiting Helix" from graveyard targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert exile A contains "Smiting Helix"
+}
+
+scenario "Sacred Fire: 2 damage and 2 life" {
+  battlefield A: "Mountain", "Plains"
+  hand A: "Sacred Fire"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sacred Fire" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Feast of Sanity: a discard, 1 damage and 1 life" {
+  battlefield A: "Feast of Sanity", "Mountain"
+  hand A: "Lightning Axe", "Forest"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Axe" discarding "Forest" targeting "Hill Giant"
+  turn 1 A: trigger "Feast of Sanity" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+}
+
+scenario "Thunderclap Wyvern: other fliers you control get +1/+1" {
+  battlefield A: "Thunderclap Wyvern", "Serra Angel", "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert power A "Serra Angel" 5
+  assert toughness A "Serra Angel" 5
+  assert power B "Serra Angel" 4
+  assert power "Grizzly Bears" 2
+  assert power "Thunderclap Wyvern" 2
+}
+
+scenario "Windstorm Drake: other fliers get +1/+0" {
+  battlefield A: "Windstorm Drake", "Serra Angel"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert power "Serra Angel" 5
+  assert toughness "Serra Angel" 4
+}
+
+scenario "Spirit of the Spires: other fliers get +0/+1" {
+  battlefield A: "Spirit of the Spires", "Serra Angel"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert power "Serra Angel" 4
+  assert toughness "Serra Angel" 5
+}
+
+scenario "Blinding Flare: strive, two creatures can't block for {R}{R}" {
+  battlefield A: 2 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Llanowar Elves"
+  hand A: "Blinding Flare"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blinding Flare" targeting "Hill Giant", "Llanowar Elves"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert tapped newest "Mountain"
+}
+
+scenario "Blinding Flare: one {R} pays for one target only" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant", "Llanowar Elves"
+  hand A: "Blinding Flare"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Blinding Flare" targeting "Hill Giant", "Llanowar Elves"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Kiora's Dismissal: return two enchantments for {U}{U}" {
+  battlefield A: 2 "Island"
+  battlefield B: "Pacifism" on "Hill Giant", "Hill Giant", "Feast of Sanity"
+  hand A: "Kiora's Dismissal"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kiora's Dismissal" targeting "Pacifism", "Feast of Sanity"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Pacifism"
+  assert hand B contains "Feast of Sanity"
+}
+
+scenario "Phalanx Formation: two creatures gain double strike for {4}{W}{W}" {
+  battlefield A: 5 "Plains", "Grizzly Bears", "Llanowar Elves"
+  hand A: "Phalanx Formation"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Phalanx Formation" targeting "Grizzly Bears", "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" double_strike
+  assert has "Llanowar Elves" double_strike
+}
+
+scenario "Consign to Dust: destroy an artifact and an enchantment" {
+  battlefield A: 6 "Forest"
+  battlefield B: "Bonesplitter", "Feast of Sanity"
+  hand A: "Consign to Dust"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Consign to Dust" targeting "Bonesplitter", "Feast of Sanity"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Bonesplitter"
+  assert graveyard B contains "Feast of Sanity"
+}
+
+scenario "Desperate Stand: +2/+0, first strike and vigilance" {
+  battlefield A: "Mountain", "Plains", "Grizzly Bears"
+  hand A: "Desperate Stand"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Desperate Stand" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" first_strike
+  assert has "Grizzly Bears" vigilance
+}

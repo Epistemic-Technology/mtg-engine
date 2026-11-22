@@ -1,0 +1,8 @@
+card "Thunderclap Wyvern" {
+  oracle_id 15276d3b-a117-44bf-87c3-c17e032e4a26
+  cost {2}{W}{U}
+  type Creature — Drake
+  pt 2/3
+  keywords flash, flying
+  static other creature you control with flying: +1/+1
+}

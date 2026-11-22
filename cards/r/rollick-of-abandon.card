@@ -1,0 +1,6 @@
+card "Rollick of Abandon" {
+  oracle_id ecda721d-ec5d-484b-a834-f4de96083b08
+  cost {3}{R}{R}
+  type Sorcery
+  spell: all creatures gets +2/-2
+}

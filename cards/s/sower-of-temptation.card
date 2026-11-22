@@ -1,0 +1,8 @@
+card "Sower of Temptation" {
+  oracle_id 5881aac2-4f31-45cb-bdb5-64a29ec23316
+  cost {2}{U}{U}
+  type Creature — Faerie Wizard
+  pt 2/2
+  keywords flying
+  triggered when this enters: gain control of target creature for as long as this remains
+}

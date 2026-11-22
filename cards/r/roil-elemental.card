@@ -1,0 +1,8 @@
+card "Roil Elemental" {
+  oracle_id 7e0d2965-bbcd-4214-b1b6-c0d2601ce078
+  cost {3}{U}{U}{U}
+  type Creature — Elemental
+  pt 3/2
+  keywords flying
+  label "Landfall" triggered whenever land you control enters: you may gain control of target creature for as long as you control this
+}

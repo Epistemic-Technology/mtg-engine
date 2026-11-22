@@ -1,0 +1,248 @@
+# Spells whose effect is "Creatures you control get ... until end of
+# turn" or "All creatures get ... until end of turn" (an effect, not a
+# static ability), and "Draw cards equal to ...", written by the template
+# author.
+
+scenario "Overcome: your creatures get +2/+2 and trample" {
+  battlefield A: 5 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Overcome"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Overcome"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" trample
+  assert power "Hill Giant" 3
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Plated Onslaught: +2/+1, costs less with artifacts" {
+  battlefield A: 3 "Plains", "Ornithopter", "Bonesplitter", "Grizzly Bears"
+  hand A: "Plated Onslaught"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Plated Onslaught"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 3
+}
+
+scenario "Make Obsolete: the opponents' creatures get -1/-1" {
+  battlefield A: 3 "Swamp", "Llanowar Elves"
+  battlefield B: "Llanowar Elves", "Hill Giant"
+  hand A: "Make Obsolete"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Make Obsolete"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert battlefield A contains "Llanowar Elves"
+  assert power "Hill Giant" 2
+}
+
+scenario "Cleaver Riot: your creatures gain double strike" {
+  battlefield A: 5 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Cleaver Riot"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cleaver Riot"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" double_strike
+  assert has not "Hill Giant" double_strike
+}
+
+scenario "Tower Defense: +0/+5 and reach" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  hand A: "Tower Defense"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tower Defense"
+  run_to turn 1 postcombat_main
+  assert toughness "Grizzly Bears" 7
+  assert has "Grizzly Bears" reach
+}
+
+scenario "Dance of Shadows: +1/+0 and fear" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  hand A: "Dance of Shadows"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dance of Shadows"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" fear
+}
+
+scenario "Yahenni's Expertise: all creatures get -3/-3, then a free spell" {
+  battlefield A: 4 "Swamp", "Hill Giant"
+  battlefield B: "Craw Wurm"
+  hand A: "Yahenni's Expertise", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Yahenni's Expertise"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert toughness "Craw Wurm" 1
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Mutilate: -1/-1 for each Swamp you control" {
+  battlefield A: 4 "Swamp", "Mountain"
+  battlefield B: "Craw Wurm", "Hill Giant"
+  hand A: "Mutilate"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mutilate"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Craw Wurm"
+}
+
+scenario "Tenacity: +1/+1, lifelink, and untap those creatures" {
+  battlefield A: 4 "Plains", "Grizzly Bears" tapped
+  battlefield B: "Hill Giant" tapped
+  hand A: "Tenacity"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tenacity"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" lifelink
+  assert untapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+}
+
+scenario "Rising Miasma: all creatures get -2/-2" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Rising Miasma"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rising Miasma"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert toughness "Hill Giant" 1
+}
+
+scenario "Klothys's Design: +X/+X by devotion to green" {
+  battlefield A: 6 "Forest", "Grizzly Bears", "Llanowar Elves"
+  hand A: "Klothys's Design"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Klothys's Design"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert power "Llanowar Elves" 3
+}
+
+scenario "Blinding Spray: the opponents' creatures get -4/-0; draw a card" {
+  battlefield A: 5 "Island", "Grizzly Bears"
+  battlefield B: "Craw Wurm"
+  library A: "Forest", "Forest"
+  hand A: "Blinding Spray"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blinding Spray"
+  run_to turn 1 postcombat_main
+  assert power "Craw Wurm" 2
+  assert power "Grizzly Bears" 2
+  assert hand A count 1
+}
+
+scenario "Great Teacher's Decree: +2/+1" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  hand A: "Great Teacher's Decree"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Great Teacher's Decree"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 3
+  assert exile A contains "Great Teacher's Decree"
+}
+
+scenario "Flowstone Slide: all creatures get +X/-X" {
+  battlefield A: 6 "Mountain", "Craw Wurm"
+  battlefield B: "Hill Giant"
+  hand A: "Flowstone Slide"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Flowstone Slide" x 2
+  run_to turn 1 postcombat_main
+  assert power "Craw Wurm" 8
+  assert toughness "Craw Wurm" 2
+  assert toughness "Hill Giant" 1
+}
+
+scenario "Overwhelm: +3/+3" {
+  battlefield A: 7 "Forest", "Grizzly Bears"
+  hand A: "Overwhelm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Overwhelm"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+}
+
+scenario "Infest: all creatures get -2/-2" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Infest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Infest"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert toughness "Hill Giant" 1
+}
+
+scenario "Rollick of Abandon: all creatures get +2/-2" {
+  battlefield A: 5 "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Rollick of Abandon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rollick of Abandon"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert power "Hill Giant" 5
+}
+
+scenario "Languish: all creatures get -4/-4" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Hill Giant", "Craw Wurm"
+  hand A: "Languish"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Languish"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Craw Wurm"
+}
+
+scenario "Haze of Rage: +1/+0, with storm copies" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Shock", "Haze of Rage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Haze of Rage"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Rishkar's Expertise: draw by greatest power, then a free spell" {
+  battlefield A: 6 "Forest", "Hill Giant"
+  library A: "Forest", "Forest", "Forest", "Forest"
+  hand A: "Rishkar's Expertise", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rishkar's Expertise"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Life's Legacy: draw by the sacrificed creature's power" {
+  battlefield A: 2 "Forest", "Hill Giant"
+  library A: "Forest", "Forest", "Forest", "Forest"
+  hand A: "Life's Legacy"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Life's Legacy" sacrificing "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+}
+
+scenario "Greater Good: draw by its power, then discard three" {
+  battlefield A: "Greater Good", "Craw Wurm"
+  library A: "Forest", "Forest", "Forest", "Forest", "Forest", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Greater Good" sacrificing "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Craw Wurm"
+  assert hand A count 3
+}

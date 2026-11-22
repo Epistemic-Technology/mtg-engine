@@ -1,0 +1,9 @@
+card "Blinding Spray" {
+  oracle_id 88ce2017-83a6-4b55-afba-371875bf2172
+  cost {4}{U}
+  type Instant
+  spell {
+    each creature your opponents control gets -4/-0
+    draw 1 cards
+  }
+}

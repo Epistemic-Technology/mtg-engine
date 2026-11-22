@@ -1,0 +1,7 @@
+card "Smiting Helix" {
+  oracle_id 19d19e32-af13-4bb3-925f-8ed54cce2fcb
+  cost {3}{B}
+  type Sorcery
+  spell: deal 3 damage to any target and you gains 3 life
+  flashback {R}{W}
+}

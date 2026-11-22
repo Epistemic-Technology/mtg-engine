@@ -1,0 +1,6 @@
+card "Tyvar's Stand" {
+  oracle_id 4247b667-a0a8-4995-97c7-622d20132f7d
+  cost {X}{G}
+  type Instant
+  spell: target creature you control gets +1/+1 X and gains hexproof, indestructible
+}

@@ -1,0 +1,7 @@
+card "Trelasarra, Moon Dancer" {
+  oracle_id cd10ebc9-9f6c-4da2-9a86-263902002ebc
+  cost {G}{W}
+  type Legendary Creature — Elf Cleric
+  pt 2/2
+  triggered whenever you gain life: put 1 +1/+1 counters on this and scry 1
+}

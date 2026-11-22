@@ -1,0 +1,7 @@
+card "Thunderous Might" {
+  oracle_id d08117ec-e6ec-4c63-91d4-1bda59446c54
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature attacks: it gets +1/+0 count where devotion red
+}

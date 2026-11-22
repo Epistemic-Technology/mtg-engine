@@ -1,0 +1,7 @@
+card "Plated Onslaught" {
+  oracle_id 1589d90d-411a-4e77-9771-51518b2b224b
+  cost {3}{W}{W}
+  type Instant
+  affinity for artifact
+  spell: each creature you control gets +2/+1
+}

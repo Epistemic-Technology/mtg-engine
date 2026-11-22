@@ -1,0 +1,6 @@
+card "Shreds of Sanity" {
+  oracle_id 6eaa343d-0097-4f05-80ab-deb016d4e15e
+  cost {2}{R}
+  type Sorcery
+  spell: return up to 1 target instant card from your graveyard and up to 1 target sorcery card from your graveyard to hand then discard 1 cards; exile this
+}

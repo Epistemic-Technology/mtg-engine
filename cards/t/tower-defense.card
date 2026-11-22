@@ -1,0 +1,6 @@
+card "Tower Defense" {
+  oracle_id 58853200-efbe-41cc-87f1-720841308f4d
+  cost {1}{G}
+  type Instant
+  spell: each creature you control gets +0/+5 and gains reach
+}

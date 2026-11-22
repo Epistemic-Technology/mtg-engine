@@ -1,0 +1,6 @@
+card "Kessig Wolf Run" {
+  oracle_id c6911265-54ef-4c16-bcf2-1ffb24b7d426
+  type Land
+  mana {C}
+  activated {X}{R}{G}, {T}: target creature gets +1/+0 X and gains trample
+}

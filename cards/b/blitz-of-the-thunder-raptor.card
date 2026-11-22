@@ -1,0 +1,6 @@
+card "Blitz of the Thunder-Raptor" {
+  oracle_id d2db3f9c-26fe-487b-bbb7-8bc6f33456f1
+  cost {1}{R}
+  type Instant
+  spell: deal count equal graveyard instant or sorcery damage to target creature or planeswalker; this turn, replace target 1 dies: exile
+}

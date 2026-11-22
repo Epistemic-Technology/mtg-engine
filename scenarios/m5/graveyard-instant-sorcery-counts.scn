@@ -1,0 +1,111 @@
+# Counts of "instant and sorcery cards in your graveyard" (cards of either
+# type; `graveyard instant or sorcery`), now written by the template
+# author. Lands and creatures in the graveyard don't count.
+
+scenario "Spite of Mogis: damage equal to the instants and sorceries in your graveyard" {
+  battlefield A: "Mountain"
+  battlefield B: "Craw Wurm"
+  graveyard A: "Shock", "Lava Axe", "Divination", "Grizzly Bears", "Forest"
+  library A: "Island", "Forest"
+  hand A: "Spite of Mogis"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spite of Mogis" targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert damage "Craw Wurm" 3
+}
+
+scenario "Blitz of the Thunder-Raptor: the damage, and the creature is exiled if it dies" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  graveyard A: "Shock", "Lava Axe", "Divination", "Grizzly Bears"
+  hand A: "Blitz of the Thunder-Raptor"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blitz of the Thunder-Raptor" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Blitz of the Thunder-Raptor: too few cards, the creature survives" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  graveyard A: "Shock", "Grizzly Bears", "Forest"
+  hand A: "Blitz of the Thunder-Raptor"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blitz of the Thunder-Raptor" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 1
+}
+
+scenario "Warfire Javelineer enters: damage equal to the count" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Craw Wurm"
+  graveyard A: "Shock", "Lava Axe", "Grizzly Bears"
+  hand A: "Warfire Javelineer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Warfire Javelineer"
+  turn 1 A: trigger "Warfire Javelineer" targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert damage "Craw Wurm" 2
+}
+
+scenario "Cosmic Epiphany draws one card per instant and sorcery" {
+  battlefield A: 6 "Island"
+  graveyard A: "Shock", "Lava Axe", "Divination", "Grizzly Bears"
+  library A: "Forest", "Forest", "Forest", "Forest", "Forest"
+  hand A: "Cosmic Epiphany"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cosmic Epiphany"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+}
+
+scenario "Haughty Djinn's power, and instants and sorceries cost {1} less" {
+  battlefield A: "Haughty Djinn", 4 "Mountain"
+  graveyard A: "Shock", "Lava Axe", "Grizzly Bears"
+  hand A: "Lava Axe"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lava Axe" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert power "Haughty Djinn" 3
+}
+
+scenario "Spellheart Chimera's power" {
+  battlefield A: "Spellheart Chimera"
+  graveyard A: "Shock", "Lava Axe", "Divination", "Forest"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert power "Spellheart Chimera" 3
+  assert toughness "Spellheart Chimera" 3
+}
+
+scenario "Bedlam Reveler costs {1} less per instant and sorcery" {
+  battlefield A: 5 "Mountain"
+  graveyard A: "Shock", "Lava Axe", "Divination", "Grizzly Bears"
+  library A: "Forest", "Forest", "Forest", "Forest"
+  hand A: "Bedlam Reveler", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bedlam Reveler"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bedlam Reveler"
+  assert graveyard A contains "Island"
+  assert hand A count 3
+}
+
+scenario "Bedlam Reveler: two in the graveyard isn't enough with five lands" {
+  battlefield A: 5 "Mountain"
+  graveyard A: "Shock", "Lava Axe", "Grizzly Bears"
+  hand A: "Bedlam Reveler"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Bedlam Reveler"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Pteramander adapts for {4}{U} with three instants and sorceries" {
+  battlefield A: "Pteramander", 5 "Island"
+  graveyard A: "Shock", "Lava Axe", "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Pteramander"
+  run_to turn 1 postcombat_main
+  assert counters "Pteramander" +1/+1 4
+}

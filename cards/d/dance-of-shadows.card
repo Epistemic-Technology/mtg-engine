@@ -1,0 +1,6 @@
+card "Dance of Shadows" {
+  oracle_id 67758f9f-4c5a-444b-957c-3a801bdb7eba
+  cost {3}{B}{B}
+  type Sorcery — Arcane
+  spell: each creature you control gets +1/+0 and gains fear
+}

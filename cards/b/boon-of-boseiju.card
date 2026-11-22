@@ -1,0 +1,6 @@
+card "Boon of Boseiju" {
+  oracle_id 44e1946d-01b5-45db-abdc-2f6d6480cf60
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +1/+1 count where greatest mana value; untap target 1
+}

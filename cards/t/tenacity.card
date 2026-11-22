@@ -1,0 +1,6 @@
+card "Tenacity" {
+  oracle_id 7dfe701f-6572-4733-9da5-09397600bba7
+  cost {3}{W}
+  type Instant
+  spell: each creature you control gets +1/+1 and gains lifelink; untap those creatures
+}

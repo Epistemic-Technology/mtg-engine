@@ -1,0 +1,7 @@
+card "Deputy of Detention" {
+  oracle_id 0e4150db-ac43-48b4-9791-0d874906acf5
+  cost {1}{W}{U}
+  type Creature — Vedalken Wizard
+  pt 1/3
+  triggered when this enters: exile target nonland permanent an opponent controls and all other nonland permanents controller of target 1 controls with same name as target 1 until this leaves
+}

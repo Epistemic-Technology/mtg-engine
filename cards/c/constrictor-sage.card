@@ -1,0 +1,8 @@
+card "Constrictor Sage" {
+  oracle_id abfb7234-c5cc-4e0b-9a67-d66473f918fc
+  cost {4}{U}
+  type Creature — Snake Wizard
+  pt 4/4
+  triggered when this enters: tap target creature an opponent controls and put 1 stun counters on target 1
+  label "Renew" activated {2}{U}, exile this from graveyard, sorcery: tap target creature an opponent controls and put 1 stun counters on target 1
+}

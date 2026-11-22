@@ -1,0 +1,7 @@
+card "Restoration Specialist" {
+  oracle_id 36f71d49-0f64-4b5d-b1ee-bb0af5e9db9a
+  cost {1}{W}
+  type Creature — Dwarf Artificer
+  pt 2/1
+  activated {W}, sacrifice this: return up to 1 target artifact card from your graveyard and up to 1 target enchantment card from your graveyard to hand
+}

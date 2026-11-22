@@ -1,0 +1,9 @@
+card "Yahenni's Expertise" {
+  oracle_id 692babfa-9b74-415e-a560-abae4ccb006b
+  cost {2}{B}{B}
+  type Sorcery
+  spell {
+    all creatures gets -3/-3
+    cast free spell from hand with mana value up to 3
+  }
+}

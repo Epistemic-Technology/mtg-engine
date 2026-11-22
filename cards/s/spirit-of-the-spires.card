@@ -1,0 +1,8 @@
+card "Spirit of the Spires" {
+  oracle_id bf10ce45-c6d6-461e-ab46-06b4205d31fb
+  cost {3}{W}
+  type Creature — Spirit
+  pt 2/4
+  keywords flying
+  static other creature you control with flying: +0/+1
+}

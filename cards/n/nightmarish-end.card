@@ -1,0 +1,6 @@
+card "Nightmarish End" {
+  oracle_id 70f5e932-0dc5-4c34-b7be-16cd80ec10b7
+  cost {2}{B}
+  type Instant
+  spell: target creature gets -1/-1 count where hand
+}

@@ -1,0 +1,153 @@
+# Cards the template author writes once "X and Y" clauses are authored
+# apart ("Tap target creature an opponent controls and put a stun counter
+# on it"; "Put a +1/+1 counter on target creature and a +1/+1 counter on
+# up to one target Merfolk").
+
+scenario "Constrictor Sage taps and stuns the opponent's creature" {
+  battlefield A: 5 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Constrictor Sage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Constrictor Sage"
+  turn 1 A: trigger "Constrictor Sage" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 1
+}
+
+scenario "Constrictor Sage can't target your own creature" {
+  battlefield A: 5 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Constrictor Sage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Constrictor Sage"
+  illegal turn 1 A: trigger "Constrictor Sage" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Constrictor Sage's renew from the graveyard" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  graveyard A: "Constrictor Sage"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Constrictor Sage" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 1
+  assert exile A contains "Constrictor Sage"
+}
+
+scenario "Frostfist Strider taps and stuns" {
+  battlefield A: 5 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Frostfist Strider"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Frostfist Strider"
+  turn 1 A: trigger "Frostfist Strider" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 0
+}
+
+scenario "Referee Squad taps and stuns" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Referee Squad"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Referee Squad"
+  turn 1 A: trigger "Referee Squad" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 1
+}
+
+scenario "Stand Together: two counters on each of two creatures" {
+  battlefield A: 5 "Forest", "Grizzly Bears", "Llanowar Elves"
+  hand A: "Stand Together"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Stand Together" targeting "Grizzly Bears", "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert counters "Llanowar Elves" +1/+1 2
+}
+
+scenario "Stand Together needs two different creatures" {
+  battlefield A: 5 "Forest", "Grizzly Bears"
+  hand A: "Stand Together"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Stand Together" targeting "Grizzly Bears", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "River Heralds' Boon: a counter on a creature and on a Merfolk" {
+  battlefield A: 2 "Forest", "Grizzly Bears", "Coral Merfolk"
+  hand A: "River Heralds' Boon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "River Heralds' Boon" targeting "Grizzly Bears", "Coral Merfolk"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Coral Merfolk" +1/+1 1
+}
+
+scenario "River Heralds' Boon: the Merfolk is optional, and must be a Merfolk" {
+  battlefield A: 2 "Forest", "Grizzly Bears", "Llanowar Elves"
+  hand A: "River Heralds' Boon"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "River Heralds' Boon" targeting "Grizzly Bears", "Llanowar Elves"
+  turn 1 A: cast "River Heralds' Boon" targeting "Grizzly Bears", none
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Llanowar Elves" +1/+1 0
+}
+
+scenario "Decimator Beetle moves a -1/-1 counter to the defending player's creature" {
+  battlefield A: "Decimator Beetle", "Hill Giant" with 1 -1/-1
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Decimator Beetle"
+  turn 1 declare_attackers A: trigger "Decimator Beetle" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert counters "Hill Giant" -1/-1 0
+  assert counters "Grizzly Bears" -1/-1 1
+}
+
+scenario "Decimator Beetle enters: a -1/-1 counter on your creature" {
+  battlefield A: 3 "Swamp", 2 "Forest", "Hill Giant"
+  hand A: "Decimator Beetle"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Decimator Beetle"
+  turn 1 A: trigger "Decimator Beetle" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" -1/-1 1
+}
+
+scenario "Brokers Ascendancy: counters on creatures and loyalty on planeswalkers" {
+  battlefield A: "Brokers Ascendancy", "Grizzly Bears", "Jace Beleren"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 cleanup
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Jace Beleren" loyalty 4
+  assert counters "Hill Giant" +1/+1 0
+}
+
+scenario "Ajani, the Greathearted: -2 counters on creatures and other planeswalkers" {
+  battlefield A: "Ajani, the Greathearted", "Grizzly Bears", "Jace Beleren"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ajani, the Greathearted" ability 2
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Jace Beleren" loyalty 4
+  assert counters "Ajani, the Greathearted" loyalty 3
+  assert has "Grizzly Bears" vigilance
+}
+
+scenario "Ajani, the Greathearted: +1 gains 3 life" {
+  battlefield A: "Ajani, the Greathearted"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ajani, the Greathearted" ability 1
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert counters "Ajani, the Greathearted" loyalty 6
+}

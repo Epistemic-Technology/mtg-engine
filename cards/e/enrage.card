@@ -1,0 +1,6 @@
+card "Enrage" {
+  oracle_id 0f6e66d5-4f27-485b-999d-ee55c1e218b9
+  cost {X}{R}
+  type Instant
+  spell: target creature gets +1/+0 X
+}

@@ -1,0 +1,9 @@
+card "Resplendent Griffin" {
+  oracle_id f8bf5df2-b783-4796-b2c6-eb4dd4167d62
+  cost {1}{W}{U}
+  type Creature — Griffin
+  pt 2/2
+  keywords flying
+  ascend
+  triggered whenever this attacks if city's blessing: put 1 +1/+1 counters on it
+}
