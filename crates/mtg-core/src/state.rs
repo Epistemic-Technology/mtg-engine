@@ -227,10 +227,6 @@ pub struct GameObject {
     pub counters: SmallVec<[(CounterKind, u32); 2]>,
     /// For Auras and Equipment: what this is attached to (CR 301.5, 303.4).
     pub attached_to: Option<ObjId>,
-    /// For an Aura with "Enchant player" (CR 303.4, 702.5): the player it
-    /// is attached to ("enchanted player"). A new object has none (CR
-    /// 400.7).
-    pub attached_player: Option<PlayerId>,
     /// For `ObjKind::Ability` objects.
     pub ability: Option<StackAbility>,
     /// The players (bit `i` for player `i`) who have seen this card while
@@ -241,6 +237,19 @@ pub struct GameObject {
     /// until the card moves; `determinize` keeps a card the viewer has
     /// seen where it is.
     pub revealed: u8,
+}
+
+impl GameObject {
+    /// For an Aura with "Enchant player" on the battlefield (CR 303.4,
+    /// 702.5): the player it is attached to ("enchanted player"), kept in
+    /// `targets`, which a permanent doesn't otherwise use. A new object has
+    /// none (CR 400.7).
+    pub fn attached_player(&self) -> Option<PlayerId> {
+        match (self.zone, self.targets.first()) {
+            (Zone::Battlefield, Some(Target::Player(p))) => Some(*p),
+            _ => None,
+        }
+    }
 }
 
 /// A choice an object remembers (`GameObject::chosen`): small, so the
@@ -259,11 +268,27 @@ pub enum Chosen {
     Option(u8),
     /// A card name ("As this artifact enters, choose a card name", CR
     /// 201.3): the pool's definition of that name (the pool holds one
-    /// definition per name).
-    Card(crate::card::CardRef),
+    /// definition per name), in three bytes (`Chosen::card`) so the
+    /// object stays small.
+    Card([u8; 3]),
 }
 
 impl Chosen {
+    /// A chosen card name (`Chosen::Card`).
+    pub fn card(def: crate::card::CardRef) -> Self {
+        debug_assert!(def.0 < 1 << 24, "a card pool of over 16M definitions");
+        let [a, b, c, _] = def.0.to_le_bytes();
+        Chosen::Card([a, b, c])
+    }
+
+    /// The card name chosen, as its definition.
+    pub const fn card_ref(self) -> Option<crate::card::CardRef> {
+        match self {
+            Chosen::Card([a, b, c]) => Some(crate::card::CardRef(u32::from_le_bytes([a, b, c, 0]))),
+            _ => None,
+        }
+    }
+
     pub const fn color(self) -> Option<crate::mana::Color> {
         match self {
             Chosen::Color(c) => Some(c),
@@ -2586,11 +2611,9 @@ impl GameState {
                     .flags()
                     .has_player_static()
             })
-            .flat_map(move |id| {
+            .filter_map(move |id| {
                 let o = &self.objects[*id];
-                let Chosen::Card(name) = o.chosen else {
-                    return None;
-                };
+                let name = o.chosen.card_ref()?;
                 Some(
                     self.pool
                         .get(o.def)
@@ -2630,7 +2653,7 @@ impl GameState {
                 (match ban {
                     crate::card::NameBan::ActivateNonMana => !mana,
                     crate::card::NameBan::Activate => true,
-                    _ => false,
+                    crate::card::NameBan::Cast => false,
                 }) && self.pool.get(d).name == *name
             })
         }
@@ -3083,8 +3106,8 @@ impl GameState {
     /// (CR 608.2h).
     pub fn attached_player_of(&self, aura: ObjId) -> Option<PlayerId> {
         match self.objects.get(aura) {
-            Some(o) if o.zone == Zone::Battlefield => o.attached_player,
-            _ => self.lki.get(&aura).and_then(|l| l.object.attached_player),
+            Some(o) if o.zone == Zone::Battlefield => o.attached_player(),
+            _ => self.lki.get(&aura).and_then(|l| l.object.attached_player()),
         }
     }
 

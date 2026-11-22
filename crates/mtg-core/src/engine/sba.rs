@@ -200,7 +200,7 @@ impl GameState {
                     })
                     // "Enchant player" (CR 303.4, 702.5): attached to a
                     // player still in the game.
-                    && !o.attached_player.is_some_and(|p| {
+                    && !o.attached_player().is_some_and(|p| {
                         spec == TargetSpec::Player && self.player(p).lost.is_none()
                     })
                 {

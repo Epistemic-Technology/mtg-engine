@@ -6434,6 +6434,11 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     let oracle = leveler.replace_all(&oracle, "$1 $2").into_owned();
     let lines: Vec<&str> = oracle.lines().collect();
     let mut i = 0;
+    // "Choose one. If ..., choose both instead." (CR 700.2).
+    let choose_if = Regex::new(
+        r"^Choose one\. If (.+), (you may )?choose (both|one or more|any number) instead\.$",
+    )
+    .unwrap();
     while i < lines.len() {
         let line = lines[i];
         // CR 702.172: "Spree" and its "+ {1} — ..." modes.
@@ -6456,12 +6461,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
             Some((word, h)) if ABILITY_WORDS.contains(&word) => (Some(word), h),
             _ => (None, line),
         };
-        if let Some(c) = Regex::new(
-            r"^Choose one\. If (.+), (you may )?choose (both|one or more|any number) instead\.$",
-        )
-        .unwrap()
-        .captures(cond_line)
-        {
+        if let Some(c) = choose_if.captures(cond_line) {
             let text = cap(&c, 1);
             let cond = static_condition(text)
                 .or_else(|| {

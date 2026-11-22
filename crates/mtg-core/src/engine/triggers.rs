@@ -909,7 +909,7 @@ impl GameState {
                 let aura = self.objects.get(w.source)?;
                 // "At the beginning of enchanted player's upkeep" (CR
                 // 303.4): an Aura attached to a player.
-                if let Some(p) = aura.attached_player {
+                if let Some(p) = aura.attached_player() {
                     return (p == self.active_player).then_some((None, Some(p)));
                 }
                 let host = aura.attached_to?;
@@ -1916,7 +1916,6 @@ impl GameState {
             targets: SmallVec::new(),
             counters: SmallVec::new(),
             attached_to: None,
-            attached_player: None,
             ability: Some(t.ability),
             revealed: 0,
         });

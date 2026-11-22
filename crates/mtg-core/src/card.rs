@@ -1450,7 +1450,7 @@ impl ObjFilter {
             crate::state::Chosen::Color(c) => f.colors = Some(ColorSet::of([c])),
             crate::state::Chosen::Subtype(s) => f.subtypes.push(s),
             // "spell with the chosen name".
-            crate::state::Chosen::Card(d) => f.named = Some((d, true)),
+            crate::state::Chosen::Card(_) => f.named = chosen.card_ref().map(|d| (d, true)),
             crate::state::Chosen::None
             | crate::state::Chosen::Votes(_)
             | crate::state::Chosen::Option(_) => {

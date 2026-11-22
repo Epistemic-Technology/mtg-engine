@@ -4834,7 +4834,6 @@ impl GameState {
             targets: SmallVec::new(),
             counters: SmallVec::new(),
             attached_to: None,
-            attached_player: None,
             ability: Some(StackAbility {
                 ability,
                 source,
@@ -7754,7 +7753,7 @@ impl GameState {
                 // object stands for it; the choice is read by its name).
                 let own = self.pool.get(def);
                 if !own.name.is_empty()
-                    && !(nonland && own.is_land())
+                    && (!nonland || !own.is_land())
                     && !seen.iter().any(|(n, _, _)| *n == own.name)
                 {
                     seen.push((own.name.as_str(), ObjId::default(), def));
@@ -7786,7 +7785,7 @@ impl GameState {
             Choice::Color(c) => Chosen::Color(c),
             Choice::Subtype(s) => Chosen::Subtype(s),
             Choice::Mode(i) => Chosen::Option(u8::try_from(i).unwrap_or(0)),
-            Choice::Discard { def, .. } => Chosen::Card(def),
+            Choice::Discard { def, .. } => Chosen::card(def),
             _ => Chosen::None,
         }
     }
