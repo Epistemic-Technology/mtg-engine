@@ -196,6 +196,12 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
         Keyword::DoesntUntap,
     ),
     (&["doesn't", "untap"], Keyword::DoesntUntap),
+    (
+        &[
+            "untaps", "during", "each", "other", "player's", "untap", "step",
+        ],
+        Keyword::UntapsDuringOthers,
+    ),
 ];
 
 /// Target specifications by their text, longest first. `,` stands for a

@@ -1,0 +1,8 @@
+card "Prophet of Kruphix" {
+  oracle_id 372351fd-58f7-4cb8-8644-5fbc94ccb145
+  cost {3}{G}{U}
+  type Creature — Human Wizard
+  pt 2/3
+  static andlist creature or land you control: has untaps during each other player's untap step
+  spells creature you cast have flash
+}

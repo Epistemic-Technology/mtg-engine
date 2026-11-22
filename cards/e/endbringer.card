@@ -1,0 +1,10 @@
+card "Endbringer" {
+  oracle_id db1ea6e0-4076-49dd-92f7-7e6d7eb65a27
+  cost {5}{C}
+  type Creature — Eldrazi
+  pt 5/5
+  keywords untaps during each other player's untap step
+  activated {T}: deal 1 damage to any target
+  activated {C}, {T}: target creature can't attack or block this turn
+  activated {C}{C}, {T}: draw 1 card
+}

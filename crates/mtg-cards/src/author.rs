@@ -4850,6 +4850,58 @@ impl Builder<'_> {
             ));
             return Ok(());
         }
+        // "Untap this creature during each other player's untap step."
+        // (CR 502.3); "Untap all artifacts you control during ...".
+        if Regex::new(r"^Untap this (?:creature|artifact|land|permanent) during each other player's untap step\.$")
+            .unwrap()
+            .is_match(line)
+        {
+            self.statements
+                .push("keywords untaps during each other player's untap step".to_string());
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(
+            r"^Untap all (.+?) you control during each other player's untap step\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let what = cap(&c, 1);
+            let subject = if what.contains(" and/or ") {
+                format!("andor {}", singular(&what.replace(" and/or ", " or ")))
+            } else if what.contains(" and ") {
+                format!("andlist {}", singular(&what.replace(" and ", " or ")))
+            } else {
+                singular(what)
+            };
+            self.statements.push(format!(
+                "static {subject} you control: has untaps during each other player's untap step"
+            ));
+            return Ok(());
+        }
+        // "You may cast noncreature spells as though they had flash.",
+        // "Creature spells you control can't be countered."
+        let flash = Regex::new(r"^You may cast (?:(.+) )?spells as though they had flash\.$")
+            .unwrap()
+            .captures(line);
+        let uncounterable = Regex::new(r"^(?:(.+) )?[Ss]pells you control can't be countered\.$")
+            .unwrap()
+            .captures(line);
+        if let Some(c) = flash.as_ref().or(uncounterable.as_ref()) {
+            let subject = lowercase_first(&cap(c, 1).replace(" spells and ", " or "));
+            let subject = subject.replace(" and ", " or ");
+            let subject = if subject.is_empty() {
+                String::new()
+            } else {
+                format!(" {}", singular(&subject))
+            };
+            self.statements.push(if flash.is_some() {
+                format!("spells{subject} you cast have flash")
+            } else {
+                format!("spells{subject} you control can't be countered")
+            });
+            return Ok(());
+        }
         // "Instant and sorcery spells you cast [from your hand] have
         // storm." (convoke, improvise, delve, cascade, affinity for ...).
         if let Some(c) = Regex::new(

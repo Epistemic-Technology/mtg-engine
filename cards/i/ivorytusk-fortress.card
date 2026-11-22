@@ -1,0 +1,7 @@
+card "Ivorytusk Fortress" {
+  oracle_id 10ae7744-5f98-4d6f-993a-ffb2a34b23e7
+  cost {2}{W}{B}{G}
+  type Creature — Elephant
+  pt 5/7
+  static each creature you control with +1/+1 counter: has untaps during each other player's untap step
+}

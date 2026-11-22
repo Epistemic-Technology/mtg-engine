@@ -256,6 +256,7 @@ pub fn is_restriction(k: Keyword) -> bool {
             | Keyword::CantActivate
             | Keyword::CantActivateNonMana
             | Keyword::CantCrew
+            | Keyword::UntapsDuringOthers
     )
 }
 
@@ -344,6 +345,12 @@ fn keyword_line(card: &Card, k: Keyword) -> String {
         return format!(
             "{} doesn't untap during your untap step.",
             capitalize(&this_ref(card))
+        );
+    }
+    if k == Keyword::UntapsDuringOthers {
+        return format!(
+            "Untap {} during each other player's untap step.",
+            this_ref(card)
         );
     }
     if k == Keyword::Lure {
@@ -10121,6 +10128,27 @@ pub(crate) fn also_subtypes(filter: &Filter, mods: &[Mod]) -> Option<Vec<String>
 
 #[allow(clippy::too_many_lines)] // one case per kind of static
 fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) -> String {
+    // "Untap all permanents you control during each other player's untap
+    // step." (Seedborn Muse), "Untap each creature you control with a
+    // +1/+1 counter on it during ...".
+    if let [Mod::AddKeywords(ks)] = mods
+        && ks.as_slice() == [Keyword::UntapsDuringOthers]
+        && filter.relation != Relation::This
+        && !filter.enchanted
+    {
+        let what = if filter.each {
+            format!("each {}", filter_phrase(filter, card, false))
+        } else {
+            format!("all {}", filter_phrase(filter, card, true))
+        };
+        // "all green and/or blue creatures you control".
+        let what = if filter.and_or {
+            what.replacen(" or ", " and/or ", 1)
+        } else {
+            what
+        };
+        return format!("Untap {what} during each other player's untap step.");
+    }
     // Soulbond (CR 702.95b): "As long as this creature is paired with
     // another creature, both creatures have flying." / "each of those
     // creatures gets +1/+1." / "each of those creatures has "..."."

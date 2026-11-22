@@ -331,6 +331,9 @@ pub enum Keyword {
     /// "can't crew Vehicles" (CR 702.122d): it can't be tapped to pay a
     /// crew cost.
     CantCrew,
+    /// "Untap this creature during each other player's untap step." (CR
+    /// 502.3): it untaps in every untap step, not only its controller's.
+    UntapsDuringOthers,
     /// CR 702.147: "This creature can't block. When this creature
     /// attacks, sacrifice it at end of combat." Its triggered half is
     /// `CardPool::keyword_trigger`.
@@ -525,7 +528,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 70] = [
+    pub const ALL: [Keyword; 71] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -596,6 +599,7 @@ impl Keyword {
         Keyword::Cipher,
         Keyword::HexproofFromFilter,
         Keyword::Paradigm,
+        Keyword::UntapsDuringOthers,
     ];
 
     /// The keyword as Oracle prints it.
@@ -673,6 +677,7 @@ impl Keyword {
                 "its activated abilities can't be activated unless they're mana abilities"
             }
             Keyword::CantCrew => "can't crew Vehicles",
+            Keyword::UntapsDuringOthers => "untaps during each other player's untap step",
         }
     }
 

@@ -1,0 +1,7 @@
+card "Thousand Moons Infantry" {
+  oracle_id f064a39e-ebb3-47b5-bd06-f39b02b95eaf
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/4
+  keywords untaps during each other player's untap step
+}
