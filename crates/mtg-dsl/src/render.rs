@@ -1369,7 +1369,10 @@ impl<'a> Ctx<'a> {
             Recipient::TheTargetFull(i, chosen) => {
                 let phrase = self.target_phrase_of(i);
                 self.target_mentioned[i] = true;
-                let phrase = phrase.strip_prefix("target ").unwrap_or(&phrase).to_string();
+                let phrase = phrase
+                    .strip_prefix("target ")
+                    .unwrap_or(&phrase)
+                    .to_string();
                 format!("the {}{phrase}", if chosen { "chosen " } else { "" })
             }
             Recipient::ChosenTargets(a, n) => format!("the chosen {}", self.group_noun(a, n)),
@@ -2426,8 +2429,16 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     // "a commander that's a creature or planeswalker" (CR 903.3).
     if f.status.commander == Some(false) && !f.any_types.is_empty() && f.types.is_empty() {
-        let names: Vec<String> = f.any_types.iter().map(|t| type_noun(*t).to_string()).collect();
-        return format!("commander that's {} {}", article(&names[0]), or_list(&names));
+        let names: Vec<String> = f
+            .any_types
+            .iter()
+            .map(|t| type_noun(*t).to_string())
+            .collect();
+        return format!(
+            "commander that's {} {}",
+            article(&names[0]),
+            or_list(&names)
+        );
     }
     let mut words: Vec<String> = Vec::new();
     if f.relation == Relation::Other && !f.other_than_this {
@@ -2550,7 +2561,12 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if noun.is_empty() && !any_types {
         noun.push(
-            if f.status.commander.is_some() { "commander" } else { "permanent" }.to_string(),
+            if f.status.commander.is_some() {
+                "commander"
+            } else {
+                "permanent"
+            }
+            .to_string(),
         );
     }
     if plural_form && !noun.is_empty() {
@@ -7815,10 +7831,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::AddManaCommander { rider } => Clause::imperative(format!(
             "add one mana of any color in your commander's color identity{}",
             match rider {
-                1 => ". If you spend this mana to cast your commander, it enters with a number \
+                1 =>
+                    ". If you spend this mana to cast your commander, it enters with a number \
                       of additional +1/+1 counters on it equal to the number of times it's been \
                       cast from the command zone this game",
-                2 => ". When that mana is spent to cast a creature spell that shares a creature \
+                2 =>
+                    ". When that mana is spent to cast a creature spell that shares a creature \
                       type with your commander, scry 1",
                 _ => "",
             }
@@ -13142,7 +13160,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         } => match wording {
             0 => "your life total is greater than your starting life total".to_string(),
             1 => "your life total is greater than or equal to your starting life total".to_string(),
-            2 => format!("your life total is at least {at_least} greater than your starting life total"),
+            2 => format!(
+                "your life total is at least {at_least} greater than your starting life total"
+            ),
             3 => format!("you have at least {at_least} life more than your starting life total"),
             _ => "your life total is less than your starting life total".to_string(),
         },
@@ -13278,9 +13298,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::AttackedOrBlocked => {
             format!("{} attacked or blocked this combat", this_ref(card))
         }
-        StaticCond::AttackedTotalPower(n) => format!(
-            "you attacked with creatures with total power {n} or greater this combat"
-        ),
+        StaticCond::AttackedTotalPower(n) => {
+            format!("you attacked with creatures with total power {n} or greater this combat")
+        }
         StaticCond::Blocked => "it's blocked".to_string(),
         StaticCond::BeingBlocked => "at least one creature is blocking it".to_string(),
         // "As long as enchanted permanent is a creature" (an Aura that
@@ -13803,7 +13823,8 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 .iter()
                 .map(|f| {
                     let pt = format!("{}/{}", f.power, f.toughness);
-                    let a = if pt.starts_with('8') || pt.starts_with("11/") || pt.starts_with("18/") {
+                    let a = if pt.starts_with('8') || pt.starts_with("11/") || pt.starts_with("18/")
+                    {
                         "an"
                     } else {
                         "a"
@@ -13825,7 +13846,11 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 "As {} enters, it becomes your choice of {}{}.",
                 this_ref(card),
                 or_list(&forms),
-                if *in_addition { " in addition to its other types" } else { "" }
+                if *in_addition {
+                    " in addition to its other types"
+                } else {
+                    ""
+                }
             )
         }
         Ability::AsEntersChoose { kind, joined } => {

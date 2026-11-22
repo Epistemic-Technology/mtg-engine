@@ -295,7 +295,11 @@ impl Fmt {
             }
             Recipient::TheTargetFull(i, chosen) => {
                 self.mentioned[i] = true;
-                format!("the {}full target {}", if chosen { "chosen " } else { "" }, i + 1)
+                format!(
+                    "the {}full target {}",
+                    if chosen { "chosen " } else { "" },
+                    i + 1
+                )
             }
             Recipient::ChosenTargets(..) => "the chosen targets".to_string(),
             // "up to 2 target creature": declares them together.

@@ -2917,7 +2917,8 @@ impl P {
                         } else if w.chars().next().is_some_and(char::is_uppercase) {
                             form.subtypes.push(w);
                         } else {
-                            return self.fail(format!("expected a type in `becomes choice`, found {w}"));
+                            return self
+                                .fail(format!("expected a type in `becomes choice`, found {w}"));
                         }
                     }
                     if self.eat_word("with") {
@@ -6841,8 +6842,10 @@ impl P {
             }
             // "Then those creatures fight each other."
             "fight"
-                if matches!(subject, Recipient::ThoseTargets(..) | Recipient::ChosenTargets(..))
-                    && self.eat_words(&["each", "other"]) =>
+                if matches!(
+                    subject,
+                    Recipient::ThoseTargets(..) | Recipient::ChosenTargets(..)
+                ) && self.eat_words(&["each", "other"]) =>
             {
                 Ok(Effect::Fight {
                     a: subject,

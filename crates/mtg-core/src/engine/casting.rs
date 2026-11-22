@@ -9966,8 +9966,6 @@ impl GameState {
                     self.bump();
                 }
             }
-            // CR 903.4f: the game has no commanders, so no mana.
-            Effect::AddManaCommander { .. } => {}
             Effect::AddManaLandCould { whose, basic } => {
                 // CR 106.7: the colors those lands could produce now.
                 let p = ctx.controller;
@@ -12543,8 +12541,9 @@ impl GameState {
                     self.add_counters(id, CounterKind::Loyalty, n);
                 }
             }
-            // Modes resolve through the chosen mode (`effects_of`).
-            Effect::Modes(_) => {}
+            // Modes resolve through the chosen mode (`effects_of`); CR
+            // 903.4f: the game has no commanders, so no mana.
+            Effect::Modes(_) | Effect::AddManaCommander { .. } => {}
             // Looking at the top cards keeps their order; the controller
             // knows them where they are.
             Effect::LookAtTop { count, who, looker } => {

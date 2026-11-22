@@ -1629,7 +1629,11 @@ impl ObjFilter {
         // (`with_same`), or "enchanted player controls"
         // (`with_enchanted_player`) matches nothing; nor does "commander"
         // (CR 903.3: the game has no commanders).
-        if self.chosen || self.same.is_some() || self.enchanted_player || self.status.commander.is_some() {
+        if self.chosen
+            || self.same.is_some()
+            || self.enchanted_player
+            || self.status.commander.is_some()
+        {
             return false;
         }
         if self.controlled_by.is_some_and(|p| p != obj_controller) {

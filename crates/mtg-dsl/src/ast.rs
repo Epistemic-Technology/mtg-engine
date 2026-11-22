@@ -2682,6 +2682,7 @@ pub enum InsteadWording {
 /// Effects that print as one sentence ("target player loses 1 life and you
 /// gain 1 life").
 #[derive(Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::struct_excessive_bools)] // independent wording flags
 pub struct Sentence {
     pub effects: Vec<Effect>,
     /// `label "Spell mastery"`: an ability word printed before the

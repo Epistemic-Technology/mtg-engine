@@ -5999,12 +5999,13 @@ impl Builder<'_> {
             // Where the cost ends and its restrictions begin.
             let base_len = cost.len();
             // CR 602.1: who may activate it, printed last.
-            let activators = if let Some(r) = rest.strip_suffix(" Any player may activate this ability.") {
-                Some((r, "any player"))
-            } else {
-                rest.strip_suffix(" Only your opponents may activate this ability.")
-                    .map(|r| (r, "opponents only"))
-            };
+            let activators =
+                if let Some(r) = rest.strip_suffix(" Any player may activate this ability.") {
+                    Some((r, "any player"))
+                } else {
+                    rest.strip_suffix(" Only your opponents may activate this ability.")
+                        .map(|r| (r, "opponents only"))
+                };
             let rest = match activators {
                 Some((r, _)) => r,
                 None => rest,
