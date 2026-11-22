@@ -191,9 +191,8 @@ named the feature; a card may need more than one.
   instead".
 - **Most often named in the fifth wave** (363 unsupported or failed of
   480; nearly every card names a different gap): wording near-misses
-  (about 60); a ward cost that is a sacrifice (Vein Ripper and Ygra,
-  Eater of All, removed: the cost was never enforced), collect evidence,
-  or another act; a kicker cost that isn't mana (four cards); "assigns
+  (about 60); a ward cost that is collect evidence (Axebane Ferox) or
+  another act besides mana, life, a discard, or one sacrifice; a kicker cost that isn't mana (four cards); "assigns
   combat damage equal to its toughness" (five); "Otherwise" after a
   conditional static (four); "Choose target X and target Y" as one
   sentence with "those creatures fight each other" (four); "Remove X

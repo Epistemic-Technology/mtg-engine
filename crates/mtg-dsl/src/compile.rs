@@ -5313,8 +5313,10 @@ impl Compiler<'_> {
                     return self.ability(&expanded);
                 }
                 // "Ward—..." and "Echo—..." are paid as the trigger resolves:
-                // mana (waterbend too), life, and discarded cards only. Any
-                // other part would be dropped, so it is an error.
+                // mana (waterbend too), life, and discarded cards only, or
+                // for ward a sacrifice of one permanent alone ("Ward—
+                // Sacrifice a creature."). Any other part would be
+                // dropped, so it is an error.
                 Mechanic::WardCost(cost) | Mechanic::EchoCost(cost)
                     if *cost
                         != crate::ast::Cost {
@@ -5325,10 +5327,11 @@ impl Compiler<'_> {
                             discard_random: cost.discard_random,
                             order: cost.order.clone(),
                             ..Default::default()
-                        } =>
+                        }
+                        && !(matches!(m, Mechanic::WardCost(_)) && ward_sacrifice(cost).is_some()) =>
                 {
                     return self.err(
-                        "a ward or echo cost may be only mana (or waterbend), life, and discarded cards",
+                        "a ward or echo cost may be only mana (or waterbend), life, and discarded cards, or for ward the sacrifice of one permanent",
                     );
                 }
                 // CR 702.23a: "Whenever this creature becomes blocked, it
@@ -6148,6 +6151,24 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 dest: crate::ast::CounteredTo::Graveyard,
             }),
         },
+        // "Ward—Sacrifice a creature." (CR 702.21a): the player may
+        // sacrifice one as it resolves.
+        Mechanic::WardCost(cost) if ward_sacrifice(cost).is_some() => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
+            trigger: Trigger::TargetedByOpponent,
+            condition: None,
+            from_graveyard: false,
+            targets: Vec::new(),
+            effects: one(E::UnlessSacrifices {
+                payer: Recipient::TriggeringController { that: false },
+                filter: ward_sacrifice(cost).cloned().unwrap_or_default(),
+                or_discard: false,
+                effect: Box::new(E::Counter {
+                    to: Recipient::TriggeringObject,
+                    dest: crate::ast::CounteredTo::Graveyard,
+                }),
+            }),
+        },
         // "Ward—Pay 3 life." (CR 702.21a).
         Mechanic::WardCost(cost) => Ability::Triggered {
             limit: mtg_core::card::TurnLimit::None,
@@ -6636,4 +6657,24 @@ pub(crate) fn named_option(card: &Card, label: &str) -> Option<u8> {
             .and_then(|i| u8::try_from(i).ok()),
         _ => None,
     })
+}
+
+/// "Ward—Sacrifice a creature.": the filter of a ward cost that is the
+/// sacrifice of one permanent and nothing else.
+fn ward_sacrifice(cost: &crate::ast::Cost) -> Option<&Filter> {
+    match &cost.sacrifice {
+        Some(crate::ast::SacCost::Filter(f))
+            if cost.count <= 1
+                && *cost
+                    == (crate::ast::Cost {
+                        sacrifice: cost.sacrifice.clone(),
+                        count: cost.count,
+                        order: cost.order.clone(),
+                        ..Default::default()
+                    }) =>
+        {
+            Some(f)
+        }
+        _ => None,
+    }
 }

@@ -484,6 +484,19 @@ impl Runner {
                 Ok(self.you_may(d, pos, def))
             }
             DecisionKind::ChooseCopy => self.choose_copy(d, pos),
+            // "Ward—Sacrifice a creature.", "... unless they sacrifice a
+            // nonland permanent": `accept "Vein Ripper"` sacrifices (the
+            // permanent is then `choose "X"`), `decline` takes the
+            // penalty; unscripted, the first option.
+            DecisionKind::ChooseOption { def }
+                if d.options.first() == Some(&Choice::Mode(0))
+                    && d.options.last() == Some(&Choice::Mode(2))
+                    && self.has_you_may(d.player, pos, def) =>
+            {
+                let accept = self.you_may_answer(d.player, pos, def);
+                let want = if accept { Choice::Mode(0) } else { Choice::Mode(2) };
+                Ok(index_of(d, &want).unwrap_or(0))
+            }
             DecisionKind::ChooseColor
             | DecisionKind::ChooseType
             | DecisionKind::ChooseCard
@@ -757,6 +770,26 @@ impl Runner {
             return index_of(d, &want).unwrap_or(0);
         }
         0
+    }
+
+    /// Whether an unfired `accept`/`decline` of that card is scripted here.
+    fn has_you_may(&self, player: PlayerId, pos: Position, def: mtg_core::card::CardRef) -> bool {
+        let card = self.state().pool.get(def).name.clone();
+        !self
+            .matching(player, pos, true, |a| matches!(a, Action::YouMay { name, .. } if *name == card))
+            .is_empty()
+    }
+
+    /// Fires the first such `accept`/`decline` and returns whether it
+    /// accepts.
+    fn you_may_answer(&mut self, player: PlayerId, pos: Position, def: mtg_core::card::CardRef) -> bool {
+        let card = self.state().pool.get(def).name.clone();
+        let idxs = self.matching(player, pos, true, |a| matches!(a, Action::YouMay { name, .. } if *name == card));
+        let Some(&i) = idxs.first() else {
+            return true;
+        };
+        self.fired[i] = true;
+        matches!(self.actions[i].action, Action::YouMay { accept: true, .. })
     }
 
     /// A color or type: the first unfired scripted `choose` decides;
