@@ -1,0 +1,8 @@
+card "Bound by Moonsilver" {
+  oracle_id 7a98a1d1-7366-4b38-9047-48269790d328
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block, can't transform
+  activated sacrifice another permanent, sorcery, once: attach this to target creature
+}

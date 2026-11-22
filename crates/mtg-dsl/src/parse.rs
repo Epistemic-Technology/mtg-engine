@@ -126,6 +126,7 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     (&["can't", "block", "alone"], Keyword::CantBlockAlone),
     (&["can't", "attack"], Keyword::CantAttack),
     (&["can't", "block"], Keyword::CantBlock),
+    (&["can't", "transform"], Keyword::CantTransform),
     (&["double", "strike"], Keyword::DoubleStrike),
     (&["first", "strike"], Keyword::FirstStrike),
     (&["deathtouch"], Keyword::Deathtouch),
@@ -7267,9 +7268,10 @@ impl P {
     /// before the clause ends or another verb starts. `return N <filter>
     /// chosen` alone is `ReturnChosen`.
     fn chosen_act_ahead(&self) -> bool {
-        const VERBS: [&str; 11] = [
+        const VERBS: [&str; 12] = [
             "tap",
             "untap",
+            "transform",
             "sacrifice",
             "discard",
             "exile",
@@ -7283,7 +7285,7 @@ impl P {
         let Some(verb) = self.word_at(0) else {
             return false;
         };
-        if !VERBS[..8].contains(&verb.as_str()) {
+        if !VERBS[..9].contains(&verb.as_str()) {
             return false;
         }
         let mut hand = false;
@@ -7346,6 +7348,7 @@ impl P {
         let (act, filter) = match verb.as_str() {
             "tap" => (ChooseAct::Tap, self.filter()?),
             "untap" => (ChooseAct::Untap, self.filter()?),
+            "transform" => (ChooseAct::Transform, self.filter()?),
             "sacrifice" => (ChooseAct::Sacrifice, self.filter()?),
             "discard" => (ChooseAct::Discard, card_filter(self)?),
             // `attach 1 Equipment you control to target 1 chosen`.
@@ -11710,6 +11713,11 @@ impl P {
                 // CR 708.2: "face-down creature".
                 "face-down" if !f.status.face_down => {
                     f.status.face_down = true;
+                    self.pos += 1;
+                }
+                // CR 701.27g: "transformed permanent".
+                "transformed" if !f.status.transformed => {
+                    f.status.transformed = true;
                     self.pos += 1;
                 }
                 // CR 701.60: "suspected creature".

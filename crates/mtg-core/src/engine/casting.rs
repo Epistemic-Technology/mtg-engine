@@ -1514,6 +1514,7 @@ impl GameState {
             | ChooseAct::Untap
             | ChooseAct::Sacrifice
             | ChooseAct::Bounce
+            | ChooseAct::Transform
             | ChooseAct::AttachToTarget(_) => self
                 .battlefield
                 .iter()
@@ -1704,6 +1705,7 @@ impl GameState {
                     }
                 }
                 ChooseAct::Untap => self.untap(id),
+                ChooseAct::Transform => self.transform_by_effect(id),
                 ChooseAct::Sacrifice => self.sacrifice(id),
                 ChooseAct::Discard => self.discard_card(p, id),
                 ChooseAct::HandToBottom => {
@@ -3954,6 +3956,19 @@ impl GameState {
         self.cbump();
     }
 
+    /// "Transform this creature", "transform an Incubator token you
+    /// control": a daybound or nightbound permanent transforms only by
+    /// those abilities (CR 702.145b, e).
+    fn transform_by_effect(&mut self, id: ObjId) {
+        if self.objects.get(id).is_some_and(|o| {
+            let m = self.pool.get(o.def).marks;
+            m.has(crate::card::Marks::DAYBOUND) || m.has(crate::card::Marks::NIGHTBOUND)
+        }) {
+            return;
+        }
+        self.transform_now(id);
+    }
+
     pub(super) fn transform_now(&mut self, id: ObjId) -> bool {
         let Some(o) = self.objects.get(id) else {
             return false;
@@ -3969,6 +3984,13 @@ impl GameState {
         let Some(other) = d.faces.first().copied() else {
             return false;
         };
+        // "Enchanted creature can't attack, block, or transform."
+        if self
+            .characteristics(id)
+            .is_some_and(|c| c.has(Keyword::CantTransform))
+        {
+            return false;
+        }
         let legendary = d.is_legendary();
         let flags = self.flags_of(&self.objects[id]);
         self.count_sources(flags, legendary, false);
@@ -9863,18 +9885,9 @@ impl GameState {
             }
             Effect::Transform { what } => {
                 for t in self.recipients(ctx, *what) {
-                    let Target::Object(id) = t else {
-                        continue;
-                    };
-                    // CR 702.145b, e: a daybound or nightbound permanent
-                    // transforms only by those abilities.
-                    if self.objects.get(id).is_some_and(|o| {
-                        let m = self.pool.get(o.def).marks;
-                        m.has(crate::card::Marks::DAYBOUND) || m.has(crate::card::Marks::NIGHTBOUND)
-                    }) {
-                        continue;
+                    if let Target::Object(id) = t {
+                        self.transform_by_effect(id);
                     }
-                    self.transform_now(id);
                 }
             }
             Effect::AddMana(mana) => {
@@ -12154,8 +12167,7 @@ impl GameState {
                     let controller = if *under_you { ctx.controller } else { o.owner };
                     // CR 712.14a: "return it to the battlefield
                     // transformed": a transforming double-faced card enters
-                    // back face up; any other card stays where it is (CR
-                    // 701.27c; a copy of the card, as a token, has left).
+                    // back face up; any other card stays where it is.
                     if *transformed {
                         let d = self.pool.get(o.card);
                         let back = match d.faces.first() {

@@ -516,6 +516,9 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                             .status
                             .counter
                             .is_none_or(|q| state.objects[**id].counters_match(q))
+                        // "As long as you control a transformed permanent".
+                        && (!filter.status.transformed
+                            || state.is_transformed(&state.objects[**id]))
                 })
                 .count();
             n >= *at_least as usize

@@ -1,0 +1,8 @@
+card "Elvish Vatkeeper" {
+  oracle_id b881d61c-d7cf-49af-bed7-3bc657ea1208
+  cost {1}{B}{G}
+  type Creature — Phyrexian Elf
+  pt 3/3
+  triggered when this enters: incubate 2
+  activated {5}: transform target Incubator token you control; double the number of +1/+1 counters on target 1
+}

@@ -2525,6 +2525,7 @@ impl Fmt {
                 match act {
                     ChooseAct::Tap | ChooseAct::Enlist => format!("tap {n} {f} chosen"),
                     ChooseAct::Untap => format!("untap {n} {f} chosen"),
+                    ChooseAct::Transform => format!("transform {n} {f} chosen"),
                     ChooseAct::Sacrifice => format!("sacrifice {n} {f} chosen"),
                     ChooseAct::Bounce => format!("return {n} {f} to hand chosen"),
                     ChooseAct::Discard if unfiltered => format!("discard {n} {cs} chosen"),
@@ -3463,6 +3464,9 @@ fn filter_one(f: &Filter) -> String {
     }
     if f.status.face_down {
         words.push("face-down".to_string());
+    }
+    if f.status.transformed {
+        words.push("transformed".to_string());
     }
     if f.status.suspected == Some(true) {
         words.push("suspected".to_string());

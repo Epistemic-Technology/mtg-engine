@@ -1,0 +1,139 @@
+# "Can't transform" (a restriction kept with the keywords: no effect or
+# day/night change transforms the permanent), "transform an Incubator
+# token you control" (chosen as the effect resolves), "Transform target
+# Incubator token you control", and the "transformed permanent" filter
+# (CR 701.27g: a double-faced permanent with its back face up).
+
+scenario "transformed permanent: a werewolf that transformed counts" {
+  battlefield A: "Mutagen Connoisseur", "Hinterland Logger"
+  run_to turn 1 main1
+  assert battlefield A contains "Timber Shredder"
+  assert power "Mutagen Connoisseur" 1
+}
+
+scenario "can't transform: a werewolf under Bound by Moonsilver stays as it is" {
+  battlefield A: "Hinterland Logger", "Bound by Moonsilver" on "Hinterland Logger"
+  run_to turn 2 main1
+  assert battlefield A contains "Hinterland Logger"
+  assert battlefield A lacks "Timber Shredder"
+}
+
+scenario "can't transform: nor attack" {
+  battlefield A: "Grizzly Bears", "Bound by Moonsilver" on "Grizzly Bears"
+  illegal turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Bound by Moonsilver moves by sacrificing another permanent" {
+  battlefield A: "Bound by Moonsilver" on "Grizzly Bears", "Ornithopter"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Bound by Moonsilver" sacrificing "Ornithopter" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert attached "Bound by Moonsilver" to "Hill Giant"
+  assert graveyard A contains "Ornithopter"
+}
+
+scenario "Bound by Moonsilver moves only once each turn" {
+  battlefield A: "Bound by Moonsilver" on "Grizzly Bears", "Ornithopter", "Memnite"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Bound by Moonsilver" sacrificing "Ornithopter" targeting "Hill Giant"
+  turn 1 A: wait
+  illegal turn 1 A: activate "Bound by Moonsilver" sacrificing "Memnite" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Bound by Moonsilver" to "Hill Giant"
+  assert battlefield A contains "Memnite"
+}
+
+scenario "Sunder the Gateway: incubate 2, then transform an Incubator token you control" {
+  battlefield A: 2 "Plains"
+  hand A: "Sunder the Gateway"
+  turn 1 A: cast "Sunder the Gateway" mode 2
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Incubator"
+  assert battlefield A contains "Phyrexian Token"
+  assert counters "Phyrexian Token" +1/+1 2
+  assert power "Phyrexian Token" 2
+}
+
+scenario "Sunder the Gateway: the first mode's Incubator isn't transformed" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Pacifism" on "Grizzly Bears", "Grizzly Bears"
+  hand A: "Sunder the Gateway"
+  turn 1 A: cast "Sunder the Gateway" mode 1 targeting "Pacifism"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Pacifism"
+  assert battlefield A contains "Incubator"
+  assert battlefield A lacks "Phyrexian Token"
+}
+
+scenario "Seedpod Caretaker transforms target Incubator token you control" {
+  battlefield A: 3 "Plains", "Incubator" with 3 +1/+1
+  hand A: "Seedpod Caretaker"
+  turn 1 A: cast "Seedpod Caretaker"
+  turn 1 A: trigger "Seedpod Caretaker" mode 2 targeting "Incubator"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Phyrexian Token"
+  assert power "Phyrexian Token" 3
+}
+
+scenario "Elvish Vatkeeper transforms an Incubator and doubles its counters" {
+  battlefield A: 6 "Forest", 2 "Swamp"
+  hand A: "Elvish Vatkeeper"
+  turn 1 A: cast "Elvish Vatkeeper"
+  turn 1 A: activate "Elvish Vatkeeper" targeting "Incubator"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Phyrexian Token"
+  assert counters "Phyrexian Token" +1/+1 4
+  assert power "Phyrexian Token" 4
+}
+
+scenario "transformed permanent: Mutagen Connoisseur counts them" {
+  battlefield A: "Mutagen Connoisseur", 2 "Island", "Incubator" with 1 +1/+1, "Grizzly Bears"
+  turn 1 A: activate "Incubator"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Phyrexian Token"
+  assert power "Mutagen Connoisseur" 1
+}
+
+scenario "transformed permanent: an untransformed one isn't" {
+  battlefield A: "Mutagen Connoisseur", "Incubator", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Mutagen Connoisseur" 0
+}
+
+scenario "transformed permanent: Oculus Whelp draws as it dies while you control one" {
+  battlefield A: "Oculus Whelp", 2 "Island", "Incubator" with 1 +1/+1
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 A: activate "Incubator"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Oculus Whelp"
+  run_to turn 1 end
+  assert graveyard A contains "Oculus Whelp"
+  assert hand A count 1
+}
+
+scenario "transformed permanent: Oculus Whelp draws nothing without one" {
+  battlefield A: "Oculus Whelp", "Incubator" with 1 +1/+1
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Oculus Whelp"
+  run_to turn 1 end
+  assert graveyard A contains "Oculus Whelp"
+  assert hand A count 0
+}
+
+scenario "Autumnal Gloom transforms with four card types in the graveyard" {
+  battlefield A: "Autumnal Gloom"
+  graveyard A: "Grizzly Bears", "Lightning Bolt", "Divination", "Forest"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Ancient of the Equinox"
+  assert has "Ancient of the Equinox" hexproof
+}
+
+scenario "Autumnal Gloom: three card types aren't enough" {
+  battlefield A: "Autumnal Gloom"
+  graveyard A: "Grizzly Bears", "Lightning Bolt", "Forest"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Autumnal Gloom"
+}

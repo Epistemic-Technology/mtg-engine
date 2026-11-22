@@ -370,6 +370,10 @@ pub enum Keyword {
     /// both halves of this card from your hand": the fused split spell is
     /// the card's third face (CR 702.102b-d). The split card has it too.
     Fuse,
+    /// "Enchanted creature can't attack, block, or transform." (CR
+    /// 701.27): no effect transforms it. A restriction kept with the
+    /// keywords.
+    CantTransform,
 }
 
 /// The pool's built-in triggered abilities that aren't keywords on a
@@ -589,7 +593,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 75] = [
+    pub const ALL: [Keyword; 76] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -665,6 +669,7 @@ impl Keyword {
         Keyword::AssignsToughness,
         Keyword::Aftermath,
         Keyword::Fuse,
+        Keyword::CantTransform,
     ];
 
     /// The keyword as Oracle prints it.
@@ -727,6 +732,7 @@ impl Keyword {
             Keyword::SplitSecond => "split second",
             Keyword::Aftermath => "aftermath",
             Keyword::Fuse => "fuse",
+            Keyword::CantTransform => "can't transform",
             Keyword::Convoke => "convoke",
             Keyword::Improvise => "improvise",
             Keyword::Evoke => "evoke",
@@ -1310,6 +1316,10 @@ pub struct StatusQuals {
     /// `pt_either`.
     #[serde(default)]
     pub toughness_over_power: bool,
+    /// "transformed permanent": a transforming double-faced permanent with
+    /// its back face up (CR 701.27g).
+    #[serde(default)]
+    pub transformed: bool,
 }
 
 /// A characteristic compared with an amount the source counts
@@ -1361,6 +1371,7 @@ impl StatusQuals {
             || self.toxic
             || self.on.is_some()
             || self.face_down
+            || self.transformed
             || self.morph
             || self.suspected.is_some()
             || self.bound.is_some()
@@ -4354,7 +4365,7 @@ pub enum Effect {
         if_creature: bool,
         /// "Return it to the battlefield transformed under your control"
         /// (CR 712.14a): a transforming double-faced card enters with its
-        /// back face up; any other card stays where it is (CR 701.27c).
+        /// back face up; any other card stays where it is.
         #[serde(default)]
         transformed: bool,
     },
@@ -5352,6 +5363,10 @@ pub enum ChooseAct {
     /// graveyard" (a processor, CR 400.3: to its owner's graveyard): cards
     /// in exile whose owner the filter's `who` names.
     ExileToGraveyard,
+    /// "transform an Incubator token you control", "transform any number
+    /// of Human Werewolves you control" (CR 701.27; permanents you
+    /// control).
+    Transform,
 }
 
 /// What a player chooses as a permanent enters ("As this land enters,

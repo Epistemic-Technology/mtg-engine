@@ -273,6 +273,7 @@ pub fn is_restriction(k: Keyword) -> bool {
             | Keyword::CantCrew
             | Keyword::UntapsDuringOthers
             | Keyword::AssignsToughness
+            | Keyword::CantTransform
     )
 }
 
@@ -313,7 +314,12 @@ fn lure_sentence(what: &str, this_turn: bool) -> String {
 /// "can't attack or block", "can't block", ...
 fn restriction_phrase(ks: &[Keyword]) -> String {
     let mut parts = Vec::new();
-    if ks.contains(&Keyword::CantAttack)
+    // "Enchanted creature can't attack, block, or transform." (Bound by
+    // Moonsilver).
+    let transform = ks.contains(&Keyword::CantTransform);
+    if transform && ks.contains(&Keyword::CantAttack) && ks.contains(&Keyword::CantBlock) {
+        parts.push("can't attack, block, or transform".to_string());
+    } else if ks.contains(&Keyword::CantAttack)
         && ks.contains(&Keyword::CantBlock)
         && ks.contains(&Keyword::CantCrew)
     {
@@ -335,6 +341,9 @@ fn restriction_phrase(ks: &[Keyword]) -> String {
                 parts.push(keyword_name(*k).to_string());
             }
         }
+    }
+    if transform && !(ks.contains(&Keyword::CantAttack) && ks.contains(&Keyword::CantBlock)) {
+        parts.push("can't transform".to_string());
     }
     for k in ks {
         if matches!(
@@ -2422,6 +2431,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if f.status.face_down {
         words.push("face-down".to_string());
+    }
+    if f.status.transformed {
+        words.push("transformed".to_string());
     }
     if f.status.suspected == Some(true) {
         words.push("suspected".to_string());
@@ -7422,6 +7434,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(match act {
                 ChooseAct::Tap | ChooseAct::Enlist => format!("tap {}", permanents()),
                 ChooseAct::Untap => format!("untap {}", permanents()),
+                ChooseAct::Transform => format!("transform {}", permanents()),
                 ChooseAct::Sacrifice => format!("sacrifice {}", permanents()),
                 ChooseAct::Bounce => format!(
                     "return {} to {} owner's hand",

@@ -1478,7 +1478,11 @@ on it"), and `modified` ("a modified
 creature", CR 700.9: it has a counter, is equipped, or is enchanted by an
 Aura its controller controls), `attached to creature` / `attached to land`
 ("target Aura attached to a creature": what it is attached to, CR
-303.4), `face-down` ("target face-down creature", CR 708.2), and `with toxic` ("each other creature you
+303.4), `face-down` ("target face-down creature", CR 708.2),
+`transformed` ("for each transformed permanent you control", "As long as
+you control a transformed permanent": a double-faced permanent with its
+back face up, CR 701.27g; a permanent turned back to its front face isn't
+one), and `with toxic` ("each other creature you
 control with toxic", CR 702.164: one of its abilities is toxic N, printed
 or granted; printed after the controller). As a check on a target or what
 an Aura enchants it prints "has": `if that target 1 is with toxic, draw 1
@@ -2651,6 +2655,10 @@ do` then sees:
 - `tap 1 other untapped Citizen you control chosen` ("tap another untapped
   Citizen you control"), `tap 2 other untapped creature you control chosen`
 - `sacrifice 1 creature chosen` ("sacrifice a creature")
+- `transform 1 Incubator token you control chosen` ("transform an
+  Incubator token you control", CR 701.27: permanents you control; one
+  that can't transform is still chosen), `transform any number Human
+  Werewolf you control chosen`
 - `discard 1 creature card chosen` ("discard a creature card")
 - `exile 2 creature card from your graveyard chosen`
 - `attach 1 Equipment you control to target 1 chosen` ("attach an Equipment
@@ -3122,7 +3130,10 @@ creature counts for when tapped for a crew (and, with `saddles`, a
 saddle) cost. `can't crew Vehicles` is a restriction like `can't block`
 (CR 702.122d): `static enchanted: has can't attack, can't block, can't
 crew Vehicles` prints "Enchanted creature can't attack, block, or crew
-Vehicles." In a trigger on `Vehicle you control attacks`, `that
+Vehicles." `can't transform` is a restriction too (CR 701.27): no effect,
+and no change of day or night, transforms the permanent; `static enchanted:
+has can't attack, can't block, can't transform` prints "Enchanted creature
+can't attack, block, or transform." (Bound by Moonsilver). In a trigger on `Vehicle you control attacks`, `that
 Vehicle` is the attacking Vehicle.
 
 `replace this dies: exile`: "If this creature would die, exile it

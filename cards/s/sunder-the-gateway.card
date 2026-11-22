@@ -1,0 +1,9 @@
+card "Sunder the Gateway" {
+  oracle_id 88d49309-e7d7-486d-8696-cd66bec2fe33
+  cost {1}{W}
+  type Sorcery
+  choose one {
+    mode: destroy target nontoken artifact or enchantment an opponent controls; incubate 2
+    mode: incubate 2 then transform 1 Incubator token you control chosen
+  }
+}

@@ -2477,6 +2477,18 @@ impl GameState {
         None
     }
 
+    /// CR 701.27g: a double-faced permanent on the battlefield with its
+    /// back face up ("transformed permanent").
+    pub fn is_transformed(&self, o: &GameObject) -> bool {
+        o.zone == Zone::Battlefield && o.def != o.card && {
+            let d = self.pool.get(o.card);
+            matches!(
+                d.layout,
+                crate::card::Layout::Transform | crate::card::Layout::ModalDfc
+            ) && d.faces.first() == Some(&o.def)
+        }
+    }
+
     /// Name of an object, including one that has left the game.
     pub fn name_of_or_lki(&self, id: ObjId) -> &str {
         let def = self
@@ -3214,6 +3226,11 @@ impl GameState {
         }
         // CR 708.2: a face-down permanent.
         if q.face_down && !self.pool.is_face_down(o.def) {
+            return false;
+        }
+        // CR 701.27g: "transformed permanent", a double-faced permanent
+        // with its back face up.
+        if q.transformed && !self.is_transformed(o) {
             return false;
         }
         // CR 701.60: "suspected creature".

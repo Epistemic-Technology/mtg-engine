@@ -755,7 +755,11 @@ impl GameState {
                 .filter(|l| {
                     self.may_watch(l.characteristics.def, l.except, event)
                         || self.grants_exist()
-                        || self.pool.get(l.characteristics.def).flags().grants_abilities()
+                        || self
+                            .pool
+                            .get(l.characteristics.def)
+                            .flags()
+                            .grants_abilities()
                 })
                 .map(|l| Watcher {
                     source: l.id,

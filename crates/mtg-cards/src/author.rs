@@ -1676,8 +1676,27 @@ impl Templates {
                 ))
             }),
             (
-                r(r"^[Tt]ransform (this creature|this artifact|this permanent|it|~)$"),
+                r(
+                    r"^[Tt]ransform (this creature|this artifact|this permanent|this enchantment|this land|this Equipment|this Vehicle|it|~)$",
+                ),
                 |_, _| Some("transform this".to_string()),
+            ),
+            // CR 701.27: "Transform target Incubator token you control",
+            // "transform an Incubator token you control" (chosen as it
+            // resolves), "transform all Humans".
+            (r(r"^[Tt]ransform (target .+|all .+)$"), |c, t| {
+                Some(format!("transform {}", recipient(cap(c, 1), t)?))
+            }),
+            (
+                r(r"^[Tt]ransform (an?|any number of) (.+? you control)$"),
+                |c, _| {
+                    let n = if cap(c, 1) == "any number of" {
+                        "any number"
+                    } else {
+                        "1"
+                    };
+                    Some(format!("transform {n} {} chosen", singular(cap(c, 2))))
+                },
             ),
             // CR 701.42a: a meld card's "exile them, then meld them".
             (

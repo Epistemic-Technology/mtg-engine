@@ -1,0 +1,8 @@
+card "Oculus Whelp" {
+  oracle_id 89ff1b0a-0cf3-455e-a381-1d93ef86a41b
+  cost {3}{U}
+  type Creature — Phyrexian Dragon
+  pt 3/2
+  keywords flying
+  static as long as you control transformed permanent, this: has ability { triggered when this dies: draw 1 card }
+}
