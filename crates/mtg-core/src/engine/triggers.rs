@@ -74,7 +74,10 @@ impl GameState {
                     continue;
                 }
                 let (mut copies, limit) = (chapter_copies(&t.trigger, event), t.limit);
-                if self.player_static_sources > 0 && !w.in_graveyard {
+                // A source of "triggers an additional time" leaving in the
+                // same event still counts (CR 603.10a, `extra_triggers`).
+                if (self.player_static_sources > 0 || self.lookback.is_some()) && !w.in_graveyard
+                {
                     copies += self.extra_triggers(w, event);
                 }
                 // CR 603.2c: "one or more ... enter", once per batch.
@@ -399,15 +402,54 @@ impl GameState {
             }),
             _ => None,
         };
-        let mut n = 0;
-        for &id in &self.battlefield {
-            let o = &self.objects[id];
-            if !self.pool.get(o.def).flags().has_player_static() {
-                continue;
+        // CR 603.10a: for a leaves-the-battlefield event, the permanents
+        // as they were before it ("Teysa Karlov dying together with the
+        // creature whose death triggers": hers still applies).
+        let leaves = matches!(
+            event,
+            Event::ZoneChange {
+                from: Zone::Battlefield,
+                ..
             }
-            let Some(c) = self.characteristics(id) else {
-                continue;
+        );
+        let sources: SmallVec<[(ObjId, PlayerId, Characteristics, Option<ObjId>); 4]> =
+            match &self.lookback {
+                Some(lb) if leaves => lb
+                    .iter()
+                    .filter(|l| {
+                        self.pool
+                            .get(l.characteristics.def)
+                            .flags()
+                            .has_player_static()
+                    })
+                    .map(|l| {
+                        let attached = self
+                            .objects
+                            .get(l.id)
+                            .filter(|o| o.zone == Zone::Battlefield)
+                            .map(|o| o.attached_to)
+                            .or_else(|| self.lki.get(&l.id).map(|k| k.object.attached_to))
+                            .flatten();
+                        (l.id, l.controller, l.characteristics, attached)
+                    })
+                    .collect(),
+                _ => self
+                    .battlefield
+                    .iter()
+                    .filter(|id| {
+                        self.pool
+                            .get(self.objects[**id].def)
+                            .flags()
+                            .has_player_static()
+                    })
+                    .filter_map(|&id| {
+                        let o = &self.objects[id];
+                        Some((id, o.controller, self.characteristics(id)?, o.attached_to))
+                    })
+                    .collect(),
             };
+        let mut n = 0;
+        for (id, controller, c, attached_to) in sources {
             for &a in &c.abilities {
                 if let AbilityDef::TriggerAgain {
                     filter,
@@ -417,7 +459,7 @@ impl GameState {
                 } = self.pool.ability(a)
                     && e.as_ref().is_none_or(|e| {
                         cause.as_ref().is_some_and(|(kind, obj, ctl, c)| {
-                            kind == k && e.matches(*obj, *ctl, c, Some(id), Some(o.controller))
+                            kind == k && e.matches(*obj, *ctl, c, Some(id), Some(controller))
                         })
                     })
                     && filter.matches(
@@ -425,10 +467,10 @@ impl GameState {
                         w.controller,
                         &w.chars,
                         Some(id),
-                        Some(o.controller),
+                        Some(controller),
                     )
                     // "equipped creature" (Wizard's Staff).
-                    && (!filter.enchanted || o.attached_to == Some(w.source))
+                    && (!filter.enchanted || attached_to == Some(w.source))
                 {
                     n += 1;
                 }

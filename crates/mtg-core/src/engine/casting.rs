@@ -8331,6 +8331,26 @@ impl GameState {
         self.effect_on(ctx, id, parts, Duration::UntilEndOfTurn);
     }
 
+    /// CR 603.10a: several permanents leaving the battlefield at once
+    /// ("Destroy all creatures") are one event, and leaves-the-battlefield
+    /// triggers look back at the battlefield as it was before it, as for
+    /// state-based actions. Whether this call started the look-back, for
+    /// `end_together`.
+    fn begin_together(&mut self, n: usize) -> bool {
+        if n > 1 && self.lookback.is_none() {
+            self.lookback = Some(self.snapshot_battlefield());
+            true
+        } else {
+            false
+        }
+    }
+
+    fn end_together(&mut self, started: bool) {
+        if started {
+            self.lookback = None;
+        }
+    }
+
     /// Player `p` gains `keywords` until end of turn, or until the
     /// controller's next turn inside "until your next turn" (CR 611.2b).
     fn grant_player(&mut self, ctx: &EffectCtx, p: PlayerId, keywords: KeywordSet) {
@@ -8452,11 +8472,14 @@ impl GameState {
                 }
             }
             Effect::Destroy { to } => {
-                for t in self.recipients(ctx, *to) {
+                let ts = self.recipients(ctx, *to);
+                let together = self.begin_together(ts.len());
+                for t in ts {
                     if let Some(id) = on_battlefield(self, t) {
                         self.destroy(id);
                     }
                 }
+                self.end_together(together);
             }
             Effect::GainLife { amount, who } => {
                 for t in self.recipients(ctx, *who) {
@@ -8529,7 +8552,9 @@ impl GameState {
                 if *what == crate::card::Recipient::Source && self.source_left_graveyard(ctx) {
                     return;
                 }
-                for t in self.recipients(ctx, *what) {
+                let ts = self.recipients(ctx, *what);
+                let together = self.begin_together(ts.len());
+                for t in ts {
                     let Target::Object(id) = t else {
                         continue;
                     };
@@ -8551,6 +8576,7 @@ impl GameState {
                         self.move_object(id, Zone::Hand, false);
                     }
                 }
+                self.end_together(together);
             }
             Effect::RemoveCounters { kind, count, to } => {
                 for t in self.recipients(ctx, *to) {
@@ -8602,11 +8628,14 @@ impl GameState {
                 }
             }
             Effect::DestroyNoRegen { to } => {
-                for t in self.recipients(ctx, *to) {
+                let ts = self.recipients(ctx, *to);
+                let together = self.begin_together(ts.len());
+                for t in ts {
                     if let Some(id) = on_battlefield(self, t) {
                         self.destroy_with(id, false);
                     }
                 }
+                self.end_together(together);
             }
             Effect::Mill { count, who } => {
                 for t in self.recipients(ctx, *who) {
@@ -9710,11 +9739,14 @@ impl GameState {
                 }
             }
             Effect::Sacrifice { what } => {
-                for t in self.recipients(ctx, *what) {
+                let ts = self.recipients(ctx, *what);
+                let together = self.begin_together(ts.len());
+                for t in ts {
                     if let Some(id) = on_battlefield(self, t) {
                         self.sacrifice(id);
                     }
                 }
+                self.end_together(together);
             }
             Effect::CreateToken {
                 token,
@@ -10692,7 +10724,9 @@ impl GameState {
                 }
             }
             Effect::Exile { what } => {
-                for t in self.recipients(ctx, *what) {
+                let ts = self.recipients(ctx, *what);
+                let together = self.begin_together(ts.len());
+                for t in ts {
                     // A permanent, or a card in a graveyard ("exile target
                     // card from a graveyard").
                     // "Exile Flood of Recollection.": the resolving spell
@@ -10713,6 +10747,7 @@ impl GameState {
                         ctx.created = Some(new);
                     }
                 }
+                self.end_together(together);
             }
             Effect::ExileLinked { what, until } => {
                 // CR 610.3a: "until this leaves the battlefield" after it

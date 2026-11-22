@@ -470,7 +470,7 @@ impl GameState {
     }
 
     /// The battlefield as it is now, for look-back trigger detection.
-    fn snapshot_battlefield(&self) -> Vec<Lookback> {
+    pub(super) fn snapshot_battlefield(&self) -> Vec<Lookback> {
         self.battlefield
             .iter()
             .filter_map(|id| {

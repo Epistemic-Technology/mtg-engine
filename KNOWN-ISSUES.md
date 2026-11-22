@@ -46,9 +46,6 @@ wrong thing in some case.
   rather than chosen (CR 616.1).
 - **Reflexive trigger on a token:** "it" may read the token where the
   text means the triggering object.
-- **"Triggers an additional time" looks at the battlefield as it is.**
-  Teysa Karlov or Drivnod dying together with the creature whose death
-  triggers doesn't double it (they should, looking back, CR 603.10a).
 - **"Whenever you activate an ability of a creature" misses automatic
   mana payment:** the engine taps a creature's mana ability to pay a
   cost without activating it as an ability, so it doesn't trigger (CR
