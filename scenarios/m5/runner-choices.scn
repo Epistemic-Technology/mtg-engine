@@ -1,0 +1,55 @@
+# Scenario runner: `choose "X"` picks what an effect sacrifices or returns
+# (an edict-style choice) and the card a library search finds; unscripted,
+# the engine's first option.
+
+scenario "choose: Aviary Mechanic returns the scripted permanent, not the first" {
+  battlefield A: 2 "Plains", "Hill Giant", "Grizzly Bears"
+  hand A: "Aviary Mechanic"
+  turn 1 A: cast "Aviary Mechanic"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains 2 "Plains"
+}
+
+scenario "choose: Ambrosia Whiteheart returns a land" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  hand A: "Ambrosia Whiteheart"
+  turn 1 A: cast "Ambrosia Whiteheart"
+  turn 1 A: choose "Plains"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Plains"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "choose: unscripted, the first option is returned" {
+  battlefield A: 2 "Plains", "Hill Giant", "Grizzly Bears"
+  hand A: "Aviary Mechanic"
+  turn 1 A: cast "Aviary Mechanic"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert battlefield A count 4
+}
+
+scenario "choose: Diabolic Tutor finds the scripted card" {
+  battlefield A: 4 "Swamp"
+  hand A: "Diabolic Tutor"
+  library A: "Island", "Hill Giant", "Grizzly Bears", "Forest"
+  turn 1 A: cast "Diabolic Tutor"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+  assert library A contains "Hill Giant"
+}
+
+scenario "choose: Rampant Growth finds the scripted basic land" {
+  battlefield A: 2 "Forest"
+  hand A: "Rampant Growth"
+  library A: "Plains", "Island", "Mountain"
+  turn 1 A: cast "Rampant Growth"
+  turn 1 A: choose "Mountain"
+  run_to turn 1 end
+  assert battlefield A contains "Mountain"
+  assert library A contains "Plains"
+}

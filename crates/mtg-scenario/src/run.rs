@@ -410,10 +410,12 @@ impl Runner {
             // Bottom nothing; keep everything on top; put nothing in the
             // graveyard; pay a counter's ransom.
             DecisionKind::Scry { .. } | DecisionKind::Surveil { .. } => self.choose_down(d, pos),
-            DecisionKind::Bottom
-            | DecisionKind::Edict
-            | DecisionKind::SearchLibrary
-            | DecisionKind::PutFromHand => Ok(0),
+            DecisionKind::Bottom | DecisionKind::PutFromHand => Ok(0),
+            // What to sacrifice or return for an effect ("return another
+            // permanent you control to its owner's hand", "sacrifice a
+            // creature"), and the card a library search finds: `choose
+            // "Hill Giant"`; unscripted, the first option.
+            DecisionKind::Edict | DecisionKind::SearchLibrary => Ok(self.choose_offered(d, pos)),
             // `decline "Owlin Shieldmage"`: don't pay its ward cost.
             DecisionKind::PayOrCounter { def } => Ok(self.you_may(d, pos, def)),
             DecisionKind::CastFromExile { card } => Ok(self.cast_from_exile(d, pos, card)),
@@ -791,6 +793,28 @@ impl Runner {
                 self.describe_options(d)
             ),
         })
+    }
+
+    /// `choose "X"` where the engine would otherwise take its first option:
+    /// the first unfired scripted `choose` naming one of the options
+    /// fires; one naming none of them is left for a later decision. With
+    /// none, the first option.
+    fn choose_offered(&mut self, d: &Decision, pos: Position) -> ChoiceId {
+        let idxs = self.matching(d.player, pos, true, |a| matches!(a, Action::Choose(_)));
+        for i in idxs {
+            let Action::Choose(want) = &self.actions[i].action else {
+                unreachable!()
+            };
+            let found = d.options.iter().position(|c| {
+                self.describe_choice(c).eq_ignore_ascii_case(want)
+                    || self.choice_name(c).is_some_and(|n| n == want.as_str())
+            });
+            if let Some(k) = found {
+                self.fired[i] = true;
+                return idx_u32(k);
+            }
+        }
+        0
     }
 
     /// Scry or surveil (CR 701.18a, 701.42a): the first unfired scripted
