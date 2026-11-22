@@ -1,0 +1,6 @@
+card "Barrel Down Sokenzan" {
+  oracle_id d9ecb346-7745-4106-a3e1-c467a3b91ec7
+  cost {2}{R}
+  type Instant — Arcane
+  label "Sweep" spell: return any number Mountain you control to hand chosen; deal count equal 2 Mountain returned this way damage to target creature
+}

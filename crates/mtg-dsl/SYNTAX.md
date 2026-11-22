@@ -1505,7 +1505,9 @@ cards` prints "..., lose 2 life, then mill two cards." `draw 2 cards then discar
 (only a card drawn this way can be the one).
 Numbers are digits, `X`, or a count: `count where <expr>` ("X ...,
 where X is the number of ..."), `count equal <expr>` ("... equal to the
-number of ..."), or `count each <expr>` ("... for each ..."), with
+number of ..."; `count equal 2 Mountain returned this way`: "equal to
+twice the number of Mountains returned this way", the count doubled), or
+`count each <expr>` ("... for each ..."), with
 `<expr>` a filter (`creature you control`, `Elf on battlefield`,
 `creature named this on battlefield`: "creatures named ~ on the
 battlefield", `other creature on battlefield named this`: "other creature

@@ -1,0 +1,6 @@
+card "Charge Across the Araba" {
+  oracle_id cd76e1a4-d6ff-419a-a881-1b77eb6ae581
+  cost {4}{W}
+  type Instant — Arcane
+  label "Sweep" spell: return any number Plains you control to hand chosen; creatures you control get +1/+1 count each Plains returned this way
+}

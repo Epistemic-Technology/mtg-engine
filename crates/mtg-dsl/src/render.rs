@@ -4125,6 +4125,13 @@ fn stat_word(s: mtg_core::card::Stat) -> &'static str {
 /// value" for a target of several permanent types.
 fn count_phrase_in(c: &crate::ast::CountExpr, ctx: &Ctx, each: bool) -> String {
     use crate::ast::CountExpr;
+    // "equal to twice the number of Mountains returned this way" (sweep,
+    // Barrel Down Sokenzan); "for each" prints the multiplier itself.
+    if !each && let CountExpr::Times(n, inner) = c {
+        let x = times_x(*n);
+        let times = x.strip_suffix(" X").unwrap_or(&x);
+        return format!("{times} {}", count_phrase_in(inner, ctx, false));
+    }
     let phrase = count_phrase(c, ctx.card, each);
     match c {
         CountExpr::DamageThisWay {

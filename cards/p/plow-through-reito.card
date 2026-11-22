@@ -1,0 +1,6 @@
+card "Plow Through Reito" {
+  oracle_id e04f151a-66bb-4bc3-a625-91cd23cb1b18
+  cost {1}{W}
+  type Instant — Arcane
+  label "Sweep" spell: return any number Plains you control to hand chosen; target creature gets +1/+1 count each Plains returned this way
+}
