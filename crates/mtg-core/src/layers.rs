@@ -894,7 +894,10 @@ fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
         let Some(c) = work.get(*id) else {
             continue;
         };
-        for ability in c.abilities.iter().copied().collect::<Vec<_>>() {
+        // A copy of the (inline, `Copy`) set, not a collected vector: this
+        // runs for every object in every layer of every pass.
+        let abilities = c.abilities;
+        for ability in abilities.iter().copied() {
             let AbilityDef::Static(sa) = work.state.pool.ability(ability) else {
                 continue;
             };
