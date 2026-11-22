@@ -7771,7 +7771,6 @@ impl P {
         Ok((combats, main))
     }
 
-    #[allow(clippy::too_many_lines)]
     /// `exile same name as target 1 from its controller zones`, out of
     /// `verb_first` (whose frame is large in a debug build).
     #[inline(never)]
@@ -7782,6 +7781,7 @@ impl P {
         Ok(Effect::ExileSameName { what })
     }
 
+    #[allow(clippy::too_many_lines)]
     fn verb_first(&mut self) -> R<Effect> {
         if self.chosen_act_ahead() {
             return self.chosen_act();
