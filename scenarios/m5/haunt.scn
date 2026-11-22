@@ -144,3 +144,29 @@ scenario "Seize the Soul: a Spirit now, and again when the haunted creature dies
   assert battlefield A contains 2 "Spirit"
   assert exile A contains "Seize the Soul"
 }
+
+scenario "Orzhov Pontiff: creatures you don't control get -1/-1" {
+  battlefield A: 2 "Plains", "Swamp", "Grizzly Bears"
+  battlefield B: "Llanowar Elves", "Hill Giant"
+  hand A: "Orzhov Pontiff"
+  turn 1 A: cast "Orzhov Pontiff"
+  turn 1 A: trigger "Orzhov Pontiff" mode 2
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert power "Hill Giant" 2
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Orzhov Pontiff: creatures you control get +1/+1 when the haunted creature dies" {
+  battlefield A: "Orzhov Pontiff", "Hill Giant", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt", "Shock"
+  turn 1 A: cast "Lightning Bolt" targeting "Orzhov Pontiff"
+  turn 1 A: trigger "Orzhov Pontiff" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: trigger "Orzhov Pontiff" mode 1
+  run_to turn 1 end
+  assert power "Hill Giant" 4
+  assert exile A contains "Orzhov Pontiff"
+}

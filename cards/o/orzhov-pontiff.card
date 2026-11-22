@@ -1,0 +1,11 @@
+card "Orzhov Pontiff" {
+  oracle_id 3620ef25-d9e2-4460-b25f-592ff7df681b
+  cost {1}{W}{B}
+  type Creature — Human Cleric
+  pt 1/1
+  haunt
+  triggered when this enters or haunted dies: choose one {
+    mode: each creature you control gets +1/+1
+    mode: each creature you don't control gets -1/-1
+  }
+}
