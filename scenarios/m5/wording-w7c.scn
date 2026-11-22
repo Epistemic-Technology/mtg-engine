@@ -1,0 +1,244 @@
+# Cards whose Oracle wording the renderer now prints exactly (seventh
+# wave, second batch): each scenario checks the meaning.
+
+scenario "Bogardan Dragonheart: sacrifice another creature, a 4/4 Dragon with flying and haste until end of turn" {
+  battlefield A: "Bogardan Dragonheart", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bogardan Dragonheart" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert is "Bogardan Dragonheart" "Dragon"
+  assert power "Bogardan Dragonheart" 4
+  assert toughness "Bogardan Dragonheart" 4
+  assert has "Bogardan Dragonheart" flying
+  assert has "Bogardan Dragonheart" haste
+  run_to turn 2 precombat_main
+  assert has not "Bogardan Dragonheart" flying
+}
+
+scenario "Forgehammer Centurion: an artifact or creature of yours put into a graveyard adds an oil counter" {
+  battlefield A: "Forgehammer Centurion", "Ornithopter", "Onyx Goblet"
+  battlefield B: "Mountain", "Swamp"
+  hand B: "Shock", "Crash"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Ornithopter"
+  turn 2 B: wait
+  turn 2 B: cast "Crash" alternative sacrificing "Mountain" targeting "Onyx Goblet"
+  run_to turn 2 postcombat_main
+  assert counters "Forgehammer Centurion" oil 2
+}
+
+scenario "Forgehammer Centurion: remove two oil counters as it attacks, target creature can't block" {
+  battlefield A: "Forgehammer Centurion" with 2 oil
+  battlefield B: "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Forgehammer Centurion"
+  turn 2 declare_attackers A: trigger "Forgehammer Centurion" targeting "Grizzly Bears"
+  illegal turn 2 B: block "Forgehammer Centurion" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert counters "Forgehammer Centurion" oil 0
+  assert life B 17
+}
+
+scenario "Jeong Jeong: exhaust puts a counter on him and copies the next Lesson" {
+  battlefield A: "Jeong Jeong, the Deserter", 3 "Mountain", "Plains", "Grizzly Bears"
+  hand A: "Yip Yip!"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Jeong Jeong, the Deserter"
+  turn 1 A: wait
+  turn 1 A: cast "Yip Yip!" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Jeong Jeong, the Deserter" +1/+1 1
+  assert power "Grizzly Bears" 6
+}
+
+scenario "Free the Fae: mill four, an instant, sorcery, or Faerie card from them to hand" {
+  battlefield A: 2 "Island"
+  hand A: "Picklock Prankster // Free the Fae"
+  library A: "Hill Giant", "Forest", "Dream Thief", "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Free the Fae"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Dream Thief"
+  assert graveyard A contains "Hill Giant"
+  assert library A count 1
+}
+
+scenario "Strength of Night: kicked, Zombies get an additional +2/+2" {
+  battlefield A: 2 "Swamp", 2 "Forest", "Drowned", "Grizzly Bears"
+  hand A: "Strength of Night"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Strength of Night" kicked
+  run_to turn 1 postcombat_main
+  assert power "Drowned" 4
+  assert toughness "Drowned" 4
+  assert power "Grizzly Bears" 3
+}
+
+scenario "Strength of Night: not kicked, +1/+1 only" {
+  battlefield A: 2 "Swamp", "Forest", "Drowned"
+  hand A: "Strength of Night"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Strength of Night"
+  run_to turn 1 postcombat_main
+  assert power "Drowned" 2
+}
+
+scenario "Viridian Harvest: the enchanted artifact put into a graveyard gains 6 life" {
+  battlefield A: "Ornithopter", "Viridian Harvest" on "Ornithopter"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Ornithopter"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Ornithopter"
+  assert life A 26
+}
+
+scenario "Gone Fishing: two creatures and/or lands you control flicker" {
+  battlefield A: 4 "Island", "Grizzly Bears" with 1 +1/+1, "Plains" tapped
+  hand A: "Lake-town Mariners // Gone Fishing"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gone Fishing" targeting "Grizzly Bears", "Plains"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 0
+  assert untapped "Plains"
+  assert exile A contains "Lake-town Mariners"
+}
+
+scenario "Rocket-Powered Goblin Glider: cast from your graveyard, it attaches as it enters" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  hand A: "Tormenting Voice", "Rocket-Powered Goblin Glider"
+  library A: "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tormenting Voice" discarding "Rocket-Powered Goblin Glider"
+  turn 1 postcombat_main A: cast "Rocket-Powered Goblin Glider" from graveyard
+  turn 1 postcombat_main A: trigger "Rocket-Powered Goblin Glider" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert attached "Rocket-Powered Goblin Glider" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" flying
+  assert has "Grizzly Bears" haste
+}
+
+scenario "Rocket-Powered Goblin Glider: cast from hand, it doesn't attach" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Rocket-Powered Goblin Glider"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rocket-Powered Goblin Glider"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Lyra: three cards drawn this turn, a 3/3 blue Angel at the end step" {
+  battlefield A: "Lyra, Tolarian Archangel", 3 "Island"
+  hand A: "Divination"
+  library A: "Forest", "Plains", "Island", "Swamp"
+  start turn 2 A
+  turn 2 A: cast "Divination"
+  run_to turn 2 cleanup
+  assert battlefield A contains "Angel"
+  assert has "Angel" flying
+  assert is "Angel" blue
+  assert power "Angel" 3
+}
+
+scenario "Lyra: two cards drawn, no Angel" {
+  battlefield A: "Lyra, Tolarian Archangel", 3 "Island"
+  hand A: "Divination"
+  library A: "Forest", "Plains", "Island", "Swamp"
+  start turn 1 A
+  turn 1 A: cast "Divination"
+  run_to turn 1 cleanup
+  assert battlefield A lacks "Angel"
+}
+
+scenario "Lyra: until end of turn, combat damage to a player draws two" {
+  battlefield A: "Lyra, Tolarian Archangel", 5 "Island"
+  library A: "Forest", "Plains", "Island", "Swamp", "Mountain"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Lyra, Tolarian Archangel"
+  turn 2 A: attack "Lyra, Tolarian Archangel"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert hand A count 2
+}
+
+scenario "Courier of Comestibles: a Food card found goes to hand, no token" {
+  battlefield A: 3 "Forest"
+  hand A: "Courier of Comestibles"
+  library A: "Plains", "Nutrient Block", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Courier of Comestibles"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Nutrient Block"
+  assert battlefield A lacks "Food"
+}
+
+scenario "Courier of Comestibles: no search, a Food token" {
+  battlefield A: 3 "Forest"
+  hand A: "Courier of Comestibles"
+  library A: "Plains", "Nutrient Block", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Courier of Comestibles"
+  turn 1 A: decline "Courier of Comestibles"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert battlefield A contains "Food"
+}
+
+scenario "Courier of Comestibles: nothing found, a Food token" {
+  battlefield A: 3 "Forest"
+  hand A: "Courier of Comestibles"
+  library A: "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Courier of Comestibles"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert battlefield A contains "Food"
+}
+
+scenario "Contagious Vorrac: a land card to hand, no proliferate" {
+  battlefield A: 3 "Forest", "Grizzly Bears" with 1 +1/+1
+  hand A: "Contagious Vorrac"
+  library A: "Shock", "Plains", "Hill Giant", "Divination", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Contagious Vorrac"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Plains"
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "Contagious Vorrac: no land card put into hand, proliferate" {
+  battlefield A: 3 "Forest", "Grizzly Bears" with 1 +1/+1
+  hand A: "Contagious Vorrac"
+  library A: "Shock", "Murder", "Hill Giant", "Divination", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Contagious Vorrac"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert counters "Grizzly Bears" +1/+1 2
+}
+
+scenario "Returned Pastcaller: a Spirit, instant, or sorcery card back to hand" {
+  battlefield A: 3 "Mountain", 3 "Plains"
+  hand A: "Returned Pastcaller"
+  graveyard A: "Shock", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Returned Pastcaller"
+  turn 1 A: trigger "Returned Pastcaller" targeting "Shock"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+}
+
+scenario "Returned Pastcaller: a non-Spirit creature card is no legal target" {
+  battlefield A: 3 "Mountain", 3 "Plains"
+  hand A: "Returned Pastcaller"
+  graveyard A: "Shock", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Returned Pastcaller"
+  illegal turn 1 A: trigger "Returned Pastcaller" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}

@@ -1827,9 +1827,18 @@ impl GameState {
     /// "If a creature card was exiled this way" (CR 608.2c): what the
     /// resolution, or the costs paid for it, did.
     pub(super) fn this_way_holds(&self, ctx: &EffectCtx, cond: &crate::card::ThisWayCond) -> bool {
+        // "If you didn't put a card into your hand this way" (no filter,
+        // negated): nothing moved so.
+        let nothing = cond.negated && cond.filter.is_none();
         let Some(log) = &self.this_way else {
-            return false;
+            return nothing;
         };
+        if nothing {
+            return !log
+                .moved
+                .iter()
+                .any(|m| m.is(cond.verb) && (!cond.by_you || m.owner == ctx.controller));
+        }
         log.moved.iter().any(|m| {
             m.is(cond.verb)
                 && (!cond.by_you || m.owner == ctx.controller)
@@ -10016,6 +10025,11 @@ impl GameState {
                                 self.characteristics(*id).is_some_and(|c| {
                                     filter.matches(*id, p, &c, Some(ctx.source), Some(p))
                                 }) && self.status_ok(filter, *id)
+                                    // "a creature of their choice other
+                                    // than enchanted creature".
+                                    && !(filter.not_attached
+                                        && self.objects.get(ctx.source).and_then(|s| s.attached_to)
+                                            == Some(*id))
                             })
                             .map(Choice::Sacrifice)
                             .collect();

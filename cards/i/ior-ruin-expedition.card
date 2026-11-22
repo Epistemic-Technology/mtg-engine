@@ -1,0 +1,7 @@
+card "Ior Ruin Expedition" {
+  oracle_id fc338ba2-c3a4-45d6-895f-af7f72bf7a94
+  cost {1}{U}
+  type Enchantment
+  label "Landfall" triggered whenever land you control enters: you may put 1 quest counter on this
+  activated remove 3 quest counter from this, sacrifice this: draw 2 cards
+}

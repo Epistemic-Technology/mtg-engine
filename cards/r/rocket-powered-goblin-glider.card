@@ -1,0 +1,9 @@
+card "Rocket-Powered Goblin Glider" {
+  oracle_id 5db9121d-934a-44f1-b178-b389c6595af7
+  cost {3}
+  type Artifact — Equipment
+  triggered when this enters if cast from graveyard: attach it to target creature you control
+  static enchanted: +2/+0, has flying, haste
+  equip {2}
+  mayhem {2}
+}

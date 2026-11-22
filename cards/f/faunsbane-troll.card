@@ -1,0 +1,8 @@
+card "Faunsbane Troll" {
+  oracle_id b707c131-de13-4d4d-839d-b9f47d62f090
+  cost {2}{B}{G}
+  type Creature — Troll
+  pt 4/4
+  triggered when this enters: create 1 "Monster Role" attached to this
+  activated {1}, sacrifice Aura attached to this, sorcery: this fights target creature you don't control; this turn, replace that target 1 dies: exile
+}

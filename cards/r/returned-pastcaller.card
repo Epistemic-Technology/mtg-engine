@@ -1,0 +1,8 @@
+card "Returned Pastcaller" {
+  oracle_id 58b9f933-7b13-4335-996c-4722ab9e08b2
+  cost {3}{R}{R/W}{W}
+  type Creature — Spirit Cleric
+  pt 4/2
+  keywords flying
+  triggered when this enters: return target Spirit, instant, or sorcery card from your graveyard to hand
+}

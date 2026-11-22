@@ -1,0 +1,10 @@
+card "Lyra, Tolarian Archangel" {
+  oracle_id d9060fff-0b65-4b3d-930d-6e36315b802c
+  cost {1}{U}{U}
+  type Legendary Creature — Angel Wizard
+  pt 3/3
+  short_name "Lyra"
+  keywords flying
+  triggered at beginning of every end if drew 3 cards this turn: create 1 "3/3 blue Angel creature with flying"
+  activated {3}{U}{U}: until end of turn, delayed this: whenever this deals combat damage to a player, draw 2 cards
+}

@@ -1,0 +1,9 @@
+card "Temur Battle Rage" {
+  oracle_id 2fdc0d17-b683-4263-949e-4f74ec76badf
+  cost {1}{R}
+  type Instant
+  spell {
+    target creature gains double strike
+    label "Ferocious" that target 1 gains trample also if you control creature with power 4 or greater
+  }
+}

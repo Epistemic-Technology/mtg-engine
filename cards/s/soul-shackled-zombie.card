@@ -1,0 +1,7 @@
+card "Soul-Shackled Zombie" {
+  oracle_id f81ca3a5-356d-4b5d-afc2-a33aa774816b
+  cost {3}{B}
+  type Creature — Zombie
+  pt 4/2
+  triggered when this enters: exile up to 2 target card from a graveyard; if at least one creature card was exiled this way, each opponent loses 2 life and you gain 2 life
+}

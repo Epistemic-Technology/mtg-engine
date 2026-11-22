@@ -1,0 +1,14 @@
+card "Lake-town Mariners // Gone Fishing" {
+  oracle_id dba1d231-6b03-44ad-ab8c-be0c8fe1b6db
+  layout adventure
+  cost {4}{U}{U}
+  type Creature — Human Citizen
+  pt 6/5
+  keywords vigilance
+  ward {2}
+  face "Gone Fishing" {
+    cost {3}{U}
+    type Instant — Adventure
+    spell: exile 2 target andor creature or land you control then return those cards to battlefield
+  }
+}

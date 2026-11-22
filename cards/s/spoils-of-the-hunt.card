@@ -1,0 +1,6 @@
+card "Spoils of the Hunt" {
+  oracle_id c29713ee-57e9-40b4-8ca3-a4cc6ede0f46
+  cost {2}{G}
+  type Instant
+  spell: target creature you control gets +1/+0 count each treasure spent; then that target 1 bites target creature an opponent controls
+}

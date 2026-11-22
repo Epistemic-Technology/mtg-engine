@@ -1,0 +1,8 @@
+card "Sporogenic Infection" {
+  oracle_id 659a259d-f75e-4af3-b568-c63225e647de
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: target player sacrifices 1 creature of their choice other than enchanted
+  triggered when enchanted creature is dealt damage: destroy it
+}

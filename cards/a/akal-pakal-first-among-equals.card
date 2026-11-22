@@ -1,0 +1,7 @@
+card "Akal Pakal, First Among Equals" {
+  oracle_id 53bfe54e-9b97-4113-97d9-3c5dbc85e7cf
+  cost {2}{U}
+  type Legendary Creature — Human Advisor
+  pt 1/5
+  triggered at beginning of each player's end step if entered artifact this turn: dig 2 take card rest graveyard
+}

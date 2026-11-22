@@ -4609,12 +4609,24 @@ impl P {
                 },
                 also: false,
                 after: true,
+                not: None,
             };
             return Ok(Sentence::new(vec![Effect::IfTarget(
                 n - 1,
                 filter,
                 vec![s],
                 check,
+            )]));
+        }
+        // `<sentence> also if <cond>`: "It also gets +1/+0 until end of
+        // turn if you control a Mouse."
+        if self.at_words(&["also", "if"]) {
+            self.pos += 2;
+            let cond = self.static_cond()?;
+            return Ok(Sentence::new(vec![Effect::IfCondition(
+                cond,
+                vec![s],
+                crate::ast::IfWording::AlsoAfter,
             )]));
         }
         // `<sentence> if <cond>`: "Draw a card if you control ...".
@@ -5031,11 +5043,35 @@ impl P {
         if n == 0 || n > self.targets.len() {
             return self.fail(format!("target {n} has not been declared"));
         }
-        if self.eat_word("is") {
+        // `if target 1 isnt creature`: "If it isn't a creature", the
+        // check `noncreature`.
+        let not = if self.eat_word("isnt") {
+            Some(crate::ast::NotWording::Isnt)
+        } else if self.eat_words(&["is", "not"]) {
+            Some(crate::ast::NotWording::IsNot)
+        } else {
+            None
+        };
+        if not.is_some() || self.eat_word("is") {
             // `if target 1 is Human, ... instead`: an "instead"; otherwise
             // the target as it resolves ("If it's a Vampire, it also gains
             // lifelink until end of turn").
-            let filter = self.filter()?;
+            let mut filter = self.filter()?;
+            if not.is_some() {
+                if filter.types.is_empty()
+                    || filter
+                        != (Filter {
+                            types: filter.types.clone(),
+                            ..Filter::default()
+                        })
+                {
+                    return self.fail("`isnt` takes card types only");
+                }
+                filter = Filter {
+                    not_types: std::mem::take(&mut filter.types),
+                    ..Filter::default()
+                };
+            }
             self.expect(&Tok::Comma)?;
             let tense = if that {
                 crate::ast::TargetTense::ThatIs
@@ -5050,6 +5086,7 @@ impl P {
                     tense,
                     also: true,
                     after: false,
+                    not,
                 };
                 return Ok(Effect::IfTarget(n - 1, filter, vec![s], check));
             }
@@ -5065,6 +5102,7 @@ impl P {
                         tense,
                         also: false,
                         after: false,
+                        not,
                     };
                     Ok(Effect::IfTarget(n - 1, filter, vec![s], check))
                 }
@@ -5092,6 +5130,7 @@ impl P {
                 tense,
                 also: false,
                 after: false,
+                not: None,
             },
         ))
     }
@@ -5172,8 +5211,12 @@ impl P {
                 wording: ThisWayWording::You,
             });
         }
+        let at_least_one = self.eat_words(&["at", "least", "one"]);
         let (filter, card) = self.this_way_what()?;
-        let wording = if self.eat_word("is") {
+        let wording = if at_least_one {
+            self.expect_word("was")?;
+            ThisWayWording::AtLeastOne
+        } else if self.eat_word("is") {
             ThisWayWording::Is
         } else {
             self.expect_word("was")?;
@@ -5330,6 +5373,15 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one branch per clause form
     fn clause(&mut self) -> R<Effect> {
+        // `noalso each Warrior creature you control gains lifelink`.
+        if self.eat_word("noalso") {
+            let mut e = self.clause()?;
+            let Effect::Grant { no_also, .. } = &mut e else {
+                return self.fail("`noalso` takes `<who> gains <keywords>`");
+            };
+            *no_also = true;
+            return Ok(e);
+        }
         // "You may cast ... without paying its mana cost" (CR 608.2g).
         if self.eat_words(&["cast", "free"]) {
             return self.cast_free();
@@ -5428,6 +5480,7 @@ impl P {
             return Ok(Effect::IfYouDont {
                 cant: true,
                 then: vec![s],
+                words: crate::ast::DontWords::Plain,
             });
         }
         // "If you don't, ...": after an optional action that didn't happen.
@@ -5439,6 +5492,7 @@ impl P {
             return Ok(Effect::IfYouDont {
                 cant: false,
                 then: vec![s],
+                words: crate::ast::DontWords::Plain,
             });
         }
         // "Otherwise, ..." after a conditional sentence (CR 608.2c).
@@ -5481,7 +5535,36 @@ impl P {
             return Ok(Effect::IfYouDont {
                 cant,
                 then: vec![s],
+                words: crate::ast::DontWords::Plain,
             });
+        }
+        // `if you dont draw this way, ...`, `if you dont put into hand this
+        // way, ...`, `if you didnt put into hand this way, ...`: wording.
+        {
+            use crate::ast::DontWords;
+            let words = if self.at_words(&["if", "you", "dont", "draw", "this", "way"]) {
+                self.pos += 6;
+                Some(DontWords::Draw)
+            } else if self.at_words(&["if", "you", "dont", "put", "into", "hand", "this", "way"]) {
+                self.pos += 8;
+                Some(DontWords::PutHand)
+            } else if self.at_words(&["if", "you", "didnt", "put", "into", "hand", "this", "way"]) {
+                self.pos += 8;
+                Some(DontWords::DidntPutHand)
+            } else {
+                None
+            };
+            if let Some(words) = words {
+                self.expect(&Tok::Comma)?;
+                let saved = self.subject.take();
+                let s = self.sentence()?;
+                self.subject = saved;
+                return Ok(Effect::IfYouDont {
+                    cant: false,
+                    then: vec![s],
+                    words,
+                });
+            }
         }
         // `if you dont put it into hand, ...` after `if it is ...`.
         if self.revealed && self.at_words(&["if", "you", "dont", "put", "it"]) {
@@ -5833,6 +5916,7 @@ impl P {
                         keywords,
                         to: subject,
                         each: explicit && self.subject_each,
+                        no_also: false,
                     });
                 }
                 let amount = self.num()?;
@@ -5840,6 +5924,49 @@ impl P {
                 Ok(Effect::GainLife {
                     amount,
                     who: subject,
+                })
+            }
+            // `target 1 is Spirit in addition`: "It's a Spirit in addition
+            // to its other types" (indefinitely).
+            "is" if matches!(self.peek(), Some(Tok::Word(w))
+                if w.chars().next().is_some_and(char::is_uppercase)) =>
+            {
+                let mut subtypes = Vec::new();
+                while let Some(Tok::Word(w)) = self.peek() {
+                    if !w.chars().next().is_some_and(char::is_uppercase) {
+                        break;
+                    }
+                    subtypes.push(w.clone());
+                    self.pos += 1;
+                }
+                let mut keywords = Vec::new();
+                if self.eat_word("with") {
+                    loop {
+                        let Some(k) = self.keyword() else {
+                            return self.fail("expected a keyword after `with`");
+                        };
+                        keywords.push(k);
+                        if self.peek() == Some(&Tok::Comma) {
+                            self.pos += 1;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+                self.expect_words(&["in", "addition"])?;
+                let loses_abilities = self.eat_words(&["and", "has", "no", "abilities"]);
+                Ok(Effect::Animate {
+                    to: subject,
+                    types: Vec::new(),
+                    subtypes,
+                    pt: None,
+                    base: false,
+                    colors: Vec::new(),
+                    keywords,
+                    indefinite: true,
+                    loses_abilities,
+                    in_addition: true,
+                    is_word: true,
                 })
             }
             // "It's an enchantment." (indefinitely, layer 4).
@@ -5919,6 +6046,16 @@ impl P {
                         };
                         filter.keywords.push(k);
                     }
+                    choice_first = true;
+                }
+                // "a creature of their choice other than enchanted
+                // creature" (Sporogenic Infection).
+                if of_choice
+                    && !choice_first
+                    && !filter.not_attached
+                    && self.eat_words(&["other", "than", "enchanted"])
+                {
+                    filter.not_attached = true;
                     choice_first = true;
                 }
                 // "an artifact and a land of their choice".
@@ -6062,6 +6199,7 @@ impl P {
                         indefinite: false,
                         loses_abilities: true,
                         in_addition: false,
+                        is_word: false,
                     });
                 }
                 if !(self.at_word("becomes") || self.at_word("become")) {
@@ -6090,6 +6228,7 @@ impl P {
                         indefinite,
                         loses_abilities: true,
                         in_addition,
+                        is_word: false,
                     }),
                     _ => self.fail("`loses all abilities and becomes` takes what it becomes"),
                 }
@@ -6404,6 +6543,7 @@ impl P {
                     keywords: vec![Keyword::MustAttack],
                     to: subject,
                     each: false,
+                    no_also: false,
                 })
             }
             // "Target creature blocks this creature this turn if able".
@@ -6455,6 +6595,7 @@ impl P {
                     keywords: vec![keyword],
                     to: subject,
                     each: false,
+                    no_also: false,
                 })
             }
             // "Target creature can't block this creature this turn".
@@ -6513,6 +6654,7 @@ impl P {
                     keywords,
                     to: subject,
                     each: explicit && self.subject_each,
+                    no_also: false,
                 })
             }
             "get" | "gets"
@@ -6815,6 +6957,7 @@ impl P {
                     indefinite,
                     loses_abilities: false,
                     in_addition,
+                    is_word: false,
                 })
             }
             // "and you create a 1/1 ... token", "Its controller creates a
@@ -6969,7 +7112,18 @@ impl P {
                 } else {
                     self.filter()?
                 };
+                let mut f = f;
                 if self.eat_word("card") || self.eat_word("cards") {
+                    // `land card or Elf card`: "a land card or Elf card".
+                    if f.or.is_none() && f != Filter::default() && self.at_word("or") {
+                        self.pos += 1;
+                        let alt = self.filter()?;
+                        if !self.eat_word("card") {
+                            return self.unexpected("`card`");
+                        }
+                        f.or = Some(Box::new(alt));
+                        f.alt_card = true;
+                    }
                     if self.eat_words(&["from", "among", "them", "to", "hand"]) {
                         // "return up to two permanent cards from among them
                         // to your hand" after a mill.
@@ -7473,6 +7627,18 @@ impl P {
                 self.pos += 5;
                 self.revealed = true;
                 Ok(Effect::DrawReveal)
+            }
+            // "if it had counters on it, put those counters on up to one
+            // target creature": the triggering object's (Donatello).
+            "put" if self.in_trigger && self.at_words(&["those", "counters", "on"]) => {
+                self.pos += 3;
+                let to = self.recipient()?;
+                Ok(Effect::MoveCounters {
+                    from: Recipient::TriggeringObject,
+                    to,
+                    kind: None,
+                    count: None,
+                })
             }
             // "put its counters on target creature you control".
             "put" if self.at_words(&["its", "counters", "on"]) => {
@@ -8531,13 +8697,15 @@ impl P {
                 } else {
                     Num::N(1)
                 };
-                let new_targets = self.eat_words(&["new", "targets"]);
+                let and_may = self.eat_words(&["and", "new", "targets"]);
+                let new_targets = and_may || self.eat_words(&["new", "targets"]);
                 let except = self.except_clause();
                 Ok(Effect::CopySpells {
                     what,
                     times,
                     new_targets,
                     except,
+                    and_may,
                 })
             }
             "counter" => {
@@ -9307,7 +9475,11 @@ impl P {
             return Ok(CountExpr::GreatestPowerInGraveyard(self.filter()?));
         }
         if self.eat_words(&["greatest", "power"]) {
-            let f = if self.word_at(0).is_some_and(|w| card_type(&w).is_some()) {
+            // "the greatest power among Giants you control" (Pummeler for
+            // Hire): a creature type alone.
+            let subtype = matches!(self.peek(), Some(Tok::Word(w))
+                if w.chars().next().is_some_and(char::is_uppercase));
+            let f = if subtype || self.word_at(0).is_some_and(|w| card_type(&w).is_some()) {
                 self.filter()?
             } else {
                 Filter {
@@ -11769,6 +11941,11 @@ impl P {
             }
             // `each opponent's` before `each`, which would take its first
             // word (the formatter writes `each opponent's upkeep step`).
+            if self.at_words(&["each", "player's", "end"]) {
+                self.pos += 3;
+                self.eat_word("step");
+                return Ok(Trigger::EachPlayersEndStep);
+            }
             let whose = if self.eat_word("your") {
                 // "your next upkeep" (a delayed trigger).
                 self.eat_word("next");
@@ -12461,15 +12638,19 @@ impl P {
                 Ok(Trigger::DealtDamage(obj))
             }
             "is" => {
-                self.expect_words(&[
-                    "put",
-                    "into",
-                    "a",
-                    "graveyard",
-                    "from",
-                    "the",
-                    "battlefield",
-                ])?;
+                self.expect_words(&["put", "into", "a", "graveyard"])?;
+                let from_battlefield = self.eat_words(&["from", "the", "battlefield"]);
+                // A filter keeps the wording ("Whenever another creature
+                // or artifact you control is put into a graveyard ...").
+                if matches!(obj, TriggerObj::Filter(_)) {
+                    return Ok(Trigger::PutInGraveyard {
+                        obj,
+                        from_battlefield,
+                    });
+                }
+                if !from_battlefield {
+                    return self.unexpected("`from the battlefield`");
+                }
                 Ok(Trigger::Dies(obj))
             }
             "leaves" if self.at_words(&["the", "battlefield"]) => {
@@ -13665,6 +13846,7 @@ fn no_trigger_object(t: &Trigger) -> bool {
         Trigger::Either(a, b) => no_trigger_object(a) && no_trigger_object(b),
         Trigger::State(_)
         | Trigger::EveryStep(_)
+        | Trigger::EachPlayersEndStep
         | Trigger::BeginningOfStep { .. }
         | Trigger::CreaturesYouControlAttack
         | Trigger::GainsLife { .. }

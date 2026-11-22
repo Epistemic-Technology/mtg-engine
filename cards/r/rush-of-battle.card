@@ -1,0 +1,6 @@
+card "Rush of Battle" {
+  oracle_id e203a201-2567-4684-ae9f-fd4e91c6dc37
+  cost {3}{W}
+  type Sorcery
+  spell: each creature you control gets +2/+1; noalso each Warrior creature you control gains lifelink
+}

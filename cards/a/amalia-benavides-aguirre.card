@@ -1,0 +1,8 @@
+card "Amalia Benavides Aguirre" {
+  oracle_id 85eefda9-4aab-467d-a08c-be026cb8ff42
+  cost {W}{B}
+  type Legendary Creature — Vampire Scout
+  pt 2/2
+  ward pay 3 life
+  triggered whenever you gain life: this explores; then destroy each other creature if this is with power 20
+}

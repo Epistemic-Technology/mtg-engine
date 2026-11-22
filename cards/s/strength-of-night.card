@@ -1,0 +1,7 @@
+card "Strength of Night" {
+  oracle_id 0045cf16-86dd-4417-ae36-88ca63b30c26
+  cost {2}{G}
+  type Instant
+  kicker {B}
+  spell: each creature you control gets +1/+1; if kicked, each Zombie creature you control gets +2/+2
+}

@@ -1,0 +1,9 @@
+card "Pummeler for Hire" {
+  oracle_id ffa23c3a-76a8-414f-aa3b-fc09aabd78c5
+  cost {4}{G}
+  type Creature — Giant Mercenary
+  pt 4/4
+  keywords reach, vigilance
+  ward {2}
+  triggered when this enters: you gain count where greatest power Giant you control life
+}

@@ -1,0 +1,6 @@
+card "Idyllic Grange" {
+  oracle_id 23d349a0-e441-40b8-b634-13e61440a7c8
+  type Land — Plains
+  enters tapped unless you control 3 other Plains
+  triggered when this enters if this is untapped: put 1 +1/+1 counter on target creature you control
+}

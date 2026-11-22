@@ -1,0 +1,164 @@
+# Cards whose Oracle wording the renderer now prints exactly (seventh
+# wave): each scenario checks that the wording means what the card does,
+# amounts and targets included.
+
+scenario "Skull Rend: 2 damage to each opponent, then they discard two at random" {
+  battlefield A: 3 "Swamp", 2 "Mountain"
+  hand A: "Skull Rend"
+  hand B: "Grizzly Bears", "Shock", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Skull Rend"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 20
+  assert hand B count 1
+  assert graveyard B count 2
+}
+
+scenario "Nullmage Advocate: two cards back to their owner's hand, an artifact destroyed" {
+  battlefield A: "Nullmage Advocate"
+  battlefield B: "Onyx Goblet"
+  graveyard B: "Grizzly Bears", "Shock", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Nullmage Advocate" targeting "Grizzly Bears", "Shock", "Onyx Goblet"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert hand B contains "Shock"
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Onyx Goblet"
+  assert hand A count 0
+}
+
+scenario "Shieldmage Advocate: a card back to its owner's hand, damage from the chosen source prevented" {
+  battlefield A: "Shieldmage Advocate"
+  battlefield B: "Hill Giant"
+  graveyard B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: activate "Shieldmage Advocate" targeting "Grizzly Bears", player A
+  turn 2 declare_attackers A: choose "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert life A 20
+}
+
+scenario "Rush of Battle: every creature gets +2/+1, only Warriors gain lifelink" {
+  battlefield A: 4 "Plains", "Grizzly Bears", "Academy Raider"
+  hand A: "Rush of Battle"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rush of Battle"
+  turn 1 A: attack "Grizzly Bears", "Academy Raider"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Academy Raider" 2
+  assert life B 13
+  assert life A 23
+}
+
+scenario "Saltskitter: exiled when another creature enters, back at the next end step" {
+  battlefield A: "Saltskitter", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Saltskitter"
+  run_to turn 2 untap
+  assert battlefield A contains "Saltskitter"
+}
+
+scenario "Roots of Wisdom: a land card milled goes back to hand" {
+  battlefield A: 2 "Forest"
+  hand A: "Roots of Wisdom"
+  library A: "Shock", "Forest", "Hill Giant", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Roots of Wisdom"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert hand A count 1
+  assert graveyard A contains "Hill Giant"
+  assert library A count 1
+}
+
+scenario "Roots of Wisdom: no land or Elf card milled, draw a card" {
+  battlefield A: 2 "Forest"
+  hand A: "Roots of Wisdom"
+  library A: "Shock", "Grizzly Bears", "Hill Giant", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Roots of Wisdom"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Plains"
+  assert hand A count 1
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Mana Chains: the enchanted creature has cumulative upkeep {1}" {
+  battlefield A: "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Mana Chains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mana Chains" targeting "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Corrupted Zendikon: the land is a 3/3 black Ooze creature and still a land; when it dies the card returns" {
+  battlefield A: "Swamp", "Plains"
+  hand A: "Corrupted Zendikon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Corrupted Zendikon" targeting "Plains"
+  run_to turn 1 postcombat_main
+  assert is "Plains" creature
+  assert is "Plains" land
+  assert is "Plains" black
+  assert is not "Plains" white
+  assert is "Plains" "Ooze"
+  assert power "Plains" 3
+  assert toughness "Plains" 3
+}
+
+scenario "Corrupted Zendikon: when the enchanted land dies, its card returns to its owner's hand" {
+  battlefield A: "Swamp" tapped, "Corrupted Zendikon" on "Swamp"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Swamp"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Swamp"
+  assert graveyard A contains "Corrupted Zendikon"
+}
+
+scenario "Wind Zendikon: the land is a 2/2 blue Elemental with flying; it returns to hand when it dies" {
+  battlefield A: "Island" tapped, "Wind Zendikon" on "Island"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  assert is "Island" creature
+  assert is "Island" land
+  assert is "Island" blue
+  assert has "Island" flying
+  assert power "Island" 2
+  turn 2 B: cast "Shock" targeting "Island"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Island"
+}
+
+scenario "Idyllic Grange: entering untapped puts a +1/+1 counter on target creature you control" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  hand A: "Idyllic Grange"
+  start turn 1 A precombat_main
+  turn 1 A: play "Idyllic Grange"
+  turn 1 A: trigger "Idyllic Grange" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Idyllic Grange"
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "Idyllic Grange: entering tapped does nothing" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  hand A: "Idyllic Grange"
+  start turn 1 A precombat_main
+  turn 1 A: play "Idyllic Grange"
+  run_to turn 1 postcombat_main
+  assert tapped "Idyllic Grange"
+  assert counters "Grizzly Bears" +1/+1 0
+}

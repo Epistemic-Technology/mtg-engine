@@ -1,0 +1,6 @@
+card "Roots of Wisdom" {
+  oracle_id 8f6af612-a4a1-4165-ae4d-ff6353cbaf8d
+  cost {1}{G}
+  type Sorcery
+  spell: mill 3 cards then return 1 land card or Elf card from your graveyard to hand chosen; if you cant, draw 1 card
+}

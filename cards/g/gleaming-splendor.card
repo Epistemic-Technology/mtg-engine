@@ -1,0 +1,7 @@
+card "Gleaming Splendor" {
+  oracle_id c01aeaa5-1d3b-4493-9575-30175dcd780d
+  cost {1}{W}
+  type Enchantment
+  triggered whenever an opponent draws their second card each turn: you create 1 "Treasure"
+  activated {2}{W}: 2 target player draw 1 card
+}

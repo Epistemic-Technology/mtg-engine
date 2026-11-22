@@ -1,0 +1,8 @@
+card "Donatello, Mutant Mechanic" {
+  oracle_id f6a7838d-380f-4752-a647-c55c2a0eb6e2
+  cost {3}{U}
+  type Legendary Creature — Mutant Ninja Turtle
+  pt 3/5
+  activated {T}, sorcery: put 3 +1/+1 counter on target artifact you control; if target 1 isnt creature, target 1 becomes 0/0 Robot creature in addition indefinitely
+  triggered whenever artifact you control is put into a graveyard from the battlefield if it had counters: put those counters on up to 1 target artifact or creature you control
+}

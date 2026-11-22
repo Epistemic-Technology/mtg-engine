@@ -1,0 +1,10 @@
+card "Whiplash, Vengeful Engineer" {
+  oracle_id 00ed7aca-b3c1-4d48-acd5-b1596daeb4c3
+  cost {B}
+  type Legendary Creature — Human Artificer Villain
+  pt 2/2
+  short_name "Whiplash"
+  pronoun he
+  enters tapped
+  triggered whenever this attacks if equipped: each opponent loses count where Equipment attached to this life and you gain count where Equipment attached to this life
+}

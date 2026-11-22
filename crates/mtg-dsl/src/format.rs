@@ -824,6 +824,11 @@ impl Fmt {
                 (None, None) if *from == Recipient::Source => {
                     format!("put its counters on {}", self.recipient(*to, t))
                 }
+                (None, None)
+                    if *from == Recipient::TriggeringObject && *to != Recipient::Source =>
+                {
+                    format!("put those counters on {}", self.recipient(*to, t))
+                }
                 (Some(k), None) if *from == Recipient::Source => format!(
                     "put its {} on {}",
                     counter(*k, Num::N(2)),
@@ -885,9 +890,15 @@ impl Fmt {
                 }
             },
             Effect::RevealIt => "reveal it".to_string(),
-            Effect::IfYouDont { cant, then } => format!(
+            Effect::IfYouDont { cant, then, words } => format!(
                 "if you {}, {}",
-                if *cant { "cant" } else { "dont" },
+                match words {
+                    crate::ast::DontWords::Plain if *cant => "cant",
+                    crate::ast::DontWords::Plain => "dont",
+                    crate::ast::DontWords::Draw => "dont draw this way",
+                    crate::ast::DontWords::PutHand => "dont put into hand this way",
+                    crate::ast::DontWords::DidntPutHand => "didnt put into hand this way",
+                },
                 self.line(then, t)
             ),
             Effect::IfYouDontPut { to, then, it } => format!(
@@ -1483,6 +1494,7 @@ impl Fmt {
                 keywords: ks,
                 to,
                 each,
+                no_also,
             } => {
                 let v = if matches!(
                     to,
@@ -1498,7 +1510,12 @@ impl Fmt {
                     "gains"
                 };
                 let each = if *each { " each" } else { "" };
-                format!("{}{each} {v} {}", self.recipient(*to, t), keywords(ks))
+                let no_also = if *no_also { "noalso " } else { "" };
+                format!(
+                    "{no_also}{}{each} {v} {}",
+                    self.recipient(*to, t),
+                    keywords(ks)
+                )
             }
             Effect::GainControl { of, forever } => format!(
                 "gain control of {}{}",
@@ -1571,6 +1588,7 @@ impl Fmt {
                 times,
                 new_targets,
                 except,
+                and_may,
             } => {
                 let what = match what {
                     Recipient::TriggeringObject => "that spell".to_string(),
@@ -1580,7 +1598,9 @@ impl Fmt {
                 if *times != Num::N(1) {
                     let _ = write!(s, " times {}", num(*times));
                 }
-                if *new_targets {
+                if *and_may {
+                    s.push_str(" and new targets");
+                } else if *new_targets {
                     s.push_str(" new targets");
                 }
                 if *except {
@@ -1693,6 +1713,14 @@ impl Fmt {
                     s.push_str(&filter(&g));
                     s.push_str(" of their choice with ");
                     s.push_str(&keywords(&ks).replace(", ", " and "));
+                } else if *choice_first && f.not_attached && f.keywords.is_empty() {
+                    // `1 creature of their choice other than enchanted`.
+                    let g = Filter {
+                        not_attached: false,
+                        ..f.clone()
+                    };
+                    s.push_str(&filter(&g));
+                    s.push_str(" of their choice other than enchanted");
                 } else {
                     s.push_str(&filter(f));
                 }
@@ -2166,7 +2194,26 @@ impl Fmt {
                 indefinite,
                 loses_abilities,
                 in_addition,
+                is_word,
             } => {
+                // `target 1 is Spirit in addition and has no abilities`.
+                if *is_word {
+                    let with = if ks.is_empty() {
+                        String::new()
+                    } else {
+                        format!(" with {}", keywords(ks))
+                    };
+                    return format!(
+                        "{} is {}{with} in addition{}",
+                        self.recipient(*to, t),
+                        subtypes.join(" "),
+                        if *loses_abilities {
+                            " and has no abilities"
+                        } else {
+                            ""
+                        }
+                    );
+                }
                 // `loses all abilities and has base power and toughness 0/1`.
                 if let (Some((p, q)), true, true) = (pt, base, *loses_abilities)
                     && types.is_empty()
@@ -2330,6 +2377,20 @@ impl Fmt {
                     TargetTense::ThatIs => ("that ", "is"),
                     TargetTense::ThatWas => ("that ", "was"),
                 };
+                // `if target 1 isnt creature`: the check's negated types.
+                let (verb, f) = match check.not {
+                    Some(w) => (
+                        match w {
+                            crate::ast::NotWording::Isnt => "isnt",
+                            crate::ast::NotWording::IsNot => "is not",
+                        },
+                        &Filter {
+                            types: f.not_types.clone(),
+                            ..Filter::default()
+                        },
+                    ),
+                    None => (verb, f),
+                };
                 format!(
                     "if {that}target {} {verb} {}, {}{}",
                     n + 1,
@@ -2340,6 +2401,9 @@ impl Fmt {
             }
             Effect::IfCondition(c, inner, crate::ast::IfWording::After) => {
                 format!("{} if {}", self.line(inner, t), static_cond(c))
+            }
+            Effect::IfCondition(c, inner, crate::ast::IfWording::AlsoAfter) => {
+                format!("{} also if {}", self.line(inner, t), static_cond(c))
             }
             Effect::IfCondition(c, inner, crate::ast::IfWording::Unless) => {
                 format!("{} unless {}", self.line(inner, t), static_cond(c))
@@ -2772,6 +2836,7 @@ fn this_way_cond(c: &crate::ast::ThisWayCond) -> String {
     };
     match &c.wording {
         ThisWayWording::Was => format!("{what} was {verb} this way"),
+        ThisWayWording::AtLeastOne => format!("at least one {what} was {verb} this way"),
         ThisWayWording::Is => format!("{what} is {verb} this way"),
         ThisWayWording::You if c.verb == mtg_core::card::ThisWay::PutInHand => {
             format!("you put {what} into hand this way")
@@ -3200,6 +3265,9 @@ pub fn filter(f: &Filter) -> String {
                 "a"
             };
             return format!("{} or {article} {a}", filter_one(&base));
+        }
+        if f.alt_card {
+            return format!("{} card or {}", filter_one(&base), filter(alt));
         }
         let (b, a) = factor_qualifiers(&base, alt);
         if f.alt_article {
@@ -3825,6 +3893,7 @@ pub fn natural_when(t: &Trigger) -> bool {
             | Trigger::AttachedStep(_)
             | Trigger::State(_)
             | Trigger::EveryStep(_)
+            | Trigger::EachPlayersEndStep
             | Trigger::Cycles { this: true, .. }
             | Trigger::CastThis { .. }
     ) || matches!(t, Trigger::Either(a, _) if natural_when(a))
@@ -3957,6 +4026,19 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::State(c) => format!("when {}", static_cond(c)),
         Trigger::Enters(o) => format!("whenever {} enters", trigger_obj(o)),
         Trigger::Dies(o) => format!("whenever {} dies", trigger_obj(o)),
+        Trigger::PutInGraveyard {
+            obj,
+            from_battlefield,
+        } => format!(
+            "whenever {} is put into a graveyard{}",
+            trigger_obj(obj),
+            if *from_battlefield {
+                " from the battlefield"
+            } else {
+                ""
+            }
+        ),
+        Trigger::EachPlayersEndStep => "at beginning of each player's end step".to_string(),
         Trigger::EveryStep(step) => {
             let w = match step {
                 Step::Untap => "untap",
