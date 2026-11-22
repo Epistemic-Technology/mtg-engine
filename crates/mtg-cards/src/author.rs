@@ -579,6 +579,7 @@ fn keyword_list(s: &str) -> Option<String> {
 /// "creatures you control", "basic land types among lands you control",
 /// "creature cards in your graveyard" → the DSL's count expression; the
 /// phrase may be singular ("for each creature you control").
+#[allow(clippy::too_many_lines)] // one arm per phrase
 fn count_expr(s: &str) -> Option<String> {
     let s = s.trim();
     match s {
