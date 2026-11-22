@@ -236,12 +236,18 @@ named the feature; a card may need more than one.
   it to the battlefield transformed"; restricted mana of more than one
   symbol or added by an effect; "dies or is put into exile"; "if that spell was kicked"; a combined subject ("you and other Heroes you control have
   hexproof"); "flash if you pay {2} more"; copying a card and casting
-  the copy; choose a number, a card name, odd or even; piles; haunt,
-  amplify, sweep, devour, tribute, cleave, champion, reconfigure.
+  the copy; choose a number, a card name, odd or even; piles.
 - **A cost of "sacrifice six creatures named this"** is never offered
   (Shadowborn Apostle, not added).
-- **Mechanics not yet in:** tiered, devour, harness, hideaway, mutate,
-  meld, the Everywhere land token, "when this land enters untapped".
+- **Mechanics not yet in:** tiered, harness, hideaway, cloak, epic,
+  offering, compleated, companion, mutate, meld, the Everywhere land
+  token, "when this land enters untapped"; "Each Sliver card in each
+  player's hand has slivercycling {3}" (an ability granted to cards in
+  hands, Homing Sliver); "has flying and trample if it devoured a
+  creature" (Hellkite Hatchling).
+- **"This creature or equipped creature" as a leaves or dies trigger's
+  subject** still sees only the equipped creature, not the source (the
+  attack, block, and damage forms see both). No card known.
 - **Scenario runner:** a trigger cannot be answered while its source
   spell is still on the stack.
   An edict-style choice ("return another permanent you control to its
