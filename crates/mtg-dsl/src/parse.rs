@@ -2876,6 +2876,55 @@ impl P {
                 let ability = self.ability()?;
                 Ok(Ability::DuringYourTurn(Box::new(ability)))
             }
+            // CR 614.12: "As this creature enters, it becomes your choice
+            // of a 3/3 creature, a 2/2 creature with flying, or ...".
+            "as" if self.at_words(&["as", "this", "enters", "becomes", "choice"]) => {
+                self.pos += 5;
+                let mut forms = Vec::new();
+                loop {
+                    let Some(Tok::Pt {
+                        power,
+                        toughness,
+                        signed: false,
+                    }) = self.next()
+                    else {
+                        return self.fail("expected a power and toughness in `becomes choice`");
+                    };
+                    let mut form = crate::ast::ChoiceForm {
+                        power,
+                        toughness,
+                        subtypes: Vec::new(),
+                        types: Vec::new(),
+                        keywords: Vec::new(),
+                    };
+                    loop {
+                        let w = self.word()?;
+                        if let Some(t) = card_type(&w) {
+                            form.types.push(t);
+                            if t == CardType::Creature {
+                                break;
+                            }
+                        } else if w.chars().next().is_some_and(char::is_uppercase) {
+                            form.subtypes.push(w);
+                        } else {
+                            return self.fail(format!("expected a type in `becomes choice`, found {w}"));
+                        }
+                    }
+                    if self.eat_word("with") {
+                        form.keywords = self.keyword_list()?;
+                    }
+                    forms.push(form);
+                    if !self.eat_word("or") {
+                        break;
+                    }
+                }
+                let in_addition = self.eat_words(&["in", "addition"]);
+                if forms.len() < 2 {
+                    return self.fail("`becomes choice` needs two or more choices");
+                }
+                self.end_stmt()?;
+                Ok(Ability::BecomesChoice { forms, in_addition })
+            }
             "as" if self.at_words(&["as", "this", "enters", "choose"])
                 || self.at_words(&["as", "it", "enters", "choose"]) =>
             {

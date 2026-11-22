@@ -5878,6 +5878,30 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         Ability::EntersAsCopy(f) => {
             let _ = writeln!(out, "{indent}enters as copy of {}", filter(f));
         }
+        Ability::BecomesChoice { forms, in_addition } => {
+            let forms: Vec<String> = forms
+                .iter()
+                .map(|f| {
+                    let mut s = format!("{}/{}", f.power, f.toughness);
+                    for t in &f.subtypes {
+                        let _ = write!(s, " {t}");
+                    }
+                    for t in &f.types {
+                        let _ = write!(s, " {}", format!("{t:?}").to_lowercase());
+                    }
+                    if !f.keywords.is_empty() {
+                        let _ = write!(s, " with {}", keywords(&f.keywords));
+                    }
+                    s
+                })
+                .collect();
+            let _ = writeln!(
+                out,
+                "{indent}as this enters becomes choice {}{}",
+                forms.join(" or "),
+                if *in_addition { " in addition" } else { "" }
+            );
+        }
         Ability::AsEntersChoose { kind, joined } => {
             let who = if *joined { "it" } else { "this" };
             let _ = writeln!(

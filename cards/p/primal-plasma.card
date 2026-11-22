@@ -1,0 +1,6 @@
+card "Primal Plasma" {
+  oracle_id 540c5225-845e-4498-baae-0fbb836c1f38
+  cost {3}{U}
+  type Creature — Elemental Shapeshifter
+  as this enters becomes choice 3/3 creature or 2/2 creature with flying or 1/6 creature with defender
+}

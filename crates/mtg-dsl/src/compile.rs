@@ -1131,6 +1131,45 @@ impl Compiler<'_> {
                 b = b.cleave(c.clone(), cleaved);
                 continue;
             }
+            // CR 614.12: "As this creature enters, it becomes your choice
+            // of ...": a named choice as it enters, and for each choice
+            // a static ability of the permanent's while it was chosen.
+            if let Ability::BecomesChoice { forms, .. } = a {
+                let n = u8::try_from(forms.len()).unwrap_or(u8::MAX);
+                b = b.ability(AbilityDef::AsEntersChoose(
+                    mtg_core::card::ChoiceKind::Named(n),
+                ));
+                for (i, f) in forms.iter().enumerate() {
+                    let mut mods = vec![crate::ast::Mod::SetPt {
+                        power: mtg_core::card::PtValue::Fixed(f.power),
+                        toughness: mtg_core::card::PtValue::Fixed(f.toughness),
+                    }];
+                    if !f.types.is_empty() {
+                        mods.push(crate::ast::Mod::AddTypes(f.types.clone()));
+                    }
+                    for s in &f.subtypes {
+                        mods.push(crate::ast::Mod::AddSubtype(s.clone()));
+                    }
+                    if !f.keywords.is_empty() {
+                        mods.push(crate::ast::Mod::AddKeywords(f.keywords.clone()));
+                    }
+                    let st = Ability::Static {
+                        filter: crate::ast::Filter::this(),
+                        mods,
+                        condition: None,
+                        cond_first: false,
+                        cond_if: false,
+                        otherwise: Vec::new(),
+                    };
+                    let st = self.ability(&st)?;
+                    b = b.ability(self.while_holds(
+                        st,
+                        StaticCondition::Chose(u8::try_from(i).unwrap_or(u8::MAX)),
+                        "a choice",
+                    )?);
+                }
+                continue;
+            }
             if let Ability::Mechanic(Mechanic::Reconfigure(c)) = a {
                 let attached = StaticCondition::AttachedIs(ObjFilter {
                     types: TypeSet::of([mtg_core::card::CardType::Creature]),
@@ -4845,6 +4884,9 @@ impl Compiler<'_> {
                 return self.err("a level symbol is not an ability definition");
             }
             Ability::DeckAnyNumber => return self.err("a deck-building rule is not an ability"),
+            Ability::BecomesChoice { .. } => {
+                return self.err("`becomes choice` is a card's ability, not a granted one");
+            }
             Ability::Uncounterable => {
                 return self.err("\"can't be countered\" is a property of the spell");
             }

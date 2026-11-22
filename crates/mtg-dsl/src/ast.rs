@@ -9,6 +9,17 @@ use mtg_core::card::{
 };
 pub use mtg_core::card::{CounteredTo, LibraryPlace};
 
+/// One choice of `Ability::BecomesChoice`: "a 1/6 Wall artifact creature
+/// with defender".
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct ChoiceForm {
+    pub power: i32,
+    pub toughness: i32,
+    pub subtypes: Vec<String>,
+    pub types: Vec<mtg_core::card::CardType>,
+    pub keywords: Vec<mtg_core::card::Keyword>,
+}
+
 /// How `Effect::IfTarget` words its check.
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
 pub struct TargetCheck {
@@ -1320,6 +1331,18 @@ pub enum Ability {
     AsEntersChoose {
         kind: ChoiceKind,
         joined: bool,
+    },
+    /// `as this enters becomes choice 3/3 creature or 2/2 creature with
+    /// flying or 1/6 creature with defender` ("As this creature enters,
+    /// it becomes your choice of a 3/3 creature, a 2/2 creature with
+    /// flying, or a 1/6 creature with defender.", CR 614.12): the
+    /// controller chooses one as it enters, and the permanent has that
+    /// base power and toughness, those types, and those keywords for as
+    /// long as it stays on the battlefield. `in addition` prints "in
+    /// addition to its other types".
+    BecomesChoice {
+        forms: Vec<ChoiceForm>,
+        in_addition: bool,
     },
     /// `can't be blocked by Wall`, `can't be blocked except by creature
     /// with flying`, `can't be blocked by more than one creature`, `can

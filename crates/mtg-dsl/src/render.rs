@@ -13734,6 +13734,36 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             restricted_mana_text(card, *mana, restriction)
         }
         Ability::XManaColor(c) => format!("Spend only {} mana on X.", color_name(*c)),
+        Ability::BecomesChoice { forms, in_addition } => {
+            let forms: Vec<String> = forms
+                .iter()
+                .map(|f| {
+                    let pt = format!("{}/{}", f.power, f.toughness);
+                    let a = if pt.starts_with('8') || pt.starts_with("11/") || pt.starts_with("18/") {
+                        "an"
+                    } else {
+                        "a"
+                    };
+                    let mut s = format!("{a} {pt}");
+                    for t in &f.subtypes {
+                        let _ = write!(s, " {t}");
+                    }
+                    for t in &f.types {
+                        let _ = write!(s, " {}", type_noun(*t));
+                    }
+                    if !f.keywords.is_empty() {
+                        let _ = write!(s, " with {}", keywords_list(&f.keywords));
+                    }
+                    s
+                })
+                .collect();
+            format!(
+                "As {} enters, it becomes your choice of {}{}.",
+                this_ref(card),
+                or_list(&forms),
+                if *in_addition { " in addition to its other types" } else { "" }
+            )
+        }
         Ability::AsEntersChoose { kind, joined } => {
             let what = choice_noun(kind);
             if *joined {

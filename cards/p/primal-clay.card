@@ -1,0 +1,6 @@
+card "Primal Clay" {
+  oracle_id dccf2ca8-8c87-41c9-8373-351859396d05
+  cost {4}
+  type Artifact Creature — Shapeshifter
+  as this enters becomes choice 3/3 artifact creature or 2/2 artifact creature with flying or 1/6 Wall artifact creature with defender in addition
+}

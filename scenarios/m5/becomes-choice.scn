@@ -1,0 +1,99 @@
+# "As this creature enters, it becomes your choice of a 3/3 creature, a
+# 2/2 creature with flying, or a 1/6 creature with defender." (CR 614.12):
+# chosen as it enters (`choose "2"`, 1-based); unscripted, the first.
+
+scenario "Primal Plasma: the first choice, a 3/3" {
+  battlefield A: 4 "Island"
+  hand A: "Primal Plasma"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Primal Plasma"
+  run_to turn 1 postcombat_main
+  assert power "Primal Plasma" 3
+  assert toughness "Primal Plasma" 3
+  assert has not "Primal Plasma" flying
+}
+
+scenario "Primal Plasma: a 2/2 with flying" {
+  battlefield A: 4 "Island"
+  hand A: "Primal Plasma"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Primal Plasma"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert power "Primal Plasma" 2
+  assert toughness "Primal Plasma" 2
+  assert has "Primal Plasma" flying
+  assert has not "Primal Plasma" defender
+}
+
+scenario "Primal Plasma: a 1/6 with defender can't attack" {
+  battlefield A: 4 "Island"
+  hand A: "Primal Plasma"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Primal Plasma"
+  turn 1 A: choose "3"
+  illegal turn 3 A: attack "Primal Plasma"
+  run_to turn 3 postcombat_main
+  assert toughness "Primal Plasma" 6
+  assert has "Primal Plasma" defender
+  assert life B 20
+}
+
+scenario "Primal Plasma is 0/0 in the hand" {
+  hand A: "Primal Plasma"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert hand A contains "Primal Plasma"
+}
+
+scenario "Corrupted Shapeshifter: a 0/12 with defender, colorless" {
+  battlefield A: 4 "Island"
+  hand A: "Corrupted Shapeshifter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Corrupted Shapeshifter"
+  turn 1 A: choose "3"
+  run_to turn 1 postcombat_main
+  assert power "Corrupted Shapeshifter" 0
+  assert toughness "Corrupted Shapeshifter" 12
+  assert has "Corrupted Shapeshifter" defender
+  assert is not "Corrupted Shapeshifter" blue
+}
+
+scenario "Corrupted Shapeshifter: a 2/5 with vigilance" {
+  battlefield A: 4 "Island"
+  hand A: "Corrupted Shapeshifter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Corrupted Shapeshifter"
+  turn 1 A: choose "2"
+  turn 3 A: attack "Corrupted Shapeshifter"
+  run_to turn 3 postcombat_main
+  assert untapped "Corrupted Shapeshifter"
+  assert life B 18
+}
+
+scenario "Primal Clay: a 1/6 Wall artifact creature with defender" {
+  battlefield A: 4 "Island"
+  hand A: "Primal Clay"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Primal Clay"
+  turn 1 A: choose "3"
+  run_to turn 1 postcombat_main
+  assert is "Primal Clay" Wall
+  assert is "Primal Clay" artifact
+  assert is "Primal Clay" Shapeshifter
+  assert power "Primal Clay" 1
+  assert toughness "Primal Clay" 6
+  assert has "Primal Clay" defender
+}
+
+scenario "Primal Clay: a 2/2 flier isn't a Wall" {
+  battlefield A: 4 "Island"
+  hand A: "Primal Clay"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Primal Clay"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert is not "Primal Clay" Wall
+  assert has "Primal Clay" flying
+  assert power "Primal Clay" 2
+}
