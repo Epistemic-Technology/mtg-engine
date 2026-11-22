@@ -67,6 +67,11 @@ The renderer prints the right Oracle text for these, but the compiled
 card does something else. Scenarios catch them; the gate does not. Fix
 by rejecting the form at compile time or by binding it correctly.
 
+- **`attach to target creature you control; that creature gains ...`**
+  (Celestial Armor: "When this Equipment enters, attach it to target
+  creature you control. That creature gains hexproof and indestructible
+  until end of turn."): the Equipment attaches but the creature gains
+  nothing. Celestial Armor is not in (the template author writes it).
 - **`put 1 stun counters on each of them` after targets** (Rime Chill,
   Homesickness: "Tap up to two target creatures. Put a stun counter on
   each of them."): `each of them` is `Recipient::CreatedThem`, the tokens

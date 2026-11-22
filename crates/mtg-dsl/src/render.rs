@@ -12290,7 +12290,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     )
                 }
             }
-            crate::ast::Mechanic::Prototype(c, p, t) => format!("Prototype {c} \u{2014} {p}/{t}"),
+            crate::ast::Mechanic::Prototype(cost, power, toughness) => {
+                format!("Prototype {cost} \u{2014} {power}/{toughness}")
+            }
             crate::ast::Mechanic::Annihilator(n) => format!("Annihilator {n}"),
             crate::ast::Mechanic::Rampage(n) => format!("Rampage {n}"),
             crate::ast::Mechanic::BattleCry => "Battle cry".to_string(),

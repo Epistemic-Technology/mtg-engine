@@ -1501,13 +1501,13 @@ impl P {
             "prototype" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
                 self.pos += 1;
                 let c = self.mana_cost()?;
-                let (power, toughness) = match self.next() {
-                    Some(Tok::Pt {
-                        power,
-                        toughness,
-                        signed: false,
-                    }) => (power, toughness),
-                    _ => return self.fail("expected power/toughness such as 3/2"),
+                let Some(Tok::Pt {
+                    power,
+                    toughness,
+                    signed: false,
+                }) = self.next()
+                else {
+                    return self.fail("expected power/toughness such as 3/2");
                 };
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Prototype(c, power, toughness)))

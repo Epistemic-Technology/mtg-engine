@@ -1045,36 +1045,33 @@ impl Compiler<'_> {
                 continue;
             }
             if let Some(cond) = &band {
-                let compiled = match a {
-                    // "and has [abilities]": a keyword of the level.
-                    Ability::Keyword(k) => self.ability(&Ability::Static {
+                // "and has [abilities]": a keyword of the level.
+                let compiled = if let Ability::Keyword(k) = a {
+                    self.ability(&Ability::Static {
                         filter: crate::ast::Filter::this(),
                         mods: vec![Mod::AddKeywords(vec![*k])],
                         condition: Some(cond.clone()),
                         cond_first: false,
                         cond_if: false,
-                    })?,
-                    _ => {
-                        let compiled = self.ability(a)?;
-                        if matches!(
-                            compiled,
-                            AbilityDef::Static(_)
-                                | AbilityDef::Activated(_)
-                                | AbilityDef::Triggered(_)
-                        ) {
-                            let c = self.static_cond(cond);
-                            self.while_holds(compiled, c, "a level symbol")?
-                        } else {
-                            // A blocking restriction, protection, and the
-                            // like: granted to itself while the level holds.
-                            self.ability(&Ability::Static {
-                                filter: crate::ast::Filter::this(),
-                                mods: vec![Mod::AddAbility(Box::new(a.clone()))],
-                                condition: Some(cond.clone()),
-                                cond_first: false,
-                                cond_if: false,
-                            })?
-                        }
+                    })?
+                } else {
+                    let compiled = self.ability(a)?;
+                    if matches!(
+                        compiled,
+                        AbilityDef::Static(_) | AbilityDef::Activated(_) | AbilityDef::Triggered(_)
+                    ) {
+                        let c = self.static_cond(cond);
+                        self.while_holds(compiled, c, "a level symbol")?
+                    } else {
+                        // A blocking restriction, protection, and the like:
+                        // granted to itself while the level holds.
+                        self.ability(&Ability::Static {
+                            filter: crate::ast::Filter::this(),
+                            mods: vec![Mod::AddAbility(Box::new(a.clone()))],
+                            condition: Some(cond.clone()),
+                            cond_first: false,
+                            cond_if: false,
+                        })?
                     }
                 };
                 b = b.ability(compiled);
