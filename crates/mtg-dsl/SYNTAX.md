@@ -1815,7 +1815,10 @@ Treasure token."), `when you do, <clause>` (a reflexive
 triggered ability, CR 603.12: it triggers only if the optional action
 before it happened, and its targets are its own, chosen as it goes on the
 stack: `you may pay {2}{R}; when you do, this deals 3 damage to any
-target`; after `draw 1 card then discard 1 card` it prints "When you discard
+target`; with {X}, `you may pay {X}; when you do, put X +1/+1 counters
+on this`, the player chooses X as they pay, any value they can pay, and
+X after it, in the same resolution or the reflexive ability, is that
+value; after `draw 1 card then discard 1 card` it prints "When you discard
 a card this way, ..."; `you may you sacrifice a creature` prints "you may sacrifice a
 creature", and an empty choice is no action), `<clause> unless you <clause>` (an act, not a payment: `sacrifice this
 unless you discard 1 card at random`, `... unless you return 2 Forest you

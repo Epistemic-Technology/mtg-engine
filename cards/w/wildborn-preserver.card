@@ -1,0 +1,8 @@
+card "Wildborn Preserver" {
+  oracle_id 55cec4bc-3de6-4c0d-a4cc-c5a30849fbda
+  cost {1}{G}
+  type Creature — Elf Archer
+  pt 2/2
+  keywords flash, reach
+  triggered whenever another non-Human creature you control enters: you may pay {X}; when you do, put X +1/+1 counters on this
+}

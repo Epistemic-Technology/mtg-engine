@@ -10323,7 +10323,27 @@ impl GameState {
             }
             Effect::Pay { mana, life } => {
                 let p = ctx.controller;
-                let req = mana.requirements(0);
+                // "You may pay {X}. When you do, ...": the player chooses
+                // X as they pay (CR 107.1c, 107.3), any value they can
+                // pay; later "X" in the resolution, and in the reflexive
+                // ability, is that value.
+                let x = if mana.has_x() {
+                    let max = (0u32..)
+                        .take_while(|&n| n <= 99 && self.can_pay(p, &mana.requirements(n)))
+                        .last()
+                        .unwrap_or(0);
+                    let pick = self.choose_mid(
+                        p,
+                        DecisionKind::ChooseX { spell: ctx.source },
+                        (0..=max).map(Choice::X).collect(),
+                    );
+                    let x = u32::try_from(pick).unwrap_or(0).min(max);
+                    ctx.x = x;
+                    x
+                } else {
+                    0
+                };
+                let req = mana.requirements(x);
                 let life_ok =
                     *life == 0 || self.player(p).life >= i32::try_from(*life).unwrap_or(i32::MAX);
                 if life_ok && self.can_pay(p, &req) {
@@ -10375,6 +10395,12 @@ impl GameState {
                         .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
                         .expect("a resolving spell or its last known information exists");
                     let timestamp = self.tick();
+                    // "You may pay {X}. When you do, put X +1/+1 counters
+                    // on this creature": the reflexive ability's X is the
+                    // resolution's.
+                    if ctx.x > 0 {
+                        self.reflexive_x.push((timestamp, ctx.x));
+                    }
                     self.pending_triggers.push(crate::state::PendingTrigger {
                         controller: ctx.controller,
                         ability: StackAbility {

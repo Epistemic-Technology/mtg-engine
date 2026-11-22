@@ -461,6 +461,16 @@ impl Runner {
             DecisionKind::ChooseReplacement => Ok(self.choose_replacement(d, pos)),
             DecisionKind::LegendRule => Ok(self.keep_legend(d, pos)),
             DecisionKind::ChooseMode { .. } => self.choose_mode(d, pos),
+            // X chosen as an effect resolves ("you may pay {X}"):
+            // `choose "3"`.
+            DecisionKind::ChooseX { .. }
+                if self.pending_x.is_none()
+                    && !self
+                        .matching(d.player, pos, true, |a| matches!(a, Action::Choose(_)))
+                        .is_empty() =>
+            {
+                self.choose_named(d, pos)
+            }
             DecisionKind::ChooseX { .. }
             | DecisionKind::Replicate { .. }
             | DecisionKind::Multikicker { .. } => self.choose_x(d),
@@ -798,6 +808,7 @@ impl Runner {
             }
             Choice::Discard { def, .. } => Some(st.pool.get(*def).name.clone()),
             Choice::Mode(i) => Some((i + 1).to_string()),
+            Choice::X(n) => Some(n.to_string()),
             _ => None,
         }
     }

@@ -1712,6 +1712,10 @@ pub struct GameState {
     /// enters triggers (CR 107.3m; the permanent's own X is 0). Cleared
     /// at cleanup: such a trigger resolves the turn it triggered.
     pub entered_x: Vec<(ObjId, u32)>,
+    /// X of the resolution that made a reflexive ability trigger ("You
+    /// may pay {X}. When you do, ..."), by the pending trigger's
+    /// timestamp, for the ability's X once it is on the stack.
+    pub reflexive_x: Vec<(Timestamp, u32)>,
     /// Ninjutsu abilities on the stack (CR 702.49c): the card to enter
     /// attacking, and what the creature returned for the cost was
     /// attacking.
