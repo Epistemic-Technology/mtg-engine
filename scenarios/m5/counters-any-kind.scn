@@ -1,0 +1,104 @@
+# Counting counters of every kind: "the number of counters on this
+# creature", "for each counter on this creature", "the number of
+# counters on it" (the triggering creature's), and "as long as this
+# creature has three or more counters on it".
+
+scenario "Twitching Doll taps for mana and gets a nest counter" {
+  battlefield A: "Twitching Doll"
+  hand A: "Llanowar Elves"
+  turn 1 A: activate "Twitching Doll" ability 1
+  turn 1 A: choose green
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Llanowar Elves"
+  assert counters "Twitching Doll" nest 1
+}
+
+scenario "Twitching Doll makes a Spider for each counter of any kind" {
+  battlefield A: "Twitching Doll" with 2 nest, "Twitching Doll" with 1 +1/+1
+  turn 1 A: activate "Twitching Doll" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Spider"
+  assert has newest A "Spider" reach
+}
+
+scenario "Twitching Doll can't sacrifice at instant speed" {
+  battlefield A: "Twitching Doll" with 2 nest
+  start turn 2 B
+  illegal turn 2 A: activate "Twitching Doll" ability 2
+  run_to turn 2 end
+}
+
+scenario "Warden of the Grove: another creature endures X, X its counters" {
+  battlefield A: "Warden of the Grove" with 2 +1/+1, 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: choose "1"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+}
+
+scenario "Warden of the Grove counts every kind and can make the Spirit" {
+  battlefield A: "Warden of the Grove" with 1 +1/+1, 2 "Forest"
+  battlefield A: "Warden of the Grove" with 1 stun
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: choose "2"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+  assert battlefield A contains 2 "Spirit"
+}
+
+scenario "Warden of the Grove gets a counter at your end step" {
+  battlefield A: "Warden of the Grove"
+  run_to turn 2 upkeep
+  assert counters "Warden of the Grove" +1/+1 1
+}
+
+scenario "Warden of the Inner Sky with three counters has flying and vigilance" {
+  battlefield A: "Warden of the Inner Sky" with 2 +1/+1, "Grizzly Bears"
+  battlefield A: "Ornithopter", "Memnite"
+  turn 1 A: activate "Warden of the Inner Sky"
+  run_to turn 1 postcombat_main
+  assert counters "Warden of the Inner Sky" +1/+1 3
+  assert has "Warden of the Inner Sky" flying
+  assert has "Warden of the Inner Sky" vigilance
+  assert tapped "Grizzly Bears"
+  assert tapped "Ornithopter"
+}
+
+scenario "Warden of the Inner Sky counts counters of different kinds" {
+  battlefield A: "Warden of the Inner Sky" with 1 +1/+1
+  battlefield B: "Hill Giant"
+  run_to turn 1 precombat_main
+  assert has not "Warden of the Inner Sky" flying
+}
+
+scenario "Warden of the Inner Sky with two shield counters and a +1/+1 counter flies" {
+  battlefield A: "Warden of the Inner Sky" with 2 shield, "Grizzly Bears"
+  battlefield A: "Ornithopter", "Memnite"
+  turn 1 A: activate "Warden of the Inner Sky"
+  run_to turn 1 postcombat_main
+  assert counters "Warden of the Inner Sky" +1/+1 1
+  assert has "Warden of the Inner Sky" flying
+}
+
+scenario "Warden of the Inner Sky needs three untapped artifacts or creatures" {
+  battlefield A: "Warden of the Inner Sky", "Grizzly Bears"
+  illegal turn 1 A: activate "Warden of the Inner Sky"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Spider-Man Noir: the lone attacker surveils its counters" {
+  battlefield A: "Spider-Man Noir", "Grizzly Bears" with 1 stun
+  battlefield A: "Hill Giant" with 1 flying
+  library A: "Island", "Forest", "Swamp", "Plains"
+  turn 1 A: attack "Hill Giant"
+  turn 1 A: surveil "Island", "Forest"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 1
+  assert graveyard A contains "Island"
+  assert graveyard A contains "Forest"
+  assert library A contains "Swamp"
+}

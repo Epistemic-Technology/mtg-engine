@@ -1,0 +1,8 @@
+card "Spider-Man Noir" {
+  oracle_id 2efd6494-c5e1-41de-bc6e-8490ff046cd1
+  cost {4}{B}
+  type Legendary Creature — Spider Human Hero
+  pt 4/4
+  keywords menace
+  triggered whenever creature you control attacks alone: put 1 +1/+1 counter on it; then surveil count where counters on it
+}

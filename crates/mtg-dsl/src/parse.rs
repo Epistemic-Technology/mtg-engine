@@ -3521,6 +3521,14 @@ impl P {
         if at_least {
             self.expect_words(&["or", "more"])?;
         }
+        // `this has 3 or more counters`: of every kind together.
+        if at_least && n > 1 && self.eat_word("counters") {
+            return Ok(StaticCond::SourceCounters {
+                kind: CounterKind::Any,
+                n,
+                at_least,
+            });
+        }
         let kind = self.counter_kind()?;
         Ok(StaticCond::SourceCounters { kind, n, at_least })
     }
@@ -9808,10 +9816,11 @@ impl P {
                 return Ok(CountExpr::SourceAllCounters { it: false });
             }
             self.expect_word("it")?;
-            // In a triggered ability `it` is the triggering object, which
-            // this count doesn't read.
+            // In a triggered ability `it` is the triggering object: its
+            // counters of every kind ("the number of counters on it",
+            // Spider-Man Noir).
             if self.in_trigger && !self.it_source && !self.in_delayed {
-                return self.fail("`counters on it` counts the source's; write `counters on this`");
+                return Ok(CountExpr::TriggerCounters(CounterKind::Any));
             }
             return Ok(CountExpr::SourceAllCounters { it: true });
         }

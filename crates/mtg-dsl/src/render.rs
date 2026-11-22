@@ -3795,6 +3795,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::AddManaCombination { count, .. }
         | Effect::EmpowerJace { count }
         | Effect::Amass { count, .. }
+        | Effect::Endure { count, .. }
         | Effect::Dig { count, .. }
         | Effect::ExilePlayable { count, .. }
         | Effect::ExileTop { count, .. }
@@ -4240,6 +4241,10 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         // "the number of +1/+1 counters on this creature", "for each
         // scream counter on this Aura", "the number of age counters on it".
         // "for each +1/+1 counter on it" of the triggering object.
+        CountExpr::TriggerCounters(mtg_core::card::CounterKind::Any) => (
+            "counter on it".to_string(),
+            "counters on it".to_string(),
+        ),
         CountExpr::TriggerCounters(kind) => (
             format!("{} counter on it", counter_name(*kind)),
             format!("{} counters on it", counter_name(*kind)),
@@ -12646,6 +12651,14 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 // "this creature has a +1/+1 counter on it".
                 let c = kind.name();
                 format!("{} has {} {c} counter on it", this_ref(card), article(c))
+            } else if *at_least && *kind == CounterKind::Any {
+                // "As long as this creature has three or more counters on
+                // it": every kind.
+                format!(
+                    "{} has {} or more counters on it",
+                    this_ref(card),
+                    count_words(Num::N(*n), "one")
+                )
             } else if *at_least {
                 // "As long as Vadmir has four or more +1/+1 counters on
                 // it" (a legendary card names itself).

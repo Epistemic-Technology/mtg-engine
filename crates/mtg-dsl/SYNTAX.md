@@ -603,7 +603,8 @@ in hand"), `hand 1 or less` ("you have one or fewer cards in hand"),
 `opponent poison 3 or more` ("an opponent has three or more poison
 counters", corrupted), `this has 4 or more oil counters` ("this creature
 has four or more oil counters on it"; first, "As long as ..., it gets
-..."), `this has no arrowhead counters` ("there are no arrowhead counters
+..."; `this has 3 or more counters`: "this creature has three or more
+counters on it", every kind together), `this has no arrowhead counters` ("there are no arrowhead counters
 on this artifact"), `there are 3 or more brick counters on this` ("there
 are three or more brick counters on this artifact"), and the shorthands `threshold`, `delirium`,
 `metalcraft`.
@@ -1741,7 +1742,8 @@ gained this turn": all the life gained, whatever was lost; `life you've
 gained this turn` prints "you've gained"), `card types in your graveyard`
 ("the number of card types among cards in your graveyard"), `counters on
 this` ("the number of counters on Savanti Romero": every kind, as for
-`+1/+1 counters on this`), `permanents sacrificed this turn` ("the number of
+`+1/+1 counters on this`; in a triggered ability `counters on it` is the
+triggering creature's, "the number of counters on it", Spider-Man Noir), `permanents sacrificed this turn` ("the number of
 permanents you've sacrificed this turn"), `two to x` (`count where two to x`
 prints "2ˣ": "Target player draws 2ˣ cards."), `creature attacked this
 turn` ("for each creature that attacked this turn": any player's

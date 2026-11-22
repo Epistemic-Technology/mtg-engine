@@ -3150,6 +3150,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             kind.name(),
             if *it { "it" } else { "this" }
         ),
+        CountExpr::TriggerCounters(CounterKind::Any) => "counters on it".to_string(),
         CountExpr::TriggerCounters(kind) => format!("{} counters on it", kind.name()),
         CountExpr::Those(t) => those_word(*t).to_string(),
         CountExpr::LifeGainedThisTurn { ve: false } => "life you gained this turn".to_string(),
@@ -4991,6 +4992,11 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::SourceCountersThere { kind, n } => {
             format!("there are {n} or more {} counters on this", kind.name())
         }
+        StaticCond::SourceCounters {
+            kind: CounterKind::Any,
+            n,
+            at_least: true,
+        } => format!("this has {n} or more counters"),
         StaticCond::SourceCounters { kind, n, at_least } => {
             if *at_least {
                 format!("this has {n} or more {} counters", kind.name())

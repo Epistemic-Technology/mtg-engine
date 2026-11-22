@@ -1,0 +1,8 @@
+card "Warden of the Grove" {
+  oracle_id 13bf8103-3db3-4ee6-a6bb-441aabfd9e41
+  cost {2}{G}
+  type Creature — Hydra
+  pt 2/2
+  triggered at beginning of your end step: put 1 +1/+1 counter on this
+  triggered whenever other nontoken creature you control enters: it endures count where counters on this
+}
