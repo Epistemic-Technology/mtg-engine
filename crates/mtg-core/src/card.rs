@@ -334,6 +334,9 @@ pub enum Keyword {
     /// "Untap this creature during each other player's untap step." (CR
     /// 502.3): it untaps in every untap step, not only its controller's.
     UntapsDuringOthers,
+    /// "assigns combat damage equal to its toughness rather than its
+    /// power" (CR 510.1a): its combat damage is its toughness.
+    AssignsToughness,
     /// CR 702.147: "This creature can't block. When this creature
     /// attacks, sacrifice it at end of combat." Its triggered half is
     /// `CardPool::keyword_trigger`.
@@ -575,7 +578,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 72] = [
+    pub const ALL: [Keyword; 73] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -648,6 +651,7 @@ impl Keyword {
         Keyword::Paradigm,
         Keyword::SplitSecond,
         Keyword::UntapsDuringOthers,
+        Keyword::AssignsToughness,
     ];
 
     /// The keyword as Oracle prints it.
@@ -727,6 +731,9 @@ impl Keyword {
             }
             Keyword::CantCrew => "can't crew Vehicles",
             Keyword::UntapsDuringOthers => "untaps during each other player's untap step",
+            Keyword::AssignsToughness => {
+                "assigns combat damage equal to its toughness rather than its power"
+            }
         }
     }
 
@@ -1274,6 +1281,10 @@ pub struct StatusQuals {
     /// characteristic, not game state: `any` leaves it out.
     #[serde(default)]
     pub pt_total: Option<(Cmp, i16)>,
+    /// "with toughness greater than its power": a characteristic, like
+    /// `pt_either`.
+    #[serde(default)]
+    pub toughness_over_power: bool,
 }
 
 /// A characteristic compared with an amount the source counts
@@ -1615,6 +1626,9 @@ impl ObjFilter {
             return false;
         }
         if !self.any_types.is_empty() && !c.types.intersects(self.any_types) {
+            return false;
+        }
+        if self.status.toughness_over_power && c.toughness <= c.power {
             return false;
         }
         // "with total power and toughness 5 or less" (Cut Down).
@@ -2054,6 +2068,9 @@ pub enum CountExpr {
         filter: Option<ObjFilter>,
         graveyard: bool,
     },
+    /// `n` minus the count, at least 0: "if you have fewer than ten cards
+    /// in hand, draw cards equal to the difference".
+    Difference(u32, Box<CountExpr>),
 }
 
 impl CountExpr {
@@ -2073,7 +2090,9 @@ impl CountExpr {
             | CountExpr::AttackedThisTurn
             | CountExpr::OpponentsLostLife
             | CountExpr::CreaturesEnteredThisTurn => true,
-            CountExpr::Times(_, c) | CountExpr::Plus(_, c) => c.reads_history(),
+            CountExpr::Times(_, c) | CountExpr::Plus(_, c) | CountExpr::Difference(_, c) => {
+                c.reads_history()
+            }
             CountExpr::Divided { inner, .. } => inner.reads_history(),
             CountExpr::Sum(a, b) => a.reads_history() || b.reads_history(),
             _ => false,
@@ -2090,7 +2109,9 @@ impl CountExpr {
     pub fn in_static(&self) -> bool {
         match self {
             CountExpr::Sum(a, b) => a.in_static() && b.in_static(),
-            CountExpr::Plus(_, c) | CountExpr::Times(_, c) => c.in_static(),
+            CountExpr::Plus(_, c) | CountExpr::Times(_, c) | CountExpr::Difference(_, c) => {
+                c.in_static()
+            }
             CountExpr::Divided { inner, .. } => inner.in_static(),
             CountExpr::Permanents(_)
             | CountExpr::Domain
@@ -2534,6 +2555,14 @@ pub enum StaticCondition {
     /// Either holds ("you control a Desert or there is a Desert card in
     /// your graveyard").
     Or(Box<StaticCondition>, Box<StaticCondition>),
+    /// The other doesn't hold: a conditional static ability's "Otherwise,
+    /// it gets -2/-2." (CR 611.3a).
+    Not(Box<StaticCondition>),
+    /// You could cast a sorcery now (CR 307.1: your main phase, the stack
+    /// empty but for the source): "You may cast this spell as though it had
+    /// flash if you pay {2} more to cast it" is flash and {2} more while
+    /// this doesn't hold.
+    SorceryTiming,
     /// The condition as the spell was cast ("If you cast this spell during
     /// your main phase", "if you controlled a Mount as you cast this
     /// spell"): judged then and remembered by the spell (the definition's
@@ -6842,6 +6871,9 @@ pub enum AbilityDef {
     HandSize {
         whose: Who,
         delta: Option<i32>,
+        /// "Your maximum hand size is eight": `delta` is the size itself.
+        #[serde(default)]
+        set: bool,
     },
     /// "While voting, you get an additional vote." (`optional` false) or
     /// "While voting, you may vote an additional time." (CR 701.38d: the
@@ -7156,6 +7188,14 @@ pub struct CardDef {
     /// Kicker (CR 702.33): an optional additional mana cost chosen as the
     /// spell is cast.
     pub kicker: Option<Box<ManaCost>>,
+    /// A kicker cost that isn't mana ("Kicker—Sacrifice two lands.", CR
+    /// 702.33a): paid with the other costs when the spell is kicked, a
+    /// permanent it chooses settled after targets like an additional
+    /// cost's (`kicker` is then its mana part, "Kicker—{2}{R}, Sacrifice
+    /// a land."). Such a card has no
+    /// additional cost of its own.
+    #[serde(default)]
+    pub kicker_cost: Option<Box<Cost>>,
     /// The spell's targets from this index on are chosen only if it was
     /// kicked ("If this spell was kicked, return another target permanent
     /// card ...", CR 601.2c).
@@ -9508,6 +9548,7 @@ impl Builder {
             except_flags: DefFlags::default(),
             additional: Cost::default(),
             kicker: None,
+            kicker_cost: None,
             kicker_targets: None,
             self_cost: None,
             buyback: None,
@@ -9699,6 +9740,14 @@ impl Builder {
     #[must_use]
     pub fn kicker(mut self, cost: ManaCost) -> Self {
         self.0.kicker = Some(Box::new(cost));
+        self
+    }
+
+    /// A kicker cost other than mana ("Kicker—Sacrifice a creature.").
+    #[must_use]
+    pub fn kicker_cost(mut self, cost: Cost) -> Self {
+        self.0.kicker = Some(Box::new(cost.mana.clone()));
+        self.0.kicker_cost = Some(Box::new(cost));
         self
     }
 

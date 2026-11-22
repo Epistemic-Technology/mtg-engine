@@ -200,6 +200,26 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     (&["doesn't", "untap"], Keyword::DoesntUntap),
     (
         &[
+            "assigns",
+            "combat",
+            "damage",
+            "equal",
+            "to",
+            "its",
+            "toughness",
+            "rather",
+            "than",
+            "its",
+            "power",
+        ],
+        Keyword::AssignsToughness,
+    ),
+    (
+        &["assigns", "combat", "damage", "equal", "to", "toughness"],
+        Keyword::AssignsToughness,
+    ),
+    (
+        &[
             "untaps", "during", "each", "other", "player's", "untap", "step",
         ],
         Keyword::UntapsDuringOthers,
@@ -897,6 +917,7 @@ impl P {
             cast_only: None,
             cast_only_cant: false,
             kicker: None,
+            kicker_cost: None,
             kicker_targets: None,
             flashback: None,
             groups: Vec::new(),
@@ -1112,9 +1133,22 @@ impl P {
                 });
                 self.end_stmt()
             }
+            "kicker" if matches!(self.peek_at(1), Some(Tok::Word(_))) => {
+                self.pos += 1;
+                card.kicker_cost = Some(self.cost()?);
+                self.end_stmt()
+            }
             "kicker" => {
                 self.pos += 1;
-                card.kicker = Some(self.mana_cost()?);
+                let at = self.pos;
+                let k = self.mana_cost()?;
+                // "Kicker—{2}{R}, Sacrifice a land."
+                if self.peek() == Some(&Tok::Comma) {
+                    self.pos = at;
+                    card.kicker_cost = Some(self.cost()?);
+                } else {
+                    card.kicker = Some(k);
+                }
                 self.end_stmt()
             }
             "short_name" => {
@@ -1854,16 +1888,25 @@ impl P {
                 } else {
                     Who::You
                 };
+                let mut set = false;
                 let delta = if self.eat_word("none") {
                     None
                 } else {
                     match self.next() {
                         Some(Tok::Signed(n)) => Some(n),
-                        _ => return self.fail("expected `none` or a signed number such as +1"),
+                        // `hand size 8`: "Your maximum hand size is eight."
+                        Some(Tok::Num(n)) => {
+                            set = true;
+                            Some(i32::try_from(n).unwrap_or(i32::MAX))
+                        }
+                        _ => {
+                            return self
+                                .fail("expected `none`, a size, or a signed number such as +1");
+                        }
                     }
                 };
                 self.end_stmt()?;
-                Ok(Ability::HandSize { whose, delta })
+                Ok(Ability::HandSize { whose, delta, set })
             }
             // `enters with choice flying counter or first strike counter`:
             // "... enters with your choice of a flying counter or a first
@@ -2907,9 +2950,27 @@ impl P {
                 let mut cond_if = false;
                 if condition.is_none() && self.eat_words(&["as", "long", "as"]) {
                     condition = Some(self.static_cond()?);
+                } else if condition.is_none() && self.eat_words(&["during", "your", "turn"]) {
+                    // "Equipped creature has deathtouch during your turn."
+                    condition = Some(StaticCond::DuringYourTurn);
                 } else if condition.is_none() && self.eat_word("if") {
                     condition = Some(self.static_cond()?);
                     cond_if = true;
+                }
+                // "Otherwise, it gets -2/-2." (CR 611.3a).
+                let mut otherwise = Vec::new();
+                if condition.is_some() && self.eat_word("otherwise") {
+                    loop {
+                        otherwise.push(self.modification()?);
+                        if self.peek() == Some(&Tok::Comma) {
+                            self.pos += 1;
+                            continue;
+                        }
+                        if self.eat_word("and") {
+                            continue;
+                        }
+                        break;
+                    }
                 }
                 self.end_stmt()?;
                 Ok(Ability::Static {
@@ -2918,6 +2979,7 @@ impl P {
                     condition,
                     cond_first,
                     cond_if,
+                    otherwise,
                 })
             }
             _ => self.unexpected("a statement"),
@@ -3243,13 +3305,13 @@ impl P {
             });
         }
         let n = self.number()?;
-        self.expect_words(&["or", "more"])?;
+        // "as long as it has two or fewer oil counters on it".
+        let at_least = !self.eat_words(&["or", "fewer"]);
+        if at_least {
+            self.expect_words(&["or", "more"])?;
+        }
         let kind = self.counter_kind()?;
-        Ok(StaticCond::SourceCounters {
-            kind,
-            n,
-            at_least: true,
-        })
+        Ok(StaticCond::SourceCounters { kind, n, at_least })
     }
 
     /// After `spent`: `{B}`, `{R}{R}`, `3 red`, `4 mana`, `treasure`.
@@ -3324,6 +3386,25 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one branch per condition
     fn static_cond_one(&mut self) -> R<StaticCond> {
+        // `either you control land creature else land entered this turn`:
+        // either holds (`else`, where a filter's own `or` would run on).
+        if self.eat_word("either") {
+            let a = self.static_cond_one()?;
+            self.expect_word("else")?;
+            let b = self.static_cond()?;
+            return Ok(StaticCond::Or(Box::new(a), Box::new(b)));
+        }
+        // `flash if pay {2} more` (Mystical Tether).
+        if self.at_word("pay")
+            && matches!(self.peek_at(1), Some(Tok::Sym(_)))
+            && self.word_at(2).as_deref() == Some("more")
+        {
+            self.pos += 1;
+            let c = self.mana_cost()?;
+            self.expect_word("more")?;
+            let n = u8::try_from(c.mana_value()).unwrap_or(u8::MAX);
+            return Ok(StaticCond::FlashPay(n));
+        }
         if self.eat_word("void") {
             return Ok(StaticCond::Void);
         }
@@ -3843,6 +3924,10 @@ impl P {
                 self.cards_word()?;
                 return Ok(StaticCond::NoCardInHand(f));
             }
+            // `hand fewer than 10`: "you have fewer than ten cards in hand".
+            if self.eat_words(&["fewer", "than"]) {
+                return Ok(StaticCond::HandFewerThan(self.number()?));
+            }
             let n = self.number()?;
             self.expect_word("or")?;
             let at_most = if self.eat_word("less") {
@@ -3987,6 +4072,14 @@ impl P {
                 false
             };
             return Ok(StaticCond::YourLife { n, at_least });
+        }
+        // "As long as you control enchanted creature" (Mishra's
+        // Domination): the attached object is yours.
+        if self.eat_words(&["you", "control", "attached"]) {
+            return Ok(StaticCond::AttachedIs(Filter {
+                who: Some(Who::You),
+                ..Default::default()
+            }));
         }
         if self.eat_words(&["you", "control"]) {
             if matches!(self.peek(), Some(Tok::Num(1)))
@@ -9398,6 +9491,16 @@ impl P {
             }
             return Ok(CountExpr::SourcePower);
         }
+        // `difference 10 hand`: "the difference".
+        if self.at_word("difference") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            self.pos += 1;
+            let n = self.number()?;
+            let inner = self.count_expr()?;
+            return Ok(CountExpr::Difference {
+                n,
+                inner: Box::new(inner),
+            });
+        }
         // `plus 2 <expr>`: "2 plus the number of ...".
         if self.eat_word("plus") {
             let (n, word) = match self.next() {
@@ -10943,6 +11046,11 @@ impl P {
                 "that" if self.at_words(&["that", "attacked", "this", "turn"]) => {
                     f.status.attacked_this_turn = true;
                     self.pos += 4;
+                }
+                // "with toughness greater than its power".
+                "with" if self.at_words(&["with", "toughness", "greater", "than", "power"]) => {
+                    f.status.toughness_over_power = true;
+                    self.pos += 5;
                 }
                 "with"
                     if matches!(self.word_at(1).as_deref(), Some("power" | "toughness"))
@@ -13598,6 +13706,22 @@ fn other_target(spec: Target) -> Option<Target> {
         }),
         Target::Spec(TargetSpec::Artifact) => Target::Filter(Filter {
             types: vec![CardType::Artifact],
+            relation: Relation::Other,
+            ..Default::default()
+        }),
+        // "If this spell was kicked, destroy another target land."
+        Target::Spec(TargetSpec::Land) => Target::Filter(Filter {
+            types: vec![CardType::Land],
+            relation: Relation::Other,
+            ..Default::default()
+        }),
+        Target::Spec(TargetSpec::Enchantment) => Target::Filter(Filter {
+            types: vec![CardType::Enchantment],
+            relation: Relation::Other,
+            ..Default::default()
+        }),
+        Target::Spec(TargetSpec::CreatureOrPlaneswalker) => Target::Filter(Filter {
+            any_types: vec![CardType::Creature, CardType::Planeswalker],
             relation: Relation::Other,
             ..Default::default()
         }),

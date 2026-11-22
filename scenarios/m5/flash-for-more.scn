@@ -1,0 +1,48 @@
+# M5: "You may cast this spell as though it had flash if you pay {2} more
+# to cast it." (CR 601.2f): flash, and {2} more, while a sorcery couldn't
+# be cast.
+
+scenario "flash for more: on an opponent's turn for {2} more" {
+  battlefield A: "Plains", "Plains", "Plains", "Plains", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Mystical Tether"
+  start turn 2 B
+  turn 2 precombat_main A: cast "Mystical Tether"
+  turn 2 precombat_main A: trigger "Mystical Tether" targeting "Hill Giant"
+  run_to turn 2 end
+  assert battlefield A contains "Mystical Tether"
+  assert exile B contains "Hill Giant"
+}
+
+scenario "flash for more: not without the {2}" {
+  battlefield A: "Plains", "Plains", "Plains", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Mystical Tether"
+  start turn 2 B
+  illegal turn 2 precombat_main A: cast "Mystical Tether"
+  run_to turn 2 end
+  assert hand A contains "Mystical Tether"
+}
+
+scenario "flash for more: in your main phase, the printed cost" {
+  battlefield A: "Plains", "Plains", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Mystical Tether"
+  turn 1 A: cast "Mystical Tether"
+  turn 1 A: trigger "Mystical Tether" targeting "Hill Giant"
+  run_to turn 1 end
+  assert exile B contains "Hill Giant"
+}
+
+scenario "flash for more: a creature on the opponent's turn" {
+  battlefield A: "Island", "Island", "Island", "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Harbinger of the Tides"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 end A: cast "Harbinger of the Tides"
+  turn 2 end A: accept "Harbinger of the Tides"
+  run_to turn 3 upkeep
+  assert battlefield A contains "Harbinger of the Tides"
+  assert hand B contains "Hill Giant"
+}

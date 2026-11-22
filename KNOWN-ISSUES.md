@@ -32,7 +32,9 @@ wrong thing in some case.
 - **Engine-picks-for-player approximations.** Forage as a cost (exiles
   the three oldest graveyard cards, else sacrifices a Food); "Remove a
   counter from this creature" of any kind (-1/-1 counters first, then
-  kinds that don't change power or toughness, then the rest); several
+  kinds that don't change power or toughness, then the rest); the second
+  land of "Kicker—Sacrifice two lands" (Bog Down), the
+  first other matching permanent, which may be an untapped land; several
   mechanics from the first wave have the engine choose where the player
   should.
 - **Token copy of a creature that has died before its enters trigger
@@ -244,6 +246,18 @@ named the feature; a card may need more than one.
   hexproof"); "flash if you pay {2} more"; copying a card and casting
   the copy; choose a number, a card name, odd or even; piles; haunt,
   amplify, sweep, devour, tribute, cleave, champion, reconfigure.
+- **Left by the sixth wave's counts branch:** restricted mana of more
+  than one symbol or added by an effect (about 40 cards: Great Hall of
+  the Citadel, Resonating Lute, Eldrazi Temple, Boommobile; restricted
+  mana is spent as its source is tapped and never sits in the pool, so a
+  two-mana restricted ability needs the pool to keep restricted mana);
+  "half their library", "half the cards in their hand", "half the
+  permanents they control" (no count of a player's library; Cut Your
+  Losses, Curse of the Cabal, Lord Xander); "deals twice that much damage
+  instead" (Chocobo Kick) and "it deals 3 damage to another target"
+  (Magma Burst) after kicker, wording only; "Then if it has no oil
+  counters on it" (Evolved Spinoderm, which the `otherwise` form
+  otherwise covers).
 - **A cost of "sacrifice six creatures named this"** is never offered
   (Shadowborn Apostle, not added).
 - **Mechanics not yet in:** tiered, devour, harness, hideaway, mutate,

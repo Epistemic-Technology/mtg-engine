@@ -1,0 +1,135 @@
+# M5: "Otherwise, ..." after a conditional static ability (CR 611.3a):
+# the second effect applies to the same objects while the condition
+# doesn't hold.
+
+scenario "otherwise: a Vampire gets +2/+2" {
+  battlefield A: "Vampire Interloper", "Gift of Fangs" on "Vampire Interloper"
+  assert power "Vampire Interloper" 4
+  assert toughness "Vampire Interloper" 3
+}
+
+scenario "otherwise: anything else gets -2/-2" {
+  battlefield A: "Hill Giant", "Gift of Fangs" on "Hill Giant"
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+}
+
+scenario "otherwise: -2/-2 kills a 2/2" {
+  battlefield A: "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Gift of Fangs"
+  turn 1 A: cast "Gift of Fangs" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Gift of Fangs"
+}
+
+scenario "otherwise: an enchantment creature gets +2/+2" {
+  battlefield A: "Nyx-Fleece Ram", "Nyx Infusion" on "Nyx-Fleece Ram"
+  battlefield B: "Hill Giant", "Nyx Infusion" on "Hill Giant"
+  assert power "Nyx-Fleece Ram" 2
+  assert toughness "Nyx-Fleece Ram" 7
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+}
+
+scenario "otherwise: your own creature gets +2/+2 and may block" {
+  battlefield A: "Grizzly Bears", "Mishra's Domination" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 end
+  assert power "Grizzly Bears" 4
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "otherwise: an opponent's creature can't block" {
+  battlefield A: "Hill Giant", "Mishra's Domination" on "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 17
+  assert power "Grizzly Bears" 2
+}
+
+scenario "otherwise: deathtouch during your turn" {
+  battlefield A: "Grizzly Bears", "Hunter's Blowgun" on "Grizzly Bears"
+  battlefield B: "Craw Wurm"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Craw Wurm"
+  run_to turn 1 end
+  assert graveyard B contains "Craw Wurm"
+}
+
+scenario "otherwise: no reach during your turn" {
+  battlefield A: "Grizzly Bears", "Hunter's Blowgun" on "Grizzly Bears"
+  assert has "Grizzly Bears" deathtouch
+  assert has not "Grizzly Bears" reach
+}
+
+scenario "otherwise: reach on other turns" {
+  battlefield A: "Grizzly Bears", "Hunter's Blowgun" on "Grizzly Bears"
+  start turn 2 B
+  assert has "Grizzly Bears" reach
+  assert has not "Grizzly Bears" deathtouch
+  assert power "Grizzly Bears" 3
+}
+
+scenario "otherwise: a Detective you control gets +2/+2" {
+  battlefield A: "Basilica Stalker", "Burden of Proof" on "Basilica Stalker"
+  assert power "Basilica Stalker" 5
+  assert toughness "Basilica Stalker" 6
+}
+
+scenario "otherwise: another creature is 1/1 and can't block Detectives" {
+  battlefield A: "Basilica Stalker"
+  battlefield B: "Hill Giant", "Burden of Proof" on "Hill Giant"
+  turn 1 A: attack "Basilica Stalker"
+  illegal turn 1 B: block "Basilica Stalker" with "Hill Giant"
+  run_to turn 1 end
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+  assert life B 17
+}
+
+scenario "otherwise: a Human gets +2/+2, anything else can't attack" {
+  battlefield A: "Elite Vanguard", "Bonds of Faith" on "Elite Vanguard", "Hill Giant", "Bonds of Faith" on "Hill Giant"
+  turn 1 A: attack "Elite Vanguard"
+  illegal turn 1 A: attack "Hill Giant"
+  run_to turn 1 end
+  assert power "Elite Vanguard" 4
+  assert power "Hill Giant" 3
+  assert life B 16
+}
+
+scenario "otherwise: black gets +2/+1, others -1/-2" {
+  battlefield A: "Walking Corpse", "Phyrexian Boon" on "Walking Corpse", "Hill Giant", "Phyrexian Boon" on "Hill Giant"
+  assert power "Walking Corpse" 4
+  assert toughness "Walking Corpse" 3
+  assert power "Hill Giant" 2
+  assert toughness "Hill Giant" 1
+}
+
+scenario "otherwise: a Zombie gets +3/+3, others -3/-3" {
+  battlefield A: "Walking Corpse", "Clutch of Undeath" on "Walking Corpse", "Craw Wurm", "Clutch of Undeath" on "Craw Wurm"
+  assert power "Walking Corpse" 5
+  assert power "Craw Wurm" 3
+  assert toughness "Craw Wurm" 1
+}
+
+scenario "otherwise: a Pirate gets +0/+2, others -2/-0" {
+  battlefield A: "Bigfin Bouncer", "Sea Legs" on "Bigfin Bouncer", "Hill Giant", "Sea Legs" on "Hill Giant"
+  assert toughness "Bigfin Bouncer" 4
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 3
+}
+
+scenario "otherwise: white gets +1/+2, others -2/-1" {
+  battlefield A: "Savannah Lions", "Serra's Boon" on "Savannah Lions", "Hill Giant", "Serra's Boon" on "Hill Giant"
+  assert power "Savannah Lions" 3
+  assert toughness "Savannah Lions" 3
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 2
+}

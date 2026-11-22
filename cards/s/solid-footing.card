@@ -1,0 +1,9 @@
+card "Solid Footing" {
+  oracle_id edc91e1a-a305-4c14-9d85-077a410528fa
+  cost {W}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +1/+1
+  static as long as attached is with vigilance, enchanted: has assigns combat damage equal to toughness
+}

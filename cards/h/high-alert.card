@@ -1,0 +1,8 @@
+card "High Alert" {
+  oracle_id 5f657279-cc0f-4431-b517-47bd1c7109b6
+  cost {1}{W}{U}
+  type Enchantment
+  static each creature you control: has assigns combat damage equal to toughness
+  static creature you control: has can attack as though it didn't have defender
+  activated {2}{W}{U}: untap target creature
+}

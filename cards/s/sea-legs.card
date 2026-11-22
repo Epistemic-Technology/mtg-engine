@@ -1,0 +1,8 @@
+card "Sea Legs" {
+  oracle_id 2e66dc2f-44f3-44f1-8ed7-7f991b3718be
+  cost {U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +0/+2 as long as attached is Pirate otherwise -2/-0
+}

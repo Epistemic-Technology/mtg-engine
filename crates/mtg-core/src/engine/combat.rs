@@ -801,7 +801,7 @@ impl GameState {
                 continue;
             }
             let c = self.characteristics(a.id).expect("attacker exists");
-            let power = u32::try_from(c.power).unwrap_or(0);
+            let power = combat_damage_of(&c);
             if power == 0 {
                 continue;
             }
@@ -853,9 +853,7 @@ impl GameState {
             {
                 continue;
             }
-            let power = self
-                .characteristics(*b)
-                .map_or(0, |c| u32::try_from(c.power).unwrap_or(0));
+            let power = self.characteristics(*b).map_or(0, |c| combat_damage_of(&c));
             if power == 0 {
                 continue;
             }
@@ -905,7 +903,7 @@ impl GameState {
         let attackers = self.live_blocked_by(combat, blocker);
         let power = self
             .characteristics(blocker)
-            .map_or(0, |c| u32::try_from(c.power).unwrap_or(0));
+            .map_or(0, |c| combat_damage_of(&c));
         let n = attackers.len();
         let mut out = Vec::new();
         let mut current = vec![0u32; n];
@@ -952,7 +950,7 @@ impl GameState {
             return self.blocker_divisions(attacker);
         };
         let c = self.characteristics(attacker).expect("attacker exists");
-        let power = u32::try_from(c.power).unwrap_or(0);
+        let power = combat_damage_of(&c);
         let trample = c.has(Keyword::Trample);
         let blockers: Vec<ObjId> = a
             .blockers
@@ -1183,4 +1181,16 @@ mod tests {
         assert_eq!(block_choices(2, 1), 3);
         assert_eq!(block_choices(3, usize::MAX), 8);
     }
+}
+
+/// The combat damage a creature assigns (CR 510.1a): its power, or its
+/// toughness for "assigns combat damage equal to its toughness rather than
+/// its power".
+fn combat_damage_of(c: &crate::state::Characteristics) -> u32 {
+    let n = if c.has(Keyword::AssignsToughness) {
+        c.toughness
+    } else {
+        c.power
+    };
+    u32::try_from(n).unwrap_or(0)
 }

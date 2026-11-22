@@ -1,0 +1,8 @@
+card "Bedrock Tortoise" {
+  oracle_id d9c2e674-11a9-47f0-8790-a53b62c43fe6
+  cost {3}{G}
+  type Creature — Turtle
+  pt 0/6
+  static during your turn, creature you control: has hexproof
+  static each creature you control with toughness greater than power: has assigns combat damage equal to toughness
+}

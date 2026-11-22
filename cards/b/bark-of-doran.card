@@ -1,0 +1,8 @@
+card "Bark of Doran" {
+  oracle_id db3ba239-2239-4e9d-ad70-cff32ed24578
+  cost {1}{W}
+  type Artifact — Equipment
+  static equipped: +0/+1
+  static as long as attached is with toughness greater than power, equipped: has assigns combat damage equal to toughness
+  equip {1}
+}

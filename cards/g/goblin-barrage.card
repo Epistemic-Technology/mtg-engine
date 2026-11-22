@@ -1,0 +1,7 @@
+card "Goblin Barrage" {
+  oracle_id 0071723e-388d-4ae7-bc99-c143dd356c63
+  cost {3}{R}
+  type Sorcery
+  kicker sacrifice artifact or Goblin
+  spell: deal 4 damage to target creature; if kicked, also deal 4 damage to target player or planeswalker
+}

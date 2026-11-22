@@ -1,0 +1,8 @@
+card "Burden of Proof" {
+  oracle_id d1767573-713d-4f63-a09d-e94150655093
+  cost {1}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +2/+2 as long as attached is Detective you control otherwise base 1/1, has ability { can't block Detective }
+}

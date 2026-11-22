@@ -1,0 +1,8 @@
+card "Arctic Merfolk" {
+  oracle_id c56671e1-28a6-40c3-bad5-b5e617ddb7da
+  cost {1}{U}
+  type Creature — Merfolk
+  pt 1/1
+  kicker return creature you control
+  kicked with 1 +1/+1 counters
+}

@@ -114,7 +114,12 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
         kicked_drops: def.kicked_drops.map(usize::from),
         cast_only: def.cast_only.map(|c| d.static_cond(pool.condition(c))),
         cast_only_cant: false,
-        kicker: def.kicker.as_deref().cloned(),
+        kicker: def
+            .kicker
+            .as_deref()
+            .filter(|_| def.kicker_cost.is_none())
+            .cloned(),
+        kicker_cost: def.kicker_cost.as_deref().map(|c| d.cost(c)),
         kicker_targets: def.kicker_targets,
         flashback: def.flashback.as_ref().map(|c| d.cost(c)),
         groups: pool.filters().iter().map(|f| d.filter(f)).collect(),
@@ -567,6 +572,12 @@ impl Decompiler<'_> {
                 at_least: *at_least,
                 wording: crate::ast::GraveyardWording::ThereAre,
             },
+            // Only "flash if you pay {2} more" negates sorcery timing.
+            StaticCondition::Not(a) if **a == StaticCondition::SorceryTiming => {
+                StaticCond::FlashPay(2)
+            }
+            StaticCondition::SorceryTiming => StaticCond::Not(Box::new(StaticCond::FlashPay(2))),
+            StaticCondition::Not(a) => StaticCond::Not(Box::new(self.static_cond(a))),
             StaticCondition::Or(a, b) => {
                 StaticCond::Or(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
             }
@@ -2217,9 +2228,10 @@ impl Decompiler<'_> {
                 negated: *negated,
             },
             AbilityDef::Toxic(n) => Ability::Mechanic(crate::ast::Mechanic::Toxic(*n)),
-            AbilityDef::HandSize { whose, delta } => Ability::HandSize {
+            AbilityDef::HandSize { whose, delta, set } => Ability::HandSize {
                 whose: *whose,
                 delta: *delta,
+                set: *set,
             },
             AbilityDef::ExtraVote { optional } => Ability::ExtraVote {
                 optional: *optional,
@@ -2499,6 +2511,7 @@ impl Decompiler<'_> {
                 condition: s.condition.as_ref().map(|c| self.static_cond(c)),
                 cond_first: false,
                 cond_if: false,
+                otherwise: Vec::new(),
             },
             AbilityDef::EntersAsCopy(f) => Ability::EntersAsCopy(self.filter(f)),
             AbilityDef::AsEntersChoose(k) => Ability::AsEntersChoose {

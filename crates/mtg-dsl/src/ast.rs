@@ -179,6 +179,9 @@ pub struct Card {
     pub cast_only_cant: bool,
     /// `kicker {R}` (CR 702.33).
     pub kicker: Option<ManaCost>,
+    /// `kicker sacrifice 2 land`: "Kicker—Sacrifice two lands." (CR
+    /// 702.33a), a kicker cost other than mana.
+    pub kicker_cost: Option<Cost>,
     /// The spell's targets from this index on are declared in its `if
     /// kicked, ...` and chosen only if it is kicked (CR 601.2c); set by
     /// the parser, never written.
@@ -239,6 +242,7 @@ impl Card {
             cast_only: None,
             cast_only_cant: false,
             kicker: None,
+            kicker_cost: None,
             kicker_targets: None,
             flashback: None,
             groups: Vec::new(),
@@ -329,6 +333,12 @@ pub enum CountExpr {
     Plus {
         n: u32,
         word: bool,
+        inner: Box<CountExpr>,
+    },
+    /// `difference 10 hand`: `n` minus the count, at least 0, printed
+    /// "the difference" (after "if you have fewer than ten cards in hand").
+    Difference {
+        n: u32,
         inner: Box<CountExpr>,
     },
     /// `enchantment destroyed this way`, `discarded this way`: what the
@@ -1211,6 +1221,10 @@ pub enum Ability {
         /// creature can't be blocked if you've cast a historic spell this
         /// turn.") rather than "as long as".
         cond_if: bool,
+        /// `... as long as <cond> otherwise -2/-2`: "Otherwise, it gets
+        /// -2/-2." (CR 611.3a), what applies to the same objects while the
+        /// condition doesn't hold. Empty without a condition.
+        otherwise: Vec<Mod>,
     },
     EntersAsCopy(Filter),
     /// `as this enters choose color`: "As this land enters, choose a
@@ -1366,6 +1380,8 @@ pub enum Ability {
     HandSize {
         whose: Who,
         delta: Option<i32>,
+        /// `hand size 8`: "Your maximum hand size is eight."
+        set: bool,
     },
     /// `extra vote`: "While voting, you get an additional vote."; `extra
     /// vote may`: "While voting, you may vote an additional time." (CR
@@ -2134,6 +2150,17 @@ pub enum StaticCond {
     /// `you control Desert or there is Desert card in your graveyard`:
     /// either holds.
     Or(Box<StaticCond>, Box<StaticCond>),
+    /// The other doesn't hold: written only as a static ability's
+    /// `otherwise` (`static enchanted: +2/+2 as long as attached is Vampire
+    /// otherwise -2/-2`).
+    Not(Box<StaticCond>),
+    /// `flash if pay {2} more`: "You may cast this spell as though it had
+    /// flash if you pay {2} more to cast it." (flash, and the cost, while
+    /// a sorcery couldn't be cast).
+    FlashPay(u8),
+    /// `hand fewer than 10`: "you have fewer than ten cards in hand" (nine
+    /// or fewer).
+    HandFewerThan(u32),
     /// `if this is that entered this turn or if you control basic land`
     /// (an activation condition): either holds, printed "... or if ...".
     OrIf(Box<StaticCond>, Box<StaticCond>),

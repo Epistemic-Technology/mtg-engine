@@ -1,0 +1,8 @@
+card "Streetwise Negotiator" {
+  oracle_id 74b631c5-9420-496e-8845-3b050d3d5340
+  cost {1}{G}
+  type Creature — Cat Citizen
+  pt 0/2
+  backup 1
+  keyword assigns combat damage equal to toughness
+}

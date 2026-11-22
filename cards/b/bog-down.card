@@ -1,0 +1,7 @@
+card "Bog Down" {
+  oracle_id 8574f57a-768d-42a0-ac8c-cc0a1de181e0
+  cost {2}{B}
+  type Sorcery
+  kicker sacrifice 2 land
+  spell: target player discards 2 cards; if kicked, that target 1 discards 3 cards instead
+}

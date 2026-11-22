@@ -4597,6 +4597,17 @@ impl Builder<'_> {
             self.statements.push(format!("kicker {}", cap(&c, 1)));
             return Ok(());
         }
+        // CR 702.33a: "Kicker—Sacrifice a creature.", "Kicker—{2}{R}, Sacrifice a
+        // land." (no {T}).
+        if let Some(c) = line
+            .strip_prefix("Kicker\u{2014}")
+            .and_then(|r| r.strip_suffix('.'))
+            .filter(|r| !r.contains("{T}"))
+            .and_then(cost_text)
+        {
+            self.statements.push(format!("kicker {c}"));
+            return Ok(());
+        }
         if let Some(c) = Regex::new(r"^Flashback ((?:\{[0-9XWUBRGC]+\})+)$")
             .unwrap()
             .captures(line)
@@ -4979,6 +4990,63 @@ impl Builder<'_> {
                 .ok_or_else(|| Skip::Sentence(line.to_string()))?;
             let named = if cap(&c, 1) == "~" { " named" } else { "" };
             self.statements.push(format!("static paired{named}: {rest}"));
+            return Ok(());
+        }
+        // "You may cast this spell as though it had flash if you pay {2}
+        // more to cast it."
+        if let Some(c) = Regex::new(
+            r"^You may cast this spell as though it had flash if you pay \{(\d+)\} more to cast it\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            self.statements.push(format!("flash if pay {{{}}} more", cap(&c, 1)));
+            return Ok(());
+        }
+        // CR 510.1a: "Each creature you control [with toughness greater
+        // than its power] assigns combat damage equal to its toughness
+        // rather than its power."
+        if let Some(c) = Regex::new(
+            r"^(Each creature|Each creature you control|This creature)( with toughness greater than its power)? assigns combat damage equal to its toughness rather than its power\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let who = match cap(&c, 1) {
+                "Each creature" => "each creature",
+                "This creature" => "this",
+                _ => "each creature you control",
+            };
+            let with = if c.get(2).is_some() {
+                " with toughness greater than power"
+            } else {
+                ""
+            };
+            self.statements.push(format!(
+                "static {who}{with}: has assigns combat damage equal to toughness"
+            ));
+            return Ok(());
+        }
+        // CR 611.3a: "Enchanted creature gets +2/+2 as long as it's a
+        // Vampire. Otherwise, it gets -2/-2."
+        if let Some(c) = Regex::new(
+            r"^Enchanted creature gets ([+-]\d+/[+-]\d+) as long as it's (?:an? )?([A-Za-z]+)\. Otherwise, it (.+)\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let made = self
+                .quoted(&format!("Enchanted creature {}.", cap(&c, 3)))
+                .ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            let rest = made
+                .strip_prefix("static enchanted: ")
+                .filter(|r| !r.contains(" as long as ") && !r.contains(" if "))
+                .ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            self.statements.push(format!(
+                "static enchanted: {} as long as attached is {} otherwise {rest}",
+                cap(&c, 1),
+                cap(&c, 2)
+            ));
             return Ok(());
         }
         // CR 702.44a.

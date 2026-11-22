@@ -1,0 +1,117 @@
+# M5: "assigns combat damage equal to its toughness rather than its
+# power" (CR 510.1a), and the filter "with toughness greater than its
+# power".
+
+scenario "toughness damage: an unblocked 0/5 deals 5" {
+  battlefield A: "Doran, the Siege Tower"
+  turn 1 A: attack "Doran, the Siege Tower"
+  run_to turn 1 end
+  assert life B 15
+}
+
+scenario "toughness damage: each creature, a blocker too" {
+  battlefield A: "Doran, the Siege Tower", "Hill Giant"
+  battlefield B: "Wall of Stone"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Wall of Stone"
+  run_to turn 1 end
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "toughness damage: your creatures only" {
+  battlefield A: "Belligerent Brontodon", "Wall of Stone"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 end
+  assert life A 17
+}
+
+scenario "toughness damage: an Aura's +0/+2 counts" {
+  battlefield A: "Grizzly Bears", "Treefolk Umbra" on "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 16
+}
+
+scenario "toughness greater than power: only those creatures" {
+  battlefield A: "Bedrock Tortoise", "Hill Giant", "Wall of Stone"
+  battlefield B: "Craw Wurm"
+  start turn 2 B
+  turn 2 B: attack "Craw Wurm"
+  turn 2 A: block "Craw Wurm" with "Wall of Stone"
+  run_to turn 2 end
+  assert graveyard B contains "Craw Wurm"
+}
+
+scenario "toughness greater than power: a 3/3 deals its power" {
+  battlefield A: "Ancient Lumberknot", "Hill Giant"
+  turn 1 A: attack "Hill Giant", "Ancient Lumberknot"
+  run_to turn 1 end
+  assert life B 13
+}
+
+scenario "toughness damage: as long as the enchanted creature has vigilance" {
+  battlefield A: "Serra Angel", "Solid Footing" on "Serra Angel", "Grizzly Bears", "Solid Footing" on "Grizzly Bears"
+  turn 1 A: attack "Serra Angel", "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 12
+}
+
+scenario "toughness damage: a creature with backup assigns its toughness" {
+  battlefield A: "Forest", "Forest"
+  hand A: "Streetwise Negotiator"
+  battlefield A: "Horned Turtle"
+  turn 1 A: cast "Streetwise Negotiator"
+  turn 1 A: trigger "Streetwise Negotiator" targeting "Horned Turtle"
+  turn 1 A: attack "Horned Turtle"
+  run_to turn 1 end
+  assert life B 15
+}
+
+scenario "toughness damage: equipped while toughness is greater than power" {
+  battlefield A: "Horned Turtle", "Bark of Doran" on "Horned Turtle"
+  turn 1 A: attack "Horned Turtle"
+  run_to turn 1 end
+  assert life B 15
+}
+
+scenario "toughness damage: not when power is as great" {
+  battlefield A: "Craw Wurm", "Bark of Doran" on "Craw Wurm"
+  turn 1 A: attack "Craw Wurm"
+  run_to turn 1 end
+  assert life B 14
+}
+
+scenario "toughness damage: Gauntlets of Light and its untap" {
+  battlefield A: "Plains", "Plains", "Plains", "Grizzly Bears", "Gauntlets of Light" on "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main A: activate "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 16
+  assert untapped "Grizzly Bears"
+}
+
+scenario "toughness damage: a planeswalker gains the greatest toughness" {
+  battlefield A: "Huatli, the Sun's Heart", "Wall of Stone"
+  turn 1 A: activate "Huatli, the Sun's Heart"
+  run_to turn 1 end
+  assert life A 28
+}
+
+scenario "toughness damage: defenders attack and deal their toughness" {
+  battlefield A: "High Alert", "Wall of Stone"
+  turn 1 A: attack "Wall of Stone"
+  run_to turn 1 end
+  assert life B 12
+}
+
+scenario "toughness damage: Ghalta costs less and its defenders attack" {
+  battlefield A: "Plains", "Plains", "Wall of Stone"
+  hand A: "Ghalta the Immovable"
+  turn 1 A: cast "Ghalta the Immovable"
+  turn 1 A: attack "Wall of Stone"
+  run_to turn 1 end
+  assert battlefield A contains "Ghalta the Immovable"
+  assert life B 12
+}

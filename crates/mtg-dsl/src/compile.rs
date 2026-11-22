@@ -946,6 +946,12 @@ impl Compiler<'_> {
                 others_gain: a.others_gain,
             });
         }
+        // "... as though it had flash if you pay {2} more to cast it": the
+        // {2} too, while a sorcery couldn't be cast.
+        if let Some(StaticCond::FlashPay(n)) = &card.flash_if {
+            let c = self.static_cond(&StaticCond::FlashPay(*n));
+            b = b.cond_cost(i32::from(*n), self.pool.intern_condition(c));
+        }
         if let Some(c) = &card.flash_if {
             let c = self.static_cond(c);
             b = b.flash_if(self.pool.intern_condition(c));
@@ -965,6 +971,15 @@ impl Compiler<'_> {
         }
         if let Some(k) = &card.kicker {
             b = b.kicker(k.clone());
+        }
+        if let Some(c) = &card.kicker_cost {
+            if card.additional.is_some() || card.kicker.is_some() || c.tap {
+                return self.err(
+                    "a kicker cost other than mana has no {T}, and the card no additional cost",
+                );
+            }
+            let c = self.cost(c);
+            b = b.kicker_cost(c);
         }
         if let Some(n) = card.kicker_targets {
             b = b.kicker_targets(n);
@@ -1062,6 +1077,7 @@ impl Compiler<'_> {
                     condition: Some(cond.clone()),
                     cond_first: false,
                     cond_if: false,
+                    otherwise: Vec::new(),
                 };
                 b = b.ability(self.ability(&set)?);
                 band = Some(cond);
@@ -1076,6 +1092,7 @@ impl Compiler<'_> {
                         condition: Some(cond.clone()),
                         cond_first: false,
                         cond_if: false,
+                        otherwise: Vec::new(),
                     })?
                 } else {
                     let compiled = self.ability(a)?;
@@ -1094,6 +1111,7 @@ impl Compiler<'_> {
                             condition: Some(cond.clone()),
                             cond_first: false,
                             cond_if: false,
+                            otherwise: Vec::new(),
                         })?
                     }
                 };
@@ -1202,6 +1220,25 @@ impl Compiler<'_> {
             }
             let compiled = self.ability(a)?;
             b = b.ability(compiled);
+            // "Otherwise, it gets -2/-2." (CR 611.3a): a second static
+            // ability on the same objects while the condition doesn't hold.
+            if let Ability::Static {
+                filter,
+                condition: Some(c),
+                otherwise,
+                ..
+            } = a
+                && !otherwise.is_empty()
+            {
+                b = b.ability(self.ability(&Ability::Static {
+                    filter: filter.clone(),
+                    mods: otherwise.clone(),
+                    condition: Some(StaticCond::Not(Box::new(c.clone()))),
+                    cond_first: false,
+                    cond_if: false,
+                    otherwise: Vec::new(),
+                })?);
+            }
             // "Equip—Pay {3} or discard a card.": the second equip ability.
             if let Ability::EquipOr { other, targets, .. } = a {
                 b = b.ability(self.ability(&equip_ability((**other).clone(), targets))?);
@@ -1884,6 +1921,10 @@ impl Compiler<'_> {
             StaticCond::LandEnteredThisTurn => StaticCondition::LandEnteredThisTurn,
             StaticCond::ArtifactEnteredThisTurn => StaticCondition::ArtifactEnteredThisTurn,
             StaticCond::CardsDrawnThisTurn(n) => StaticCondition::CardsDrawnThisTurn(*n),
+            StaticCond::HandFewerThan(n) => StaticCondition::CardsInHand {
+                n: n.saturating_sub(1),
+                at_most: true,
+            },
             StaticCond::CardsInHand { n, at_most } => StaticCondition::CardsInHand {
                 n: *n,
                 at_most: *at_most,
@@ -1895,6 +1936,10 @@ impl Compiler<'_> {
                 filter: self.filter(filter),
                 at_least: *at_least,
             },
+            StaticCond::Not(a) => StaticCondition::Not(Box::new(self.static_cond(a))),
+            StaticCond::FlashPay(_) => {
+                StaticCondition::Not(Box::new(StaticCondition::SorceryTiming))
+            }
             StaticCond::Or(a, b) | StaticCond::OrIf(a, b) => {
                 StaticCondition::Or(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
             }
@@ -2048,6 +2093,7 @@ impl Compiler<'_> {
                 C::CardsInAllGraveyards(filter.as_ref().map(|f| self.filter(f)))
             }
             A::Plus { n, inner, .. } => C::Plus(*n, Box::new(self.count_expr(inner))),
+            A::Difference { n, inner } => C::Difference(*n, Box::new(self.count_expr(inner))),
             A::ThisWay { verb, filter } => {
                 C::ThisWay(*verb, filter.as_ref().map(|f| self.filter(f)))
             }
@@ -5368,9 +5414,10 @@ impl Compiler<'_> {
                     return self.ability(&expanded);
                 }
             },
-            Ability::HandSize { whose, delta } => AbilityDef::HandSize {
+            Ability::HandSize { whose, delta, set } => AbilityDef::HandSize {
                 whose: *whose,
                 delta: *delta,
+                set: *set,
             },
             // CR 721.2a-b: "As long as this permanent has N or more charge
             // counters on it, it has [abilities] and is a creature with
@@ -5431,6 +5478,7 @@ impl Compiler<'_> {
                     }),
                     cond_first: false,
                     cond_if: false,
+                    otherwise: Vec::new(),
                 });
             }
             Ability::ExtraVote { optional } => AbilityDef::ExtraVote {

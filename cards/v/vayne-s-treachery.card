@@ -1,0 +1,7 @@
+card "Vayne's Treachery" {
+  oracle_id 93af8f9d-6877-4cb8-a744-c89186db22e1
+  cost {1}{B}
+  type Instant
+  kicker sacrifice artifact or creature
+  spell: target creature gets -2/-2; if kicked, that target 1 gets -6/-6 instead
+}

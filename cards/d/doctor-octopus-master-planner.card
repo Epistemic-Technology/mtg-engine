@@ -1,0 +1,9 @@
+card "Doctor Octopus, Master Planner" {
+  oracle_id 2fecfbef-e521-4025-94ea-451c9abde3de
+  cost {5}{U}{B}
+  type Legendary Creature — Human Scientist Villain
+  pt 4/8
+  static other Villain you control: +2/+2
+  hand size 8
+  triggered at beginning of your end step if hand fewer than 8: draw count equal difference 8 hand cards
+}

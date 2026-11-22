@@ -1,0 +1,7 @@
+card "Mystical Tether" {
+  oracle_id fb1a6986-39f7-4592-9039-7e30f5ccd009
+  cost {2}{W}
+  type Enchantment
+  flash if pay {2} more
+  triggered when this enters: exile target artifact or creature an opponent controls until this leaves
+}

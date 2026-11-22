@@ -1,0 +1,7 @@
+card "Doran, the Siege Tower" {
+  oracle_id a46d96d9-8e59-4777-8208-7730b9e33240
+  cost {W}{B}{G}
+  type Legendary Creature — Treefolk Shaman
+  pt 0/5
+  static each creature: has assigns combat damage equal to toughness
+}

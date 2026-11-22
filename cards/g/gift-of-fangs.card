@@ -1,0 +1,7 @@
+card "Gift of Fangs" {
+  oracle_id 901f0a8f-7462-4970-8d21-265c8c0188e6
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2 as long as attached is Vampire otherwise -2/-2
+}

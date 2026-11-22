@@ -3096,7 +3096,9 @@ impl GameState {
         for id in &self.battlefield {
             let o = &self.objects[*id];
             for a in &self.pool.get(o.def).ability_ids {
-                if let crate::card::AbilityDef::HandSize { whose, delta } = self.pool.ability(*a) {
+                if let crate::card::AbilityDef::HandSize { whose, delta, set } =
+                    self.pool.ability(*a)
+                {
                     let applies = match whose {
                         crate::card::Who::Any => true,
                         crate::card::Who::You => o.controller == p,
@@ -3105,6 +3107,8 @@ impl GameState {
                     if applies {
                         match delta {
                             None => return usize::MAX,
+                            // "Your maximum hand size is eight."
+                            Some(d) if *set => n = i64::from(*d),
                             Some(d) => n += i64::from(*d),
                         }
                     }

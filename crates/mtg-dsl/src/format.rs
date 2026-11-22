@@ -148,6 +148,9 @@ fn format_inner(card: &Card) -> String {
     if let Some(k) = &card.kicker {
         let _ = writeln!(out, "  kicker {k}");
     }
+    if let Some(c) = &card.kicker_cost {
+        let _ = writeln!(out, "  kicker {}", cost_text(c));
+    }
     if let Some(c) = &card.flashback {
         let _ = writeln!(out, "  flashback {}", cost_text(c));
     }
@@ -2808,6 +2811,9 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::Divided { by, inner, .. } => {
             format!("every {by} {}", count_expr_text(inner))
         }
+        CountExpr::Difference { n, inner } => {
+            format!("difference {n} {}", count_expr_text(inner))
+        }
         CountExpr::Plus { n, word, inner } => {
             let n = if *word {
                 crate::render::NUMBER_WORDS
@@ -3336,6 +3342,9 @@ fn filter_one(f: &Filter) -> String {
         && f.not_types != [mtg_core::card::CardType::Land]
     {
         words.push("permanent".to_string());
+    }
+    if f.status.toughness_over_power {
+        words.push("with toughness greater than power".to_string());
     }
     for (name, v) in [("power", f.power), ("toughness", f.toughness)] {
         if let Some((cmp, n)) = v {
@@ -4728,6 +4737,8 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::SourceCounters { kind, n, at_least } => {
             if *at_least {
                 format!("this has {n} or more {} counters", kind.name())
+            } else if *n > 0 {
+                format!("this has {n} or fewer {} counters", kind.name())
             } else {
                 format!("this has no {} counters", kind.name())
             }
@@ -4893,6 +4904,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::CardsInHand { n, at_most } => {
             format!("hand {n} or {}", if *at_most { "less" } else { "more" })
         }
+        StaticCond::HandFewerThan(n) => format!("hand fewer than {n}"),
         StaticCond::NoCardInHand(f) => format!("hand has no {} card", filter(f)),
         StaticCond::YourLife { n, at_least } => {
             format!(
@@ -4917,7 +4929,10 @@ fn static_cond(c: &StaticCond) -> String {
                 W::IsIn => format!("1 {} card is in your graveyard", filter(fl)),
             }
         }
-        StaticCond::Or(a, b) => format!("{} or {}", static_cond(a), static_cond(b)),
+        StaticCond::Or(a, b) => format!("either {} else {}", static_cond(a), static_cond(b)),
+        // Only an `otherwise` (`Ability::Static`) writes it.
+        StaticCond::Not(a) => static_cond(a),
+        StaticCond::FlashPay(n) => format!("pay {{{n}}} more"),
         StaticCond::OrIf(a, b) => format!("{} or if {}", static_cond(a), static_cond(b)),
         StaticCond::OpponentGraveyard(n) => format!("opponent graveyard {n} or more"),
         StaticCond::ManaValuesInGraveyard(n) => format!("{n} mana values in your graveyard"),
@@ -4935,6 +4950,15 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::AttackingAlone => "attacking alone".to_string(),
         StaticCond::Blocked => "blocked".to_string(),
         StaticCond::BeingBlocked => "being blocked".to_string(),
+        StaticCond::AttachedIs(fl)
+            if *fl
+                == (Filter {
+                    who: Some(Who::You),
+                    ..Default::default()
+                }) =>
+        {
+            "you control attached".to_string()
+        }
         StaticCond::AttachedIs(fl) => format!("attached is {}", filter(fl)),
         StaticCond::DrawnThisTurn(n) => format!("drew {n} this turn"),
         StaticCond::CastThisTurn {
@@ -5398,19 +5422,41 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             condition,
             cond_first,
             cond_if,
+            otherwise,
         } => {
-            let mods = mods
-                .iter()
-                .map(|m| match m {
-                    Mod::AddAbility(a) => match granted_mechanic(a) {
-                        Some(m) => format!("has {m}"),
-                        None => format!("has ability {{ {} }}", nested(a, groups)),
-                    },
-                    other => modification(other),
-                })
-                .collect::<Vec<_>>()
-                .join(", ");
+            let list = |mods: &[Mod]| {
+                mods.iter()
+                    .map(|m| match m {
+                        Mod::AddAbility(a) => match granted_mechanic(a) {
+                            Some(m) => format!("has {m}"),
+                            None => format!("has ability {{ {} }}", nested(a, groups)),
+                        },
+                        other => modification(other),
+                    })
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            };
+            let mut mods = list(mods);
+            // "Otherwise, it gets -2/-2.": after the condition, whichever
+            // way it is written.
+            let tail = if otherwise.is_empty() {
+                String::new()
+            } else {
+                format!(" otherwise {}", list(otherwise))
+            };
             match condition {
+                Some(StaticCond::DuringYourTurn) if !*cond_first => {
+                    let _ = writeln!(
+                        out,
+                        "{indent}static {}: {mods} during your turn{tail}",
+                        filter(fl)
+                    );
+                }
+                Some(_) if *cond_first => mods.push_str(&tail),
+                _ => {}
+            }
+            match condition {
+                Some(StaticCond::DuringYourTurn) if !*cond_first => {}
                 Some(StaticCond::DuringYourTurn) => {
                     let _ = writeln!(
                         out,
@@ -5436,7 +5482,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Some(c) => {
                     let _ = writeln!(
                         out,
-                        "{indent}static {}: {mods} {} {}",
+                        "{indent}static {}: {mods} {} {}{tail}",
                         filter(fl),
                         if *cond_if { "if" } else { "as long as" },
                         static_cond(c)
@@ -5912,7 +5958,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 if *optional { " may" } else { "" }
             );
         }
-        Ability::HandSize { whose, delta } => {
+        Ability::HandSize { whose, delta, set } => {
             let who = if *whose == Who::Opponents {
                 " opponents"
             } else {
@@ -5920,6 +5966,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             };
             let d = match delta {
                 None => "none".to_string(),
+                Some(n) if *set => n.to_string(),
                 Some(n) => format!("{n:+}"),
             };
             let _ = writeln!(out, "{indent}hand size{who} {d}");

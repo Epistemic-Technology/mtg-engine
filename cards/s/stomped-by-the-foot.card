@@ -1,0 +1,7 @@
+card "Stomped by the Foot" {
+  oracle_id 10185447-a13f-40d8-a8b6-39ce801f2fc0
+  cost {1}{B}
+  type Instant
+  kicker sacrifice artifact or creature
+  spell: target creature gets -2/-2; if kicked, that target 1 gets -5/-5 instead
+}

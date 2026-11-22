@@ -400,7 +400,10 @@ fn pass(
 
 /// Whether a filter looks at power or toughness.
 fn filter_reads_pt(f: &ObjFilter) -> bool {
-    f.power.is_some() || f.toughness.is_some() || f.or.as_deref().is_some_and(filter_reads_pt)
+    f.power.is_some()
+        || f.toughness.is_some()
+        || f.status.toughness_over_power
+        || f.or.as_deref().is_some_and(filter_reads_pt)
 }
 
 /// Whether a condition looks at power or toughness.
@@ -420,6 +423,7 @@ fn condition_reads_pt(cond: &StaticCondition) -> bool {
         StaticCondition::And(a, b) | StaticCondition::Or(a, b) => {
             condition_reads_pt(a) || condition_reads_pt(b)
         }
+        StaticCondition::Not(a) => condition_reads_pt(a),
         _ => false,
     }
 }
@@ -597,6 +601,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         StaticCondition::Or(a, b) => {
             static_condition_holds(work, a, source) || static_condition_holds(work, b, source)
         }
+        StaticCondition::Not(a) => !static_condition_holds(work, a, source),
         StaticCondition::YouControlEach(filters) => filters.iter().all(|filter| {
             work.ids.iter().any(|id| {
                 work.on_battlefield(*id)
@@ -1322,6 +1327,12 @@ fn per_count(
             return i32::try_from(*k)
                 .unwrap_or(0)
                 .saturating_add(per_count(work, source, controller, inner));
+        }
+        CountExpr::Difference(k, inner) => {
+            return i32::try_from(*k)
+                .unwrap_or(0)
+                .saturating_sub(per_count(work, source, controller, inner))
+                .max(0);
         }
         CountExpr::Divided { by, up, inner } => {
             let n = u32::try_from(per_count(work, source, controller, inner).max(0)).unwrap_or(0);

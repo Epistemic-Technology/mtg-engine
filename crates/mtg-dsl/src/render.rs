@@ -272,6 +272,7 @@ pub fn is_restriction(k: Keyword) -> bool {
             | Keyword::CantActivateNonMana
             | Keyword::CantCrew
             | Keyword::UntapsDuringOthers
+            | Keyword::AssignsToughness
     )
 }
 
@@ -342,6 +343,7 @@ fn restriction_phrase(ks: &[Keyword]) -> String {
                 | Keyword::Unblockable
                 | Keyword::DoesntUntap
                 | Keyword::CantBecomeUntapped
+                | Keyword::AssignsToughness
         ) || is_block_rule(*k)
         {
             parts.push(keyword_name(*k).to_string());
@@ -2498,6 +2500,12 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if you_first {
         s.push_str(" you control");
     }
+    // "with toughness greater than its power" ("their power" in the
+    // plural).
+    if f.status.toughness_over_power {
+        let its = if plural_form { "their" } else { "its" };
+        let _ = write!(s, " with toughness greater than {its} power");
+    }
     for (name, v) in [("power", f.power), ("toughness", f.toughness)] {
         if let Some((cmp, n)) = v {
             if f.status.pt_either {
@@ -3829,6 +3837,9 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             };
             return format!("{n} plus {}", count_phrase(inner, card, each));
         }
+        // "draw cards equal to the difference" (after "if you have fewer
+        // than ten cards in hand").
+        CountExpr::Difference { .. } => return "the difference".to_string(),
         CountExpr::SourcePower => {
             return if each {
                 "for each power".to_string()
@@ -11826,6 +11837,14 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                     count_words(Num::N(*n), "one"),
                     kind.name()
                 )
+            } else if *n > 0 {
+                // "it has two or fewer oil counters on it".
+                format!(
+                    "{} has {} or fewer {} counters on it",
+                    this_ref(card),
+                    count_words(Num::N(*n), "one"),
+                    kind.name()
+                )
             } else {
                 format!(
                     "there are no {} counters on this {}",
@@ -12121,6 +12140,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::NoCardInHand(f) => {
             format!("you have no {} in hand", cards_phrase(f, card, true))
         }
+        StaticCond::HandFewerThan(n) => format!(
+            "you have fewer than {} cards in hand",
+            count_words(Num::N(*n), "one")
+        ),
         StaticCond::CardsInHand { n, at_most } => match (n, at_most) {
             (0, true) => "you have no cards in hand".to_string(),
             (n, true) => format!(
@@ -12206,6 +12229,8 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 or_more(*at_least)
             )
         }
+        StaticCond::Not(a) => format!("not ({})", static_cond_text(a, card)),
+        StaticCond::FlashPay(n) => format!("you pay {{{n}}} more to cast it"),
         StaticCond::Or(a, b) => format!(
             "{} or {}",
             static_cond_text(a, card),
@@ -12321,6 +12346,22 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             } else {
                 format!("enchanted {}", enchanted_noun(card))
             };
+            // "As long as you control enchanted creature".
+            if *f
+                == (Filter {
+                    who: Some(Who::You),
+                    ..Default::default()
+                })
+            {
+                return format!("you control {noun}");
+            }
+            // "As long as equipped creature's toughness is greater than its
+            // power" (Bark of Doran).
+            let mut bare = f.clone();
+            bare.status.toughness_over_power = false;
+            if f.status.toughness_over_power && bare == Filter::default() {
+                return format!("{noun}'s toughness is greater than its power");
+            }
             let pred = is_predicate(f, card);
             // "if enchanted creature has toxic" (Maze's Mantle).
             match pred.strip_prefix("a permanent with ") {
@@ -12521,7 +12562,12 @@ fn is_predicate(f: &Filter, card: &Card) -> String {
             .collect::<Vec<_>>()
             .join(" ");
     }
-    target_predicate(f, card)
+    let p = target_predicate(f, card);
+    // "as long as it's a Detective you control" (Burden of Proof).
+    if f.who == Some(Who::You) && !p.contains("you control") {
+        return format!("{p} you control");
+    }
+    p
 }
 
 /// Whether a condition is about the source ("it's attacking"), printed
@@ -12708,10 +12754,29 @@ fn conditional_static(
         let stem = body.strip_suffix('.').unwrap_or(body);
         // "This creature has flying as long as it has a +1/+1 counter on
         // it."
-        if matches!(c, StaticCond::SourceCounters { at_least: true, .. })
+        if matches!(c, StaticCond::SourceCounters { at_least, n, .. } if *at_least || *n > 0)
             && body.starts_with(&capitalize(&this_ref(card)))
         {
             cond = cond.replacen(&format!("{} has", this_ref(card)), "it has", 1);
+        }
+        // "Equipped creature has deathtouch during your turn."
+        if *c == StaticCond::DuringYourTurn {
+            return format!("{stem} during your turn.");
+        }
+        // "Enchanted creature gets +2/+2 as long as it's a Vampire."
+        if let StaticCond::AttachedIs(_) = c {
+            for noun in [
+                "equipped creature".to_string(),
+                format!("enchanted {}", enchanted_noun(card)),
+            ] {
+                if lowercase_first(body).starts_with(&format!("{noun} ")) {
+                    if let Some(rest) = cond.strip_prefix(&format!("{noun} is ")) {
+                        cond = format!("it's {rest}");
+                    } else if let Some(rest) = cond.strip_prefix(&format!("{noun} ")) {
+                        cond = format!("it {rest}");
+                    }
+                }
+            }
         }
         format!("{stem} as long as {cond}.")
     }
@@ -13111,12 +13176,35 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             ctx.current = Some(a);
             replacement_text(r, &mut ctx, false)
         }
+        // "Otherwise, it gets -2/-2." (CR 611.3a): the same objects, the
+        // subject named again as "it".
+        Ability::Static {
+            filter, otherwise, ..
+        } if !otherwise.is_empty() => {
+            let mut main = a.clone();
+            if let Ability::Static { otherwise, .. } = &mut main {
+                otherwise.clear();
+            }
+            let main = ability_text(card, &main, lookup);
+            let other = static_text(filter, otherwise, card, lookup);
+            let subjects = [
+                "Equipped creature ".to_string(),
+                format!("Enchanted {} ", enchanted_noun(card)),
+                format!("{} ", capitalize(&this_ref(card))),
+            ];
+            let other = subjects
+                .iter()
+                .find_map(|s| other.strip_prefix(s.as_str()))
+                .map_or_else(|| lowercase_first(&other), |rest| format!("it {rest}"));
+            format!("{main} Otherwise, {other}")
+        }
         Ability::Static {
             filter,
             mods,
             condition,
             cond_first,
             cond_if,
+            ..
         } => {
             let mut body = static_text(filter, mods, card, lookup);
             // "This creature doesn't untap during your untap step if ..."
@@ -13789,7 +13877,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         Ability::ExtraVote { optional: true } => {
             "While voting, you may vote an additional time.".to_string()
         }
-        Ability::HandSize { whose, delta } => {
+        Ability::HandSize { whose, delta, set } => {
             let (subject, have) = if *whose == Who::Opponents {
                 ("Each opponent's", "Each opponent has")
             } else {
@@ -13797,6 +13885,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             };
             match delta {
                 None => format!("{have} no maximum hand size."),
+                Some(n) if *set => format!(
+                    "{subject} maximum hand size is {}.",
+                    count_words(Num::N(n.unsigned_abs()), "one")
+                ),
                 Some(n) => format!(
                     "{subject} maximum hand size is {} by {}.",
                     if *n > 0 { "increased" } else { "reduced" },
@@ -14076,6 +14168,11 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     lines.splice(0..0, cast_only_text(card));
     if let Some(k) = &card.kicker {
         lines.push(format!("Kicker {k}"));
+    }
+    // "Kicker—Sacrifice two lands." (CR 702.33a).
+    if let Some(c) = &card.kicker_cost {
+        let c = cost_text(c, &mut Ctx::new(card, lookup, &[]));
+        lines.push(format!("Kicker\u{2014}{c}."));
     }
     // Flash, though, comes before the additional cost ("Flash\nAs an
     // additional cost to cast this spell, behold a Kithkin and exile it.",
