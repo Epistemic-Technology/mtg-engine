@@ -1,0 +1,18 @@
+# CR 118.6, 202.1b: a nonland card with no mana cost can't be cast by
+# paying it; suspend and a free cast still work, and {0} is a cost.
+scenario "Ancestral Vision: not castable from hand, suspends" {
+  battlefield A: 1 "Island"
+  hand A: "Ancestral Vision"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Ancestral Vision" targeting player A
+  run_to turn 1 end
+  assert hand A contains "Ancestral Vision"
+}
+
+scenario "Ornithopter: a cost of {0} is paid" {
+  hand A: "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ornithopter"
+  run_to turn 1 end
+  assert battlefield A contains "Ornithopter"
+}

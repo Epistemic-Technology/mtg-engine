@@ -240,6 +240,11 @@ pub fn add_card(
     let from = c.pool.ability_count();
     let mut def = c.card()?;
     let to = pool.ability_count();
+    // CR 202.1b: a nonland card printed without a mana cost.
+    def.no_mana_cost = card.kind == Kind::Card
+        && faces.is_empty()
+        && !def.is_land()
+        && card.cost.to_string().is_empty();
     link_exiles(&mut def);
     if !stages.is_empty() {
         def.oracle_text = render::oracle_text(card, by_name);

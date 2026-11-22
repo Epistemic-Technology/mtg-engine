@@ -2123,6 +2123,10 @@ impl GameState {
         pool: &crate::mana::ManaPool,
         changers: &[ObjId],
     ) -> bool {
+        // CR 118.6: no mana cost is a cost that can't be paid.
+        if def.no_mana_cost {
+            return false;
+        }
         let instant_speed = def.is_instant() || self.has_flash(p, def, id);
         if !(instant_speed || sorcery_timing) {
             return false;

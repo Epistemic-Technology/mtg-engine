@@ -7572,6 +7572,11 @@ pub struct CardDef {
     /// plot). Most cards have none, and the listing skips them all.
     #[serde(skip)]
     pub other_casts: bool,
+    /// A nonland card with no mana cost (Ancestral Vision, Lotus Bloom):
+    /// it can't be cast by paying its mana cost (CR 118.6, 202.1b), only
+    /// by an alternative cost or without paying.
+    #[serde(default)]
+    pub no_mana_cost: bool,
     /// Filled in by `CardPool::add`: what its text asks about the mana
     /// spent to cast it.
     #[serde(skip)]
@@ -9609,6 +9614,7 @@ impl Builder {
             step_static: false,
             history_static: false,
             other_casts: false,
+            no_mana_cost: false,
             counts: Vec::new(),
             combat_static: false,
             layout: Layout::Normal,
