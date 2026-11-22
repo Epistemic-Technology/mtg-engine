@@ -4125,6 +4125,9 @@ pub enum Effect {
         /// `of target opponent`: "Target opponent exiles the top card of
         /// their library. You may play that card this turn."
         from: Option<Recipient>,
+        /// `from target opponent` rather than `of`: "Exile the top three
+        /// cards of target opponent's library." (you exile them).
+        possessive: bool,
         /// `this way`: "you may play cards exiled this way".
         this_way: bool,
     },

@@ -912,6 +912,7 @@ impl Fmt {
                 it,
                 choose,
                 from,
+                possessive,
                 this_way,
             } => {
                 let mut s = format!(
@@ -937,7 +938,8 @@ impl Fmt {
                     s.push_str(" this way");
                 }
                 if let Some(w) = from {
-                    let _ = write!(s, " of {}", self.recipient(*w, t));
+                    let of = if *possessive { "from" } else { "of" };
+                    let _ = write!(s, " {of} {}", self.recipient(*w, t));
                 }
                 s
             }

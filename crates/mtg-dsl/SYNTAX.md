@@ -1786,7 +1786,9 @@ is "until your next end step", which ends as that step begins; `choose`
 adds "Choose one of them." and only that card may be played, `this way`
 prints "cards exiled this way", `of target opponent` takes the cards from
 that player's library ("Target opponent exiles the top card of their
-library. You may play that card this turn.", the permission still yours),
+library. You may play that card this turn.", the permission still yours; `from target opponent`
+instead prints "Exile the top three cards of target opponent's library.
+You may play those cards this turn."),
 a count `count where ...` prints "the top X cards of your library, where
 X is ...", and `that much` "exile that many cards from the top of your
 library"), `exile top 3 cards` ("Exile the top three cards of your

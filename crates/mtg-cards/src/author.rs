@@ -2509,6 +2509,22 @@ impl Templates {
             "\u{1}create 1 \"Mercenary\"",
         );
         let text = text.replace("C\u{1}", "\u{1}").replace("c\u{1}", "\u{1}");
+        // "You may search your library and/or graveyard for a card named
+        // X, reveal it, and put it into your hand. If you search your
+        // library this way, shuffle."
+        let text = Regex::new(
+            r"(^|\. )([Yy]ou may s|[Ss])earch your library and/or graveyard for a card named (.+?), reveal it, and put it into your hand\. If you search your library this way, shuffle\.?",
+        )
+        .map_or(text.clone(), |re| {
+            re.replace_all(&text, |c: &regex::Captures| {
+                let may = if c[2].len() > 1 { "you may " } else { "" };
+                format!(
+                    "{}\u{1}{may}search library or graveyard card named \"{}\" reveal to hand.",
+                    &c[1], &c[3]
+                )
+            })
+            .into_owned()
+        });
         let text = text.as_str();
         let mut out: Vec<String> = Vec::new();
         let extra_land =

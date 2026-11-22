@@ -1542,6 +1542,7 @@ impl Decompiler<'_> {
                 it: false,
                 choose: *choose,
                 from: from.map(Self::recipient),
+                possessive: false,
                 this_way: false,
             },
             CoreEffect::Dig {

@@ -4406,12 +4406,25 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             it,
             choose,
             from,
+            possessive,
             this_way,
         } => {
             use mtg_core::card::PlayUntil;
             let one = *count == Num::N(1);
-            let whose = if from.is_some() { "their" } else { "your" };
-            let exile = if from.is_some() { "exiles" } else { "exile" };
+            // "Exile the top three cards of target opponent's library."
+            let owner = from
+                .filter(|_| *possessive)
+                .map(|w| format!("{}'s", ctx.obj(w)));
+            let whose = match (&owner, from) {
+                (Some(o), _) => o.as_str(),
+                (None, Some(_)) => "their",
+                (None, None) => "your",
+            };
+            let exile = if from.is_some() && !*possessive {
+                "exiles"
+            } else {
+                "exile"
+            };
             let head = if one {
                 format!("{exile} the top card of {whose} library")
             } else if *count == Num::ThatMuch {
@@ -4424,8 +4437,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 )
             };
             let head = match from {
-                Some(w) => format!("{} {head}", ctx.subj(*w)),
-                None => head,
+                Some(w) if !*possessive => format!("{} {head}", ctx.subj(*w)),
+                _ => head,
             };
             // "Choose one of them. Until the end of your next turn, you may
             // play that card."

@@ -7369,7 +7369,8 @@ impl P {
                 let it = self.eat_word("it");
                 let choose = self.eat_word("choose");
                 let this_way = self.eat_words(&["this", "way"]);
-                let from = if self.eat_word("of") {
+                let possessive = self.at_word("from");
+                let from = if self.eat_word("of") || self.eat_word("from") {
                     Some(self.recipient()?)
                 } else {
                     None
@@ -7381,6 +7382,7 @@ impl P {
                     it,
                     choose,
                     from,
+                    possessive,
                     this_way,
                 })
             }

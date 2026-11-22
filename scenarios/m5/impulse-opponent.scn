@@ -1,0 +1,18 @@
+# "Exile the top three cards of target opponent's library. You may play
+# those cards this turn." The exiling player may play them (CR 601.3).
+
+scenario "Korvold and the Noble Thief: chapter III plays an opponent's card" {
+  battlefield A: 4 "Mountain"
+  hand A: "Korvold and the Noble Thief"
+  library A: 10 "Island"
+  library B: 10 "Hill Giant"
+  turn 1 A: cast "Korvold and the Noble Thief"
+  turn 5 precombat_main A: trigger "Korvold and the Noble Thief" targeting player B
+  turn 5 postcombat_main A: cast "Hill Giant"
+  run_to turn 5 end
+  assert battlefield A contains "Hill Giant"
+  assert exile B count 2
+  run_to turn 6 upkeep
+  illegal turn 7 A: cast "Hill Giant"
+  run_to turn 7 end
+}
