@@ -1,0 +1,8 @@
+card "Nightshade Schemers" {
+  oracle_id fd7b0b56-2f55-4933-bedc-e7711dbdd556
+  cost {4}{B}
+  type Creature — Faerie Wizard
+  pt 3/2
+  keywords flying
+  label "Kinship" triggered at beginning of your upkeep: you may look at top card; if it shares creature type with this, you may reveal it; if you do, each opponent loses 2 life
+}

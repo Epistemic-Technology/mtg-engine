@@ -2718,6 +2718,20 @@ impl Templates {
             }
             return Ok(out);
         }
+        // Kinship: "you may look at the top card of your library. If it
+        // shares a creature type with this creature, you may reveal it. If
+        // you do, ...".
+        if let Some(c) = Regex::new(
+            r"^[Yy]ou may look at the top card of your library\. If it shares a creature type with this creature, you may reveal it\. If you do, (.+?)\.?$",
+        )
+        .unwrap()
+        .captures(text)
+        {
+            let then = self.effects(cap(&c, 1), targets)?;
+            return Ok(format!(
+                "you may look at top card; if it shares creature type with this, you may reveal it; if you do, {then}"
+            ));
+        }
         // "Target opponent reveals their hand. You may choose a nonland
         // card from it. If you do, that player discards that card. If you
         // don't, that player discards two cards." (Nightsnare).

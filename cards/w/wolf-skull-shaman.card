@@ -1,0 +1,7 @@
+card "Wolf-Skull Shaman" {
+  oracle_id c29724c7-dc2e-4a66-8371-449fd012d429
+  cost {1}{G}
+  type Creature — Elf Shaman
+  pt 2/2
+  label "Kinship" triggered at beginning of your upkeep: you may look at top card; if it shares creature type with this, you may reveal it; if you do, create 1 "2/2 green Wolf creature"
+}
