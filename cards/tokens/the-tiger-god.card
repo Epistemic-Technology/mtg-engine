@@ -1,0 +1,7 @@
+token "The Tiger God" {
+  name "The Tiger God"
+  type Legendary Creature — Cat God
+  pt 4/4
+  color green
+  can't be blocked by more than one creature
+}

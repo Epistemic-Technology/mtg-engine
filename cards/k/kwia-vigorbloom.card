@@ -7,8 +7,3 @@ card "Kwia Vigorbloom" {
   ward {2}
   triggered once each turn whenever you gain life: create 1 "Lotus"
 }
-token "Lotus" {
-  name "Lotus"
-  type Artifact
-  activated {T}, sacrifice this: add any 3
-}

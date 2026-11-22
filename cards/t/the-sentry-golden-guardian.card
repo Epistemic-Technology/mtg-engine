@@ -6,10 +6,3 @@ card "The Sentry, Golden Guardian" {
   keywords flying, vigilance, indestructible
   triggered when this enters: target opponent creates 1 "The Void"
 }
-token "The Void" {
-  name "The Void"
-  type Legendary Creature — Horror Villain
-  pt 5/5
-  color black
-  keywords flying, indestructible, attacks each combat if able
-}

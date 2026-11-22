@@ -6,11 +6,3 @@ card "There and Back Again" {
   triggered chapter 2: search Mountain card to battlefield
   triggered chapter 3: create 1 "Smaug"
 }
-token "Smaug" {
-  name "Smaug"
-  type Legendary Creature — Dragon
-  pt 6/6
-  color red
-  keywords flying, haste
-  triggered when this dies: create 14 "Treasure"
-}

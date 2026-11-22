@@ -6,8 +6,3 @@ card "Tuktuk the Explorer" {
   keywords haste
   triggered when this dies: create 1 "Tuktuk the Returned"
 }
-token "Tuktuk the Returned" {
-  name "Tuktuk the Returned"
-  type Legendary Artifact Creature — Goblin Golem
-  pt 5/5
-}

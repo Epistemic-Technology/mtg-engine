@@ -6,9 +6,3 @@ card "Mabel, Heir to Cragflame" {
   static other Mouse you control: +1/+1
   triggered when this enters: create 1 "Cragflame"
 }
-token "Cragflame" {
-  name "Cragflame"
-  type Legendary Artifact — Equipment
-  static enchanted: +1/+1, has vigilance, trample, haste
-  equip {2}
-}

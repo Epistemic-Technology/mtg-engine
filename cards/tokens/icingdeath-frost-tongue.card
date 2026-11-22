@@ -1,0 +1,8 @@
+token "Icingdeath, Frost Tongue" {
+  name "Icingdeath, Frost Tongue"
+  type Legendary Artifact — Equipment
+  color white
+  static enchanted: +2/+0
+  triggered whenever equipped creature attacks: tap target creature defending player controls
+  equip {2}
+}

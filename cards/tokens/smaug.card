@@ -1,0 +1,8 @@
+token "Smaug" {
+  name "Smaug"
+  type Legendary Creature — Dragon
+  pt 6/6
+  color red
+  keywords flying, haste
+  triggered when this dies: create 14 "Treasure"
+}

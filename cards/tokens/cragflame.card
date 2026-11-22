@@ -1,0 +1,6 @@
+token "Cragflame" {
+  name "Cragflame"
+  type Legendary Artifact — Equipment
+  static enchanted: +1/+1, has vigilance, trample, haste
+  equip {2}
+}
