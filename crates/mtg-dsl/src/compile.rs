@@ -1254,7 +1254,42 @@ impl Compiler<'_> {
             }
             // "... and with first strike": abilities the permanent has as
             // long as it was kicked (fixed as it enters, CR 702.33c).
-            if let Ability::Mechanic(Mechanic::KickedWith(_, ks)) = a
+            // "two +1/+1 counters and a lifelink counter": a second
+            // replacement for the second kind.
+            if let Ability::EntersWithIf {
+                cond,
+                more: Some((n, kind)),
+                ..
+            } = a
+            {
+                let c = self.static_cond(cond);
+                let cond = self.pool.intern_condition(c);
+                b = b.ability(AbilityDef::Replacement(ReplacementAbility {
+                    replaces: mtg_core::card::Replaces::Enters,
+                    replacement: mtg_core::card::Replacement::EnterWithCountersIf {
+                        cond,
+                        kind: *kind,
+                        n: *n,
+                    },
+                    then: Vec::new(),
+                    condition: None,
+                }));
+            }
+            // "... and a trample counter": a second replacement.
+            if let Ability::Mechanic(Mechanic::KickedWith(_, Some((n, kind)), _)) = a {
+                let cond = self.pool.intern_condition(StaticCondition::Kicked);
+                b = b.ability(AbilityDef::Replacement(ReplacementAbility {
+                    replaces: mtg_core::card::Replaces::Enters,
+                    replacement: mtg_core::card::Replacement::EnterWithCountersIf {
+                        cond,
+                        kind: *kind,
+                        n: *n,
+                    },
+                    then: Vec::new(),
+                    condition: None,
+                }));
+            }
+            if let Ability::Mechanic(Mechanic::KickedWith(_, _, ks)) = a
                 && !ks.is_empty()
             {
                 b = b.ability(AbilityDef::Static(StaticAbility {
@@ -2628,6 +2663,8 @@ impl Compiler<'_> {
                 put: _,
                 attacking,
                 additional: _,
+                more,
+                if_creature,
             } => {
                 out.push(CoreEffect::ReturnToBattlefield {
                     what: r(*what),
@@ -2635,6 +2672,8 @@ impl Compiler<'_> {
                     tapped: *tapped,
                     under_you: *under_you,
                     attached: attached.map(r),
+                    more: *more,
+                    if_creature: *if_creature,
                 });
                 if *attacking {
                     out.push(CoreEffect::EnteredAttack);
@@ -4836,7 +4875,7 @@ impl Compiler<'_> {
                 }
                 Mechanic::Bloodthirst(n)
                 | Mechanic::EscapesWith(n)
-                | Mechanic::KickedWith(n, _) => {
+                | Mechanic::KickedWith(n, ..) => {
                     let cond = self.pool.intern_condition(match m {
                         Mechanic::EscapesWith(_) => StaticCondition::Escaped,
                         Mechanic::KickedWith(..) => StaticCondition::Kicked,
@@ -6212,6 +6251,8 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         put: false,
                         attacking: false,
                         additional: false,
+                        more: None,
+                        if_creature: false,
                     },
                     E::Grant {
                         keywords: vec![mtg_core::card::Keyword::Haste],

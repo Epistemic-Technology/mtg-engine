@@ -68,9 +68,16 @@ wrong thing in some case.
 - **"Each Dragon you control enters with an additional +1/+1 counter"**
   (`Replaces::OthersEnter`) judges the entering permanent by its printed
   card, not as it would exist on the battlefield (CR 614.12), and an
-  entering permanent carries only one counter kind, so another kind it
-  would enter with drops the additional counters (Dragonstorm Globe,
-  Gev, Giada).
+  entering permanent carries counters of at most two kinds
+  (`Enter::more`), so a third kind is dropped (Dragonstorm Globe, Gev,
+  Giada).
+- **Choosing the order of a permanent spell's own "enters" replacements
+  panics** ("choice Replacement ... does not fit flow Priority") as it
+  resolves. "Enters with counters" replacements commute and skip the
+  choice; two that don't (none known in the corpus) would hit it.
+- **"If it enters as a creature"** (Teferi's Time Twist) is judged by the
+  returned card's printed types, not as it would exist on the
+  battlefield (CR 614.12).
 - **Mana kept "until end of turn" and firebending's mana** assume the
   player's other mana is spent first (`PlayerState::turn_mana`,
   `combat_mana`): spending the kept mana in an earlier step leaves other

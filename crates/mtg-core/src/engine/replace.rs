@@ -41,10 +41,39 @@ use crate::state::{Chosen, GameState, LossReason, Target, Zone};
 pub(crate) struct Enter {
     pub tapped: bool,
     pub counters: Option<(CounterKind, u32)>,
+    /// Counters of a second kind ("two +1/+1 counters and a trample
+    /// counter", Voidpouncer).
+    pub more: Option<(CounterKind, u32)>,
     /// Riot's haste was chosen (CR 702.136a).
     pub haste: bool,
     /// "This creature enters prepared." (CR 722.3a).
     pub prepared: bool,
+}
+
+impl Enter {
+    /// `n` more counters of `kind`: with those of the same kind already,
+    /// else in the first free slot (a third kind is not kept).
+    pub(crate) fn add_counters(self, kind: CounterKind, n: u32) -> Self {
+        match (self.counters, self.more) {
+            (None, _) => Enter {
+                counters: Some((kind, n)),
+                ..self
+            },
+            (Some((k, m)), _) if k == kind => Enter {
+                counters: Some((k, m + n)),
+                ..self
+            },
+            (_, None) => Enter {
+                more: Some((kind, n)),
+                ..self
+            },
+            (_, Some((k, m))) if k == kind => Enter {
+                more: Some((k, m + n)),
+                ..self
+            },
+            _ => self,
+        }
+    }
 }
 
 /// An event that is about to happen and may still be replaced.
@@ -1154,6 +1183,7 @@ impl GameState {
                     controller,
                     enter: Enter {
                         counters: enter.counters.map(|(k, n)| (k, n.saturating_mul(2))),
+                        more: enter.more.map(|(k, n)| (k, n.saturating_mul(2))),
                         ..enter
                     },
                 })
@@ -1268,17 +1298,17 @@ impl GameState {
                     enter,
                 },
             ) => {
-                let counters = if self.condition_now(self.pool.condition(cond), controller, obj) {
-                    Some((kind, enter.counters.map_or(0, |(_, m)| m) + n))
+                let enter = if self.condition_now(self.pool.condition(cond), controller, obj) {
+                    enter.add_counters(kind, n)
                 } else {
-                    enter.counters
+                    enter
                 };
                 Outcome::Event(Proposed::ZoneChange {
                     obj,
                     to,
                     to_top,
                     controller,
-                    enter: Enter { counters, ..enter },
+                    enter,
                 })
             }
             (
@@ -1413,17 +1443,12 @@ impl GameState {
                     }
                     n => n.eval(self.x_of(obj)),
                 };
-                let counters = match enter.counters {
-                    Some((k, m)) if k == kind => Some((k, m + n)),
-                    Some(other) => Some(other),
-                    None => Some((kind, n)),
-                };
                 Outcome::Event(Proposed::ZoneChange {
                     obj,
                     to,
                     to_top,
                     controller,
-                    enter: Enter { counters, ..enter },
+                    enter: enter.add_counters(kind, n),
                 })
             }
             // CR 702.98a: "You may have this permanent enter with an
@@ -1445,26 +1470,18 @@ impl GameState {
                     DecisionKind::YouMay { def },
                     vec![Choice::Accept, Choice::Decline],
                 ) == 0;
-                let counters = if take {
-                    match enter.counters {
-                        Some((k, m)) if k == kind => Some((k, m + n)),
-                        Some(other) => Some(other),
-                        None => Some((kind, n)),
-                    }
-                } else {
-                    enter.counters
-                };
                 let haste = enter.haste || (haste && !take);
+                let enter = if take {
+                    enter.add_counters(kind, n)
+                } else {
+                    enter
+                };
                 Outcome::Event(Proposed::ZoneChange {
                     obj,
                     to,
                     to_top,
                     controller,
-                    enter: Enter {
-                        counters,
-                        haste,
-                        ..enter
-                    },
+                    enter: Enter { haste, ..enter },
                 })
             }
             (
@@ -1479,28 +1496,23 @@ impl GameState {
             ) => {
                 let applies = cond
                     .is_none_or(|c| self.condition_now(self.pool.condition(c), controller, obj));
-                let counters = if applies {
+                let enter = if applies {
                     let def = self.objects[obj].def;
                     let i = self.choose_mid(
                         controller,
                         DecisionKind::ChooseOption { def },
                         vec![Choice::Mode(0), Choice::Mode(1)],
                     );
-                    let kind = kinds[i.min(1)];
-                    match enter.counters {
-                        Some((k, m)) if k == kind => Some((k, m + 1)),
-                        Some(other) => Some(other),
-                        None => Some((kind, 1)),
-                    }
+                    enter.add_counters(kinds[i.min(1)], 1)
                 } else {
-                    enter.counters
+                    enter
                 };
                 Outcome::Event(Proposed::ZoneChange {
                     obj,
                     to,
                     to_top,
                     controller,
-                    enter: Enter { counters, ..enter },
+                    enter,
                 })
             }
             // `applies` only offers matching pairs.
@@ -1559,6 +1571,7 @@ impl GameState {
                     crate::card::Replacement::EnterTapped
                         | crate::card::Replacement::EnterPrepared
                         | crate::card::Replacement::EnterWithCounters { .. }
+                        | crate::card::Replacement::EnterWithCountersIf { .. }
                         | crate::card::Replacement::EnterWithCountersMay { .. }
                 )
         })

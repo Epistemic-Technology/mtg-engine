@@ -1396,6 +1396,8 @@ impl Fmt {
                 put,
                 attacking,
                 additional,
+                more,
+                if_creature,
             } => {
                 let mut s = if *put {
                     format!("put {} onto battlefield", self.recipient(*what, t))
@@ -1412,8 +1414,14 @@ impl Fmt {
                     s.push_str(" under your control");
                 }
                 if let Some((kind, n)) = counters {
-                    let more = if *additional { "additional " } else { "" };
-                    let _ = write!(s, " with {n} {more}{}", counter(*kind, Num::N(*n)));
+                    let add = if *additional { "additional " } else { "" };
+                    let _ = write!(s, " with {n} {add}{}", counter(*kind, Num::N(*n)));
+                    if let Some((k, m)) = more {
+                        let _ = write!(s, " and {m} {}", counter(*k, Num::N(*m)));
+                    }
+                    if *if_creature {
+                        s.push_str(" if creature");
+                    }
                 }
                 if let Some(a) = attached {
                     let _ = write!(s, " attached to {}", self.recipient(*a, t));
@@ -5692,11 +5700,15 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     counter(*b, Num::N(1))
                 ),
                 crate::ast::Mechanic::Bloodthirst(n) => format!("bloodthirst {n}"),
-                crate::ast::Mechanic::KickedWith(n, ks) if ks.is_empty() => {
-                    format!("kicked with {n} +1/+1 counters")
-                }
-                crate::ast::Mechanic::KickedWith(n, ks) => {
-                    format!("kicked with {n} +1/+1 counters and {}", keywords(ks))
+                crate::ast::Mechanic::KickedWith(n, more, ks) => {
+                    let mut s = format!("kicked with {n} +1/+1 counters");
+                    if let Some((m, k)) = more {
+                        let _ = write!(s, " and {m} {}", counter(*k, Num::N(*m)));
+                    }
+                    if !ks.is_empty() {
+                        let _ = write!(s, " and {}", keywords(ks));
+                    }
+                    s
                 }
                 crate::ast::Mechanic::Megamorph(c) => format!("megamorph {c}"),
                 crate::ast::Mechanic::Disguise(c) => format!("disguise {c}"),
@@ -5772,12 +5784,21 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             kind,
             cond,
             first,
+            more,
         } => {
-            let what = format!(
+            let mut what = format!(
                 "{n} {} {}",
                 kind.name(),
                 if *n == 1 { "counter" } else { "counters" }
             );
+            if let Some((m, k)) = more {
+                let _ = write!(
+                    what,
+                    " and {m} {} {}",
+                    k.name(),
+                    if *m == 1 { "counter" } else { "counters" }
+                );
+            }
             if *first {
                 let _ = writeln!(out, "{indent}if {}, enters with {what}", static_cond(cond));
             } else {

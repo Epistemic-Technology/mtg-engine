@@ -7167,6 +7167,7 @@ impl GameState {
                         super::replace::Enter {
                             tapped: false,
                             counters: Some((CounterKind::Time, n)),
+                            more: None,
                             haste: false,
                             prepared: false,
                         },
@@ -7212,6 +7213,7 @@ impl GameState {
             super::replace::Enter {
                 tapped: true,
                 counters: None,
+                more: None,
                 haste: false,
                 prepared: false,
             },
@@ -11379,6 +11381,8 @@ impl GameState {
                 tapped,
                 under_you,
                 attached,
+                more,
+                if_creature,
             } => {
                 if *what == crate::card::Recipient::Source && self.source_left_graveyard(ctx) {
                     return;
@@ -11433,12 +11437,20 @@ impl GameState {
                         }
                     }
                     let controller = if *under_you { ctx.controller } else { o.owner };
+                    // "If it enters as a creature": its card's types.
+                    let with = !*if_creature
+                        || self
+                            .pool
+                            .get(o.def)
+                            .types
+                            .contains(crate::card::CardType::Creature);
                     let new = self.put_onto_battlefield_with(
                         id,
                         controller,
                         super::replace::Enter {
                             tapped: *tapped,
-                            counters: *counters,
+                            counters: counters.filter(|_| with),
+                            more: *more,
                             ..super::replace::Enter::default()
                         },
                     );

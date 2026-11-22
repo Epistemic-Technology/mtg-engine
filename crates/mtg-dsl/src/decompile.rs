@@ -885,6 +885,8 @@ impl Decompiler<'_> {
                 tapped,
                 under_you,
                 attached,
+                more,
+                if_creature,
             } => Effect::ReturnToBattlefield {
                 what: r(*what),
                 counters: *counters,
@@ -893,7 +895,9 @@ impl Decompiler<'_> {
                 attached: attached.map(r),
                 put: false,
                 attacking: false,
-                additional: false,
+                additional: *if_creature,
+                more: *more,
+                if_creature: *if_creature,
             },
             CoreEffect::Regenerate { to } => Effect::Regenerate { to: r(*to) },
             CoreEffect::Exile { what } | CoreEffect::ExileLinked { what, until: false } => {
@@ -2481,8 +2485,8 @@ impl Decompiler<'_> {
                     Ability::Mechanic(crate::ast::Mechanic::EscapesWith(*n))
                 }
                 // The keywords come back as a separate conditional static.
-                StaticCondition::Kicked => {
-                    Ability::Mechanic(crate::ast::Mechanic::KickedWith(*n, Vec::new()))
+                StaticCondition::Kicked if *kind == mtg_core::card::CounterKind::PlusOnePlusOne => {
+                    Ability::Mechanic(crate::ast::Mechanic::KickedWith(*n, None, Vec::new()))
                 }
                 StaticCondition::OpponentDamagedThisTurn
                     if *kind == mtg_core::card::CounterKind::PlusOnePlusOne =>
@@ -2494,6 +2498,7 @@ impl Decompiler<'_> {
                     kind: *kind,
                     cond: self.static_cond(c),
                     first: false,
+                    more: None,
                 },
             },
             AbilityDef::Replacement(r) => Ability::Replacement(self.replacement(r)),

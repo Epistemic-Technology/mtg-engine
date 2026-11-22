@@ -1,0 +1,6 @@
+card "Perennation" {
+  oracle_id be5138fd-3e92-42b9-93c5-311e66bd443f
+  cost {3}{W}{B}{G}
+  type Sorcery
+  spell: return target permanent card from your graveyard to battlefield with 1 hexproof counter and 1 indestructible counter
+}

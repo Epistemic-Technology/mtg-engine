@@ -190,10 +190,10 @@ impl GameState {
         if to != Zone::Battlefield {
             return counters;
         }
-        if let Some((kind, n)) = enter.counters
-            && n > 0
-        {
-            counters.push((kind, n));
+        for (kind, n) in [enter.counters, enter.more].into_iter().flatten() {
+            if n > 0 {
+                counters.push((kind, n));
+            }
         }
         let d = self.pool.get(def);
         if d.types.contains(crate::card::CardType::Planeswalker) && d.loyalty > 0 {

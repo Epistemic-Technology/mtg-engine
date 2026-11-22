@@ -1887,13 +1887,21 @@ impl P {
                 if self.counter_kind()? != CounterKind::PlusOnePlusOne {
                     return self.fail("kicked with +1/+1 counters only");
                 }
+                // `and 1 trample counter`: a second kind.
+                let more = if self.at_word("and") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+                    self.pos += 1;
+                    let m = self.number()?;
+                    Some((m, self.counter_kind()?))
+                } else {
+                    None
+                };
                 let keywords = if self.eat_word("and") {
                     self.keyword_list()?
                 } else {
                     Vec::new()
                 };
                 self.end_stmt()?;
-                Ok(Ability::Mechanic(Mechanic::KickedWith(n, keywords)))
+                Ok(Ability::Mechanic(Mechanic::KickedWith(n, more, keywords)))
             }
             "modular" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
                 self.pos += 1;
@@ -2722,12 +2730,19 @@ impl P {
                 self.expect_word("with")?;
                 let n = self.number()?;
                 let kind = self.counter_kind()?;
+                let more = if self.eat_word("and") {
+                    let m = self.number()?;
+                    Some((m, self.counter_kind()?))
+                } else {
+                    None
+                };
                 self.end_stmt()?;
                 Ok(Ability::EntersWithIf {
                     n,
                     kind,
                     cond,
                     first: true,
+                    more,
                 })
             }
             "enters"
@@ -2746,6 +2761,7 @@ impl P {
                     kind,
                     cond,
                     first: false,
+                    more: None,
                 })
             }
             "enters" => {
@@ -2761,6 +2777,7 @@ impl P {
                         kind,
                         cond,
                         first: false,
+                        more: None,
                     });
                 }
                 self.end_stmt()?;
@@ -7195,11 +7212,20 @@ impl P {
             attacking = true;
         }
         let mut additional = false;
+        let mut more = None;
+        let mut if_creature = false;
         let counters = if self.eat_word("with") {
             let n = self.count()?;
             additional = self.eat_word("additional");
             let kind = self.counter_kind()?;
+            // `with 1 hexproof counter and 1 indestructible counter`.
+            if self.at_word("and") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+                self.pos += 1;
+                let m = self.count()?;
+                more = Some((self.counter_kind()?, m));
+            }
             self.eat_words(&["on", "it"]);
+            if_creature = self.eat_words(&["if", "creature"]);
             Some((kind, n))
         } else {
             None
@@ -7218,6 +7244,8 @@ impl P {
             put,
             attacking,
             additional,
+            more,
+            if_creature,
         })
     }
 

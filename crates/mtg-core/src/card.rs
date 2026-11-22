@@ -4115,6 +4115,15 @@ pub enum Effect {
         under_you: bool,
         #[serde(default)]
         attached: Option<Recipient>,
+        /// "with a hexproof counter and an indestructible counter on it":
+        /// counters of a second kind.
+        #[serde(default)]
+        more: Option<(CounterKind, u32)>,
+        /// "If it enters as a creature, it enters with an additional +1/+1
+        /// counter on it." (Teferi's Time Twist): the counters only on a
+        /// card that will be a creature (judged by its card).
+        #[serde(default)]
+        if_creature: bool,
     },
     /// The ability's source becomes a copy of the recipient (CR 707),
     /// keeping its own definition's `copy_except` if `except`. With `who`,
@@ -8478,6 +8487,8 @@ impl CardPool {
                     tapped: true,
                     under_you: true,
                     attached: None,
+                    more: None,
+                    if_creature: false,
                 }],
             }));
         pool.builtins[Builtin::Miracle as usize] =
@@ -8561,6 +8572,8 @@ impl CardPool {
                     tapped: false,
                     under_you: false,
                     attached: None,
+                    more: None,
+                    if_creature: false,
                 }],
             }));
             if slot == 0 {

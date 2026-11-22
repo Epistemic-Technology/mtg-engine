@@ -1367,6 +1367,9 @@ pub enum Ability {
         kind: CounterKind,
         cond: StaticCond,
         first: bool,
+        /// `and 1 lifelink counter`: counters of a second kind ("two +1/+1
+        /// counters and a lifelink counter", Dust Animus).
+        more: Option<(u32, CounterKind)>,
     },
     /// `can't attack unless defending player controls Island`, `can't
     /// block unless ...`, `can't attack or block unless ...`.
@@ -1684,7 +1687,8 @@ pub enum Mechanic {
     /// `kicked with 2 +1/+1 counters [and first strike]`: "If this
     /// creature was kicked, it enters with two +1/+1 counters on it [and
     /// with first strike]." (CR 702.33c, 614.1c).
-    KickedWith(u32, Vec<Keyword>),
+    /// `kicked with 2 +1/+1 counters [and 1 trample counter] [and haste]`.
+    KickedWith(u32, Option<(u32, CounterKind)>, Vec<Keyword>),
     /// CR 702.43: `modular 2`.
     Modular(u32),
     /// CR 702.58: `graft 2`: enters with N +1/+1 counters; "Whenever
@@ -3427,6 +3431,11 @@ pub enum Effect {
         /// `with 2 additional +1/+1 counters`: "with two additional
         /// +1/+1 counters on it" (wording only).
         additional: bool,
+        /// `with 1 hexproof counter and 1 indestructible counter`.
+        more: Option<(CounterKind, u32)>,
+        /// `with 1 additional +1/+1 counter if creature`: "If it enters as
+        /// a creature, it enters with an additional +1/+1 counter on it."
+        if_creature: bool,
     },
     Regenerate {
         to: Recipient,

@@ -1088,6 +1088,10 @@ struct Ctx<'a> {
     /// Inside "If the player does, ...": that player is "they" (Chain
     /// Lightning's "they may copy this spell").
     player_they: bool,
+    /// A sentence to print after a delayed trigger's timing ("Return that
+    /// card ... at the beginning of the next end step. If it enters as a
+    /// creature, ...").
+    delayed_tail: Option<String>,
     /// The next sentence is "If you don't, ...": an optional choice before
     /// it prints its result "If you do, ..." ("You may choose a creature
     /// card from it. If you do, that player discards that card.").
@@ -1139,6 +1143,7 @@ impl<'a> Ctx<'a> {
             lost_life_did: false,
             player_did: false,
             player_they: false,
+            delayed_tail: None,
             before_if_you_dont: false,
             in_unless: false,
             x_defined: Vec::new(),
@@ -5807,6 +5812,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             put,
             attacking,
             additional,
+            more,
+            if_creature,
         } => {
             // `that card` prints "that card", `it` (inside a delayed
             // trigger) "it".
@@ -5895,7 +5902,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 format!("return {o} to the battlefield{tapped} under its owner's control")
             };
             if let Some((kind, n)) = c {
-                let what = counters(Num::N(*n), *kind);
+                let mut what = counters(Num::N(*n), *kind);
+                // "with a hexproof counter and an indestructible counter".
+                if let Some((k, m)) = more {
+                    let _ = write!(what, " and {}", counters(Num::N(*m), *k));
+                }
                 // "with two additional +1/+1 counters on it" (Rakdos
                 // Joins Up).
                 // "with an additional +1/+1 counter on it" (Prison Break).
@@ -5908,6 +5919,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 } else {
                     what
                 };
+                if *if_creature {
+                    // A sentence of its own, after a delayed return's
+                    // timing (Teferi's Time Twist).
+                    let tail = format!("If it enters as a creature, it enters with {what} on it");
+                    if ctx.in_delayed {
+                        ctx.delayed_tail = Some(tail);
+                    } else {
+                        let _ = write!(text, ". {tail}");
+                    }
+                    return Clause::imperative(text);
+                }
                 let _ = write!(text, " with {what} on it");
             }
             if let Some(a) = attached {
@@ -8560,10 +8582,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 trigger_text(trigger, ctx, true)
             };
+            let tail = ctx
+                .delayed_tail
+                .take()
+                .map_or_else(String::new, |s| format!(". {s}"));
             if *trigger_first {
-                Clause::imperative(format!("{t}, {}", lowercase_first(&body)))
+                Clause::imperative(format!("{t}, {}{tail}", lowercase_first(&body)))
             } else {
-                Clause::imperative(format!("{} {t}", lowercase_first(&body)))
+                Clause::imperative(format!("{} {t}{tail}", lowercase_first(&body)))
             }
         }
         Effect::CreateReplacement(r) => {
@@ -13467,11 +13493,15 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 counters(Num::N(1), *b)
             ),
             crate::ast::Mechanic::Bloodthirst(n) => format!("Bloodthirst {n}"),
-            crate::ast::Mechanic::KickedWith(n, ks) => {
+            crate::ast::Mechanic::KickedWith(n, more, ks) => {
+                let mut what = counters(Num::N(*n), CounterKind::PlusOnePlusOne);
+                // "two +1/+1 counters and a trample counter" (Voidpouncer).
+                if let Some((m, k)) = more {
+                    let _ = write!(what, " and {}", counters(Num::N(*m), *k));
+                }
                 let mut s = format!(
-                    "If this {} was kicked, it enters with {} on it",
+                    "If this {} was kicked, it enters with {what} on it",
                     self_noun(card),
-                    counters(Num::N(*n), CounterKind::PlusOnePlusOne)
                 );
                 if !ks.is_empty() {
                     let names: Vec<String> =
@@ -13575,9 +13605,13 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             kind,
             cond,
             first,
+            more,
         } => {
             let this = this_ref(card);
-            let what = counters(Num::N(*n), *kind);
+            let mut what = counters(Num::N(*n), *kind);
+            if let Some((m, k)) = more {
+                let _ = write!(what, " and {}", counters(Num::N(*m), *k));
+            }
             let mut cond = static_cond_text(cond, card);
             if *first {
                 // Adamant names the permanent spell: "spent to cast this
@@ -14050,6 +14084,14 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     }
     // "Cast this spell only during combat." (CR 601.3), first.
     lines.splice(0..0, cast_only_text(card));
+    // Devoid, a color-defining ability, comes before everything else
+    // ("Devoid\nKicker {2}{C}", Voidpouncer; "Devoid\nAs an additional
+    // cost to cast this spell, put a card an opponent owns from exile
+    // ...", Processor Assault).
+    let devoid_first = card.keywords.contains(&Keyword::Devoid);
+    if devoid_first {
+        lines.insert(0, keyword_line(card, Keyword::Devoid));
+    }
     if let Some(k) = &card.kicker {
         lines.push(format!("Kicker {k}"));
     }
@@ -14057,13 +14099,6 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     // additional cost to cast this spell, behold a Kithkin and exile it.",
     // Champion of the Clachan).
     let flash_first = card.additional.is_some() && card.keywords.first() == Some(&Keyword::Flash);
-    // So does devoid, a color-defining ability ("Devoid\nAs an additional
-    // cost to cast this spell, put a card an opponent owns from exile
-    // ...", Processor Assault).
-    let devoid_first = card.additional.is_some() && card.keywords.contains(&Keyword::Devoid);
-    if devoid_first {
-        lines.push(keyword_line(card, Keyword::Devoid));
-    }
     if flash_first {
         lines.push(keyword_line(card, Keyword::Flash));
     }
