@@ -2551,6 +2551,11 @@ impl Templates {
             (
                 r(r"^Gain control of (.+?)( until end of turn)?$"),
                 |c, t| {
+                    // "for as long as you control this creature": the
+                    // sentence's duration, not part of the target.
+                    if cap(c, 1).contains(" for as long as ") {
+                        return None;
+                    }
                     // No duration: for good (CR 611.2a), `indefinitely`.
                     let forever = if cap(c, 2).is_empty() {
                         " indefinitely"
@@ -2695,6 +2700,15 @@ impl Templates {
         let Some(out) = out.filter(|o| !o.contains(';') && !o.contains("until end of turn")) else {
             *targets = before;
             return None;
+        };
+        // "Gain control of target creature for as long as ...": the
+        // duration takes the place of "for good".
+        let out = match out.strip_prefix("gain control of ") {
+            Some(rest) => format!(
+                "gain control of {}",
+                rest.strip_suffix(" indefinitely").unwrap_or(rest)
+            ),
+            None => out,
         };
         Some(if first {
             format!("{lasting}, {out}")

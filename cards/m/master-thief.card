@@ -1,0 +1,7 @@
+card "Master Thief" {
+  oracle_id a32b8502-7427-48a5-a880-14516ff2fe77
+  cost {2}{U}{U}
+  type Creature — Human Rogue
+  pt 2/2
+  triggered when this enters: gain control of target artifact for as long as you control this
+}

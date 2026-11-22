@@ -1,0 +1,8 @@
+card "Dragonlord Silumgar" {
+  oracle_id 44581d4f-746b-43b8-a34d-16dc383ab70e
+  cost {4}{U}{B}
+  type Legendary Creature — Elder Dragon
+  pt 3/5
+  keywords flying, deathtouch
+  triggered when this enters: gain control of target creature or planeswalker for as long as you control this
+}
