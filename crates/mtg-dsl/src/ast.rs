@@ -1172,6 +1172,9 @@ pub enum Ability {
         keywords: Vec<Keyword>,
         storm: bool,
         affinity: Option<Filter>,
+        /// `spells you control can't be countered`: "Spells you control
+        /// can't be countered." (no keywords then).
+        uncounterable: bool,
     },
     /// `this spell costs {1} less count each artifact you control`: "This
     /// spell costs {1} less to cast for each artifact you control."

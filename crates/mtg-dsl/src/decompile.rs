@@ -2144,6 +2144,7 @@ impl Decompiler<'_> {
                     keywords: keywords(g.keywords),
                     storm: g.storm,
                     affinity: g.affinity.as_ref().map(|f| self.filter(f)),
+                    uncounterable: g.uncounterable,
                 }
             }
             AbilityDef::CostChange(c) => Ability::CostChange {

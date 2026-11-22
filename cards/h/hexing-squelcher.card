@@ -1,0 +1,10 @@
+card "Hexing Squelcher" {
+  oracle_id 96c2d71e-0fc9-42aa-bc6b-6d0ae3f66f8b
+  cost {1}{R}
+  type Creature — Goblin Sorcerer
+  pt 2/2
+  this spell can't be countered
+  ward pay 2 life
+  spells you control can't be countered
+  static other creature you control: has ward pay 2 life
+}

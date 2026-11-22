@@ -5162,12 +5162,17 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             keywords: ks,
             storm,
             affinity,
+            uncounterable,
         } => {
             let subject = if *f == Filter::default() {
                 String::new()
             } else {
                 format!(" {}", filter(f))
             };
+            if *uncounterable {
+                let _ = writeln!(out, "{indent}spells{subject} you control can't be countered");
+                return;
+            }
             let from = if *from_hand { " from hand" } else { "" };
             let mut items: Vec<String> = ks.iter().map(|k| keywords(&[*k])).collect();
             if *storm {

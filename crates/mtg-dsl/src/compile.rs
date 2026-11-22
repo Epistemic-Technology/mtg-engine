@@ -4197,6 +4197,7 @@ impl Compiler<'_> {
                 keywords,
                 storm,
                 affinity,
+                uncounterable,
             } => AbilityDef::CostChange(mtg_core::card::CostChange {
                 spells: self.filter(filter),
                 whose: Who::You,
@@ -4207,6 +4208,7 @@ impl Compiler<'_> {
                     storm: *storm,
                     affinity: affinity.as_ref().map(|f| self.filter(f)),
                     from_hand: *from_hand,
+                    uncounterable: *uncounterable,
                 })),
             }),
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),

@@ -2674,6 +2674,25 @@ impl P {
         } else {
             Who::Any
         };
+        // "Spells you control can't be countered." (the filter may have
+        // read "you control").
+        if cond.is_none()
+            && (self.eat_words(&["you", "control", "can't", "be", "countered"])
+                || (filter.who == Some(Who::You)
+                    && self.eat_words(&["can't", "be", "countered"])))
+        {
+            self.end_stmt()?;
+            let mut filter = filter;
+            filter.who = None;
+            return Ok(Ability::SpellsHave {
+                filter,
+                from_hand: false,
+                keywords: Vec::new(),
+                storm: false,
+                affinity: None,
+                uncounterable: true,
+            });
+        }
         // "Instant and sorcery spells you cast [from your hand] have
         // storm".
         let from_hand = whose == Who::You && self.eat_words(&["from", "hand"]);
@@ -4056,6 +4075,7 @@ impl P {
             keywords,
             storm,
             affinity,
+            uncounterable: false,
         })
     }
 

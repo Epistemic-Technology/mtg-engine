@@ -2813,6 +2813,25 @@ impl GameState {
             || (self.cost_change_sources > 0 && self.flash_granted(p, def, id))
     }
 
+    /// Whether a static ability makes the spell `id` uncounterable ("Spells
+    /// you control can't be countered"; a `SpellGrant`).
+    #[cold]
+    #[inline(never)]
+    fn uncounterable_granted(&self, id: ObjId) -> bool {
+        let Some(o) = self.objects.get(id) else {
+            return false;
+        };
+        let (p, def) = (o.controller, self.pool.get(o.def));
+        self.cost_changers().into_iter().any(|src| {
+            let s = &self.objects[src];
+            self.pool.get(s.def).ability_ids.iter().any(|a| {
+                matches!(self.pool.ability(*a), AbilityDef::CostChange(cc)
+                    if cc.grant.as_ref().is_some_and(|g| g.uncounterable)
+                        && self.cost_change_applies(cc, p, def, id, src))
+            })
+        })
+    }
+
     /// Whether a static ability lets `p` cast `def`'s card `id` as though
     /// it had flash ("You may cast noncreature spells as though they had
     /// flash", CR 702.8; a `SpellGrant` of the keyword).
@@ -6541,8 +6560,11 @@ impl GameState {
             return;
         }
         let def = o.def;
-        // "This spell can't be countered."
-        if self.pool.get(def).uncounterable {
+        // "This spell can't be countered.", "Spells you control can't be
+        // countered."
+        if self.pool.get(def).uncounterable
+            || (self.cost_change_sources > 0 && self.uncounterable_granted(id))
+        {
             return;
         }
         let flashback = o.cast.flashback() && !self.pool.get(def).retrace;

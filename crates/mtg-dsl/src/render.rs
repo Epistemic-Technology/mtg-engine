@@ -12168,7 +12168,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             keywords,
             storm,
             affinity,
+            uncounterable,
         } => {
+            if *uncounterable {
+                return format!(
+                    "{} you control can't be countered.",
+                    cost_spells_subject(filter, card)
+                );
+            }
             // "You may cast noncreature spells as though they had flash."
             if keywords == &[Keyword::Flash] && !*storm && affinity.is_none() {
                 let from = if *from_hand { " from your hand" } else { "" };

@@ -6244,6 +6244,10 @@ pub struct SpellGrant {
     pub affinity: Option<ObjFilter>,
     /// Only spells cast from their caster's hand.
     pub from_hand: bool,
+    /// "Spells you control can't be countered" (CR 701.5): an effect that
+    /// counters a matching spell does nothing to it.
+    #[serde(default)]
+    pub uncounterable: bool,
 }
 
 /// "This spell costs {1} less to cast for each artifact you control"
