@@ -7772,6 +7772,16 @@ impl P {
     }
 
     #[allow(clippy::too_many_lines)]
+    /// `exile same name as target 1 from its controller zones`, out of
+    /// `verb_first` (whose frame is large in a debug build).
+    #[inline(never)]
+    fn exile_same_name(&mut self) -> R<Effect> {
+        self.pos += 3;
+        let what = self.recipient()?;
+        self.expect_words(&["from", "its", "controller", "zones"])?;
+        Ok(Effect::ExileSameName { what })
+    }
+
     fn verb_first(&mut self) -> R<Effect> {
         if self.chosen_act_ahead() {
             return self.chosen_act();
@@ -8314,10 +8324,8 @@ impl P {
                 // "Search its controller's graveyard, hand, and library for
                 // all cards with the same name as that spell and exile
                 // them. Then that player shuffles."
-                if self.eat_words(&["same", "name", "as"]) {
-                    let what = self.recipient()?;
-                    self.expect_words(&["from", "its", "controller", "zones"])?;
-                    return Ok(Effect::ExileSameName { what });
+                if self.at_words(&["same", "name", "as"]) {
+                    return self.exile_same_name();
                 }
                 // `exile until nonland card`.
                 if self.eat_word("until") {

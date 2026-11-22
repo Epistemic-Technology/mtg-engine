@@ -2556,6 +2556,14 @@ impl Fmt {
                             )
                         }
                     }
+                    // "return two cards at random from your graveyard": no
+                    // filter.
+                    ChooseAct::ReturnFromGraveyard if unfiltered => {
+                        format!("return {n} {cs} from your graveyard to hand chosen")
+                    }
+                    ChooseAct::ReturnRandomFromGraveyard if unfiltered => {
+                        format!("return {n} {cs} from your graveyard to hand at random")
+                    }
                     ChooseAct::ReturnFromGraveyard => {
                         format!("return {n} {f} {cs} from your graveyard to hand chosen")
                     }
@@ -3278,13 +3286,22 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     };
     // "target card named this from your graveyard"; "creature card with
     // mana value at most this power".
+    // `2 target creature that share creature type card`: part of the
+    // filter, before `card`.
+    let shares = matches!(
+        f.same,
+        Some(crate::ast::SameRef::ShareCreatureType | crate::ast::SameRef::ShareCardType)
+    );
     let named = match f.same {
+        _ if shares => "",
         Some(crate::ast::SameRef::ManaValueAtMostPower) => " with mana value at most this power",
         Some(_) => " named this",
         None => "",
     };
     let mut g = f.clone();
-    g.same = None;
+    if !shares {
+        g.same = None;
+    }
     g.that_player = None;
     // "creature card with mana value X or less": the mana value after the
     // noun.
