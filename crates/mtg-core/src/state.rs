@@ -931,6 +931,10 @@ pub struct CombatState {
     pub bands: Vec<Vec<ObjId>>,
     /// Whether a first-strike combat damage step occurred this combat (CR 510.4).
     pub had_first_strike_step: bool,
+    /// Creatures that attacked or blocked and have since been removed
+    /// from combat, or whose attacker has ("if this creature attacked or
+    /// blocked this combat").
+    pub left: Vec<ObjId>,
 }
 
 impl CombatState {
@@ -3727,6 +3731,11 @@ impl GameState {
                 .combat
                 .as_ref()
                 .is_some_and(|c| c.attackers.len() == 1 && c.attackers[0].id == source),
+            C::SourceAttackedOrBlocked => self.combat.as_ref().is_some_and(|c| {
+                c.attacker(source).is_some()
+                    || c.attackers.iter().any(|a| a.blockers.contains(&source))
+                    || c.left.contains(&source)
+            }),
             C::SourceBlocked => self
                 .combat
                 .as_ref()

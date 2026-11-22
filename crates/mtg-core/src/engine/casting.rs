@@ -9070,6 +9070,22 @@ impl GameState {
                     }
                 }
             }
+            Effect::AddCountersCapped {
+                kind,
+                count,
+                to,
+                cap,
+            } => {
+                let n = self.eval_num(*count, ctx);
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        let room = cap.saturating_sub(self.objects[id].counters(*kind));
+                        if n.min(room) > 0 {
+                            self.add_counters(id, *kind, n.min(room));
+                        }
+                    }
+                }
+            }
             // CR 601.2d, 608.2b: the division announced on casting holds;
             // what an illegal target was assigned is not dealt.
             Effect::DealDamageDivided { to, .. } => {

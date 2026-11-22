@@ -5710,6 +5710,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*to);
             Clause::imperative(format!("put {c} on {each}{o}"))
         }
+        // "This ability can't cause the total number of +1/+0 counters on
+        // this creature to be greater than four." (the Clockwork cap).
+        Effect::AddCountersCapped {
+            kind,
+            count,
+            to,
+            cap,
+        } => {
+            let c = counters(*count, *kind);
+            let o = ctx.obj(*to);
+            let all = counters(Num::N(2), *kind);
+            let all = all.trim_start_matches("two ");
+            Clause::imperative(format!(
+                "put up to {c} on {o}. This ability can't cause the total number of {all} on {o} to be greater than {}",
+                count_words(Num::N(*cap), "one")
+            ))
+        }
         Effect::AddCounterList { counters: cs, to } => {
             let c: Vec<String> = cs.iter().map(|(k, n)| counters(*n, *k)).collect();
             let each = ctx.each_of(*to);
@@ -12297,6 +12314,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::Is(f) => format!("it's {}", is_predicate(f, card)),
         StaticCond::Modified => "it's modified".to_string(),
         StaticCond::AttackingAlone => "it's attacking alone".to_string(),
+        StaticCond::AttackedOrBlocked => {
+            format!("{} attacked or blocked this combat", this_ref(card))
+        }
         StaticCond::Blocked => "it's blocked".to_string(),
         StaticCond::BeingBlocked => "at least one creature is blocking it".to_string(),
         // "As long as enchanted permanent is a creature" (an Aura that
@@ -13066,6 +13086,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                             c,
                             StaticCond::SourceCounters { .. }
                                 | StaticCond::ManaSpent { that: false, .. }
+                                | StaticCond::AttackedOrBlocked
                         );
                     ctx.attached_mentioned = matches!(c, StaticCond::AttachedIs(_));
                     ctx.attached_by_cond = ctx.attached_mentioned;

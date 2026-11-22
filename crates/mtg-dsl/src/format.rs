@@ -1350,6 +1350,17 @@ impl Fmt {
                 counter(*kind, *count),
                 self.recipient(*to, t)
             ),
+            Effect::AddCountersCapped {
+                kind,
+                count,
+                to,
+                cap,
+            } => format!(
+                "put up to {} {} on {} capped {cap}",
+                num(*count),
+                counter(*kind, Num::N(2)),
+                self.recipient(*to, t)
+            ),
             Effect::AddCounterList { counters, to } => format!(
                 "put {} on {}",
                 counters
@@ -4960,6 +4971,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::IsntToken => "this isnt token".to_string(),
         StaticCond::Modified => "modified".to_string(),
         StaticCond::AttackingAlone => "attacking alone".to_string(),
+        StaticCond::AttackedOrBlocked => "attacked or blocked this combat".to_string(),
         StaticCond::Blocked => "blocked".to_string(),
         StaticCond::BeingBlocked => "being blocked".to_string(),
         StaticCond::AttachedIs(fl) => format!("attached is {}", filter(fl)),

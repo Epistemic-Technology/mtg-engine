@@ -133,7 +133,14 @@ impl GameState {
         let Some(c) = self.combat.as_mut() else {
             return;
         };
-        c.attackers.retain(|a| a.id != id);
+        // It and its blockers still attacked or blocked this combat.
+        if let Some(i) = c.attackers.iter().position(|a| a.id == id) {
+            let a = c.attackers.remove(i);
+            c.left.push(id);
+            c.left.extend(a.blockers);
+        } else if c.attackers.iter().any(|a| a.blockers.contains(&id)) {
+            c.left.push(id);
+        }
         for a in &mut c.attackers {
             a.blockers.retain(|b| *b != id);
         }

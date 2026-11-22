@@ -448,7 +448,10 @@ graveyard`, `opponent graveyard 8 or more` ("an opponent has eight or more
 cards in their graveyard"), `opponent controls Human`, `this is untapped`,
 `this is Wall` ("it's untapped", "it's a Wall"), `modified` ("it's
 modified", CR 700.9), `attacking alone`, `blocked`, `being blocked` ("at
-least one creature is blocking this creature"), `attached is legendary`
+least one creature is blocking this creature"), `attacked or blocked this
+combat` ("this creature attacked or blocked this combat", in an "at end
+of combat" trigger; one removed from combat, or whose attacker was, still
+counts; "it" follows), `attached is legendary`
 ("equipped creature is legendary"; "enchanted" on an Aura), `this is with
 power 5 or greater` ("this creature's power is 5 or greater"), `this has 1
 or more +1/+1 counters` ("this creature has a +1/+1 counter on it"),
@@ -1707,7 +1710,10 @@ Verb-first clauses: `deal 3 damage to <what> [and <what>]`,
 target Knight and it can't be regenerated" in one sentence), `put 2 +1/+1 counters on <what>`,
 `put 1 +1/+1 counter and 1 reach counter and 1 deathtouch counter on
 <what>` ("Put a +1/+1 counter, a reach counter, and a deathtouch counter
-on target creature"),
+on target creature"), `put up to x +1/+0 counters on this capped 4` ("Put
+up to X +1/+0 counters on this creature. This ability can't cause the
+total number of +1/+0 counters on this creature to be greater than
+four.": the engine puts as many as it may),
 `remove 1 +1/+1 counter from <what>`, `remove 1 counter from <what>` ("remove a counter from target permanent": a counter of a kind the controller chooses), `remove all counters from <what>`,
 `return <what> to hand`, `return <what> to battlefield [with 1 +1/+1 counter]`,
 `regenerate <what>`, `exile <what> [and <what>]` (a permanent or a graveyard card),

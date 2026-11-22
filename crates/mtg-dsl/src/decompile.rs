@@ -583,6 +583,7 @@ impl Decompiler<'_> {
             StaticCondition::SourceIs(f) => StaticCond::Is(unowned(f)),
             StaticCondition::SourceModified => StaticCond::Modified,
             StaticCondition::SourceAttackingAlone => StaticCond::AttackingAlone,
+            StaticCondition::SourceAttackedOrBlocked => StaticCond::AttackedOrBlocked,
             StaticCondition::SourceBlocked => StaticCond::Blocked,
             StaticCondition::SourceBeingBlocked => StaticCond::BeingBlocked,
             StaticCondition::AttachedIs(f) => StaticCond::AttachedIs(unowned(f)),
@@ -853,6 +854,17 @@ impl Decompiler<'_> {
             CoreEffect::Mill { count, who } => Effect::Mill {
                 count: *count,
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
+            },
+            CoreEffect::AddCountersCapped {
+                kind,
+                count,
+                to,
+                cap,
+            } => Effect::AddCountersCapped {
+                kind: *kind,
+                count: *count,
+                to: r(*to),
+                cap: *cap,
             },
             CoreEffect::AddCounters { kind, count, to } => Effect::AddCounters {
                 kind: *kind,

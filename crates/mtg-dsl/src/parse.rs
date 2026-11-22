@@ -3478,6 +3478,9 @@ impl P {
         if self.eat_words(&["attacking", "alone"]) {
             return Ok(StaticCond::AttackingAlone);
         }
+        if self.eat_words(&["attacked", "or", "blocked", "this", "combat"]) {
+            return Ok(StaticCond::AttackedOrBlocked);
+        }
         if self.eat_word("blocked") {
             return Ok(StaticCond::Blocked);
         }
@@ -7407,6 +7410,30 @@ impl P {
                 })
             }
             // `put 2 cards from hand on top of library`.
+            // `put up to x +1/+0 counters on this capped 4`.
+            "put"
+                if self.at_words(&["up", "to"]) && {
+                    let at = self.pos;
+                    self.pos += 2;
+                    let ok = self.num().is_ok() && self.counter_kind().is_ok();
+                    self.pos = at;
+                    ok
+                } =>
+            {
+                self.pos += 2;
+                let count = self.num()?;
+                let kind = self.counter_kind()?;
+                self.expect_word("on")?;
+                let to = self.recipient()?;
+                self.expect_word("capped")?;
+                let cap = self.number()?;
+                Ok(Effect::AddCountersCapped {
+                    kind,
+                    count,
+                    to,
+                    cap,
+                })
+            }
             "put" if self.revealed && self.at_card_words() => self.put_card(None),
             "reveal" if self.revealed && self.at_word("it") => {
                 self.pos += 1;

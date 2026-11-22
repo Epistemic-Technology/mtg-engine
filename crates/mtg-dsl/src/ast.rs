@@ -2180,6 +2180,9 @@ pub enum StaticCond {
     Modified,
     /// `attacking alone`: "it's attacking alone".
     AttackingAlone,
+    /// `attacked or blocked this combat`: "this creature attacked or
+    /// blocked this combat".
+    AttackedOrBlocked,
     /// `blocked`: "this creature is blocked".
     Blocked,
     /// `being blocked`: "at least one creature is blocking this creature".
@@ -3374,6 +3377,16 @@ pub enum Effect {
         kind: CounterKind,
         count: Num,
         to: Recipient,
+    },
+    /// `put up to x +1/+0 counters on this capped 4`: "Put up to X +1/+0
+    /// counters on this creature. This ability can't cause the total
+    /// number of +1/+0 counters on this creature to be greater than
+    /// four."
+    AddCountersCapped {
+        kind: CounterKind,
+        count: Num,
+        to: Recipient,
+        cap: u32,
     },
     /// `put 1 +1/+1 counter and 1 reach counter on target creature`:
     /// several kinds at once ("Put a +1/+1 counter, a reach counter, and a

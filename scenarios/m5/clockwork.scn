@@ -1,0 +1,48 @@
+# The Clockwork creatures: four +1/+0 counters, one removed at end of a
+# combat it attacked or blocked in; "{X}, {T}: Put up to X +1/+0 counters
+# on this creature. This ability can't cause the total number of +1/+0
+# counters on this creature to be greater than four. Activate only during
+# your upkeep."
+
+scenario "Clockwork Swarm loses a counter after attacking, and winds back up to four" {
+  battlefield A: "Clockwork Swarm" with 4 +1/+0, 3 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Clockwork Swarm"
+  turn 3 upkeep A: activate "Clockwork Swarm" x 3
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert counters "Clockwork Swarm" +1/+0 3
+  assert power "Clockwork Swarm" 3
+  run_to turn 3 draw
+  assert counters "Clockwork Swarm" +1/+0 4
+  assert power "Clockwork Swarm" 4
+}
+
+scenario "Clockwork Swarm enters with four counters; no combat, no loss" {
+  battlefield A: 4 "Plains"
+  hand A: "Clockwork Swarm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Clockwork Swarm"
+  run_to turn 2 precombat_main
+  assert counters "Clockwork Swarm" +1/+0 4
+}
+
+scenario "Clockwork Steed loses a counter after blocking" {
+  battlefield A: "Clockwork Steed" with 4 +1/+0
+  battlefield B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Clockwork Steed"
+  run_to turn 2 postcombat_main
+  assert counters "Clockwork Steed" +1/+0 3
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Clockwork Swarm: the ability only in the upkeep" {
+  battlefield A: "Clockwork Swarm" with 1 +1/+0, 3 "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Clockwork Swarm" x 2
+  turn 3 upkeep A: activate "Clockwork Swarm" x 2
+  run_to turn 3 draw
+  assert counters "Clockwork Swarm" +1/+0 3
+}

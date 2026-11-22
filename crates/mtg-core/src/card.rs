@@ -2491,6 +2491,10 @@ pub enum StaticCondition {
     SourceModified,
     /// "it's attacking alone" (CR 506.5).
     SourceAttackingAlone,
+    /// "if this creature attacked or blocked this combat" (the Clockwork
+    /// creatures): it is an attacking or blocking creature of the combat
+    /// now ending.
+    SourceAttackedOrBlocked,
     /// "this creature is blocked" (CR 509.1h).
     SourceBlocked,
     /// "at least one creature is blocking this creature": blocked, by a
@@ -3433,6 +3437,17 @@ pub enum Effect {
         kind: CounterKind,
         count: Num,
         to: Recipient,
+    },
+    /// "Put up to X +1/+0 counters on this creature. This ability can't
+    /// cause the total number of +1/+0 counters on this creature to be
+    /// greater than four." (the Clockwork creatures): `count` counters, but
+    /// none past `cap` in all. "Up to" lets fewer be chosen; the engine
+    /// always puts as many as it may.
+    AddCountersCapped {
+        kind: CounterKind,
+        count: Num,
+        to: Recipient,
+        cap: u32,
     },
     /// "deals 3 damage divided as you choose among one, two, or three
     /// targets" (CR 601.2d): `to` is a variable target group
@@ -9085,6 +9100,7 @@ impl CardPool {
                 StaticCondition::SourceAttacking
                     | StaticCondition::SourceAttackedBattle
                     | StaticCondition::SourceAttackingAlone
+                    | StaticCondition::SourceAttackedOrBlocked
                     | StaticCondition::SourceBlocked
                     | StaticCondition::SourceBeingBlocked
             )))

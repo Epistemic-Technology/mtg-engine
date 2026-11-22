@@ -1972,6 +1972,7 @@ impl Compiler<'_> {
             })),
             StaticCond::Modified => StaticCondition::SourceModified,
             StaticCond::AttackingAlone => StaticCondition::SourceAttackingAlone,
+            StaticCond::AttackedOrBlocked => StaticCondition::SourceAttackedOrBlocked,
             StaticCond::Blocked => StaticCondition::SourceBlocked,
             StaticCond::BeingBlocked => StaticCondition::SourceBeingBlocked,
             StaticCond::AttachedIs(filter) => StaticCondition::AttachedIs(self.filter(filter)),
@@ -2608,6 +2609,17 @@ impl Compiler<'_> {
             Effect::Mill { count, who } => out.push(CoreEffect::Mill {
                 count: *count,
                 who: who.map_or(CoreRecipient::You, r),
+            }),
+            Effect::AddCountersCapped {
+                kind,
+                count,
+                to,
+                cap,
+            } => out.push(CoreEffect::AddCountersCapped {
+                kind: *kind,
+                count: *count,
+                to: r(*to),
+                cap: *cap,
             }),
             Effect::AddCounters { kind, count, to } => out.push(CoreEffect::AddCounters {
                 kind: *kind,
