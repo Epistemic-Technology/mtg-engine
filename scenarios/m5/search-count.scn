@@ -1,0 +1,108 @@
+# Searches for a counted number of cards: "for up to X basic land cards,
+# where X is ...", "for up to X cards" (the spell's X), "for up to that
+# many land cards" (the triggering amount); and one card from the library
+# and/or the graveyard by a filter (CR 701.19).
+
+scenario "search up to X where: Boundless Realms finds one land for each land you control" {
+  battlefield A: 7 "Forest"
+  hand A: "Boundless Realms"
+  library A: 10 "Plains", "Grizzly Bears"
+  turn 1 A: cast "Boundless Realms"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 7 "Plains"
+  assert library A count 4
+  assert tapped oldest "Plains"
+}
+
+scenario "search up to X where: Boundless Realms with fewer basic lands than X finds them all" {
+  battlefield A: 7 "Forest"
+  hand A: "Boundless Realms"
+  library A: 2 "Plains", 3 "Grizzly Bears"
+  turn 1 A: cast "Boundless Realms"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Plains"
+  assert library A count 3
+}
+
+scenario "search up to X where: Harvest Season counts tapped creatures only" {
+  battlefield A: "Forest", "Forest", "Forest", "Grizzly Bears", "Hill Giant", "Llanowar Elves"
+  hand A: "Harvest Season"
+  library A: 5 "Plains"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  turn 1 postcombat_main A: cast "Harvest Season"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Plains"
+  assert library A count 3
+}
+
+scenario "search up to X: Diabolic Revelation with X 2 puts two cards into the hand" {
+  battlefield A: 7 "Swamp"
+  hand A: "Diabolic Revelation"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Island"
+  turn 1 A: cast "Diabolic Revelation" x 2
+  turn 1 A: choose "Serra Angel"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Serra Angel"
+  assert hand A contains "Island"
+  assert hand A count 2
+  assert library A count 2
+}
+
+scenario "search up to X: Nylea's Intervention with X 3 finds three land cards" {
+  battlefield A: 5 "Forest"
+  hand A: "Nylea's Intervention"
+  library A: "Plains", "Grizzly Bears", "Island", "Swamp", "Mountain"
+  turn 1 A: cast "Nylea's Intervention" mode 1 x 3
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert hand A lacks "Grizzly Bears"
+  assert library A count 2
+}
+
+scenario "search up to that many: Hexhaven Invigorator dealt 2 damage finds two lands" {
+  battlefield A: "Hexhaven Invigorator"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  library A: 4 "Forest", "Grizzly Bears"
+  turn 2 B: cast "Shock" targeting "Hexhaven Invigorator"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 2 "Forest"
+  assert tapped oldest "Forest"
+  assert library A count 3
+}
+
+scenario "search library or graveyard: Fang-Druid Summoner finds a vanilla creature in the graveyard" {
+  battlefield A: 4 "Forest"
+  hand A: "Fang-Druid Summoner"
+  graveyard A: "Grizzly Bears"
+  library A: "Llanowar Elves", "Island"
+  turn 1 A: cast "Fang-Druid Summoner"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A count 0
+  assert library A count 2
+}
+
+scenario "search library or graveyard: Fang-Druid Summoner can't find a creature with abilities" {
+  battlefield A: 4 "Forest"
+  hand A: "Fang-Druid Summoner"
+  graveyard A: "Llanowar Elves"
+  library A: "Serra Angel", "Island"
+  turn 1 A: cast "Fang-Druid Summoner"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert graveyard A contains "Llanowar Elves"
+}
+
+scenario "search library or graveyard: Delivery Moogle finds a cheap artifact in the library" {
+  battlefield A: 4 "Plains"
+  hand A: "Delivery Moogle"
+  library A: "Ornithopter", "Darksteel Colossus", "Island"
+  turn 1 A: cast "Delivery Moogle"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Ornithopter"
+  assert hand A count 1
+  assert library A count 2
+}

@@ -3342,6 +3342,11 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     {
         mv = format!(" with {}", bound_phrase(b, card));
     }
+    // "a creature card with no abilities" (Fang-Druid Summoner).
+    if g.or.is_none() && mv.is_empty() && g.no_abilities {
+        g.no_abilities = false;
+        mv = " with no abilities".to_string();
+    }
     let p = if g == Filter::default() {
         String::new()
     } else {
@@ -4367,6 +4372,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::ExilePlayable { count, .. }
         | Effect::ExileTop { count, .. }
         | Effect::Earthbend { count, .. }
+        | Effect::Search { count, .. }
         | Effect::InvestigateCount { count, .. } => vec![*count],
         Effect::CreateToken { count, sized, .. } => std::iter::once(*count).chain(*sized).collect(),
         Effect::CopySpells { times, .. } => vec![*times],
@@ -5093,6 +5099,17 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     &format!(" cards of your library, where X is {phrase}"),
                     1,
                 );
+            }
+            // "Search your library for up to X basic land cards, where X
+            // is the number of lands you control, put them onto the
+            // battlefield tapped, then shuffle."
+            CountStyle::Where
+                if matches!(e, Effect::Search { .. }) && c.text.contains(" cards, ") =>
+            {
+                let phrase = count_phrase_in(&count.expr, ctx, false);
+                c.text = c
+                    .text
+                    .replacen(" cards, ", &format!(" cards, where X is {phrase}, "), 1);
             }
             // "Target player draws 2ˣ cards."
             CountStyle::Where if count.expr == crate::ast::CountExpr::TwoToX => {
@@ -8676,7 +8693,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 } else if one {
                     "a card".to_string()
                 } else {
-                    format!("{} cards", count_words(*count, "a"))
+                    format!(
+                        "{}{} cards",
+                        if *up_to { "up to " } else { "" },
+                        count_words(*count, "a")
+                    )
                 }
             } else if one && filter.or.is_none() {
                 // "a Rebel permanent card with mana value 3 or less".
@@ -16314,6 +16335,21 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             capitalize(&this_ref(card)),
             static_cond_text(c, card)
         ),
+        // "As this land enters, you may reveal a Mountain or Forest card
+        // from your hand. If you don't, this land enters tapped."
+        Ability::EntersTappedUnlessReveal { filter, or } => {
+            let this = this_ref(card);
+            let what = with_article(&cards_phrase(filter, card, false));
+            let rest = match or {
+                None => format!("If you don't, {this} enters tapped."),
+                Some(c) => format!(
+                    "{} enters tapped unless you revealed {what} this way or {}.",
+                    capitalize(&this),
+                    static_cond_text(c, card)
+                ),
+            };
+            format!("As {this} enters, you may reveal {what} from your hand. {rest}")
+        }
         Ability::EntersTappedIfNotYourTurn => format!(
             "{} enters tapped if it's not your turn.",
             capitalize(&this_ref(card))

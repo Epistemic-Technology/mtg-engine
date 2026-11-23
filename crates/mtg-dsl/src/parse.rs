@@ -3449,6 +3449,22 @@ impl P {
                     token: None,
                 }))
             }
+            // "As this land enters, you may reveal a Mountain or Forest
+            // card from your hand. If you don't, this land enters tapped."
+            "enters" if self.at_words(&["enters", "tapped", "unless", "reveal"]) => {
+                self.pos += 4;
+                let filter = self.filter()?;
+                if !(self.eat_word("card") || self.eat_word("cards")) {
+                    return self.unexpected("`card`");
+                }
+                let or = if self.eat_word("or") {
+                    Some(self.static_cond()?)
+                } else {
+                    None
+                };
+                self.end_stmt()?;
+                Ok(Ability::EntersTappedUnlessReveal { filter, or })
+            }
             "enters" if self.at_words(&["enters", "tapped", "if", "not", "your", "turn"]) => {
                 self.pos += 6;
                 self.end_stmt()?;
@@ -9886,8 +9902,25 @@ impl P {
             "search" | "searches" => {
                 let graveyard = self.eat_words(&["library", "or", "graveyard"]);
                 let up_to = self.eat_words(&["up", "to"]);
-                let count = if matches!(self.peek(), Some(Tok::Num(_))) {
-                    self.num()?
+                // `search up to X ...`, `search up to count where ...`,
+                // `search up to that much ...`: "for up to X basic land
+                // cards, where X is ...", "for up to that many land cards".
+                let count = if matches!(self.peek(), Some(Tok::Num(_)))
+                    || self.word_at(0).is_some_and(|w| w.eq_ignore_ascii_case("x"))
+                    || (self.at_word("count")
+                        && matches!(self.word_at(1).as_deref(), Some("where" | "that")))
+                    || self.at_words(&["that", "much"])
+                {
+                    let n = self.num()?;
+                    // `search up to count where land you control, basic
+                    // land card ...`: the comma ends the count's filter.
+                    if matches!(n, Num::Count(_)) {
+                        if self.peek() != Some(&Tok::Comma) {
+                            return self.unexpected("`,` after the count");
+                        }
+                        self.pos += 1;
+                    }
+                    n
                 } else if self.eat_words(&["any", "number"]) {
                     Num::N(crate::ast::ANY_NUMBER)
                 } else {

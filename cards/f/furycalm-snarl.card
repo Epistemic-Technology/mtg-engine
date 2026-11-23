@@ -1,0 +1,6 @@
+card "Furycalm Snarl" {
+  oracle_id 651dea9c-2375-4e44-8e65-ba8e40f0c0ef
+  type Land
+  enters tapped unless reveal Mountain or Plains card
+  mana {R} or {W}
+}

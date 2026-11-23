@@ -1,0 +1,7 @@
+card "Fortified Beachhead" {
+  oracle_id 387fe395-e4a0-4fb2-8d6c-88a1a21d2ed8
+  type Land
+  enters tapped unless reveal Soldier card or you control Soldier
+  mana {W} or {U}
+  activated {5}, {T}: all Soldier you control gets +1/+1
+}

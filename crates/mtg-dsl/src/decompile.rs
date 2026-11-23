@@ -2758,6 +2758,13 @@ impl Decompiler<'_> {
                 ..
             }) => Ability::EntersTappedUnless(self.static_cond(self.pool.condition(*i))),
             AbilityDef::Replacement(ReplacementAbility {
+                replacement: mtg_core::card::Replacement::EnterTappedUnlessReveal { filter, or },
+                ..
+            }) => Ability::EntersTappedUnlessReveal {
+                filter: self.filter(self.pool.filter(*filter)),
+                or: or.map(|c| self.static_cond(self.pool.condition(c))),
+            },
+            AbilityDef::Replacement(ReplacementAbility {
                 replacement: mtg_core::card::Replacement::EnterWithCountersIf { n, cond, kind },
                 ..
             }) => match self.pool.condition(*cond) {

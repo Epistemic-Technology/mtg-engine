@@ -1,0 +1,6 @@
+card "Harvest Season" {
+  oracle_id ec6d52f9-1c8f-48da-951c-be8d7813c7be
+  cost {2}{G}
+  type Sorcery
+  spell: search up to count where tapped creature you control, basic land card to battlefield tapped that card
+}

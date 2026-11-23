@@ -5994,6 +5994,13 @@ pub enum Replacement {
     /// "As this land enters, you may pay 3 life. If you don't, it enters
     /// tapped." (CR 614.12, 119.4): its controller is asked as it enters.
     EnterTappedUnlessPay(u32),
+    /// "As this land enters, you may reveal a Mountain or Forest card
+    /// from your hand. If you don't, this land enters tapped." (CR
+    /// 614.12, 701.20a): its controller is asked as it enters if a card in
+    /// their hand matches the pool's `filter`th filter (judged as printed).
+    /// `or`: "This land enters tapped unless you revealed a Dragon card
+    /// this way or you control a Dragon." (the pool's `or`th condition).
+    EnterTappedUnlessReveal { filter: u16, or: Option<u16> },
     /// Enters tapped unless the pool's `n`th condition holds for its
     /// controller ("unless you control a planeswalker", CR 614.1d).
     EnterTappedUnless(u16),
@@ -8031,7 +8038,8 @@ impl AbilityDef {
                     | Replacement::EnterAmplify(_)
                     | Replacement::EnterTribute(_)
                     | Replacement::EnterReadAhead
-                    | Replacement::EnterTappedUnlessPay(_),
+                    | Replacement::EnterTappedUnlessPay(_)
+                    | Replacement::EnterTappedUnlessReveal { .. },
                 ..
             })
         )

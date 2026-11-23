@@ -1,0 +1,6 @@
+card "Murmuring Bosk" {
+  oracle_id 42b9d383-3fe2-4fc8-ab86-f80a288d502b
+  type Land — Forest
+  enters tapped unless reveal Treefolk card
+  activated {T}: add {W} or {B}; deal 1 damage to you
+}

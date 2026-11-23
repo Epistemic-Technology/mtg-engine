@@ -1,0 +1,6 @@
+card "Frostboil Snarl" {
+  oracle_id 7137aae6-260d-41de-8b4e-42a8cf752697
+  type Land
+  enters tapped unless reveal Island or Mountain card
+  mana {U} or {R}
+}

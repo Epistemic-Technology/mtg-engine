@@ -1,0 +1,6 @@
+card "Foreboding Ruins" {
+  oracle_id 5c87e2fa-77f1-4978-b25f-f14d227301d1
+  type Land
+  enters tapped unless reveal Swamp or Mountain card
+  mana {B} or {R}
+}

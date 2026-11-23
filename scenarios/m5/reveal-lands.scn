@@ -1,0 +1,66 @@
+# "As this land enters, you may reveal a Mountain or Forest card from your
+# hand. If you don't, this land enters tapped." (CR 614.12, 701.20a)
+
+scenario "reveal land: Game Trail enters untapped when a Mountain is revealed" {
+  hand A: "Game Trail", "Mountain"
+  turn 1 A: play "Game Trail"
+  turn 1 A: accept "Game Trail"
+  run_to turn 1 postcombat_main
+  assert untapped "Game Trail"
+  assert known B "Mountain"
+}
+
+scenario "reveal land: declining to reveal, Game Trail enters tapped" {
+  hand A: "Game Trail", "Mountain"
+  turn 1 A: play "Game Trail"
+  turn 1 A: decline "Game Trail"
+  run_to turn 1 postcombat_main
+  assert tapped "Game Trail"
+  assert unknown B "Mountain"
+}
+
+scenario "reveal land: with no Mountain or Forest card in hand, Game Trail enters tapped" {
+  hand A: "Game Trail", "Island", "Grizzly Bears"
+  turn 1 A: play "Game Trail"
+  run_to turn 1 postcombat_main
+  assert tapped "Game Trail"
+}
+
+scenario "reveal land: a creature type, Gilt-Leaf Palace reveals an Elf card" {
+  hand A: "Gilt-Leaf Palace", "Llanowar Elves"
+  turn 1 A: play "Gilt-Leaf Palace"
+  run_to turn 1 postcombat_main
+  assert untapped "Gilt-Leaf Palace"
+  assert known B "Llanowar Elves"
+}
+
+scenario "reveal land: a second copy of the land in hand is not an Elf card" {
+  hand A: "Gilt-Leaf Palace", "Gilt-Leaf Palace", "Grizzly Bears"
+  turn 1 A: play "Gilt-Leaf Palace"
+  run_to turn 1 postcombat_main
+  assert tapped "Gilt-Leaf Palace"
+}
+
+scenario "reveal land or control: Fortified Beachhead enters untapped with a Soldier on the battlefield" {
+  battlefield A: "Elite Vanguard"
+  hand A: "Fortified Beachhead", "Island"
+  turn 1 A: play "Fortified Beachhead"
+  run_to turn 1 postcombat_main
+  assert untapped "Fortified Beachhead"
+}
+
+scenario "reveal land or control: Fortified Beachhead with neither enters tapped" {
+  battlefield A: "Grizzly Bears"
+  hand A: "Fortified Beachhead", "Island"
+  turn 1 A: play "Fortified Beachhead"
+  run_to turn 1 postcombat_main
+  assert tapped "Fortified Beachhead"
+}
+
+scenario "reveal land or control: Temple of the Dragon Queen reveals a Dragon card" {
+  hand A: "Temple of the Dragon Queen", "Shivan Dragon"
+  turn 1 A: play "Temple of the Dragon Queen"
+  turn 1 A: accept "Temple of the Dragon Queen"
+  run_to turn 1 postcombat_main
+  assert untapped "Temple of the Dragon Queen"
+}

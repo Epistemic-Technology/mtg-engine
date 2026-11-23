@@ -177,6 +177,7 @@ like the card; either half may still be cast alone.
 | `activated {1}: add {B}; if activated 4 times this turn, delayed this: sacrifice this at beginning of the next end step` | The condition `activated N times this turn` ("If this ability has been activated four or more times this turn", Initiates of the Ebon Hand): the source's activations of such an ability this turn, this one included, whether a player or payment activated it (the ability then records its activations, `ActivatedAbility::counted`). |
 | `enters tapped if not your turn` | "This creature enters tapped if it's not your turn." (the same replacement as `enters tapped unless your turn`, CR 614.1d) |
 | `enters tapped unless pay 3 life` | "As this land enters, you may pay 3 life. If you don't, it enters tapped." (CR 614.12; only with that much life, CR 119.4). |
+| `enters tapped unless reveal Mountain or Forest card`, `enters tapped unless reveal Dragon card or you control Dragon` | "As this land enters, you may reveal a Mountain or Forest card from your hand. If you don't, this land enters tapped." (CR 614.12, 701.20a; the snarls and the Lorwyn tribal lands): its controller is asked only with a matching card in hand (judged as printed; the land itself doesn't count while it is played), and the engine reveals the first such card, known to every player until it moves. With `or <condition>`: "This land enters tapped unless you revealed a Dragon card this way or you control a Dragon." (Temple of the Dragon Queen). |
 | `can't attack unless defending player controls Island`, `can't block unless you control other Goblin`, `can't attack or block unless ...` | Attack and block restrictions with a condition (CR 508.1c, 509.1c). Conditions only these use: `defending player poisoned` ("defending player is poisoned"), `on battlefield Mountain` / `on battlefield 5 Island` ("there is a Mountain on the battlefield", "there are five or more Islands on the battlefield"), `you control more creatures than defending player` (or `attacking player`), and, judged on the whole declaration, `at least 2 other creatures attack` (or `block`) and `black or green creature also attacks` ("a black or green creature also attacks"): a creature whose condition the declared attackers (blockers) don't meet can't be among them. `opponent damaged this turn` prints "an opponent has been dealt damage this turn" here. `can't attack if defending player controls untapped land` (`if`: the restriction applies while the condition holds: "This creature can't attack if ..."); `can't attack if creature also attacks` prints "can only attack alone" (granted: "Enchanted creature ... can only attack alone."). `attacked last turn` ("it attacked during your last turn": the source was declared as an attacker during its controller's most recent turn) also works in `static this: has doesn't untap if attacked last turn`. `defending player controls no Glimmer creature` prints "controls no Glimmer creatures". A condition's alternative written with its own article (`you control Knight or a Soldier`) prints it ("a Knight or a Soldier"). |
 | `activated <cost>: <effects>` | An activated ability (CR 602). With {X} in its cost (`activated {X}, sacrifice this: destroy target artifact with mana value X`), X is announced as it is activated, before targets (CR 602.2b, 601.2b), only as high as can be paid and some target fits; the effects read it. A mana ability's X is not asked. |
 | `boast {1}{W}: <effects>`, `exhaust {3}: <effects>`, `power-up {5}{R}: <effects>` | An activated ability after a keyword, printed "Boast — {1}{W}: ..." (the keyword's rules are reminder text). Boast (CR 702.142): only if this creature was declared as an attacker this turn, and only once each turn. Exhaust (CR 702.177) and power-up (CR 702.193): only once for the object (a new object after a zone change may again, CR 400.7); a power-up ability of a permanent that entered this turn costs its mana cost less (colored mana reduces that color, any excess generic; CR 118.7). |
@@ -2292,7 +2293,18 @@ named Sunlit Hoplite and put it onto the battlefield. If ..."; a player
 subject prints "... reveals it, and puts it into their hand. If they
 search their library this way, they shuffle."): one card, from either
 zone, into the hand or onto the battlefield; the library is shuffled if
-the card came from it or nothing was found. `card named "X"` names
+the card came from it or nothing was found (`search library or
+graveyard creature with no abilities card reveal to hand`, `... artifact
+card with mana value 2 or less ...`: "for a creature card with no
+abilities", "for an artifact card with mana value 2 or less", by a
+filter). A counted search: `search up to X card to hand that card` ("for
+up to X cards, put those cards into your hand", the spell's X), `search
+up to count where land you control, basic land card to battlefield
+tapped` ("for up to X basic land cards, where X is the number of lands
+you control, put them onto ..."; the comma ends the count, which is read
+as the search begins), `search up to that much land card to battlefield
+tapped` ("for up to that many land cards", the triggering amount).
+`card named "X"` names
 another card by its name (`card named "X" or named "Y"`: "a card named X
 or Y", either name) (also without `library or graveyard`: "Search
 your library for a card named X, put it onto the battlefield, then

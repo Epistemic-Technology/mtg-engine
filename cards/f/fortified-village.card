@@ -1,0 +1,6 @@
+card "Fortified Village" {
+  oracle_id 56f1a16a-9f41-41fb-b580-c200bca27cd6
+  type Land
+  enters tapped unless reveal Forest or Plains card
+  mana {G} or {W}
+}

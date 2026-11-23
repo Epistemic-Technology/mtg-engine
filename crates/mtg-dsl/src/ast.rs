@@ -1576,6 +1576,15 @@ pub enum Ability {
     /// `enters tapped unless you control planeswalker`: "This land enters
     /// tapped unless you control a planeswalker." (CR 614.1d)
     EntersTappedUnless(StaticCond),
+    /// `enters tapped unless reveal Mountain or Forest card`: "As this
+    /// land enters, you may reveal a Mountain or Forest card from your
+    /// hand. If you don't, this land enters tapped." (CR 614.12); `...
+    /// card or you control Dragon`: "This land enters tapped unless you
+    /// revealed a Dragon card this way or you control a Dragon."
+    EntersTappedUnlessReveal {
+        filter: Filter,
+        or: Option<StaticCond>,
+    },
     /// `enters tapped if not your turn`: "This creature enters tapped if
     /// it's not your turn." (the same replacement as `enters tapped unless
     /// your turn`, worded with "if").

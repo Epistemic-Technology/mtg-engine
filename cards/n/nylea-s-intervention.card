@@ -1,0 +1,9 @@
+card "Nylea's Intervention" {
+  oracle_id acf388b2-c4e3-4f1b-a16c-88f991d5c17b
+  cost {X}{G}{G}
+  type Sorcery
+  choose one {
+    mode: search up to X land card reveal to hand
+    mode: this deals 2 times X damage to each creature with flying
+  }
+}

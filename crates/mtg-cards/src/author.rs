@@ -2287,16 +2287,27 @@ impl Templates {
             (r(r"^(?:you may )?[Ff]lip (this creature|it|~)$"), |_, _| {
                 Some("flip this".to_string())
             }),
+            // "Search your library for up to X basic land cards, where X
+            // is the number of lands you control, put them onto the
+            // battlefield tapped, then shuffle."; "for up to that many land
+            // cards" (the triggering amount).
             (
                 r(
-                    r"^Search your library for (a|an|up to \S+) ([A-Za-z][A-Za-z -]*?)? ?cards?( with [^,]+)?, (reveal (?:it|them|that card), )?(?:put (it|them|that card|one) (into your hand or graveyard|into your hand|into your graveyard|onto the battlefield tapped and the other into your hand|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
+                    r"^[Ss]earch your library for (a|an|up to that many|up to \S+) ([A-Za-z][A-Za-z -]*?)? ?cards?( with [^,]+)?(?:, where X is ([^,]+))?, (reveal (?:it|them|that card|those cards), )?(?:put (it|them|that card|those cards|one) (into your hand or graveyard|into your hand|into your graveyard|onto the battlefield tapped and the other into your hand|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
                 ),
                 |c, _| {
                     let n = cap(c, 1);
-                    let (up_to, count) = match n.strip_prefix("up to ") {
+                    let (up_to, mut count) = match n.strip_prefix("up to ") {
+                        Some("that many") => ("up to ", "that much".to_string()),
                         Some(k) => ("up to ", number(k)?),
                         None => ("", "1".to_string()),
                     };
+                    if !cap(c, 4).is_empty() {
+                        if count != "X" {
+                            return None;
+                        }
+                        count = format!("{},", x_count(cap(c, 4))?);
+                    }
                     let mut t = format!("search {up_to}");
                     if count != "1" || !up_to.is_empty() {
                         let _ = write!(t, "{count} ");
@@ -2314,10 +2325,10 @@ impl Templates {
                         t.push_str("card");
                         t.push_str(with);
                     }
-                    if !cap(c, 4).is_empty() {
+                    if !cap(c, 5).is_empty() {
                         t.push_str(" reveal");
                     }
-                    t.push_str(match cap(c, 6) {
+                    t.push_str(match cap(c, 7) {
                         "into your hand" => " to hand",
                         "into your hand or graveyard" => " to hand or graveyard",
                         // "put one onto the battlefield tapped and the other
@@ -2330,14 +2341,43 @@ impl Templates {
                         "onto the battlefield" => " to battlefield",
                         _ => " to top",
                     });
-                    // "then shuffle and put that card on top".
-                    if cap(c, 5) == "that card"
-                        || cap(c, 4) == "reveal that card, "
-                        || cap(c, 6).is_empty()
+                    // "then shuffle and put that card on top"; "put those
+                    // cards onto the battlefield".
+                    if matches!(cap(c, 6), "that card" | "those cards")
+                        || matches!(cap(c, 5), "reveal that card, " | "reveal those cards, ")
+                        || cap(c, 7).is_empty()
                     {
                         t.push_str(" that card");
                     }
                     Some(t)
+                },
+            ),
+            // "Search your library and/or graveyard for a creature card
+            // with no abilities, reveal it, and put it into your hand. If
+            // you search your library this way, shuffle." (the second
+            // sentence joined as `\u{2}` above): one card, either zone.
+            (
+                r(
+                    r"^[Ss]earch your library and/or graveyard for an? ((?:[A-Z][a-z]+ |non[a-z]+ |artifact |creature |enchantment |land |instant |sorcery |planeswalker |legendary |basic |permanent )+)card( with (?:mana value \d+ or (?:less|greater)|power \d+ or (?:less|greater)|toughness \d+ or (?:less|greater)|no abilities))?(, reveal it, and put it into your hand| and put it onto the battlefield)\x{2}$",
+                ),
+                |c, _| {
+                    let what = cap(c, 1).trim_end();
+                    let with = cap(c, 2);
+                    // "with mana value 2 or less" after `card`; the rest
+                    // of the filter before it.
+                    let (before, after) = if with.starts_with(" with mana value") {
+                        ("", with)
+                    } else {
+                        (with, "")
+                    };
+                    let to = if cap(c, 3).starts_with(", reveal") {
+                        "reveal to hand"
+                    } else {
+                        "to battlefield"
+                    };
+                    Some(format!(
+                        "search library or graveyard {what}{before} card{after} {to}"
+                    ))
                 },
             ),
             // "Target player shuffles their library." (CR 701.24).
@@ -4149,6 +4189,17 @@ impl Templates {
                 )
             })
             .into_owned()
+        });
+        // "... search your library and/or graveyard for a creature card
+        // with no abilities, reveal it, and put it into your hand. If you
+        // search your library this way, shuffle." (Fang-Druid Summoner):
+        // the shuffle sentence joins the search's as `\u{2}`, which the
+        // search template below reads.
+        let text = Regex::new(
+            r"(earch your library and/or graveyard for [^.]+)\. If you search your library this way, shuffle",
+        )
+        .map_or(text.clone(), |re| {
+            re.replace_all(&text, "$1\u{2}").into_owned()
         });
         // "Exile target artifact. Search its controller's graveyard, hand,
         // and library for all cards with the same name as that artifact
@@ -7412,6 +7463,27 @@ impl Builder<'_> {
         {
             self.statements
                 .push(format!("enters tapped unless pay {} life", cap(&c, 1)));
+            return Ok(());
+        }
+        // "As this land enters, you may reveal a Mountain or Forest card
+        // from your hand. If you don't, this land enters tapped." (the
+        // snarls, the Lorwyn tribal lands); "... This land enters tapped
+        // unless you revealed a Dragon card this way or you control a
+        // Dragon."
+        if let Some(c) = Regex::new(
+            r"^As this land enters, you may reveal an? ([A-Z][a-z]+(?: or [A-Z][a-z]+)?) card from your hand\. (?:If you don't, this land enters tapped|This land enters tapped unless you revealed an? ([A-Z][a-z]+) card this way or you control an? ([A-Z][a-z]+))\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let mut s = format!("enters tapped unless reveal {} card", cap(&c, 1));
+            if !cap(&c, 2).is_empty() {
+                if cap(&c, 2) != cap(&c, 1) || cap(&c, 3) != cap(&c, 1) {
+                    return Err(Skip::Sentence(line.to_string()));
+                }
+                let _ = write!(s, " or you control {}", cap(&c, 3));
+            }
+            self.statements.push(s);
             return Ok(());
         }
         if line == "This creature enters prepared." || line == "~ enters prepared." {

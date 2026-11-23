@@ -1,0 +1,6 @@
+card "Necroblossom Snarl" {
+  oracle_id 761ee6f9-b0fa-43c9-8d1f-9591ea18e52d
+  type Land
+  enters tapped unless reveal Swamp or Forest card
+  mana {B} or {G}
+}

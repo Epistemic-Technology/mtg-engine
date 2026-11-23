@@ -1,0 +1,8 @@
+card "Fang-Druid Summoner" {
+  oracle_id 1a9bfe76-6c74-4393-b04e-461422a29ddb
+  cost {3}{G}
+  type Creature — Ape Druid
+  pt 2/4
+  keywords reach
+  triggered when this enters: you may search library or graveyard creature with no abilities card reveal to hand
+}

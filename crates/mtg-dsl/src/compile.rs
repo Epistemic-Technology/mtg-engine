@@ -5524,6 +5524,23 @@ impl Compiler<'_> {
                     condition: None,
                 })
             }
+            Ability::EntersTappedUnlessReveal { filter, or } => {
+                let f = self.filter(filter);
+                let filter = self.pool.intern_filter(f);
+                let or = or.as_ref().map(|c| {
+                    let c = self.static_cond(c);
+                    self.pool.intern_condition(c)
+                });
+                AbilityDef::Replacement(ReplacementAbility {
+                    replaces: mtg_core::card::Replaces::Enters,
+                    replacement: mtg_core::card::Replacement::EnterTappedUnlessReveal {
+                        filter,
+                        or,
+                    },
+                    then: Vec::new(),
+                    condition: None,
+                })
+            }
             Ability::EntersTappedUnless(c) => {
                 let c = self.static_cond(c);
                 let i = self.pool.intern_condition(c);

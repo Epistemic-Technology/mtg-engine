@@ -1,0 +1,7 @@
+card "Temple of the Dragon Queen" {
+  oracle_id 169a26d2-7bc9-4403-9c92-98d4bd5ca4f3
+  type Land
+  enters tapped unless reveal Dragon card or you control Dragon
+  as this enters choose color
+  mana chosen
+}

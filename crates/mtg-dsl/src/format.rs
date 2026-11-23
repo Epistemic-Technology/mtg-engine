@@ -2224,6 +2224,10 @@ impl Fmt {
                 }
                 if *count == Num::N(crate::ast::ANY_NUMBER) {
                     t.push_str("any number ");
+                } else if let Num::Count(_) = count {
+                    // `search up to count where land you control, basic
+                    // land card`: the comma ends the count's filter.
+                    let _ = write!(t, "{}, ", num(*count));
                 } else if *count != Num::N(1) {
                     let _ = write!(t, "{} ", num(*count));
                 }
@@ -3490,6 +3494,7 @@ fn outcome(o: &Outcome) -> String {
         Outcome::DrawTwo => "draw two".to_string(),
         Outcome::WinGame => "win".to_string(),
         Outcome::EnterTappedUnless(_)
+        | Outcome::EnterTappedUnlessReveal { .. }
         | Outcome::EnterWithCountersIf { .. }
         | Outcome::EnterWithCountersMay { .. }
         | Outcome::EnterWithCounterChoice { .. }
@@ -6741,6 +6746,17 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::EntersTappedUnless(c) => {
             let _ = writeln!(out, "{indent}enters tapped unless {}", static_cond(c));
+        }
+        Ability::EntersTappedUnlessReveal { filter: f, or } => {
+            let _ = write!(
+                out,
+                "{indent}enters tapped unless reveal {} card",
+                filter(f)
+            );
+            if let Some(c) = or {
+                let _ = write!(out, " or {}", static_cond(c));
+            }
+            out.push('\n');
         }
         Ability::EntersTappedIfNotYourTurn => {
             let _ = writeln!(out, "{indent}enters tapped if not your turn");
