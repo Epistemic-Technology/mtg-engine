@@ -1,0 +1,7 @@
+card "Boggart Forager" {
+  oracle_id cef9e0d3-5e28-4c5f-88fc-0d78af5a4db1
+  cost {R}
+  type Creature — Goblin Rogue
+  pt 1/1
+  activated {R}, sacrifice this: target player shuffles library
+}

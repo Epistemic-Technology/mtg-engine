@@ -4115,7 +4115,23 @@ impl Compiler<'_> {
                 who: r(who.unwrap_or(Recipient::You)),
                 look: *look,
             }),
-            Effect::Shuffle { who } => out.push(CoreEffect::ShuffleLibrary { who: r(*who) }),
+            Effect::DigSplit {
+                count,
+                of,
+                reveal,
+                opponent,
+                piles,
+                rest,
+                ..
+            } => out.push(CoreEffect::DigSplit {
+                count: *count,
+                of: r(of.unwrap_or(Recipient::You)),
+                reveal: *reveal,
+                opponent: *opponent,
+                piles: piles.clone(),
+                rest: *rest,
+            }),
+            Effect::Shuffle { who, .. } => out.push(CoreEffect::ShuffleLibrary { who: r(*who) }),
             Effect::MoveCounters {
                 from,
                 to,
@@ -4146,6 +4162,7 @@ impl Compiler<'_> {
                 filter,
                 negated,
                 shares_type,
+                revealed,
                 then,
                 ..
             } => {
@@ -4154,10 +4171,11 @@ impl Compiler<'_> {
                     filter: self.filter(filter),
                     negated: *negated,
                     shares_type: *shares_type,
+                    revealed: *revealed,
                     then,
                 });
             }
-            Effect::RevealIt => out.push(CoreEffect::RevealCard),
+            Effect::RevealIt { .. } => out.push(CoreEffect::RevealCard),
             // "If you don't, ..." / "If you can't, ...": the optional or
             // chosen action before it set whether it happened (CR 608.2c).
             // "If you don't put a card into your hand this way": no card

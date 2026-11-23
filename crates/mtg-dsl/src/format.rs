@@ -827,6 +827,45 @@ impl Fmt {
                 }
                 s
             }
+            Effect::DigSplit {
+                count,
+                of,
+                reveal,
+                opponent,
+                piles,
+                rest,
+                then,
+            } => {
+                let dest = |d: &mtg_core::card::SplitDest| {
+                    use mtg_core::card::SplitDest;
+                    match d {
+                        SplitDest::Hand => "hand",
+                        SplitDest::Graveyard => "graveyard",
+                        SplitDest::Top => "top",
+                        SplitDest::Bottom => "bottom",
+                        SplitDest::Exile => "exile",
+                    }
+                };
+                let mut s = format!("split top {}", num(*count));
+                if let Some(o) = of {
+                    let _ = write!(s, " of {}", self.recipient(*o, t));
+                }
+                if *reveal {
+                    s.push_str(" reveal");
+                }
+                if *opponent {
+                    s.push_str(" opponent");
+                }
+                s.push_str(" into ");
+                s.push_str(&piles.iter().map(dest).collect::<Vec<_>>().join(", "));
+                if let Some(r) = rest {
+                    let _ = write!(s, " rest {}", dest(r));
+                }
+                if *then {
+                    s.push_str(" then");
+                }
+                s
+            }
             Effect::RevealTop { who, look, of } => match (who, look, of) {
                 (None, true, _) => "look at top card".to_string(),
                 (None, false, _) => "reveal top card".to_string(),
@@ -841,7 +880,11 @@ impl Fmt {
                     format!("{} {v} top card", self.recipient(*w, t))
                 }
             },
-            Effect::Shuffle { who } => format!("{} shuffles", self.recipient(*who, t)),
+            Effect::Shuffle { who, library } => format!(
+                "{} shuffles{}",
+                self.recipient(*who, t),
+                if *library { " library" } else { "" }
+            ),
             Effect::MoveCounters {
                 from,
                 to,
@@ -922,7 +965,9 @@ impl Fmt {
                     format!("{} {v} until {} card", self.recipient(*w, t), filter(f))
                 }
             },
-            Effect::RevealIt => "reveal it".to_string(),
+            Effect::RevealIt { that } => {
+                if *that { "reveal that card" } else { "reveal it" }.to_string()
+            }
             Effect::IfYouDont { cant, then, words } => format!(
                 "if you {}, {}",
                 match words {
@@ -955,6 +1000,12 @@ impl Fmt {
                 "if it shares creature type with this, {}",
                 self.line(then, t)
             ),
+            Effect::IfCard {
+                filter: f,
+                revealed: true,
+                then,
+                ..
+            } => format!("if revealed {} card, {}", filter(f), self.line(then, t)),
             Effect::IfCard {
                 filter: f,
                 negated,

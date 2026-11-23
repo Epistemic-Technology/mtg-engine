@@ -1,0 +1,6 @@
+card "Elven Farsight" {
+  oracle_id 04b35e95-2963-4a0a-bd1c-d516cda2dd37
+  cost {G}
+  type Sorcery
+  spell: scry 3, then you may reveal top card; if revealed creature card, draw 1 card
+}

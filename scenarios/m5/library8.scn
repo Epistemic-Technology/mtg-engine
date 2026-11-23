@@ -1,0 +1,177 @@
+# M5: library forms of the eighth library wave: "If a creature card is
+# revealed this way" after an optional reveal (CR 701.20), "Target player
+# shuffles their library" (CR 701.24).
+
+scenario "revealed this way: Delver reveals an instant and transforms" {
+  battlefield A: "Delver of Secrets"
+  library A: "Lightning Bolt", "Island"
+  start turn 3 A upkeep
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Insectile Aberration"
+  assert power "Insectile Aberration" 3
+  assert has "Insectile Aberration" flying
+}
+
+scenario "revealed this way: Delver declines to reveal and stays" {
+  battlefield A: "Delver of Secrets"
+  library A: "Lightning Bolt", "Island"
+  start turn 3 A upkeep
+  turn 3 upkeep A: decline "Delver of Secrets"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Delver of Secrets"
+  assert battlefield A lacks "Insectile Aberration"
+}
+
+scenario "revealed this way: Delver reveals a land and stays" {
+  battlefield A: "Delver of Secrets"
+  library A: "Island", "Lightning Bolt"
+  start turn 3 A upkeep
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Delver of Secrets"
+  assert hand A contains "Island"
+}
+
+scenario "revealed this way: Elven Farsight draws on a creature card" {
+  battlefield A: "Forest"
+  hand A: "Elven Farsight"
+  library A: "Grizzly Bears", "Island", "Island", "Island"
+  turn 1 A: cast "Elven Farsight"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "revealed this way: Elven Farsight declined draws nothing" {
+  battlefield A: "Forest"
+  hand A: "Elven Farsight"
+  library A: "Grizzly Bears", "Island", "Island", "Island"
+  turn 1 A: decline "Elven Farsight"
+  turn 1 A: cast "Elven Farsight"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "revealed this way: Elven Farsight scries the creature away first" {
+  battlefield A: "Forest"
+  hand A: "Elven Farsight"
+  library A: "Grizzly Bears", "Island", "Island", "Island"
+  turn 1 A: cast "Elven Farsight"
+  turn 1 A: scry "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "target player shuffles their library (Boggart Forager)" {
+  battlefield A: "Boggart Forager", "Mountain"
+  library B: "Grizzly Bears", "Island", "Island", "Island", "Island", "Island", "Island", "Island"
+  seed 3
+  turn 1 A: activate "Boggart Forager" targeting player B
+  run_to turn 2 precombat_main
+  assert graveyard A contains "Boggart Forager"
+  assert hand B lacks "Grizzly Bears"
+  assert library B contains "Grizzly Bears"
+}
+
+# "Look at the top three cards of your library. Put one of those cards into
+# your hand, one on top of your library, and one on the bottom" and kin.
+scenario "split: Telling Time puts one in hand, one on top, one on the bottom" {
+  battlefield A: 2 "Island"
+  hand A: "Telling Time"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Island"
+  turn 1 A: cast "Telling Time"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 3 precombat_main
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Serra Angel"
+  assert hand A count 2
+  assert library A contains "Grizzly Bears"
+  assert library A contains "Island"
+}
+
+scenario "split: Telling Time's bottom card is under the rest" {
+  battlefield A: 2 "Island"
+  hand A: "Telling Time"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Island"
+  turn 1 A: cast "Telling Time"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 5 precombat_main
+  assert hand A contains "Island"
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "split: Moment of Truth puts one in hand, one in the graveyard, one on the bottom" {
+  battlefield A: 2 "Island"
+  hand A: "Moment of Truth"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Island"
+  turn 1 A: cast "Moment of Truth"
+  turn 1 A: choose "Serra Angel"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 3 precombat_main
+  assert hand A contains "Serra Angel"
+  assert graveyard A contains "Hill Giant"
+  assert hand A contains "Island"
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "split: Moment of Truth with two cards left fills the first two" {
+  battlefield A: 2 "Island"
+  hand A: "Moment of Truth"
+  library A: "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Moment of Truth"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert library A count 0
+}
+
+scenario "split: Thoughtpicker Witch exiles one of the opponent's top two" {
+  battlefield A: "Thoughtpicker Witch", "Grizzly Bears", "Island"
+  library B: "Serra Angel", "Hill Giant", "Island"
+  turn 1 A: activate "Thoughtpicker Witch" sacrificing "Grizzly Bears" targeting player B
+  turn 1 A: choose "Serra Angel"
+  run_to turn 2 precombat_main
+  assert exile B contains "Serra Angel"
+  assert hand B contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "split: Murmurs from Beyond, the opponent picks the card for the graveyard" {
+  battlefield A: 3 "Island"
+  hand A: "Murmurs from Beyond"
+  library A: "Serra Angel", "Hill Giant", "Grizzly Bears", "Island"
+  turn 1 A: cast "Murmurs from Beyond"
+  turn 1 B: choose "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Serra Angel"
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 2
+  assert library A contains "Island"
+}
+
+scenario "split: Jace, the Living Guildpact mills one of the top two" {
+  battlefield A: "Jace, the Living Guildpact"
+  library A: "Serra Angel", "Hill Giant", "Island"
+  turn 1 A: activate "Jace, the Living Guildpact" ability 1
+  turn 1 A: choose "Hill Giant"
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Hill Giant"
+  assert hand A contains "Serra Angel"
+  assert counters "Jace, the Living Guildpact" loyalty 6
+}
+
+scenario "target player searches: Fertilid fetches a basic land for the opponent" {
+  battlefield A: "Fertilid" with 2 +1/+1, 2 "Forest"
+  library B: "Island", "Grizzly Bears", "Forest"
+  turn 1 A: activate "Fertilid" targeting player B
+  turn 1 B: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Forest"
+  assert tapped B "Forest"
+  assert counters "Fertilid" +1/+1 1
+  assert library B contains "Island"
+}

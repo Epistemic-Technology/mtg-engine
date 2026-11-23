@@ -1,0 +1,6 @@
+card "Telling Time" {
+  oracle_id 192f3c8a-1120-4f7f-ae0f-fe9bde59cd08
+  cost {1}{U}
+  type Instant
+  spell: split top 3 into hand, top, bottom
+}

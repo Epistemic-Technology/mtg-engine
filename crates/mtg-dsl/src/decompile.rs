@@ -1681,7 +1681,29 @@ impl Decompiler<'_> {
                 look: *look,
                 of: false,
             },
-            CoreEffect::ShuffleLibrary { who } => Effect::Shuffle { who: r(*who) },
+            CoreEffect::DigSplit {
+                count,
+                of,
+                reveal,
+                opponent,
+                piles,
+                rest,
+            } => Effect::DigSplit {
+                count: *count,
+                of: match r(*of) {
+                    Recipient::You => None,
+                    w => Some(w),
+                },
+                reveal: *reveal,
+                opponent: *opponent,
+                piles: piles.clone(),
+                rest: *rest,
+                then: false,
+            },
+            CoreEffect::ShuffleLibrary { who } => Effect::Shuffle {
+                who: r(*who),
+                library: false,
+            },
             CoreEffect::MoveCounters {
                 from,
                 to,
@@ -1718,6 +1740,7 @@ impl Decompiler<'_> {
                 filter,
                 negated,
                 shares_type,
+                revealed,
                 then,
             } => Effect::IfCard {
                 filter: self.filter(filter),
@@ -1725,9 +1748,10 @@ impl Decompiler<'_> {
                 card: true,
                 that: false,
                 shares_type: *shares_type,
+                revealed: *revealed,
                 then: self.sentences(then),
             },
-            CoreEffect::RevealCard => Effect::RevealIt,
+            CoreEffect::RevealCard => Effect::RevealIt { that: false },
             CoreEffect::DrawReveal => Effect::DrawReveal,
             CoreEffect::PutCard { what, to, random } => Effect::PutCard {
                 random: *random,

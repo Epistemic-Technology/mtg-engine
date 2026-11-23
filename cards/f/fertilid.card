@@ -1,0 +1,8 @@
+card "Fertilid" {
+  oracle_id 21f1c6d7-8289-44b2-b88f-c09e202be200
+  cost {2}{G}
+  type Creature — Elemental
+  pt 0/0
+  enters with 2 +1/+1 counters
+  activated {1}{G}, remove 1 +1/+1 counter from this: target player searches basic land card to battlefield tapped
+}

@@ -4030,6 +4030,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         Effect::Scry(n)
         | Effect::Surveil(n)
         | Effect::LookAtTop { count: n, .. }
+        | Effect::DigSplit { count: n, .. }
         | Effect::ScryEach { count: n, .. } => {
             vec![*n]
         }
@@ -5385,10 +5386,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 Clause::imperative(format!("move all counters from {src} onto {dst}"))
             }
         },
-        Effect::Shuffle { who } => {
+        Effect::Shuffle { who, library } => {
             let subject = ctx.subj(*who);
             let v = ctx.verb(*who, "shuffles", "shuffle");
-            Clause::with_subject(*who, subject, v.to_string())
+            if *library {
+                let whose = if *who == Recipient::You { "your" } else { "their" };
+                Clause::with_subject(*who, subject, format!("{v} {whose} library"))
+            } else {
+                Clause::with_subject(*who, subject, v.to_string())
+            }
         }
         Effect::ExileUntilCard { who, filter } => {
             let pred = card_filter_a(filter, ctx.card);
@@ -5471,7 +5477,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
             }
         }
-        Effect::RevealIt => Clause::imperative("reveal it".to_string()),
+        Effect::RevealIt { that } => {
+            Clause::imperative(if *that { "reveal that card" } else { "reveal it" }.to_string())
+        }
         Effect::IfYouDont { cant, then, words } => {
             // "If you don't draw a card this way, put a +1/+1 counter on
             // this creature." (Trade Route Envoy): the source named again.
@@ -5510,6 +5518,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             card,
             that,
             shares_type,
+            revealed,
             then,
         } => {
             let body = sentences(then, ctx);
@@ -5524,6 +5533,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 target_predicate(filter, ctx.card)
             };
             let cond = match (that, negated) {
+                _ if *revealed => format!("{pred} is revealed this way"),
                 _ if *shares_type => {
                     format!("it shares a creature type with {}", this_ref(ctx.card))
                 }
@@ -5598,6 +5608,79 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     Clause::with_subject(*player, subject, format!("{verb} {words} {dest}"))
                 }
             }
+        }
+        Effect::DigSplit {
+            count,
+            of,
+            reveal,
+            opponent,
+            piles,
+            rest,
+            then,
+        } => {
+            use mtg_core::card::SplitDest;
+            let n = count_words(*count, "one");
+            let own = matches!(of, None | Some(Recipient::You));
+            let whose = if own {
+                "your".to_string()
+            } else {
+                format!("{}'s", ctx.obj(of.unwrap_or(Recipient::You)))
+            };
+            let head = if *reveal {
+                format!("reveal the top {n} cards of {whose} library")
+            } else {
+                format!("look at the top {n} cards of {whose} library")
+            };
+            let lib = if own { "your library" } else { "that library" };
+            let dest = |d: SplitDest| match d {
+                SplitDest::Hand => "into your hand".to_string(),
+                SplitDest::Graveyard if own => "into your graveyard".to_string(),
+                SplitDest::Graveyard => "into that player's graveyard".to_string(),
+                SplitDest::Top => format!("on top of {lib}"),
+                SplitDest::Bottom => format!("on the bottom of {lib}"),
+                SplitDest::Exile => "into exile".to_string(),
+            };
+            // "exile one of them", "put one of them into your graveyard".
+            let one = |d: SplitDest, them: &str| match d {
+                SplitDest::Exile => format!("exile one of {them}"),
+                d => format!("put one of {them} {}", dest(d)),
+            };
+            let text = match (piles.as_slice(), rest, *opponent) {
+                // "An opponent chooses one of them. Put that card into your
+                // graveyard and the rest into your hand."
+                ([d], Some(r), true) => format!(
+                    "{head}. An opponent chooses one of them. Put that card {} and the rest {}",
+                    dest(*d),
+                    dest(*r)
+                ),
+                // "Put one back and the rest into that player's graveyard."
+                ([SplitDest::Top], Some(r), false) => {
+                    format!("{head}. Put one back and the rest {}", dest(*r))
+                }
+                ([d], None, false) if *then => format!("{head}, then {}", one(*d, "them")),
+                ([d], None, false) => {
+                    let s = one(*d, "them");
+                    format!("{head}. {}{}", s[..1].to_uppercase(), &s[1..])
+                }
+                // "Put one of those cards into your hand, one on top of your
+                // library, and one on the bottom of your library."
+                (ds, None, false) if ds.len() >= 2 => {
+                    let mut parts: Vec<String> = ds.iter().map(|d| dest(*d)).collect();
+                    let last = parts.pop().unwrap_or_default();
+                    let mut s = format!("{head}. Put one of those cards {}", parts[0]);
+                    for p in &parts[1..] {
+                        s.push_str(&format!(", one {p}"));
+                    }
+                    if ds.len() == 2 {
+                        s.push_str(&format!(" and one {last}"));
+                    } else {
+                        s.push_str(&format!(", and one {last}"));
+                    }
+                    s
+                }
+                _ => format!("{head}. (unsupported split)"),
+            };
+            Clause::imperative(text)
         }
         Effect::LookAtTop {
             count,

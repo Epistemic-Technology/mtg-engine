@@ -2348,6 +2348,22 @@ order"; `look at top 3 of target player only` ends at "Look at the top
 three cards of target player's library."; `that player looks at top 3 of
 you`: "That player looks at the top three cards of your library, then puts
 them back in any order": the looker knows the cards where they are),
+`split top 3 into hand, top, bottom` ("Look at the top three cards of your
+library. Put one of those cards into your hand, one on top of your
+library, and one on the bottom of your library."; `into hand, graveyard,
+bottom`: "..., one into your graveyard, and ..."): one card to each
+destination in turn, the controller choosing (`choose "X"` in scenarios),
+a card put on top staying there; `split top 2 into graveyard` ("Look at
+the top two cards of your library. Put one of them into your graveyard.",
+the other left in place); `split top 2 of target opponent into exile
+then` ("Look at the top two cards of target opponent's library, then
+exile one of them."); `split top 3 reveal opponent into graveyard rest
+hand` ("Reveal the top three cards of your library. An opponent chooses
+one of them. Put that card into your graveyard and the rest into your
+hand.": the opponent chooses); `split top 3 of target player into top
+rest graveyard` ("Look at the top three cards of target player's library.
+Put one back and the rest into that player's graveyard."). Destinations:
+`hand`, `graveyard`, `top`, `bottom`, `exile`,
 `return 1 land you control chosen` ("return a land you control to its
 owner's hand"), `switch pt of target
 creature` ("Switch target creature's power and toughness until end of
@@ -2931,7 +2947,8 @@ and `its mana value` counts the same card printed "its mana value"
 mana value life`: "... put that card into your hand. You lose life equal
 to its mana value.", as it last existed once moved, CR 608.2h; in a
 triggered ability `mana value of it` is the triggering object's); `that player shuffles` is "Then that player
-shuffles." (CR 701.24).
+shuffles." (CR 701.24), and `target player shuffles library` "Target player
+shuffles their library." (`shuffle library`: "shuffle your library").
 
 After `if it is ...`, `if you dont put it into hand, <sentence>` is "If
 you don't put the card into your hand, ..." (`onto battlefield`, `into
@@ -2939,7 +2956,11 @@ graveyard`, `on bottom of library` likewise): it happens when the card
 didn't match or the optional put was declined. `if it shares creature type with this, ...` is kinship's "If it shares a
 creature type with this creature, ..." (changeling's every type
 included); `reveal it` reveals a looked-at card where it is ("you may
-reveal it. If you do, ..."). `draw 1 card and reveal it` is "Draw a card
+reveal it. If you do, ..."; `reveal that card`: "You may reveal that
+card."), and `if revealed instant or sorcery card, <sentence>` is "If an
+instant or sorcery card is revealed this way, ...": only if the card is
+revealed to every player where it is, so declining "you may reveal that
+card" stops it (Delver of Secrets). `draw 1 card and reveal it` is "Draw a card
 and reveal it." with the drawn card `it` after, and `discard it` discards
 it ("If it isn't a land card, discard it.").
 

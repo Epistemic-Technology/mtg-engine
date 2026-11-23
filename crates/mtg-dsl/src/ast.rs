@@ -4763,6 +4763,25 @@ pub enum Effect {
         by: Option<Recipient>,
         only: bool,
     },
+    /// `split top 3 into hand, top, bottom` ("Look at the top three cards
+    /// of your library. Put one of those cards into your hand, one on top
+    /// of your library, and one on the bottom of your library."), `split
+    /// top 2 of target opponent into exile then` ("Look at the top two
+    /// cards of target opponent's library, then exile one of them."),
+    /// `split top 3 reveal opponent into graveyard rest hand` ("Reveal the
+    /// top three cards of your library. An opponent chooses one of them.
+    /// Put that card into your graveyard and the rest into your hand."):
+    /// one card to each destination in turn, chosen; the rest to `rest`
+    /// or left in place.
+    DigSplit {
+        count: Num,
+        of: Option<Recipient>,
+        reveal: bool,
+        opponent: bool,
+        piles: Vec<mtg_core::card::SplitDest>,
+        rest: Option<mtg_core::card::SplitDest>,
+        then: bool,
+    },
     /// `reveal top card` ("reveal the top card of your library"), `look at
     /// top card` ("look at the top card of your library"), `<who> reveals
     /// top card` ("target player reveals the top card of their library"),
@@ -4810,9 +4829,11 @@ pub enum Effect {
         kind: Option<CounterKind>,
         count: Option<u32>,
     },
-    /// `<who> shuffles` ("Then that player shuffles", CR 701.24).
+    /// `<who> shuffles` ("Then that player shuffles", CR 701.24); `<who>
+    /// shuffles library` ("Target player shuffles their library").
     Shuffle {
         who: Recipient,
+        library: bool,
     },
     /// `if it is land card, <sentence>` ("If it's a land card, ..."), `if
     /// it isnt land card, ...` ("If it isn't a land card"), `if that card
@@ -4827,6 +4848,9 @@ pub enum Effect {
         /// `if it shares creature type with this, ...`: "If it shares a
         /// creature type with this creature, ..." (kinship).
         shares_type: bool,
+        /// `if revealed creature card, ...`: "If a creature card is
+        /// revealed this way, ..." (the card must have been revealed).
+        revealed: bool,
         then: Vec<Sentence>,
     },
     /// `if you dont, <sentence>` / `if you cant, <sentence>`: "If you
@@ -4849,8 +4873,9 @@ pub enum Effect {
         /// into your hand" (Bucolic Ranch); wording only.
         it: bool,
     },
-    /// `reveal it`: "reveal it", the card looked at before.
-    RevealIt,
+    /// `reveal it`: "reveal it", the card looked at before (`reveal that
+    /// card`: "reveal that card").
+    RevealIt { that: bool },
     /// `draw 1 card and reveal it`: "Draw a card and reveal it." (it is
     /// `it` after).
     DrawReveal,

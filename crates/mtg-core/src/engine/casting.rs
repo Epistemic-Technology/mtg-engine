@@ -13092,6 +13092,7 @@ impl GameState {
                 filter,
                 negated,
                 shares_type,
+                revealed,
                 then,
             } => {
                 let source = self.characteristics_or_lki(ctx.source);
@@ -13100,6 +13101,11 @@ impl GameState {
                     .filter(|id| self.objects.contains_key(*id))
                     .is_some_and(|id| {
                         let o = &self.objects[id];
+                        // "If a creature card is revealed this way": a card
+                        // left unrevealed matches nothing (CR 701.20).
+                        if *revealed && o.revealed != u8::MAX {
+                            return false;
+                        }
                         let c = self
                             .characteristics(id)
                             .unwrap_or_else(|| self.base_characteristics(o));
@@ -13998,6 +14004,14 @@ impl GameState {
                     }
                 }
             }
+            Effect::DigSplit {
+                count,
+                of,
+                reveal,
+                opponent,
+                piles,
+                rest,
+            } => self.dig_split(ctx, *count, *of, *reveal, *opponent, piles, *rest),
             // CR 702.185a: the warped permanent is exiled; its owner may
             // cast it from exile on a later turn.
             Effect::WarpExile => {
@@ -14616,6 +14630,95 @@ impl GameState {
     /// Reveal a card where it is in a library (CR 701.20): every player
     /// knows it until it moves or the library is shuffled
     /// (`GameObject::revealed`, kept by `determinize`).
+    /// `Effect::DigSplit`: the top `count` cards of a library, one to each
+    /// pile in turn, then the rest.
+    #[allow(clippy::too_many_arguments)]
+    fn dig_split(
+        &mut self,
+        ctx: &mut EffectCtx,
+        count: crate::card::Num,
+        of: crate::card::Recipient,
+        reveal: bool,
+        opponent: bool,
+        piles: &[crate::card::SplitDest],
+        rest: Option<crate::card::SplitDest>,
+    ) {
+        use crate::card::SplitDest;
+        let Some(Target::Player(owner)) = self.recipients(ctx, of).first().copied() else {
+            return;
+        };
+        let n = self.eval_num(count, ctx) as usize;
+        let mut left: Vec<ObjId> = self
+            .player(owner)
+            .library
+            .iter()
+            .rev()
+            .take(n)
+            .copied()
+            .collect();
+        let chooser = if opponent {
+            self.opponent(ctx.controller)
+        } else {
+            ctx.controller
+        };
+        let bits = 1u8 << ctx.controller.index().min(7);
+        for id in &left {
+            if reveal {
+                self.reveal_in_library(*id);
+            } else {
+                self.objects[*id].revealed |= bits;
+            }
+        }
+        // Cards kept on top go back last, so they end up on top.
+        let mut on_top: Vec<ObjId> = Vec::new();
+        let put = |s: &mut Self, id: ObjId, d: SplitDest, on_top: &mut Vec<ObjId>| match d {
+            SplitDest::Hand => {
+                s.move_object(id, Zone::Hand, false);
+            }
+            SplitDest::Graveyard => {
+                s.move_object(id, Zone::Graveyard, false);
+            }
+            SplitDest::Bottom => {
+                s.move_object(id, Zone::Library, false);
+            }
+            SplitDest::Exile => {
+                s.move_object(id, Zone::Exile, false);
+            }
+            SplitDest::Top => on_top.push(id),
+        };
+        for d in piles {
+            if left.is_empty() {
+                break;
+            }
+            let k = if left.len() == 1 {
+                0
+            } else {
+                let options: Vec<Choice> = left
+                    .iter()
+                    .map(|id| Choice::Target(Target::Object(*id)))
+                    .collect();
+                self.choose_mid(chooser, DecisionKind::ChooseCard, options)
+            };
+            let id = left.remove(k);
+            put(self, id, *d, &mut on_top);
+        }
+        if let Some(d) = rest {
+            for id in std::mem::take(&mut left) {
+                put(self, id, d, &mut on_top);
+            }
+        }
+        // The kept cards are still in the library: back to the top, over
+        // anything left in place (a card already there stays, still known
+        // to the player who looked).
+        for id in on_top.into_iter().rev() {
+            if self.objects.get(id).is_some_and(|o| o.zone == Zone::Library)
+                && self.player(owner).library.last() != Some(&id)
+            {
+                self.move_object(id, Zone::Library, true);
+            }
+        }
+    }
+
     pub(super) fn reveal_in_library(&mut self, id: ObjId) {
         let Some(o) = self.objects.get_mut(id) else {
             return;

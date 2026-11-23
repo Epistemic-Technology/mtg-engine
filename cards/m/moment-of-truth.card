@@ -1,0 +1,6 @@
+card "Moment of Truth" {
+  oracle_id ef61fb5c-2ea6-4f82-92c5-c4713dee45fa
+  cost {1}{U}
+  type Instant
+  spell: split top 3 into hand, graveyard, bottom
+}
