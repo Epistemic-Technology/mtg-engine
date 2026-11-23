@@ -29,16 +29,13 @@ FORMATS = ('pauper', 'standard', 'modern')
 AGENTS = [
     ('template', [r'sentence: parse', r'mismatch'], None),
     ('wording', [], r"^RENDER|^MEANING|\bprints\b|\brenders\b|near-miss"),
-    ('transform-mana', [r'sentence: .*transformed', r'sentence: .*transforms?\b',
-                        r'sentence: .*[Ss]pend this mana', r'sentence: Add '],
+    ('mana-costs', [r'sentence: .*transformed', r'sentence: .*transforms?\b',
+                    r'sentence: .*[Ss]pend this mana', r'sentence: Add '],
      r"transform|becomes? a .*(creature|copy)|become a copy|still a land|animate"
-     r"|spend this mana|mana .*only|restricted mana|mana spent|amount of mana|mana abilit|any combination|add X mana|mana of any|color of mana|treasure"),
-    ('counters-costs', [],
-     r'counter|cost|kicker|\bpay|tax|sacrific|discard'),
-    ('library', [r'sentence: .*(top .* cards? of|[Ll]ook at|[Rr]eveal|[Ss]earch|[Ss]huffle)'],
-     r'library|reveal|look at|search|scry|top card|mill|\bhand\b|shuffle'),
-    ('graveyard-exile', [r'sentence: .*(graveyard|[Ee]xile)'],
-     r'graveyard|exile|flashback|cast .* from|cop(y|ies)'),
+     r"|spend this mana|mana .*only|restricted mana|mana spent|amount of mana|mana abilit|any combination|add X mana|mana of any|color of mana|treasure"
+     r"|counter|cost|kicker|\bpay|tax|sacrific|discard"),
+    ('zones', [r'sentence: .*(top .* cards? of|[Ll]ook at|[Rr]eveal|[Ss]earch|[Ss]huffle|graveyard|[Ee]xile)'],
+     r'library|reveal|look at|search|scry|top card|mill|\bhand\b|shuffle|graveyard|exile|flashback|cast .* from|cop(y|ies)'),
     ('triggers', [r'sentence: (When|At the beginning|If .* would)'],
      r'trigger|whenever|\bwhen\b|condition|replacement|instead|prevent|delayed|at the beginning'),
     ('rules', [], r'.'),
@@ -48,7 +45,13 @@ AGENTS = [
 SCREEN = (r'\bmutate\b|\bcompanion\b|\bhideaway\b|\bcloak|\bpiles?\b|choose a number|odd or even'
           r'|\bvote|face[- ]down|\bmeld|\bsticker|\battraction|roll (a|two|x) d\d|flip a coin'
           r'|\bante\b|\bdraft\b|\bventure\b|\bdungeon\b|initiative|\bmonarch\b')
-BATCH_FORMAT, BATCH_SIZE, BATCHES, SEED = 'pauper', 32, 8, 9
+BATCH_FORMAT, BATCH_SIZE, BATCHES, SEED = 'standard', 36, 10, 10
+# RETRY: batches are drawn from cards of BATCH_FORMAT that an earlier
+# batch reported unsupported or failed, oldest report first (the most has
+# landed since), not from never-tried cards; each batch gets
+# batches/hints-<name>.tsv with the earlier report. Cards in a retry
+# batch are left out of the feature agents' lists.
+RETRY = True
 
 fmt = collections.defaultdict(set)
 reason = {}
@@ -65,13 +68,14 @@ def fm(n):
 def rank(n):
     return (0 if n in fmt['pauper'] else 1 if n in fmt['standard'] else 2, n)
 
-rep, tried = {}, set()
-for p in sorted(glob.glob(f'{R}/report-*.tsv'), key=os.path.getmtime):
+rep, tried, age = {}, set(), {}
+for k, p in enumerate(sorted(glob.glob(f'{R}/report-*.tsv'), key=os.path.getmtime)):
     b = re.search(r'report-(.*)\.tsv', p).group(1)
     for l in open(p, encoding='utf-8'):
         r = l.rstrip('\n').split('\t')
         if len(r) >= 2 and r[1] in ('unsupported', 'failed'):
             rep[r[0]] = (b, r[1], r[2] if len(r) > 2 else '')
+            age[r[0]] = k
 for p in glob.glob(f'{R}/batch-*.txt'):
     tried |= {l.strip() for l in open(p, encoding='utf-8') if l.strip()}
 with open(f'{W}/unsupported-all.tsv', 'w') as o:
@@ -81,9 +85,24 @@ with open(f'{W}/unsupported-all.tsv', 'w') as o:
 
 os.makedirs(f'{W}/lists', exist_ok=True)
 os.makedirs(f'{W}/batches', exist_ok=True)
+retry = []
+if RETRY:
+    cand = sorted((n for n in rep if n in fmt[BATCH_FORMAT] and not rep[n][2].startswith('MEANING')),
+                  key=lambda n: (age[n], n))
+    retry = cand[:BATCHES * BATCH_SIZE]
+    random.seed(SEED)
+    random.shuffle(retry)
+    for i in range(BATCHES):
+        part = retry[i * BATCH_SIZE:(i + 1) * BATCH_SIZE]
+        open(f'{W}/batches/h{i:02d}.txt', 'w').write('\n'.join(part) + '\n')
+        open(f'{W}/batches/hints-h{i:02d}.tsv', 'w').write(''.join(f'{n}\t{rep[n][2]}\n' for n in part))
+    print(f'retry {BATCH_FORMAT}: {len(cand)} reported; in batches {len(retry)}')
+taken = set(retry)
 out = collections.defaultdict(list)
 owned = set()
 for n in sorted(reason):
+    if n in taken:
+        continue
     d = rep.get(n, ('', '', ''))[2]
     for a, prefixes, rx in AGENTS:
         if any(re.match(p, reason[n]) for p in prefixes):
@@ -99,6 +118,8 @@ for a, _, _ in AGENTS:
     open(f'{W}/lists/{a}.tsv', 'w').write(''.join('\t'.join(x) + '\n' for x in v))
     print(f'{a:16} {len(v):5}  pauper {sum(n in fmt["pauper"] for n, _, _ in v):4}  standard {sum(n in fmt["standard"] for n, _, _ in v):4}')
 
+if RETRY:
+    sys.exit(0)
 text = {}
 for l in gzip.open('data/scryfall/oracle_cards.jsonl.gz', 'rt', encoding='utf-8'):
     c = json.loads(l)
