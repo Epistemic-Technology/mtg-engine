@@ -9844,6 +9844,10 @@ impl P {
                 self.expect_words(&["additional", "land", "this", "turn"])?;
                 Ok(Effect::ExtraLandPlays(n))
             }
+            "next" if self.at_words(&["spell", "can't", "be", "countered"]) => {
+                self.pos += 4;
+                Ok(Effect::NextSpellUncounterable)
+            }
             "next" if self.at_word("spell") => {
                 self.expect_words(&["spell", "costs"])?;
                 let n = self.mana_cost()?.mana_value();

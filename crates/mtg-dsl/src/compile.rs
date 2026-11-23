@@ -3345,6 +3345,7 @@ impl Compiler<'_> {
                 out.push(CoreEffect::ExileSameName { what: r(*what) });
             }
             Effect::NextSpellLess(n) => out.push(CoreEffect::NextSpellLess(*n)),
+            Effect::NextSpellUncounterable => out.push(CoreEffect::NextSpellUncounterable),
             Effect::ExtraLandPlays(n) => out.push(CoreEffect::ExtraLandPlays(*n)),
             Effect::FaceDownSpellsLess(n) => out.push(CoreEffect::FaceDownSpellsLess(*n)),
             Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),

@@ -7196,6 +7196,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             "you may play up to {} this turn",
             additional_lands(*n)
         )),
+        Effect::NextSpellUncounterable => Clause::imperative(
+            "the next spell you cast this turn can't be countered".to_string(),
+        ),
         Effect::NextSpellLess(n) => Clause::imperative(format!(
             "the next spell you cast this turn costs {{{n}}} less to cast"
         )),

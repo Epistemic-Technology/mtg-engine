@@ -1042,6 +1042,7 @@ impl Decompiler<'_> {
             CoreEffect::TapOrUntap { to } => Effect::TapOrUntap { to: r(*to) },
             CoreEffect::ExileSameName { what } => Effect::ExileSameName { what: r(*what) },
             CoreEffect::NextSpellLess(n) => Effect::NextSpellLess(*n),
+            CoreEffect::NextSpellUncounterable => Effect::NextSpellUncounterable,
             CoreEffect::ExtraLandPlays(n) => Effect::ExtraLandPlays(*n),
             CoreEffect::FaceDownSpellsLess(n) => Effect::FaceDownSpellsLess(*n),
             CoreEffect::Goad { what } => Effect::Goad { what: r(*what) },

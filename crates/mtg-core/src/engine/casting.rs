@@ -8091,6 +8091,12 @@ impl GameState {
         // "The next spell you cast this turn costs {1} less": used up by
         // this spell, its total cost paid (CR 601.2f-h).
         self.next_spell_less[caster.index().min(3)] = 0;
+        // "The next spell you cast this turn can't be countered."
+        let bit = 1u8 << caster.index().min(7);
+        if self.next_uncounterable & bit != 0 {
+            self.next_uncounterable &= !bit;
+            self.uncounterable_spells.push(spell);
+        }
         self.cast_this_turn.push((caster, def_ref));
         if self.objects[spell].cast.cast_from() == Some(Zone::Hand) {
             self.turn_log.cast_from_hand |= 1 << caster.index().min(7);
@@ -11211,6 +11217,9 @@ impl GameState {
                 // CR 305.2: additional land plays this turn.
                 let p = ctx.controller;
                 self.player_mut(p).extra_land_plays += *n;
+            }
+            Effect::NextSpellUncounterable => {
+                self.next_uncounterable |= 1 << ctx.controller.index().min(7);
             }
             Effect::NextSpellLess(n) => {
                 let i = ctx.controller.index().min(3);

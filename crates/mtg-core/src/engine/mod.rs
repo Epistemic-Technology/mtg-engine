@@ -516,6 +516,7 @@ impl GameState {
             resolutions_this_turn: 0,
             spells_this_turn: [0; 4],
             next_spell_less: [0; 4],
+            next_uncounterable: 0,
             mana_spent_this_turn: [0; 4],
             mana_spent_before_cast: [0; 4],
             drawn_this_turn: [0; 4],
@@ -3529,6 +3530,7 @@ impl GameState {
             }
             self.spells_last_turn = std::mem::take(&mut self.spells_this_turn);
             self.next_spell_less = [0; 4];
+            self.next_uncounterable = 0;
             self.drawn_this_turn = [0; 4];
             // "As long as you've drawn two or more cards this turn" and
             // the other this-turn statics start over (CR 611.3a).

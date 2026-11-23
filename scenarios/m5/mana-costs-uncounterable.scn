@@ -1,0 +1,63 @@
+# "The next spell you cast this turn can't be countered" (CR 101.2): the
+# controller's next spell this turn only; a spell after it, or one cast
+# next turn, can be countered.
+
+scenario "Mistrise Village: the next spell can't be countered" {
+  battlefield A: "Mistrise Village", "Island", 2 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Counterspell"
+  turn 1 A: activate "Mistrise Village"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Counterspell" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Counterspell"
+}
+
+scenario "Mistrise Village: only the next spell; the one after can be countered" {
+  battlefield A: "Mistrise Village", "Island", 2 "Forest", "Mountain"
+  battlefield B: 2 "Island"
+  hand A: "Shock", "Grizzly Bears"
+  hand B: "Counterspell"
+  turn 1 A: activate "Mistrise Village"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Counterspell" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 18
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Theorist's Proxy: sacrificed, the next spell can't be countered; it empowers Jace on entering" {
+  battlefield A: 3 "Island", 3 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Theorist's Proxy", "Grizzly Bears"
+  hand B: "Counterspell"
+  turn 1 A: cast "Theorist's Proxy"
+  turn 1 A: wait
+  turn 1 A: activate "Theorist's Proxy"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Counterspell" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Theorist's Proxy"
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Jace" loyalty 3
+}
+
+scenario "Theorist's Proxy: the effect ends with the turn" {
+  battlefield A: "Theorist's Proxy", "Island", 2 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Counterspell"
+  start turn 1 A end
+  turn 1 end A: activate "Theorist's Proxy"
+  turn 3 A: cast "Grizzly Bears"
+  turn 3 B: cast "Counterspell" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 3 end
+  assert graveyard A contains "Grizzly Bears"
+}

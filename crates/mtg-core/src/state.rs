@@ -2050,6 +2050,9 @@ pub struct GameState {
     /// ("the next spell you cast this turn costs {1} less to cast"), by
     /// player index like `spells_this_turn`; zero in most games.
     pub next_spell_less: [u16; 4],
+    /// Players (by index bit) whose next spell this turn can't be
+    /// countered (`Effect::NextSpellUncounterable`); zero in most games.
+    pub next_uncounterable: u8,
     /// Cards each player drew this turn ("your second card each turn").
     pub drawn_this_turn: [u8; 4],
     /// Total mana each player has spent to cast spells this turn (expend,

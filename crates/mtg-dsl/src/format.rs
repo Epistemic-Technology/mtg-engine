@@ -1656,6 +1656,7 @@ impl Fmt {
                 self.recipient(*what, t)
             ),
             Effect::NextSpellLess(n) => format!("next spell costs {{{n}}} less"),
+            Effect::NextSpellUncounterable => "next spell can't be countered".to_string(),
             Effect::ExtraLandPlays(1) => "play additional land this turn".to_string(),
             Effect::ExtraLandPlays(n) => format!("play {n} additional land this turn"),
             Effect::FaceDownSpellsLess(n) => {

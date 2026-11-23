@@ -3954,6 +3954,9 @@ pub enum Effect {
     /// `next spell costs {1} less`: "the next spell you cast this turn
     /// costs {1} less to cast".
     NextSpellLess(u32),
+    /// `next spell can't be countered`: "the next spell you cast this turn
+    /// can't be countered".
+    NextSpellUncounterable,
     /// `play additional land this turn`, `play 2 additional land this
     /// turn`: "You may play an additional land this turn.", "You may play
     /// up to two additional lands this turn." (CR 305.2).

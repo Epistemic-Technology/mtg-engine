@@ -4314,6 +4314,9 @@ pub enum Effect {
     /// generic mana; several such effects add up, and that one spell uses
     /// them all up.
     NextSpellLess(u32),
+    /// "The next spell you cast this turn can't be countered" (CR 101.2):
+    /// the controller's next spell this turn is uncounterable.
+    NextSpellUncounterable,
     /// "You may play an additional land this turn." (CR 305.2): the
     /// controller may play `n` more lands this turn ("up to two additional
     /// lands").
