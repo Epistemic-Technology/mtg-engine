@@ -8262,7 +8262,13 @@ impl P {
             }
             // "Choose target creature, then roll a d20.": the target
             // named before what acts on it.
-            "choose" if self.at_word("target") || self.at_words(&["any", "target"]) => {
+            // "Choose any number of target creatures. Put a +1/+1 counter
+            // on each of them." (Nature's Panoply).
+            "choose"
+                if self.at_word("target")
+                    || self.at_words(&["any", "target"])
+                    || self.at_words(&["any", "number", "of", "target"]) =>
+            {
                 let first = self.recipient()?;
                 // "Choose target creature you control and target creature
                 // you don't control.": two targets named at once.
