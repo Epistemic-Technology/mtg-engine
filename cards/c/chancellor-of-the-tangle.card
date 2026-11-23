@@ -1,0 +1,8 @@
+card "Chancellor of the Tangle" {
+  oracle_id 2a521811-7106-4531-b69c-631e207b8988
+  cost {4}{G}{G}{G}
+  type Creature — Phyrexian Beast
+  pt 6/7
+  opening hand reveal your first main: add {G}
+  keywords reach, vigilance
+}

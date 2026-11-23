@@ -1,0 +1,72 @@
+# "You may reveal this card from your opening hand. If you do, at the
+# beginning of the first upkeep, ..." (the Chancellors): revealed as the
+# game begins, the card leaves a delayed trigger for that step, once.
+
+scenario "opening hand reveal: Chancellor of the Forge makes a hasty Goblin at the first upkeep" {
+  opening hand
+  hand A: "Chancellor of the Forge", "Mountain"
+  turn 1 A: accept "Chancellor of the Forge"
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Phyrexian Goblin"
+  assert has "Phyrexian Goblin" haste
+  assert hand A contains "Chancellor of the Forge"
+  assert known B "Chancellor of the Forge"
+}
+
+scenario "opening hand reveal: declining makes nothing" {
+  opening hand
+  hand A: "Chancellor of the Forge"
+  turn 1 A: decline "Chancellor of the Forge"
+  run_to turn 1 precombat_main
+  assert battlefield A lacks "Phyrexian Goblin"
+  assert unknown B "Chancellor of the Forge"
+}
+
+scenario "opening hand reveal: the trigger happens once, at the first upkeep only" {
+  opening hand
+  hand A: "Chancellor of the Forge"
+  turn 1 A: accept "Chancellor of the Forge"
+  run_to turn 3 precombat_main
+  assert battlefield A contains 1 "Phyrexian Goblin"
+}
+
+scenario "opening hand reveal: the opponent's Chancellor of the Dross drains at the first upkeep, the starting player's" {
+  opening hand
+  hand B: "Chancellor of the Dross"
+  life A 20
+  life B 20
+  turn 1 B: accept "Chancellor of the Dross"
+  run_to turn 1 precombat_main
+  assert life A 17
+  assert life B 23
+}
+
+scenario "opening hand reveal: two Chancellors of the Spires mill fourteen" {
+  opening hand
+  hand A: "Chancellor of the Spires", "Chancellor of the Spires"
+  library B: 20 "Island"
+  turn 1 A: accept "Chancellor of the Spires"
+  turn 1 A: accept "Chancellor of the Spires"
+  run_to turn 1 precombat_main
+  assert graveyard B count 14
+}
+
+scenario "opening hand reveal: Chancellor of the Tangle adds {G} in the first main phase" {
+  opening hand
+  hand A: "Chancellor of the Tangle", "Llanowar Elves"
+  turn 1 A: accept "Chancellor of the Tangle"
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Llanowar Elves"
+}
+
+scenario "opening hand reveal: Sphinx of Foresight scries 3 at its owner's first upkeep, not the opponent's" {
+  opening hand
+  hand B: "Sphinx of Foresight"
+  library B: "Island", "Forest", "Swamp", "Mountain", "Plains"
+  turn 1 B: accept "Sphinx of Foresight"
+  turn 2 upkeep B: scry "Island", "Forest"
+  run_to turn 2 precombat_main
+  assert hand B contains "Swamp"
+  assert library B count 4
+}

@@ -7877,6 +7877,12 @@ pub enum AbilityDef {
     /// "If this card is in your opening hand, you may begin the game with
     /// it on the battlefield." (CR 103.6a; the Leylines).
     OpeningHand,
+    /// "You may reveal this card from your opening hand. If you do, at
+    /// the beginning of the first upkeep, ..." (the Chancellors; CR
+    /// 103.6a's moment): revealed, the card creates the delayed
+    /// triggered ability `AbilityId` (a registered `BeginningOfStep`
+    /// trigger), which happens once, at the next such step.
+    OpeningHandReveal(AbilityId),
     /// "You have no maximum hand size" (`delta` None), "Your maximum hand
     /// size is increased by one" (CR 402.2); `whose` from the controller.
     HandSize {
@@ -7994,6 +8000,7 @@ impl AbilityDef {
             | AbilityDef::HexproofFrom(_)
             | AbilityDef::PlayerStatic { .. }
             | AbilityDef::OpeningHand
+            | AbilityDef::OpeningHandReveal(_)
             | AbilityDef::TriggerAgain { .. }
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
@@ -8031,6 +8038,7 @@ impl AbilityDef {
             | AbilityDef::HexproofFrom(_)
             | AbilityDef::PlayerStatic { .. }
             | AbilityDef::OpeningHand
+            | AbilityDef::OpeningHandReveal(_)
             | AbilityDef::TriggerAgain { .. }
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)

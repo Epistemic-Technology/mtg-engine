@@ -1551,6 +1551,19 @@ pub enum Ability {
     /// `opening hand`: "If this card is in your opening hand, you may begin
     /// the game with it on the battlefield." (CR 103.6a).
     OpeningHand,
+    /// `opening hand reveal first upkeep: ...`: "You may reveal this card
+    /// from your opening hand. If you do, at the beginning of the first
+    /// upkeep, ..." (the Chancellors); `your first upkeep` ("at the
+    /// beginning of your first upkeep"), `your first main` ("at the
+    /// beginning of your first main phase of the game"); `after` puts the
+    /// time last ("If you do, scry 3 at the beginning of your first
+    /// upkeep.").
+    OpeningHandReveal {
+        step: Step,
+        whose: Who,
+        after: bool,
+        effects: Vec<Sentence>,
+    },
     /// `trigger again another Elemental you control`: "If a triggered
     /// ability of another Elemental you control triggers, it triggers an
     /// additional time." (CR 603.2d); `trigger again permanent you control

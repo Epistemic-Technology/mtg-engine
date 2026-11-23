@@ -6847,6 +6847,50 @@ impl Builder<'_> {
             }
             _ => None,
         };
+        // "You may reveal this card from your opening hand. If you do, at
+        // the beginning of the first upkeep, ..." (the Chancellors).
+        if let Some(rest) =
+            line.strip_prefix("You may reveal this card from your opening hand. If you do, ")
+        {
+            let rest = rest.trim_end_matches('.');
+            let heads = [
+                (
+                    "at the beginning of the first upkeep, ",
+                    "first upkeep",
+                    false,
+                ),
+                (
+                    "at the beginning of your first upkeep, ",
+                    "your first upkeep",
+                    false,
+                ),
+                (
+                    "at the beginning of your first main phase of the game, ",
+                    "your first main",
+                    false,
+                ),
+            ];
+            let found = heads
+                .iter()
+                .find_map(|(h, d, a)| rest.strip_prefix(h).map(|body| (body.to_string(), *d, *a)));
+            // "scry 3 at the beginning of your first upkeep".
+            let found = found.or_else(|| {
+                rest.strip_suffix(" at the beginning of your first upkeep")
+                    .map(|body| (body.to_string(), "your first upkeep after", true))
+            });
+            if let Some((body, when, _)) = found {
+                let mut t = 0;
+                let effects = self
+                    .templates
+                    .effects(&format!("{}.", capitalize(&body)), &mut t)?;
+                if t == 0 {
+                    self.statements
+                        .push(format!("opening hand reveal {when}: {effects}"));
+                    return Ok(());
+                }
+            }
+            return Err(Skip::Sentence(line.to_string()));
+        }
         if let Some(s) = player_static {
             self.statements.push(s.to_string());
             return Ok(());

@@ -5705,6 +5705,26 @@ impl Compiler<'_> {
             Ability::Landwalk(f) => AbilityDef::Landwalk(self.filter(f)),
             Ability::HexproofFrom(f) => AbilityDef::HexproofFrom(self.filter(f)),
             Ability::OpeningHand => AbilityDef::OpeningHand,
+            // The delayed trigger the revealed card leaves (CR 603.7).
+            Ability::OpeningHandReveal {
+                step,
+                whose,
+                effects,
+                ..
+            } => {
+                let def = self.ability(&Ability::Triggered {
+                    limit: mtg_core::card::TurnLimit::None,
+                    from_graveyard: false,
+                    trigger: Trigger::BeginningOfStep {
+                        step: *step,
+                        whose: *whose,
+                    },
+                    condition: None,
+                    targets: Vec::new(),
+                    effects: effects.clone(),
+                })?;
+                AbilityDef::OpeningHandReveal(self.pool.register_ability(def))
+            }
             Ability::TriggerAgain {
                 filter,
                 entering,

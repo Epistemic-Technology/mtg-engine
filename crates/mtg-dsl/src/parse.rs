@@ -1963,6 +1963,34 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::HexproofFrom(filter))
             }
+            // `opening hand reveal first upkeep: ...`.
+            "opening" if self.at_words(&["opening", "hand", "reveal"]) => {
+                self.pos += 3;
+                let whose = if self.eat_word("your") {
+                    Who::You
+                } else {
+                    Who::Any
+                };
+                self.expect_word("first")?;
+                let step = if self.eat_word("upkeep") {
+                    Step::Upkeep
+                } else if whose == Who::You && self.eat_word("main") {
+                    Step::PrecombatMain
+                } else {
+                    return self.unexpected("`upkeep` or `main`");
+                };
+                let after = self.eat_word("after");
+                let effects = self.effects_body()?;
+                if !self.targets.is_empty() {
+                    return self.fail("an opening hand reveal has no targets");
+                }
+                Ok(Ability::OpeningHandReveal {
+                    step,
+                    whose,
+                    after,
+                    effects,
+                })
+            }
             "opening" if self.at_words(&["opening", "hand"]) => {
                 self.pos += 2;
                 self.end_stmt()?;

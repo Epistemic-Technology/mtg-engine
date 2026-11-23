@@ -1,0 +1,7 @@
+token "1/1 red Phyrexian Goblin creature with haste" {
+  name "Phyrexian Goblin"
+  type Creature — Phyrexian Goblin
+  pt 1/1
+  color red
+  keywords haste
+}

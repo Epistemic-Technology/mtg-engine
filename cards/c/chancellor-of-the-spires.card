@@ -1,0 +1,9 @@
+card "Chancellor of the Spires" {
+  oracle_id e766a7ec-2761-453b-bfba-956de7b5e125
+  cost {4}{U}{U}{U}
+  type Creature — Phyrexian Sphinx
+  pt 5/7
+  opening hand reveal first upkeep: each opponent mills 7 cards
+  keywords flying
+  triggered when this enters: cast free target instant or sorcery card from an opponent's graveyard
+}

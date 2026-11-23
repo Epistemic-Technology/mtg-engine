@@ -2469,6 +2469,19 @@ impl Decompiler<'_> {
             AbilityDef::Landwalk(f) => Ability::Landwalk(self.filter(f)),
             AbilityDef::HexproofFrom(f) => Ability::HexproofFrom(self.filter(f)),
             AbilityDef::OpeningHand => Ability::OpeningHand,
+            AbilityDef::OpeningHandReveal(id) => match self.ability(self.pool.ability(*id)) {
+                Ability::Triggered {
+                    trigger: crate::ast::Trigger::BeginningOfStep { step, whose },
+                    effects,
+                    ..
+                } => Ability::OpeningHandReveal {
+                    step,
+                    whose,
+                    after: false,
+                    effects,
+                },
+                _ => unreachable!("an opening hand reveal's delayed trigger is a step trigger"),
+            },
             AbilityDef::TriggerAgain {
                 filter,
                 entering,

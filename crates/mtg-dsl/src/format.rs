@@ -7013,6 +7013,24 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         Ability::OpeningHand => {
             let _ = writeln!(out, "{indent}opening hand");
         }
+        Ability::OpeningHandReveal {
+            step,
+            whose,
+            after,
+            effects,
+        } => {
+            let head = format!(
+                "opening hand reveal {}first {}{}",
+                if *whose == Who::You { "your " } else { "" },
+                if *step == Step::Upkeep {
+                    "upkeep"
+                } else {
+                    "main"
+                },
+                if *after { " after" } else { "" }
+            );
+            body(out, indent, &head, effects, &[], groups);
+        }
         Ability::TriggerAgain {
             filter: f,
             entering,

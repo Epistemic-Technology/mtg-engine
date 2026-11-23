@@ -16652,6 +16652,29 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         }
         // A legendary card names itself ("If Quicksilver is in your
         // opening hand, ...").
+        // "You may reveal this card from your opening hand. If you do, at
+        // the beginning of the first upkeep, ..." (the Chancellors).
+        Ability::OpeningHandReveal {
+            step,
+            whose,
+            after,
+            effects,
+        } => {
+            let mut ctx = Ctx::new(card, lookup, &[]);
+            ctx.current = Some(a);
+            let when = match (step, whose) {
+                (Step::Upkeep, Who::You) => "at the beginning of your first upkeep",
+                (Step::Upkeep, _) => "at the beginning of the first upkeep",
+                _ => "at the beginning of your first main phase of the game",
+            };
+            let body = lowercase_first(&sentences(effects, &mut ctx));
+            let body = if *after {
+                format!("{} {when}.", body.trim_end_matches('.'))
+            } else {
+                format!("{when}, {body}")
+            };
+            format!("You may reveal this card from your opening hand. If you do, {body}")
+        }
         Ability::OpeningHand => format!(
             "If {} is in your opening hand, you may begin the game with it on the battlefield.",
             if card.supertypes.contains(&Supertype::Legendary) {

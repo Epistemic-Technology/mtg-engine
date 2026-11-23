@@ -1,0 +1,8 @@
+card "Chancellor of the Dross" {
+  oracle_id 8ce2a750-1137-4f8d-803c-9aac30db4193
+  cost {4}{B}{B}{B}
+  type Creature — Phyrexian Vampire
+  pt 6/6
+  opening hand reveal first upkeep: each opponent loses 3 life, then you gain count equal life lost this way life
+  keywords flying, lifelink
+}

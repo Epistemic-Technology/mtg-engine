@@ -1846,10 +1846,39 @@ impl GameState {
                 self.flow = Flow::ChoosingUntap { asked, keep };
             }
             (Flow::OpeningHand { mut asked }, c @ (Choice::Accept | Choice::Decline)) => {
-                if let Some((_, card)) = self.next_opening_hand_card(&asked) {
+                if let Some((p, card)) = self.next_opening_hand_card(&asked) {
                     asked.push(card);
-                    if c == Choice::Accept {
-                        self.move_object(card, Zone::Battlefield, true);
+                    let def = self.objects[card].def;
+                    let reveal = self.pool.get(def).abilities.iter().find_map(|a| match a {
+                        crate::card::AbilityDef::OpeningHandReveal(id) => Some(*id),
+                        _ => None,
+                    });
+                    match (c, reveal) {
+                        // "You may reveal this card from your opening hand.
+                        // If you do, at the beginning of the first upkeep,
+                        // ...": revealed, the card leaves a delayed
+                        // trigger behind (CR 603.7).
+                        (Choice::Accept, Some(ability)) => {
+                            self.reveal_in_hand(card);
+                            self.delayed_triggers.push(crate::state::DelayedTrigger {
+                                controller: p,
+                                ability: crate::state::StackAbility {
+                                    ability,
+                                    source: card,
+                                    def,
+                                    trigger_obj: None,
+                                    trigger_player: None,
+                                    trigger_amount: 0,
+                                },
+                                this_turn: false,
+                                forever: false,
+                                turn: self.turn_number,
+                            });
+                        }
+                        (Choice::Accept, None) => {
+                            self.move_object(card, Zone::Battlefield, true);
+                        }
+                        _ => {}
                     }
                 }
                 self.flow = Flow::OpeningHand { asked };
@@ -2930,7 +2959,13 @@ impl GameState {
                         .get(self.objects[*id].def)
                         .abilities
                         .iter()
-                        .any(|a| matches!(a, crate::card::AbilityDef::OpeningHand))
+                        .any(|a| {
+                            matches!(
+                                a,
+                                crate::card::AbilityDef::OpeningHand
+                                    | crate::card::AbilityDef::OpeningHandReveal(_)
+                            )
+                        })
                 {
                     return Some((p, *id));
                 }
