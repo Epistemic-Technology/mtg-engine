@@ -450,6 +450,7 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     (&["that", "object"], Recipient::TriggeringObject),
     (&["that", "spell"], Recipient::TriggeringObject),
     (&["that", "player"], Recipient::TriggeringPlayer),
+    (&["they"], Recipient::TriggeringThey),
     (
         &["that", "defending", "player"],
         Recipient::DefendingPlayerWord,
@@ -3695,11 +3696,15 @@ impl P {
     /// static condition written before it, if any.
     fn cost_change(&mut self, cond: Option<StaticCond>) -> R<Ability> {
         self.pos += 1;
-        let filter = if self.at_word("you") || self.at_word("your") || self.at_word("cost") {
+        // `spells each red or green you cast cost {1} less`: "Each spell
+        // you cast that's red or green costs {1} less to cast."
+        let each = self.eat_word("each");
+        let mut filter = if self.at_word("you") || self.at_word("your") || self.at_word("cost") {
             Filter::default()
         } else {
             self.filter()?
         };
+        filter.each = each;
         let whose = if self.eat_words(&["you", "cast"]) {
             Who::You
         } else if self.eat_words(&["your", "opponents", "cast"]) {
@@ -4042,6 +4047,9 @@ impl P {
 
     /// After `this has`: `4 or more oil counters`, `no arrowhead counters`.
     fn source_counters_cond(&mut self) -> R<StaticCond> {
+        if self.eat_words(&["one", "or", "more"]) {
+            return Ok(StaticCond::SourceCountersOneOrMore(self.counter_kind()?));
+        }
         if self.eat_word("no") {
             let kind = self.counter_kind()?;
             return Ok(StaticCond::SourceCounters {
@@ -4611,6 +4619,9 @@ impl P {
         }
         if self.eat_words(&["not", "kicked"]) {
             return Ok(StaticCond::NotKicked);
+        }
+        if self.eat_words(&["that", "spell", "kicked"]) {
+            return Ok(StaticCond::ThatKicked);
         }
         if self.at_word("kicked") && self.word_at(1).as_deref() != Some("with") {
             self.pos += 1;
@@ -5433,12 +5444,17 @@ impl P {
     /// (CR 608.2c), or `<sentence> if <cond>` ("Draw a card if ...").
     fn condition_suffix(&mut self, s: Sentence) -> R<Sentence> {
         // `<sentence> instead if <cond>` (CR 608.2c).
-        if self.at_words(&["instead", "if"]) {
-            self.pos += 2;
+        if self.at_words(&["instead", "if"]) || self.at_words(&["instead", "bare", "if"]) {
+            let bare = self.at_words(&["instead", "bare"]);
+            self.pos += if bare { 3 } else { 2 };
             let cond = self.instead_cond()?;
             return Ok(Sentence::new(vec![Effect::Instead {
                 cond,
-                wording: InsteadWording::After,
+                wording: if bare {
+                    InsteadWording::AfterBare
+                } else {
+                    InsteadWording::After
+                },
                 label: None,
                 effects: vec![s],
             }]));
@@ -6782,7 +6798,18 @@ impl P {
         // "Each player loses 1 life for each creature they control":
         // `they control` compiles to "an opponent controls", not the
         // player losing life, so it would count the wrong creatures.
+        // "Each player loses 1 life for each creature they control"
+        // compiles to each player's own count (Stronghold Discipline).
+        let own_count = subject == Recipient::EachPlayer
+            && matches!(
+                e,
+                Effect::LoseLife {
+                    amount: Num::Count(_),
+                    ..
+                }
+            );
         if matches!(subject, Recipient::EachPlayer | Recipient::You)
+            && !own_count
             && self.counts[counts..]
                 .iter()
                 .any(|c| matches!(&c.expr, crate::ast::CountExpr::Permanents(f) if f.they_control))
@@ -8734,6 +8761,9 @@ impl P {
                     || self.at_words(&["any", "target"])
                     // "Choose up to one target creature."
                     || self.at_words(&["up", "to"])
+                    // "Choose any number of target creatures." (Nature's
+                    // Panoply).
+                    || self.at_words(&["any", "number", "of", "target"])
                     || (matches!(self.peek(), Some(Tok::Num(2)))
                         && self.word_at(1).as_deref() == Some("target")) =>
             {
@@ -10542,7 +10572,8 @@ impl P {
         }) {
             let f = self.filter()?;
             // `nonland card revealed this way` (parley): cards in a library.
-            if self.at_words(&["card", "revealed"]) {
+            // `creature card milled this way`: milled cards are cards.
+            if self.at_words(&["card", "revealed"]) || self.at_words(&["card", "milled"]) {
                 self.pos += 1;
             }
             let Some(verb) = self.word_at(0).and_then(|w| crate::ast::this_way_verb(&w)) else {
@@ -12423,6 +12454,10 @@ impl P {
                     self.pos += 1;
                 }
                 "a" | "an" | "each" | "permanent" | "permanents" => self.pos += 1,
+                "thatare" if !f.that_are => {
+                    f.that_are = true;
+                    self.pos += 1;
+                }
                 "andor" if consumed == 0 && !f.and_or => {
                     f.and_or = true;
                     self.pos += 1;

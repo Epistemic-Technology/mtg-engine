@@ -1,0 +1,9 @@
+card "Outmuscle" {
+  oracle_id 185d84f4-6095-46ef-917f-3d662a86aa81
+  cost {3}{G}
+  type Sorcery
+  spell {
+    put 1 +1/+1 counter on target creature you control then target 1 fights target creature you don't control
+    label "Adamant" if spent 3 green, the full target 1 gains indestructible
+  }
+}

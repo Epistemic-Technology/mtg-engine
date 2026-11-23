@@ -162,6 +162,7 @@ pub fn add_card(
             station: None,
             sunburst: None,
             extort: None,
+            they_twins: Vec::new(),
             rampage: None,
             battle_cry: None,
             token: None,
@@ -205,6 +206,7 @@ pub fn add_card(
                 station: None,
                 sunburst: None,
                 extort: None,
+                they_twins: Vec::new(),
                 rampage: None,
                 battle_cry: None,
                 token: None,
@@ -237,6 +239,7 @@ pub fn add_card(
         station: None,
         sunburst: None,
         extort: None,
+        they_twins: Vec::new(),
         rampage: None,
         battle_cry: None,
         token,
@@ -333,6 +336,7 @@ fn add_stages(
             scavenge: None,
             station: None,
             extort: None,
+            they_twins: Vec::new(),
             rampage: None,
             battle_cry: None,
             token: None,
@@ -443,6 +447,11 @@ struct Compiler<'a> {
     sunburst: Option<u8>,
     /// Extort's count (the life lost this way), once added to the counts.
     extort: Option<u8>,
+    /// `(i, twin)`: a count `i` over what "they control" (compiled as an
+    /// opponent's) and its twin over what you control, for "Each player
+    /// loses 1 life for each creature they control" (Stronghold
+    /// Discipline): you, then each opponent, with their own count.
+    they_twins: Vec<(u8, u8)>,
     /// Rampage's count (creatures blocking it beyond the first), likewise.
     rampage: Option<u8>,
     /// Battle cry's group ("each other attacking creature"), in `groups`.
@@ -544,6 +553,19 @@ impl Compiler<'_> {
             .iter()
             .map(|c| self.count_expr(&c.expr))
             .collect();
+        for (i, c) in card.counts.iter().enumerate() {
+            if let crate::ast::CountExpr::Permanents(f) = &c.expr
+                && f.they_control
+            {
+                let mut g = f.clone();
+                g.they_control = false;
+                g.who = Some(Who::You);
+                counts.push(self.count_expr(&crate::ast::CountExpr::Permanents(g)));
+                if let (Ok(a), Ok(b)) = (u8::try_from(i), u8::try_from(counts.len() - 1)) {
+                    self.they_twins.push((a, b));
+                }
+            }
+        }
         for a in &card.abilities {
             match unlabeled(a) {
                 Ability::SelfCost { per, times } => {
@@ -2263,6 +2285,11 @@ impl Compiler<'_> {
                 n: *n,
                 at_least: *at_least,
             },
+            StaticCond::SourceCountersOneOrMore(kind) => StaticCondition::SourceCounters {
+                kind: *kind,
+                n: 1,
+                at_least: true,
+            },
             StaticCond::SourceCountersThere { kind, n } => StaticCondition::SourceCounters {
                 kind: *kind,
                 n: *n,
@@ -2328,6 +2355,7 @@ impl Compiler<'_> {
             StaticCond::Beheld => StaticCondition::Beheld,
             StaticCond::NoManaSpent => StaticCondition::NoManaSpent,
             StaticCond::NotKicked => StaticCondition::NotKicked,
+            StaticCond::ThatKicked => StaticCondition::ThatKicked,
             StaticCond::Impending => StaticCondition::Impending,
             StaticCond::SneakPaid(p) => StaticCondition::SneakPaid(*p),
             StaticCond::ProwlPaid => StaticCondition::ProwlPaid,
@@ -2792,7 +2820,9 @@ impl Compiler<'_> {
             Recipient::TriggeringObject
             | Recipient::TriggeringIt
             | Recipient::TheTriggeringObject => CoreRecipient::TriggeringObject,
-            Recipient::TriggeringPlayer => CoreRecipient::TriggeringPlayer,
+            Recipient::TriggeringPlayer | Recipient::TriggeringThey => {
+                CoreRecipient::TriggeringPlayer
+            }
             Recipient::DefendingPlayer | Recipient::DefendingPlayerWord => {
                 CoreRecipient::DefendingPlayer
             }
@@ -3128,6 +3158,21 @@ impl Compiler<'_> {
                 amount: *amount,
                 who: r(*who),
             }),
+            // "Each player loses 1 life for each creature they control"
+            // (two players: you, then your opponent).
+            Effect::LoseLife {
+                amount: Num::Count(i),
+                who: Recipient::EachPlayer,
+            } if let Some(&(_, twin)) = self.they_twins.iter().find(|(a, _)| a == i) => {
+                out.push(CoreEffect::LoseLife {
+                    amount: Num::Count(twin),
+                    who: CoreRecipient::You,
+                });
+                out.push(CoreEffect::LoseLife {
+                    amount: Num::Count(*i),
+                    who: CoreRecipient::EachOpponent,
+                });
+            }
             Effect::LoseLife { amount, who } => out.push(CoreEffect::LoseLife {
                 amount: *amount,
                 who: r(*who),

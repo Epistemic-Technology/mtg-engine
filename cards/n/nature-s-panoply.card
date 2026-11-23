@@ -1,0 +1,7 @@
+card "Nature's Panoply" {
+  oracle_id b3126751-27fe-42d3-a001-33ecee72b528
+  cost {G}
+  type Instant
+  strive {2}{G}
+  spell: choose any number of target creature; put 1 +1/+1 counter on target 1
+}

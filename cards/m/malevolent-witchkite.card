@@ -1,0 +1,8 @@
+card "Malevolent Witchkite" {
+  oracle_id aee2cd1b-9bf9-4b91-83a4-2f1dbc82dcf4
+  cost {4}{B}{B}
+  type Creature — Dragon Warlock
+  pt 5/4
+  keywords flying
+  triggered when this enters: sacrifice any number andor artifact or enchantment or token chosen then draw count that many sacrificed this way cards
+}

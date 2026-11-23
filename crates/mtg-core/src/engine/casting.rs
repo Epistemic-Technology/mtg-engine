@@ -2026,6 +2026,9 @@ impl GameState {
                     .status
                     .token
                     .is_none_or(|t| (l.object.kind == crate::state::ObjKind::Token) == t)
+                    // "If the sacrificed creature was suspected" (Agency
+                    // Coroner): as it last existed (CR 701.60).
+                    && one.status.suspected.is_none_or(|s| l.object.suspected() == s)
                 {
                     return true;
                 }

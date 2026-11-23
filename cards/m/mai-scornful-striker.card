@@ -1,0 +1,8 @@
+card "Mai, Scornful Striker" {
+  oracle_id 953a2bd3-5bca-41fc-8785-66b2d7fa381a
+  cost {1}{B}
+  type Legendary Creature — Human Noble Ally
+  pt 2/2
+  keywords first strike
+  triggered whenever a player casts noncreature spell: they lose 2 life
+}

@@ -1,0 +1,9 @@
+card "Ingenious Prodigy" {
+  oracle_id 6f498ff7-38c9-44ea-9cb5-994a003825ee
+  cost {X}{U}
+  type Creature — Human Wizard
+  pt 0/1
+  keywords skulk
+  enters with x +1/+1 counters
+  triggered at beginning of your upkeep if this has one or more +1/+1 counters: you may remove 1 +1/+1 counter from this; if you do, draw 1 card
+}

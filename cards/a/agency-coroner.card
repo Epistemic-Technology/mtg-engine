@@ -1,0 +1,7 @@
+card "Agency Coroner" {
+  oracle_id 3686fd97-49ff-4a92-9cb2-7d8e9438d945
+  cost {4}{B}
+  type Creature — Ogre Cleric
+  pt 3/6
+  activated {2}{B}, sacrifice other creature: draw 1 card; if the sacrificed creature was suspected, draw 2 cards instead
+}

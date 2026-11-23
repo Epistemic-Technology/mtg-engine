@@ -2924,6 +2924,9 @@ pub enum StaticCondition {
     /// "If the gift wasn't promised" (CR 702.174; a promised gift is the
     /// kicker flag): the source wasn't kicked.
     NotKicked,
+    /// "Whenever you cast a spell, if that spell was kicked" (CR
+    /// 702.33d): the spell that triggered the ability was kicked.
+    ThatKicked,
     /// "If this spell's sneak cost was paid", "if its sneak cost was
     /// paid" (CR 702.190): the source was cast for its sneak cost (kept by
     /// the permanent). The number is wording only: the pronoun for a

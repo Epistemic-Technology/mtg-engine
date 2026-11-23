@@ -431,6 +431,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever you activate an ability of a creature`, `whenever you activate an exhaust ability`, `whenever an opponent activates a loyalty ability` | as an activated ability is activated (CR 602.2), before it resolves: of a creature (mana abilities included, CR 605.3a; mana the engine taps for automatically while paying a cost is not an activation), an exhaust ability (CR 702.177), a loyalty ability (CR 606). The activating player is `that player` |
 | `whenever you discard one or more cards` | once for the cards you discard together (CR 603.2c), counted as `that much` ("put that many +1/+1 counters", "deals that much damage"); cards discarded before the next time a player gets priority count as together. Cycling a card discards it |
 | `whenever you sacrifice one or more Food` | once for the matching permanents you sacrifice together (CR 603.2c), counted as `that much` |
+| `they lose 2 life`, `deal 2 damage to they` | The triggering player written "they" ("Whenever a player casts a noncreature spell, they lose 2 life.") and "them" as an object ("... deals 2 damage to them"); the same player as `that player` |
 | `whenever you attack with one or more Faerie`, `whenever you attack a player with one or more creature with power 4 or greater` | once as you declare attackers if a matching creature attacks (CR 508.1m); with `a player`, once for each player a matching creature attacks, that player being `that player` |
 | `whenever you tap this for mana`, `whenever a player taps land for mana`, `whenever an opponent taps Mountain for mana`, `whenever you tap creature for mana` | "Whenever you tap this creature for mana", "Whenever a player taps a land for mana" (CR 106.11a): a matching permanent, controlled by that player, is tapped for mana by a mana ability (activated, or tapped while paying a cost); not a mana ability (CR 605.1b: it adds no mana), so it uses the stack. The permanent is the triggering object and its controller `that player` |
 | `whenever this transforms`, `whenever this enters or transforms` | "Whenever this creature transforms into Ashling, Rimebound" (CR 701.27): the ability is on that face, so it sees only the transformation to it; the face's name prints |
@@ -496,7 +497,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever land card is put into your graveyard from anywhere` | "Whenever a land card is put into your graveyard from anywhere": a card the controller owns, matching as it is in the graveyard (milled, discarded, dying, ...) |
 | `whenever creature enters from your graveyard` | "Whenever a creature enters from your graveyard": a permanent the controller owns entering from their graveyard is "it" |
 | `whenever you expend 4` | "Whenever you expend 4" (CR 700.14): as the controller spends their fourth total mana to cast spells this turn, judged as the spell that spent it becomes cast (the mana counted as its cost's mana symbols) |
-| `whenever andor other Villain or artifact you control enters` | "Whenever another Villain and/or artifact you control enters": `andor` before a filter with an alternative prints "and/or" in a trigger's subject, and between plural alternatives anywhere (`up to 2 target andor Mount or Vehicle`: "up to two target Mounts and/or Vehicles"; wording only); `andlist` likewise joins a singular list with "and" (`each andlist Pest or Bat or Spider you control`: "each Pest, Bat, and Spider you control"), and plural types (`andlist artifact or creature you control`: "artifacts and creatures you control") |
+| `whenever andor other Villain or artifact you control enters` | "Whenever another Villain and/or artifact you control enters": `andor` before a filter with an alternative prints "and/or" in a trigger's subject, and between plural alternatives anywhere (`up to 2 target andor Mount or Vehicle`: "up to two target Mounts and/or Vehicles"; wording only); `andlist` likewise joins a singular list with "and" (`each andlist Pest or Bat or Spider you control`: "each Pest, Bat, and Spider you control"), and plural types (`andlist artifact or creature you control`: "artifacts and creatures you control"). In a count, `andor thatare creature or Vehicle you control` prints "permanents you control that are creatures and/or Vehicles" (Collision Course; wording only) |
 
 A trigger's subject prints its controller before its "with" qualities
 ("Whenever a creature you control with power 5 or greater enters").
@@ -668,7 +669,7 @@ in hand"), `hand 1 or less` ("you have one or fewer cards in hand"),
 counters", corrupted), `this has 4 or more oil counters` ("this creature
 has four or more oil counters on it"; first, "As long as ..., it gets
 ..."; `this has 3 or more counters`: "this creature has three or more
-counters on it", every kind together), `this has no arrowhead counters` ("there are no arrowhead counters
+counters on it", every kind together; `this has 1 or more +1/+1 counters` prints "a +1/+1 counter on it", `this has one or more +1/+1 counters` "one or more +1/+1 counters on it"), `this has no arrowhead counters` ("there are no arrowhead counters
 on this artifact"), `there are 3 or more brick counters on this` ("there
 are three or more brick counters on this artifact"), and the shorthands `threshold`, `delirium`,
 `metalcraft`.
@@ -1191,7 +1192,9 @@ Human Soldier creature token. Prints "Recruit."; `you recruit` prints
 "you recruit" (The Queen of Dale's wording after another player's
 action).
 `spells red or white you cast cost {1} less` prints "Red spells and white
-spells"; `spells Goblin or Rogue ...` prints "Goblin spells and Rogue
+spells"; `spells each red or green you cast cost {1} less` prints "Each
+spell you cast that's red or green costs {1} less to cast." (Goblin
+Anarchomancer); `spells Goblin or Rogue ...` prints "Goblin spells and Rogue
 spells". `defending player` as a subject prints "defending player".
 
 Cost item `from graveyard`: activated from the graveyard ("Return this
@@ -2862,6 +2865,9 @@ resolves; only the sentence just before is replaced. Three wordings:
 - `that target 1 gets +4/+4 instead if metalcraft`: "That creature gets
   +4/+4 until end of turn instead if you control three or more
   artifacts."
+- `that target 1 gets -4/-4 instead bare if you control creature named
+  "Bogbrew Witch"`: the same without the replaced clause's "until end of
+  turn" ("That creature gets -4/-4 instead if ...", Festering Newt).
 
 A kicked "instead" that declares its own targets replaces the targets
 before it (CR 601.2c): `target creature you control gains
@@ -2909,7 +2915,13 @@ do` then sees:
   green cards in your hand", CR 701.20a): the cards stay in the hand,
   known to every player; `count where revealed this way` ("the number of
   cards revealed this way") and `count each revealed this way` ("for each
-  card revealed this way") count them
+  card revealed this way") count them; `each player loses count each
+  creature they control life` ("Each player loses 1 life for each creature
+  they control.", Stronghold Discipline) counts each player's own (you,
+  then your opponent; elsewhere `they control` in a count for each player
+  is refused); `count each creature card milled
+  this way` prints "for each creature card milled this way" (a milled
+  filter always names cards)
 - `exile 2 creature card from your graveyard chosen`; `exile top 1
   creature card from your graveyard chosen` ("exile the top creature card
   of your graveyard", CR 404.2: the most recent, nothing chosen); `exile
@@ -3235,7 +3247,11 @@ in an effect "If five or more mana was spent to cast that spell" (`if that
 spell spent 5 mana, put 2 +1/+1 counters on this creature instead`). After
 the comma, `also` prints "also" after the subject (`if that spell spent 5
 mana, also this creature gains double strike`: "this creature also gains
-double strike"). A spell names itself again after such a condition
+double strike"). `that spell kicked` likewise reads the triggering
+spell's kicker (CR 702.33d): `triggered whenever you cast spell if that
+spell kicked: ...` prints "Whenever you cast a spell, if that spell was
+kicked, ..." (Bloodstone Goblin); plain `kicked` is the source's own
+kicker. A spell names itself again after such a condition
 ("Adamant — If ..., Searing Barrage deals 3 damage ..."); a permanent's
 trigger says "it" ("if {R} was spent to cast it, it gains haste").
 The engine pays canonically and these riders are all bonuses, so for a
@@ -3432,6 +3448,7 @@ Forms that change only how Oracle words what an existing form does:
 | `static plural artifact you control: add subtype Food, ...` | "Artifacts you control are Foods in addition to their other types and have ..." rather than "Each artifact you control is a Food ...". An added subtype and the card types added after it are one noun ("are Food artifacts", "is a Golem creature with base power and toughness 5/4"), and a quoted ability of a holder given a card type names "this permanent". |
 | `reduced {1} during your turn` | "This ability costs {1} less to activate during your turn." |
 | `the chosen target 1` | "the chosen creature", after "choose target creature" |
+| `choose any number of target creature; put 1 +1/+1 counter on target 1` | "Choose any number of target creatures. Put a +1/+1 counter on each of them." (Nature's Panoply): the group named first, then acted on |
 | `for each opponent, tap up to 1 target creature that opponent controls` | "For each opponent, tap up to one target creature that player controls." The game has two players, so it happens once, with one target an opponent controls (or none); `that opponent controls` is allowed only in such a sentence, and "those creatures" names its targets plainly ("Put a stun counter on each of those creatures."). |
 | `choose up to 1 target creature`, `choose up to 1 another target creature` | "Choose up to one target creature.", "Choose up to one other target creature." (no effect of its own; the later sentences name it: `that target 1 can't be blocked and has base power and toughness 1/1`, "That creature can't be blocked this turn and has base power and toughness 1/1 until end of turn."; with none chosen they do nothing). `if target 1 is suspected, exile target 1; otherwise, suspect target 1` prints "If it's suspected, exile it. Otherwise, suspect it.": an `otherwise` may follow a target check. |
 | `choose target creature you control and target creature you don't control` | "Choose target creature you control and target creature you don't control." (two targets named at once; no effect of its own) |

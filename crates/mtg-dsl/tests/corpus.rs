@@ -289,9 +289,17 @@ fn wrong_meaning_forms_of_the_sixth_correctness_wave_are_rejected() {
     // No triggering player in a spell.
     let e = spell_error("deal 2 damage to each creature that player controls");
     assert!(e.contains("that player controls"), "{e}");
-    // `they control` counts an opponent's permanents.
-    let e = spell_error("each player loses count each creature they control life");
+    // `they control` counts an opponent's permanents (each player's own
+    // only for "loses life", Stronghold Discipline).
+    let e = spell_error("each player draws count each creature they control cards");
     assert!(e.contains("they control"), "{e}");
+    assert!(
+        load_card(
+            "Sorcery",
+            "spell: each player loses count each creature they control life"
+        )
+        .is_ok()
+    );
     // `enchanted creature` in a target check is what the source enchants.
     let e = spell_error(
         "target creature gets +2/+2; if target 1 is enchanted creature, also target 1 gains hexproof",

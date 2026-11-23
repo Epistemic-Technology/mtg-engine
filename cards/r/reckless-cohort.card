@@ -1,0 +1,7 @@
+card "Reckless Cohort" {
+  oracle_id 015b1006-decb-4d94-940e-bca550e0ad5b
+  cost {1}{R}
+  type Creature — Human Warrior Ally
+  pt 2/2
+  static this: has attacks each combat if able if you control no other Ally
+}

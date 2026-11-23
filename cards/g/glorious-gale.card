@@ -1,0 +1,6 @@
+card "Glorious Gale" {
+  oracle_id 858265c2-6415-4938-a6ec-734d53046100
+  cost {1}{U}
+  type Instant
+  spell: counter target creature spell; if target 1 was legendary, the ring tempts you
+}

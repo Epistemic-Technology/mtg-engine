@@ -1,0 +1,9 @@
+card "Collision Course" {
+  oracle_id 49ca0ca8-0733-4aa9-bd0c-1c661725b81b
+  cost {1}{W}
+  type Sorcery
+  choose one {
+    mode: deal count where andor thatare creature or Vehicle you control damage to target creature
+    mode: destroy target artifact
+  }
+}

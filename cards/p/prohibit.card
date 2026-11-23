@@ -1,0 +1,7 @@
+card "Prohibit" {
+  oracle_id d95f1797-56f9-41be-a5fe-8398961f4b8b
+  cost {1}{U}
+  type Instant
+  kicker {2}
+  spell: counter target spell if target 1 is with mana value 2 or less; if kicked, counter that target 1 if target 1 is with mana value 4 or less instead
+}

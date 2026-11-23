@@ -1,0 +1,9 @@
+card "West Wind Avatar" {
+  oracle_id 92e45a8f-c582-45e1-9b7f-def219023ebf
+  cost {5}{G}{G}
+  type Creature — Cat Spirit Avatar
+  pt 7/7
+  keywords trample
+  triggered whenever this enters or attacks: you may sacrifice 1 token or a land chosen; if you do, you gain 3 life
+  label "Disappear" triggered at beginning of your end step if permanent left this turn: draw 1 card
+}

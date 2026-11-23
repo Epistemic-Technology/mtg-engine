@@ -1,0 +1,6 @@
+card "Boros Fury-Shield" {
+  oracle_id 20eff2ce-f26d-48a2-8a1f-435a7e2968c8
+  cost {2}{W}
+  type Instant
+  spell: prevent all combat damage from target attacking or blocking creature this turn; if spent {R}, deal count equal power of that target 1 damage to controller of that target 1
+}

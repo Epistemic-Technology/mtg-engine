@@ -1,0 +1,10 @@
+card "Thraben Charm" {
+  oracle_id 7eccd10d-f224-4467-af25-f2b768993f9f
+  cost {1}{W}
+  type Instant
+  choose one {
+    mode: deal damage equal 2 creature you control to target creature
+    mode: destroy target enchantment
+    mode: exile graveyard of any number of target player
+  }
+}

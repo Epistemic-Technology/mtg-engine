@@ -1,0 +1,8 @@
+card "Gorging Vulture" {
+  oracle_id 67330f45-d08c-4fe2-8ae3-8d18939c512a
+  cost {2}{B}
+  type Creature — Bird
+  pt 2/2
+  keywords flying
+  triggered when this enters: mill 4 cards; you gain count each creature card milled this way life
+}

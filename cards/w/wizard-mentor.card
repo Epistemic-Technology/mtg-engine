@@ -1,0 +1,7 @@
+card "Wizard Mentor" {
+  oracle_id a1fb1b77-a49f-4447-bbe0-156407f192e2
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {T}: return this and target creature you control to owner's hand
+}

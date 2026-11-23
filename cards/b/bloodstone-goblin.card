@@ -1,0 +1,7 @@
+card "Bloodstone Goblin" {
+  oracle_id ec17b9db-dd80-4b46-a1b5-215f26bf6498
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 2/2
+  triggered whenever you cast spell if that spell kicked: this gets +1/+1 and this gains menace
+}

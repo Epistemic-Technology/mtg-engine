@@ -1078,6 +1078,10 @@ pub struct Filter {
     /// after "each" ("put a +1/+1 counter on each Pest, Bat, and Spider
     /// you control"); wording only.
     pub and_list: bool,
+    /// `thatare andor creature or Vehicle you control` in a count: "the
+    /// number of permanents you control that are creatures and/or
+    /// Vehicles" (Collision Course); wording only.
+    pub that_are: bool,
     /// `every other creature`: a group printed with "all" as an effect's
     /// subject ("all other creatures get -2/-2"); otherwise as `all`.
     /// Wording only.
@@ -2292,6 +2296,10 @@ pub enum StaticCond {
         kind: CounterKind,
         n: u32,
     },
+    /// `this has one or more +1/+1 counters`: "this creature has one or
+    /// more +1/+1 counters on it" (Ingenious Prodigy; `1 or more` prints
+    /// "a +1/+1 counter").
+    SourceCountersOneOrMore(CounterKind),
     /// `defending player controls Island`: "defending player controls an
     /// Island"; `at_least` 0, `defending player controls no Glimmer
     /// creature`: "... controls no Glimmer creatures".
@@ -2634,6 +2642,9 @@ pub enum StaticCond {
     /// `not kicked`: "this spell wasn't kicked"; on a card with gift, "the
     /// gift wasn't promised" (CR 702.174).
     NotKicked,
+    /// `that spell kicked`: "if that spell was kicked", the spell that
+    /// triggered the ability (Bloodstone Goblin).
+    ThatKicked,
     /// `sneak paid`, `his sneak paid`, `her sneak paid`: "this spell's
     /// sneak cost was paid" (an instant or sorcery), "its (his, her) sneak
     /// cost was paid" (CR 702.190). The pronoun: 0 its, 1 his, 2 her.
@@ -2799,6 +2810,10 @@ pub enum InsteadWording {
     /// `... instead if hand 0 or less`: "... instead if you have no cards
     /// in hand."
     After,
+    /// `... instead bare if ...`: the same, the replaced clause without
+    /// its "until end of turn" ("That creature gets -4/-4 instead if you
+    /// control a creature named Bogbrew Witch", Festering Newt).
+    AfterBare,
 }
 
 /// Effects that print as one sentence ("target player loses 1 life and you
@@ -3626,6 +3641,9 @@ pub enum Recipient {
     /// The triggering object written `it` in a triggered ability ("Whenever
     /// another creature you control attacks, it gets +0/+1").
     TriggeringIt,
+    /// The triggering player written `they` ("Whenever a player casts a
+    /// noncreature spell, they lose 2 life"; "deals 2 damage to them").
+    TriggeringThey,
     /// The triggering object written `the creature` in a triggered
     /// ability: "If the player does, untap the creature." (Paralyze).
     TheTriggeringObject,

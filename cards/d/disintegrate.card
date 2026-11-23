@@ -1,0 +1,6 @@
+card "Disintegrate" {
+  oracle_id 92d6af2f-728e-4e41-87cb-5c90878a2f2f
+  cost {X}{R}
+  type Sorcery
+  spell: deal x damage to any target; if target 1 is creature, target 1 can't be regenerated and this turn, replace target 1 dies: exile
+}

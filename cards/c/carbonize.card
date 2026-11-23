@@ -1,0 +1,6 @@
+card "Carbonize" {
+  oracle_id a32795a2-a965-4a85-9944-fd9eed464e65
+  cost {2}{R}
+  type Instant
+  spell: deal 3 damage to any target; if target 1 is creature, target 1 can't be regenerated and this turn, replace target 1 dies: exile
+}
