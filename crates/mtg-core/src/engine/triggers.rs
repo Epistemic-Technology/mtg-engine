@@ -720,6 +720,7 @@ impl GameState {
             || self.suspended_count > 0
             || self.graveyard_trigger_cards > 0
             || self.grants_exist()
+            || self.emblem_triggers()
         {
             return true;
         }
@@ -776,6 +777,7 @@ impl GameState {
             if self.graveyard_trigger_cards > 0 {
                 self.graveyard_watchers(event, &mut out);
             }
+            self.emblem_watchers(event, &mut out);
             return out;
         }
         let mut out: Vec<Watcher> = self
@@ -801,6 +803,7 @@ impl GameState {
         if self.graveyard_trigger_cards > 0 {
             self.graveyard_watchers(event, &mut out);
         }
+        self.emblem_watchers(event, &mut out);
         if leaves
             && let Event::ZoneChange { old, .. } = event
             && let Some(l) = self.lki.get(old)
@@ -817,6 +820,40 @@ impl GameState {
             });
         }
         out
+    }
+
+    /// Whether an emblem has a triggered ability (CR 114.4: "Whenever an
+    /// artifact you control enters, this emblem deals 3 damage to any
+    /// target."). Emblems are few, and most have none.
+    fn emblem_triggers(&self) -> bool {
+        self.emblems.iter().any(|id| {
+            self.objects
+                .get(*id)
+                .is_some_and(|o| self.pool.get(o.def).has_triggers())
+        })
+    }
+
+    /// Emblems whose triggered abilities could see `event` (CR 114.4),
+    /// controlled by their owners' controllers as created.
+    fn emblem_watchers(&self, event: &Event, out: &mut Vec<Watcher>) {
+        for id in &self.emblems {
+            let Some(o) = self.objects.get(*id) else {
+                continue;
+            };
+            if !self.may_watch(o.def, o.except, event) {
+                continue;
+            }
+            let Some(chars) = self.characteristics(*id) else {
+                continue;
+            };
+            out.push(Watcher {
+                source: *id,
+                controller: o.controller,
+                tapped: false,
+                chars,
+                in_graveyard: false,
+            });
+        }
     }
 
     /// Cards in graveyards with abilities that work there and could see

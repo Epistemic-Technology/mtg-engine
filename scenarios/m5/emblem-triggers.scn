@@ -1,0 +1,39 @@
+# An emblem's triggered abilities (CR 114.4): they trigger from the
+# command zone for the emblem's controller.
+
+scenario "Ral, Izzet Viceroy's emblem: an instant cast deals 4 damage and draws two" {
+  battlefield A: "Ral, Izzet Viceroy" with 8 loyalty, "Mountain"
+  hand A: "Shock"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Ral, Izzet Viceroy" ability 3
+  turn 3 A: wait
+  turn 3 A: cast "Shock" targeting player B
+  turn 3 A: trigger "Ral, Izzet Viceroy emblem" targeting player B
+  run_to turn 3 end
+  assert life B 14
+  assert hand A count 2
+}
+
+scenario "Kaito, Cunning Infiltrator's emblem: each spell any player casts makes a Ninja" {
+  battlefield A: "Kaito, Cunning Infiltrator" with 9 loyalty
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Kaito, Cunning Infiltrator" ability 3
+  turn 3 postcombat_main B: cast "Shock" targeting player A
+  run_to turn 3 end
+  assert battlefield A contains "Ninja"
+  assert battlefield B lacks "Ninja"
+}
+
+scenario "Ral, Izzet Viceroy's emblem: an opponent's spell doesn't trigger it" {
+  battlefield A: "Ral, Izzet Viceroy" with 8 loyalty
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Ral, Izzet Viceroy" ability 3
+  turn 3 postcombat_main B: cast "Shock" targeting player A
+  run_to turn 3 end
+  assert life B 20
+  assert life A 18
+}
