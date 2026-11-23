@@ -499,6 +499,10 @@ impl GameState {
         }
         let alive: Vec<PlayerId> = self.players_in_game().collect();
         let result = match alive.len() {
+            // CR 104.4b: a loop is a draw (see the constant).
+            _ if self.resolutions_this_turn >= crate::state::MAX_RESOLUTIONS_PER_TURN => {
+                GameResult::Draw
+            }
             0 => GameResult::Draw,
             1 => GameResult::Win { winner: alive[0] },
             _ => return None,

@@ -40,6 +40,10 @@ pub struct ActivationGuard {
 
 impl ActivationGuard {
     pub const LIMIT: u32 = 4;
+    /// An ability with a cost can still be repeated without end when
+    /// something pays the cost back (a sacrifice outlet beside a token
+    /// maker), so every ability has a ceiling.
+    pub const PAID_LIMIT: u32 = 50;
 
     /// Whether the agent may still pick this option.
     pub fn allows(&mut self, state: &GameState, choice: &Choice) -> bool {
@@ -50,8 +54,13 @@ impl ActivationGuard {
         match choice {
             Choice::Activate {
                 source, ability, ..
-            } if Self::is_free(state, *ability) => {
-                self.counts.get(&(*source, *ability)).copied().unwrap_or(0) < Self::LIMIT
+            } => {
+                let limit = if Self::is_free(state, *ability) {
+                    Self::LIMIT
+                } else {
+                    Self::PAID_LIMIT
+                };
+                self.counts.get(&(*source, *ability)).copied().unwrap_or(0) < limit
             }
             _ => true,
         }

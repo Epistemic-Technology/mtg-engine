@@ -168,7 +168,7 @@ impl GameState {
                 && self.payable_for(
                     p,
                     &sources,
-                    &ev.requirements(0),
+                    &self.taxed(p, def, *id, ev.requirements(0)),
                     Spend::Spell(&self.printed(self.objects[*id].def)),
                 )
                 && self.targets_available(p, def.unkicked_cast_targets(), Some(*id))
@@ -187,7 +187,7 @@ impl GameState {
                 && self.payable_for(
                     p,
                     &sources,
-                    &dash.requirements(0),
+                    &self.taxed(p, def, *id, dash.requirements(0)),
                     Spend::Spell(&self.printed(self.objects[*id].def)),
                 )
                 && self.targets_available(p, def.unkicked_cast_targets(), Some(*id))
@@ -200,7 +200,7 @@ impl GameState {
                 && self.payable_for(
                     p,
                     &sources,
-                    &warp.requirements(0),
+                    &self.taxed(p, def, *id, warp.requirements(0)),
                     Spend::Spell(&self.printed(self.objects[*id].def)),
                 )
                 && self.targets_available(p, def.unkicked_cast_targets(), Some(*id))
@@ -225,7 +225,7 @@ impl GameState {
                 && self.payable_for(
                     p,
                     &sources,
-                    &imp.1.requirements(0),
+                    &self.taxed(p, def, *id, imp.1.requirements(0)),
                     Spend::Spell(&self.printed(self.objects[*id].def)),
                 )
                 && self.additional_payable(p, &def.additional, *id)
@@ -3047,6 +3047,24 @@ impl GameState {
             .collect()
     }
 
+    /// An alternative cost (evoke, dash, warp, impending, sneak,
+    /// web-slinging) as it will be charged: taxed and reduced like the
+    /// mana cost it replaces (CR 601.2f). Offering the cast on the printed
+    /// cost offered one that could not then be paid.
+    fn taxed(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        mut req: ManaRequirement,
+    ) -> ManaRequirement {
+        let changers = self.cost_changers();
+        if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
+            adjust_generic(&mut req, self.cost_delta(p, def, id, &changers));
+        }
+        req
+    }
+
     /// CR 601.2f: how much more (or, below zero, less) generic mana `def`
     /// costs `p` to cast as the card `id`, from its own text and from
     /// `changers`' static abilities.
@@ -3372,7 +3390,7 @@ impl GameState {
         if !self.payable_for(
             p,
             sources,
-            &cost.requirements(0),
+            &self.taxed(p, def, id, cost.requirements(0)),
             Spend::Spell(&self.printed(self.objects[id].def)),
         ) || !self.additional_payable(p, &def.additional, id)
         {
@@ -3420,7 +3438,7 @@ impl GameState {
         if !self.payable_for(
             p,
             sources,
-            &cost.requirements(0),
+            &self.taxed(p, def, id, cost.requirements(0)),
             Spend::Spell(&self.printed(self.objects[id].def)),
         ) || !self.additional_payable(p, &def.additional, id)
         {
@@ -5441,6 +5459,11 @@ impl GameState {
         let sources = match ability {
             Some((source, a)) => {
                 let mut s = self.ability_sources(caster, source);
+                // A source tapped as a cost cannot also tap for mana
+                // (Treasure Vault's {X}{X}, {T}).
+                if a.cost.tap {
+                    s.retain(|(id, _)| *id != source);
+                }
                 if a.cost.waterbend {
                     let own = a.cost.tap.then_some(source);
                     s.extend(self.waterbend_sources(caster, u32::MAX, own));
@@ -7816,6 +7839,7 @@ impl GameState {
         let Some(spell) = self.stack.last().copied() else {
             return;
         };
+        self.resolutions_this_turn += 1;
         let obj = self.objects[spell].clone();
         if obj.kind == ObjKind::Ability {
             self.resolve_ability(spell);

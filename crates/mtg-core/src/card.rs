@@ -9380,7 +9380,11 @@ impl CardPool {
         // What a token is known; what returns from exile or is copied is not.
         self.enters.push(effects.iter().any(|e| {
             match e {
-                Effect::ReturnToBattlefield { .. } | Effect::CreateTokenCopy { .. } => true,
+                // What a permanent becomes a copy of may be legendary too
+                // (Mirage Mirror copying a legend its controller has).
+                Effect::ReturnToBattlefield { .. }
+                | Effect::CreateTokenCopy { .. }
+                | Effect::BecomeCopy { .. } => true,
                 // A legendary token can meet its namesake (CR 704.5j).
                 Effect::CreateToken { token, .. } => self
                     .defs

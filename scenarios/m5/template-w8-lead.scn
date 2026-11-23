@@ -40,3 +40,103 @@ scenario "Westvale Abbey transforms for five creatures and untaps" {
   assert graveyard A count 5
   assert power "Ormendahl, Profane Prince" 9
 }
+
+# X can't count Treasure Vault's own mana: it is tapped as a cost. With
+# one other land the only X on offer is 0 (asking for `x 1` there is a
+# script error: "X = 1 cannot be paid for; available: [X = 0]").
+scenario "Treasure Vault pays {X}{X} from its other lands" {
+  battlefield A: "Treasure Vault", 2 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Treasure Vault" x 1
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Treasure Vault"
+  assert battlefield A count 3
+}
+
+scenario "Treasure Vault with one other land makes no Treasure" {
+  battlefield A: "Treasure Vault", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Treasure Vault" x 0
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Treasure Vault"
+  assert battlefield A count 1
+  assert untapped "Island"
+}
+
+# "When enchanted creature leaves the battlefield" watches that creature
+# only. It fired for every creature that left, which with a sacrifice
+# outlet looped without end (found by the random-deck fuzz).
+scenario "Valor of the Worthy ignores another creature leaving" {
+  battlefield A: "Mountain", "Grizzly Bears", "Savannah Lions"
+  battlefield A: "Valor of the Worthy" on "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Savannah Lions"
+  run_to turn 1 end
+  assert graveyard A contains "Savannah Lions"
+  assert battlefield A count 3
+}
+
+scenario "Valor of the Worthy makes a Spirit when its creature leaves" {
+  battlefield A: "Mountain", "Grizzly Bears", "Savannah Lions"
+  battlefield A: "Valor of the Worthy" on "Savannah Lions"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Savannah Lions"
+  run_to turn 1 end
+  assert graveyard A contains "Savannah Lions"
+  assert battlefield A contains "Spirit"
+  assert battlefield A count 3
+}
+
+scenario "Funeral March ignores another creature leaving" {
+  battlefield A: "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Savannah Lions"
+  battlefield A: "Funeral March" on "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Savannah Lions"
+  run_to turn 1 end
+  assert battlefield B count 2
+}
+
+# CR 104.4b: three Oblivion Rings with nothing else to exile go round
+# without end, and the game is a draw.
+scenario "Three Oblivion Rings loop to a draw" {
+  battlefield A: 6 "Plains", "Oblivion Ring"
+  hand A: 2 "Oblivion Ring"
+  turn 1 A: cast "Oblivion Ring"
+  turn 1 A: cast "Oblivion Ring"
+  run_to turn 1 end
+  assert draw
+}
+
+# An alternative cost is taxed like the mana cost (CR 601.2f): with
+# Lodestone Golem out, evoke {1}{R}{R} takes four lands. The cast was
+# offered on three and then could not be paid (found by the fuzz).
+scenario "Spitebellows: evoke is not offered when a tax makes it unpayable" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Lodestone Golem"
+  hand A: "Spitebellows"
+  illegal turn 1 A: cast "Spitebellows" evoked
+  run_to turn 1 end
+  assert hand A count 1
+}
+
+scenario "Spitebellows: evoke with a tax paid" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Lodestone Golem"
+  hand A: "Spitebellows"
+  turn 1 A: cast "Spitebellows" evoked
+  run_to turn 1 end
+  assert graveyard A contains "Spitebellows"
+  assert graveyard B contains "Lodestone Golem"
+}
+
+# Mirage Mirror becoming a copy of its controller's legend meets the
+# legend rule (CR 704.5j): one of the two goes to the graveyard. The
+# choice arose where the engine had no snapshot (found by the fuzz).
+scenario "Mirage Mirror copying your own legend meets the legend rule" {
+  battlefield A: 2 "Island", "Mirage Mirror", "Isamaru, Hound of Konda"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Mirage Mirror" targeting "Isamaru, Hound of Konda"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 1
+}

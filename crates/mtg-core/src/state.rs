@@ -1539,6 +1539,15 @@ pub struct LastKnown {
     pub blocking: bool,
 }
 
+/// A turn in which this many spells and abilities resolve is a loop, and
+/// the game is a draw. CR 104.4b makes a loop of mandatory actions a
+/// draw; a loop a player could leave must be given a finite count instead
+/// (CR 732.2a), which the engine does not model, so a player who never
+/// stops draws too. No turn of ordinary play comes near this, and each
+/// repetition may add an until-end-of-turn effect, so the cap also bounds
+/// how long one turn can take.
+pub const MAX_RESOLUTIONS_PER_TURN: u32 = 1000;
+
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum GameResult {
     Win { winner: PlayerId },
@@ -2002,6 +2011,9 @@ pub struct GameState {
     /// requirement to attack a player other than the goader (701.15b).
     pub goads: Vec<(ObjId, PlayerId)>,
     pub turn_number: u32,
+    /// Spells and abilities that have resolved this turn; at
+    /// `MAX_RESOLUTIONS_PER_TURN` the game is a draw.
+    pub resolutions_this_turn: u32,
     /// Spells each player has cast this turn, and the most any one player
     /// cast last turn ("if no spells were cast last turn", werewolves).
     pub spells_this_turn: [u8; 4],

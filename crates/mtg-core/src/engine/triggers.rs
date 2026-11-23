@@ -1042,7 +1042,8 @@ impl GameState {
                             &l.characteristics,
                             Some(w.source),
                             Some(w.controller),
-                        ) && (!f.needs_state() || self.lki_status_ok(f, *old, l))
+                        ) && (!f.enchanted || enchants(*old))
+                            && (!f.needs_state() || self.lki_status_ok(f, *old, l))
                     }
                 };
                 ok.then_some((Some(*old), Some(l.object.controller)))

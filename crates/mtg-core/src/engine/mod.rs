@@ -513,6 +513,7 @@ impl GameState {
             splices: Vec::new(),
             goads: Vec::new(),
             turn_number: 0,
+            resolutions_this_turn: 0,
             spells_this_turn: [0; 4],
             next_spell_less: [0; 4],
             mana_spent_this_turn: [0; 4],
@@ -3402,6 +3403,7 @@ impl GameState {
             self.saddled.clear();
             self.turn_started_at = self.next_timestamp;
             self.turn_number += 1;
+            self.resolutions_this_turn = 0;
             self.extra_phases.clear();
             self.resume_step = None;
             self.combats_this_turn = 0;

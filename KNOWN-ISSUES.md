@@ -126,6 +126,14 @@ wrong thing in some case.
 - **A leaves-the-battlefield trigger granted by another permanent that
   leaves at the same time** may still be missed: the pre-check looks at
   the departing object's own grants, not at grants that left with it.
+- **Loops** end the game in a draw once 1,000 spells and abilities have
+  resolved in one turn (`MAX_RESOLUTIONS_PER_TURN`). That is the rule for
+  a loop of mandatory actions (CR 104.4b). A loop a player could leave
+  should instead be given a number of repetitions and then stop (CR
+  732.2a); the engine has no shortcuts, so a player who never stops draws
+  too. The baseline agents stop themselves first (`ActivationGuard`: any
+  one ability at most 50 times a turn). A loop that never uses the stack
+  (state-based actions feeding each other) is not caught.
 
 ## 2. Forms that pass the gate with the wrong meaning
 
