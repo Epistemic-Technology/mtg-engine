@@ -827,10 +827,11 @@ impl Fmt {
             Effect::TakeInitiative => "take initiative".to_string(),
             Effect::Venture { undercity: false } => "venture".to_string(),
             Effect::Venture { undercity: true } => "venture into undercity".to_string(),
-            Effect::Explore { what, twice } => format!(
-                "{} explores{}",
+            Effect::Explore { what, twice, times } => format!(
+                "{} explores{}{}",
                 self.recipient(*what, t),
-                if *twice { " twice" } else { "" }
+                if *twice { " twice" } else { "" },
+                times.map_or(String::new(), |n| format!(" {} times", num(n)))
             ),
             Effect::PhaseOut { what } => format!("{} phases out", self.recipient(*what, t)),
             Effect::Endure { what, count } => {
@@ -3545,6 +3546,18 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
 
         CountExpr::OpponentsMoreCards => "opponents more cards in hand".to_string(),
         CountExpr::Total(stat, f) => format!("total {} {}", stat_word(*stat), filter(f)),
+        CountExpr::TargetLibrary(n) => format!("library of target {}", n + 1),
+        CountExpr::GreatestManaValueOf(f) => format!("greatest mana value among {}", filter(f)),
+        CountExpr::GreatestManaValueInGraveyard(None) => {
+            "greatest mana value graveyard".to_string()
+        }
+        CountExpr::GreatestManaValueInGraveyard(Some(f)) => {
+            format!("greatest mana value graveyard {}", card_filter(f))
+        }
+        CountExpr::AtLeast(n, inner) => format!("max {n} {}", count_expr_text(inner)),
+        CountExpr::ThatSpellColors => "colors of that spell".to_string(),
+        CountExpr::SourceDamage => "damage dealt to it this turn".to_string(),
+        CountExpr::CreaturesLeftThisTurn => "creatures left this turn".to_string(),
     }
 }
 

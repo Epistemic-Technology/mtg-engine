@@ -1,0 +1,7 @@
+card "Jadelight Spelunker" {
+  oracle_id 0a72d6cd-b4a7-4c42-90ba-a14f1733d00e
+  cost {X}{G}
+  type Creature — Merfolk Scout
+  pt 1/1
+  triggered when this enters: it explores X times
+}

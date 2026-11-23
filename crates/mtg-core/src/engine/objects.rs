@@ -310,6 +310,11 @@ impl GameState {
         // Revolt: under its controller's control as it left.
         if old.zone == Zone::Battlefield {
             self.left_this_turn |= 1 << old.controller.index().min(7);
+            if characteristics.is_creature() {
+                let n = &mut self.turn_log.creatures_left[old.controller.index().min(3)];
+                *n = n.saturating_add(1);
+                self.history_bump();
+            }
             // Void (CR 702.185): "a nonland permanent left the battlefield
             // this turn".
             if !characteristics_is_land && !self.turn_log.nonland_left {

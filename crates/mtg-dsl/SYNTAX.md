@@ -2631,7 +2631,7 @@ second "gains" is dropped: "gains deathtouch and \"When this creature
 dies, ...\""), `proliferate` (CR
 701.27; the engine makes the usual choices: your permanents' +1/+1 and
 loyalty counters, opponents' -1/-1 counters and poison), `<what>
-explores` (CR 701.44; `<what> explores twice` prints "explores, then it explores again"; a creature card returned from a graveyard is "that creature" afterwards), `<what> endures 2` (CR 701.63: its controller puts that many +1/+1 counters on it or creates an N/N white Spirit token, needing the token "N/N white Spirit creature"; `endures X` makes a 0/0 Spirit that size; one that has left the battlefield makes the token; endure 0 does nothing; `this endures 1` prints "it endures 1" after the source is named, "this creature endures 1" after another clause, "Anafenza endures 2" for a legendary source; scenarios `choose "1"` counters, `choose "2"` the token), `<what> phases out` (CR 702.26: treated as though
+explores` (CR 701.44; `<what> explores twice` prints "explores, then it explores again"; `it explores X times` explores that many times, each a separate explore; a creature card returned from a graveyard is "that creature" afterwards), `<what> endures 2` (CR 701.63: its controller puts that many +1/+1 counters on it or creates an N/N white Spirit token, needing the token "N/N white Spirit creature"; `endures X` makes a 0/0 Spirit that size; one that has left the battlefield makes the token; endure 0 does nothing; `this endures 1` prints "it endures 1" after the source is named, "this creature endures 1" after another clause, "Anafenza endures 2" for a legendary source; scenarios `choose "1"` counters, `choose "2"` the token), `<what> phases out` (CR 702.26: treated as though
 it doesn't exist, with what's attached to it, until it phases in as its
 controller's next untap step begins; `keywords phasing` phases a
 permanent out at every other such step), `amass Zombies 2` (CR 701.47; needs the token
@@ -3160,7 +3160,22 @@ as it last existed: `toughness of the sacrificed creature` ("the
 sacrificed creature's toughness"), `mana value of the sacrificed
 permanent`, `toughness of that sacrificed creature` ("that creature's
 toughness", after "sacrifices a creature"). Other counts: `hand of target
-1` ("the number of cards in that player's hand"), `greatest toughness
+1` ("the number of cards in that player's hand"), `library of target 1`
+("the number of cards in that player's library"; `target opponent mills
+count equal half down library of target 1 cards` prints "Target opponent
+mills half their library, rounded down."), `greatest mana value among
+other artifact you control` ("the greatest mana value among other
+artifacts you control"; also in a static ability, from the mana costs as
+the layers have them), `greatest mana value graveyard [<filter>]` ("the
+greatest mana value among [creature] cards in your graveyard"; 0 with
+none), `max 2 <expr>` ("2 or the greatest power among Dinosaurs you
+control, whichever is greater"), `colors of that spell` ("for each of
+that spell's colors": the triggering spell, as it last existed), `damage
+dealt to it this turn` ("the amount of damage dealt to it this turn": the
+damage marked on the source, as it last existed on the battlefield; in a
+dies trigger, what it died with), `creatures left this turn` ("for each
+creature that left the battlefield under your control this turn"; also in
+a static ability), `greatest toughness
 other creature you control` ("the greatest toughness among other
 creatures you control"), `life you lost this turn` ("the life you've lost
 this turn"), and `<expr> plus <expr>` ("the number of creatures on the

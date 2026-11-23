@@ -1373,6 +1373,34 @@ fn per_count(
         CountExpr::GreatestPowerInGraveyard(f) => {
             return state.greatest_power_in_graveyard(you, f);
         }
+        CountExpr::GreatestManaValueInGraveyard(f) => {
+            return i32::try_from(state.greatest_mana_value_in_graveyard(you, f.as_ref()))
+                .unwrap_or(i32::MAX);
+        }
+        CountExpr::AtLeast(k, inner) => {
+            return i32::try_from(*k)
+                .unwrap_or(0)
+                .max(per_count(work, source, controller, inner));
+        }
+        CountExpr::CreaturesLeftThisTurn => {
+            usize::from(state.turn_log.creatures_left[you.index().min(3)])
+        }
+        // From the mana costs as the layers have them so far, like
+        // `GreatestManaValue`.
+        CountExpr::GreatestManaValueOf(f) => {
+            let f = same_filled(work, f, source);
+            work.matching(&f, source, Some(you))
+                .iter()
+                .map(|id| {
+                    state
+                        .pool
+                        .get(work.chars[work.index[id]].def)
+                        .mana_cost
+                        .mana_value() as usize
+                })
+                .max()
+                .unwrap_or(0)
+        }
         // "the greatest mana value among permanents you control" (Kraven,
         // Proud Predator), devotion (CR 700.5): from the mana costs of
         // the permanents as the layers have them so far (a copy effect,
@@ -1453,6 +1481,9 @@ fn per_count(
         | CountExpr::GreatestToughness(_)
         | CountExpr::LifeLostThisTurn
         | CountExpr::DiscardedThisTurn
+        | CountExpr::TargetLibrary(_)
+        | CountExpr::ThatSpellColors
+        | CountExpr::SourceDamage
         // Power and toughness are what the layers are computing.
         | CountExpr::Total(..)
         | CountExpr::DamageThisWay { .. } => 0,

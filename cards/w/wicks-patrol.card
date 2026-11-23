@@ -1,0 +1,7 @@
+card "Wick's Patrol" {
+  oracle_id 29423a9a-31a6-4605-8b49-a75895038a3a
+  cost {4}{B}{B}
+  type Creature — Rat Warlock
+  pt 5/3
+  triggered when this enters: mill 3 cards; when you do, target creature an opponent controls gets -1/-1 count where greatest mana value graveyard until end of turn
+}

@@ -1,0 +1,12 @@
+card "Kutzil's Flanker" {
+  oracle_id ba557e19-a409-4c02-a9ac-a8fb77762e43
+  cost {2}{W}
+  type Creature — Cat Warrior
+  pt 3/1
+  keywords flash
+  triggered when this enters: choose one {
+    mode: put count each creatures left this turn +1/+1 counters on this
+    mode: you gain 2 life and scry 2
+    mode: exile graveyard of target player
+  }
+}

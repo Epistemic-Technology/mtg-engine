@@ -1,0 +1,12 @@
+card "Jidoor, Aristocratic Capital // Overture" {
+  oracle_id bd513d9d-5aa2-4860-bd86-8b5d9430f133
+  layout adventure
+  type Land — Town
+  enters tapped
+  mana {U}
+  face "Overture" {
+    cost {4}{U}{U}
+    type Sorcery — Adventure
+    spell: target opponent mills count equal half down library of target 1 cards
+  }
+}

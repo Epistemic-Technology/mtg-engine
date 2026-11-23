@@ -1,0 +1,9 @@
+card "Ramos, Dragon Engine" {
+  oracle_id 3ed41d2d-211b-4013-8562-8c64d54cc43a
+  cost {6}
+  type Legendary Artifact Creature — Dragon
+  pt 4/4
+  keywords flying
+  triggered whenever you cast a spell: put count each colors of that spell +1/+1 counters on this
+  activated remove 5 +1/+1 counters from this, once: add {W}{W}{U}{U}{B}{B}{R}{R}{G}{G}
+}

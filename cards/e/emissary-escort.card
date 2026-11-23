@@ -1,0 +1,7 @@
+card "Emissary Escort" {
+  oracle_id 7d8b53f4-bdb5-4ba1-b6c0-f4846d8d3565
+  cost {1}{U}
+  type Artifact Creature — Robot Soldier
+  pt 0/4
+  static this: +1/+0 count where greatest mana value among other artifact you control
+}

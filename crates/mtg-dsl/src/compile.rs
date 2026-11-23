@@ -2661,6 +2661,15 @@ impl Compiler<'_> {
 
             A::OpponentsMoreCards => C::OpponentsMoreCards,
             A::Total(stat, f) => C::Total(*stat, self.filter(f)),
+            A::TargetLibrary(n) => C::TargetLibrary(target_index(self.tmap, *n)),
+            A::GreatestManaValueOf(f) => C::GreatestManaValueOf(self.filter(f)),
+            A::GreatestManaValueInGraveyard(f) => {
+                C::GreatestManaValueInGraveyard(f.as_ref().map(|f| self.filter(f)))
+            }
+            A::AtLeast(n, inner) => C::AtLeast(*n, Box::new(self.count_expr(inner))),
+            A::ThatSpellColors => C::ThatSpellColors,
+            A::SourceDamage => C::SourceDamage,
+            A::CreaturesLeftThisTurn => C::CreaturesLeftThisTurn,
         }
     }
 
@@ -4280,10 +4289,16 @@ impl Compiler<'_> {
             Effect::Venture { undercity } => out.push(CoreEffect::Venture {
                 undercity: *undercity,
             }),
-            Effect::Explore { what, twice } => {
-                out.push(CoreEffect::Explore { what: r(*what) });
+            Effect::Explore { what, twice, times } => {
+                out.push(CoreEffect::Explore {
+                    what: r(*what),
+                    times: times.unwrap_or(Num::N(1)),
+                });
                 if *twice {
-                    out.push(CoreEffect::Explore { what: r(*what) });
+                    out.push(CoreEffect::Explore {
+                        what: r(*what),
+                        times: Num::N(1),
+                    });
                 }
             }
             Effect::PhaseOut { what } => out.push(CoreEffect::PhaseOut { what: r(*what) }),

@@ -618,6 +618,25 @@ pub enum CountExpr {
     /// `total power creature you control`: "the total power of creatures
     /// you control" (also `total toughness`, `total mana value`).
     Total(mtg_core::card::Stat, Filter),
+    /// `library of target 1`: "the number of cards in that player's
+    /// library"; halved, "half their library".
+    TargetLibrary(usize),
+    /// `greatest mana value among artifact you control`: "the greatest
+    /// mana value among artifacts you control".
+    GreatestManaValueOf(Filter),
+    /// `greatest mana value graveyard [creature]`: "the greatest mana
+    /// value among [creature] cards in your graveyard".
+    GreatestManaValueInGraveyard(Option<Filter>),
+    /// `max 2 <count>`: "2 or <count>, whichever is greater".
+    AtLeast(u32, Box<CountExpr>),
+    /// `colors of that spell`: "for each of that spell's colors".
+    ThatSpellColors,
+    /// `damage dealt to it this turn`: "the amount of damage dealt to it
+    /// this turn" (the source's).
+    SourceDamage,
+    /// `creatures left this turn`: "for each creature that left the
+    /// battlefield under your control this turn".
+    CreaturesLeftThisTurn,
 }
 
 /// What a target-dependent cost's filter names: a permanent, a spell, or a
@@ -4860,6 +4879,8 @@ pub enum Effect {
     Explore {
         what: Recipient,
         twice: bool,
+        /// `explores X times`: "it explores X times".
+        times: Option<Num>,
     },
     /// `this endures 2`, `that creature endures X` (CR 701.63): "endures
     /// N": N +1/+1 counters on it or an N/N white Spirit token, as its

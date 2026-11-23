@@ -2229,6 +2229,32 @@ pub enum CountExpr {
     /// `n` minus the count, at least 0: "if you have fewer than ten cards
     /// in hand, draw cards equal to the difference".
     Difference(u32, Box<CountExpr>),
+    /// Cards in the library of the `n`th target player ("Target opponent
+    /// mills half their library, rounded down").
+    TargetLibrary(usize),
+    /// The greatest mana value among battlefield permanents matching the
+    /// filter ("the greatest mana value among artifacts you control"); 0
+    /// with none.
+    GreatestManaValueOf(ObjFilter),
+    /// The greatest mana value among cards in your graveyard, all or
+    /// matching the filter ("the greatest mana value among cards in your
+    /// graveyard"); 0 with none.
+    GreatestManaValueInGraveyard(Option<ObjFilter>),
+    /// The greater of `n` and the count: "equal to 2 or the greatest
+    /// power among Dinosaurs you control, whichever is greater".
+    AtLeast(u32, Box<CountExpr>),
+    /// The colors of the spell that triggered the ability ("for each of
+    /// that spell's colors"), as it last existed once it has left the
+    /// stack (CR 608.2h).
+    ThatSpellColors,
+    /// The damage dealt to the source this turn ("where X is the amount of
+    /// damage dealt to it this turn" of a creature that died): the damage
+    /// marked on it, as it last existed on the battlefield (CR 120.6).
+    SourceDamage,
+    /// Creatures that left the battlefield under your control this turn
+    /// ("for each creature that left the battlefield under your control
+    /// this turn").
+    CreaturesLeftThisTurn,
 }
 
 impl CountExpr {
@@ -2247,10 +2273,12 @@ impl CountExpr {
             | CountExpr::SacrificedThisTurn
             | CountExpr::AttackedThisTurn
             | CountExpr::OpponentsLostLife
+            | CountExpr::CreaturesLeftThisTurn
             | CountExpr::CreaturesEnteredThisTurn => true,
-            CountExpr::Times(_, c) | CountExpr::Plus(_, c) | CountExpr::Difference(_, c) => {
-                c.reads_history()
-            }
+            CountExpr::Times(_, c)
+            | CountExpr::Plus(_, c)
+            | CountExpr::Difference(_, c)
+            | CountExpr::AtLeast(_, c) => c.reads_history(),
             CountExpr::Divided { inner, .. } => inner.reads_history(),
             CountExpr::Sum(a, b) => a.reads_history() || b.reads_history(),
             _ => false,
@@ -2267,9 +2295,10 @@ impl CountExpr {
     pub fn in_static(&self) -> bool {
         match self {
             CountExpr::Sum(a, b) => a.in_static() && b.in_static(),
-            CountExpr::Plus(_, c) | CountExpr::Times(_, c) | CountExpr::Difference(_, c) => {
-                c.in_static()
-            }
+            CountExpr::Plus(_, c)
+            | CountExpr::Times(_, c)
+            | CountExpr::Difference(_, c)
+            | CountExpr::AtLeast(_, c) => c.in_static(),
             CountExpr::Divided { inner, .. } => inner.in_static(),
             CountExpr::Permanents(_)
             | CountExpr::Domain
@@ -2282,6 +2311,9 @@ impl CountExpr {
             | CountExpr::CardTypesInAllGraveyards
             | CountExpr::GreatestPowerInGraveyard(_)
             | CountExpr::GreatestManaValue
+            | CountExpr::GreatestManaValueOf(_)
+            | CountExpr::GreatestManaValueInGraveyard(_)
+            | CountExpr::CreaturesLeftThisTurn
             | CountExpr::Devotion(_)
             | CountExpr::CardsInHand
             | CountExpr::LifeGainedThisTurn
@@ -2337,6 +2369,9 @@ impl CountExpr {
             | CountExpr::LifeLostThisTurn
             // Discards are counted only as an effect resolves.
             | CountExpr::DiscardedThisTurn
+            | CountExpr::TargetLibrary(_)
+            | CountExpr::ThatSpellColors
+            | CountExpr::SourceDamage
             | CountExpr::DamageThisWay { .. } => false,
         }
     }
@@ -4897,9 +4932,11 @@ pub enum Effect {
     /// The recipient creature explores (CR 701.44): its controller reveals
     /// the top card of their library; a land goes to their hand, otherwise
     /// the creature gets a +1/+1 counter and the card may go to the
-    /// graveyard.
+    /// graveyard. It explores `times` times ("it explores X times"),
+    /// each a separate explore (CR 701.44).
     Explore {
         what: Recipient,
+        times: Num,
     },
     /// The recipient permanent endures `count` (CR 701.63): its
     /// controller puts that many +1/+1 counters on it or creates a

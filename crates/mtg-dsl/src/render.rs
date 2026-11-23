@@ -4484,6 +4484,16 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
     // "half the number of artifacts you control, rounded down"; "for
     // every seven cards in your graveyard".
     if let CountExpr::Divided { by, up, inner } = c {
+        // "mills half their library, rounded down".
+        if *by == 2
+            && !each
+            && let CountExpr::TargetLibrary(_) = **inner
+        {
+            return format!(
+                "half their library, rounded {}",
+                if *up { "up" } else { "down" }
+            );
+        }
         let s = count_phrase(inner, card, false);
         if *by == 2 && !each {
             return format!("half {s}, rounded {}", if *up { "up" } else { "down" });
@@ -5058,6 +5068,44 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 controller_first(f, filter_phrase(f, card, true))
             );
         }
+        CountExpr::TargetLibrary(_) => (
+            "card in that player's library".to_string(),
+            "cards in that player's library".to_string(),
+        ),
+        CountExpr::GreatestManaValueOf(f) => {
+            return format!(
+                "the greatest mana value among {}",
+                filter_phrase(f, card, true)
+            );
+        }
+        CountExpr::GreatestManaValueInGraveyard(f) => {
+            let cards = f
+                .as_ref()
+                .map_or_else(|| "cards".to_string(), |f| cards_phrase(f, card, true));
+            return format!("the greatest mana value among {cards} in your graveyard");
+        }
+        // "2 or the greatest power among Dinosaurs you control, whichever
+        // is greater".
+        CountExpr::AtLeast(n, inner) => {
+            return format!(
+                "{n} or {}, whichever is greater",
+                count_phrase(inner, card, false)
+            );
+        }
+        CountExpr::ThatSpellColors => {
+            return if each {
+                "for each of that spell's colors".to_string()
+            } else {
+                "the number of colors that spell is".to_string()
+            };
+        }
+        CountExpr::SourceDamage => {
+            return "the amount of damage dealt to it this turn".to_string();
+        }
+        CountExpr::CreaturesLeftThisTurn => (
+            "creature that left the battlefield under your control this turn".to_string(),
+            "creatures that left the battlefield under your control this turn".to_string(),
+        ),
     };
     if each {
         format!("for each {one}")
@@ -5224,9 +5272,18 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 if matches!(e, Effect::Amass { .. }) {
                     ctx.source_mentioned = false;
                 }
+                // "tokens with \"This token can't block,\" where X is ...":
+                // the comma goes inside the closing quote.
+                let comma = if c.tail.is_empty() && c.text.ends_with(".\"") {
+                    c.text.truncate(c.text.len() - 2);
+                    c.text.push_str(",\"");
+                    ""
+                } else {
+                    ","
+                };
                 let _ = write!(
                     c.tail,
-                    ", where X is {}",
+                    "{comma} where X is {}",
                     count_phrase_in(&count.expr, ctx, false)
                 );
                 ctx.source_mentioned = mentioned;
@@ -5242,6 +5299,17 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     other => count_phrase(other, ctx.card, false),
                 };
                 let _ = write!(c.tail, " equal to {what}");
+            }
+            // "Target opponent mills half their library, rounded down."
+            CountStyle::Equal
+                if matches!(
+                    &count.expr,
+                    crate::ast::CountExpr::Divided { by: 2, inner, .. }
+                        if matches!(**inner, crate::ast::CountExpr::TargetLibrary(_))
+                ) =>
+            {
+                let phrase = count_phrase_in(&count.expr, ctx, false);
+                c.text = c.text.replacen("X cards", &phrase, 1);
             }
             CountStyle::Equal => {
                 // "Create a number of 1/1 red Goblin creature tokens equal
@@ -6816,14 +6884,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
             ))
         }
-        Effect::Explore { what, twice } => {
+        Effect::Explore { what, twice, times } => {
             let s = ctx.subj(*what);
             let text = if *twice {
-                "explores, then it explores again"
+                "explores, then it explores again".to_string()
+            } else if let Some(n) = times {
+                format!("explores {} times", digits(*n))
             } else {
-                "explores"
+                "explores".to_string()
             };
-            Clause::with_subject(*what, s, text.to_string())
+            Clause::with_subject(*what, s, text)
         }
         Effect::PhaseOut { what } => {
             let s = ctx.subj(*what);

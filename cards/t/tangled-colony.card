@@ -1,0 +1,8 @@
+card "Tangled Colony" {
+  oracle_id 3f01c327-ba50-4fc3-a930-fa1fb02e34b9
+  cost {1}{B}
+  type Creature — Rat
+  pt 3/2
+  keywords can't block
+  triggered when this dies: create count where damage dealt to it this turn "1/1 black Rat creature that can't block"
+}

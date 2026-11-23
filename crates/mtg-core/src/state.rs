@@ -1789,6 +1789,8 @@ pub struct TurnLog {
     pub face_down_less: [u8; 4],
     /// Creatures that entered the battlefield under each player's control.
     pub creatures_entered: [u8; 4],
+    /// Creatures that left the battlefield under each player's control.
+    pub creatures_left: [u8; 4],
     /// Nonland permanents that did (celebration).
     pub nonland_entered: [u8; 4],
     /// The card types among permanents put into a graveyard from the
