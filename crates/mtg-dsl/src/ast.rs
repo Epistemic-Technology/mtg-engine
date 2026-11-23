@@ -2721,6 +2721,9 @@ pub enum StaticCond {
     NoSpellsCastThisTurn {
         from_hand: bool,
     },
+    /// `didn't cast this turn`: "you didn't cast a spell this turn" (the
+    /// same condition, worded in the past).
+    DidntCastThisTurn,
     /// `total power 8 or more` (formidable): "creatures you control have
     /// total power 8 or greater".
     TotalPower(u32),

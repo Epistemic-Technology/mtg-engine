@@ -646,7 +646,8 @@ from the battlefield this turn"; any card types joined by `or`),
 `discarded this turn`, `opponent controls more creatures`, `opponent has more life`, `opponent
 has more cards in hand` ("an opponent controls more creatures than you",
 ...), `not cast this turn` ("you haven't cast a
-spell this turn"), `not cast from hand this turn` ("you haven't cast a
+spell this turn"; `didn't cast this turn` prints "you didn't cast a spell
+this turn"), `not cast from hand this turn` ("you haven't cast a
 spell from your hand this turn": a spell cast from a graveyard or exile
 doesn't count), `more cards in hand than each
 opponent`, `opponent poisoned` ("an opponent is poisoned"), `opponent poison

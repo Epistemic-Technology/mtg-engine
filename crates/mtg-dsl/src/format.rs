@@ -5909,6 +5909,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::NoEnduringStory => "no enduring story".to_string(),
         StaticCond::MaxSpeed => "max speed".to_string(),
         StaticCond::NoSpellsCastThisTurn { from_hand: false } => "not cast this turn".to_string(),
+        StaticCond::DidntCastThisTurn => "didn't cast this turn".to_string(),
         StaticCond::NoSpellsCastThisTurn { from_hand: true } => {
             "not cast from hand this turn".to_string()
         }

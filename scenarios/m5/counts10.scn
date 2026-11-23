@@ -320,3 +320,19 @@ scenario "Lunar Convocation: gained life only, no Bat" {
   assert life B 16
   assert battlefield A lacks "Bat"
 }
+
+scenario "Edgar: no spell cast this turn, two counters" {
+  battlefield A: "Edgar, Moonlit Sovereign"
+  start turn 1 A precombat_main
+  run_to turn 2 upkeep
+  assert counters "Edgar, Moonlit Sovereign" +1/+1 2
+}
+
+scenario "Edgar: a spell cast this turn, no counters" {
+  battlefield A: "Edgar, Moonlit Sovereign", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 2 upkeep
+  assert counters "Edgar, Moonlit Sovereign" +1/+1 0
+}

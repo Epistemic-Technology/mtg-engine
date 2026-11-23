@@ -2536,6 +2536,9 @@ impl Compiler<'_> {
             StaticCond::EnduringStory => StaticCondition::EnduringStory,
             StaticCond::NoEnduringStory => StaticCondition::NoEnduringStory,
             StaticCond::MaxSpeed => StaticCondition::MaxSpeed,
+            StaticCond::DidntCastThisTurn => {
+                StaticCondition::NoSpellsCastThisTurn { from_hand: false }
+            }
             StaticCond::NoSpellsCastThisTurn { from_hand } => {
                 StaticCondition::NoSpellsCastThisTurn {
                     from_hand: *from_hand,

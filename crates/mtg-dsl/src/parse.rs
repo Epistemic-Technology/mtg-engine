@@ -4868,6 +4868,9 @@ impl P {
         if self.eat_words(&["max", "speed"]) {
             return Ok(StaticCond::MaxSpeed);
         }
+        if self.eat_words(&["didn't", "cast", "this", "turn"]) {
+            return Ok(StaticCond::DidntCastThisTurn);
+        }
         if self.eat_words(&["not", "cast", "this", "turn"]) {
             return Ok(StaticCond::NoSpellsCastThisTurn { from_hand: false });
         }

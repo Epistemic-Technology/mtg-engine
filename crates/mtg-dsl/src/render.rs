@@ -15573,6 +15573,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::EnduringStory => "you have an enduring story".to_string(),
         StaticCond::NoEnduringStory => "you don't have an enduring story".to_string(),
         StaticCond::MaxSpeed => "you have max speed".to_string(),
+        StaticCond::DidntCastThisTurn => "you didn't cast a spell this turn".to_string(),
         StaticCond::NoSpellsCastThisTurn { from_hand } => format!(
             "you haven't cast a spell{} this turn",
             if *from_hand { " from your hand" } else { "" }
