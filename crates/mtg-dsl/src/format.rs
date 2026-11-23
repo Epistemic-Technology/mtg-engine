@@ -1430,6 +1430,7 @@ impl Fmt {
                 };
                 format!("{} {v} {} energy", self.recipient(*who, t), num(*count))
             }
+            Effect::PayEnergy(mtg_core::card::PAY_ANY_ENERGY) => "pay any energy".to_string(),
             Effect::PayEnergy(n) => format!("pay {n} energy"),
             Effect::AddPoison { count, who } => {
                 let v = if *who == Recipient::You {
@@ -6148,7 +6149,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 let sub = crate::render::equip_subtype(targets)
                     .map(|s| format!("{s} "))
                     .unwrap_or_default();
-                if crate::render::equip_full_cost(cost) {
+                if crate::render::equip_full_cost(cost) || cost.reduce.is_some() {
                     // Equip is a sorcery by its keyword (CR 702.6a).
                     let c = Cost {
                         sorcery: false,
