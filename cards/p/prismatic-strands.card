@@ -1,0 +1,7 @@
+card "Prismatic Strands" {
+  oracle_id 8e414ad6-ba19-44a1-a291-2e420734a6dd
+  cost {2}{W}
+  type Instant
+  spell: prevent all damage permanent of color of choice would deal this turn
+  flashback tap 1 untapped white creature you control
+}

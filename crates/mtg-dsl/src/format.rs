@@ -543,8 +543,13 @@ impl Fmt {
                 let mut s = String::new();
                 let to_any_written = turn.is_empty();
                 match (from, wording) {
-                    (Some(f), DamageWording::WouldDeal) => {
-                        let _ = write!(s, " {} would deal", self.affects(f, targets));
+                    (Some(f), DamageWording::WouldDeal | DamageWording::WouldDealBare) => {
+                        let bare = if *wording == DamageWording::WouldDealBare {
+                            " bare"
+                        } else {
+                            ""
+                        };
+                        let _ = write!(s, "{bare} {} would deal", self.affects(f, targets));
                         if *to != Affects::Any {
                             let _ = write!(s, " to {}", self.affects(to, targets));
                         }

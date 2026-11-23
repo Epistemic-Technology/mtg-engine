@@ -3002,6 +3002,10 @@ pub enum DamageWording {
     /// `damage S would deal to A this turn`: "[that] S would deal to A this
     /// turn" (Goblin Furrier; no "that" after a target).
     WouldDeal,
+    /// `damage bare S would deal ...`: the same without "that" ("prevent
+    /// all combat damage non-Soldier creatures would deal this turn",
+    /// Frontline Strategist).
+    WouldDealBare,
     /// `damage this turn to A [from S]`: "that would be dealt this turn to
     /// A [by S]" (Divine Light).
     TurnFirst,

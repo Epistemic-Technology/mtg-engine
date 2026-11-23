@@ -2553,7 +2553,14 @@ prints "to players"), `prevent all [combat] damage [to <affects>] this turn
 from <source>` ("... dealt this turn by creatures with power 4 or less"),
 `prevent all [combat] damage <source> would deal [to <affects>] this turn`
 ("Prevent all combat damage target creature would deal this turn",
-"... that creatures would deal to players this turn"), `prevent all combat
+"... that creatures would deal to players this turn"; `bare` before the
+source drops the "that": `prevent all combat damage bare non-Soldier
+creature would deal this turn`, "prevent all combat damage non-Soldier
+creatures would deal this turn"; `prevent all damage permanent of color
+of choice would deal this turn`, "Prevent all damage that sources of the
+color of your choice would deal this turn.": the color is chosen as the
+effect is created, CR 608.2d, and any source of it, a spell too, is
+prevented), `prevent all combat
 damage to and from target 1 this turn` ("dealt to and dealt by it"),
 `prevent all damage this turn to <affects> [from <source>]` ("Prevent
 all damage that would be dealt this turn to creatures you control"),

@@ -12292,14 +12292,16 @@ fn prevent_all_text(r: &Replaces, ctx: &mut Ctx, this_turn: bool) -> String {
                     let to = to_text(ctx);
                     format!("Prevent all {kind} that would be dealt{to}{turn}.")
                 }
-                (Some(f), DamageWording::WouldDeal) => {
+                (Some(f), DamageWording::WouldDeal | DamageWording::WouldDealBare) => {
                     // "prevent all combat damage this creature would deal
                     // this turn" (Zealot il-Vec), but a static's "Prevent
                     // all damage that this creature would deal to ...".
-                    let that = if matches!(
-                        f,
-                        Affects::Target(_) | Affects::ThatTarget(_) | Affects::Chosen(_)
-                    ) || (this_turn && matches!(f, Affects::This))
+                    let that = if *wording == DamageWording::WouldDealBare
+                        || matches!(
+                            f,
+                            Affects::Target(_) | Affects::ThatTarget(_) | Affects::Chosen(_)
+                        )
+                        || (this_turn && matches!(f, Affects::This))
                     {
                         ""
                     } else {

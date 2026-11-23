@@ -5952,6 +5952,40 @@ pub enum Replaces {
     },
 }
 
+impl Affects {
+    fn fill_chosen(&mut self, chosen: crate::state::Chosen) {
+        match self {
+            Affects::Objects(f)
+            | Affects::YouAnd(f)
+            | Affects::OpponentsAnd(f)
+            | Affects::OtherThanTarget(f, _)
+            | Affects::Chosen(f)
+                if f.chosen =>
+            {
+                *f = f.with_chosen(chosen);
+            }
+            _ => {}
+        }
+    }
+}
+
+impl Replaces {
+    /// The damage event's filters with "of the color of your choice" filled
+    /// in from the choice made as the effect was created (CR 608.2d).
+    pub fn fill_chosen(&mut self, chosen: crate::state::Chosen) {
+        match self {
+            Replaces::Damage { from, to, .. } => {
+                if let Some(f) = from {
+                    f.fill_chosen(chosen);
+                }
+                to.fill_chosen(chosen);
+            }
+            Replaces::DamageToAndBy { what, .. } => what.fill_chosen(chosen),
+            _ => {}
+        }
+    }
+}
+
 /// What happens instead.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum Replacement {

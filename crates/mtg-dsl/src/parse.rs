@@ -15508,9 +15508,14 @@ impl P {
         let mut from = None;
         let mut wording = DamageWording::Dealt;
         if !self.at_word("to") && !self.at_word("from") && !ends(self) {
+            let bare = self.eat_word("bare");
             from = Some(self.source()?);
             self.expect_words(&["would", "deal"])?;
-            wording = DamageWording::WouldDeal;
+            wording = if bare {
+                DamageWording::WouldDealBare
+            } else {
+                DamageWording::WouldDeal
+            };
         }
         let mut to = Affects::Any;
         loop {

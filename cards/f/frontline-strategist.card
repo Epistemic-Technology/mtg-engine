@@ -1,0 +1,8 @@
+card "Frontline Strategist" {
+  oracle_id 6e202114-48f3-46d2-bc54-df766d149d9d
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+  morph {W}
+  triggered when this is turned face up: prevent all combat damage bare non-Soldier creature would deal this turn
+}

@@ -15777,13 +15777,20 @@ impl GameState {
             .expect("a resolving spell or its last known information exists");
         let timestamp = self.tick();
         let duration = self.lasting_or(Duration::UntilEndOfTurn, ctx, ctx.source);
+        // "Prevent all damage that sources of the color of your choice
+        // would deal this turn" (Prismatic Strands): the color chosen as
+        // the spell resolved (CR 608.2d), locked into the effect.
+        let mut ability = r.clone();
+        if ctx.chosen != crate::state::Chosen::None {
+            ability.replaces.fill_chosen(ctx.chosen);
+        }
         self.replacements.push(ReplacementEffect {
             source: Some(ctx.source),
             def,
             controller: ctx.controller,
             timestamp,
             duration,
-            ability: r.clone(),
+            ability,
             target,
             remaining,
             chosen,

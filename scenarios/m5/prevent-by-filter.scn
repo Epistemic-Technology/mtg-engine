@@ -1,0 +1,27 @@
+# "When this creature is turned face up, prevent all combat damage
+# non-Soldier creatures would deal this turn." (Frontline Strategist): a
+# prevention effect on sources matching a filter (CR 615.1), until end of
+# turn.
+
+scenario "Frontline Strategist: non-Soldier combat damage is prevented, a Soldier's is not" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Hill Giant", "Benalish Veteran"
+  hand A: "Frontline Strategist"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Frontline Strategist" face_down
+  turn 2 B: attack "Hill Giant", "Benalish Veteran"
+  turn 2 declare_blockers A: unmorph "Frontline Strategist"
+  run_to turn 2 postcombat_main
+  assert life A 17
+}
+
+scenario "Frontline Strategist: face down, nothing is prevented" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Frontline Strategist"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Frontline Strategist" face_down
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+}
