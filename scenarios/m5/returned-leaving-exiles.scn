@@ -1,0 +1,70 @@
+# A creature returned from a graveyard that "gains haste" (no duration,
+# CR 611.2a) and is exiled at the next end step, with "If it would leave
+# the battlefield, exile it instead of putting it anywhere else." (CR
+# 614.1a): Whip of Erebos, Gruesome Encore.
+
+scenario "Whip of Erebos: the returned creature has haste and lifelink, and is exiled at the end step" {
+  battlefield A: 4 "Swamp", "Whip of Erebos"
+  graveyard A: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Whip of Erebos" targeting "Hill Giant"
+  turn 2 A: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert life A 23
+  assert has "Hill Giant" haste
+  run_to turn 3 upkeep
+  assert exile A contains "Hill Giant"
+  assert graveyard A lacks "Hill Giant"
+}
+
+scenario "Whip of Erebos: the returned creature is exiled if it would die" {
+  battlefield A: 4 "Swamp", "Whip of Erebos"
+  battlefield B: "Mountain"
+  graveyard A: "Grizzly Bears"
+  hand B: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Whip of Erebos" targeting "Grizzly Bears"
+  turn 2 postcombat_main B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert exile A contains "Grizzly Bears"
+  assert graveyard A lacks "Grizzly Bears"
+}
+
+scenario "Whip of Erebos: only as a sorcery" {
+  battlefield A: 4 "Swamp", "Whip of Erebos"
+  graveyard A: "Grizzly Bears"
+  start turn 2 B precombat_main
+  illegal turn 2 A: activate "Whip of Erebos" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Gruesome Encore: an opponent's creature, hasty, exiled when it would be bounced" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Island"
+  graveyard B: "Hill Giant"
+  hand A: "Gruesome Encore"
+  hand B: "Unsummon"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Gruesome Encore" targeting "Hill Giant"
+  turn 2 A: attack "Hill Giant"
+  turn 2 postcombat_main B: cast "Unsummon" targeting "Hill Giant"
+  run_to turn 2 end
+  assert life B 17
+  assert exile B contains "Hill Giant"
+  assert hand B lacks "Hill Giant"
+}
+
+scenario "Gruesome Encore: exiled at the next end step" {
+  battlefield A: 3 "Swamp"
+  graveyard B: "Hill Giant"
+  hand A: "Gruesome Encore"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Gruesome Encore" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert has "Hill Giant" haste
+  run_to turn 3 upkeep
+  assert exile B contains "Hill Giant"
+}

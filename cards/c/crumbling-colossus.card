@@ -1,0 +1,8 @@
+card "Crumbling Colossus" {
+  oracle_id b7f72e54-7e3a-4720-be69-fc8c5eb4c190
+  cost {5}
+  type Artifact Creature — Golem
+  pt 7/4
+  keywords trample
+  triggered when this attacks: delayed this: sacrifice it at end of combat
+}

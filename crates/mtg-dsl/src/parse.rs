@@ -45,6 +45,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         counts: Vec::new(),
         in_delayed: false,
         delayed_that: false,
+        delayed_player: None,
         delayed_dies: false,
         in_trigger: false,
         per_opponent: false,
@@ -585,6 +586,10 @@ struct P {
     /// Inside a delayed trigger about the triggering object: "that
     /// creature" is the object it is about (`it`).
     delayed_that: bool,
+    /// Inside a delayed trigger about a target player (`delayed target
+    /// player: that player draws 1 card ...`): that target's index, "that
+    /// player" being the player it is about.
+    delayed_player: Option<usize>,
     /// Inside "When that creature dies (leaves the battlefield) this
     /// turn": "its controller" is the controller that object had.
     delayed_dies: bool,
@@ -5426,6 +5431,10 @@ impl P {
             // "Until your next turn, <clauses>" (CR 611.2b).
             lasting = Some(mtg_core::card::Lasting::YourNextTurn);
             true
+        } else if self.eat_words(&["until", "end", "of", "combat"]) {
+            // "Until end of combat, <clauses>" (CR 500.5a).
+            lasting = Some(mtg_core::card::Lasting::EndOfCombat);
+            true
         } else {
             self.eat_words(&["until", "end", "of", "turn"])
         };
@@ -5640,6 +5649,9 @@ impl P {
         }
         if self.eat_words(&["until", "this", "is", "cast", "from", "exile"]) {
             return Some(Lasting::UntilCastFromExile);
+        }
+        if self.eat_words(&["until", "end", "of", "combat"]) {
+            return Some(Lasting::EndOfCombat);
         }
         // `that token gains haste indefinitely`: no duration ("That token
         // gains haste.").
@@ -6959,7 +6971,8 @@ impl P {
                 self.pos += 1;
             }
             self.expect_word("replace")?;
-            let r = self.replacement_inline()?;
+            let mut r = self.replacement_inline()?;
+            r.then = self.created_then()?;
             return Ok(Effect::CreateReplacement(r));
         }
         if self.at_recipient() {
@@ -10490,8 +10503,20 @@ impl P {
                 self.expect(&Tok::Colon)?;
                 let saved_subject = self.subject.take();
                 let was = (self.in_delayed, self.delayed_that);
+                let was_player = self.delayed_player;
                 self.in_delayed = true;
                 self.delayed_that = about == Recipient::TriggeringObject;
+                self.delayed_player = match about {
+                    Recipient::Target(i) | Recipient::ThatTarget(i)
+                        if matches!(
+                            self.targets.get(i),
+                            Some(Target::Spec(TargetSpec::Player | TargetSpec::Opponent))
+                        ) =>
+                    {
+                        Some(i)
+                    }
+                    _ => None,
+                };
                 // `{ when ..., <effects> }`: the body ends at the brace.
                 let closed = self.peek() == Some(&Tok::LBrace);
                 if closed {
@@ -10568,6 +10593,7 @@ impl P {
                     );
                 }
                 (self.in_delayed, self.delayed_that) = was;
+                self.delayed_player = was_player;
                 self.subject = saved_subject;
                 Ok(Effect::Delayed {
                     about,
@@ -10616,23 +10642,6 @@ impl P {
                 } else if next.is_none() {
                     let event = self.damage_event(combat)?;
                     self.expect_words(&["this", "turn"])?;
-                    // "Prevent all damage that sources of the color of your
-                    // choice would deal this turn" (Prismatic Strands): the
-                    // color is asked, but the prevention never sees it.
-                    if let Replaces::Damage {
-                        from: Some(Affects::Objects(f)),
-                        ..
-                    }
-                    | Replaces::Damage {
-                        to: Affects::Objects(f),
-                        ..
-                    } = &event
-                        && f.chosen.is_some_and(|c| c.implied().is_some())
-                    {
-                        return self.fail(
-                            "`of color of choice` in a prevention: the choice isn't seen by the prevention; this form isn't supported",
-                        );
-                    }
                     match event {
                         // `... this turn from <source>`: "dealt this turn by"
                         // (Vine Snare).
@@ -10675,13 +10684,14 @@ impl P {
                         wording,
                     }
                 };
+                let then = self.created_then()?;
                 Ok(Effect::CreateReplacement(Replacement {
                     event,
                     outcome: match next {
                         Some(n) => Outcome::PreventNext(n),
                         None => Outcome::Prevent,
                     },
-                    then: Vec::new(),
+                    then,
                     token: None,
                 }))
             }
@@ -11600,6 +11610,7 @@ impl P {
             counts: self.counts.clone(),
             in_delayed: self.in_delayed,
             delayed_that: self.delayed_that,
+            delayed_player: self.delayed_player,
             delayed_dies: self.delayed_dies,
             in_trigger: self.in_trigger,
             per_opponent: self.per_opponent,
@@ -12253,6 +12264,17 @@ impl P {
         // discards two cards. ... it deals 3 damage to that player"), in
         // a triggered ability too ("target player mills three cards ...
         // that player mills ten cards instead").
+        // In a delayed trigger about that target player, the player it is
+        // about (CR 603.7).
+        if self.in_delayed
+            && self.at_words(&["that", "player"])
+            && self
+                .delayed_player
+                .is_some_and(|i| i + 1 == self.targets.len())
+        {
+            self.pos += 2;
+            return Ok(Recipient::TriggeringPlayer);
+        }
         if self.at_words(&["that", "player"])
             && self.targets.last().is_some_and(|t| {
                 matches!(
@@ -12463,6 +12485,7 @@ impl P {
                         counts: Vec::new(),
                         in_delayed: false,
                         delayed_that: false,
+                        delayed_player: None,
                         delayed_dies: false,
                         in_trigger: false,
                         per_opponent: false,
@@ -14417,6 +14440,27 @@ impl P {
         if self.eat_words(&["one", "or", "more", "creatures", "you", "control", "attack"]) {
             return Ok(Trigger::CreaturesYouControlAttack);
         }
+        // "Whenever two or more creatures your opponents control attack".
+        if let Some(&Tok::Num(n)) = self.peek()
+            && self.word_at(1).as_deref() == Some("or")
+        {
+            let at = self.pos;
+            self.pos += 1;
+            if self.eat_words(&[
+                "or",
+                "more",
+                "creatures",
+                "your",
+                "opponents",
+                "control",
+                "attack",
+            ]) {
+                return Ok(Trigger::OpponentCreaturesAttack(
+                    u8::try_from(n).unwrap_or(u8::MAX),
+                ));
+            }
+            self.pos = at;
+        }
         // "Whenever one or more suspected creatures you control attack".
         if self.at_words(&["one", "or", "more"]) {
             let before = self.pos;
@@ -14821,6 +14865,9 @@ impl P {
             }
             "is" => {
                 self.expect_words(&["put", "into", "a", "graveyard"])?;
+                if obj == TriggerObj::This && self.eat_words(&["from", "anywhere"]) {
+                    return Ok(Trigger::ThisToGraveyard);
+                }
                 let from_battlefield = self.eat_words(&["from", "the", "battlefield"]);
                 // A filter keeps the wording ("Whenever another creature
                 // or artifact you control is put into a graveyard ...").
@@ -15587,6 +15634,20 @@ impl P {
         Ok(cost)
     }
 
+    /// `{ <effects> }` after an effect a spell creates (CR 615.5): what
+    /// happens as it applies, `that much` being the damage prevented this
+    /// way ("Prevent all damage target spell would deal this turn. You gain
+    /// life equal to the damage prevented this way.").
+    fn created_then(&mut self) -> R<Vec<Sentence>> {
+        if self.peek() != Some(&Tok::LBrace) {
+            return Ok(Vec::new());
+        }
+        self.pos += 1;
+        let s = self.sentences_inline()?;
+        self.expect(&Tok::RBrace)?;
+        Ok(s)
+    }
+
     fn replacement(&mut self) -> R<Replacement> {
         let mut r = self.replacement_inline()?;
         if self.peek() == Some(&Tok::LBrace) {
@@ -15864,9 +15925,14 @@ impl P {
         let mut from = None;
         let mut wording = DamageWording::Dealt;
         if !self.at_word("to") && !self.at_word("from") && !ends(self) {
+            let bare = self.eat_word("bare");
             from = Some(self.source()?);
             self.expect_words(&["would", "deal"])?;
-            wording = DamageWording::WouldDeal;
+            wording = if bare {
+                DamageWording::WouldDealBare
+            } else {
+                DamageWording::WouldDeal
+            };
         }
         let mut to = Affects::Any;
         loop {
@@ -16306,6 +16372,8 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::EachPlayersEndStep
         | Trigger::BeginningOfStep { .. }
         | Trigger::CreaturesYouControlAttack
+        | Trigger::OpponentCreaturesAttack(_)
+        | Trigger::ThisToGraveyard
         | Trigger::OneOrMoreAttack(_)
         | Trigger::GainsLife { .. }
         | Trigger::GainsLifeFirst { .. }

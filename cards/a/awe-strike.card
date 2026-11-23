@@ -1,0 +1,6 @@
+card "Awe Strike" {
+  oracle_id 994bcde3-4a76-403d-a6e1-88609a13a99c
+  cost {W}
+  type Instant
+  spell: this turn, replace damage from target creature: prevent next time { you gain that much life }
+}

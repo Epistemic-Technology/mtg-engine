@@ -7380,8 +7380,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         // CR 702.84a's replacement, as its own sentence (Whip of Erebos).
         Effect::ExileOnLeave { what } => {
             let o = ctx.obj(*what);
+            // "If that creature would leave the battlefield, exile it
+            // instead ..." (Gruesome Encore).
+            let it = if o.starts_with("those ") || o == "them" {
+                "them"
+            } else {
+                "it"
+            };
             Clause::imperative(format!(
-                "if {o} would leave the battlefield, exile {o} instead of putting {o} anywhere else"
+                "if {o} would leave the battlefield, exile {it} instead of putting {it} anywhere else"
             ))
         }
         Effect::Detain { what } => {
@@ -10578,11 +10585,28 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
                 _ => None,
             };
+            // "Target player draws a card at the beginning of the next
+            // turn's upkeep": a target player first named by the delayed
+            // trigger's own effect (`that player` in it).
+            let player_first = match about {
+                Recipient::Target(i)
+                    if !ctx.target_mentioned[*i] && ctx.target_noun[*i] == "player" =>
+                {
+                    Some(ctx.obj(*about))
+                }
+                _ => None,
+            };
             let was = (ctx.in_delayed, ctx.delayed_that);
             ctx.in_delayed = true;
             ctx.delayed_that = *about == Recipient::TriggeringObject;
             let body = sentences(effects, ctx);
             (ctx.in_delayed, ctx.delayed_that) = was;
+            let body = match player_first {
+                Some(who) if body.starts_with("That player ") => {
+                    format!("{}{}", capitalize(&who), &body["That player".len()..])
+                }
+                _ => body,
+            };
             let body = body.trim_end_matches('.').to_string();
             let t = if let Some(named) = named {
                 named
@@ -11047,6 +11071,12 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
     // CR 611.2b: a duration other than "until end of turn" in its place.
     let sfx = |x: &'static str| -> String {
         match &lasting {
+            // "can't block this combat" (CR 500.5a).
+            Some(_)
+                if x == "this turn" && s.lasting == Some(mtg_core::card::Lasting::EndOfCombat) =>
+            {
+                "this combat".to_string()
+            }
             Some(t) if x == EOT || x == "this turn" => t.clone(),
             _ => x.to_string(),
         }
@@ -11196,11 +11226,19 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
     if shared_suffix && !s.eot_first && !suffix_done {
         push_suffix(&mut out, &sfx(clauses[0].suffix.expect("shared")));
     }
+    // "blocks it this combat if able", "can't block this combat" (CR
+    // 500.5a): the one-turn wording printed inside a clause.
+    if s.lasting == Some(mtg_core::card::Lasting::EndOfCombat) {
+        out = out
+            .replace("until end of turn", "until end of combat")
+            .replace("this turn", "this combat");
+    }
     // "It loses all abilities for as long as ...": no clause printed a
     // duration of its own.
     if let Some(t) = &lasting
         && !s.eot_first
         && !out.contains(t.as_str())
+        && !(s.lasting == Some(mtg_core::card::Lasting::EndOfCombat) && out.contains("this combat"))
     {
         push_suffix(&mut out, t);
     }
@@ -11225,6 +11263,7 @@ fn lasting_text(l: mtg_core::card::Lasting, ctx: &Ctx) -> String {
         Lasting::UntilCastFromExile => "until this card is cast from exile".to_string(),
         // No duration: "That token gains haste."
         Lasting::Forever => String::new(),
+        Lasting::EndOfCombat => "until end of combat".to_string(),
     }
 }
 
@@ -11768,6 +11807,20 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::CreaturesYouControlAttack => {
             "whenever one or more creatures you control attack".to_string()
         }
+        // The card names itself: it triggers from the graveyard, where it
+        // isn't "this creature" (CR 113.6).
+        Trigger::ThisToGraveyard => {
+            // "..., shuffle it into its owner's library."
+            ctx.source_mentioned = true;
+            format!(
+                "when {} is put into a graveyard from anywhere",
+                short_name(ctx.card)
+            )
+        }
+        Trigger::OpponentCreaturesAttack(n) => format!(
+            "whenever {} or more creatures your opponents control attack",
+            count_words(Num::N(u32::from(*n)), "one")
+        ),
         Trigger::PlayerAttacksWith { whose, min } => format!(
             "whenever {} attacks with {} or more creatures",
             if *whose == Who::Opponents {
@@ -12534,14 +12587,16 @@ fn prevent_all_text(r: &Replaces, ctx: &mut Ctx, this_turn: bool) -> String {
                     let to = to_text(ctx);
                     format!("Prevent all {kind} that would be dealt{to}{turn}.")
                 }
-                (Some(f), DamageWording::WouldDeal) => {
+                (Some(f), DamageWording::WouldDeal | DamageWording::WouldDealBare) => {
                     // "prevent all combat damage this creature would deal
                     // this turn" (Zealot il-Vec), but a static's "Prevent
                     // all damage that this creature would deal to ...".
-                    let that = if matches!(
-                        f,
-                        Affects::Target(_) | Affects::ThatTarget(_) | Affects::Chosen(_)
-                    ) || (this_turn && matches!(f, Affects::This))
+                    let that = if *wording == DamageWording::WouldDealBare
+                        || matches!(
+                            f,
+                            Affects::Target(_) | Affects::ThatTarget(_) | Affects::Chosen(_)
+                        )
+                        || (this_turn && matches!(f, Affects::This))
                     {
                         ""
                     } else {
@@ -12846,8 +12901,13 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 Some(false) => "noncombat damage",
                 None => "damage",
             };
-            let to = affects_to(to, ctx);
-            format!("If {kind} would be dealt to {to}, prevent that {kind}.")
+            // "If damage would be dealt to another creature you control,
+            // prevent that damage." (Vigor): one object at a time.
+            let to = match to {
+                Affects::Objects(f) => filter_a(f, ctx.card),
+                other => affects_to(other, ctx),
+            };
+            format!("If {kind} would be dealt to {to}, prevent that damage.")
         }
         (Replaces::Damage { to, .. }, Outcome::RedirectToAttached) => {
             let to = affects_to(to, ctx);
@@ -13248,9 +13308,57 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
         // A new sentence about the source names it again.
         ctx.source_mentioned = false;
         out.push(' ');
-        out.push_str(&sentences(&r.then, ctx));
+        let then = sentences(&r.then, ctx);
+        // CR 615.5: after a prevention, `that much` is "the damage
+        // prevented this way".
+        if matches!(
+            r.outcome,
+            Outcome::Prevent | Outcome::PreventNext(_) | Outcome::PreventNextTime
+        ) {
+            out.push_str(&prevented_this_way(&then));
+        } else {
+            out.push_str(&then);
+        }
     }
     out
+}
+
+/// "You gain that much life." after a prevention: "You gain life equal to
+/// the damage prevented this way."; "Put that many +1/+1 counters on that
+/// creature.": "Put a +1/+1 counter on that creature for each 1 damage
+/// prevented this way."
+fn prevented_this_way(s: &str) -> String {
+    const WAY: &str = "the damage prevented this way";
+    let s = s
+        .replace("gain that much life", &format!("gain life equal to {WAY}"))
+        .replace(
+            "gains that much life",
+            &format!("gains life equal to {WAY}"),
+        )
+        .replace(
+            "draw that many cards",
+            &format!("draw cards equal to {WAY}"),
+        )
+        .replace(
+            "draws that many cards",
+            &format!("draws cards equal to {WAY}"),
+        );
+    s.split_inclusive(". ")
+        .map(|sentence| {
+            let (body, end) = match (sentence.strip_suffix(". "), sentence.strip_suffix('.')) {
+                (Some(b), _) => (b, ". "),
+                (None, Some(b)) => (b, "."),
+                (None, None) => (sentence, ""),
+            };
+            if let Some(rest) = body.strip_prefix("Put that many ")
+                && let Some((kind, on)) = rest.split_once(" counters on ")
+            {
+                format!("Put a {kind} counter on {on} for each 1 damage prevented this way{end}")
+            } else {
+                format!("{body}{end}")
+            }
+        })
+        .collect()
 }
 
 // ---- statics ----

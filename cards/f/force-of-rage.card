@@ -1,0 +1,7 @@
+card "Force of Rage" {
+  oracle_id c019ed4d-33a3-48be-a38e-93e5d6161b1f
+  cost {1}{R}{R}
+  type Instant
+  alternative cost exile red card from hand, if not your turn
+  spell: create 2 "3/1 red Elemental creature with trample and haste"; delayed those tokens: sacrifice those tokens at beginning of your next upkeep
+}

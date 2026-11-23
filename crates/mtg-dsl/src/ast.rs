@@ -3084,6 +3084,10 @@ pub enum DamageWording {
     /// `damage S would deal to A this turn`: "[that] S would deal to A this
     /// turn" (Goblin Furrier; no "that" after a target).
     WouldDeal,
+    /// `damage bare S would deal ...`: the same without "that" ("prevent
+    /// all combat damage non-Soldier creatures would deal this turn",
+    /// Frontline Strategist).
+    WouldDealBare,
     /// `damage this turn to A [from S]`: "that would be dealt this turn to
     /// A [by S]" (Divine Light).
     TurnFirst,
@@ -3168,6 +3172,14 @@ pub enum Trigger {
     /// `whenever one or more creatures you control attack`: the older
     /// wording of `whenever you attack` (CR 508.1m), the same trigger.
     CreaturesYouControlAttack,
+    /// `when this is put into a graveyard from anywhere`: "When Purity is
+    /// put into a graveyard from anywhere" (CR 603.6a), triggering from
+    /// the graveyard.
+    ThisToGraveyard,
+    /// `whenever 2 or more creatures your opponents control attack`: the
+    /// older wording of `whenever an opponent attacks with 2 or more
+    /// creatures` (one opponent), the same trigger.
+    OpponentCreaturesAttack(u8),
     /// `whenever one or more suspected creature you control attack`: the
     /// older wording of `whenever you attack with one or more ...`.
     OneOrMoreAttack(Filter),

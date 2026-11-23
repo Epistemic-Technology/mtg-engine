@@ -616,6 +616,7 @@ impl GameState {
             lasting_grants: 0,
             lasting: None,
             linked_durations: 0,
+            combat_durations: 0,
             undone_cast: None,
             face_down_count: 0,
             room_count: 0,
@@ -3345,7 +3346,49 @@ impl GameState {
         self.flow = Flow::BeginStep;
     }
 
+    /// CR 500.5a, 511.2: effects that last "until end of combat" expire as
+    /// the combat phase ends.
+    #[cold]
+    #[inline(never)]
+    fn end_combat_effects(&mut self) {
+        self.combat_durations = 0;
+        let ends = Duration::UntilEndOfCombat;
+        let ended: Vec<ObjId> = self
+            .effects
+            .iter()
+            .filter(|e| e.duration == ends)
+            .flat_map(|e| match &e.affected {
+                crate::state::Affected::Objects(set) => set.to_vec(),
+                crate::state::Affected::Filter { .. } => Vec::new(),
+            })
+            .collect();
+        let had_control = self
+            .effects
+            .iter()
+            .any(|e| e.duration == ends && e.parts.contains(&crate::card::Modification::Control));
+        self.effects.retain(|e| e.duration != ends);
+        self.replacements.retain(|e| e.duration != ends);
+        self.rules.retain(|e| e.duration != ends);
+        self.player_grants.retain(|g| g.duration != ends);
+        for affected in ended {
+            self.emit(Event::EffectEnded { affected });
+        }
+        if had_control {
+            self.control_effects = u32::try_from(
+                self.effects
+                    .iter()
+                    .filter(|e| e.parts.contains(&crate::card::Modification::Control))
+                    .count(),
+            )
+            .unwrap_or(u32::MAX);
+            self.control_dirty = true;
+            self.sync_control();
+        }
+        self.cbump();
+    }
+
     fn finish_cleanup(&mut self) {
+        self.combat_durations = 0;
         for (_, o) in &mut self.objects {
             o.damage = 0;
             o.deathtouch_damage = false;
@@ -3353,25 +3396,21 @@ impl GameState {
         let ended: Vec<ObjId> = self
             .effects
             .iter()
-            .filter(|e| e.duration == Duration::UntilEndOfTurn)
+            .filter(|e| e.duration.ends_with_turn())
             .flat_map(|e| match &e.affected {
                 crate::state::Affected::Objects(set) => set.to_vec(),
                 crate::state::Affected::Filter { .. } => Vec::new(),
             })
             .collect();
-        self.effects
-            .retain(|e| e.duration != Duration::UntilEndOfTurn);
-        self.replacements
-            .retain(|e| e.duration != Duration::UntilEndOfTurn);
-        self.rules
-            .retain(|e| e.duration != Duration::UntilEndOfTurn);
+        self.effects.retain(|e| !e.duration.ends_with_turn());
+        self.replacements.retain(|e| !e.duration.ends_with_turn());
+        self.rules.retain(|e| !e.duration.ends_with_turn());
         self.player_rules.clear();
         if !self.temp_copies.is_empty() {
             self.end_temp_copies(None);
         }
         if !self.player_grants.is_empty() {
-            self.player_grants
-                .retain(|g| g.duration != Duration::UntilEndOfTurn);
+            self.player_grants.retain(|g| !g.duration.ends_with_turn());
         }
         self.granted_flashback.clear();
         self.granted_harmonize.clear();
@@ -3510,9 +3549,14 @@ impl GameState {
         if !self.uncounterable_spells.is_empty() {
             self.uncounterable_spells.clear();
         }
-        if self.step == Step::EndOfCombat && self.combat.take().is_some() {
-            // Filters on attacking and blocking creatures see the change.
-            self.combat_bump();
+        if self.step == Step::EndOfCombat {
+            if self.combat.take().is_some() {
+                // Filters on attacking and blocking creatures see the change.
+                self.combat_bump();
+            }
+            if self.combat_durations > 0 {
+                self.end_combat_effects();
+            }
         }
         if self.step == Step::Cleanup && self.cleanup_repeat {
             self.cleanup_repeat = false;

@@ -1,0 +1,6 @@
+card "Glyph of Destruction" {
+  oracle_id cca68900-2093-4cae-b757-efc7dd807e18
+  cost {R}
+  type Instant
+  spell: target blocking Wall you control gets +10/+0 until end of combat; prevent all damage to target 1 this turn; delayed target 1: destroy it at beginning of the next end step
+}

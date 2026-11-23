@@ -1,0 +1,81 @@
+# "Prevent all damage that sources of the color of your choice would deal
+# this turn." (Prismatic Strands): the color is chosen as the spell
+# resolves (CR 608.2d) and kept by the prevention effect; a source is any
+# object, a spell as well as a permanent (CR 609.7).
+
+scenario "Prismatic Strands: red chosen, a red creature's combat damage is prevented" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Raging Goblin"
+  hand A: "Prismatic Strands"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant", "Raging Goblin"
+  turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  turn 2 declare_blockers A: cast "Prismatic Strands"
+  turn 2 declare_blockers A: choose red
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B lacks "Hill Giant"
+}
+
+scenario "Prismatic Strands: a red spell's damage is prevented" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Prismatic Strands"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 2 A: cast "Prismatic Strands" in response to "Lightning Bolt"
+  turn 2 A: choose red
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Prismatic Strands: another color is not prevented" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Prismatic Strands"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_blockers A: cast "Prismatic Strands"
+  turn 2 declare_blockers A: choose green
+  run_to turn 2 postcombat_main
+  assert life A 17
+}
+
+scenario "Prismatic Strands: the prevention ends with the turn" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Prismatic Strands"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Prismatic Strands"
+  turn 1 A: choose red
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+}
+
+scenario "Prismatic Strands: flashback by tapping an untapped white creature" {
+  battlefield A: "Savannah Lions"
+  battlefield B: "Mountain"
+  graveyard A: "Prismatic Strands"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Savannah Lions"
+  turn 2 A: cast "Prismatic Strands" from graveyard in response to "Shock"
+  turn 2 A: choose red
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Savannah Lions"
+  assert tapped "Savannah Lions"
+  assert exile A contains "Prismatic Strands"
+}
+
+scenario "Prismatic Strands: no flashback without a white creature to tap" {
+  battlefield A: "Grizzly Bears"
+  graveyard A: "Prismatic Strands"
+  start turn 2 A precombat_main
+  illegal turn 2 A: cast "Prismatic Strands" from graveyard
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Prismatic Strands"
+}

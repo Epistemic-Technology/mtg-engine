@@ -4205,6 +4205,28 @@ impl Compiler<'_> {
                 });
             }
             Effect::CreateReplacement(rep) => {
+                // "Prevent all damage that sources of the color of your
+                // choice would deal this turn": the color is chosen as the
+                // effect is created (CR 608.2d), and the effect keeps it.
+                let of_choice = |a: &Affects| match a {
+                    Affects::Objects(f)
+                    | Affects::YouAnd(f)
+                    | Affects::OpponentsAnd(f)
+                    | Affects::OtherThanTarget(f, _)
+                    | Affects::Chosen(f) => f.chosen.and_then(crate::ast::OfChosen::implied),
+                    _ => None,
+                };
+                let implied = match &rep.event {
+                    crate::ast::Replaces::Damage { from, to, .. } => {
+                        from.as_ref().and_then(of_choice).or_else(|| of_choice(to))
+                    }
+                    crate::ast::Replaces::DamageToAndBy { what, .. } => of_choice(what),
+                    _ => None,
+                };
+                if let Some(k) = implied {
+                    let k = self.choice_kind(&k);
+                    out.push(CoreEffect::Choose(k));
+                }
                 let compiled = self.replacement(rep)?;
                 out.push(CoreEffect::CreateReplacement(compiled));
             }
@@ -4754,6 +4776,11 @@ impl Compiler<'_> {
             Trigger::CreaturesYouControlAttack => TriggerSpec::AttacksWith {
                 this: false,
                 min: 1,
+            },
+            Trigger::ThisToGraveyard => TriggerSpec::ThisToGraveyard,
+            Trigger::OpponentCreaturesAttack(min) => TriggerSpec::PlayerAttacksWith {
+                whose: Who::Opponents,
+                min: *min,
             },
             Trigger::PlayerAttacksWith { whose, min } => TriggerSpec::PlayerAttacksWith {
                 whose: *whose,

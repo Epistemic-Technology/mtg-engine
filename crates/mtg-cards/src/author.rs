@@ -1591,6 +1591,10 @@ type Rule = (Regex, fn(&regex::Captures, &mut usize) -> Option<String>);
 
 struct Templates {
     rules: Vec<Rule>,
+    /// The triggered ability being authored is about its source ("When
+    /// this creature attacks, sacrifice it at end of combat"): a bare
+    /// "it" with no target is the source.
+    about_this: std::cell::Cell<bool>,
 }
 
 /// A sentence's duration other than "until end of turn" (CR 611.2b): the
@@ -1600,6 +1604,25 @@ fn lasting_split(s: &str) -> Option<(String, bool, &'static str)> {
     let s = s.trim_end_matches('.');
     if let Some(rest) = s.strip_prefix("Until your next turn, ") {
         return Some((capitalize(rest), true, "until your next turn"));
+    }
+    // CR 500.5a: "until end of combat", "can't block this combat",
+    // "blocks it this combat if able".
+    if let Some(rest) = s.strip_prefix("Until end of combat, ") {
+        return Some((capitalize(rest), true, "until end of combat"));
+    }
+    if let Some(rest) = s.strip_suffix(" until end of combat") {
+        return Some((rest.to_string(), false, "until end of combat"));
+    }
+    let combat = Regex::new(
+        r"^(.+ (?:can't attack or block|can't attack|can't block|can't be blocked|blocks (?:it|that creature|this creature|~)|attacks|blocks)) this combat( if able)?$",
+    )
+    .ok()?;
+    if let Some(c) = combat.captures(s)
+        && !s.contains("this turn")
+        && !cap(&c, 1).contains("this combat")
+    {
+        let inner = format!("{} this turn{}", cap(&c, 1), cap(&c, 2));
+        return Some((inner, false, "until end of combat"));
     }
     let this = r"(?:~|this (?:creature|artifact|enchantment|Saga|Vehicle|Equipment|permanent|land|planeswalker))";
     let re = Regex::new(&format!(
@@ -1814,6 +1837,23 @@ impl Templates {
                     ))
                 },
             ),
+            // CR 614.1a: "If it would leave the battlefield, exile it
+            // instead of putting it anywhere else." about a returned card.
+            (
+                r(
+                    r"^If (it|that creature) would leave the battlefield, exile it instead of putting it anywhere else$",
+                ),
+                |c, t| {
+                    if *t == 0 {
+                        return None;
+                    }
+                    Some(if cap(c, 1) == "it" {
+                        format!("leaving exiles target {}", *t)
+                    } else {
+                        "leaving exiles that creature".to_string()
+                    })
+                },
+            ),
             // "It loses all abilities" (with a duration after it).
             (r(r"^(.+?) loses? all abilities$"), |c, t| {
                 let who = all_subject(cap(c, 1), recipient(&subject(cap(c, 1)), t)?);
@@ -1826,7 +1866,18 @@ impl Templates {
                         return None;
                     }
                     let who = all_subject(cap(c, 1), recipient(&subject(cap(c, 1)), t)?);
-                    Some(format!("{who} gains {}", keyword_list(cap(c, 2))?))
+                    // "It gains haste." with no duration (a returned
+                    // creature, Whip of Erebos): for good (CR 611.2a).
+                    let forever = !c[0].ends_with(" until end of turn")
+                        && matches!(
+                            cap(c, 1),
+                            "It" | "That creature" | "They" | "Those creatures"
+                        );
+                    Some(format!(
+                        "{who} gains {}{}",
+                        keyword_list(cap(c, 2))?,
+                        if forever { " indefinitely" } else { "" }
+                    ))
                 },
             ),
             (
@@ -3507,7 +3558,7 @@ impl Templates {
                 |c, t| Some(format!("{} attacks if able", recipient(cap(c, 1), t)?)),
             ),
             (
-                r(r"^(.+?) blocks (?:this creature|~) this turn if able$"),
+                r(r"^(.+?) blocks (?:this creature|~|it) this turn if able$"),
                 |c, t| Some(format!("{} blocks this if able", recipient(cap(c, 1), t)?)),
             ),
             (r(r"^[Tt]ap or untap (.+)$"), |c, t| {
@@ -3720,7 +3771,10 @@ impl Templates {
                 Some("damage can't be prevented this turn".to_string())
             }),
         ];
-        Templates { rules }
+        Templates {
+            rules,
+            about_this: std::cell::Cell::new(false),
+        }
     }
 
     /// Two imperative clauses joined by "and": "Tap target creature an
@@ -3799,6 +3853,12 @@ impl Templates {
         let Some(out) = out.filter(|o| !o.contains(';') && !o.contains("until end of turn")) else {
             *targets = before;
             return None;
+        };
+        // "It gains haste until your next turn": the duration replaces the
+        // one-word "for good" of a bare grant.
+        let out = match out.strip_suffix(" indefinitely") {
+            Some(o) if !out.starts_with("gain control of ") => o.to_string(),
+            _ => out,
         };
         // "Gain control of target creature for as long as ...": the
         // duration takes the place of "for good".
@@ -4281,7 +4341,13 @@ impl Templates {
         )
         .unwrap();
         let delayed = Regex::new(
-            r"^(Sacrifice|Exile|Destroy|Return) (it|them|that card|that creature|that token|those tokens|this creature|~)( to (?:its owner's|their owners') hand| to the battlefield under (?:its|their) owner's control)? at (the beginning of the next end step|end of combat)$",
+            r"^([Ss]acrifice|[Ee]xile|[Dd]estroy|[Rr]eturn) (it|them|that card|that creature|that token|the token|those tokens|this creature|~)( to (?:its owner's|their owners') hand| to the battlefield under (?:its|their) owner's control)? at (the beginning of the next end step|end of combat|the beginning of your next upkeep)$",
+        )
+        .unwrap();
+        // "Put a -1/-1 counter on it at end of combat", "remove a +1/+1
+        // counter from it at end of combat" (CR 603.7).
+        let delayed_counter = Regex::new(
+            r"^([Pp]ut|[Rr]emove) (a|an|two|three) (\S+) counters? (on|from) (it|this creature|~) at end of combat$",
         )
         .unwrap();
         // A token whose quoted ability spans sentences: the corpus's
@@ -4430,14 +4496,43 @@ impl Templates {
             // under its owner's control at the beginning of the next end
             // step." (Turn to Mist): a delayed trigger on what the earlier
             // sentence named.
+            // "When Purity is put into a graveyard from anywhere, shuffle it
+            // into its owner's library."
+            if *targets == 0
+                && self.about_this.get()
+                && sentence.eq_ignore_ascii_case("shuffle it into its owner's library")
+            {
+                out.push("shuffle this into library".to_string());
+                continue;
+            }
+            if let Some(c) = delayed_counter.captures(&sentence)
+                && (cap(&c, 5) != "it" || (*targets == 0 && self.about_this.get()))
+            {
+                let n = number(cap(&c, 2)).ok_or_else(|| Skip::Sentence(sentence.clone()))?;
+                let (verb, prep) = if cap(&c, 1).eq_ignore_ascii_case("put") {
+                    ("put", "on")
+                } else {
+                    ("remove", "from")
+                };
+                out.push(format!(
+                    "delayed this: {verb} {n} {} counter {prep} it at end of combat",
+                    cap(&c, 3)
+                ));
+                continue;
+            }
             if let Some(c) = delayed.captures(&sentence) {
-                let obj = cap(&c, 2);
+                let obj = match cap(&c, 2) {
+                    "the token" => "that token",
+                    o => o,
+                };
                 let made_token = out.last().is_some_and(|l| l.contains("create "));
                 let who = if made_token && matches!(obj, "it" | "that token") {
                     "that token".to_string()
                 } else if made_token && matches!(obj, "them" | "those tokens") {
                     "those tokens".to_string()
-                } else if matches!(obj, "this creature" | "~") && cap(&c, 1) != "Return" {
+                } else if matches!(obj, "this creature" | "~")
+                    && !cap(&c, 1).eq_ignore_ascii_case("return")
+                {
                     // Sacrificed or destroyed where it is; a card returning
                     // from exile is a new object (CR 400.7).
                     "this".to_string()
@@ -4448,6 +4543,15 @@ impl Templates {
                     // "Exile this creature. Return it to the battlefield
                     // under its owner's control at the beginning of the next
                     // end step." (Aetherling): the card exiled.
+                    "this".to_string()
+                } else if *targets == 0 && obj == "that creature" {
+                    // "Whenever this creature blocks or becomes blocked by
+                    // a creature, destroy that creature at end of combat":
+                    // the triggering object.
+                    "that creature".to_string()
+                } else if *targets == 0 && obj == "it" && !made_token && self.about_this.get() {
+                    // "When this creature attacks, sacrifice it at end of
+                    // combat."
                     "this".to_string()
                 } else if *targets > 0
                     && matches!(obj, "it" | "that card" | "that creature")
@@ -4479,6 +4583,8 @@ impl Templates {
                 };
                 let when = if cap(&c, 4) == "end of combat" {
                     "end of combat"
+                } else if cap(&c, 4) == "the beginning of your next upkeep" {
+                    "beginning of your next upkeep"
                 } else {
                     "beginning of the next end step"
                 };
@@ -5101,6 +5207,10 @@ fn trigger_text(head: &str) -> Option<String> {
         "When you sacrifice this Aura" | "When you sacrifice this enchantment" => {
             "when you sacrifice this"
         }
+        // CR 603.6a: the card itself, from any zone.
+        "When this creature is put into a graveyard from anywhere" => {
+            "when this is put into a graveyard from anywhere"
+        }
         // CR 726.3: the day/night switch.
         "Whenever day becomes night or night becomes day" => {
             "whenever day becomes night or night becomes day"
@@ -5468,6 +5578,9 @@ fn trigger_general(head: &str) -> Option<String> {
         }
         "Whenever one or more creatures you control attack" => {
             Some("whenever one or more creatures you control attack")
+        }
+        "Whenever two or more creatures your opponents control attack" => {
+            Some("whenever 2 or more creatures your opponents control attack")
         }
         "Whenever one or more creatures you control deal combat damage to a player" => {
             Some("whenever one or more creature you control deal combat damage to a player")
@@ -8289,6 +8402,12 @@ impl Builder<'_> {
             {
                 // The source's own cast (CR 601.2a), from any zone.
                 (" if you cast it", r)
+            } else if let Some(r) = rest
+                .strip_prefix("if it was a creature, ")
+                .filter(|_| trigger == "when this dies")
+            {
+                // As it last existed (CR 603.10a): the Enduring cycle.
+                (" if this is creature", r)
             } else if let Some(r) = rest.strip_prefix("if tribute wasn't paid, ") {
                 // CR 702.104b.
                 (" if tribute not paid", r)
@@ -8312,6 +8431,10 @@ impl Builder<'_> {
                 (c, _) => (c.to_string(), rest),
             };
             let mut targets = 0;
+            self.templates.about_this.set(
+                (trigger.starts_with("when this ") || trigger.starts_with("whenever this "))
+                    && !trigger.contains(" by "),
+            );
             // The Zendikons: "When enchanted land dies, return that card to
             // its owner's hand." ("that card" is the land that died).
             let effects = if trigger.starts_with("when enchanted ")
@@ -8319,9 +8442,17 @@ impl Builder<'_> {
                 && rest.trim_end_matches('.') == "return that card to its owner's hand"
             {
                 "return triggering card to hand".to_string()
+            } else if trigger == "when this dies"
+                && condition == " if this is creature"
+                && rest.trim_end_matches('.')
+                    == "return it to the battlefield under its owner's control. It's an enchantment"
+            {
+                // The Enduring cycle (CR 205.1a: no longer a creature).
+                "return this to battlefield; it is now enchantment".to_string()
             } else {
                 self.templates.effects(rest, &mut targets)?
             };
+            self.templates.about_this.set(false);
             // "Whenever you cast a multicolored spell, you may return this
             // card from your graveyard to your hand." triggers from the
             // graveyard (a dies trigger looks back instead).
@@ -9275,6 +9406,16 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         if found {
             short = Some(first.to_string());
         }
+    }
+    // "When Enduring Courage dies, ...": a nonlegendary permanent whose
+    // text calls it by its full name (the Enduring cycle) gets that name
+    // as its `short_name`, so `this` prints it.
+    if short.is_none()
+        && !type_line.contains("Legendary")
+        && oracle.contains("When ~ dies")
+        && !oracle.contains("named ~")
+    {
+        short = Some(s.name.clone());
     }
     // A character's text calls it "he" or "she"; the templates read "it"
     // and the card gets a `pronoun` line.

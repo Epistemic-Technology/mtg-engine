@@ -1,0 +1,6 @@
+card "Jade Statue" {
+  oracle_id 96162b22-41e7-4559-aa1b-c18f42abcb52
+  cost {4}
+  type Artifact
+  activated {2}, during combat: this becomes 3/6 Golem artifact creature until end of combat
+}

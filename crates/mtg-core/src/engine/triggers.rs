@@ -141,6 +141,18 @@ impl GameState {
         if matches!(event, Event::Cycled { .. }) {
             self.cycle_triggers(event, &mut fired);
         }
+        // "When Purity is put into a graveyard from anywhere": the card,
+        // now in the graveyard, sees its own arrival (CR 603.6a).
+        if let Event::ZoneChange {
+            new,
+            def,
+            to: Zone::Graveyard,
+            ..
+        } = *event
+            && self.pool.get(def).has_triggers()
+        {
+            self.to_graveyard_triggers(new, def, &mut fired);
+        }
 
         if matches!(event, Event::Cast { .. }) {
             self.cast_this_triggers(event, &mut fired);
@@ -635,6 +647,39 @@ impl GameState {
                         // The X paid for cycling, for the trigger's X
                         // (`put_trigger_on_stack`).
                         trigger_amount: x,
+                    },
+                    timestamp: 0,
+                });
+            }
+        }
+    }
+
+    /// "When this card is put into a graveyard from anywhere" (CR 603.6a):
+    /// triggers from the card in the graveyard, controlled by its owner.
+    #[cold]
+    #[inline(never)]
+    fn to_graveyard_triggers(
+        &self,
+        card: ObjId,
+        def: crate::card::CardRef,
+        fired: &mut SmallVec<[PendingTrigger; 2]>,
+    ) {
+        let Some(owner) = self.objects.get(card).map(|o| o.owner) else {
+            return;
+        };
+        for &ability in &self.pool.get(def).ability_ids {
+            if let AbilityDef::Triggered(t) = self.pool.ability(ability)
+                && matches!(t.trigger, TriggerSpec::ThisToGraveyard)
+            {
+                fired.push(PendingTrigger {
+                    controller: owner,
+                    ability: StackAbility {
+                        ability,
+                        source: card,
+                        def,
+                        trigger_obj: Some(card),
+                        trigger_player: Some(owner),
+                        trigger_amount: 0,
                     },
                     timestamp: 0,
                 });

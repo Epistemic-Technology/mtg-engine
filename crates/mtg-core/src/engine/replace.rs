@@ -973,6 +973,16 @@ impl GameState {
             Proposed::Damage { amount, .. } => *amount,
             _ => 0,
         };
+        // The damaged permanent, "that creature" in what follows ("Put a
+        // +1/+1 counter on that creature for each 1 damage prevented this
+        // way", Vigor).
+        let damaged = match &ev {
+            Proposed::Damage {
+                target: Target::Object(id),
+                ..
+            } => Some(*id),
+            _ => None,
+        };
         let outcome = match (c.ability.replacement, ev) {
             (
                 Replacement::Prevent,
@@ -1908,13 +1918,26 @@ impl GameState {
             (_, ev) => Outcome::Event(ev),
         };
         if !c.ability.then.is_empty() {
+            // CR 615.5: a prevention effect's additional effects see "the
+            // damage prevented this way": what the event lost (a shield
+            // prevents only part, CR 615.7; unpreventable damage, none,
+            // CR 615.12).
+            let that_much = match (c.ability.replacement, &outcome) {
+                (
+                    Replacement::Prevent
+                    | Replacement::PreventNext(_)
+                    | Replacement::PreventNextTime,
+                    Outcome::Event(Proposed::Damage { amount, .. }),
+                ) => that_much.saturating_sub(*amount),
+                _ => that_much,
+            };
             let mut ctx = EffectCtx {
                 source: c.source,
                 controller: c.controller,
                 targets: Vec::new(),
                 division: Vec::new(),
                 legal: Vec::new(),
-                trigger_obj: None,
+                trigger_obj: damaged,
                 trigger_player: None,
                 trigger_amount: that_much,
                 created: None,

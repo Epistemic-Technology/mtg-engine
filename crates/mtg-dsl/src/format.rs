@@ -554,8 +554,13 @@ impl Fmt {
                 let mut s = String::new();
                 let to_any_written = turn.is_empty();
                 match (from, wording) {
-                    (Some(f), DamageWording::WouldDeal) => {
-                        let _ = write!(s, " {} would deal", self.affects(f, targets));
+                    (Some(f), DamageWording::WouldDeal | DamageWording::WouldDealBare) => {
+                        let bare = if *wording == DamageWording::WouldDealBare {
+                            " bare"
+                        } else {
+                            ""
+                        };
+                        let _ = write!(s, "{bare} {} would deal", self.affects(f, targets));
                         if *to != Affects::Any {
                             let _ = write!(s, " to {}", self.affects(to, targets));
                         }
@@ -710,6 +715,7 @@ impl Fmt {
         if s.eot_first {
             out.push_str(match s.lasting {
                 Some(mtg_core::card::Lasting::YourNextTurn) => "until your next turn, ",
+                Some(mtg_core::card::Lasting::EndOfCombat) => "until end of combat, ",
                 _ => "until end of turn, ",
             });
         }
@@ -748,6 +754,7 @@ impl Fmt {
                 mtg_core::card::Lasting::SourceTapped => " for as long as this remains tapped",
                 mtg_core::card::Lasting::UntilCastFromExile => " until this is cast from exile",
                 mtg_core::card::Lasting::Forever => " indefinitely",
+                mtg_core::card::Lasting::EndOfCombat => " until end of combat",
             });
         }
         out
@@ -3113,6 +3120,14 @@ impl Fmt {
                     format!("delayed {about}: {body} {trig}")
                 }
             }
+            Effect::CreateReplacement(rep) if !rep.then.is_empty() => {
+                let bare = crate::ast::Replacement {
+                    then: Vec::new(),
+                    ..rep.clone()
+                };
+                let head = self.effect(&Effect::CreateReplacement(bare), t);
+                format!("{head} {{ {} }}", self.line(&rep.then, t))
+            }
             Effect::CreateReplacement(rep) => match (&rep.event, &rep.outcome) {
                 (Replaces::Damage { .. } | Replaces::DamageToAndBy { .. }, Outcome::Prevent)
                     if rep.then.is_empty() =>
@@ -4419,6 +4434,7 @@ pub fn natural_when(t: &Trigger) -> bool {
             | Trigger::Cycles { this: true, .. }
             | Trigger::DiscardsThis
             | Trigger::CastThis { .. }
+            | Trigger::ThisToGraveyard
     ) || matches!(t, Trigger::Either(a, _) if natural_when(a))
         || matches!(
             t,
@@ -4628,6 +4644,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::CreaturesYouControlAttack => {
             "whenever one or more creatures you control attack".to_string()
         }
+        Trigger::OpponentCreaturesAttack(n) => {
+            format!("whenever {n} or more creatures your opponents control attack")
+        }
+        Trigger::ThisToGraveyard => "when this is put into a graveyard from anywhere".to_string(),
         Trigger::PlayerAttacksWith { whose, min } => format!(
             "whenever {} attacks with {min} or more creatures",
             if *whose == Who::Opponents {

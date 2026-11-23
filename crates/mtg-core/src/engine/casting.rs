@@ -10329,6 +10329,10 @@ impl GameState {
                 Duration::WhileInExile(self.source_in_exile(ctx).unwrap_or_default())
             }
             crate::card::Lasting::Forever => Duration::Permanent,
+            crate::card::Lasting::EndOfCombat => {
+                self.combat_durations += 1;
+                Duration::UntilEndOfCombat
+            }
         };
         if d.linked() {
             self.linked_durations += 1;
@@ -13172,8 +13176,28 @@ impl GameState {
                     .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
                     .expect("a resolving spell or its last known information exists");
                 for t in self.recipients(ctx, *about) {
-                    let Target::Object(id) = t else {
-                        continue;
+                    // "Target player draws a card at the beginning of the
+                    // next turn's upkeep" (Sapphire Charm): a delayed
+                    // trigger about a player, `that player` in its effects.
+                    let id = match t {
+                        Target::Object(id) => id,
+                        Target::Player(p) => {
+                            self.delayed_triggers.push(DelayedTrigger {
+                                controller: ctx.controller,
+                                ability: StackAbility {
+                                    ability: *ability,
+                                    source: ctx.source,
+                                    def,
+                                    trigger_obj: None,
+                                    trigger_player: Some(p),
+                                    trigger_amount: 0,
+                                },
+                                this_turn: *this_turn,
+                                forever: false,
+                                turn: self.turn_number,
+                            });
+                            continue;
+                        }
                     };
                     // "That card": the object it became after the effect
                     // that moved it (CR 400.7 exceptions).
@@ -15994,13 +16018,20 @@ impl GameState {
             .expect("a resolving spell or its last known information exists");
         let timestamp = self.tick();
         let duration = self.lasting_or(Duration::UntilEndOfTurn, ctx, ctx.source);
+        // "Prevent all damage that sources of the color of your choice
+        // would deal this turn" (Prismatic Strands): the color chosen as
+        // the spell resolved (CR 608.2d), locked into the effect.
+        let mut ability = r.clone();
+        if ctx.chosen != crate::state::Chosen::None {
+            ability.replaces.fill_chosen(ctx.chosen);
+        }
         self.replacements.push(ReplacementEffect {
             source: Some(ctx.source),
             def,
             controller: ctx.controller,
             timestamp,
             duration,
-            ability: r.clone(),
+            ability,
             target,
             remaining,
             chosen,

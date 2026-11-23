@@ -1,0 +1,9 @@
+card "Worldspine Wurm" {
+  oracle_id 254f87cc-e0c2-484d-b5e8-1ea8c366990c
+  cost {8}{G}{G}{G}
+  type Creature — Wurm
+  pt 15/15
+  keywords trample
+  triggered when this dies: create 3 "5/5 green Wurm creature with trample"
+  triggered when this is put into a graveyard from anywhere: shuffle this into library
+}

@@ -1,0 +1,148 @@
+# Delayed triggers "at end of combat" (CR 511.2, 603.7) created by an
+# attack, block, or combat damage trigger: about the source ("sacrifice it
+# at end of combat") or about the triggering creature ("destroy that
+# creature at end of combat").
+
+scenario "Wicker Warcrawler: a -1/-1 counter at end of combat" {
+  battlefield A: "Wicker Warcrawler"
+  start turn 2 A
+  turn 2 A: attack "Wicker Warcrawler"
+  run_to turn 2 combat_damage
+  assert counters "Wicker Warcrawler" -1/-1 0
+  run_to turn 2 postcombat_main
+  assert counters "Wicker Warcrawler" -1/-1 1
+}
+
+scenario "Clockwork Dragon and Clockwork Vorrac lose a counter after attacking" {
+  battlefield A: "Clockwork Dragon" with 6 +1/+1, "Clockwork Vorrac" with 4 +1/+1
+  start turn 2 A
+  turn 2 A: attack "Clockwork Dragon", "Clockwork Vorrac"
+  run_to turn 2 postcombat_main
+  assert counters "Clockwork Dragon" +1/+1 5
+  assert counters "Clockwork Vorrac" +1/+1 3
+  assert life B 10
+}
+
+scenario "Deathgazer: a nonblack creature it blocks is destroyed at end of combat" {
+  battlefield A: "Deathgazer"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Deathgazer"
+  run_to turn 2 combat_damage
+  assert battlefield B contains "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Deathgazer: a black creature is not destroyed" {
+  battlefield A: "Deathgazer"
+  battlefield B: "Drudge Skeletons"
+  start turn 2 B
+  turn 2 B: attack "Drudge Skeletons"
+  turn 2 A: block "Drudge Skeletons" with "Deathgazer"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Drudge Skeletons"
+  assert battlefield A contains "Deathgazer"
+}
+
+scenario "Mardu Blazebringer, Runaway Carriage, Crumbling Colossus: sacrificed at end of combat" {
+  battlefield A: "Mardu Blazebringer", "Runaway Carriage", "Crumbling Colossus"
+  start turn 2 A
+  turn 2 A: attack "Mardu Blazebringer", "Runaway Carriage", "Crumbling Colossus"
+  run_to turn 2 combat_damage
+  assert battlefield A contains "Crumbling Colossus"
+  run_to turn 2 postcombat_main
+  assert life B 4
+  assert graveyard A contains "Mardu Blazebringer"
+  assert graveyard A contains "Runaway Carriage"
+  assert graveyard A contains "Crumbling Colossus"
+}
+
+scenario "Stoic Ephemera: sacrificed after it blocks" {
+  battlefield A: "Stoic Ephemera"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Stoic Ephemera"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Stoic Ephemera"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Aether Membrane and Kaijin: the blocked creature returns to its owner's hand" {
+  battlefield A: "Aether Membrane", "Kaijin of the Vanishing Touch"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant", "Grizzly Bears"
+  turn 2 A: block "Hill Giant" with "Aether Membrane"
+  turn 2 A: block "Grizzly Bears" with "Kaijin of the Vanishing Touch"
+  run_to turn 2 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert hand B contains "Grizzly Bears"
+  assert life A 20
+}
+
+scenario "Ohran Viper: a creature it deals combat damage to is destroyed at end of combat" {
+  battlefield A: "Ohran Viper"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Ohran Viper"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Ohran Viper"
+}
+
+scenario "Arrogant Bloodlord: destroyed after blocking a creature with power 1 or less" {
+  battlefield A: "Arrogant Bloodlord"
+  battlefield B: "Drudge Skeletons"
+  start turn 2 B
+  turn 2 B: attack "Drudge Skeletons"
+  turn 2 A: block "Drudge Skeletons" with "Arrogant Bloodlord"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Arrogant Bloodlord"
+}
+
+scenario "Arrogant Bloodlord: a power 2 creature doesn't trigger it" {
+  battlefield A: "Arrogant Bloodlord"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Arrogant Bloodlord"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Arrogant Bloodlord"
+}
+
+scenario "Cockatrice: a non-Wall creature it blocks is destroyed, a Wall is not" {
+  battlefield A: "Cockatrice", "Giant Spider"
+  battlefield B: "Craw Wurm"
+  start turn 2 B
+  turn 2 B: attack "Craw Wurm"
+  turn 2 A: block "Craw Wurm" with "Cockatrice"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Craw Wurm"
+}
+
+scenario "Cockatrice: becomes blocked by a Wall" {
+  battlefield A: "Cockatrice"
+  battlefield B: "Wall of Vines"
+  start turn 2 A
+  turn 2 A: attack "Cockatrice"
+  turn 2 B: block "Cockatrice" with "Wall of Vines"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Wall of Vines"
+}
+
+scenario "Sosuke: the creature a Warrior dealt combat damage to is destroyed, not the Warrior" {
+  battlefield A: "Sosuke, Son of Seshiro"
+  battlefield B: "Giant Spider"
+  start turn 2 A
+  turn 2 A: attack "Sosuke, Son of Seshiro"
+  turn 2 B: block "Sosuke, Son of Seshiro" with "Giant Spider"
+  run_to turn 2 combat_damage
+  assert battlefield B contains "Giant Spider"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Giant Spider"
+  assert battlefield A contains "Sosuke, Son of Seshiro"
+}

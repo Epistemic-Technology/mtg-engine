@@ -1,0 +1,7 @@
+card "Wicker Warcrawler" {
+  oracle_id 0acadb47-17b2-47d8-9aad-5436931bc38c
+  cost {5}
+  type Artifact Creature — Scarecrow
+  pt 6/6
+  triggered whenever this attacks or blocks: delayed this: put 1 -1/-1 counter on it at end of combat
+}

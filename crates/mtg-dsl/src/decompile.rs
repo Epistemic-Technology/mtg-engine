@@ -2206,6 +2206,7 @@ impl Decompiler<'_> {
             },
             TriggerSpec::LeavesGraveyard(f) => Trigger::LeavesGraveyard(self.filter(f)),
             TriggerSpec::PutIntoGraveyard(f) => Trigger::PutIntoGraveyard(self.filter(f)),
+            TriggerSpec::ThisToGraveyard => Trigger::ThisToGraveyard,
             TriggerSpec::PutIntoGraveyardFromBattlefield(f) => {
                 Trigger::PutIntoGraveyardFromBattlefield(self.filter(f))
             }

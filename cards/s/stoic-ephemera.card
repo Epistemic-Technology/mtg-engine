@@ -1,0 +1,8 @@
+card "Stoic Ephemera" {
+  oracle_id eee83439-2dee-47d7-97f8-d75bef70c40e
+  cost {2}{W}
+  type Creature — Spirit
+  pt 5/5
+  keywords defender, flying
+  triggered when this blocks: delayed this: sacrifice it at end of combat
+}

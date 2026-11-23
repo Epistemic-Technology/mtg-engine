@@ -185,7 +185,7 @@ like the card; either half may still be cast alone.
 | `loyalty +1: <effects>` | A loyalty ability (CR 606); `-6` likewise, and `loyalty 0:` (or `+0`) prints "0:". |
 | `equip {1}`, `equip Knight {1}`, `equip {0}, once`, `equip {2}, pay 2 life`, `equip sacrifice creature`, `equip {3} or discard 1 card` | Equip (CR 702.6): "Equip {1}"; with a creature type, only onto a creature of that type you control ("Equip Knight {1}", CR 702.6c); `once` prints "Equip {0}. Activate only once each turn." Any activation cost other than mana alone prints after a dash: "Equip—{2}, Pay 2 life.", "Equip—Sacrifice a creature." (`, once` adds "Activate only once each turn."). `equip {3} or discard 1 card` prints "Equip—Pay {3} or discard a card.": two equip abilities, one for each cost (`activate "X" ability 2` in scenarios takes the second). |
 | `triggered <trigger> [if <condition>]: <effects>` | A triggered ability (CR 603). `triggered once each turn <trigger>: ...` ("This ability triggers only once each turn."), `twice each turn`, and `do once each turn` ("Do this only once each turn.") limit it each turn (below). |
-| `replace <event>: <outcome>` | A replacement or prevention effect while on the battlefield (CR 614, 615). Add `{ <effects> }` for effects that happen when it applies (Phantom Tiger). |
+| `replace <event>: <outcome>` | A replacement or prevention effect while on the battlefield (CR 614, 615). Add `{ <effects> }` for effects that happen when it applies (Phantom Tiger); after a prevention, `that much` in them is the damage prevented this way (CR 615.5: none for damage that can't be prevented, the shield's share for a `prevent next N`) and `that creature` the damaged permanent, printed "You gain life equal to the damage prevented this way." (`you gain that much life`), "Put a +1/+1 counter on that creature for each 1 damage prevented this way." (`put that much +1/+1 counters on that creature`, Vigor). An effect a spell creates takes the block too: `prevent all damage target spell would deal this turn { you gain that much life }` (Hallow), `this turn, replace damage from chosen source to you: prevent next time { you gain that much life }` (Reverse Damage). |
 | `enters tapped` / `enters with 2 +1/+1 counters` / `enters prepared` | How this permanent enters (CR 614.1c; prepared, CR 722.3a). `enters with 2 +1/+1 counters if creature died this turn` (any static condition, judged as it enters) prints "This creature enters with two +1/+1 counters on it if a creature died this turn."; `enters with count equal graveyard creature +1/+1 counters` prints "... enters with a number of +1/+1 counters on it equal to the number of creature cards in your graveyard" (counted as it enters). Both, in that order, print as one sentence: "This land enters tapped with two depletion counters on it." (the order they apply in changes nothing, so it isn't asked). |
 | `static <filter>: <modifications>` | A static ability generating a continuous effect (CR 604, 611.3). `static each creature you control with +1/+1 counter: has trample` prints the subject one at a time: "Each creature you control with a +1/+1 counter on it has trample." |
 | `static as long as <condition>, <filter>: <modifications>` | A conditional static ability (CR 611.3a), printed "As long as <condition>, ...". Write the condition last (`static this: +2/+2 as long as metalcraft`) to print it last; `static this: has can't be blocked if cast historic spell this turn` prints "if" ("This creature can't be blocked if ..."). `static during your turn, this: has first strike` prints "During your turn, ..."; `static during turns other than yours, this: +0/+2` prints "During turns other than yours, ..." (it isn't the controller's turn). `otherwise <modifications>` after the condition is what applies to the same objects while it doesn't hold, printed "Otherwise, it ...": `static enchanted: +2/+2 as long as attached is Vampire otherwise -2/-2` ("Enchanted creature gets +2/+2 as long as it's a Vampire. Otherwise, it gets -2/-2."), `static equipped: has deathtouch during your turn otherwise has reach` ("Equipped creature has deathtouch during your turn. Otherwise, it has reach."; `during your turn` written last prints last), `static as long as you control attached, enchanted: +2/+2 otherwise has can't block` ("As long as you control enchanted creature, it gets +2/+2. Otherwise, it can't block."). The engine makes it a second static ability with the condition negated. `as long as this has 2 or fewer oil counters` prints "it has two or fewer oil counters on it". |
@@ -433,6 +433,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever you scry or surveil` | once per instruction to scry or surveil (CR 701.22, 701.25) |
 | `whenever you scry` | once per instruction to scry (CR 701.22; scry 0 is none, 701.22b); surveilling doesn't trigger it |
 | `whenever this is dealt 3 or more damage` | "Whenever this creature is dealt 3 or more damage": one damage event of at least that much (damage dealt at different times doesn't add up) |
+| `when this is put into a graveyard from anywhere` | "When Purity is put into a graveyard from anywhere" (CR 603.6a; the card names itself): the card going to a graveyard from any zone, the hand and library included; it triggers from the graveyard, controlled by the card's owner (`shuffle this into library`: "shuffle it into its owner's library") |
 | `when enchanted dies or is put into exile` | "When enchanted permanent dies or is put into exile": leaves the battlefield for a graveyard or exile, judged as it last existed (`return triggering card to battlefield under your control`: "return that card to the battlefield under your control") |
 | `when enchanted creature becomes tapped or is dealt damage`, `whenever this enters or becomes tapped` | two events of one subject, the shared words printed once ("When enchanted creature becomes tapped or is dealt damage, destroy it.") |
 | `when this enters while this is untapped` | "When this land enters untapped": the land's state as it enters (a `while` condition, judged as the event happens) |
@@ -458,7 +459,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever creature you control attacks alone` | attacks alone (CR 506.5) |
 | `whenever this attacks for the first time each turn` | the attacking creature hadn't attacked yet this turn (with additional combat phases, CR 500.8) |
 | `whenever you attack`, `whenever you attack with 3 or more creatures`, `label "Battalion" triggered whenever this and at least 2 other creatures attack` | once as the controller declares attackers (CR 508.1m), if at least that many attack (battalion: this creature among them); "Whenever this creature and at least two other creatures attack"; `whenever one or more creatures you control attack` is the same trigger in the older wording |
-| `whenever a player attacks with 3 or more creatures`, `whenever an opponent attacks with 2 or more creatures` | "Whenever a player attacks with three or more creatures": once per declaration of attackers by such a player (CR 508.1m) if at least that many attack; the attacking player is `that player` |
+| `whenever a player attacks with 3 or more creatures`, `whenever an opponent attacks with 2 or more creatures` | "Whenever a player attacks with three or more creatures": once per declaration of attackers by such a player (CR 508.1m) if at least that many attack; the attacking player is `that player`. `whenever 2 or more creatures your opponents control attack` is the opponent's form in the older wording ("Whenever two or more creatures your opponents control attack"), the same trigger |
 | `whenever this saddles a Mount or crews a Vehicle while your main phase` | "Whenever this creature saddles a Mount or crews a Vehicle during your main phase" (CR 702.122b, 702.171c): it is tapped to pay a crew or saddle cost (the engine picks the creatures); the Mount or Vehicle is "that Mount or Vehicle". `while your main phase` after a trigger prints "during your main phase" |
 | `whenever this becomes saddled first time each turn` | "Whenever this creature becomes saddled for the first time each turn" (CR 702.171b: saddled until the turn ends, so once); `target Mount you control becomes saddled` is the effect ("... becomes saddled until end of turn") |
 | `whenever this attacks and isn't blocked` | as blockers are declared, for an attacking creature no creature blocks (CR 509.1h) |
@@ -2011,6 +2012,25 @@ step"; plural "Those creatures don't untap during their controllers' untap
 steps"), and `target 1 gains can't activate` ("Its activated abilities
 can't be activated").
 
+`until end of combat` (CR 500.5a, 511.2) ends a sentence the same way,
+or begins it (`until end of combat, ...`): what would last until end of
+turn ends as the combat phase ends (at the cleanup step if no combat
+phase ends first), so a later combat phase that turn is free of it. It
+prints "until end of combat" in place of "until end of turn" and "this
+combat" in place of "this turn": `this gets +2/+0 until end of combat`
+("it gets +2/+0 until end of combat"), `that creature can't block until
+end of combat` ("That creature can't block this combat."), `target
+creature defending player controls blocks this if able until end of
+combat` ("... blocks it this combat if able").
+
+`indefinitely` after a sentence whose clauses would last until end of
+turn makes them last for good, printing no duration (CR 611.2a): `target
+1 gains haste indefinitely` ("It gains haste.", on a creature returned to
+the battlefield, Whip of Erebos). `leaving exiles that creature` prints
+"If that creature would leave the battlefield, exile it instead of
+putting it anywhere else." (`leaving exiles target 1`: "If it would
+...").
+
 Subject-first clauses: `<who> gains 3 life`, `<who> loses 1 life`, `<who> loses half life` ("that player loses half their life, rounded up", CR 107.1a; `you lose half life`: "your life"), `you lose game` ("You lose the game.", CR 104.3e: not while the player can't lose the game),
 `<who> draws 2 cards`, `<who> discards 2 cards`, `<who> mills 20 cards`,
 `<what> gets +3/+3`, `<what> gains flying`, `<what> can't block` (this
@@ -2605,7 +2625,14 @@ prints "to players"), `prevent all [combat] damage [to <affects>] this turn
 from <source>` ("... dealt this turn by creatures with power 4 or less"),
 `prevent all [combat] damage <source> would deal [to <affects>] this turn`
 ("Prevent all combat damage target creature would deal this turn",
-"... that creatures would deal to players this turn"), `prevent all combat
+"... that creatures would deal to players this turn"; `bare` before the
+source drops the "that": `prevent all combat damage bare non-Soldier
+creature would deal this turn`, "prevent all combat damage non-Soldier
+creatures would deal this turn"; `prevent all damage permanent of color
+of choice would deal this turn`, "Prevent all damage that sources of the
+color of your choice would deal this turn.": the color is chosen as the
+effect is created, CR 608.2d, and any source of it, a spell too, is
+prevented), `prevent all combat
 damage to and from target 1 this turn` ("dealt to and dealt by it"),
 `prevent all damage this turn to <affects> [from <source>]` ("Prevent
 all damage that would be dealt this turn to creatures you control"),
@@ -2632,7 +2659,11 @@ damage only, CR 615.12), and
 `delayed <what>: <effects> at beginning of the next end step` (a delayed
 triggered ability, CR 603.7; write the trigger first, then a comma, then the
 effects, to print it that way); `at beginning of the next turn's upkeep`
-also works ("Draw a card at the beginning of the next turn's upkeep"),
+also works ("Draw a card at the beginning of the next turn's upkeep";
+about a target player, `delayed target player: that player draws 1 card
+at beginning of the next turn's upkeep` prints "Target player draws a
+card at the beginning of the next turn's upkeep.", `that player` in it
+being the player it is about),
 `delayed this: at beginning of your next upkeep, discard 3 cards at
 random` ("At the beginning of your next upkeep, ..."), `delayed that
 token: at beginning of the end step on your next turn, sacrifice that

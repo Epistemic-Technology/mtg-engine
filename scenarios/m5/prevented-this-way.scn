@@ -1,0 +1,116 @@
+# A prevention effect's additional effects use "the damage prevented this
+# way" (CR 615.5): what the event lost, the damaged creature being "that
+# creature". And "When this is put into a graveyard from anywhere" (CR
+# 603.6a), triggering from the graveyard.
+
+scenario "Phyrexian Hydra: damage becomes -1/-1 counters" {
+  battlefield A: "Phyrexian Hydra"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Phyrexian Hydra"
+  run_to turn 2 postcombat_main
+  assert damage "Phyrexian Hydra" 0
+  assert counters "Phyrexian Hydra" -1/-1 2
+  assert power "Phyrexian Hydra" 5
+}
+
+scenario "Stormwild Capridor: noncombat damage becomes +1/+1 counters, combat damage is dealt" {
+  battlefield A: "Stormwild Capridor"
+  battlefield B: "Mountain", "Grizzly Bears"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Stormwild Capridor"
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Stormwild Capridor"
+  run_to turn 2 postcombat_main
+  assert counters "Stormwild Capridor" +1/+1 2
+  assert damage "Stormwild Capridor" 2
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Vigor: damage to another creature you control becomes counters on it, not on Vigor" {
+  battlefield A: "Vigor", "Grizzly Bears"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 2 B: wait
+  turn 2 B: cast "Lightning Bolt" targeting "Vigor"
+  run_to turn 2 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert damage "Grizzly Bears" 0
+  assert damage "Vigor" 3
+  assert counters "Vigor" +1/+1 0
+}
+
+scenario "Purity: noncombat damage to you becomes life; put into a graveyard from the hand, it is shuffled into the library" {
+  battlefield A: "Purity"
+  battlefield B: 3 "Mountain"
+  hand B: "Shock", "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 22
+}
+
+scenario "Purity: discarded, it goes to the library" {
+  battlefield B: 3 "Swamp"
+  hand A: "Purity"
+  hand B: "Mind Rot"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Mind Rot" targeting player A
+  run_to turn 2 postcombat_main
+  assert graveyard A lacks "Purity"
+  assert library A contains "Purity"
+}
+
+scenario "Hallow: a spell's damage is prevented and its target gains that much" {
+  battlefield A: "Plains"
+  battlefield B: "Mountain"
+  hand A: "Hallow"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: cast "Hallow" targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 2 postcombat_main
+  assert life A 23
+}
+
+scenario "Reverse Damage: the chosen source's next damage becomes life, once" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant", "Mountain"
+  hand A: "Reverse Damage"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Reverse Damage"
+  turn 2 declare_attackers A: choose "Hill Giant"
+  turn 2 postcombat_main B: cast "Shock" targeting player A
+  run_to turn 2 end
+  assert life A 21
+}
+
+scenario "Awe Strike: the target creature's next damage becomes its caster's life" {
+  battlefield A: "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Awe Strike"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Awe Strike" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 23
+  assert life B 20
+}
+
+scenario "Worldspine Wurm: dies, makes three Wurms and is shuffled into its owner's library" {
+  battlefield A: "Worldspine Wurm"
+  battlefield B: 2 "Swamp"
+  hand B: "Doom Blade"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Doom Blade" targeting "Worldspine Wurm"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 3 "Wurm"
+  assert library A contains "Worldspine Wurm"
+  assert graveyard A lacks "Worldspine Wurm"
+}

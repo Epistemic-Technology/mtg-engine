@@ -2482,6 +2482,9 @@ pub enum Lasting {
     /// \"...\"" from a resolving spell or ability): the effect lasts as
     /// long as the object it affects (CR 611.2a, 400.7).
     Forever,
+    /// "until end of combat", "this combat" (CR 500.5a, 511.2): ends as
+    /// the combat phase ends (or with the turn, if it has no combat).
+    EndOfCombat,
 }
 
 /// How long cards exiled by an impulse effect stay playable.
@@ -6033,6 +6036,39 @@ pub enum CountersBy {
 
 /// `Effect::PayEnergy`'s "any amount of {E}".
 pub const PAY_ANY_ENERGY: u32 = u32::MAX;
+impl Affects {
+    fn fill_chosen(&mut self, chosen: crate::state::Chosen) {
+        match self {
+            Affects::Objects(f)
+            | Affects::YouAnd(f)
+            | Affects::OpponentsAnd(f)
+            | Affects::OtherThanTarget(f, _)
+            | Affects::Chosen(f)
+                if f.chosen =>
+            {
+                *f = f.with_chosen(chosen);
+            }
+            _ => {}
+        }
+    }
+}
+
+impl Replaces {
+    /// The damage event's filters with "of the color of your choice" filled
+    /// in from the choice made as the effect was created (CR 608.2d).
+    pub fn fill_chosen(&mut self, chosen: crate::state::Chosen) {
+        match self {
+            Replaces::Damage { from, to, .. } => {
+                if let Some(f) = from {
+                    f.fill_chosen(chosen);
+                }
+                to.fill_chosen(chosen);
+            }
+            Replaces::DamageToAndBy { what, .. } => what.fill_chosen(chosen),
+            _ => {}
+        }
+    }
+}
 
 /// What happens instead.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -6520,6 +6556,10 @@ pub enum TriggerSpec {
     /// once per matching card its controller owns going to a graveyard,
     /// the card (as it was) the triggering object.
     PutIntoGraveyard(ObjFilter),
+    /// "When Purity is put into a graveyard from anywhere" (CR 603.6a): the
+    /// card itself goes to a graveyard from any zone; it triggers from the
+    /// graveyard, controlled by the card's owner.
+    ThisToGraveyard,
     /// "Whenever a creature is put into your graveyard from the
     /// battlefield": a matching permanent (as it last existed) its
     /// controller owns dies, whoever controlled it; the permanent the
@@ -6805,6 +6845,7 @@ impl TriggerSpec {
             | TriggerSpec::LeavesBatch { .. }
             | TriggerSpec::LeavesGraveyard(_)
             | TriggerSpec::PutIntoGraveyard(_)
+            | TriggerSpec::ThisToGraveyard
             | TriggerSpec::PutIntoGraveyardFromBattlefield(_)
             | TriggerSpec::EntersFromGraveyard(_) => WATCH_ZONE_CHANGE,
             TriggerSpec::AttacksOrBlocks(_) => WATCH_ATTACK | WATCH_BLOCK,
