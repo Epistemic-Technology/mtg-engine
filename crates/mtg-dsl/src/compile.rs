@@ -2731,6 +2731,7 @@ impl Compiler<'_> {
             they_target: false,
             spell: false,
             put_creature: false,
+            kicked: None,
         };
         let mut specs: Vec<TargetSpec> = ts.iter().map(|t| self.target(t)).collect();
         if let Some((m, _)) = self.tmap.group {
@@ -5407,6 +5408,7 @@ impl Compiler<'_> {
                 targets: {
                     let ts = self.targets(targets);
                     self.tmap.spell = true;
+                    self.tmap.kicked = self.card.kicked_drops;
                     ts
                 },
                 effects: self.sentences(effects)?,
@@ -7821,6 +7823,11 @@ struct TargetMap {
     /// creature at the beginning of the next end step." (Through the
     /// Breach) is the creature put there, not a triggering object.
     put_creature: bool,
+    /// A kicked spell's `CardDef::kicked_drops`: after "If this spell was
+    /// kicked, choose target creature instead.", a later "its controller"
+    /// names the kicked target as written (`kicked_drops` or more), which
+    /// is the engine's first target either way (Expel the Unworthy).
+    kicked: Option<usize>,
 }
 
 /// The engine's index of the ability's `i`th target (`TargetMap`).
@@ -7830,7 +7837,10 @@ fn target_index(tmap: TargetMap, i: usize) -> usize {
         Some((m, _)) if i > m => i - 1,
         _ => i,
     };
-    i.saturating_sub(tmap.shift)
+    match tmap.kicked {
+        Some(n) if tmap.shift == 0 && i >= n => i - n,
+        _ => i.saturating_sub(tmap.shift),
+    }
 }
 
 /// Modes chosen together, as one mode: their targets and effects in

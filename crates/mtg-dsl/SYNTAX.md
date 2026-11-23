@@ -3025,7 +3025,9 @@ A kicked "instead" that declares its own targets replaces the targets
 before it (CR 601.2c): `target creature you control gains
 indestructible; if kicked, instead any number of target creature you
 control gains indestructible` (Divine Resilience) has one target unkicked
-and only the group kicked.
+and only the group kicked. After it, a reference to a kicked-only target
+("Exile the chosen creature, then its controller gains life ...", where
+`its` follows the kicked target) is the chosen target either way.
 
 The condition is `kicked`, any static condition (`if you control 3
 creature, ...`, `... instead if hand 0 or less`), or the target as it
