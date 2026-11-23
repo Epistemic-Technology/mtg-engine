@@ -748,7 +748,9 @@ creature type replace its others, layers 4, 5, and 7b), `loses all
 abilities and becomes green Snake base 1/1` ("loses all abilities and
 becomes a green Snake ...", layer 6 too), `target creature loses all
 abilities and has base power and toughness 0/1` (Humble: one effect,
-layers 6 and 7b), and `in addition` adds instead of
+layers 6 and 7b), `up to 1 another target creature loses all abilities
+indefinitely` (no duration; without `indefinitely`, until end of turn),
+and `in addition` adds instead of
 replacing: `it becomes black Demon in addition indefinitely` ("it becomes
 a black Demon in addition to its other colors and types"), `up to 2
 target creature each has base power and toughness 3/3, gains flying, and
@@ -2915,6 +2917,13 @@ do` then sees:
 
 - `untap up to 2 land chosen` ("untap up to two lands": tapped permanents,
   anyone's unless the filter names a controller)
+- `choose 1 creature you control chosen; it gains indestructible until end
+  of turn` ("Choose a creature you control. It gains indestructible until
+  end of turn.", CR 608.2d: not targeted; anyone's unless the filter names
+  a controller): nothing is done to it, and `it` after it is the chosen
+  permanent (`choose 1 Giant creature you control chosen; it bites target
+  creature`: "It deals damage equal to its power to target creature.");
+  with none, the sentences about it do nothing
 - `tap 1 other untapped Citizen you control chosen` ("tap another untapped
   Citizen you control"), `tap 2 other untapped creature you control chosen`
 - `sacrifice 1 creature chosen` ("sacrifice a creature")

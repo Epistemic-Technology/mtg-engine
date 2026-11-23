@@ -4202,9 +4202,11 @@ pub enum Effect {
         types: Vec<CardType>,
     },
     /// `target creature loses all abilities` (until end of turn; layer
-    /// 6).
+    /// 6); `... indefinitely`: no duration ("up to one other target
+    /// creature loses all abilities").
     LoseAllAbilities {
         to: Recipient,
+        indefinite: bool,
     },
     /// `target creature loses flying`: until end of turn.
     Strip {

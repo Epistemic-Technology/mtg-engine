@@ -1,0 +1,6 @@
+card "Flourishing Grapple" {
+  oracle_id 6b4f1569-2025-46a8-89ba-79859208b04e
+  cost {G}
+  type Instant
+  spell: target red or white creature or red or white planeswalker an opponent controls loses all abilities until end of turn; target creature you control bites that target 1
+}

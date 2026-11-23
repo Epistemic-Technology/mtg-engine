@@ -7150,8 +7150,14 @@ impl P {
                     && !self.at_words(&["all", "abilities", "and"]) =>
             {
                 self.pos += 2;
-                self.until_end_of_turn();
-                Ok(Effect::LoseAllAbilities { to: subject })
+                let indefinite = self.eat_word("indefinitely");
+                if !indefinite {
+                    self.until_end_of_turn();
+                }
+                Ok(Effect::LoseAllAbilities {
+                    to: subject,
+                    indefinite,
+                })
             }
             "lose" | "loses" if self.keyword_ahead() => {
                 let mut keywords = Vec::new();
@@ -8266,7 +8272,8 @@ impl P {
     /// before the clause ends or another verb starts. `return N <filter>
     /// chosen` alone is `ReturnChosen`.
     fn chosen_act_ahead(&self) -> bool {
-        const VERBS: [&str; 13] = [
+        const VERBS: [&str; 14] = [
+            "choose",
             "tap",
             "untap",
             "transform",
@@ -8284,7 +8291,7 @@ impl P {
         let Some(verb) = self.word_at(0) else {
             return false;
         };
-        if !VERBS[..10].contains(&verb.as_str()) {
+        if !VERBS[..11].contains(&verb.as_str()) {
             return false;
         }
         let mut hand = false;
@@ -8351,6 +8358,13 @@ impl P {
         let mut this_way = false;
         let mut returns = false;
         let (act, filter) = match verb.as_str() {
+            // `choose 1 Giant creature you control chosen; it deals damage
+            // ...`: "Choose a Giant creature you control. It ..." (`it` is
+            // the chosen permanent).
+            "choose" => {
+                self.created_at = Some(self.targets.len());
+                (ChooseAct::Choose, self.filter()?)
+            }
             "tap" => (ChooseAct::Tap, self.filter()?),
             "untap" => (ChooseAct::Untap, self.filter()?),
             "transform" => (ChooseAct::Transform, self.filter()?),

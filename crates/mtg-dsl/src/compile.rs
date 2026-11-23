@@ -3573,14 +3573,14 @@ impl Compiler<'_> {
                 in_addition: false,
             }),
             // Layer 6 alone: an animation that only removes abilities.
-            Effect::LoseAllAbilities { to } => out.push(CoreEffect::Animate {
+            Effect::LoseAllAbilities { to, indefinite } => out.push(CoreEffect::Animate {
                 to: r(*to),
                 types: TypeSet::of([]),
                 subtypes: self.subtypes(&[]),
                 pt: None,
                 colors: None,
                 keywords: KeywordSet::NONE,
-                indefinite: false,
+                indefinite: *indefinite,
                 loses_abilities: true,
                 in_addition: false,
             }),

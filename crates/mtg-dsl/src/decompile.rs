@@ -1363,11 +1363,14 @@ impl Decompiler<'_> {
                 pt: None,
                 colors: None,
                 keywords: kws,
-                indefinite: false,
+                indefinite,
                 loses_abilities: true,
                 in_addition: false,
             } if t.is_empty() && subtypes.is_empty() && kws.is_empty() => {
-                Effect::LoseAllAbilities { to: r(*to) }
+                Effect::LoseAllAbilities {
+                    to: r(*to),
+                    indefinite: *indefinite,
+                }
             }
             CoreEffect::Animate {
                 to,

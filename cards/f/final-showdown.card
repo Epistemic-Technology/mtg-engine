@@ -1,0 +1,10 @@
+card "Final Showdown" {
+  oracle_id 7e7ec3d6-a84f-4cc3-93f4-4d181d41e126
+  cost {W}
+  type Instant
+  spree {
+  mode {1}: every creature loses all abilities until end of turn
+  mode {1}: choose 1 creature you control chosen; it gains indestructible until end of turn
+  mode {3}{W}{W}: destroy all creature
+  }
+}

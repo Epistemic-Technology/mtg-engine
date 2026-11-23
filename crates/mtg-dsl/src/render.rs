@@ -2420,7 +2420,13 @@ fn target_noun(t: &Target) -> String {
             TargetSpec::SpellOr(_) => "spell or permanent".to_string(),
         },
         Target::Filter(f) => {
-            if f.types.contains(&CardType::Creature) {
+            // "creature or planeswalker ... that's red or white": "that
+            // permanent" (Flourishing Grapple).
+            if f.types.contains(&CardType::Creature)
+                && f.or.as_ref().is_none_or(|a| {
+                    a.types.is_empty() || a.types.contains(&CardType::Creature)
+                })
+            {
                 "creature".to_string()
             } else if f.types.contains(&CardType::Land) {
                 "land".to_string()
@@ -2654,12 +2660,19 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
         b.colors = None;
         let mut a = (**alt).clone();
         a.colors = None;
+        // "creature or planeswalker an opponent controls that's red or
+        // white" (Flourishing Grapple): one controller for both, printed
+        // after the second type.
+        if b.who.is_some() && b.who == a.who {
+            b.who = None;
+        }
         if (Filter {
             types: Vec::new(),
             ..b.clone()
         }) == Filter::default()
             && (Filter {
                 types: Vec::new(),
+                who: None,
                 ..a.clone()
             }) == Filter::default()
         {
@@ -8029,10 +8042,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 words.join(" ")
             ))
         }
-        Effect::LoseAllAbilities { to } => {
+        Effect::LoseAllAbilities { to, indefinite } => {
             let s = ctx.subj(*to);
             let v = ctx.verb(*to, "loses", "lose");
-            Clause::with_subject(*to, s, format!("{v} all abilities")).until_eot()
+            let c = Clause::with_subject(*to, s, format!("{v} all abilities"));
+            if *indefinite { c } else { c.until_eot() }
         }
         Effect::Strip { keywords, to } => {
             let s = ctx.subj(*to);
@@ -8401,6 +8415,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(match act {
                 ChooseAct::Tap | ChooseAct::Enlist => format!("tap {}", permanents()),
+                ChooseAct::Choose => format!("choose {}", permanents()),
                 ChooseAct::Untap => format!("untap {}", permanents()),
                 ChooseAct::Transform => format!("transform {}", permanents()),
                 // "sacrifice any number of artifacts, enchantments, and/or

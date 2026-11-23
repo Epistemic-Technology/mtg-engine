@@ -1972,9 +1972,11 @@ impl Fmt {
                 }
                 s
             }
-            Effect::LoseAllAbilities { to } => {
-                format!("{} loses all abilities", self.recipient(*to, t))
-            }
+            Effect::LoseAllAbilities { to, indefinite } => format!(
+                "{} loses all abilities{}",
+                self.recipient(*to, t),
+                if *indefinite { " indefinitely" } else { "" }
+            ),
             Effect::IsNow { to, types } => format!(
                 "{} is now {}",
                 self.recipient(*to, t),
@@ -2741,6 +2743,7 @@ impl Fmt {
                 let cs = cards(*count);
                 match act {
                     ChooseAct::Tap | ChooseAct::Enlist => format!("tap {n} {f} chosen"),
+                    ChooseAct::Choose => format!("choose {n} {f} chosen"),
                     ChooseAct::Untap => format!("untap {n} {f} chosen"),
                     ChooseAct::Transform => format!("transform {n} {f} chosen"),
                     ChooseAct::Sacrifice => format!("sacrifice {n} {f} chosen"),

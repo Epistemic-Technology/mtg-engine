@@ -5751,6 +5751,11 @@ pub enum ChooseAct {
     /// of Human Werewolves you control" (CR 701.27; permanents you
     /// control).
     Transform,
+    /// "Choose a creature you control. It gains indestructible until end
+    /// of turn." (CR 608.2d: not targeted; any controller's unless the
+    /// filter names one): nothing is done to it; the chosen permanent is
+    /// "it" for the rest of the resolution (`Recipient::CreatedObject`).
+    Choose,
 }
 
 /// What a player chooses as a permanent enters ("As this land enters,
