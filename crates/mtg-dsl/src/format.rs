@@ -2029,6 +2029,10 @@ impl Fmt {
                     .collect::<Vec<_>>()
                     .join(" or ")
             ),
+            Effect::AddManaTimes {
+                mana: Mana::Chosen,
+                count: Num::N(n),
+            } => format!("add chosen {n}"),
             Effect::AddManaTimes { mana, count } => {
                 format!(
                     "add {} {}",

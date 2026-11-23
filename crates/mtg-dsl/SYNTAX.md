@@ -2146,7 +2146,7 @@ three mana in any combination of {R} and/or {G}.", "Add two mana of
 different colors."; each mana's color chosen as it is added; `add X mana
 any combination` with the ability's X, `add X mana any combination count
 where creature you control with defender` "Add X mana in any combination
-of colors, where X is the number of ..."), `add chosen` ("Add one mana of
+of colors, where X is the number of ..."), `add chosen 2` ("Add two mana of the chosen color."), `add chosen` ("Add one mana of
 the chosen color."), `add {G} count equal power` ("Add an amount of {G}
 equal to this creature's power."), `add any that land opponent controls
 could produce`, `add any that land you control could produce`, `add any

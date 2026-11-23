@@ -1394,6 +1394,15 @@ impl P {
     #[allow(clippy::too_many_lines)] // one arm per form of `add`
     fn add_effect(&mut self) -> R<Effect> {
         if self.eat_word("chosen") {
+            // `add chosen 2`: "Add two mana of the chosen color."
+            if let Some(Tok::Num(n)) = self.peek() {
+                let n = *n;
+                self.pos += 1;
+                return Ok(Effect::AddManaTimes {
+                    mana: Mana::Chosen,
+                    count: Num::N(n),
+                });
+            }
             return Ok(Effect::AddMana(vec![Mana::Chosen]));
         }
         // CR 903.4f: "one mana of any color in your commander's color

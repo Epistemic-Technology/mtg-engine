@@ -1,0 +1,8 @@
+card "Sunken Citadel" {
+  oracle_id 508189e1-9cef-4f9c-8ff1-078c99a0f603
+  type Land — Cave
+  enters tapped
+  as it enters choose color
+  mana chosen
+  activated {T}: add chosen 2 only to activate abilities of land
+}

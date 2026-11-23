@@ -8268,6 +8268,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             "add {} mana of any one color",
             count_words(*n, "one")
         )),
+        // "Add two mana of the chosen color." (Sunken Citadel)
+        Effect::AddManaTimes {
+            mana: Mana::Chosen,
+            count: n @ Num::N(_),
+        } => Clause::imperative(format!(
+            "add {} mana of the chosen color",
+            count_words(*n, "one")
+        )),
         // "Add six {G}." (Castle Garenbrig), "Add seven {R}."
         Effect::AddManaTimes {
             mana: m @ (Mana::Colored(_) | Mana::Colorless),
