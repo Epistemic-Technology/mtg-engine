@@ -2580,13 +2580,13 @@ impl GameState {
         options: &mut Vec<Choice>,
     ) {
         // CR 702.37c, 708.4: a 2/2 creature spell for {3}, taxed as one.
-        let mut b = self.offer_basis(
+        // (`offer_basis` knows the face-down definition).
+        let b = self.offer_basis(
             p,
             id,
             self.pool.get(self.pool.face_down(false)),
             AltCast::None,
         );
-        b.face_down = true;
         if self.basis_payable(&b, sources, &self.cost_changers()) {
             options.push(Choice::CastFaceDown(id));
         }

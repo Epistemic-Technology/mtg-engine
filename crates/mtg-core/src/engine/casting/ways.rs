@@ -103,7 +103,12 @@ impl GameState {
             alt,
             evoked: false,
             flashback: false,
-            face_down: false,
+            // The face-down 2/2's own definition as a card (random decks
+            // hold it) costs {3} too, as payment charges it.
+            face_down: def
+                .printed
+                .as_ref()
+                .is_some_and(|c| self.pool.is_face_down(c.def)),
             x: 0,
             other: false,
             mode: None,

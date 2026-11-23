@@ -82,3 +82,19 @@ scenario "cast paths: with another artifact to tap, Zahid is cast for its altern
   assert battlefield A contains "Zahid, Djinn of the Lamp"
   assert tapped "Ornithopter"
 }
+
+scenario "cast paths: the face-down creature's own card costs {3}, as payment charges" {
+  battlefield A: 2 "Plains"
+  hand A: "face-down creature"
+  illegal turn 1 A: cast "face-down creature"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "cast paths: with three lands the face-down creature's card is cast" {
+  battlefield A: 3 "Plains"
+  hand A: "face-down creature"
+  turn 1 A: cast "face-down creature"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "face-down creature"
+}
