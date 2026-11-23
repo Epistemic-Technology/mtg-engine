@@ -569,7 +569,12 @@ battlefield otherwise), `gained
 life this turn`, `gained or lost life this turn`, `descended this turn`
 ("you descended this turn", CR 700.11: a permanent card was put into your
 graveyard from anywhere), `surveilled this turn` ("you've surveilled this
-turn"), `counter put this turn` ("a +1/+1 counter was put on a permanent
+turn"), `scried or surveilled this turn` ("you've scried or surveilled this
+turn"; scry 0 and surveil 0 are neither, CR 701.22b, 701.25c), `2
+creatures entered this turn` ("two or more creatures entered the
+battlefield under your control this turn"), `opponent had 2 creatures
+enter this turn` ("an opponent had two or more creatures enter the
+battlefield under their control this turn"), `counter put this turn` ("a +1/+1 counter was put on a permanent
 under your control this turn"), `opponent dealt noncombat damage this turn` ("an opponent has been dealt
 noncombat damage this turn"; `opponent was dealt ...`: "an opponent was
 dealt ..."), `resolution 2` ("this is the second time

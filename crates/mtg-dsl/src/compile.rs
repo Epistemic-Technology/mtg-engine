@@ -2381,6 +2381,13 @@ impl Compiler<'_> {
             StaticCond::DescendedThisTurn => StaticCondition::DescendedThisTurn,
             StaticCond::SpellNumber(n) => StaticCondition::SpellNumber(*n),
             StaticCond::SurveilledThisTurn => StaticCondition::SurveilledThisTurn,
+            StaticCond::ScriedOrSurveilledThisTurn => StaticCondition::ScriedOrSurveilledThisTurn,
+            StaticCond::CreaturesEnteredThisTurn { n, opponent } => {
+                StaticCondition::CreaturesEnteredThisTurn {
+                    n: *n,
+                    opponent: *opponent,
+                }
+            }
             StaticCond::CounterPutThisTurn => StaticCondition::CounterPutThisTurn,
             StaticCond::FaceDownEnteredThisTurn => StaticCondition::FaceDownEnteredThisTurn,
             StaticCond::CreatureEnteredThisTurn { other } => {

@@ -7776,6 +7776,12 @@ impl GameState {
             self.turn_log.surveilled |= 1 << p.index().min(7);
             self.history_bump();
         }
+        // "If you've scried or surveilled this turn" (CR 701.22b: scry 0
+        // is no scry).
+        if !graveyard && n > 0 && self.turn_log.scried & (1 << p.index().min(7)) == 0 {
+            self.turn_log.scried |= 1 << p.index().min(7);
+            self.history_bump();
+        }
         let lib = &self.player(p).library;
         let n = (n as usize).min(lib.len()).min(4);
         if n == 0 {

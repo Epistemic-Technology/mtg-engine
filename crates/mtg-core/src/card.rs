@@ -2757,6 +2757,8 @@ pub enum StaticCondition {
     SpellNumber(u32),
     /// "you've surveilled this turn" (CR 701.25).
     SurveilledThisTurn,
+    /// "you've scried or surveilled this turn" (CR 701.22, 701.25).
+    ScriedOrSurveilledThisTurn,
     /// "a +1/+1 counter was put on a permanent under your control this
     /// turn".
     CounterPutThisTurn,
@@ -2767,6 +2769,13 @@ pub enum StaticCondition {
     /// turn" (`other`: not counting the source's own entry).
     CreatureEnteredThisTurn {
         other: bool,
+    },
+    /// "two or more creatures entered the battlefield under your control
+    /// this turn"; with `opponent`, "an opponent had two or more creatures
+    /// enter the battlefield under their control this turn".
+    CreaturesEnteredThisTurn {
+        n: u8,
+        opponent: bool,
     },
     /// Celebration: "two or more nonland permanents entered the
     /// battlefield under your control this turn".
@@ -9939,6 +9948,7 @@ impl CardPool {
                     | StaticCondition::CardToGraveyardThisTurn(_)
                     | StaticCondition::SacrificedThisTurn(_)
                     | StaticCondition::SurveilledThisTurn
+                    | StaticCondition::ScriedOrSurveilledThisTurn
                     | StaticCondition::OpponentDamagedThisTurn
                     | StaticCondition::OpponentLostLifeThisTurn
                     | StaticCondition::AttackedWith(_)

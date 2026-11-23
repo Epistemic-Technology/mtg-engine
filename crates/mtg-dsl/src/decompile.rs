@@ -667,6 +667,13 @@ impl Decompiler<'_> {
             StaticCondition::DescendedThisTurn => StaticCond::DescendedThisTurn,
             StaticCondition::SpellNumber(n) => StaticCond::SpellNumber(*n),
             StaticCondition::SurveilledThisTurn => StaticCond::SurveilledThisTurn,
+            StaticCondition::ScriedOrSurveilledThisTurn => StaticCond::ScriedOrSurveilledThisTurn,
+            StaticCondition::CreaturesEnteredThisTurn { n, opponent } => {
+                StaticCond::CreaturesEnteredThisTurn {
+                    n: *n,
+                    opponent: *opponent,
+                }
+            }
             StaticCondition::CounterPutThisTurn => StaticCond::CounterPutThisTurn,
             StaticCondition::FaceDownEnteredThisTurn => StaticCond::FaceDownEnteredThisTurn,
             StaticCondition::CreatureEnteredThisTurn { other } => {

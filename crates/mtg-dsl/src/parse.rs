@@ -3942,6 +3942,28 @@ impl P {
             self.expect_words(&["creatures", "died", "this", "turn"])?;
             return Ok(StaticCond::CreaturesDied { n, yours: false });
         }
+        if matches!(self.peek(), Some(Tok::Num(_)))
+            && self.word_at(1).as_deref() == Some("creatures")
+            && self.word_at(2).as_deref() == Some("entered")
+        {
+            let n = self.number()?;
+            self.expect_words(&["creatures", "entered", "this", "turn"])?;
+            return Ok(StaticCond::CreaturesEnteredThisTurn {
+                n: u8::try_from(n).unwrap_or(u8::MAX),
+                opponent: false,
+            });
+        }
+        if self.eat_words(&["opponent", "had"]) {
+            let n = self.number()?;
+            self.expect_words(&["creatures", "enter", "this", "turn"])?;
+            return Ok(StaticCond::CreaturesEnteredThisTurn {
+                n: u8::try_from(n).unwrap_or(u8::MAX),
+                opponent: true,
+            });
+        }
+        if self.eat_words(&["scried", "or", "surveilled", "this", "turn"]) {
+            return Ok(StaticCond::ScriedOrSurveilledThisTurn);
+        }
         if self.eat_words(&["total", "toughness"]) {
             let n = self.number()?;
             self.expect_words(&["or", "more"])?;

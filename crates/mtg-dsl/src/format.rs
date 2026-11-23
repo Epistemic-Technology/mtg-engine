@@ -5402,6 +5402,13 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::DescendedThisTurn => "descended this turn".to_string(),
         StaticCond::SpellNumber(n) => format!("spell number {n} this turn"),
         StaticCond::SurveilledThisTurn => "surveilled this turn".to_string(),
+        StaticCond::ScriedOrSurveilledThisTurn => "scried or surveilled this turn".to_string(),
+        StaticCond::CreaturesEnteredThisTurn { n, opponent: false } => {
+            format!("{n} creatures entered this turn")
+        }
+        StaticCond::CreaturesEnteredThisTurn { n, opponent: true } => {
+            format!("opponent had {n} creatures enter this turn")
+        }
         StaticCond::CounterPutThisTurn => "counter put this turn".to_string(),
         StaticCond::FaceDownEnteredThisTurn => "face-down creature entered this turn".to_string(),
         StaticCond::CreatureEnteredThisTurn { other } => format!(

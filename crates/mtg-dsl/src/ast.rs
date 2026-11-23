@@ -2436,6 +2436,17 @@ pub enum StaticCond {
     CreatureEnteredThisTurn {
         other: bool,
     },
+    /// `scried or surveilled this turn`: "you've scried or surveilled this
+    /// turn".
+    ScriedOrSurveilledThisTurn,
+    /// `2 creatures entered this turn` ("two or more creatures entered the
+    /// battlefield under your control this turn"), `opponent had 2
+    /// creatures enter this turn` ("an opponent had two or more creatures
+    /// enter the battlefield under their control this turn").
+    CreaturesEnteredThisTurn {
+        n: u8,
+        opponent: bool,
+    },
     /// `2 nonland entered this turn` (celebration): "two or more nonland
     /// permanents entered the battlefield under your control this turn".
     NonlandEnteredThisTurn(u32),

@@ -1,0 +1,8 @@
+card "Spider-UK" {
+  oracle_id ebf8d006-2997-431b-b4cb-9692741b45ca
+  cost {3}{W}
+  type Legendary Creature — Spider Human Hero
+  pt 3/4
+  web slinging {2}{W}
+  triggered at beginning of your end step if 2 creatures entered this turn: you draw 1 card and gain 2 life
+}

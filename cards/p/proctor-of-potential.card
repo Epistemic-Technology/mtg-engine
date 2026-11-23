@@ -1,0 +1,8 @@
+card "Proctor of Potential" {
+  oracle_id c612ba0a-5134-45fa-a762-f4621bda4f83
+  cost {W}{U}
+  type Creature — Human Cleric
+  pt 3/1
+  triggered whenever this or creature you control enters: surveil 1
+  activated {W}{U}, from graveyard, if scried or surveilled this turn: return this to battlefield with 1 finality counter
+}

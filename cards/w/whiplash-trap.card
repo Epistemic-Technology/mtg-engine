@@ -1,0 +1,7 @@
+card "Whiplash Trap" {
+  oracle_id 1bd26692-c030-4493-883e-2d26b3a1d025
+  cost {3}{U}{U}
+  type Instant — Trap
+  alternative cost {U}, if opponent had 2 creatures enter this turn
+  spell: return two target creatures to hand
+}
