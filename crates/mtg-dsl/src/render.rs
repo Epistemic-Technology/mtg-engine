@@ -3443,7 +3443,7 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
             }
             CostItem::RemoveCounters => {
                 if let Some((k, n)) = cost.remove_counters {
-                    let what = counters(Num::N(n), k);
+                    let what = counters(if cost.remove_x { Num::X } else { Num::N(n) }, k);
                     let src = ctx.source();
                     parts.push(format!("Remove {what} from {src}"));
                 }

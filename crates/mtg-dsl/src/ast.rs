@@ -774,6 +774,9 @@ pub struct Cost {
     /// creatures"; `may sacrifice any number Spirit` (2): "you may
     /// sacrifice any number of Spirits".
     pub sacrifice_any: u8,
+    /// `remove X ki counters from this`: "Remove X ki counters from this
+    /// creature", X the ability's.
+    pub remove_x: bool,
 }
 
 /// `behold Kithkin`: "behold a Kithkin" (CR 701.69a); `and exile`: "and

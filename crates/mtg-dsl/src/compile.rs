@@ -2638,6 +2638,7 @@ impl Compiler<'_> {
             process: c.process,
             remove_from_creature: c.remove_from_creature,
             sacrifice_any: c.sacrifice_any,
+            remove_x: c.remove_x,
             chosen: c.chosen,
             life: c.life,
             discard: c.discard,

@@ -674,7 +674,11 @@ a counter from this creature": any kind; the engine removes -1/-1 counters
 first, then kinds that don't change power or toughness, then the rest),
 `remove 1 +1/+1 counter from creature you control` ("Remove a +1/+1
 counter from a creature you control": the engine takes it from the
-creature with the most such counters, the source included), or
+creature with the most such counters, the source included),
+`remove X ki counters from this` ("Remove X ki counters from this
+creature": X is the ability's, announced as it is activated, at most the
+counters of that kind on the source; with {X} in the mana cost too, the
+same X; not in a mana ability), or
 `put 1 -1/-1 counter on this`
 ("Put a -1/-1 counter on this creature", CR 118.3: put on as the cost is
 paid, so a creature it kills is gone before the ability resolves; a mana

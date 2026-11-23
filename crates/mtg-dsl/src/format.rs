@@ -4706,7 +4706,11 @@ fn cost_text(c: &Cost) -> String {
                     } else {
                         "this"
                     };
-                    parts.push(format!("remove {n} {} from {from}", counter(k, Num::N(n))));
+                    if c.remove_x {
+                        parts.push(format!("remove X {} from {from}", counter(k, Num::X)));
+                    } else {
+                        parts.push(format!("remove {n} {} from {from}", counter(k, Num::N(n))));
+                    }
                 }
             }
             CostItem::PutCounters => {

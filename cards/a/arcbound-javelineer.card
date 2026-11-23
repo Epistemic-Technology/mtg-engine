@@ -1,0 +1,8 @@
+card "Arcbound Javelineer" {
+  oracle_id 48e3f6dd-68ab-420a-ad4d-fe7ee39486d3
+  cost {W}
+  type Artifact Creature — Soldier
+  pt 0/1
+  activated {T}, remove X +1/+1 counters from this: deal X damage to target attacking or blocking creature
+  modular 1
+}

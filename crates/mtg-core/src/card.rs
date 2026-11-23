@@ -6884,6 +6884,11 @@ pub struct Cost {
     /// rest). 0: none.
     #[serde(default)]
     pub sacrifice_any: u8,
+    /// "Remove X ki counters from this creature" (CR 107.3, 602.2b): the
+    /// `remove_counters` count is the ability's X, announced as it is
+    /// activated, at most the source's counters of that kind.
+    #[serde(default)]
+    pub remove_x: bool,
 }
 
 /// A behold cost (CR 701.69a): `n` objects matching `filter`, each a
@@ -6973,6 +6978,7 @@ impl Cost {
             process: 0,
             remove_from_creature: false,
             sacrifice_any: 0,
+            remove_x: false,
         }
     }
 

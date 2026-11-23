@@ -13982,7 +13982,13 @@ impl P {
                         }) =>
                     {
                         self.pos += 1;
-                        let n = self.count()?;
+                        // `remove X ki counters from this` (X the ability's).
+                        let n = if self.eat_word("x") {
+                            cost.remove_x = true;
+                            0
+                        } else {
+                            self.count()?
+                        };
                         // `remove 1 counter from this`: any kind.
                         let k = if self.eat_word("counter") || self.eat_word("counters") {
                             CounterKind::Any

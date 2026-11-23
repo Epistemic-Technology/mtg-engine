@@ -5354,6 +5354,7 @@ impl GameState {
         let has_x = matches!(
             self.pool.ability(ability),
             AbilityDef::Activated(a) if (a.cost.mana.has_x()
+                || a.cost.remove_x
                 || a.cost.exile_cards.as_ref().is_some_and(|g| g.x))
                 && !a.is_mana_ability()
         );
@@ -5517,6 +5518,15 @@ impl GameState {
             max_x.min(u32::try_from(self.player(caster).life.max(0)).unwrap_or(0))
         } else {
             max_x
+        };
+        // "Remove X ki counters from this creature": no more than it has.
+        let max_x = match ability {
+            Some((source, a)) if a.cost.remove_x => {
+                let k = a.cost.remove_counters.map_or(CounterKind::Any, |(k, _)| k);
+                let n = self.objects.get(source).map_or(0, |o| o.counters(k));
+                max_x.min(n)
+            }
+            _ => max_x,
         };
         // "sacrifice any number of creatures": no more than there are.
         let max_x = match &add.sacrifice {
@@ -6218,7 +6228,10 @@ impl GameState {
             // X announced (CR 602.2b, 601.2b).
             // "Pay X life" likewise (CR 119.4, 602.2b): the ability's X,
             // not the source's.
-            if ab.cost.life_x || ab.cost.exile_cards.as_ref().is_some_and(|g| g.x) {
+            if ab.cost.life_x
+                || ab.cost.remove_x
+                || ab.cost.exile_cards.as_ref().is_some_and(|g| g.x)
+            {
                 let mut cost = ab.cost.clone();
                 if let Some(g) = &mut cost.exile_cards
                     && g.x
@@ -6228,6 +6241,11 @@ impl GameState {
                 if cost.life_x {
                     cost.life_x = false;
                     cost.life = cost.life.saturating_add(s.x_of(obj));
+                }
+                if cost.remove_x
+                    && let Some((_, n)) = &mut cost.remove_counters
+                {
+                    *n = s.x_of(obj);
                 }
                 s.pay_other_costs(controller, &cost, sa.source, sacrifice, discard);
             } else {
