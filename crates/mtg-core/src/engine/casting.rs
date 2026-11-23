@@ -4554,8 +4554,10 @@ impl GameState {
         self.objects[id].def = other;
         let flags = self.flags_of(&self.objects[id]);
         self.count_sources(flags, self.pool.get(other).is_legendary(), true);
-        self.emit(Event::Transformed { obj: id });
+        // Before the event: what watches it reads characteristics, and the
+        // "can't transform" check above cached the other face's.
         self.cbump();
+        self.emit(Event::Transformed { obj: id });
         true
     }
 

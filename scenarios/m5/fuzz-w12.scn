@@ -1,0 +1,33 @@
+# Faults a 400-pair debug-build fuzz sweep found before the eleventh wave.
+# (Also fixed, visible only to the debug assertions: the transform event
+# read a stale cache; a new turn and an effect ending did not mark the
+# state-based check; a seventh subtype tripped an assertion.)
+
+# A hand-size count through a multiple was not re-read as the hand
+# changed.
+scenario "Masumaro's power follows the hand as cards are drawn" {
+  battlefield A: "Masumaro, First to Live"
+  hand A: 2 "Forest"
+  library A: 6 "Island"
+  library B: 6 "Island"
+  start turn 1 A precombat_main
+  assert power "Masumaro, First to Live" 4
+  run_to turn 3 precombat_main
+  assert hand A count 3
+  assert power "Masumaro, First to Live" 6
+  assert toughness "Masumaro, First to Live" 6
+}
+
+# "Modified" inside a static's count asked for finished characteristics
+# from inside the layer pass.
+scenario "Upriser Renegade counts other modified creatures" {
+  battlefield A: "Upriser Renegade", "Hill Giant", "Grizzly Bears" with 1 +1/+1
+  start turn 1 A precombat_main
+  assert power "Upriser Renegade" 3
+}
+
+scenario "Upriser Renegade alone has its printed power" {
+  battlefield A: "Upriser Renegade", "Hill Giant"
+  start turn 1 A precombat_main
+  assert power "Upriser Renegade" 1
+}

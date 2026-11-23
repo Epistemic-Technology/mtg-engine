@@ -111,11 +111,15 @@ impl Work<'_> {
         // "Creatures you control that are enchanted" (CR 303.4), "equipped
         // creatures": judged with the Auras' and Equipment's working
         // characteristics (`status_ok` would ask the cache being built).
-        let attached = filter.status.enchanted.is_some() || filter.status.equipped;
+        // "Modified" (CR 700.9) likewise asks what is attached (Upriser
+        // Renegade's count of other modified creatures).
+        let attached =
+            filter.status.enchanted.is_some() || filter.status.equipped || filter.status.modified;
         let rest = if attached {
             let mut g = filter.clone();
             g.status.enchanted = None;
             g.status.equipped = false;
+            g.status.modified = false;
             std::borrow::Cow::Owned(g)
         } else {
             std::borrow::Cow::Borrowed(filter)
@@ -163,11 +167,20 @@ impl Work<'_> {
                     && self.chars[self.index[a]].has_subtype(sub)
             })
         };
+        let is = |a: ObjId, sub: Subtype| {
+            self.index
+                .get(&a)
+                .is_some_and(|i| self.chars[*i].has_subtype(sub))
+        };
         filter
             .status
             .enchanted
             .is_none_or(|e| has(Subtype::AURA) == e)
             && (!filter.status.equipped || has(Subtype::EQUIPMENT))
+            && (!filter.status.modified
+                || self
+                    .state
+                    .modified(id, |a| is(a, Subtype::EQUIPMENT), |a| is(a, Subtype::AURA)))
     }
 }
 
@@ -1553,8 +1566,10 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
             c.subtypes.retain(|s| s.basic_color().is_none());
             c.subtypes.push(Subtype::basic(*color));
         }
+        // A permanent keeps at most six subtypes: a seventh given by an
+        // effect is dropped (Mistform Sliver activated over and over).
         Modification::AddSubtype(s) => {
-            if !c.subtypes.contains(s) {
+            if !c.subtypes.contains(s) && !c.subtypes.is_full() {
                 c.subtypes.push(*s);
             }
         }

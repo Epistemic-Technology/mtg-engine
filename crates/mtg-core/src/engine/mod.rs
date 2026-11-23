@@ -3419,6 +3419,11 @@ impl GameState {
         self.replacements.retain(|e| e.duration != ends);
         self.rules.retain(|e| e.duration != ends);
         self.player_grants.retain(|g| g.duration != ends);
+        // What an effect gave may have kept an Aura or Equipment legally
+        // attached, or a creature alive (CR 704.5).
+        if !ended.is_empty() {
+            self.sba_touch();
+        }
         for affected in ended {
             self.emit(Event::EffectEnded { affected });
         }
@@ -3467,6 +3472,11 @@ impl GameState {
         // CR 603.7c: "when that creature dies this turn" ends unfired.
         if !self.delayed_triggers.is_empty() {
             self.delayed_triggers.retain(|d| !d.this_turn);
+        }
+        // What an effect gave may have kept an Aura or Equipment legally
+        // attached, or a creature alive (CR 704.5).
+        if !ended.is_empty() {
+            self.sba_touch();
         }
         for affected in ended {
             self.emit(Event::EffectEnded { affected });
@@ -3678,6 +3688,12 @@ impl GameState {
             self.turn_started_at = self.next_timestamp;
             self.turn_number += 1;
             self.resolutions_this_turn = 0;
+            // "During turns other than yours, this Vehicle is an artifact
+            // creature" (Midnight Mangler): a new turn can stop a
+            // permanent being a creature, and an Aura on it is then
+            // illegally attached (CR 704.5m). Once a turn costs nothing
+            // worth a flag.
+            self.sba_touch();
             self.extra_phases.clear();
             self.resume_step = None;
             self.combats_this_turn = 0;

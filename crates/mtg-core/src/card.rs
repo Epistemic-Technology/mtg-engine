@@ -970,6 +970,11 @@ impl<T: Copy + Default + PartialEq, const N: usize> FixedVec<T, N> {
         }
     }
 
+    /// Whether another `push` would be dropped.
+    pub fn is_full(&self) -> bool {
+        usize::from(self.len) >= N
+    }
+
     pub fn as_slice(&self) -> &[T] {
         &self.items[..usize::from(self.len)]
     }
@@ -2274,6 +2279,18 @@ impl CountExpr {
     pub fn divide(n: u32, by: u32, up: bool) -> u32 {
         let by = by.max(1);
         if up { n.div_ceil(by) } else { n / by }
+    }
+
+    /// Whether the count is the cards in a hand, possibly multiplied: a
+    /// static that reads it must be re-read as hands change.
+    pub fn reads_hand(&self) -> bool {
+        match self {
+            CountExpr::CardsInHand => true,
+            CountExpr::Times(_, inner)
+            | CountExpr::Plus(_, inner)
+            | CountExpr::AtLeast(_, inner) => inner.reads_hand(),
+            _ => false,
+        }
     }
 
     /// Whether the count reads the turn's history, so a static ability
@@ -10838,8 +10855,10 @@ impl CardPool {
         def.hand_static = def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::Static(sa) if sa.parts.iter().any(|m| matches!(
                 m,
-                Modification::ModifyPtPer { count: CountExpr::CardsInHand, .. }
-                    | Modification::CdaPt { count: CountExpr::CardsInHand, .. }
+                // Through a multiple ("twice the number of cards in your
+                // hand", Masumaro, First to Live).
+                Modification::ModifyPtPer { count, .. } | Modification::CdaPt { count, .. }
+                    if count.reads_hand()
             )) || matches!(sa.condition, Some(
                 StaticCondition::CardsInHand { .. }
                     | StaticCondition::MoreCardsInHand
