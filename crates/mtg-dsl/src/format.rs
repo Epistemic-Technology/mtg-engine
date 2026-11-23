@@ -7021,6 +7021,34 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 if *opponents { " opponents" } else { "" }
             );
         }
+        Ability::CastFree {
+            spells,
+            from_hand,
+            max,
+            limit,
+        } => {
+            use mtg_core::card::FreeCastLimit;
+            let mut s = format!("{indent}cast free");
+            match limit {
+                FreeCastLimit::Always => {}
+                FreeCastLimit::OnceYourTurns => s.push_str(" once your turns"),
+                FreeCastLimit::FirstEachPlayer => s.push_str(" first each player"),
+            }
+            if *from_hand {
+                s.push_str(" from hand");
+            }
+            s.push_str(" spells");
+            if *spells != Filter::default() {
+                let _ = write!(s, " {}", filter(spells));
+            }
+            if let Some(m) = max {
+                let _ = match m {
+                    crate::ast::CountExpr::Permanents(f) => write!(s, " max count {}", filter(f)),
+                    other => write!(s, " max {}", count_expr_text(other)),
+                };
+            }
+            let _ = writeln!(out, "{s}");
+        }
         Ability::PlayFromTop {
             lands,
             spells,

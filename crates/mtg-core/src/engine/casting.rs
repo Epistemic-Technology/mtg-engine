@@ -29,6 +29,7 @@ impl GameState {
         let sources = self.mana_sources(p);
         let pool = ps.mana_pool;
         let changers = self.cost_changers();
+        let free_from_hand = self.player_static_sources > 0 && self.may_cast_free(p);
         for id in &ps.hand {
             let def = self.pool.get(self.objects[*id].def);
             // Abilities activated from the hand (cycling, CR 702.29) cost
@@ -178,6 +179,15 @@ impl GameState {
                 && self.undone_cast != Some((*id, self.version))
             {
                 options.push(Choice::Cast(*id));
+            }
+            // "You may cast spells from your hand without paying their
+            // mana costs." (Omniscience), with the usual timing.
+            if free_from_hand
+                && (sorcery_timing || def.is_instant() || self.has_flash(p, def, *id))
+                && self.free_cast_permission(p, *id).is_some()
+                && self.exile_castable(p, *id, AltCast::Free)
+            {
+                options.push(Choice::CastFree(*id));
             }
             // Most cards have no other way to be cast from the hand.
             if !def.other_casts {
@@ -780,6 +790,7 @@ impl GameState {
                 Choice::Cast(id)
                 | Choice::CastEvoke(id)
                 | Choice::CastDash(id)
+                | Choice::CastFree(id)
                 | Choice::CastWarp(id)
                 | Choice::CastSneak(id)
                 | Choice::CastAlt(id)
@@ -808,6 +819,7 @@ impl GameState {
                 Choice::Cast(_)
                 | Choice::CastEvoke(_)
                 | Choice::CastDash(_)
+                | Choice::CastFree(_)
                 | Choice::CastWarp(_)
                 | Choice::CastSneak(_)
                 | Choice::CastAlt(_)
@@ -868,6 +880,7 @@ impl GameState {
             Choice::Cast(id)
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
+            | Choice::CastFree(id)
             | Choice::CastWarp(id)
             | Choice::CastSneak(id)
             | Choice::CastWebSlinging(id)
@@ -3116,6 +3129,102 @@ impl GameState {
             }
         }
         out
+    }
+
+    /// Whether any permanent gives `p` a static permission to cast spells
+    /// from their hand without paying their mana costs
+    /// (`AbilityDef::CastFree`), before looking at the cards.
+    #[cold]
+    #[inline(never)]
+    pub(super) fn may_cast_free(&self, p: PlayerId) -> bool {
+        self.battlefield.iter().any(|src| {
+            let s = &self.objects[*src];
+            self.flags_of(s).has_player_static()
+                && self.pool.get(s.def).ability_ids.iter().any(|a| {
+                    matches!(self.pool.ability(*a), AbilityDef::CastFree { limit, .. }
+                        if s.controller == p || *limit == crate::card::FreeCastLimit::FirstEachPlayer)
+                })
+        })
+    }
+
+    /// The static permission (`AbilityDef::CastFree`) that lets `p` cast
+    /// `card` from their hand without paying its mana cost now (CR 601.2b,
+    /// 118.9): its source and ability, and whether it is used once each
+    /// turn.
+    pub(super) fn free_cast_permission(
+        &self,
+        p: PlayerId,
+        card: ObjId,
+    ) -> Option<(ObjId, crate::card::AbilityId, bool)> {
+        use crate::card::FreeCastLimit;
+        let o = self.objects.get(card)?;
+        if o.zone != Zone::Hand || o.owner != p {
+            return None;
+        }
+        let def = self.pool.get(o.def);
+        let chars = self.base_characteristics(o);
+        for src in &self.battlefield {
+            let s = &self.objects[*src];
+            if !self.flags_of(s).has_player_static() {
+                continue;
+            }
+            for a in &self.pool.get(s.def).ability_ids {
+                let AbilityDef::CastFree {
+                    spells, max, limit, ..
+                } = self.pool.ability(*a)
+                else {
+                    continue;
+                };
+                let ok_player = match limit {
+                    FreeCastLimit::Always => s.controller == p,
+                    FreeCastLimit::OnceYourTurns => {
+                        s.controller == p
+                            && self.active_player == p
+                            && !self.activated_once.contains(&(*src, *a))
+                    }
+                    FreeCastLimit::FirstEachPlayer => {
+                        self.active_player == p && self.spells_this_turn[p.index().min(3)] == 0
+                    }
+                };
+                if !ok_player {
+                    continue;
+                }
+                let mv = def.mana_cost.mana_value();
+                // The mana value isn't a characteristic `matches` sees.
+                if !spells
+                    .mana_value
+                    .is_none_or(|(cmp, n)| cmp.holds(mv, u32::from(n)))
+                    || !spells.matches(card, p, &chars, Some(*src), Some(s.controller))
+                {
+                    continue;
+                }
+                if let Some(m) = max {
+                    let ctx = EffectCtx {
+                        source: *src,
+                        controller: s.controller,
+                        targets: Vec::new(),
+                        division: Vec::new(),
+                        legal: Vec::new(),
+                        trigger_obj: None,
+                        trigger_player: None,
+                        trigger_amount: 0,
+                        created: None,
+                        revealed: Vec::new(),
+                        x: 0,
+                        did: true,
+                        chosen: Chosen::None,
+                        couldnt: 0,
+                        created_tokens: SmallVec::new(),
+                        counts: None,
+                    };
+                    if mv > self.eval_count(m, &ctx) {
+                        continue;
+                    }
+                }
+                return Some((*src, *a, *limit == FreeCastLimit::OnceYourTurns));
+            }
+        }
+        None
     }
 
     /// CR 607.2a, 601.3: the cards exiled with permanents `p` controls

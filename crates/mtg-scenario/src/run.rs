@@ -1383,6 +1383,7 @@ impl Runner {
                     evoked,
                     dashed,
                     warped,
+                    free,
                     sneaked,
                     webslung,
                     impending,
@@ -1403,6 +1404,8 @@ impl Runner {
                         Choice::CastDash(self.in_hand(a.line, d.player, name)?)
                     } else if *warped {
                         Choice::CastWarp(self.in_hand(a.line, d.player, name)?)
+                    } else if *free {
+                        Choice::CastFree(self.in_hand(a.line, d.player, name)?)
                     } else if *sneaked {
                         Choice::CastSneak(self.in_hand(a.line, d.player, name)?)
                     } else if *impending {
@@ -1463,6 +1466,7 @@ impl Runner {
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
             | Choice::CastWarp(id)
+            | Choice::CastFree(id)
             | Choice::CastSneak(id)
             | Choice::CastWebSlinging(id)
             | Choice::CastImpending(id)
@@ -3009,6 +3013,7 @@ impl Runner {
             Choice::CastEvoke(id) => format!("cast {} evoked", self.describe_ids(&[*id])),
             Choice::CastDash(id) => format!("cast {} dashed", self.describe_ids(&[*id])),
             Choice::CastWarp(id) => format!("cast {} warped", self.describe_ids(&[*id])),
+            Choice::CastFree(id) => format!("cast {} free", self.describe_ids(&[*id])),
             Choice::CastSneak(id) => format!("cast {} sneaked", self.describe_ids(&[*id])),
             Choice::CastImpending(id) => {
                 format!("cast {} impending", self.describe_ids(&[*id]))

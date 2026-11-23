@@ -242,6 +242,9 @@ pub enum Choice {
     CastDash(ObjId),
     /// Cast a card from hand for its warp cost (CR 702.185a).
     CastWarp(ObjId),
+    /// Cast a card from hand without paying its mana cost, by a static
+    /// permission (`AbilityDef::CastFree`: Omniscience).
+    CastFree(ObjId),
     /// Cast a card from hand for its sneak cost (CR 702.190a); the
     /// unblocked attacker to return is chosen with the costs.
     CastSneak(ObjId),
@@ -383,6 +386,7 @@ impl Choice {
             Choice::CastEvoke(id) => format!("cast {} for its evoke cost", name(id)),
             Choice::CastDash(id) => format!("cast {} for its dash cost", name(id)),
             Choice::CastWarp(id) => format!("cast {} for its warp cost", name(id)),
+            Choice::CastFree(id) => format!("cast {} without paying its mana cost", name(id)),
             Choice::CastSneak(id) => format!("cast {} for its sneak cost", name(id)),
             Choice::CastImpending(id) => format!("cast {} for its impending cost", name(id)),
             Choice::CastWebSlinging(id) => {

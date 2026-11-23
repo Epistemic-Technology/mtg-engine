@@ -197,6 +197,7 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         // Warp shares dash's slot (an alternative cost from the hand).
         Choice::CastDash(_)
         | Choice::CastWarp(_)
+        | Choice::CastFree(_)
         | Choice::CastSneak(_)
         | Choice::CastWebSlinging(_)
         | Choice::CastImpending(_) => 37,
@@ -419,6 +420,7 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
             | Choice::CastWarp(id)
+            | Choice::CastFree(id)
             | Choice::CastSneak(id)
             | Choice::CastWebSlinging(id)
             | Choice::CastImpending(id)

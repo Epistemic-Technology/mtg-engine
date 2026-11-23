@@ -1,0 +1,6 @@
+card "Omnipresence" {
+  oracle_id 8dad1fa8-3533-4e3c-b9b3-fcd57b20a33d
+  cost {5}{G}{G}{G}
+  type Enchantment
+  cast free from hand spells max count creature you control
+}

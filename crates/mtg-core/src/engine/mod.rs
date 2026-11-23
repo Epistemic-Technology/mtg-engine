@@ -1974,6 +1974,14 @@ impl GameState {
                     self.harmonized.push((spell, c, power));
                 }
             }
+            // "You may cast spells from your hand without paying their
+            // mana costs." (CR 118.9); a once-each-turn permission is used.
+            (Flow::Priority, Choice::CastFree(card)) => {
+                if let Some((src, a, true)) = self.free_cast_permission(player, card) {
+                    self.activated_once.push((src, a));
+                }
+                self.begin_cast(player, card, crate::state::AltCast::Free);
+            }
             (Flow::Priority, Choice::CastWarp(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::Warp);
             }

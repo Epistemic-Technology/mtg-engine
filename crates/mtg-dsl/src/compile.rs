@@ -6569,6 +6569,17 @@ impl Compiler<'_> {
             Ability::AsTurnedFaceUp { kind, n, .. } => {
                 AbilityDef::AsTurnedFaceUp { kind: *kind, n: *n }
             }
+            Ability::CastFree {
+                spells,
+                from_hand,
+                max,
+                limit,
+            } => AbilityDef::CastFree {
+                spells: self.filter(spells),
+                from_hand: *from_hand,
+                max: max.as_ref().map(|c| self.count_expr(c)),
+                limit: *limit,
+            },
             Ability::PlayFromTop {
                 lands,
                 spells,

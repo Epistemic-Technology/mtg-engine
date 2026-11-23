@@ -5934,6 +5934,22 @@ pub enum PlayerStaticKind {
     FirstEquipFree { your_turns: bool },
 }
 
+/// How often a static free-cast permission may be used
+/// (`AbilityDef::CastFree`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum FreeCastLimit {
+    /// Any number of spells.
+    #[default]
+    Always,
+    /// "Once during each of your turns, you may cast ...": one spell in
+    /// each of the controller's turns.
+    OnceYourTurns,
+    /// "The first spell each player casts during each of their turns may
+    /// be cast without paying its mana cost.": every player, the first
+    /// spell in each of their own turns.
+    FirstEachPlayer,
+}
+
 /// Effects that modify the rules rather than objects (CR 613.11, 614.17).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum RuleKind {
@@ -8123,6 +8139,22 @@ pub enum AbilityDef {
         spells: Option<ObjFilter>,
         once: bool,
     },
+    /// "You may cast spells from your hand without paying their mana
+    /// costs." (Omniscience; CR 601.2b, 118.9): the controller may cast
+    /// spells matching `spells` from their hand without paying their mana
+    /// costs, with the usual timing (`Choice::CastFree`). `from_hand`
+    /// false: the text names no zone ("You may cast Dragon spells without
+    /// paying their mana costs."; only the hand is offered). `max`: "with
+    /// mana value less than or equal to <count>" (judged for the source).
+    /// `limit`: once during each of the controller's turns, or the first
+    /// spell each player casts during each of their turns (for every
+    /// player).
+    CastFree {
+        spells: ObjFilter,
+        from_hand: bool,
+        max: Option<CountExpr>,
+        limit: FreeCastLimit,
+    },
     /// "You may cast spells from among cards exiled with this creature.",
     /// "You may play lands and cast spells from among ...", "During your
     /// turn, you may play cards exiled with this artifact." (`your_turn`):
@@ -8196,6 +8228,7 @@ impl AbilityDef {
             | AbilityDef::ExtraVote { .. }
             | AbilityDef::MayLook { .. }
             | AbilityDef::PlayFromTop { .. }
+            | AbilityDef::CastFree { .. }
             | AbilityDef::PlayExiled { .. }
             | AbilityDef::TopRevealed { .. }
             | AbilityDef::AsTurnedFaceUp { .. }
@@ -8235,6 +8268,7 @@ impl AbilityDef {
             | AbilityDef::ExtraVote { .. }
             | AbilityDef::MayLook { .. }
             | AbilityDef::PlayFromTop { .. }
+            | AbilityDef::CastFree { .. }
             | AbilityDef::PlayExiled { .. }
             | AbilityDef::TopRevealed { .. }
             | AbilityDef::AsTurnedFaceUp { .. }
@@ -10656,7 +10690,9 @@ impl CardPool {
             def.abilities.iter().any(|a| {
                 matches!(
                     a,
-                    AbilityDef::PlayerStatic { .. } | AbilityDef::TriggerAgain { .. }
+                    AbilityDef::PlayerStatic { .. }
+                        | AbilityDef::TriggerAgain { .. }
+                        | AbilityDef::CastFree { .. }
                 )
             }),
         );

@@ -2568,6 +2568,17 @@ impl Decompiler<'_> {
                 kind: *kind,
                 n: *n,
             },
+            AbilityDef::CastFree {
+                spells,
+                from_hand,
+                max,
+                limit,
+            } => Ability::CastFree {
+                spells: self.filter(spells),
+                from_hand: *from_hand,
+                max: max.as_ref().map(|c| self.cda_count(c)),
+                limit: *limit,
+            },
             AbilityDef::PlayFromTop {
                 lands,
                 spells,

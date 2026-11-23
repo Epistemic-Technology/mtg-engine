@@ -1706,6 +1706,23 @@ pub enum Ability {
         spells: Option<Filter>,
         once: bool,
     },
+    /// `cast free from hand spells`: "You may cast spells from your hand
+    /// without paying their mana costs." (Omniscience); `cast free spells
+    /// Dragon`: "You may cast Dragon spells without paying their mana
+    /// costs."; `... max count creature you control`: "spells with mana
+    /// value less than or equal to the number of creatures you control";
+    /// `cast free once your turns from hand spells instant or sorcery`:
+    /// "Once during each of your turns, you may cast an instant or sorcery
+    /// spell from your hand without paying its mana cost."; `cast free
+    /// first each player spells`: "The first spell each player casts
+    /// during each of their turns may be cast without paying its mana
+    /// cost." (CR 118.9).
+    CastFree {
+        spells: Filter,
+        from_hand: bool,
+        max: Option<CountExpr>,
+        limit: mtg_core::card::FreeCastLimit,
+    },
     /// `play exiled spells`: "You may cast spells from among cards exiled
     /// with this creature."; `play exiled lands and spells` "You may play
     /// lands and cast spells from among ..."; `play exiled your turn lands

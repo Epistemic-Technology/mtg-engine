@@ -1,0 +1,104 @@
+# Static permissions to cast spells without paying their mana costs (CR
+# 118.9, 601.2b): `cast "X" free` takes the permission, with the spell's
+# usual timing.
+
+scenario "cast free static: Omniscience casts spells from hand for nothing" {
+  battlefield A: "Omniscience"
+  hand A: "Serra Angel", "Lightning Bolt"
+  turn 1 A: cast "Serra Angel" free
+  turn 1 A: cast "Lightning Bolt" free targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert life B 17
+}
+
+scenario "cast free static: Omniscience keeps sorcery timing" {
+  battlefield A: "Omniscience"
+  hand A: "Serra Angel"
+  illegal turn 1 upkeep A: cast "Serra Angel" free
+  run_to turn 1 postcombat_main
+  assert hand A contains "Serra Angel"
+}
+
+scenario "cast free static: an opponent's Omniscience gives nothing" {
+  battlefield B: "Omniscience"
+  hand A: "Serra Angel"
+  illegal turn 1 A: cast "Serra Angel" free
+  run_to turn 1 postcombat_main
+  assert hand A contains "Serra Angel"
+}
+
+scenario "cast free static: Dracogenesis casts Dragons, not other spells" {
+  battlefield A: "Dracogenesis"
+  hand A: "Shivan Dragon", "Serra Angel"
+  turn 1 A: cast "Shivan Dragon" free
+  illegal turn 1 A: cast "Serra Angel" free
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Shivan Dragon"
+  assert hand A contains "Serra Angel"
+}
+
+scenario "cast free static: Omnipresence bounds the mana value by creatures you control" {
+  battlefield A: "Omnipresence", 3 "Grizzly Bears"
+  hand A: "Hill Giant", "Divination"
+  library A: "Island", "Island", "Island"
+  illegal turn 1 A: cast "Hill Giant" free
+  turn 1 A: cast "Divination" free
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert graveyard A contains "Divination"
+  assert hand A count 3
+}
+
+scenario "cast free static: Zaffai casts one instant or sorcery each of its controller's turns" {
+  battlefield A: "Zaffai and the Tempests"
+  hand A: "Lightning Bolt", "Shock", "Grizzly Bears"
+  turn 1 A: cast "Lightning Bolt" free targeting player B
+  illegal turn 1 A: cast "Shock" free targeting player B
+  illegal turn 1 A: cast "Grizzly Bears" free
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand A contains "Shock"
+}
+
+scenario "cast free static: Zaffai gives nothing during an opponent's turn" {
+  battlefield A: "Zaffai and the Tempests"
+  hand A: "Lightning Bolt"
+  start turn 2 B precombat_main
+  illegal turn 2 precombat_main A: cast "Lightning Bolt" free targeting player B
+  run_to turn 2 end
+  assert hand A contains "Lightning Bolt"
+}
+
+scenario "cast free static: Weftwalking frees each player's first spell of their turn" {
+  battlefield A: "Weftwalking"
+  hand A: "Serra Angel", "Grizzly Bears"
+  hand B: "Hill Giant"
+  turn 1 A: cast "Serra Angel" free
+  illegal turn 1 A: cast "Grizzly Bears" free
+  turn 2 B: cast "Hill Giant" free
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert battlefield B contains "Hill Giant"
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "cast free static: Weftwalking's first spell must be the free one" {
+  battlefield A: "Weftwalking", 2 "Forest"
+  hand A: "Grizzly Bears", "Serra Angel"
+  turn 1 A: cast "Grizzly Bears"
+  illegal turn 1 A: cast "Serra Angel" free
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A contains "Serra Angel"
+}
+
+scenario "cast free static: Weftwalking cast shuffles hand and graveyard away, then draws seven" {
+  battlefield A: 6 "Island"
+  hand A: "Weftwalking", "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  turn 1 A: cast "Weftwalking"
+  run_to turn 1 postcombat_main
+  assert hand A count 7
+  assert graveyard A count 0
+}

@@ -2522,6 +2522,42 @@ impl P {
                     once,
                 })
             }
+            // "You may cast spells from your hand without paying their mana
+            // costs." (Omniscience).
+            "cast" if self.at_words(&["cast", "free"]) => {
+                use mtg_core::card::FreeCastLimit;
+                self.pos += 2;
+                let limit = if self.eat_words(&["once", "your", "turns"]) {
+                    FreeCastLimit::OnceYourTurns
+                } else if self.eat_words(&["first", "each", "player"]) {
+                    FreeCastLimit::FirstEachPlayer
+                } else {
+                    FreeCastLimit::Always
+                };
+                let from_hand = self.eat_words(&["from", "hand"]);
+                self.expect_word("spells")?;
+                let spells = if self.at_stmt_end() || self.at_word("max") {
+                    Filter::default()
+                } else {
+                    self.filter()?
+                };
+                let max = if self.eat_word("max") {
+                    Some(if self.eat_word("count") {
+                        crate::ast::CountExpr::Permanents(self.filter()?)
+                    } else {
+                        self.count_expr()?
+                    })
+                } else {
+                    None
+                };
+                self.end_stmt()?;
+                Ok(Ability::CastFree {
+                    spells,
+                    from_hand,
+                    max,
+                    limit,
+                })
+            }
             "play" if self.at_words(&["play", "exiled"]) => {
                 self.pos += 2;
                 let your_turn = self.eat_words(&["your", "turn"]);

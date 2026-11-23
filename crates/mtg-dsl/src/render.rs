@@ -17070,6 +17070,47 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             };
             format!("This {} {verb} {how}.", self_noun(card))
         }
+        // "You may cast spells from your hand without paying their mana
+        // costs." (Omniscience).
+        Ability::CastFree {
+            spells,
+            from_hand,
+            max,
+            limit,
+        } => {
+            use mtg_core::card::FreeCastLimit;
+            let hand = if *from_hand { " from your hand" } else { "" };
+            match limit {
+                FreeCastLimit::FirstEachPlayer => {
+                    let what = if *spells == Filter::default() {
+                        "spell".to_string()
+                    } else {
+                        a_spell(spells, card)
+                            .trim_start_matches("a ")
+                            .trim_start_matches("an ")
+                            .to_string()
+                    };
+                    format!(
+                        "The first {what} each player casts during each of their turns may be cast without paying its mana cost."
+                    )
+                }
+                FreeCastLimit::OnceYourTurns => format!(
+                    "Once during each of your turns, you may cast {}{hand} without paying its mana cost.",
+                    a_spell(spells, card)
+                ),
+                FreeCastLimit::Always => {
+                    let what = top_spells(spells, card);
+                    let what = match max {
+                        Some(m) => format!(
+                            "{what} with mana value less than or equal to {}",
+                            cda_count_text(m, card)
+                        ),
+                        None => what,
+                    };
+                    format!("You may cast {what}{hand} without paying their mana costs.")
+                }
+            }
+        }
         Ability::PlayFromTop {
             lands,
             spells,
