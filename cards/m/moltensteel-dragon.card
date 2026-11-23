@@ -1,0 +1,8 @@
+card "Moltensteel Dragon" {
+  oracle_id dc2d67bb-29b3-43d7-8ebf-2100c5287bbf
+  cost {4}{R/P}{R/P}
+  type Artifact Creature — Phyrexian Dragon
+  pt 4/4
+  keywords flying
+  activated {R/P}: this gets +1/+0
+}

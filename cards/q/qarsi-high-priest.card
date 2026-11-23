@@ -1,0 +1,7 @@
+card "Qarsi High Priest" {
+  oracle_id 3bcb5ad4-818e-4f10-aaff-188d713b160b
+  cost {B}
+  type Creature — Human Cleric
+  pt 0/2
+  activated {1}{B}, {T}, sacrifice other creature: manifest
+}

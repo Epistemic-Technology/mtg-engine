@@ -1,0 +1,7 @@
+card "Undercity Necrolisk" {
+  oracle_id b3418d92-81de-4575-b8da-563be6b31b91
+  cost {3}{B}
+  type Creature — Zombie Lizard
+  pt 3/3
+  activated {1}, sacrifice other creature, sorcery: put 1 +1/+1 counters on this; this gains menace
+}

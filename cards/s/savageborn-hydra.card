@@ -1,0 +1,9 @@
+card "Savageborn Hydra" {
+  oracle_id fa8e5291-1a50-4c05-820c-8ae756364d33
+  cost {X}{R}{G}
+  type Creature — Hydra
+  pt 0/0
+  keywords double strike
+  enters with X +1/+1 counters
+  activated {1}{R/G}, sorcery: put 1 +1/+1 counters on this
+}

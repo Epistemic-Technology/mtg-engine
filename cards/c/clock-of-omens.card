@@ -1,0 +1,6 @@
+card "Clock of Omens" {
+  oracle_id 5d0f4665-aa10-4251-b590-129b59274fb3
+  cost {4}
+  type Artifact
+  activated tap 2 untapped artifact you control: untap target artifact
+}

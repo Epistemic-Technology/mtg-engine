@@ -1,0 +1,8 @@
+card "Ravenous Harpy" {
+  oracle_id e9ccec56-ec2b-4ab8-b929-6e4795711db9
+  cost {2}{B}
+  type Creature — Harpy
+  pt 1/2
+  keywords flying
+  activated {1}, sacrifice other creature: put 1 +1/+1 counters on this
+}

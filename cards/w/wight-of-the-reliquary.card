@@ -1,0 +1,9 @@
+card "Wight of the Reliquary" {
+  oracle_id 4507df69-6bf7-43d6-a609-c032b61835d5
+  cost {B}{G}
+  type Creature — Zombie Knight
+  pt 2/2
+  keywords vigilance
+  static this: +1/+1 count each graveyard creature
+  activated {T}, sacrifice other creature: search land card to battlefield tapped
+}

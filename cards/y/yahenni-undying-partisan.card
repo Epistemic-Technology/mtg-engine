@@ -1,0 +1,9 @@
+card "Yahenni, Undying Partisan" {
+  oracle_id fdba89eb-1cf5-46e6-9d09-1adb9bc40fcd
+  cost {2}{B}
+  type Legendary Creature — Aetherborn Vampire
+  pt 2/2
+  keywords haste
+  triggered whenever a creature an opponent controls dies: put 1 +1/+1 counters on this
+  activated sacrifice other creature: this gains indestructible
+}

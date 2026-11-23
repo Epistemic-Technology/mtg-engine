@@ -1,0 +1,8 @@
+card "Restless Apparition" {
+  oracle_id fbd6dda7-ccee-4640-805d-78a9d60f45ef
+  cost {W/B}{W/B}{W/B}
+  type Creature — Spirit
+  pt 2/2
+  activated {W/B}{W/B}{W/B}: this gets +3/+3
+  keyword persist
+}

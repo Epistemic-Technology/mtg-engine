@@ -1,0 +1,10 @@
+card "Sturdy Hatchling" {
+  oracle_id 08e95b6c-9f4c-42d9-ad64-2d905d781d49
+  cost {3}{G/U}
+  type Creature — Elemental
+  pt 6/6
+  enters with 4 -1/-1 counters
+  activated {G/U}: this gains shroud
+  triggered whenever you cast green spell: remove 1 -1/-1 counters from this
+  triggered whenever you cast blue spell: remove 1 -1/-1 counters from this
+}

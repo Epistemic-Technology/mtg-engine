@@ -1,0 +1,16 @@
+card "Seraph of New Capenna // Seraph of New Phyrexia" {
+  oracle_id 08574d1b-4b76-42dd-884b-29c5a61cfdda
+  layout transform
+  cost {2}{W}
+  type Creature — Angel Soldier
+  pt 2/2
+  keywords flying
+  activated {4}{B/P}, sorcery: transform this
+  face "Seraph of New Phyrexia" {
+    type Creature — Phyrexian Angel
+    pt 3/3
+    color black white
+    keywords flying
+    triggered whenever this attacks: you may sacrifice 1 another creature or artifact chosen; if you do, this creature gets +2/+1
+  }
+}

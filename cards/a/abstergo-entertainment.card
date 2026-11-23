@@ -1,0 +1,7 @@
+card "Abstergo Entertainment" {
+  oracle_id d06a8026-1657-4404-8dff-64e44f1a14f8
+  type Legendary Land
+  mana {C}
+  activated {1}, {T}: add any
+  activated {3}, {T}, exile this: return up to 1 target historic card from your graveyard to hand then exile all graveyards
+}

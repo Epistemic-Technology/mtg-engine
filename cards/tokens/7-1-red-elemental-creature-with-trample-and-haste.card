@@ -1,0 +1,7 @@
+token "7/1 red Elemental creature with trample and haste" {
+  name "Elemental"
+  type Creature — Elemental
+  pt 7/1
+  color red
+  keywords trample, haste
+}

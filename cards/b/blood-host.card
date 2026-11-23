@@ -1,0 +1,7 @@
+card "Blood Host" {
+  oracle_id ac193909-7e81-4082-ad02-2a60d142a0ab
+  cost {3}{B}{B}
+  type Creature — Vampire
+  pt 3/3
+  activated {1}{B}, sacrifice other creature: put 1 +1/+1 counters on this and you gains 2 life
+}

@@ -1,0 +1,8 @@
+card "Suture Spirit" {
+  oracle_id 4b2eba61-3937-4dc2-ad0a-e51fff8ecb80
+  cost {1}{W}
+  type Creature — Spirit
+  pt 1/1
+  keywords flying
+  activated {W/B}{W/B}{W/B}: regenerate target creature
+}

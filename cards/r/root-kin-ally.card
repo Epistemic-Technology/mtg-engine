@@ -1,0 +1,8 @@
+card "Root-Kin Ally" {
+  oracle_id 99d0876f-174b-4cfe-aa52-f3d5434f6cba
+  cost {4}{G}{G}
+  type Creature — Elemental Warrior
+  pt 3/3
+  keywords convoke
+  activated tap 2 untapped creature you control: this gets +2/+2
+}

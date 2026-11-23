@@ -1,0 +1,7 @@
+card "Skirsdag High Priest" {
+  oracle_id c6064c08-e4e0-49f4-9f0b-55cdecf443af
+  cost {1}{B}
+  type Creature — Human Cleric
+  pt 1/2
+  label "Morbid" activated {T}, tap 2 untapped creature you control, if creature died this turn: create 1 "5/5 black Demon creature with flying"
+}

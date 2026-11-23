@@ -1,0 +1,7 @@
+card "Skaab Wrangler" {
+  oracle_id 8de2ce5a-9345-4d2b-a248-868268f36836
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 2/1
+  activated tap 3 untapped creature you control: tap target creature
+}

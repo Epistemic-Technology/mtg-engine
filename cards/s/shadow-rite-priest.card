@@ -1,0 +1,8 @@
+card "Shadow-Rite Priest" {
+  oracle_id cf42a7e3-71ee-40b8-a6ca-0368c746e128
+  cost {1}{B}
+  type Creature — Human Cleric
+  pt 2/2
+  static other Cleric you control: +1/+1
+  activated {3}{B}{B}, {T}, sacrifice other Cleric: search black creature card to battlefield
+}

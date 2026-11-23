@@ -1,0 +1,7 @@
+card "Crook of Condemnation" {
+  oracle_id afc8df6d-7291-400e-b768-0c0c3e3fdc32
+  cost {2}
+  type Artifact
+  activated {1}, {T}: exile target card from a graveyard
+  activated {1}, exile this: exile all graveyards
+}

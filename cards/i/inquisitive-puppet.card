@@ -1,0 +1,8 @@
+card "Inquisitive Puppet" {
+  oracle_id 015004d7-989b-4549-9ffa-b062126d04d2
+  cost {1}
+  type Artifact Creature — Construct
+  pt 0/2
+  triggered when this enters: scry 1
+  activated exile this: create 1 "1/1 white Human creature"
+}

@@ -1,0 +1,7 @@
+card "Creakwood Ghoul" {
+  oracle_id 94c47804-bb64-4a91-85c5-9241c39685aa
+  cost {4}{B}
+  type Creature — Plant Zombie
+  pt 3/3
+  activated {B/G}{B/G}: exile target card from a graveyard; you gains 1 life
+}

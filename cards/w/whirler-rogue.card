@@ -1,0 +1,8 @@
+card "Whirler Rogue" {
+  oracle_id 7060f2c8-fca0-4b7a-bddf-37682f434596
+  cost {2}{U}{U}
+  type Creature — Human Rogue Artificer
+  pt 2/2
+  triggered when this enters: create 2 "1/1 colorless Thopter artifact creature with flying"
+  activated tap 2 untapped artifact you control: target creature can't be blocked
+}

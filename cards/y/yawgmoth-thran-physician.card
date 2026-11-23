@@ -1,0 +1,9 @@
+card "Yawgmoth, Thran Physician" {
+  oracle_id a1e232c0-dc38-47be-a5a0-f68bc1d86a29
+  cost {2}{B}{B}
+  type Legendary Creature — Human Cleric
+  pt 2/4
+  protection from Human
+  activated pay 1 life, sacrifice other creature: put 1 -1/-1 counters on up to 1 target creature and draw 1 cards
+  activated {B}{B}, discard 1 card: proliferate
+}

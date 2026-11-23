@@ -1,0 +1,8 @@
+card "Tymaret, the Murder King" {
+  oracle_id 0a029c61-b1de-427b-a8e8-36f3a23f001b
+  cost {B}{R}
+  type Legendary Creature — Zombie Warrior
+  pt 2/2
+  activated {1}{R}, sacrifice other creature: deal 2 damage to target player or planeswalker
+  activated {1}{B}, sacrifice creature, from graveyard: return this to hand
+}

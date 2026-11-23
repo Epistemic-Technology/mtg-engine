@@ -1,0 +1,7 @@
+card "Sandsower" {
+  oracle_id 1dce1f39-eacb-4d29-899b-55569284c7ed
+  cost {3}{W}
+  type Creature — Spirit
+  pt 1/3
+  activated tap 3 untapped creature you control: tap target creature
+}

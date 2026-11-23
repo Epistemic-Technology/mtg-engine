@@ -1,0 +1,7 @@
+card "Stormclaw Rager" {
+  oracle_id d1a77708-7ddf-4645-bf1e-1d8147a57f23
+  cost {1}{B}{R}
+  type Creature — Ogre Warrior
+  pt 2/2
+  activated {1}, sacrifice other creature or artifact, sorcery: put 1 +1/+1 counters on this and draw 1 cards
+}

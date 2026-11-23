@@ -4619,11 +4619,24 @@ fn cost_text(s: &str) -> Option<String> {
         r"^Remove (an?|two|three|\w+) ([a-z+/1-]+(?: strike)?) counters? from this (?:artifact|creature|land|enchantment|permanent)$",
     )
     .unwrap();
-    let symbols = Regex::new(r"^(\{[0-9XWUBRGCT]+\})+$").unwrap();
+    // Hybrid symbols too ("{R/W}{R/W}"): the caller has checked that each
+    // parses.
+    let symbols = Regex::new(r"^(\{[0-9XWUBRGCTP/]+\})+$").unwrap();
     let mut items = Vec::new();
     let two = Regex::new(r"^[a-z]+ or [a-z]+$").unwrap();
     let exile_gy = Regex::new(
         r"^Exile (an?|two|three|four|five|six|X) (?:([a-z]+) )?cards? from your graveyard$",
+    )
+    .unwrap();
+    // "Tap three untapped creatures you control".
+    let tap_n = Regex::new(
+        r"^Tap (two|three|four|five|six|seven) untapped (creature|artifact|land)s you control$",
+    )
+    .unwrap();
+    // "Remove three quest counters from this enchantment and sacrifice it"
+    // (the Expeditions and Quests): two costs joined by "and".
+    let remove_and_sac = Regex::new(
+        r"^Remove (an?|two|three|four|five|six|seven|eight|nine|ten) ([a-z]+) counters? from this (?:artifact|creature|land|enchantment|permanent) and sacrifice it$",
     )
     .unwrap();
     for part in s.split(", ") {
@@ -4637,8 +4650,49 @@ fn cost_text(s: &str) -> Option<String> {
                 | "Sacrifice this permanent"
                 | "Sacrifice this land"
                 | "Sacrifice this Aura"
+                | "Sacrifice this Equipment"
+                | "Sacrifice this Vehicle"
+                | "Sacrifice ~"
         ) {
             "sacrifice this".to_string()
+        } else if matches!(
+            part,
+            "Exile this creature"
+                | "Exile this artifact"
+                | "Exile this enchantment"
+                | "Exile this permanent"
+                | "Exile this land"
+                | "Exile ~"
+        ) {
+            "exile this".to_string()
+        } else if let Some(rest) = part.strip_prefix("Sacrifice another ") {
+            // "Sacrifice another creature", "... another creature or
+            // enchantment".
+            if rest.contains(' ') && !two.is_match(rest) {
+                return None;
+            }
+            format!("sacrifice other {rest}")
+        } else if let Some(c) = tap_n.captures(part) {
+            format!(
+                "tap {} untapped {} you control",
+                number(cap(&c, 1))?,
+                cap(&c, 2)
+            )
+        } else if let Some(c) = remove_and_sac.captures(part) {
+            let n = if matches!(cap(&c, 1), "a" | "an") {
+                "1".to_string()
+            } else {
+                number(cap(&c, 1))?
+            };
+            format!("remove {n} {} counters from this, sacrifice this", cap(&c, 2))
+        } else if let Some(n) = part
+            .strip_prefix("Discard ")
+            .and_then(|r| r.strip_suffix(" cards"))
+            .filter(|n| *n != "X")
+            .and_then(number)
+        {
+            // "Discard two cards".
+            format!("discard {n} cards")
         } else if let Some(rest) = part
             .strip_prefix("Sacrifice a ")
             .or_else(|| part.strip_prefix("Sacrifice an "))

@@ -1,0 +1,9 @@
+card "Hanged Executioner" {
+  oracle_id 6ff4ff67-ad08-447f-a112-1a071c1474a4
+  cost {2}{W}
+  type Creature — Spirit
+  pt 1/1
+  keywords flying
+  triggered when this enters: create 1 "1/1 white Spirit creature with flying"
+  activated {3}{W}, exile this: exile target creature
+}

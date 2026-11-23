@@ -1,0 +1,7 @@
+card "Pitiless Pontiff" {
+  oracle_id 46a9f5af-b024-497d-9f55-98d17e2ffa76
+  cost {W}{B}
+  type Creature — Vampire Cleric
+  pt 2/2
+  activated {1}, sacrifice other creature: this gains deathtouch, indestructible
+}

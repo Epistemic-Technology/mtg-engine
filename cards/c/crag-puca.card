@@ -1,0 +1,7 @@
+card "Crag Puca" {
+  oracle_id b51d2c70-204b-4321-a589-f00a3e49fab4
+  cost {U/R}{U/R}{U/R}
+  type Creature — Shapeshifter
+  pt 2/4
+  activated {U/R}: switch pt of this
+}

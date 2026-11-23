@@ -1,0 +1,15 @@
+card "Captive Weird // Compleated Conjurer" {
+  oracle_id ac5487ba-6d6e-47ee-ae29-776e186789cc
+  layout transform
+  cost {U}
+  type Creature — Weird
+  pt 1/3
+  keywords defender
+  activated {3}{R/P}, sorcery: transform this
+  face "Compleated Conjurer" {
+    type Creature — Phyrexian Weird
+    pt 3/3
+    color red blue
+    triggered when this transforms: impulse 1 next turn first
+  }
+}
