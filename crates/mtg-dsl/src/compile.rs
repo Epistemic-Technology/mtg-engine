@@ -2644,6 +2644,9 @@ impl Compiler<'_> {
             blight_put: c.blight_put,
             process: c.process,
             remove_from_creature: c.remove_from_creature,
+            sacrifice_any: c.sacrifice_any,
+            remove_x: c.remove_x,
+            untap: c.untap,
             chosen: c.chosen,
             life: c.life,
             discard: c.discard,
@@ -2674,6 +2677,8 @@ impl Compiler<'_> {
                     filter: self.filter(&b.filter),
                     n: b.n,
                     exile: b.exile,
+                    hand: b.reveal,
+                    x: b.x,
                 })
             }),
         }

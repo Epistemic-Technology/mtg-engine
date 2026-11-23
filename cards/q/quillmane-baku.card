@@ -1,0 +1,8 @@
+card "Quillmane Baku" {
+  oracle_id 736168bb-0a5c-4b29-9f82-1319cd112873
+  cost {4}{U}
+  type Creature — Spirit
+  pt 3/3
+  triggered whenever you cast Spirit or Arcane spell: you may put 1 ki counters on this
+  activated {1}, {T}, remove X ki counters from this: return target creature with mana value X or less to hand
+}

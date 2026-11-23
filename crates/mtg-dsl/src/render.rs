@@ -3353,6 +3353,7 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
     let default_order = [
         CostItem::Mana,
         CostItem::Tap,
+        CostItem::Untap,
         CostItem::Sacrifice,
         CostItem::Discard,
         CostItem::Life,
@@ -3383,7 +3384,22 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                     parts.push("{T}".to_string());
                 }
             }
+            CostItem::Untap => {
+                if cost.untap {
+                    parts.push("{Q}".to_string());
+                }
+            }
             CostItem::Sacrifice => match &cost.sacrifice {
+                // "you may sacrifice any number of Spirits" (CR 601.2b).
+                Some(SacCost::Filter(f)) if cost.sacrifice_any > 0 => parts.push(format!(
+                    "{} any number of {}",
+                    if cost.sacrifice_any == 2 {
+                        "you may sacrifice"
+                    } else {
+                        "Sacrifice"
+                    },
+                    filter_phrase(f, ctx.card, true)
+                )),
                 Some(SacCost::This) => parts.push(format!("Sacrifice {}", ctx.source())),
                 Some(SacCost::Filter(f)) => {
                     // "Tap two untapped artifacts and/or creatures you
@@ -3433,7 +3449,7 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
             }
             CostItem::RemoveCounters => {
                 if let Some((k, n)) = cost.remove_counters {
-                    let what = counters(Num::N(n), k);
+                    let what = counters(if cost.remove_x { Num::X } else { Num::N(n) }, k);
                     let src = ctx.source();
                     parts.push(format!("Remove {what} from {src}"));
                 }
@@ -3541,7 +3557,24 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
             // CR 701.69a: "behold a Kithkin and exile it", "you may behold
             // a Dragon", "Behold three Elementals".
             CostItem::Behold => {
-                if let Some(b) = &cost.behold {
+                if let Some(b) = &cost.behold
+                    && b.reveal
+                    && b.x
+                {
+                    // "Reveal X red cards from your hand".
+                    let what = card_filter_phrase(&b.filter, ctx.card);
+                    parts.push(format!("Reveal X {what} cards from your hand"));
+                } else if let Some(b) = &cost.behold
+                    && b.reveal
+                {
+                    let what = card_filter_a(&b.filter, ctx.card);
+                    let may = if b.optional {
+                        "you may reveal"
+                    } else {
+                        "Reveal"
+                    };
+                    parts.push(format!("{may} {what} from your hand"));
+                } else if let Some(b) = &cost.behold {
                     let what = if b.n == 1 {
                         filter_a(&b.filter, ctx.card)
                     } else {
@@ -13412,11 +13445,16 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::Teamwork => "this spell was cast using teamwork".to_string(),
         // "If a Dragon was beheld": the card's behold cost's filter.
         StaticCond::Beheld => {
-            let what = card
-                .additional
-                .as_ref()
-                .and_then(|c| c.behold.as_ref())
-                .map_or_else(|| "a card".to_string(), |b| filter_a(&b.filter, card));
+            let behold = card.additional.as_ref().and_then(|c| c.behold.as_ref());
+            if let Some(b) = behold.filter(|b| b.reveal) {
+                // The older wording (CR 601.2b).
+                return format!(
+                    "you revealed {} or controlled {} as you cast this spell",
+                    card_filter_a(&b.filter, card),
+                    filter_a(&b.filter, card)
+                );
+            }
+            let what = behold.map_or_else(|| "a card".to_string(), |b| filter_a(&b.filter, card));
             format!("{what} was beheld")
         }
         StaticCond::NoManaSpent => "it wasn't cast or no mana was spent to cast it".to_string(),

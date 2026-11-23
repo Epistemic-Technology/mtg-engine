@@ -1,0 +1,8 @@
+card "Flamekin Bladewhirl" {
+  oracle_id c37770aa-4770-4198-b6a6-f9ff86dbb06b
+  cost {R}
+  type Creature — Elemental Warrior
+  pt 2/1
+  additional cost reveal Elemental card
+  additional cost or {3}
+}

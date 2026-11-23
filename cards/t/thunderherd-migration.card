@@ -1,0 +1,8 @@
+card "Thunderherd Migration" {
+  oracle_id 006bbd8b-2007-419d-8b84-9ff73f2f95b7
+  cost {1}{G}
+  type Sorcery
+  additional cost reveal Dinosaur card
+  additional cost or {1}
+  spell: search basic land card to battlefield tapped
+}

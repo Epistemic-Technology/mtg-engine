@@ -855,6 +855,7 @@ impl CastInfo {
                     | Self::OFFSPRING
                     | Self::BARGAINED
                     | Self::OPTIONAL_PAID
+                    | Self::BEHELD
                     | Self::CAST_MASK),
         )
     }
@@ -1525,9 +1526,10 @@ impl Moved {
             ThisWay::PutInHand => self.to == Zone::Hand && self.from != Zone::Hand,
             ThisWay::Tapped => self.from == Zone::Battlefield && self.to == Zone::Battlefield,
             ThisWay::Shuffled => self.to == Zone::Library && self.from != Zone::Library,
-            // Not a zone change: counted from the resolution's revealed
-            // cards (`CountExpr::ThisWay`).
-            ThisWay::Revealed => false,
+            // Not a zone change: a card revealed from a hand to pay a
+            // cost ("the revealed card's mana value"); a count reads the
+            // resolution's revealed cards (`CountExpr::ThisWay`).
+            ThisWay::Revealed => self.from == Zone::Hand && self.to == Zone::Hand,
         }
     }
 }

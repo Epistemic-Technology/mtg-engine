@@ -1,0 +1,8 @@
+card "Cruel Sadist" {
+  oracle_id 9fceca3c-fc10-4e46-a727-122aafcef349
+  cost {B}
+  type Creature — Human Assassin
+  pt 1/1
+  activated {B}, {T}, pay 1 life: put 1 +1/+1 counter on this
+  activated {2}{B}, {T}, remove X +1/+1 counters from this: deal X damage to target creature
+}

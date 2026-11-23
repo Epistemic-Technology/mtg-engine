@@ -4676,6 +4676,7 @@ fn cost_text(c: &Cost) -> String {
     let default_order = [
         CostItem::Mana,
         CostItem::Tap,
+        CostItem::Untap,
         CostItem::Sacrifice,
         CostItem::Discard,
         CostItem::Life,
@@ -4701,12 +4702,22 @@ fn cost_text(c: &Cost) -> String {
                     parts.push(mana);
                 }
             }
+            CostItem::Untap => {
+                if c.untap {
+                    parts.push("{Q}".to_string());
+                }
+            }
             CostItem::Tap => {
                 if c.tap {
                     parts.push("{T}".to_string());
                 }
             }
             CostItem::Sacrifice => match &c.sacrifice {
+                Some(SacCost::Filter(f)) if c.sacrifice_any > 0 => parts.push(format!(
+                    "{}sacrifice any number {}",
+                    if c.sacrifice_any == 2 { "may " } else { "" },
+                    filter(f)
+                )),
                 Some(SacCost::This) => parts.push("sacrifice this".to_string()),
                 Some(SacCost::Filter(f)) => parts.push(format!(
                     "{} {}{}",
@@ -4731,7 +4742,11 @@ fn cost_text(c: &Cost) -> String {
                     } else {
                         "this"
                     };
-                    parts.push(format!("remove {n} {} from {from}", counter(k, Num::N(n))));
+                    if c.remove_x {
+                        parts.push(format!("remove X {} from {from}", counter(k, Num::X)));
+                    } else {
+                        parts.push(format!("remove {n} {} from {from}", counter(k, Num::N(n))));
+                    }
                 }
             }
             CostItem::PutCounters => {
@@ -4832,6 +4847,16 @@ fn cost_text(c: &Cost) -> String {
                     let mut s = String::new();
                     if b.optional {
                         s.push_str("may ");
+                    }
+                    if b.reveal && b.x {
+                        let _ = write!(s, "reveal X {} cards", filter(&b.filter));
+                        parts.push(s);
+                        continue;
+                    }
+                    if b.reveal {
+                        let _ = write!(s, "reveal {} card", filter(&b.filter));
+                        parts.push(s);
+                        continue;
                     }
                     s.push_str("behold ");
                     if b.exile {

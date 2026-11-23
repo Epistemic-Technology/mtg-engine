@@ -1,0 +1,7 @@
+card "Patrol Signaler" {
+  oracle_id 1a8d7714-a566-4195-8605-550929584c61
+  cost {1}{W}
+  type Creature — Kithkin Soldier
+  pt 1/1
+  activated {1}{W}, {Q}: create 1 "1/1 white Kithkin Soldier creature"
+}

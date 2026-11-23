@@ -1,0 +1,7 @@
+card "Silumgar's Scorn" {
+  oracle_id 1fb3b5a3-ca4b-4cbf-ab58-71c960f3efd0
+  cost {U}{U}
+  type Instant
+  additional cost may reveal Dragon card
+  spell: counter target spell unless its controller pays {1}; if beheld, counter that target 1 instead
+}

@@ -448,6 +448,9 @@ impl Decompiler<'_> {
             blight_put: c.blight_put,
             process: c.process,
             remove_from_creature: c.remove_from_creature,
+            sacrifice_any: c.sacrifice_any,
+            remove_x: c.remove_x,
+            untap: c.untap,
             chosen: c.chosen,
             count: c.count,
             exile_cards: c.exile_cards.as_ref().map(|g| {
@@ -472,6 +475,8 @@ impl Decompiler<'_> {
                     n: b.n,
                     exile: b.exile,
                     optional: false,
+                    reveal: b.hand,
+                    x: b.x,
                 })
             }),
         }

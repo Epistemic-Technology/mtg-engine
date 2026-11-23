@@ -1103,7 +1103,11 @@ impl P {
                         return self.fail("`additional cost or` follows an `additional cost`");
                     }
                     card.additional_or = Some(self.cost()?);
-                } else if !self.at_words(&["may", "behold"]) && self.eat_word("may") {
+                } else if !self.at_words(&["may", "behold"])
+                    && !self.at_words(&["may", "reveal"])
+                    && !self.at_words(&["may", "sacrifice", "any"])
+                    && self.eat_word("may")
+                {
                     // `additional cost may collect evidence 6` (CR 601.2b).
                     let c = self.cost()?;
                     if !c.mana.is_empty() || c.blight == 0 && c.evidence == 0 {
@@ -14018,6 +14022,14 @@ impl P {
                                 saw_mana = false;
                             }
                             cost.order.push(CostItem::Tap);
+                        } else if s == "Q" {
+                            // CR 107.6: the untap symbol.
+                            cost.untap = true;
+                            if saw_mana {
+                                cost.order.push(CostItem::Mana);
+                                saw_mana = false;
+                            }
+                            cost.order.push(CostItem::Untap);
                         } else {
                             mana.push('{');
                             mana.push_str(s);
@@ -14043,6 +14055,20 @@ impl P {
                     self.pos += 1;
                 }
                 Some(Tok::Word(w)) => match w.to_ascii_lowercase().as_str() {
+                    // `sacrifice any number creature`, `may sacrifice any
+                    // number Spirit` (a spell's additional cost, CR 601.2b).
+                    "sacrifice" | "may"
+                        if (self.word_at(0).as_deref() == Some("sacrifice")
+                            && self.word_at(1).as_deref() == Some("any"))
+                            || (self.word_at(1).as_deref() == Some("sacrifice")
+                                && self.word_at(2).as_deref() == Some("any")) =>
+                    {
+                        cost.sacrifice_any = if self.eat_word("may") { 2 } else { 1 };
+                        self.pos += 1;
+                        self.expect_words(&["any", "number"])?;
+                        cost.sacrifice = Some(SacCost::Filter(self.filter()?));
+                        cost.order.push(CostItem::Sacrifice);
+                    }
                     "sacrifice" => {
                         self.pos += 1;
                         if self.eat_word("this") {
@@ -14064,7 +14090,13 @@ impl P {
                         }) =>
                     {
                         self.pos += 1;
-                        let n = self.count()?;
+                        // `remove X ki counters from this` (X the ability's).
+                        let n = if self.eat_word("x") {
+                            cost.remove_x = true;
+                            0
+                        } else {
+                            self.count()?
+                        };
                         // `remove 1 counter from this`: any kind.
                         let k = if self.eat_word("counter") || self.eat_word("counters") {
                             CounterKind::Any
@@ -14344,6 +14376,8 @@ impl P {
                             n,
                             exile,
                             optional,
+                            reveal: false,
+                            x: false,
                         }));
                         cost.order.push(CostItem::Behold);
                     }
@@ -14387,6 +14421,29 @@ impl P {
                         self.pos += 2;
                         cost.reveal_this = true;
                         cost.order.push(CostItem::RevealThis);
+                    }
+                    // `reveal Kithkin card`, `may reveal Dragon card`: "reveal
+                    // a Kithkin card from your hand" (a behold from the hand
+                    // only).
+                    "reveal" | "may"
+                        if self.word_at(0).as_deref() == Some("reveal")
+                            || self.word_at(1).as_deref() == Some("reveal") =>
+                    {
+                        let optional = self.eat_word("may");
+                        self.pos += 1;
+                        // `reveal X red cards` (X the ability's).
+                        let x = self.eat_word("x");
+                        let filter = self.filter()?;
+                        self.cards_word()?;
+                        cost.behold = Some(Box::new(crate::ast::Behold {
+                            filter,
+                            n: u32::from(!x),
+                            exile: false,
+                            optional,
+                            reveal: true,
+                            x,
+                        }));
+                        cost.order.push(CostItem::Behold);
                     }
                     "sorcery" => {
                         self.pos += 1;

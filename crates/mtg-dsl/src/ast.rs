@@ -770,17 +770,33 @@ pub struct Cost {
     /// `remove 1 +1/+1 counter from creature you control`: the
     /// `remove_counters` from a creature the payer controls.
     pub remove_from_creature: bool,
+    /// `sacrifice any number creature` (1): "sacrifice any number of
+    /// creatures"; `may sacrifice any number Spirit` (2): "you may
+    /// sacrifice any number of Spirits".
+    pub sacrifice_any: u8,
+    /// `remove X ki counters from this`: "Remove X ki counters from this
+    /// creature", X the ability's.
+    pub remove_x: bool,
+    /// `{Q}`: the untap symbol.
+    pub untap: bool,
 }
 
 /// `behold Kithkin`: "behold a Kithkin" (CR 701.69a); `and exile`: "and
 /// exile it"; `may` (a spell's additional cost): "you may behold a
 /// Dragon", an optional additional cost.
 #[derive(Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::struct_excessive_bools)] // independent wording flags
 pub struct Behold {
     pub filter: Filter,
     pub n: u32,
     pub exile: bool,
     pub optional: bool,
+    /// `reveal Kithkin card`: "reveal a Kithkin card from your hand", a
+    /// card from the hand only.
+    pub reveal: bool,
+    /// `reveal X red cards`: "Reveal X red cards from your hand", X the
+    /// ability's.
+    pub x: bool,
 }
 
 /// A cost exiling cards from the graveyard: `n` (or X) cards matching
@@ -818,6 +834,8 @@ pub enum CostItem {
     Exile,
     Mana,
     Tap,
+    /// `{Q}`.
+    Untap,
     Sacrifice,
     Discard,
     Life,

@@ -1,0 +1,7 @@
+card "Charge of the Forever-Beast" {
+  oracle_id 937f0c60-003e-446d-8889-059f7b4a2dd6
+  cost {2}{G}
+  type Sorcery
+  additional cost reveal creature card
+  spell: deal count equal power of the revealed card damage to target creature or planeswalker
+}

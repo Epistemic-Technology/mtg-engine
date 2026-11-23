@@ -1,0 +1,84 @@
+# "Remove X ki counters from this creature" in an activated ability's cost
+# (CR 107.3, 602.2b): X is announced as the ability is activated, at most
+# the counters of that kind on the source, and that many are removed.
+
+scenario "Skullmane Baku: remove two ki counters for -2/-2" {
+  battlefield A: "Skullmane Baku" with 3 ki, "Swamp"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Skullmane Baku" x 2 targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert counters "Skullmane Baku" ki 1
+}
+
+scenario "Skullmane Baku: X can't exceed the ki counters" {
+  battlefield A: "Skullmane Baku" with 1 ki, "Swamp"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Skullmane Baku" x 1 targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert counters "Skullmane Baku" ki 0
+}
+
+scenario "Skullmane Baku gains a ki counter when you cast a Spirit spell" {
+  battlefield A: "Skullmane Baku", 5 "Swamp"
+  hand A: "Skullmane Baku"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Skullmane Baku"
+  run_to turn 2 postcombat_main
+  assert counters oldest "Skullmane Baku" ki 1
+}
+
+scenario "Quillmane Baku: return a creature with mana value X or less" {
+  battlefield A: "Quillmane Baku" with 4 ki, "Island"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Quillmane Baku" x 4 targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert counters "Quillmane Baku" ki 0
+}
+
+scenario "Waxmane Baku: tap X target creatures" {
+  battlefield A: "Waxmane Baku" with 2 ki, "Plains"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Waxmane Baku" x 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+  assert counters "Waxmane Baku" ki 0
+}
+
+scenario "Arcbound Javelineer: remove X +1/+1 counters for X damage" {
+  battlefield A: "Arcbound Javelineer" with 2 +1/+1
+  battlefield B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: activate "Arcbound Javelineer" x 2 targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert graveyard B contains "Grizzly Bears"
+  assert counters "Arcbound Javelineer" +1/+1 0
+}
+
+scenario "Cruel Sadist: grow, then shoot" {
+  battlefield A: "Cruel Sadist" with 2 +1/+1, 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Cruel Sadist" ability 2 x 2 targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert power "Cruel Sadist" 1
+}
+
+scenario "Infused Arrows: -X/-X from its charge counters" {
+  battlefield A: "Infused Arrows" with 3 charge
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Infused Arrows" x 3 targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert counters "Infused Arrows" charge 0
+}

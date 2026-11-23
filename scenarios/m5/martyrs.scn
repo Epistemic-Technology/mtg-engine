@@ -1,0 +1,46 @@
+# "Reveal X white cards from your hand" in an activated ability's cost
+# (CR 107.3, 602.2b): X is announced as the ability is activated, at most
+# the matching cards in hand; the cards are revealed and stay in hand.
+
+scenario "Martyr of Sands: reveal two white cards, gain 6 life" {
+  battlefield A: "Martyr of Sands", "Plains"
+  hand A: "Serra Angel", "Savannah Lions", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Martyr of Sands" x 2
+  run_to turn 2 postcombat_main
+  assert life A 26
+  assert graveyard A contains "Martyr of Sands"
+  assert hand A count 3
+  assert known B "Serra Angel"
+  assert known B "Savannah Lions"
+}
+
+scenario "Martyr of Sands: X is at most the white cards in hand" {
+  battlefield A: "Martyr of Sands", "Plains"
+  hand A: "Serra Angel", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Martyr of Sands" x 1
+  run_to turn 2 postcombat_main
+  assert life A 23
+}
+
+scenario "Martyr of Spores: +X/+X for X green cards revealed" {
+  battlefield A: "Martyr of Spores", "Forest", "Grizzly Bears"
+  hand A: "Giant Growth", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Martyr of Spores" x 2 targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Martyr of Frost: counter unless its controller pays {X}" {
+  battlefield A: "Martyr of Frost", 2 "Island"
+  hand A: "Divination", "Wind Drake"
+  battlefield B: 4 "Mountain"
+  hand B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Hill Giant"
+  turn 2 A: activate "Martyr of Frost" x 2 targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}

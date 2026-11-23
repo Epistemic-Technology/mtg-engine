@@ -1,0 +1,7 @@
+card "Foul-Tongue Invocation" {
+  oracle_id fbf27d1b-2b2a-49f3-abcd-20a6c79c44ee
+  cost {2}{B}
+  type Instant
+  additional cost may reveal Dragon card
+  spell: target player sacrifices 1 creature; if beheld, you gain 4 life
+}

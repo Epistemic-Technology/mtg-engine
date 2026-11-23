@@ -1,0 +1,294 @@
+# "As an additional cost to cast this spell, reveal a creature card from
+# your hand" (CR 601.2b, 701.20a): a card from the hand only, never the
+# spell itself; "the revealed card's mana value" reads it as the spell
+# resolves. "You may reveal a Dragon card from your hand" is optional,
+# and "If you revealed a Dragon card or controlled a Dragon as you cast
+# this spell" also holds with a Dragon on the battlefield.
+
+scenario "Living Destiny: gain life equal to the revealed card's mana value" {
+  battlefield A: 4 "Forest"
+  hand A: "Living Destiny", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Living Destiny"
+  run_to turn 1 postcombat_main
+  assert life A 25
+  assert hand A contains "Serra Angel"
+  assert known B "Serra Angel"
+}
+
+scenario "Living Destiny can't be cast without a creature card to reveal" {
+  battlefield A: 4 "Forest"
+  hand A: "Living Destiny", "Forest"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Living Destiny"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Living Destiny"
+}
+
+scenario "A creature on the battlefield isn't revealed from the hand" {
+  battlefield A: 4 "Forest", "Grizzly Bears"
+  hand A: "Living Destiny"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Living Destiny"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Living Destiny"
+}
+
+scenario "Induce Despair: -X/-X where X is the revealed card's mana value" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Serra Angel", "Hill Giant"
+  hand A: "Induce Despair", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Induce Despair" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+  assert power "Serra Angel" 2
+  assert toughness "Serra Angel" 2
+  run_to turn 1 end
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "Induce Despair kills a creature with toughness up to the mana value" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Induce Despair", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Induce Despair" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Draconic Roar with a Dragon revealed: 3 to the creature's controller too" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Draconic Roar", "Shivan Dragon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Draconic Roar" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 17
+  assert known B "Shivan Dragon"
+}
+
+scenario "Draconic Roar without a Dragon: only the creature" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Draconic Roar"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Draconic Roar" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 20
+}
+
+scenario "Draconic Roar declining to reveal: only the creature" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Draconic Roar", "Shivan Dragon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Draconic Roar" other_cost targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 20
+}
+
+scenario "Draconic Roar with a Dragon controlled as it is cast" {
+  battlefield A: 2 "Mountain", "Shivan Dragon"
+  battlefield B: "Hill Giant"
+  hand A: "Draconic Roar"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Draconic Roar" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 17
+}
+
+scenario "Foul-Tongue Invocation: sacrifice, and 4 life with a Dragon" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Foul-Tongue Invocation", "Shivan Dragon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Foul-Tongue Invocation" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 24
+}
+
+scenario "Foul-Tongue Invocation without a Dragon: no life" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Foul-Tongue Invocation"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Foul-Tongue Invocation" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 20
+}
+
+scenario "Goldmeadow Stalwart: reveal a Kithkin card or pay {3}" {
+  battlefield A: "Plains"
+  hand A: "Goldmeadow Stalwart", "Amrou Kithkin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Goldmeadow Stalwart"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Goldmeadow Stalwart"
+  assert hand A contains "Amrou Kithkin"
+}
+
+scenario "Goldmeadow Stalwart: a Kithkin on the battlefield doesn't pay the cost" {
+  battlefield A: "Plains", "Amrou Kithkin"
+  hand A: "Goldmeadow Stalwart"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Goldmeadow Stalwart"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Goldmeadow Stalwart"
+}
+
+scenario "Goldmeadow Stalwart: pay {3} instead" {
+  battlefield A: 4 "Plains"
+  hand A: "Goldmeadow Stalwart"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Goldmeadow Stalwart"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Goldmeadow Stalwart"
+}
+
+scenario "Thunderherd Migration: reveal a Dinosaur card instead of paying {1}" {
+  battlefield A: 2 "Forest"
+  hand A: "Thunderherd Migration", "Colossal Dreadmaw"
+  library A: "Plains", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Thunderherd Migration"
+  turn 1 A: choose "Plains"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Plains"
+  assert tapped "Plains"
+}
+
+scenario "Thunderherd Migration without a Dinosaur needs {1} more" {
+  battlefield A: 2 "Forest"
+  hand A: "Thunderherd Migration"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Thunderherd Migration"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Thunderherd Migration"
+}
+
+scenario "Silvergill Adept: reveal a Merfolk card, then draw" {
+  battlefield A: 2 "Island"
+  hand A: "Silvergill Adept", "Merfolk Looter"
+  library A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Silvergill Adept"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Silvergill Adept"
+  assert hand A count 2
+}
+
+scenario "Surtland Elementalist: cast a sorcery from hand free as it attacks" {
+  battlefield A: "Surtland Elementalist"
+  hand A: "Divination"
+  library A: "Island", "Island", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Surtland Elementalist"
+  turn 2 declare_attackers A: choose "Divination"
+  run_to turn 2 end
+  assert life B 12
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+}
+
+scenario "Surtland Elementalist: reveal a Giant card or pay {2}" {
+  battlefield A: 7 "Island"
+  hand A: "Surtland Elementalist", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Surtland Elementalist"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Surtland Elementalist"
+}
+
+scenario "Silumgar's Scorn with a Dragon controlled: counter the spell outright" {
+  battlefield A: 2 "Island", "Shivan Dragon"
+  battlefield B: 4 "Island"
+  hand B: "Divination"
+  hand A: "Silumgar's Scorn"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Divination"
+  turn 1 A: cast "Silumgar's Scorn" targeting "Divination" in response to "Divination"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Divination"
+  assert hand B count 0
+}
+
+scenario "Silumgar's Scorn without a Dragon: countered unless its controller pays {1}" {
+  battlefield A: 2 "Island"
+  battlefield B: 4 "Island"
+  hand B: "Divination"
+  hand A: "Silumgar's Scorn"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Divination"
+  turn 1 A: cast "Silumgar's Scorn" targeting "Divination" in response to "Divination"
+  run_to turn 1 postcombat_main
+  assert hand B count 2
+}
+
+scenario "Scaleguard Sentinels: a +1/+1 counter if a Dragon was revealed" {
+  battlefield A: 2 "Forest"
+  hand A: "Scaleguard Sentinels", "Shivan Dragon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Scaleguard Sentinels"
+  run_to turn 1 postcombat_main
+  assert counters "Scaleguard Sentinels" +1/+1 1
+}
+
+scenario "Scaleguard Sentinels declining to reveal: no counter" {
+  battlefield A: 2 "Forest"
+  hand A: "Scaleguard Sentinels", "Shivan Dragon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Scaleguard Sentinels" other_cost
+  run_to turn 1 postcombat_main
+  assert counters "Scaleguard Sentinels" +1/+1 0
+}
+
+scenario "Orator of Ojutai: draw with a Dragon controlled" {
+  battlefield A: 2 "Plains", "Shivan Dragon"
+  hand A: "Orator of Ojutai"
+  library A: "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Orator of Ojutai"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Orator of Ojutai without a Dragon: no card" {
+  battlefield A: 2 "Plains"
+  hand A: "Orator of Ojutai"
+  library A: "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Orator of Ojutai"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Disaster Radius: damage equal to the revealed card's mana value to each opposing creature" {
+  battlefield A: 7 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Disaster Radius", "Shivan Dragon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Disaster Radius"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Serra Angel"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Charge of the Forever-Beast: damage equal to the revealed card's power" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Serra Angel"
+  hand A: "Charge of the Forever-Beast", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Charge of the Forever-Beast" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+  assert damage "Serra Angel" 2
+}

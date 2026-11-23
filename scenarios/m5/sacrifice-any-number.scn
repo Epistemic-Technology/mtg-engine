@@ -1,0 +1,28 @@
+# "As an additional cost to cast this spell, sacrifice any number of
+# creatures" (CR 601.2b): the number is announced as the spell is cast
+# (scripted `x N`), at most the creatures there are; the caster chooses
+# the first, the engine the rest. "For each creature sacrificed this way"
+# counts them.
+
+scenario "Vicious Betrayal: sacrifice two creatures for +4/+4" {
+  battlefield A: 5 "Swamp", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Serra Angel"
+  hand A: "Vicious Betrayal"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vicious Betrayal" x 2 sacrificing "Grizzly Bears" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert power "Serra Angel" 8
+  assert toughness "Serra Angel" 8
+}
+
+scenario "Vicious Betrayal: sacrificing none is legal and gives nothing" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  hand A: "Vicious Betrayal"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vicious Betrayal" x 0 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Vicious Betrayal"
+  assert power "Grizzly Bears" 2
+}

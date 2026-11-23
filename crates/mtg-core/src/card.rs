@@ -6930,6 +6930,24 @@ pub struct Cost {
     /// than the source (the engine picks the one with the most of them).
     #[serde(default)]
     pub remove_from_creature: bool,
+    /// "As an additional cost to cast this spell, sacrifice any number of
+    /// creatures" (1; "you may sacrifice any number of Spirits", 2): X
+    /// announced as the spell is cast (CR 601.2b, 107.3), at most the
+    /// matching permanents, and X permanents matching the `sacrifice`
+    /// filter sacrificed (the caster chooses the first, the engine the
+    /// rest). 0: none.
+    #[serde(default)]
+    pub sacrifice_any: u8,
+    /// "Remove X ki counters from this creature" (CR 107.3, 602.2b): the
+    /// `remove_counters` count is the ability's X, announced as it is
+    /// activated, at most the source's counters of that kind.
+    #[serde(default)]
+    pub remove_x: bool,
+    /// {Q}, the untap symbol (CR 107.6): untap the source. Payable only
+    /// while it is tapped; a creature's needs it to have been controlled
+    /// since the turn began (CR 302.6).
+    #[serde(default)]
+    pub untap: bool,
 }
 
 /// A behold cost (CR 701.69a): `n` objects matching `filter`, each a
@@ -6942,6 +6960,18 @@ pub struct Behold {
     pub filter: ObjFilter,
     pub n: u32,
     pub exile: bool,
+    /// "Reveal a Kithkin card from your hand" (the older wording, CR
+    /// 601.2b): a card from the hand only, never a permanent. As the
+    /// spell is cast, controlling a matching permanent also counts as
+    /// paid ("If you revealed a Dragon card or controlled a Dragon as you
+    /// cast this spell").
+    #[serde(default)]
+    pub hand: bool,
+    /// "Reveal X red cards from your hand" (an activated ability's cost):
+    /// `n` is the ability's X, announced as it is activated, at most the
+    /// matching cards.
+    #[serde(default)]
+    pub x: bool,
 }
 
 /// A cost that exiles cards from its payer's graveyard: `n` of them (X,
@@ -7011,6 +7041,9 @@ impl Cost {
             blight_put: false,
             process: 0,
             remove_from_creature: false,
+            sacrifice_any: 0,
+            remove_x: false,
+            untap: false,
         }
     }
 

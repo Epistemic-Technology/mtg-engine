@@ -1,0 +1,8 @@
+card "Skullmane Baku" {
+  oracle_id 74466fa6-34d9-42f9-8590-c7f1fa672bf5
+  cost {3}{B}{B}
+  type Creature — Spirit
+  pt 2/1
+  triggered whenever you cast Spirit or Arcane spell: you may put 1 ki counters on this
+  activated {1}, {T}, remove X ki counters from this: target creature gets -1/-1 X
+}

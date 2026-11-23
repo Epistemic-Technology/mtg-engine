@@ -1,0 +1,7 @@
+card "Martyr of Frost" {
+  oracle_id 196cacb0-a26a-4540-9143-57867a638085
+  cost {U}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {2}, reveal X blue cards, sacrifice this: counter target spell unless its controller pays {X}
+}

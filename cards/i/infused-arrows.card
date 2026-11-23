@@ -1,0 +1,7 @@
+card "Infused Arrows" {
+  oracle_id 942216f7-6803-4ab3-9239-463002590f6f
+  cost {4}
+  type Artifact
+  sunburst
+  activated {T}, remove X charge counters from this: target creature gets -1/-1 X
+}

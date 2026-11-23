@@ -1,0 +1,7 @@
+card "Draconic Roar" {
+  oracle_id 843af5d3-447e-40e4-a562-f5a7ed09ca3e
+  cost {1}{R}
+  type Instant
+  additional cost may reveal Dragon card
+  spell: deal 3 damage to target creature; if beheld, deal 3 damage to controller of that target 1
+}
