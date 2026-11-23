@@ -2249,15 +2249,18 @@ impl P {
                         noun,
                     });
                 }
-                if self.at_words(&["less", "if"]) || self.at_words(&["more", "if"]) {
+                let as_long_as = self.at_words(&["less", "as", "long", "as"])
+                    || self.at_words(&["more", "as", "long", "as"]);
+                if self.at_words(&["less", "if"]) || self.at_words(&["more", "if"]) || as_long_as {
                     let less = self.at_word("less");
-                    self.pos += 2;
+                    self.pos += if as_long_as { 4 } else { 2 };
                     let cond = self.static_cond()?;
                     self.end_stmt()?;
                     let n = i32::try_from(per).unwrap_or(0);
                     return Ok(Ability::CondCost {
                         delta: if less { -n } else { n },
                         cond,
+                        as_long_as,
                     });
                 }
                 self.expect_word("less")?;
@@ -3339,7 +3342,11 @@ impl P {
                     Some(crate::ast::TrigCond::While(StaticCond::DuringYourTurn))
                 } else if self.eat_word("if") {
                     let at = self.pos;
-                    if let Ok(c) = self.condition() {
+                    if self.eat_words(&["it", "had", "counter"]) {
+                        Some(crate::ast::TrigCond::HadCounter { one_or_more: false })
+                    } else if self.eat_words(&["it", "had", "one", "or", "more", "counters"]) {
+                        Some(crate::ast::TrigCond::HadCounter { one_or_more: true })
+                    } else if let Ok(c) = self.condition() {
                         Some(crate::ast::TrigCond::Core(c))
                     } else {
                         self.pos = at;
@@ -3810,6 +3817,14 @@ impl P {
                 _ => Mechanic::Absorb(n),
             })));
         }
+        // `gains firebending 4`: "gains firebending 4 until end of turn"
+        // (Fire Nation Palace).
+        if self.at_word("firebending") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            self.pos += 1;
+            return Ok(Some(Ability::Mechanic(Mechanic::Firebending(Num::N(
+                self.number()?,
+            )))));
+        }
         if self.eat_word("provoke") {
             return Ok(Some(Ability::Mechanic(Mechanic::Provoke)));
         }
@@ -3838,6 +3853,7 @@ impl P {
         (self.at_word("ward") && matches!(self.peek_at(1), Some(Tok::Sym(_))))
             || self.at_words(&["ward", "pay"])
             || (self.at_word("toxic") && matches!(self.peek_at(1), Some(Tok::Num(_))))
+            || (self.at_word("firebending") && matches!(self.peek_at(1), Some(Tok::Num(_))))
             || self.granted_protection_ahead()
             || (self
                 .word_at(0)
@@ -4321,6 +4337,19 @@ impl P {
         }
         if self.eat_words(&["this", "isnt", "token"]) {
             return Ok(StaticCond::IsntToken);
+        }
+        // `this isnt creature`: card types only.
+        if self.eat_words(&["this", "isnt"]) {
+            let f = self.filter()?;
+            if f.types.is_empty()
+                || f != (Filter {
+                    types: f.types.clone(),
+                    ..Filter::default()
+                })
+            {
+                return self.fail("`this isnt` takes card types only");
+            }
+            return Ok(StaticCond::Isnt(f));
         }
         if self.eat_words(&["this", "is"]) {
             return Ok(StaticCond::Is(self.filter()?));
@@ -4856,6 +4885,11 @@ impl P {
             let n = self.number()?;
             let filter = self.filter()?;
             return Ok(StaticCond::YouControlAtMost { filter, n });
+        }
+        if self.eat_words(&["you", "control", "at", "least"]) {
+            let n = self.number()?;
+            let filter = self.filter()?;
+            return Ok(StaticCond::YouControlAtLeast { filter, n });
         }
         if self.eat_word("enchanted") {
             return Ok(StaticCond::Enchanted);
@@ -5437,6 +5471,11 @@ impl P {
         if self.eat_words(&["until", "this", "is", "cast", "from", "exile"]) {
             return Some(Lasting::UntilCastFromExile);
         }
+        // `that token gains haste indefinitely`: no duration ("That token
+        // gains haste.").
+        if self.eat_word("indefinitely") {
+            return Some(Lasting::Forever);
+        }
         None
     }
 
@@ -5526,7 +5565,11 @@ impl P {
         }
         // `you lose 1 life unless opponent life 10 or less`: a static
         // condition, judged as it resolves.
-        if !matches!(self.word_at(1).as_deref(), Some("you" | "they")) {
+        // `unless you control Villain` too: "unless you control a
+        // Villain" (The Spot's Portal).
+        if !matches!(self.word_at(1).as_deref(), Some("you" | "they"))
+            || self.at_words(&["unless", "you", "control"])
+        {
             let at = self.pos;
             self.pos += 1;
             if let Ok(cond) = self.static_cond()
@@ -5709,6 +5752,8 @@ impl P {
         }
         if self.at_words(&["those", "targets"])
             || self.at_words(&["the", "chosen", "targets"])
+            || (self.at_words(&["the", "chosen", "target"])
+                && matches!(self.peek_at(3), Some(Tok::Num(_))))
             || self.at_words(&["the", "full", "target"])
             || self.at_words(&["the", "chosen", "full", "target"])
         {
@@ -6817,6 +6862,29 @@ impl P {
             return self.fail(
                 "`they control` in a count for each player or you: it counts an opponent's permanents, not that player's",
             );
+        }
+        // "Target player loses 1 life for each tapped artifact they
+        // control." (Burden of Greed): that player's permanents, not an
+        // opponent's.
+        if let Recipient::Target(n) = subject
+            && self.targets.get(n).is_some_and(|t| {
+                matches!(
+                    t.base(),
+                    Target::Spec(TargetSpec::Player | TargetSpec::Opponent)
+                )
+            })
+        {
+            for c in &mut self.counts[counts..] {
+                if let crate::ast::CountExpr::Permanents(f) = &mut c.expr
+                    && f.they_control
+                    && f.that_player.is_none()
+                {
+                    f.who = None;
+                    f.that_player = Some(mtg_core::card::ThatPlayer::Target(
+                        u8::try_from(n).unwrap_or(u8::MAX),
+                    ));
+                }
+            }
         }
         Ok(e)
     }
@@ -9626,6 +9694,7 @@ impl P {
                 if !it {
                     self.expect_words(&["that", "card"])?;
                 }
+                let from_exile = self.eat_words(&["from", "exile"]);
                 let until = self.play_until()?;
                 let first = self.eat_word("first");
                 let free = self.eat_word("free");
@@ -9635,6 +9704,7 @@ impl P {
                     free,
                     first,
                     it,
+                    from_exile,
                 })
             }
             "face-down" if self.at_words(&["spells", "cost"]) => {
@@ -11652,6 +11722,9 @@ impl P {
         }
         if self.in_delayed && self.eat_words(&["those", "cards"]) {
             return Ok(Recipient::SameCards);
+        }
+        if self.in_delayed && self.eat_words(&["the", "exiled", "cards"]) {
+            return Ok(Recipient::SameExiledCards);
         }
         if self.eat_words(&["those", "cards"]) {
             if self.targets.is_empty() {

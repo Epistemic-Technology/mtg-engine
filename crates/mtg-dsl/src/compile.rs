@@ -562,6 +562,7 @@ impl Compiler<'_> {
         for (i, c) in card.counts.iter().enumerate() {
             if let crate::ast::CountExpr::Permanents(f) = &c.expr
                 && f.they_control
+                && f.that_player.is_none()
             {
                 let mut g = f.clone();
                 g.they_control = false;
@@ -590,7 +591,7 @@ impl Compiler<'_> {
                 Ability::EquipDiscount(n) => {
                     b = b.equip_discount(*n);
                 }
-                Ability::CondCost { delta, cond } => {
+                Ability::CondCost { delta, cond, .. } => {
                     let c = self.static_cond(cond);
                     let i = self.pool.intern_condition(c);
                     b = b.cond_cost(*delta, i);
@@ -1176,6 +1177,12 @@ impl Compiler<'_> {
         let spells = card
             .abilities
             .iter()
+            // `label "Revolt" spell: ...` counts too (it never resolved as
+            // a second spell paragraph).
+            .map(|a| match a {
+                Ability::Labeled { ability, .. } => &**ability,
+                a => a,
+            })
             .filter(|a| {
                 matches!(
                     a,
@@ -2248,7 +2255,11 @@ impl Compiler<'_> {
         match c {
             StaticCond::CardsInGraveyard(n) => StaticCondition::CardsInGraveyard(*n),
             StaticCond::CardTypesInGraveyard(n) => StaticCondition::CardTypesInGraveyard(*n),
-            StaticCond::YouControl { filter, at_least } => StaticCondition::YouControl {
+            StaticCond::YouControl { filter, at_least }
+            | StaticCond::YouControlAtLeast {
+                filter,
+                n: at_least,
+            } => StaticCondition::YouControl {
                 filter: self.filter(filter).who(Who::You),
                 at_least: *at_least,
             },
@@ -2441,6 +2452,10 @@ impl Compiler<'_> {
                 }
             }
             StaticCond::Is(filter) => StaticCondition::SourceIs(self.filter(filter)),
+            StaticCond::Isnt(f) => StaticCondition::SourceIs(self.filter(&Filter {
+                not_types: f.types.clone(),
+                ..Filter::default()
+            })),
             StaticCond::IsntToken => StaticCondition::SourceIs(self.filter(&Filter {
                 status: mtg_core::card::StatusQuals {
                     token: Some(false),
@@ -2849,6 +2864,7 @@ impl Compiler<'_> {
             | Recipient::SameToken
             | Recipient::SameTokens
             | Recipient::SameCards
+            | Recipient::SameExiledCards
             | Recipient::SameThem => CoreRecipient::SameObject,
             Recipient::CreatedTokens | Recipient::CreatedThem | Recipient::CreatedThose => {
                 CoreRecipient::CreatedTokens
@@ -5399,6 +5415,9 @@ impl Compiler<'_> {
                     }
                     None => None,
                     Some(crate::ast::TrigCond::Core(c)) => Some(*c),
+                    Some(crate::ast::TrigCond::HadCounter { .. }) => {
+                        Some(mtg_core::card::Condition::TriggerHadCounters)
+                    }
                     Some(crate::ast::TrigCond::Static(c)) => {
                         let c = self.static_cond(c);
                         Some(mtg_core::card::Condition::Static(

@@ -1,0 +1,6 @@
+card "Burden of Greed" {
+  oracle_id a80c13db-949d-4784-8177-04aaa22b96b0
+  cost {3}{B}
+  type Instant
+  spell: target player loses count each tapped artifact they control life
+}

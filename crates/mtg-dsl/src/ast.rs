@@ -1505,10 +1505,13 @@ pub enum Ability {
         /// card with mana value 3 or less".
         noun: TargetNoun,
     },
-    /// `this spell costs {3} less if creature died this turn`.
+    /// `this spell costs {3} less if creature died this turn`; `... as
+    /// long as 4 card types in your graveyard` prints "as long as" (Drag
+    /// to the Roots; wording only).
     CondCost {
         delta: i32,
         cond: StaticCond,
+        as_long_as: bool,
     },
     /// `affinity for artifact`: "Affinity for artifacts" (CR 702.41), this
     /// spell costs {1} less for each such permanent you control.
@@ -1755,6 +1758,13 @@ pub enum TrigCond {
     /// the event happens ("Whenever this creature attacks while you control
     /// two or more artifacts, ...").
     While(StaticCond),
+    /// `if it had counter`, `if it had one or more counters`: the core
+    /// `TriggerHadCounters` ("if it had counters on it") printed "if it had
+    /// a counter on it" (Leader's Talent) or "if it had one or more
+    /// counters on it" (Ambitious Augmenter).
+    HadCounter {
+        one_or_more: bool,
+    },
 }
 
 /// Keyword abilities with a parameter (CR 702).
@@ -2349,6 +2359,13 @@ pub enum StaticCond {
         filter: Filter,
         n: u32,
     },
+    /// `you control at least 5 other Forest`: "you control at least five
+    /// other Forests" (Roiling Canopy; the same condition as `you control
+    /// 5 other Forest`).
+    YouControlAtLeast {
+        filter: Filter,
+        n: u32,
+    },
     /// `you control Urza's Mine and Urza's Power-Plant`: "you control an
     /// Urza's Mine and an Urza's Power-Plant".
     YouControlEach(Vec<Filter>),
@@ -2471,6 +2488,9 @@ pub enum StaticCond {
     /// `this isnt token`: "it isn't a token" (Sphinx of False
     /// Conclusions); `this is nontoken` prints "it's not a token".
     IsntToken,
+    /// `this isnt creature`: "this enchantment isn't a creature" (Answered
+    /// Prayers): the source has none of the filter's card types.
+    Isnt(Filter),
     /// `modified`: "it's modified" (CR 700.9).
     Modified,
     /// `attacking alone`: "it's attacking alone".
@@ -3693,6 +3713,11 @@ pub enum Recipient {
     /// those cards to the battlefield under their owner's control at the
     /// beginning of the next end step.").
     SameCards,
+    /// `the exiled cards` inside a delayed trigger about several targets:
+    /// `SameCards` printed "the exiled cards" ("Return the exiled cards to
+    /// the battlefield under their owners' control ...", Hide on the
+    /// Ceiling).
+    SameExiledCards,
     /// `them` inside a delayed trigger about created tokens: those tokens
     /// (`SameTokens`), printed "them" ("Exile them at the beginning of the
     /// next end step").
@@ -4983,6 +5008,10 @@ pub enum Effect {
         free: bool,
         first: bool,
         it: bool,
+        /// `may play that card from exile this turn`: "You may play that
+        /// card from exile this turn." (Norin, Swift Survivalist; wording
+        /// only).
+        from_exile: bool,
     },
     /// `reveal until nonland card` ("reveal cards from the top of your
     /// library until you reveal a nonland card"), `<who> reveals until

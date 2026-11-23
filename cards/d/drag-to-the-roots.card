@@ -1,0 +1,7 @@
+card "Drag to the Roots" {
+  oracle_id ef4c478c-7019-4ec0-8edf-2a3078a8e97a
+  cost {2}{B}{G}
+  type Instant
+  label "Delirium" this spell costs {2} less as long as 4 card types in your graveyard
+  spell: destroy target nonland permanent
+}

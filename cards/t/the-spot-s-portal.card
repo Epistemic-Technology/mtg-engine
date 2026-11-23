@@ -1,0 +1,6 @@
+card "The Spot's Portal" {
+  oracle_id 3ceac6ce-acde-42ab-b79d-ff153074d2d8
+  cost {2}{B}
+  type Instant
+  spell: put target creature on bottom of its owner's library; you lose 2 life unless you control Villain
+}

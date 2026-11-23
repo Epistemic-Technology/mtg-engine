@@ -1,0 +1,8 @@
+card "Chrome Dome" {
+  oracle_id 3dc71e16-b935-4ad7-b3f7-945ac2c179a7
+  cost {2}
+  type Artifact Creature — Robot Ninja
+  pt 1/3
+  static other artifact creature you control: +1/+0
+  activated {5}: create token copy of another target artifact you control; that created token gains haste indefinitely; delayed that token: sacrifice it at beginning of the next end step
+}

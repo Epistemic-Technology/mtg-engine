@@ -1,0 +1,8 @@
+card "Norin, Swift Survivalist" {
+  oracle_id 425d755b-7a15-423d-9640-494debc79dd9
+  cost {R}
+  type Legendary Creature — Human Coward
+  pt 2/1
+  keywords can't block
+  triggered whenever creature you control becomes blocked: you may exile it; may play that card from exile this turn
+}

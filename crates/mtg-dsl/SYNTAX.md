@@ -954,7 +954,8 @@ artifact"), and `if you controlled that target 1, ...` prints "that
 permanent" whatever the target is (Kellan, Inquisitive Prodigy). `then if <cond>, <clause>` prints "Then if ...". `you lose 1 life
 unless opponent life 10 or less` prints "you lose 1 life unless an
 opponent has 10 or less life": the clause happens only if the condition
-doesn't hold as it resolves. Conditions
+doesn't hold as it resolves; `you lose 2 life unless you control Villain`
+prints "unless you control a Villain" (The Spot's Portal). Conditions
 also include `your life more than opponent` ("you have more life than an
 opponent"), `3 basic land types` ("there are three or more basic land
 types among lands you control"), `you don't control legendary creature`
@@ -3444,6 +3445,21 @@ Forms that change only how Oracle words what an existing form does:
 | `flash named as long as you control Desert` | "Colossal Rattlewurm has flash as long as you control a Desert." |
 | `non-Faerie, nonland permanent` | A negated subtype written before a negated type prints first: "non-Faerie, nonland permanent". |
 | `this isnt token` | "it isn't a token" (`this is nontoken` prints "it's not a token") |
+| `if this isnt creature, this becomes 3/3 Angel creature with flying in addition` | "If this enchantment isn't a creature, it becomes a 3/3 Angel creature ..." (Answered Prayers; card types only, judged on the source as it resolves); `if this is Scout, this becomes ...` prints "If Kellan is a Scout, it becomes ..." |
+| `target creature you control gains firebending 4` | "Target creature you control gains firebending 4 until end of turn." (Fire Nation Palace; a granted keyword with a number, like `toxic 1`) |
+| `this spell costs {2} less as long as 4 card types in your graveyard` | "This spell costs {2} less to cast as long as there are four or more card types among cards in your graveyard." (Drag to the Roots; `if` prints "if") |
+| `then the chosen target 1 loses ... life` | "Then the chosen player loses ... life" (Haunt the Network): `the chosen target N` as a sentence's subject, after `choose target opponent` |
+| `you may exile it; may play that card from exile this turn` | "You may play that card from exile this turn." (Norin, Swift Survivalist; wording only) |
+| `delayed target 1: return the exiled cards to battlefield under its owner's control at beginning of the next end step` | "Return the exiled cards to the battlefield under their owners' control at the beginning of the next end step." after `exile X target ...` (Hide on the Ceiling; each card in turn, as `those cards`) |
+| `triggered whenever creature you control leaves the battlefield if it had counter: ...`, `... if it had one or more counters: ...` | "if it had a counter on it", "if it had one or more counters on it" (the trigger condition `if it had counters`, "if it had counters on it", in other words) |
+| `if you control at least 5 other Forest` | "if you control at least five other Forests" (the condition `you control 5 other Forest`; in a trigger about another Forest, "other" still excludes only the source) |
+| `triggered whenever you cast Lesson or Saga or Shrine spell` | "Whenever you cast a Lesson, Saga, or Shrine spell" (three or more bare subtypes; two print "a Lesson or Shrine spell") |
+| `that player gains control of this` | on a legendary card, "that player gains control of Kain" (the name again) |
+| `you draw that much cards, create that much tapped "Treasure", then lose that much life` | "you draw that many cards, create that many tapped Treasure tokens, then lose that much life" (a list's subject isn't repeated after subjectless clauses; `then you lose` prints the same) |
+| `you may target 1 no longer suspected` | "You may have it become no longer suspected." |
+| `label "Descend 8" static as long as 8 permanent cards in your graveyard, this: +2/+2, ...` after a pump of the same subject | "... gets an additional +2/+2 ..." after any earlier pump static of the same subject, conditional or not (Akawalli) |
+| `label "Revolt" spell: ...` beside another `spell:` line | rejected: one spell paragraph per card (it never resolved); write `spell { ...; label "Revolt" if ... }` |
+| `that created token gains haste indefinitely`, `this gains ability { ... } indefinitely` | "That token gains haste.", "This creature gains \"...\"" (no duration, CR 611.2a: until the object leaves; `indefinitely` after a sentence makes everything in it that would last until end of turn last for good). A legendary card granting itself a quoted ability names itself in it ("Kellan ... gains \"Whenever Kellan deals combat damage ...\""). |
 | `static plural artifact you control: add subtype Food, ...` | "Artifacts you control are Foods in addition to their other types and have ..." rather than "Each artifact you control is a Food ...". An added subtype and the card types added after it are one noun ("are Food artifacts", "is a Golem creature with base power and toughness 5/4"), and a quoted ability of a holder given a card type names "this permanent". |
 | `reduced {1} during your turn` | "This ability costs {1} less to activate during your turn." |
 | `the chosen target 1` | "the chosen creature", after "choose target creature" |

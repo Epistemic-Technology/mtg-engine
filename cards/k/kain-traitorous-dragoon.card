@@ -1,0 +1,8 @@
+card "Kain, Traitorous Dragoon" {
+  oracle_id 70fbb378-d905-47cf-8c54-cc166a7867b3
+  cost {2}{B}
+  type Legendary Creature — Human Knight
+  pt 2/4
+  label "Jump" static during your turn, this: has flying
+  triggered whenever this deals combat damage to a player: that player gains control of this; if they do, you draw that much cards, create that much tapped "Treasure", then lose that much life
+}

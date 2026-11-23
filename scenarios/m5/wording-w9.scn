@@ -1,0 +1,425 @@
+# Cards whose Oracle wording the renderer now prints exactly (ninth
+# wave): each scenario checks that the wording means what the card does,
+# amounts and targets included.
+
+# --- No duration: "It gains haste.", "gains \"...\"." (Lasting::Forever)
+
+scenario "Chrome Dome: the token copy has haste and is sacrificed at the end step" {
+  battlefield A: "Chrome Dome", "Ornithopter", 5 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Chrome Dome" targeting "Ornithopter"
+  run_to turn 1 declare_attackers
+  assert battlefield A contains 2 "Ornithopter"
+  assert has newest A "Ornithopter" haste
+  assert has not "Chrome Dome" haste
+  run_to turn 2 untap
+  assert battlefield A contains 1 "Ornithopter"
+}
+
+scenario "Kami of Industry: the returned artifact creature can attack at once" {
+  battlefield A: 5 "Mountain"
+  hand A: "Kami of Industry"
+  graveyard A: "Adaptive Automaton"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kami of Industry"
+  turn 1 A: trigger "Kami of Industry" targeting "Adaptive Automaton"
+  turn 1 A: attack "Adaptive Automaton"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  run_to turn 2 untap
+  assert graveyard A contains "Adaptive Automaton"
+}
+
+scenario "Saheeli: the token copy is an artifact with haste" {
+  battlefield A: "Saheeli, the Sun's Brilliance", "Grizzly Bears", "Island", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Saheeli, the Sun's Brilliance" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert is newest A "Grizzly Bears" artifact
+  assert has newest A "Grizzly Bears" haste
+  run_to turn 2 untap
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+scenario "Summon: Primal Odin: chapter II's ability lasts past the turn" {
+  battlefield A: 6 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Summon: Primal Odin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Summon: Primal Odin"
+  turn 1 A: trigger "Summon: Primal Odin" targeting "Grizzly Bears"
+  run_to turn 3 precombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert counters "Summon: Primal Odin" lore 2
+  turn 3 A: attack "Summon: Primal Odin"
+  run_to end
+  assert winner A
+}
+
+scenario "Beorn's Hospitality: a Bear the size of your lands, for good" {
+  battlefield A: "Beorn's Hospitality", 7 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Beorn's Hospitality"
+  run_to turn 1 postcombat_main
+  assert is "Beorn's Hospitality" creature
+  assert is "Beorn's Hospitality" Bear
+  assert is "Beorn's Hospitality" enchantment
+  assert power "Beorn's Hospitality" 7
+  run_to turn 2 precombat_main
+  assert is "Beorn's Hospitality" creature
+  assert toughness "Beorn's Hospitality" 7
+}
+
+scenario "Tendril of the Mycotyrant: a 7/7 Fungus land creature with haste, for good" {
+  battlefield A: "Tendril of the Mycotyrant", 7 "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Tendril of the Mycotyrant" targeting "Plains"
+  turn 1 A: attack "Plains"
+  run_to turn 1 postcombat_main
+  assert life B 13
+  assert is "Plains" land
+  assert is "Plains" Fungus
+  run_to turn 3 precombat_main
+  assert is "Plains" creature
+  assert power "Plains" 7
+}
+
+scenario "Kellan, Planar Trailblazer: Scout, then Detective, then a 3/2 double striker" {
+  battlefield A: "Kellan, Planar Trailblazer", 8 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kellan, Planar Trailblazer" ability 2
+  turn 1 A: wait
+  turn 1 A: activate "Kellan, Planar Trailblazer" ability 1
+  run_to turn 1 begin_combat
+  assert power "Kellan, Planar Trailblazer" 2
+  assert has not "Kellan, Planar Trailblazer" double_strike
+  assert is "Kellan, Planar Trailblazer" Detective
+  assert is not "Kellan, Planar Trailblazer" Scout
+  turn 1 begin_combat A: activate "Kellan, Planar Trailblazer" ability 2
+  turn 1 A: attack "Kellan, Planar Trailblazer"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert is "Kellan, Planar Trailblazer" Rogue
+  assert has "Kellan, Planar Trailblazer" double_strike
+  assert exile A count 2
+  run_to turn 3 precombat_main
+  assert power "Kellan, Planar Trailblazer" 3
+  assert has "Kellan, Planar Trailblazer" double_strike
+}
+
+# --- Target checks and conditions about the source
+
+scenario "Pizza Face: a noncreature artifact becomes a Mutant creature; a creature only gets the counters" {
+  battlefield A: "Pizza Face, Gastromancer", "Food", "Food", "Grizzly Bears", 2 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Food"
+  turn 1 A: wait
+  run_to turn 1 end
+  turn 1 end A: trigger "Pizza Face, Gastromancer" targeting "Food"
+  run_to turn 1 cleanup
+  assert is "Food" creature
+  assert is "Food" Mutant
+  assert power "Food" 3
+  run_to turn 3 precombat_main
+  assert is "Food" creature
+}
+
+scenario "Pizza Face: nothing left, no trigger" {
+  battlefield A: "Pizza Face, Gastromancer", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 cleanup
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Answered Prayers: gain 1 life; a 3/3 Angel until end of turn" {
+  battlefield A: "Answered Prayers", 4 "Forest"
+  hand A: "Grizzly Bears", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  run_to turn 1 begin_combat
+  assert life A 21
+  assert is "Answered Prayers" creature
+  assert power "Answered Prayers" 3
+  assert has "Answered Prayers" flying
+  turn 1 postcombat_main A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert life A 22
+  assert power "Answered Prayers" 3
+  run_to turn 2 upkeep
+  assert is not "Answered Prayers" creature
+}
+
+scenario "The Spot's Portal: 2 life without a Villain" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "The Spot's Portal"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Spot's Portal" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert battlefield B lacks "Hill Giant"
+}
+
+scenario "The Spot's Portal: no life lost with a Villain" {
+  battlefield A: 3 "Swamp", "Swarm, Being of Bees"
+  battlefield B: "Hill Giant"
+  hand A: "The Spot's Portal"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Spot's Portal" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert battlefield B lacks "Hill Giant"
+}
+
+scenario "Fathom Fleet Boarder: alone it costs 2 life; another Pirate saves it" {
+  battlefield A: 6 "Swamp"
+  hand A: "Fathom Fleet Boarder", "Fathom Fleet Boarder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fathom Fleet Boarder"
+  turn 1 A: wait
+  run_to turn 1 begin_combat
+  assert life A 18
+  turn 1 postcombat_main A: cast "Fathom Fleet Boarder"
+  run_to turn 1 end
+  assert life A 18
+}
+
+scenario "Tezzeret's emblem: a noncreature artifact becomes a 0/0 Robot with three counters" {
+  battlefield A: "Tezzeret, Cruel Captain" with 7 loyalty, "Ornithopter", "Abzan Banner"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Tezzeret, Cruel Captain" ability 3
+  run_to turn 3 begin_combat
+  turn 3 begin_combat A: trigger "Tezzeret, Cruel Captain emblem" targeting "Abzan Banner"
+  run_to turn 3 declare_attackers
+  assert is "Abzan Banner" creature
+  assert is "Abzan Banner" Robot
+  assert power "Abzan Banner" 3
+}
+
+scenario "Tezzeret's emblem: an artifact creature only gets the counters, each combat (turns 1 and 3)" {
+  battlefield A: "Tezzeret, Cruel Captain" with 7 loyalty, "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Tezzeret, Cruel Captain" ability 3
+  run_to turn 3 declare_attackers
+  assert power "Ornithopter" 6
+  assert toughness "Ornithopter" 8
+  assert is "Ornithopter" Thopter
+}
+
+# --- Second batch
+
+scenario "Akawalli: +2/+2 and trample at descend 4, an additional +2/+2 at descend 8" {
+  battlefield A: "Akawalli, the Seething Tower"
+  graveyard A: 4 "Forest"
+  start turn 1 A precombat_main
+  assert power "Akawalli, the Seething Tower" 5
+  assert has "Akawalli, the Seething Tower" trample
+}
+
+scenario "Akawalli: eight permanent cards, 7/7" {
+  battlefield A: "Akawalli, the Seething Tower"
+  graveyard A: 8 "Forest"
+  start turn 1 A precombat_main
+  assert power "Akawalli, the Seething Tower" 7
+  assert toughness "Akawalli, the Seething Tower" 7
+}
+
+scenario "Akawalli: three permanent cards, no bonus" {
+  battlefield A: "Akawalli, the Seething Tower"
+  graveyard A: 3 "Forest", "Shock"
+  start turn 1 A precombat_main
+  assert power "Akawalli, the Seething Tower" 3
+  assert has not "Akawalli, the Seething Tower" trample
+}
+
+scenario "Drag to the Roots: with delirium it costs {B}{G}" {
+  battlefield A: "Swamp", "Forest"
+  battlefield B: "Hill Giant"
+  graveyard A: "Forest", "Grizzly Bears", "Shock", "Divination"
+  hand A: "Drag to the Roots"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Drag to the Roots" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Drag to the Roots: three card types, full price" {
+  battlefield A: "Swamp", "Forest"
+  battlefield B: "Hill Giant"
+  graveyard A: "Forest", "Grizzly Bears", "Shock"
+  hand A: "Drag to the Roots"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Drag to the Roots" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Fire Nation Palace: firebending 4 pays for a Lightning Bolt in combat" {
+  battlefield A: "Fire Nation Palace", 2 "Mountain", "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Fire Nation Palace" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: wait
+  turn 1 declare_attackers A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Kain: the damaged player takes Kain; you draw, make tapped Treasures, and lose that much" {
+  battlefield A: "Kain, Traitorous Dragoon"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Kain, Traitorous Dragoon"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield B contains "Kain, Traitorous Dragoon"
+  assert battlefield A contains 2 "Treasure"
+  assert tapped oldest A "Treasure"
+  assert tapped newest A "Treasure"
+  assert hand A count 2
+  assert life A 18
+}
+
+scenario "Deadly Complication: both modes; the counter, then no longer suspected" {
+  battlefield A: "Repeat Offender", 5 "Swamp", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Deadly Complication"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Repeat Offender"
+  turn 1 A: wait
+  turn 1 A: cast "Deadly Complication" mode 3 targeting "Hill Giant", "Repeat Offender"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert counters "Repeat Offender" +1/+1 1
+  assert has not "Repeat Offender" menace
+}
+
+scenario "Deadly Complication: declined, it stays suspected" {
+  battlefield A: "Repeat Offender", 5 "Swamp", "Mountain"
+  hand A: "Deadly Complication"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Repeat Offender"
+  turn 1 A: wait
+  turn 1 A: cast "Deadly Complication" mode 2 targeting "Repeat Offender"
+  turn 1 A: decline "Deadly Complication"
+  run_to turn 1 postcombat_main
+  assert counters "Repeat Offender" +1/+1 1
+  assert has "Repeat Offender" menace
+}
+
+scenario "Leader's Talent: a counter on an attacker; at level 2 a creature with a counter leaving gains 2" {
+  battlefield A: "Leader's Talent", "Grizzly Bears", "Hill Giant", 4 "Plains", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Leader's Talent"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  turn 1 postcombat_main A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert life A 22
+}
+
+scenario "Leader's Talent: a creature without counters leaves, no life" {
+  battlefield A: "Leader's Talent", "Grizzly Bears", 4 "Plains", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Leader's Talent"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert life A 20
+}
+
+scenario "Hide on the Ceiling: both exiled, both back under their owners' control at the end step" {
+  battlefield A: 3 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Hide on the Ceiling"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hide on the Ceiling" x 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Haunt the Network: two Thopters, then the chosen player loses 2 and you gain 2" {
+  battlefield A: 3 "Island", 2 "Swamp"
+  hand A: "Haunt the Network"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Haunt the Network" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Thopter"
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Norin: a blocked creature is exiled and may be cast from exile this turn" {
+  battlefield A: "Norin, Swift Survivalist", "Grizzly Bears", 2 "Forest"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Guru Pathik: a Saga from the top five; casting it puts a counter on another creature" {
+  battlefield A: 6 "Forest", 6 "Swamp", "Grizzly Bears"
+  library A: "Hill Giant", "Summon: Primal Odin", "Forest", "Forest", "Forest", "Forest"
+  hand A: "Guru Pathik"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Guru Pathik"
+  turn 1 A: choose "Summon: Primal Odin"
+  turn 1 A: wait
+  turn 1 A: cast "Summon: Primal Odin"
+  turn 1 A: trigger "Guru Pathik" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Grizzly Bears" +1/+1 1
+  assert battlefield A contains "Summon: Primal Odin"
+}
+
+# --- KNOWN-ISSUES section 2: `they control` after a target player
+
+scenario "Burden of Greed: targeting yourself counts your own tapped artifacts" {
+  battlefield A: 4 "Swamp", "Ornithopter" tapped, "Ornithopter" tapped, "Memnite"
+  battlefield B: "Ornithopter" tapped
+  hand A: "Burden of Greed"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Burden of Greed" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert life B 20
+}
+
+scenario "Burden of Greed: targeting the opponent counts theirs" {
+  battlefield A: 4 "Swamp", "Ornithopter" tapped, "Ornithopter" tapped
+  battlefield B: "Ornithopter" tapped, "Memnite"
+  hand A: "Burden of Greed"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Burden of Greed" targeting player B
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert life B 19
+}
+
+scenario "Navigator's Compass: the land keeps its own type and gains the chosen one" {
+  battlefield A: "Navigator's Compass", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Navigator's Compass" targeting "Plains"
+  turn 1 A: choose Island
+  run_to turn 1 begin_combat
+  assert is "Plains" Island
+  assert is "Plains" Plains
+  run_to turn 2 upkeep
+  assert is not "Plains" Island
+}
