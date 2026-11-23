@@ -1,0 +1,96 @@
+# Cards the ninth wave's target groups complete: Profane Command ("Up to X
+# target creatures gain fear until end of turn"), Get Out and Leave ("one
+# or two target ... you own", "any number of target permanents you own"),
+# Primal Beyond (a reveal land).
+
+scenario "Profane Command: X 2 returns a two-drop and gives two creatures fear" {
+  battlefield A: 4 "Swamp", "Elite Vanguard", "Savannah Lions"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Profane Command"
+  turn 1 A: cast "Profane Command" mode 5 x 2 targeting "Grizzly Bears", "Elite Vanguard", "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert has "Elite Vanguard" fear
+  assert has "Savannah Lions" fear
+}
+
+scenario "Profane Command: up to X, X 2 may give fear to one creature" {
+  battlefield A: 4 "Swamp", "Elite Vanguard", "Savannah Lions"
+  battlefield B: "Grizzly Bears"
+  hand A: "Profane Command"
+  life B 20
+  turn 1 A: cast "Profane Command" mode 3 x 2 targeting player B, "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert has "Elite Vanguard" fear
+  assert has not "Savannah Lions" fear
+}
+
+scenario "Profane Command: X 1 can't give fear to two creatures" {
+  battlefield A: 3 "Swamp", "Elite Vanguard", "Savannah Lions"
+  hand A: "Profane Command"
+  illegal turn 1 A: cast "Profane Command" mode 3 x 1 targeting player B, "Elite Vanguard", "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Profane Command"
+}
+
+scenario "Get Out: returns two of your own permanents" {
+  battlefield A: 2 "Island", "Grizzly Bears", "Glorious Anthem"
+  hand A: "Get Out"
+  turn 1 A: cast "Get Out" mode 2 targeting "Grizzly Bears", "Glorious Anthem"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Glorious Anthem"
+}
+
+scenario "Get Out: can't return a creature you don't own" {
+  battlefield A: 2 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Get Out"
+  illegal turn 1 A: cast "Get Out" mode 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Leave: returns any number of permanents you own" {
+  battlefield A: "Plains", "Mountain", "Grizzly Bears", "Elite Vanguard"
+  battlefield B: "Hill Giant"
+  hand A: "Leave // Chance"
+  turn 1 A: cast "Leave" targeting "Grizzly Bears", "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Elite Vanguard"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Primal Beyond: enters untapped revealing an Elemental card" {
+  hand A: "Primal Beyond", "Flamekin Brawler"
+  turn 1 A: play "Primal Beyond"
+  run_to turn 1 postcombat_main
+  assert untapped "Primal Beyond"
+}
+
+scenario "Primal Beyond: enters tapped with no Elemental card" {
+  hand A: "Primal Beyond", "Grizzly Bears"
+  turn 1 A: play "Primal Beyond"
+  run_to turn 1 postcombat_main
+  assert tapped "Primal Beyond"
+}
+
+scenario "Chance: discards two cards and draws two" {
+  battlefield A: 4 "Mountain"
+  graveyard A: "Leave // Chance"
+  hand A: "Shock", "Opt", "Island"
+  library A: "Forest", "Plains", "Swamp"
+  turn 1 A: cast "Leave // Chance" from graveyard
+  turn 1 A: choose "Shock"
+  turn 1 A: choose "Opt"
+  turn 1 A: choose done
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Shock"
+  assert graveyard A contains "Opt"
+  assert hand A count 3
+  assert hand A contains "Island"
+  assert exile A contains "Leave // Chance"
+}

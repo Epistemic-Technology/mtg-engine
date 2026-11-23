@@ -1,0 +1,9 @@
+card "Get Out" {
+  oracle_id b2f3c27e-b646-4449-901a-8b809cdfa84e
+  cost {U}{U}
+  type Instant
+  choose one {
+    mode: counter target creature or enchantment spell
+    mode: return 1 to 2 target andor creature or enchantment you own to hand
+  }
+}

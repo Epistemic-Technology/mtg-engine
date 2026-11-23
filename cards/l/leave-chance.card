@@ -1,0 +1,15 @@
+card "Leave // Chance" {
+  oracle_id dff5d16f-3a41-4873-8188-076e77f18c75
+  layout split
+  face "Leave" {
+    cost {1}{W}
+    type Instant
+    spell: return any number of target permanents you own to hand
+  }
+  face "Chance" {
+    cost {3}{R}
+    type Sorcery
+    keywords aftermath
+    spell: discard any number cards chosen then draw count that many discarded this way cards
+  }
+}
