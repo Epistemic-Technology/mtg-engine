@@ -723,6 +723,10 @@ pub struct Cost {
     /// `exile this from hand`: "Exile this card from your hand" (activated
     /// from the hand).
     pub exile_from_hand: bool,
+    /// `exile 2 cards from graveyard and this`: "Exile two cards from
+    /// your graveyard and this creature" (with `exile_this`), one cost
+    /// part.
+    pub exile_this_joined: bool,
     /// Crew's cost (from its expansion).
     pub crew: u32,
     /// `pay 2 energy`: "Pay {E}{E}".

@@ -2886,6 +2886,32 @@ impl Templates {
                     })
                 },
             ),
+            // "Exile a creature card from your graveyard", "exile two
+            // cards from your graveyard" (chosen as it resolves).
+            (
+                r(r"^[Ee]xile (an?|two|three|four) (?:([a-z]+) )?cards? from your graveyard$"),
+                |c, _| {
+                    let n = number(cap(c, 1))?;
+                    Some(if cap(c, 2).is_empty() {
+                        format!("exile {n} cards from your graveyard chosen")
+                    } else {
+                        format!("exile {n} {} card from your graveyard chosen", cap(c, 2))
+                    })
+                },
+            ),
+            // "That player exiles two cards from their graveyard".
+            (
+                r(
+                    r"^(Target player|That player|that player|Target opponent|Each player|Each opponent) exiles (a|two|three|four) cards? from their graveyard$",
+                ),
+                |c, t| {
+                    let who = recipient(cap(c, 1), t)?;
+                    Some(format!(
+                        "{who} exiles {} cards from graveyard",
+                        number(cap(c, 2))?
+                    ))
+                },
+            ),
             // "Exile all creature cards from target player's graveyard".
             (
                 r(r"^[Ee]xile all ([a-z]+) cards from target player's graveyard$"),
@@ -4374,6 +4400,13 @@ fn cost_text(s: &str) -> Option<String> {
                 number(cap(&c, 1))?
             };
             format!("remove {n} {} counters from this", cap(&c, 2))
+        } else if let Some(n) = part
+            .strip_prefix("Exile ")
+            .and_then(|r| r.strip_suffix(" cards from your graveyard and this creature"))
+            .and_then(number)
+        {
+            // "Exile two cards from your graveyard and this creature".
+            format!("exile {n} cards from graveyard and this")
         } else if part == "Exile this card from your graveyard" {
             "exile this from graveyard".to_string()
         } else if let Some(kind) = part

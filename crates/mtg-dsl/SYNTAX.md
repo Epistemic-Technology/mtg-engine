@@ -330,7 +330,9 @@ most the cards there; the engine exiles the oldest matching cards other
 than the source, sparing what the spell or ability targets; `exile top
 card from graveyard`, `exile top creature card from graveyard`: "Exile the
 top card of your graveyard", "Exile the top creature card of your
-graveyard", the most recent, CR 404.2), `pay 3
+graveyard", the most recent, CR 404.2; `exile 2 cards from graveyard and
+this`: "Exile two cards from your graveyard and this creature", one
+part), `pay 3
 life`, `pay x life` (a spell's additional cost: "As an additional cost to
 cast this spell, pay X life."; X is announced as the spell is cast, at most
 the caster's life, CR 119.4), `exert this` ("Exert this creature", "Exert

@@ -1,0 +1,92 @@
+# Graveyard exiles: "that player exiles two cards from their graveyard";
+# "Exile two cards from your graveyard and this creature" as one cost;
+# "you may exile a creature card from your graveyard. If you do, ...".
+
+scenario "Curse of Oblivion: the enchanted player exiles two cards each upkeep" {
+  battlefield A: 4 "Swamp"
+  hand A: "Curse of Oblivion"
+  graveyard B: "Grizzly Bears", "Shock", "Hill Giant"
+  turn 1 A: cast "Curse of Oblivion" targeting player B
+  turn 2 upkeep B: choose "Grizzly Bears"
+  turn 2 upkeep B: choose "Hill Giant"
+  run_to turn 2 draw
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+  assert graveyard B contains "Shock"
+}
+
+scenario "Curse of Oblivion doesn't trigger on its controller's upkeep" {
+  battlefield A: 4 "Swamp"
+  hand A: "Curse of Oblivion"
+  graveyard A: "Grizzly Bears", "Shock"
+  graveyard B: "Hill Giant", "Raging Goblin", "Lightning Bolt"
+  turn 1 A: cast "Curse of Oblivion" targeting player B
+  run_to turn 3 draw
+  assert graveyard A count 2
+  assert exile B count 2
+  assert graveyard B count 1
+}
+
+scenario "Zombie Assassin exiles two cards and itself" {
+  battlefield A: "Zombie Assassin"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Shock", "Hill Giant", "Raging Goblin"
+  turn 1 A: activate "Zombie Assassin" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert exile A contains "Zombie Assassin"
+  assert exile A count 3
+  assert graveyard A count 1
+}
+
+scenario "Zombie Assassin needs two cards in the graveyard" {
+  battlefield A: "Zombie Assassin"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Shock"
+  illegal turn 1 A: activate "Zombie Assassin" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Masked Vandal exiles a creature card to exile an artifact" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Ornithopter"
+  hand A: "Masked Vandal"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: cast "Masked Vandal"
+  turn 1 A: trigger "Masked Vandal" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Ornithopter"
+  assert exile A contains "Grizzly Bears"
+}
+
+scenario "Masked Vandal with no creature card exiles nothing" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Ornithopter"
+  hand A: "Masked Vandal"
+  graveyard A: "Shock"
+  turn 1 A: cast "Masked Vandal"
+  turn 1 A: trigger "Masked Vandal" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Ornithopter"
+  assert graveyard A contains "Shock"
+}
+
+scenario "Scrabbling Claws: the target player chooses a card to exile" {
+  battlefield A: "Scrabbling Claws"
+  graveyard B: "Grizzly Bears", "Shock"
+  turn 1 A: activate "Scrabbling Claws" targeting player B
+  turn 1 B: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Shock"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Scrabbling Claws: sacrifice to exile a card and draw" {
+  battlefield A: "Scrabbling Claws", "Plains"
+  graveyard B: "Grizzly Bears", "Shock"
+  turn 1 A: activate "Scrabbling Claws" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert graveyard A contains "Scrabbling Claws"
+  assert hand A count 1
+}

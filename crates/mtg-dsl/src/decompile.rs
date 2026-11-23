@@ -455,6 +455,7 @@ impl Decompiler<'_> {
             exile_self: c.exile_self,
             exile_from_hand: c.exile_from_hand,
             exile_this: c.exile_this,
+            exile_this_joined: false,
             crew: c.crew,
             remove_counters: c.remove_counters,
             put_counters: c.put_counters,

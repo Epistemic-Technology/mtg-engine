@@ -1,0 +1,7 @@
+card "Curse of Oblivion" {
+  oracle_id 10b16b2b-7d7c-4f6f-932a-1f3bd30d33f1
+  cost {3}{B}
+  type Enchantment — Aura Curse
+  enchant player
+  triggered at beginning of enchanted controller's upkeep: that player exiles 2 cards from graveyard
+}

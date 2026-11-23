@@ -3470,6 +3470,13 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                     } else {
                         format!("{} {kind}cards", count_words(n, "a"))
                     };
+                    if cost.exile_this_joined {
+                        // "Exile two cards from your graveyard and this
+                        // creature".
+                        let src = ctx.source();
+                        parts.push(format!("Exile {what} from your graveyard and {src}"));
+                        continue;
+                    }
                     parts.push(format!("Exile {what} from your graveyard"));
                 }
             }

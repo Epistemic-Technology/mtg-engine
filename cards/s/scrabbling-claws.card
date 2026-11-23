@@ -1,0 +1,7 @@
+card "Scrabbling Claws" {
+  oracle_id 4538ec2c-867e-412b-b6e3-a57f8e29ba84
+  cost {1}
+  type Artifact
+  activated {T}: target player exiles 1 cards from graveyard
+  activated {1}, sacrifice this: exile target card from a graveyard; draw 1 cards
+}

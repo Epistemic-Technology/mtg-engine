@@ -14203,6 +14203,11 @@ impl P {
                             cost.exile_cards =
                                 Some(Box::new(crate::ast::ExileCards { n, x, filter, top }));
                             cost.order.push(CostItem::ExileCards);
+                            // `and this`: "... and this creature".
+                            if self.eat_words(&["and", "this"]) {
+                                cost.exile_this = true;
+                                cost.exile_this_joined = true;
+                            }
                         }
                     }
                     "discard" if self.word_at(1).as_deref() == Some("hand") => {

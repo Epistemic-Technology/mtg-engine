@@ -4778,7 +4778,8 @@ fn cost_text(c: &Cost) -> String {
                     let what = g.filter.as_ref().map_or(String::new(), |f| filter(f) + " ");
                     let cards = if g.x || g.n > 1 { "cards" } else { "card" };
                     let top = if g.top { "top " } else { "" };
-                    parts.push(format!("exile {top}{n}{what}{cards} from graveyard"));
+                    let this = if c.exile_this_joined { " and this" } else { "" };
+                    parts.push(format!("exile {top}{n}{what}{cards} from graveyard{this}"));
                 }
             }
             CostItem::FromGraveyard => parts.push("from graveyard".to_string()),
