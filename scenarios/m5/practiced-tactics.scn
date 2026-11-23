@@ -1,0 +1,35 @@
+# "Choose target attacking or blocking creature. Practiced Tactics deals
+# damage to that creature equal to twice the number of creatures in your
+# party." (CR 700.8)
+
+scenario "Practiced Tactics: a party of two deals 4 damage to the attacker" {
+  battlefield A: "Abbey Matron", "Goblin Piker", "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Practiced Tactics"
+  start turn 3 B
+  turn 3 B: attack "Serra Angel"
+  turn 3 declare_attackers A: cast "Practiced Tactics" targeting "Serra Angel"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Practiced Tactics: a party of one deals 2" {
+  battlefield A: "Goblin Piker", "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Practiced Tactics"
+  start turn 3 B
+  turn 3 B: attack "Serra Angel"
+  turn 3 declare_attackers A: cast "Practiced Tactics" targeting "Serra Angel"
+  run_to turn 3 combat_damage
+  assert damage "Serra Angel" 2
+}
+
+scenario "Practiced Tactics: a creature out of combat can't be chosen" {
+  battlefield A: "Goblin Piker", "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Practiced Tactics"
+  start turn 3 A precombat_main
+  illegal turn 3 A: cast "Practiced Tactics" targeting "Serra Angel"
+  run_to turn 3 postcombat_main
+  assert hand A contains "Practiced Tactics"
+}
