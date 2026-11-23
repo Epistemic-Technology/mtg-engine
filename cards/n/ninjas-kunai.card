@@ -1,0 +1,7 @@
+card "Ninja's Kunai" {
+  oracle_id fa5aefaf-432f-41d0-8e54-0e8b7bc7ba98
+  cost {1}
+  type Artifact — Equipment
+  static equipped: has ability { activated {1}, {T}, sacrifice granter: granter deals 3 damage to any target }
+  equip {1}
+}

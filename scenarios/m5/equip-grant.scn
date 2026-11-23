@@ -1,0 +1,245 @@
+# A quoted ability an Equipment grants that names the Equipment
+# (`granter`): "Equipped creature has '{T}, Sacrifice Blazing Torch:
+# Blazing Torch deals 2 damage to any target.'" The cost sacrifices the
+# Equipment, not the creature; the damage is the Equipment's (its ruling:
+# "The source of the damage is Blazing Torch, not the equipped
+# creature"); the ability is gone once the Equipment is unattached; and
+# each grant is its own ability (CR 113.2c), naming its own Equipment.
+
+scenario "Blazing Torch: the Torch is sacrificed and deals 2 damage" {
+  battlefield A: "Grizzly Bears", "Blazing Torch" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Grizzly Bears" sacrificing "Blazing Torch" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Blazing Torch"
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Blazing Torch: the damage is the Torch's, not the lifelinking creature's" {
+  battlefield A: "Vampire Nighthawk", "Blazing Torch" on "Vampire Nighthawk"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Vampire Nighthawk" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 20
+}
+
+scenario "Blazing Torch: protection from artifacts prevents the Torch's damage" {
+  battlefield A: "Vampire Nighthawk", "Blazing Torch" on "Vampire Nighthawk"
+  battlefield B: "Tel-Jilad Chosen"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Vampire Nighthawk" targeting "Tel-Jilad Chosen"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Blazing Torch"
+  assert damage "Tel-Jilad Chosen" 0
+  assert battlefield B contains "Tel-Jilad Chosen"
+}
+
+scenario "Blazing Torch moved to another creature: the first loses the ability" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Blazing Torch" on "Grizzly Bears", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Blazing Torch" targeting "Hill Giant"
+  illegal turn 1 postcombat_main A: activate "Grizzly Bears"
+  turn 1 postcombat_main A: activate "Hill Giant" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert untapped "Grizzly Bears"
+  assert graveyard A contains "Blazing Torch"
+}
+
+scenario "no Torch attached: nothing to activate" {
+  battlefield A: "Grizzly Bears", "Blazing Torch"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "an opponent's Torch on your creature: you can't sacrifice it" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Blazing Torch" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Blazing Torch"
+}
+
+scenario "two Torches: two abilities, each sacrificing its own Torch" {
+  battlefield A: "Grizzly Bears", "Blazing Torch" on "Grizzly Bears", "Blazing Torch" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Grizzly Bears" targeting player B
+  turn 3 A: activate "Grizzly Bears" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Blazing Torch"
+  assert battlefield A contains "Blazing Torch"
+  run_to turn 3 postcombat_main
+  assert life B 16
+  assert graveyard A contains 2 "Blazing Torch"
+}
+
+scenario "Ninja's Kunai: {1}, {T}, sacrifice the Kunai for 3 damage" {
+  battlefield A: "Grizzly Bears", "Ninja's Kunai" on "Grizzly Bears", "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Ninja's Kunai"
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Mountain"
+}
+
+scenario "Ninja's Kunai: without the {1} it can't be activated" {
+  battlefield A: "Grizzly Bears", "Ninja's Kunai" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ninja's Kunai"
+}
+
+scenario "Deconstruction Hammer: +1/+1, and sacrificed to destroy an artifact" {
+  battlefield A: "Grizzly Bears", "Deconstruction Hammer" on "Grizzly Bears", 3 "Plains"
+  battlefield B: "Ornithopter"
+  start turn 1 A precombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  turn 1 A: activate "Grizzly Bears" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert graveyard A contains "Deconstruction Hammer"
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Citizen's Crowbar: enters on a Citizen, which sacrifices it to destroy an enchantment" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Pacifism" on "Hill Giant", "Hill Giant"
+  hand A: "Citizen's Crowbar"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Citizen's Crowbar"
+  run_to turn 1 begin_combat
+  assert attached "Citizen's Crowbar" to "Citizen"
+  assert power "Citizen" 2
+  run_to turn 3 precombat_main
+  turn 3 A: activate "Citizen" targeting "Pacifism"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Pacifism"
+  assert graveyard A contains "Citizen's Crowbar"
+  assert power "Citizen" 1
+}
+
+scenario "Trusty Boomerang: tap a creature, and the Boomerang returns to hand" {
+  battlefield A: "Grizzly Bears", "Trusty Boomerang" on "Grizzly Bears", "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert hand A contains "Trusty Boomerang"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "two Trusty Boomerangs: one activation returns only its own" {
+  battlefield A: "Grizzly Bears", "Trusty Boomerang" on "Grizzly Bears", "Trusty Boomerang" on "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Grizzly Bears" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert tapped "Ornithopter"
+  assert hand A count 1
+  assert hand A contains "Trusty Boomerang"
+  assert battlefield A contains 1 "Trusty Boomerang"
+}
+
+scenario "Sunfire Torch: sacrificed as the creature attacks; the creature deals the damage" {
+  battlefield A: "Vampire Nighthawk", "Sunfire Torch" on "Vampire Nighthawk"
+  start turn 2 A precombat_main
+  assert power "Vampire Nighthawk" 3
+  turn 2 A: attack "Vampire Nighthawk"
+  turn 2 declare_attackers A: accept "Vampire Nighthawk"
+  turn 2 declare_attackers A: trigger "Vampire Nighthawk" targeting player B
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Sunfire Torch"
+  assert life B 16
+  assert life A 24
+}
+
+scenario "Sunfire Torch declined: no damage, the Torch stays" {
+  battlefield A: "Grizzly Bears", "Sunfire Torch" on "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 declare_attackers A: decline "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Sunfire Torch"
+  assert life B 17
+}
+
+scenario "Sunfire Torch destroyed in response: nothing to sacrifice, no damage" {
+  battlefield A: "Grizzly Bears", "Sunfire Torch" on "Grizzly Bears"
+  battlefield B: 2 "Mountain"
+  hand B: "Shatter"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 declare_attackers B: cast "Shatter" targeting "Sunfire Torch"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Sunfire Torch"
+  assert battlefield A contains "Grizzly Bears"
+  assert life B 18
+}
+
+scenario "two Spare Daggers: two triggers, each sacrificing its own Dagger" {
+  battlefield A: "Grizzly Bears", "Spare Dagger" on "Grizzly Bears", "Spare Dagger" on "Grizzly Bears"
+  start turn 2 A precombat_main
+  assert power "Grizzly Bears" 4
+  turn 2 A: attack "Grizzly Bears"
+  # The first line orders the two attack triggers; the others target the
+  # two reflexive ones.
+  turn 2 declare_attackers A: trigger "Grizzly Bears"
+  turn 2 declare_attackers A: trigger "Grizzly Bears" targeting player B
+  turn 2 declare_attackers A: trigger "Grizzly Bears" targeting player B
+  run_to turn 2 postcombat_main
+  assert graveyard A contains 2 "Spare Dagger"
+  assert life B 16
+}
+
+scenario "Trickster's Talisman: sacrificed after combat damage for a token copy" {
+  battlefield A: "Grizzly Bears", "Trickster's Talisman" on "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Trickster's Talisman"
+  assert battlefield A contains 2 "Grizzly Bears"
+}
+
+scenario "Trickster's Talisman declined: no copy" {
+  battlefield A: "Grizzly Bears", "Trickster's Talisman" on "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 combat_damage A: decline "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Trickster's Talisman"
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+scenario "Umbral Mantle: {3}, {Q} untaps the equipped creature for +2/+2" {
+  battlefield A: "Grizzly Bears" tapped, "Umbral Mantle" on "Grizzly Bears", 3 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert untapped "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Umbral Mantle: an untapped creature can't pay {Q}" {
+  battlefield A: "Grizzly Bears", "Umbral Mantle" on "Grizzly Bears", 3 "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 2
+}

@@ -395,6 +395,7 @@ impl Fmt {
             Recipient::AttachedController => "controller of enchanted".to_string(),
             Recipient::BlockingIt => "each creature blocking it".to_string(),
             Recipient::ExiledCard => "exiled card".to_string(),
+            Recipient::Granter => "granter".to_string(),
             Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
             Recipient::SameExiledCards => "the exiled cards".to_string(),
             Recipient::ThoseTargets(..) => "those targets".to_string(),
@@ -5101,6 +5102,7 @@ fn cost_text(c: &Cost) -> String {
                     filter(f)
                 )),
                 Some(SacCost::This) => parts.push("sacrifice this".to_string()),
+                Some(SacCost::Granter) => parts.push("sacrifice granter".to_string()),
                 Some(SacCost::Filter(f)) => parts.push(format!(
                     "{} {}{}",
                     match c.chosen {

@@ -1,0 +1,7 @@
+card "Trickster's Talisman" {
+  oracle_id 17469f58-286e-4410-b717-5908d24eecdd
+  cost {U}
+  type Artifact — Equipment
+  label "Invoke Duplicity" static equipped: +1/+1, has ability { triggered whenever this deals combat damage to a player: you may sacrifice granter; if you do, create token copy of this creature }
+  equip {2}
+}

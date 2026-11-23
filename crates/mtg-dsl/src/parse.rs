@@ -6143,6 +6143,7 @@ impl P {
             return true;
         }
         if w == "attached"
+            || w == "granter"
             || (matches!(w.as_str(), "enchanted" | "equipped")
                 && matches!(
                     self.word_at(1).as_deref(),
@@ -7310,6 +7311,7 @@ impl P {
                         | Recipient::TriggeringIt
                         | Recipient::TriggeringObject
                         | Recipient::Attached
+                        | Recipient::Granter
                 ) =>
             {
                 self.pos -= 1;
@@ -12386,6 +12388,9 @@ impl P {
         if self.eat_words(&["exiled", "card"]) {
             return Ok(Recipient::ExiledCard);
         }
+        if self.eat_word("granter") {
+            return Ok(Recipient::Granter);
+        }
         if self.at_words(&["that", "card"]) {
             self.pos += 2;
             return Ok(if self.in_delayed {
@@ -15538,6 +15543,8 @@ impl P {
                         self.pos += 1;
                         if self.eat_word("this") {
                             cost.sacrifice = Some(SacCost::This);
+                        } else if self.eat_word("granter") {
+                            cost.sacrifice = Some(SacCost::Granter);
                         } else {
                             // `sacrifice 2 Goblin`.
                             if let Some(Tok::Num(n)) = self.peek() {

@@ -1913,6 +1913,10 @@ impl<'a> Ctx<'a> {
                 format!("{first} and {}", self.obj(Recipient::Target(a)))
             }
             Recipient::ExiledCard => "the exiled card".to_string(),
+            // The granting card is the quoted ability's holder's name
+            // (`quoted_as`): "Sacrifice Blazing Torch: Blazing Torch
+            // deals 2 damage to any target."
+            Recipient::Granter => self.card.name.clone(),
             Recipient::ExiledWith(i) => {
                 // CR 607.2a: "all cards exiled with this artifact", "each
                 // creature card exiled with this land".
@@ -3788,6 +3792,7 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                     filter_phrase(f, ctx.card, true)
                 )),
                 Some(SacCost::This) => parts.push(format!("Sacrifice {}", ctx.source())),
+                Some(SacCost::Granter) => parts.push(format!("Sacrifice {}", ctx.card.name)),
                 Some(SacCost::Filter(f)) => {
                     // "Tap two untapped artifacts and/or creatures you
                     // control".

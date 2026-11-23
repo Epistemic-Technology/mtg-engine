@@ -1497,6 +1497,9 @@ pub struct ThisWayLog {
     /// The objects the most recent group recipient denoted ("Untap
     /// them", `Recipient::ThoseObjects`).
     pub group: Vec<ObjId>,
+    /// The Aura or Equipment that granted the resolving ability, for
+    /// `Recipient::Granter` (`GameState::granters`).
+    pub granter: Option<ObjId>,
 }
 
 /// A copy effect that ends (`GameState::temp_copies`).
@@ -2035,6 +2038,14 @@ pub struct GameState {
     /// the pending trigger's timestamp: the ability's "this way" record
     /// once it is on the stack (`paid_costs`).
     pub reflexive_moved: Vec<(Timestamp, Vec<Moved>)>,
+    /// The Aura or Equipment that granted a pending triggered ability
+    /// naming it (`Recipient::Granter`), by the pending trigger's
+    /// timestamp; moved to `granters` as it goes on the stack.
+    pub pending_granters: Vec<(Timestamp, ObjId)>,
+    /// The granter of each ability on the stack that names it, keyed by
+    /// the stack object: the resolution's `ThisWayLog::granter`. Empty
+    /// unless a card with such an ability is in the game.
+    pub granters: Vec<(ObjId, ObjId)>,
     /// Ninjutsu abilities on the stack (CR 702.49c): the card to enter
     /// attacking, and what the creature returned for the cost was
     /// attacking.

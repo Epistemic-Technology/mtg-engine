@@ -1,0 +1,8 @@
+card "Citizen's Crowbar" {
+  oracle_id 64c7e03d-ba38-4979-8889-9bf0e7b8c66e
+  cost {1}{W}
+  type Artifact — Equipment
+  triggered when this enters: create 1 "1/1 green and white Citizen creature" then attach to that token
+  static equipped: +1/+1, has ability { activated {W}, {T}, sacrifice granter: destroy target artifact or enchantment }
+  equip {2}
+}

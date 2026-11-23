@@ -458,6 +458,7 @@ impl Decompiler<'_> {
             loyalty: (c.loyalty != 0).then_some(c.loyalty),
             sacrifice: c.sacrifice.as_ref().map(|s| match s {
                 CoreSacCost::This => SacCost::This,
+                CoreSacCost::Granter => SacCost::Granter,
                 CoreSacCost::Filter(f) => SacCost::Filter(self.filter(f)),
             }),
             sorcery: false,
@@ -826,6 +827,7 @@ impl Decompiler<'_> {
             CoreRecipient::AttachedController => Recipient::AttachedController,
             CoreRecipient::BlockingIt => Recipient::BlockingIt,
             CoreRecipient::ExiledCard => Recipient::ExiledCard,
+            CoreRecipient::Granter => Recipient::Granter,
             CoreRecipient::ThoseObjects => Recipient::Those(crate::ast::Those::Them),
         }
     }
