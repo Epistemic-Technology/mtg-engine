@@ -5061,6 +5061,21 @@ impl P {
         if self.eat_words(&["no", "mana", "spent"]) {
             return Ok(StaticCond::NoManaSpent);
         }
+        // `x 10 or more`: "X is 10 or more" (CR 107.3).
+        if self.word_at(0).is_some_and(|w| w.eq_ignore_ascii_case("x"))
+            && matches!(self.peek_at(1), Some(Tok::Num(_)))
+        {
+            self.pos += 1;
+            let n = self.number()?;
+            self.expect_word("or")?;
+            let at_least = if self.eat_word("more") {
+                true
+            } else {
+                self.expect_word("less")?;
+                false
+            };
+            return Ok(StaticCond::XIs { n, at_least });
+        }
         if self.eat_words(&["not", "kicked"]) {
             return Ok(StaticCond::NotKicked);
         }

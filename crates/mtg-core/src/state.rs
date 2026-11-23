@@ -4051,6 +4051,10 @@ impl GameState {
             // the vote is the resolution's (`IfCondition` reads it).
             C::ManaSpent { that: true, .. } | C::ThatKicked | C::MoreVotes { .. } => false,
             C::NoManaSpent => self.spent_on(source).count(crate::card::SpentKind::Total) == 0,
+            C::XIs { n, at_least } => {
+                let x = self.x_of(source);
+                if *at_least { x >= *n } else { x <= *n }
+            }
             C::Impending => self.objects.get(source).is_some_and(|o| {
                 o.alt == AltCast::Impending && o.counters(crate::card::CounterKind::Time) > 0
             }),

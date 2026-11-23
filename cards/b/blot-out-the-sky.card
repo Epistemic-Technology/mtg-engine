@@ -1,0 +1,6 @@
+card "Blot Out the Sky" {
+  oracle_id ded78090-c6a1-4c9d-b7b9-b433b1d963b6
+  cost {X}{W}{B}
+  type Sorcery
+  spell: create X tapped "2/1 white and black Inkling creature with flying"; if x 6 or more, destroy each noncreature, nonland permanent
+}

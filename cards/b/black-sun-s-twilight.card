@@ -1,0 +1,6 @@
+card "Black Sun's Twilight" {
+  oracle_id af105cda-1f7c-4868-9407-a97c46bd762d
+  cost {X}{B}
+  type Instant
+  spell: up to 1 target creature gets -1/-1 X; if x 5 or more, return 1 creature with mana value X or less card from your graveyard to battlefield tapped chosen
+}

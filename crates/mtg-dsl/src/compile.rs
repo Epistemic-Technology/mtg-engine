@@ -2394,6 +2394,10 @@ impl Compiler<'_> {
             StaticCond::Teamwork => StaticCondition::Teamwork,
             StaticCond::Beheld => StaticCondition::Beheld,
             StaticCond::NoManaSpent => StaticCondition::NoManaSpent,
+            StaticCond::XIs { n, at_least } => StaticCondition::XIs {
+                n: *n,
+                at_least: *at_least,
+            },
             StaticCond::NotKicked => StaticCondition::NotKicked,
             StaticCond::ThatKicked => StaticCondition::ThatKicked,
             StaticCond::Impending => StaticCondition::Impending,

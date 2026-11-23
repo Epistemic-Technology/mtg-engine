@@ -559,6 +559,10 @@ attacking" when the subject is something else), `opponent life 10 or
 less` ("an opponent has 10 or less life"), `your life 30 or more`,
 `life above starting` ("your life total is greater than your starting
 life total", CR 103.4: 20 here; the game's own in a configured game),
+`x 10 or more` and `x 2 or less` ("X is 10 or more", CR 107.3: in a spell
+or ability, `if x 5 or more, destroy each artifact`, also with `instead`,
+its X as it resolves, the value its other X effects read; on a permanent,
+X as it was cast, 0 if it wasn't),
 `life at least starting` ("... greater than or equal to ..."), `life 10
 above starting` ("your life total is at least 10 greater than ..."),
 `life 7 more than starting` ("you have at least 7 life more than your

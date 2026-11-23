@@ -5781,6 +5781,9 @@ fn static_cond(c: &StaticCond) -> String {
         ),
         StaticCond::Saddled => "saddled".to_string(),
         StaticCond::NoManaSpent => "no mana spent".to_string(),
+        StaticCond::XIs { n, at_least } => {
+            format!("x {n} or {}", if *at_least { "more" } else { "less" })
+        }
         StaticCond::NotKicked => "not kicked".to_string(),
         StaticCond::ThatKicked => "that spell kicked".to_string(),
         StaticCond::Impending => "impending".to_string(),

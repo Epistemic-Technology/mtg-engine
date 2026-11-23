@@ -1,0 +1,6 @@
+card "Subterranean Tremors" {
+  oracle_id f0881756-de74-43b1-a9fe-c2fde93faf5a
+  cost {X}{R}
+  type Sorcery
+  spell: deal X damage to each creature without flying; if x 4 or more, destroy each artifact; if x 8 or more, create 1 "8/8 red Lizard creature"
+}

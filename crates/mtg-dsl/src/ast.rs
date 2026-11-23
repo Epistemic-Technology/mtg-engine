@@ -2799,6 +2799,12 @@ pub enum StaticCond {
     },
     /// `no mana spent`: "it wasn't cast or no mana was spent to cast it".
     NoManaSpent,
+    /// `x 10 or more`: "X is 10 or more"; `x 2 or less`: "X is 2 or
+    /// less" (X of the resolving spell or ability, CR 107.3).
+    XIs {
+        n: u32,
+        at_least: bool,
+    },
     /// `not kicked`: "this spell wasn't kicked"; on a card with gift, "the
     /// gift wasn't promised" (CR 702.174).
     NotKicked,

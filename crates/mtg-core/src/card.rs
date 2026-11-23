@@ -2993,6 +2993,14 @@ pub enum StaticCondition {
     /// paid to cast the source (CR 601.2h; cast without paying its mana
     /// cost, plotted, or not cast at all).
     NoManaSpent,
+    /// "If X is 10 or more", "if X is 2 or less" (`at_least` false): X of
+    /// the resolving spell or ability (CR 107.3), as its other X effects
+    /// read it; elsewhere (a permanent's "enters tapped" replacement), X
+    /// of the source as it was cast (CR 107.3m; 0 if it wasn't).
+    XIs {
+        n: u32,
+        at_least: bool,
+    },
     /// Freerunning's condition (CR 702.173a): "a player was dealt combat
     /// damage this turn by a creature that, at the time it dealt that
     /// damage, was an Assassin creature or a commander under your

@@ -846,8 +846,13 @@ fn spend_rule_plain(
 
 /// "a" or "an".
 fn article(word: &str) -> &'static str {
+    // "an 8/8 red Lizard creature token", "an 11/11": said as "eight",
+    // "eleven".
+    if word.starts_with("11/") || word.starts_with("18/") {
+        return "an";
+    }
     match word.chars().next() {
-        Some('a' | 'e' | 'i' | 'o' | 'u' | 'A' | 'E' | 'I' | 'O' | 'U') => "an",
+        Some('a' | 'e' | 'i' | 'o' | 'u' | 'A' | 'E' | 'I' | 'O' | 'U' | '8') => "an",
         _ => "a",
     }
 }
@@ -15248,6 +15253,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("{what} was beheld")
         }
         StaticCond::NoManaSpent => "it wasn't cast or no mana was spent to cast it".to_string(),
+        StaticCond::XIs { n, at_least } => {
+            format!("X is {n} or {}", if *at_least { "more" } else { "less" })
+        }
         StaticCond::WebSlung(p) => format!(
             "{} cast using web-slinging",
             match p {

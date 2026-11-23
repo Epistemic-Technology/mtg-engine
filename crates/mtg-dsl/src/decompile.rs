@@ -633,6 +633,10 @@ impl Decompiler<'_> {
             StaticCondition::Teamwork => StaticCond::Teamwork,
             StaticCondition::Beheld => StaticCond::Beheld,
             StaticCondition::NoManaSpent => StaticCond::NoManaSpent,
+            StaticCondition::XIs { n, at_least } => StaticCond::XIs {
+                n: *n,
+                at_least: *at_least,
+            },
             StaticCondition::NotKicked => StaticCond::NotKicked,
             StaticCondition::ThatKicked => StaticCond::ThatKicked,
             StaticCondition::Impending => StaticCond::Impending,

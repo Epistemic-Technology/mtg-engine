@@ -1,0 +1,137 @@
+# Conditions on a spell's or ability's X (CR 107.3): "If X is 5 or
+# more, ...", "If X is 2 or less, ..." read the same X the spell's other
+# effects do.
+
+scenario "x condition: Blot Out the Sky at 6 destroys noncreature nonland permanents" {
+  battlefield A: 4 "Plains", 4 "Swamp", "Ornithopter"
+  battlefield B: "Pacifism", "Sol Ring"
+  hand A: "Blot Out the Sky"
+  turn 1 A: cast "Blot Out the Sky" x 6
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 6 "Inkling"
+  assert tapped newest "Inkling"
+  assert battlefield A contains "Ornithopter"
+  assert graveyard B contains "Pacifism"
+  assert graveyard B contains "Sol Ring"
+  assert battlefield A contains 4 "Plains"
+}
+
+scenario "x condition: Blot Out the Sky at 5 only creates" {
+  battlefield A: 4 "Plains", 3 "Swamp"
+  battlefield B: "Sol Ring"
+  hand A: "Blot Out the Sky"
+  turn 1 A: cast "Blot Out the Sky" x 5
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 5 "Inkling"
+  assert battlefield B contains "Sol Ring"
+}
+
+scenario "x condition: Finale of Glory at 10 also creates Angels" {
+  battlefield A: 12 "Plains"
+  hand A: "Finale of Glory"
+  turn 1 A: cast "Finale of Glory" x 10
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 10 "Soldier"
+  assert battlefield A contains 10 "Angel"
+  assert has newest "Angel" flying
+  assert has newest "Soldier" vigilance
+}
+
+scenario "x condition: Finale of Glory at 9 creates Soldiers only" {
+  battlefield A: 11 "Plains"
+  hand A: "Finale of Glory"
+  turn 1 A: cast "Finale of Glory" x 9
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 9 "Soldier"
+  assert battlefield A lacks "Angel"
+}
+
+scenario "x condition: Roku's Mastery at 4 scries" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Hill Giant"
+  library A: "Forest", "Island", "Swamp"
+  hand A: "Roku's Mastery"
+  turn 1 A: cast "Roku's Mastery" x 4 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert known A "Forest"
+  assert known A "Island"
+  assert unknown A "Swamp"
+}
+
+scenario "x condition: Roku's Mastery at 3 doesn't scry" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant"
+  library A: "Forest", "Island", "Swamp"
+  hand A: "Roku's Mastery"
+  turn 1 A: cast "Roku's Mastery" x 3 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert unknown A "Forest"
+}
+
+scenario "x condition: Subterranean Tremors at 8 does all three" {
+  battlefield A: 9 "Mountain", "Ornithopter"
+  battlefield B: "Hill Giant", "Serra Angel", "Sol Ring"
+  hand A: "Subterranean Tremors"
+  turn 1 A: cast "Subterranean Tremors" x 8
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Serra Angel"
+  assert graveyard B contains "Sol Ring"
+  assert graveyard A contains "Ornithopter"
+  assert battlefield A contains "Lizard"
+  assert power "Lizard" 8
+}
+
+scenario "x condition: Subterranean Tremors at 4 destroys artifacts, no Lizard" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Grizzly Bears", "Sol Ring"
+  hand A: "Subterranean Tremors"
+  turn 1 A: cast "Subterranean Tremors" x 4
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Sol Ring"
+  assert battlefield A lacks "Lizard"
+}
+
+scenario "x condition: Subterranean Tremors at 3 leaves artifacts" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Sol Ring"
+  hand A: "Subterranean Tremors"
+  turn 1 A: cast "Subterranean Tremors" x 3
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Sol Ring"
+}
+
+scenario "x condition: Black Sun's Twilight at 5 returns a creature with mana value 5 or less" {
+  battlefield A: 6 "Swamp"
+  battlefield B: "Serra Angel"
+  graveyard A: "Hill Giant"
+  hand A: "Black Sun's Twilight"
+  turn 1 A: cast "Black Sun's Twilight" x 5 targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield A contains "Hill Giant"
+  assert tapped "Hill Giant"
+}
+
+scenario "x condition: Black Sun's Twilight at 4 returns nothing" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  hand A: "Black Sun's Twilight"
+  turn 1 A: cast "Black Sun's Twilight" x 4 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "x condition: Black Sun's Twilight's mana value X or less" {
+  battlefield A: 6 "Swamp"
+  graveyard A: "Craterhoof Behemoth"
+  hand A: "Black Sun's Twilight"
+  turn 1 A: cast "Black Sun's Twilight" x 5
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Craterhoof Behemoth"
+}
