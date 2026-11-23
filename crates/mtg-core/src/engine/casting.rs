@@ -1258,9 +1258,6 @@ impl GameState {
                         .unwrap_or(0),
                 };
             }
-            CountExpr::CreaturesLeftThisTurn => {
-                usize::from(self.turn_log.creatures_left[you.index().min(3)])
-            }
             CountExpr::TargetColors(n) => match ctx.targets.get(*n) {
                 Some(Target::Object(id)) => self
                     .characteristics_or_lki(*id)
@@ -1437,7 +1434,7 @@ impl GameState {
                     .eval_count(a, ctx)
                     .saturating_add(self.eval_count(b, ctx));
             }
-            CountExpr::Happened(c) => return self.turn_count(c, you),
+            CountExpr::Happened(c) => return self.turn_count(c, you, ctx.source),
             // CR 608.2h: once the source has left the battlefield, the
             // counters it had there.
             CountExpr::SourceCounters(kind) => {
@@ -1485,9 +1482,6 @@ impl GameState {
             }
             // Every attacker declared this turn, by any player (CR 508.1).
             CountExpr::AttackedThisTurn => self.attackers_this_turn.len(),
-            CountExpr::CreaturesEnteredThisTurn => {
-                usize::from(self.turn_log.creatures_entered[you.index().min(3)])
-            }
             CountExpr::DiscardedThisTurn => usize::from(self.turn_log.discards[you.index().min(3)]),
 
             CountExpr::OpponentsMoreCards => {
@@ -8709,9 +8703,8 @@ impl GameState {
             self.turn_log.cast_from_hand |= 1 << caster.index().min(7);
         }
         // Void: "a spell was warped this turn" (CR 702.185).
-        if self.objects[spell].alt == crate::state::AltCast::Warp && !self.turn_log.warped {
-            self.turn_log.warped = true;
-            self.history_bump();
+        if self.objects[spell].alt == crate::state::AltCast::Warp {
+            self.log_event(crate::card::TurnEvent::Warped, caster, 1);
         }
         // "As long as you've cast an instant or sorcery spell this turn":
         // the cast is recorded after the card left its zone, so a

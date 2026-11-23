@@ -684,13 +684,6 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             state.attacked_this_turn & (1 << you.index().min(7)) != 0
         }
         StaticCondition::AttackedLastTurn => state.attacked_last_turn.contains(&(you, source)),
-        StaticCondition::CreatureDiedThisTurn => state.creatures_died_this_turn > 0,
-        StaticCondition::LandEnteredThisTurn => {
-            state.lands_entered_this_turn & (1 << you.index().min(7)) != 0
-        }
-        StaticCondition::ArtifactEnteredThisTurn => {
-            state.artifacts_entered_this_turn & (1 << you.index().min(7)) != 0
-        }
         // Fixed as the permanent enters (CR 702.33c), so no cache bump.
         StaticCondition::Kicked => state.objects.get(source).is_some_and(|o| o.cast.kicked()),
         StaticCondition::Bargained => state
@@ -710,9 +703,6 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             .is_some_and(|o| o.cast.offspring()),
         StaticCondition::CardsDrawnThisTurn(n) => {
             u32::from(state.drawn_this_turn[you.index().min(3)]) >= *n
-        }
-        StaticCondition::PermanentLeftThisTurn => {
-            state.left_this_turn & (1 << you.index().min(7)) != 0
         }
         StaticCondition::ActivatedThisTurn(n) => {
             state
@@ -1287,14 +1277,11 @@ fn per_count(
         CountExpr::SourceAllCounters => source
             .and_then(|s| state.objects.get(s))
             .map_or(0, |o| o.counters.iter().map(|(_, n)| *n as usize).sum()),
-        CountExpr::Happened(c) => state.turn_count(c, you) as usize,
+        CountExpr::Happened(c) => state.turn_count(c, you, source.unwrap_or_default()) as usize,
         CountExpr::SacrificedThisTurn => {
             usize::from(state.turn_log.sacrificed_n[you.index().min(3)])
         }
         CountExpr::AttackedThisTurn => state.attackers_this_turn.len(),
-        CountExpr::CreaturesEnteredThisTurn => {
-            usize::from(state.turn_log.creatures_entered[you.index().min(3)])
-        }
         CountExpr::OpponentsMoreCards => {
             let mine = state.player(you).hand.len();
             state
@@ -1371,9 +1358,6 @@ fn per_count(
             return i32::try_from(*k)
                 .unwrap_or(0)
                 .max(per_count(work, source, controller, inner));
-        }
-        CountExpr::CreaturesLeftThisTurn => {
-            usize::from(state.turn_log.creatures_left[you.index().min(3)])
         }
         // From the mana costs as the layers have them so far, like
         // `GreatestManaValue`.

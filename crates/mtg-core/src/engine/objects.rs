@@ -303,27 +303,27 @@ impl GameState {
             self.face_down_count = self.face_down_count.saturating_sub(1);
         }
         if old.zone == Zone::Battlefield && to == Zone::Graveyard && characteristics.is_creature() {
-            self.creatures_died_this_turn = self.creatures_died_this_turn.saturating_add(1);
+            self.log_event(TurnEvent::Died, old.controller, 1);
             self.died_this_turn
                 .push((id, old.controller, characteristics));
         }
         // Revolt: under its controller's control as it left.
         if old.zone == Zone::Battlefield {
-            self.left_this_turn |= 1 << old.controller.index().min(7);
+            self.log_event(TurnEvent::PermanentLeft, old.controller, 1);
             if characteristics.is_creature() {
-                let n = &mut self.turn_log.creatures_left[old.controller.index().min(3)];
-                *n = n.saturating_add(1);
-                self.history_bump();
+                self.log_event(TurnEvent::CreatureLeft, old.controller, 1);
             }
             // Void (CR 702.185): "a nonland permanent left the battlefield
             // this turn".
-            if !characteristics_is_land && !self.turn_log.nonland_left {
-                self.turn_log.nonland_left = true;
-                self.history_bump();
+            if !characteristics_is_land {
+                self.log_event(TurnEvent::NonlandLeft, old.controller, 1);
             }
             if to == Zone::Graveyard {
-                self.turn_log.to_graveyard =
-                    self.turn_log.to_graveyard.union(characteristics.types);
+                self.log_typed(
+                    TurnEvent::ToGraveyard,
+                    old.controller,
+                    characteristics.types,
+                );
             }
         }
         // CR 700.11: its owner descended if a permanent card went to their
@@ -603,18 +603,16 @@ impl GameState {
             if characteristics_is_land {
                 // Landfall: "you had a land enter the battlefield under
                 // your control this turn".
-                self.lands_entered_this_turn |= 1 << controller.index().min(7);
+                self.log_event(TurnEvent::LandEntered, controller, 1);
             }
             if characteristics_is_artifact {
-                self.artifacts_entered_this_turn |= 1 << controller.index().min(7);
+                self.log_event(TurnEvent::ArtifactEntered, controller, 1);
             }
             if characteristics.is_creature() {
-                let n = &mut self.turn_log.creatures_entered[controller.index().min(3)];
-                *n = n.saturating_add(1);
+                self.log_event(TurnEvent::CreatureEntered, controller, 1);
             }
             if !characteristics_is_land {
-                let n = &mut self.turn_log.nonland_entered[controller.index().min(3)];
-                *n = n.saturating_add(1);
+                self.log_event(TurnEvent::NonlandEntered, controller, 1);
             }
             let flags = self.flags_of(&self.objects[new]);
             self.count_sources(flags, self.pool.get(def).is_legendary(), true);
@@ -622,7 +620,7 @@ impl GameState {
                 self.face_down_count += 1;
                 // "if a face-down creature entered the battlefield under
                 // your control this turn".
-                self.turn_log.face_down_entered |= 1 << controller.index().min(7);
+                self.log_event(TurnEvent::FaceDownEntered, controller, 1);
             }
         }
         match to {
@@ -1526,6 +1524,19 @@ impl GameState {
         let t = &mut self.turn_log.tally[kind as usize][p.index().min(3)];
         *t = t.saturating_add(n);
         self.history_bump();
+    }
+
+    /// Count an event of a kind for `p` whose objects had these card types
+    /// (`TurnLog::types`; `TurnCount::types`).
+    pub(super) fn log_typed(
+        &mut self,
+        kind: crate::card::TurnEvent,
+        p: PlayerId,
+        types: crate::card::TypeSet,
+    ) {
+        let t = &mut self.turn_log.types[kind as usize][p.index().min(3)];
+        *t = t.union(types);
+        self.log_event(kind, p, 1);
     }
 
     /// Change a life total directly (life loss, or a gain that has passed

@@ -33,6 +33,8 @@ pub enum CardType {
 pub struct TypeSet(u16);
 
 impl TypeSet {
+    pub const EMPTY: TypeSet = TypeSet(0);
+
     pub fn of(types: impl IntoIterator<Item = CardType>) -> Self {
         types.into_iter().fold(TypeSet(0), TypeSet::with)
     }
@@ -2199,10 +2201,6 @@ pub enum CountExpr {
     /// Creatures that attacked this turn, any player's ("for each creature
     /// that attacked this turn"; CR 508.1).
     AttackedThisTurn,
-    /// Creatures that entered the battlefield under your control this
-    /// turn ("the number of creatures that entered the battlefield under
-    /// your control this turn").
-    CreaturesEnteredThisTurn,
     /// Cards you've discarded this turn ("for each card you've discarded
     /// this turn", CR 701.8).
     DiscardedThisTurn,
@@ -2250,10 +2248,6 @@ pub enum CountExpr {
     /// damage dealt to it this turn" of a creature that died): the damage
     /// marked on it, as it last existed on the battlefield (CR 120.6).
     SourceDamage,
-    /// Creatures that left the battlefield under your control this turn
-    /// ("for each creature that left the battlefield under your control
-    /// this turn").
-    CreaturesLeftThisTurn,
     /// The colors of the `n`th target ("for each of its colors"), as it
     /// last existed once it has left (CR 608.2h).
     TargetColors(usize),
@@ -2277,9 +2271,7 @@ impl CountExpr {
         match self {
             CountExpr::Happened(_)
             | CountExpr::SacrificedThisTurn
-            | CountExpr::AttackedThisTurn
-            | CountExpr::CreaturesLeftThisTurn
-            | CountExpr::CreaturesEnteredThisTurn => true,
+            | CountExpr::AttackedThisTurn => true,
             CountExpr::Times(_, c)
             | CountExpr::Plus(_, c)
             | CountExpr::Difference(_, c)
@@ -2318,7 +2310,6 @@ impl CountExpr {
             | CountExpr::GreatestManaValue
             | CountExpr::GreatestManaValueOf(_)
             | CountExpr::GreatestManaValueInGraveyard(_)
-            | CountExpr::CreaturesLeftThisTurn
             | CountExpr::Devotion(_)
             | CountExpr::CardsInHand
             | CountExpr::Happened(_)
@@ -2326,7 +2317,6 @@ impl CountExpr {
             | CountExpr::SourceAllCounters
             | CountExpr::SacrificedThisTurn
             | CountExpr::AttackedThisTurn
-            | CountExpr::CreaturesEnteredThisTurn
             | CountExpr::OpponentsMoreCards
             | CountExpr::ExiledWith(_)
             | CountExpr::CardsInExile { .. }
@@ -2606,22 +2596,57 @@ pub enum TurnEvent {
     Damaged,
     /// Times the player was dealt noncombat damage.
     NoncombatDamaged,
+    /// Permanents that entered the battlefield under the player's control,
+    /// by their characteristics just before they entered: creatures,
+    /// nonland permanents, lands, artifacts, and face-down permanents (CR
+    /// 708.3).
+    CreatureEntered,
+    NonlandEntered,
+    LandEntered,
+    ArtifactEntered,
+    FaceDownEntered,
+    /// Permanents that left the battlefield under the player's control
+    /// (revolt), as they last existed: any, creatures, nonland ones.
+    PermanentLeft,
+    CreatureLeft,
+    NonlandLeft,
+    /// Creatures put into a graveyard from the battlefield under the
+    /// player's control (CR 700.4), as they last existed.
+    Died,
+    /// Permanents put into a graveyard from the battlefield under the
+    /// player's control, with their card types as they last existed
+    /// (`TurnLog::types`).
+    ToGraveyard,
+    /// Spells the player cast for their warp cost (CR 702.185a).
+    Warped,
 }
 
 impl TurnEvent {
     /// The number of kinds: the turn log's rows.
-    pub const COUNT: usize = 4;
+    pub const COUNT: usize = 15;
 
     /// Whether a static ability reading this kind must be refreshed as it
-    /// is counted (`CardDef::history_static`): the kinds counted without a
-    /// zone change that refreshes characteristics anyway.
+    /// is counted (`CardDef::history_static`), the kinds counted without a
+    /// zone change that refreshes characteristics anyway; a count of any
+    /// kind in a static ability refreshes (`CountExpr::reads_history`).
     #[must_use]
     pub const fn refreshes(self) -> bool {
         match self {
             TurnEvent::LifeGained
             | TurnEvent::LifeLost
             | TurnEvent::Damaged
-            | TurnEvent::NoncombatDamaged => true,
+            | TurnEvent::NoncombatDamaged
+            | TurnEvent::NonlandLeft
+            | TurnEvent::Warped => true,
+            TurnEvent::CreatureEntered
+            | TurnEvent::NonlandEntered
+            | TurnEvent::LandEntered
+            | TurnEvent::ArtifactEntered
+            | TurnEvent::FaceDownEntered
+            | TurnEvent::PermanentLeft
+            | TurnEvent::CreatureLeft
+            | TurnEvent::Died
+            | TurnEvent::ToGraveyard => false,
         }
     }
 }
@@ -2645,12 +2670,25 @@ pub enum TurnWho {
 pub struct TurnCount {
     pub kind: TurnEvent,
     pub who: TurnWho,
+    /// Only events about objects with one of these card types ("an
+    /// artifact or creature was put into a graveyard"); empty, all. The
+    /// log keeps the types each player's events had, not each event's, so
+    /// with types a count is 1 or 0: whether one or more happened.
+    pub types: TypeSet,
+    /// "Another": not counting the source's own event ("another creature
+    /// entered the battlefield under your control this turn").
+    pub other: bool,
 }
 
 impl TurnCount {
     #[must_use]
     pub const fn of(kind: TurnEvent, who: TurnWho) -> Self {
-        TurnCount { kind, who }
+        TurnCount {
+            kind,
+            who,
+            types: TypeSet::EMPTY,
+            other: false,
+        }
     }
 }
 
@@ -2799,11 +2837,6 @@ pub enum StaticCondition {
     AttackedLastTurn,
     /// The entering object was cast with escape ("escapes with").
     Escaped,
-    /// Revolt: "a permanent left the battlefield under your control this
-    /// turn".
-    PermanentLeftThisTurn,
-    /// Morbid: "a creature died this turn".
-    CreatureDiedThisTurn,
     /// Hellbent-style: "you have N or fewer cards in hand" (`at_most`) /
     /// "N or more".
     CardsInHand {
@@ -2839,11 +2872,6 @@ pub enum StaticCondition {
     /// The source is saddled (CR 702.171b): "whenever this creature
     /// attacks while saddled".
     Saddled,
-    /// Landfall: "you had a land enter the battlefield under your control
-    /// this turn".
-    LandEnteredThisTurn,
-    /// "an artifact entered the battlefield under your control this turn".
-    ArtifactEnteredThisTurn,
     /// "you've drawn two or more cards this turn".
     CardsDrawnThisTurn(u32),
     /// "there are two or more instant and/or sorcery cards in your
@@ -2934,28 +2962,6 @@ pub enum StaticCondition {
     /// "a +1/+1 counter was put on a permanent under your control this
     /// turn".
     CounterPutThisTurn,
-    /// "a face-down creature entered the battlefield under your control
-    /// this turn" (CR 708.3).
-    FaceDownEnteredThisTurn,
-    /// "another creature entered the battlefield under your control this
-    /// turn" (`other`: not counting the source's own entry).
-    CreatureEnteredThisTurn {
-        other: bool,
-    },
-    /// "two or more creatures entered the battlefield under your control
-    /// this turn"; with `opponent`, "an opponent had two or more creatures
-    /// enter the battlefield under their control this turn".
-    CreaturesEnteredThisTurn {
-        n: u8,
-        opponent: bool,
-    },
-    /// Celebration: "two or more nonland permanents entered the
-    /// battlefield under your control this turn".
-    NonlandEnteredThisTurn(u32),
-    /// "an artifact or creature was put into a graveyard from the
-    /// battlefield this turn": a permanent with one of these types, as it
-    /// last existed, under any player's control.
-    PutIntoGraveyardThisTurn(TypeSet),
     /// "you've discarded a card this turn".
     DiscardedThisTurn,
     /// "it's night" (CR 731).
@@ -3078,22 +3084,11 @@ pub enum StaticCondition {
     /// Both hold ("if there is an Elf card in your graveyard and this
     /// creature has a -1/-1 counter on it").
     And(Box<StaticCondition>, Box<StaticCondition>),
-    /// "two or more creatures died this turn" (`n`); with `yours`, "a
-    /// creature died under your control this turn": creatures put into a
-    /// graveyard from the battlefield this turn (CR 700.4), under your
-    /// control as they died.
-    CreaturesDied {
-        n: u32,
-        yours: bool,
-    },
     /// "an opponent controls more lands than you".
     OpponentMoreLands,
     /// "an opponent controls more creatures than you", "an opponent has
     /// more life than you", "an opponent has more cards in hand than you".
     OpponentHasMore(MoreWhat),
-    /// Void: "a nonland permanent left the battlefield this turn or a
-    /// spell was warped this turn" (CR 702.185).
-    Void,
     /// "it isn't your main phase" (CR 505.1).
     NotYourMainPhase,
     /// "this spell was cast from anywhere other than your hand": the
@@ -10957,7 +10952,6 @@ impl CardPool {
                     | StaticCondition::AttackedWith(_)
                     | StaticCondition::AttackedWithAtLeast(..)
                     | StaticCondition::PutAnyCounterThisTurn
-                    | StaticCondition::Void
             )) || sa.condition.as_ref().is_some_and(StaticCondition::refreshes_with_turn_log)
                 || sa.parts.iter().any(|m| matches!(
                 m,

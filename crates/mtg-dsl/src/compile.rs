@@ -2384,14 +2384,18 @@ impl Compiler<'_> {
             },
             StaticCond::AttackedBattleThisTurn => StaticCondition::SourceAttackedBattle,
             StaticCond::AttackedLastTurn => StaticCondition::AttackedLastTurn,
-            StaticCond::CreatureDiedThisTurn => StaticCondition::CreatureDiedThisTurn,
+            StaticCond::CreatureDiedThisTurn => {
+                StaticCondition::happened(TurnEvent::Died, TurnWho::Anyone)
+            }
             StaticCond::OpponentDamagedThisTurn => {
                 StaticCondition::happened(TurnEvent::Damaged, TurnWho::Opponent)
             }
             StaticCond::OpponentLostLifeThisTurn => {
                 StaticCondition::happened(TurnEvent::LifeLost, TurnWho::Opponent)
             }
-            StaticCond::PermanentLeftThisTurn => StaticCondition::PermanentLeftThisTurn,
+            StaticCond::PermanentLeftThisTurn => {
+                StaticCondition::happened(TurnEvent::PermanentLeft, TurnWho::You)
+            }
             StaticCond::Escaped => StaticCondition::Escaped,
             StaticCond::Kicked => StaticCondition::Kicked,
             StaticCond::Bargained => StaticCondition::Bargained,
@@ -2416,8 +2420,12 @@ impl Compiler<'_> {
                 StaticCondition::OptionalCostPaid
             }
             StaticCond::Saddled => StaticCondition::Saddled,
-            StaticCond::LandEnteredThisTurn => StaticCondition::LandEnteredThisTurn,
-            StaticCond::ArtifactEnteredThisTurn => StaticCondition::ArtifactEnteredThisTurn,
+            StaticCond::LandEnteredThisTurn => {
+                StaticCondition::happened(TurnEvent::LandEntered, TurnWho::You)
+            }
+            StaticCond::ArtifactEnteredThisTurn => {
+                StaticCondition::happened(TurnEvent::ArtifactEntered, TurnWho::You)
+            }
             StaticCond::CardsDrawnThisTurn(n) => StaticCondition::CardsDrawnThisTurn(*n),
             StaticCond::HandFewerThan(n) => StaticCondition::CardsInHand {
                 n: n.saturating_sub(1),
@@ -2454,13 +2462,28 @@ impl Compiler<'_> {
                 };
                 StaticCondition::And(Box::new(cast(self, a)), Box::new(cast(self, b)))
             }
-            StaticCond::CreaturesDied { n, yours } => StaticCondition::CreaturesDied {
-                n: *n,
-                yours: *yours,
-            },
+            StaticCond::CreaturesDied { n, yours } => at_least(
+                TurnEvent::Died,
+                if *yours {
+                    TurnWho::You
+                } else {
+                    TurnWho::Anyone
+                },
+                *n,
+            ),
             StaticCond::OpponentMoreLands => StaticCondition::OpponentMoreLands,
             StaticCond::OpponentHasMore(w) => StaticCondition::OpponentHasMore(*w),
-            StaticCond::Void => StaticCondition::Void,
+            // CR 702.185: any player's.
+            StaticCond::Void => StaticCondition::Or(
+                Box::new(StaticCondition::happened(
+                    TurnEvent::NonlandLeft,
+                    TurnWho::Anyone,
+                )),
+                Box::new(StaticCondition::happened(
+                    TurnEvent::Warped,
+                    TurnWho::Anyone,
+                )),
+            ),
             StaticCond::NotYourMainPhase => StaticCondition::NotYourMainPhase,
             StaticCond::NotCastFromHand => {
                 StaticCondition::NotCastFrom(mtg_core::state::Zone::Hand)
@@ -2538,28 +2561,42 @@ impl Compiler<'_> {
             StaticCond::SpellNumber(n) => StaticCondition::SpellNumber(*n),
             StaticCond::SurveilledThisTurn => StaticCondition::SurveilledThisTurn,
             StaticCond::ScriedOrSurveilledThisTurn => StaticCondition::ScriedOrSurveilledThisTurn,
-            StaticCond::CreaturesEnteredThisTurn { n, opponent } => {
-                StaticCondition::CreaturesEnteredThisTurn {
-                    n: *n,
-                    opponent: *opponent,
-                }
-            }
-            StaticCond::CounterPutThisTurn => StaticCondition::CounterPutThisTurn,
-            StaticCond::FaceDownEnteredThisTurn => StaticCondition::FaceDownEnteredThisTurn,
-            StaticCond::CreatureEnteredThisTurn { other } => {
-                StaticCondition::CreatureEnteredThisTurn { other: *other }
-            }
-            StaticCond::NonlandEnteredThisTurn(n) => StaticCondition::NonlandEnteredThisTurn(*n),
-            StaticCond::PutIntoGraveyardThisTurn(t) => StaticCondition::PutIntoGraveyardThisTurn(
-                mtg_core::card::TypeSet::of(t.iter().copied()),
+            StaticCond::CreaturesEnteredThisTurn { n, opponent } => at_least(
+                TurnEvent::CreatureEntered,
+                if *opponent {
+                    TurnWho::Opponent
+                } else {
+                    TurnWho::You
+                },
+                u32::from(*n),
             ),
+            StaticCond::CounterPutThisTurn => StaticCondition::CounterPutThisTurn,
+            StaticCond::FaceDownEnteredThisTurn => {
+                StaticCondition::happened(TurnEvent::FaceDownEntered, TurnWho::You)
+            }
+            StaticCond::CreatureEnteredThisTurn { other } => StaticCondition::Happened {
+                count: TurnCount {
+                    other: *other,
+                    ..TurnCount::of(TurnEvent::CreatureEntered, TurnWho::You)
+                },
+                cmp: mtg_core::card::Cmp::AtLeast,
+                n: 1,
+            },
+            StaticCond::NonlandEnteredThisTurn(n) => {
+                at_least(TurnEvent::NonlandEntered, TurnWho::You, *n)
+            }
+            // A permanent of any player's, as it last existed.
+            StaticCond::PutIntoGraveyardThisTurn(t) => StaticCondition::Happened {
+                count: TurnCount {
+                    types: TypeSet::of(t.iter().copied()),
+                    ..TurnCount::of(TurnEvent::ToGraveyard, TurnWho::Anyone)
+                },
+                cmp: mtg_core::card::Cmp::AtLeast,
+                n: 1,
+            },
             StaticCond::DiscardedThisTurn => StaticCondition::DiscardedThisTurn,
             StaticCond::Night => StaticCondition::Night,
-            StaticCond::LifeGainedThisTurn(n) => StaticCondition::Happened {
-                count: TurnCount::of(TurnEvent::LifeGained, TurnWho::You),
-                cmp: mtg_core::card::Cmp::AtLeast,
-                n: *n,
-            },
+            StaticCond::LifeGainedThisTurn(n) => at_least(TurnEvent::LifeGained, TurnWho::You, *n),
             StaticCond::CrimeThisTurn => StaticCondition::CrimeThisTurn,
             StaticCond::YourMainPhase => StaticCondition::YourMainPhase,
             StaticCond::YourCombatPhase => StaticCondition::YourCombatPhase,
@@ -2728,7 +2765,9 @@ impl Compiler<'_> {
             A::OpponentsLostLife => {
                 C::Happened(TurnCount::of(TurnEvent::LifeLost, TurnWho::Opponent))
             }
-            A::CreaturesEnteredThisTurn => C::CreaturesEnteredThisTurn,
+            A::CreaturesEnteredThisTurn => {
+                C::Happened(TurnCount::of(TurnEvent::CreatureEntered, TurnWho::You))
+            }
             A::DiscardedThisTurn => C::DiscardedThisTurn,
 
             A::OpponentsMoreCards => C::OpponentsMoreCards,
@@ -2741,7 +2780,9 @@ impl Compiler<'_> {
             A::AtLeast(n, inner) => C::AtLeast(*n, Box::new(self.count_expr(inner))),
             A::ThatSpellColors => C::ThatSpellColors,
             A::SourceDamage => C::SourceDamage,
-            A::CreaturesLeftThisTurn => C::CreaturesLeftThisTurn,
+            A::CreaturesLeftThisTurn => {
+                C::Happened(TurnCount::of(TurnEvent::CreatureLeft, TurnWho::You))
+            }
             A::TargetColors(n) => C::TargetColors(target_index(self.tmap, *n)),
         }
     }
@@ -8061,6 +8102,15 @@ struct TargetMap {
     /// names the kicked target as written (`kicked_drops` or more), which
     /// is the engine's first target either way (Expel the Unworthy).
     kicked: Option<usize>,
+}
+
+/// "N or more events of this kind this turn" (`StaticCondition::Happened`).
+fn at_least(kind: TurnEvent, who: TurnWho, n: u32) -> StaticCondition {
+    StaticCondition::Happened {
+        count: TurnCount::of(kind, who),
+        cmp: mtg_core::card::Cmp::AtLeast,
+        n,
+    }
 }
 
 /// The engine's index of the ability's `i`th target (`TargetMap`).

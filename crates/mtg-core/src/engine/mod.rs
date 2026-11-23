@@ -545,14 +545,10 @@ impl GameState {
             block_bans: Vec::new(),
             no_regen: Vec::new(),
             no_combat_damage: Vec::new(),
-            lands_entered_this_turn: 0,
-            artifacts_entered_this_turn: 0,
-            creatures_died_this_turn: 0,
             died_this_turn: Vec::new(),
             assassin_damage: 0,
             prowl_damage: Vec::new(),
             enter_notes: Vec::new(),
-            left_this_turn: 0,
             discarded_this_turn: 0,
             mayhem_discarded: Vec::new(),
             granted_flashback: Vec::new(),
@@ -3704,15 +3700,11 @@ impl GameState {
                         .is_some_and(|o| o.zone == crate::state::Zone::Battlefield)
                 });
             }
-            self.lands_entered_this_turn = 0;
             self.block_demands.clear();
             self.block_bans.clear();
             self.no_regen.clear();
             self.no_combat_damage.clear();
-            self.artifacts_entered_this_turn = 0;
-            self.creatures_died_this_turn = 0;
             self.died_this_turn.clear();
-            self.left_this_turn = 0;
             self.discarded_this_turn = 0;
             self.mayhem_discarded.clear();
             self.cast_this_turn.clear();
