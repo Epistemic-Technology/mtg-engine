@@ -1,0 +1,7 @@
+card "Rampaging Cyclops" {
+  oracle_id cee8ad22-12a7-4da6-a7d9-e205ada16489
+  cost {3}{R}
+  type Creature — Cyclops
+  pt 4/4
+  static this: -2/-0 as long as on battlefield 2 creature blocking this
+}

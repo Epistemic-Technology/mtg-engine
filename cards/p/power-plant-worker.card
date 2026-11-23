@@ -1,0 +1,7 @@
+card "Power Plant Worker" {
+  oracle_id 054c6250-ac96-42f6-931d-925761ab7764
+  cost {5}
+  type Artifact Creature — Assembly-Worker
+  pt 4/4
+  activated {3}, once: this gets +2/+2; if you control creature named "Mine Worker" and creature named "Tower Worker", put 2 +1/+1 counters on this creature instead
+}

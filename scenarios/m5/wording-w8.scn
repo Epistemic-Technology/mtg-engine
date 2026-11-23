@@ -277,3 +277,171 @@ scenario "Khalni Heart Expedition: three quest counters, two basic lands onto th
   assert battlefield A contains "Island"
   assert tapped "Island"
 }
+
+scenario "Lethargy Trap: {U} with three attackers, each gets -3/-0" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears", "Arlinn's Wolf"
+  hand A: "Lethargy Trap"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant", "Grizzly Bears", "Arlinn's Wolf"
+  turn 2 declare_attackers A: cast "Lethargy Trap" alternative
+  run_to turn 2 postcombat_main
+  assert life A 20
+}
+
+scenario "Lethargy Trap: two attackers, the alternative cost can't be paid" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Lethargy Trap"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant", "Grizzly Bears"
+  illegal turn 2 declare_attackers A: cast "Lethargy Trap" alternative
+  run_to turn 2 postcombat_main
+  assert life A 15
+}
+
+scenario "Mental Modulation: {U} during your turn, tap and draw" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Mental Modulation"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mental Modulation" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert hand A count 1
+}
+
+scenario "Mental Modulation: full cost on another player's turn" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Mental Modulation"
+  start turn 2 B precombat_main
+  illegal turn 2 A: cast "Mental Modulation" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+}
+
+scenario "Outmuscle: adamant keeps the creature you control alive" {
+  battlefield A: "Grizzly Bears", 4 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Outmuscle"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Outmuscle" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 1
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Outmuscle: without three green, both die" {
+  battlefield A: "Grizzly Bears", "Forest", 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Outmuscle"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Outmuscle" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Power Plant Worker: +2/+2 once each turn" {
+  battlefield A: "Power Plant Worker", 6 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Power Plant Worker"
+  turn 1 A: wait
+  illegal turn 1 A: activate "Power Plant Worker"
+  run_to turn 1 postcombat_main
+  assert power "Power Plant Worker" 6
+  assert counters "Power Plant Worker" +1/+1 0
+}
+
+scenario "Tower Worker: {C} alone" {
+  battlefield A: "Tower Worker"
+  hand A: "Bladed Bracers", "Smuggler's Copter"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Smuggler's Copter"
+  turn 1 A: cast "Bladed Bracers"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bladed Bracers"
+}
+
+scenario "Prohibit: mana value 2 or less unkicked" {
+  battlefield A: 2 "Island"
+  battlefield B: 2 "Forest"
+  hand A: "Prohibit"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Prohibit" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Prohibit: a mana value 4 spell resolves unkicked" {
+  battlefield A: 2 "Island"
+  battlefield B: 4 "Mountain"
+  hand A: "Prohibit"
+  hand B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Hill Giant"
+  turn 2 A: cast "Prohibit" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Prohibit: kicked, mana value 4 is countered" {
+  battlefield A: 4 "Island"
+  battlefield B: 4 "Mountain"
+  hand A: "Prohibit"
+  hand B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Hill Giant"
+  turn 2 A: cast "Prohibit" kicked targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Ragged Recluse: transforms after a discard, then drains on attack" {
+  battlefield A: "Ragged Recluse // Odious Witch", "Mountain"
+  hand A: "Faithless Looting"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Faithless Looting"
+  run_to turn 3 declare_attackers
+  assert battlefield A contains "Odious Witch"
+  turn 3 A: attack "Odious Witch"
+  run_to turn 3 postcombat_main
+  assert life B 16
+  assert life A 21
+}
+
+scenario "Ragged Recluse: no discard, no transformation" {
+  battlefield A: "Ragged Recluse // Odious Witch"
+  start turn 1 A precombat_main
+  run_to turn 2 upkeep
+  assert battlefield A contains "Ragged Recluse"
+}
+
+scenario "Rampaging Cyclops: -2/-0 while two creatures block it" {
+  battlefield A: "Rampaging Cyclops"
+  battlefield B: "Grizzly Bears", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Rampaging Cyclops"
+  turn 1 B: block "Rampaging Cyclops" with "Grizzly Bears"
+  turn 1 B: block "Rampaging Cyclops" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains 1 "Grizzly Bears"
+  assert graveyard A contains "Rampaging Cyclops"
+}
+
+scenario "Reckless Cohort: attacks alone, not with another Ally" {
+  battlefield A: "Reckless Cohort"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Reckless Cohort: another Ally, no attack needed" {
+  battlefield A: "Reckless Cohort", "Affa Protector"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

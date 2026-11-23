@@ -9145,8 +9145,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 (TargetTense::Had, _) if let Some((cmp, n)) = mana_value_only => {
                     format!("it had mana value {n}{}", cmp_words(cmp))
                 }
+                // "Counter target spell if its mana value is 2 or less."
+                // (Prohibit).
                 (TargetTense::Is, _) if let Some((cmp, n)) = mana_value_only => {
-                    format!("it has mana value {n}{}", cmp_words(cmp))
+                    format!("its mana value is {n}{}", cmp_words(cmp))
                 }
                 // "If that spell's mana value was 2 or less" (Sound the
                 // Trumpets).
@@ -9901,6 +9903,7 @@ fn lowercase_first(s: &str) -> String {
                 | "Draw"
                 | "This"
                 | "That"
+                | "The"
                 | "These"
                 | "A"
                 | "An"
@@ -13309,6 +13312,28 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 )
             }
         }
+        // "If three or more creatures are attacking" (Lethargy Trap); "as
+        // long as two or more creatures are blocking it" (Rampaging
+        // Cyclops).
+        StaticCond::OnBattlefield { filter, at_least }
+            if *at_least > 1
+                && filter.types == [CardType::Creature]
+                && ((filter.attacking
+                    && (Filter {
+                        types: Vec::new(),
+                        attacking: false,
+                        ..filter.clone()
+                    }) == Filter::default())
+                    || filter_phrase(filter, card, true)
+                        == format!("creatures blocking {}", this_ref(card))) =>
+        {
+            let verb = if filter.attacking {
+                "attacking".to_string()
+            } else {
+                format!("blocking {}", it_obj(card))
+            };
+            format!("{} creatures are {verb}", or_more(*at_least))
+        }
         StaticCond::OnBattlefield { filter, at_least } => {
             if *at_least == 1 {
                 format!(
@@ -13366,6 +13391,21 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         }
         // "you control an Urza's Mine and an Urza's Power-Plant".
         StaticCond::YouControlEach(filters) => {
+            // "If you control creatures named Mine Worker and Tower Worker"
+            // (Power Plant Worker).
+            let named: Option<Vec<String>> = filters
+                .iter()
+                .map(|f| {
+                    let mut f = f.clone();
+                    f.who = None;
+                    filter_phrase(&f, card, false)
+                        .strip_prefix("creature named ")
+                        .map(str::to_string)
+                })
+                .collect();
+            if let Some(names) = named {
+                return format!("you control creatures named {}", names.join(" and "));
+            }
             let all: Vec<String> = filters
                 .iter()
                 .map(|f| {
@@ -14720,6 +14760,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 Some(crate::ast::TrigCond::Static(StaticCond::LifeGainedThisTurn(n))) => {
                     let _ = write!(out, ", if you gained {n} or more life this turn");
                 }
+                // "At the beginning of your end step, if you discarded a
+                // card this turn, transform this creature." (Ragged
+                // Recluse).
+                Some(crate::ast::TrigCond::Static(StaticCond::DiscardedThisTurn)) => {
+                    out.push_str(", if you discarded a card this turn");
+                }
                 Some(crate::ast::TrigCond::Static(c)) => {
                     out.push_str(", if ");
                     let cond = static_cond_text(c, card);
@@ -14871,6 +14917,20 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                         return format!(
                             "{} unless you have an enduring story.",
                             body.strip_suffix('.').unwrap_or(&body)
+                        );
+                    }
+                    // "This creature attacks each combat if able unless you
+                    // control another Ally." (Reckless Cohort).
+                    if let StaticCond::YouControlNone(f) = c
+                        && f.relation == Relation::Other
+                        && body.ends_with(" if able.")
+                    {
+                        let mut g = f.clone();
+                        g.who = None;
+                        return format!(
+                            "{} unless you control {}.",
+                            body.strip_suffix('.').unwrap_or(&body),
+                            filter_a(&g, card)
                         );
                     }
                     format!("{} if {cond}.", body.strip_suffix('.').unwrap_or(&body))
@@ -15039,6 +15099,16 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 list(&items)
             )
         }
+        // "This spell costs {1} less to cast during your turn." (Mental
+        // Modulation).
+        Ability::CondCost {
+            delta,
+            cond: StaticCond::YourTurn | StaticCond::DuringYourTurn,
+        } => format!(
+            "This spell costs {{{}}} {} to cast during your turn.",
+            delta.unsigned_abs(),
+            if *delta < 0 { "less" } else { "more" },
+        ),
         Ability::CondCost { delta, cond } => format!(
             "This spell costs {{{}}} {} to cast if {}.",
             delta.unsigned_abs(),

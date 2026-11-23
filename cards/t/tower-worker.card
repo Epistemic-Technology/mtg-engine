@@ -1,0 +1,8 @@
+card "Tower Worker" {
+  oracle_id 2f995678-c315-4afe-845b-8c8ae863de6e
+  cost {3}
+  type Artifact Creature — Assembly-Worker
+  pt 1/3
+  keywords reach
+  activated {T}: add {C}; if you control creature named "Mine Worker" and creature named "Power Plant Worker", add {C}{C}{C} instead
+}
