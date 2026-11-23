@@ -3,5 +3,5 @@ card "Prismatic Strands" {
   cost {2}{W}
   type Instant
   spell: prevent all damage permanent of color of choice would deal this turn
-  flashback tap 1 untapped white creature you control
+  flashback tap untapped white creature you control
 }

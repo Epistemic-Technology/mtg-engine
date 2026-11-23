@@ -55,3 +55,27 @@ scenario "Prismatic Strands: the prevention ends with the turn" {
   run_to turn 2 postcombat_main
   assert life A 17
 }
+
+scenario "Prismatic Strands: flashback by tapping an untapped white creature" {
+  battlefield A: "Savannah Lions"
+  battlefield B: "Mountain"
+  graveyard A: "Prismatic Strands"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Savannah Lions"
+  turn 2 A: cast "Prismatic Strands" from graveyard in response to "Shock"
+  turn 2 A: choose red
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Savannah Lions"
+  assert tapped "Savannah Lions"
+  assert exile A contains "Prismatic Strands"
+}
+
+scenario "Prismatic Strands: no flashback without a white creature to tap" {
+  battlefield A: "Grizzly Bears"
+  graveyard A: "Prismatic Strands"
+  start turn 2 A precombat_main
+  illegal turn 2 A: cast "Prismatic Strands" from graveyard
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Prismatic Strands"
+}
