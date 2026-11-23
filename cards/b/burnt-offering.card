@@ -1,0 +1,7 @@
+card "Burnt Offering" {
+  oracle_id 86eb30a0-0beb-42db-9ddf-cf8be6c99dd3
+  cost {B}
+  type Instant
+  additional cost sacrifice creature
+  spell: add X mana any combination of {B}{R} count where mana value of the sacrificed creature
+}

@@ -8236,8 +8236,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 _ => "",
             }
         )),
-        Effect::AddManaLandCould { whose, basic } => Clause::imperative(format!(
-            "add one mana of any color that a {}land {} could produce",
+        Effect::AddManaLandCould {
+            whose,
+            basic,
+            any_type,
+        } => Clause::imperative(format!(
+            "add one mana of any {} that a {}land {} could produce",
+            if *any_type { "type" } else { "color" },
             if *basic { "basic " } else { "" },
             match whose {
                 Who::Opponents => "an opponent controls",
@@ -8739,7 +8744,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 .until_eot()
         }
         // "Each land you control becomes that type": a group is "each".
-        Effect::BecomeChosen { to } => {
+        Effect::BecomeChosen { to, color } => {
             let (s, verb) = match to {
                 Recipient::Group(_)
                 | Recipient::EachCreature
@@ -8747,7 +8752,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 | Recipient::EachPermanentYouControl => (ctx.obj(*to), "becomes"),
                 _ => (ctx.subj(*to), ctx.verb(*to, "becomes", "become")),
             };
-            Clause::with_subject(*to, s, format!("{verb} that type")).until_eot()
+            let what = if *color { "color" } else { "type" };
+            Clause::with_subject(*to, s, format!("{verb} that {what}")).until_eot()
         }
         Effect::WhenYouDo { targets, effects } => {
             // CR 603.12: its own targets; the source and the trigger as the

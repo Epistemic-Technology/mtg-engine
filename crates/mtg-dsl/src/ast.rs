@@ -4230,6 +4230,8 @@ pub enum Effect {
     AddManaLandCould {
         whose: Who,
         basic: bool,
+        /// `add any type that ...`: "one mana of any type".
+        any_type: bool,
     },
     /// `add commander`, `add commander rider counters`, `add commander
     /// rider scry`: "Add one mana of any color in your commander's color
@@ -4365,6 +4367,8 @@ pub enum Effect {
     /// (until end of turn).
     BecomeChosen {
         to: Recipient,
+        /// `becomes that color`.
+        color: bool,
     },
     /// `each creature you control gains protection from chosen color`
     /// (until end of turn).

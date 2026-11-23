@@ -7477,7 +7477,13 @@ impl GameState {
     /// counters on this land, sacrifice it.").
     #[cold]
     #[inline(never)]
-    fn mana_ability_rest(&mut self, p: PlayerId, id: ObjId, a: crate::card::AbilityId) {
+    fn mana_ability_rest(
+        &mut self,
+        p: PlayerId,
+        id: ObjId,
+        a: crate::card::AbilityId,
+        made: &[Mana],
+    ) {
         let pool = std::sync::Arc::clone(&self.pool);
         let AbilityDef::Activated(ab) = pool.ability(a) else {
             return;
@@ -7495,7 +7501,11 @@ impl GameState {
             revealed: Vec::new(),
             x: 0,
             did: true,
-            chosen: Chosen::None,
+            // "This creature becomes that color": the mana's.
+            chosen: match made {
+                [Mana::Colored(c)] => Chosen::Color(*c),
+                _ => Chosen::None,
+            },
             couldnt: 0,
             created_tokens: SmallVec::new(),
             counts: pool.counts_owner(a),
@@ -7559,11 +7569,11 @@ impl GameState {
             if let Some((k, n)) = act.put {
                 self.add_counters(act.id, k, n);
             }
-            for m in act.mana {
+            for &m in &act.mana {
                 self.player_mut(p).mana_pool.add(m);
             }
             if act.rest {
-                self.mana_ability_rest(p, act.id, act.ability);
+                self.mana_ability_rest(p, act.id, act.ability, &act.mana);
             }
             if act.per_turn {
                 self.activated_once.push((act.id, act.ability));
@@ -10469,7 +10479,13 @@ impl GameState {
                             let options: Vec<Choice> =
                                 Color::ALL.into_iter().map(Choice::Color).collect();
                             let k = self.choose_mid(p, DecisionKind::ChooseColor, options);
-                            Mana::Colored(Color::ALL[k.min(4)])
+                            let c = Color::ALL[k.min(4)];
+                            // "This creature becomes that color": the color
+                            // of the mana, for the rest of the resolution.
+                            if matches!(ctx.chosen, Chosen::None) {
+                                ctx.chosen = Chosen::Color(c);
+                            }
+                            Mana::Colored(c)
                         }
                         // Ruling: no chosen color, no mana.
                         Mana::Chosen => match self.chosen_color_of(ctx.source) {
@@ -10526,10 +10542,21 @@ impl GameState {
                     self.bump();
                 }
             }
-            Effect::AddManaLandCould { whose, basic } => {
+            Effect::AddManaLandCould {
+                whose,
+                basic,
+                any_type,
+            } => {
                 // CR 106.7: the colors those lands could produce now.
                 let p = ctx.controller;
                 let k = self.lands_could_produce(p, *whose, *basic);
+                // "any type": {C} when no color is possible (the choice
+                // offers colors only).
+                let colorless = *any_type && k & 0b1_1111 == 0 && k & (1 << 5) != 0;
+                if colorless {
+                    self.player_mut(p).mana_pool.add(Mana::Colorless);
+                    self.bump();
+                }
                 let options: Vec<Choice> = Color::ALL
                     .into_iter()
                     .filter(|c| k & (1 << (*c as u8)) != 0)
@@ -11783,7 +11810,7 @@ impl GameState {
                     }
                 }
             }
-            Effect::BecomeChosen { to } => {
+            Effect::BecomeChosen { to, .. } => {
                 let part = match self.resolution_chosen(ctx) {
                     Chosen::Color(c) => Modification::SetColors(ColorSet::of([c])),
                     // CR 305.7: a basic land type replaces the land's others.

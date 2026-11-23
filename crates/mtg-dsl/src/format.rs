@@ -2008,8 +2008,13 @@ impl Fmt {
                 2 => "add commander rider scry".to_string(),
                 _ => "add commander".to_string(),
             },
-            Effect::AddManaLandCould { whose, basic } => format!(
-                "add any that {}land {} could produce",
+            Effect::AddManaLandCould {
+                whose,
+                basic,
+                any_type,
+            } => format!(
+                "add any {}that {}land {} could produce",
+                if *any_type { "type " } else { "" },
                 if *basic { "basic " } else { "" },
                 match whose {
                     Who::Opponents => "opponent controls",
@@ -2421,9 +2426,11 @@ impl Fmt {
                 "{} gains protection from chosen color",
                 self.recipient(*to, t)
             ),
-            Effect::BecomeChosen { to } => {
-                format!("{} becomes that type", self.recipient(*to, t))
-            }
+            Effect::BecomeChosen { to, color } => format!(
+                "{} becomes that {}",
+                self.recipient(*to, t),
+                if *color { "color" } else { "type" }
+            ),
             Effect::YouMay(inner) => format!("you may {}", self.line(inner, t)),
             Effect::PlayerMay { who, inner } => {
                 let who = self.recipient(*who, t);

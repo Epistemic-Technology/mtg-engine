@@ -665,8 +665,17 @@ impl GameState {
                         made.out.push(k);
                     }
                 }
-                Effect::AddManaLandCould { whose, basic } => {
-                    let k = self.lands_could_produce(ctx.controller, *whose, *basic) & ANY_COLOR;
+                Effect::AddManaLandCould {
+                    whose,
+                    basic,
+                    any_type,
+                } => {
+                    let mut k = self.lands_could_produce(ctx.controller, *whose, *basic);
+                    // "any type": colorless only when no color is possible
+                    // (as it resolves).
+                    if !*any_type || k & ANY_COLOR != 0 {
+                        k &= ANY_COLOR;
+                    }
                     if k != 0 {
                         made.out.push(k);
                     }

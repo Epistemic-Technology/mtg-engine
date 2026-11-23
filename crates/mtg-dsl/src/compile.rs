@@ -3313,9 +3313,14 @@ impl Compiler<'_> {
                 colors: *colors,
                 different: *different,
             }),
-            Effect::AddManaLandCould { whose, basic } => out.push(CoreEffect::AddManaLandCould {
+            Effect::AddManaLandCould {
+                whose,
+                basic,
+                any_type,
+            } => out.push(CoreEffect::AddManaLandCould {
                 whose: *whose,
                 basic: *basic,
+                any_type: *any_type,
             }),
             Effect::AddManaCommander { rider } => {
                 out.push(CoreEffect::AddManaCommander { rider: *rider });
@@ -3699,7 +3704,10 @@ impl Compiler<'_> {
                 let kind = self.choice_kind(kind);
                 out.push(CoreEffect::Choose(kind));
             }
-            Effect::BecomeChosen { to } => out.push(CoreEffect::BecomeChosen { to: r(*to) }),
+            Effect::BecomeChosen { to, color } => out.push(CoreEffect::BecomeChosen {
+                to: r(*to),
+                color: *color,
+            }),
             Effect::ProtectionFromChosen { to } => {
                 out.push(CoreEffect::ProtectionFromChosen { to: r(*to) });
             }

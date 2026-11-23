@@ -4076,6 +4076,10 @@ pub enum Effect {
     AddManaLandCould {
         whose: Who,
         basic: bool,
+        /// "one mana of any type": colorless too, when no color is
+        /// possible (Reflecting Pool, Naga Vitalist).
+        #[serde(default)]
+        any_type: bool,
     },
     /// "Add one mana of any color in your commander's color identity."
     /// The game has no commanders, so it adds no mana (CR 903.4f). `rider`
@@ -4342,6 +4346,11 @@ pub enum Effect {
     /// resolution (`Choose`).
     BecomeChosen {
         to: Recipient,
+        /// "becomes that color" (the color of the mana the ability just
+        /// added: "Add one mana of any color. This creature becomes that
+        /// color until end of turn."); wording only.
+        #[serde(default)]
+        color: bool,
     },
     /// "Creatures you control gain protection from the chosen color until
     /// end of turn": the color chosen earlier in the resolution.

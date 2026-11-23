@@ -2153,7 +2153,12 @@ could produce`, `add any that land you control could produce`, `add any
 that basic land you control could produce` ("Add one mana of any color
 that a land an opponent controls could produce.": the colors those lands'
 mana abilities could make as it resolves, CR 106.7, tapped or not; none,
-no mana), `add commander` ("Add one mana of any color in your commander's
+no mana; `add any type that land you control could produce` is "one mana
+of any type": {C} when those lands could make colorless mana and no
+color, a color otherwise), `add any; this becomes that color` ("Add one
+mana of any color. This creature becomes that color until end of turn.":
+the color of the mana just added, also when payment activates the
+ability), `add commander` ("Add one mana of any color in your commander's
 color identity.": no mana, since the game has no commanders, CR 903.4f;
 `add commander rider counters` and `add commander rider scry` add Opal
 Palace's "If you spend this mana to cast your commander, ..." and Path of

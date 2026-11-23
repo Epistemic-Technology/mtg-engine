@@ -1111,9 +1111,14 @@ impl Decompiler<'_> {
                 colors: *colors,
                 different: *different,
             },
-            CoreEffect::AddManaLandCould { whose, basic } => Effect::AddManaLandCould {
+            CoreEffect::AddManaLandCould {
+                whose,
+                basic,
+                any_type,
+            } => Effect::AddManaLandCould {
                 whose: *whose,
                 basic: *basic,
+                any_type: *any_type,
             },
             CoreEffect::AddManaCommander { rider } => Effect::AddManaCommander { rider: *rider },
             CoreEffect::PumpVar {
@@ -1356,7 +1361,10 @@ impl Decompiler<'_> {
                 indefinite: *indefinite,
             },
             CoreEffect::Choose(kind) => Effect::Choose(self.choice_kind(*kind)),
-            CoreEffect::BecomeChosen { to } => Effect::BecomeChosen { to: r(*to) },
+            CoreEffect::BecomeChosen { to, color } => Effect::BecomeChosen {
+                to: r(*to),
+                color: *color,
+            },
             CoreEffect::ProtectionFromChosen { to } => Effect::ProtectionFromChosen { to: r(*to) },
             CoreEffect::OfChoice {
                 to,

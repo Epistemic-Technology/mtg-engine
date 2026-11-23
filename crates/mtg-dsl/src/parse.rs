@@ -1413,7 +1413,10 @@ impl P {
         }
         // "any color that a land an opponent controls could
         // produce" (CR 106.7).
-        if self.eat_words(&["any", "that"]) {
+        if self.at_words(&["any", "that"]) || self.at_words(&["any", "type", "that"]) {
+            self.pos += 1;
+            let any_type = self.eat_word("type");
+            self.expect_word("that")?;
             let basic = self.eat_word("basic");
             self.expect_word("land")?;
             let whose = if self.eat_words(&["you", "control"]) {
@@ -1423,7 +1426,11 @@ impl P {
                 Who::Opponents
             };
             self.expect_words(&["could", "produce"])?;
-            return Ok(Effect::AddManaLandCould { whose, basic });
+            return Ok(Effect::AddManaLandCould {
+                whose,
+                basic,
+                any_type,
+            });
         }
         if self.eat_word("any") {
             // `add any count where power`: "Add X mana of any one color,
@@ -7627,9 +7634,11 @@ impl P {
                     });
                 }
                 // "becomes that type": chosen earlier in the resolution.
-                if self.eat_words(&["that", "type"]) {
+                if self.at_words(&["that", "type"]) || self.at_words(&["that", "color"]) {
+                    let color = self.word_at(1).as_deref() == Some("color");
+                    self.pos += 2;
                     self.until_end_of_turn();
-                    return Ok(Effect::BecomeChosen { to: subject });
+                    return Ok(Effect::BecomeChosen { to: subject, color });
                 }
                 // "becomes the color of your choice" and kin.
                 if self.at_words(&["color", "of", "choice"])
