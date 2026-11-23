@@ -3779,7 +3779,10 @@ impl GameState {
             && filter.relation == crate::card::Relation::Other
             && let Some(t) = trigger_obj
             && t != source
-            && self.objects.get(t).is_some_and(|o| o.zone == Zone::Battlefield)
+            && self
+                .objects
+                .get(t)
+                .is_some_and(|o| o.zone == Zone::Battlefield)
         {
             let mut any = filter.clone();
             any.relation = crate::card::Relation::Any;

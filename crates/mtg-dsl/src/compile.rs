@@ -2979,8 +2979,7 @@ impl Compiler<'_> {
                 out.push(CoreEffect::Lasting { lasting, effects });
             }
             if self.tmap.spell
-                && s
-                    .effects
+                && s.effects
                     .iter()
                     .any(|e| matches!(e, Effect::PutFromHand { .. }))
             {
