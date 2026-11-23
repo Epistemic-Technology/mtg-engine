@@ -9098,6 +9098,7 @@ impl GameState {
             // stops being a creature while attached.
             (!c.is_creature() || self.pool.get(self.objects[obj].def).reconfigure)
                 && self.is_legal_attachment(TargetSpec::Creature, host)
+                && self.can_be_equipped(host)
         } else {
             false
         };

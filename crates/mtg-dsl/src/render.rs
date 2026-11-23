@@ -273,6 +273,7 @@ pub fn is_restriction(k: Keyword) -> bool {
             | Keyword::CantCrew
             | Keyword::UntapsDuringOthers
             | Keyword::MayNotUntap
+            | Keyword::CantBeEquipped
             | Keyword::AssignsToughness
             | Keyword::CantTransform
     )

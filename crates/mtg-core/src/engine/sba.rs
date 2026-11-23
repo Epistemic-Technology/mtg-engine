@@ -228,6 +228,7 @@ impl GameState {
                     && o.attached_to.is_some_and(|t| {
                         !self.is_legal_attachment(TargetSpec::Creature, t)
                             || self.protected_attachment(id, t)
+                            || !self.can_be_equipped(t)
                     })
                 {
                     unattach.push(id);

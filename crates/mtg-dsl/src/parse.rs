@@ -208,6 +208,7 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
         &["may", "choose", "not", "to", "untap"],
         Keyword::MayNotUntap,
     ),
+    (&["can't", "be", "equipped"], Keyword::CantBeEquipped),
     (
         &[
             "assigns",

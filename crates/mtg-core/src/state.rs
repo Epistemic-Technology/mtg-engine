@@ -3153,6 +3153,14 @@ impl GameState {
         c
     }
 
+    /// Whether an Equipment may be attached to `host`: not if it "can't be
+    /// equipped" (CR 301.5c).
+    pub fn can_be_equipped(&self, host: ObjId) -> bool {
+        !self
+            .characteristics(host)
+            .is_some_and(|c| c.has(Keyword::CantBeEquipped))
+    }
+
     /// Whether an Aura with enchant `spec`, or an Equipment (CR 301.5c,
     /// `TargetSpec::Creature`), may be attached to `target` (CR 303.4c,
     /// 704.5n). Unlike targeting, hexproof and the "you control" of equip

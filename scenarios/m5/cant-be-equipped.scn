@@ -1,0 +1,29 @@
+# "This creature can't be equipped." (CR 301.5c, 701.3b): an equip
+# ability may target it, but the Equipment doesn't move onto it.
+
+scenario "Goblin Brawler: equip resolves, the Equipment stays unattached" {
+  battlefield A: "Goblin Brawler", "Bonesplitter", "Mountain"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Bonesplitter" targeting "Goblin Brawler"
+  run_to turn 3 postcombat_main
+  assert tapped "Mountain"
+  assert power "Goblin Brawler" 2
+}
+
+scenario "Goblin Brawler: an Equipment on another creature stays there" {
+  battlefield A: "Goblin Brawler", "Grizzly Bears", "Bonesplitter" on "Grizzly Bears", "Mountain"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Bonesplitter" targeting "Goblin Brawler"
+  run_to turn 3 postcombat_main
+  assert attached "Bonesplitter" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert power "Goblin Brawler" 2
+}
+
+scenario "Goblin Brawler: other creatures can still be equipped" {
+  battlefield A: "Goblin Brawler", "Grizzly Bears", "Bonesplitter", "Mountain"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Bonesplitter" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert power "Grizzly Bears" 4
+}

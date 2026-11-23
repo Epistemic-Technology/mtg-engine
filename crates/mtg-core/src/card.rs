@@ -342,6 +342,10 @@ pub enum Keyword {
     /// (CR 502.3): its controller is asked, as their untap step untaps
     /// permanents, whether it stays tapped.
     MayNotUntap,
+    /// "This creature can't be equipped." (CR 301.5c): an Equipment
+    /// doesn't become attached to it, and one attached to it becomes
+    /// unattached (CR 704.5n); it can still be targeted by equip.
+    CantBeEquipped,
     /// "assigns combat damage equal to its toughness rather than its
     /// power" (CR 510.1a): its combat damage is its toughness.
     AssignsToughness,
@@ -601,7 +605,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 78] = [
+    pub const ALL: [Keyword; 79] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -680,6 +684,7 @@ impl Keyword {
         Keyword::CantTransform,
         Keyword::LandwalkFilter,
         Keyword::MayNotUntap,
+        Keyword::CantBeEquipped,
     ];
 
     /// The keyword as Oracle prints it.
@@ -764,6 +769,7 @@ impl Keyword {
             Keyword::CantCrew => "can't crew Vehicles",
             Keyword::UntapsDuringOthers => "untaps during each other player's untap step",
             Keyword::MayNotUntap => "may choose not to untap",
+            Keyword::CantBeEquipped => "can't be equipped",
             Keyword::AssignsToughness => {
                 "assigns combat damage equal to its toughness rather than its power"
             }
