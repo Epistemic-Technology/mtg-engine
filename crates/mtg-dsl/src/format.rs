@@ -669,6 +669,15 @@ impl Fmt {
                 if *effect { " by an effect" } else { "" }
             ),
             Replaces::PlusCounters { on } => format!("+1/+1 counters put on {}", filter(on)),
+            Replaces::AnyCounters { on, by } => format!(
+                "counters {} {}",
+                match by {
+                    mtg_core::card::CountersBy::Any => "put on",
+                    mtg_core::card::CountersBy::Effect => "put by effect on",
+                    mtg_core::card::CountersBy::You => "you put on",
+                },
+                filter(on)
+            ),
             Replaces::Destroy { to } => format!("destroy {}", self.affects(to, targets)),
             Replaces::Dies { to } => format!("{} dies", self.affects(to, targets)),
             Replaces::Enters => "enters".to_string(),
@@ -1425,6 +1434,7 @@ impl Fmt {
                 };
                 format!("{} {v} {} energy", self.recipient(*who, t), num(*count))
             }
+            Effect::PayEnergy(mtg_core::card::PAY_ANY_ENERGY) => "pay any energy".to_string(),
             Effect::PayEnergy(n) => format!("pay {n} energy"),
             Effect::AddPoison { count, who } => {
                 let v = if *who == Recipient::You {
@@ -1660,6 +1670,7 @@ impl Fmt {
                 self.recipient(*what, t)
             ),
             Effect::NextSpellLess(n) => format!("next spell costs {{{n}}} less"),
+            Effect::NextSpellUncounterable => "next spell can't be countered".to_string(),
             Effect::ExtraLandPlays(1) => "play additional land this turn".to_string(),
             Effect::ExtraLandPlays(n) => format!("play {n} additional land this turn"),
             Effect::FaceDownSpellsLess(n) => {
@@ -3365,6 +3376,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::ManaSpent { that: false } => "mana spent".to_string(),
         CountExpr::ManaSpent { that: true } => "mana spent that spell".to_string(),
         CountExpr::TimesKicked => "times kicked".to_string(),
+        CountExpr::EnergyPaid => "energy paid".to_string(),
         CountExpr::SpentTreasure => "treasure spent".to_string(),
         CountExpr::CardsInOpponentsGraveyards(None) => "opponents graveyards".to_string(),
         CountExpr::ExiledWith(None) => "exiled with this".to_string(),
@@ -5166,6 +5178,12 @@ fn cost_text(c: &Cost) -> String {
         Some((by, crate::ast::ReduceBy::If(d))) => {
             parts.push(format!("reduced {by} if {}", static_cond(d)));
         }
+        Some((by, crate::ast::ReduceBy::PerTarget(mtg_core::card::PerTarget::Colors))) => {
+            parts.push(format!("reduced {by} each color of target"));
+        }
+        Some((by, crate::ast::ReduceBy::PerTarget(mtg_core::card::PerTarget::Counters(k)))) => {
+            parts.push(format!("reduced {by} each {} counter on target", k.name()));
+        }
         None => {}
     }
     if parts.is_empty() {
@@ -6147,7 +6165,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 let sub = crate::render::equip_subtype(targets)
                     .map(|s| format!("{s} "))
                     .unwrap_or_default();
-                if crate::render::equip_full_cost(cost) {
+                if crate::render::equip_full_cost(cost) || cost.reduce.is_some() {
                     // Equip is a sorcery by its keyword (CR 702.6a).
                     let c = Cost {
                         sorcery: false,
@@ -6513,6 +6531,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             whose,
             generic,
             cond,
+            per,
+            first,
+            flash,
         } => {
             let head = match cond {
                 Some(StaticCond::NotYourTurn) => "static during turns other than yours, ",
@@ -6533,9 +6554,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Who::Any => "",
             };
             let more = if *generic > 0 { "more" } else { "less" };
+            let first = if *first { " first" } else { "" };
+            let per = per.map_or_else(String::new, |n| format!(" {}", num(n)));
+            let flash = if *flash { " and flash" } else { "" };
             let _ = writeln!(
                 out,
-                "{indent}{head}spells{subject}{whose} cost {{{}}} {more}",
+                "{indent}{head}spells{first}{subject}{whose} cost {{{}}} {more}{per}{flash}",
                 generic.unsigned_abs()
             );
         }
@@ -6955,6 +6979,38 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 if *optional { " may" } else { "" }
             );
         }
+        Ability::CombatTax {
+            scope,
+            generic,
+            per,
+            cond,
+        } => {
+            use mtg_core::card::TaxScope;
+            let (what, those) = match scope {
+                TaxScope::AttackingYou {
+                    planeswalkers: true,
+                    ..
+                } => ("attacking you or planeswalkers", ""),
+                TaxScope::AttackingYou { those, .. } => {
+                    ("attacking you", if *those { " those" } else { "" })
+                }
+                TaxScope::Enchanted {
+                    attack: true,
+                    block: true,
+                } => ("enchanted attack or block", ""),
+                TaxScope::Enchanted { attack: true, .. } => ("enchanted attack", ""),
+                TaxScope::Enchanted { .. } => ("enchanted block", ""),
+                TaxScope::EnchantedBlocked => ("enchanted blocked", ""),
+            };
+            let amount = match per {
+                Some(n) => format!("{{X}} {}", num(*n)),
+                None => format!("{{{generic}}}"),
+            };
+            let cond = cond
+                .as_ref()
+                .map_or_else(String::new, |c| format!(" as long as {}", static_cond(c)));
+            let _ = writeln!(out, "{indent}tax {what} {amount}{those}{cond}");
+        }
         Ability::HandSize { whose, delta, set } => {
             let who = if *whose == Who::Opponents {
                 " opponents"
@@ -7020,6 +7076,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
+                K::FirstEquipFree { your_turns: false } => "first equip free".to_string(),
+                K::FirstEquipFree { your_turns: true } => {
+                    "first equip free during your turns".to_string()
+                }
                 K::LandsFromGraveyard => "you may play lands from your graveyard".to_string(),
                 K::ChosenName(ban) => match ban {
                     mtg_core::card::NameBan::Cast => "spells with chosen name can't be cast",
@@ -7161,6 +7221,7 @@ pub(crate) fn granted_mechanic(a: &Ability) -> Option<String> {
         }
         Ability::Protection(f) => Some(format!("protection from {}", filter(f))),
         Ability::Landwalk(f) => Some(format!("landwalk {}", filter(f))),
+        Ability::HexproofFrom(f) => Some(format!("hexproof from {}", filter(f))),
         _ => None,
     }
 }

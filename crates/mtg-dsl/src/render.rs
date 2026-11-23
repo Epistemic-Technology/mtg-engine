@@ -4772,6 +4772,11 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "creature you attacked with this turn".to_string(),
             "creatures you attacked with this turn".to_string(),
         ),
+        // "for each {E} paid this way".
+        CountExpr::EnergyPaid => (
+            "{E} paid this way".to_string(),
+            "{E} paid this way".to_string(),
+        ),
         // "for each time it was kicked" (CR 702.33d).
         CountExpr::TimesKicked => {
             let it = if is_instant_or_sorcery(card) {
@@ -6742,6 +6747,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 format!("{} {}", ctx.verb(*who, "gets", "get"), energy(n)),
             )
         }
+        Effect::PayEnergy(mtg_core::card::PAY_ANY_ENERGY) => {
+            Clause::imperative("pay any amount of {E}".to_string())
+        }
         Effect::PayEnergy(n) => Clause::imperative(format!("pay {}", energy(*n))),
         Effect::AddPoison { count, who } => {
             let s = ctx.subj(*who);
@@ -7262,6 +7270,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             "you may play up to {} this turn",
             additional_lands(*n)
         )),
+        Effect::NextSpellUncounterable => {
+            Clause::imperative("the next spell you cast this turn can't be countered".to_string())
+        }
         Effect::NextSpellLess(n) => Clause::imperative(format!(
             "the next spell you cast this turn costs {{{n}}} less to cast"
         )),
@@ -8960,10 +8971,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else if colors.count() == 5 {
                 format!("add {n} mana in any combination of colors")
             } else {
-                let syms: Vec<String> = colors
+                let mut syms: Vec<String> = colors
                     .iter()
                     .map(|c| format!("{{{}}}", c.letter()))
                     .collect();
+                // A pair prints in the color wheel's order, which wraps
+                // around: "{G} and/or {W}", "{R} and/or {W}", "{G} and/or
+                // {U}" (Saltcrusted Steppe).
+                if let [a, b] = syms.as_slice()
+                    && matches!(
+                        (a.as_str(), b.as_str()),
+                        ("{W}", "{G}" | "{R}") | ("{U}", "{G}")
+                    )
+                {
+                    syms.swap(0, 1);
+                }
                 format!(
                     "add {n} mana in any combination of {}",
                     syms.join(" and/or ")
@@ -9548,6 +9570,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             waterbend,
             discard_random,
             effect,
+            ..
         } => {
             ctx.in_unless = true;
             let mut c = clause(effect, ctx);
@@ -12928,6 +12951,29 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 "permanent"
             }
         ),
+        (Replaces::AnyCounters { on, by }, Outcome::Double | Outcome::PlusOne) => {
+            use mtg_core::card::CountersBy;
+            let on_text = filter_a(on, ctx.card);
+            let many = if r.outcome == Outcome::Double {
+                "twice that many"
+            } else {
+                "that many plus one"
+            };
+            match by {
+                // Doubling Season.
+                CountersBy::Effect => format!(
+                    "If an effect would put one or more counters on {on_text}, it puts {many} of those counters on that permanent instead."
+                ),
+                // Doc Samson.
+                CountersBy::You => format!(
+                    "If you would put one or more counters on {on_text}, put {many} of each of those kinds of counters on that permanent instead."
+                ),
+                // Loading Zone.
+                CountersBy::Any => format!(
+                    "If one or more counters would be put on {on_text}, {many} of each of those kinds of counters are put on it instead."
+                ),
+            }
+        }
         (Replaces::PlusCounters { on }, Outcome::PlusOne) => format!(
             "If one or more +1/+1 counters would be put on {}, that many plus one +1/+1 counters are put on it instead.",
             filter_a(on, ctx.card)
@@ -14121,6 +14167,11 @@ fn granted_keyword(a: &Ability, card: &Card) -> Option<String> {
             Some(format!("p{}", &t[1..]))
         }
         Ability::Landwalk(f) => Some(landwalk_text(f, card)),
+        // "has hexproof from monocolored".
+        Ability::HexproofFrom(f) => Some(format!(
+            "hexproof{}",
+            &protection_text(f, card)["Protection".len()..]
+        )),
         // 'have "Ward—Pay 2 life."': quoted.
         Ability::Mechanic(crate::ast::Mechanic::WardCost(_)) => None,
         _ => crate::format::granted_mechanic(a),
@@ -15241,6 +15292,38 @@ fn restrictions_text(cost: &Cost, card: &Card) -> String {
 
 /// Whether an equip ability's cost is more than mana ("Equip—{2}, Pay 2
 /// life."), so it prints after a dash.
+/// " This ability costs {1} less to activate for each ..." (an activated
+/// ability's `reduced`), or nothing.
+fn reduce_text(cost: &crate::ast::Cost, card: &Card) -> String {
+    match cost.reduce.as_deref() {
+        Some((by, crate::ast::ReduceBy::Each(e))) => format!(
+            " This ability costs {by} less to activate {}.",
+            count_phrase(e, card, true)
+        ),
+        Some((by, crate::ast::ReduceBy::If(StaticCond::DuringYourTurn))) => {
+            format!(" This ability costs {by} less to activate during your turn.")
+        }
+        Some((by, crate::ast::ReduceBy::Targets(f))) => format!(
+            " This ability costs {by} less to activate if it targets {}.",
+            filter_a(f, card)
+        ),
+        Some((by, crate::ast::ReduceBy::PerTarget(p))) => match p {
+            mtg_core::card::PerTarget::Colors => format!(
+                " This ability costs {by} less to activate for each color of the creature it targets."
+            ),
+            mtg_core::card::PerTarget::Counters(k) => format!(
+                " This ability costs {by} less to activate for each {} counter on the creature it targets.",
+                k.name()
+            ),
+        },
+        Some((by, crate::ast::ReduceBy::If(c))) => format!(
+            " This ability costs {by} less to activate if {}.",
+            static_cond_text(c, card)
+        ),
+        None => String::new(),
+    }
+}
+
 pub(crate) fn equip_full_cost(cost: &crate::ast::Cost) -> bool {
     cost.order
         .iter()
@@ -15606,6 +15689,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 } else {
                     ""
                 };
+                // "Equip {3}. This ability costs {1} less to activate for
+                // each other Equipment you control."
+                let reduce = reduce_text(cost, card);
+                if !reduce.is_empty() {
+                    return format!("Equip {sub}{}.{reduce}", cost.mana);
+                }
                 return format!("Equip {sub}{}{once}", cost.mana);
             }
             if *cycling {
@@ -15630,36 +15719,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             if let Some(k) = cost.keyword {
                 text = format!("{} — {text}", k.name());
             }
-            match cost.reduce.as_deref() {
-                Some((by, crate::ast::ReduceBy::Each(e))) => {
-                    let _ = write!(
-                        text,
-                        " This ability costs {by} less to activate {}.",
-                        count_phrase(e, card, true)
-                    );
-                }
-                Some((by, crate::ast::ReduceBy::If(StaticCond::DuringYourTurn))) => {
-                    let _ = write!(
-                        text,
-                        " This ability costs {by} less to activate during your turn."
-                    );
-                }
-                Some((by, crate::ast::ReduceBy::Targets(f))) => {
-                    let _ = write!(
-                        text,
-                        " This ability costs {by} less to activate if it targets {}.",
-                        filter_a(f, card)
-                    );
-                }
-                Some((by, crate::ast::ReduceBy::If(c))) => {
-                    let _ = write!(
-                        text,
-                        " This ability costs {by} less to activate if {}.",
-                        static_cond_text(c, card)
-                    );
-                }
-                None => {}
-            }
+            text.push_str(&reduce_text(cost, card));
             text.push_str(&restrictions_text(cost, card));
             text
         }
@@ -16086,7 +16146,52 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             whose,
             generic,
             cond,
+            per,
+            first,
+            flash,
         } => {
+            // "The first creature spell you cast each turn costs {2} less to
+            // cast [and can be cast as though it had flash]"; "... you cast
+            // during each of your turns ...".
+            if *first {
+                let whose = match whose {
+                    Who::You => " you cast",
+                    Who::Opponents => " your opponents cast",
+                    Who::Any => "",
+                };
+                let when = if *cond == Some(StaticCond::DuringYourTurn) {
+                    " during each of your turns"
+                } else {
+                    " each turn"
+                };
+                let subject = lowercase_first(&cost_spells_subject(filter, card))
+                    .replacen("spells", "spell", 1);
+                // "non-Lemur creature spell" (a subtype keeps its case).
+                let subject = match subject.strip_prefix("Non-") {
+                    Some(rest) => format!("non-{rest}"),
+                    None => subject,
+                };
+                let more = if *generic > 0 { "more" } else { "less" };
+                let flash = if *flash {
+                    " and can be cast as though it had flash"
+                } else {
+                    ""
+                };
+                return format!(
+                    "The first {subject}{whose}{when} costs {{{}}} {more} to cast{flash}.",
+                    generic.unsigned_abs()
+                );
+            }
+            // "... cost {1} less to cast for each creature you control with
+            // power 4 or greater."
+            let per_text = per
+                .and_then(|n| match n {
+                    Num::Count(i) => card.counts.get(usize::from(i)),
+                    _ => None,
+                })
+                .map_or_else(String::new, |c| {
+                    format!(" {}", count_phrase(&c.expr, card, true))
+                });
             let head = match cond {
                 Some(StaticCond::NotYourTurn) => "During turns other than yours, ",
                 Some(StaticCond::DuringYourTurn) => "During your turn, ",
@@ -16139,7 +16244,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 None => (filter.clone(), String::new()),
             };
             let body = format!(
-                "{} {whose}{mv} cost {{{}}} {more} to cast.",
+                "{} {whose}{mv} cost {{{}}} {more} to cast{per_text}.",
                 cost_spells_subject(&f, card),
                 generic.unsigned_abs()
             )
@@ -16707,6 +16812,62 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         Ability::ExtraVote { optional: true } => {
             "While voting, you may vote an additional time.".to_string()
         }
+        Ability::CombatTax {
+            scope,
+            generic,
+            per,
+            cond,
+        } => {
+            use mtg_core::card::TaxScope;
+            let count = per.and_then(|n| match n {
+                Num::Count(i) => card.counts.get(usize::from(i)),
+                _ => None,
+            });
+            // "{2}", "{1} for each card in your hand", "{X} ..., where X
+            // is the number of enchantments you control".
+            let (amount, where_x) = match count {
+                Some(c) if c.style == crate::ast::CountStyle::Where => (
+                    "{X}".to_string(),
+                    format!(", where X is {}", count_phrase(&c.expr, card, false)),
+                ),
+                Some(c) => (
+                    format!("{{1}} {}", count_phrase(&c.expr, card, true)),
+                    String::new(),
+                ),
+                None => (format!("{{{generic}}}"), String::new()),
+            };
+            let text = match scope {
+                TaxScope::AttackingYou {
+                    planeswalkers: true,
+                    ..
+                } => format!(
+                    "creatures can't attack you or planeswalkers you control unless their controller pays {amount} for each of those creatures{where_x}."
+                ),
+                TaxScope::AttackingYou { those: true, .. } => format!(
+                    "creatures can't attack you unless their controller pays {amount} for each of those creatures{where_x}."
+                ),
+                TaxScope::AttackingYou { .. } => format!(
+                    "creatures can't attack you unless their controller pays {amount} for each creature they control that's attacking you{where_x}."
+                ),
+                TaxScope::Enchanted { attack, block } => {
+                    let what = match (attack, block) {
+                        (true, true) => "attack or block",
+                        (true, false) => "attack",
+                        _ => "block",
+                    };
+                    format!(
+                        "enchanted creature can't {what} unless its controller pays {amount}{where_x}."
+                    )
+                }
+                TaxScope::EnchantedBlocked => format!(
+                    "enchanted creature can't be blocked unless defending player pays {amount} for each creature they control that's blocking it{where_x}."
+                ),
+            };
+            match cond {
+                Some(c) => format!("As long as {}, {text}", static_cond_text(c, card)),
+                None => capitalize(&text),
+            }
+        }
         Ability::HandSize { whose, delta, set } => {
             let (subject, have) = if *whose == Who::Opponents {
                 ("Each opponent's", "Each opponent has")
@@ -16833,6 +16994,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
+                K::FirstEquipFree { your_turns } => format!(
+                    "you may pay {{0}} rather than pay the equip cost of the first equip ability you activate {}",
+                    if *your_turns {
+                        "during each of your turns"
+                    } else {
+                        "each turn"
+                    }
+                ),
                 K::LandsFromGraveyard => "you may play lands from your graveyard".to_string(),
                 K::ChosenName(ban) => match ban {
                     mtg_core::card::NameBan::Cast => "spells with the chosen name can't be cast",

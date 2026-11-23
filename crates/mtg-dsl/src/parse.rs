@@ -1505,6 +1505,14 @@ impl P {
                     count: self.num()?,
                 });
             }
+            // `add any X`: "Add X mana of any one color." (the ability's
+            // X: Petalmane Baku's counters removed).
+            if self.eat_word("x") {
+                return Ok(Effect::AddManaTimes {
+                    mana: Mana::Any,
+                    count: Num::X,
+                });
+            }
             return Ok(Effect::AddMana(vec![Mana::Any]));
         }
         let x = self.at_word("x") && self.word_at(1).as_deref() == Some("mana");
@@ -2084,6 +2092,13 @@ impl P {
                 self.pos += 7;
                 self.player_static(mtg_core::card::PlayerStaticKind::OpponentsCantCastYourTurn)
             }
+            // "You may pay {0} rather than pay the equip cost of the first
+            // equip ability you activate each turn."
+            "first" if self.at_words(&["first", "equip", "free"]) => {
+                self.pos += 3;
+                let your_turns = self.eat_words(&["during", "your", "turns"]);
+                self.player_static(mtg_core::card::PlayerStaticKind::FirstEquipFree { your_turns })
+            }
             "players" if self.at_words(&["players", "can't", "gain", "life"]) => {
                 self.pos += 4;
                 self.player_static(mtg_core::card::PlayerStaticKind::Rule(
@@ -2414,6 +2429,79 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::DeckAnyNumber)
             }
+            // An attack or block tax (CR 508.1d, 509.1d).
+            "tax" => {
+                self.pos += 1;
+                let scope = if self.eat_words(&["attacking", "you"]) {
+                    let planeswalkers = self.eat_words(&["or", "planeswalkers"]);
+                    mtg_core::card::TaxScope::AttackingYou {
+                        planeswalkers,
+                        those: planeswalkers,
+                    }
+                } else {
+                    self.expect_word("enchanted")?;
+                    if self.eat_word("blocked") {
+                        mtg_core::card::TaxScope::EnchantedBlocked
+                    } else if self.eat_words(&["attack", "or", "block"]) {
+                        mtg_core::card::TaxScope::Enchanted {
+                            attack: true,
+                            block: true,
+                        }
+                    } else if self.eat_word("attack") {
+                        mtg_core::card::TaxScope::Enchanted {
+                            attack: true,
+                            block: false,
+                        }
+                    } else {
+                        self.expect_word("block")?;
+                        mtg_core::card::TaxScope::Enchanted {
+                            attack: false,
+                            block: true,
+                        }
+                    }
+                };
+                let mana = self.mana_cost()?;
+                let req = mana.requirements(0);
+                let only_generic = req.colored == [0; 5]
+                    && req.colorless == 0
+                    && req.hybrid == [0; 10]
+                    && req.two_hybrid == [0; 5];
+                if !only_generic {
+                    return self.fail("a combat tax is generic mana only");
+                }
+                let x = mana.has_x();
+                let (generic, per) = if x {
+                    if !self.at_word("count") {
+                        return self.fail("`{X}` in a combat tax needs a count");
+                    }
+                    (1, Some(self.num()?))
+                } else {
+                    (req.generic, None)
+                };
+                // `tax attacking you {1} those`: "for each of those creatures".
+                let scope = match scope {
+                    mtg_core::card::TaxScope::AttackingYou {
+                        planeswalkers: false,
+                        ..
+                    } if self.eat_word("those") => mtg_core::card::TaxScope::AttackingYou {
+                        planeswalkers: false,
+                        those: true,
+                    },
+                    s => s,
+                };
+                let cond = if self.eat_words(&["as", "long", "as"]) {
+                    Some(self.static_cond()?)
+                } else {
+                    None
+                };
+                self.end_stmt()?;
+                Ok(Ability::CombatTax {
+                    scope,
+                    generic,
+                    per,
+                    cond,
+                })
+            }
             "hand" if self.word_at(1).as_deref() == Some("size") => {
                 self.pos += 2;
                 let whose = if self.eat_word("opponents") {
@@ -2741,6 +2829,19 @@ impl P {
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
+                // "Ward—{2}, Pay 2 life.": mana and another part, a cost
+                // paid as the trigger resolves (CR 702.21a).
+                if w == "ward" {
+                    let mut i = 0;
+                    while matches!(self.peek_at(i), Some(Tok::Sym(_))) {
+                        i += 1;
+                    }
+                    if self.peek_at(i) == Some(&Tok::Comma) {
+                        let c = self.cost()?;
+                        self.end_stmt()?;
+                        return Ok(Ability::Mechanic(Mechanic::WardCost(c)));
+                    }
+                }
                 let c = self.mana_cost()?;
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(match w.as_str() {
@@ -3711,6 +3812,7 @@ impl P {
         // `spells each red or green you cast cost {1} less`: "Each spell
         // you cast that's red or green costs {1} less to cast."
         let each = self.eat_word("each");
+        let first = !each && self.eat_word("first");
         let mut filter = if self.at_word("you") || self.at_word("your") || self.at_word("cost") {
             Filter::default()
         } else {
@@ -3756,12 +3858,21 @@ impl P {
             self.expect_word("more")?;
             n
         };
+        let per = if self.at_word("count") {
+            Some(self.num()?)
+        } else {
+            None
+        };
+        let flash = first && self.eat_words(&["and", "flash"]);
         self.end_stmt()?;
         Ok(Ability::CostChange {
             filter,
             whose,
             generic,
             cond,
+            per,
+            first,
+            flash,
         })
     }
 
@@ -3798,6 +3909,11 @@ impl P {
         if self.at_word("ward") && matches!(self.peek_at(1), Some(Tok::Sym(_))) {
             self.pos += 1;
             return Ok(Some(Ability::Mechanic(Mechanic::Ward(self.mana_cost()?))));
+        }
+        // `has hexproof from monocolored` (CR 702.11d).
+        if self.at_words(&["hexproof", "from"]) {
+            self.pos += 2;
+            return Ok(Some(Ability::HexproofFrom(self.filter()?)));
         }
         // `has ward pay 2 life`: 'have "Ward—Pay 2 life."'.
         if self.at_words(&["ward", "pay"]) {
@@ -3860,6 +3976,11 @@ impl P {
             || (self.at_word("toxic") && matches!(self.peek_at(1), Some(Tok::Num(_))))
             || (self.at_word("firebending") && matches!(self.peek_at(1), Some(Tok::Num(_))))
             || self.granted_protection_ahead()
+            || (self.at_words(&["hexproof", "from"])
+                && self
+                    .word_at(2)
+                    .as_deref()
+                    .is_some_and(|w| color(w).is_none()))
             || (self
                 .word_at(0)
                 .is_some_and(|w| matches!(w.as_str(), "poisonous" | "frenzy" | "absorb"))
@@ -5684,6 +5805,7 @@ impl P {
                 discard,
                 waterbend: false,
                 discard_random,
+                both: false,
                 effect: Box::new(e),
             });
         }
@@ -5717,6 +5839,7 @@ impl P {
             discard: 0,
             waterbend,
             discard_random: false,
+            both: false,
             effect: Box::new(e),
         })
     }
@@ -9470,6 +9593,11 @@ impl P {
                 }
                 Ok(Effect::Exile { what })
             }
+            // "you may pay any amount of {E}".
+            "pay" if self.at_words(&["any", "energy"]) => {
+                self.pos += 2;
+                Ok(Effect::PayEnergy(mtg_core::card::PAY_ANY_ENERGY))
+            }
             "pay"
                 if matches!(self.peek(), Some(Tok::Num(_)))
                     && self.word_at(1).as_deref() == Some("energy") =>
@@ -9830,6 +9958,10 @@ impl P {
                 };
                 self.expect_words(&["additional", "land", "this", "turn"])?;
                 Ok(Effect::ExtraLandPlays(n))
+            }
+            "next" if self.at_words(&["spell", "can't", "be", "countered"]) => {
+                self.pos += 4;
+                Ok(Effect::NextSpellUncounterable)
             }
             "next" if self.at_word("spell") => {
                 self.expect_words(&["spell", "costs"])?;
@@ -11073,6 +11205,9 @@ impl P {
         }
         if self.eat_words(&["times", "kicked"]) {
             return Ok(CountExpr::TimesKicked);
+        }
+        if self.eat_words(&["energy", "paid"]) {
+            return Ok(CountExpr::EnergyPaid);
         }
         if self.eat_words(&["treasure", "spent"]) {
             return Ok(CountExpr::SpentTreasure);
@@ -15264,6 +15399,20 @@ impl P {
                         })?;
                         let how = if self.eat_words(&["if", "targets"]) {
                             crate::ast::ReduceBy::Targets(self.filter()?)
+                        } else if self.eat_words(&["each", "color", "of", "target"]) {
+                            crate::ast::ReduceBy::PerTarget(mtg_core::card::PerTarget::Colors)
+                        } else if self.at_word("each")
+                            && self.word_at(2).as_deref() == Some("counter")
+                            && self.word_at(3).as_deref() == Some("on")
+                            && self.word_at(4).as_deref() == Some("target")
+                        {
+                            self.pos += 1;
+                            let kind = self.counter_kind()?;
+                            self.eat_word("counter");
+                            self.expect_words(&["on", "target"])?;
+                            crate::ast::ReduceBy::PerTarget(mtg_core::card::PerTarget::Counters(
+                                kind,
+                            ))
                         } else if self.eat_word("each") {
                             crate::ast::ReduceBy::Each(self.count_expr()?)
                         } else if self.eat_words(&["during", "your", "turn"]) {
@@ -15526,6 +15675,25 @@ impl P {
             self.pos += 1;
             self.expect_words(&["counters", "put", "on"])?;
             return Ok(Replaces::PlusCounters { on: self.filter()? });
+        }
+        // Counters of any kind (CR 122.6).
+        if self.at_words(&["counters", "put", "on"])
+            || self.at_words(&["counters", "put", "by", "effect", "on"])
+            || self.at_words(&["counters", "you", "put", "on"])
+        {
+            self.pos += 1;
+            let by = if self.eat_words(&["put", "by", "effect", "on"]) {
+                mtg_core::card::CountersBy::Effect
+            } else if self.eat_words(&["you", "put", "on"]) {
+                mtg_core::card::CountersBy::You
+            } else {
+                self.expect_words(&["put", "on"])?;
+                mtg_core::card::CountersBy::Any
+            };
+            return Ok(Replaces::AnyCounters {
+                on: self.filter()?,
+                by,
+            });
         }
         let combat = if self.eat_word("combat") {
             Some(true)

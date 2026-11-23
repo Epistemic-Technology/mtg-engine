@@ -1,0 +1,67 @@
+# Ward with a mana and a life part ("Ward—{2}, Pay 2 life.", CR 702.21a):
+# the spell or ability is countered unless its controller pays both as
+# the ward trigger resolves; one without the other doesn't do.
+
+scenario "Ward—{2}, Pay 2 life: paid, Murder resolves and B loses 2 life" {
+  battlefield A: "Gisa, the Hellraiser"
+  battlefield B: 5 "Swamp"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Gisa, the Hellraiser"
+  turn 2 B: accept "Gisa, the Hellraiser"
+  run_to turn 2 end
+  assert graveyard A contains "Gisa, the Hellraiser"
+  assert life B 18
+  assert tapped oldest "Swamp"
+  assert tapped newest "Swamp"
+}
+
+scenario "Ward—{2}, Pay 2 life: declined, Murder is countered and no life is paid" {
+  battlefield A: "Gisa, the Hellraiser"
+  battlefield B: 5 "Swamp"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Gisa, the Hellraiser"
+  turn 2 B: decline "Gisa, the Hellraiser"
+  run_to turn 2 end
+  assert battlefield A contains "Gisa, the Hellraiser"
+  assert graveyard B contains "Murder"
+  assert life B 20
+}
+
+scenario "Ward—{2}, Pay 2 life: the life alone can't pay it" {
+  battlefield A: "Gisa, the Hellraiser"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Gisa, the Hellraiser"
+  run_to turn 2 end
+  assert battlefield A contains "Gisa, the Hellraiser"
+  assert life B 20
+}
+
+scenario "Ward—{2}, Pay 2 life: the mana alone can't pay it" {
+  life B 1
+  battlefield A: "Gisa, the Hellraiser"
+  battlefield B: 5 "Swamp"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Gisa, the Hellraiser"
+  run_to turn 2 end
+  assert battlefield A contains "Gisa, the Hellraiser"
+  assert life B 1
+}
+
+scenario "Gisa: Zombies get +1/+1 and menace; committing a crime makes two tapped Zombie Rogues once each turn" {
+  battlefield A: "Gisa, the Hellraiser", 2 "Mountain", "Walking Corpse"
+  hand A: "Shock", "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 16
+  assert power "Walking Corpse" 3
+  assert has "Walking Corpse" menace
+  assert battlefield A contains 2 "Zombie Rogue"
+  assert tapped newest "Zombie Rogue"
+  assert power oldest "Zombie Rogue" 3
+}

@@ -1,0 +1,51 @@
+# Mana abilities that remove X counters (storage lands, CR 605.1a, 107.3):
+# X is chosen as the ability is activated, and that many counters pay for
+# X mana.
+
+scenario "Calciform Pools: remove two storage counters for two mana" {
+  battlefield A: "Calciform Pools" with 2 storage, 2 "Plains"
+  hand A: "Glorious Anthem"
+  turn 1 A: activate "Calciform Pools" ability 2 x 2
+  turn 1 A: cast "Glorious Anthem"
+  run_to turn 1 end
+  assert battlefield A contains "Glorious Anthem"
+  assert counters "Calciform Pools" storage 0
+}
+
+scenario "Calciform Pools: put a storage counter on it" {
+  battlefield A: "Calciform Pools", "Plains"
+  turn 1 A: activate "Calciform Pools" ability 1
+  run_to turn 1 end
+  assert counters "Calciform Pools" storage 1
+  assert tapped "Calciform Pools"
+}
+
+scenario "Fungal Reaches: one storage counter makes one mana of red or green" {
+  battlefield A: "Fungal Reaches" with 1 storage, "Mountain"
+  hand A: "Shock"
+  turn 1 A: activate "Fungal Reaches" ability 2 x 1
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert counters "Fungal Reaches" storage 0
+}
+
+scenario "Petalmane Baku: remove X ki counters for X mana of one color" {
+  battlefield A: "Petalmane Baku" with 2 ki, 2 "Forest"
+  hand A: "Centaur Courser"
+  turn 1 A: activate "Petalmane Baku" x 2
+  turn 1 A: choose green
+  turn 1 A: cast "Centaur Courser"
+  run_to turn 1 end
+  assert battlefield A contains "Centaur Courser"
+  assert counters "Petalmane Baku" ki 0
+}
+
+scenario "Petalmane Baku: a Spirit or Arcane spell gives it a ki counter" {
+  battlefield A: "Petalmane Baku", 2 "Mountain"
+  hand A: "Petalmane Baku"
+  battlefield A: "Forest"
+  turn 1 A: cast "Petalmane Baku"
+  run_to turn 1 end
+  assert counters oldest "Petalmane Baku" ki 1
+}

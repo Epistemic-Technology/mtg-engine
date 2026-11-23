@@ -1,0 +1,7 @@
+card "Fungal Reaches" {
+  oracle_id 6f18ea44-3efa-4a45-abc6-86a0627e40f2
+  type Land
+  mana {C}
+  activated {1}, {T}: put 1 storage counters on this
+  activated {1}, remove X storage counters from this: add X mana any combination of {R}{G}
+}

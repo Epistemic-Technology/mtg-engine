@@ -1,0 +1,7 @@
+card "Brainwash" {
+  oracle_id 5a81755f-bc44-47ac-8039-8847a5e37922
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  tax enchanted attack {3}
+}

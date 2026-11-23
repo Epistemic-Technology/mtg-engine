@@ -1,0 +1,9 @@
+card "Dáin, Lord of the Iron Hills" {
+  oracle_id 5b79b68a-db71-4638-824e-ab89b1716c86
+  cost {1}{W}
+  type Legendary Creature — Dwarf Noble
+  pt 2/2
+  keywords vigilance
+  storied
+  tax attacking you {1} those as long as enduring story
+}

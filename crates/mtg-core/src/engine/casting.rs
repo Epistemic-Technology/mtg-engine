@@ -974,6 +974,7 @@ impl GameState {
                     .count()
             }
             CountExpr::SpentColors => self.spent_on(ctx.source).colors() as usize,
+            CountExpr::EnergyPaid => ctx.x as usize,
             CountExpr::TimesKicked => self
                 .objects
                 .get(ctx.source)
@@ -3242,7 +3243,14 @@ impl GameState {
                 if let AbilityDef::CostChange(cc) = self.pool.ability(*a)
                     && self.cost_change_applies(cc, p, def, id, *src)
                 {
-                    d += cc.generic;
+                    d += match cc.per {
+                        None => cc.generic,
+                        Some(per) => {
+                            let times = self.eval_num_of(per, *src, o.controller);
+                            cc.generic
+                                .saturating_mul(i32::try_from(times).unwrap_or(i32::MAX))
+                        }
+                    };
                     // CR 702.41a: affinity, given to the spell.
                     if let Some(f) = cc.grant.as_ref().and_then(|g| g.affinity.as_ref()) {
                         let n = self
@@ -3294,9 +3302,25 @@ impl GameState {
             .spells
             .mana_value
             .is_none_or(|(cmp, n)| cmp.holds(def.mana_cost.mana_value(), u32::from(n)));
+        // "The first creature spell you cast each turn": none cast before
+        // it this turn (the spell being cast isn't cast until its costs
+        // are paid, CR 601.2i).
+        let first_ok = !cc.first
+            || !self.cast_this_turn.iter().any(|(q, d)| {
+                *q == p && {
+                    let pd = self.pool.get(*d);
+                    pd.printed.as_ref().is_some_and(|c| {
+                        cc.spells.matches_characteristics(c)
+                            && cc.spells.mana_value.is_none_or(|(cmp, n)| {
+                                cmp.holds(pd.mana_cost.mana_value(), u32::from(n))
+                            })
+                    })
+                }
+            });
         whose
             && from_ok
             && mv_ok
+            && first_ok
             && cc
                 .spells
                 .matches(id, p, chars, Some(src), Some(o.controller))
@@ -5258,6 +5282,23 @@ impl GameState {
                 continue;
             }
             for a in &self.pool.get(holder.def).ability_ids {
+                // "You may pay {0} rather than pay the equip cost of the
+                // first equip ability you activate each turn."
+                if let AbilityDef::PlayerStatic {
+                    kind: crate::card::PlayerStaticKind::FirstEquipFree { your_turns },
+                    condition,
+                } = self.pool.ability(*a)
+                {
+                    if ab.is_equip()
+                        && self.turn_log.equipped & (1 << p.index().min(7)) == 0
+                        && (!*your_turns || self.active_player == p)
+                        && condition
+                            .is_none_or(|i| self.condition_now(self.pool.condition(i), p, *id))
+                    {
+                        *req = ManaRequirement::default();
+                    }
+                    continue;
+                }
                 let AbilityDef::PlayerStatic {
                     kind:
                         crate::card::PlayerStaticKind::ActivationCost {
@@ -5297,7 +5338,9 @@ impl GameState {
     /// or less", or an equip ability while some card has "Equip abilities
     /// you activate that target this creature cost {2} less".
     pub(super) fn target_reduces(&self, ab: &ActivatedAbility) -> bool {
-        ab.reduction.as_ref().is_some_and(|r| r.target.is_some())
+        ab.reduction
+            .as_ref()
+            .is_some_and(|r| r.target.is_some() || r.per_target.is_some())
             || (self.pool.equip_discounts && ab.is_equip())
     }
 
@@ -5317,6 +5360,22 @@ impl GameState {
             && self.target_fits(f, t, p, source)
         {
             req.reduce_by(&r.by);
+        }
+        if let Some(r) = &ab.reduction
+            && let Some(per) = r.per_target
+            && let Target::Object(id) = t
+        {
+            let n = match per {
+                crate::card::PerTarget::Counters(k) => {
+                    self.objects.get(id).map_or(0, |o| o.counters(k))
+                }
+                crate::card::PerTarget::Colors => self.characteristics(id).map_or(0, |c| {
+                    u32::try_from(c.colors.iter().count()).unwrap_or(u32::MAX)
+                }),
+            };
+            for _ in 0..n.min(64) {
+                req.reduce_by(&r.by);
+            }
         }
         if self.pool.equip_discounts
             && ab.is_equip()
@@ -5483,15 +5542,17 @@ impl GameState {
         self.stack.push(obj);
         self.bump();
         // CR 602.2b, 601.2b: X in the activation cost is announced before
-        // targets are chosen. (A mana ability's X is paid as it is
-        // activated, Wizard's Rockets, and isn't asked.)
+        // targets are chosen. (A mana ability's X in its mana cost is paid
+        // as it is activated, Wizard's Rockets, and isn't asked; one that
+        // removes X counters, a storage land's, is: CR 107.3, 605.3b.)
         let has_x = matches!(
             self.pool.ability(ability),
-            AbilityDef::Activated(a) if (a.cost.mana.has_x()
+            AbilityDef::Activated(a) if ((a.cost.mana.has_x()
                 || a.cost.remove_x
                 || a.cost.behold.as_ref().is_some_and(|b| b.x)
                 || a.cost.exile_cards.as_ref().is_some_and(|g| g.x))
-                && !a.is_mana_ability()
+                && !a.is_mana_ability())
+                || (a.cost.remove_x && a.is_mana_ability())
         );
         // CR 602.2b, 601.2b: a modal activated ability's mode is chosen
         // first.
@@ -6332,6 +6393,9 @@ impl GameState {
             sources.extend(self.waterbend_sources(controller, req.generic, None));
         }
         self.pay_from(controller, &req, &sources, Some(sa.source));
+        if ab.is_equip() {
+            self.turn_log.equipped |= 1 << controller.index().min(7);
+        }
         if ab.cost.crew > 0 {
             for c in self.crew_choice(controller, sa.source, ab.cost.crew, ab.saddles()) {
                 self.tap(c);
@@ -8109,6 +8173,12 @@ impl GameState {
         // "The next spell you cast this turn costs {1} less": used up by
         // this spell, its total cost paid (CR 601.2f-h).
         self.next_spell_less[caster.index().min(3)] = 0;
+        // "The next spell you cast this turn can't be countered."
+        let bit = 1u8 << caster.index().min(7);
+        if self.next_uncounterable & bit != 0 {
+            self.next_uncounterable &= !bit;
+            self.uncounterable_spells.push(spell);
+        }
         self.cast_this_turn.push((caster, def_ref));
         if self.objects[spell].cast.cast_from() == Some(Zone::Hand) {
             self.turn_log.cast_from_hand |= 1 << caster.index().min(7);
@@ -8465,6 +8535,7 @@ impl GameState {
                             more: None,
                             haste: false,
                             prepared: false,
+                            ..Default::default()
                         },
                     );
                 } else {
@@ -8531,6 +8602,7 @@ impl GameState {
                 more: None,
                 haste: false,
                 prepared: false,
+                ..Default::default()
             },
         );
         if self
@@ -11232,6 +11304,9 @@ impl GameState {
                 let p = ctx.controller;
                 self.player_mut(p).extra_land_plays += *n;
             }
+            Effect::NextSpellUncounterable => {
+                self.next_uncounterable |= 1 << ctx.controller.index().min(7);
+            }
             Effect::NextSpellLess(n) => {
                 let i = ctx.controller.index().min(3);
                 self.next_spell_less[i] =
@@ -12751,6 +12826,7 @@ impl GameState {
                 discard,
                 waterbend,
                 discard_random,
+                both,
                 effects,
             } => {
                 let def = self
@@ -12785,7 +12861,7 @@ impl GameState {
                 let req = mana.requirements(ctx.x);
                 let life_n = i32::try_from(*life).unwrap_or(i32::MAX);
                 // "pays {1} or 1 life": either, the payer's choice.
-                let either = *life > 0 && *mana != crate::mana::ManaCost::default();
+                let either = !*both && *life > 0 && *mana != crate::mana::ManaCost::default();
                 let mut paid = false;
                 for p in payers {
                     // "Ward—Waterbend {4}": artifacts and creatures tapped
@@ -13300,6 +13376,19 @@ impl GameState {
                         self.bump();
                     }
                 }
+            }
+            // "You may pay any amount of {E}" (CR 107.14): how much,
+            // chosen now (all first, the engine's default).
+            Effect::PayEnergy(crate::card::PAY_ANY_ENERGY) => {
+                let p = ctx.controller;
+                let have = self.player(p).energy;
+                let options: Vec<Choice> = (0..=have.min(99)).rev().map(Choice::X).collect();
+                let k = self.choose_mid(p, DecisionKind::ChooseX { spell: ctx.source }, options);
+                let paid = have.min(99).saturating_sub(u32::try_from(k).unwrap_or(0));
+                self.player_mut(p).energy -= paid;
+                ctx.x = paid;
+                ctx.trigger_amount = paid;
+                self.bump();
             }
             Effect::PayEnergy(n) => {
                 let p = ctx.controller;

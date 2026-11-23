@@ -1,0 +1,7 @@
+card "Dreadship Reef" {
+  oracle_id 130a8cf5-1354-4d17-91c8-c073642eb3db
+  type Land
+  mana {C}
+  activated {1}, {T}: put 1 storage counters on this
+  activated {1}, remove X storage counters from this: add X mana any combination of {U}{B}
+}

@@ -1,0 +1,9 @@
+card "Gisa, the Hellraiser" {
+  oracle_id 696363c9-e8a7-4c65-b65c-4a94891ec43d
+  cost {3}{B}{B}
+  type Legendary Creature — Human Warlock
+  pt 4/4
+  ward {2}, pay 2 life
+  static Skeleton or Zombie you control: +1/+1, has menace
+  triggered once each turn whenever you commit a crime: create 2 tapped "2/2 blue and black Zombie Rogue creature"
+}

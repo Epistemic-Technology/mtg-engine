@@ -1,0 +1,7 @@
+card "Awesome Presence" {
+  oracle_id d6efff61-2087-4f48-a8a8-6c465190dad9
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  tax enchanted blocked {3}
+}

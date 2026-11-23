@@ -479,6 +479,8 @@ pub enum CountExpr {
     SpentColors(SpentOf),
     /// `times kicked`: "time(s) it was kicked" (multikicker, CR 702.33d).
     TimesKicked,
+    /// `energy paid`: "{E} paid this way" (after `pay any energy`).
+    EnergyPaid,
     /// `treasure spent`: "mana from a Treasure spent to cast it".
     SpentTreasure,
     /// `mana spent`: "the amount of mana spent to cast it"; `mana spent
@@ -655,6 +657,10 @@ pub enum ReduceBy {
     /// ability costs {1} less to activate if it targets a creature with
     /// power 3 or less." (the first target).
     Targets(Filter),
+    /// `reduced {1} each +1/+1 counter on target`, `reduced {1} each color
+    /// of target`: "... for each +1/+1 counter on the creature it
+    /// targets", "... for each color of the creature it targets".
+    PerTarget(mtg_core::card::PerTarget),
 }
 
 /// `alternative cost {1}, return basic land you control`, `alternative
@@ -1473,6 +1479,15 @@ pub enum Ability {
         /// `static during turns other than yours, spells you cast cost {1}
         /// less`: only while the condition holds, printed first.
         cond: Option<StaticCond>,
+        /// `... cost {1} less count each creature you control with power 4
+        /// or greater`: "... for each ...".
+        per: Option<Num>,
+        /// `spells first creature you cast cost {2} less`: "The first
+        /// creature spell you cast each turn costs {2} less to cast."
+        first: bool,
+        /// `... cost {2} less and flash`: "... and can be cast as though it
+        /// had flash" (with `first`).
+        flash: bool,
     },
     /// `spells instant or sorcery you cast have storm`, `spells you cast
     /// have delve`, `spells instant or sorcery you cast from hand have
@@ -1610,6 +1625,17 @@ pub enum Ability {
         /// `can't attack if ...`: "This creature can't attack if defending
         /// player controls an untapped land."
         negated: bool,
+    },
+    /// `tax attacking you {2}`, `tax attacking you or planeswalkers {1}`,
+    /// `tax enchanted attack or block {3}`, `tax enchanted blocked {3}`:
+    /// an attack or block tax (CR 508.1d, 509.1d). `generic` mana for
+    /// each creature, times `per` (`{X} count each hand`: "{1} for each
+    /// card in your hand"), while `cond` holds (`... as long as <cond>`).
+    CombatTax {
+        scope: mtg_core::card::TaxScope,
+        generic: u32,
+        per: Option<Num>,
+        cond: Option<StaticCond>,
     },
     /// `hand size none`, `hand size +1`, `hand size opponents -1`: "You
     /// have no maximum hand size.", "Your maximum hand size is increased
@@ -2994,6 +3020,14 @@ pub enum Replaces {
     PlusCounters {
         on: Filter,
     },
+    /// `counters put on permanent you control` ("If one or more counters
+    /// would be put on ..."), `counters put by effect on ...` ("If an
+    /// effect would put one or more counters on ..."), `counters you put
+    /// on ...` ("If you would put one or more counters on ...").
+    AnyCounters {
+        on: Filter,
+        by: mtg_core::card::CountersBy,
+    },
     Destroy {
         to: Affects,
     },
@@ -3971,6 +4005,9 @@ pub enum Effect {
     /// `next spell costs {1} less`: "the next spell you cast this turn
     /// costs {1} less to cast".
     NextSpellLess(u32),
+    /// `next spell can't be countered`: "the next spell you cast this turn
+    /// can't be countered".
+    NextSpellUncounterable,
     /// `play additional land this turn`, `play 2 additional land this
     /// turn`: "You may play an additional land this turn.", "You may play
     /// up to two additional lands this turn." (CR 305.2).
@@ -4651,6 +4688,9 @@ pub enum Effect {
         /// `ward discard 1 card at random`: the cards are chosen at
         /// random (CR 701.9b).
         discard_random: bool,
+        /// `ward {2}, pay 2 life`: the mana and the life together (else
+        /// mana with life is "{1} or 1 life", either).
+        both: bool,
         effect: Box<Effect>,
     },
     /// `<clause> unless they sacrifice nonland permanent or discard 1

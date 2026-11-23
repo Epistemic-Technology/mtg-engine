@@ -1,0 +1,7 @@
+card "Saltcrusted Steppe" {
+  oracle_id 021e4165-2f02-4bd4-86ca-cb7bf4c9e23d
+  type Land
+  mana {C}
+  activated {1}, {T}: put 1 storage counters on this
+  activated {1}, remove X storage counters from this: add X mana any combination of {G}{W}
+}

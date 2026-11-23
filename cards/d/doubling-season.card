@@ -1,0 +1,7 @@
+card "Doubling Season" {
+  oracle_id 01546b7d-a233-4176-8843-d732074dc5b6
+  cost {4}{G}
+  type Enchantment
+  replace tokens created under your control by an effect: double
+  replace counters put by effect on permanent you control: double
+}

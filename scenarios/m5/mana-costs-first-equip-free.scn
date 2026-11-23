@@ -1,0 +1,38 @@
+# "You may pay {0} rather than pay the equip cost of the first equip
+# ability you activate each turn" (CR 118.9): the first equip ability
+# its controller activates each turn costs nothing (the engine takes it);
+# the second pays in full.
+
+scenario "Kíli: with an enduring story, the first equip each turn is free" {
+  battlefield A: "Kíli the Resourceful", "Plate Armor", "Warrior's Blades", "Grizzly Bears"
+  turn 1 A: activate "Plate Armor" targeting "Grizzly Bears"
+  turn 1 A: wait
+  illegal turn 1 A: activate "Warrior's Blades" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert story A yes
+  assert attached "Plate Armor" to "Grizzly Bears"
+}
+
+scenario "Kíli: the free equip comes back next turn" {
+  battlefield A: "Kíli the Resourceful", "Plate Armor", "Warrior's Blades", "Grizzly Bears"
+  turn 1 A: activate "Plate Armor" targeting "Grizzly Bears"
+  turn 3 A: activate "Warrior's Blades" targeting "Kíli the Resourceful"
+  run_to turn 3 end
+  assert attached "Warrior's Blades" to "Kíli the Resourceful"
+}
+
+scenario "Kíli: without an enduring story, equip costs its mana" {
+  battlefield A: "Kíli the Resourceful", "Plate Armor", "Grizzly Bears"
+  illegal turn 1 A: activate "Plate Armor" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert story A no
+}
+
+scenario "Kíli: another Dwarf or Equipment entering draws a card, once each turn" {
+  battlefield A: "Kíli the Resourceful", 3 "Plains"
+  hand A: "Plate Armor"
+  library A: "Island", "Island", "Island"
+  turn 1 A: cast "Plate Armor"
+  run_to turn 1 end
+  assert hand A count 1
+}

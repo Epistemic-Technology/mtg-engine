@@ -1,0 +1,8 @@
+card "Mindsplice Apparatus" {
+  oracle_id 4d0760fb-4e04-4f29-a268-14c13c30232d
+  cost {3}{U}
+  type Artifact
+  keywords flash
+  triggered at beginning of your upkeep: put 1 oil counters on this
+  spells instant or sorcery you cast cost {1} less count each oil counters on this
+}

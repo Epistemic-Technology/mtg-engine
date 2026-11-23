@@ -1,0 +1,6 @@
+card "Sphere of Safety" {
+  oracle_id 92f6c063-a740-4c3c-a60a-569fd298854d
+  cost {4}{W}
+  type Enchantment
+  tax attacking you or planeswalkers {X} count where enchantment you control
+}

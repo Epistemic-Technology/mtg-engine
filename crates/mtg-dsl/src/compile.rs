@@ -2616,6 +2616,7 @@ impl Compiler<'_> {
             A::ManaSpent { that: false } => C::SpentTotal,
             A::ManaSpent { that: true } => C::ThatSpellSpent,
             A::TimesKicked => C::TimesKicked,
+            A::EnergyPaid => C::EnergyPaid,
             A::SpentTreasure => C::SpentTreasure,
             A::CardsInOpponentsGraveyards(f) => {
                 C::CardsInOpponentsGraveyards(f.as_ref().map(|f| self.filter(f)))
@@ -3361,6 +3362,7 @@ impl Compiler<'_> {
                 out.push(CoreEffect::ExileSameName { what: r(*what) });
             }
             Effect::NextSpellLess(n) => out.push(CoreEffect::NextSpellLess(*n)),
+            Effect::NextSpellUncounterable => out.push(CoreEffect::NextSpellUncounterable),
             Effect::ExtraLandPlays(n) => out.push(CoreEffect::ExtraLandPlays(*n)),
             Effect::FaceDownSpellsLess(n) => out.push(CoreEffect::FaceDownSpellsLess(*n)),
             Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),
@@ -4089,6 +4091,7 @@ impl Compiler<'_> {
                 discard,
                 waterbend,
                 discard_random,
+                both,
                 effect,
             } => {
                 let mut effects = Vec::new();
@@ -4100,6 +4103,7 @@ impl Compiler<'_> {
                     discard: *discard,
                     waterbend: *waterbend,
                     discard_random: *discard_random,
+                    both: *both,
                     effects,
                 });
             }
@@ -5023,6 +5027,10 @@ impl Compiler<'_> {
             Replaces::PlusCounters { on } => CoreReplaces::PlusCounters {
                 on: self.filter(on),
             },
+            Replaces::AnyCounters { on, by } => CoreReplaces::AnyCounters {
+                on: self.filter(on),
+                by: *by,
+            },
             Replaces::Dies { to } => CoreReplaces::Dies {
                 to: self.affects(to),
             },
@@ -5374,6 +5382,10 @@ impl Compiler<'_> {
                             crate::ast::ReduceBy::Targets(f) => Some(self.filter(f)),
                             _ => None,
                         },
+                        per_target: match how {
+                            crate::ast::ReduceBy::PerTarget(p) => Some(*p),
+                            _ => None,
+                        },
                     })
                 }),
             }),
@@ -5687,6 +5699,9 @@ impl Compiler<'_> {
                 whose,
                 generic,
                 cond,
+                per,
+                first,
+                flash,
             } => {
                 let cond = cond.as_ref().map(|c| {
                     let c = self.static_cond(c);
@@ -5697,7 +5712,19 @@ impl Compiler<'_> {
                     whose: *whose,
                     generic: *generic,
                     cond,
-                    grant: None,
+                    // "... and can be cast as though it had flash" (CR
+                    // 702.8).
+                    grant: flash.then(|| {
+                        Box::new(mtg_core::card::SpellGrant {
+                            keywords: KeywordSet::of([Keyword::Flash]),
+                            storm: false,
+                            affinity: None,
+                            from_hand: false,
+                            uncounterable: false,
+                        })
+                    }),
+                    per: *per,
+                    first: *first,
                 })
             }
             Ability::SpellsHave {
@@ -5719,6 +5746,8 @@ impl Compiler<'_> {
                     from_hand: *from_hand,
                     uncounterable: *uncounterable,
                 })),
+                per: None,
+                first: false,
             }),
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
             Ability::Landwalk(f) => AbilityDef::Landwalk(self.filter(f)),
@@ -6341,6 +6370,23 @@ impl Compiler<'_> {
                     return self.ability(&expanded);
                 }
             },
+            Ability::CombatTax {
+                scope,
+                generic,
+                per,
+                cond,
+            } => {
+                let condition = cond.as_ref().map(|c| {
+                    let c = self.static_cond(c);
+                    self.pool.intern_condition(c)
+                });
+                AbilityDef::CombatTax(mtg_core::card::CombatTax {
+                    scope: *scope,
+                    generic: *generic,
+                    per: *per,
+                    condition,
+                })
+            }
             Ability::HandSize { whose, delta, set } => AbilityDef::HandSize {
                 whose: *whose,
                 delta: *delta,
@@ -7152,6 +7198,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 discard: cost.discard,
                 waterbend: cost.waterbend,
                 discard_random: cost.discard_random,
+                both: true,
                 effect: Box::new(E::Counter {
                     to: Recipient::TriggeringObject,
                     dest: crate::ast::CounteredTo::Graveyard,
@@ -7184,6 +7231,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         discard: cost.discard,
                         waterbend: cost.waterbend,
                         discard_random: cost.discard_random,
+                        both: true,
                         effect: Box::new(E::Sacrifice {
                             what: Recipient::Source,
                         }),
