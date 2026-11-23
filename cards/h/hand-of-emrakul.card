@@ -1,0 +1,8 @@
+card "Hand of Emrakul" {
+  oracle_id b206d3bc-1203-4f00-997e-5da706346a24
+  cost {9}
+  type Creature — Eldrazi
+  pt 7/7
+  alternative cost sacrifice 4 Eldrazi Spawn
+  annihilator 1
+}

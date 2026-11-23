@@ -1,0 +1,19 @@
+# Cards the template author writes after the ninth wave's phrases.
+
+scenario "Hand of Emrakul: cast by sacrificing four Eldrazi Spawn" {
+  battlefield A: 4 "Eldrazi Spawn"
+  hand A: "Hand of Emrakul"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hand of Emrakul" alternative
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hand of Emrakul"
+  assert battlefield A lacks "Eldrazi Spawn"
+}
+
+scenario "Hand of Emrakul: not with three Eldrazi Spawn" {
+  battlefield A: 3 "Eldrazi Spawn"
+  hand A: "Hand of Emrakul"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Hand of Emrakul" alternative
+  run_to turn 1 postcombat_main
+}

@@ -2703,7 +2703,12 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if plural_form && !noun.is_empty() {
         let last = noun.pop().expect("nonempty");
-        noun.push(pluralize(&last));
+        // "four Eldrazi Spawn" (Hand of Emrakul); alone, "Spawns".
+        if last == "Spawn" && noun.last().is_some_and(|w| w == "Eldrazi") {
+            noun.push(last);
+        } else {
+            noun.push(pluralize(&last));
+        }
     }
     if any_types {
         let names: Vec<String> = f
