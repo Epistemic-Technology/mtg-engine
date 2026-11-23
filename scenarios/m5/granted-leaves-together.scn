@@ -1,0 +1,27 @@
+# A leaves-the-battlefield trigger granted by a permanent that leaves at
+# the same time (CR 603.10a: abilities that trigger on leaving look back
+# in time, so the grant still counts): an Aura granting its creature "When
+# this creature dies, draw a card." destroyed together with it.
+
+scenario "Aura and creature destroyed together: the granted dies trigger fires" {
+  battlefield A: "Grizzly Bears", "Infernal Scarring" on "Grizzly Bears"
+  battlefield B: 2 "Mountain", 3 "Plains", 2 "Swamp"
+  hand B: "Ruinous Ultimatum"
+  start turn 2 B
+  turn 2 B: cast "Ruinous Ultimatum"
+  run_to turn 2 end
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Infernal Scarring"
+  assert hand A count 1
+}
+
+scenario "only the Aura destroyed: no trigger" {
+  battlefield A: "Grizzly Bears", "Infernal Scarring" on "Grizzly Bears"
+  battlefield B: "Plains", "Forest"
+  hand B: "Disenchant"
+  start turn 2 B
+  turn 2 B: cast "Disenchant" targeting "Infernal Scarring"
+  run_to turn 2 end
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 0
+}

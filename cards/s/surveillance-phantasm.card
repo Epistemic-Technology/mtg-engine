@@ -1,0 +1,9 @@
+card "Surveillance Phantasm" {
+  oracle_id b97648b7-ae98-45c9-8f0f-a52d6faf2d2d
+  cost {1}{U}
+  type Creature — Bird Illusion
+  pt 2/3
+  keywords defender, flying, vigilance
+  static as long as scried or surveilled this turn, this: has can attack as though it didn't have defender
+  activated {3}{U}: surveil 1
+}

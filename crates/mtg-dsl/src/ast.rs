@@ -2436,6 +2436,17 @@ pub enum StaticCond {
     CreatureEnteredThisTurn {
         other: bool,
     },
+    /// `scried or surveilled this turn`: "you've scried or surveilled this
+    /// turn".
+    ScriedOrSurveilledThisTurn,
+    /// `2 creatures entered this turn` ("two or more creatures entered the
+    /// battlefield under your control this turn"), `opponent had 2
+    /// creatures enter this turn` ("an opponent had two or more creatures
+    /// enter the battlefield under their control this turn").
+    CreaturesEnteredThisTurn {
+        n: u8,
+        opponent: bool,
+    },
     /// `2 nonland entered this turn` (celebration): "two or more nonland
     /// permanents entered the battlefield under your control this turn".
     NonlandEnteredThisTurn(u32),
@@ -3116,6 +3127,23 @@ pub enum Trigger {
     /// additional {G}." A triggered mana ability (CR 605.1b); its effects
     /// are mana for the tapped permanent's controller, nothing else.
     TappedForMana(TriggerObj),
+    /// `whenever you tap this for mana`, `whenever a player taps land for
+    /// mana`, `whenever an opponent taps Mountain for mana`: not a mana
+    /// ability (its effects use the stack, CR 605.1b).
+    TapsForMana {
+        what: TriggerObj,
+        whose: Who,
+    },
+    /// `when enchanted creature becomes targeted by spell` ("When enchanted
+    /// creature becomes the target of a spell"), `whenever permanent you
+    /// control becomes targeted by opponent` ("... the target of a spell or
+    /// ability an opponent controls"), `... by opponent spell`.
+    TargetedBy {
+        obj: TriggerObj,
+        spells: bool,
+        whose: Who,
+        whenever: bool,
+    },
     /// `whenever this is dealt damage`.
     DealtDamage(TriggerObj),
     /// `when you discard this`: "When you discard this card".
@@ -3837,6 +3865,11 @@ pub enum Effect {
     },
     /// `goad target creature` (CR 701.15).
     Goad {
+        what: Recipient,
+    },
+    /// `leaving exiles it`: "If it would leave the battlefield, exile it
+    /// instead of putting it anywhere else." (CR 702.84a's replacement).
+    ExileOnLeave {
         what: Recipient,
     },
     /// `detain target creature an opponent controls` (CR 701.35).

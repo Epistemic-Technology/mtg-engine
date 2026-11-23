@@ -1,0 +1,6 @@
+card "Forbidden Orchard" {
+  oracle_id cfd60d1f-9832-4408-b84e-0fd3018b015b
+  type Land
+  activated {T}: add any
+  triggered whenever you tap this for mana: target opponent creates 1 "1/1 colorless Spirit creature"
+}

@@ -303,7 +303,11 @@ impl GameState {
             ) {
                 continue;
             }
-            let source = dt.ability.source;
+            // "Whenever that creature deals combat damage this turn",
+            // "Whenever a creature dealt damage by that creature dies this
+            // turn": the trigger's own object ("this") is what the delayed
+            // trigger is about (the source itself for `delayed this:`).
+            let source = dt.ability.trigger_obj.unwrap_or(dt.ability.source);
             // CR 603.7: once created, a delayed trigger doesn't depend on
             // its source: a copy of a spell that made it (a prepared
             // permanent's spell, CR 722.3c) has ceased to exist and left
@@ -1487,6 +1491,23 @@ impl GameState {
                 let by_ctl = self.objects.get(*by)?.controller;
                 (*target == w.source).then_some((Some(*by), Some(by_ctl)))
             }
+            (TriggerSpec::TargetedBy { what, spells, whose }, Event::Targeted { target, by }) => {
+                let b = self.objects.get(*by)?;
+                if *spells && b.kind == crate::state::ObjKind::Ability {
+                    return None;
+                }
+                let by_ctl = b.controller;
+                let ok = match whose {
+                    Who::You => by_ctl == w.controller,
+                    Who::Opponents => by_ctl != w.controller,
+                    Who::Any => true,
+                };
+                if !ok {
+                    return None;
+                }
+                on_battlefield(what, *target)?;
+                Some((Some(*target), Some(by_ctl)))
+            }
             (TriggerSpec::TargetedByOpponent, Event::Targeted { target, by }) => {
                 let by_ctl = self.objects.get(*by)?.controller;
                 (*target == w.source && by_ctl != w.controller).then_some((Some(*by), Some(by_ctl)))
@@ -1905,6 +1926,20 @@ impl GameState {
                     .then_some((Some(*obj), Some(l.object.controller)))
                 }
             },
+            // CR 106.11a: "Whenever you tap this creature for mana",
+            // "Whenever a player taps a land for mana".
+            (TriggerSpec::TapsForMana { what, whose }, Event::TappedForMana { obj }) => {
+                let p = match what {
+                    TriggerObj::This => (*obj == w.source).then_some(w.controller)?,
+                    TriggerObj::Filter(f) => matches_now(f, *obj)?,
+                };
+                let ok = match whose {
+                    Who::You => p == w.controller,
+                    Who::Opponents => p != w.controller,
+                    Who::Any => true,
+                };
+                ok.then_some((Some(*obj), Some(p)))
+            }
             (TriggerSpec::YouTap(f), Event::TappedBy { obj, player }) => {
                 if *player != w.controller {
                     return None;
@@ -2325,6 +2360,7 @@ impl GameState {
                 .get(source)
                 .is_some_and(crate::state::GameObject::echo_due),
             Condition::NotRenowned => self.objects.get(source).is_some_and(|o| !o.renowned()),
+            Condition::WasBlocking(b) => self.was_blocking(source) == b,
             Condition::NotPrepared => self.objects.get(source).is_some_and(|o| !o.prepared()),
             Condition::Evolves => {
                 let this = self.characteristics_or_lki(source);
@@ -2388,6 +2424,7 @@ impl GameState {
                 .get(w.source)
                 .is_some_and(crate::state::GameObject::echo_due),
             Condition::NotRenowned => self.objects.get(w.source).is_some_and(|o| !o.renowned()),
+            Condition::WasBlocking(b) => self.was_blocking(w.source) == b,
             Condition::NotPrepared => self.objects.get(w.source).is_some_and(|o| !o.prepared()),
             Condition::Evolves => self.evolves(Some(&w.chars), trigger_obj),
             Condition::Increments => self.increments(Some(&w.chars), trigger_obj),
@@ -2524,6 +2561,18 @@ impl GameState {
                     .map(|o| o.counters.iter().any(|(_, n)| *n > 0))
             })
             .unwrap_or(false)
+    }
+
+    /// Whether `id` was a blocking creature as it left the battlefield
+    /// (or is one now, if it hasn't left).
+    fn was_blocking(&self, id: ObjId) -> bool {
+        match self.lki.get(&id) {
+            Some(l) => l.blocking,
+            None => self
+                .combat
+                .as_ref()
+                .is_some_and(|c| c.attackers.iter().any(|a| a.blockers.contains(&id))),
+        }
     }
 
     fn had_counters(&self, id: ObjId, k: crate::card::CounterKind) -> bool {

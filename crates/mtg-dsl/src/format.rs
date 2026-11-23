@@ -1549,6 +1549,9 @@ impl Fmt {
                 format!("face-down spells cost {{{n}}} less this turn")
             }
             Effect::Goad { what } => format!("goad {}", self.recipient(*what, t)),
+            Effect::ExileOnLeave { what } => {
+                format!("leaving exiles {}", self.recipient(*what, t))
+            }
             Effect::TurnFaceUp { what } => format!("turn face up {}", self.recipient(*what, t)),
             Effect::TurnFaceDown { what } => {
                 format!("turn face down {}", self.recipient(*what, t))
@@ -4426,6 +4429,24 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             format!("whenever {who} {what}")
         }
         Trigger::BecomesTarget(o) => format!("when {} becomes targeted", trigger_obj(o)),
+        Trigger::TargetedBy {
+            obj,
+            spells,
+            whose,
+            whenever,
+        } => format!(
+            "{} {} becomes targeted by {}{}",
+            if *whenever { "whenever" } else { "when" },
+            trigger_obj(obj),
+            if *whose == Who::Opponents {
+                "opponent "
+            } else {
+                ""
+            },
+            if *spells { "spell" } else { "" }
+        )
+        .trim_end()
+        .to_string(),
         Trigger::TargetedByOpponent => "whenever this becomes targeted by opponent".to_string(),
         Trigger::TargetedFirstTime => {
             "whenever this becomes targeted first time each turn".to_string()
@@ -4450,6 +4471,15 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             format!("whenever {} becomes attached to this", filter(f))
         }
         Trigger::TappedForMana(o) => format!("whenever {} is tapped for mana", trigger_obj(o)),
+        Trigger::TapsForMana { what, whose } => format!(
+            "whenever {} {} for mana",
+            match whose {
+                Who::You => "you tap",
+                Who::Opponents => "an opponent taps",
+                Who::Any => "a player taps",
+            },
+            trigger_obj(what)
+        ),
         Trigger::BecomesUntapped(o) => format!("whenever {} becomes untapped", trigger_obj(o)),
         Trigger::CountersPut { obj, kind } => format!(
             "whenever one or more {} counters put on {}",
@@ -5402,6 +5432,13 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::DescendedThisTurn => "descended this turn".to_string(),
         StaticCond::SpellNumber(n) => format!("spell number {n} this turn"),
         StaticCond::SurveilledThisTurn => "surveilled this turn".to_string(),
+        StaticCond::ScriedOrSurveilledThisTurn => "scried or surveilled this turn".to_string(),
+        StaticCond::CreaturesEnteredThisTurn { n, opponent: false } => {
+            format!("{n} creatures entered this turn")
+        }
+        StaticCond::CreaturesEnteredThisTurn { n, opponent: true } => {
+            format!("opponent had {n} creatures enter this turn")
+        }
         StaticCond::CounterPutThisTurn => "counter put this turn".to_string(),
         StaticCond::FaceDownEnteredThisTurn => "face-down creature entered this turn".to_string(),
         StaticCond::CreatureEnteredThisTurn { other } => format!(
@@ -5831,6 +5868,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 Some(mtg_core::card::Condition::EchoDue) => head.push_str(" if echo due"),
                 Some(mtg_core::card::Condition::NotRenowned) => head.push_str(" if not renowned"),
+                Some(mtg_core::card::Condition::WasBlocking(true)) => {
+                    head.push_str(" if it was blocking");
+                }
+                Some(mtg_core::card::Condition::WasBlocking(false)) => {
+                    head.push_str(" if it wasn't blocking");
+                }
                 Some(mtg_core::card::Condition::NotPrepared) => {
                     head.push_str(" if this isn't prepared");
                 }

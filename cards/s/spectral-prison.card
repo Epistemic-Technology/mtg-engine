@@ -1,0 +1,8 @@
+card "Spectral Prison" {
+  oracle_id b5991a13-5fcd-4d2d-9db2-d3d5af7259f5
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has doesn't untap during its controller's untap step
+  triggered when enchanted creature becomes targeted by spell: sacrifice this
+}

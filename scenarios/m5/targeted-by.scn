@@ -1,0 +1,51 @@
+# "becomes the target of a spell" (a spell only, not an ability) and
+# "becomes the target of a spell or ability an opponent controls", for any
+# permanent matching a filter.
+
+scenario "Spectral Prison: a spell targeting the creature sacrifices it" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant", "Spectral Prison" on "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Spectral Prison"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Spectral Prison: an ability targeting it doesn't" {
+  battlefield A: "Prodigal Sorcerer"
+  battlefield B: "Hill Giant", "Spectral Prison" on "Hill Giant"
+  turn 1 A: activate "Prodigal Sorcerer" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert attached "Spectral Prison" to "Hill Giant"
+  assert damage "Hill Giant" 1
+}
+
+scenario "Gargos: a spell targeting your creature makes it fight" {
+  battlefield A: "Gargos, Vicious Watcher", "Grizzly Bears", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 1 A: trigger "Gargos, Vicious Watcher" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert damage "Gargos, Vicious Watcher" 3
+}
+
+scenario "Battle Mammoth: an opponent's spell targeting your permanent draws" {
+  battlefield A: "Battle Mammoth", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Battle Mammoth: your own spell doesn't" {
+  battlefield A: "Battle Mammoth", "Grizzly Bears", "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}

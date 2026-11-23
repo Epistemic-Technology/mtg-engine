@@ -1,0 +1,86 @@
+# Pauper trigger cards from the eighth wave's triggers branch.
+
+scenario "Windrider Wizard: an instant triggers it" {
+  battlefield A: "Windrider Wizard", "Mountain"
+  hand A: "Shock", "Forest"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Forest"
+  assert hand A count 1
+}
+
+scenario "Windrider Wizard: a Wizard spell triggers it" {
+  battlefield A: 3 "Island"
+  hand A: "Windrider Wizard", "Windrider Wizard", "Forest"
+  turn 1 A: cast "Windrider Wizard"
+  turn 1 A: wait
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}
+
+scenario "Windrider Wizard: a non-Wizard creature spell doesn't" {
+  battlefield A: "Windrider Wizard", 2 "Forest"
+  hand A: "Grizzly Bears", "Forest"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert graveyard A count 0
+}
+
+scenario "Windrider Wizard: may decline the draw" {
+  battlefield A: "Windrider Wizard", "Mountain"
+  hand A: "Shock", "Forest"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: decline "Windrider Wizard"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Forest"
+}
+
+scenario "MACH-1: the enters trigger counts as the once each turn" {
+  battlefield A: 2 "Swamp", "Plains"
+  hand A: "MACH-1, Swooping Scoundrel", "Healing Salve"
+  library A: "Island", "Plains", "Forest"
+  turn 1 A: cast "MACH-1, Swooping Scoundrel"
+  turn 1 A: surveil "Island"
+  turn 1 A: wait
+  turn 1 A: cast "Healing Salve" targeting player A
+  run_to turn 1 end
+  assert graveyard A contains "Island"
+  assert graveyard A lacks "Plains"
+  assert life A 23
+}
+
+scenario "MACH-1: gaining life surveils on a later turn" {
+  battlefield A: "MACH-1, Swooping Scoundrel", "Plains"
+  hand A: "Healing Salve"
+  library A: "Island", "Plains", "Forest"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Healing Salve" targeting player A
+  turn 3 A: surveil "Island"
+  run_to turn 3 end
+  assert graveyard A contains "Island"
+}
+
+scenario "Lunarch Veteran: another creature entering gains 1 life" {
+  battlefield A: "Lunarch Veteran", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 21
+}
+
+scenario "Luminous Phantom: another creature leaving gains 1 life, exiled instead of dying" {
+  battlefield A: "Plains", "Plains", "Grizzly Bears"
+  graveyard A: "Lunarch Veteran"
+  battlefield B: 3 "Swamp", "Mountain"
+  hand B: "Murder", "Shock"
+  turn 1 A: cast "Lunarch Veteran" disturbed
+  turn 1 postcombat_main B: cast "Murder" targeting "Grizzly Bears"
+  turn 1 postcombat_main B: wait
+  turn 1 postcombat_main B: cast "Shock" targeting "Luminous Phantom"
+  run_to turn 1 end
+  assert life A 21
+  assert exile A contains "Lunarch Veteran"
+}

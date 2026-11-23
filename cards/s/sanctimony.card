@@ -1,0 +1,6 @@
+card "Sanctimony" {
+  oracle_id 2fc7740a-dfa4-4279-8822-3f7c93e6b685
+  cost {1}{W}
+  type Enchantment
+  triggered whenever an opponent taps Mountain for mana: you may you gain 1 life
+}

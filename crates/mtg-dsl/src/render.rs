@@ -6680,6 +6680,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*what);
             Clause::imperative(format!("goad {o}"))
         }
+        // CR 702.84a's replacement, as its own sentence (Whip of Erebos).
+        Effect::ExileOnLeave { what } => {
+            let o = ctx.obj(*what);
+            Clause::imperative(format!(
+                "if {o} would leave the battlefield, exile {o} instead of putting {o} anywhere else"
+            ))
+        }
         Effect::Detain { what } => {
             let o = ctx.obj(*what);
             Clause::imperative(format!("detain {o}"))
@@ -9517,6 +9524,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // "Until end of turn, whenever ...": the duration is
                 // printed first instead.
                 let t = trigger_text(trigger, ctx, true);
+                // About a target: the trigger's own object is "that
+                // creature" ("Whenever a creature dealt damage by that
+                // creature dies this turn", Touch of Moonglove).
+                let t = if matches!(about, Recipient::Target(_)) {
+                    t.replace(&this_ref(ctx.card), "that creature")
+                        .replace(" that creature this turn dies", " that creature dies")
+                } else {
+                    t
+                };
                 if ctx.eot_first {
                     t
                 } else {
@@ -10864,6 +10880,20 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::TappedForMana(o) => {
             format!("whenever {} is tapped for mana", trigger_subject(o, ctx))
         }
+        // "Whenever you tap this creature for mana", "Whenever a player
+        // taps a land for mana" (CR 106.11a).
+        Trigger::TapsForMana { what, whose } => {
+            let who = match whose {
+                Who::You => "you tap",
+                Who::Opponents => "an opponent taps",
+                Who::Any => "a player taps",
+            };
+            let o = match what {
+                TriggerObj::Filter(f) => trigger_filter_a(f, ctx.card),
+                other => trigger_subject(other, ctx),
+            };
+            format!("whenever {who} {o} for mana")
+        }
         Trigger::BecomesUntapped(o) => {
             format!("whenever {} becomes untapped", trigger_subject(o, ctx))
         }
@@ -10944,6 +10974,36 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             // Shadowmoor Mimics, CR 105.2).
             if base.status.all_colors && base.colors.is_some() && base.targeting.is_none() {
                 return format!("whenever {who} {}{that}", a_spell(&base, ctx.card));
+            }
+            // "an instant, sorcery, or Wizard spell" (Windrider Wizard): card
+            // types and one alternative of another kind, in one list.
+            if !base.any_types.is_empty()
+                && let Some(alt) = &base.or
+                && alt.or.is_none()
+                && !base.alt_article
+                && {
+                    let mut g = base.clone();
+                    g.any_types.clear();
+                    g.or = None;
+                    g == Filter::default()
+                }
+            {
+                let mut items: Vec<String> = base
+                    .any_types
+                    .iter()
+                    .map(|t| type_noun(*t).to_string())
+                    .collect();
+                let w = spells_subject(alt, ctx.card);
+                let w = w.strip_suffix(" spells").unwrap_or(&w).to_string();
+                items.push(if lower_spell_subject(alt) {
+                    lowercase_first(&w)
+                } else {
+                    w
+                });
+                return format!(
+                    "whenever {who} {}{that}",
+                    with_article(&spell_noun(&or_list(&items)))
+                );
             }
             // "an instant or sorcery spell with mana value 4 or less".
             if !base.any_types.is_empty() {
@@ -11037,6 +11097,28 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             "whenever {} becomes the target of a spell or ability for the first time each turn",
             this(ctx)
         ),
+        Trigger::TargetedBy {
+            obj,
+            spells,
+            whose,
+            whenever,
+        } => {
+            let what = if *spells {
+                "a spell"
+            } else {
+                "a spell or ability"
+            };
+            let whose = match whose {
+                Who::Opponents => " an opponent controls",
+                Who::You => " you control",
+                Who::Any => "",
+            };
+            format!(
+                "{} {} becomes the target of {what}{whose}",
+                if *whenever { "whenever" } else { "when" },
+                trigger_subject(obj, ctx)
+            )
+        }
         Trigger::TargetedByOpponent => format!(
             "whenever {} becomes the target of a spell or ability an opponent controls",
             this(ctx)
@@ -11172,6 +11254,8 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         }
         Condition::Evoked => "if it was evoked".to_string(),
         Condition::NotRenowned => "if it isn't renowned".to_string(),
+        Condition::WasBlocking(true) => "if it was blocking".to_string(),
+        Condition::WasBlocking(false) => "if it wasn't blocking".to_string(),
         Condition::NotPrepared => format!("if {} isn't prepared", ctx.source()),
         Condition::Evolves => format!(
             "if it has greater power or toughness than {}",
@@ -13736,6 +13820,17 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("it's the {} spell you cast this turn", ordinal_word(*n))
         }
         StaticCond::SurveilledThisTurn => "you've surveilled this turn".to_string(),
+        StaticCond::ScriedOrSurveilledThisTurn => {
+            "you've scried or surveilled this turn".to_string()
+        }
+        StaticCond::CreaturesEnteredThisTurn { n, opponent: false } => format!(
+            "{} creatures entered the battlefield under your control this turn",
+            or_more(u32::from(*n))
+        ),
+        StaticCond::CreaturesEnteredThisTurn { n, opponent: true } => format!(
+            "an opponent had {} creatures enter the battlefield under their control this turn",
+            or_more(u32::from(*n))
+        ),
         StaticCond::CounterPutThisTurn => {
             "a +1/+1 counter was put on a permanent under your control this turn".to_string()
         }

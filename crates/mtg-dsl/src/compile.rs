@@ -2381,6 +2381,13 @@ impl Compiler<'_> {
             StaticCond::DescendedThisTurn => StaticCondition::DescendedThisTurn,
             StaticCond::SpellNumber(n) => StaticCondition::SpellNumber(*n),
             StaticCond::SurveilledThisTurn => StaticCondition::SurveilledThisTurn,
+            StaticCond::ScriedOrSurveilledThisTurn => StaticCondition::ScriedOrSurveilledThisTurn,
+            StaticCond::CreaturesEnteredThisTurn { n, opponent } => {
+                StaticCondition::CreaturesEnteredThisTurn {
+                    n: *n,
+                    opponent: *opponent,
+                }
+            }
             StaticCond::CounterPutThisTurn => StaticCondition::CounterPutThisTurn,
             StaticCond::FaceDownEnteredThisTurn => StaticCondition::FaceDownEnteredThisTurn,
             StaticCond::CreatureEnteredThisTurn { other } => {
@@ -3169,6 +3176,7 @@ impl Compiler<'_> {
             Effect::ExtraLandPlays(n) => out.push(CoreEffect::ExtraLandPlays(*n)),
             Effect::FaceDownSpellsLess(n) => out.push(CoreEffect::FaceDownSpellsLess(*n)),
             Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),
+            Effect::ExileOnLeave { what } => out.push(CoreEffect::ExileOnLeave { what: r(*what) }),
             Effect::TurnFaceUp { what } => out.push(CoreEffect::TurnFaceUp { what: r(*what) }),
             Effect::TurnFaceDown { what } => out.push(CoreEffect::TurnFaceDown { what: r(*what) }),
             Effect::LookAtFaceDown { what } => {
@@ -4555,6 +4563,13 @@ impl Compiler<'_> {
                 TriggerSpec::BecomesTarget(self.trigger_obj(o))
             }
             Trigger::TargetedByOpponent => TriggerSpec::TargetedByOpponent,
+            Trigger::TargetedBy {
+                obj, spells, whose, ..
+            } => TriggerSpec::TargetedBy {
+                what: self.trigger_obj(obj),
+                spells: *spells,
+                whose: *whose,
+            },
             Trigger::TargetedFirstTime => TriggerSpec::TargetedFirstTime,
             Trigger::TargetedByYouFirstTime => TriggerSpec::TargetedByYouFirstTime,
             Trigger::TurnedFaceUp(o) => TriggerSpec::TurnedFaceUp(self.trigger_obj(o)),
@@ -4570,6 +4585,10 @@ impl Compiler<'_> {
             Trigger::BecomesAttachedTo(f) => TriggerSpec::BecomesAttachedTo(self.filter(f)),
             // Compiled as `AbilityDef::ManaTrigger` by `ability`.
             Trigger::TappedForMana(_) => unreachable!("a triggered mana ability"),
+            Trigger::TapsForMana { what, whose } => TriggerSpec::TapsForMana {
+                what: self.trigger_obj(what),
+                whose: *whose,
+            },
             Trigger::BecomesUntapped(o) => TriggerSpec::BecomesUntapped(self.trigger_obj(o)),
             Trigger::CountersPut { obj, kind } => TriggerSpec::CountersPut {
                 what: self.trigger_obj(obj),
@@ -6933,6 +6952,11 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         to: Recipient::Source,
                         each: false,
                         no_also: false,
+                    },
+                    // CR 702.84a: "If it would leave the battlefield,
+                    // exile it instead of putting it anywhere else."
+                    E::ExileOnLeave {
+                        what: Recipient::Source,
                     },
                     E::Delayed {
                         about: Recipient::Source,

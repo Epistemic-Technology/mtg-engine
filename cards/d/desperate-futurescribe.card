@@ -1,0 +1,8 @@
+card "Desperate Futurescribe" {
+  oracle_id 83c12f50-e5a1-479d-afab-edb0b40412f2
+  cost {2}{W}{U}
+  type Creature — Kor Scout
+  pt 3/4
+  keywords flying
+  triggered at beginning of your combat: another target creature you control gets +1/+1; if scried or surveilled this turn, put 1 +1/+1 counter on that target 1 instead
+}

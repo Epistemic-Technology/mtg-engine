@@ -1,0 +1,60 @@
+# Unearth (CR 702.84a): "If it would leave the battlefield, exile it
+# instead of putting it anywhere else." Dying, sacrifice, and return to
+# hand all exile the unearthed creature; it doesn't die.
+
+scenario "unearthed creature destroyed: exiled, not put into the graveyard" {
+  battlefield A: "Swamp"
+  graveyard A: "Dregscape Zombie"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  turn 1 A: activate "Dregscape Zombie"
+  turn 1 postcombat_main B: cast "Murder" targeting "Dregscape Zombie"
+  run_to turn 1 end
+  assert exile A contains "Dregscape Zombie"
+  assert graveyard A lacks "Dregscape Zombie"
+}
+
+scenario "unearthed creature destroyed: no dies trigger" {
+  battlefield A: "Swamp", "Blood Artist"
+  graveyard A: "Dregscape Zombie"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  turn 1 A: activate "Dregscape Zombie"
+  turn 1 postcombat_main B: cast "Murder" targeting "Dregscape Zombie"
+  run_to turn 1 end
+  assert exile A contains "Dregscape Zombie"
+  assert life B 20
+}
+
+scenario "unearthed creature sacrificed: exiled" {
+  battlefield A: "Swamp", "Bloodthrone Vampire"
+  graveyard A: "Dregscape Zombie"
+  turn 1 A: activate "Dregscape Zombie"
+  turn 1 postcombat_main A: activate "Bloodthrone Vampire" sacrificing "Dregscape Zombie"
+  run_to turn 1 end
+  assert exile A contains "Dregscape Zombie"
+  assert graveyard A lacks "Dregscape Zombie"
+}
+
+scenario "unearthed creature returned to hand: exiled instead" {
+  battlefield A: "Swamp"
+  graveyard A: "Dregscape Zombie"
+  battlefield B: 2 "Island"
+  hand B: "Unsummon"
+  turn 1 A: activate "Dregscape Zombie"
+  turn 1 postcombat_main B: cast "Unsummon" targeting "Dregscape Zombie"
+  run_to turn 1 end
+  assert exile A contains "Dregscape Zombie"
+  assert hand A count 0
+}
+
+scenario "a Dregscape Zombie cast from hand dies normally" {
+  battlefield A: 2 "Swamp"
+  hand A: "Dregscape Zombie"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  turn 1 A: cast "Dregscape Zombie"
+  turn 1 postcombat_main B: cast "Murder" targeting "Dregscape Zombie"
+  run_to turn 1 end
+  assert graveyard A contains "Dregscape Zombie"
+}

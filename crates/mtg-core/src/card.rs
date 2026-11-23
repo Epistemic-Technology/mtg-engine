@@ -2757,6 +2757,8 @@ pub enum StaticCondition {
     SpellNumber(u32),
     /// "you've surveilled this turn" (CR 701.25).
     SurveilledThisTurn,
+    /// "you've scried or surveilled this turn" (CR 701.22, 701.25).
+    ScriedOrSurveilledThisTurn,
     /// "a +1/+1 counter was put on a permanent under your control this
     /// turn".
     CounterPutThisTurn,
@@ -2767,6 +2769,13 @@ pub enum StaticCondition {
     /// turn" (`other`: not counting the source's own entry).
     CreatureEnteredThisTurn {
         other: bool,
+    },
+    /// "two or more creatures entered the battlefield under your control
+    /// this turn"; with `opponent`, "an opponent had two or more creatures
+    /// enter the battlefield under their control this turn".
+    CreaturesEnteredThisTurn {
+        n: u8,
+        opponent: bool,
     },
     /// Celebration: "two or more nonland permanents entered the
     /// battlefield under your control this turn".
@@ -4638,6 +4647,13 @@ pub enum Effect {
     Goad {
         what: Recipient,
     },
+    /// "If it would leave the battlefield, exile it instead of putting it
+    /// anywhere else" (unearth, CR 702.84a): each recipient on the
+    /// battlefield is marked (`OBJ_EXILE_ON_LEAVE`) and exiled instead
+    /// whenever it would leave for another zone.
+    ExileOnLeave {
+        what: Recipient,
+    },
     /// "Each player loses 2 life unless they discard a card" (`unless`
     /// `None`) / "... unless they sacrifice a creature, artifact, or land
     /// of their choice": each player in turn order chooses (CR 101.4).
@@ -6365,6 +6381,26 @@ pub enum TriggerSpec {
     /// "Whenever this creature transforms into Ashling, Rimebound" (CR
     /// 701.27): the source transformed and now shows this ability's face.
     Transforms,
+    /// "Whenever you tap this creature for mana", "Whenever a player taps
+    /// a land for mana", "Whenever an opponent taps a Mountain for mana"
+    /// (CR 106.11a): a permanent matching `what`, controlled by a player
+    /// matching `whose`, is tapped for mana by a mana ability (activated,
+    /// or tapped by payment). Not a mana ability (CR 605.1b: it adds no
+    /// mana), so it uses the stack. The permanent is the triggering
+    /// object, its controller the triggering player ("that player").
+    TapsForMana { what: TriggerObj, whose: Who },
+    /// "When enchanted creature becomes the target of a spell" (`spells`),
+    /// "Whenever a permanent you control becomes the target of a spell or
+    /// ability an opponent controls" (`whose` Opponents): a matching
+    /// permanent becomes a target of a spell (or, without `spells`, a spell
+    /// or ability) whose controller matches `whose`. The targeted permanent
+    /// is the triggering object, the spell's or ability's controller the
+    /// triggering player.
+    TargetedBy {
+        what: TriggerObj,
+        spells: bool,
+        whose: Who,
+    },
 }
 
 /// The event whose triggers an `AbilityDef::TriggerAgain` with a cause
@@ -6486,6 +6522,16 @@ impl TriggerSpec {
         }
     }
 
+    /// "Whenever you tap this creature for mana", alone or as one of two
+    /// events.
+    pub fn taps_for_mana(&self) -> bool {
+        match self {
+            TriggerSpec::TapsForMana { .. } => true,
+            TriggerSpec::Either(pair) => pair.0.taps_for_mana() || pair.1.taps_for_mana(),
+            _ => false,
+        }
+    }
+
     /// "When you cast this spell", alone or as one of two events.
     pub fn casts_this(&self) -> bool {
         match self {
@@ -6505,6 +6551,7 @@ impl TriggerSpec {
     /// `Event::watch_bit`. A definition's mask is the union over its
     /// triggers, so "could anything here care about this event" is one
     /// `&` instead of a walk over abilities.
+    #[allow(clippy::too_many_lines)] // one arm per trigger kind
     pub fn watch_mask(&self) -> u32 {
         match self {
             TriggerSpec::Enters(_)
@@ -6547,7 +6594,9 @@ impl TriggerSpec {
             | TriggerSpec::DealtCombatDamage(_)
             | TriggerSpec::DealsDamage { .. }
             | TriggerSpec::DealsDamageTo { .. } => WATCH_DAMAGE,
-            TriggerSpec::BecomesTapped(_) | TriggerSpec::BecomesUntapped(_) => WATCH_TAP,
+            TriggerSpec::BecomesTapped(_)
+            | TriggerSpec::BecomesUntapped(_)
+            | TriggerSpec::TapsForMana { .. } => WATCH_TAP,
             TriggerSpec::TurnedFaceUp(_) => WATCH_FACE_UP,
             TriggerSpec::DrawsNth { .. } | TriggerSpec::Draws { .. } => WATCH_DRAW,
             TriggerSpec::Exploits
@@ -6565,6 +6614,7 @@ impl TriggerSpec {
             | TriggerSpec::CastThis
             | TriggerSpec::Expends(_) => WATCH_CAST,
             TriggerSpec::BecomesTarget(_)
+            | TriggerSpec::TargetedBy { .. }
             | TriggerSpec::TargetedByOpponent
             | TriggerSpec::TargetedFirstTime
             | TriggerSpec::TargetedByYouFirstTime
@@ -6639,6 +6689,10 @@ pub enum Condition {
     EchoDue,
     /// "if it isn't renowned" (renown, CR 702.112a).
     NotRenowned,
+    /// "if it was blocking" (`true`), "if it wasn't blocking" (`false`) in
+    /// a leaves-the-battlefield trigger: the source as it last existed on
+    /// the battlefield (CR 603.10a).
+    WasBlocking(bool),
     /// "if this creature isn't prepared" (CR 722.3a).
     NotPrepared,
     /// Evolve (CR 702.100a): the triggering creature's power is greater
@@ -8660,11 +8714,15 @@ impl DefFlags {
                 .iter()
                 .any(|a| matches!(a, AbilityDef::Activated(ab) if ab.is_mana_ability())),
         );
+        // A "whenever you tap this creature for mana" trigger counts too:
+        // tapping for mana is reported (`Event::TappedForMana`) only while
+        // a permanent with either is on the battlefield.
         flags.set(
             DefFlags::MANA_TRIGGER,
-            abilities
-                .iter()
-                .any(|a| matches!(a, AbilityDef::ManaTrigger { .. })),
+            abilities.iter().any(|a| {
+                matches!(a, AbilityDef::ManaTrigger { .. })
+                    || matches!(a, AbilityDef::Triggered(t) if t.trigger.taps_for_mana())
+            }),
         );
         flags.set(
             DefFlags::RESTRICTED_MANA,
@@ -9939,6 +9997,7 @@ impl CardPool {
                     | StaticCondition::CardToGraveyardThisTurn(_)
                     | StaticCondition::SacrificedThisTurn(_)
                     | StaticCondition::SurveilledThisTurn
+                    | StaticCondition::ScriedOrSurveilledThisTurn
                     | StaticCondition::OpponentDamagedThisTurn
                     | StaticCondition::OpponentLostLifeThisTurn
                     | StaticCondition::AttackedWith(_)

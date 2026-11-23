@@ -157,6 +157,10 @@ pub const OBJ_SUSPECTED: u8 = 16;
 /// Came onto the battlefield since its echo was last dealt with (CR
 /// 702.30a): set as it enters, cleared by its echo trigger.
 pub const OBJ_ECHO_DUE: u8 = 32;
+/// "If it would leave the battlefield, exile it instead of putting it
+/// anywhere else" (unearth, CR 702.84a; Whip of Erebos): set by
+/// `Effect::ExileOnLeave`, for this object only (CR 400.7).
+pub const OBJ_EXILE_ON_LEAVE: u8 = 64;
 
 impl GameObject {
     pub const fn renowned(&self) -> bool {
@@ -179,6 +183,9 @@ impl GameObject {
     }
     pub const fn echo_due(&self) -> bool {
         self.marks & OBJ_ECHO_DUE != 0
+    }
+    pub const fn exile_on_leave(&self) -> bool {
+        self.marks & OBJ_EXILE_ON_LEAVE != 0
     }
 }
 
@@ -1732,6 +1739,8 @@ pub struct TurnLog {
     pub descended: u8,
     /// Players who surveilled (CR 701.25).
     pub surveilled: u8,
+    /// Players who scried (CR 701.22).
+    pub scried: u8,
     /// Players who had a +1/+1 counter put on a permanent they control.
     pub counter_put: u8,
     /// Players who put a +1/+1 counter on a creature ("if you've put one
@@ -4198,6 +4207,18 @@ impl GameState {
                 cast + 1 == *n as usize
             }
             C::SurveilledThisTurn => self.turn_log.surveilled & (1 << you.index().min(7)) != 0,
+            C::ScriedOrSurveilledThisTurn => {
+                (self.turn_log.surveilled | self.turn_log.scried) & (1 << you.index().min(7)) != 0
+            }
+            C::CreaturesEnteredThisTurn { n, opponent } => {
+                if *opponent {
+                    self.players_in_game().any(|p| {
+                        p != you && self.turn_log.creatures_entered[p.index().min(3)] >= *n
+                    })
+                } else {
+                    self.turn_log.creatures_entered[you.index().min(3)] >= *n
+                }
+            }
             C::CounterPutThisTurn => self.turn_log.counter_put & (1 << you.index().min(7)) != 0,
             C::FaceDownEnteredThisTurn => {
                 self.turn_log.face_down_entered & (1 << you.index().min(7)) != 0

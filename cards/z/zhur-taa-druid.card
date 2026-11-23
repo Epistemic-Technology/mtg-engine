@@ -1,0 +1,8 @@
+card "Zhur-Taa Druid" {
+  oracle_id 5979310e-38c8-489f-ab9e-2723af98a3a5
+  cost {R}{G}
+  type Creature — Human Druid
+  pt 1/1
+  activated {T}: add {G}
+  triggered whenever you tap this for mana: deal 1 damage to each opponent
+}

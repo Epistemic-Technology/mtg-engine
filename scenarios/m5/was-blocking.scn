@@ -1,0 +1,34 @@
+# "When this creature dies, if it wasn't blocking, draw a card."
+# (Guildsworn Prowler): judged as it last existed (CR 603.10a).
+
+scenario "dies while blocking: no card" {
+  battlefield A: "Guildsworn Prowler"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Guildsworn Prowler"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Guildsworn Prowler"
+  assert graveyard B contains "Hill Giant"
+  assert hand A count 0
+}
+
+scenario "dies while attacking: draws" {
+  battlefield A: "Guildsworn Prowler"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Guildsworn Prowler"
+  turn 1 B: block "Guildsworn Prowler" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Guildsworn Prowler"
+  assert hand A count 1
+}
+
+scenario "dies outside combat: draws" {
+  battlefield A: "Guildsworn Prowler"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Guildsworn Prowler"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}

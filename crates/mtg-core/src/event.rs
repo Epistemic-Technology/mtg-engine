@@ -139,6 +139,13 @@ pub enum Event {
     Tapped {
         obj: ObjId,
     },
+    /// A permanent was tapped for mana by a mana ability (CR 106.11a),
+    /// just after its mana was added. Emitted only while a permanent with
+    /// a tapped-for-mana trigger is on the battlefield
+    /// (`GameState::mana_trigger_sources`).
+    TappedForMana {
+        obj: ObjId,
+    },
     Untapped {
         obj: ObjId,
     },
@@ -415,7 +422,9 @@ impl Event {
             Event::LifeChange { .. } => WATCH_LIFE_CHANGE,
             Event::Cast { .. } | Event::SpellCopied { .. } => WATCH_CAST,
             Event::Targeted { .. } | Event::CommittedCrime { .. } => WATCH_TARGETED,
-            Event::Tapped { .. } | Event::Untapped { .. } => WATCH_TAP,
+            Event::Tapped { .. } | Event::Untapped { .. } | Event::TappedForMana { .. } => {
+                WATCH_TAP
+            }
             Event::TurnedFaceUp { .. } => WATCH_FACE_UP,
             Event::Draw { .. } => WATCH_DRAW,
             Event::Cycled { .. } => WATCH_CYCLE,

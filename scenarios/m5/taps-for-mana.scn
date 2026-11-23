@@ -1,0 +1,78 @@
+# "Whenever you tap this creature for mana", "Whenever a player taps a
+# land for mana" (CR 106.11a): triggered abilities that aren't mana
+# abilities (CR 605.1b), so they use the stack. Payment's taps count.
+
+scenario "Zhur-Taa Druid tapped to pay for a spell deals 1 to each opponent" {
+  battlefield A: "Zhur-Taa Druid", "Forest"
+  hand A: "Grizzly Bears"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert life B 19
+  assert life A 20
+}
+
+scenario "Zhur-Taa Druid: tapping lands only doesn't trigger it" {
+  battlefield A: "Zhur-Taa Druid", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert untapped "Zhur-Taa Druid"
+  assert life B 20
+}
+
+scenario "Manabarbs: each land tapped for mana deals 1 to its controller" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Manabarbs", "Mountain"
+  hand A: "Grizzly Bears"
+  hand B: "Shock"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 postcombat_main B: cast "Shock" targeting player A
+  run_to turn 1 end
+  assert life A 16
+  assert life B 19
+}
+
+scenario "Burning Earth: only nonbasic lands" {
+  battlefield A: "Forest", "Forbidden Orchard"
+  battlefield B: "Burning Earth"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert life A 19
+}
+
+scenario "Sanctimony: an opponent tapping a Mountain, you may gain 1" {
+  battlefield A: "Sanctimony"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 B: wait
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 A: decline "Sanctimony"
+  run_to turn 2 end
+  assert life A 17
+}
+
+scenario "Sanctimony: your own Mountains don't count" {
+  battlefield A: "Sanctimony", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life A 20
+  assert life B 18
+}
+
+scenario "Forbidden Orchard: target opponent creates a Spirit" {
+  battlefield A: "Forbidden Orchard"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: trigger "Forbidden Orchard" targeting player B
+  run_to turn 1 end
+  assert battlefield B contains "Spirit"
+  assert battlefield A lacks "Spirit"
+  assert life B 18
+}

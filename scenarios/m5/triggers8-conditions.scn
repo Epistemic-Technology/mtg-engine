@@ -1,0 +1,130 @@
+# Conditions from the eighth wave's triggers branch: "you've scried or
+# surveilled this turn", "two or more creatures entered the battlefield
+# under your control this turn", and "an opponent had two or more
+# creatures enter the battlefield under their control this turn".
+
+scenario "scried this turn: the counter instead of the pump" {
+  battlefield A: "Desperate Futurescribe", "Grizzly Bears", "Island"
+  hand A: "Opt"
+  turn 1 A: cast "Opt"
+  turn 1 begin_combat A: trigger "Desperate Futurescribe" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Grizzly Bears" 3
+}
+
+scenario "surveilled this turn: the counter instead of the pump" {
+  battlefield A: "Desperate Futurescribe", "Grizzly Bears", "Island"
+  hand A: "Consider"
+  turn 1 A: cast "Consider"
+  turn 1 begin_combat A: trigger "Desperate Futurescribe" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "neither scried nor surveilled: +1/+1 until end of turn" {
+  battlefield A: "Desperate Futurescribe", "Grizzly Bears"
+  turn 1 begin_combat A: trigger "Desperate Futurescribe" targeting "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert counters "Grizzly Bears" +1/+1 0
+  assert power "Grizzly Bears" 3
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "scried or surveilled: defender can attack" {
+  battlefield A: "Surveillance Phantasm", 4 "Island"
+  turn 1 A: activate "Surveillance Phantasm"
+  turn 1 A: attack "Surveillance Phantasm"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "not scried or surveilled: defender can't attack" {
+  battlefield A: "Surveillance Phantasm", 4 "Island"
+  illegal turn 1 A: attack "Surveillance Phantasm"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Proctor of Potential returns only after a scry or surveil" {
+  battlefield A: "Grizzly Bears", 3 "Plains", 3 "Island"
+  graveyard A: "Proctor of Potential"
+  hand A: "Opt"
+  illegal turn 1 precombat_main A: activate "Proctor of Potential"
+  turn 1 postcombat_main A: cast "Opt"
+  turn 1 postcombat_main A: wait
+  turn 1 postcombat_main A: activate "Proctor of Potential"
+  run_to turn 1 end
+  assert battlefield A contains "Proctor of Potential"
+  assert counters "Proctor of Potential" finality 1
+}
+
+scenario "two creatures entered under your control: draw and gain 2" {
+  battlefield A: "Spider-UK", 4 "Forest"
+  hand A: "Grizzly Bears", "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert life A 22
+  assert hand A count 1
+}
+
+scenario "one creature entered: nothing" {
+  battlefield A: "Spider-UK", 4 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert life A 20
+  assert hand A count 0
+}
+
+scenario "an opponent's creatures don't count for Spider-UK" {
+  battlefield A: "Spider-UK"
+  battlefield B: 4 "Forest"
+  hand B: "Grizzly Bears", "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 B: wait
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 3 precombat_main
+  assert life A 20
+}
+
+scenario "Whiplash Trap for {U} after an opponent had two creatures enter" {
+  battlefield A: "Island"
+  battlefield B: 4 "Forest"
+  hand A: "Whiplash Trap"
+  hand B: "Grizzly Bears", "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 B: wait
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 postcombat_main A: cast "Whiplash Trap" alternative targeting oldest B "Grizzly Bears", newest B "Grizzly Bears"
+  run_to turn 2 end
+  assert battlefield B lacks "Grizzly Bears"
+  assert hand B count 3
+}
+
+scenario "Whiplash Trap: one creature isn't enough" {
+  battlefield A: "Island"
+  battlefield B: 4 "Forest", "Hill Giant"
+  hand A: "Whiplash Trap"
+  hand B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: cast "Grizzly Bears"
+  illegal turn 2 postcombat_main A: cast "Whiplash Trap" alternative targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 2 end
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Whiplash Trap: your own creatures don't count" {
+  battlefield A: 3 "Forest", "Island"
+  hand A: "Grizzly Bears", "Whiplash Trap"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  illegal turn 1 postcombat_main A: cast "Whiplash Trap" alternative targeting B "Grizzly Bears", "Hill Giant"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+}

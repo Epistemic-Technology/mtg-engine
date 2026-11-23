@@ -1,0 +1,8 @@
+card "Guildsworn Prowler" {
+  oracle_id 72e2aa4f-b4b4-42ab-adc0-d0ac09cd5f92
+  cost {1}{B}
+  type Creature — Tiefling Rogue Assassin
+  pt 2/1
+  keywords deathtouch
+  triggered when this dies if it wasn't blocking: draw 1 card
+}

@@ -1,0 +1,8 @@
+card "Windrider Wizard" {
+  oracle_id 78e65286-204d-43ab-8929-b8e2191b1fce
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  keywords flying
+  triggered whenever you cast instant, sorcery, or Wizard spell: you may draw 1 card; if you do, discard 1 card
+}

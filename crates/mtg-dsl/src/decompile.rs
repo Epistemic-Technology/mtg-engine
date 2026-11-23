@@ -667,6 +667,13 @@ impl Decompiler<'_> {
             StaticCondition::DescendedThisTurn => StaticCond::DescendedThisTurn,
             StaticCondition::SpellNumber(n) => StaticCond::SpellNumber(*n),
             StaticCondition::SurveilledThisTurn => StaticCond::SurveilledThisTurn,
+            StaticCondition::ScriedOrSurveilledThisTurn => StaticCond::ScriedOrSurveilledThisTurn,
+            StaticCondition::CreaturesEnteredThisTurn { n, opponent } => {
+                StaticCond::CreaturesEnteredThisTurn {
+                    n: *n,
+                    opponent: *opponent,
+                }
+            }
             StaticCondition::CounterPutThisTurn => StaticCond::CounterPutThisTurn,
             StaticCondition::FaceDownEnteredThisTurn => StaticCond::FaceDownEnteredThisTurn,
             StaticCondition::CreatureEnteredThisTurn { other } => {
@@ -997,6 +1004,7 @@ impl Decompiler<'_> {
             CoreEffect::ExtraLandPlays(n) => Effect::ExtraLandPlays(*n),
             CoreEffect::FaceDownSpellsLess(n) => Effect::FaceDownSpellsLess(*n),
             CoreEffect::Goad { what } => Effect::Goad { what: r(*what) },
+            CoreEffect::ExileOnLeave { what } => Effect::ExileOnLeave { what: r(*what) },
             CoreEffect::TurnFaceUp { what } => Effect::TurnFaceUp { what: r(*what) },
             CoreEffect::TurnFaceDown { what } => Effect::TurnFaceDown { what: r(*what) },
             CoreEffect::LookAtFaceDown { what } => Effect::LookAtFaceDown { what: r(*what) },
@@ -2012,6 +2020,16 @@ impl Decompiler<'_> {
                 or_copy: *or_copy,
             },
             TriggerSpec::BecomesTarget(o) => Trigger::BecomesTarget(self.trigger_obj(o)),
+            TriggerSpec::TargetedBy {
+                what,
+                spells,
+                whose,
+            } => Trigger::TargetedBy {
+                obj: self.trigger_obj(what),
+                spells: *spells,
+                whose: *whose,
+                whenever: true,
+            },
             TriggerSpec::TargetedByOpponent => Trigger::TargetedByOpponent,
             TriggerSpec::TargetedFirstTime => Trigger::TargetedFirstTime,
             TriggerSpec::TargetedByYouFirstTime => Trigger::TargetedByYouFirstTime,
@@ -2027,6 +2045,10 @@ impl Decompiler<'_> {
                 in_a_turn: false,
             },
             TriggerSpec::BecomesTapped(o) => Trigger::BecomesTapped(self.trigger_obj(o)),
+            TriggerSpec::TapsForMana { what, whose } => Trigger::TapsForMana {
+                what: self.trigger_obj(what),
+                whose: *whose,
+            },
             TriggerSpec::BecomesAttachedTo(f) => Trigger::BecomesAttachedTo(self.filter(f)),
             TriggerSpec::BecomesUntapped(o) => Trigger::BecomesUntapped(self.trigger_obj(o)),
             TriggerSpec::CountersPut { what, kind } => Trigger::CountersPut {
