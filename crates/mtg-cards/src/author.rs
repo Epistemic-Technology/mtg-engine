@@ -2928,6 +2928,20 @@ impl Templates {
                     ))
                 },
             ),
+            // "Target player shuffles up to three target cards from their
+            // graveyard into their library".
+            (
+                r(
+                    r"^Target player shuffles up to (\w+) target cards from their graveyard into their library$",
+                ),
+                |c, t| {
+                    *t += 2;
+                    Some(format!(
+                        "target player shuffles up to {} target card from their graveyard into library",
+                        number(cap(c, 1))?
+                    ))
+                },
+            ),
             // "Exile all creature cards from target player's graveyard".
             (
                 r(r"^[Ee]xile all ([a-z]+) cards from target player's graveyard$"),

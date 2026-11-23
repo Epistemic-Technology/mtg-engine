@@ -1819,6 +1819,7 @@ impl Fmt {
                     W::Put => format!("{put} {what} {place}"),
                     W::Owner => format!("owner {puts} {what} {place}"),
                     W::OwnerOf => format!("owner of {what} {puts} it {place}"),
+                    W::By(who) => format!("{} {puts} {what} {place}", self.recipient(*who, t)),
                 }
             }
             Effect::SacrificeChosen {
@@ -3397,6 +3398,9 @@ fn cmp_suffix(c: mtg_core::card::Cmp) -> &'static str {
 /// graveyard`.
 pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     let whose = match who {
+        _ if matches!(f.that_player, Some(mtg_core::card::ThatPlayer::Target(_))) => {
+            "their graveyard"
+        }
         _ if f.that_player.is_some() => "that player's graveyard",
         Who::You => "your graveyard",
         Who::Opponents => "an opponent's graveyard",

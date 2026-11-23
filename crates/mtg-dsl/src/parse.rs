@@ -6956,6 +6956,17 @@ impl P {
             "shuffle" | "shuffles" if self.shuffle_zone_ahead() => {
                 self.shuffle_zone((explicit || subject != Recipient::You).then_some(subject))
             }
+            // `target player shuffles up to 3 target card from their
+            // graveyard into library`.
+            "shuffles" if matches!(subject, Recipient::Target(_)) => {
+                let what = self.recipient()?;
+                self.expect_words(&["into", "library"])?;
+                Ok(Effect::PutInLibrary {
+                    what,
+                    place: crate::ast::LibraryPlace::Shuffle,
+                    wording: LibraryWording::By(subject),
+                })
+            }
             // "Each player puts a creature card from their graveyard onto
             // the battlefield."
             "puts"
@@ -11741,6 +11752,22 @@ impl P {
             } else if self.eat_words(&["that", "player's"]) {
                 // "from that player's graveyard": the triggering player's.
                 f.that_player = Some(mtg_core::card::ThatPlayer::Triggering);
+                Who::Any
+            } else if self.at_word("their") {
+                // "target player shuffles up to three target cards from
+                // their graveyard": the last player target's.
+                let Some(i) = self.targets.iter().rposition(|t| {
+                    matches!(
+                        t.base(),
+                        Target::Spec(TargetSpec::Player | TargetSpec::Opponent)
+                    )
+                }) else {
+                    return self.fail("`their graveyard` needs a player target before it");
+                };
+                self.pos += 1;
+                f.that_player = Some(mtg_core::card::ThatPlayer::Target(
+                    u8::try_from(i).unwrap_or(u8::MAX),
+                ));
                 Who::Any
             } else {
                 self.expect_word("a")?;

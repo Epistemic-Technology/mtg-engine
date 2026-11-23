@@ -1,0 +1,6 @@
+card "Rite of Renewal" {
+  oracle_id 6512ddb8-0868-4d32-ab32-8a5250fc571b
+  cost {3}{G}
+  type Sorcery
+  spell: return up to 2 target permanent card from your graveyard to hand; target player shuffles up to 4 target card from their graveyard into library; exile this
+}

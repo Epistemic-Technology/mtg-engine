@@ -109,6 +109,11 @@ pub enum LibraryWording {
     /// `owner of ... puts it ...`: "The owner of target nonland permanent
     /// puts it ...".
     OwnerOf,
+    /// `target player shuffles up to 3 target card from their graveyard
+    /// into library`: "Target player shuffles up to three target cards
+    /// from their graveyard into their library" (the player names the
+    /// cards' owner; wording only).
+    By(Recipient),
 }
 use mtg_core::mana::{Color, Mana, ManaCost};
 use mtg_core::turn::Step;

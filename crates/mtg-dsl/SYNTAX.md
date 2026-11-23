@@ -2004,7 +2004,10 @@ your graveyard into your library"), `shuffle graveyard into library`
 graveyard into library`: "Target player shuffles their graveyard into
 their library"; `each player shuffles hand and graveyard into library then draws 7
 cards`: "Each player shuffles their hand and graveyard into their library,
-then draws seven cards.", both zones), `shuffle all creature card from graveyard of target
+then draws seven cards.", both zones), `target player shuffles up to 3 target card from their graveyard into
+library` ("Target player shuffles up to three target cards from their
+graveyard into their library": `from their graveyard` is the graveyard of
+the player target before it), `shuffle all creature card from graveyard of target
 player into library` ("Shuffle all creature cards from target player's
 graveyard into that player's library"), `shuffle cards from hand into
 library` ("shuffle the cards from your hand into your library"; `then

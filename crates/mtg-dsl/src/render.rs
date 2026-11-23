@@ -1430,6 +1430,13 @@ impl<'a> Ctx<'a> {
                 graveyards,
             } => {
                 let whose = match who {
+                    _ if matches!(
+                        filter.that_player,
+                        Some(mtg_core::card::ThatPlayer::Target(_))
+                    ) =>
+                    {
+                        "their graveyard"
+                    }
                     _ if filter.that_player.is_some() => "that player's graveyard",
                     Who::You => "your graveyard",
                     Who::Opponents => "an opponent's graveyard",
@@ -2056,6 +2063,13 @@ impl<'a> Ctx<'a> {
                 graveyards,
             } => {
                 let whose = match who {
+                    _ if matches!(
+                        filter.that_player,
+                        Some(mtg_core::card::ThatPlayer::Target(_))
+                    ) =>
+                    {
+                        "their graveyard"
+                    }
                     _ if filter.that_player.is_some() => "that player's graveyard",
                     Who::You => "your graveyard",
                     Who::Opponents => "an opponent's graveyard",
@@ -7211,6 +7225,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                             who: Who::Opponents,
                             ..
                         }) => Some("their"),
+                        Some(Target::GraveyardCard { filter, .. })
+                            if matches!(
+                                filter.that_player,
+                                Some(mtg_core::card::ThatPlayer::Target(_))
+                            ) =>
+                        {
+                            Some("their")
+                        }
                         _ => None,
                     }
                 }
@@ -7235,6 +7257,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     _ => "put this card from your graveyard on the bottom of your library"
                         .to_string(),
                 });
+            }
+            // "Target player shuffles up to three target cards from their
+            // graveyard into their library."
+            if let W::By(who) = wording {
+                let s = ctx.subj(*who);
+                let v = ctx.verb(*who, "shuffles", "shuffle");
+                let o = ctx.obj(*what);
+                let whose = graveyard_of.unwrap_or("their");
+                return Clause::with_subject(*who, s, format!("{v} {o} into {whose} library"));
             }
             if *wording == W::Put {
                 let o = ctx.obj(*what);

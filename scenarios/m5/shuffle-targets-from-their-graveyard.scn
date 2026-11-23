@@ -1,0 +1,72 @@
+# "Target player shuffles up to three target cards from their graveyard
+# into their library": the cards must be in that player's graveyard.
+
+scenario "Memory's Journey shuffles an opponent's cards away" {
+  battlefield A: 2 "Island"
+  hand A: "Memory's Journey"
+  graveyard B: "Hill Giant", "Shock", "Grizzly Bears"
+  library B: "Plains"
+  turn 1 A: cast "Memory's Journey" targeting player B, "Hill Giant", "Shock"
+  run_to turn 1 postcombat_main
+  assert graveyard B count 1
+  assert graveyard B contains "Grizzly Bears"
+  assert library B count 3
+  assert graveyard A contains "Memory's Journey"
+}
+
+scenario "Memory's Journey can't take cards from another player's graveyard" {
+  battlefield A: 2 "Island"
+  hand A: "Memory's Journey"
+  graveyard A: "Lightning Bolt"
+  graveyard B: "Hill Giant"
+  illegal turn 1 A: cast "Memory's Journey" targeting player B, "Lightning Bolt"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Memory's Journey from the graveyard with flashback, on yourself" {
+  battlefield A: "Forest"
+  graveyard A: "Memory's Journey", "Lightning Bolt"
+  library A: "Plains"
+  turn 1 A: cast "Memory's Journey" from graveyard targeting player A, "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert library A count 2
+  assert exile A contains "Memory's Journey"
+}
+
+scenario "Stream of Consciousness with no cards targeted only names the player" {
+  battlefield A: 2 "Island"
+  hand A: "Stream of Consciousness"
+  graveyard B: "Hill Giant"
+  turn 1 A: cast "Stream of Consciousness" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Stream of Consciousness"
+}
+
+scenario "Rite of Renewal returns two, shuffles, and exiles itself" {
+  battlefield A: 4 "Forest"
+  hand A: "Rite of Renewal"
+  graveyard A: "Grizzly Bears", "Pacifism", "Shock"
+  graveyard B: "Hill Giant"
+  library B: "Plains"
+  turn 1 A: cast "Rite of Renewal" targeting "Grizzly Bears", "Pacifism", player B, "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Pacifism"
+  assert graveyard A contains "Shock"
+  assert library B count 2
+  assert exile A contains "Rite of Renewal"
+}
+
+scenario "Quandrix Command: bounce a creature and shuffle graveyard cards" {
+  battlefield A: 2 "Forest", "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Quandrix Command"
+  graveyard B: "Hill Giant", "Shock"
+  library B: "Plains"
+  turn 1 A: cast "Quandrix Command" mode 3 targeting "Grizzly Bears", player B, "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert library B count 2
+  assert graveyard B contains "Shock"
+}
