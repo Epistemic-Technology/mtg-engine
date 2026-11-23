@@ -6681,6 +6681,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 format!("{} {}", ctx.verb(*who, "gets", "get"), energy(n)),
             )
         }
+        Effect::PayEnergy(mtg_core::card::PAY_ANY_ENERGY) => {
+            Clause::imperative("pay any amount of {E}".to_string())
+        }
         Effect::PayEnergy(n) => Clause::imperative(format!("pay {}", energy(*n))),
         Effect::AddPoison { count, who } => {
             let s = ctx.subj(*who);

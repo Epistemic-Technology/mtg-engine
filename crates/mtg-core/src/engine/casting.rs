@@ -13348,6 +13348,19 @@ impl GameState {
                     }
                 }
             }
+            // "You may pay any amount of {E}" (CR 107.14): how much,
+            // chosen now (all first, the engine's default).
+            Effect::PayEnergy(crate::card::PAY_ANY_ENERGY) => {
+                let p = ctx.controller;
+                let have = self.player(p).energy;
+                let options: Vec<Choice> = (0..=have.min(99)).rev().map(Choice::X).collect();
+                let k = self.choose_mid(p, DecisionKind::ChooseX { spell: ctx.source }, options);
+                let paid = have.min(99).saturating_sub(u32::try_from(k).unwrap_or(0));
+                self.player_mut(p).energy -= paid;
+                ctx.x = paid;
+                ctx.trigger_amount = paid;
+                self.bump();
+            }
             Effect::PayEnergy(n) => {
                 let p = ctx.controller;
                 if self.player(p).energy >= *n {

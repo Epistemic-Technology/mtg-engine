@@ -4701,7 +4701,9 @@ pub enum Effect {
         count: Num,
         who: Recipient,
     },
-    /// "Pay {E}{E}", inside "you may": like `Pay`.
+    /// "Pay {E}{E}", inside "you may": like `Pay`. `PAY_ANY_ENERGY`: "you
+    /// may pay any amount of {E}", the amount chosen as it resolves; later
+    /// "X" and "that much" in the resolution are the amount paid.
     PayEnergy(u32),
     /// "Level 2" (a Class's level ability, CR 716.2a: the stage is the
     /// level less one) or "it becomes solved" (a Case's to-solve ability,
@@ -6005,6 +6007,9 @@ pub enum CountersBy {
     /// controller's spells, abilities, and costs.
     You,
 }
+
+/// `Effect::PayEnergy`'s "any amount of {E}".
+pub const PAY_ANY_ENERGY: u32 = u32::MAX;
 
 /// What happens instead.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]

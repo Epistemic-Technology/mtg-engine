@@ -1264,7 +1264,11 @@ or reach`.
 ("Look at target player's hand."). `gets +1/+1 X` is "+X/+X".
 
 Energy (CR 107.14): `you get 2 energy` ("you get {E}{E}"), `pay 2
-energy` inside `may` and as a cost ("Pay {E}{E}").
+energy` inside `may` and as a cost ("Pay {E}{E}"). `you may pay any energy` is
+"you may pay any amount of {E}": the amount is chosen as it resolves (0
+to all; all unscripted), and `that much` and X after it in the resolution
+are the amount paid ("Galvanic Discharge deals that much damage to that
+permanent").
 
 Blight (CR 701.68): `blight 2` is an effect ("blight 2": the controller
 puts two -1/-1 counters on a creature they control, chosen as it

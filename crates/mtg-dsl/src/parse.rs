@@ -9509,6 +9509,11 @@ impl P {
                 }
                 Ok(Effect::Exile { what })
             }
+            // "you may pay any amount of {E}".
+            "pay" if self.at_words(&["any", "energy"]) => {
+                self.pos += 2;
+                Ok(Effect::PayEnergy(mtg_core::card::PAY_ANY_ENERGY))
+            }
             "pay"
                 if matches!(self.peek(), Some(Tok::Num(_)))
                     && self.word_at(1).as_deref() == Some("energy") =>
