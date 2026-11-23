@@ -2912,3 +2912,31 @@ the Viper's Fang) was not re-read when a permanent tapped. Coverage:
 3,661 games/s (3,778 for the pre-first-wave binary in the same run).
 Standard is the next target: no Standard card is left untried, so it
 moves by features and by retries of the cards its reports name.
+
+Status 2026-11-23, later: the ninth wave, the first aimed at Standard.
+No Standard card was left untried, so ten Sonnet batches retried 360
+cards with old reports, each with its report as a hint: 22 accepted
+(6%) for about 1.8M tokens. That does not pay and is recorded so in the
+procedure; what is left in Standard needs a rule of its own per card or
+small group. Six feature agents on Opus (about 3.0M tokens): the
+template author (166 cards, almost all Modern: activated costs the
+language had and the author skipped, `exert:` with targets, flickers);
+zones (52; reveal lands, counted searches, partial hand reveals,
+opening-hand reveals); triggers (40; "until end of combat", "the damage
+prevented this way"); mana and costs (35; attack and block taxes,
+Doubling Season, storage lands); rules text (35; changing a target,
+"any player may", "becomes blocked"); wording (30). The template author
+then wrote 6. The wording, zones, triggers and template agents were
+also given the wrong-meaning forms in KNOWN-ISSUES.md: the seventh
+wave's list is gone and most of the eighth's, each bound correctly or
+made a compile error. Fixed in accepted cards: "token" was ignored in a
+static's condition (Druid of the Spade had its bonus with no token); a
+delayed trigger about a player did nothing; a mana ability removing X
+counters took X as 0; a prevention's follow-up saw the whole damage;
+"Cycling—Sacrifice a land" sacrificed nothing. Two pairs of branches
+built the same form again (a no-duration grant; a counted search) and
+were joined by hand. The fuzz was clean at the first run. Coverage:
+95.3% of Pauper, 79.4% of Standard (4,099 of 5,164), 68.5% of Modern;
+gate 18,288 match; 12,074 scenarios pass in release and debug builds;
+3,598 games/s against 3,791 for the pre-first-wave binary in the same
+run, 5% lower (3% after the eighth wave): due a profiling pass.
