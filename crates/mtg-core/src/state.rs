@@ -2110,6 +2110,11 @@ pub struct GameState {
     /// Cards in the game with an "As this enters, choose ..." ability:
     /// with any, every way onto the battlefield may ask a question.
     pub enters_choice_cards: u32,
+    /// Cards in the game with "If this would be put into a graveyard from
+    /// anywhere, ..." (Legacy Weapon): with another replacement in play
+    /// their move to a graveyard asks which applies first, wherever the
+    /// card is.
+    pub own_graveyard_replacers: u32,
     /// How many times a permanent has become prepared this game (CR
     /// 722.3a), never decreased: with none, priority skips looking for
     /// prepared permanents.
@@ -3179,6 +3184,14 @@ impl GameState {
             // and may ask for a color, during any payment.
             || self.mana_trigger_sources > 0
             || self.dredge_cards > 0
+            || (self.own_graveyard_replacers > 0 && replacers >= 1)
+            // A card exiled "until this leaves the battlefield" comes back
+            // with no spell or ability on the stack, at whatever event
+            // removes its exiler (combat damage, a sacrifice): if a card
+            // in the game chooses as it enters, or a replacement or a
+            // legend could meet it, any action may ask.
+            || (!self.linked_exiles.is_empty()
+                && (self.enters_choice_cards > 0 || replacers >= 1 || self.legendary_count >= 1))
             || replacers >= 2
             || self.legendary_count >= 2
             || self.stack.iter().any(|id| {

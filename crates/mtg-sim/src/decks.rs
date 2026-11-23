@@ -69,6 +69,10 @@ pub fn random_deck(pool: &CardPool, seed: u64) -> Vec<CardRef> {
     let castable: Vec<CardRef> = pool
         .iter()
         .filter(|(r, _)| !faces.contains(r))
+        // Nor are the engine's own definitions: the face-down 2/2, and
+        // the prototyped, cleaved, or awakened version of a card, which
+        // share its name (the name finds the card itself).
+        .filter(|(r, d)| !pool.is_face_down(*r) && pool.lookup(&d.name) == Some(*r))
         .filter(|(r, d)| {
             let basic = d.is_land() && d.supertypes.contains(mtg_core::card::Supertype::Basic);
             // A Room's locked and unlocked states are the card's too.

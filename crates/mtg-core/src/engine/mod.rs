@@ -557,6 +557,7 @@ impl GameState {
             graveyard_trigger_cards: 0,
             dredge_cards: 0,
             enters_choice_cards: 0,
+            own_graveyard_replacers: 0,
             prepared_ever: 0,
             spells_last_turn: [0; 4],
             active_player: starting_player,
@@ -3221,6 +3222,8 @@ impl GameState {
         self.replacements.retain(|e| e.duration != ends);
         self.rules.retain(|e| e.duration != ends);
         self.player_grants.retain(|g| g.duration != ends);
+        // Before the events: what watches them reads characteristics.
+        self.cbump();
         // What an effect gave may have kept an Aura or Equipment legally
         // attached, or a creature alive (CR 704.5).
         if !ended.is_empty() {
@@ -3280,6 +3283,8 @@ impl GameState {
         if !ended.is_empty() {
             self.sba_touch();
         }
+        // Before the events: what watches them reads characteristics.
+        self.cbump();
         for affected in ended {
             self.emit(Event::EffectEnded { affected });
         }

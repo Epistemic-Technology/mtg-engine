@@ -74,8 +74,16 @@ impl GameState {
         if zone == Zone::Graveyard && self.pool.get(def).dredge > 0 {
             self.dredge_cards += 1;
         }
-        if self.pool.get(def).flags().has_enters_choice() {
+        // A Saga with read ahead chooses its chapter as it enters (CR
+        // 702.155b), however it gets there.
+        if self.pool.get(def).flags().has_enters_choice() || self.pool.get(def).read_ahead {
             self.enters_choice_cards += 1;
+        }
+        if self.pool.get(def).abilities.iter().any(|a| {
+            matches!(a, crate::card::AbilityDef::Replacement(r)
+                if matches!(r.replaces, crate::card::Replaces::ThisToGraveyard))
+        }) {
+            self.own_graveyard_replacers += 1;
         }
         self.objects.insert(GameObject {
             def,

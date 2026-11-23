@@ -144,5 +144,8 @@ impl GameState {
         for a in &mut c.attackers {
             a.blockers.retain(|b| *b != id);
         }
+        // Filters on attacking and blocking creatures see the change (a
+        // regenerated attacker is no longer attacking).
+        self.combat_bump();
     }
 }
