@@ -1403,6 +1403,15 @@ impl P {
     #[allow(clippy::too_many_lines)] // one arm per form of `add`
     fn add_effect(&mut self) -> R<Effect> {
         if self.eat_word("chosen") {
+            // `add chosen 2`: "Add two mana of the chosen color."
+            if let Some(Tok::Num(n)) = self.peek() {
+                let n = *n;
+                self.pos += 1;
+                return Ok(Effect::AddManaTimes {
+                    mana: Mana::Chosen,
+                    count: Num::N(n),
+                });
+            }
             return Ok(Effect::AddMana(vec![Mana::Chosen]));
         }
         // CR 903.4f: "one mana of any color in your commander's color
@@ -1422,7 +1431,10 @@ impl P {
         }
         // "any color that a land an opponent controls could
         // produce" (CR 106.7).
-        if self.eat_words(&["any", "that"]) {
+        if self.at_words(&["any", "that"]) || self.at_words(&["any", "type", "that"]) {
+            self.pos += 1;
+            let any_type = self.eat_word("type");
+            self.expect_word("that")?;
             let basic = self.eat_word("basic");
             self.expect_word("land")?;
             let whose = if self.eat_words(&["you", "control"]) {
@@ -1432,11 +1444,29 @@ impl P {
                 Who::Opponents
             };
             self.expect_words(&["could", "produce"])?;
-            return Ok(Effect::AddManaLandCould { whose, basic });
+            return Ok(Effect::AddManaLandCould {
+                whose,
+                basic,
+                any_type,
+            });
         }
         if self.eat_word("any") {
             // `add any count where power`: "Add X mana of any one color,
             // where X is this creature's power."
+            if let (Some(Tok::Num(n)), Some("and"), Some("any")) = (
+                self.peek().cloned(),
+                self.word_at(1).as_deref(),
+                self.word_at(2).as_deref(),
+            ) {
+                // `add any 2 and any 2 other`.
+                self.pos += 3;
+                let m = self.number()?;
+                self.expect_word("other")?;
+                if m != n {
+                    return self.fail("`add any N and any N other` takes the same N twice");
+                }
+                return Ok(Effect::AddManaTwoColors(u8::try_from(n).unwrap_or(u8::MAX)));
+            }
             if matches!(self.peek(), Some(Tok::Num(_))) || self.at_word("count") {
                 return Ok(Effect::AddManaTimes {
                     mana: Mana::Any,
@@ -1509,7 +1539,12 @@ impl P {
             return Ok(Effect::AddManaOneOf(out));
         }
         // `add {R} that much` (Raphael's "add that much {R}").
-        if out.len() == 1 && (self.at_word("count") || self.at_words(&["that", "much"])) {
+        if out.len() == 1
+            && (self.at_word("count")
+                || self.at_words(&["that", "much"])
+                || (matches!(self.peek(), Some(Tok::Num(_)))
+                    && matches!(out[0], Mana::Colored(_) | Mana::Colorless)))
+        {
             let count = self.num()?;
             return Ok(Effect::AddManaTimes {
                 mana: out[0],
@@ -1537,7 +1572,10 @@ impl P {
                 then: vec![then],
             });
         }
-        if self.at_words(&["only", "to"]) || self.at_words(&["not", "to"]) {
+        if self.at_words(&["only", "to"])
+            || self.at_words(&["not", "to"])
+            || self.at_words(&["on", "costs"])
+        {
             let restriction = self.mana_restriction()?;
             return Ok(Effect::SpendOnly {
                 inner: vec![Sentence::new(vec![e])],
@@ -1551,7 +1589,146 @@ impl P {
     /// spell or [to] activate`, `only to activate [or cast artifact
     /// spell]`, `not to cast nonartifact spell` (CR 106.6).
     fn mana_restriction(&mut self) -> R<crate::ast::ManaRestriction> {
-        use mtg_core::card::{SpendPlural, SpendWording};
+        use mtg_core::card::{SpendPlural, SpendWays, SpendWording};
+        let none = || crate::ast::ManaRestriction {
+            spells: None,
+            abilities: false,
+            ability_source: None,
+            foretell: false,
+            disturb: false,
+            wording: SpendWording::CastFirst,
+            plural: SpendPlural::One,
+            bare: false,
+            ways: SpendWays::default(),
+            x_spells: None,
+        };
+        // `on costs with x`: "Spend this mana only on costs that contain
+        // {X}."
+        if self.eat_words(&["on", "costs", "with", "x"]) {
+            let mut r = none();
+            r.ways = SpendWays(SpendWays::ON_COSTS | SpendWays::COST_X);
+            return Ok(r);
+        }
+        // `only to power-up abilities`, `only to face up permanents`: only
+        // the other ways, no spells or abilities.
+        if self.at_words(&["only", "to"]) && self.at_spend_way(2) {
+            self.pos += 2;
+            let mut r = none();
+            self.spend_ways(&mut r, true)?;
+            while self.eat_word("plus") {
+                if self.eat_word("to") {
+                    r.ways.0 |= SpendWays::OR_TO;
+                }
+                self.spend_ways(&mut r, false)?;
+            }
+            return Ok(r);
+        }
+        let mut r = self.mana_restriction_base()?;
+        // `plus unlock`, `plus face up`, `plus to class level`: further
+        // alternatives; `uncounterable`.
+        while self.eat_word("plus") {
+            if self.eat_word("to") {
+                r.ways.0 |= SpendWays::OR_TO;
+            } else if self.eat_word("and") {
+                r.wording = SpendWording::CastAnd;
+            }
+            self.spend_ways(&mut r, false)?;
+        }
+        if self.eat_word("uncounterable") {
+            r.ways.0 |= SpendWays::UNCOUNTERABLE;
+        }
+        Ok(r)
+    }
+
+    /// Whether the word `at` words on starts one of a restriction's other
+    /// ways (`spend_ways`).
+    fn at_spend_way(&self, at: usize) -> bool {
+        matches!(
+            self.word_at(at).as_deref(),
+            Some("power-up" | "equip" | "class" | "unlock" | "face" | "cost")
+        )
+    }
+
+    /// One of a restriction's other ways: `power-up [abilities]`, `equip
+    /// [abilities]`, `class level`, `unlock [doors]`, `face up
+    /// [permanents | creatures | morph]`, `cost with c`. The plural words
+    /// set the plural wording when `alone` (no spells before them).
+    fn spend_ways(&mut self, r: &mut crate::ast::ManaRestriction, alone: bool) -> R<()> {
+        use mtg_core::card::{SpendPlural, SpendWays};
+        let mut plural = false;
+        let w = self.word_at(0).unwrap_or_default();
+        match w.as_str() {
+            "power-up" | "equip" => {
+                self.pos += 1;
+                r.ways.0 |= if w == "equip" {
+                    SpendWays::EQUIP
+                } else {
+                    SpendWays::POWER_UP
+                };
+                plural = self.eat_word("abilities");
+            }
+            "class" => {
+                self.pos += 1;
+                self.expect_word("level")?;
+                r.ways.0 |= SpendWays::CLASS_LEVEL;
+            }
+            "unlock" => {
+                self.pos += 1;
+                r.ways.0 |= SpendWays::UNLOCK;
+                plural = self.eat_word("doors");
+            }
+            "face" => {
+                self.pos += 1;
+                self.expect_word("up")?;
+                r.ways.0 |= SpendWays::FACE_UP;
+                if self.eat_word("permanents") {
+                    plural = true;
+                } else if self.eat_word("creatures") {
+                    plural = true;
+                    r.ways.0 |= SpendWays::FACE_UP_CREATURES;
+                } else if self.eat_word("morph") {
+                    r.ways.0 |= SpendWays::FACE_UP_MORPH;
+                }
+            }
+            "cost" => {
+                self.pos += 1;
+                self.expect_words(&["with", "c"])?;
+                r.ways.0 |= SpendWays::COST_C;
+            }
+            _ => return self.fail("expected a way to spend mana"),
+        }
+        if alone && plural {
+            r.plural = SpendPlural::Or;
+        }
+        Ok(())
+    }
+
+    /// After a restriction's spell noun: `from exile`, `from graveyard`,
+    /// `not from hand`, `with flashback from graveyard`, `face down` (what
+    /// the spell must be cast as).
+    fn spend_qualifiers(&mut self) -> mtg_core::card::SpendWays {
+        use mtg_core::card::SpendWays;
+        let mut w = 0;
+        loop {
+            if self.eat_words(&["from", "exile"]) {
+                w |= SpendWays::FROM_EXILE;
+            } else if self.eat_words(&["from", "graveyard"]) {
+                w |= SpendWays::FROM_GRAVEYARD;
+            } else if self.eat_words(&["not", "from", "hand"]) {
+                w |= SpendWays::NOT_FROM_HAND;
+            } else if self.eat_words(&["with", "flashback", "from", "graveyard"]) {
+                w |= SpendWays::FLASHBACK;
+            } else if self.eat_words(&["face", "down"]) {
+                w |= SpendWays::FACE_DOWN;
+            } else {
+                return SpendWays(w);
+            }
+        }
+    }
+
+    #[allow(clippy::too_many_lines)] // one branch per wording
+    fn mana_restriction_base(&mut self) -> R<crate::ast::ManaRestriction> {
+        use mtg_core::card::{SpendPlural, SpendWays, SpendWording};
         if self.eat_word("not") {
             self.expect_words(&["to", "cast"])?;
             let f = self.filter()?;
@@ -1565,6 +1742,8 @@ impl P {
                 wording: SpendWording::CantCast,
                 plural: SpendPlural::One,
                 bare: false,
+                ways: SpendWays::default(),
+                x_spells: None,
             });
         }
         self.expect_words(&["only", "to"])?;
@@ -1596,6 +1775,8 @@ impl P {
                 wording,
                 plural,
                 bare,
+                ways: SpendWays::default(),
+                x_spells: None,
             });
         }
         // "foretell a card from your hand or cast an instant or sorcery
@@ -1603,8 +1784,17 @@ impl P {
         let foretell = self.eat_words(&["foretell", "or"]);
         let disturb = self.eat_words(&["pay", "disturb", "or"]);
         self.expect_word("cast")?;
-        let mut f = self.filter()?;
+        let mut f = self.spend_filter()?;
         let mut plural = self.spell_noun()?;
+        let ways = self.spend_qualifiers();
+        // `or x spells`: "or spells with {X} in their mana costs".
+        let x_spells = if self.eat_words(&["or", "x"]) {
+            let g = self.spend_filter()?;
+            self.spell_noun()?;
+            Some(Box::new(g))
+        } else {
+            None
+        };
         // "an Elemental spell or a Chandra planeswalker spell": each side
         // whole.
         if self.at_word("or") && !matches!(self.word_at(1).as_deref(), Some("to" | "activate")) {
@@ -1649,7 +1839,18 @@ impl P {
             wording,
             plural,
             bare,
+            ways,
+            x_spells,
         })
+    }
+
+    /// A restriction's spell filter, empty before `spells` ("cast spells
+    /// from exile").
+    fn spend_filter(&mut self) -> R<Filter> {
+        if self.at_word("spells") || self.at_word("spell") {
+            return Ok(Filter::default());
+        }
+        self.filter()
     }
 
     /// `spell` or `spells` (the plural wording) after a restriction's
@@ -2764,7 +2965,7 @@ impl P {
                         break;
                     }
                 }
-                if self.at_word("only") || self.at_word("not") {
+                if self.at_word("only") || self.at_word("not") || self.at_words(&["on", "costs"]) {
                     let [one] = out.as_slice() else {
                         return self.fail("a restricted mana ability makes one kind of mana");
                     };
@@ -4479,6 +4680,14 @@ impl P {
             self.expect_words(&["or", "less"])?;
             return Ok(StaticCond::AnyPlayerLifeAtMost(n));
         }
+        // `activated 4 times this turn`: "this ability has been activated
+        // four or more times this turn".
+        if self.at_word("activated") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            self.pos += 1;
+            let n = self.number()?;
+            self.expect_words(&["times", "this", "turn"])?;
+            return Ok(StaticCond::ActivatedThisTurn(n));
+        }
         if self.eat_word("hand") {
             // `hand has no land card`: "you have no land cards in hand".
             if self.eat_words(&["has", "no"]) {
@@ -6082,7 +6291,18 @@ impl P {
                         }
                         return Ok(Some(e));
                     }
-                    Err(s) => vec![s],
+                    Err(s) => {
+                        // "If this spell was bargained, target land you
+                        // control becomes ...": targets only a bargained
+                        // spell has, as for "if kicked" (CR 601.2c).
+                        if cond == StaticCond::Bargained
+                            && self.targets.len() > before
+                            && self.kicked_targets.is_none()
+                        {
+                            self.kicked_targets = Some(before);
+                        }
+                        vec![s]
+                    }
                 }
             };
             let wording = if also {
@@ -7615,9 +7835,11 @@ impl P {
                     });
                 }
                 // "becomes that type": chosen earlier in the resolution.
-                if self.eat_words(&["that", "type"]) {
+                if self.at_words(&["that", "type"]) || self.at_words(&["that", "color"]) {
+                    let color = self.word_at(1).as_deref() == Some("color");
+                    self.pos += 2;
                     self.until_end_of_turn();
-                    return Ok(Effect::BecomeChosen { to: subject });
+                    return Ok(Effect::BecomeChosen { to: subject, color });
                 }
                 // "becomes the color of your choice" and kin.
                 if self.at_words(&["color", "of", "choice"])
@@ -7764,6 +7986,14 @@ impl P {
                             break;
                         }
                     }
+                }
+                // "a 3/3 creature with vigilance and all creature types"
+                // (Soulstone Sanctuary): every creature type (CR 205.3m).
+                if self.eat_words(&["and", "all", "creature", "types"])
+                    || (keywords.is_empty()
+                        && self.eat_words(&["with", "all", "creature", "types"]))
+                {
+                    subtypes.push(crate::ast::EVERY_CREATURE_TYPE.to_string());
                 }
                 // "a black Demon in addition to its other colors and types".
                 let in_addition = self.eat_words(&["in", "addition"]);
@@ -14480,6 +14710,11 @@ impl P {
                     "exile" if self.at_words(&["exile", "this", "from", "graveyard"]) => {
                         self.pos += 4;
                         cost.exile_self = true;
+                        cost.order.push(CostItem::Exile);
+                    }
+                    "exile" if self.at_words(&["exile", "this", "from", "hand"]) => {
+                        self.pos += 4;
+                        cost.exile_hand = true;
                         cost.order.push(CostItem::Exile);
                     }
                     // "Exile this artifact" (CR 602.2b).

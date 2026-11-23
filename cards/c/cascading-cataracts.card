@@ -1,0 +1,7 @@
+card "Cascading Cataracts" {
+  oracle_id d98b4250-3492-4864-9c4c-42db09b3ccd4
+  type Land
+  keywords indestructible
+  activated {T}: add {C}
+  activated {5}, {T}: add 5 mana any combination
+}

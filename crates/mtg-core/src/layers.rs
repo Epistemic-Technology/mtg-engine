@@ -717,6 +717,14 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         StaticCondition::PermanentLeftThisTurn => {
             state.left_this_turn & (1 << you.index().min(7)) != 0
         }
+        StaticCondition::ActivatedThisTurn(n) => {
+            state
+                .activated_once
+                .iter()
+                .filter(|(id, _)| *id == source)
+                .count()
+                >= *n as usize
+        }
         StaticCondition::CardsInHand { n, at_most } => {
             let h = state.player(you).hand.len();
             if *at_most {

@@ -1,0 +1,8 @@
+card "Tin Street Gossip" {
+  oracle_id 19dc29a7-8ccc-4e54-829b-86cc102b082d
+  cost {2}{R}{G}
+  type Creature — Lizard Advisor
+  pt 4/4
+  keywords vigilance
+  activated {T}: add {R}{G} only to cast spells face down plus to face up creatures
+}

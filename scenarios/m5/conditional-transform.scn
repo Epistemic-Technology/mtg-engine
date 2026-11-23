@@ -1,0 +1,140 @@
+scenario "Docent of Perfection transforms once you control three Wizards" {
+  battlefield A: "Docent of Perfection", 3 "Mountain"
+  hand A: "Lightning Bolt", "Lightning Bolt", "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  turn 2 A: wait
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  turn 2 A: wait
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 3 "Human Wizard"
+  assert power "Final Iteration" 6
+  assert power newest A "Human Wizard" 3
+  assert has newest A "Human Wizard" flying
+}
+
+scenario "Docent of Perfection with two Wizards doesn't transform" {
+  battlefield A: "Docent of Perfection", 2 "Mountain"
+  hand A: "Lightning Bolt", "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  turn 2 A: wait
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 2 "Human Wizard"
+  assert power "Docent of Perfection" 5
+  assert power newest A "Human Wizard" 1
+}
+
+scenario "Curious Homunculus transforms at upkeep with three instants and sorceries in the graveyard" {
+  battlefield A: "Curious Homunculus"
+  graveyard A: "Lightning Bolt", "Shock", "Divination"
+  library A: 5 "Island"
+  start turn 2 A upkeep
+  run_to turn 2 precombat_main
+  assert power "Voracious Reader" 3
+}
+
+scenario "Curious Homunculus stays with two" {
+  battlefield A: "Curious Homunculus"
+  graveyard A: "Lightning Bolt", "Shock", "Grizzly Bears"
+  library A: 5 "Island"
+  start turn 2 A upkeep
+  run_to turn 2 precombat_main
+  assert power "Curious Homunculus" 1
+}
+
+scenario "Voracious Reader makes instants cost {1} less" {
+  battlefield A: "Curious Homunculus", 2 "Island"
+  graveyard A: "Lightning Bolt", "Shock", "Divination"
+  hand A: "Divination"
+  library A: 5 "Island"
+  start turn 2 A upkeep
+  turn 2 precombat_main A: cast "Divination"
+  run_to turn 2 postcombat_main
+  assert hand A count 3
+}
+
+scenario "Aberrant Researcher transforms when it mills an instant" {
+  battlefield A: "Aberrant Researcher"
+  library A: "Lightning Bolt", 5 "Island"
+  start turn 2 A upkeep
+  run_to turn 2 precombat_main
+  assert graveyard A contains "Lightning Bolt"
+  assert power "Perfected Form" 5
+}
+
+scenario "Aberrant Researcher doesn't transform when it mills a land" {
+  battlefield A: "Aberrant Researcher"
+  library A: 6 "Island"
+  start turn 2 A upkeep
+  run_to turn 2 precombat_main
+  assert graveyard A contains "Island"
+  assert power "Aberrant Researcher" 3
+}
+
+scenario "Legion's Landing makes a Vampire and transforms when you attack with three creatures" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Plains"
+  hand A: "Legion's Landing"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Legion's Landing"
+  turn 4 A: attack "Grizzly Bears", "Hill Giant", "Vampire"
+  run_to turn 4 postcombat_main
+  assert is "Adanto, the First Fort" land
+  assert has "Vampire" lifelink
+}
+
+scenario "Legion's Landing stays with two attackers" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Legion's Landing"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Legion's Landing"
+  turn 4 A: attack "Grizzly Bears", "Vampire"
+  run_to turn 4 postcombat_main
+  assert battlefield A contains "Legion's Landing"
+}
+
+scenario "Adanto, the First Fort taps for {W} and makes Vampires" {
+  battlefield A: "Adanto, the First Fort", 3 "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Adanto, the First Fort" ability 2
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Vampire"
+}
+
+scenario "Uninvited Geist transforms after dealing combat damage to a player" {
+  battlefield A: "Uninvited Geist"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Uninvited Geist"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert power "Unimpeded Trespasser" 3
+}
+
+scenario "Uninvited Geist blocked doesn't transform" {
+  battlefield A: "Uninvited Geist"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Uninvited Geist"
+  turn 2 B: block "Uninvited Geist" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Uninvited Geist"
+}
+
+scenario "Lone Rider transforms at the end step after its controller gained 3 life" {
+  battlefield A: "Lone Rider", "Plains"
+  hand A: "Healing Salve"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Healing Salve" mode 1 targeting player A
+  run_to turn 2 cleanup
+  assert power "It That Rides as One" 4
+  assert has "It That Rides as One" trample
+}
+
+scenario "Lone Rider doesn't transform without lifegain" {
+  battlefield A: "Lone Rider", "Plains"
+  start turn 2 A precombat_main
+  run_to turn 2 cleanup
+  assert power "Lone Rider" 1
+}

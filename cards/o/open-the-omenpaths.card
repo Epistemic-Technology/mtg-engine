@@ -1,0 +1,9 @@
+card "Open the Omenpaths" {
+  oracle_id 9ac01998-6e26-4ba5-b66c-614ec831caef
+  cost {2}{R}
+  type Instant
+  choose one {
+    mode: add any 2 and any 2 other only to cast creature or enchantment spells
+    mode: creatures you control get +1/+0 until end of turn
+  }
+}

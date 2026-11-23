@@ -1,0 +1,7 @@
+card "Altar of the Lost" {
+  oracle_id 171a3ac4-0c9c-46ac-b273-089d566cca05
+  cost {3}
+  type Artifact
+  enters tapped
+  activated {T}: add 2 mana any combination only to cast spells with flashback from graveyard
+}

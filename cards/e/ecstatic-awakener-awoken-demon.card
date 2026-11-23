@@ -1,0 +1,13 @@
+card "Ecstatic Awakener // Awoken Demon" {
+  oracle_id 26ff3da5-4e02-41d1-a52f-3f8e87b01a77
+  layout transform
+  cost {B}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {2}{B}, sacrifice another creature, once: draw 1 card then transform this
+  face "Awoken Demon" {
+    type Creature — Demon
+    pt 4/4
+    color black
+  }
+}

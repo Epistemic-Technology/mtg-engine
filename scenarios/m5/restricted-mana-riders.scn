@@ -1,0 +1,121 @@
+scenario "A creature spell cast with Cavern of Souls's colored mana can't be countered" {
+  hand A: "Cavern of Souls", "Llanowar Elves"
+  battlefield B: 2 "Island"
+  hand B: "Counterspell"
+  turn 1 A: play "Cavern of Souls"
+  turn 1 A: choose Elf
+  turn 1 A: cast "Llanowar Elves"
+  turn 1 B: cast "Counterspell" targeting "Llanowar Elves" in response to "Llanowar Elves"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Llanowar Elves"
+  assert graveyard B contains "Counterspell"
+}
+
+scenario "A creature spell cast without Cavern of Souls's colored mana can be countered" {
+  battlefield A: 2 "Forest"
+  hand A: "Cavern of Souls", "Grizzly Bears"
+  battlefield B: 2 "Island"
+  hand B: "Counterspell"
+  turn 1 A: play "Cavern of Souls"
+  turn 1 A: choose Bear
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Counterspell" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Cavern of Souls's colored mana can't cast a creature of another type" {
+  hand A: "Cavern of Souls", "Llanowar Elves"
+  turn 1 A: play "Cavern of Souls"
+  turn 1 A: choose Bear
+  illegal turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 begin_combat
+  assert hand A contains "Llanowar Elves"
+}
+
+scenario "A legendary spell cast with Delighted Halfling's mana can't be countered" {
+  battlefield A: 2 "Delighted Halfling"
+  hand A: "Tifa Lockhart"
+  battlefield B: 2 "Island"
+  hand B: "Counterspell"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Tifa Lockhart"
+  turn 2 B: cast "Counterspell" targeting "Tifa Lockhart" in response to "Tifa Lockhart"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Tifa Lockhart"
+}
+
+scenario "Delighted Halfling's colored mana can't cast a nonlegendary spell" {
+  battlefield A: "Delighted Halfling"
+  hand A: "Llanowar Elves"
+  start turn 2 A precombat_main
+  illegal turn 2 A: cast "Llanowar Elves"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Llanowar Elves"
+}
+
+scenario "Rosheen Meanderer's mana pays for {X}" {
+  battlefield A: "Rosheen Meanderer", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Street Spasm"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Rosheen Meanderer"
+  turn 2 A: cast "Street Spasm" x 4 targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Rosheen Meanderer's mana can't pay for a cost without {X}" {
+  battlefield A: "Rosheen Meanderer", "Mountain"
+  hand A: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Rosheen Meanderer"
+  illegal turn 2 A: cast "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Qarsi Deceiver's mana casts a face-down spell and pays a morph cost" {
+  battlefield A: "Qarsi Deceiver", 2 "Island", "Forest"
+  hand A: "Rattleclaw Mystic"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Rattleclaw Mystic" face_down
+  turn 4 A: unmorph "Rattleclaw Mystic"
+  run_to turn 4 postcombat_main
+  assert battlefield A contains "Rattleclaw Mystic"
+  assert tapped "Qarsi Deceiver"
+}
+
+scenario "Qarsi Deceiver's mana can't cast a face-up creature spell" {
+  battlefield A: "Qarsi Deceiver", "Forest"
+  hand A: "Rattleclaw Mystic"
+  start turn 2 A precombat_main
+  illegal turn 2 A: cast "Rattleclaw Mystic"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Rattleclaw Mystic"
+}
+
+scenario "Altar of the Lost's mana casts a flashback spell from the graveyard" {
+  battlefield A: "Altar of the Lost", "Mountain"
+  graveyard A: "Strike It Rich"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Altar of the Lost"
+  turn 2 A: choose red
+  turn 2 A: choose red
+  turn 2 A: cast "Strike It Rich" from graveyard
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Treasure"
+  assert exile A contains "Strike It Rich"
+}
+
+scenario "Altar of the Lost's mana can't cast the spell from the hand" {
+  battlefield A: "Altar of the Lost"
+  hand A: "Strike It Rich"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Altar of the Lost"
+  turn 2 A: choose red
+  turn 2 A: choose red
+  illegal turn 2 A: cast "Strike It Rich"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Strike It Rich"
+}

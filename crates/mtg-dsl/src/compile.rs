@@ -1661,7 +1661,16 @@ impl Compiler<'_> {
     }
 
     fn subtypes(&mut self, names: &[String]) -> SubtypeSet {
-        names.iter().map(|s| self.pool.subtype(s)).collect()
+        names
+            .iter()
+            .map(|s| {
+                if s == crate::ast::EVERY_CREATURE_TYPE {
+                    mtg_core::card::Subtype::ALL_CREATURE_TYPES
+                } else {
+                    self.pool.subtype(s)
+                }
+            })
+            .collect()
     }
 
     /// What restricted mana may be spent on (CR 106.6).
@@ -1678,6 +1687,8 @@ impl Compiler<'_> {
             wording: r.wording,
             plural: r.plural,
             bare: r.bare,
+            ways: r.ways,
+            x_spells: r.x_spells.as_ref().map(|f| self.filter(f)),
         }
     }
 
@@ -2299,6 +2310,7 @@ impl Compiler<'_> {
                 n: n.saturating_sub(1),
                 at_most: true,
             },
+            StaticCond::ActivatedThisTurn(n) => StaticCondition::ActivatedThisTurn(*n),
             StaticCond::CardsInHand { n, at_most } => StaticCondition::CardsInHand {
                 n: *n,
                 at_most: *at_most,
@@ -2634,6 +2646,7 @@ impl Compiler<'_> {
             mana: c.mana.clone(),
             discard_self: c.discard_self,
             exile_self: c.exile_self,
+            exile_hand: c.exile_hand,
             exile_this: c.exile_this,
             crew: c.crew,
             remove_counters: c.remove_counters,
@@ -3384,9 +3397,15 @@ impl Compiler<'_> {
                 colors: *colors,
                 different: *different,
             }),
-            Effect::AddManaLandCould { whose, basic } => out.push(CoreEffect::AddManaLandCould {
+            Effect::AddManaTwoColors(n) => out.push(CoreEffect::AddManaTwoColors(*n)),
+            Effect::AddManaLandCould {
+                whose,
+                basic,
+                any_type,
+            } => out.push(CoreEffect::AddManaLandCould {
                 whose: *whose,
                 basic: *basic,
+                any_type: *any_type,
             }),
             Effect::AddManaCommander { rider } => {
                 out.push(CoreEffect::AddManaCommander { rider: *rider });
@@ -3772,7 +3791,10 @@ impl Compiler<'_> {
                 let kind = self.choice_kind(kind);
                 out.push(CoreEffect::Choose(kind));
             }
-            Effect::BecomeChosen { to } => out.push(CoreEffect::BecomeChosen { to: r(*to) }),
+            Effect::BecomeChosen { to, color } => out.push(CoreEffect::BecomeChosen {
+                to: r(*to),
+                color: *color,
+            }),
             Effect::ProtectionFromChosen { to } => {
                 out.push(CoreEffect::ProtectionFromChosen { to: r(*to) });
             }
@@ -5077,6 +5099,7 @@ impl Compiler<'_> {
     ) -> AbilityDef {
         let from_hand = keyword.is_some();
         AbilityDef::Activated(ActivatedAbility {
+            counted: false,
             from_graveyard: cost.exile_self,
             sorcery_speed: cost.exile_self,
             cost,
@@ -5203,8 +5226,9 @@ impl Compiler<'_> {
                     .map(|c| self.static_cond(c))
                     .collect(),
                 once_ever: cost.once_ever,
+                counted: effects.iter().any(counts_activations),
                 activators: cost.activators,
-                from_hand: *cycling || cost.discard_self || cost.reveal_this,
+                from_hand: *cycling || cost.discard_self || cost.reveal_this || cost.exile_hand,
                 cycling: *cycling,
                 from_graveyard: cost.from_graveyard || cost.exile_self,
                 keyword: cost.keyword,
@@ -5880,6 +5904,7 @@ impl Compiler<'_> {
                         .other();
                     f.tapped = Some(false);
                     AbilityDef::Activated(ActivatedAbility {
+                        counted: false,
                         cost: CoreCost {
                             sacrifice: Some(CoreSacCost::Filter(f)),
                             chosen: mtg_core::card::ChosenCost::Tap,
@@ -5911,6 +5936,7 @@ impl Compiler<'_> {
                 Mechanic::Craft(f, cost) => {
                     let f = self.filter(f);
                     AbilityDef::Activated(ActivatedAbility {
+                        counted: false,
                         cost: CoreCost {
                             mana: cost.clone(),
                             exile_this: true,
@@ -5933,6 +5959,7 @@ impl Compiler<'_> {
                     })
                 }
                 Mechanic::Saddle(n) => AbilityDef::Activated(ActivatedAbility {
+                    counted: false,
                     cost: CoreCost {
                         crew: *n,
                         ..CoreCost::default()
@@ -6170,6 +6197,7 @@ impl Compiler<'_> {
             // and only while the Class is level 1: it is an ability of the
             // level 1 stage alone.
             Ability::ClassLevel { level, cost } => AbilityDef::Activated(ActivatedAbility {
+                counted: false,
                 cost: CoreCost {
                     mana: cost.clone(),
                     ..CoreCost::default()
@@ -7483,4 +7511,15 @@ fn ward_sacrifice(cost: &crate::ast::Cost) -> Option<&Filter> {
         }
         _ => None,
     }
+}
+
+/// Whether a sentence asks how often its ability has been activated this
+/// turn (`ActivatedAbility::counted`).
+fn counts_activations(s: &crate::ast::Sentence) -> bool {
+    s.effects.iter().any(|e| {
+        matches!(
+            e,
+            Effect::IfCondition(StaticCond::ActivatedThisTurn(_), _, _)
+        )
+    })
 }

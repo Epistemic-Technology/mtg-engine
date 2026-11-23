@@ -2103,8 +2103,14 @@ impl Fmt {
                 2 => "add commander rider scry".to_string(),
                 _ => "add commander".to_string(),
             },
-            Effect::AddManaLandCould { whose, basic } => format!(
-                "add any that {}land {} could produce",
+            Effect::AddManaTwoColors(n) => format!("add any {n} and any {n} other"),
+            Effect::AddManaLandCould {
+                whose,
+                basic,
+                any_type,
+            } => format!(
+                "add any {}that {}land {} could produce",
+                if *any_type { "type " } else { "" },
                 if *basic { "basic " } else { "" },
                 match whose {
                     Who::Opponents => "opponent controls",
@@ -2118,6 +2124,10 @@ impl Fmt {
                     .collect::<Vec<_>>()
                     .join(" or ")
             ),
+            Effect::AddManaTimes {
+                mana: Mana::Chosen,
+                count: Num::N(n),
+            } => format!("add chosen {n}"),
             Effect::AddManaTimes { mana, count } => {
                 format!(
                     "add {} {}",
@@ -2443,13 +2453,31 @@ impl Fmt {
                     words.push(format!("{p}/{q}"));
                 }
                 words.extend(colors.iter().map(|c| format!("{c:?}").to_lowercase()));
-                words.extend(subtypes.iter().cloned());
+                let every = subtypes
+                    .iter()
+                    .any(|s| s == crate::ast::EVERY_CREATURE_TYPE);
+                words.extend(
+                    subtypes
+                        .iter()
+                        .filter(|s| *s != crate::ast::EVERY_CREATURE_TYPE)
+                        .cloned(),
+                );
                 words.extend(types.iter().map(|t| format!("{t:?}").to_lowercase()));
                 if let (Some((p, q)), true) = (pt, base) {
                     words.push(format!("base {p}/{q}"));
                 }
                 if !ks.is_empty() {
                     words.push(format!("with {}", keywords(ks)));
+                }
+                if every {
+                    words.push(
+                        if ks.is_empty() {
+                            "with all creature types"
+                        } else {
+                            "and all creature types"
+                        }
+                        .to_string(),
+                    );
                 }
                 if *in_addition {
                     words.push("in addition".to_string());
@@ -2523,9 +2551,11 @@ impl Fmt {
                 "{} gains protection from chosen color",
                 self.recipient(*to, t)
             ),
-            Effect::BecomeChosen { to } => {
-                format!("{} becomes that type", self.recipient(*to, t))
-            }
+            Effect::BecomeChosen { to, color } => format!(
+                "{} becomes that {}",
+                self.recipient(*to, t),
+                if *color { "color" } else { "type" }
+            ),
             Effect::YouMay(inner) => format!("you may {}", self.line(inner, t)),
             Effect::PlayerMay { who, inner } => {
                 let who = self.recipient(*who, t);
@@ -4882,6 +4912,8 @@ fn cost_text(c: &Cost) -> String {
             CostItem::Exile => {
                 if c.exile_self {
                     parts.push("exile this from graveyard".to_string());
+                } else if c.exile_hand {
+                    parts.push("exile this from hand".to_string());
                 } else if c.exile_this {
                     parts.push("exile this".to_string());
                 }
@@ -5488,6 +5520,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::LandEnteredThisTurn => "land entered this turn".to_string(),
         StaticCond::ArtifactEnteredThisTurn => "artifact entered this turn".to_string(),
         StaticCond::CardsDrawnThisTurn(n) => format!("drew {n} cards this turn"),
+        StaticCond::ActivatedThisTurn(n) => format!("activated {n} times this turn"),
         StaticCond::CardsInHand { n, at_most } => {
             format!("hand {n} or {}", if *at_most { "less" } else { "more" })
         }
@@ -5685,12 +5718,118 @@ fn restricted_mana(m: Mana, r: &crate::ast::ManaRestriction) -> String {
 /// `only to cast instant or sorcery spell`, `only to cast artifact spells
 /// or activate of artifact bare`: what restricted mana may be spent on.
 fn restriction_text(r: &crate::ast::ManaRestriction) -> String {
-    use mtg_core::card::{SpendPlural, SpendWording};
+    use mtg_core::card::{SpendPlural, SpendWays, SpendWording};
+    let w = r.ways;
+    if w.has(SpendWays::ON_COSTS) {
+        return "on costs with x".to_string();
+    }
+    let mut out = if r.spells.is_none() && !r.abilities && w.0 != 0 {
+        // Only the other ways: `only to power-up abilities`.
+        let ways = spend_way_words(w, r.plural != SpendPlural::One);
+        let mut s = String::from("only to");
+        for (i, way) in ways.iter().enumerate() {
+            if i > 0 {
+                s.push_str(" plus");
+                if i == 1 && w.has(SpendWays::OR_TO) {
+                    s.push_str(" to");
+                }
+            }
+            s.push(' ');
+            s.push_str(way);
+        }
+        s
+    } else {
+        let mut s = restriction_base_text(r);
+        for (i, way) in spend_way_words(w, false).iter().enumerate() {
+            s.push_str(" plus");
+            if i == 0 && w.has(SpendWays::OR_TO) {
+                s.push_str(" to");
+            } else if i == 0 && r.wording == SpendWording::CastAnd && !r.abilities {
+                s.push_str(" and");
+            }
+            s.push(' ');
+            s.push_str(way);
+        }
+        s
+    };
+    if w.has(SpendWays::UNCOUNTERABLE) {
+        out.push_str(" uncounterable");
+    }
+    out
+}
+
+/// The DSL words of a restriction's other ways (`SpendWays`), in printed
+/// order; `plural` for the forms that set the plural wording.
+fn spend_way_words(w: mtg_core::card::SpendWays, plural: bool) -> Vec<String> {
+    use mtg_core::card::SpendWays;
+    let mut out = Vec::new();
+    let pl = |s: &str, p: &str| {
+        if plural {
+            format!("{s} {p}")
+        } else {
+            s.to_string()
+        }
+    };
+    if w.has(SpendWays::POWER_UP) {
+        out.push(pl("power-up", "abilities"));
+    }
+    if w.has(SpendWays::EQUIP) {
+        out.push(pl("equip", "abilities"));
+    }
+    if w.has(SpendWays::CLASS_LEVEL) {
+        out.push("class level".to_string());
+    }
+    if w.has(SpendWays::UNLOCK) {
+        out.push(pl("unlock", "doors"));
+    }
+    if w.has(SpendWays::FACE_UP) {
+        out.push(if w.has(SpendWays::FACE_UP_CREATURES) {
+            "face up creatures".to_string()
+        } else if w.has(SpendWays::FACE_UP_MORPH) {
+            "face up morph".to_string()
+        } else {
+            pl("face up", "permanents")
+        });
+    }
+    if w.has(SpendWays::COST_C) {
+        out.push("cost with c".to_string());
+    }
+    out
+}
+
+/// `a b`, or `b` alone when `a` is empty (an empty filter before
+/// `spells`).
+fn join_words(a: &str, b: &str) -> String {
+    if a.is_empty() {
+        b.to_string()
+    } else {
+        format!("{a} {b}")
+    }
+}
+
+/// A restriction's spells and abilities, before its other ways.
+fn restriction_base_text(r: &crate::ast::ManaRestriction) -> String {
+    use mtg_core::card::{SpendPlural, SpendWays, SpendWording};
     let noun = if r.plural == SpendPlural::One {
         "spell"
     } else {
         "spells"
     };
+    let mut quals = String::new();
+    for (bit, words) in [
+        (SpendWays::FROM_EXILE, " from exile"),
+        (SpendWays::FROM_GRAVEYARD, " from graveyard"),
+        (SpendWays::NOT_FROM_HAND, " not from hand"),
+        (SpendWays::FLASHBACK, " with flashback from graveyard"),
+        (SpendWays::FACE_DOWN, " face down"),
+    ] {
+        if r.ways.has(bit) {
+            quals.push_str(words);
+        }
+    }
+    if let Some(x) = &r.x_spells {
+        let _ = write!(quals, " or x {}", join_words(&filter(x), noun));
+    }
     // Each side of an alternative whole: "Elemental spell or Chandra
     // planeswalker spell".
     let spells = r.spells.as_ref().map(|f| match &f.or {
@@ -5698,9 +5837,13 @@ fn restriction_text(r: &crate::ast::ManaRestriction) -> String {
             let mut base = f.clone();
             base.or = None;
             base.alt_article = false;
-            format!("cast {} {noun} or {} {noun}", filter(&base), filter(alt))
+            format!(
+                "cast {} {noun}{quals} or {} {noun}",
+                filter(&base),
+                filter(alt)
+            )
         }
-        _ => format!("cast {} {noun}", filter(f)),
+        _ => format!("cast {}{quals}", join_words(&filter(f), noun)),
     });
     let joined = match r.plural {
         SpendPlural::And => " joined and",

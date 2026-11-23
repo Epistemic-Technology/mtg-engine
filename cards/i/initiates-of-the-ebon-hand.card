@@ -1,0 +1,7 @@
+card "Initiates of the Ebon Hand" {
+  oracle_id 0bf359ef-669f-41dc-8ab5-ba8e58b2f398
+  cost {B}
+  type Creature — Cleric
+  pt 1/1
+  activated {1}: add {B}; if activated 4 times this turn, delayed this: sacrifice this at beginning of the next end step
+}

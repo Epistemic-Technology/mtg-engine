@@ -1,0 +1,8 @@
+card "Cultivator Drone" {
+  oracle_id 6e62d553-d0d0-400e-a423-f0c3c1fdc911
+  cost {2}{U}
+  type Creature — Eldrazi Drone
+  pt 2/3
+  keywords devoid
+  mana {C} only to cast colorless spell or activate of colorless permanent bare plus cost with c
+}

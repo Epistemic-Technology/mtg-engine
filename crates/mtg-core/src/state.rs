@@ -1226,8 +1226,11 @@ pub fn targets_in<'p>(pool: &'p CardPool, o: &GameObject) -> &'p [TargetSpec] {
             .get(usize::from(o.cast.mode()))
             .map_or(&[], |m| &m.targets),
         // CR 601.2c: targets only a kicked spell has (or one cast using
-        // teamwork: "If this spell was cast using teamwork, instead ...").
-        None if o.cast.kicked() || o.cast.teamwork() => def.kicked_cast_targets(),
+        // teamwork: "If this spell was cast using teamwork, instead ...";
+        // or a bargained one: "If this spell was bargained, target ...").
+        None if o.cast.kicked() || o.cast.teamwork() || (def.bargain && o.cast.bargained()) => {
+            def.kicked_cast_targets()
+        }
         None => def.unkicked_cast_targets(),
     }
 }
@@ -2196,6 +2199,12 @@ pub struct GameState {
     /// Riders of the restricted mana the payment being made has spent
     /// (`RestrictedMana::rider`), for the spell being cast to trigger.
     pub spent_riders: Vec<(PlayerId, ManaRider)>,
+    /// The payment being made has spent mana whose restriction says "and
+    /// that spell can't be countered" (`SpendWays::UNCOUNTERABLE`).
+    pub spent_uncounterable: bool,
+    /// Spells cast with such mana (Cavern of Souls): they can't be
+    /// countered. Emptied as steps end, when the stack is empty.
+    pub uncounterable_spells: Vec<ObjId>,
     /// Battlefield permanents with a triggered mana ability (CR 605.1b,
     /// `DefFlags::MANA_TRIGGER`): tapping for mana and payment look for
     /// them only then.
@@ -3983,6 +3992,15 @@ impl GameState {
                 .players_in_game()
                 .any(|p| p != you && self.lost_life_this_turn & (1 << p.index().min(7)) != 0),
             C::PermanentLeftThisTurn => self.left_this_turn & (1 << you.index().min(7)) != 0,
+            // "If this ability has been activated four or more times this
+            // turn": the source's counted activations, this one included.
+            C::ActivatedThisTurn(n) => {
+                self.activated_once
+                    .iter()
+                    .filter(|(id, _)| *id == source)
+                    .count()
+                    >= *n as usize
+            }
             C::CardsInHand { n, at_most } => {
                 let h = self.player(you).hand.len();
                 if *at_most {

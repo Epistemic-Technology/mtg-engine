@@ -1,0 +1,8 @@
+card "Marwyn, the Nurturer" {
+  oracle_id ee35de1c-aef1-4bd4-85fd-fe77bc927790
+  cost {2}{G}
+  type Legendary Creature — Elf Druid
+  pt 1/1
+  triggered whenever another Elf you control enters: put 1 +1/+1 counter on this
+  activated {T}: add {G} count equal power
+}

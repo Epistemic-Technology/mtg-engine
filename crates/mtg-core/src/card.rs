@@ -2687,6 +2687,11 @@ pub enum StaticCondition {
         n: u32,
         at_most: bool,
     },
+    /// "If this ability has been activated four or more times this turn"
+    /// (Initiates of the Ebon Hand): the source's counted abilities
+    /// (`ActivatedAbility::counted`) activated at least N times this turn
+    /// (`GameState::activated_once`), this activation included.
+    ActivatedThisTurn(u32),
     /// The entering or resolving object was kicked (CR 702.33c): "If this
     /// creature was kicked, it enters with ..." and the abilities it then
     /// has.
@@ -4140,6 +4145,9 @@ pub enum Effect {
         colors: ColorSet,
         different: bool,
     },
+    /// "Add two mana of any one color and two mana of any other color":
+    /// `.0` mana of a color chosen, then `.0` of another color chosen.
+    AddManaTwoColors(u8),
     /// "Add one mana of any color that a land an opponent controls could
     /// produce" (CR 106.7): one mana of a kind the mana abilities of
     /// `whose` lands (`basic`: basic lands only) could make, judged as it
@@ -4148,6 +4156,10 @@ pub enum Effect {
     AddManaLandCould {
         whose: Who,
         basic: bool,
+        /// "one mana of any type": colorless too, when no color is
+        /// possible (Reflecting Pool, Naga Vitalist).
+        #[serde(default)]
+        any_type: bool,
     },
     /// "Add one mana of any color in your commander's color identity."
     /// The game has no commanders, so it adds no mana (CR 903.4f). `rider`
@@ -4414,6 +4426,11 @@ pub enum Effect {
     /// resolution (`Choose`).
     BecomeChosen {
         to: Recipient,
+        /// "becomes that color" (the color of the mana the ability just
+        /// added: "Add one mana of any color. This creature becomes that
+        /// color until end of turn."); wording only.
+        #[serde(default)]
+        color: bool,
     },
     /// "Creatures you control gain protection from the chosen color until
     /// end of turn": the color chosen earlier in the resolution.
@@ -5401,6 +5418,7 @@ impl Effect {
             Effect::AddMana(_)
             | Effect::AddManaOneOf(_)
             | Effect::AddManaTimes { .. }
+            | Effect::AddManaTwoColors(_)
             | Effect::AddManaCombination { .. }
             | Effect::AddManaLandCould { .. }
             | Effect::AddManaCommander { .. } => true,
@@ -5451,6 +5469,7 @@ impl Effect {
                 | Effect::AddMana(_)
                 | Effect::AddManaOneOf(_)
                 | Effect::AddManaTimes { .. }
+                | Effect::AddManaTwoColors(_)
                 | Effect::AddManaCombination { .. }
                 | Effect::AddManaLandCould { .. }
                 | Effect::KeepMana(_)
@@ -6907,6 +6926,10 @@ pub struct Cost {
     /// battlefield as the cost is paid (CR 602.2b).
     #[serde(default)]
     pub exile_this: bool,
+    /// "Exile this card from your hand" (Simian Spirit Guide): an ability
+    /// activated from the hand, the card exiled as the cost is paid.
+    #[serde(default)]
+    pub exile_hand: bool,
     /// Crew N (CR 702.122): tap any number of other untapped creatures you
     /// control with total power N or more.
     pub crew: u32,
@@ -7103,6 +7126,7 @@ impl Cost {
             discard_self: false,
             exile_self: false,
             exile_this: false,
+            exile_hand: false,
             crew: 0,
             remove_counters: None,
             put_counters: None,
@@ -7224,6 +7248,118 @@ pub struct ManaRestriction {
     /// named without "source". Wording only.
     #[serde(default)]
     pub bare: bool,
+    /// The other things it may be spent on (power-up and equip abilities,
+    /// a Class level, unlocking a door, turning a permanent face up, a
+    /// cost with {C} or {X}), what `spells` must have been cast as (from
+    /// exile, face down, ...), and the "that spell can't be countered"
+    /// rider.
+    #[serde(default)]
+    pub ways: SpendWays,
+    /// "or spells with {X} in their mana costs": also spells matching this
+    /// whose mana cost has {X} (CR 107.3).
+    #[serde(default)]
+    pub x_spells: Option<ObjFilter>,
+}
+
+/// What restricted mana may further be spent on, and what a spell it pays
+/// for must have been cast as (`ManaRestriction::ways`); also what a
+/// payment is (`SpendWays::of_ability`, the engine's spell context), so
+/// that a restriction allows a payment when they share an alternative.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct SpendWays(pub u32);
+
+impl SpendWays {
+    /// "activate power-up abilities" (CR 702.193).
+    pub const POWER_UP: u32 = 1;
+    /// "activate an equip ability" (CR 702.6).
+    pub const EQUIP: u32 = 1 << 1;
+    /// "gain a Class level" (CR 716.2a).
+    pub const CLASS_LEVEL: u32 = 1 << 2;
+    /// "unlock a door" (CR 709.5e).
+    pub const UNLOCK: u32 = 1 << 3;
+    /// "turn a permanent face up" (CR 116.2b).
+    pub const FACE_UP: u32 = 1 << 4;
+    /// "pay a cost that contains {C}": any spell or ability whose mana
+    /// cost has {C}.
+    pub const COST_C: u32 = 1 << 5;
+    /// "on costs that contain {X}": any spell or ability whose mana cost
+    /// has {X}.
+    pub const COST_X: u32 = 1 << 6;
+    /// The spell is cast from exile ("cast spells from exile").
+    pub const FROM_EXILE: u32 = 1 << 7;
+    /// The spell is cast from its owner's graveyard ("from your
+    /// graveyard").
+    pub const FROM_GRAVEYARD: u32 = 1 << 8;
+    /// The spell is cast from anywhere other than its caster's hand.
+    pub const NOT_FROM_HAND: u32 = 1 << 9;
+    /// The spell has flashback and is cast from a graveyard ("spells with
+    /// flashback from a graveyard").
+    pub const FLASHBACK: u32 = 1 << 10;
+    /// The spell is face down (CR 708.4: "face-down spells").
+    pub const FACE_DOWN: u32 = 1 << 11;
+    /// "..., and that spell can't be countered" (Cavern of Souls): a spell
+    /// this mana is spent to cast can't be countered.
+    pub const UNCOUNTERABLE: u32 = 1 << 12;
+    /// Wording: "turn creatures face up" rather than "permanents".
+    pub const FACE_UP_CREATURES: u32 = 1 << 13;
+    /// Wording: "pay a mana cost to turn a manifested creature face up, or
+    /// pay a morph cost" (the same rule as `FACE_UP`).
+    pub const FACE_UP_MORPH: u32 = 1 << 14;
+    /// Wording: "Spend this mana only on costs that contain {X}."
+    pub const ON_COSTS: u32 = 1 << 15;
+    /// Wording: an alternative after the first joined with "or to" ("cast
+    /// face-down spells or to turn creatures face up").
+    pub const OR_TO: u32 = 1 << 16;
+
+    /// The spell properties: each must hold of a spell for `spells` to
+    /// allow it.
+    pub const SPELL_QUALIFIERS: u32 = Self::FROM_EXILE
+        | Self::FROM_GRAVEYARD
+        | Self::NOT_FROM_HAND
+        | Self::FLASHBACK
+        | Self::FACE_DOWN;
+    /// The alternatives an activated ability's kind gives.
+    pub const ABILITY_KINDS: u32 = Self::POWER_UP | Self::EQUIP | Self::CLASS_LEVEL;
+    /// The alternatives a cost's symbols give.
+    pub const COSTS: u32 = Self::COST_C | Self::COST_X;
+
+    pub const fn has(self, bit: u32) -> bool {
+        self.0 & bit != 0
+    }
+
+    #[must_use]
+    pub const fn with(self, bit: u32) -> SpendWays {
+        SpendWays(self.0 | bit)
+    }
+
+    /// What paying for `ab` is: its kind, and the symbols of its mana
+    /// cost.
+    pub fn of_ability(ab: &ActivatedAbility) -> SpendWays {
+        let mut w = Self::of_cost(&ab.cost.mana);
+        if ab.keyword == Some(ActivatedKeyword::PowerUp) {
+            w.0 |= Self::POWER_UP;
+        }
+        if ab.is_equip() {
+            w.0 |= Self::EQUIP;
+        }
+        if ab.sorcery_speed && matches!(ab.effects.first(), Some(Effect::BecomeStage(_))) {
+            w.0 |= Self::CLASS_LEVEL;
+        }
+        w
+    }
+
+    /// `COST_C` and `COST_X` as `cost` has those symbols.
+    pub fn of_cost(cost: &crate::mana::ManaCost) -> SpendWays {
+        let mut w = 0;
+        if cost.has_x() {
+            w |= Self::COST_X;
+        }
+        if cost.has_colorless_symbol() {
+            w |= Self::COST_C;
+        }
+        SpendWays(w)
+    }
 }
 
 /// Whether a `ManaRestriction` reads in the plural ("Spend this mana only
@@ -7328,6 +7464,11 @@ pub struct ActivatedAbility {
     /// control" (CR 601.2f, by way of 602.2b).
     #[serde(default)]
     pub reduction: Option<Box<ActivationReduction>>,
+    /// Its activations are recorded each turn (`GameState::activated_once`)
+    /// for a condition on how often it has been activated
+    /// (`StaticCondition::ActivatedThisTurn`).
+    #[serde(default)]
+    pub counted: bool,
     /// Who may activate it (CR 602.1): `None`, its controller; `Any`,
     /// "Any player may activate this ability."; `Opponents`, "Only your
     /// opponents may activate this ability." The activating player pays

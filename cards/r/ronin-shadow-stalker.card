@@ -1,0 +1,8 @@
+card "Ronin, Shadow Stalker" {
+  oracle_id 8ceb1acf-5ff3-4f1a-af04-9f07ad454526
+  cost {2}{B}
+  type Legendary Creature — Human Rogue Hero
+  pt 3/3
+  activated pay 2 life, once: add any 2 only to cast Equipment spells plus equip abilities
+  activated {T}, sacrifice Equipment attached to this, sorcery: target creature gets -4/-4 until end of turn
+}

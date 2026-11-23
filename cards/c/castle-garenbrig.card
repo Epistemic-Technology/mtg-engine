@@ -1,0 +1,7 @@
+card "Castle Garenbrig" {
+  oracle_id de75e5dd-8a52-406c-b55c-96d686885500
+  type Land
+  enters tapped unless you control Forest
+  activated {T}: add {G}
+  activated {2}{G}{G}, {T}: add {G} 6 only to cast creature spells or activate of creature bare
+}

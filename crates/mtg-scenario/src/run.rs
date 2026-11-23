@@ -1570,7 +1570,21 @@ impl Runner {
                                 ) && self
                                     .state()
                                     .def_of(id)
-                                    .is_some_and(|d| d.gift.is_some() || d.teamwork > 0)),
+                                    .is_some_and(|d| d.gift.is_some() || d.teamwork > 0))
+                                // A bargained spell (`sacrificing` names
+                                // what is bargained) has the targets "If
+                                // this spell was bargained, target ..."
+                                // gives it.
+                                || (matches!(
+                                    &a.action,
+                                    Action::Cast {
+                                        sacrifice: Some(_),
+                                        ..
+                                    }
+                                ) && self
+                                    .state()
+                                    .def_of(id)
+                                    .is_some_and(|d| d.bargain && d.unkicked_targets.is_some())),
                         )?;
                         // A bestowed spell targets what it enchants; spliced
                         // cards' targets follow the spell's (CR 702.47a).

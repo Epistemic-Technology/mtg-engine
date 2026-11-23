@@ -107,6 +107,7 @@ fn effect_kinds(e: &Effect, chosen: Kinds) -> Kinds {
         Effect::AddMana(ms) | Effect::AddManaOneOf(ms) => ms.iter().fold(0, |k, m| k | of(*m)),
         Effect::AddManaTimes { mana, .. } => of(*mana),
         Effect::AddManaCombination { colors, .. } => color_kinds(*colors),
+        Effect::AddManaTwoColors(_) => ANY_COLOR,
         Effect::Instead { base, alt, .. } => base
             .iter()
             .chain(alt)
@@ -533,7 +534,7 @@ impl GameState {
             life: cost.life,
             tap: cost.tap,
             sac,
-            per_turn: ab.per_turn > 0,
+            per_turn: ab.per_turn > 0 || ab.counted,
             once_ever: ab.once_ever,
             remove: cost.remove_counters,
             put: cost.put_counters,
@@ -587,6 +588,7 @@ impl GameState {
         Some((made.out, made.tie, made.rest))
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per way to add mana
     fn mana_made_into(&self, ctx: &EffectCtx, effects: &[Effect], made: &mut Made) -> Option<()> {
         let id = ctx.source;
         let chosen = self.chosen_color_of(id).map_or(0, |c| 1 << (c as u8));
@@ -665,8 +667,17 @@ impl GameState {
                         made.out.push(k);
                     }
                 }
-                Effect::AddManaLandCould { whose, basic } => {
-                    let k = self.lands_could_produce(ctx.controller, *whose, *basic) & ANY_COLOR;
+                Effect::AddManaLandCould {
+                    whose,
+                    basic,
+                    any_type,
+                } => {
+                    let mut k = self.lands_could_produce(ctx.controller, *whose, *basic);
+                    // "any type": colorless only when no color is possible
+                    // (as it resolves).
+                    if !*any_type || k & ANY_COLOR != 0 {
+                        k &= ANY_COLOR;
+                    }
                     if k != 0 {
                         made.out.push(k);
                     }

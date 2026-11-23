@@ -1,0 +1,16 @@
+card "Docent of Perfection // Final Iteration" {
+  oracle_id 85e797de-da27-4cd5-8fa4-4aef948988b2
+  layout transform
+  cost {3}{U}{U}
+  type Creature — Insect Horror
+  pt 5/4
+  keywords flying
+  triggered whenever you cast instant or sorcery spell: create 1 "1/1 blue Human Wizard creature"; then if you control 3 Wizard, transform this
+  face "Final Iteration" {
+    type Creature — Eldrazi Insect
+    pt 6/5
+    keywords flying
+    static Wizard you control: +2/+1, has flying
+    triggered whenever you cast instant or sorcery spell: create 1 "1/1 blue Human Wizard creature"
+  }
+}

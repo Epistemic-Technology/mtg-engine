@@ -1,0 +1,161 @@
+scenario "Burnt Offering adds mana equal to the sacrificed creature's mana value" {
+  battlefield A: "Swamp", "Hill Giant"
+  hand A: "Burnt Offering", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Burnt Offering" sacrificing "Hill Giant"
+  turn 2 A: choose red
+  turn 2 A: choose red
+  turn 2 A: choose red
+  turn 2 A: choose red
+  turn 2 A: cast "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 1 "Hill Giant"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Burnt Offering's mana from a 2-drop can't cast a 4-drop" {
+  battlefield A: "Swamp", "Grizzly Bears"
+  hand A: "Burnt Offering", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Burnt Offering" sacrificing "Grizzly Bears"
+  turn 2 A: choose red
+  turn 2 A: choose red
+  illegal turn 2 A: cast "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Ecstatic Awakener draws, then transforms into Awoken Demon" {
+  battlefield A: "Ecstatic Awakener", "Grizzly Bears", 3 "Swamp"
+  library A: 5 "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Ecstatic Awakener" sacrificing "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+  assert power "Awoken Demon" 4
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Naga Vitalist adds a color a land you control could produce, tapped or not" {
+  battlefield A: "Naga Vitalist", "Mountain" tapped
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 17
+}
+
+scenario "Naga Vitalist can't add a color no land you control could produce" {
+  battlefield A: "Naga Vitalist", "Forest" tapped
+  battlefield B: "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  illegal turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 20
+}
+
+scenario "Naga Vitalist adds {C} when your lands make only colorless mana" {
+  battlefield A: "Naga Vitalist", "Wastes"
+  battlefield B: "Grizzly Bears"
+  hand A: "Spatial Contortion"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Spatial Contortion" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert tapped "Naga Vitalist"
+}
+
+scenario "Open the Omenpaths adds two mana of one color and two of another for a creature" {
+  battlefield A: 3 "Mountain"
+  hand A: "Open the Omenpaths", "Hill Giant", "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Open the Omenpaths" mode 1
+  turn 2 A: choose red
+  turn 2 A: choose green
+  turn 2 A: wait
+  illegal turn 2 A: cast "Lightning Bolt" targeting player B
+  turn 2 A: cast "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert life B 20
+}
+
+scenario "Open the Omenpaths's second mode pumps creatures" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Open the Omenpaths"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Open the Omenpaths" mode 2
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 3
+}
+
+scenario "Initiates of the Ebon Hand activated four times is sacrificed at the next end step" {
+  battlefield A: "Initiates of the Ebon Hand", "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Initiates of the Ebon Hand"
+  turn 2 A: activate "Initiates of the Ebon Hand"
+  turn 2 A: activate "Initiates of the Ebon Hand"
+  turn 2 A: activate "Initiates of the Ebon Hand"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Initiates of the Ebon Hand"
+  run_to turn 3 upkeep
+  assert graveyard A contains "Initiates of the Ebon Hand"
+}
+
+scenario "Initiates of the Ebon Hand activated three times stays" {
+  battlefield A: "Initiates of the Ebon Hand", "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Initiates of the Ebon Hand"
+  turn 2 A: activate "Initiates of the Ebon Hand"
+  turn 2 A: activate "Initiates of the Ebon Hand"
+  run_to turn 3 upkeep
+  assert battlefield A contains "Initiates of the Ebon Hand"
+}
+
+scenario "Initiates of the Ebon Hand's count starts over each turn" {
+  battlefield A: "Initiates of the Ebon Hand", "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Initiates of the Ebon Hand"
+  turn 2 A: activate "Initiates of the Ebon Hand"
+  turn 4 A: activate "Initiates of the Ebon Hand"
+  turn 4 A: activate "Initiates of the Ebon Hand"
+  run_to turn 5 upkeep
+  assert battlefield A contains "Initiates of the Ebon Hand"
+}
+
+scenario "Foraging Wickermaw becomes the color of the mana it adds" {
+  battlefield A: "Foraging Wickermaw", "Forest"
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Foraging Wickermaw"
+  turn 2 A: choose red
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert is "Foraging Wickermaw" red
+}
+
+scenario "Foraging Wickermaw is colorless again next turn" {
+  battlefield A: "Foraging Wickermaw", "Forest"
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Foraging Wickermaw"
+  turn 2 A: choose red
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 3 upkeep
+  assert is not "Foraging Wickermaw" red
+}
+
+scenario "Foraging Wickermaw's ability only once each turn" {
+  battlefield A: "Foraging Wickermaw", 2 "Forest"
+  hand A: "Lightning Bolt", "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Foraging Wickermaw"
+  turn 2 A: choose red
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  turn 2 A: wait
+  illegal turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 17
+}

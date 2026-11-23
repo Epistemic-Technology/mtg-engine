@@ -1,0 +1,29 @@
+scenario "Soulstone Sanctuary becomes a 3/3 with vigilance and every creature type, still a land" {
+  battlefield A: "Soulstone Sanctuary", 4 "Mountain"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Soulstone Sanctuary" ability 2
+  run_to turn 2 postcombat_main
+  assert is "Soulstone Sanctuary" creature
+  assert is "Soulstone Sanctuary" land
+  assert is "Soulstone Sanctuary" "Elf"
+  assert is "Soulstone Sanctuary" "Dragon"
+  assert power "Soulstone Sanctuary" 3
+  assert toughness "Soulstone Sanctuary" 3
+  assert has "Soulstone Sanctuary" vigilance
+}
+
+scenario "Soulstone Sanctuary stays a creature on later turns" {
+  battlefield A: "Soulstone Sanctuary", 4 "Mountain"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Soulstone Sanctuary" ability 2
+  run_to turn 4 upkeep
+  assert is "Soulstone Sanctuary" creature
+  assert is "Soulstone Sanctuary" "Goblin"
+}
+
+scenario "Soulstone Sanctuary isn't a creature before it is animated" {
+  battlefield A: "Soulstone Sanctuary"
+  run_to turn 1 postcombat_main
+  assert is not "Soulstone Sanctuary" creature
+  assert is not "Soulstone Sanctuary" "Elf"
+}

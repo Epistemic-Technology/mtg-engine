@@ -1,0 +1,8 @@
+card "Helga, Skittish Seer" {
+  oracle_id 0a0d25a8-4f28-453b-9270-4d449fe0ca65
+  cost {G}{W}{U}
+  type Legendary Creature — Frog Druid
+  pt 1/3
+  triggered whenever you cast creature with mana value 4 or greater spell: you draw 1 card, gain 1 life, and put 1 +1/+1 counter on this
+  activated {T}: add any count where power only to cast creature with mana value 4 or greater spells or x creature spells
+}

@@ -1,0 +1,7 @@
+card "Naga Vitalist" {
+  oracle_id 9cea8783-c7d7-49f9-b23d-324309efc140
+  cost {1}{G}
+  type Creature — Snake Druid
+  pt 1/2
+  activated {T}: add any type that land you control could produce
+}

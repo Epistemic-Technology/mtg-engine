@@ -142,6 +142,11 @@ pub struct ManaRestriction {
     pub plural: mtg_core::card::SpendPlural,
     /// `of artifact bare`: "abilities of artifacts", without "sources".
     pub bare: bool,
+    /// `plus unlock`, `plus face up`, `from exile`, `uncounterable`, ...:
+    /// see `mtg_core::card::SpendWays`.
+    pub ways: mtg_core::card::SpendWays,
+    /// `or x spells`: "or spells with {X} in their mana costs".
+    pub x_spells: Option<Box<Filter>>,
 }
 
 /// The pronoun a character's text uses for it after its name: `pronoun
@@ -693,6 +698,9 @@ pub struct Cost {
     pub exile_self: bool,
     /// `exile this`: "Exile this artifact" (from the battlefield).
     pub exile_this: bool,
+    /// `exile this from hand`: "Exile this card from your hand" (an
+    /// ability activated from the hand).
+    pub exile_hand: bool,
     /// Crew's cost (from its expansion).
     pub crew: u32,
     /// `pay 2 energy`: "Pay {E}{E}".
@@ -873,6 +881,11 @@ pub struct Targeting {
     pub player: bool,
     pub filter: Option<Filter>,
 }
+
+/// The subtype name standing for every creature type in a `becomes`
+/// (`Subtype::ALL_CREATURE_TYPES`, as `CardPool::subtype_name` names it):
+/// "with vigilance and all creature types".
+pub const EVERY_CREATURE_TYPE: &str = "(every creature type)";
 
 /// The subtype a filter names for "outlaw" (CR 700.12): it compiles to
 /// "Assassin, Mercenary, Pirate, Rogue, or Warlock".
@@ -2354,6 +2367,9 @@ pub enum StaticCond {
     CardsDrawnThisTurn(u32),
     /// `hand 1 or less`: "you have one or fewer cards in hand"; `hand 0 or
     /// less`: "you have no cards in hand".
+    /// `activated 4 times this turn`: "this ability has been activated
+    /// four or more times this turn".
+    ActivatedThisTurn(u32),
     CardsInHand {
         n: u32,
         at_most: bool,
@@ -4301,12 +4317,17 @@ pub enum Effect {
         colors: mtg_core::mana::ColorSet,
         different: bool,
     },
+    /// `add any 2 and any 2 other`: "Add two mana of any one color and two
+    /// mana of any other color."
+    AddManaTwoColors(u8),
     /// `add any that land opponent controls could produce`, `add any that
     /// basic land you control could produce`: "Add one mana of any color
     /// that a land an opponent controls could produce." (CR 106.7).
     AddManaLandCould {
         whose: Who,
         basic: bool,
+        /// `add any type that ...`: "one mana of any type".
+        any_type: bool,
     },
     /// `add commander`, `add commander rider counters`, `add commander
     /// rider scry`: "Add one mana of any color in your commander's color
@@ -4442,6 +4463,8 @@ pub enum Effect {
     /// (until end of turn).
     BecomeChosen {
         to: Recipient,
+        /// `becomes that color`.
+        color: bool,
     },
     /// `each creature you control gains protection from chosen color`
     /// (until end of turn).

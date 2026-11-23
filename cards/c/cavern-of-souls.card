@@ -1,0 +1,7 @@
+card "Cavern of Souls" {
+  oracle_id 89ca686a-7c72-4d8f-9290-e89635624a83
+  type Land
+  as this enters choose creature type
+  activated {T}: add {C}
+  mana any only to cast creature of chosen type spell uncounterable
+}

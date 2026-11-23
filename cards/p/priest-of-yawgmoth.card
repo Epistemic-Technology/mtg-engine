@@ -1,0 +1,7 @@
+card "Priest of Yawgmoth" {
+  oracle_id cb6465f9-dcf8-4258-aa18-661ad252b58b
+  cost {1}{B}
+  type Creature — Phyrexian Human Cleric
+  pt 1/2
+  activated {T}, sacrifice artifact: add {B} count equal mana value of the sacrificed artifact
+}

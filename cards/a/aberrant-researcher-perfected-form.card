@@ -1,0 +1,15 @@
+card "Aberrant Researcher // Perfected Form" {
+  oracle_id 722ee05f-6815-41b7-9813-5ec3902c1e9f
+  layout transform
+  cost {3}{U}
+  type Creature — Human Insect
+  pt 3/2
+  keywords flying
+  triggered at beginning of your upkeep: mill 1 card; if instant or sorcery card was milled this way, transform this
+  face "Perfected Form" {
+    type Creature — Insect Horror
+    pt 5/4
+    color blue
+    keywords flying
+  }
+}

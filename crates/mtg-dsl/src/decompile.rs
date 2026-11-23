@@ -210,6 +210,8 @@ impl Decompiler<'_> {
             wording: r.wording,
             plural: r.plural,
             bare: r.bare,
+            ways: r.ways,
+            x_spells: r.x_spells.as_ref().map(|f| Box::new(self.filter(f))),
         }
     }
 
@@ -436,6 +438,7 @@ impl Decompiler<'_> {
             sorcery: false,
             from_graveyard: false,
             exile_self: c.exile_self,
+            exile_hand: c.exile_hand,
             exile_this: c.exile_this,
             crew: c.crew,
             remove_counters: c.remove_counters,
@@ -750,6 +753,7 @@ impl Decompiler<'_> {
                 at_least: *at_least,
                 that: *that,
             },
+            StaticCondition::ActivatedThisTurn(n) => StaticCond::ActivatedThisTurn(*n),
             StaticCondition::CardsInHand { n, at_most } => StaticCond::CardsInHand {
                 n: *n,
                 at_most: *at_most,
@@ -1126,9 +1130,15 @@ impl Decompiler<'_> {
                 colors: *colors,
                 different: *different,
             },
-            CoreEffect::AddManaLandCould { whose, basic } => Effect::AddManaLandCould {
+            CoreEffect::AddManaTwoColors(n) => Effect::AddManaTwoColors(*n),
+            CoreEffect::AddManaLandCould {
+                whose,
+                basic,
+                any_type,
+            } => Effect::AddManaLandCould {
                 whose: *whose,
                 basic: *basic,
+                any_type: *any_type,
             },
             CoreEffect::AddManaCommander { rider } => Effect::AddManaCommander { rider: *rider },
             CoreEffect::PumpVar {
@@ -1374,7 +1384,10 @@ impl Decompiler<'_> {
                 indefinite: *indefinite,
             },
             CoreEffect::Choose(kind) => Effect::Choose(self.choice_kind(*kind)),
-            CoreEffect::BecomeChosen { to } => Effect::BecomeChosen { to: r(*to) },
+            CoreEffect::BecomeChosen { to, color } => Effect::BecomeChosen {
+                to: r(*to),
+                color: *color,
+            },
             CoreEffect::ProtectionFromChosen { to } => Effect::ProtectionFromChosen { to: r(*to) },
             CoreEffect::OfChoice {
                 to,

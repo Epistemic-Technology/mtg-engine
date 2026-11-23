@@ -1,0 +1,103 @@
+scenario "Helga adds mana equal to her power for a big creature, and its cast pays her off" {
+  battlefield A: "Helga, Skittish Seer" with 3 +1/+1
+  hand A: "Hill Giant"
+  library A: 5 "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Helga, Skittish Seer"
+  turn 2 A: choose red
+  turn 2 A: cast "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert life A 21
+  assert hand A count 1
+  assert counters "Helga, Skittish Seer" +1/+1 4
+}
+
+scenario "Helga's mana can't cast a small creature" {
+  battlefield A: "Helga, Skittish Seer" with 3 +1/+1
+  hand A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Helga, Skittish Seer"
+  turn 2 A: choose green
+  illegal turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "The Eternity Elevator at 20 charge counters adds X mana of one color" {
+  battlefield A: "The Eternity Elevator" with 20 charge
+  hand A: "Serra Angel"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Serra Angel"
+}
+
+scenario "The Eternity Elevator below 20 charge counters has only its {C}{C}{C}" {
+  battlefield A: "The Eternity Elevator" with 19 charge
+  hand A: "Serra Angel"
+  start turn 2 A precombat_main
+  illegal turn 2 A: cast "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Serra Angel"
+}
+
+scenario "Ronin pays 2 life for two mana for an Equipment and its equip" {
+  battlefield A: "Ronin, Shadow Stalker"
+  hand A: "Sylvok Lifestaff"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Ronin, Shadow Stalker" ability 1
+  turn 2 A: choose black
+  turn 2 A: cast "Sylvok Lifestaff"
+  turn 2 A: activate "Sylvok Lifestaff" targeting "Ronin, Shadow Stalker"
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert attached "Sylvok Lifestaff" to "Ronin, Shadow Stalker"
+}
+
+scenario "Ronin's mana can't cast a non-Equipment spell" {
+  battlefield A: "Ronin, Shadow Stalker"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Ronin, Shadow Stalker" ability 1
+  turn 2 A: choose red
+  illegal turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 20
+}
+
+scenario "Ronin sacrifices its Equipment to give a creature -4/-4" {
+  battlefield A: "Ronin, Shadow Stalker", "Sylvok Lifestaff" on "Ronin, Shadow Stalker"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Ronin, Shadow Stalker" ability 2 sacrificing "Sylvok Lifestaff" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Sylvok Lifestaff"
+}
+
+scenario "Sunken Citadel's two mana pay for a land's ability" {
+  battlefield A: "Soulstone Sanctuary", 2 "Mountain"
+  hand A: "Sunken Citadel"
+  start turn 2 A precombat_main
+  turn 2 A: play "Sunken Citadel"
+  turn 2 A: choose red
+  run_to turn 4 precombat_main
+  turn 4 A: activate "Sunken Citadel" ability 1
+  turn 4 A: activate "Soulstone Sanctuary" ability 2
+  run_to turn 4 postcombat_main
+  assert is "Soulstone Sanctuary" creature
+}
+
+scenario "Sunken Citadel's two mana can't cast a spell" {
+  battlefield A: "Mountain"
+  hand A: "Sunken Citadel", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: play "Sunken Citadel"
+  turn 2 A: choose red
+  run_to turn 4 precombat_main
+  turn 4 A: activate "Sunken Citadel" ability 1
+  illegal turn 4 A: cast "Hill Giant"
+  run_to turn 4 postcombat_main
+  assert hand A contains "Hill Giant"
+}

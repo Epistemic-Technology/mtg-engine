@@ -1,0 +1,5 @@
+card "Exotic Orchard" {
+  oracle_id 27b047e3-0d41-45e2-98e9-9391d7923a1e
+  type Land
+  activated {T}: add any that land opponent controls could produce
+}

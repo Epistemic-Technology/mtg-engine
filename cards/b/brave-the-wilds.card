@@ -1,0 +1,10 @@
+card "Brave the Wilds" {
+  oracle_id 49d189dd-9ce7-434f-931b-7110cd5255e7
+  cost {G}
+  type Sorcery
+  bargain
+  spell {
+    if bargained, target land you control becomes 3/3 Elemental creature with haste indefinitely
+    search basic land card reveal to hand
+  }
+}

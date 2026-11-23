@@ -1,0 +1,8 @@
+card "Foraging Wickermaw" {
+  oracle_id 11ceb2db-021e-422d-976e-7bfe3b67a8aa
+  cost {2}
+  type Artifact Creature — Scarecrow
+  pt 1/3
+  triggered when this enters: surveil 1
+  activated {1}, once: add any; this becomes that color
+}

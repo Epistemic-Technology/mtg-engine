@@ -1,0 +1,13 @@
+card "Legion's Landing // Adanto, the First Fort" {
+  oracle_id f7d8b91b-6541-4d3e-af51-7e000eac69c1
+  layout transform
+  cost {W}
+  type Legendary Enchantment
+  triggered when this enters: create 1 "1/1 white Vampire creature with lifelink"
+  triggered when you attack with 3 or more creatures: transform this
+  face "Adanto, the First Fort" {
+    type Legendary Land
+    activated {T}: add {W}
+    activated {2}{W}, {T}: create 1 "1/1 white Vampire creature with lifelink"
+  }
+}

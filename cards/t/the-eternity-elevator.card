@@ -1,0 +1,8 @@
+card "The Eternity Elevator" {
+  oracle_id 11323af4-b8b8-4ca9-932f-377c7fd77dea
+  cost {5}
+  type Legendary Artifact — Spacecraft
+  activated {T}: add {C}{C}{C}
+  station
+  station 20: activated {T}: add any count where charge counters on this
+}
