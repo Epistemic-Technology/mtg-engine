@@ -388,6 +388,17 @@ impl GameState {
         let srcs = all.as_ref().unwrap_or(sources);
         let ps = self.player(p);
         let req = self.cost_of(b, changers);
+        // CR 118.9, 601.2h: an alternative cost that taps permanents
+        // ("{3}{U}, Tap an untapped artifact you control", Zahid) leaves
+        // enough of the mana untapped, as payment's choice of them
+        // (`tap_first_options`) requires.
+        if b.alt == AltCast::AltCost
+            && let Some(alt) = b.card.alt_cost.as_deref()
+            && alt.cost.taps_chosen()
+            && !self.cost_option_payable(p, &alt.cost, id, srcs, req, false)
+        {
+            return false;
+        }
         // CR 702.119a: emerge, reduced by the mana value of the creature
         // sacrificed: some creature must leave the rest payable without
         // its own mana.

@@ -65,3 +65,20 @@ scenario "cast paths: with four lands the taxed face-down spell is cast" {
   run_to turn 1 postcombat_main
   assert battlefield A contains "face-down creature"
 }
+
+scenario "cast paths: an alternative cost that taps an artifact leaves the mana payable" {
+  battlefield A: 3 "Island", "Mind Stone"
+  hand A: "Zahid, Djinn of the Lamp"
+  illegal turn 1 A: cast "Zahid, Djinn of the Lamp" alternative
+  run_to turn 1 postcombat_main
+  assert hand A contains "Zahid, Djinn of the Lamp"
+}
+
+scenario "cast paths: with another artifact to tap, Zahid is cast for its alternative cost" {
+  battlefield A: 3 "Island", "Mind Stone", "Ornithopter"
+  hand A: "Zahid, Djinn of the Lamp"
+  turn 1 A: cast "Zahid, Djinn of the Lamp" alternative
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zahid, Djinn of the Lamp"
+  assert tapped "Ornithopter"
+}
