@@ -1,0 +1,8 @@
+card "Hedge Whisperer" {
+  oracle_id 923b2a1b-d7b6-439d-9681-c7ba88165c31
+  cost {G}
+  type Creature — Elf Druid Detective
+  pt 0/3
+  keywords may choose not to untap
+  activated {3}{G}, {T}, collect evidence 4, sorcery: target land you control becomes 5/5 green Plant Boar creature with haste for as long as this remains tapped
+}

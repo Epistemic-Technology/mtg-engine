@@ -63,3 +63,30 @@ scenario "Phyrexian Gremlins: untapped by an effect, the artifact untaps next ti
   run_to turn 4 upkeep
   assert untapped "Ornithopter"
 }
+
+scenario "Hedge Whisperer: the land is a 5/5 creature while the Whisperer stays tapped" {
+  battlefield A: "Hedge Whisperer", 4 "Forest", "Plains"
+  graveyard A: "Hill Giant"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Hedge Whisperer" targeting "Plains"
+  turn 5 untap A: accept "Hedge Whisperer"
+  run_to turn 3 postcombat_main
+  assert exile A contains "Hill Giant"
+  assert is "Plains" creature
+  assert power "Plains" 5
+  run_to turn 5 upkeep
+  assert tapped "Hedge Whisperer"
+  assert is "Plains" creature
+}
+
+scenario "Hedge Whisperer: once the Whisperer untaps, the land is only a land" {
+  battlefield A: "Hedge Whisperer", 4 "Forest", "Plains"
+  graveyard A: "Hill Giant"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Hedge Whisperer" targeting "Plains"
+  run_to turn 3 postcombat_main
+  assert is "Plains" creature
+  run_to turn 5 upkeep
+  assert untapped "Hedge Whisperer"
+  assert is not "Plains" creature
+}
