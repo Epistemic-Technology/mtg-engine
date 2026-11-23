@@ -49,3 +49,15 @@ scenario "Entropic Decay mills four" {
   assert graveyard A count 4
   assert exile A contains "Gray Slaad"
 }
+
+scenario "Inspiration from Beyond mills three and returns an instant" {
+  battlefield A: 3 "Island"
+  hand A: "Inspiration from Beyond"
+  library A: "Grizzly Bears", "Lightning Bolt", "Shock", "Plains"
+  turn 1 A: cast "Inspiration from Beyond"
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+  assert graveyard A contains "Lightning Bolt"
+  assert graveyard A contains "Grizzly Bears"
+}
