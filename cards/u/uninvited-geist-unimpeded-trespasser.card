@@ -1,0 +1,15 @@
+card "Uninvited Geist // Unimpeded Trespasser" {
+  oracle_id 5c975dbb-aabb-43fe-877c-c3950019a584
+  layout transform
+  cost {2}{U}
+  type Creature — Spirit
+  pt 2/2
+  keywords skulk
+  triggered when this deals combat damage to a player: transform this
+  face "Unimpeded Trespasser" {
+    type Creature — Spirit
+    pt 3/3
+    color blue
+    keywords can't be blocked
+  }
+}

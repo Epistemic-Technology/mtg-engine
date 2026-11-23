@@ -74,6 +74,54 @@ scenario "Aberrant Researcher doesn't transform when it mills a land" {
   assert power "Aberrant Researcher" 3
 }
 
+scenario "Legion's Landing makes a Vampire and transforms when you attack with three creatures" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Plains"
+  hand A: "Legion's Landing"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Legion's Landing"
+  turn 4 A: attack "Grizzly Bears", "Hill Giant", "Vampire"
+  run_to turn 4 postcombat_main
+  assert is "Adanto, the First Fort" land
+  assert has "Vampire" lifelink
+}
+
+scenario "Legion's Landing stays with two attackers" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Legion's Landing"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Legion's Landing"
+  turn 4 A: attack "Grizzly Bears", "Vampire"
+  run_to turn 4 postcombat_main
+  assert battlefield A contains "Legion's Landing"
+}
+
+scenario "Adanto, the First Fort taps for {W} and makes Vampires" {
+  battlefield A: "Adanto, the First Fort", 3 "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Adanto, the First Fort" ability 2
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Vampire"
+}
+
+scenario "Uninvited Geist transforms after dealing combat damage to a player" {
+  battlefield A: "Uninvited Geist"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Uninvited Geist"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert power "Unimpeded Trespasser" 3
+}
+
+scenario "Uninvited Geist blocked doesn't transform" {
+  battlefield A: "Uninvited Geist"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Uninvited Geist"
+  turn 2 B: block "Uninvited Geist" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Uninvited Geist"
+}
+
 scenario "Lone Rider transforms at the end step after its controller gained 3 life" {
   battlefield A: "Lone Rider", "Plains"
   hand A: "Healing Salve"
