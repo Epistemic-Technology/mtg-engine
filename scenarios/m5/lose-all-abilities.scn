@@ -37,3 +37,26 @@ scenario "Abigale: the target loses its abilities for good, then has the counter
   assert has "Serra Angel" lifelink
   assert counters "Serra Angel" lifelink 1
 }
+
+scenario "Retched Wretch with a -1/-1 counter returns without abilities" {
+  battlefield A: "Retched Wretch" with 1 -1/-1
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Retched Wretch"
+  turn 2 B: wait
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Retched Wretch"
+  assert no_abilities "Retched Wretch"
+  assert power "Retched Wretch" 4
+}
+
+scenario "Retched Wretch without a -1/-1 counter stays dead" {
+  battlefield A: "Retched Wretch"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Retched Wretch"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Retched Wretch"
+}
