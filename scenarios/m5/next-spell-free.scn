@@ -1,0 +1,62 @@
+# "The next red or green creature spell you cast this turn can be cast
+# without paying its mana cost." (CR 118.9): `cast "X" free` takes the
+# permission; the next such spell uses it up however it is cast.
+
+scenario "next spell free: World War Hulk's chapter I frees a green creature spell" {
+  battlefield A: 5 "Forest"
+  hand A: "World War Hulk", "Craw Wurm", "Serra Angel"
+  turn 1 A: cast "World War Hulk"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Serra Angel" free
+  turn 1 A: cast "Craw Wurm" free
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Craw Wurm"
+  assert hand A contains "Serra Angel"
+}
+
+scenario "next spell free: only the next such spell" {
+  battlefield A: 5 "Forest"
+  hand A: "World War Hulk", "Craw Wurm", "Grizzly Bears"
+  turn 1 A: cast "World War Hulk"
+  turn 1 A: wait
+  turn 1 A: cast "Craw Wurm" free
+  turn 1 A: wait
+  illegal turn 1 A: cast "Grizzly Bears" free
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "next spell free: paying for the next such spell uses it up" {
+  battlefield A: 7 "Forest"
+  hand A: "World War Hulk", "Grizzly Bears", "Craw Wurm"
+  turn 1 A: cast "World War Hulk"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Craw Wurm" free
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A contains "Craw Wurm"
+}
+
+scenario "next spell free: the permission ends with the turn" {
+  battlefield A: 5 "Forest"
+  hand A: "World War Hulk", "Craw Wurm"
+  library A: "Forest", "Forest", "Forest"
+  turn 1 A: cast "World War Hulk"
+  illegal turn 3 A: cast "Craw Wurm" free
+  run_to turn 3 postcombat_main
+  assert hand A contains "Craw Wurm"
+}
+
+scenario "next spell free: World War Hulk's chapter III doubles and gives trample until end of turn" {
+  battlefield A: "World War Hulk" with 2 lore, "Grizzly Bears"
+  library A: "Forest", "Forest", "Forest"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert has "Grizzly Bears" trample
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" trample
+}

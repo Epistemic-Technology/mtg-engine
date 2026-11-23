@@ -7379,6 +7379,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::NextSpellUncounterable => {
             Clause::imperative("the next spell you cast this turn can't be countered".to_string())
         }
+        Effect::NextSpellFree(f) => Clause::imperative(format!(
+            "the next {} you cast this turn can be cast without paying its mana cost",
+            a_spell(f, ctx.card)
+                .trim_start_matches("a ")
+                .trim_start_matches("an ")
+        )),
         Effect::NextSpellLess(n) => Clause::imperative(format!(
             "the next spell you cast this turn costs {{{n}}} less to cast"
         )),
@@ -9185,12 +9191,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 "power"
             };
+            // "Until end of turn, double its power and toughness and it
+            // gains trample." (World War Hulk): the duration printed first.
+            let eot = if ctx.eot_first {
+                ""
+            } else {
+                " until end of turn"
+            };
             if *of {
                 let o = ctx.obj(*to);
-                Clause::imperative(format!("double the {pt} of {o} until end of turn"))
+                Clause::imperative(format!("double the {pt} of {o}{eot}"))
             } else {
                 let s = ctx.subj(*to);
-                Clause::imperative(format!("double {} {pt} until end of turn", possessive(&s)))
+                Clause::imperative(format!("double {} {pt}{eot}", possessive(&s)))
             }
         }
         Effect::DoubleCounters { kind, to } => {

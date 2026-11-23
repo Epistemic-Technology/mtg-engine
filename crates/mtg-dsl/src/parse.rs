@@ -10287,6 +10287,18 @@ impl P {
                 self.pos += 4;
                 Ok(Effect::NextSpellUncounterable)
             }
+            // "The next red or green creature spell you cast this turn can
+            // be cast without paying its mana cost."
+            "next"
+                if (1..8).any(|k| {
+                    self.word_at(k).as_deref() == Some("spell")
+                        && self.word_at(k + 1).as_deref() == Some("free")
+                }) && !self.at_word("spell") =>
+            {
+                let f = self.filter()?;
+                self.expect_words(&["spell", "free"])?;
+                Ok(Effect::NextSpellFree(f))
+            }
             "next" if self.at_word("spell") => {
                 self.expect_words(&["spell", "costs"])?;
                 let n = self.mana_cost()?.mana_value();

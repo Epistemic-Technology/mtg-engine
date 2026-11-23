@@ -516,6 +516,7 @@ impl GameState {
             resolutions_this_turn: 0,
             spells_this_turn: [0; 4],
             next_spell_less: [0; 4],
+            next_spell_free: Vec::new(),
             next_uncounterable: 0,
             mana_spent_this_turn: [0; 4],
             mana_spent_before_cast: [0; 4],
@@ -1977,8 +1978,8 @@ impl GameState {
             // "You may cast spells from your hand without paying their
             // mana costs." (CR 118.9); a once-each-turn permission is used.
             (Flow::Priority, Choice::CastFree(card)) => {
-                if let Some((src, a, true)) = self.free_cast_permission(player, card) {
-                    self.activated_once.push((src, a));
+                if let Some(Some(once)) = self.free_cast_permission(player, card) {
+                    self.activated_once.push(once);
                 }
                 self.begin_cast(player, card, crate::state::AltCast::Free);
             }
@@ -3643,6 +3644,7 @@ impl GameState {
             }
             self.spells_last_turn = std::mem::take(&mut self.spells_this_turn);
             self.next_spell_less = [0; 4];
+            self.next_spell_free.clear();
             self.next_uncounterable = 0;
             self.drawn_this_turn = [0; 4];
             // "As long as you've drawn two or more cards this turn" and

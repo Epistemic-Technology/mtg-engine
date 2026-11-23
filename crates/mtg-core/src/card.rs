@@ -4368,6 +4368,12 @@ pub enum Effect {
     /// generic mana; several such effects add up, and that one spell uses
     /// them all up.
     NextSpellLess(u32),
+    /// "The next red or green creature spell you cast this turn can be
+    /// cast without paying its mana cost." (CR 118.9): the controller's
+    /// next spell this turn matching the filter may be cast from their
+    /// hand without paying its mana cost (`Choice::CastFree`); the next
+    /// such spell uses it up, however it is cast.
+    NextSpellFree(ObjFilter),
     /// "The next spell you cast this turn can't be countered" (CR 101.2):
     /// the controller's next spell this turn is uncounterable.
     NextSpellUncounterable,

@@ -3384,6 +3384,10 @@ impl Compiler<'_> {
                 out.push(CoreEffect::ExileSameName { what: r(*what) });
             }
             Effect::NextSpellLess(n) => out.push(CoreEffect::NextSpellLess(*n)),
+            Effect::NextSpellFree(f) => {
+                let f = self.filter(f);
+                out.push(CoreEffect::NextSpellFree(f));
+            }
             Effect::NextSpellUncounterable => out.push(CoreEffect::NextSpellUncounterable),
             Effect::ExtraLandPlays(n) => out.push(CoreEffect::ExtraLandPlays(*n)),
             Effect::FaceDownSpellsLess(n) => out.push(CoreEffect::FaceDownSpellsLess(*n)),

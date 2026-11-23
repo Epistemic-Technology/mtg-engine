@@ -4067,6 +4067,10 @@ pub enum Effect {
     /// `next spell costs {1} less`: "the next spell you cast this turn
     /// costs {1} less to cast".
     NextSpellLess(u32),
+    /// `next creature spell free`: "The next creature spell you cast this
+    /// turn can be cast without paying its mana cost." (any filter before
+    /// `spell`).
+    NextSpellFree(Filter),
     /// `next spell can't be countered`: "the next spell you cast this turn
     /// can't be countered".
     NextSpellUncounterable,

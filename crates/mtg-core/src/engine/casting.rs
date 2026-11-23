@@ -29,7 +29,8 @@ impl GameState {
         let sources = self.mana_sources(p);
         let pool = ps.mana_pool;
         let changers = self.cost_changers();
-        let free_from_hand = self.player_static_sources > 0 && self.may_cast_free(p);
+        let free_from_hand = (self.player_static_sources > 0 && self.may_cast_free(p))
+            || self.next_spell_free.iter().any(|(who, _)| *who == p);
         for id in &ps.hand {
             let def = self.pool.get(self.objects[*id].def);
             // Abilities activated from the hand (cycling, CR 702.29) cost
@@ -3147,15 +3148,16 @@ impl GameState {
         })
     }
 
-    /// The static permission (`AbilityDef::CastFree`) that lets `p` cast
-    /// `card` from their hand without paying its mana cost now (CR 601.2b,
-    /// 118.9): its source and ability, and whether it is used once each
-    /// turn.
+    /// The permission that lets `p` cast `card` from their hand without
+    /// paying its mana cost now (CR 601.2b, 118.9): a static ability
+    /// (`AbilityDef::CastFree`) or "the next ... spell you cast this turn"
+    /// (`Effect::NextSpellFree`). Inside, the source and ability of a
+    /// once-each-turn permission, to be recorded as used.
     pub(super) fn free_cast_permission(
         &self,
         p: PlayerId,
         card: ObjId,
-    ) -> Option<(ObjId, crate::card::AbilityId, bool)> {
+    ) -> Option<Option<(ObjId, crate::card::AbilityId)>> {
         use crate::card::FreeCastLimit;
         let o = self.objects.get(card)?;
         if o.zone != Zone::Hand || o.owner != p {
@@ -3163,6 +3165,19 @@ impl GameState {
         }
         let def = self.pool.get(o.def);
         let chars = self.base_characteristics(o);
+        let mv = def.mana_cost.mana_value();
+        for (who, f) in &self.next_spell_free {
+            if *who == p
+                && f.mana_value
+                    .is_none_or(|(cmp, n)| cmp.holds(mv, u32::from(n)))
+                && f.matches(card, p, &chars, None, Some(p))
+            {
+                return Some(None);
+            }
+        }
+        if self.player_static_sources == 0 {
+            return None;
+        }
         for src in &self.battlefield {
             let s = &self.objects[*src];
             if !self.flags_of(s).has_player_static() {
@@ -3189,7 +3204,6 @@ impl GameState {
                 if !ok_player {
                     continue;
                 }
-                let mv = def.mana_cost.mana_value();
                 // The mana value isn't a characteristic `matches` sees.
                 if !spells
                     .mana_value
@@ -3221,7 +3235,7 @@ impl GameState {
                         continue;
                     }
                 }
-                return Some((*src, *a, *limit == FreeCastLimit::OnceYourTurns));
+                return Some((*limit == FreeCastLimit::OnceYourTurns).then_some((*src, *a)));
             }
         }
         None
@@ -8299,6 +8313,24 @@ impl GameState {
         // "The next spell you cast this turn costs {1} less": used up by
         // this spell, its total cost paid (CR 601.2f-h).
         self.next_spell_less[caster.index().min(3)] = 0;
+        // "The next red or green creature spell you cast this turn can be
+        // cast without paying its mana cost": used up by the next such
+        // spell, however it was cast.
+        if !self.next_spell_free.is_empty()
+            && let Some(chars) = self.characteristics(spell)
+        {
+            let mv = self
+                .pool
+                .get(self.objects[spell].def)
+                .mana_cost
+                .mana_value();
+            self.next_spell_free.retain(|(who, f)| {
+                !(*who == caster
+                    && f.mana_value
+                        .is_none_or(|(cmp, n)| cmp.holds(mv, u32::from(n)))
+                    && f.matches(spell, caster, &chars, None, Some(caster)))
+            });
+        }
         // "The next spell you cast this turn can't be countered."
         let bit = 1u8 << caster.index().min(7);
         if self.next_uncounterable & bit != 0 {
@@ -11530,6 +11562,9 @@ impl GameState {
             }
             Effect::NextSpellUncounterable => {
                 self.next_uncounterable |= 1 << ctx.controller.index().min(7);
+            }
+            Effect::NextSpellFree(f) => {
+                self.next_spell_free.push((ctx.controller, f.clone()));
             }
             Effect::NextSpellLess(n) => {
                 let i = ctx.controller.index().min(3);

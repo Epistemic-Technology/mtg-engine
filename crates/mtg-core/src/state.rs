@@ -2066,6 +2066,10 @@ pub struct GameState {
     /// ("the next spell you cast this turn costs {1} less to cast"), by
     /// player index like `spells_this_turn`; zero in most games.
     pub next_spell_less: [u16; 4],
+    /// "The next red or green creature spell you cast this turn can be
+    /// cast without paying its mana cost" (`Effect::NextSpellFree`): the
+    /// player and the spells' filter; empty in most games.
+    pub next_spell_free: Vec<(PlayerId, crate::card::ObjFilter)>,
     /// Players (by index bit) whose next spell this turn can't be
     /// countered (`Effect::NextSpellUncounterable`); zero in most games.
     pub next_uncounterable: u8,

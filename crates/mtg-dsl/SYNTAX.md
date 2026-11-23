@@ -1001,6 +1001,12 @@ instant and/or sorcery cards in your graveyard, scry 2."). `that target
 `next spell costs {1} less` prints "the next spell you cast this turn costs {1}
 less to cast" (CR 601.2f): generic mana off the controller's next spell
 this turn; several add up, and that spell uses them all up.
+`next red or green creature spell free` prints "the next red or green
+creature spell you cast this turn can be cast without paying its mana
+cost" (CR 118.9; any filter before `spell`): the controller may cast the
+next such spell from their hand without paying its mana cost (`cast "X"
+free` in a scenario); the next such spell uses it up however it is cast,
+and it ends with the turn.
 `next spell can't be countered` prints "the next spell you cast this turn
 can't be countered" (CR 101.2): the controller's next spell cast this
 turn is uncounterable; the effect ends with the turn.
