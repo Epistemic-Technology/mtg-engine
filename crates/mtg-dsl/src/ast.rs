@@ -3850,6 +3850,11 @@ pub enum Effect {
     Goad {
         what: Recipient,
     },
+    /// `leaving exiles it`: "If it would leave the battlefield, exile it
+    /// instead of putting it anywhere else." (CR 702.84a's replacement).
+    ExileOnLeave {
+        what: Recipient,
+    },
     /// `detain target creature an opponent controls` (CR 701.35).
     Detain {
         what: Recipient,

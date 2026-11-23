@@ -9198,6 +9198,12 @@ impl P {
                 let to = self.recipients()?;
                 Ok(Effect::Tap { to })
             }
+            "leaving" => {
+                self.expect_word("exiles")?;
+                Ok(Effect::ExileOnLeave {
+                    what: self.recipient()?,
+                })
+            }
             "goad" => Ok(Effect::Goad {
                 what: self.recipient()?,
             }),

@@ -12867,6 +12867,13 @@ impl GameState {
                     }
                 }
             }
+            Effect::ExileOnLeave { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.objects[id].marks |= crate::state::OBJ_EXILE_ON_LEAVE;
+                    }
+                }
+            }
             Effect::PunishEach { life, unless } => self.punish_each(ctx, *life, unless.as_ref()),
             Effect::DrawCastOne { count } => self.draw_cast_one(ctx, *count),
             Effect::CastFree {

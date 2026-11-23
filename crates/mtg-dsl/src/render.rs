@@ -6680,6 +6680,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*what);
             Clause::imperative(format!("goad {o}"))
         }
+        // CR 702.84a's replacement, as its own sentence (Whip of Erebos).
+        Effect::ExileOnLeave { what } => {
+            let o = ctx.obj(*what);
+            Clause::imperative(format!(
+                "if {o} would leave the battlefield, exile {o} instead of putting {o} anywhere else"
+            ))
+        }
         Effect::Detain { what } => {
             let o = ctx.obj(*what);
             Clause::imperative(format!("detain {o}"))
@@ -10944,6 +10951,35 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             // Shadowmoor Mimics, CR 105.2).
             if base.status.all_colors && base.colors.is_some() && base.targeting.is_none() {
                 return format!("whenever {who} {}{that}", a_spell(&base, ctx.card));
+            }
+            if false
+                && !base.any_types.is_empty()
+                && let Some(alt) = &base.or
+                && alt.or.is_none()
+                && !base.alt_article
+                && {
+                    let mut g = base.clone();
+                    g.any_types.clear();
+                    g.or = None;
+                    g == Filter::default()
+                }
+            {
+                let mut items: Vec<String> = base
+                    .any_types
+                    .iter()
+                    .map(|t| type_noun(*t).to_string())
+                    .collect();
+                let w = spells_subject(alt, ctx.card);
+                let w = w.strip_suffix(" spells").unwrap_or(&w).to_string();
+                items.push(if lower_spell_subject(alt) {
+                    lowercase_first(&w)
+                } else {
+                    w
+                });
+                return format!(
+                    "whenever {who} {}{that}",
+                    with_article(&spell_noun(&or_list(&items)))
+                );
             }
             // "an instant or sorcery spell with mana value 4 or less".
             if !base.any_types.is_empty() {

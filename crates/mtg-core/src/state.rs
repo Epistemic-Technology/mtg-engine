@@ -157,6 +157,10 @@ pub const OBJ_SUSPECTED: u8 = 16;
 /// Came onto the battlefield since its echo was last dealt with (CR
 /// 702.30a): set as it enters, cleared by its echo trigger.
 pub const OBJ_ECHO_DUE: u8 = 32;
+/// "If it would leave the battlefield, exile it instead of putting it
+/// anywhere else" (unearth, CR 702.84a; Whip of Erebos): set by
+/// `Effect::ExileOnLeave`, for this object only (CR 400.7).
+pub const OBJ_EXILE_ON_LEAVE: u8 = 64;
 
 impl GameObject {
     pub const fn renowned(&self) -> bool {
@@ -179,6 +183,9 @@ impl GameObject {
     }
     pub const fn echo_due(&self) -> bool {
         self.marks & OBJ_ECHO_DUE != 0
+    }
+    pub const fn exile_on_leave(&self) -> bool {
+        self.marks & OBJ_EXILE_ON_LEAVE != 0
     }
 }
 

@@ -1549,6 +1549,9 @@ impl Fmt {
                 format!("face-down spells cost {{{n}}} less this turn")
             }
             Effect::Goad { what } => format!("goad {}", self.recipient(*what, t)),
+            Effect::ExileOnLeave { what } => {
+                format!("leaving exiles {}", self.recipient(*what, t))
+            }
             Effect::TurnFaceUp { what } => format!("turn face up {}", self.recipient(*what, t)),
             Effect::TurnFaceDown { what } => {
                 format!("turn face down {}", self.recipient(*what, t))

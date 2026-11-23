@@ -3176,6 +3176,7 @@ impl Compiler<'_> {
             Effect::ExtraLandPlays(n) => out.push(CoreEffect::ExtraLandPlays(*n)),
             Effect::FaceDownSpellsLess(n) => out.push(CoreEffect::FaceDownSpellsLess(*n)),
             Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),
+            Effect::ExileOnLeave { what } => out.push(CoreEffect::ExileOnLeave { what: r(*what) }),
             Effect::TurnFaceUp { what } => out.push(CoreEffect::TurnFaceUp { what: r(*what) }),
             Effect::TurnFaceDown { what } => out.push(CoreEffect::TurnFaceDown { what: r(*what) }),
             Effect::LookAtFaceDown { what } => {
@@ -6940,6 +6941,11 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         to: Recipient::Source,
                         each: false,
                         no_also: false,
+                    },
+                    // CR 702.84a: "If it would leave the battlefield,
+                    // exile it instead of putting it anywhere else."
+                    E::ExileOnLeave {
+                        what: Recipient::Source,
                     },
                     E::Delayed {
                         about: Recipient::Source,

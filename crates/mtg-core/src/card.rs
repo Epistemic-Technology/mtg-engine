@@ -4647,6 +4647,13 @@ pub enum Effect {
     Goad {
         what: Recipient,
     },
+    /// "If it would leave the battlefield, exile it instead of putting it
+    /// anywhere else" (unearth, CR 702.84a): each recipient on the
+    /// battlefield is marked (`OBJ_EXILE_ON_LEAVE`) and exiled instead
+    /// whenever it would leave for another zone.
+    ExileOnLeave {
+        what: Recipient,
+    },
     /// "Each player loses 2 life unless they discard a card" (`unless`
     /// `None`) / "... unless they sacrifice a creature, artifact, or land
     /// of their choice": each player in turn order chooses (CR 101.4).
