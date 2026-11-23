@@ -13171,7 +13171,11 @@ impl GameState {
                     },
                     // "If X is 10 or more": the resolution's X (CR 107.3).
                     crate::card::StaticCondition::XIs { n, at_least } => {
-                        if at_least { ctx.x >= n } else { ctx.x <= n }
+                        if at_least {
+                            ctx.x >= n
+                        } else {
+                            ctx.x <= n
+                        }
                     }
                     _ => self.condition_for(&c, ctx.controller, ctx.source, ctx.trigger_obj),
                 };
@@ -13323,7 +13327,11 @@ impl GameState {
                         // "If X is 10 or more, instead ...": the
                         // resolution's X (CR 107.3).
                         crate::card::StaticCondition::XIs { n, at_least } => {
-                            if *at_least { ctx.x >= *n } else { ctx.x <= *n }
+                            if *at_least {
+                                ctx.x >= *n
+                            } else {
+                                ctx.x <= *n
+                            }
                         }
                         c => {
                             let c = c.clone();
