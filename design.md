@@ -2878,3 +2878,37 @@ the test-thread stack loading the corpus; `.cargo/config.toml` gives it
 gate 17,535 match; 10,858 scenarios pass; fuzz clean in release and
 debug builds; 3,660 games/s (3,724 for the pre-first-wave binary in the
 same run). Pauper needs 197 more cards for 95%.
+
+Status 2026-11-23: the eighth wave, and Pauper at 95% (10,337 of
+10,881 cards), the first M5 coverage target, with the acceptance bar
+unchanged. Every agent worked its Pauper lines first. Eight feature
+agents on Opus (about 3.6M tokens): graveyard and exile (69 cards;
+graveyard casts, linked chosen exile, "can't be the targets" for cards
+in graveyards); the template author (49); wording near-misses and wrong
+bindings from earlier reports (42, 31 of them Pauper); transform and
+mana (42; restricted mana by ability kind and spell property, Cavern of
+Souls, mana abilities from the hand); counters and costs (37;
+reveal-from-hand costs, {Q}, "remove X counters"); library (23; dig
+splits, hand reveals); rules text (21); triggers (18). Eight Sonnet
+card batches over the 253 Pauper cards no batch had tried accepted 59
+(23%, against the 14.5% that stopped Pauper batches two waves ago:
+those were retries of hard cards, these were fresh), and two more
+retried 72 of their misses after the merges for 7. The template author
+then wrote 12. About 5.3M agent tokens in all. Fixed in accepted cards:
+an unearthed creature that left the battlefield was not exiled; an
+emblem's triggered abilities never triggered; "a card of that color"
+in a hand reveal matched nothing; a mana-value filter in a mana
+restriction was ignored; a kicker check in a cast trigger read the
+wrong spell; and a filter `named "X"` stood for no card when X was
+compiled later, so Power Plant Worker's bonus never came (the pool now
+reserves the later card's slot). Two branches built "Exile this card
+from your hand" as a cost; they share one field. The fuzz found two
+more faults, both fixed with scenarios: a face cast from exile did not
+record where it was cast from, so restricted mana was offered and then
+refused; and a static whose subject depends on being tapped (Saryth,
+the Viper's Fang) was not re-read when a permanent tapped. Coverage:
+95.0% of Pauper, 77.8% of Standard, 66.9% of Modern; gate 17,909 match;
+11,521 scenarios pass in release and debug builds; fuzz clean in both;
+3,661 games/s (3,778 for the pre-first-wave binary in the same run).
+Standard is the next target: no Standard card is left untried, so it
+moves by features and by retries of the cards its reports name.
