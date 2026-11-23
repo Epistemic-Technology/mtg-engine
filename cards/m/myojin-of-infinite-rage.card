@@ -1,0 +1,9 @@
+card "Myojin of Infinite Rage" {
+  oracle_id aba1d01e-c340-47a3-8432-9d8c4a5cdfe0
+  cost {7}{R}{R}{R}
+  type Legendary Creature — Spirit
+  pt 7/4
+  enters with 1 divinity counter if cast from hand
+  static this: has indestructible as long as this has 1 or more divinity counters
+  activated remove 1 divinity counters from this: destroy each land
+}

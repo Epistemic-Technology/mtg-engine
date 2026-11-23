@@ -1,0 +1,8 @@
+card "Abattoir Ghoul" {
+  oracle_id 2b211adb-de44-4468-b65d-907a09aa7e9d
+  cost {3}{B}
+  type Creature — Zombie
+  pt 3/2
+  keywords first strike
+  triggered whenever creature dealt damage by this this turn dies: you gain count equal toughness of that creature life
+}

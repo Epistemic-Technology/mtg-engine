@@ -15283,7 +15283,8 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             }
         },
         Ability::Exert(effects) => {
-            let mut ctx = Ctx::new(card, lookup, &[]);
+            let (targets, effects) = crate::ast::exert_parts(effects);
+            let mut ctx = Ctx::new(card, lookup, targets);
             ctx.current = Some(a);
             ctx.source_mentioned = true;
             format!(

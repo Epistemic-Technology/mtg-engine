@@ -1,0 +1,8 @@
+card "Doomgape" {
+  oracle_id ab94d8f7-f811-436a-9a22-9a12bd929e98
+  cost {4}{B/G}{B/G}{B/G}
+  type Creature — Elemental
+  pt 10/10
+  keywords trample
+  triggered at beginning of your upkeep: sacrifice 1 creature chosen; you gain count equal toughness of that sacrificed creature life
+}

@@ -5445,10 +5445,27 @@ impl Compiler<'_> {
             // CR 701.43: modeled as an attack trigger: exerting is "it
             // doesn't untap during your next untap step".
             Ability::Exert(effects) => {
-                let mut inner = vec![Sentence::new(vec![crate::ast::Effect::SkipNextUntap {
+                let exert = Sentence::new(vec![crate::ast::Effect::SkipNextUntap {
                     to: Recipient::Source,
                     steps: false,
-                }])];
+                }]);
+                // With targets: "you may exert it; when you do, ..." (the
+                // reflexive trigger's targets are chosen once it's exerted,
+                // CR 603.12).
+                if !crate::ast::exert_parts(effects).0.is_empty() {
+                    return self.ability(&Ability::Triggered {
+                        limit: mtg_core::card::TurnLimit::None,
+                        from_graveyard: false,
+                        trigger: Trigger::Attacks(TriggerObj::This),
+                        condition: None,
+                        targets: Vec::new(),
+                        effects: vec![
+                            Sentence::new(vec![crate::ast::Effect::YouMay(vec![exert])]),
+                            effects[0].clone(),
+                        ],
+                    });
+                }
+                let mut inner = vec![exert];
                 inner.extend(effects.iter().cloned());
                 return self.ability(&Ability::Triggered {
                     limit: mtg_core::card::TurnLimit::None,

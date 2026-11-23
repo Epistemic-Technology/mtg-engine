@@ -1,0 +1,7 @@
+card "Devoted Crop-Mate" {
+  oracle_id fcde4643-a212-4a9e-94c3-0a0a95841bc6
+  cost {2}{W}
+  type Creature — Human Warrior
+  pt 3/2
+  exert: return target creature card with mana value 2 or less from your graveyard to battlefield
+}

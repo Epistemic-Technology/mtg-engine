@@ -2525,10 +2525,15 @@ impl P {
             "exert" if self.peek_at(1) == Some(&Tok::Colon) => {
                 self.pos += 1;
                 let effects = self.effects_body()?;
-                if !self.targets.is_empty() {
-                    return self.fail("an exert ability has no targets");
+                if self.targets.is_empty() {
+                    return Ok(Ability::Exert(effects));
                 }
-                Ok(Ability::Exert(effects))
+                // "When you do, target creature can't block this turn": a
+                // reflexive trigger with the targets (CR 603.12).
+                let targets = std::mem::take(&mut self.targets);
+                Ok(Ability::Exert(vec![Sentence::new(vec![
+                    Effect::WhenYouDo { targets, effects },
+                ])]))
             }
             "escape" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
                 self.pos += 1;

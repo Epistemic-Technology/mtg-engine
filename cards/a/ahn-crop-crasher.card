@@ -1,0 +1,8 @@
+card "Ahn-Crop Crasher" {
+  oracle_id 5b3ef91a-5804-43cc-a947-f25f33b7b88c
+  cost {2}{R}
+  type Creature — Minotaur Warrior
+  pt 3/2
+  keywords haste
+  exert: target creature can't block
+}

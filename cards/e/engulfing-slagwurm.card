@@ -1,0 +1,7 @@
+card "Engulfing Slagwurm" {
+  oracle_id 0340cfcb-fc96-40d2-8175-31a0093615bb
+  cost {5}{G}{G}
+  type Creature — Wurm
+  pt 7/7
+  triggered whenever this blocks or becomes blocked by a creature: destroy that creature; you gain count equal toughness of that creature life
+}

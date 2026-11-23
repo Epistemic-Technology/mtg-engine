@@ -2766,6 +2766,39 @@ impl Templates {
                     Some(format!("{a} bites {b}"))
                 },
             ),
+            // "All creatures able to block target creature this turn do so."
+            // (a lure until end of turn).
+            (
+                r(r"^[Aa]ll creatures able to block (.+) this turn do so$"),
+                |c, t| {
+                    let who = recipient(cap(c, 1), t)?;
+                    Some(format!("{who} gains lure"))
+                },
+            ),
+            // "This creature deals damage equal to the sacrificed creature's
+            // power to any target" (Fling's, after a sacrifice cost).
+            (
+                r(
+                    r"^(?:~|This creature|this creature|It|it) deals damage equal to the sacrificed creature's power to (.+)$",
+                ),
+                |c, t| {
+                    let to = recipient(cap(c, 1), t)?;
+                    Some(format!(
+                        "deal damage equal power of the sacrificed creature to {to}"
+                    ))
+                },
+            ),
+            // "put two cards from your hand on top of your library in any
+            // order" (Brainstorm's).
+            (
+                r(r"^[Pp]ut (\w+) cards from your hand on top of your library in any order$"),
+                |c, _| {
+                    Some(format!(
+                        "put {} cards from hand on top of library",
+                        number(cap(c, 1))?
+                    ))
+                },
+            ),
             (r(r"^Attach (it|~|this) to (.+)$"), |c, t| {
                 let it = if cap(c, 1) == "it" { "it " } else { "" };
                 Some(format!("attach {it}to {}", recipient(cap(c, 2), t)?))
@@ -3311,9 +3344,19 @@ impl Templates {
             (
                 r(r"^[Yy]ou gain life equal to (?:that creature's|its) (toughness|power)$"),
                 |c, t| {
-                    (*t > 0).then(|| {
-                        format!("you gain count equal {} of that target {t} life", cap(c, 1))
-                    })
+                    if *t > 0 {
+                        Some(format!(
+                            "you gain count equal {} of that target {t} life",
+                            cap(c, 1)
+                        ))
+                    } else if c[0].contains("that creature's") {
+                        // No target: the creature a trigger is about ("Whenever a
+                        // creature you control dies, you gain life equal to that
+                        // creature's toughness", as it last existed).
+                        Some(format!("you gain count equal {} of that creature life", cap(c, 1)))
+                    } else {
+                        None
+                    }
                 },
             ),
             (
@@ -4299,6 +4342,44 @@ impl Templates {
                 });
                 continue;
             }
+            // The Ordeals: "Whenever enchanted creature attacks, put a +1/+1
+            // counter on it. Then if it has three or more +1/+1 counters on
+            // it, sacrifice this Aura." ("it" is the enchanted creature).
+            if let Some(c) = Regex::new(
+                r"^Then if it has (\w+) or more \+1/\+1 counters on it, sacrifice this Aura$",
+            )
+            .unwrap()
+            .captures(&sentence)
+                && out
+                    .last()
+                    .is_some_and(|p| p.starts_with("put 1 +1/+1 counter"))
+            {
+                // The counter goes on the attacking creature, `it` (the
+                // templates read the first "it" as the source).
+                if let Some(p) = out.last_mut() {
+                    *p = "put 1 +1/+1 counter on it".to_string();
+                }
+                let n = number(cap(&c, 1)).ok_or_else(|| Skip::Sentence(sentence.clone()))?;
+                out.push(format!(
+                    "then if attached is with {n} or more +1/+1 counters, sacrifice this"
+                ));
+                continue;
+            }
+            // "Sacrifice a creature. You gain life equal to that creature's
+            // toughness." (Doomgape): the creature sacrificed this way.
+            if let Some(c) = Regex::new(
+                r"^[Yy]ou gain life equal to that creature's (toughness|power)$",
+            )
+            .unwrap()
+            .captures(&sentence)
+                && out.last().is_some_and(|p| p.starts_with("sacrifice 1 creature"))
+            {
+                out.push(format!(
+                    "you gain count equal {} of that sacrificed creature life",
+                    cap(&c, 1)
+                ));
+                continue;
+            }
             let if_cond;
             // "You may cast ... without paying its mana cost": the DSL's
             // `cast free` keeps its "you may" (CR 608.2g).
@@ -4616,18 +4697,19 @@ fn split_sentences(text: &str) -> Vec<String> {
 #[allow(clippy::too_many_lines)] // one arm per cost item
 fn cost_text(s: &str) -> Option<String> {
     let remove = Regex::new(
-        r"^Remove (an?|two|three|\w+) ([a-z+/1-]+(?: strike)?) counters? from this (?:artifact|creature|land|enchantment|permanent)$",
+        r"^Remove (an?|two|three|\w+) ([a-z+/1-]+(?: strike)?) counters? from (?:this (?:artifact|creature|land|enchantment|permanent)|~)$",
     )
     .unwrap();
     // Hybrid symbols too ("{R/W}{R/W}"): the caller has checked that each
     // parses.
-    let symbols = Regex::new(r"^(\{[0-9XWUBRGCTP/]+\})+$").unwrap();
+    let symbols = Regex::new(r"^(\{[0-9XWUBRGCSTP/]+\})+$").unwrap();
     let mut items = Vec::new();
     let two = Regex::new(r"^[a-z]+ or [a-z]+$").unwrap();
     let exile_gy = Regex::new(
         r"^Exile (an?|two|three|four|five|six|X) (?:([a-z]+) )?cards? from your graveyard$",
     )
     .unwrap();
+    let adj_creature = Regex::new(r"^(?:colorless|nontoken) creature$").unwrap();
     // "Tap three untapped creatures you control".
     let tap_n = Regex::new(
         r"^Tap (two|three|four|five|six|seven) untapped (creature|artifact|land)s you control$",
@@ -4667,8 +4749,8 @@ fn cost_text(s: &str) -> Option<String> {
             "exile this".to_string()
         } else if let Some(rest) = part.strip_prefix("Sacrifice another ") {
             // "Sacrifice another creature", "... another creature or
-            // enchantment".
-            if rest.contains(' ') && !two.is_match(rest) {
+            // enchantment", "... another colorless creature".
+            if rest.contains(' ') && !two.is_match(rest) && !adj_creature.is_match(rest) {
                 return None;
             }
             format!("sacrifice other {rest}")
@@ -4802,6 +4884,12 @@ fn cost_text(s: &str) -> Option<String> {
             .or_else(|| part.strip_prefix("Tap a "))
         {
             format!("tap {rest}")
+        } else if let Some(rest) = part
+            .strip_prefix("Tap another ")
+            .filter(|r| r.starts_with("untapped "))
+        {
+            // "Tap another untapped creature you control".
+            format!("tap other {rest}")
         } else if let Some(what) = part
             .strip_prefix("Discard a ")
             .or_else(|| part.strip_prefix("Discard an "))
@@ -4848,6 +4936,10 @@ fn trigger_text(head: &str) -> Option<String> {
         | "When this permanent enters"
         | "When this Aura enters" => "when this enters",
         "Whenever another creature enters" => "whenever other creature enters",
+        // The Ordeals.
+        "When you sacrifice this Aura" | "When you sacrifice this enchantment" => {
+            "when you sacrifice this"
+        }
         // CR 726.3: the day/night switch.
         "Whenever day becomes night or night becomes day" => {
             "whenever day becomes night or night becomes day"
@@ -5705,8 +5797,18 @@ fn conditional_static(line: &str) -> Option<String> {
         let (f, pred) = split_subject(line)?;
         return Some(format!("static {f}: {}", static_mods(&pred)?));
     };
-    let cond = static_condition(cond)?;
     let (f, pred) = split_subject(body)?;
+    // "~ has indestructible as long as it has a divinity counter on it"
+    // (the Myojin): "it" is the subject, the source.
+    let one_counter = Regex::new(&format!(
+        r"^it has an? ([+-]\d/[+-]\d|{}) counter on it$",
+        counter_names()
+    ))
+    .unwrap();
+    let cond = match one_counter.captures(cond) {
+        Some(c) if f == "this" => format!("this has 1 or more {} counters", cap(&c, 1)),
+        _ => static_condition(cond)?,
+    };
     Some(format!(
         "static {f}: {} as long as {cond}",
         static_mods(&pred)?
@@ -6753,6 +6855,22 @@ impl Builder<'_> {
                 self.keywords.push("doesn't untap".to_string());
             } else {
                 self.statements.push("keyword doesn't untap".to_string());
+            }
+            return Ok(());
+        }
+        // CR 502.3: "You may choose not to untap this artifact during your
+        // untap step."
+        if Regex::new(
+            r"^You may choose not to untap (?:this (?:creature|artifact|land|permanent)|~) during your untap step\.$",
+        )
+        .unwrap()
+        .is_match(line)
+        {
+            if self.statements.is_empty() {
+                self.keywords.push("may choose not to untap".to_string());
+            } else {
+                self.statements
+                    .push("keyword may choose not to untap".to_string());
             }
             return Ok(());
         }
@@ -7865,11 +7983,9 @@ impl Builder<'_> {
         if let Some(rest) =
             line.strip_prefix("You may exert this creature as it attacks. When you do, ")
         {
+            // Targets belong to the reflexive "When you do" (CR 603.12).
             let mut targets = 0;
             let effects = self.templates.effects(rest, &mut targets)?;
-            if targets > 0 {
-                return Err(Skip::Sentence(line.to_string()));
-            }
             self.statements.push(format!("exert: {effects}"));
             return Ok(());
         }

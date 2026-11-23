@@ -1571,7 +1571,10 @@ pub enum Ability {
     /// ("Bushido 2", "Echo {2}{R}") and compiled to what it stands for.
     Mechanic(Mechanic),
     /// `exert: effects`: "You may exert this creature as it attacks. When
-    /// you do, [effects]." (CR 701.43).
+    /// you do, [effects]." (CR 701.43). With targets ("When you do, target
+    /// creature can't block this turn"), the effects are one `WhenYouDo`
+    /// sentence holding them (see `exert_parts`): a reflexive trigger, its
+    /// targets chosen once the creature is exerted (CR 603.12).
     Exert(Vec<Sentence>),
     /// `enters tapped unless you control planeswalker`: "This land enters
     /// tapped unless you control a planeswalker." (CR 614.1d)
@@ -5379,4 +5382,16 @@ pub enum SpentOf {
     /// `colors spent that spell`: "that spell", the spell that triggered
     /// the ability (not converge: it reads that spell, not the source).
     That,
+}
+
+/// An exert ability's targets and effects (`Ability::Exert`): a lone
+/// `WhenYouDo` sentence holds the targets.
+pub fn exert_parts(effects: &[Sentence]) -> (&[Target], &[Sentence]) {
+    match effects {
+        [s] if s.effects.len() == 1 => match &s.effects[0] {
+            Effect::WhenYouDo { targets, effects } => (targets, effects),
+            _ => (&[], effects),
+        },
+        _ => (&[], effects),
+    }
 }

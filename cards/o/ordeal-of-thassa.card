@@ -1,0 +1,8 @@
+card "Ordeal of Thassa" {
+  oracle_id 38e7be61-944e-46f2-be76-fde8b0c19905
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature attacks: put 1 +1/+1 counter on it; then if attached is with 3 or more +1/+1 counters, sacrifice this
+  triggered when you sacrifice this: draw 2 cards
+}

@@ -1,0 +1,8 @@
+card "Ordeal of Heliod" {
+  oracle_id a6861402-4819-4d85-8b60-677471f40d7d
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature attacks: put 1 +1/+1 counter on it; then if attached is with 3 or more +1/+1 counters, sacrifice this
+  triggered when you sacrifice this: you gains 10 life
+}
