@@ -673,7 +673,8 @@ impl GameState {
                         crate::card::CountersBy::Any => true,
                         crate::card::CountersBy::Effect => self.effect_controller.is_some(),
                         crate::card::CountersBy::You => {
-                            self.effect_controller.or_else(|| self.objects.get(*obj).map(|o| o.controller))
+                            self.effect_controller
+                                .or_else(|| self.objects.get(*obj).map(|o| o.controller))
                                 == Some(controller)
                         }
                     }

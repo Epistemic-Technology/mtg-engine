@@ -7204,9 +7204,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             "you may play up to {} this turn",
             additional_lands(*n)
         )),
-        Effect::NextSpellUncounterable => Clause::imperative(
-            "the next spell you cast this turn can't be countered".to_string(),
-        ),
+        Effect::NextSpellUncounterable => {
+            Clause::imperative("the next spell you cast this turn can't be countered".to_string())
+        }
         Effect::NextSpellLess(n) => Clause::imperative(format!(
             "the next spell you cast this turn costs {{{n}}} less to cast"
         )),
@@ -8915,7 +8915,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 if let [a, b] = syms.as_slice()
                     && matches!(
                         (a.as_str(), b.as_str()),
-                        ("{W}", "{G}") | ("{W}", "{R}") | ("{U}", "{G}")
+                        ("{W}", "{G}" | "{R}") | ("{U}", "{G}")
                     )
                 {
                     syms.swap(0, 1);
@@ -16639,7 +16639,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                         (true, false) => "attack",
                         _ => "block",
                     };
-                    format!("enchanted creature can't {what} unless its controller pays {amount}{where_x}.")
+                    format!(
+                        "enchanted creature can't {what} unless its controller pays {amount}{where_x}."
+                    )
                 }
                 TaxScope::EnchantedBlocked => format!(
                     "enchanted creature can't be blocked unless defending player pays {amount} for each creature they control that's blocking it{where_x}."

@@ -3227,9 +3227,10 @@ impl GameState {
                 {
                     d += match cc.per {
                         None => cc.generic,
-                        Some(n) => {
-                            let k = self.eval_num_of(n, *src, o.controller);
-                            cc.generic.saturating_mul(i32::try_from(k).unwrap_or(i32::MAX))
+                        Some(per) => {
+                            let times = self.eval_num_of(per, *src, o.controller);
+                            cc.generic
+                                .saturating_mul(i32::try_from(times).unwrap_or(i32::MAX))
                         }
                     };
                     // CR 702.41a: affinity, given to the spell.
@@ -3292,10 +3293,9 @@ impl GameState {
                     let pd = self.pool.get(*d);
                     pd.printed.as_ref().is_some_and(|c| {
                         cc.spells.matches_characteristics(c)
-                            && cc
-                                .spells
-                                .mana_value
-                                .is_none_or(|(cmp, n)| cmp.holds(pd.mana_cost.mana_value(), u32::from(n)))
+                            && cc.spells.mana_value.is_none_or(|(cmp, n)| {
+                                cmp.holds(pd.mana_cost.mana_value(), u32::from(n))
+                            })
                     })
                 }
             });
@@ -5351,9 +5351,9 @@ impl GameState {
                 crate::card::PerTarget::Counters(k) => {
                     self.objects.get(id).map_or(0, |o| o.counters(k))
                 }
-                crate::card::PerTarget::Colors => self
-                    .characteristics(id)
-                    .map_or(0, |c| c.colors.iter().count() as u32),
+                crate::card::PerTarget::Colors => self.characteristics(id).map_or(0, |c| {
+                    u32::try_from(c.colors.iter().count()).unwrap_or(u32::MAX)
+                }),
             };
             for _ in 0..n.min(64) {
                 req.reduce_by(&r.by);

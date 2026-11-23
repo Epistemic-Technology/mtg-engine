@@ -2509,7 +2509,9 @@ impl Decompiler<'_> {
                 scope: t.scope,
                 generic: t.generic,
                 per: t.per,
-                cond: t.condition.map(|c| self.static_cond(self.pool.condition(c))),
+                cond: t
+                    .condition
+                    .map(|c| self.static_cond(self.pool.condition(c))),
             },
             AbilityDef::HandSize { whose, delta, set } => Ability::HandSize {
                 whose: *whose,

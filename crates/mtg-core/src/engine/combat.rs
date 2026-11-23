@@ -125,8 +125,13 @@ impl GameState {
                     Target::Player(p) => *p == controller,
                     Target::Object(pw) => {
                         planeswalkers
-                            && self.objects.get(*pw).is_some_and(|x| x.controller == controller)
-                            && self.characteristics(*pw).is_some_and(|c| c.is_planeswalker())
+                            && self
+                                .objects
+                                .get(*pw)
+                                .is_some_and(|x| x.controller == controller)
+                            && self
+                                .characteristics(*pw)
+                                .is_some_and(|c| c.is_planeswalker())
                     }
                 })
                 .count(),

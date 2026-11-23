@@ -9096,9 +9096,12 @@ impl DefFlags {
         );
         flags.set(
             DefFlags::ATTACK_RULE,
-            abilities
-                .iter()
-                .any(|a| matches!(a, AbilityDef::AttackUnless { .. } | AbilityDef::CombatTax(_))),
+            abilities.iter().any(|a| {
+                matches!(
+                    a,
+                    AbilityDef::AttackUnless { .. } | AbilityDef::CombatTax(_)
+                )
+            }),
         );
         flags.set(
             DefFlags::TAP_STATIC,
