@@ -1,0 +1,7 @@
+card "Roiling Canopy" {
+  oracle_id c6e87760-4cd0-4281-82d4-7a377ea960ad
+  type Land
+  enters tapped
+  triggered whenever Forest you control enters if you control at least 5 other Forest: target creature you control gets +3/+3 until end of turn
+  mana {G}
+}

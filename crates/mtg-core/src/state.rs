@@ -3771,6 +3771,26 @@ impl GameState {
             return trigger_obj
                 .is_some_and(|t| self.objects.get(t).is_some_and(|o| o.cast.kicked()));
         }
+        // "Whenever a Forest you control enters, if you control at least
+        // five other Forests" (Roiling Canopy, not a Forest itself):
+        // "other" is other than the triggering Forest. Only where the
+        // source couldn't be one of them.
+        if let crate::card::StaticCondition::YouControl { filter, .. } = cond
+            && filter.relation == crate::card::Relation::Other
+            && let Some(t) = trigger_obj
+            && t != source
+            && self.objects.get(t).is_some_and(|o| o.zone == Zone::Battlefield)
+        {
+            let mut any = filter.clone();
+            any.relation = crate::card::Relation::Any;
+            let source_could = self.objects.get(source).is_some_and(|o| {
+                self.characteristics(source)
+                    .is_some_and(|c| any.matches(source, o.controller, &c, None, Some(you)))
+            });
+            if !source_could {
+                return self.condition_now(cond, you, t);
+            }
+        }
         self.condition_now(cond, you, source)
     }
 
