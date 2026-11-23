@@ -166,3 +166,14 @@ scenario "cast paths: with four other permanents to tap, Guardian of the Great D
   run_to turn 1 postcombat_main
   assert battlefield A contains "Guardian of the Great Door"
 }
+
+scenario "cast paths: an optional cost the offer counted on can't be declined if the rest is unpayable" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  graveyard A: "Hill Giant", "Hill Giant"
+  hand A: "Bite Down on Crime"
+  turn 1 A: cast "Bite Down on Crime" targeting "Grizzly Bears", B "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert exile A count 2
+}
