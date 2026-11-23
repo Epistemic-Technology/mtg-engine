@@ -2568,6 +2568,7 @@ impl Compiler<'_> {
                 toughness: *toughness,
             },
             A::Life => C::Life,
+            A::Speed => C::Speed,
             A::Times(n, inner) => C::Times(*n, Box::new(self.count_expr(inner))),
             A::Divided { by, up, inner } => C::Divided {
                 by: *by,
@@ -2828,6 +2829,12 @@ impl Compiler<'_> {
             | Recipient::TheTarget(i)
             | Recipient::TheTargetFull(i, _)
             | Recipient::ChosenTarget(i) => CoreRecipient::Target(ti(i)),
+            // "X target attacking creatures become blocked. ... deals 1
+            // damage to each of those creatures": through a variable
+            // group, to the end of the list.
+            Recipient::ThoseTargets(a, n) if many.is_some_and(|m| a <= m && m < a + n) => {
+                CoreRecipient::Targets(u8::try_from(ti(a)).unwrap_or(u8::MAX), u8::MAX)
+            }
             Recipient::Targets(a, n)
             | Recipient::ChosenTargets(a, n)
             | Recipient::ThoseCards(a, n)
@@ -2993,6 +3000,7 @@ impl Compiler<'_> {
                 CoreChoiceKind::Named(u8::try_from(names.len()).unwrap_or(u8::MAX))
             }
             ChoiceKind::CardName { nonland } => CoreChoiceKind::CardName { nonland: *nonland },
+            ChoiceKind::Parity => CoreChoiceKind::Parity,
         }
     }
 
@@ -3397,6 +3405,9 @@ impl Compiler<'_> {
                     out.push(CoreEffect::Tap { to: r(*t) });
                 }
             }
+            Effect::BecomeBlocked { what } => {
+                out.push(CoreEffect::BecomeBlocked { what: r(*what) });
+            }
             Effect::RemoveFromCombat { what } => {
                 out.push(CoreEffect::RemoveFromCombat { what: r(*what) });
             }
@@ -3492,6 +3503,7 @@ impl Compiler<'_> {
                 to: r(*to),
                 dest: *dest,
             }),
+            Effect::ChangeTarget { what } => out.push(CoreEffect::ChangeTarget { what: r(*what) }),
             Effect::CounterUnlessPays { to, mana, x, dest } => {
                 out.push(CoreEffect::CounterUnlessPays {
                     to: r(*to),
@@ -3602,14 +3614,14 @@ impl Compiler<'_> {
                 in_addition: false,
             }),
             // Layer 6 alone: an animation that only removes abilities.
-            Effect::LoseAllAbilities { to } => out.push(CoreEffect::Animate {
+            Effect::LoseAllAbilities { to, indefinite } => out.push(CoreEffect::Animate {
                 to: r(*to),
                 types: TypeSet::of([]),
                 subtypes: self.subtypes(&[]),
                 pt: None,
                 colors: None,
                 keywords: KeywordSet::NONE,
-                indefinite: false,
+                indefinite: *indefinite,
                 loses_abilities: true,
                 in_addition: false,
             }),
@@ -3954,6 +3966,24 @@ impl Compiler<'_> {
                     effects,
                 });
             }
+            Effect::UnlessAnyPlayer { act, effect } => {
+                let mut acts = Vec::new();
+                self.effect(act, &mut acts)?;
+                let mut effects = Vec::new();
+                self.effect(effect, &mut effects)?;
+                out.push(CoreEffect::AnyPlayerMay {
+                    opponents: false,
+                    effects: acts,
+                });
+                out.push(CoreEffect::Otherwise(effects));
+            }
+            Effect::AnyPlayerMay { opponents, inner } => {
+                let effects = self.sentences(inner)?;
+                out.push(CoreEffect::AnyPlayerMay {
+                    opponents: *opponents,
+                    effects,
+                });
+            }
             Effect::IfTarget(n, f, inner, _) => {
                 let then = self.sentences(inner)?;
                 out.push(CoreEffect::IfTarget {
@@ -4063,6 +4093,8 @@ impl Compiler<'_> {
                             | CoreEffect::Clash { .. }
                             | CoreEffect::IfCard { .. }
                             | CoreEffect::IfYouDo(..)
+                            // "If no one does, ..." (Book Burning).
+                            | CoreEffect::AnyPlayerMay { .. }
                     )
                 ) {
                     return self.err("`otherwise` needs a conditional sentence before it");

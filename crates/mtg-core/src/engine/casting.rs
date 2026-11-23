@@ -1026,6 +1026,7 @@ impl GameState {
                 };
             }
             CountExpr::Life => return u32::try_from(self.player(you).life.max(0)).unwrap_or(0),
+            CountExpr::Speed => return u32::from(self.desig.speed(you)),
             CountExpr::Votes(i) => {
                 return match ctx.chosen {
                     Chosen::Votes(v) => u32::from(v.get(usize::from(*i)).copied().unwrap_or(0)),
@@ -1549,8 +1550,10 @@ impl GameState {
         // "return an enchantment to its owner's hand": with no controller
         // named, any permanent (Drake Familiar); a sacrifice or tap is of
         // the player's own (CR 701.21a).
-        let any_controller =
-            matches!(act, ChooseAct::Bounce | ChooseAct::Untap) && filter.who.is_none();
+        let any_controller = matches!(
+            act,
+            ChooseAct::Bounce | ChooseAct::Untap | ChooseAct::Choose
+        ) && filter.who.is_none();
         match act {
             // CR 702.154a: not attacking, and able to pay {T} (CR 302.6).
             ChooseAct::Enlist => self
@@ -1578,6 +1581,7 @@ impl GameState {
             | ChooseAct::Bounce
             | ChooseAct::Transform
             | ChooseAct::Exile
+            | ChooseAct::Choose
             | ChooseAct::AttachToTarget(_) => self
                 .battlefield
                 .iter()
@@ -1760,6 +1764,7 @@ impl GameState {
             };
             cands.retain(|c| *c != id);
             match act {
+                ChooseAct::Choose => ctx.created = Some(id),
                 ChooseAct::Tap => self.tap_by(id, ctx.controller),
                 ChooseAct::Enlist => {
                     self.tap(id);
@@ -8788,6 +8793,57 @@ impl GameState {
         copy
     }
 
+    /// CR 115.7a: `chooser` changes the single target of `obj` on the
+    /// stack to another target legal for it (judged for its controller and
+    /// source); with none, the target is unchanged. It becomes the target
+    /// anew (CR 115.7, "becomes the target" triggers).
+    #[cold]
+    #[inline(never)]
+    fn change_target(&mut self, obj: ObjId, chooser: PlayerId) {
+        let Some(o) = self.objects.get(obj).filter(|o| o.zone == Zone::Stack) else {
+            return;
+        };
+        let (controller, kind) = (o.controller, o.kind);
+        let source = match (kind, o.ability) {
+            (ObjKind::Ability, Some(sa)) => sa.source,
+            _ => obj,
+        };
+        let specs: Vec<TargetSpec> = crate::state::targets_in(&self.pool, o).to_vec();
+        let Some(i) = o.targets.iter().position(|t| !t.is_none()) else {
+            return;
+        };
+        let Some(spec) = crate::card::spec_for(&specs, i) else {
+            return;
+        };
+        let current = o.targets[i];
+        let options: Vec<Choice> = self
+            .legal_targets(controller, spec, Some(source))
+            .into_iter()
+            .filter(|t| *t != current && *t != Target::Object(obj))
+            .map(Choice::Target)
+            .collect();
+        if options.is_empty() {
+            return;
+        }
+        let k = if options.len() == 1 {
+            0
+        } else {
+            self.choose_mid(
+                chooser,
+                DecisionKind::CopyTarget {
+                    spell: obj,
+                    index: i,
+                },
+                options.clone(),
+            )
+        };
+        if let Some(Choice::Target(t)) = options.get(k) {
+            self.objects[obj].targets[i] = *t;
+            self.cbump();
+            self.emit_targeted_objects(obj);
+        }
+    }
+
     /// CR 707.10c: the copy's controller may change each of its targets to
     /// another one legal for its spec (judged from `source`), or keep it.
     fn choose_copy_targets(&mut self, copy: ObjId, controller: PlayerId, source: ObjId) {
@@ -9053,6 +9109,12 @@ impl GameState {
                 DecisionKind::ChooseOption { def },
                 (0..usize::from(n)).map(Choice::Mode).collect(),
             ),
+            // "Choose odd or even.": `choose "1"` (odd) or `"2"` (even).
+            ChoiceKind::Parity => {
+                let options = vec![Choice::Mode(0), Choice::Mode(1)];
+                let k = self.choose_mid(p, DecisionKind::ChooseOption { def }, options);
+                return Chosen::Parity(k == 0);
+            }
             ChoiceKind::Colors => (
                 DecisionKind::ChooseColor,
                 Color::ALL.into_iter().map(Choice::Color).collect(),
@@ -10781,6 +10843,13 @@ impl GameState {
                     }
                 }
             }
+            Effect::ChangeTarget { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t {
+                        self.change_target(id, ctx.controller);
+                    }
+                }
+            }
             Effect::CounterUnlessPays { to, mana, x, dest } => {
                 // "{1} for each card in your hand": counted as it resolves.
                 let x = self.eval_num(*x, ctx);
@@ -11420,6 +11489,22 @@ impl GameState {
                     if let Some(id) = on_battlefield(self, t) {
                         self.remove_from_combat(id);
                         self.bump();
+                    }
+                }
+            }
+            Effect::BecomeBlocked { what } => {
+                for t in self.recipients(ctx, *what) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    let newly = self
+                        .combat
+                        .as_mut()
+                        .and_then(|c| c.attacker_mut(id))
+                        .is_some_and(|a| !std::mem::replace(&mut a.blocked, true));
+                    if newly {
+                        self.bump();
+                        self.emit(Event::Blocked { attacker: id });
                     }
                 }
             }
@@ -12309,7 +12394,11 @@ impl GameState {
                         Some(c) => Modification::SetLandType(c),
                         None => Modification::SetCreatureType(s),
                     },
-                    Chosen::None | Chosen::Votes(_) | Chosen::Option(_) | Chosen::Card(_) => return,
+                    Chosen::None
+                    | Chosen::Votes(_)
+                    | Chosen::Option(_)
+                    | Chosen::Card(_)
+                    | Chosen::Parity(_) => return,
                 };
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
@@ -12398,7 +12487,14 @@ impl GameState {
                         _ if *in_addition => Modification::AddSubtype(s),
                         _ => Modification::SetCreatureType(s),
                     },
-                    (Chosen::None | Chosen::Votes(_) | Chosen::Option(_) | Chosen::Card(_), _) => {
+                    (
+                        Chosen::None
+                        | Chosen::Votes(_)
+                        | Chosen::Option(_)
+                        | Chosen::Card(_)
+                        | Chosen::Parity(_),
+                        _,
+                    ) => {
                         return;
                     }
                 };
@@ -12774,6 +12870,55 @@ impl GameState {
                 }
                 ctx.did = any;
                 ctx.controller = you;
+            }
+            // "Any player may pay 5 life. If a player does, ...": from the
+            // active player in turn order (CR 101.4), until one does.
+            Effect::AnyPlayerMay { opponents, effects } => {
+                let def = self.source_def(ctx);
+                let you = ctx.controller;
+                let mut p = self.active_player;
+                let mut players: SmallVec<[PlayerId; 4]> = SmallVec::new();
+                for _ in 0..self.num_players() {
+                    if self.player(p).lost.is_none() && !(*opponents && p == you) {
+                        players.push(p);
+                    }
+                    p = self.next_player(p);
+                }
+                let mut any = false;
+                for p in players {
+                    ctx.controller = p;
+                    let possible = effects.iter().all(|e| match e {
+                        Effect::Pay { mana, life } => {
+                            (*life == 0
+                                || self.player(p).life >= i32::try_from(*life).unwrap_or(i32::MAX))
+                                && self.can_pay(p, &mana.requirements(0))
+                        }
+                        e => self.can_do(ctx, e),
+                    });
+                    // The effect's own controller is asked too, declining
+                    // listed first for them.
+                    let options = if p == you {
+                        vec![Choice::Decline, Choice::Accept]
+                    } else {
+                        vec![Choice::Accept, Choice::Decline]
+                    };
+                    if possible
+                        && options.get(self.choose_mid(
+                            p,
+                            DecisionKind::YouMay { def },
+                            options.clone(),
+                        )) == Some(&Choice::Accept)
+                    {
+                        ctx.did = true;
+                        for e in effects {
+                            self.apply_effect(ctx, e);
+                        }
+                        any = true;
+                        break;
+                    }
+                }
+                ctx.controller = you;
+                ctx.did = any;
             }
             // CR 701.67a: pay it, tapping artifacts and creatures for
             // generic mana where mana runs short.

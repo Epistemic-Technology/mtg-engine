@@ -192,7 +192,7 @@ like the card; either half may still be cast alone.
 | `label "Landfall" <ability line>` | An ability word (CR 207.2c) printed before the ability: "Landfall — Whenever a land you control enters, ...". It has no rules meaning. |
 | `can't be blocked by Wall`, `can't be blocked except by creature with flying`, `can't be blocked by more than one creature`, `can block only creature with flying`, `can't block creature with flying` | Blocking restrictions on this creature (CR 509.1b–c). Alternatives print with "and/or" ("can't be blocked except by artifact creatures and/or white creatures", `black or red creature`: "black and/or red creatures"). Granted, they print unquoted: `static enchanted: has ability { can't be blocked except by Wall }` is "Enchanted creature can't be blocked except by Walls."; `this gains ability { can't be blocked by creature with power 2 or less }` is "This creature can't be blocked by creatures with power 2 or less this turn." ("can't be blocked this turn except by ..."). `can't be blocked by creature with lesser power` prints "Creatures with power less than this creature's power can't block it." Alternatives in `can't be blocked by` print with "or" (`can't be blocked by creature with aura or enchantment creature`: "can't be blocked by enchanted creatures or enchantment creatures"). `can't be blocked except by 3 or more creatures` (CR 509.1b: blocked by none or by at least that many, like menace's two). Allowances (CR 509.1a): `can block shadow as though had shadow` ("can block creatures with shadow as though it had shadow"; `as though didn't have shadow`: "... as though they didn't have shadow", CR 702.28b), `can block landwalk as though didn't have` ("can block creatures with landwalk abilities as though they didn't have those abilities", CR 702.14b), `can block an additional 7 creatures each combat` (eight in all). |
 | `enters as copy of creature` | "You may have ~ enter as a copy of ..." (CR 707). |
-| `as this enters choose color`, `as this enters choose color except white`, `as this enters choose creature type`, `as this enters choose land type`, `as it enters choose color` | "As this land enters, choose a color [other than white]." (CR 614.12; `land type` is "a basic land type"): the controller chooses as the permanent enters, however it enters; the permanent remembers it until it leaves (CR 400.7) for `mana chosen`, `set color chosen`, `has protection from chosen color`, `set land chosen`, `add chosen type`, and filters `of chosen color` / `of chosen type`. `as it enters` prints on the line before ("This land enters tapped. As it enters, choose a color."). `as this enters choose "Khans" or "Dragons"` ("As this enchantment enters, choose Khans or Dragons.", the Sieges): one of the named options (`choose "1"`, `"2"` in scenarios; unscripted, the first); `label "Khans" <ability>` then prints "• Khans — ..." and is an ability the permanent has only while Khans was chosen (a static, triggered, activated, or cost ability; a triggered ability's own `if` still applies). |
+| `as this enters choose color`, `as this enters choose color except white`, `as this enters choose creature type`, `as this enters choose land type`, `as it enters choose color` | "As this land enters, choose a color [other than white]." (CR 614.12; `land type` is "a basic land type"): the controller chooses as the permanent enters, however it enters; the permanent remembers it until it leaves (CR 400.7) for `mana chosen`, `set color chosen`, `has protection from chosen color`, `set land chosen`, `add chosen type`, and filters `of chosen color` / `of chosen type`. `as it enters` prints on the line before ("This land enters tapped. As it enters, choose a color."). `as this enters choose "Khans" or "Dragons"` ("As this enchantment enters, choose Khans or Dragons.", the Sieges): one of the named options (`choose "1"`, `"2"` in scenarios; unscripted, the first); `label "Khans" <ability>` then prints "• Khans — ..." and is an ability the permanent has only while Khans was chosen (a static, triggered, activated, or cost ability; a triggered ability's own `if` still applies). `as this enters choose odd or even` ("As Gollum enters, choose odd or even."; `choose "1"` is odd, `"2"` even in scenarios) and the effect `choose odd or even` ("Choose odd or even.", as it resolves) are read by the filter `of chosen quality`: "with mana value of the chosen quality" (`whenever an opponent casts of chosen quality spell`, `destroy each single other creature of chosen quality`; zero is even, a spell's X counts on the stack). |
 | `as this enters becomes choice 3/3 creature or 2/2 creature with flying or 1/6 creature with defender`, `... or 1/6 Wall artifact creature with defender in addition` | "As this creature enters, it becomes your choice of a 3/3 creature, a 2/2 creature with flying, or a 1/6 creature with defender." (CR 614.12; "in addition to its other types"): the controller chooses one as it enters (`choose "2"` in scenarios, 1-based; unscripted, the first), and the permanent has that base power and toughness, those types and subtypes, and those keywords while it stays on the battlefield. A copy of it doesn't copy the choice (it isn't a copiable value here). |
 | `spells artifact you cast cost {1} less`, `spells noncreature cost {1} more`, `spells Dragon your opponents cast cost {2} more` | "Artifact spells you cast cost {1} less to cast." (CR 601.2f): the generic part only, never below zero. Types joined with `or` print "Instant and sorcery spells". `static during turns other than yours, spells you cast cost {1} less` (or `during your turn`) applies only then: "During turns other than yours, spells you cast cost {1} less to cast." A mana value prints after who casts them: `spells creature with mana value 6 or greater you cast cost {2} less` is "Creature spells you cast with mana value 6 or greater cost {2} less to cast." `static as long as spell number 2 this turn, spells you cast cost {1} less` is "The second spell you cast each turn costs {1} less to cast." (the spell would be your second this turn: you've cast exactly one before it). A keyword quality prints after "spells": `spells creature with flying you cast cost {1} less` is "Creature spells with flying you cast cost {1} less to cast." `... cost {1} less count each creature you control with power 4 or greater` is "... cost {1} less to cast for each creature you control with power 4 or greater." (counted for the source's controller as the cost is determined). `spells first creature you cast cost {2} less` is "The first creature spell you cast each turn costs {2} less to cast.": only while its caster hasn't cast a matching spell this turn (the spell being cast isn't one yet); `and flash` adds "and can be cast as though it had flash" (CR 702.8); `static during your turn, spells first non-Lemur creature with flying you cast cost {1} less` prints "The first non-Lemur creature spell with flying you cast during each of your turns costs {1} less to cast." |
 | `spells you cast have delve`, `spells instant or sorcery you cast have storm`, `spells instant or sorcery you cast from hand have cascade`, `spells you cast have affinity for artifact`, `spells creature you cast have convoke`, `spells noncreature you cast have improvise` | "Spells you cast have delve.", "Instant and sorcery spells you cast have storm.", "... you cast from your hand have cascade.", "Spells you cast have affinity for artifacts.": the controller's matching spells have the keyword while they are cast (convoke, improvise, delve, cascade, storm; affinity for <filter> is {1} less for each such permanent the caster controls). Several join with `and`. `spells noncreature you cast have flash` prints "You may cast noncreature spells as though they had flash." (`spells you cast have flash`: "You may cast spells as though they had flash."; `spells sorcery or Dragon you cast have flash`: "... sorcery spells and Dragon spells ..."): the controller may cast matching spells any time they could cast an instant (CR 702.8). `spells you control can't be countered`, `spells instant or sorcery you control can't be countered` ("Instant and sorcery spells you control can't be countered."): an effect that counters such a spell of the controller's does nothing to it (CR 701.5). |
@@ -760,7 +760,9 @@ creature type replace its others, layers 4, 5, and 7b), `loses all
 abilities and becomes green Snake base 1/1` ("loses all abilities and
 becomes a green Snake ...", layer 6 too), `target creature loses all
 abilities and has base power and toughness 0/1` (Humble: one effect,
-layers 6 and 7b), and `in addition` adds instead of
+layers 6 and 7b), `up to 1 another target creature loses all abilities
+indefinitely` (no duration; without `indefinitely`, until end of turn),
+and `in addition` adds instead of
 replacing: `it becomes black Demon in addition indefinitely` ("it becomes
 a black Demon in addition to its other colors and types"), `up to 2
 target creature each has base power and toughness 3/3, gains flying, and
@@ -994,7 +996,7 @@ start with an ability word: `label "Spell mastery" if 2 instant or sorcery
 cards in your graveyard, scry 2` ("Spell mastery — If there are two or more
 instant and/or sorcery cards in your graveyard, scry 2."). `that target
 1` prints "that creature" even after the first mention.
-`tap or untap target creature` (the controller chooses on resolution). `remove target attacking or blocking creature from combat`, `you may untap this and remove this from combat` (CR 506.4: an attacker removed from combat deals and is dealt no combat damage; an attacker whose blocker is removed stays blocked, CR 509.1h).
+`tap or untap target creature` (the controller chooses on resolution). `remove target attacking or blocking creature from combat`, `you may untap this and remove this from combat` (CR 506.4: an attacker removed from combat deals and is dealt no combat damage; an attacker whose blocker is removed stays blocked, CR 509.1h). `target unblocked attacking creature becomes blocked`, `X target attacking creature become blocked; this deals 1 damage to those targets` ("... deals 1 damage to each of those creatures": `those targets` after a variable group is all of it), `all attacking creature becomes blocked` ("Attacking creatures become blocked."): CR 509.1h, an attacking creature not yet blocked becomes blocked with no blocker (even one that can't be blocked), so it assigns no combat damage unless it has trample (CR 702.19e: all of it to the player), and "becomes blocked" triggers; with `cast only during declare blockers` or `cast only during combat after blockers`.
 `next spell costs {1} less` prints "the next spell you cast this turn costs {1}
 less to cast" (CR 601.2f): generic mana off the controller's next spell
 this turn; several add up, and that spell uses them all up.
@@ -1889,7 +1891,11 @@ the stack; `mana value of the spell target 1` is "the spell's mana
 value"), `greatest power creature you control` ("the greatest power
 among creatures you control"), or `life`; `this gets +1/+1 count each creature you
 it has left), `mana value of target 1` ("its mana value"), `toughness`
-(the source's), `life`, `party` ("creatures in your party", CR 700.8: one
+(the source's), `life`, `speed` ("your speed", CR 702.179: 0 with no
+speed; `search up to count where speed basic land card to battlefield
+tapped` prints "Search your library for up to X basic land cards, where X
+is your speed. Put those cards onto the battlefield tapped, then
+shuffle."), `party` ("creatures in your party", CR 700.8: one
 each of Cleric, Rogue, Warrior, and Wizard at most), `devotion green`
 ("your devotion to green", CR 700.5: the green mana symbols in the mana
 costs of permanents you control, a hybrid symbol counting once;
@@ -2274,7 +2280,16 @@ it last existed). Abilities on the stack are copied the same way (CR
 target triggered ability you control new targets`, `copy target
 activated or triggered ability you control [from a creature source | from
 an artifact source]` (targets "you control" only the ability's
-controller's), `copy target 1 may cast [free]` (CR 707.12: "Copy it. You
+controller's; `copy target instant spell, sorcery spell, activated
+ability, or triggered ability` a spell only if it is an instant or
+sorcery), `change target of target spell or ability with a single target`
+("Change the target of target spell or ability with a single target.",
+CR 115.7a: the effect's controller changes it to another target legal for
+that spell or ability, judged for its controller and source; with none,
+it is unchanged; `choose "Hill Giant"` or `choose "player B"` in
+scenarios; "with a single target" is one target chosen, CR 115.9a),
+`counter target spell, activated ability, or triggered ability` (the
+listed wording of `spell or ability`), `copy target 1 may cast [free]` (CR 707.12: "Copy it. You
 may cast the copy [without paying its mana cost]."; `copy target 1 then
 may cast free` "Copy it, then you may cast the copy without paying its
 mana cost."; after `exile up to one target black card from your
@@ -2461,7 +2476,21 @@ this new targets` prints Chain Lightning's "Then that player or that
 permanent's controller may pay {R}{R}. If the player does, they may copy
 this spell and may choose a new target for that copy.": the controller of
 an "any target" that is a player is that player, and the copy is the
-paying player's, CR 707.10), `the creature` (in a triggered ability, the triggering
+paying player's, CR 707.10), `any player may <clause>` / `any opponent
+may <clause>` ("Any player may pay 5 life", CR 608.2d: starting with the
+active player and in turn order, CR 101.4, each player, or each
+opponent, may do it as their own, until one does; an act they can't
+complete isn't offered; the effect's controller has declining listed
+first): `pay 5 life`, `pay {1}`, `sacrifice 2 creature chosen` ("sacrifice
+two creatures of their choice"), `exile 1 card from your graveyard
+chosen` ("exile a card from their graveyard"), `this deals 6 damage to
+you` ("have Book Burning deal 6 damage to them"); a following `if a player
+does, <clause>` (or `if you do,`) prints "If a player does, ...", and `if
+no one does, <clause>` (or `otherwise,`) "If no one does, ..."; `counter
+this` there in a "When you cast this spell" trigger names the spell
+("counter Brain Gorgers"); `<clause> unless any player may this deals 4
+damage to you` prints "... unless a player has this creature deal 4
+damage to them" (the clause happens if no one does), `the creature` (in a triggered ability, the triggering
 object printed "the creature": "untap the creature"), `if you do,
 <clause>` (only if the optional action before it happened: "You may pay
 {2}. If you do, draw a card."), `if you don't, <clause>` / `if you dont, <clause>` (only if it
@@ -3014,6 +3043,13 @@ do` then sees:
 
 - `untap up to 2 land chosen` ("untap up to two lands": tapped permanents,
   anyone's unless the filter names a controller)
+- `choose 1 creature you control chosen; it gains indestructible until end
+  of turn` ("Choose a creature you control. It gains indestructible until
+  end of turn.", CR 608.2d: not targeted; anyone's unless the filter names
+  a controller): nothing is done to it, and `it` after it is the chosen
+  permanent (`choose 1 Giant creature you control chosen; it bites target
+  creature`: "It deals damage equal to its power to target creature.");
+  with none, the sentences about it do nothing
 - `tap 1 other untapped Citizen you control chosen` ("tap another untapped
   Citizen you control"), `tap 2 other untapped creature you control chosen`
 - `sacrifice 1 creature chosen` ("sacrifice a creature")

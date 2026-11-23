@@ -196,6 +196,7 @@ impl Decompiler<'_> {
         match c {
             C::Permanents(f) => A::Permanents(self.filter(f)),
             C::Life => A::Life,
+            C::Speed => A::Speed,
             C::CardsInHand => A::CardsInHand,
             C::CardsInGraveyard(f) => A::CardsInGraveyard(f.as_ref().map(|f| self.filter(f))),
             C::CardsInAllGraveyards(f) => A::CardsInGraveyards {
@@ -1059,6 +1060,7 @@ impl Decompiler<'_> {
             }
             CoreEffect::Untap { to } => Effect::Untap { to: vec![r(*to)] },
             CoreEffect::RemoveFromCombat { what } => Effect::RemoveFromCombat { what: r(*what) },
+            CoreEffect::BecomeBlocked { what } => Effect::BecomeBlocked { what: r(*what) },
             CoreEffect::Grant { keywords: k, to } => Effect::Grant {
                 keywords: keywords(*k),
                 to: r(*to),
@@ -1130,6 +1132,7 @@ impl Decompiler<'_> {
                 to: r(*to),
                 dest: *dest,
             },
+            CoreEffect::ChangeTarget { what } => Effect::ChangeTarget { what: r(*what) },
             CoreEffect::CounterUnlessPays { to, mana, x, dest } => Effect::CounterUnlessPays {
                 to: r(*to),
                 mana: mana.clone(),
@@ -1365,11 +1368,14 @@ impl Decompiler<'_> {
                 pt: None,
                 colors: None,
                 keywords: kws,
-                indefinite: false,
+                indefinite,
                 loses_abilities: true,
                 in_addition: false,
             } if t.is_empty() && subtypes.is_empty() && kws.is_empty() => {
-                Effect::LoseAllAbilities { to: r(*to) }
+                Effect::LoseAllAbilities {
+                    to: r(*to),
+                    indefinite: *indefinite,
+                }
             }
             CoreEffect::Animate {
                 to,
@@ -1433,6 +1439,10 @@ impl Decompiler<'_> {
                 in_addition: *in_addition,
             },
             CoreEffect::YouMay(inner) => Effect::YouMay(self.sentences(inner)),
+            CoreEffect::AnyPlayerMay { opponents, effects } => Effect::AnyPlayerMay {
+                opponents: *opponents,
+                inner: self.sentences(effects),
+            },
             CoreEffect::PlayerMay { who, effects } => Effect::PlayerMay {
                 who: Self::recipient(*who),
                 inner: self.sentences(effects),
@@ -2868,6 +2878,7 @@ impl Decompiler<'_> {
                 ChoiceKind::Named((1..=n).map(|i| format!("Option {i}")).collect())
             }
             CoreChoiceKind::CardName { nonland } => ChoiceKind::CardName { nonland },
+            CoreChoiceKind::Parity => ChoiceKind::Parity,
         }
     }
 }

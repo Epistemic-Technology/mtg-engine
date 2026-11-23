@@ -1727,6 +1727,9 @@ impl Fmt {
             Effect::RemoveFromCombat { what } => {
                 format!("remove {} from combat", self.recipient(*what, t))
             }
+            Effect::BecomeBlocked { what } => {
+                format!("{} becomes blocked", self.recipient(*what, t))
+            }
             Effect::Grant {
                 keywords: ks,
                 to,
@@ -1886,6 +1889,9 @@ impl Fmt {
             Effect::Counter { to, dest } => {
                 format!("counter {}{}", self.recipient(*to, t), countered_to(*dest))
             }
+            Effect::ChangeTarget { what } => {
+                format!("change target of {}", self.recipient(*what, t))
+            }
             Effect::CounterUnlessPays { to, mana, x, dest } => format!(
                 "counter {} unless its controller pays {mana}{}{}",
                 self.recipient(*to, t),
@@ -2013,9 +2019,11 @@ impl Fmt {
                 }
                 s
             }
-            Effect::LoseAllAbilities { to } => {
-                format!("{} loses all abilities", self.recipient(*to, t))
-            }
+            Effect::LoseAllAbilities { to, indefinite } => format!(
+                "{} loses all abilities{}",
+                self.recipient(*to, t),
+                if *indefinite { " indefinitely" } else { "" }
+            ),
             Effect::IsNow { to, types } => format!(
                 "{} is now {}",
                 self.recipient(*to, t),
@@ -2670,6 +2678,16 @@ impl Fmt {
                 let who = self.recipient(*who, t);
                 format!("{who} may {}", self.line(inner, t))
             }
+            Effect::UnlessAnyPlayer { act, effect } => format!(
+                "{} unless any player may {}",
+                self.effect(effect, t),
+                self.effect(act, t)
+            ),
+            Effect::AnyPlayerMay { opponents, inner } => format!(
+                "any {} may {}",
+                if *opponents { "opponent" } else { "player" },
+                self.line(inner, t)
+            ),
             Effect::IfKicked(inner) => format!("if kicked, {}", self.line(inner, t)),
             Effect::KeepMana(inner) => format!("keep mana {}", self.line(inner, t)),
             Effect::SpendRider {
@@ -2813,6 +2831,7 @@ impl Fmt {
                 let cs = cards(*count);
                 match act {
                     ChooseAct::Tap | ChooseAct::Enlist => format!("tap {n} {f} chosen"),
+                    ChooseAct::Choose => format!("choose {n} {f} chosen"),
                     ChooseAct::Untap => format!("untap {n} {f} chosen"),
                     ChooseAct::Transform => format!("transform {n} {f} chosen"),
                     ChooseAct::Sacrifice => format!("sacrifice {n} {f} chosen"),
@@ -3402,6 +3421,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             n + 1
         ),
         CountExpr::Life => "life".to_string(),
+        CountExpr::Speed => "speed".to_string(),
         CountExpr::BlockingIt { beyond: 0 } => "creature blocking it".to_string(),
         CountExpr::BlockingIt { beyond } => format!("creature blocking it beyond {beyond}"),
         CountExpr::GreatestPower(f) => format!("greatest power {}", filter(f)),
@@ -3613,7 +3633,8 @@ fn cmp_suffix(c: mtg_core::card::Cmp) -> &'static str {
     match c {
         mtg_core::card::Cmp::AtMost => " or less",
         mtg_core::card::Cmp::AtLeast => " or greater",
-        mtg_core::card::Cmp::Exactly => "",
+        // Only filled in as a game is played (`ObjFilter::with_chosen`).
+        mtg_core::card::Cmp::Exactly | mtg_core::card::Cmp::Odd | mtg_core::card::Cmp::Even => "",
     }
 }
 
@@ -4167,6 +4188,7 @@ fn of_chosen(c: crate::ast::OfChosen) -> &'static str {
         OfChosen::ThatColor => "of that color",
         OfChosen::ColorOfChoice => "of color of choice",
         OfChosen::CreatureTypeOfChoice => "of creature type of choice",
+        OfChosen::ChosenQuality => "of chosen quality",
     }
 }
 
@@ -7265,6 +7287,7 @@ fn choice_kind(k: &ChoiceKind, of_choice: bool) -> String {
             .join(" or "),
         ChoiceKind::CardName { nonland: false } => "card name".to_string(),
         ChoiceKind::CardName { nonland: true } => "nonland card name".to_string(),
+        ChoiceKind::Parity => "odd or even".to_string(),
     }
 }
 

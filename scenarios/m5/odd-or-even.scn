@@ -1,0 +1,64 @@
+# "Choose odd or even." and "with mana value of the chosen quality"
+# (Zero is even.)
+
+scenario "Mutinous Massacre: even destroys mana value 0, 2, and 4" {
+  battlefield A: "Grizzly Bears", 3 "Plains", 2 "Swamp", 2 "Mountain"
+  battlefield B: "Hill Giant", "Serra Angel", "Memnite"
+  hand A: "Mutinous Massacre"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mutinous Massacre"
+  turn 1 A: choose "2"
+  turn 1 A: attack "Serra Angel"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Memnite"
+  assert battlefield A contains "Serra Angel"
+  assert life B 16
+}
+
+scenario "Mutinous Massacre: odd spares the even ones" {
+  battlefield A: "Grizzly Bears", 3 "Plains", 2 "Swamp", 2 "Mountain"
+  battlefield B: "Hill Giant", "Serra Angel", "Memnite"
+  hand A: "Mutinous Massacre"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mutinous Massacre"
+  turn 1 A: choose "1"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Memnite"
+  assert battlefield A contains "Grizzly Bears"
+  run_to turn 2 untap
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Thanos destroys each other creature of the chosen quality" {
+  battlefield A: "Thanos, the Mad Titan", "Wastes", "Plains", "Island", "Swamp", "Mountain", "Forest", "Wind Drake"
+  battlefield B: "Hill Giant", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Thanos, the Mad Titan"
+  turn 1 A: choose "1"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Thanos, the Mad Titan"
+  assert counters "Thanos, the Mad Titan" +1/+1 2
+  assert graveyard A contains "Wind Drake"
+  assert graveyard B contains "Serra Angel"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Gollum triggers only on spells of the chosen quality" {
+  battlefield A: 2 "Swamp"
+  battlefield B: 3 "Mountain", 2 "Forest"
+  hand A: "Gollum, Riddle Master"
+  hand B: "Lightning Bolt", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gollum, Riddle Master"
+  turn 1 A: choose "2"
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 B: wait
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert counters "Gollum, Riddle Master" +1/+1 1
+  assert life A 17
+}

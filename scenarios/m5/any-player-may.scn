@@ -1,0 +1,205 @@
+# "Any player may ..." / "any opponent may ...", then "If a player does" or
+# "If no one does" (CR 608.2d; each player in turn order from the active
+# player until one does).
+
+scenario "Dash Hopes: a player pays 5 life and it is countered" {
+  battlefield A: "Mountain"
+  battlefield B: 2 "Swamp"
+  hand A: "Shock"
+  hand B: "Dash Hopes"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 B: cast "Dash Hopes" targeting "Shock" in response to "Shock"
+  turn 1 A: accept "Dash Hopes"
+  run_to turn 1 postcombat_main
+  assert life A 15
+  assert life B 18
+  assert graveyard B contains "Dash Hopes"
+}
+
+scenario "Dash Hopes: no one pays and the spell is countered" {
+  battlefield A: "Mountain"
+  battlefield B: 2 "Swamp"
+  hand A: "Shock"
+  hand B: "Dash Hopes"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 B: cast "Dash Hopes" targeting "Shock" in response to "Shock"
+  turn 1 A: decline "Dash Hopes"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert life B 20
+  assert graveyard A contains "Shock"
+}
+
+scenario "Brain Gorgers: an opponent sacrifices a creature to counter it" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Brain Gorgers"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brain Gorgers"
+  turn 1 B: accept "Brain Gorgers"
+  turn 1 B: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Brain Gorgers"
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Brain Gorgers resolves when no one sacrifices" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Brain Gorgers"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brain Gorgers"
+  turn 1 B: decline "Brain Gorgers"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Brain Gorgers"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Prowling Pangolin: sacrificing two creatures makes it be sacrificed" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Wind Drake"
+  hand A: "Prowling Pangolin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Prowling Pangolin"
+  turn 1 B: accept "Prowling Pangolin"
+  turn 1 B: choose "Grizzly Bears"
+  turn 1 B: choose "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Prowling Pangolin"
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Wind Drake"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Prowling Pangolin: a player with one creature can't sacrifice two" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Prowling Pangolin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Prowling Pangolin"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Prowling Pangolin"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Longhorn Firebeast: an opponent takes 5 and it is sacrificed" {
+  battlefield A: 3 "Mountain"
+  hand A: "Longhorn Firebeast"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Longhorn Firebeast"
+  turn 1 B: accept "Longhorn Firebeast"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert life A 20
+  assert graveyard A contains "Longhorn Firebeast"
+}
+
+scenario "Longhorn Firebeast stays when the opponent declines" {
+  battlefield A: 3 "Mountain"
+  hand A: "Longhorn Firebeast"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Longhorn Firebeast"
+  turn 1 B: decline "Longhorn Firebeast"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert battlefield A contains "Longhorn Firebeast"
+}
+
+scenario "Book Burning: a player takes 6 damage and nothing is milled" {
+  battlefield A: 2 "Mountain"
+  hand A: "Book Burning"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Book Burning" targeting player B
+  turn 1 A: decline "Book Burning"
+  turn 1 B: accept "Book Burning"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert graveyard B count 0
+}
+
+scenario "Book Burning: if no one does, the target player mills six" {
+  battlefield A: 2 "Mountain"
+  hand A: "Book Burning"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Book Burning" targeting player B
+  turn 1 B: decline "Book Burning"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert life B 20
+  assert graveyard B count 6
+}
+
+scenario "Carrion Rats: a graveyard card exiled stops its combat damage" {
+  battlefield A: "Carrion Rats"
+  graveyard B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Carrion Rats"
+  turn 1 B: accept "Carrion Rats"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert exile B contains "Shock"
+}
+
+scenario "Carrion Rats deals damage when no one exiles" {
+  battlefield A: "Carrion Rats"
+  graveyard B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Carrion Rats"
+  turn 1 B: decline "Carrion Rats"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard B contains "Shock"
+}
+
+scenario "Rhystic Circle prevents damage from the chosen source unless a player pays" {
+  battlefield A: "Rhystic Circle", "Plains"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  # B's only land paid for the Bolt and A's for the ability: no one can pay.
+  turn 2 precombat_main A: activate "Rhystic Circle"
+  turn 2 A: choose "Lightning Bolt"
+  run_to turn 2 postcombat_main
+  assert life A 20
+}
+
+scenario "Rhystic Circle does nothing when the opponent pays" {
+  battlefield A: "Rhystic Circle", "Plains"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 precombat_main A: activate "Rhystic Circle"
+  turn 2 B: accept "Rhystic Circle"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}
+
+scenario "Barbarian Bully: an opponent takes 4 instead of the pump" {
+  battlefield A: "Barbarian Bully"
+  hand A: "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Barbarian Bully"
+  turn 1 A: decline "Barbarian Bully"
+  turn 1 B: accept "Barbarian Bully"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert power "Barbarian Bully" 2
+  assert graveyard A contains "Plains"
+}
+
+scenario "Barbarian Bully gets +2/+2 when no one takes the damage" {
+  battlefield A: "Barbarian Bully"
+  hand A: "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Barbarian Bully"
+  turn 1 A: decline "Barbarian Bully"
+  turn 1 B: decline "Barbarian Bully"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert power "Barbarian Bully" 4
+}

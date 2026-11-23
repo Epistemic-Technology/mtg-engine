@@ -1408,6 +1408,7 @@ fn per_count(
             .sum(),
         CountExpr::CardsInHand => state.player(you).hand.len(),
         CountExpr::Life => usize::try_from(state.player(you).life.max(0)).unwrap_or(0),
+        CountExpr::Speed => usize::from(state.desig.speed(you)),
         CountExpr::Times(k, inner) => {
             return i32::try_from(*k)
                 .unwrap_or(0)

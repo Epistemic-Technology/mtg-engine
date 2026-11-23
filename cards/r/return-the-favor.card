@@ -1,0 +1,9 @@
+card "Return the Favor" {
+  oracle_id 30377bd5-99ab-4888-9ea7-e5a069b527e8
+  cost {R}{R}
+  type Instant
+  spree {
+  mode {1}: copy target instant spell, sorcery spell, activated ability, or triggered ability new targets
+  mode {1}: change target of target spell or ability with a single target
+  }
+}

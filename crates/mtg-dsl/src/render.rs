@@ -896,7 +896,8 @@ fn cmp_words(c: mtg_core::card::Cmp) -> &'static str {
     match c {
         mtg_core::card::Cmp::AtMost => " or less",
         mtg_core::card::Cmp::AtLeast => " or greater",
-        mtg_core::card::Cmp::Exactly => "",
+        // Only filled in as a game is played (`ObjFilter::with_chosen`).
+        mtg_core::card::Cmp::Exactly | mtg_core::card::Cmp::Odd | mtg_core::card::Cmp::Even => "",
     }
 }
 
@@ -1376,6 +1377,13 @@ struct Ctx<'a> {
     /// "That player may pay {4}": a following "If you do" prints "If the
     /// player does".
     player_did: bool,
+    /// After "any player may ...": "If a player does" / "If no one does".
+    any_player_did: bool,
+    /// In a "When you cast this spell" trigger: "counter Brain Gorgers"
+    /// names the spell.
+    cast_this: bool,
+    /// An "any player may ..." was printed in this ability.
+    any_player_said: bool,
     /// Inside "If the player does, ...": that player is "they" (Chain
     /// Lightning's "they may copy this spell").
     player_they: bool,
@@ -1441,6 +1449,9 @@ impl<'a> Ctx<'a> {
             they_paid: false,
             lost_life_did: false,
             player_did: false,
+            any_player_did: false,
+            cast_this: false,
+            any_player_said: false,
             player_they: false,
             delayed_tail: None,
             before_if_you_dont: false,
@@ -2463,7 +2474,13 @@ fn target_noun(t: &Target) -> String {
             TargetSpec::SpellOr(_) => "spell or permanent".to_string(),
         },
         Target::Filter(f) => {
-            if f.types.contains(&CardType::Creature) {
+            // "creature or planeswalker ... that's red or white": "that
+            // permanent" (Flourishing Grapple).
+            if f.types.contains(&CardType::Creature)
+                && f.or
+                    .as_ref()
+                    .is_none_or(|a| a.types.is_empty() || a.types.contains(&CardType::Creature))
+            {
                 "creature".to_string()
             } else if f.types.contains(&CardType::Land) {
                 "land".to_string()
@@ -2483,9 +2500,16 @@ pub fn target_phrase(s: TargetSpec) -> String {
         triggered,
         source,
         yours,
+        single,
+        instant_sorcery,
+        listed,
     } = s
     {
         let kinds = match (activated, triggered) {
+            _ if instant_sorcery => {
+                "instant spell, sorcery spell, activated ability, or triggered ability"
+            }
+            _ if listed => "spell, activated ability, or triggered ability",
             (true, true) if spells => "spell or ability",
             (true, true) => "activated or triggered ability",
             (true, false) => "activated ability",
@@ -2498,7 +2522,8 @@ pub fn target_phrase(s: TargetSpec) -> String {
         });
         // "target triggered ability you control from a creature source".
         let yours = if yours { " you control" } else { "" };
-        return format!("target {kinds}{yours}{from}");
+        let single = if single { " with a single target" } else { "" };
+        return format!("target {kinds}{yours}{from}{single}");
     }
     match s {
         TargetSpec::OnStack { .. } => unreachable!("above"),
@@ -2689,12 +2714,19 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
         b.colors = None;
         let mut a = (**alt).clone();
         a.colors = None;
+        // "creature or planeswalker an opponent controls that's red or
+        // white" (Flourishing Grapple): one controller for both, printed
+        // after the second type.
+        if b.who.is_some() && b.who == a.who {
+            b.who = None;
+        }
         if (Filter {
             types: Vec::new(),
             ..b.clone()
         }) == Filter::default()
             && (Filter {
                 types: Vec::new(),
+                who: None,
                 ..a.clone()
             }) == Filter::default()
         {
@@ -3242,6 +3274,7 @@ fn of_chosen(c: OfChosen) -> &'static str {
         OfChosen::ThatColor => " of that color",
         OfChosen::ColorOfChoice => " of the color of your choice",
         OfChosen::CreatureTypeOfChoice => " of the creature type of your choice",
+        OfChosen::ChosenQuality => " with mana value of the chosen quality",
     }
 }
 
@@ -3448,6 +3481,7 @@ fn choice_noun(k: &ChoiceKind) -> String {
         }
         ChoiceKind::LandType(lands) if lands.len() == 5 => "a basic land type".to_string(),
         ChoiceKind::Named(names) => or_list(names),
+        ChoiceKind::Parity => "odd or even".to_string(),
         ChoiceKind::CardName { nonland: false } => "a card name".to_string(),
         ChoiceKind::CardName { nonland: true } => "a nonland card name".to_string(),
         ChoiceKind::LandType(lands) => or_list(
@@ -4639,6 +4673,7 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             return format!("{whose} {stat}");
         }
         CountExpr::Life => return "your life total".to_string(),
+        CountExpr::Speed => return "your speed".to_string(),
         CountExpr::BlockingIt { beyond } => {
             let rest = match beyond {
                 0 => String::new(),
@@ -5063,7 +5098,7 @@ fn count_phrase_in(c: &crate::ast::CountExpr, ctx: &Ctx, each: bool) -> String {
             if ctx
                 .target_noun
                 .get(*n)
-                .is_some_and(|t| t == "card" || t == "permanent") =>
+                .is_some_and(|t| t == "card" || t == "permanent" || t == "spell") =>
         {
             phrase.replacen(
                 "that creature's",
@@ -5152,6 +5187,21 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 );
             }
             // "Search your library for up to X basic land cards, where X
+            // is your speed. Put those cards onto the battlefield tapped,
+            // then shuffle."
+            CountStyle::Where
+                if matches!(e, Effect::Search { .. })
+                    && matches!(count.expr, crate::ast::CountExpr::Speed)
+                    && c.text.contains(" cards, put them ") =>
+            {
+                let phrase = count_phrase_in(&count.expr, ctx, false);
+                c.text = c.text.replacen(
+                    " cards, put them ",
+                    &format!(" cards, where X is {phrase}. Put those cards "),
+                    1,
+                );
+            }
+            // "... for up to X basic land cards, where X
             // is the number of lands you control, put them onto the
             // battlefield tapped, then shuffle."
             CountStyle::Where
@@ -5384,6 +5434,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "deals X damage to any target and X damage to itself".
             let objs = if *by == Recipient::Source && to.as_slice() == [Recipient::Source] {
                 "itself".to_string()
+            } else if let [Recipient::ThoseTargets(a, 1)] = to.as_slice()
+                && ctx.is_many(Recipient::Target(*a))
+            {
+                // "X target attacking creatures become blocked. Choking
+                // Vines deals 1 damage to each of those creatures."
+                format!("each of those {}", pluralize(&ctx.target_noun[*a]))
             } else {
                 // "deals 1 damage to each of up to two target creatures":
                 // the same amount to each of several targets of one phrase;
@@ -7407,6 +7463,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*what);
             Clause::imperative(format!("remove {o} from combat"))
         }
+        Effect::BecomeBlocked { what } => {
+            let s = ctx.subj(*what);
+            let v = ctx.verb(*what, "becomes", "become");
+            Clause::with_subject(*what, s, format!("{v} blocked"))
+        }
         Effect::Grant {
             keywords,
             to,
@@ -7840,9 +7901,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::with_subject(if source { Recipient::Source } else { *who }, s, text)
         }
         // Where a countered spell goes is added in `clause`, after a count.
+        // "When you cast this spell, any player may pay 5 life. If a player
+        // does, counter Dash Hopes."
+        Effect::Counter {
+            to: Recipient::Source,
+            ..
+        } if ctx.cast_this && ctx.any_player_said => {
+            Clause::imperative(format!("counter {}", short_name(ctx.card)))
+        }
         Effect::Counter { to, .. } => {
             let o = ctx.obj(*to);
             Clause::imperative(format!("counter {o}"))
+        }
+        Effect::ChangeTarget { what } => {
+            let o = ctx.obj(*what);
+            Clause::imperative(format!("change the target of {o}"))
         }
         Effect::CounterUnlessPays { to, mana, .. } => {
             ctx.they_paid = true;
@@ -8133,10 +8206,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 words.join(" ")
             ))
         }
-        Effect::LoseAllAbilities { to } => {
+        Effect::LoseAllAbilities { to, indefinite } => {
             let s = ctx.subj(*to);
             let v = ctx.verb(*to, "loses", "lose");
-            Clause::with_subject(*to, s, format!("{v} all abilities")).until_eot()
+            let c = Clause::with_subject(*to, s, format!("{v} all abilities"));
+            if *indefinite { c } else { c.until_eot() }
         }
         Effect::Strip { keywords, to } => {
             let s = ctx.subj(*to);
@@ -8554,6 +8628,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(match act {
                 ChooseAct::Tap | ChooseAct::Enlist => format!("tap {}", permanents()),
+                ChooseAct::Choose => format!("choose {}", permanents()),
                 ChooseAct::Untap => format!("untap {}", permanents()),
                 ChooseAct::Transform => format!("transform {}", permanents()),
                 // "sacrifice any number of artifacts, enchantments, and/or
@@ -9526,6 +9601,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     "the creature type of your choice".to_string()
                 }
                 ChoiceKind::Named(names) => or_list(names),
+                ChoiceKind::Parity => "odd or even".to_string(),
                 ChoiceKind::CardName { .. } => "the card name of your choice".to_string(),
                 // Imagecrafter: "Choose a creature type other than Wall.
                 // Target creature becomes that type until end of turn."
@@ -9610,6 +9686,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(format!("{when}, {}", body.trim_end_matches('.')))
         }
+        // "If no one does, target player mills six cards." (after "Any
+        // player may ...").
+        Effect::Otherwise(inner) if ctx.any_player_did => {
+            ctx.any_player_did = false;
+            let body = sentences(inner, ctx);
+            let body = if starts_with_name(&body, ctx.card) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
+            Clause::imperative(format!("if no one does, {}", body.trim_end_matches('.')))
+        }
         Effect::Otherwise(inner) => {
             // "Otherwise, create one of those tokens.": the token the
             // sentence before created.
@@ -9632,6 +9720,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // do, ...".
             let who = if std::mem::take(&mut ctx.lost_life_did) {
                 "you lost life this way"
+            } else if std::mem::take(&mut ctx.any_player_did) {
+                "a player does"
             } else if std::mem::take(&mut ctx.player_did) {
                 ctx.player_they = true;
                 "the player does"
@@ -10424,6 +10514,57 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
             )
             .until_eot()
+        }
+        // "This creature gets +2/+2 until end of turn unless a player has
+        // this creature deal 4 damage to them."
+        Effect::UnlessAnyPlayer { act, effect } => {
+            let mut c = clause(effect, ctx);
+            ctx.source_mentioned = false;
+            let a = clause(act, ctx);
+            let text = a.text.trim_end_matches('.');
+            let body = match (&a.subject, text.strip_prefix("deals ")) {
+                (Some((_, who)), Some(dmg)) if dmg.ends_with(" damage to you") => format!(
+                    "has {who} deal {} damage to them",
+                    dmg.trim_end_matches(" damage to you")
+                ),
+                _ => text.to_string(),
+            };
+            let _ = write!(c.tail, " unless a player {body}");
+            c
+        }
+        Effect::AnyPlayerMay { opponents, inner } => {
+            let body = sentences(inner, ctx);
+            let body = if starts_with_name(&body, ctx.card) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
+            let body = body.trim_end_matches('.');
+            let body = body.strip_prefix("you ").unwrap_or(body);
+            // The player acts as themselves: "exile a card from their
+            // graveyard", "sacrifice a creature of their choice", "have it
+            // deal 5 damage to them".
+            let body = body.replace("your graveyard", "their graveyard");
+            let body = if body.starts_with("sacrifice ") {
+                format!("{body} of their choice")
+            } else if let Some((who, dmg)) = body.split_once(" deals ")
+                && let Some(n) = dmg.strip_suffix(" damage to you")
+            {
+                format!("have {who} deal {n} damage to them")
+            } else {
+                body
+            };
+            ctx.any_player_did = true;
+            ctx.any_player_said = true;
+            // "If a player does, sacrifice this creature.": the source is
+            // named again after "have it deal 5 damage to them".
+            ctx.source_mentioned = false;
+            let who = if *opponents {
+                "any opponent"
+            } else {
+                "any player"
+            };
+            Clause::imperative(format!("{who} may {body}"))
         }
         Effect::PlayerMay { who, inner } => {
             let you = *who == Recipient::You;
@@ -11488,6 +11629,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         }
         Trigger::CastThis { or_cycle: false } => {
             ctx.source_mentioned = true;
+            ctx.cast_this = true;
             "when you cast this spell".to_string()
         }
         Trigger::CastThis { or_cycle: true } => {

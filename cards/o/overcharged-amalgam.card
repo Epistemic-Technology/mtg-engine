@@ -1,0 +1,8 @@
+card "Overcharged Amalgam" {
+  oracle_id d4838305-5392-42b2-81d1-9b9da71b20b1
+  cost {2}{U}{U}
+  type Creature — Zombie Horror
+  pt 3/3
+  keywords flash, flying, exploit
+  triggered when this exploits a creature: counter target spell, activated ability, or triggered ability
+}

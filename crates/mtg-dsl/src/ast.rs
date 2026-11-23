@@ -379,6 +379,8 @@ pub enum CountExpr {
         that: bool,
     },
     Life,
+    /// `speed`: "your speed" (CR 702.179).
+    Speed,
     /// `count each 2 creature you control`: "2 life for each creature
     /// you control".
     Times(u32, Box<CountExpr>),
@@ -1218,6 +1220,9 @@ pub enum OfChosen {
     /// `of creature type of choice`: "of the creature type of your
     /// choice".
     CreatureTypeOfChoice,
+    /// `of chosen quality`: "with mana value of the chosen quality" (odd
+    /// or even, chosen earlier).
+    ChosenQuality,
 }
 
 impl OfChosen {
@@ -1329,6 +1334,9 @@ pub enum ChoiceKind {
     CardName {
         nonland: bool,
     },
+    /// `odd or even`: "odd or even" (Zero is even.), for `of chosen
+    /// quality`.
+    Parity,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -4104,6 +4112,11 @@ pub enum Effect {
     RemoveFromCombat {
         what: Recipient,
     },
+    /// `target 1 becomes blocked`: "Target unblocked attacking creature
+    /// becomes blocked." (CR 509.1h).
+    BecomeBlocked {
+        what: Recipient,
+    },
     Grant {
         keywords: Vec<Keyword>,
         to: Recipient,
@@ -4208,6 +4221,12 @@ pub enum Effect {
         to: Recipient,
         dest: CounteredTo,
     },
+    /// `change target of target spell or ability with a single target`:
+    /// "Change the target of target spell or ability with a single
+    /// target." (CR 115.7a).
+    ChangeTarget {
+        what: Recipient,
+    },
     /// `counter target spell unless its controller pays {X} [count ...]
     /// [to exile]`: an {X} is `x` (the spell's X when no count is given).
     CounterUnlessPays {
@@ -4292,9 +4311,11 @@ pub enum Effect {
         types: Vec<CardType>,
     },
     /// `target creature loses all abilities` (until end of turn; layer
-    /// 6).
+    /// 6); `... indefinitely`: no duration ("up to one other target
+    /// creature loses all abilities").
     LoseAllAbilities {
         to: Recipient,
+        indefinite: bool,
     },
     /// `target creature loses flying`: until end of turn.
     Strip {
@@ -4662,6 +4683,24 @@ pub enum Effect {
     PlayerMay {
         who: Recipient,
         inner: Vec<Sentence>,
+    },
+    /// `any player may pay 5 life`, `any opponent may sacrifice 1 creature
+    /// chosen`, `any player may this deals 6 damage to you`: "Any player
+    /// may pay 5 life", "any opponent may sacrifice a creature of their
+    /// choice", "Any player may have ~ deal 6 damage to them" (each player
+    /// in turn order until one does, acting as the one who does it); a
+    /// following `if you do` prints "If a player does", `otherwise` "If no
+    /// one does".
+    AnyPlayerMay {
+        opponents: bool,
+        inner: Vec<Sentence>,
+    },
+    /// `<clause> unless any player may this deals 4 damage to you`: "...
+    /// unless a player has this creature deal 4 damage to them" (the
+    /// clause happens if no player does it; `AnyPlayerMay`).
+    UnlessAnyPlayer {
+        act: Box<Effect>,
+        effect: Box<Effect>,
     },
     /// "If this spell was kicked, ..." (CR 702.33c).
     IfKicked(Vec<Sentence>),

@@ -1,0 +1,7 @@
+card "Longhorn Firebeast" {
+  oracle_id c6ca1f21-3aaf-4a5e-938e-7daed67a9d6e
+  cost {2}{R}
+  type Creature — Elemental Ox Beast
+  pt 3/2
+  triggered when this enters: any opponent may this deals 5 damage to you; if a player does, sacrifice this creature
+}

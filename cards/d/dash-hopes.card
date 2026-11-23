@@ -1,0 +1,7 @@
+card "Dash Hopes" {
+  oracle_id 6a4ace6b-ef3a-4d11-89d7-958f98dcc445
+  cost {B}{B}
+  type Instant
+  triggered when you cast this: any player may pay 5 life; if a player does, counter this
+  spell: counter target spell
+}

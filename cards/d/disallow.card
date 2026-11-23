@@ -1,0 +1,6 @@
+card "Disallow" {
+  oracle_id 88b51e15-6630-4e14-a6b8-db0aa12e34ef
+  cost {1}{U}{U}
+  type Instant
+  spell: counter target spell, activated ability, or triggered ability
+}

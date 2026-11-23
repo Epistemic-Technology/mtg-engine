@@ -1,0 +1,7 @@
+card "Fog Patch" {
+  oracle_id eb8ff6c1-f9b4-4dae-8f46-0f1ad4c05355
+  cost {1}{G}
+  type Instant
+  cast only during declare blockers
+  spell: all attacking creature becomes blocked
+}

@@ -1,0 +1,40 @@
+# "loses all abilities" alone, until end of turn and indefinitely (layer 6).
+
+scenario "Flourishing Grapple: a white creature loses its abilities and is bitten" {
+  battlefield A: "Hill Giant", "Forest"
+  battlefield B: "Serra Angel"
+  hand A: "Flourishing Grapple"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Flourishing Grapple" targeting "Serra Angel", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert has not "Serra Angel" flying
+  assert damage "Serra Angel" 3
+  run_to turn 2 upkeep
+  assert has "Serra Angel" flying
+}
+
+scenario "Flourishing Grapple can't target a green creature" {
+  battlefield A: "Hill Giant", "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Flourishing Grapple"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Flourishing Grapple" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Flourishing Grapple"
+}
+
+scenario "Abigale: the target loses its abilities for good, then has the counters' keywords" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Abigale, Eloquent First-Year"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Abigale, Eloquent First-Year"
+  turn 1 A: trigger "Abigale, Eloquent First-Year" targeting "Serra Angel"
+  run_to turn 3 upkeep
+  assert has not "Serra Angel" vigilance
+  assert has "Serra Angel" flying
+  assert has "Serra Angel" first_strike
+  assert has "Serra Angel" lifelink
+  assert counters "Serra Angel" lifelink 1
+}
+

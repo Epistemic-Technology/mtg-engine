@@ -1,0 +1,6 @@
+card "Deflection" {
+  oracle_id ec7ae9ed-dc5b-47ed-a4ad-086f3c7c377c
+  cost {3}{U}
+  type Instant
+  spell: change target of target spell with a single target
+}

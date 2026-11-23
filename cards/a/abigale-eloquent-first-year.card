@@ -1,0 +1,8 @@
+card "Abigale, Eloquent First-Year" {
+  oracle_id 48a773d0-c433-4463-b50f-b6d4604a042c
+  cost {W/B}{W/B}
+  type Legendary Creature — Bird Bard
+  pt 1/1
+  keywords flying, first strike, lifelink
+  triggered when this enters: up to 1 another target creature loses all abilities indefinitely; put 1 flying counter and 1 first strike counter and 1 lifelink counter on that target 1
+}

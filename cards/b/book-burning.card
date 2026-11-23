@@ -1,0 +1,6 @@
+card "Book Burning" {
+  oracle_id 644a8946-4890-4c2b-978f-02eedc95b5ad
+  cost {1}{R}
+  type Sorcery
+  spell: any player may this deals 6 damage to you; if no one does, target player mills 6 cards
+}

@@ -1,0 +1,49 @@
+# "Choose a creature you control. It ..." (CR 608.2d: not targeted, chosen
+# as the effect resolves).
+
+scenario "Final Showdown: the chosen creature survives destroy all" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 7 "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Final Showdown"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Final Showdown" mode 6
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Final Showdown: all creatures lose all abilities" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Final Showdown"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Final Showdown" mode 1
+  run_to turn 1 postcombat_main
+  assert has not "Serra Angel" flying
+  run_to turn 2 upkeep
+  assert has "Serra Angel" flying
+}
+
+scenario "Crush Underfoot: the chosen Giant deals damage equal to its power" {
+  battlefield A: "Hill Giant", "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Wind Drake"
+  hand A: "Crush Underfoot"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Crush Underfoot" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert damage "Hill Giant" 0
+}
+
+scenario "Crush Underfoot does nothing without a Giant" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Wind Drake"
+  hand A: "Crush Underfoot"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Crush Underfoot" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Wind Drake"
+  assert damage "Wind Drake" 0
+}

@@ -1,0 +1,7 @@
+card "Point the Way" {
+  oracle_id 0ffe9c8b-e0cb-4a29-bc14-649dbec5d1f3
+  cost {G}
+  type Enchantment
+  start your engines
+  activated {3}{G}, sacrifice this: search up to count where speed, basic land card to battlefield tapped
+}

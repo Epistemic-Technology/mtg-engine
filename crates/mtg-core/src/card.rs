@@ -1503,14 +1503,21 @@ pub enum Cmp {
     AtMost,
     AtLeast,
     Exactly,
+    /// "with mana value of the chosen quality" once odd was chosen (the
+    /// number is ignored; filled in by `ObjFilter::with_chosen`).
+    Odd,
+    /// ... once even was chosen ("Zero is even.").
+    Even,
 }
 
 impl Cmp {
-    pub fn holds<T: PartialOrd + Copy>(self, have: T, n: T) -> bool {
+    pub fn holds<T: PartialOrd + Copy + Into<i64>>(self, have: T, n: T) -> bool {
         match self {
             Cmp::AtMost => have <= n,
             Cmp::AtLeast => have >= n,
             Cmp::Exactly => have == n,
+            Cmp::Odd => have.into().rem_euclid(2) == 1,
+            Cmp::Even => have.into().rem_euclid(2) == 0,
         }
     }
 }
@@ -1599,6 +1606,10 @@ impl ObjFilter {
             crate::state::Chosen::Subtype(s) => f.subtypes.push(s),
             // "spell with the chosen name".
             crate::state::Chosen::Card(_) => f.named = chosen.card_ref().map(|d| (d, true)),
+            // "with mana value of the chosen quality" (odd or even).
+            crate::state::Chosen::Parity(odd) => {
+                f.mana_value = Some((if odd { Cmp::Odd } else { Cmp::Even }, 0));
+            }
             crate::state::Chosen::None
             | crate::state::Chosen::Votes(_)
             | crate::state::Chosen::Option(_) => {
@@ -2006,6 +2017,8 @@ pub enum CountExpr {
     TargetStat { n: usize, toughness: bool },
     /// Your life total.
     Life,
+    /// Your speed (CR 702.179: "where X is your speed"; 0 with none).
+    Speed,
     /// N times another count ("2 life for each creature you control").
     Times(u32, Box<CountExpr>),
     /// Another count divided by `by`, rounded down or (`up`) up: "half the
@@ -2281,6 +2294,7 @@ impl CountExpr {
             | CountExpr::OpponentsMoreCards
             | CountExpr::ExiledWith(_)
             | CountExpr::CardsInExile { .. }
+            | CountExpr::Speed
             | CountExpr::Life => true,
 
             // Total power and toughness would read the characteristics
@@ -3548,6 +3562,18 @@ pub enum TargetSpec {
         source: Option<CardType>,
         #[serde(default)]
         yours: bool,
+        /// "... with a single target" (CR 115.9a): one target was chosen
+        /// for it as it was put on the stack.
+        #[serde(default)]
+        single: bool,
+        /// "target instant spell, sorcery spell, activated ability, or
+        /// triggered ability": a spell only if it is an instant or sorcery.
+        #[serde(default)]
+        instant_sorcery: bool,
+        /// Printed as a list: "target spell, activated ability, or
+        /// triggered ability" (the same objects as "spell or ability").
+        #[serde(default)]
+        listed: bool,
     },
     /// "target opponent".
     Opponent,
@@ -3975,6 +4001,13 @@ pub enum Effect {
         to: Recipient,
         dest: CounteredTo,
     },
+    /// "Change the target of target spell or ability with a single
+    /// target" (CR 115.7a): the effect's controller changes that object's
+    /// target to another one legal for it, if there is one; otherwise it
+    /// is unchanged.
+    ChangeTarget {
+        what: Recipient,
+    },
     /// "Counter target spell unless its controller pays {N}" (CR 701.5?):
     /// the controller may pay; if they do not, it is countered. An {X} in
     /// `mana` is `x` as the effect resolves ("unless its controller pays
@@ -4391,6 +4424,14 @@ pub enum Effect {
     RemoveFromCombat {
         what: Recipient,
     },
+    /// "Target unblocked attacking creature becomes blocked" (CR 509.1h,
+    /// 506.4): an attacking creature not yet blocked is blocked with no
+    /// blocker, so it assigns no combat damage unless it has trample (CR
+    /// 702.19e); "becomes blocked" triggers. Works on creatures that can't
+    /// be blocked.
+    BecomeBlocked {
+        what: Recipient,
+    },
     /// "gains haste until end of turn" (layer 6).
     Grant {
         keywords: KeywordSet,
@@ -4523,6 +4564,15 @@ pub enum Effect {
     /// whether they did.
     PlayerMay {
         who: Recipient,
+        effects: Vec<Effect>,
+    },
+    /// "Any player may pay 5 life", "any opponent may sacrifice a creature
+    /// of their choice" (CR 608.2d): starting with the active player and in
+    /// turn order (CR 101.4), each player (each opponent, with
+    /// `opponents`) may do these as their own, until one does; "If a
+    /// player does" / "If no one does" then see whether one did.
+    AnyPlayerMay {
+        opponents: bool,
         effects: Vec<Effect>,
     },
     /// "pay {2}" / "pay 2 life", inside "you may": it happens only if the
@@ -5515,6 +5565,7 @@ impl Effect {
             self,
             Effect::YouMay(_)
                 | Effect::PlayerMay { .. }
+                | Effect::AnyPlayerMay { .. }
                 | Effect::ForEachCouldnt(_)
                 | Effect::EachPutsFromGraveyard { .. }
                 | Effect::IfKicked(_)
@@ -5540,6 +5591,7 @@ impl Effect {
                 | Effect::RemoveCounterChosen { .. }
                 | Effect::CopySpell
                 | Effect::CopySpells { .. }
+                | Effect::ChangeTarget { .. }
                 | Effect::Discard { .. }
                 | Effect::HandToLibrary { .. }
                 | Effect::ShuffleIntoLibrary { .. }
@@ -5784,6 +5836,11 @@ pub enum ChooseAct {
     /// of Human Werewolves you control" (CR 701.27; permanents you
     /// control).
     Transform,
+    /// "Choose a creature you control. It gains indestructible until end
+    /// of turn." (CR 608.2d: not targeted; any controller's unless the
+    /// filter names one): nothing is done to it; the chosen permanent is
+    /// "it" for the rest of the resolution (`Recipient::CreatedObject`).
+    Choose,
 }
 
 /// What a player chooses as a permanent enters ("As this land enters,
@@ -5804,6 +5861,9 @@ pub enum ChoiceKind {
     /// One of this many named options ("choose Khans or Dragons", CR
     /// 614.12): `Chosen::Option` with its index.
     Named(u8),
+    /// "choose odd or even" (Zero is even.): `Chosen::Parity`, for
+    /// "with mana value of the chosen quality".
+    Parity,
     /// "choose a card name", "choose a nonland card name" (CR 201.3):
     /// `Chosen::Card`. The names offered are those of the cards in the
     /// game (any zone, either player's), since naming another card has no
@@ -8220,6 +8280,7 @@ impl AbilityDef {
             out.push(e);
             if let Effect::YouMay(inner)
             | Effect::PlayerMay { effects: inner, .. }
+            | Effect::AnyPlayerMay { effects: inner, .. }
             | Effect::IfKicked(inner)
             | Effect::IfYouDo(inner)
             | Effect::Otherwise(inner)

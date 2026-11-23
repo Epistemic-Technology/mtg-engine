@@ -1,0 +1,6 @@
+card "Swerve" {
+  oracle_id c68627b1-025c-48c9-9646-98eb2d268e71
+  cost {U}{R}
+  type Instant
+  spell: change target of target spell with a single target
+}

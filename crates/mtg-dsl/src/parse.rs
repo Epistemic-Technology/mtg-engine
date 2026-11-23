@@ -290,6 +290,9 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             triggered: true,
             source: Some(CardType::Creature),
             yours: true,
+            single: false,
+            instant_sorcery: false,
+            listed: false,
         },
     ),
     (
@@ -311,6 +314,9 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             triggered: true,
             source: Some(CardType::Artifact),
             yours: true,
+            single: false,
+            instant_sorcery: false,
+            listed: false,
         },
     ),
     (
@@ -321,6 +327,9 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             triggered: true,
             source: None,
             yours: true,
+            single: false,
+            instant_sorcery: false,
+            listed: false,
         },
     ),
     (
@@ -331,6 +340,96 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             triggered: true,
             source: None,
             yours: true,
+            single: false,
+            instant_sorcery: false,
+            listed: false,
+        },
+    ),
+    (
+        &[
+            "instant",
+            "spell",
+            ",",
+            "sorcery",
+            "spell",
+            ",",
+            "activated",
+            "ability",
+            ",",
+            "or",
+            "triggered",
+            "ability",
+        ],
+        TargetSpec::OnStack {
+            spells: true,
+            activated: true,
+            triggered: true,
+            source: None,
+            yours: false,
+            single: false,
+            instant_sorcery: true,
+            listed: true,
+        },
+    ),
+    (
+        &[
+            "spell",
+            ",",
+            "activated",
+            "ability",
+            ",",
+            "or",
+            "triggered",
+            "ability",
+        ],
+        TargetSpec::OnStack {
+            spells: true,
+            activated: true,
+            triggered: true,
+            source: None,
+            yours: false,
+            single: false,
+            instant_sorcery: false,
+            listed: true,
+        },
+    ),
+    (
+        &["activated", "ability", "with", "a", "single", "target"],
+        TargetSpec::OnStack {
+            spells: false,
+            activated: true,
+            triggered: false,
+            source: None,
+            yours: false,
+            single: true,
+            instant_sorcery: false,
+            listed: false,
+        },
+    ),
+    (
+        &["spell", "with", "a", "single", "target"],
+        TargetSpec::OnStack {
+            spells: true,
+            activated: false,
+            triggered: false,
+            source: None,
+            yours: false,
+            single: true,
+            instant_sorcery: false,
+            listed: false,
+        },
+    ),
+    (
+        &["spell", "or", "ability", "with", "a", "single", "target"],
+        TargetSpec::OnStack {
+            spells: true,
+            activated: true,
+            triggered: true,
+            source: None,
+            yours: false,
+            single: true,
+            instant_sorcery: false,
+            listed: false,
         },
     ),
     (
@@ -341,6 +440,9 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             triggered: true,
             source: None,
             yours: false,
+            single: false,
+            instant_sorcery: false,
+            listed: false,
         },
     ),
     (
@@ -351,6 +453,9 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             triggered: true,
             source: None,
             yours: false,
+            single: false,
+            instant_sorcery: false,
+            listed: false,
         },
     ),
     (
@@ -361,6 +466,9 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             triggered: false,
             source: Some(CardType::Artifact),
             yours: false,
+            single: false,
+            instant_sorcery: false,
+            listed: false,
         },
     ),
     (
@@ -371,6 +479,9 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             triggered: false,
             source: None,
             yours: false,
+            single: false,
+            instant_sorcery: false,
+            listed: false,
         },
     ),
     (
@@ -381,6 +492,9 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             triggered: true,
             source: None,
             yours: false,
+            single: false,
+            instant_sorcery: false,
+            listed: false,
         },
     ),
     (&["noncreature", "spell"], TargetSpec::NoncreatureSpell),
@@ -861,6 +975,10 @@ impl P {
         if self.eat_words(&["land", "type"]) {
             suffix(self)?;
             return Ok(ChoiceKind::LandType(Color::ALL.to_vec()));
+        }
+        // "choose odd or even".
+        if self.eat_words(&["odd", "or", "even"]) {
+            return Ok(ChoiceKind::Parity);
         }
         // "choose a card name", "choose a nonland card name".
         if self.eat_words(&["card", "name"]) {
@@ -5766,6 +5884,16 @@ impl P {
             }
             self.pos = at;
         }
+        // `unless any player may this deals 4 damage to you`: "unless a
+        // player has this creature deal 4 damage to them".
+        if self.at_words(&["unless", "any", "player", "may"]) {
+            self.pos += 4;
+            let act = self.clause()?;
+            return Ok(Effect::UnlessAnyPlayer {
+                act: Box::new(act),
+                effect: Box::new(e),
+            });
+        }
         // `unless you sacrifice 1 Forest chosen`: an act, not a payment.
         if self.at_words(&["unless", "you"])
             && !matches!(self.word_at(2).as_deref(), Some("pay" | "do"))
@@ -6648,6 +6776,37 @@ impl P {
             self.subject = saved;
             return Ok(Effect::KeepMana(vec![s]));
         }
+        // "Any player may pay 5 life", "any opponent may sacrifice a
+        // creature of their choice".
+        if self.at_words(&["any", "player", "may"]) || self.at_words(&["any", "opponent", "may"]) {
+            let opponents = self.word_at(1).as_deref() == Some("opponent");
+            self.pos += 3;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::AnyPlayerMay {
+                opponents,
+                inner: vec![s],
+            });
+        }
+        // "if a player does, ..." / "if no one does, ..." after it.
+        if self.at_words(&["if", "a", "player", "does"])
+            || self.at_words(&["if", "no", "one", "does"])
+        {
+            let done = self.word_at(1).as_deref() == Some("a");
+            self.pos += 4;
+            if self.peek() == Some(&Tok::Comma) {
+                self.pos += 1;
+            }
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(if done {
+                Effect::IfYouDo(vec![s])
+            } else {
+                Effect::Otherwise(vec![s])
+            });
+        }
         // "you may ..." before "you" as a subject.
         if self.at_words(&["you", "may"]) {
             self.pos += 2;
@@ -7285,8 +7444,14 @@ impl P {
                     && !self.at_words(&["all", "abilities", "and"]) =>
             {
                 self.pos += 2;
-                self.until_end_of_turn();
-                Ok(Effect::LoseAllAbilities { to: subject })
+                let indefinite = self.eat_word("indefinitely");
+                if !indefinite {
+                    self.until_end_of_turn();
+                }
+                Ok(Effect::LoseAllAbilities {
+                    to: subject,
+                    indefinite,
+                })
             }
             "lose" | "loses" if self.keyword_ahead() => {
                 let mut keywords = Vec::new();
@@ -8185,6 +8350,11 @@ impl P {
                 }
                 _ => self.fail("expected +N/+N"),
             },
+            // "Target unblocked attacking creature becomes blocked."
+            "become" | "becomes" if self.at_word("blocked") => {
+                self.pos += 1;
+                Ok(Effect::BecomeBlocked { what: subject })
+            }
             "become" | "becomes" => {
                 self.eat_word("a");
                 if self.eat_word("copy") {
@@ -8441,7 +8611,8 @@ impl P {
     /// before the clause ends or another verb starts. `return N <filter>
     /// chosen` alone is `ReturnChosen`.
     fn chosen_act_ahead(&self) -> bool {
-        const VERBS: [&str; 13] = [
+        const VERBS: [&str; 14] = [
+            "choose",
             "tap",
             "untap",
             "transform",
@@ -8459,7 +8630,7 @@ impl P {
         let Some(verb) = self.word_at(0) else {
             return false;
         };
-        if !VERBS[..10].contains(&verb.as_str()) {
+        if !VERBS[..11].contains(&verb.as_str()) {
             return false;
         }
         let mut hand = false;
@@ -8526,6 +8697,13 @@ impl P {
         let mut this_way = false;
         let mut returns = false;
         let (act, filter) = match verb.as_str() {
+            // `choose 1 Giant creature you control chosen; it deals damage
+            // ...`: "Choose a Giant creature you control. It ..." (`it` is
+            // the chosen permanent).
+            "choose" => {
+                self.created_at = Some(self.targets.len());
+                (ChooseAct::Choose, self.filter()?)
+            }
             "tap" => (ChooseAct::Tap, self.filter()?),
             "untap" => (ChooseAct::Untap, self.filter()?),
             "transform" => (ChooseAct::Transform, self.filter()?),
@@ -9025,7 +9203,7 @@ impl P {
                 if matches!(
                     self.word_at(0).as_deref(),
                     Some("color" | "creature" | "land")
-                ) =>
+                ) || self.at_words(&["odd", "or", "even"]) =>
             {
                 Ok(Effect::Choose(self.choice_kind(false)?))
             }
@@ -10403,6 +10581,13 @@ impl P {
                     and_may,
                 })
             }
+            // "Change the target of target spell or ability with a single
+            // target" (CR 115.7a).
+            "change" if self.at_words(&["target", "of"]) => {
+                self.pos += 2;
+                let what = self.recipient()?;
+                Ok(Effect::ChangeTarget { what })
+            }
             "counter" => {
                 let to = self.recipient()?;
                 if self.eat_word("unless") {
@@ -11243,6 +11428,9 @@ impl P {
         }
         if self.eat_word("life") {
             return Ok(CountExpr::Life);
+        }
+        if self.eat_word("speed") {
+            return Ok(CountExpr::Speed);
         }
         // "for each creature blocking it [beyond the first]".
         if self.eat_words(&["creature", "blocking", "it"]) {
@@ -13375,6 +13563,7 @@ impl P {
                     let of = [
                         (&["of", "chosen", "color"][..], OfChosen::ChosenColor),
                         (&["of", "chosen", "type"][..], OfChosen::ChosenType),
+                        (&["of", "chosen", "quality"][..], OfChosen::ChosenQuality),
                         (&["of", "that", "type"][..], OfChosen::ThatType),
                         (&["of", "that", "color"][..], OfChosen::ThatColor),
                         (

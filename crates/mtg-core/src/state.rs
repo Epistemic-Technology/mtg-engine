@@ -288,6 +288,8 @@ pub enum Chosen {
     /// definition per name), in three bytes (`Chosen::card`) so the
     /// object stays small.
     Card([u8; 3]),
+    /// Odd (`true`) or even, for "with mana value of the chosen quality".
+    Parity(bool),
 }
 
 impl Chosen {
@@ -4973,13 +4975,25 @@ impl GameState {
                     triggered,
                     source: source_type,
                     yours,
+                    single,
+                    instant_sorcery,
+                    ..
                 } = spec
                 {
                     if obj.zone != Zone::Stack || (yours && obj.controller != caster) {
                         return false;
                     }
+                    // CR 115.9a: the times a target was chosen for it.
+                    if single && obj.targets.iter().filter(|t| !t.is_none()).count() != 1 {
+                        return false;
+                    }
                     let Some(sa) = obj.ability else {
-                        return spells;
+                        return spells
+                            && (!instant_sorcery
+                                || self.characteristics(id).is_some_and(|c| {
+                                    c.types.contains(CardType::Instant)
+                                        || c.types.contains(CardType::Sorcery)
+                                }));
                     };
                     let kind_ok = match self.pool.ability(sa.ability) {
                         crate::card::AbilityDef::Activated(_) => activated,

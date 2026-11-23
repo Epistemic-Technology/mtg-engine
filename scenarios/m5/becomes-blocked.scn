@@ -1,0 +1,81 @@
+# "Target unblocked attacking creature becomes blocked" (CR 509.1h): blocked
+# with no blocker, it assigns no combat damage unless it has trample (CR
+# 702.19e); "becomes blocked" triggers. "Cast this spell only during the
+# declare blockers step."
+
+scenario "Curtain of Light: the attacker becomes blocked and deals no damage" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: 2 "Plains"
+  hand B: "Curtain of Light"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers B: cast "Curtain of Light" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert hand B count 1
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Curtain of Light can't be cast before blockers are declared" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: 2 "Plains"
+  hand B: "Curtain of Light"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 declare_attackers B: cast "Curtain of Light" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Curtain of Light can't target a blocked creature" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: 2 "Plains", "Wind Drake"
+  hand B: "Curtain of Light"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  illegal turn 1 declare_blockers B: cast "Curtain of Light" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Curtain of Light"
+}
+
+scenario "Dazzling Beauty: blocked now, a card at the next upkeep" {
+  battlefield A: "Slith Strider"
+  battlefield B: 3 "Plains"
+  hand B: "Dazzling Beauty"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Slith Strider"
+  turn 1 declare_blockers B: cast "Dazzling Beauty" targeting "Slith Strider"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert hand A count 1
+  assert hand B count 0
+  # One card from the delayed trigger in B's upkeep, one from the draw.
+  run_to turn 2 precombat_main
+  assert hand B count 2
+}
+
+scenario "Fog Patch: every attacker becomes blocked; trample still assigns to the player" {
+  battlefield A: "Grizzly Bears", "Colossal Dreadmaw"
+  battlefield B: 2 "Forest"
+  hand B: "Fog Patch"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears", "Colossal Dreadmaw"
+  turn 1 declare_blockers B: cast "Fog Patch"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+scenario "Choking Vines: X attackers become blocked and take 1 damage each" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Wind Drake"
+  battlefield B: 3 "Forest"
+  hand B: "Choking Vines"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears", "Hill Giant", "Wind Drake"
+  turn 1 declare_blockers B: cast "Choking Vines" x 2 targeting "Grizzly Bears", "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert damage "Grizzly Bears" 1
+  assert damage "Wind Drake" 1
+  assert damage "Hill Giant" 0
+}
