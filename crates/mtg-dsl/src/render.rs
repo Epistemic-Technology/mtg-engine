@@ -9782,6 +9782,7 @@ fn target_predicate(f: &Filter, card: &Card) -> String {
     with_article(&filter_phrase(f, card, false))
 }
 
+#[allow(clippy::too_many_lines)] // one list of words that keep their case
 fn lowercase_first(s: &str) -> String {
     // "Goblin creatures you control get +1/+1": a subtype keeps its
     // capital.
