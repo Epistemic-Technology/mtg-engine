@@ -21,9 +21,6 @@ pub(in crate::engine) struct CostBasis<'a> {
     pub id: ObjId,
     /// The spell's characteristics: the card's, or the face it is cast as.
     pub def: &'a CardDef,
-    /// The card's own definition, whose costs a face cast for them doesn't
-    /// carry (awaken, disturb, an alternative cost).
-    pub card: &'a CardDef,
     /// The alternative used (`AltCast`).
     pub alt: AltCast,
     /// Cast for its evoke cost (CR 702.74a).
@@ -65,7 +62,6 @@ impl GameState {
             p: o.controller,
             id: spell,
             def: self.pool.get(o.def),
-            card: self.pool.get(o.card),
             alt: o.alt,
             evoked: o.cast.evoked(),
             flashback: o.cast.flashback(),
@@ -88,6 +84,8 @@ impl GameState {
 
     /// The basis of `p` casting the card `id` as `def` (the card's own
     /// definition or one of its faces) `alt`'s way, nothing chosen yet.
+    #[allow(clippy::inline_always)] // measured: the priority listing's hot path
+    #[inline(always)]
     pub(in crate::engine) fn offer_basis<'a>(
         &'a self,
         p: PlayerId,
@@ -99,16 +97,16 @@ impl GameState {
             p,
             id,
             def,
-            card: self.pool.get(self.objects[id].card),
             alt,
             evoked: false,
             flashback: false,
             // The face-down 2/2's own definition as a card (random decks
             // hold it) costs {3} too, as payment charges it.
-            face_down: def
-                .printed
-                .as_ref()
-                .is_some_and(|c| self.pool.is_face_down(c.def)),
+            face_down: def.mana_cost.is_empty()
+                && def
+                    .printed
+                    .as_ref()
+                    .is_some_and(|c| self.pool.is_face_down(c.def)),
             x: 0,
             other: false,
             mode: None,
@@ -123,10 +121,45 @@ impl GameState {
     /// mana, the optional costs and modes chosen, then cost increases and
     /// reductions (`changers`: `cost_changers`), a target's cost change,
     /// and harmonize's tapped creature. Offer and payment both use it.
-    #[allow(clippy::too_many_lines)] // one step per kind of cost
+    #[allow(clippy::inline_always)] // measured: the priority listing's hot path
+    #[inline(always)]
     pub(in crate::engine) fn cost_of(&self, b: &CostBasis, changers: &[ObjId]) -> ManaRequirement {
-        let (def, x) = (b.def, b.x);
+        let def = b.def;
         let mut req = self.base_cost(b);
+        // What a plain cast from the hand doesn't have, out of line.
+        if b.x > 0 || b.stack || b.mode.is_some() || b.other || !def.additional.mana.is_empty() {
+            self.add_chosen_costs(b, &mut req);
+        }
+        if def.self_cost.is_some()
+            || def.cond_cost.is_some()
+            || !changers.is_empty()
+            || self.next_spell_less[b.p.index().min(3)] > 0
+        {
+            adjust_generic(&mut req, self.cost_delta(b.p, def, b.id, changers));
+        }
+        if let Some(tc) = &def.target_cost {
+            if b.stack {
+                if let Some(t) = self.objects[b.id].targets.first()
+                    && self.target_fits(&tc.1, *t, b.p, b.id)
+                {
+                    adjust_generic(&mut req, tc.0);
+                }
+            } else if self.offer_target_cost(b, tc) {
+                adjust_generic(&mut req, tc.0);
+            }
+        }
+        // CR 702.180a: reduced by the tapped creature's power.
+        if b.less > 0 {
+            adjust_generic(&mut req, -i32::try_from(b.less).unwrap_or(i32::MAX));
+        }
+        req
+    }
+
+    /// `cost_of`'s parts before the cost changes: X's color, the optional
+    /// costs chosen, the mode's, and the additional costs' mana.
+    #[inline(never)]
+    fn add_chosen_costs(&self, b: &CostBasis, req: &mut ManaRequirement) {
+        let (def, x) = (b.def, b.x);
         // CR 107.3: "Spend only black mana on X." X is then paid as that
         // many black symbols.
         if x > 0
@@ -142,31 +175,10 @@ impl GameState {
             req.generic -= x;
             req.colored[c as usize] += x;
         }
-        if b.cast.kicked()
-            && let Some(k) = &def.kicker
-        {
-            req.add(&k.requirements(0));
-        }
-        // CR 702.33c: the multikicker cost, once for each time it was paid.
-        if let Some(k) = &def.multikicker {
-            for _ in 0..b.cast.kicks() {
-                req.add(&k.requirements(0));
-            }
-        }
-        if b.cast.bought_back()
-            && let Some(c) = &def.buyback
-        {
-            req.add(&c.requirements(0));
-        }
-        if b.cast.offspring()
-            && let Some(c) = &def.offspring
-        {
-            req.add(&c.requirements(0));
-        }
-        // Nothing is spliced, targeted, or replicated before the cast.
+        // Nothing is chosen, spliced, targeted, or replicated before the
+        // cast.
         if b.stack {
-            let targets = self.objects[b.id].targets.len();
-            self.add_splice_and_strive(b.id, def, targets, &mut req);
+            self.add_optional_costs(b, req);
         }
         if let Some(mode) = b.mode {
             // CR 702.42a: every mode, for the entwine cost on top.
@@ -208,29 +220,42 @@ impl GameState {
         } else if !b.other && !def.additional.mana.is_empty() {
             req.add(&def.additional.mana.requirements(0));
         }
-        if def.self_cost.is_some()
-            || def.cond_cost.is_some()
-            || !changers.is_empty()
-            || self.next_spell_less[b.p.index().min(3)] > 0
+    }
+
+    /// The optional costs the spell being cast has chosen (kicker,
+    /// multikicker, buyback, offspring, CR 702.33, 702.27, 702.175), the
+    /// splice costs, strive's, and replicate's (`add_splice_and_strive`).
+    fn add_optional_costs(&self, b: &CostBasis, req: &mut ManaRequirement) {
+        let def = b.def;
+        if b.cast.kicked()
+            && let Some(k) = &def.kicker
         {
-            adjust_generic(&mut req, self.cost_delta(b.p, def, b.id, changers));
+            req.add(&k.requirements(0));
         }
-        if let Some(tc) = &def.target_cost {
-            if b.stack {
-                if let Some(t) = self.objects[b.id].targets.first()
-                    && self.target_fits(&tc.1, *t, b.p, b.id)
-                {
-                    adjust_generic(&mut req, tc.0);
-                }
-            } else if self.offer_target_cost(b, tc) {
-                adjust_generic(&mut req, tc.0);
+        // CR 702.33c: the multikicker cost, once for each time it was paid.
+        if let Some(k) = &def.multikicker {
+            for _ in 0..b.cast.kicks() {
+                req.add(&k.requirements(0));
             }
         }
-        // CR 702.180a: reduced by the tapped creature's power.
-        if b.less > 0 {
-            adjust_generic(&mut req, -i32::try_from(b.less).unwrap_or(i32::MAX));
+        if b.cast.bought_back()
+            && let Some(c) = &def.buyback
+        {
+            req.add(&c.requirements(0));
         }
-        req
+        if b.cast.offspring()
+            && let Some(c) = &def.offspring
+        {
+            req.add(&c.requirements(0));
+        }
+        let targets = self.objects[b.id].targets.len();
+        self.add_splice_and_strive(b.id, def, targets, req);
+    }
+
+    /// The definition of `b`'s card (`GameObject::card`), not the face
+    /// it is cast as.
+    fn card_def(&self, b: &CostBasis) -> &CardDef {
+        self.pool.get(self.objects[b.id].card)
     }
 
     /// Whether an offer counts a target cost change (`CardDef::target_cost`)
@@ -257,8 +282,24 @@ impl GameState {
     /// The cost `b`'s way pays instead of or as the mana cost (CR 118.9),
     /// with X: a flashback cost, nothing for a spell cast without paying
     /// its mana cost, an alternative cost, or {3} face down.
+    #[allow(clippy::inline_always)] // measured: the priority listing's hot path
+    #[inline(always)]
     fn base_cost(&self, b: &CostBasis) -> ManaRequirement {
-        let (def, card, x, alt) = (b.def, b.card, b.x, b.alt);
+        let (def, x, alt) = (b.def, b.x, b.alt);
+        let reqs = |c: &crate::mana::ManaCost| c.requirements(x);
+        // Most casts: the mana cost (the last arm), at a glance.
+        if matches!(alt, AltCast::None | AltCast::Hand) && !b.flashback && !b.evoked && !b.face_down
+        {
+            return reqs(&def.mana_cost);
+        }
+        self.alt_base_cost(b)
+    }
+
+    /// `base_cost` of a way that isn't the plain mana cost.
+    #[inline(never)]
+    fn alt_base_cost(&self, b: &CostBasis) -> ManaRequirement {
+        let (def, x, alt) = (b.def, b.x, b.alt);
+        let card = || self.card_def(b);
         let reqs = |c: &crate::mana::ManaCost| c.requirements(x);
         match (&def.flashback, b.flashback) {
             (Some(fb), true) => reqs(&fb.mana),
@@ -313,17 +354,17 @@ impl GameState {
                 reqs(def.overload.as_ref().expect("checked"))
             }
             // The face has no awaken of its own: the card's cost.
-            (_, false) if alt == AltCast::Awaken && card.awaken.is_some() => {
-                reqs(&card.awaken.as_ref().expect("checked").1)
+            (_, false) if alt == AltCast::Awaken && card().awaken.is_some() => {
+                reqs(&card().awaken.as_ref().expect("checked").1)
             }
             // The back face has no disturb of its own: the card's cost.
-            (_, false) if alt == AltCast::Disturb && card.disturb.is_some() => {
-                reqs(card.disturb.as_ref().expect("checked"))
+            (_, false) if alt == AltCast::Disturb && card().disturb.is_some() => {
+                reqs(card().disturb.as_ref().expect("checked"))
             }
             // The card's: a cleaved spell's face has no alternative cost of
             // its own (CR 702.148a), a prototyped one's is its mana cost.
-            (_, false) if alt == AltCast::AltCost && card.alt_cost.is_some() => {
-                reqs(&card.alt_cost.as_ref().expect("checked").cost.mana)
+            (_, false) if alt == AltCast::AltCost && card().alt_cost.is_some() => {
+                reqs(&card().alt_cost.as_ref().expect("checked").cost.mana)
             }
             (_, false) if b.evoked && def.evoke.is_some() => {
                 reqs(def.evoke.as_ref().expect("checked"))
@@ -352,6 +393,8 @@ impl GameState {
     /// restricted mana it may spend first (CR 106.6), then `sources`, then
     /// what convoke, improvise, delve, or an additional waterbend cost
     /// lets pay. `None`: just `sources`.
+    #[allow(clippy::inline_always)] // measured: the priority listing's hot path
+    #[inline(always)]
     pub(in crate::engine) fn basis_sources(
         &self,
         b: &CostBasis,
@@ -382,6 +425,8 @@ impl GameState {
     /// 702.119a), and a spree or tiered spell's mode: one with its targets
     /// whose cost can be paid (CR 702.172a, 702.183a). The one check every
     /// way to cast a spell is offered by.
+    #[allow(clippy::inline_always)] // measured: the priority listing's hot path
+    #[inline(always)]
     pub(in crate::engine) fn basis_payable(
         &self,
         b: &CostBasis,
@@ -398,7 +443,7 @@ impl GameState {
         // enough of the mana untapped, as payment's choice of them
         // (`tap_first_options`) requires.
         if b.alt == AltCast::AltCost
-            && let Some(alt) = b.card.alt_cost.as_deref()
+            && let Some(alt) = self.card_def(b).alt_cost.as_deref()
             && alt.cost.taps_chosen()
             && !self.cost_option_payable(p, &alt.cost, id, srcs, req, false)
         {
@@ -409,7 +454,7 @@ impl GameState {
         // its own mana.
         if b.alt == AltCast::AltCost
             && def.emerge
-            && let Some(alt) = b.card.alt_cost.as_deref()
+            && let Some(alt) = self.card_def(b).alt_cost.as_deref()
             && let Some(SacCost::Filter(f)) = &alt.cost.sacrifice
             && let Some(printed) = &def.printed
         {

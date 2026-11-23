@@ -2561,6 +2561,7 @@ impl GameState {
 
     /// A modal spell needs some mode to have its targets (CR 601.2b); any
     /// other, its targets (`spell_targets_available`).
+    #[inline]
     fn way_targets_available(&self, p: PlayerId, def: &crate::card::CardDef, id: ObjId) -> bool {
         match def.modes() {
             Some(modes) => modes
