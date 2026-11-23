@@ -1,0 +1,7 @@
+card "Trusty Boomerang" {
+  oracle_id 3c032e74-69c6-48ca-95d4-51aa3d894c14
+  cost {1}
+  type Artifact — Equipment
+  static equipped: has ability { activated {1}, {T}: tap target creature; return granter to hand }
+  equip {1}
+}

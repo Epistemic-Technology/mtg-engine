@@ -318,7 +318,9 @@ one line per paragraph for text that spans paragraphs:
 
 Comma-separated, printed in the order written: mana symbols (`{1}{R}`),
 `{T}`, `sacrifice this`, `sacrifice Goblin` (a filter: the player chooses
-a matching permanent they control), `discard 1 card`, `discard 1 card
+a matching permanent they control), `sacrifice granter` (in a quoted
+ability an Aura or Equipment grants: "Sacrifice Blazing Torch", see
+`has ability`), `discard 1 card`, `discard 1 card
 at random` ("Discard a card at random": the card is picked at random as
 the cost is paid, CR 701.9b), `discard creature
 card` (a filter: discard one matching card, printed "Discard a creature
@@ -1769,6 +1771,21 @@ or artifacts (`static artifact you control: has ability { activated {2},
 sacrifice this: ... }`: "Sacrifice this artifact"). A granted loyalty
 ability brackets its cost (`static planeswalker you control: has ability
 { loyalty -4: ... }`: "Planeswalkers you control have \"[−4]: ...\"").
+In a quoted ability an Aura or Equipment grants what it is attached to
+(`static enchanted:` or `static equipped:`), `granter` is that Aura or
+Equipment, printed by its name: the cost `sacrifice granter` ("{T},
+Sacrifice Blazing Torch: ..."), `granter deals 2 damage to any target`
+("Blazing Torch deals 2 damage to any target": the Equipment is the
+damage's source, as it last existed once sacrificed), `return granter to
+hand` ("Return Trusty Boomerang to its owner's hand"), `sacrifice
+granter` and `destroy granter` as effects (`you may sacrifice granter;
+when you do, this creature deals 2 damage to any target`: with the
+Equipment gone or another player's, it can't be done, CR 701.21a). Each
+grant is its own ability (CR 113.2c): two Blazing Torches give the
+creature two, each sacrificing its own; an activation needs its granter
+attached (and, to sacrifice it, controlled by the activating player).
+`granter` is an error elsewhere, beside a cost that chooses a permanent
+or card, and in other effects.
 A token a quoted ability creates prints its full description. A replacement or
 prevention ability may be granted (absorb). `has protection from
 multicolored`, `has protection from artifact` grant protection from a

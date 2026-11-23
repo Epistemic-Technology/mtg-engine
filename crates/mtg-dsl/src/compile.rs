@@ -173,6 +173,7 @@ pub fn add_card(
             battle_cry: None,
             token: None,
             cast_snapshot: None,
+            granting: false,
         };
         let from = c.pool.ability_count();
         let def = c.card()?;
@@ -217,6 +218,7 @@ pub fn add_card(
                 battle_cry: None,
                 token: None,
                 cast_snapshot: None,
+                granting: false,
             };
             let from = c.pool.ability_count();
             let def = c.card()?;
@@ -250,6 +252,7 @@ pub fn add_card(
         battle_cry: None,
         token,
         cast_snapshot: None,
+        granting: false,
     };
     let from = c.pool.ability_count();
     let mut def = c.card()?;
@@ -347,6 +350,7 @@ fn add_stages(
             battle_cry: None,
             token: None,
             cast_snapshot: None,
+            granting: false,
             sunburst: None,
         };
         let from = c.pool.ability_count();
@@ -467,6 +471,9 @@ struct Compiler<'a> {
     token: Option<CardRef>,
     /// The condition a spell's `AsCast` condition judges as it is cast.
     cast_snapshot: Option<StaticCondition>,
+    /// Compiling the mods of a static ability of the attached permanent
+    /// ("enchanted", "equipped"): a quoted ability may name its `granter`.
+    granting: bool,
 }
 
 impl Compiler<'_> {
@@ -1586,6 +1593,11 @@ impl Compiler<'_> {
                 continue;
             }
             let compiled = self.ability(a)?;
+            if compiled.names_granter() {
+                return self.err(
+                    "`granter` names the Aura or Equipment granting a quoted ability: only in `static enchanted: has ability { ... }`",
+                );
+            }
             b = b.ability(compiled);
             // "Otherwise, it gets -2/-2." (CR 611.3a): a second static
             // ability on the same objects while the condition doesn't hold.
@@ -2813,6 +2825,7 @@ impl Compiler<'_> {
             sacrifice: match &c.sacrifice {
                 None => None,
                 Some(SacCost::This) => Some(CoreSacCost::This),
+                Some(SacCost::Granter) => Some(CoreSacCost::Granter),
                 Some(SacCost::Filter(f)) => Some(CoreSacCost::Filter(self.filter(f))),
             },
             count: c.count,
@@ -2934,6 +2947,7 @@ impl Compiler<'_> {
             Recipient::AttachedController => CoreRecipient::AttachedController,
             Recipient::BlockingIt => CoreRecipient::BlockingIt,
             Recipient::ExiledCard => CoreRecipient::ExiledCard,
+            Recipient::Granter => CoreRecipient::Granter,
             Recipient::Those(_) => CoreRecipient::ThoseObjects,
         }
     }
@@ -3189,7 +3203,10 @@ impl Compiler<'_> {
                 amount,
                 to,
                 by:
-                    by @ (Recipient::TriggeringIt | Recipient::TriggeringObject | Recipient::Attached),
+                    by @ (Recipient::TriggeringIt
+                    | Recipient::TriggeringObject
+                    | Recipient::Attached
+                    | Recipient::Granter),
             } => {
                 for t in to {
                     out.push(CoreEffect::DamageFrom {
@@ -5268,10 +5285,35 @@ impl Compiler<'_> {
         })
     }
 
+    /// A quoted ability naming its granter (`granter`, CR 113.2c): only one
+    /// an Aura or Equipment grants what it is attached to (the engine
+    /// finds the granters among the attachments), with no other chosen
+    /// cost (the activation's choice carries the granter), and `granter`
+    /// only where the engine reads it (`Effect::names_granter`).
+    fn check_granter(&self, def: &AbilityDef) -> Result<(), CompileError> {
+        let named = def.names_granter();
+        if named && !self.granting {
+            return self.err("`granter` only in a quoted ability of `static enchanted: ...`");
+        }
+        if let AbilityDef::Activated(a) = def
+            && named
+            && (matches!(a.cost.sacrifice, Some(CoreSacCost::Filter(_)))
+                || a.cost.discard > 0
+                || a.cost.discard_x)
+        {
+            return self.err("an ability naming its `granter` can't also have a chosen cost");
+        }
+        if !named && format!("{def:?}").contains("Granter") {
+            return self.err("`granter` isn't supported in this effect");
+        }
+        Ok(())
+    }
+
     /// A modification, registering a granted ability ("has \"...\"").
     fn modification_or_grant(&mut self, m: &Mod) -> Result<Modification, CompileError> {
         if let Mod::AddAbility(a) = m {
             let def = self.ability(a)?;
+            self.check_granter(&def)?;
             return Ok(Modification::AddAbility(self.pool.register_ability(def)));
         }
         let out = self.modification(m);
@@ -5755,6 +5797,7 @@ impl Compiler<'_> {
                     affected: self.filter(filter),
                     parts: {
                         let mut parts = Vec::new();
+                        let granting = std::mem::replace(&mut self.granting, filter.enchanted);
                         for m in mods {
                             // "is a Mountain, Forest, and Plains": the first
                             // replaces its land types, the rest add to it.
@@ -5783,6 +5826,7 @@ impl Compiler<'_> {
                             }
                             parts.push(self.modification_or_grant(m)?);
                         }
+                        self.granting = granting;
                         parts
                     },
                     condition,

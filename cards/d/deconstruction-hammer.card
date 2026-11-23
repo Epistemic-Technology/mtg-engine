@@ -1,0 +1,7 @@
+card "Deconstruction Hammer" {
+  oracle_id ccc2eb6d-21cf-45cf-b4e4-4b2a2517136a
+  cost {W}
+  type Artifact — Equipment
+  static equipped: +1/+1, has ability { activated {3}, {T}, sacrifice granter: destroy target artifact or enchantment }
+  equip {1}
+}

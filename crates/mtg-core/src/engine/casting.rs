@@ -5424,7 +5424,18 @@ impl GameState {
                 }
                 // One option per way to pay the costs that need a choice.
                 let sacrifices: Vec<Option<ObjId>> = match &ab.cost.sacrifice {
-                    None | Some(SacCost::This) => vec![None],
+                    // An ability naming the Aura or Equipment granting it:
+                    // one per granter (CR 113.2c), carried in the choice;
+                    // "Sacrifice Blazing Torch" needs it to be yours.
+                    _ if self.pool.ability_names_granter(*a) => {
+                        let mine = (ab.cost.sacrifice == Some(SacCost::Granter)).then_some(p);
+                        let g = self.granters_of(id, *a, mine);
+                        if g.is_empty() {
+                            continue;
+                        }
+                        g.into_iter().map(Some).collect()
+                    }
+                    None | Some(SacCost::This | SacCost::Granter) => vec![None],
                     Some(SacCost::Filter(_)) if ab.cost.taps_chosen() => {
                         self.tap_cost_options(p, ab, id, sources)
                     }
@@ -5466,6 +5477,35 @@ impl GameState {
                 }
             }
         }
+    }
+
+    /// The Auras and Equipment attached to `obj` that grant it ability `a`
+    /// (`Recipient::Granter`), those controlled by `controller` if given:
+    /// each grant is its own ability (CR 113.2c). Only for abilities that
+    /// name their granter, so the battlefield scan is rare.
+    #[cold]
+    #[inline(never)]
+    pub(super) fn granters_of(
+        &self,
+        obj: ObjId,
+        a: crate::card::AbilityId,
+        controller: Option<PlayerId>,
+    ) -> SmallVec<[ObjId; 2]> {
+        self.battlefield
+            .iter()
+            .copied()
+            .filter(|g| {
+                let o = &self.objects[*g];
+                o.attached_to == Some(obj)
+                    && controller.is_none_or(|p| o.controller == p)
+                    && self.characteristics(*g).is_some_and(|c| {
+                        c.abilities.iter().any(|s| {
+                            matches!(self.pool.ability(*s), AbilityDef::Static(st)
+                                if st.parts.contains(&Modification::AddAbility(a)))
+                        })
+                    })
+            })
+            .collect()
     }
 
     /// The choices of the first permanent an activated ability's "tap two
@@ -5900,6 +5940,13 @@ impl GameState {
         });
         self.stack.push(obj);
         self.bump();
+        // The grant this instance of the ability came from (CR 113.2c),
+        // for its "Blazing Torch" as it resolves.
+        if let Some(g) = sacrifice
+            && self.pool.ability_names_granter(ability)
+        {
+            self.granters.push((obj, g));
+        }
         // CR 602.2b, 601.2b: X in the activation cost is announced before
         // targets are chosen. (A mana ability's X in its mana cost is paid
         // as it is activated, Wizard's Rockets, and isn't asked; one that
@@ -7721,6 +7768,14 @@ impl GameState {
         }
         match cost.sacrifice {
             Some(SacCost::This) => self.sacrifice(this),
+            // "Sacrifice Blazing Torch": the granter the choice carried.
+            Some(SacCost::Granter) => {
+                if let Some(g) = sacrifice
+                    && self.objects.contains_key(g)
+                {
+                    self.sacrifice(g);
+                }
+            }
             Some(SacCost::Filter(ref f)) => {
                 if let Some(first) = sacrifice {
                     // "Sacrifice two Goblins": the chosen one, then the
@@ -7852,6 +7907,11 @@ impl GameState {
             && let Some(i) = self.paid_costs.iter().position(|(o, _)| *o == obj)
         {
             log.moved = self.paid_costs.swap_remove(i).1;
+        }
+        if !self.granters.is_empty()
+            && let Some(i) = self.granters.iter().position(|(o, _)| *o == obj)
+        {
+            log.granter = Some(self.granters.swap_remove(i).1);
         }
         self.this_way.replace(log)
     }
@@ -9960,6 +10020,17 @@ impl GameState {
                     }
                 }
             }
+            // "Return Trusty Boomerang to its owner's hand": the granting
+            // Aura or Equipment, while it is still that object (CR
+            // 400.7); one that left is found as it last existed only by
+            // effects that use last-known information (`DamageFrom`).
+            Recipient::Granter => {
+                if let Some(g) = self.this_way.as_ref().and_then(|l| l.granter)
+                    && self.objects.contains_key(g)
+                {
+                    out.push(Target::Object(g));
+                }
+            }
             Recipient::Attached => {
                 // "Sacrifice this Equipment: Equipped creature can't be
                 // blocked this turn": a source that has left uses what it
@@ -11731,8 +11802,11 @@ impl GameState {
                 // CR 608.2h: a source that has left the battlefield still
                 // deals the damage, as it last existed there ("When this
                 // creature dies, it deals 1 damage to target player").
+                // "Sacrifice Blazing Torch: Blazing Torch deals 2 damage
+                // to any target": the sacrificed Equipment.
                 let left = match source {
                     Recipient::TriggeringObject => ctx.trigger_obj,
+                    Recipient::Granter => self.this_way.as_ref().and_then(|l| l.granter),
                     _ => None,
                 };
                 let Some(x) = self
@@ -12693,7 +12767,15 @@ impl GameState {
                 }
             }
             Effect::Sacrifice { what } => {
-                let ts = self.recipients(ctx, *what);
+                let mut ts = self.recipients(ctx, *what);
+                // CR 701.21a: a player can sacrifice only a permanent they
+                // control ("you may sacrifice Sunfire Torch").
+                if *what == Recipient::Granter {
+                    ts.retain(|t| {
+                        matches!(t, Target::Object(id)
+                            if self.objects[*id].controller == ctx.controller)
+                    });
+                }
                 let together = self.begin_together(ts.len());
                 for t in ts {
                     if let Some(id) = on_battlefield(self, t) {
@@ -13325,6 +13407,22 @@ impl GameState {
                 // "You may remove a counter from this creature. When you
                 // do, ...": with no counter to remove it can't be done
                 // (Leatherhead, Swamp Stalker).
+                // "You may sacrifice Sunfire Torch. When you do, ...": with
+                // the Equipment gone, or another player's, it can't be done.
+                if inner.iter().any(|e| {
+                    matches!(
+                        e,
+                        Effect::Sacrifice {
+                            what: Recipient::Granter
+                        }
+                    ) && !self.recipients(ctx, Recipient::Granter).iter().any(|t| {
+                        on_battlefield(self, *t)
+                            .is_some_and(|id| self.objects[id].controller == ctx.controller)
+                    })
+                }) {
+                    ctx.did = false;
+                    return;
+                }
                 let no_counter = inner.iter().any(|e| {
                     let (to, kind, n) = match e {
                         Effect::RemoveCounterChosen { to, .. } => (*to, None, 1),

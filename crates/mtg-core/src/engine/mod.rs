@@ -522,6 +522,8 @@ impl GameState {
             entered_x: Vec::new(),
             reflexive_x: Vec::new(),
             reflexive_moved: Vec::new(),
+            pending_granters: Vec::new(),
+            granters: Vec::new(),
             ninjutsu: Vec::new(),
             harmonized: Vec::new(),
             bargains: Vec::new(),
@@ -3248,6 +3250,7 @@ impl GameState {
                 self.entered_x.clear();
                 self.reflexive_x.clear();
                 self.reflexive_moved.clear();
+                self.pending_granters.clear();
                 self.flow = Flow::Discarding;
             }
             // CR 714.3b: as the precombat main phase begins, the active
@@ -3654,6 +3657,7 @@ impl GameState {
             self.lki.clear();
             // Costs of spells and abilities that never resolved.
             self.paid_costs.clear();
+            self.granters.clear();
             if !self.spent_mana.is_empty() {
                 let objects = &self.objects;
                 self.spent_mana

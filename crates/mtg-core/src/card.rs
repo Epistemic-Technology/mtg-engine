@@ -3835,6 +3835,13 @@ pub enum Recipient {
     /// battlefield, return the exiled card ..."), still in exile; see
     /// `Effect::ExileLinked`.
     ExiledCard,
+    /// The Aura or Equipment that granted the resolving ability to the
+    /// permanent it is attached to, named in the quoted ability ("Equipped
+    /// creature has '{1}, {T}: Tap target creature. Return Trusty
+    /// Boomerang to its owner's hand.'"). Each grant is its own ability
+    /// (CR 113.2c): two Boomerangs give two, each naming its own. Only in
+    /// such an ability (`AbilityDef::names_granter`).
+    Granter,
     /// The cards the source's abilities exiled (CR 607.2a), still in
     /// exile, that match the pool's `n`th filter: "Return all cards
     /// exiled with this artifact to their owner's hand", "each creature
@@ -5665,6 +5672,17 @@ impl Effect {
         }
     }
 
+    /// Whether this effect acts on or through `Recipient::Granter`.
+    pub fn names_granter(&self) -> bool {
+        let g = Recipient::Granter;
+        match self {
+            Effect::DamageFrom { source, to, .. } => *source == g || *to == g,
+            Effect::DealDamage { to, .. } | Effect::Destroy { to } => *to == g,
+            Effect::ReturnToHand { what } | Effect::Sacrifice { what } => *what == g,
+            _ => false,
+        }
+    }
+
     #[allow(clippy::too_many_lines)] // one arm per effect that asks
     pub const fn asks(&self) -> bool {
         matches!(
@@ -7321,6 +7339,11 @@ pub enum SacCost {
     This,
     /// "Sacrifice a Goblin": the player chooses a matching permanent.
     Filter(ObjFilter),
+    /// "Sacrifice Blazing Torch" in an ability an Aura or Equipment grants
+    /// the permanent it is attached to ("Equipped creature has '{T},
+    /// Sacrifice Blazing Torch: ...'"): the granting permanent, not the
+    /// one with the ability (`Recipient::Granter`).
+    Granter,
 }
 
 /// The cost of an activated ability (CR 118, 602.2b).
@@ -8484,6 +8507,18 @@ impl AbilityDef {
                 ..
             })
         )
+    }
+
+    /// Whether this ability names the Aura or Equipment that grants it
+    /// (`Recipient::Granter`, `SacCost::Granter`): each grant of it is
+    /// then its own ability, carrying its granter.
+    pub fn names_granter(&self) -> bool {
+        if let AbilityDef::Activated(a) = self
+            && a.cost.sacrifice == Some(SacCost::Granter)
+        {
+            return true;
+        }
+        self.all_effects().iter().any(|e| e.names_granter())
     }
 
     /// Every effect this ability can apply, across modes and "you may"
@@ -9800,6 +9835,12 @@ pub struct CardPool {
     /// printed on it (a granted ability, "has '...'", or a delayed
     /// trigger): the granting card's, not the permanent's that has it.
     counts_owner: Vec<Option<CardRef>>,
+    /// Per ability: whether it names the Aura or Equipment granting it
+    /// (`AbilityDef::names_granter`).
+    names_granter: Vec<bool>,
+    /// Whether any ability does: until one is registered, nothing looks
+    /// for granters.
+    pub granter_abilities: bool,
     /// Whether some card has `CardDef::equip_discount`, so equip
     /// abilities' costs depend on their targets.
     pub equip_discounts: bool,
@@ -9896,6 +9937,8 @@ impl CardPool {
             asks: Vec::new(),
             enters: Vec::new(),
             counts_owner: Vec::new(),
+            names_granter: Vec::new(),
+            granter_abilities: false,
             equip_discounts: false,
             prowess: AbilityId(0),
             exalted: AbilityId(0),
@@ -10258,9 +10301,18 @@ impl CardPool {
                 _ => false,
             }
         }));
+        let granter = a.names_granter();
+        self.granter_abilities |= granter;
+        self.names_granter.push(granter);
         self.abilities.push(a);
         self.counts_owner.push(None);
         id
+    }
+
+    /// Whether ability `id` names the Aura or Equipment granting it
+    /// (`AbilityDef::names_granter`): each grant is its own instance.
+    pub fn ability_names_granter(&self, id: AbilityId) -> bool {
+        self.granter_abilities && self.names_granter[id.0 as usize]
     }
 
     /// The number of abilities registered so far, for

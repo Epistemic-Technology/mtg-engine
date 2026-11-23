@@ -949,6 +949,9 @@ pub enum CostItem {
 pub enum SacCost {
     This,
     Filter(Filter),
+    /// `sacrifice granter`: "Sacrifice Blazing Torch", the Aura or
+    /// Equipment granting the ability.
+    Granter,
 }
 
 /// What a spell targets ("that targets you or a creature").
@@ -3924,6 +3927,10 @@ pub enum Recipient {
     /// `exiled card`: "the exiled card", what this permanent's linked
     /// ability exiled (CR 607.2a).
     ExiledCard,
+    /// `granter`: in an ability an Aura or Equipment grants the permanent
+    /// it is attached to, that Aura or Equipment, printed by its name
+    /// ("Return Trusty Boomerang to its owner's hand").
+    Granter,
     /// `all card exiled with this`, `each creature card exiled with this`:
     /// "all cards exiled with this artifact", what this permanent's
     /// abilities exiled (CR 607.2a) matching the `n`th group's filter.

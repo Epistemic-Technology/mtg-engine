@@ -366,7 +366,16 @@ impl Choice {
                     _ => "?",
                 };
                 let mut out = format!("activate {}: {text}", name(source));
-                if let Some(s) = sacrifice {
+                // An ability naming its granter without sacrificing it
+                // ("Return Trusty Boomerang to its owner's hand").
+                let granted_only = matches!(state.pool.ability(*ability),
+                    AbilityDef::Activated(a) if a.cost.sacrifice.is_none())
+                    && state.pool.ability_names_granter(*ability);
+                if let Some(s) = sacrifice
+                    && granted_only
+                {
+                    out = format!("{out} (from {})", name(s));
+                } else if let Some(s) = sacrifice {
                     out = format!("{out} (sacrificing {})", name(s));
                 }
                 if let Some(c) = discard {

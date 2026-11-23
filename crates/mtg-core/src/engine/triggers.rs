@@ -51,6 +51,8 @@ impl GameState {
             _ => 0,
         };
         let mut fired: SmallVec<[PendingTrigger; 2]> = SmallVec::new();
+        // Indexes into `fired` of abilities naming their granter, and it.
+        let mut granted: SmallVec<[(usize, ObjId); 2]> = SmallVec::new();
         for w in &watchers {
             let mut abilities: SmallVec<[AbilityId; 8]> =
                 w.chars.abilities.iter().copied().collect();
@@ -135,6 +137,18 @@ impl GameState {
                     },
                     timestamp: 0,
                 };
+                // "Equipped creature has 'Whenever this creature attacks,
+                // you may sacrifice Sunfire Torch. ...'": each grant is its
+                // own ability (CR 113.2c), carrying its granter.
+                if self.pool.ability_names_granter(ability) {
+                    for g in self.granters_of(w.source, ability, None) {
+                        for _ in 0..copies {
+                            granted.push((fired.len(), g));
+                            fired.push(pending);
+                        }
+                    }
+                    continue;
+                }
                 fired.extend(std::iter::repeat_n(pending, copies));
             }
         }
@@ -185,8 +199,11 @@ impl GameState {
         if !self.delayed_triggers.is_empty() {
             self.delayed_turn_triggers(event, event_amount, &mut fired);
         }
-        for mut t in fired {
+        for (i, mut t) in fired.into_iter().enumerate() {
             t.timestamp = self.tick();
+            if let Some((_, g)) = granted.iter().find(|(j, _)| *j == i) {
+                self.pending_granters.push((t.timestamp, *g));
+            }
             if self.logging {
                 self.log.push(Event::Triggered {
                     source: t.ability.source,
@@ -2246,6 +2263,15 @@ impl GameState {
         {
             let (_, x) = self.reflexive_x.swap_remove(i);
             self.x_values.push((obj, x));
+        }
+        if !self.pending_granters.is_empty()
+            && let Some(i) = self
+                .pending_granters
+                .iter()
+                .position(|(ts, _)| *ts == t.timestamp)
+        {
+            let (_, g) = self.pending_granters.swap_remove(i);
+            self.granters.push((obj, g));
         }
         if !self.reflexive_moved.is_empty()
             && let Some(i) = self
