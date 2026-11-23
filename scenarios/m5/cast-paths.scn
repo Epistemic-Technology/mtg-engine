@@ -38,3 +38,19 @@ scenario "cast paths: a free spell still pays its additional cost's mana" {
   run_to turn 1 postcombat_main
   assert hand A contains "Benevolent River Spirit"
 }
+
+scenario "cast paths: a face-down spell pays a creature spell tax" {
+  battlefield A: 3 "Plains", "Geist-Fueled Scarecrow"
+  hand A: "Atarka Efreet"
+  illegal turn 1 A: cast "Atarka Efreet" face_down
+  run_to turn 1 postcombat_main
+  assert hand A contains "Atarka Efreet"
+}
+
+scenario "cast paths: with four lands the taxed face-down spell is cast" {
+  battlefield A: 4 "Plains", "Geist-Fueled Scarecrow"
+  hand A: "Atarka Efreet"
+  turn 1 A: cast "Atarka Efreet" face_down
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "face-down creature"
+}

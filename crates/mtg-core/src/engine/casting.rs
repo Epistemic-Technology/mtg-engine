@@ -2719,13 +2719,19 @@ impl GameState {
         sources: &Sources,
         options: &mut Vec<Choice>,
     ) {
-        let face_down = self.printed(self.pool.face_down(false));
-        if self.payable_for(
-            p,
-            sources,
-            &self.face_down_cost(p),
-            Spend::Spell(&face_down, id),
-        ) {
+        let fd = self.pool.face_down(false);
+        let face_down = self.printed(fd);
+        // CR 601.2f: a face-down spell is a creature spell, which "Creature
+        // spells you cast cost {1} more" taxes as payment does.
+        let mut req = self.face_down_cost(p);
+        let changers = self.cost_changers();
+        if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
+            adjust_generic(
+                &mut req,
+                self.cost_delta(p, self.pool.get(fd), id, &changers),
+            );
+        }
+        if self.payable_for(p, sources, &req, Spend::Spell(&face_down, id)) {
             options.push(Choice::CastFaceDown(id));
         }
     }
