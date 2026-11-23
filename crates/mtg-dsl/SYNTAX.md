@@ -402,6 +402,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever you discard one or more cards` | once for the cards you discard together (CR 603.2c), counted as `that much` ("put that many +1/+1 counters", "deals that much damage"); cards discarded before the next time a player gets priority count as together. Cycling a card discards it |
 | `whenever you sacrifice one or more Food` | once for the matching permanents you sacrifice together (CR 603.2c), counted as `that much` |
 | `whenever you attack with one or more Faerie`, `whenever you attack a player with one or more creature with power 4 or greater` | once as you declare attackers if a matching creature attacks (CR 508.1m); with `a player`, once for each player a matching creature attacks, that player being `that player` |
+| `whenever you tap this for mana`, `whenever a player taps land for mana`, `whenever an opponent taps Mountain for mana`, `whenever you tap creature for mana` | "Whenever you tap this creature for mana", "Whenever a player taps a land for mana" (CR 106.11a): a matching permanent, controlled by that player, is tapped for mana by a mana ability (activated, or tapped while paying a cost); not a mana ability (CR 605.1b: it adds no mana), so it uses the stack. The permanent is the triggering object and its controller `that player` |
 | `whenever this transforms`, `whenever this enters or transforms` | "Whenever this creature transforms into Ashling, Rimebound" (CR 701.27): the ability is on that face, so it sees only the transformation to it; the face's name prints |
 | `whenever one or more creature you control deal combat damage to a player`, `whenever one or more Ally you control deal combat damage to a player` | once for each player dealt combat damage by matching creatures in one combat damage step (CR 603.2c; a first-strike step and the regular one trigger separately); that player is `that player` |
 | `whenever one or more Hero you control deal damage to a player` | "Whenever one or more Heroes you control deal damage to a player": any damage, once for each player dealt damage by matching creatures at once (CR 603.2c); that player is `that player` |
@@ -2479,7 +2480,7 @@ nontoken creature you control dies this turn, create ...". Led by
 first: `until end of turn, delayed this: whenever creature you control
 deals combat damage to a player, investigate` ("Until end of turn,
 whenever a creature you control deals combat damage to a player,
-investigate."). A delayed trigger printed "Whenever" with neither is a
+investigate."). In a delayed trigger about a target, `that creature` is that target, as the trigger's subject (`delayed target 1: whenever that creature deals combat damage this turn, ...`) or in `dealt damage by that creature this turn` (`delayed target 1: whenever creature dealt damage by that creature this turn dies this turn, its controller loses 2 life`: "Whenever a creature dealt damage by that creature dies this turn, its controller loses 2 life."); `this` there is the same object. A delayed trigger printed "Whenever" with neither is a
 compile error (it would trigger only once, CR 603.7c). `delayed
 this: when next you cast instant or sorcery spell this turn, copy that
 spell new targets` ("When you next cast an instant or sorcery spell this

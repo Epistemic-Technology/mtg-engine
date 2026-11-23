@@ -4578,6 +4578,10 @@ impl Compiler<'_> {
             Trigger::BecomesAttachedTo(f) => TriggerSpec::BecomesAttachedTo(self.filter(f)),
             // Compiled as `AbilityDef::ManaTrigger` by `ability`.
             Trigger::TappedForMana(_) => unreachable!("a triggered mana ability"),
+            Trigger::TapsForMana { what, whose } => TriggerSpec::TapsForMana {
+                what: self.trigger_obj(what),
+                whose: *whose,
+            },
             Trigger::BecomesUntapped(o) => TriggerSpec::BecomesUntapped(self.trigger_obj(o)),
             Trigger::CountersPut { obj, kind } => TriggerSpec::CountersPut {
                 what: self.trigger_obj(obj),

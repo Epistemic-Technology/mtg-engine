@@ -4453,6 +4453,15 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             format!("whenever {} becomes attached to this", filter(f))
         }
         Trigger::TappedForMana(o) => format!("whenever {} is tapped for mana", trigger_obj(o)),
+        Trigger::TapsForMana { what, whose } => format!(
+            "whenever {} {} for mana",
+            match whose {
+                Who::You => "you tap",
+                Who::Opponents => "an opponent taps",
+                Who::Any => "a player taps",
+            },
+            trigger_obj(what)
+        ),
         Trigger::BecomesUntapped(o) => format!("whenever {} becomes untapped", trigger_obj(o)),
         Trigger::CountersPut { obj, kind } => format!(
             "whenever one or more {} counters put on {}",

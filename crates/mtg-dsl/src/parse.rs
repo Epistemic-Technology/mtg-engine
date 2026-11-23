@@ -12128,6 +12128,18 @@ impl P {
                     f.status.damaged_by_source = true;
                     self.pos += 6;
                 }
+                // In a delayed trigger about a creature (Touch of
+                // Moonglove): "a creature dealt damage by that creature
+                // this turn", that creature being what it is about.
+                "dealt"
+                    if self.in_delayed
+                        && self.at_words(&[
+                            "dealt", "damage", "by", "that", "creature", "this", "turn",
+                        ]) =>
+                {
+                    f.status.damaged_by_source = true;
+                    self.pos += 7;
+                }
                 "dealt" if self.at_words(&["dealt", "damage", "this", "turn"]) => {
                     f.damaged = true;
                     f.damaged_short = true;
@@ -12769,6 +12781,11 @@ impl P {
     // ---- triggers, conditions, costs, replacements, modifications ----
 
     fn trigger_obj(&mut self) -> R<TriggerObj> {
+        // In a delayed trigger, "that creature" is what it is about (the
+        // trigger's own object, as `this` is for `delayed this:`).
+        if self.in_delayed && self.eat_words(&["that", "creature"]) {
+            return Ok(TriggerObj::This);
+        }
         if self.at_word("this")
             && !matches!(self.word_at(1).as_deref(), Some("creature" | "permanent"))
         {
@@ -12994,14 +13011,43 @@ impl P {
         if self.eat_words(&["you", "scry"]) {
             return Ok(Trigger::Scries);
         }
+        // CR 106.11a: "a player taps a land for mana", "an opponent taps
+        // a Mountain for mana".
+        for (words, whose) in [
+            (&["a", "player", "taps"][..], Who::Any),
+            (&["an", "opponent", "taps"][..], Who::Opponents),
+        ] {
+            if self.eat_words(words) {
+                let f = self.filter()?;
+                self.expect_words(&["for", "mana"])?;
+                return Ok(Trigger::TapsForMana {
+                    what: TriggerObj::Filter(f),
+                    whose,
+                });
+            }
+        }
         // "you tap an untapped creature an opponent controls".
         if self.eat_words(&["you", "tap"]) {
+            // "you tap this creature for mana" (CR 106.11a).
+            if self.eat_words(&["this", "for", "mana"]) {
+                return Ok(Trigger::TapsForMana {
+                    what: TriggerObj::This,
+                    whose: Who::You,
+                });
+            }
             // "you tap one or more untapped creatures your opponents
             // control" (CR 603.2c).
             if self.eat_words(&["one", "or", "more"]) {
                 return Ok(Trigger::Batch(Box::new(Trigger::YouTap(self.filter()?))));
             }
-            return Ok(Trigger::YouTap(self.filter()?));
+            let f = self.filter()?;
+            if self.eat_words(&["for", "mana"]) {
+                return Ok(Trigger::TapsForMana {
+                    what: TriggerObj::Filter(f),
+                    whose: Who::You,
+                });
+            }
+            return Ok(Trigger::YouTap(f));
         }
         // CR 602.2: "you activate an ability of a creature", "you activate
         // an exhaust ability", "an opponent activates a loyalty ability".

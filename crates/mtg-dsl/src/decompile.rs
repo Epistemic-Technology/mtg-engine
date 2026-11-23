@@ -2035,6 +2035,10 @@ impl Decompiler<'_> {
                 in_a_turn: false,
             },
             TriggerSpec::BecomesTapped(o) => Trigger::BecomesTapped(self.trigger_obj(o)),
+            TriggerSpec::TapsForMana { what, whose } => Trigger::TapsForMana {
+                what: self.trigger_obj(what),
+                whose: *whose,
+            },
             TriggerSpec::BecomesAttachedTo(f) => Trigger::BecomesAttachedTo(self.filter(f)),
             TriggerSpec::BecomesUntapped(o) => Trigger::BecomesUntapped(self.trigger_obj(o)),
             TriggerSpec::CountersPut { what, kind } => Trigger::CountersPut {

@@ -303,7 +303,11 @@ impl GameState {
             ) {
                 continue;
             }
-            let source = dt.ability.source;
+            // "Whenever that creature deals combat damage this turn",
+            // "Whenever a creature dealt damage by that creature dies this
+            // turn": the trigger's own object ("this") is what the delayed
+            // trigger is about (the source itself for `delayed this:`).
+            let source = dt.ability.trigger_obj.unwrap_or(dt.ability.source);
             // CR 603.7: once created, a delayed trigger doesn't depend on
             // its source: a copy of a spell that made it (a prepared
             // permanent's spell, CR 722.3c) has ceased to exist and left
@@ -1905,6 +1909,20 @@ impl GameState {
                     .then_some((Some(*obj), Some(l.object.controller)))
                 }
             },
+            // CR 106.11a: "Whenever you tap this creature for mana",
+            // "Whenever a player taps a land for mana".
+            (TriggerSpec::TapsForMana { what, whose }, Event::TappedForMana { obj }) => {
+                let p = match what {
+                    TriggerObj::This => (*obj == w.source).then_some(w.controller)?,
+                    TriggerObj::Filter(f) => matches_now(f, *obj)?,
+                };
+                let ok = match whose {
+                    Who::You => p == w.controller,
+                    Who::Opponents => p != w.controller,
+                    Who::Any => true,
+                };
+                ok.then_some((Some(*obj), Some(p)))
+            }
             (TriggerSpec::YouTap(f), Event::TappedBy { obj, player }) => {
                 if *player != w.controller {
                     return None;

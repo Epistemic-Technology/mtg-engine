@@ -9524,6 +9524,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // "Until end of turn, whenever ...": the duration is
                 // printed first instead.
                 let t = trigger_text(trigger, ctx, true);
+                // About a target: the trigger's own object is "that
+                // creature" ("Whenever a creature dealt damage by that
+                // creature dies this turn", Touch of Moonglove).
+                let t = if matches!(about, Recipient::Target(_)) {
+                    t.replace(&this_ref(ctx.card), "that creature")
+                        .replace(" that creature this turn dies", " that creature dies")
+                } else {
+                    t
+                };
                 if ctx.eot_first {
                     t
                 } else {
@@ -10870,6 +10879,20 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         }
         Trigger::TappedForMana(o) => {
             format!("whenever {} is tapped for mana", trigger_subject(o, ctx))
+        }
+        // "Whenever you tap this creature for mana", "Whenever a player
+        // taps a land for mana" (CR 106.11a).
+        Trigger::TapsForMana { what, whose } => {
+            let who = match whose {
+                Who::You => "you tap",
+                Who::Opponents => "an opponent taps",
+                Who::Any => "a player taps",
+            };
+            let o = match what {
+                TriggerObj::Filter(f) => trigger_filter_a(f, ctx.card),
+                other => trigger_subject(other, ctx),
+            };
+            format!("whenever {who} {o} for mana")
         }
         Trigger::BecomesUntapped(o) => {
             format!("whenever {} becomes untapped", trigger_subject(o, ctx))

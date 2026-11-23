@@ -1,0 +1,29 @@
+# A turn-long delayed trigger about a target (CR 603.7c): "Whenever a
+# creature dealt damage by that creature dies this turn, its controller
+# loses 2 life." (Touch of Moonglove). "That creature" is the target, not
+# the spell.
+
+scenario "Touch of Moonglove: a blocker killed by the target creature" {
+  battlefield A: "Grizzly Bears", "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Touch of Moonglove"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers A: cast "Touch of Moonglove" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 18
+  assert life A 20
+}
+
+scenario "Touch of Moonglove: a creature another source killed doesn't count" {
+  battlefield A: "Grizzly Bears", "Swamp", "Mountain"
+  battlefield B: "Hill Giant", "Wind Drake"
+  hand A: "Touch of Moonglove", "Shock"
+  turn 1 A: cast "Touch of Moonglove" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Wind Drake"
+  run_to turn 1 end
+  assert graveyard B contains "Wind Drake"
+  assert life B 20
+}

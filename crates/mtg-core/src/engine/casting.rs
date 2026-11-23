@@ -6225,6 +6225,7 @@ impl GameState {
             // for mana resolve right after it.
             if ab.cost.tap && self.mana_trigger_sources > 0 {
                 self.fire_mana_triggers(sa.source);
+                self.emit(Event::TappedForMana { obj: sa.source });
             }
         }
         self.give_priority(controller);
@@ -7219,10 +7220,10 @@ impl GameState {
             rest = self.take_pool_units(p, plan);
             &rest
         };
-        let boosted = if self.mana_trigger_sources > 0 {
+        let (boosted, for_mana) = if self.mana_trigger_sources > 0 {
             self.tapped_for_mana(p, plan)
         } else {
-            SmallVec::new()
+            (SmallVec::new(), SmallVec::new())
         };
         for &(id, mana) in plan {
             // Delve's cards are exiled; everything else is tapped.
@@ -7250,6 +7251,9 @@ impl GameState {
         for id in boosted {
             self.fire_mana_triggers(id);
         }
+        for obj in for_mana {
+            self.emit(Event::TappedForMana { obj });
+        }
     }
 
     /// The sources of `plan` tapped for mana (not tapped for convoke or
@@ -7257,22 +7261,30 @@ impl GameState {
     /// abilities (CR 605.1b).
     #[cold]
     #[inline(never)]
-    fn tapped_for_mana(&self, p: PlayerId, plan: &Sources) -> SmallVec<[ObjId; 2]> {
+    fn tapped_for_mana(
+        &self,
+        p: PlayerId,
+        plan: &Sources,
+    ) -> (SmallVec<[ObjId; 2]>, SmallVec<[ObjId; 2]>) {
         let sources = self.mana_sources(p);
         let mut out = SmallVec::new();
+        let mut all: SmallVec<[ObjId; 2]> = SmallVec::new();
         for (id, _) in plan {
             let Some(o) = self.objects.get(*id) else {
                 continue;
             };
             if o.zone == Zone::Battlefield
-                && !out.contains(id)
+                && !all.contains(id)
+                && !o.tapped
                 && (sources.iter().any(|(s, _)| s == id) || self.flags_of(o).has_restricted_mana())
-                && !self.mana_triggers_on(*id).is_empty()
             {
-                out.push(*id);
+                all.push(*id);
+                if !self.mana_triggers_on(*id).is_empty() {
+                    out.push(*id);
+                }
             }
         }
-        out
+        (out, all)
     }
 
     /// The effects of mana ability `a` of `id` besides its mana, applied
@@ -7362,8 +7374,13 @@ impl GameState {
             if let Some((k, n)) = act.put {
                 self.add_counters(act.id, k, n);
             }
+            let made = !act.mana.is_empty();
             for m in act.mana {
                 self.player_mut(p).mana_pool.add(m);
+            }
+            // CR 106.11a: "Whenever you tap this creature for mana".
+            if act.tap && made && self.mana_trigger_sources > 0 {
+                self.emit(Event::TappedForMana { obj: act.id });
             }
             if act.rest {
                 self.mana_ability_rest(p, act.id, act.ability);

@@ -3127,6 +3127,13 @@ pub enum Trigger {
     /// additional {G}." A triggered mana ability (CR 605.1b); its effects
     /// are mana for the tapped permanent's controller, nothing else.
     TappedForMana(TriggerObj),
+    /// `whenever you tap this for mana`, `whenever a player taps land for
+    /// mana`, `whenever an opponent taps Mountain for mana`: not a mana
+    /// ability (its effects use the stack, CR 605.1b).
+    TapsForMana {
+        what: TriggerObj,
+        whose: Who,
+    },
     /// `whenever this is dealt damage`.
     DealtDamage(TriggerObj),
     /// `when you discard this`: "When you discard this card".

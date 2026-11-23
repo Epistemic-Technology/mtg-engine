@@ -1,0 +1,6 @@
+card "Manabarbs" {
+  oracle_id 0f1afedd-c60f-454f-b84a-c8117aec0128
+  cost {3}{R}
+  type Enchantment
+  triggered whenever a player taps land for mana: deal 1 damage to that player
+}

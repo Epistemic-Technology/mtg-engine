@@ -1,0 +1,6 @@
+card "Burning Earth" {
+  oracle_id 21b8192e-46a2-4a6a-abd5-3a074efa30a9
+  cost {3}{R}
+  type Enchantment
+  triggered whenever a player taps nonbasic land for mana: deal 1 damage to that player
+}

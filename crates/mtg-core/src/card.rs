@@ -6381,6 +6381,14 @@ pub enum TriggerSpec {
     /// "Whenever this creature transforms into Ashling, Rimebound" (CR
     /// 701.27): the source transformed and now shows this ability's face.
     Transforms,
+    /// "Whenever you tap this creature for mana", "Whenever a player taps
+    /// a land for mana", "Whenever an opponent taps a Mountain for mana"
+    /// (CR 106.11a): a permanent matching `what`, controlled by a player
+    /// matching `whose`, is tapped for mana by a mana ability (activated,
+    /// or tapped by payment). Not a mana ability (CR 605.1b: it adds no
+    /// mana), so it uses the stack. The permanent is the triggering
+    /// object, its controller the triggering player ("that player").
+    TapsForMana { what: TriggerObj, whose: Who },
 }
 
 /// The event whose triggers an `AbilityDef::TriggerAgain` with a cause
@@ -6502,6 +6510,16 @@ impl TriggerSpec {
         }
     }
 
+    /// "Whenever you tap this creature for mana", alone or as one of two
+    /// events.
+    pub fn taps_for_mana(&self) -> bool {
+        match self {
+            TriggerSpec::TapsForMana { .. } => true,
+            TriggerSpec::Either(pair) => pair.0.taps_for_mana() || pair.1.taps_for_mana(),
+            _ => false,
+        }
+    }
+
     /// "When you cast this spell", alone or as one of two events.
     pub fn casts_this(&self) -> bool {
         match self {
@@ -6563,7 +6581,9 @@ impl TriggerSpec {
             | TriggerSpec::DealtCombatDamage(_)
             | TriggerSpec::DealsDamage { .. }
             | TriggerSpec::DealsDamageTo { .. } => WATCH_DAMAGE,
-            TriggerSpec::BecomesTapped(_) | TriggerSpec::BecomesUntapped(_) => WATCH_TAP,
+            TriggerSpec::BecomesTapped(_)
+            | TriggerSpec::BecomesUntapped(_)
+            | TriggerSpec::TapsForMana { .. } => WATCH_TAP,
             TriggerSpec::TurnedFaceUp(_) => WATCH_FACE_UP,
             TriggerSpec::DrawsNth { .. } | TriggerSpec::Draws { .. } => WATCH_DRAW,
             TriggerSpec::Exploits
@@ -8676,11 +8696,15 @@ impl DefFlags {
                 .iter()
                 .any(|a| matches!(a, AbilityDef::Activated(ab) if ab.is_mana_ability())),
         );
+        // A "whenever you tap this creature for mana" trigger counts too:
+        // tapping for mana is reported (`Event::TappedForMana`) only while
+        // a permanent with either is on the battlefield.
         flags.set(
             DefFlags::MANA_TRIGGER,
-            abilities
-                .iter()
-                .any(|a| matches!(a, AbilityDef::ManaTrigger { .. })),
+            abilities.iter().any(|a| {
+                matches!(a, AbilityDef::ManaTrigger { .. })
+                    || matches!(a, AbilityDef::Triggered(t) if t.trigger.taps_for_mana())
+            }),
         );
         flags.set(
             DefFlags::RESTRICTED_MANA,

@@ -1,0 +1,6 @@
+card "Touch of Moonglove" {
+  oracle_id d3a6bff6-ea85-4e8a-b256-7427d15326b6
+  cost {B}
+  type Instant
+  spell: target creature you control gets +1/+0 and gains deathtouch; delayed target 1: whenever creature dealt damage by that creature this turn dies this turn, its controller loses 2 life
+}
