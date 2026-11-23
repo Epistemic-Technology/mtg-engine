@@ -3372,7 +3372,10 @@ impl Templates {
                         // No target: the creature a trigger is about ("Whenever a
                         // creature you control dies, you gain life equal to that
                         // creature's toughness", as it last existed).
-                        Some(format!("you gain count equal {} of that creature life", cap(c, 1)))
+                        Some(format!(
+                            "you gain count equal {} of that creature life",
+                            cap(c, 1)
+                        ))
                     } else {
                         None
                     }
@@ -4231,6 +4234,12 @@ impl Templates {
         let mut out: Vec<String> = Vec::new();
         let extra_land =
             Regex::new(r"^[Yy]ou may play (an|up to two) additional lands? this turn$").unwrap();
+        let ordeal = Regex::new(
+            r"^Then if it has (\w+) or more \+1/\+1 counters on it, sacrifice this Aura$",
+        )
+        .unwrap();
+        let gain_that =
+            Regex::new(r"^[Yy]ou gain life equal to that creature's (toughness|power)$").unwrap();
         for sentence in merge_impulse(&split_sentences(text)) {
             // A sentence pair `merge_impulse` already wrote as DSL.
             if let Some(dsl) = sentence.strip_prefix('\u{1}') {
@@ -4378,11 +4387,7 @@ impl Templates {
             // The Ordeals: "Whenever enchanted creature attacks, put a +1/+1
             // counter on it. Then if it has three or more +1/+1 counters on
             // it, sacrifice this Aura." ("it" is the enchanted creature).
-            if let Some(c) = Regex::new(
-                r"^Then if it has (\w+) or more \+1/\+1 counters on it, sacrifice this Aura$",
-            )
-            .unwrap()
-            .captures(&sentence)
+            if let Some(c) = ordeal.captures(&sentence)
                 && out
                     .last()
                     .is_some_and(|p| p.starts_with("put 1 +1/+1 counter"))
@@ -4400,12 +4405,10 @@ impl Templates {
             }
             // "Sacrifice a creature. You gain life equal to that creature's
             // toughness." (Doomgape): the creature sacrificed this way.
-            if let Some(c) = Regex::new(
-                r"^[Yy]ou gain life equal to that creature's (toughness|power)$",
-            )
-            .unwrap()
-            .captures(&sentence)
-                && out.last().is_some_and(|p| p.starts_with("sacrifice 1 creature"))
+            if let Some(c) = gain_that.captures(&sentence)
+                && out
+                    .last()
+                    .is_some_and(|p| p.starts_with("sacrifice 1 creature"))
             {
                 out.push(format!(
                     "you gain count equal {} of that sacrificed creature life",
@@ -4746,10 +4749,9 @@ fn cost_text(s: &str) -> Option<String> {
     let adj_creature = Regex::new(r"^(?:colorless|nontoken) creature$").unwrap();
     // "Tap three untapped creatures you control".
     // "Tap two untapped Merfolk you control" (a subtype too).
-    let tap_n = Regex::new(
-        r"^Tap (two|three|four|five|six|seven) untapped ([A-Za-z]+) you control$",
-    )
-    .unwrap();
+    let tap_n =
+        Regex::new(r"^Tap (two|three|four|five|six|seven) untapped ([A-Za-z]+) you control$")
+            .unwrap();
     // "Remove three quest counters from this enchantment and sacrifice it"
     // (the Expeditions and Quests): two costs joined by "and".
     let remove_and_sac = Regex::new(
@@ -4805,7 +4807,10 @@ fn cost_text(s: &str) -> Option<String> {
             } else {
                 number(cap(&c, 1))?
             };
-            format!("remove {n} {} counters from this, sacrifice this", cap(&c, 2))
+            format!(
+                "remove {n} {} counters from this, sacrifice this",
+                cap(&c, 2)
+            )
         } else if let Some(n) = part
             .strip_prefix("Discard ")
             .and_then(|r| r.strip_suffix(" cards"))
@@ -6345,19 +6350,23 @@ impl Builder<'_> {
         }
         // "Elves you control have \"{T}: Add {G}{G}.\"", "Sliver creatures
         // you control have \"...\"", "Artifacts you control have \"...\"".
-        if let Some(c) = Regex::new(
-            r#"^([A-Z][a-z]+(?: creatures)?|Artifacts) you control have "(.+)"$"#,
-        )
-        .unwrap()
-        .captures(line)
+        if let Some(c) =
+            Regex::new(r#"^([A-Z][a-z]+(?: creatures)?|Artifacts) you control have "(.+)"$"#)
+                .unwrap()
+                .captures(line)
         {
             let what = singular(cap(&c, 1));
-            let what = if what == "Artifact" { "artifact".to_string() } else { what };
+            let what = if what == "Artifact" {
+                "artifact".to_string()
+            } else {
+                what
+            };
             let inner = self
                 .quoted(cap(&c, 2))
                 .ok_or_else(|| Skip::Sentence(line.to_string()))?;
-            self.statements
-                .push(format!("static {what} you control: has ability {{ {inner} }}"));
+            self.statements.push(format!(
+                "static {what} you control: has ability {{ {inner} }}"
+            ));
             return Ok(());
         }
         // Keyword lines: first, or in place among the abilities.
