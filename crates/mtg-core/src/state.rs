@@ -5015,6 +5015,8 @@ impl GameState {
                         let f = self.source_filter(self.pool.filter(f), source, x);
                         f.matches(id, obj.controller, &c, source, Some(caster))
                             && self.status_ok(&f, id)
+                            // "target creature you own".
+                            && (!f.status.you_own || obj.owner == caster)
                             && self.combat_with_ok(f.combat_with, source, id)
                             // "other than enchanted creature".
                             && !(f.not_attached

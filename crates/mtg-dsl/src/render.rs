@@ -2782,7 +2782,7 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     // "creatures you control with defender": Oracle names your control
     // before the qualities (but "creatures with flying your opponents
     // control").
-    if f.status.commander == Some(true) {
+    if f.status.commander == Some(true) || f.status.you_own {
         s.push_str(" you own");
     }
     let you_first = f.who == Some(Who::You) && f.or.is_none() && !f.named_first && !f.control_late;

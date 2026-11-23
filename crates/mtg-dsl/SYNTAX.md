@@ -1426,6 +1426,11 @@ that's blue or red"; `other token creature or Rabbit creature you
 control` is "other creature you control that's a token or a Rabbit"
 (write `token creature`: a bare `token` is any token, a Treasure too).
 
+`target creature you own` (CR 108.3: owned by the caster, whoever
+controls it; `exile target creature you own then return it to
+battlefield under your control`, Slip On the Ring) is judged for targets
+and an effect's groups, by the caster or the effect's controller;
+elsewhere it doesn't restrict.
 `commander creature you own` ("commander creatures you own") and
 `commander creature or planeswalker` ("a commander that's a creature or
 planeswalker") match nothing: the game has no commanders (CR 903.3).

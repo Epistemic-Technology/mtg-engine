@@ -1,0 +1,55 @@
+# "target creature you own" (CR 108.3): owned by the caster, whoever
+# controls it; a creature the caster controls but doesn't own can't be
+# chosen.
+
+scenario "Slip On the Ring: a creature you own that an opponent took returns to you" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  battlefield B: 3 "Mountain"
+  hand A: "Slip On the Ring"
+  hand B: "Act of Treason"
+  start turn 4 B precombat_main
+  turn 4 B: cast "Act of Treason" targeting "Grizzly Bears"
+  turn 4 B: wait
+  turn 4 A: cast "Slip On the Ring" targeting "Grizzly Bears"
+  run_to turn 4 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+  assert tempted A 1
+}
+
+scenario "Slip On the Ring: an opponent's creature you control can't be chosen" {
+  battlefield A: 3 "Mountain", 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Act of Treason", "Slip On the Ring"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Act of Treason" targeting "Hill Giant"
+  turn 3 A: wait
+  illegal turn 3 A: cast "Slip On the Ring" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert hand A contains "Slip On the Ring"
+}
+
+scenario "Charming Prince: the creature you own is exiled and returns at the next end step" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  hand A: "Charming Prince"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Charming Prince"
+  turn 3 A: trigger "Charming Prince" mode 3 targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  run_to turn 4 upkeep
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Charming Prince: an opponent's creature can't be exiled" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Charming Prince"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Charming Prince"
+  illegal turn 3 A: trigger "Charming Prince" mode 3 targeting "Hill Giant"
+  turn 3 A: trigger "Charming Prince" mode 3 targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+}

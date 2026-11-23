@@ -3625,7 +3625,7 @@ fn filter_one(f: &Filter) -> String {
             .collect();
         words.push(names.join(" or "));
     }
-    if f.status.commander == Some(true) {
+    if f.status.commander == Some(true) || f.status.you_own {
         words.push("you own".to_string());
     }
     if f.status.token == Some(true) {

@@ -1,0 +1,6 @@
+card "Slip On the Ring" {
+  oracle_id a6b28298-9624-49d7-ad73-fcd1fd3556d2
+  cost {1}{W}
+  type Instant
+  spell: exile target creature you own then return it to battlefield under your control; the ring tempts you
+}

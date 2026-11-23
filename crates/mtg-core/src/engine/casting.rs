@@ -9166,6 +9166,8 @@ impl GameState {
                 .filter(|id| !other_than_targets || !ctx.targets.contains(&Target::Object(*id)))
                 .filter(|id| host.is_none_or(|h| self.objects[*id].attached_to == h))
                 .filter(|id| that.is_none_or(|p| self.objects[*id].controller == p))
+                // "all Auras you own".
+                .filter(|id| !filter.status.you_own || self.objects[*id].owner == ctx.controller)
                 .filter(|id| {
                     let o = &self.objects[*id];
                     self.characteristics(*id).is_some_and(|c| {

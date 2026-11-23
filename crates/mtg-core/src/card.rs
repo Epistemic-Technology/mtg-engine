@@ -1314,6 +1314,12 @@ pub struct StatusQuals {
     pub morph: bool,
     /// "suspected creature" (`true`, CR 701.60) or not suspected.
     pub suspected: Option<bool>,
+    /// "creature you own" (CR 108.3): owned by the player judging (the
+    /// caster of a spell choosing targets, an effect's controller for its
+    /// groups), whoever controls it. Judged for targets and effect
+    /// groups; elsewhere it doesn't restrict.
+    #[serde(default)]
+    pub you_own: bool,
     /// "with power or toughness 1 or less": `ObjFilter::power` and
     /// `toughness` (the same threshold) are alternatives, either enough.
     /// A characteristic, not game state: `any` leaves it out.
@@ -1405,6 +1411,7 @@ impl StatusQuals {
             || self.transformed
             || self.morph
             || self.suspected.is_some()
+            || self.you_own
             || self.bound.is_some()
             || self.commander.is_some()
     }

@@ -11533,7 +11533,7 @@ impl P {
                             .is_some_and(|w| card_type(&w).is_some() || w == "or"));
                 let more = matches!(
                     (next.as_deref(), after.as_deref()),
-                    (Some("you"), Some("don't" | "control"))
+                    (Some("you"), Some("don't" | "control" | "own"))
                         | (Some("an"), Some("opponent"))
                         | (Some("target"), Some("player" | "opponent"))
                         | (Some("defending" | "your"), Some("player" | "opponents"))
@@ -12243,6 +12243,17 @@ impl P {
                 }
                 "you" if f.status.commander == Some(false) && self.at_words(&["you", "own"]) => {
                     f.status.commander = Some(true);
+                    self.pos += 2;
+                }
+                // "target creature you own" (CR 108.3), not "cards you own
+                // in exile".
+                "you"
+                    if self.at_words(&["you", "own"])
+                        && !f.status.you_own
+                        && f.who.is_none()
+                        && !matches!(self.word_at(2).as_deref(), Some("in" | "exiled")) =>
+                {
+                    f.status.you_own = true;
                     self.pos += 2;
                 }
                 // CR 708.2: "face-down creature".
