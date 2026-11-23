@@ -803,52 +803,54 @@ impl GameState {
                 ..
             }
         );
+        // Worked out once, not per object.
+        let bit = event.watch_bit();
+        let grants = self.grants_exist();
+        // Room for a few watchers before the list regrows (a collected
+        // filter starts at four and regrew on busy boards).
+        let mut out: Vec<Watcher> = Vec::with_capacity(8);
         if leaves && let Some(lb) = &self.lookback {
-            let mut out: Vec<Watcher> = lb
-                .iter()
-                .filter(|l| {
-                    self.may_watch(l.characteristics.def, l.except, event)
-                        || self.grants_exist()
-                        || self
-                            .pool
-                            .get(l.characteristics.def)
-                            .flags()
-                            .grants_abilities()
-                })
-                .map(|l| Watcher {
-                    source: l.id,
-                    controller: l.controller,
-                    tapped: l.tapped,
-                    chars: l.characteristics,
-                    in_graveyard: false,
-                })
-                .collect();
+            out.extend(
+                lb.iter()
+                    .filter(|l| {
+                        grants
+                            || self.may_watch_bit(l.characteristics.def, l.except, bit)
+                            || self
+                                .pool
+                                .get(l.characteristics.def)
+                                .flags()
+                                .grants_abilities()
+                    })
+                    .map(|l| Watcher {
+                        source: l.id,
+                        controller: l.controller,
+                        tapped: l.tapped,
+                        chars: l.characteristics,
+                        in_graveyard: false,
+                    }),
+            );
             if self.graveyard_trigger_cards > 0 {
                 self.graveyard_watchers(event, &mut out);
             }
             self.emblem_watchers(event, &mut out);
             return out;
         }
-        let mut out: Vec<Watcher> = self
-            .battlefield
-            .iter()
-            .filter_map(|id| {
-                let o = &self.objects[*id];
-                // Only objects whose printed abilities could see this kind
-                // of event pay for a characteristics lookup (any object, once
-                // abilities may have been granted).
-                if !self.may_watch(o.def, o.except, event) && !self.grants_exist() {
-                    return None;
-                }
-                Some(Watcher {
-                    source: *id,
-                    controller: o.controller,
-                    tapped: o.tapped,
-                    chars: self.characteristics(*id)?,
-                    in_graveyard: false,
-                })
+        out.extend(self.battlefield.iter().filter_map(|id| {
+            let o = &self.objects[*id];
+            // Only objects whose printed abilities could see this kind
+            // of event pay for a characteristics lookup (any object, once
+            // abilities may have been granted).
+            if !grants && !self.may_watch_bit(o.def, o.except, bit) {
+                return None;
+            }
+            Some(Watcher {
+                source: *id,
+                controller: o.controller,
+                tapped: o.tapped,
+                chars: self.characteristics(*id)?,
+                in_graveyard: false,
             })
-            .collect();
+        }));
         if self.graveyard_trigger_cards > 0 {
             self.graveyard_watchers(event, &mut out);
         }
@@ -856,8 +858,8 @@ impl GameState {
         if leaves
             && let Event::ZoneChange { old, .. } = event
             && let Some(l) = self.lki.get(old)
-            && (self.may_watch(l.object.def, l.object.except, event)
-                || self.grants_exist()
+            && (grants
+                || self.may_watch_bit(l.object.def, l.object.except, bit)
                 || self.pool.get(l.object.def).flags().grants_abilities())
         {
             out.push(Watcher {

@@ -20,9 +20,14 @@ impl GameState {
     // ----- priority actions --------------------------------------------------------
 
     #[allow(clippy::too_many_lines)] // one block per zone cast from
-    pub(super) fn priority_options(&self, p: PlayerId) -> Vec<Choice> {
-        // Room for a typical listing, so it isn't regrown push by push.
-        let mut options = Vec::with_capacity(8);
+    pub(super) fn priority_options(&self, p: PlayerId, mut options: Vec<Choice>) -> Vec<Choice> {
+        // `options` is the last decision's emptied list (`spare_options`),
+        // reused; else room for a typical listing, so it isn't regrown
+        // push by push.
+        debug_assert_eq!(options, []);
+        if options.capacity() == 0 {
+            options.reserve(8);
+        }
         let sorcery_timing =
             p == self.active_player && self.step.is_main() && self.stack.is_empty();
         let ps = self.player(p);
@@ -6378,9 +6383,7 @@ impl GameState {
             TargetSpec::UpTo(_) => true,
             // "One or two target creatures" needs one; X can be 0.
             TargetSpec::Many(i) => match self.pool.many(i).min {
-                crate::card::Num::N(n) => {
-                    n == 0 || self.legal_targets(p, s, source).len() >= n as usize
-                }
+                crate::card::Num::N(n) => self.has_legal_targets(p, s, source, n as usize),
                 _ => true,
             },
             // "Move all counters from target creature onto another target
@@ -6391,11 +6394,12 @@ impl GameState {
                     TargetSpec::AnyOther => TargetSpec::Any,
                     _ => TargetSpec::Permanent,
                 };
-                self.legal_targets(p, s, source).len()
-                    >= specs.iter().filter(|x| **x == s || **x == base).count()
+                let need = specs.iter().filter(|x| **x == s || **x == base).count();
+                self.has_legal_targets(p, s, source, need)
             }
             _ => {
-                self.legal_targets(p, s, source).len() >= specs.iter().filter(|x| **x == s).count()
+                let need = specs.iter().filter(|x| **x == s).count();
+                self.has_legal_targets(p, s, source, need)
             }
         }
     }
@@ -6771,45 +6775,83 @@ impl GameState {
         spec: TargetSpec,
         source: Option<ObjId>,
     ) -> Vec<Target> {
-        let spec = self.pool.base_spec(spec);
         let mut out = Vec::new();
+        self.visit_legal_targets(caster, spec, source, |t| {
+            out.push(t);
+            true
+        });
+        out
+    }
+
+    /// Whether `spec` has at least `n` legal targets (`legal_targets`
+    /// without collecting them, stopping at the `n`th): asked for every
+    /// castable card at every priority.
+    fn has_legal_targets(
+        &self,
+        caster: PlayerId,
+        spec: TargetSpec,
+        source: Option<ObjId>,
+        n: usize,
+    ) -> bool {
+        let mut found = 0;
+        n == 0
+            || !self.visit_legal_targets(caster, spec, source, |_| {
+                found += 1;
+                found < n
+            })
+    }
+
+    /// Call `f` with each legal target of `legal_targets`, in its order,
+    /// while `f` returns true; false if `f` stopped the walk.
+    fn visit_legal_targets(
+        &self,
+        caster: PlayerId,
+        spec: TargetSpec,
+        source: Option<ObjId>,
+        mut f: impl FnMut(Target) -> bool,
+    ) -> bool {
+        let spec = self.pool.base_spec(spec);
         if spec.is_graveyard() {
             for p in self.players_in_game() {
                 for id in &self.player(p).graveyard {
                     let t = Target::Object(*id);
                     // A spell cast from a graveyard is on the stack by the
                     // time it targets (CR 601.2a, 601.2c).
-                    if Some(*id) != source && self.is_legal_target_for(caster, spec, t, source) {
-                        out.push(t);
+                    if Some(*id) != source
+                        && self.is_legal_target_for(caster, spec, t, source)
+                        && !f(t)
+                    {
+                        return false;
                     }
                 }
             }
-            return out;
+            return true;
         }
         if spec.is_spell() || matches!(spec, TargetSpec::SpellOr(_)) {
             for id in &self.stack {
                 let t = Target::Object(*id);
-                if Some(*id) != source && self.is_legal_target_for(caster, spec, t, source) {
-                    out.push(t);
+                if Some(*id) != source && self.is_legal_target_for(caster, spec, t, source) && !f(t)
+                {
+                    return false;
                 }
             }
             if spec.is_spell() {
-                return out;
+                return true;
             }
         }
         for id in &self.battlefield {
             let t = Target::Object(*id);
-            if self.is_legal_target_for(caster, spec, t, source) {
-                out.push(t);
+            if self.is_legal_target_for(caster, spec, t, source) && !f(t) {
+                return false;
             }
         }
         for p in self.players_in_game() {
             let t = Target::Player(p);
-            if self.is_legal_target_for(caster, spec, t, source) {
-                out.push(t);
+            if self.is_legal_target_for(caster, spec, t, source) && !f(t) {
+                return false;
             }
         }
-        out
+        true
     }
 
     /// Untapped mana sources `p` controls, as (object, mana produced): one

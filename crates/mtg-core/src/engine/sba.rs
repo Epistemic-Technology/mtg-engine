@@ -482,34 +482,47 @@ impl GameState {
 
     /// The battlefield as it is now, for look-back trigger detection.
     pub(super) fn snapshot_battlefield(&self) -> Vec<Lookback> {
-        self.battlefield
-            .iter()
-            .filter_map(|id| {
-                let o = &self.objects[*id];
-                Some(Lookback {
-                    id: *id,
-                    controller: o.controller,
-                    tapped: o.tapped,
-                    characteristics: self.characteristics(*id)?,
-                    except: o.except,
-                })
+        // Sized up front: a filtered iterator would grow it push by push.
+        let mut out = Vec::with_capacity(self.battlefield.len());
+        out.extend(self.battlefield.iter().filter_map(|id| {
+            let o = &self.objects[*id];
+            Some(Lookback {
+                id: *id,
+                controller: o.controller,
+                tapped: o.tapped,
+                characteristics: self.characteristics(*id)?,
+                except: o.except,
             })
-            .collect()
+        }));
+        out
     }
 
     pub(super) fn check_game_over(&mut self) -> Option<GameResult> {
         if let Some(r) = self.result {
             return Some(r);
         }
-        let alive: Vec<PlayerId> = self.players_in_game().collect();
-        let result = match alive.len() {
+        // The first player still in, and whether there is another: a plain
+        // loop, since this runs at every turn of the main loop (collecting
+        // `players_in_game` allocated, and its iterator stayed out of line).
+        let mut first = None;
+        let mut others = false;
+        for (i, ps) in self.players.iter().enumerate() {
+            if ps.lost.is_none() {
+                if first.is_some() {
+                    others = true;
+                    break;
+                }
+                first = Some(PlayerId(u8::try_from(i).unwrap_or(0)));
+            }
+        }
+        let result = match first {
             // CR 104.4b: a loop is a draw (see the constant).
             _ if self.resolutions_this_turn >= crate::state::MAX_RESOLUTIONS_PER_TURN => {
                 GameResult::Draw
             }
-            0 => GameResult::Draw,
-            1 => GameResult::Win { winner: alive[0] },
-            _ => return None,
+            None => GameResult::Draw,
+            Some(winner) if !others => GameResult::Win { winner },
+            Some(_) => return None,
         };
         self.result = Some(result);
         self.flow = Flow::GameOver;

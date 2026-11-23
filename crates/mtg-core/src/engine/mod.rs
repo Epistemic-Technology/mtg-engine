@@ -153,8 +153,13 @@ impl Engine {
             decided: [false; 2],
             current: starting_player,
         };
+        // Sized up front: the decks, and a few tokens.
+        state
+            .objects
+            .reserve(config.decks.iter().map(Vec::len).sum::<usize>() + 16);
         for (i, deck) in config.decks.iter().enumerate() {
             let p = PlayerId(u8::try_from(i).unwrap_or(0));
+            state.player_mut(p).library.reserve(deck.len());
             for def in deck {
                 let id = state.new_object(*def, p, Zone::Library);
                 state.player_mut(p).library.push(id);
@@ -170,7 +175,8 @@ impl Engine {
         let mut engine = Engine {
             state,
             current: StepResult::Over(GameResult::Draw),
-            history: Vec::new(),
+            // A game takes a few hundred decisions.
+            history: Vec::with_capacity(512),
             snapshot: None,
         };
         engine.advance(None, Vec::new());
@@ -362,18 +368,29 @@ impl Engine {
 
     /// Apply the chosen option of the current decision and run to the next.
     pub fn step(&mut self, choice: ChoiceId) -> Result<&StepResult, EngineError> {
-        let decision = match &self.current {
-            StepResult::Decision(d) => d,
+        let options = match &self.current {
+            StepResult::Decision(d) => d.options.len(),
             StepResult::Over(_) => return Err(EngineError::GameOver),
         };
-        let Some(option) = decision.options.get(choice as usize) else {
-            return Err(EngineError::BadChoice {
-                choice,
-                options: decision.options.len(),
-            });
+        if choice as usize >= options {
+            return Err(EngineError::BadChoice { choice, options });
+        }
+        // The decision is taken, not its option cloned: `advance` always
+        // sets `current` anew.
+        let StepResult::Decision(decision) =
+            std::mem::replace(&mut self.current, StepResult::Over(GameResult::Draw))
+        else {
+            unreachable!("checked above");
         };
         let player = decision.player;
-        let option = option.clone();
+        let mut options = decision.options;
+        let option = options.swap_remove(choice as usize);
+        // The emptied list is kept for the next priority listing (one
+        // allocation fewer per decision); a very long one is let go.
+        options.clear();
+        if options.capacity() <= 64 {
+            self.state.spare_options = options;
+        }
         self.history.push(choice);
         if let Some(snap) = self.snapshot.take() {
             // Answering a question met in the middle of an event: replay the
@@ -662,6 +679,7 @@ impl GameState {
             cache: crate::state::DerivedCache::default(),
             mana_cache: std::cell::RefCell::new(Default::default()),
             tap_epoch: 0,
+            spare_options: Vec::new(),
         }
     }
 
@@ -808,7 +826,8 @@ impl GameState {
                         continue;
                     }
                     let player = self.priority;
-                    let options = self.priority_options(player);
+                    let spare = std::mem::take(&mut self.spare_options);
+                    let options = self.priority_options(player, spare);
                     return StepResult::Decision(Decision {
                         player,
                         kind: DecisionKind::PriorityAction,
@@ -3067,21 +3086,20 @@ impl GameState {
         } else {
             self.phase_in_all(active)
         };
-        let perms: Vec<(ObjId, bool, bool)> = self
-            .permanents_of(active)
-            .map(|id| {
-                let (phases, doesnt_untap) = self.characteristics(id).map_or((false, false), |c| {
-                    (c.has(Keyword::Phasing), c.has(Keyword::DoesntUntap))
-                });
-                let creature_stays =
-                    no_creatures && self.characteristics(id).is_some_and(|c| c.is_creature());
-                (
-                    id,
-                    phases,
-                    doesnt_untap || creature_stays || keep.contains(&id),
-                )
-            })
-            .collect();
+        // Sized up front: a filtered iterator would grow it push by push.
+        let mut perms: Vec<(ObjId, bool, bool)> = Vec::with_capacity(self.battlefield.len());
+        perms.extend(self.permanents_of(active).map(|id| {
+            let (phases, doesnt_untap) = self.characteristics(id).map_or((false, false), |c| {
+                (c.has(Keyword::Phasing), c.has(Keyword::DoesntUntap))
+            });
+            let creature_stays =
+                no_creatures && self.characteristics(id).is_some_and(|c| c.is_creature());
+            (
+                id,
+                phases,
+                doesnt_untap || creature_stays || keep.contains(&id),
+            )
+        }));
         let mut phasing: smallvec::SmallVec<[ObjId; 2]> = smallvec::SmallVec::new();
         for (id, phases, doesnt_untap) in perms {
             // Those with phasing phase out instead of untapping, all at

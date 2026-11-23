@@ -2410,6 +2410,9 @@ pub struct GameState {
     pub mana_cache: std::cell::RefCell<[(u64, u32, u32, ManaSources); 2]>,
     /// Bumped on every tap and untap (which leave `cversion` alone).
     pub tap_epoch: u32,
+    /// The last decision's option list, emptied, for the next priority
+    /// listing to fill (`Engine::step`); not part of the game.
+    pub(crate) spare_options: Vec<crate::decision::Choice>,
 }
 
 impl GameState {
@@ -2755,8 +2758,14 @@ impl GameState {
     /// Whether an object's triggered abilities (printed or added by a copy
     /// exception) could see `event`, by event kind.
     pub fn may_watch(&self, def: CardRef, except: Option<CardRef>, event: &Event) -> bool {
-        self.pool.get(def).may_watch(event)
-            || except.is_some_and(|x| self.pool.get(x).except_may_watch(event))
+        self.may_watch_bit(def, except, event.watch_bit())
+    }
+
+    /// `may_watch` for an event's `Event::watch_bit`, worked out once.
+    #[inline]
+    pub fn may_watch_bit(&self, def: CardRef, except: Option<CardRef>, bit: u32) -> bool {
+        self.pool.get(def).may_watch_bit(bit, false)
+            || except.is_some_and(|x| self.pool.get(x).may_watch_bit(bit, true))
     }
 
     /// Whether a "can't" effect of this kind is in force (CR 614.17).
