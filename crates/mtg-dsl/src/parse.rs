@@ -7811,6 +7811,14 @@ impl P {
                         }
                     }
                 }
+                // "a 3/3 creature with vigilance and all creature types"
+                // (Soulstone Sanctuary): every creature type (CR 205.3m).
+                if self.eat_words(&["and", "all", "creature", "types"])
+                    || (keywords.is_empty()
+                        && self.eat_words(&["with", "all", "creature", "types"]))
+                {
+                    subtypes.push(crate::ast::EVERY_CREATURE_TYPE.to_string());
+                }
                 // "a black Demon in addition to its other colors and types".
                 let in_addition = self.eat_words(&["in", "addition"]);
                 let indefinite = self.eat_word("indefinitely");

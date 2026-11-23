@@ -2347,13 +2347,31 @@ impl Fmt {
                     words.push(format!("{p}/{q}"));
                 }
                 words.extend(colors.iter().map(|c| format!("{c:?}").to_lowercase()));
-                words.extend(subtypes.iter().cloned());
+                let every = subtypes
+                    .iter()
+                    .any(|s| s == crate::ast::EVERY_CREATURE_TYPE);
+                words.extend(
+                    subtypes
+                        .iter()
+                        .filter(|s| *s != crate::ast::EVERY_CREATURE_TYPE)
+                        .cloned(),
+                );
                 words.extend(types.iter().map(|t| format!("{t:?}").to_lowercase()));
                 if let (Some((p, q)), true) = (pt, base) {
                     words.push(format!("base {p}/{q}"));
                 }
                 if !ks.is_empty() {
                     words.push(format!("with {}", keywords(ks)));
+                }
+                if every {
+                    words.push(
+                        if ks.is_empty() {
+                            "with all creature types"
+                        } else {
+                            "and all creature types"
+                        }
+                        .to_string(),
+                    );
                 }
                 if *in_addition {
                     words.push("in addition".to_string());

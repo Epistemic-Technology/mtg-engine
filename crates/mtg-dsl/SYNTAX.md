@@ -691,7 +691,7 @@ Dragon ... (It loses all other creature types.)"), `this becomes
 Shapeshifter artifact creature base 5/5` ("... with base power and
 toughness 5/5"), `this becomes artifact creature` (no new P/T), `this
 becomes 2/2 Gargoyle creature with flying indefinitely` (keywords after
-`with`; `indefinitely`: no duration, Opal Caryatid), `until end of turn,
+`with`; `indefinitely`: no duration, Opal Caryatid), `this becomes 3/3 creature with vigilance and all creature types indefinitely` (Soulstone Sanctuary: every creature type, CR 205.3m; `with all creature types` without keywords), `until end of turn,
 target creature becomes Dragon base 4/4 and target 1 gains flying`;
 `return this to battlefield; it is now enchantment` prints "return it to
 the battlefield under its owner's control. It's an enchantment." (the

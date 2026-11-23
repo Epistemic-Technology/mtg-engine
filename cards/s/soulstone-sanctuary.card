@@ -1,0 +1,6 @@
+card "Soulstone Sanctuary" {
+  oracle_id 3c0f99b8-0222-4fac-932a-eb5d77826564
+  type Land
+  activated {T}: add {C}
+  activated {4}: this becomes 3/3 creature with vigilance and all creature types indefinitely
+}

@@ -861,6 +861,11 @@ pub struct Targeting {
     pub filter: Option<Filter>,
 }
 
+/// The subtype name standing for every creature type in a `becomes`
+/// (`Subtype::ALL_CREATURE_TYPES`, as `CardPool::subtype_name` names it):
+/// "with vigilance and all creature types".
+pub const EVERY_CREATURE_TYPE: &str = "(every creature type)";
+
 /// The subtype a filter names for "outlaw" (CR 700.12): it compiles to
 /// "Assassin, Mercenary, Pirate, Rogue, or Warlock".
 pub const OUTLAW: &str = "outlaw";

@@ -11726,6 +11726,11 @@ impl GameState {
                 // "in addition to its other ... types" (CR 205.1b) adds them
                 // all.
                 for (i, s) in subtypes.iter().enumerate() {
+                    // "with ... all creature types" (CR 205.3m).
+                    if *s == crate::card::Subtype::ALL_CREATURE_TYPES {
+                        parts.push(Modification::AllCreatureTypes);
+                        continue;
+                    }
                     parts.push(if i == 0 && s.is_creature_type() && !*in_addition {
                         Modification::SetCreatureType(*s)
                     } else {

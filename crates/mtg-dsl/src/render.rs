@@ -8567,7 +8567,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             if !color_words.is_empty() {
                 words.push(list(&color_words));
             }
-            words.extend(subtypes.iter().cloned());
+            let every = subtypes
+                .iter()
+                .any(|s| s == crate::ast::EVERY_CREATURE_TYPE);
+            words.extend(
+                subtypes
+                    .iter()
+                    .filter(|s| *s != crate::ast::EVERY_CREATURE_TYPE)
+                    .cloned(),
+            );
             words.extend(types.iter().map(|t| type_noun(*t).to_string()));
             let mut text = if plural && *in_addition {
                 if let Some(last) = words.pop() {
@@ -8610,6 +8618,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 if !keywords.is_empty() {
                     let _ = write!(text, " with {}", keywords_list(keywords));
                 }
+            }
+            // "a 3/3 creature with vigilance and all creature types".
+            if every {
+                text.push_str(if keywords.is_empty() {
+                    " with all creature types"
+                } else {
+                    " and all creature types"
+                });
             }
             if *in_addition {
                 let their = if plural { "their" } else { "its" };

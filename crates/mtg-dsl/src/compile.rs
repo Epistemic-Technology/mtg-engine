@@ -1661,7 +1661,16 @@ impl Compiler<'_> {
     }
 
     fn subtypes(&mut self, names: &[String]) -> SubtypeSet {
-        names.iter().map(|s| self.pool.subtype(s)).collect()
+        names
+            .iter()
+            .map(|s| {
+                if s == crate::ast::EVERY_CREATURE_TYPE {
+                    mtg_core::card::Subtype::ALL_CREATURE_TYPES
+                } else {
+                    self.pool.subtype(s)
+                }
+            })
+            .collect()
     }
 
     /// What restricted mana may be spent on (CR 106.6).
