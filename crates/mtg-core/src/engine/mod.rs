@@ -362,18 +362,24 @@ impl Engine {
 
     /// Apply the chosen option of the current decision and run to the next.
     pub fn step(&mut self, choice: ChoiceId) -> Result<&StepResult, EngineError> {
-        let decision = match &self.current {
-            StepResult::Decision(d) => d,
+        let options = match &self.current {
+            StepResult::Decision(d) => d.options.len(),
             StepResult::Over(_) => return Err(EngineError::GameOver),
         };
-        let Some(option) = decision.options.get(choice as usize) else {
-            return Err(EngineError::BadChoice {
-                choice,
-                options: decision.options.len(),
-            });
+        if choice as usize >= options {
+            return Err(EngineError::BadChoice { choice, options });
+        }
+        // The decision is taken, not its option cloned: `advance` always
+        // sets `current` anew.
+        let StepResult::Decision(decision) =
+            std::mem::replace(&mut self.current, StepResult::Over(GameResult::Draw))
+        else {
+            unreachable!("checked above");
         };
         let player = decision.player;
-        let option = option.clone();
+        let mut options = decision.options;
+        let option = options.swap_remove(choice as usize);
+        drop(options);
         self.history.push(choice);
         if let Some(snap) = self.snapshot.take() {
             // Answering a question met in the middle of an event: replay the
