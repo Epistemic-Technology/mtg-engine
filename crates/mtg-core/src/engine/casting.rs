@@ -5458,6 +5458,7 @@ impl GameState {
 
     /// The values of X the caster can pay for (CR 601.2b, 601.2h), in
     /// increasing order.
+    #[allow(clippy::too_many_lines)] // one cap per kind of X cost
     pub(super) fn x_options(&self, spell: ObjId) -> Vec<Choice> {
         const MAX_X: u32 = 30;
         if matches!(

@@ -785,6 +785,7 @@ pub struct Cost {
 /// exile it"; `may` (a spell's additional cost): "you may behold a
 /// Dragon", an optional additional cost.
 #[derive(Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::struct_excessive_bools)] // independent wording flags
 pub struct Behold {
     pub filter: Filter,
     pub n: u32,
