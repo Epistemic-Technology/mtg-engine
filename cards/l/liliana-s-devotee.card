@@ -1,0 +1,8 @@
+card "Liliana's Devotee" {
+  oracle_id b3b8c7d0-46b9-4519-808a-154e503a58b6
+  cost {2}{B}
+  type Creature — Human Warlock
+  pt 2/3
+  static Zombie you control: +1/+0
+  triggered at beginning of your end step if creature died this turn: you may pay {1}{B}; if you do, create 1 "2/2 black Zombie creature"
+}

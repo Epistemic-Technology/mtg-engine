@@ -1,0 +1,8 @@
+card "Master Splicer" {
+  oracle_id 9e0c5919-aed6-4d98-85c8-2658be78bdf0
+  cost {3}{W}
+  type Creature — Phyrexian Human Artificer
+  pt 1/1
+  triggered when this enters: create 1 "3/3 colorless Phyrexian Golem artifact creature"
+  static Golem you control: +1/+1
+}

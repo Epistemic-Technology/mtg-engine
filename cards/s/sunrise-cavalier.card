@@ -1,0 +1,9 @@
+card "Sunrise Cavalier" {
+  oracle_id 0718ea67-ced3-46bc-9164-8841e6bd73ae
+  cost {1}{R}{W}
+  type Creature — Human Knight
+  pt 3/3
+  keywords trample, haste
+  becomes day as this enters
+  triggered whenever day becomes night or night becomes day: put 1 +1/+1 counters on target creature you control
+}

@@ -1,0 +1,8 @@
+card "Aeronaut Admiral" {
+  oracle_id dcde1a62-33a5-4454-a389-9bf7a3521a4c
+  cost {3}{W}
+  type Creature — Human Pilot
+  pt 3/1
+  keywords flying
+  static Vehicle you control: has flying
+}

@@ -1,0 +1,9 @@
+card "Wren's Run Packmaster" {
+  oracle_id d4d27fef-e86b-4dd3-a15e-a0db8d0725ee
+  cost {3}{G}
+  type Creature — Elf Warrior
+  pt 5/5
+  champion Elf
+  activated {2}{G}: create 1 "2/2 green Wolf creature"
+  static Wolf you control: has deathtouch
+}

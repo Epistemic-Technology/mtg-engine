@@ -1,0 +1,8 @@
+card "Master Trinketeer" {
+  oracle_id aa57f607-c5eb-45a7-bfb1-adce0aef49c7
+  cost {2}{W}
+  type Creature — Dwarf Artificer
+  pt 3/2
+  static Servo or Thopter you control: +1/+1
+  activated {3}{W}: create 1 "1/1 colorless Servo artifact creature"
+}

@@ -1,0 +1,7 @@
+card "Phyrexian Awakening" {
+  oracle_id 0566ab5d-c804-4ac0-add2-87fc352b4c7e
+  cost {2}{W}
+  type Enchantment
+  triggered when this enters: incubate 4
+  static Phyrexian you control: has vigilance
+}

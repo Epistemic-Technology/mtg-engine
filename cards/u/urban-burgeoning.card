@@ -1,0 +1,7 @@
+card "Urban Burgeoning" {
+  oracle_id 2772e3cc-10e0-420f-b183-71ebaf3580e1
+  cost {G}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: has untaps during each other player's untap step
+}

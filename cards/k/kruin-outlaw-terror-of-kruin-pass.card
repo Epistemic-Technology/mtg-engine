@@ -1,0 +1,17 @@
+card "Kruin Outlaw // Terror of Kruin Pass" {
+  oracle_id cf518f59-f083-42a0-9953-fac2757bf804
+  layout transform
+  cost {1}{R}{R}
+  type Creature — Human Rogue Werewolf
+  pt 2/2
+  keywords first strike
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Terror of Kruin Pass" {
+    type Creature — Werewolf
+    pt 3/3
+    color red
+    keywords double strike
+    static Werewolf you control: has menace
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

@@ -1,0 +1,6 @@
+card "Beacon of Destruction" {
+  oracle_id 15feb59b-bbbe-462a-8d38-d20735bbc2f3
+  cost {3}{R}{R}
+  type Instant
+  spell: deal 5 damage to any target; shuffle this creature into library
+}

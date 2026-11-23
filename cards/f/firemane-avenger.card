@@ -1,0 +1,8 @@
+card "Firemane Avenger" {
+  oracle_id 7ea71a36-8fa8-4ba3-9cb1-7fc6917c3ddd
+  cost {2}{R}{W}
+  type Creature — Angel
+  pt 3/3
+  keywords flying
+  label "Battalion" triggered whenever this and at least 2 other creatures attack: this creature deal 3 damage to any target and you gains 3 life
+}

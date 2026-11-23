@@ -1,0 +1,567 @@
+# Cards the template author writes after the ninth wave's phrases.
+
+scenario "Hand of Emrakul: cast by sacrificing four Eldrazi Spawn" {
+  battlefield A: 4 "Eldrazi Spawn"
+  hand A: "Hand of Emrakul"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hand of Emrakul" alternative
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hand of Emrakul"
+  assert battlefield A lacks "Eldrazi Spawn"
+}
+
+scenario "Hand of Emrakul: not with three Eldrazi Spawn" {
+  battlefield A: 3 "Eldrazi Spawn"
+  hand A: "Hand of Emrakul"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Hand of Emrakul" alternative
+  run_to turn 1 postcombat_main
+}
+
+scenario "Fertilid: target player searches for a basic land, tapped" {
+  battlefield A: "Fertilid" with 2 +1/+1, 2 "Forest"
+  library B: "Grizzly Bears", "Mountain", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Fertilid" targeting player B
+  turn 1 B: choose "Mountain"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Mountain"
+  assert tapped B "Mountain"
+  assert counters "Fertilid" +1/+1 1
+  assert toughness "Fertilid" 1
+}
+
+scenario "Fertilid: no counter, no search" {
+  battlefield A: "Fertilid" with 1 +1/+1, 4 "Forest"
+  library A: "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Fertilid" targeting player A
+  illegal turn 1 A: activate "Fertilid" targeting player A
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 5 "Forest"
+}
+
+scenario "Urban Burgeoning: the enchanted land untaps in the other player's untap step" {
+  battlefield A: "Forest" tapped, "Urban Burgeoning" on "Forest", "Island" tapped
+  start turn 2 B
+  run_to turn 2 precombat_main
+  assert untapped "Forest"
+  assert tapped "Island"
+}
+
+scenario "Pack's Disdain: -1/-1 for each permanent of the chosen type you control" {
+  battlefield A: 2 "Swamp", 2 "Goblin", "Grizzly Bears"
+  battlefield B: "Craw Wurm"
+  hand A: "Pack's Disdain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pack's Disdain" targeting "Craw Wurm"
+  turn 1 A: choose Goblin
+  run_to turn 1 postcombat_main
+  assert power "Craw Wurm" 4
+  assert toughness "Craw Wurm" 2
+}
+
+scenario "Pack's Disdain: a type you control none of" {
+  battlefield A: 2 "Swamp", 2 "Goblin"
+  battlefield B: "Craw Wurm"
+  hand A: "Pack's Disdain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pack's Disdain" targeting "Craw Wurm"
+  turn 1 A: choose Elf
+  run_to turn 1 postcombat_main
+  assert power "Craw Wurm" 6
+}
+
+# "Shuffle ~ into its owner's library." (the Zeniths and Beacons).
+
+scenario "Black Sun's Zenith: X -1/-1 counters on each creature, then into the library" {
+  battlefield A: 4 "Swamp", "Craw Wurm"
+  battlefield B: "Grizzly Bears"
+  hand A: "Black Sun's Zenith"
+  library A: "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Black Sun's Zenith" x 2
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert counters "Craw Wurm" -1/-1 2
+  assert library A contains "Black Sun's Zenith"
+  assert graveyard A lacks "Black Sun's Zenith"
+}
+
+scenario "Green Sun's Zenith: a green creature card with mana value X or less" {
+  battlefield A: 3 "Forest"
+  hand A: "Green Sun's Zenith"
+  library A: "Craw Wurm", "Grizzly Bears", "Llanowar Elves"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Green Sun's Zenith" x 2
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert library A contains "Green Sun's Zenith"
+}
+
+scenario "Green Sun's Zenith: not a card with greater mana value" {
+  battlefield A: 3 "Forest"
+  hand A: "Green Sun's Zenith"
+  library A: "Craw Wurm", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Green Sun's Zenith" x 2
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Craw Wurm"
+  assert library A contains "Craw Wurm"
+  assert library A contains "Green Sun's Zenith"
+}
+
+scenario "Red Sun's Zenith: X damage, the creature exiled, the spell into the library" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Red Sun's Zenith"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Red Sun's Zenith" x 3 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert library A contains "Red Sun's Zenith"
+  assert graveyard A lacks "Red Sun's Zenith"
+}
+
+scenario "Blue Sun's Zenith: target player draws X, the spell into the library" {
+  battlefield A: 5 "Island"
+  hand A: "Blue Sun's Zenith"
+  library A: "Plains", "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blue Sun's Zenith" x 2 targeting player A
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert library A contains "Blue Sun's Zenith"
+}
+
+scenario "Beacon of Destruction: 5 damage, then into the library" {
+  battlefield A: 5 "Mountain"
+  hand A: "Beacon of Destruction"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Beacon of Destruction" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert library A contains "Beacon of Destruction"
+  assert graveyard A lacks "Beacon of Destruction"
+}
+
+scenario "Beacon of Unrest: a creature card from an opponent's graveyard, under your control" {
+  battlefield A: 5 "Swamp"
+  graveyard B: "Hill Giant"
+  hand A: "Beacon of Unrest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Beacon of Unrest" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert library A contains "Beacon of Unrest"
+}
+
+# Keyword lines with ward among them.
+
+scenario "Colossal Skyturtle: flying, ward {2}" {
+  battlefield A: "Colossal Skyturtle"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Colossal Skyturtle"
+  run_to turn 2 postcombat_main
+  assert damage "Colossal Skyturtle" 0
+  assert graveyard B contains "Shock"
+  assert has "Colossal Skyturtle" flying
+}
+
+scenario "Tyrranax Rex: trample, ward {4}, haste" {
+  battlefield A: "Tyrranax Rex"
+  battlefield B: 4 "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Tyrranax Rex"
+  run_to turn 2 postcombat_main
+  assert damage "Tyrranax Rex" 0
+  assert has "Tyrranax Rex" trample
+  assert has "Tyrranax Rex" haste
+}
+
+# Lords of creature types.
+
+scenario "Liliana's Devotee: Zombies you control get +1/+0" {
+  battlefield A: "Liliana's Devotee", "Gravedigger"
+  battlefield B: "Gravedigger"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power A "Gravedigger" 3
+  assert power B "Gravedigger" 2
+  assert power "Liliana's Devotee" 2
+}
+
+scenario "Death-Priest of Myrkul: Skeletons, Vampires, and Zombies you control" {
+  battlefield A: "Death-Priest of Myrkul", "Gravedigger", "Vampire Nighthawk", "Skeleton", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Gravedigger" 3
+  assert power "Vampire Nighthawk" 3
+  assert power "Skeleton" 2
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Misery's Shadow: an opponent's creature that would die is exiled" {
+  battlefield A: "Misery's Shadow", "Mountain", "Mountain", "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting B "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting A "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Primevals' Glorious Rebirth: legendary permanent cards only" {
+  battlefield A: 3 "Plains", 4 "Swamp"
+  graveyard A: "Isamaru, Hound of Konda", "Grizzly Bears"
+  hand A: "Primevals' Glorious Rebirth", "Isamaru, Hound of Konda"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Primevals' Glorious Rebirth"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Isamaru, Hound of Konda"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Glacial Revelation: snow permanent cards to the hand, the rest to the graveyard" {
+  battlefield A: 3 "Forest"
+  hand A: "Glacial Revelation"
+  library A: "Snow-Covered Forest", "Forest", "Snow-Covered Forest", "Grizzly Bears", "Shock", "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Glacial Revelation"
+  run_to turn 1 postcombat_main
+  assert hand A contains 2 "Snow-Covered Forest"
+  assert hand A count 2
+  assert graveyard A contains "Grizzly Bears"
+  assert library A count 1
+}
+
+scenario "The Meathook Massacre: each creature gets -X/-X; deaths drain" {
+  battlefield A: 4 "Swamp", "Grizzly Bears"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "The Meathook Massacre"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Meathook Massacre" x 2
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Grizzly Bears"
+  assert power "Hill Giant" 1
+  assert life A 21
+  assert life B 19
+}
+
+scenario "Raff Capashen: historic spells as though they had flash" {
+  battlefield A: "Raff Capashen, Ship's Mage", "Plains", "Plains", "Mountain"
+  hand A: "Isamaru, Hound of Konda", "Ornithopter", "Raging Goblin"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Isamaru, Hound of Konda"
+  turn 2 A: cast "Ornithopter"
+  illegal turn 2 A: cast "Raging Goblin"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Isamaru, Hound of Konda"
+  assert battlefield A contains "Ornithopter"
+}
+
+scenario "Firemane Avenger: battalion, 3 damage and 3 life" {
+  battlefield A: "Firemane Avenger", "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Firemane Avenger", "Grizzly Bears", "Hill Giant"
+  turn 1 A: trigger "Firemane Avenger" targeting player B
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert life B 9
+}
+
+scenario "Firemane Avenger: no battalion with one other attacker" {
+  battlefield A: "Firemane Avenger", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Firemane Avenger", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert life B 15
+}
+
+# More lords of creature types (and Vehicles).
+
+scenario "Phyrexian Awakening: Phyrexians you control have vigilance" {
+  battlefield A: "Phyrexian Awakening", "Phyrexian Rager", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has "Phyrexian Rager" vigilance
+  assert has not "Grizzly Bears" vigilance
+}
+
+scenario "Sculpted Perfection: Phyrexians you control get +1/+1" {
+  battlefield A: "Sculpted Perfection", "Phyrexian Rager", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Phyrexian Rager" 3
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Ogre Slumlord: Rats you control have deathtouch" {
+  battlefield A: "Ogre Slumlord", "Rat"
+  battlefield B: "Rat"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has A "Rat" deathtouch
+  assert has not B "Rat" deathtouch
+}
+
+scenario "Piper of the Swarm: Rats you control have menace" {
+  battlefield A: "Piper of the Swarm", "Rat"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has "Rat" menace
+  assert has not "Piper of the Swarm" menace
+}
+
+scenario "Blade Splicer: a Golem with first strike" {
+  battlefield A: 3 "Plains"
+  hand A: "Blade Splicer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blade Splicer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Phyrexian Golem"
+  assert has "Phyrexian Golem" first_strike
+  assert has not "Blade Splicer" first_strike
+}
+
+scenario "Master Splicer: Golems you control get +1/+1" {
+  battlefield A: 4 "Plains"
+  hand A: "Master Splicer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Master Splicer"
+  run_to turn 1 postcombat_main
+  assert power "Phyrexian Golem" 4
+  assert power "Master Splicer" 1
+}
+
+scenario "Quintorius, Field Historian: Spirits you control get +1/+0" {
+  battlefield A: "Quintorius, Field Historian", "Kami of Ancient Law", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Kami of Ancient Law" 3
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Goblin Warchief: Goblins you control have haste" {
+  battlefield A: "Goblin Warchief", "Grizzly Bears"
+  hand A: "Goblin Piker"
+  battlefield A: 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Goblin Piker"
+  turn 1 A: attack "Goblin Piker"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert has not "Grizzly Bears" haste
+}
+
+scenario "Deep Forest Hermit: Squirrels you control get +1/+1" {
+  battlefield A: "Deep Forest Hermit", "Squirrel"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Squirrel" 2
+  assert power "Deep Forest Hermit" 1
+}
+
+scenario "Master Trinketeer: Servos and Thopters you control get +1/+1" {
+  battlefield A: "Master Trinketeer", "Servo", "Thopter", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Servo" 2
+  assert power "Thopter" 2
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Liliana's Mastery: two Zombies, Zombies you control get +1/+1" {
+  battlefield A: 5 "Swamp"
+  hand A: "Liliana's Mastery"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Liliana's Mastery"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Zombie"
+  assert power oldest "Zombie" 3
+}
+
+scenario "Wren's Run Packmaster: Wolves you control have deathtouch" {
+  battlefield A: "Wren's Run Packmaster", "Wolf"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has "Wolf" deathtouch
+}
+
+scenario "Aeronaut Admiral: Vehicles you control have flying" {
+  battlefield A: "Aeronaut Admiral", "Smuggler's Copter", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has "Smuggler's Copter" flying
+  assert has not "Grizzly Bears" flying
+}
+
+scenario "Fell Flagship: Pirates you control get +1/+0" {
+  battlefield A: "Fell Flagship", "Fathom Fleet Captain"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Fathom Fleet Captain" 3
+}
+
+scenario "Terror of Kruin Pass: Werewolves you control have menace" {
+  battlefield A: "Kruin Outlaw // Terror of Kruin Pass"
+  start turn 2 A
+  run_to turn 2 precombat_main
+  assert battlefield A contains "Terror of Kruin Pass"
+  assert has "Terror of Kruin Pass" menace
+  assert has "Terror of Kruin Pass" double_strike
+}
+
+# Another player searches their own library.
+
+scenario "Ghost Quarter: its controller may search for a basic land, untapped" {
+  battlefield A: "Ghost Quarter"
+  battlefield B: "Forest"
+  library B: "Grizzly Bears", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ghost Quarter" targeting "Forest"
+  turn 1 B: choose "Mountain"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Forest"
+  assert battlefield B contains "Mountain"
+  assert untapped "Mountain"
+}
+
+scenario "Ghost Quarter: its controller may decline" {
+  battlefield A: "Ghost Quarter"
+  battlefield B: "Forest"
+  library B: "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ghost Quarter" targeting "Forest"
+  turn 1 B: choose decline
+  run_to turn 1 postcombat_main
+  assert battlefield B lacks "Mountain"
+  assert library B contains "Mountain"
+}
+
+scenario "Field of Ruin: each player searches for a basic land" {
+  battlefield A: "Field of Ruin", 2 "Plains"
+  battlefield B: "Ghost Quarter"
+  library A: "Island"
+  library B: "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Field of Ruin" targeting "Ghost Quarter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ghost Quarter"
+  assert battlefield A contains "Island"
+  assert battlefield B contains "Mountain"
+}
+
+scenario "Old-Growth Dryads: each opponent may search for a basic land, tapped" {
+  battlefield A: 2 "Forest"
+  hand A: "Old-Growth Dryads"
+  library B: "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Old-Growth Dryads"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Mountain"
+  assert tapped "Mountain"
+}
+
+# Day and night (CR 726): "If it's neither day nor night, it becomes day
+# as this creature enters." and "Whenever day becomes night or night
+# becomes day".
+
+scenario "Firmament Sage: day as it enters, a card when it becomes night" {
+  battlefield A: 4 "Island"
+  hand A: "Firmament Sage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Firmament Sage"
+  run_to turn 1 postcombat_main
+  assert daynight day
+  run_to turn 3 precombat_main
+  assert daynight night
+  assert hand A count 2
+}
+
+scenario "Firmament Sage: no card while it stays day" {
+  battlefield A: 4 "Island", "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Firmament Sage"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Firmament Sage"
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 3 precombat_main
+  assert daynight day
+  assert hand A count 1
+}
+
+scenario "Sunrise Cavalier: a +1/+1 counter when it becomes night" {
+  battlefield A: "Mountain", "Plains", "Mountain"
+  hand A: "Sunrise Cavalier"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sunrise Cavalier"
+  turn 3 A: trigger "Sunrise Cavalier" targeting "Sunrise Cavalier"
+  run_to turn 3 precombat_main
+  assert daynight night
+  assert counters "Sunrise Cavalier" +1/+1 1
+}
+
+scenario "Gavony Dawnguard: a creature card with mana value 3 or less when it becomes night" {
+  battlefield A: 3 "Plains"
+  hand A: "Gavony Dawnguard"
+  library A: "Plains", "Craw Wurm", "Grizzly Bears", "Shock", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gavony Dawnguard"
+  run_to turn 3 precombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A lacks "Craw Wurm"
+}
+
+scenario "Obsessive Astronomer: discard up to two, draw that many" {
+  battlefield A: 2 "Mountain"
+  hand A: "Obsessive Astronomer", "Forest", "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Obsessive Astronomer"
+  turn 3 A: choose "Forest"
+  turn 3 A: choose "Forest"
+  run_to turn 3 precombat_main
+  assert graveyard A contains 2 "Forest"
+  assert hand A count 4
+}
+
+scenario "Sunstreak Phoenix: back from the graveyard tapped when day becomes night" {
+  battlefield A: 4 "Island", 2 "Mountain"
+  hand A: "Firmament Sage"
+  graveyard A: "Sunstreak Phoenix"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Firmament Sage"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Sunstreak Phoenix"
+  assert tapped "Sunstreak Phoenix"
+}
+
+scenario "Indestructibility: enchanted permanent has indestructible" {
+  battlefield A: "Grizzly Bears", "Indestructibility" on "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert has "Grizzly Bears" indestructible
+}
+
+scenario "White Sun's Zenith: X Cats, then into the library" {
+  battlefield A: 5 "Plains"
+  hand A: "White Sun's Zenith"
+  start turn 1 A precombat_main
+  turn 1 A: cast "White Sun's Zenith" x 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Cat"
+  assert library A contains "White Sun's Zenith"
+}
