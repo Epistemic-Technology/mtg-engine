@@ -11529,6 +11529,16 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::CreaturesYouControlAttack => {
             "whenever one or more creatures you control attack".to_string()
         }
+        // The card names itself: it triggers from the graveyard, where it
+        // isn't "this creature" (CR 113.6).
+        Trigger::ThisToGraveyard => {
+            // "..., shuffle it into its owner's library."
+            ctx.source_mentioned = true;
+            format!(
+                "when {} is put into a graveyard from anywhere",
+                short_name(ctx.card)
+            )
+        }
         Trigger::OpponentCreaturesAttack(n) => format!(
             "whenever {} or more creatures your opponents control attack",
             count_words(Num::N(u32::from(*n)), "one")
@@ -12606,8 +12616,13 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 Some(false) => "noncombat damage",
                 None => "damage",
             };
-            let to = affects_to(to, ctx);
-            format!("If {kind} would be dealt to {to}, prevent that {kind}.")
+            // "If damage would be dealt to another creature you control,
+            // prevent that damage." (Vigor): one object at a time.
+            let to = match to {
+                Affects::Objects(f) => filter_a(f, ctx.card),
+                other => affects_to(other, ctx),
+            };
+            format!("If {kind} would be dealt to {to}, prevent that damage.")
         }
         (Replaces::Damage { to, .. }, Outcome::RedirectToAttached) => {
             let to = affects_to(to, ctx);
@@ -12985,9 +13000,57 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
         // A new sentence about the source names it again.
         ctx.source_mentioned = false;
         out.push(' ');
-        out.push_str(&sentences(&r.then, ctx));
+        let then = sentences(&r.then, ctx);
+        // CR 615.5: after a prevention, `that much` is "the damage
+        // prevented this way".
+        if matches!(
+            r.outcome,
+            Outcome::Prevent | Outcome::PreventNext(_) | Outcome::PreventNextTime
+        ) {
+            out.push_str(&prevented_this_way(&then));
+        } else {
+            out.push_str(&then);
+        }
     }
     out
+}
+
+/// "You gain that much life." after a prevention: "You gain life equal to
+/// the damage prevented this way."; "Put that many +1/+1 counters on that
+/// creature.": "Put a +1/+1 counter on that creature for each 1 damage
+/// prevented this way."
+fn prevented_this_way(s: &str) -> String {
+    const WAY: &str = "the damage prevented this way";
+    let s = s
+        .replace("gain that much life", &format!("gain life equal to {WAY}"))
+        .replace(
+            "gains that much life",
+            &format!("gains life equal to {WAY}"),
+        )
+        .replace(
+            "draw that many cards",
+            &format!("draw cards equal to {WAY}"),
+        )
+        .replace(
+            "draws that many cards",
+            &format!("draws cards equal to {WAY}"),
+        );
+    s.split_inclusive(". ")
+        .map(|sentence| {
+            let (body, end) = match (sentence.strip_suffix(". "), sentence.strip_suffix('.')) {
+                (Some(b), _) => (b, ". "),
+                (None, Some(b)) => (b, "."),
+                (None, None) => (sentence, ""),
+            };
+            if let Some(rest) = body.strip_prefix("Put that many ")
+                && let Some((kind, on)) = rest.split_once(" counters on ")
+            {
+                format!("Put a {kind} counter on {on} for each 1 damage prevented this way{end}")
+            } else {
+                format!("{body}{end}")
+            }
+        })
+        .collect()
 }
 
 // ---- statics ----

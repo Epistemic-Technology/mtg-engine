@@ -4734,6 +4734,7 @@ impl Compiler<'_> {
                 this: false,
                 min: 1,
             },
+            Trigger::ThisToGraveyard => TriggerSpec::ThisToGraveyard,
             Trigger::OpponentCreaturesAttack(min) => TriggerSpec::PlayerAttacksWith {
                 whose: Who::Opponents,
                 min: *min,

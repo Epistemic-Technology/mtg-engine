@@ -3053,6 +3053,14 @@ impl Fmt {
                     format!("delayed {about}: {body} {trig}")
                 }
             }
+            Effect::CreateReplacement(rep) if !rep.then.is_empty() => {
+                let bare = crate::ast::Replacement {
+                    then: Vec::new(),
+                    ..rep.clone()
+                };
+                let head = self.effect(&Effect::CreateReplacement(bare), t);
+                format!("{head} {{ {} }}", self.line(&rep.then, t))
+            }
             Effect::CreateReplacement(rep) => match (&rep.event, &rep.outcome) {
                 (Replaces::Damage { .. } | Replaces::DamageToAndBy { .. }, Outcome::Prevent)
                     if rep.then.is_empty() =>
@@ -4351,6 +4359,7 @@ pub fn natural_when(t: &Trigger) -> bool {
             | Trigger::Cycles { this: true, .. }
             | Trigger::DiscardsThis
             | Trigger::CastThis { .. }
+            | Trigger::ThisToGraveyard
     ) || matches!(t, Trigger::Either(a, _) if natural_when(a))
         || matches!(
             t,
@@ -4563,6 +4572,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::OpponentCreaturesAttack(n) => {
             format!("whenever {n} or more creatures your opponents control attack")
         }
+        Trigger::ThisToGraveyard => "when this is put into a graveyard from anywhere".to_string(),
         Trigger::PlayerAttacksWith { whose, min } => format!(
             "whenever {} attacks with {min} or more creatures",
             if *whose == Who::Opponents {

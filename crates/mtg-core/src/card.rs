@@ -6465,6 +6465,10 @@ pub enum TriggerSpec {
     /// once per matching card its controller owns going to a graveyard,
     /// the card (as it was) the triggering object.
     PutIntoGraveyard(ObjFilter),
+    /// "When Purity is put into a graveyard from anywhere" (CR 603.6a): the
+    /// card itself goes to a graveyard from any zone; it triggers from the
+    /// graveyard, controlled by the card's owner.
+    ThisToGraveyard,
     /// "Whenever a creature is put into your graveyard from the
     /// battlefield": a matching permanent (as it last existed) its
     /// controller owns dies, whoever controlled it; the permanent the
@@ -6750,6 +6754,7 @@ impl TriggerSpec {
             | TriggerSpec::LeavesBatch { .. }
             | TriggerSpec::LeavesGraveyard(_)
             | TriggerSpec::PutIntoGraveyard(_)
+            | TriggerSpec::ThisToGraveyard
             | TriggerSpec::PutIntoGraveyardFromBattlefield(_)
             | TriggerSpec::EntersFromGraveyard(_) => WATCH_ZONE_CHANGE,
             TriggerSpec::AttacksOrBlocks(_) => WATCH_ATTACK | WATCH_BLOCK,

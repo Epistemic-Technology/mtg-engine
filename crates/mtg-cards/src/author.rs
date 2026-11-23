@@ -4306,6 +4306,15 @@ impl Templates {
             // under its owner's control at the beginning of the next end
             // step." (Turn to Mist): a delayed trigger on what the earlier
             // sentence named.
+            // "When Purity is put into a graveyard from anywhere, shuffle it
+            // into its owner's library."
+            if *targets == 0
+                && self.about_this.get()
+                && sentence.eq_ignore_ascii_case("shuffle it into its owner's library")
+            {
+                out.push("shuffle this into library".to_string());
+                continue;
+            }
             if let Some(c) = delayed_counter.captures(&sentence)
                 && (cap(&c, 5) != "it" || (*targets == 0 && self.about_this.get()))
             {
@@ -4885,6 +4894,10 @@ fn trigger_text(head: &str) -> Option<String> {
         | "When this permanent enters"
         | "When this Aura enters" => "when this enters",
         "Whenever another creature enters" => "whenever other creature enters",
+        // CR 603.6a: the card itself, from any zone.
+        "When this creature is put into a graveyard from anywhere" => {
+            "when this is put into a graveyard from anywhere"
+        }
         // CR 726.3: the day/night switch.
         "Whenever day becomes night or night becomes day" => {
             "whenever day becomes night or night becomes day"

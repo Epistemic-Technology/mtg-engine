@@ -3090,6 +3090,10 @@ pub enum Trigger {
     /// `whenever one or more creatures you control attack`: the older
     /// wording of `whenever you attack` (CR 508.1m), the same trigger.
     CreaturesYouControlAttack,
+    /// `when this is put into a graveyard from anywhere`: "When Purity is
+    /// put into a graveyard from anywhere" (CR 603.6a), triggering from
+    /// the graveyard.
+    ThisToGraveyard,
     /// `whenever 2 or more creatures your opponents control attack`: the
     /// older wording of `whenever an opponent attacks with 2 or more
     /// creatures` (one opponent), the same trigger.

@@ -1,0 +1,6 @@
+card "Hallow" {
+  oracle_id 60b6a31f-043e-4de3-ad37-67eec02114f8
+  cost {W}
+  type Instant
+  spell: prevent all damage target spell would deal this turn { you gain that much life }
+}

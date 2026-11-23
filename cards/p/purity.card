@@ -1,0 +1,11 @@
+card "Purity" {
+  oracle_id 23ef92b0-2298-4e8d-bf64-46d096c84a9d
+  cost {3}{W}{W}{W}
+  type Creature — Elemental Incarnation
+  pt 6/6
+  keywords flying
+  replace noncombat damage to you: prevent {
+    you gain that much life
+  }
+  triggered when this is put into a graveyard from anywhere: shuffle this into library
+}

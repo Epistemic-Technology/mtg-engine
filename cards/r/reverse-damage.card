@@ -1,0 +1,6 @@
+card "Reverse Damage" {
+  oracle_id eaaf7c30-f463-4115-a40e-7dc717063413
+  cost {1}{W}{W}
+  type Instant
+  spell: this turn, replace damage from chosen source to you: prevent next time { you gain that much life }
+}

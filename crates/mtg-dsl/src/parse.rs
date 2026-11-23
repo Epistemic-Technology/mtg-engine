@@ -6758,7 +6758,8 @@ impl P {
                 self.pos += 1;
             }
             self.expect_word("replace")?;
-            let r = self.replacement_inline()?;
+            let mut r = self.replacement_inline()?;
+            r.then = self.created_then()?;
             return Ok(Effect::CreateReplacement(r));
         }
         if self.at_recipient() {
@@ -10366,13 +10367,14 @@ impl P {
                         wording,
                     }
                 };
+                let then = self.created_then()?;
                 Ok(Effect::CreateReplacement(Replacement {
                     event,
                     outcome: match next {
                         Some(n) => Outcome::PreventNext(n),
                         None => Outcome::Prevent,
                     },
-                    then: Vec::new(),
+                    then,
                     token: None,
                 }))
             }
@@ -14498,6 +14500,9 @@ impl P {
             }
             "is" => {
                 self.expect_words(&["put", "into", "a", "graveyard"])?;
+                if obj == TriggerObj::This && self.eat_words(&["from", "anywhere"]) {
+                    return Ok(Trigger::ThisToGraveyard);
+                }
                 let from_battlefield = self.eat_words(&["from", "the", "battlefield"]);
                 // A filter keeps the wording ("Whenever another creature
                 // or artifact you control is put into a graveyard ...").
@@ -15250,6 +15255,20 @@ impl P {
         Ok(cost)
     }
 
+    /// `{ <effects> }` after an effect a spell creates (CR 615.5): what
+    /// happens as it applies, `that much` being the damage prevented this
+    /// way ("Prevent all damage target spell would deal this turn. You gain
+    /// life equal to the damage prevented this way.").
+    fn created_then(&mut self) -> R<Vec<Sentence>> {
+        if self.peek() != Some(&Tok::LBrace) {
+            return Ok(Vec::new());
+        }
+        self.pos += 1;
+        let s = self.sentences_inline()?;
+        self.expect(&Tok::RBrace)?;
+        Ok(s)
+    }
+
     fn replacement(&mut self) -> R<Replacement> {
         let mut r = self.replacement_inline()?;
         if self.peek() == Some(&Tok::LBrace) {
@@ -15956,6 +15975,7 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::BeginningOfStep { .. }
         | Trigger::CreaturesYouControlAttack
         | Trigger::OpponentCreaturesAttack(_)
+        | Trigger::ThisToGraveyard
         | Trigger::OneOrMoreAttack(_)
         | Trigger::GainsLife { .. }
         | Trigger::GainsLifeFirst { .. }
