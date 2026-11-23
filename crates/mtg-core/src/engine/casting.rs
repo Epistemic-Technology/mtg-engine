@@ -24,7 +24,7 @@ impl GameState {
         // `options` is the last decision's emptied list (`spare_options`),
         // reused; else room for a typical listing, so it isn't regrown
         // push by push.
-        debug_assert!(options.is_empty());
+        debug_assert_eq!(options, []);
         if options.capacity() == 0 {
             options.reserve(8);
         }
