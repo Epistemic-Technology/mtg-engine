@@ -2335,7 +2335,8 @@ your hand"; `take creature card and land card may`: "a creature card
 and/or a land card" (one of each); `rest bottom random`: "in a random
 order"; a final `reword` (wording only) prints "two of them" for "two of
 those cards", "one of those cards" for "one of them", and "Then put the
-rest" after `revealing`; `dig 3 then take card rest graveyard`: "look at the top three
+rest" after `revealing`, and a final `revealed` prints "the rest of the revealed
+cards" for "the rest" (Kruphix's Insight); `dig 3 then take card rest graveyard`: "look at the top three
 cards of your library, then put one of them into your hand and the rest
 into your graveyard"; `dig 3 take card may top rest graveyard`: "You may
 put one of those cards back on top of your library. Put the rest into

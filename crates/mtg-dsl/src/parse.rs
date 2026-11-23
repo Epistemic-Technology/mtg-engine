@@ -9121,6 +9121,7 @@ impl P {
                 let random = !rest_graveyard && self.eat_word("random");
                 let reword = self.eat_word("reword");
                 let short = self.eat_word("short");
+                let rest_revealed = self.eat_word("revealed");
                 Ok(Effect::Dig {
                     count,
                     filter,
@@ -9138,6 +9139,7 @@ impl P {
                     short,
                     then,
                     reword,
+                    rest_revealed,
                 })
             }
             "look" if self.at_words(&["at", "top", "card"]) => {

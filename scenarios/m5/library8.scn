@@ -299,3 +299,17 @@ scenario "hands revealed: without it the opponent's hand is unknown" {
   assert unknown B "Grizzly Bears"
   assert unknown A "Hill Giant"
 }
+
+scenario "dig: Kruphix's Insight takes the enchantments, the rest of the revealed cards to the graveyard" {
+  battlefield A: 3 "Forest"
+  hand A: "Kruphix's Insight"
+  library A: "Pacifism", "Grizzly Bears", "Holy Strength", "Island", "Island", "Island", "Forest"
+  turn 1 A: cast "Kruphix's Insight"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Pacifism"
+  assert hand A contains "Holy Strength"
+  assert hand A count 2
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains 3 "Island"
+  assert library A count 1
+}

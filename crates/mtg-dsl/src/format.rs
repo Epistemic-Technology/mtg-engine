@@ -1136,6 +1136,7 @@ impl Fmt {
                 that_card,
                 short,
                 reword,
+                rest_revealed,
             } => {
                 let mut s = format!("dig {}", num(*count));
                 if *then {
@@ -1193,6 +1194,9 @@ impl Fmt {
                 }
                 if *short {
                     s.push_str(" short");
+                }
+                if *rest_revealed {
+                    s.push_str(" revealed");
                 }
                 s
             }

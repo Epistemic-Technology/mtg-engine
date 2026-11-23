@@ -1,0 +1,6 @@
+card "Kruphix's Insight" {
+  oracle_id fadfbceb-4392-4e7e-be29-cbf372135d16
+  cost {2}{G}
+  type Sorcery
+  spell: dig 6 reveal take 3 enchantment card may rest graveyard revealed
+}

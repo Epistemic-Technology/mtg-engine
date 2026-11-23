@@ -4760,6 +4760,9 @@ pub enum Effect {
         /// "one of those cards" for "one of them", and "Then put the rest"
         /// after a card revealed and put into your hand.
         reword: bool,
+        /// `revealed`, wording only: "and the rest of the revealed cards
+        /// into your graveyard" (Kruphix's Insight).
+        rest_revealed: bool,
     },
     /// `look at top 3`: "look at the top three cards of your library, then
     /// put them back in any order"; `look at top 3 of target player`:

@@ -3549,6 +3549,22 @@ impl Templates {
     /// Put the rest ..."), with whatever follows authored as usual.
     #[allow(clippy::too_many_lines)] // one arm per dig wording
     fn dig(&self, text: &str, targets: &mut usize) -> Result<Option<String>, Skip> {
+        // "and the rest of the revealed cards into your graveyard"
+        // (Kruphix's Insight): the dig with `revealed`.
+        if text.contains(" the rest of the revealed cards ") {
+            let plain = text.replacen(" the rest of the revealed cards ", " the rest ", 1);
+            let Some(d) = self.dig(&plain, targets)? else {
+                return Ok(None);
+            };
+            let (head, tail) = d.split_once("; ").map_or((d.as_str(), None), |(a, b)| (a, Some(b)));
+            if !head.starts_with("dig ") {
+                return Ok(None);
+            }
+            return Ok(Some(match tail {
+                Some(t) => format!("{head} revealed; {t}"),
+                None => format!("{head} revealed"),
+            }));
+        }
         // A dig after other sentences ("Creative Outburst deals 5 damage
         // to any target. Look at the top five cards ..."): those first,
         // then the dig with what follows it.

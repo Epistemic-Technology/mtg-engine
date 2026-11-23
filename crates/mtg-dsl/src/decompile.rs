@@ -1812,6 +1812,7 @@ impl Decompiler<'_> {
                 that_card: false,
                 short: false,
                 reword: false,
+                rest_revealed: false,
             },
             CoreEffect::Modes(modes) => match self.modal_two(modes) {
                 Some(singles) => Effect::ModesTwo(singles),

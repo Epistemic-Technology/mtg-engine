@@ -5744,6 +5744,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             that_card,
             short,
             reword,
+            rest_revealed,
         } => {
             let n = count_words(*count, "one");
             let head = if *reveal_top {
@@ -5753,6 +5754,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             let two = *count == Num::N(2);
             let rest = |word: &str| {
+                // "the rest of the revealed cards" (Kruphix's Insight).
+                let word = if *rest_revealed && word == "the rest" {
+                    "the rest of the revealed cards"
+                } else {
+                    word
+                };
                 if *rest_graveyard {
                     format!("{word} into your graveyard")
                 } else if *random {
