@@ -1,0 +1,8 @@
+card "Lat-Nam's Legacy" {
+  oracle_id f885ee54-3b26-4d61-9783-3930b0e625aa
+  cost {1}{U}
+  type Instant
+  spell {
+    shuffle 1 card from hand into library; if you do, delayed this: draw 2 cards at beginning of the next turn's upkeep
+  }
+}

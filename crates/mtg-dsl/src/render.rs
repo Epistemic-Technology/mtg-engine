@@ -5817,8 +5817,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     .clone()
                     .unwrap_or_else(|| "one of those cards".to_string());
                 let may = if *optional { "You may put" } else { "Put" };
+                // `reword`: "on top of your library" (Voda Sea Scavenger).
+                let back = if *reword { "" } else { "back " };
                 return Clause::imperative(format!(
-                    "{head}. {may} {w} back on top of your library. Put {}",
+                    "{head}. {may} {w} {back}on top of your library. Put {}",
                     rest("the rest")
                 ));
             }

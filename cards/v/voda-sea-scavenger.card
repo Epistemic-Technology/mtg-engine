@@ -1,0 +1,7 @@
+card "Voda Sea Scavenger" {
+  oracle_id 81a9da9d-c422-4293-b210-d89222633b4c
+  cost {2}{U}
+  type Creature — Merfolk Rogue
+  pt 3/2
+  label "Domain" triggered when this enters: dig count where domain take card may top rest bottom random reword
+}

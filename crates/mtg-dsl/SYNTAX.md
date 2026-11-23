@@ -2340,7 +2340,8 @@ cards" for "the rest" (Kruphix's Insight); `dig 3 then take card rest graveyard`
 cards of your library, then put one of them into your hand and the rest
 into your graveyard"; `dig 3 take card may top rest graveyard`: "You may
 put one of those cards back on top of your library. Put the rest into
-your graveyard.", the card kept stays on top; `revealing that card`
+your graveyard.", the card kept stays on top (with `reword`, "You may put
+one of those cards on top of your library."); `revealing that card`
 prints "put that card into your hand" ("put them" for several), `short`
 "Put one into your hand and the other ..."; `onto battlefield
 [tapped]` after `may`: onto the battlefield under your control instead of

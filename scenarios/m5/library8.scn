@@ -313,3 +313,36 @@ scenario "dig: Kruphix's Insight takes the enchantments, the rest of the reveale
   assert graveyard A contains 3 "Island"
   assert library A count 1
 }
+
+scenario "dig: Voda Sea Scavenger looks at X cards (domain) and keeps one on top" {
+  battlefield A: 2 "Island", "Forest"
+  hand A: "Voda Sea Scavenger"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Wind Drake"
+  turn 1 A: cast "Voda Sea Scavenger"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 3 precombat_main
+  assert hand A contains "Hill Giant"
+  assert hand A count 1
+  assert library A contains "Grizzly Bears"
+  assert library A contains "Serra Angel"
+}
+
+scenario "Lat-Nam's Legacy: shuffle a card from hand into the library, draw two next upkeep" {
+  battlefield A: 2 "Island"
+  hand A: "Lat-Nam's Legacy", "Grizzly Bears"
+  library A: "Island", "Island", "Island", "Island"
+  turn 1 A: cast "Lat-Nam's Legacy"
+  run_to turn 2 precombat_main
+  assert hand A count 2
+  assert library A count 3
+}
+
+scenario "Lat-Nam's Legacy with an empty hand draws nothing" {
+  battlefield A: 2 "Island"
+  hand A: "Lat-Nam's Legacy"
+  library A: "Island", "Island", "Island", "Island"
+  turn 1 A: cast "Lat-Nam's Legacy"
+  run_to turn 2 precombat_main
+  assert hand A count 0
+  assert library A count 4
+}
