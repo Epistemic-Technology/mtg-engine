@@ -1,0 +1,13 @@
+card "Gray Slaad // Entropic Decay" {
+  oracle_id 788897f5-d49d-4294-8006-0009a3124ad0
+  layout adventure
+  cost {2}{B}
+  type Creature — Frog Horror
+  pt 4/1
+  static as long as 4 creature cards in your graveyard, this: has menace, deathtouch
+  face "Entropic Decay" {
+    cost {1}{B}
+    type Sorcery — Adventure
+    spell: mill 4 cards
+  }
+}

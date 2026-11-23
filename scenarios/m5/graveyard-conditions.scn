@@ -1,0 +1,51 @@
+# Conditions on graveyard cards: "if you control a Desert or there is a
+# Desert card in your graveyard"; "as long as there are four or more
+# creature cards in your graveyard".
+
+scenario "Gilded Cerodon: a Desert card in the graveyard is enough" {
+  battlefield A: "Gilded Cerodon"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Desert"
+  start turn 3 A
+  turn 3 A: attack "Gilded Cerodon"
+  turn 3 A: trigger "Gilded Cerodon" targeting "Grizzly Bears"
+  illegal turn 3 B: block "Gilded Cerodon" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life B 16
+}
+
+scenario "Gilded Cerodon: without a Desert, no trigger" {
+  battlefield A: "Gilded Cerodon"
+  battlefield B: "Grizzly Bears"
+  start turn 3 A
+  turn 3 A: attack "Gilded Cerodon"
+  turn 3 B: block "Gilded Cerodon" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 20
+}
+
+scenario "Gray Slaad has menace and deathtouch with four creature cards" {
+  battlefield A: "Gray Slaad // Entropic Decay"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Raging Goblin", "Ornithopter"
+  run_to turn 1 precombat_main
+  assert has "Gray Slaad" menace
+  assert has "Gray Slaad" deathtouch
+}
+
+scenario "Gray Slaad without them" {
+  battlefield A: "Gray Slaad // Entropic Decay"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Raging Goblin", "Shock"
+  run_to turn 1 precombat_main
+  assert has not "Gray Slaad" menace
+}
+
+scenario "Entropic Decay mills four" {
+  battlefield A: 2 "Swamp"
+  hand A: "Gray Slaad // Entropic Decay"
+  library A: "Grizzly Bears", "Hill Giant", "Raging Goblin", "Ornithopter", "Plains"
+  turn 1 A: cast "Entropic Decay"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 4
+  assert exile A contains "Gray Slaad"
+}
