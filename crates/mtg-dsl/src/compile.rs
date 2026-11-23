@@ -5636,6 +5636,9 @@ impl Compiler<'_> {
                 whose,
                 generic,
                 cond,
+                per,
+                first,
+                flash,
             } => {
                 let cond = cond.as_ref().map(|c| {
                     let c = self.static_cond(c);
@@ -5646,7 +5649,19 @@ impl Compiler<'_> {
                     whose: *whose,
                     generic: *generic,
                     cond,
-                    grant: None,
+                    // "... and can be cast as though it had flash" (CR
+                    // 702.8).
+                    grant: flash.then(|| {
+                        Box::new(mtg_core::card::SpellGrant {
+                            keywords: KeywordSet::of([Keyword::Flash]),
+                            storm: false,
+                            affinity: None,
+                            from_hand: false,
+                            uncounterable: false,
+                        })
+                    }),
+                    per: *per,
+                    first: *first,
                 })
             }
             Ability::SpellsHave {
@@ -5668,6 +5683,8 @@ impl Compiler<'_> {
                     from_hand: *from_hand,
                     uncounterable: *uncounterable,
                 })),
+                per: None,
+                first: false,
             }),
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
             Ability::Landwalk(f) => AbilityDef::Landwalk(self.filter(f)),

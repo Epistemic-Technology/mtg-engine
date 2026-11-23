@@ -3785,6 +3785,7 @@ impl P {
         // `spells each red or green you cast cost {1} less`: "Each spell
         // you cast that's red or green costs {1} less to cast."
         let each = self.eat_word("each");
+        let first = !each && self.eat_word("first");
         let mut filter = if self.at_word("you") || self.at_word("your") || self.at_word("cost") {
             Filter::default()
         } else {
@@ -3830,12 +3831,21 @@ impl P {
             self.expect_word("more")?;
             n
         };
+        let per = if self.at_word("count") {
+            Some(self.num()?)
+        } else {
+            None
+        };
+        let flash = first && self.eat_words(&["and", "flash"]);
         self.end_stmt()?;
         Ok(Ability::CostChange {
             filter,
             whose,
             generic,
             cond,
+            per,
+            first,
+            flash,
         })
     }
 

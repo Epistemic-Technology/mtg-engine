@@ -1,0 +1,8 @@
+card "Conduit of Ruin" {
+  oracle_id cd3d79e9-c72e-4321-bca1-54505d51331a
+  cost {6}
+  type Creature — Eldrazi
+  pt 5/5
+  triggered when you cast this: you may search colorless creature card with mana value 7 or greater reveal to top that card
+  spells first creature you cast cost {2} less
+}

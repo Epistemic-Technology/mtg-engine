@@ -3224,7 +3224,13 @@ impl GameState {
                 if let AbilityDef::CostChange(cc) = self.pool.ability(*a)
                     && self.cost_change_applies(cc, p, def, id, *src)
                 {
-                    d += cc.generic;
+                    d += match cc.per {
+                        None => cc.generic,
+                        Some(n) => {
+                            let k = self.eval_num_of(n, *src, o.controller);
+                            cc.generic.saturating_mul(i32::try_from(k).unwrap_or(i32::MAX))
+                        }
+                    };
                     // CR 702.41a: affinity, given to the spell.
                     if let Some(f) = cc.grant.as_ref().and_then(|g| g.affinity.as_ref()) {
                         let n = self
@@ -3276,9 +3282,26 @@ impl GameState {
             .spells
             .mana_value
             .is_none_or(|(cmp, n)| cmp.holds(def.mana_cost.mana_value(), u32::from(n)));
+        // "The first creature spell you cast each turn": none cast before
+        // it this turn (the spell being cast isn't cast until its costs
+        // are paid, CR 601.2i).
+        let first_ok = !cc.first
+            || !self.cast_this_turn.iter().any(|(q, d)| {
+                *q == p && {
+                    let pd = self.pool.get(*d);
+                    pd.printed.as_ref().is_some_and(|c| {
+                        cc.spells.matches_characteristics(c)
+                            && cc
+                                .spells
+                                .mana_value
+                                .is_none_or(|(cmp, n)| cmp.holds(pd.mana_cost.mana_value(), u32::from(n)))
+                    })
+                }
+            });
         whose
             && from_ok
             && mv_ok
+            && first_ok
             && cc
                 .spells
                 .matches(id, p, chars, Some(src), Some(o.controller))

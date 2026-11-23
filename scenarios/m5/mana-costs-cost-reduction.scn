@@ -1,0 +1,124 @@
+# Cost reductions (CR 601.2f): "for each ..." counted as the cost is
+# determined, and "the first ... spell you cast each turn" (the spell
+# being cast is not yet among the spells cast this turn).
+
+scenario "Temur Battlecrier: {1} less for each creature with power 4 or greater, during its controller's turn" {
+  battlefield A: "Temur Battlecrier", "Serra Angel", 2 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Temur Battlecrier: one such creature takes off only {1}" {
+  battlefield A: "Temur Battlecrier", 2 "Mountain"
+  hand A: "Hill Giant"
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Temur Battlecrier: not during an opponent's turn" {
+  battlefield A: "Temur Battlecrier", "Serra Angel", 2 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Cancel"
+  hand B: "Shock"
+  battlefield B: "Mountain"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  illegal turn 2 A: cast "Cancel" targeting "Shock" in response to "Shock"
+  run_to turn 2 end
+  assert life A 18
+}
+
+scenario "Radagast: the first creature spell costs {2} less and has flash" {
+  battlefield A: "Radagast of Rhosgobel", 2 "Mountain"
+  hand A: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Hill Giant"
+  run_to turn 2 end
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Radagast: the second creature spell costs full" {
+  battlefield A: "Radagast of Rhosgobel", 3 "Mountain", "Forest"
+  hand A: "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Radagast: a noncreature spell first doesn't use it up" {
+  battlefield A: "Radagast of Rhosgobel", 3 "Mountain"
+  hand A: "Shock", "Hill Giant"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert life B 18
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Momo: the first non-Lemur creature spell with flying costs {1} less" {
+  battlefield A: "Momo, Friendly Flier", 2 "Island", 3 "Plains"
+  hand A: "Wind Drake", "Wind Drake"
+  turn 1 A: cast "Wind Drake"
+  turn 1 A: wait
+  run_to turn 1 end
+  # Wind Drake {2}{U} for two lands; the second would need three.
+  assert battlefield A contains "Wind Drake"
+  assert power "Momo, Friendly Flier" 2
+}
+
+scenario "Momo: the second flier pays in full" {
+  battlefield A: "Momo, Friendly Flier", 2 "Island", 2 "Plains"
+  hand A: "Wind Drake", "Wind Drake"
+  turn 1 A: cast "Wind Drake"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Wind Drake"
+  run_to turn 1 end
+  assert battlefield A contains 1 "Wind Drake"
+}
+
+scenario "Momo: not a creature without flying" {
+  battlefield A: "Momo, Friendly Flier", "Mountain"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Conduit of Ruin: the first creature spell each turn costs {2} less" {
+  battlefield A: "Conduit of Ruin", 2 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Herald of War: Angel spells cost {1} less for each +1/+1 counter on it" {
+  battlefield A: "Herald of War" with 2 +1/+1, 3 "Plains"
+  hand A: "Serra Angel"
+  turn 1 A: cast "Serra Angel"
+  run_to turn 1 end
+  assert battlefield A contains "Serra Angel"
+}
+
+scenario "Herald of War: other spells aren't reduced" {
+  battlefield A: "Herald of War" with 2 +1/+1, 2 "Mountain"
+  hand A: "Hill Giant"
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Mindsplice Apparatus: instants and sorceries cost {1} less for each oil counter" {
+  battlefield A: "Mindsplice Apparatus" with 2 oil, "Island"
+  hand A: "Divination"
+  turn 1 A: cast "Divination"
+  run_to turn 1 end
+  assert hand A count 2
+}

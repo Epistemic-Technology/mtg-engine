@@ -2568,7 +2568,7 @@ impl Decompiler<'_> {
                 toughness: *toughness,
                 plus: *plus,
             },
-            AbilityDef::CostChange(c) if c.grant.is_some() => {
+            AbilityDef::CostChange(c) if c.grant.is_some() && c.generic == 0 => {
                 let g = c.grant.as_deref().expect("checked");
                 Ability::SpellsHave {
                     filter: self.filter(&c.spells),
@@ -2584,6 +2584,12 @@ impl Decompiler<'_> {
                 whose: c.whose,
                 generic: c.generic,
                 cond: c.cond.map(|i| self.static_cond(self.pool.condition(i))),
+                per: c.per,
+                first: c.first,
+                flash: c
+                    .grant
+                    .as_ref()
+                    .is_some_and(|g| g.keywords.contains(mtg_core::card::Keyword::Flash)),
             },
             AbilityDef::SacForMana(m) => Ability::SacMana(*m),
             AbilityDef::RestrictedMana { mana, restriction } => Ability::RestrictedMana {

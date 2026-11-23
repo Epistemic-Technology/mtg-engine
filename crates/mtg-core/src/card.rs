@@ -7695,6 +7695,15 @@ pub struct CostChange {
     /// spells have besides.
     #[serde(default)]
     pub grant: Option<Box<SpellGrant>>,
+    /// "... cost {1} less to cast for each creature you control with
+    /// power 4 or greater": `generic` this many times, counted for the
+    /// source's controller as the cost is determined.
+    #[serde(default)]
+    pub per: Option<Num>,
+    /// "The first creature spell you cast each turn costs {2} less": only
+    /// while its caster hasn't cast a matching spell this turn.
+    #[serde(default)]
+    pub first: bool,
 }
 
 /// What a static ability gives the spells its controller casts (CR

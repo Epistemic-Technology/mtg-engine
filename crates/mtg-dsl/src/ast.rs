@@ -1473,6 +1473,15 @@ pub enum Ability {
         /// `static during turns other than yours, spells you cast cost {1}
         /// less`: only while the condition holds, printed first.
         cond: Option<StaticCond>,
+        /// `... cost {1} less count each creature you control with power 4
+        /// or greater`: "... for each ...".
+        per: Option<Num>,
+        /// `spells first creature you cast cost {2} less`: "The first
+        /// creature spell you cast each turn costs {2} less to cast."
+        first: bool,
+        /// `... cost {2} less and flash`: "... and can be cast as though it
+        /// had flash" (with `first`).
+        flash: bool,
     },
     /// `spells instant or sorcery you cast have storm`, `spells you cast
     /// have delve`, `spells instant or sorcery you cast from hand have

@@ -1,0 +1,7 @@
+card "Radagast of Rhosgobel" {
+  oracle_id 84d648c7-655e-4590-a3e0-366a8a4a4cb3
+  cost {2}{G}{G}
+  type Legendary Creature — Avatar Wizard
+  pt 2/5
+  spells first creature you cast cost {2} less and flash
+}

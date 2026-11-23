@@ -6500,6 +6500,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             whose,
             generic,
             cond,
+            per,
+            first,
+            flash,
         } => {
             let head = match cond {
                 Some(StaticCond::NotYourTurn) => "static during turns other than yours, ",
@@ -6520,9 +6523,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Who::Any => "",
             };
             let more = if *generic > 0 { "more" } else { "less" };
+            let first = if *first { " first" } else { "" };
+            let per = per.map_or_else(String::new, |n| format!(" {}", num(n)));
+            let flash = if *flash { " and flash" } else { "" };
             let _ = writeln!(
                 out,
-                "{indent}{head}spells{subject}{whose} cost {{{}}} {more}",
+                "{indent}{head}spells{first}{subject}{whose} cost {{{}}} {more}{per}{flash}",
                 generic.unsigned_abs()
             );
         }

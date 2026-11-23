@@ -15903,7 +15903,52 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             whose,
             generic,
             cond,
+            per,
+            first,
+            flash,
         } => {
+            // "The first creature spell you cast each turn costs {2} less to
+            // cast [and can be cast as though it had flash]"; "... you cast
+            // during each of your turns ...".
+            if *first {
+                let whose = match whose {
+                    Who::You => " you cast",
+                    Who::Opponents => " your opponents cast",
+                    Who::Any => "",
+                };
+                let when = if *cond == Some(StaticCond::DuringYourTurn) {
+                    " during each of your turns"
+                } else {
+                    " each turn"
+                };
+                let subject = lowercase_first(&cost_spells_subject(filter, card))
+                    .replacen("spells", "spell", 1);
+                // "non-Lemur creature spell" (a subtype keeps its case).
+                let subject = match subject.strip_prefix("Non-") {
+                    Some(rest) => format!("non-{rest}"),
+                    None => subject,
+                };
+                let more = if *generic > 0 { "more" } else { "less" };
+                let flash = if *flash {
+                    " and can be cast as though it had flash"
+                } else {
+                    ""
+                };
+                return format!(
+                    "The first {subject}{whose}{when} costs {{{}}} {more} to cast{flash}.",
+                    generic.unsigned_abs()
+                );
+            }
+            // "... cost {1} less to cast for each creature you control with
+            // power 4 or greater."
+            let per_text = per
+                .and_then(|n| match n {
+                    Num::Count(i) => card.counts.get(usize::from(i)),
+                    _ => None,
+                })
+                .map_or_else(String::new, |c| {
+                    format!(" {}", count_phrase(&c.expr, card, true))
+                });
             let head = match cond {
                 Some(StaticCond::NotYourTurn) => "During turns other than yours, ",
                 Some(StaticCond::DuringYourTurn) => "During your turn, ",
@@ -15956,7 +16001,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 None => (filter.clone(), String::new()),
             };
             let body = format!(
-                "{} {whose}{mv} cost {{{}}} {more} to cast.",
+                "{} {whose}{mv} cost {{{}}} {more} to cast{per_text}.",
                 cost_spells_subject(&f, card),
                 generic.unsigned_abs()
             )
