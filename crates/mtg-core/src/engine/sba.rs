@@ -501,20 +501,28 @@ impl GameState {
         if let Some(r) = self.result {
             return Some(r);
         }
-        // The first two players still in, without collecting them: this
-        // runs at every turn of the main loop.
-        let (first, second) = {
-            let mut alive = self.players_in_game();
-            (alive.next(), alive.next())
-        };
-        let result = match (first, second) {
+        // The first player still in, and whether there is another: a plain
+        // loop, since this runs at every turn of the main loop (collecting
+        // `players_in_game` allocated, and its iterator stayed out of line).
+        let mut first = None;
+        let mut others = false;
+        for (i, ps) in self.players.iter().enumerate() {
+            if ps.lost.is_none() {
+                if first.is_some() {
+                    others = true;
+                    break;
+                }
+                first = Some(PlayerId(u8::try_from(i).unwrap_or(0)));
+            }
+        }
+        let result = match first {
             // CR 104.4b: a loop is a draw (see the constant).
             _ if self.resolutions_this_turn >= crate::state::MAX_RESOLUTIONS_PER_TURN => {
                 GameResult::Draw
             }
-            (None, _) => GameResult::Draw,
-            (Some(winner), None) => GameResult::Win { winner },
-            _ => return None,
+            None => GameResult::Draw,
+            Some(winner) if !others => GameResult::Win { winner },
+            Some(_) => return None,
         };
         self.result = Some(result);
         self.flow = Flow::GameOver;
