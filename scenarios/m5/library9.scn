@@ -1,0 +1,53 @@
+# Library forms of the ninth wave: a dig's "mana value X or less" with the
+# dig's own X, the cards revealed by a reveal-until counted after one
+# moved, a search for cards of several types.
+
+scenario "dig mana value X: Hatchery Spider's X is the dig's count, not the spell's" {
+  battlefield A: 7 "Forest"
+  hand A: "Hatchery Spider"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Elite Vanguard"
+  library A: "Island", "Craw Wurm", "Llanowar Elves", "Island"
+  turn 1 A: cast "Hatchery Spider"
+  turn 1 A: choose "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Llanowar Elves"
+  assert battlefield A contains "Hatchery Spider"
+  assert library A count 3
+}
+
+scenario "dig mana value X: Hatchery Spider with one creature card can't put a two-drop" {
+  battlefield A: 7 "Forest"
+  hand A: "Hatchery Spider"
+  graveyard A: "Elite Vanguard"
+  library A: "Island", "Grizzly Bears"
+  turn 1 A: cast "Hatchery Spider"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Grizzly Bears"
+  assert library A count 2
+}
+
+scenario "revealed this way: Madcap Experiment counts the artifact it put onto the battlefield" {
+  battlefield A: 4 "Mountain"
+  hand A: "Madcap Experiment"
+  library A: "Grizzly Bears", "Ornithopter", "Island", "Forest"
+  life A 20
+  turn 1 A: cast "Madcap Experiment"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ornithopter"
+  assert life A 18
+  assert library A count 3
+}
+
+scenario "search several types: Brightglass Gearhulk finds two cards with mana value 1 or less" {
+  battlefield A: 2 "Forest", 2 "Plains"
+  hand A: "Brightglass Gearhulk"
+  library A: "Shock", "Llanowar Elves", "Hill Giant", "Ornithopter"
+  turn 1 A: cast "Brightglass Gearhulk"
+  turn 1 A: choose "Ornithopter"
+  turn 1 A: choose "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Ornithopter"
+  assert hand A contains "Llanowar Elves"
+  assert library A contains "Shock"
+  assert library A contains "Hill Giant"
+}

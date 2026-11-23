@@ -1,0 +1,6 @@
+card "Madcap Experiment" {
+  oracle_id 684e2237-b860-45bf-a053-a02cc7ed1527
+  cost {3}{R}
+  type Sorcery
+  spell: reveal until artifact card; put that card onto battlefield and the rest on bottom of library random; deal count equal revealed this way damage to you
+}

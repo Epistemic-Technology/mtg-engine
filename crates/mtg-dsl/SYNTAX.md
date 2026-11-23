@@ -2479,7 +2479,11 @@ cards with mana value 3 or less from among them onto the battlefield. Put
 the rest ..." (`reword`: "You may put up to two ..."), `dig 5 reveal take
 land card onto battlefield rest graveyard` "Put a land card from among
 them onto the battlefield and the rest into your graveyard"; `permanent
-with mana value 5 or less` is a permanent card there), `look at top 3` ("look at
+with mana value 5 or less` is a permanent card there; after a counted
+dig, `dig count where graveyard creature reveal take green permanent with
+mana value X or less card ...`, X is the dig's count: "reveal the top X
+cards of your library, where X is .... You may put a green permanent card
+with mana value X or less from among them ...", Hatchery Spider), `look at top 3` ("look at
 the top three cards of your library, then put them back in any order";
 `look at top count where hand` puts "where X is the number of cards in
 your hand" before ", then put them back"; `look at top 3 of target
@@ -2945,7 +2949,11 @@ do` then sees:
   green cards in your hand", CR 701.20a): the cards stay in the hand,
   known to every player; `count where revealed this way` ("the number of
   cards revealed this way") and `count each revealed this way` ("for each
-  card revealed this way") count them; `each player loses count each
+  card revealed this way") count them, also any the resolution has
+  moved since (`reveal until artifact card; put that card onto
+  battlefield and the rest on bottom of library random; deal count equal
+  revealed this way damage to you`, Madcap Experiment, counts the
+  artifact put onto the battlefield); `each player loses count each
   creature they control life` ("Each player loses 1 life for each creature
   they control.", Stronghold Discipline) counts each player's own (you,
   then your opponent; elsewhere `they control` in a count for each player

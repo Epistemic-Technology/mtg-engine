@@ -860,11 +860,8 @@ fn dig_general(text: &str) -> Option<(String, String)> {
             _ => "onto battlefield tapped",
         };
         let random = if cap(&c, 3) == "a random" { " random" } else { "" };
-        // "the number of cards revealed this way" after the card was put
-        // somewhere would miss it (Madcap Experiment).
-        if cap(&c, 4).contains("revealed this way") {
-            return None;
-        }
+        // "the number of cards revealed this way" counts the card put
+        // somewhere too (Madcap Experiment).
         return Some((
             format!(
                 "reveal until {filter} card; put that card {to} and the rest on bottom of library{random}"
@@ -888,12 +885,8 @@ fn dig_general(text: &str) -> Option<(String, String)> {
         ""
     };
     let body = cap(&c, 4);
-    // A filter's "mana value X" is the spell's X (CR 107.3), not a count
-    // the dig names ("where X is the number of creature cards in your
-    // graveyard", Hatchery Spider).
-    if c.get(3).is_some() && body.contains(" X ") {
-        return None;
-    }
+    // A filter's "mana value X" after "where X is ..." is the dig's X
+    // (Hatchery Spider), as the engine reads it.
     let reveal = Regex::new(
         r"^You may reveal (.+?) from among them and put (it|that card|them) into your hand\. (Then put|Put) the rest (.+?)\.\s*(.*)$",
     )
@@ -2306,7 +2299,7 @@ impl Templates {
             // cards" (the triggering amount).
             (
                 r(
-                    r"^[Ss]earch your library for (a|an|up to that many|up to \S+) ([A-Za-z][A-Za-z -]*?)? ?cards?( with [^,]+)?(?:, where X is ([^,]+))?, (reveal (?:it|them|that card|those cards), )?(?:put (it|them|that card|those cards|one) (into your hand or graveyard|into your hand|into your graveyard|onto the battlefield tapped and the other into your hand|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
+                    r"^[Ss]earch your library for (a|an|up to that many|up to \S+) ([A-Za-z][A-Za-z -]*?|[a-z]+, [a-z]+, and/or [a-z]+)? ?cards?( with [^,]+)?(?:, where X is ([^,]+))?, (reveal (?:it|them|that card|those cards), )?(?:put (it|them|that card|those cards|one) (into your hand or graveyard|into your hand|into your graveyard|onto the battlefield tapped and the other into your hand|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
                 ),
                 |c, _| {
                     let n = cap(c, 1);
@@ -2325,7 +2318,12 @@ impl Templates {
                     if count != "1" || !up_to.is_empty() {
                         let _ = write!(t, "{count} ");
                     }
-                    if !cap(c, 2).is_empty() {
+                    // "artifact, creature, and/or enchantment cards":
+                    // `andor artifact or creature or enchantment`.
+                    if cap(c, 2).contains(", and/or ") {
+                        let types = cap(c, 2).replace(", and/or ", " or ").replace(", ", " or ");
+                        let _ = write!(t, "andor {types} ");
+                    } else if !cap(c, 2).is_empty() {
                         let _ = write!(t, "{} ", cap(c, 2));
                     }
                     // "with power 2 or less": part of the filter, before

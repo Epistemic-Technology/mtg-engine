@@ -1019,12 +1019,22 @@ impl GameState {
                 .revealed
                 .iter()
                 .filter(|id| {
-                    let Some(o) = self.objects.get(**id) else {
+                    // A revealed card the resolution moved since is found
+                    // as the card it became (Madcap Experiment).
+                    let id = if self.objects.contains_key(**id) {
+                        **id
+                    } else {
+                        match self.current_object(**id) {
+                            Some(n) => n,
+                            None => return false,
+                        }
+                    };
+                    let Some(o) = self.objects.get(id) else {
                         return false;
                     };
                     f.as_ref().is_none_or(|f| {
                         let c = self.base_characteristics(o);
-                        f.matches(**id, o.owner, &c, Some(ctx.source), Some(ctx.controller))
+                        f.matches(id, o.owner, &c, Some(ctx.source), Some(ctx.controller))
                     })
                 })
                 .count(),
@@ -14566,6 +14576,36 @@ impl GameState {
             } => {
                 let p = ctx.controller;
                 let n = self.eval_num(*count, ctx) as usize;
+                // "reveal the top X cards of your library, where X is ....
+                // You may put a green permanent card with mana value X or
+                // less from among them ..." (Hatchery Spider): the dig's X.
+                fn fill_x(
+                    f: &Option<crate::card::ObjFilter>,
+                    n: usize,
+                ) -> std::borrow::Cow<'_, Option<crate::card::ObjFilter>> {
+                    match f {
+                        Some(f) if f.status.mana_value_x => {
+                            let mut g = f.clone();
+                            g.status.mana_value_x = false;
+                            g.mana_value = g
+                                .mana_value
+                                .map(|(cmp, _)| (cmp, u8::try_from(n).unwrap_or(u8::MAX)));
+                            std::borrow::Cow::Owned(Some(g))
+                        }
+                        f => std::borrow::Cow::Borrowed(f),
+                    }
+                }
+                // Only a counted dig names its own X; with a number, X is
+                // the spell's or ability's (CR 107.3).
+                let (filter, also) = if matches!(count, crate::card::Num::Count(_)) {
+                    (fill_x(filter, n), fill_x(also, n))
+                } else {
+                    (
+                        std::borrow::Cow::Borrowed(filter),
+                        std::borrow::Cow::Borrowed(also),
+                    )
+                };
+                let (filter, also) = (filter.as_ref(), also.as_ref());
                 let lib = &self.player(p).library;
                 let top: Vec<ObjId> = lib.iter().rev().take(n).copied().collect();
                 let matches = |s: &Self, f: Option<&crate::card::ObjFilter>, id: ObjId| {
@@ -15486,13 +15526,11 @@ impl GameState {
         if what == CardSet::It {
             ctx.created = last;
         }
-        if to != CardDest::LibraryBottom {
-            ctx.revealed.retain(|id| {
-                self.objects
-                    .get(*id)
-                    .is_some_and(|o| o.zone == Zone::Library)
-            });
-        }
+        // The revealed cards stay listed when one moves ("Put that card
+        // onto the battlefield and the rest on the bottom ... deals
+        // damage to you equal to the number of cards revealed this way",
+        // Madcap Experiment): a moved one is a new object, which only the
+        // count follows; later moves skip it.
     }
 
     /// "If that creature was a Human" / "If it's a Human": whether the
