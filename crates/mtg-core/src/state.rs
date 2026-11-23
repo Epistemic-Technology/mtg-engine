@@ -3690,7 +3690,8 @@ impl GameState {
                 .is_some_and(|t| self.spent_on(t).count(*kind) >= u32::from(*at_least));
         }
         if *cond == crate::card::StaticCondition::ThatKicked {
-            return trigger_obj.is_some_and(|t| self.objects.get(t).is_some_and(|o| o.cast.kicked()));
+            return trigger_obj
+                .is_some_and(|t| self.objects.get(t).is_some_and(|o| o.cast.kicked()));
         }
         self.condition_now(cond, you, source)
     }

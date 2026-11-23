@@ -6411,7 +6411,13 @@ impl P {
         // "Each player loses 1 life for each creature they control"
         // compiles to each player's own count (Stronghold Discipline).
         let own_count = subject == Recipient::EachPlayer
-            && matches!(e, Effect::LoseLife { amount: Num::Count(_), .. });
+            && matches!(
+                e,
+                Effect::LoseLife {
+                    amount: Num::Count(_),
+                    ..
+                }
+            );
         if matches!(subject, Recipient::EachPlayer | Recipient::You)
             && !own_count
             && self.counts[counts..]

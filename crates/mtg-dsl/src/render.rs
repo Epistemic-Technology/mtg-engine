@@ -1573,7 +1573,6 @@ impl<'a> Ctx<'a> {
             Recipient::TheTriggeringObject => "the creature".to_string(),
             Recipient::SameToken | Recipient::CreatedThatToken => "that token".to_string(),
             Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
-            Recipient::TriggeringThey => "them".to_string(),
             Recipient::TriggeringCard | Recipient::SameCard => "that card".to_string(),
             Recipient::TriggeringController { that: true } => {
                 let noun = if self.trigger_is_enchanted() {
@@ -1616,7 +1615,9 @@ impl<'a> Ctx<'a> {
             Recipient::CreatedTokens | Recipient::SameTokens | Recipient::CreatedThose => {
                 "those tokens".to_string()
             }
-            Recipient::CreatedThem | Recipient::SameThem => "them".to_string(),
+            Recipient::CreatedThem | Recipient::SameThem | Recipient::TriggeringThey => {
+                "them".to_string()
+            }
             Recipient::Those(t) => crate::format::those_word(t).to_string(),
             Recipient::SameObject | Recipient::CreatedObject | Recipient::TriggeringIt => {
                 "it".to_string()
@@ -2153,7 +2154,11 @@ impl<'a> Ctx<'a> {
     }
 
     fn verb(&self, r: Recipient, singular: &'static str, plural: &'static str) -> &'static str {
-        if r == Recipient::You || r == Recipient::TriggeringThey || (Self::is_plural(r) && !self.each_group(r)) || self.is_many(r) {
+        if r == Recipient::You
+            || r == Recipient::TriggeringThey
+            || (Self::is_plural(r) && !self.each_group(r))
+            || self.is_many(r)
+        {
             plural
         } else {
             singular
@@ -4855,25 +4860,32 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
                 // "then its controller gains life equal to its mana value"
                 // (Expel the Unworthy).
-                if let crate::ast::CountExpr::TargetManaValue { n: i, that: true, .. } = &count.expr
+                if let crate::ast::CountExpr::TargetManaValue {
+                    n: i, that: true, ..
+                } = &count.expr
                     && let Effect::GainLife {
                         who: Recipient::ThatControllerOf(w),
                         ..
                     } = e
                     && w == i
-                    && c.subject.as_ref().is_some_and(|(_, s)| s == "its controller")
+                    && c.subject
+                        .as_ref()
+                        .is_some_and(|(_, s)| s == "its controller")
                 {
                     phrase = "its mana value".to_string();
                 }
                 // "deals damage to that creature's controller equal to the
                 // creature's power" (Boros Fury-Shield): named once already.
-                if let crate::ast::CountExpr::TargetStat { n: i, that: true, .. } = &count.expr
+                if let crate::ast::CountExpr::TargetStat {
+                    n: i, that: true, ..
+                } = &count.expr
                     && let Effect::DealDamage { to, .. } = e
                     && to.as_slice() == [Recipient::ThatControllerOf(*i)]
                 {
                     let noun = ctx.target_noun[*i].clone();
                     if c.text.contains(&format!(" to that {noun}'s controller")) {
-                        phrase = phrase.replacen(&format!("that {noun}'s"), &format!("the {noun}'s"), 1);
+                        phrase =
+                            phrase.replacen(&format!("that {noun}'s"), &format!("the {noun}'s"), 1);
                     }
                 }
                 let _ = write!(c.tail, " equal to {phrase}");
@@ -12882,7 +12894,10 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
     if run == 2 && !plural_form {
         for i in 0..mods.len().saturating_sub(1) {
             if let (Mod::AddSubtype(a), Mod::AddSubtype(b)) = (&mods[i], &mods[i + 1]) {
-                parts[i] = format!("is {} in addition to its other types", with_article(&format!("{a} {b}")));
+                parts[i] = format!(
+                    "is {} in addition to its other types",
+                    with_article(&format!("{a} {b}"))
+                );
                 parts[i + 1] = "\u{2}".to_string();
             }
         }
@@ -14318,7 +14333,11 @@ fn conditional_static(
     }
     if first {
         let this = format!("{} ", capitalize(&this_ref(card)));
-        let rest = if matches!(c, StaticCond::SourceCounters { .. } | StaticCond::SourceCountersOneOrMore(_)) && body.starts_with(&this) {
+        let rest = if matches!(
+            c,
+            StaticCond::SourceCounters { .. } | StaticCond::SourceCountersOneOrMore(_)
+        ) && body.starts_with(&this)
+        {
             // "As long as this creature has four or more oil counters on
             // it, it gets +2/+0."
             format!("it {}", &body[this.len()..])
@@ -14876,7 +14895,8 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     ctx.source_mentioned = named
                         || matches!(
                             c,
-                            StaticCond::SourceCounters { .. } | StaticCond::SourceCountersOneOrMore(_)
+                            StaticCond::SourceCounters { .. }
+                                | StaticCond::SourceCountersOneOrMore(_)
                                 | StaticCond::ManaSpent { that: false, .. }
                                 | StaticCond::AttackedOrBlocked
                         );
