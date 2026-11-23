@@ -1704,6 +1704,11 @@ impl<'a> Ctx<'a> {
                 self.target_mentioned[i] = true;
                 format!("the {}", self.target_noun[i])
             }
+            // "put two +1/+1 counters on the other".
+            Recipient::OtherTarget(i) => {
+                self.target_mentioned[i] = true;
+                "the other".to_string()
+            }
             Recipient::ChosenTarget(i) => {
                 self.target_mentioned[i] = true;
                 self.chosen_said = Some(i);
@@ -2290,7 +2295,8 @@ impl<'a> Ctx<'a> {
         // "Choose two target creatures controlled by different players.
         // Return those creatures ...": the relation isn't repeated.
         let related = matches!(self.targets.get(a).map(Target::base),
-            Some(Target::Filter(f)) if f.same == Some(SameRef::DifferentControllers));
+            Some(Target::Filter(f)) if matches!(f.same, Some(SameRef::DifferentControllers
+                | SameRef::SameController | SameRef::SameOpponent)));
         if alike && !per_opponent && !related {
             self.plural_target_noun(a)
         } else {
@@ -2652,6 +2658,15 @@ fn enchanted_subtype_noun(card: &Card) -> String {
 /// control", "nonbasic land") or plural.
 #[allow(clippy::too_many_lines)] // one block per filter part
 fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
+    // "two target creatures controlled by the same opponent": the
+    // opponent is in the relation.
+    if f.same == Some(SameRef::SameOpponent) && f.who.is_some() {
+        let g = Filter {
+            who: None,
+            ..f.clone()
+        };
+        return filter_phrase(&g, card, plural_form);
+    }
     // "for each Aura and Equipment attached to it"; a target's phrase is
     // the sentence's (`group_phrase`).
     if let Some(a) = f.attached_to {
@@ -3370,6 +3385,9 @@ fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             if plural_form { "share" } else { "shares" }
         ),
         Some(SameRef::DifferentControllers) => " controlled by different players".to_string(),
+        Some(SameRef::SameController) => " controlled by the same player".to_string(),
+        Some(SameRef::SameOpponent) => " controlled by the same opponent".to_string(),
+        Some(SameRef::WithSameController) => " with the same controller".to_string(),
     }
 }
 
@@ -5524,6 +5542,68 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
 #[allow(clippy::too_many_lines)] // one arm per effect kind
 fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
     match e {
+        // "Target opponent chooses a creature they control."
+        Effect::PlayerChooses { who, filter } => {
+            let s = ctx.subj(*who);
+            Clause::with_subject(
+                *who,
+                s,
+                format!(
+                    "{} {} they control",
+                    ctx.verb(*who, "chooses", "choose"),
+                    with_article(&filter_phrase(filter, ctx.card, false))
+                ),
+            )
+        }
+        // "Target creature can't be the target of spells or abilities
+        // your opponents control this turn."
+        Effect::CantBeTargeted { what, ban } => {
+            let s = ctx.subj(*what);
+            Clause::with_subject(
+                *what,
+                s,
+                format!(
+                    "can't be the target of {} this turn",
+                    match ban {
+                        mtg_core::card::TargetBan::Opponents => {
+                            "spells or abilities your opponents control"
+                        }
+                        mtg_core::card::TargetBan::Spells => "spells",
+                    }
+                ),
+            )
+        }
+        // "That player sacrifices one of them of their choice."
+        Effect::PickTarget {
+            first,
+            by_controller,
+            act,
+            wording,
+        } => {
+            use mtg_core::card::{PickAct, PickWording};
+            let those = format!("one of those {}", pluralize(&ctx.target_noun[*first]));
+            for i in [*first, first + 1] {
+                if let Some(m) = ctx.target_mentioned.get_mut(i) {
+                    *m = true;
+                }
+            }
+            Clause::imperative(match (*by_controller, *act, *wording) {
+                (false, PickAct::Exile, _) => format!("exile {those}"),
+                (false, PickAct::Sacrifice, _) => format!("sacrifice {those}"),
+                (false, PickAct::Choose, _) => format!("choose {those}"),
+                (true, PickAct::Sacrifice, PickWording::OfTheirChoice) => {
+                    "that player sacrifices one of them of their choice".to_string()
+                }
+                (true, PickAct::Sacrifice, PickWording::TheirController) => {
+                    "their controller chooses and sacrifices one of them".to_string()
+                }
+                (true, PickAct::Sacrifice, _) => {
+                    format!("that player chooses and sacrifices {those}")
+                }
+                (true, PickAct::Exile, _) => format!("that player chooses and exiles {those}"),
+                (true, PickAct::Choose, _) => format!("that player chooses {those}"),
+            })
+        }
         // "it deals 4 damage instead": to what the sentence before named.
         Effect::DealDamage { amount, to, by } if to.is_empty() => {
             // "Addendum — If you cast this spell during your main phase,
@@ -11429,6 +11509,11 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
                 // "it can't be regenerated this turn, and if it would die
                 // this turn, exile it instead" (Carbonize).
                 Some(Join::And) if c.subject.is_none() && c.text.starts_with("if ") => ", and ",
+                // "deals 5 damage to that creature, and the other can't
+                // block this turn" (Trial of Agony): a second subject.
+                Some(Join::And) if matches!(c.subject, Some((Recipient::OtherTarget(_), _))) => {
+                    ", and "
+                }
                 _ => " and ",
             });
         }
@@ -17632,6 +17717,17 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
+                K::EnchantedUntargetable(ban) => format!(
+                    "enchanted {} can't be the target of {}",
+                    enchanted_noun(card),
+                    match ban {
+                        mtg_core::card::TargetBan::Opponents => {
+                            "spells or abilities your opponents control"
+                        }
+                        mtg_core::card::TargetBan::Spells => "spells",
+                    }
+                ),
+                K::Flagbearer => "while an opponent is choosing targets as part of casting a spell they control or activating an ability they control, that player must choose at least one Flagbearer on the battlefield if able".to_string(),
                 K::FirstEquipFree { your_turns } => format!(
                     "you may pay {{0}} rather than pay the equip cost of the first equip ability you activate {}",
                     if *your_turns {

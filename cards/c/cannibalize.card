@@ -1,0 +1,6 @@
+card "Cannibalize" {
+  oracle_id bf044267-92b9-4983-964f-2bc4ecf76bce
+  cost {1}{B}
+  type Sorcery
+  spell: choose 2 target creature controlled by the same player; exile one of those targets and put 2 +1/+1 counters on the other target 2
+}

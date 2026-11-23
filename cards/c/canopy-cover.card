@@ -1,0 +1,8 @@
+card "Canopy Cover" {
+  oracle_id 5b84101e-7e23-437d-835c-409bc061ecbb
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { can't be blocked except by creature with flying or reach }
+  enchanted can't be targeted by opponents
+}

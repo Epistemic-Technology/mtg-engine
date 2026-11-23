@@ -1,0 +1,6 @@
+card "Incriminate" {
+  oracle_id d8b59cc3-766f-4350-971f-edf721fcc5be
+  cost {1}{B}
+  type Sorcery
+  spell: choose 2 target creature controlled by the same player; that player sacrifices one of them of their choice
+}

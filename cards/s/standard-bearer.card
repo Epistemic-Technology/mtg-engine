@@ -1,0 +1,7 @@
+card "Standard Bearer" {
+  oracle_id 1d6e9716-8c3c-443d-afd8-68d0d6c469a5
+  cost {1}{W}
+  type Creature — Human Flagbearer
+  pt 1/1
+  flagbearer rule
+}

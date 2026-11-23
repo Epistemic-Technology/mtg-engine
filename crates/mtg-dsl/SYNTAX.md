@@ -288,6 +288,7 @@ like the card; either half may still be cast alone.
 | `graveyard cards can't be targeted` | "Cards in graveyards can't be the targets of spells or abilities." (CR 115.4): while the source is on the battlefield, no card in a graveyard is a legal target (an untargeted choice still finds them). |
 | `you may play lands from your graveyard` | "You may play lands from your graveyard." (CR 305.1): its controller may play land cards from their graveyard, with their usual land plays. |
 | `you have hexproof`, `you have shroud`, `opponents can't cast spells during your turn`, `players can't gain life`, `damage can't be prevented` | Static abilities about players: "You have hexproof." (CR 702.11c: spells and abilities your opponents control can't target you), "You have shroud." (CR 702.18c: no spell or ability can target you), "Your opponents can't cast spells during your turn.", "Players can't gain life.", "Damage can't be prevented." (CR 614.17). `you can't lose the game` prints "You can't lose the game and your opponents can't win the game.": the controller doesn't lose for the state-based actions of CR 704.5a-c while it applies, and an effect that would make an opponent win does nothing. `as long as <condition>` may follow any of them. |
+| `enchanted can't be targeted by opponents`, `enchanted can't be targeted by spells`, `flagbearer rule` | On an Aura: "Enchanted creature can't be the target of spells or abilities your opponents control." (CR 115.4; "your" is the Aura's controller, not the enchanted creature's, so unlike hexproof the creature's controller can be the one kept out), "Enchanted creature can't be the target of spells." (any player's spells; abilities still may). `flagbearer rule` prints "While an opponent is choosing targets as part of casting a spell they control or activating an ability they control, that player must choose at least one Flagbearer on the battlefield if able." (Standard Bearer): while none of the targets chosen so far is a Flagbearer, the last target of a spell or activated ability of an opponent's that could be a Flagbearer (any player's) must be one if one is a legal choice; triggered abilities are free (rulings). |
 | `first equip free`, `first equip free during your turns`, `first equip free as long as enduring story` | "You may pay {0} rather than pay the equip cost of the first equip ability you activate each turn." (`during your turns`: "... during each of your turns."; CR 118.9): the first equip ability its controller activates in such a turn costs no mana (the engine takes the option, though a player might rather keep it for a later equip that turn); a player static ability, so `as long as <condition>` prints first ("As long as you have an enduring story, you may pay {0} ..."). |
 | `hexproof from black`, `hexproof from monocolored`, `hexproof from instant` | "Hexproof from black" (CR 702.11d): this permanent can't be the target of spells or abilities your opponents control from sources matching the filter (a color, `multicolored`, `monocolored`, a card type: "instants", "planeswalkers"). In a keyword line ("Flying, hexproof from multicolored") write the keywords first, then this line. |
 | `trigger again Ninja creature you control`, `trigger again other Elemental you control`, `trigger again permanent you control when permanent enters the battlefield`, `trigger again permanent you control when artifact or creature enters`, `trigger again permanent you control when creature dies`, `trigger again permanent you control when creature attacks` | CR 603.2d: "If a triggered ability of a Ninja creature you control triggers, that ability triggers an additional time." ("it triggers" after `other`, as Twinflame Travelers prints); with `when ... enters`, only when that permanent entering caused it ("If a permanent entering the battlefield causes a triggered ability of a permanent you control to trigger, that ability triggers an additional time.", `the battlefield` printed where written); `when creature dies` ("If a creature dying causes ...", the creature judged as it last existed) and `when creature attacks` ("If a creature attacking causes ...") likewise. Only such abilities on the battlefield as the event happens count (one dying with the creature doesn't). Each such ability adds one more instance; each instance is put on the stack with its own targets and choices |
@@ -1176,7 +1177,23 @@ players; return those targets to hand`: "Choose two target creatures
 controlled by different players. Return those creatures to their owners'
 hands.", each controlled by someone other than the other's controller, as
 it is or last existed, as chosen and as the spell resolves, so once one
-player controls both, neither is legal); `exchange control of this and target
+player controls both, neither is legal; `controlled by the same player`,
+`controlled by the same opponent` likewise: "Choose two target creatures
+controlled by the same player.", both illegal once their controllers
+differ; `another target creature with same controller` prints "another
+target creature with the same controller" (Bioshift). After such a pair,
+one of them is picked as the spell resolves (CR 608.2d; a still-legal one
+if the other isn't, CR 608.2b): `that player sacrifices one of them of
+their choice` ("That player sacrifices one of them of their choice.", the
+targets' controller), `that player chooses and sacrifices one of those
+targets` ("... chooses and sacrifices one of those creatures."), `their
+controller chooses and sacrifices one of them`, `that player chooses one
+of those targets` ("That player chooses one of those creatures."), `exile
+one of those targets` (the caster picks: "Exile one of those creatures");
+then the picked one is `that target 1` ("that creature") and the other
+`the other target 2` ("the other": `put 2 +1/+1 counters on the other
+target 2`, `the other target 2 can't block this turn` joined by `and`
+prints ", and the other can't block this turn")); `exchange control of this and target
 nonland permanent`, `exchange control of target land you control and
 target land an opponent controls` name the two. Nothing happens unless
 both are still on the battlefield (CR 701.12a) under different
@@ -2322,7 +2339,10 @@ count each ...`: "investigate once for each ..."; `target player
 investigates`: that player creates it), `<who>
 exiles 2 cards from hand` ("Target opponent exiles two cards from their
 hand"; `from graveyard`: "a card from their graveyard"; the player
-chooses), `<who> exiles 1 creature they control` ("Target opponent
+chooses), `<who> chooses creature they control; destroy that created creature`
+("Target opponent chooses a creature they control. Destroy that
+creature.": not targeted, the player chooses as it resolves; the chosen
+permanent is `that created creature`), `<who> exiles 1 creature they control` ("Target opponent
 exiles a creature they control", their choice; `... they control and
 their graveyard` then exiles their graveyard: "Target opponent exiles a
 creature they control and their graveyard"), `<who> reveals hand
@@ -3358,7 +3378,10 @@ the first permanent and put them on the second (CR 122.5); nothing moves
 if the second is gone. `move any number +1/+1 counters from this onto
 another target creature` ("Move any number of +1/+1 counters from this
 creature onto another target creature", Scrounging Bandar): how many is
-chosen as it resolves (scenarios: `choose "2"`; unscripted, all). `put its counters on target creature you control`
+chosen as it resolves (scenarios: `choose "2"`; unscripted, all). `target 1 can't be targeted by opponents this turn` prints "Target creature
+can't be the target of spells or abilities your opponents control this
+turn." (Vines of Vastwood; `by spells`: "... of spells this turn."),
+judged against the spell's controller, not the creature's. `put its counters on target creature you control`
 in a dies trigger puts the counters the source had as it last existed on
 the battlefield, of every kind (CR 608.2h); `put its +1/+1 counters on
 target creature you control` only those of one kind (Selfless Police

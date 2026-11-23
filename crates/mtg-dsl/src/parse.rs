@@ -2210,6 +2210,23 @@ impl P {
                     keyword,
                 })
             }
+            // "Enchanted creature can't be the target of spells or
+            // abilities your opponents control.", "... of spells."
+            "enchanted" if self.at_words(&["enchanted", "can't", "be", "targeted", "by"]) => {
+                self.pos += 5;
+                let ban = if self.eat_word("opponents") {
+                    mtg_core::card::TargetBan::Opponents
+                } else {
+                    self.expect_word("spells")?;
+                    mtg_core::card::TargetBan::Spells
+                };
+                self.player_static(mtg_core::card::PlayerStaticKind::EnchantedUntargetable(ban))
+            }
+            // The Flagbearer rule (Coalition Honor Guard).
+            "flagbearer" if self.at_words(&["flagbearer", "rule"]) => {
+                self.pos += 2;
+                self.player_static(mtg_core::card::PlayerStaticKind::Flagbearer)
+            }
             "you" if self.at_words(&["you", "have", "hexproof"]) => {
                 self.pos += 3;
                 self.player_static(mtg_core::card::PlayerStaticKind::Hexproof)
@@ -6130,6 +6147,8 @@ impl P {
                 && matches!(self.peek_at(3), Some(Tok::Num(_))))
             || self.at_words(&["the", "full", "target"])
             || self.at_words(&["the", "chosen", "full", "target"])
+            || (self.at_words(&["the", "other", "target"])
+                && matches!(self.peek_at(3), Some(Tok::Num(_))))
         {
             return true;
         }
@@ -7196,6 +7215,92 @@ impl P {
             r.then = self.created_then()?;
             return Ok(Effect::CreateReplacement(r));
         }
+        // "That player sacrifices one of them of their choice.": one of
+        // the last two targets picked (`Effect::PickTarget`).
+        {
+            use mtg_core::card::{PickAct, PickWording};
+            const FORMS: [(&[&str], bool, PickAct, PickWording); 6] = [
+                (
+                    &[
+                        "that",
+                        "player",
+                        "sacrifices",
+                        "one",
+                        "of",
+                        "them",
+                        "of",
+                        "their",
+                        "choice",
+                    ],
+                    true,
+                    PickAct::Sacrifice,
+                    PickWording::OfTheirChoice,
+                ),
+                (
+                    &[
+                        "their",
+                        "controller",
+                        "chooses",
+                        "and",
+                        "sacrifices",
+                        "one",
+                        "of",
+                        "them",
+                    ],
+                    true,
+                    PickAct::Sacrifice,
+                    PickWording::TheirController,
+                ),
+                (
+                    &[
+                        "that",
+                        "player",
+                        "chooses",
+                        "and",
+                        "sacrifices",
+                        "one",
+                        "of",
+                        "those",
+                        "targets",
+                    ],
+                    true,
+                    PickAct::Sacrifice,
+                    PickWording::ChoosesAnd,
+                ),
+                (
+                    &["that", "player", "chooses", "one", "of", "those", "targets"],
+                    true,
+                    PickAct::Choose,
+                    PickWording::Those,
+                ),
+                (
+                    &["exile", "one", "of", "those", "targets"],
+                    false,
+                    PickAct::Exile,
+                    PickWording::Those,
+                ),
+                (
+                    &["choose", "one", "of", "those", "targets"],
+                    false,
+                    PickAct::Choose,
+                    PickWording::Those,
+                ),
+            ];
+            for (words, by_controller, act, wording) in FORMS {
+                if self.at_words(words) {
+                    if self.targets.len() < 2 {
+                        return self.fail("`one of those targets` needs two targets before it");
+                    }
+                    self.pos += words.len();
+                    return Ok(Effect::PickTarget {
+                        first: self.targets.len() - 2,
+                        by_controller,
+                        act,
+                        wording,
+                    });
+                }
+            }
+        }
         if self.at_recipient() {
             let subjects = self.recipients()?;
             // "up to two target creatures each get": consecutive targets
@@ -8029,6 +8134,20 @@ impl P {
             }
             // "Target opponent exiles two cards from their hand", "exiles
             // a creature they control".
+            // "Target opponent chooses a creature they control."
+            "chooses" if !self.at_word("and") && !self.at_word("one") => {
+                let mut filter = self.filter()?;
+                if filter.they_control {
+                    filter.they_control = false;
+                    filter.who = None;
+                } else {
+                    self.expect_words(&["they", "control"])?;
+                }
+                Ok(Effect::PlayerChooses {
+                    who: subject,
+                    filter,
+                })
+            }
             "exiles" if self.at_word("until") => {
                 self.pos += 1;
                 self.revealed = true;
@@ -8270,6 +8389,19 @@ impl P {
             "assigns" if self.at_words(&["no", "combat", "damage", "this", "turn"]) => {
                 self.pos += 5;
                 Ok(Effect::AssignsNoCombatDamage { to: subject })
+            }
+            // "can't be the target of spells or abilities your opponents
+            // control this turn" (Vines of Vastwood).
+            "can't" if self.at_words(&["be", "targeted", "by"]) => {
+                self.pos += 3;
+                let ban = if self.eat_word("opponents") {
+                    mtg_core::card::TargetBan::Opponents
+                } else {
+                    self.expect_word("spells")?;
+                    mtg_core::card::TargetBan::Spells
+                };
+                self.expect_words(&["this", "turn"])?;
+                Ok(Effect::CantBeTargeted { what: subject, ban })
             }
             "can't" => {
                 let keywords = if self.eat_word("block") {
@@ -12459,6 +12591,21 @@ impl P {
             }
             return Ok(Recipient::ChosenTarget(n - 1));
         }
+        // `the other target 2`: "the other" (after `one of those
+        // targets`).
+        if self.at_words(&["the", "other", "target"])
+            && matches!(self.peek_at(3), Some(Tok::Num(_)))
+        {
+            self.pos += 3;
+            let Some(Tok::Num(n)) = self.next() else {
+                return self.fail("expected a target number after `the other target`");
+            };
+            let n = n as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            return Ok(Recipient::OtherTarget(n - 1));
+        }
         if self.at_words(&["the", "target"]) && matches!(self.peek_at(2), Some(Tok::Num(_))) {
             self.pos += 2;
             let Some(Tok::Num(n)) = self.next() else {
@@ -12865,7 +13012,7 @@ impl P {
                         | (Some("other"), Some("than"))
                         | (Some("controller"), Some("of"))
                         | (Some("with" | "without"), Some("aura"))
-                        | (Some("with"), Some("counter" | "toxic" | "morph" | "no"))
+                        | (Some("with"), Some("counter" | "toxic" | "morph" | "no" | "same"))
                         | (Some("blocked" | "controlled"), Some("by"))
                         | (Some("blocking"), Some("this" | "it" | "or"))
                 ) || comma_type
@@ -13804,6 +13951,27 @@ impl P {
                 {
                     self.pos += 4;
                     f.same = Some(SameRef::DifferentControllers);
+                }
+                // "two target creatures controlled by the same player",
+                // "... the same opponent".
+                "controlled"
+                    if (self.at_words(&["controlled", "by", "the", "same", "player"])
+                        || self.at_words(&["controlled", "by", "the", "same", "opponent"]))
+                        && f.same.is_none() =>
+                {
+                    self.pos += 4;
+                    if self.eat_word("opponent") {
+                        f.same = Some(SameRef::SameOpponent);
+                        f.who = Some(mtg_core::card::Who::Opponents);
+                    } else {
+                        self.pos += 1;
+                        f.same = Some(SameRef::SameController);
+                    }
+                }
+                // "another target creature with the same controller".
+                "with" if self.at_words(&["with", "same", "controller"]) && f.same.is_none() => {
+                    self.pos += 3;
+                    f.same = Some(SameRef::WithSameController);
                 }
                 // "with lesser power" (mentor, CR 702.134a).
                 "with" if self.at_words(&["with", "lesser", "power"]) && f.same.is_none() => {

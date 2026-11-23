@@ -301,6 +301,12 @@ impl Decompiler<'_> {
                     (SameOf::Target(_), SameWhat::DifferentController) => {
                         SameRef::DifferentControllers
                     }
+                    (SameOf::Target(_), SameWhat::SameController)
+                        if f.who == Some(mtg_core::card::Who::Opponents) =>
+                    {
+                        SameRef::SameOpponent
+                    }
+                    (SameOf::Target(_), SameWhat::SameController) => SameRef::SameController,
                     (SameOf::Target(n), _) => SameRef::SameNameAs(usize::from(n)),
                 }
             }),
@@ -1237,6 +1243,25 @@ impl Decompiler<'_> {
                         effects: self.sentences(&row.effects),
                     })
                     .collect(),
+            },
+            CoreEffect::PlayerChooses { who, filter } => Effect::PlayerChooses {
+                who: r(*who),
+                filter: self.filter(filter),
+            },
+            CoreEffect::CantBeTargeted { what, ban } => Effect::CantBeTargeted {
+                what: r(*what),
+                ban: *ban,
+            },
+            CoreEffect::PickTarget {
+                first,
+                by_controller,
+                act,
+                wording,
+            } => Effect::PickTarget {
+                first: usize::from(*first),
+                by_controller: *by_controller,
+                act: *act,
+                wording: *wording,
             },
             CoreEffect::ExileChosen { who, filter, count } => Effect::ExileChosen {
                 who: r(*who),
