@@ -11101,6 +11101,9 @@ impl P {
         if self.eat_words(&["times", "kicked"]) {
             return Ok(CountExpr::TimesKicked);
         }
+        if self.eat_words(&["energy", "paid"]) {
+            return Ok(CountExpr::EnergyPaid);
+        }
         if self.eat_words(&["treasure", "spent"]) {
             return Ok(CountExpr::SpentTreasure);
         }

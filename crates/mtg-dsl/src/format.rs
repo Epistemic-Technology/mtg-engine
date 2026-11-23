@@ -3372,6 +3372,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::ManaSpent { that: false } => "mana spent".to_string(),
         CountExpr::ManaSpent { that: true } => "mana spent that spell".to_string(),
         CountExpr::TimesKicked => "times kicked".to_string(),
+        CountExpr::EnergyPaid => "energy paid".to_string(),
         CountExpr::SpentTreasure => "treasure spent".to_string(),
         CountExpr::CardsInOpponentsGraveyards(None) => "opponents graveyards".to_string(),
         CountExpr::ExiledWith(None) => "exiled with this".to_string(),

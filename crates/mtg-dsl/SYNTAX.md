@@ -1268,7 +1268,10 @@ energy` inside `may` and as a cost ("Pay {E}{E}"). `you may pay any energy` is
 "you may pay any amount of {E}": the amount is chosen as it resolves (0
 to all; all unscripted), and `that much` and X after it in the resolution
 are the amount paid ("Galvanic Discharge deals that much damage to that
-permanent").
+permanent"). The count `energy paid` is that amount: `counter that
+target 1 unless its controller pays {X} count each energy paid` prints
+"Counter that spell unless its controller pays {1} for each {E} paid this
+way." (Aether Spike).
 
 Blight (CR 701.68): `blight 2` is an effect ("blight 2": the controller
 puts two -1/-1 counters on a creature they control, chosen as it

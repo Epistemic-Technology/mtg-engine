@@ -2601,6 +2601,7 @@ impl Compiler<'_> {
             A::ManaSpent { that: false } => C::SpentTotal,
             A::ManaSpent { that: true } => C::ThatSpellSpent,
             A::TimesKicked => C::TimesKicked,
+            A::EnergyPaid => C::EnergyPaid,
             A::SpentTreasure => C::SpentTreasure,
             A::CardsInOpponentsGraveyards(f) => {
                 C::CardsInOpponentsGraveyards(f.as_ref().map(|f| self.filter(f)))

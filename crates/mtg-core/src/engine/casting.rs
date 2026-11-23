@@ -956,6 +956,7 @@ impl GameState {
                     .count()
             }
             CountExpr::SpentColors => self.spent_on(ctx.source).colors() as usize,
+            CountExpr::EnergyPaid => ctx.x as usize,
             CountExpr::TimesKicked => self
                 .objects
                 .get(ctx.source)

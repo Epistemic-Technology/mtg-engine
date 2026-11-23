@@ -33,3 +33,40 @@ scenario "Galvanic Discharge: paying two keeps one energy" {
   assert damage "Hill Giant" 2
   assert energy A 1
 }
+
+scenario "Aether Spike: the spell is countered unless its controller pays {1} for each {E} paid" {
+  battlefield A: 2 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Aether Spike"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Aether Spike" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert energy B 0
+}
+
+scenario "Aether Spike: paid for, the spell resolves" {
+  battlefield A: 4 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Aether Spike"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Aether Spike" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped newest "Forest"
+}
+
+scenario "Aether Spike: paying no energy leaves nothing to pay" {
+  battlefield A: 2 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Aether Spike"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Aether Spike" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  turn 1 B: choose "0"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert energy B 2
+}

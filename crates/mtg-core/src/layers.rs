@@ -1433,6 +1433,7 @@ fn per_count(
         | CountExpr::AttackedWithThisTurn
         | CountExpr::SpentColors
         | CountExpr::TimesKicked
+        | CountExpr::EnergyPaid
         | CountExpr::SpentTreasure
         | CountExpr::SpentTotal
         | CountExpr::ThatSpellSpent

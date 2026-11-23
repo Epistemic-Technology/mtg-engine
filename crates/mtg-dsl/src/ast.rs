@@ -479,6 +479,8 @@ pub enum CountExpr {
     SpentColors(SpentOf),
     /// `times kicked`: "time(s) it was kicked" (multikicker, CR 702.33d).
     TimesKicked,
+    /// `energy paid`: "{E} paid this way" (after `pay any energy`).
+    EnergyPaid,
     /// `treasure spent`: "mana from a Treasure spent to cast it".
     SpentTreasure,
     /// `mana spent`: "the amount of mana spent to cast it"; `mana spent

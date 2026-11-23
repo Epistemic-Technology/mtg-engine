@@ -4745,6 +4745,11 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "creature you attacked with this turn".to_string(),
             "creatures you attacked with this turn".to_string(),
         ),
+        // "for each {E} paid this way".
+        CountExpr::EnergyPaid => (
+            "{E} paid this way".to_string(),
+            "{E} paid this way".to_string(),
+        ),
         // "for each time it was kicked" (CR 702.33d).
         CountExpr::TimesKicked => {
             let it = if is_instant_or_sorcery(card) {

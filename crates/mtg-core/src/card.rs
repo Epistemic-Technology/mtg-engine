@@ -2094,6 +2094,9 @@ pub enum CountExpr {
     /// "for each time it was kicked": how many times the source's
     /// multikicker cost was paid (CR 702.33d).
     TimesKicked,
+    /// "for each {E} paid this way": the energy the resolution's "pay any
+    /// amount of {E}" paid (its X).
+    EnergyPaid,
     /// The mana from Treasures spent to cast the source ("for each mana
     /// from a Treasure spent to cast it").
     SpentTreasure,
@@ -2306,6 +2309,7 @@ impl CountExpr {
             | CountExpr::AttackedWithThisTurn
             | CountExpr::SpentColors
             | CountExpr::TimesKicked
+            | CountExpr::EnergyPaid
             | CountExpr::SpentTreasure
             | CountExpr::SpentTotal
             | CountExpr::ThatSpellSpent
