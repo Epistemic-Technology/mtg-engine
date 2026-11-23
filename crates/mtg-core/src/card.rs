@@ -9504,6 +9504,17 @@ impl CardDef {
         self.except_watch_mask & event.watch_bit() != 0
     }
 
+    /// `may_watch` and `except_may_watch` for an event's `watch_bit`
+    /// worked out once (a scan over the battlefield asks for each object).
+    pub fn may_watch_bit(&self, bit: u32, except: bool) -> bool {
+        (if except {
+            self.except_watch_mask
+        } else {
+            self.watch_mask
+        }) & bit
+            != 0
+    }
+
     pub fn is_creature(&self) -> bool {
         self.types.contains(CardType::Creature)
     }
