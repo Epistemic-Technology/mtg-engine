@@ -1525,6 +1525,7 @@ impl Decompiler<'_> {
                 discard,
                 waterbend,
                 discard_random,
+                both,
                 effects,
             } => Effect::UnlessPays {
                 payer: Self::recipient(*payer),
@@ -1533,6 +1534,7 @@ impl Decompiler<'_> {
                 discard: *discard,
                 waterbend: *waterbend,
                 discard_random: *discard_random,
+                both: *both,
                 effect: Box::new(
                     effects
                         .first()

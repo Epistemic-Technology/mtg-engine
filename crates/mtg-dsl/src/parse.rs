@@ -2733,6 +2733,19 @@ impl P {
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
+                // "Ward—{2}, Pay 2 life.": mana and another part, a cost
+                // paid as the trigger resolves (CR 702.21a).
+                if w == "ward" {
+                    let mut i = 0;
+                    while matches!(self.peek_at(i), Some(Tok::Sym(_))) {
+                        i += 1;
+                    }
+                    if self.peek_at(i) == Some(&Tok::Comma) {
+                        let c = self.cost()?;
+                        self.end_stmt()?;
+                        return Ok(Ability::Mechanic(Mechanic::WardCost(c)));
+                    }
+                }
                 let c = self.mana_cost()?;
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(match w.as_str() {
@@ -5636,6 +5649,7 @@ impl P {
                 discard,
                 waterbend: false,
                 discard_random,
+                both: false,
                 effect: Box::new(e),
             });
         }
@@ -5669,6 +5683,7 @@ impl P {
             discard: 0,
             waterbend,
             discard_random: false,
+            both: false,
             effect: Box::new(e),
         })
     }

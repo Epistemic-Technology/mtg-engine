@@ -4073,6 +4073,7 @@ impl Compiler<'_> {
                 discard,
                 waterbend,
                 discard_random,
+                both,
                 effect,
             } => {
                 let mut effects = Vec::new();
@@ -4084,6 +4085,7 @@ impl Compiler<'_> {
                     discard: *discard,
                     waterbend: *waterbend,
                     discard_random: *discard_random,
+                    both: *both,
                     effects,
                 });
             }
@@ -7094,6 +7096,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 discard: cost.discard,
                 waterbend: cost.waterbend,
                 discard_random: cost.discard_random,
+                both: true,
                 effect: Box::new(E::Counter {
                     to: Recipient::TriggeringObject,
                     dest: crate::ast::CounteredTo::Graveyard,
@@ -7126,6 +7129,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         discard: cost.discard,
                         waterbend: cost.waterbend,
                         discard_random: cost.discard_random,
+                        both: true,
                         effect: Box::new(E::Sacrifice {
                             what: Recipient::Source,
                         }),

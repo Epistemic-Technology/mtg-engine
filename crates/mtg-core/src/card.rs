@@ -4504,6 +4504,10 @@ pub enum Effect {
         waterbend: bool,
         /// "Ward—Discard a card at random." (CR 701.9b).
         discard_random: bool,
+        /// "Ward—{2}, Pay 2 life.": the mana and the life together;
+        /// otherwise mana with life is "{1} or 1 life", either.
+        #[serde(default)]
+        both: bool,
         effects: Vec<Effect>,
     },
     /// "... unless they sacrifice a nonland permanent of their choice or

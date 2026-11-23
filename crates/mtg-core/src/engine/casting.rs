@@ -12725,6 +12725,7 @@ impl GameState {
                 discard,
                 waterbend,
                 discard_random,
+                both,
                 effects,
             } => {
                 let def = self
@@ -12759,7 +12760,7 @@ impl GameState {
                 let req = mana.requirements(ctx.x);
                 let life_n = i32::try_from(*life).unwrap_or(i32::MAX);
                 // "pays {1} or 1 life": either, the payer's choice.
-                let either = *life > 0 && *mana != crate::mana::ManaCost::default();
+                let either = !*both && *life > 0 && *mana != crate::mana::ManaCost::default();
                 let mut paid = false;
                 for p in payers {
                     // "Ward—Waterbend {4}": artifacts and creatures tapped

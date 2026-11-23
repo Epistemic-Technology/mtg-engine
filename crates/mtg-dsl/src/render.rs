@@ -9476,6 +9476,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             waterbend,
             discard_random,
             effect,
+            ..
         } => {
             ctx.in_unless = true;
             let mut c = clause(effect, ctx);

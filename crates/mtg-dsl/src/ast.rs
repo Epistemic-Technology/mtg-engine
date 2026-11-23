@@ -4623,6 +4623,9 @@ pub enum Effect {
         /// `ward discard 1 card at random`: the cards are chosen at
         /// random (CR 701.9b).
         discard_random: bool,
+        /// `ward {2}, pay 2 life`: the mana and the life together (else
+        /// mana with life is "{1} or 1 life", either).
+        both: bool,
         effect: Box<Effect>,
     },
     /// `<clause> unless they sacrifice nonland permanent or discard 1
