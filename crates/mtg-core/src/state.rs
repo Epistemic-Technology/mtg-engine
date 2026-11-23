@@ -2191,6 +2191,11 @@ pub struct GameState {
     pub rules: Vec<RuleEffect>,
     /// "Target player can't play lands this turn": until end of turn.
     pub player_rules: Vec<PlayerRuleEffect>,
+    /// "Target creature can't be the target of spells or abilities your
+    /// opponents control this turn" (`Effect::CantBeTargeted`): the
+    /// permanent, the effect's controller, and what can't target it;
+    /// until end of turn. Empty in almost every game.
+    pub untargetable: Vec<(ObjId, PlayerId, crate::card::TargetBan)>,
     /// Keywords players gained (`PlayerGrant`).
     pub player_grants: Vec<PlayerGrant>,
     /// Battlefield objects whose definition has a replacement or
@@ -2789,6 +2794,13 @@ impl GameState {
     fn player_statics(
         &self,
     ) -> impl Iterator<Item = (PlayerId, crate::card::PlayerStaticKind)> + '_ {
+        self.player_statics_of().map(|(p, k, _)| (p, k))
+    }
+
+    /// `player_statics` with each ability's source.
+    fn player_statics_of(
+        &self,
+    ) -> impl Iterator<Item = (PlayerId, crate::card::PlayerStaticKind, ObjId)> + '_ {
         self.battlefield
             .iter()
             .filter(|id| {
@@ -2809,10 +2821,55 @@ impl GameState {
                                 self.condition_now(self.pool.condition(c), o.controller, *id)
                             }) =>
                         {
-                            Some((o.controller, *kind))
+                            Some((o.controller, *kind, *id))
                         }
                         _ => None,
                     })
+            })
+    }
+
+    /// Whether `caster`, choosing targets for a spell they cast or an
+    /// ability they activate, must choose a Flagbearer if able: an
+    /// opponent has the Flagbearer rule (`PlayerStaticKind::Flagbearer`).
+    pub fn flagbearer_rule(&self, caster: PlayerId) -> bool {
+        self.player_static_sources > 0
+            && self.player_statics().any(|(who, kind)| {
+                who != caster && kind == crate::card::PlayerStaticKind::Flagbearer
+            })
+    }
+
+    /// Whether a spell or ability `caster` controls from `source` may
+    /// target permanent `id` despite "can't be the target of spells or
+    /// abilities your opponents control" and "can't be the target of
+    /// spells" (`TargetBan`), from an effect or an Aura's static ability.
+    /// Free while no such effect or player static is around.
+    fn target_ban_ok(&self, id: ObjId, caster: PlayerId, source: Option<ObjId>) -> bool {
+        use crate::card::TargetBan;
+        if self.untargetable.is_empty() && self.player_static_sources == 0 {
+            return true;
+        }
+        // A spell is its own source (an ability's is its permanent).
+        let spell = || {
+            source
+                .and_then(|s| self.objects.get(s))
+                .is_some_and(|o| o.zone == Zone::Stack && o.ability.is_none())
+        };
+        let banned = |who: PlayerId, ban: TargetBan| match ban {
+            TargetBan::Opponents => who != caster,
+            TargetBan::Spells => spell(),
+        };
+        if self
+            .untargetable
+            .iter()
+            .any(|(o, who, ban)| *o == id && banned(*who, *ban))
+        {
+            return false;
+        }
+        self.player_static_sources == 0
+            || !self.player_statics_of().any(|(who, kind, src)| {
+                matches!(kind, crate::card::PlayerStaticKind::EnchantedUntargetable(ban)
+                    if self.objects.get(src).and_then(|s| s.attached_to) == Some(id)
+                        && banned(who, ban))
             })
     }
 
@@ -4592,7 +4649,8 @@ impl GameState {
                 what:
                     crate::card::SameWhat::SharesType
                     | crate::card::SameWhat::SharesCreatureType
-                    | crate::card::SameWhat::DifferentController,
+                    | crate::card::SameWhat::DifferentController
+                    | crate::card::SameWhat::SameController,
             }) => {
                 let mut g = f.clone();
                 g.same = None;
@@ -4825,15 +4883,19 @@ impl GameState {
                 return false;
             }
         }
-        // "two target creatures controlled by different players": against
-        // each other target, as it is or last existed (both targets are
-        // illegal once one player controls both).
+        // "two target creatures controlled by different players" (or "by
+        // the same player"): against each other target, as it is or last
+        // existed (both targets are illegal once one player controls both,
+        // or once they have different controllers).
         if let Some(crate::card::Same {
-            what: crate::card::SameWhat::DifferentController,
+            what:
+                what @ (crate::card::SameWhat::DifferentController
+                | crate::card::SameWhat::SameController),
             ..
         }) = filter.same
             && let Target::Object(id) = t
         {
+            let same = what == crate::card::SameWhat::SameController;
             let controller = |id: &ObjId| {
                 self.objects
                     .get(*id)
@@ -4842,9 +4904,11 @@ impl GameState {
                     .or_else(|| self.lki.get(id).map(|l| l.object.controller))
             };
             let mine = controller(&id);
+            // "two target creatures controlled by the same player": each
+            // other target's controller is this one's.
             if targets.iter().any(|o| match o {
                 Target::Object(other) if *other != id => {
-                    mine.is_some() && controller(other) == mine
+                    mine.is_some() && (controller(other) == mine) != same
                 }
                 _ => false,
             }) {
@@ -5214,7 +5278,7 @@ impl GameState {
                         .is_some_and(|sc| {
                             c.protected_from(&sc, caster != obj.controller, &self.pool)
                         });
-                type_ok && hexproof_ok && protection_ok
+                type_ok && hexproof_ok && protection_ok && self.target_ban_ok(id, caster, source)
             }
         }
     }

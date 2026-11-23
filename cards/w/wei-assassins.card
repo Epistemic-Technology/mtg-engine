@@ -1,0 +1,7 @@
+card "Wei Assassins" {
+  oracle_id e87dd341-416c-4e93-8eb4-1519ecd2674c
+  cost {3}{B}{B}
+  type Creature — Human Soldier Assassin
+  pt 3/2
+  triggered when this enters: target opponent chooses creature they control; destroy that created creature
+}

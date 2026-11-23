@@ -321,6 +321,10 @@ impl Fmt {
                 self.mentioned[i] = true;
                 format!("the target {}", i + 1)
             }
+            Recipient::OtherTarget(i) => {
+                self.mentioned[i] = true;
+                format!("the other target {}", i + 1)
+            }
             Recipient::ChosenTarget(i) => {
                 self.mentioned[i] = true;
                 format!("the chosen target {}", i + 1)
@@ -2093,6 +2097,47 @@ impl Fmt {
                 self.recipient(*who, t),
                 num(*count)
             ),
+            Effect::PlayerChooses { who, filter: f } => format!(
+                "{} chooses {} they control",
+                self.recipient(*who, t),
+                filter(f)
+            ),
+            Effect::CantBeTargeted { what, ban } => format!(
+                "{} can't be targeted by {} this turn",
+                self.recipient(*what, t),
+                match ban {
+                    mtg_core::card::TargetBan::Opponents => "opponents",
+                    mtg_core::card::TargetBan::Spells => "spells",
+                }
+            ),
+            Effect::PickTarget {
+                by_controller,
+                act,
+                wording,
+                ..
+            } => {
+                use mtg_core::card::{PickAct, PickWording};
+                match (*by_controller, *act, *wording) {
+                    (false, PickAct::Exile, _) => "exile one of those targets".to_string(),
+                    (false, PickAct::Sacrifice, _) => "sacrifice one of those targets".to_string(),
+                    (false, PickAct::Choose, _) => "choose one of those targets".to_string(),
+                    (true, PickAct::Sacrifice, PickWording::OfTheirChoice) => {
+                        "that player sacrifices one of them of their choice".to_string()
+                    }
+                    (true, PickAct::Sacrifice, PickWording::TheirController) => {
+                        "their controller chooses and sacrifices one of them".to_string()
+                    }
+                    (true, PickAct::Sacrifice, _) => {
+                        "that player chooses and sacrifices one of those targets".to_string()
+                    }
+                    (true, PickAct::Exile, _) => {
+                        "that player chooses and exiles one of those targets".to_string()
+                    }
+                    (true, PickAct::Choose, _) => {
+                        "that player chooses one of those targets".to_string()
+                    }
+                }
+            }
             Effect::ExileChosen {
                 who,
                 count,
@@ -3722,6 +3767,9 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
             crate::ast::SameRef::ShareCreatureType
                 | crate::ast::SameRef::ShareCardType
                 | crate::ast::SameRef::DifferentControllers
+                | crate::ast::SameRef::SameController
+                | crate::ast::SameRef::SameOpponent
+                | crate::ast::SameRef::WithSameController
         )
     );
     let named = match f.same {
@@ -4230,6 +4278,9 @@ pub fn same_ref(r: crate::ast::SameRef) -> String {
         SameRef::ShareCardType => "that share card type".to_string(),
         SameRef::ShareCreatureType => "that share creature type".to_string(),
         SameRef::DifferentControllers => "controlled by different players".to_string(),
+        SameRef::SameController => "controlled by the same player".to_string(),
+        SameRef::SameOpponent => "controlled by the same opponent".to_string(),
+        SameRef::WithSameController => "with same controller".to_string(),
         SameRef::LesserPower => "with lesser power".to_string(),
         SameRef::ManaValueAtMostPower => "with mana value at most this power".to_string(),
     }
@@ -7302,6 +7353,13 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
+                K::EnchantedUntargetable(mtg_core::card::TargetBan::Opponents) => {
+                    "enchanted can't be targeted by opponents".to_string()
+                }
+                K::EnchantedUntargetable(mtg_core::card::TargetBan::Spells) => {
+                    "enchanted can't be targeted by spells".to_string()
+                }
+                K::Flagbearer => "flagbearer rule".to_string(),
                 K::FirstEquipFree { your_turns: false } => "first equip free".to_string(),
                 K::FirstEquipFree { your_turns: true } => {
                     "first equip free during your turns".to_string()

@@ -1,0 +1,6 @@
+card "Imperial Edict" {
+  oracle_id ac2b3adb-45bb-4f56-9d52-e08771164b35
+  cost {1}{B}
+  type Sorcery
+  spell: target opponent chooses creature they control; destroy that created creature
+}

@@ -1483,6 +1483,12 @@ pub enum SameWhat {
     /// last existed if they have left the battlefield). Only a relation
     /// between targets (`GameState::that_player_ok`).
     DifferentController,
+    /// Controlled by the same player as the other targets ("two target
+    /// creatures controlled by the same player", "... the same opponent";
+    /// "another target creature with the same controller"), as they last
+    /// existed if they have left the battlefield. Only a relation between
+    /// targets (`GameState::that_player_ok`).
+    SameController,
 }
 
 /// What a spell must target ("that targets a creature", "that targets you
@@ -1655,7 +1661,9 @@ impl ObjFilter {
             }
             SameWhat::SharesType => f.any_types = types,
             // Judged against the other target (`that_player_ok`).
-            SameWhat::SharesCreatureType | SameWhat::DifferentController => {}
+            SameWhat::SharesCreatureType
+            | SameWhat::DifferentController
+            | SameWhat::SameController => {}
         }
         f
     }
@@ -5462,6 +5470,36 @@ pub enum Effect {
     SwitchPt {
         to: Recipient,
     },
+    /// "Target creature can't be the target of spells or abilities your
+    /// opponents control this turn." (Vines of Vastwood): until end of
+    /// turn, judged against this effect's controller (CR 611.2).
+    CantBeTargeted {
+        what: Recipient,
+        ban: TargetBan,
+    },
+    /// "Target opponent chooses a creature they control. Destroy that
+    /// creature.": each recipient player chooses a permanent they control
+    /// matching the filter (not targeted, CR 608.2d); the chosen one is
+    /// the created object for the rest of the resolution
+    /// (`Recipient::CreatedObject`).
+    PlayerChooses {
+        who: Recipient,
+        filter: ObjFilter,
+    },
+    /// "Choose two target creatures controlled by the same player. That
+    /// player sacrifices one of them of their choice." (Incriminate,
+    /// Cannibalize, Trial of Agony): targets `first` and `first + 1`; the
+    /// controller of the first (`by_controller`) or the ability's
+    /// controller picks one of them (CR 608.2d; only a still-legal one if
+    /// the other isn't, CR 608.2b), which becomes target `first` for the
+    /// rest of the resolution and the other target `first + 1` ("the
+    /// other"); `act` is done to the picked one.
+    PickTarget {
+        first: u8,
+        by_controller: bool,
+        act: PickAct,
+        wording: PickWording,
+    },
     /// "Target instant or sorcery card in your graveyard gains flashback
     /// until end of turn. The flashback cost is equal to its mana cost."
     /// (CR 702.34a): its owner may cast it from the graveyard for its mana
@@ -5678,6 +5716,14 @@ impl Effect {
                 | Effect::SacrificeChosen { .. }
                 | Effect::ReturnChosen { .. }
                 | Effect::ExileChosen { .. }
+                | Effect::PlayerChooses { .. }
+                | Effect::PickTarget { .. }
+                // "Move any number of +1/+1 counters": how many is asked as
+                // it resolves (Bioshift; it panicked outside a "you may").
+                | Effect::MoveCounters {
+                    count: Some(MOVE_ANY_NUMBER),
+                    ..
+                }
                 | Effect::ExileFromHand { .. }
                 | Effect::ExileFromGraveyardOrHand { .. }
                 | Effect::DrawDiscardDrawn { .. }
@@ -6001,6 +6047,56 @@ pub enum PlayerStaticKind {
     /// each of your turns"): the engine takes it for the first equip
     /// ability its controller activates in such a turn.
     FirstEquipFree { your_turns: bool },
+    /// "Enchanted creature can't be the target of spells or abilities your
+    /// opponents control.", "Enchanted creature can't be the target of
+    /// spells." (CR 115.4): the permanent this is attached to, judged
+    /// against this source's controller ("your"), not the enchanted
+    /// permanent's (unlike hexproof, CR 702.11b).
+    EnchantedUntargetable(TargetBan),
+    /// The Flagbearer rule (Coalition Honor Guard): "While an opponent is
+    /// choosing targets as part of casting a spell they control or
+    /// activating an ability they control, that player must choose at
+    /// least one Flagbearer on the battlefield if able." Triggered
+    /// abilities and changed or copied targets are free (rulings).
+    Flagbearer,
+}
+
+/// Which spells and abilities can't target a permanent
+/// (`PlayerStaticKind::EnchantedUntargetable`, `Effect::CantBeTargeted`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum TargetBan {
+    /// "spells or abilities your opponents control": those an opponent of
+    /// the effect's controller controls.
+    Opponents,
+    /// "spells": any player's spells, no abilities.
+    Spells,
+}
+
+/// What `Effect::PickTarget` does to the target picked.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum PickAct {
+    /// Nothing: "That player chooses one of those creatures."
+    Choose,
+    /// Its controller sacrifices it: "That player sacrifices one of them
+    /// of their choice."
+    Sacrifice,
+    /// "Exile one of those creatures".
+    Exile,
+}
+
+/// How `Effect::PickTarget` is worded (wording only).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum PickWording {
+    /// "That player chooses one of those creatures.", "Exile one of those
+    /// creatures".
+    #[default]
+    Those,
+    /// "That player sacrifices one of them of their choice."
+    OfTheirChoice,
+    /// "That player chooses and sacrifices one of those creatures."
+    ChoosesAnd,
+    /// "Their controller chooses and sacrifices one of them."
+    TheirController,
 }
 
 /// How often a static free-cast permission may be used

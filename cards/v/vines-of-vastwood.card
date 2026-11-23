@@ -1,0 +1,7 @@
+card "Vines of Vastwood" {
+  oracle_id 8998d211-5ca6-41d2-bc64-f51f70bd41e5
+  cost {G}
+  type Instant
+  kicker {G}
+  spell: target creature can't be targeted by opponents this turn; if kicked, that target 1 gets +4/+4
+}

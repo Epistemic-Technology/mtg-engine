@@ -608,6 +608,7 @@ impl GameState {
             replacements: Vec::new(),
             rules: Vec::new(),
             player_rules: Vec::new(),
+            untargetable: Vec::new(),
             player_grants: Vec::new(),
             replacement_sources: 0,
             control_sources: 0,
@@ -1424,7 +1425,18 @@ impl GameState {
                             self.ability_target_payable(spell, *t)
                         });
                     }
-                    if optional {
+                    // The Flagbearer rule: with none chosen yet, the last
+                    // target that could be a Flagbearer must be one if able.
+                    let forced = self.flagbearer_rule(caster)
+                        && self.force_flagbearer(
+                            spell,
+                            &specs,
+                            next_target,
+                            caster,
+                            source,
+                            &mut options,
+                        );
+                    if optional && !forced {
                         if options.is_empty() {
                             // Nothing to choose: declined, and the later
                             // targets are still chosen (CR 601.2c).
@@ -1441,6 +1453,7 @@ impl GameState {
                     }
                     if let Some((have, min, _)) = many
                         && have >= min
+                        && !forced
                     {
                         if options.is_empty() {
                             self.flow = Flow::Casting {
@@ -3439,6 +3452,7 @@ impl GameState {
         self.replacements.retain(|e| !e.duration.ends_with_turn());
         self.rules.retain(|e| !e.duration.ends_with_turn());
         self.player_rules.clear();
+        self.untargetable.clear();
         if !self.temp_copies.is_empty() {
             self.end_temp_copies(None);
         }

@@ -1226,6 +1226,17 @@ pub enum SameRef {
     /// controlled by different players" (each controlled by a player
     /// other than the other's controller).
     DifferentControllers,
+    /// `controlled by the same player`: "two target creatures controlled
+    /// by the same player"; `with the same controller`: "another target
+    /// creature with the same controller" (Bioshift).
+    SameController,
+    /// `controlled by the same opponent`: "two target creatures
+    /// controlled by the same opponent" (the filter's `who` is opponent;
+    /// not printed apart).
+    SameOpponent,
+    /// `with same controller`: "with the same controller" (as
+    /// `SameController`, worded after a single target).
+    WithSameController,
     /// `with lesser power`: "with lesser power" (than the source's power,
     /// as it is or last existed; mentor, CR 702.134a).
     LesserPower,
@@ -3756,6 +3767,9 @@ pub enum Recipient {
     /// The `n`th target again, printed as "that creature" (Act of
     /// Treason's "Untap that creature").
     ThatTarget(usize),
+    /// `the other target 2`: the `n`th target, printed "the other" (after
+    /// `Effect::PickTarget`: "put two +1/+1 counters on the other").
+    OtherTarget(usize),
     /// `its controller`: the controller of the `n`th target (the last one
     /// declared when written).
     ControllerOf(usize),
@@ -4458,6 +4472,35 @@ pub enum Effect {
         count: Num,
         filter: Filter,
         graveyard: bool,
+    },
+    /// `target opponent chooses creature they control`: "Target opponent
+    /// chooses a creature they control." (not targeted); the chosen one is
+    /// `that created creature` after it ("Destroy that creature.").
+    PlayerChooses {
+        who: Recipient,
+        filter: Filter,
+    },
+    /// `target 1 can't be targeted by opponents this turn`: "Target
+    /// creature can't be the target of spells or abilities your opponents
+    /// control this turn."; `by spells`: "... can't be the target of
+    /// spells this turn."
+    CantBeTargeted {
+        what: Recipient,
+        ban: mtg_core::card::TargetBan,
+    },
+    /// After `choose 2 target ...` (the last two targets declared): `that
+    /// player chooses one of those targets` ("That player chooses one of
+    /// those creatures."), `that player sacrifices one of them of their
+    /// choice`, `that player chooses and sacrifices one of those
+    /// targets`, `their controller chooses and sacrifices one of them`,
+    /// `exile one of those targets` (the controller picks). The picked
+    /// one is target `first` after it (`that target 1`), the other `the
+    /// other target 2`.
+    PickTarget {
+        first: usize,
+        by_controller: bool,
+        act: mtg_core::card::PickAct,
+        wording: mtg_core::card::PickWording,
     },
     /// `target opponent exiles 2 cards from hand`: "Target opponent exiles
     /// two cards from their hand" (the player chooses); `... from

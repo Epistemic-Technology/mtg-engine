@@ -1,0 +1,323 @@
+# Choices and restrictions about other players: "can't be the target of
+# spells or abilities your opponents control" judged against the effect's
+# controller (Vines of Vastwood, Shielding Plax, Canopy Cover; not
+# hexproof), the Flagbearer rule (Standard Bearer, Coalition Honor Guard),
+# "Target opponent chooses a creature they control. Destroy that
+# creature." (Imperial Edict, Wei Assassins), and "two target creatures
+# controlled by the same player" with one of them picked as the spell
+# resolves (Incriminate, Cannibalize, Trial of Agony, Retribution,
+# Barrin's Spite, Bioshift).
+
+scenario "Vines of Vastwood: an opponent's spell can't target the creature" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: "Mountain"
+  hand A: "Vines of Vastwood"
+  hand B: "Shock"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Vines of Vastwood" targeting "Grizzly Bears"
+  turn 3 A: wait
+  illegal turn 3 end B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 4 upkeep
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Vines of Vastwood: its controller's own spells still target it" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  hand A: "Vines of Vastwood", "Giant Growth"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Vines of Vastwood" targeting "Grizzly Bears"
+  turn 3 A: wait
+  turn 3 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert power "Grizzly Bears" 5
+}
+
+scenario "Vines of Vastwood on an opponent's creature: its controller can't target it" {
+  battlefield A: "Forest"
+  battlefield B: "Grizzly Bears", "Forest"
+  hand A: "Vines of Vastwood"
+  hand B: "Giant Growth"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Vines of Vastwood" targeting "Grizzly Bears"
+  turn 3 A: wait
+  illegal turn 3 end B: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 4 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Vines of Vastwood kicked: +4/+4 until end of turn" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  hand A: "Vines of Vastwood"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Vines of Vastwood" kicked targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert power "Grizzly Bears" 6
+  assert toughness "Grizzly Bears" 6
+  run_to turn 4 precombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Vines of Vastwood: the protection ends with the turn" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: "Mountain"
+  hand A: "Vines of Vastwood"
+  hand B: "Shock"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Vines of Vastwood" targeting "Grizzly Bears"
+  turn 4 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 4 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Shielding Plax: draws a card; opponents can't target the creature" {
+  battlefield A: "Grizzly Bears", 3 "Forest"
+  battlefield B: "Mountain"
+  hand A: "Shielding Plax"
+  hand B: "Shock"
+  library A: "Island"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Shielding Plax" targeting "Grizzly Bears"
+  turn 3 A: wait
+  illegal turn 3 end B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 4 upkeep
+  assert hand A contains "Island"
+  assert attached "Shielding Plax" to "Grizzly Bears"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Shielding Plax: the Aura's controller may still target the creature" {
+  battlefield A: "Grizzly Bears", 4 "Forest", "Shielding Plax" on "Grizzly Bears"
+  hand A: "Giant Growth"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert power "Grizzly Bears" 5
+}
+
+scenario "Shielding Plax on an opponent's creature: that player can't target it" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Grizzly Bears", "Forest"
+  hand A: "Shielding Plax"
+  hand B: "Giant Growth"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Shielding Plax" targeting "Grizzly Bears"
+  turn 3 A: wait
+  illegal turn 3 end B: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 4 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Canopy Cover: opponents' abilities can't target the creature" {
+  battlefield A: "Grizzly Bears", "Canopy Cover" on "Grizzly Bears"
+  battlefield B: "Prodigal Sorcerer"
+  start turn 3 B precombat_main
+  illegal turn 3 B: activate "Prodigal Sorcerer" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Standard Bearer: an opponent's spell must target a Flagbearer if able" {
+  battlefield A: "Mountain"
+  battlefield B: "Standard Bearer", "Hill Giant"
+  hand A: "Shock"
+  start turn 3 A precombat_main
+  illegal turn 3 A: cast "Shock" targeting "Hill Giant"
+  illegal turn 3 A: cast "Shock" targeting player B
+  turn 3 A: cast "Shock" targeting "Standard Bearer"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Standard Bearer"
+  assert damage "Hill Giant" 0
+}
+
+scenario "Standard Bearer: its controller's spells are free" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Standard Bearer", "Mountain"
+  hand B: "Shock"
+  start turn 3 B precombat_main
+  turn 3 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Standard Bearer: a spell that can't target a Flagbearer is free" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Standard Bearer", "Ornithopter"
+  hand A: "Shatter"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Shatter" targeting "Ornithopter"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Ornithopter"
+}
+
+scenario "Coalition Honor Guard: activated abilities must target it too" {
+  battlefield A: "Prodigal Sorcerer"
+  battlefield B: "Coalition Honor Guard"
+  start turn 3 A precombat_main
+  illegal turn 3 A: activate "Prodigal Sorcerer" targeting player B
+  turn 3 A: activate "Prodigal Sorcerer" targeting "Coalition Honor Guard"
+  run_to turn 3 postcombat_main
+  assert damage "Coalition Honor Guard" 1
+  assert life B 20
+}
+
+scenario "Imperial Edict: the opponent chooses which creature is destroyed" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Imperial Edict"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Imperial Edict" targeting player B
+  turn 3 B: choose "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Wei Assassins: target opponent chooses a creature; it's destroyed" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Wei Assassins"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Wei Assassins"
+  turn 3 A: trigger "Wei Assassins" targeting player B
+  turn 3 B: choose "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Incriminate: the targets' controller sacrifices the one they choose" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Incriminate"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Incriminate" targeting "Hill Giant", "Grizzly Bears"
+  turn 3 B: choose "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Incriminate: creatures of two players can't be chosen" {
+  battlefield A: 2 "Swamp", "Raging Goblin"
+  battlefield B: "Hill Giant"
+  hand A: "Incriminate"
+  start turn 3 A precombat_main
+  illegal turn 3 A: cast "Incriminate" targeting "Hill Giant", "Raging Goblin"
+  run_to turn 3 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Incriminate: with one target gone, the other is sacrificed" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Raging Goblin", "Hill Giant", "Mountain"
+  hand A: "Incriminate"
+  hand B: "Shock"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Incriminate" targeting "Raging Goblin", "Hill Giant"
+  turn 3 B: cast "Shock" targeting "Raging Goblin" in response to "Incriminate"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Raging Goblin"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Cannibalize: the caster exiles one and the other gets two counters" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Cannibalize"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Cannibalize" targeting "Grizzly Bears", "Hill Giant"
+  turn 3 A: choose "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert counters "Grizzly Bears" +1/+1 2
+}
+
+scenario "Trial of Agony: the opponent's pick is dealt 5 damage, the other can't block" {
+  battlefield A: "Mountain", "Raging Goblin"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Trial of Agony"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Trial of Agony" targeting "Grizzly Bears", "Hill Giant"
+  turn 3 B: choose "Hill Giant"
+  turn 3 A: attack "Raging Goblin"
+  illegal turn 3 B: block "Raging Goblin" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert damage "Grizzly Bears" 0
+  assert life B 19
+}
+
+scenario "Trial of Agony: two of the caster's own creatures can't be chosen" {
+  battlefield A: "Mountain", "Raging Goblin", "Grizzly Bears"
+  hand A: "Trial of Agony"
+  start turn 3 A precombat_main
+  illegal turn 3 A: cast "Trial of Agony" targeting "Raging Goblin", "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Raging Goblin"
+}
+
+scenario "Retribution: the opponent sacrifices one, the other gets a -1/-1 counter" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Retribution"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Retribution" targeting "Hill Giant", "Grizzly Bears"
+  turn 3 B: choose "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert counters "Hill Giant" -1/-1 1
+}
+
+scenario "Barrin's Spite: one is sacrificed, the other returns to its owner's hand" {
+  battlefield A: 2 "Island", 2 "Swamp"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Barrin's Spite"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Barrin's Spite" targeting "Hill Giant", "Grizzly Bears"
+  turn 3 B: choose "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert hand B contains "Grizzly Bears"
+}
+
+scenario "Bioshift: counters move between two creatures of one controller" {
+  battlefield A: "Forest", "Grizzly Bears" with 3 +1/+1, "Raging Goblin"
+  hand A: "Bioshift"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Bioshift" targeting "Grizzly Bears", "Raging Goblin"
+  run_to turn 3 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+  assert counters "Raging Goblin" +1/+1 3
+}
+
+scenario "Bioshift: two creatures of an opponent's" {
+  battlefield A: "Forest"
+  battlefield B: "Grizzly Bears" with 2 +1/+1, "Hill Giant"
+  hand A: "Bioshift"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Bioshift" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert counters "Hill Giant" +1/+1 2
+}
+
+scenario "Bioshift: creatures of two players can't be chosen" {
+  battlefield A: "Forest", "Grizzly Bears" with 3 +1/+1
+  battlefield B: "Hill Giant"
+  hand A: "Bioshift"
+  start turn 3 A precombat_main
+  illegal turn 3 A: cast "Bioshift" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 3
+}
+
+scenario "Standard Bearer: an opponent's Aura spell must enchant a Flagbearer" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Standard Bearer", "Hill Giant"
+  hand A: "Pacifism"
+  start turn 3 A precombat_main
+  illegal turn 3 A: cast "Pacifism" targeting "Hill Giant"
+  turn 3 A: cast "Pacifism" targeting "Standard Bearer"
+  run_to turn 3 postcombat_main
+  assert attached "Pacifism" to "Standard Bearer"
+}

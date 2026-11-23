@@ -1,0 +1,8 @@
+card "Shielding Plax" {
+  oracle_id e9bdb194-745d-4abb-9312-a65a68c40a18
+  cost {2}{G/U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: draw 1 card
+  enchanted can't be targeted by opponents
+}

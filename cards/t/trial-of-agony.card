@@ -1,0 +1,6 @@
+card "Trial of Agony" {
+  oracle_id 4ef07e5a-3dc3-41dd-a3a9-e8812b4d40d3
+  cost {R}
+  type Sorcery
+  spell: choose 2 target creature controlled by the same opponent; that player chooses one of those targets; deal 5 damage to that target 1 and the other target 2 can't block this turn
+}

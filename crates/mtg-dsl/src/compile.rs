@@ -1809,7 +1809,9 @@ impl Compiler<'_> {
                     | SameRef::SharesColorWith(_)
                     | SameRef::ShareCardType
                     | SameRef::ShareCreatureType
-                    | SameRef::DifferentControllers,
+                    | SameRef::DifferentControllers
+                    | SameRef::SameController
+                    | SameRef::SameOpponent,
                 ) => Relation::Any,
                 _ => f.relation,
             },
@@ -1842,6 +1844,12 @@ impl Compiler<'_> {
                     SameRef::DifferentControllers => Same {
                         of: target(0),
                         what: SameWhat::DifferentController,
+                    },
+                    SameRef::SameController
+                    | SameRef::SameOpponent
+                    | SameRef::WithSameController => Same {
+                        of: target(0),
+                        what: SameWhat::SameController,
                     },
                     SameRef::SharesColorWith(n) => Same {
                         of: target(n),
@@ -2857,6 +2865,7 @@ impl Compiler<'_> {
             | Recipient::YouAndTarget(i)
             | Recipient::SourceAndTarget(i)
             | Recipient::ThatTarget(i)
+            | Recipient::OtherTarget(i)
             | Recipient::TheTarget(i)
             | Recipient::TheTargetFull(i, _)
             | Recipient::ChosenTarget(i) => CoreRecipient::Target(ti(i)),
@@ -3726,6 +3735,25 @@ impl Compiler<'_> {
                     _ => return self.err("`if you win the flip` needs a `flip coin` before it"),
                 }
             }
+            Effect::PlayerChooses { who, filter } => out.push(CoreEffect::PlayerChooses {
+                who: r(*who),
+                filter: self.filter(filter),
+            }),
+            Effect::CantBeTargeted { what, ban } => out.push(CoreEffect::CantBeTargeted {
+                what: r(*what),
+                ban: *ban,
+            }),
+            Effect::PickTarget {
+                first,
+                by_controller,
+                act,
+                wording,
+            } => out.push(CoreEffect::PickTarget {
+                first: u8::try_from(target_index(self.tmap, *first)).unwrap_or(u8::MAX),
+                by_controller: *by_controller,
+                act: *act,
+                wording: *wording,
+            }),
             Effect::ExileChosen {
                 who,
                 count,

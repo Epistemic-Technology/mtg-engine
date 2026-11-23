@@ -6419,6 +6419,51 @@ impl GameState {
             .any(|t| t != t0 && self.that_player_ok(specs[i], t, None, &chosen))
     }
 
+    /// The Flagbearer rule (`PlayerStaticKind::Flagbearer`): while no
+    /// target chosen so far is a Flagbearer, the last target that could be
+    /// one must be one if a Flagbearer is among `options` (an earlier one
+    /// is left free, since a later one can still satisfy the rule; a
+    /// variable group counts as one target). Returns whether `options` was
+    /// narrowed, so declining is no longer offered.
+    pub(super) fn force_flagbearer(
+        &self,
+        spell: ObjId,
+        specs: &[TargetSpec],
+        next: usize,
+        caster: PlayerId,
+        source: Option<ObjId>,
+        options: &mut Vec<Choice>,
+    ) -> bool {
+        let Some(fb) = self.pool.subtype_lookup("Flagbearer") else {
+            return false;
+        };
+        let is_fb = |id: ObjId| {
+            self.objects
+                .get(id)
+                .is_some_and(|o| o.zone == Zone::Battlefield)
+                && self.characteristics(id).is_some_and(|c| c.has_subtype(fb))
+        };
+        let offered = |c: &Choice| matches!(c, Choice::Target(Target::Object(id)) if is_fb(*id));
+        if !options.iter().any(offered)
+            || self.objects[spell]
+                .targets
+                .iter()
+                .any(|t| matches!(t, Target::Object(id) if is_fb(*id)))
+        {
+            return false;
+        }
+        let later = specs.iter().skip(next + 1).any(|spec| {
+            self.battlefield.iter().any(|id| {
+                is_fb(*id) && self.is_legal_target_for(caster, *spec, Target::Object(*id), source)
+            })
+        });
+        if later {
+            return false;
+        }
+        options.retain(offered);
+        true
+    }
+
     /// Target options for `spec` of stack object `spell` held to "that
     /// player" (`ObjFilter::that_player`): a target controlled by the
     /// triggering player or an earlier target's controller, and a target a
@@ -6443,7 +6488,8 @@ impl GameState {
                 Some(crate::card::Same {
                     what: crate::card::SameWhat::SharesType
                         | crate::card::SameWhat::SharesCreatureType
-                        | crate::card::SameWhat::DifferentController,
+                        | crate::card::SameWhat::DifferentController
+                        | crate::card::SameWhat::SameController,
                     ..
                 })
             )
@@ -12178,6 +12224,100 @@ impl GameState {
                         continue;
                     }
                     self.put_in_library(id, *place);
+                }
+            }
+            Effect::CantBeTargeted { what, ban } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.untargetable.push((id, ctx.controller, *ban));
+                    }
+                }
+            }
+            Effect::PlayerChooses { who, filter } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    let options: Vec<Choice> = self
+                        .permanents_of(p)
+                        .filter(|id| {
+                            self.characteristics(*id).is_some_and(|c| {
+                                filter.matches(*id, p, &c, Some(ctx.source), Some(p))
+                            }) && self.status_ok(filter, *id)
+                        })
+                        .map(Choice::Sacrifice)
+                        .collect();
+                    if options.is_empty() {
+                        ctx.created = None;
+                        ctx.did = false;
+                        continue;
+                    }
+                    let k = self.choose_mid(p, DecisionKind::ChooseCard, options.clone());
+                    if let Choice::Sacrifice(id) = options[k] {
+                        ctx.created = Some(id);
+                    }
+                }
+            }
+            Effect::PickTarget {
+                first,
+                by_controller,
+                act,
+                ..
+            } => {
+                let a = usize::from(*first);
+                let b = a + 1;
+                let legal = |ctx: &EffectCtx, i: usize| {
+                    ctx.legal.get(i).copied().unwrap_or(true)
+                        && matches!(ctx.targets.get(i), Some(Target::Object(id))
+                            if self.objects.get(*id).is_some_and(|o| o.zone == Zone::Battlefield))
+                };
+                let cands: Vec<usize> = [a, b].into_iter().filter(|i| legal(ctx, *i)).collect();
+                let picked = match cands.as_slice() {
+                    [] => None,
+                    [only] => Some(*only),
+                    _ => {
+                        let Some(Target::Object(first_id)) = ctx.targets.get(a).copied() else {
+                            return;
+                        };
+                        let chooser = if *by_controller {
+                            self.objects[first_id].controller
+                        } else {
+                            ctx.controller
+                        };
+                        let options: Vec<Choice> = cands
+                            .iter()
+                            .filter_map(|i| match ctx.targets[*i] {
+                                Target::Object(id) => Some(Choice::Sacrifice(id)),
+                                Target::Player(_) => None,
+                            })
+                            .collect();
+                        let k = self.choose_mid(chooser, DecisionKind::ChooseCard, options);
+                        Some(cands[k.min(cands.len() - 1)])
+                    }
+                };
+                // The picked one becomes target `first`, the other `first
+                // + 1` ("the other"; nothing happens to it if it's illegal).
+                if picked == Some(b) {
+                    ctx.targets.swap(a, b);
+                    if ctx.legal.len() > b {
+                        ctx.legal.swap(a, b);
+                    }
+                    if ctx.division.len() > b {
+                        ctx.division.swap(a, b);
+                    }
+                }
+                if picked.is_none() {
+                    ctx.did = false;
+                    return;
+                }
+                if let Some(Target::Object(id)) = ctx.targets.get(a).copied() {
+                    match act {
+                        crate::card::PickAct::Choose => {}
+                        crate::card::PickAct::Sacrifice => self.sacrifice(id),
+                        crate::card::PickAct::Exile => {
+                            self.move_object(id, Zone::Exile, false);
+                        }
+                    }
                 }
             }
             Effect::SacrificeChosen { who, filter, count }

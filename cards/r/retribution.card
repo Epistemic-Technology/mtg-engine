@@ -1,0 +1,6 @@
+card "Retribution" {
+  oracle_id 2c7b0034-7eb5-4950-b6dc-8e1d07d26899
+  cost {2}{R}{R}
+  type Sorcery
+  spell: choose 2 target creature controlled by the same opponent; that player chooses and sacrifices one of those targets; put 1 -1/-1 counter on the other target 2
+}

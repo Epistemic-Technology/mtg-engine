@@ -1,0 +1,6 @@
+card "Barrin's Spite" {
+  oracle_id 68b038ef-71c4-4ca5-9821-57bf85831bb7
+  cost {2}{U}{B}
+  type Sorcery
+  spell: choose 2 target creature controlled by the same player; their controller chooses and sacrifices one of them; return the other target 2 to hand
+}
