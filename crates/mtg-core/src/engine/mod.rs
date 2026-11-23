@@ -153,8 +153,13 @@ impl Engine {
             decided: [false; 2],
             current: starting_player,
         };
+        // Sized up front: the decks, and a few tokens.
+        state
+            .objects
+            .reserve(config.decks.iter().map(Vec::len).sum::<usize>() + 16);
         for (i, deck) in config.decks.iter().enumerate() {
             let p = PlayerId(u8::try_from(i).unwrap_or(0));
+            state.player_mut(p).library.reserve(deck.len());
             for def in deck {
                 let id = state.new_object(*def, p, Zone::Library);
                 state.player_mut(p).library.push(id);
@@ -170,7 +175,8 @@ impl Engine {
         let mut engine = Engine {
             state,
             current: StepResult::Over(GameResult::Draw),
-            history: Vec::new(),
+            // A game takes a few hundred decisions.
+            history: Vec::with_capacity(512),
             snapshot: None,
         };
         engine.advance(None, Vec::new());
