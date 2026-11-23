@@ -11286,6 +11286,7 @@ impl GameState {
                 optional,
                 exile,
                 until,
+                top,
             } => {
                 // "If you do" / "If you don't": whether a card was chosen.
                 ctx.did = false;
@@ -11296,6 +11297,11 @@ impl GameState {
                         .objects
                         .get(ctx.source)
                         .is_some_and(|o| o.zone == Zone::Battlefield);
+                // "a card of that color" (Addle): the color chosen as it
+                // resolves.
+                let filter = filter
+                    .as_ref()
+                    .map(|f| self.chosen_filter(f, ctx).into_owned());
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
                         continue;
@@ -11338,6 +11344,8 @@ impl GameState {
                                     l.to_hand = true;
                                 }
                             }
+                        } else if *top {
+                            self.move_object(card, Zone::Library, true);
                         } else {
                             self.discard_card(p, card);
                         }

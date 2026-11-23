@@ -2011,6 +2011,7 @@ impl Fmt {
                 and_choose,
                 look,
                 may,
+                ..
             } => {
                 let what = match f {
                     None => "card".to_string(),
@@ -2036,6 +2037,8 @@ impl Fmt {
                 filter: f,
                 may,
                 look,
+                and_choose,
+                top,
                 ..
             } => {
                 let lead = if *look {
@@ -2044,9 +2047,14 @@ impl Fmt {
                     format!("{} reveals hand", self.recipient(*who, t))
                 };
                 let may = if *may { "may " } else { "" };
+                let verb = match (and_choose, top) {
+                    (_, true) => "topping",
+                    (true, _) => "and discarding",
+                    _ => "discarding",
+                };
                 match f {
-                    None => format!("{lead} discarding {may}card"),
-                    Some(f) => format!("{lead} discarding {may}{} card", filter(f)),
+                    None => format!("{lead} {verb} {may}card"),
+                    Some(f) => format!("{lead} {verb} {may}{} card", filter(f)),
                 }
             }
             Effect::Transform { what } => format!("transform {}", self.recipient(*what, t)),

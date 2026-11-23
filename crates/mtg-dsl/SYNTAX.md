@@ -2009,7 +2009,13 @@ of their choice with flying` puts the "with" after it; `sacrifices 1
 artifact and 1 land` is "an artifact and a land of their choice", one
 choice after the other), `<what>
 loses flying`, `<who> reveals hand`, `<who> reveals hand discarding
-nonland card` (Duress: you choose the card), `<who> discards 1 card at
+nonland card` (Duress: you choose the card; `<who> reveals hand and
+discarding of that color card` after `choose color`: "Target player
+reveals their hand and you choose a card of that color from it. That
+player discards that card.", the color chosen as it resolves; `look at
+hand of target opponent topping card`: "Look at target opponent's hand
+and choose a card from it. Put that card on top of that player's
+library."), `<who> discards 1 card at
 random` (`discard 1 card at random` for you; `that player discards
 another card at random`), `<who> reveals 1 card at random from hand`
 ("reveals a card at random from their hand"; the card is `that card`

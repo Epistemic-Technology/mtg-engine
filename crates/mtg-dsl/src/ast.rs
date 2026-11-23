@@ -4151,8 +4151,13 @@ pub enum Effect {
         /// leaves the battlefield." (CR 610.3; `exile` is `Some`).
         until: bool,
         /// `reveals hand and exiling ...`: "reveals their hand and you
-        /// choose ... from it. Exile that card ..." (Brain Maggot).
+        /// choose ... from it. Exile that card ..." (Brain Maggot); `and
+        /// discarding` likewise, "That player discards that card." (Addle).
         and_choose: bool,
+        /// `look at hand of target opponent topping card`: "Put that card
+        /// on top of that player's library." (Painful Memories) instead of
+        /// a discard.
+        top: bool,
     },
     /// `transform this`: "transform this creature" (CR 701.27).
     Transform {

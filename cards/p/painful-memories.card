@@ -1,0 +1,6 @@
+card "Painful Memories" {
+  oracle_id 27a3faa1-4f1a-4581-9e19-9265faa9c10b
+  cost {1}{B}
+  type Sorcery
+  spell: look at hand of target opponent topping card
+}

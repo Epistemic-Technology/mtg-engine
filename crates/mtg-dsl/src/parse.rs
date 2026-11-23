@@ -6839,6 +6839,11 @@ impl P {
                 if self.eat_word("discarding") {
                     return self.discard_chosen(subject, false);
                 }
+                // "reveals their hand and you choose a card of that color
+                // from it. That player discards that card." (Addle).
+                if self.eat_words(&["and", "discarding"]) {
+                    return self.discard_chosen_with(subject, false, true, false);
+                }
                 // "reveals their hand and you choose a nonland card from
                 // it. Exile that card until ..." (Brain Maggot).
                 let and_choose = self.eat_words(&["and", "exiling"]);
@@ -6864,6 +6869,7 @@ impl P {
                             exile: Some(joined),
                             until,
                             and_choose,
+                            top: false,
                         });
                     }
                     if and_choose {
@@ -8084,6 +8090,19 @@ impl P {
 
     /// After `discarding`: `[may] card` or `[may] <filter> card`.
     fn discard_chosen(&mut self, who: Recipient, look: bool) -> R<Effect> {
+        self.discard_chosen_with(who, look, false, false)
+    }
+
+    /// `discard_chosen` with "reveals their hand and you choose"
+    /// (`and_choose`) or "Put that card on top of that player's library"
+    /// (`top`).
+    fn discard_chosen_with(
+        &mut self,
+        who: Recipient,
+        look: bool,
+        and_choose: bool,
+        top: bool,
+    ) -> R<Effect> {
         let may = self.eat_word("may");
         let filter = if self.eat_word("card") {
             None
@@ -8099,7 +8118,8 @@ impl P {
             look,
             exile: None,
             until: false,
-            and_choose: false,
+            and_choose,
+            top,
         })
     }
 
@@ -9184,6 +9204,11 @@ impl P {
                 if self.eat_word("discarding") {
                     return self.discard_chosen(who, true);
                 }
+                // "Look at target opponent's hand and choose a card from
+                // it. Put that card on top of that player's library."
+                if self.eat_word("topping") {
+                    return self.discard_chosen_with(who, true, false, true);
+                }
                 // "Look at target opponent's hand. You may exile a nonland
                 // card from it until this creature leaves the battlefield."
                 if self.eat_word("exiling") {
@@ -9204,6 +9229,7 @@ impl P {
                         exile: Some(false),
                         until,
                         and_choose: false,
+                        top: false,
                     });
                 }
                 Ok(Effect::LookAtHand { who })

@@ -1205,6 +1205,7 @@ impl Decompiler<'_> {
                 optional,
                 exile,
                 until,
+                top,
             } => Effect::DiscardChosen {
                 who: r(*who),
                 filter: filter.as_ref().map(|f| self.filter(f)),
@@ -1213,6 +1214,7 @@ impl Decompiler<'_> {
                 exile: exile.then_some(!*until),
                 until: *until,
                 and_choose: false,
+                top: *top,
             },
             CoreEffect::Transform { what } => Effect::Transform { what: r(*what) },
             CoreEffect::Flip { what } => Effect::Flip { what: r(*what) },

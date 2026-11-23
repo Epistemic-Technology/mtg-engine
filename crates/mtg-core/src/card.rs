@@ -4039,6 +4039,10 @@ pub enum Effect {
         /// source has already left (CR 610.3a).
         #[serde(default)]
         until: bool,
+        /// "Put that card on top of that player's library." (Painful
+        /// Memories): the chosen card goes there instead.
+        #[serde(default)]
+        top: bool,
     },
     /// "Transform this creature" (CR 701.27): a double-faced permanent
     /// turns to its other face; it stays the same object.

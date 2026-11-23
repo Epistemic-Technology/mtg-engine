@@ -7624,6 +7624,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             and_choose,
             look,
             may,
+            ..
         } => {
             let what = match filter {
                 None => "a card".to_string(),
@@ -7679,11 +7680,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             filter,
             may,
             look,
+            and_choose,
+            top,
             ..
         } => {
             let what = match filter {
                 None => "a card".to_string(),
-                Some(f) => with_article(&format!("{} card", card_filter_phrase(f, ctx.card))),
+                Some(f) => {
+                    let p = card_filter_phrase(f, ctx.card);
+                    // "a card of that color".
+                    if p.trim_start().starts_with("of ") {
+                        format!("a card {}", p.trim())
+                    } else {
+                        with_article(&format!("{p} card"))
+                    }
+                }
             };
             // "You choose a nonland card from it with mana value 3 or
             // less." (Inquisition of Kozilek): the qualifier after "it".
@@ -7707,11 +7718,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     "it" | "them" => "their".to_string(),
                     o => format!("{o}'s"),
                 };
-                return Clause::imperative(format!(
-                    "look at {whose} hand{choose} That player discards that card"
-                ));
+                let then = if *top {
+                    "Put that card on top of that player's library"
+                } else {
+                    "That player discards that card"
+                };
+                return Clause::imperative(format!("look at {whose} hand{choose} {then}"));
             }
             let s = ctx.subj(*who);
+            // "Target player reveals their hand and you choose a card of
+            // that color from it. That player discards that card." (Addle)
+            if *and_choose {
+                return Clause::with_subject(
+                    *who,
+                    s,
+                    format!(
+                        "{} their hand and you choose {what} from it{after}. That player discards that card",
+                        ctx.verb(*who, "reveals", "reveal")
+                    ),
+                );
+            }
             let then = if *may && ctx.before_if_you_dont {
                 "If you do, that player discards"
             } else if s.eq_ignore_ascii_case("that player") {

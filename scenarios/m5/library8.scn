@@ -205,3 +205,44 @@ scenario "search to exile: Selective Memory exiles only nonland cards" {
   assert exile A contains "Hill Giant"
   assert library A count 2
 }
+
+# "reveals their hand and you choose a card of that color from it" and
+# "Put that card on top of that player's library".
+scenario "hand reveal: Addle discards a card of the chosen color" {
+  battlefield A: 2 "Swamp"
+  hand A: "Addle"
+  hand B: "Lightning Bolt", "Grizzly Bears", "Shock"
+  turn 1 A: cast "Addle" targeting player B
+  turn 1 A: choose red
+  turn 1 precombat_main A: discard "Shock"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Shock"
+  assert hand B contains "Lightning Bolt"
+  assert hand B contains "Grizzly Bears"
+  assert hand B count 2
+}
+
+scenario "hand reveal: Addle finds nothing of the chosen color" {
+  battlefield A: 2 "Swamp"
+  hand A: "Addle"
+  hand B: "Lightning Bolt", "Grizzly Bears"
+  turn 1 A: cast "Addle" targeting player B
+  turn 1 A: choose blue
+  run_to turn 1 postcombat_main
+  assert hand B count 2
+  assert graveyard B lacks "Lightning Bolt"
+}
+
+scenario "hand reveal: Painful Memories puts the chosen card on top of the library" {
+  battlefield A: 2 "Swamp"
+  hand A: "Painful Memories"
+  hand B: "Lightning Bolt", "Grizzly Bears"
+  library B: "Island", "Island"
+  turn 1 A: cast "Painful Memories" targeting player B
+  turn 1 precombat_main A: discard "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert hand B contains "Grizzly Bears"
+  assert hand B contains "Lightning Bolt"
+  assert hand B count 2
+  assert graveyard B lacks "Grizzly Bears"
+}
