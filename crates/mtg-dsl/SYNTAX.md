@@ -2213,7 +2213,7 @@ activated or triggered ability you control [from a creature source | from
 an artifact source]` (targets "you control" only the ability's
 controller's; `copy target instant spell, sorcery spell, activated
 ability, or triggered ability` a spell only if it is an instant or
-sorcery), `change target of target spell or ability with single target`
+sorcery), `change target of target spell or ability with a single target`
 ("Change the target of target spell or ability with a single target.",
 CR 115.7a: the effect's controller changes it to another target legal for
 that spell or ability, judged for its controller and source; with none,

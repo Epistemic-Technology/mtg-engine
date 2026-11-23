@@ -3,7 +3,7 @@ card "Reroute" {
   cost {1}{R}
   type Instant
   spell {
-    change target of target activated ability with single target
+    change target of target activated ability with a single target
     draw 1 card
   }
 }

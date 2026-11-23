@@ -4,5 +4,5 @@ card "Redirect Lightning" {
   type Instant — Lesson
   additional cost pay 5 life
   additional cost or {2}
-  spell: change target of target spell or ability with single target
+  spell: change target of target spell or ability with a single target
 }

@@ -4,5 +4,5 @@ card "Willbender" {
   type Creature — Human Wizard
   pt 1/2
   morph {1}{U}
-  triggered when this is turned face up: change target of target spell or ability with single target
+  triggered when this is turned face up: change target of target spell or ability with a single target
 }

@@ -3,5 +3,5 @@ card "Bolt Bend" {
   cost {3}{R}
   type Instant
   this spell costs {3} less if you control creature with power 4 or greater
-  spell: change target of target spell or ability with single target
+  spell: change target of target spell or ability with a single target
 }

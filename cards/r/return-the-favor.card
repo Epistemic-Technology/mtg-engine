@@ -4,6 +4,6 @@ card "Return the Favor" {
   type Instant
   spree {
   mode {1}: copy target instant spell, sorcery spell, activated ability, or triggered ability new targets
-  mode {1}: change target of target spell or ability with single target
+  mode {1}: change target of target spell or ability with a single target
   }
 }

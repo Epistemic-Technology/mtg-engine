@@ -4,7 +4,7 @@ card "Untimely Malfunction" {
   type Instant
   choose one {
     mode: destroy target artifact
-    mode: change target of target spell or ability with single target
+    mode: change target of target spell or ability with a single target
     mode: 1 to 2 target creature can't block this turn
   }
 }

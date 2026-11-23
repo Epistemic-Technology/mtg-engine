@@ -4119,7 +4119,7 @@ pub enum Effect {
         to: Recipient,
         dest: CounteredTo,
     },
-    /// `change target of target spell or ability with single target`:
+    /// `change target of target spell or ability with a single target`:
     /// "Change the target of target spell or ability with a single
     /// target." (CR 115.7a).
     ChangeTarget {
