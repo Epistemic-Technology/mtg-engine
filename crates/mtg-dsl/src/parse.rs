@@ -11768,6 +11768,15 @@ impl P {
                 f.that_player = Some(mtg_core::card::ThatPlayer::Target(
                     u8::try_from(i).unwrap_or(u8::MAX),
                 ));
+                f.their = true;
+                Who::Any
+            } else if self.eat_words(&["target", "player's"]) {
+                // "any number of target artifact cards from target
+                // player's graveyard": declares the player target.
+                self.targets.push(Target::Spec(TargetSpec::Player));
+                f.that_player = Some(mtg_core::card::ThatPlayer::Target(
+                    u8::try_from(self.targets.len() - 1).unwrap_or(u8::MAX),
+                ));
                 Who::Any
             } else {
                 self.expect_word("a")?;

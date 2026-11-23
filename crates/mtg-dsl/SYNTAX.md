@@ -2007,7 +2007,10 @@ cards`: "Each player shuffles their hand and graveyard into their library,
 then draws seven cards.", both zones), `target player shuffles up to 3 target card from their graveyard into
 library` ("Target player shuffles up to three target cards from their
 graveyard into their library": `from their graveyard` is the graveyard of
-the player target before it), `shuffle all creature card from graveyard of target
+the player target before it; `put any number of target artifact card from
+target player's graveyard on top of library`: "Put any number of target
+artifact cards from target player's graveyard on top of their library in
+any order", the player target declared by the filter), `shuffle all creature card from graveyard of target
 player into library` ("Shuffle all creature cards from target player's
 graveyard into that player's library"), `shuffle cards from hand into
 library` ("shuffle the cards from your hand into your library"; `then

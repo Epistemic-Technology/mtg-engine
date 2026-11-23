@@ -1028,6 +1028,11 @@ pub struct Filter {
     /// With `that_player` a target (`target player controls`, `target
     /// opponent controls`): the target is an opponent.
     pub that_opponent: bool,
+    /// With `that_player` a target: `from their graveyard`, the player
+    /// targeted before ("their graveyard"), rather than `from target
+    /// player's graveyard`, which declares it ("target player's
+    /// graveyard").
+    pub their: bool,
     /// `other than enchanted`: "other than enchanted creature"
     /// (`ObjFilter::not_attached`).
     pub not_attached: bool,

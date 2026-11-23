@@ -1435,7 +1435,11 @@ impl<'a> Ctx<'a> {
                         Some(mtg_core::card::ThatPlayer::Target(_))
                     ) =>
                     {
-                        "their graveyard"
+                        if filter.their {
+                            "their graveyard"
+                        } else {
+                            "target player's graveyard"
+                        }
                     }
                     _ if filter.that_player.is_some() => "that player's graveyard",
                     Who::You => "your graveyard",
@@ -2068,7 +2072,11 @@ impl<'a> Ctx<'a> {
                         Some(mtg_core::card::ThatPlayer::Target(_))
                     ) =>
                     {
-                        "their graveyard"
+                        if filter.their {
+                            "their graveyard"
+                        } else {
+                            "target player's graveyard"
+                        }
                     }
                     _ if filter.that_player.is_some() => "that player's graveyard",
                     Who::You => "your graveyard",
@@ -7270,8 +7278,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             if *wording == W::Put {
                 let o = ctx.obj(*what);
                 let whose = graveyard_of.unwrap_or("its owner's");
+                // "Put any number of target artifact cards from target
+                // player's graveyard on top of their library in any order."
+                let any_order = match *what {
+                    Recipient::Target(i) => {
+                        matches!(ctx.targets.get(i), Some(Target::Many { .. }))
+                    }
+                    _ => false,
+                };
+                let order = if any_order { " in any order" } else { "" };
                 return Clause::imperative(match place {
-                    P::Top => format!("put {o} on top of {whose} library"),
+                    P::Top => format!("put {o} on top of {whose} library{order}"),
                     P::FromTop(n) => {
                         format!("put {o} into {whose} library {} from the top", ordinal(*n))
                     }

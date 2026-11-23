@@ -3399,7 +3399,11 @@ fn cmp_suffix(c: mtg_core::card::Cmp) -> &'static str {
 pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     let whose = match who {
         _ if matches!(f.that_player, Some(mtg_core::card::ThatPlayer::Target(_))) => {
-            "their graveyard"
+            if f.their {
+                "their graveyard"
+            } else {
+                "target player's graveyard"
+            }
         }
         _ if f.that_player.is_some() => "that player's graveyard",
         Who::You => "your graveyard",

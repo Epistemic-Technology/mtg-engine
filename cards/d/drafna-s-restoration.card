@@ -1,0 +1,6 @@
+card "Drafna's Restoration" {
+  oracle_id 24a78116-d5e0-4e30-b192-d8bffe347a0c
+  cost {U}
+  type Sorcery
+  spell: put any number of target artifact card from target player's graveyard on top of library
+}
