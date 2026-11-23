@@ -3,6 +3,7 @@
 //! choice and runs until the next one or the end of the game.
 
 mod ability_mana;
+mod cast_way;
 mod casting;
 mod combat;
 mod control;
@@ -811,7 +812,13 @@ impl GameState {
                                 let i = e.transformed.iter().position(|(c, _)| *c == card)?;
                                 Some(e.transformed.swap_remove(i).1)
                             });
-                            self.begin_cast_as(p, card, alt, face);
+                            self.begin_way(
+                                p,
+                                cast_way::CastWay {
+                                    face,
+                                    ..cast_way::CastWay::new(card, alt)
+                                },
+                            );
                         }
                         continue;
                     }
@@ -1980,106 +1987,6 @@ impl GameState {
                 self.player_mut(player).lands_played_this_turn += 1;
                 self.emit(Event::LandPlayed { player, land: new });
             }
-            (Flow::Priority, Choice::CastEvoke(card)) => {
-                self.consecutive_passes = 0;
-                let spell = self.move_object(card, Zone::Stack, true);
-                self.objects[spell].controller = player;
-                self.objects[spell].cast.set_evoked(true);
-                self.flow = self.after_mode(spell);
-            }
-            (Flow::Priority, Choice::CastDash(card)) => {
-                self.begin_cast(player, card, crate::state::AltCast::Dash);
-            }
-            (Flow::Priority, Choice::CastSneak(card)) => {
-                self.begin_cast(player, card, crate::state::AltCast::Sneak);
-            }
-            (Flow::Priority, Choice::CastImpending(card)) => {
-                self.begin_cast(player, card, crate::state::AltCast::Impending);
-            }
-            (Flow::Priority, Choice::CastWebSlinging(card)) => {
-                self.begin_cast(player, card, crate::state::AltCast::WebSlinging);
-            }
-            // CR 702.180a: from the graveyard, exiled as it leaves the
-            // stack (as with flashback); the creature to tap is chosen now
-            // (CR 702.180b) and its power comes off the cost.
-            (Flow::Priority, Choice::CastHarmonize { card, tap }) => {
-                let power = tap
-                    .and_then(|c| self.characteristics(c))
-                    .map_or(0, |c| u32::try_from(c.power.max(0)).unwrap_or(0));
-                let spell = self.begin_cast(player, card, crate::state::AltCast::Harmonize);
-                self.objects[spell].cast.set_flashback(true);
-                if let Some(c) = tap {
-                    self.harmonized.push((spell, c, power));
-                }
-            }
-            // "You may cast spells from your hand without paying their
-            // mana costs." (CR 118.9); a once-each-turn permission is used.
-            (Flow::Priority, Choice::CastFree(card)) => {
-                if let Some(casting::FreeUse::Once(src, a)) =
-                    self.free_cast_permission(player, card)
-                {
-                    self.activated_once.push((src, a));
-                }
-                self.begin_cast(player, card, crate::state::AltCast::Free);
-            }
-            (Flow::Priority, Choice::CastWarp(card)) => {
-                self.begin_cast(player, card, crate::state::AltCast::Warp);
-            }
-            (Flow::Priority, Choice::CastBestow(card)) => {
-                // CR 702.103b: on the stack it is the Aura, enchant
-                // creature, from the start.
-                let face = self.pool.get(self.objects[card].def).bestow_face;
-                self.begin_cast_as(player, card, crate::state::AltCast::Bestow, face);
-            }
-            (Flow::Priority, Choice::CastOverload(card)) => {
-                // CR 702.96b: on the stack it is the spell without targets.
-                let face = self.pool.get(self.objects[card].def).overload_face;
-                self.begin_cast_as(player, card, crate::state::AltCast::Overload, face);
-            }
-            (Flow::Priority, Choice::CastAwaken(card)) => {
-                // CR 702.113a: the spell with the land target and the
-                // awaken effects after its own.
-                let face = self.pool.get(self.objects[card].def).awaken_face;
-                self.begin_cast_as(player, card, crate::state::AltCast::Awaken, face);
-            }
-            (Flow::Priority, Choice::CastDisturb(card)) => {
-                // CR 702.146a, 712.8c: cast transformed, the back face's
-                // characteristics on the stack.
-                let face = self.pool.get(self.objects[card].def).faces.first().copied();
-                self.begin_cast_as(player, card, crate::state::AltCast::Disturb, face);
-            }
-            (Flow::Priority, Choice::CastAlt(card)) => {
-                // CR 718.3: a prototype card's alternative cost casts it
-                // prototyped, the spell its prototype face.
-                // CR 702.148a: a cleaved spell is its cleave face.
-                let def = self.pool.get(self.objects[card].def);
-                match def.prototype_face.or(def.cleave_face) {
-                    Some(face) => {
-                        self.begin_cast_as(
-                            player,
-                            card,
-                            crate::state::AltCast::AltCost,
-                            Some(face),
-                        );
-                    }
-                    None => {
-                        self.begin_cast(player, card, crate::state::AltCast::AltCost);
-                    }
-                }
-            }
-            (Flow::Priority, Choice::CastFaceDown(card)) => {
-                self.consecutive_passes = 0;
-                let ward = matches!(
-                    self.pool.get(self.objects[card].def).morph.as_deref(),
-                    Some((_, crate::card::MorphKind::Disguise))
-                );
-                let spell = self.move_object(card, Zone::Stack, true);
-                self.objects[spell].controller = player;
-                // CR 708.2a: the spell has only face-down characteristics.
-                self.objects[spell].def = self.pool.face_down(ward);
-                self.cbump();
-                self.flow = self.after_mode(spell);
-            }
             (Flow::Priority, Choice::Unlock { obj, door }) => {
                 // CR 709.5e: a special action; the player keeps priority.
                 let half = self
@@ -2127,68 +2034,28 @@ impl GameState {
                 self.player_mut(player).lands_played_this_turn += 1;
                 self.emit(Event::LandPlayed { player, land: new });
             }
-            (Flow::Priority, Choice::CastFace { card, face }) => {
-                self.cast_face(player, card, face, false);
-            }
-            // CR 702.127a: a split card in the graveyard is cast as its
-            // aftermath half, and exiled as it leaves the stack (as with
-            // flashback).
-            (Flow::Priority, Choice::Cast(id))
-                if self.objects[id].zone == Zone::Graveyard
-                    && self.aftermath_index(id).is_some() =>
-            {
-                let face = self.aftermath_index(id).unwrap_or(0);
-                self.cast_face(player, id, face, true);
-            }
-            (Flow::Priority, Choice::Cast(id)) => {
-                // CR 702.34a: a card cast from the graveyard is cast with
-                // flashback.
-                let o = &self.objects[id];
-                let gdef = self.pool.get(o.def);
-                // Flashback granted until end of turn: for its mana cost.
-                let escape = gdef.flashback.is_none() && !self.granted_flashback.contains(&id);
-                // Mayhem: a card discarded this turn, cast for its mayhem
-                // cost (a card with escape too uses escape only when it
-                // wasn't discarded this turn).
-                let mayhem = escape && gdef.mayhem.is_some() && self.mayhem_discarded.contains(&id);
-                let flashback = o.zone == Zone::Graveyard && !escape;
-                let alt = match (o.zone, o.alt) {
-                    (Zone::Hand, _) => crate::state::AltCast::Hand,
-                    (Zone::Graveyard, _) if mayhem => crate::state::AltCast::Mayhem,
-                    (Zone::Graveyard, _) if escape => crate::state::AltCast::Escape,
-                    (Zone::Exile, crate::state::AltCast::Foretold) => {
-                        crate::state::AltCast::Foretell
-                    }
-                    // CR 702.170d: without paying its mana cost.
-                    (Zone::Exile, crate::state::AltCast::Plotted) => crate::state::AltCast::Free,
-                    // "You may cast that card without paying its mana
-                    // cost."
-                    (Zone::Exile, _)
-                        if self.exile_casts.as_ref().is_some_and(|e| {
-                            e.playable
-                                .iter()
-                                .any(|pe| pe.card == id && pe.player == player && pe.free)
-                        }) =>
-                    {
-                        crate::state::AltCast::Free
-                    }
-                    // CR 701.65a: for {2}.
-                    (Zone::Exile, crate::state::AltCast::Airbent) => crate::state::AltCast::Airbend,
-                    _ => crate::state::AltCast::None,
-                };
-                // "Once each turn, you may cast ... from the top of your
-                // library": that permission is used unless another lets
-                // the card be cast.
-                if self.objects[id].zone == Zone::Library {
-                    let perms = self.top_permissions(player, id);
-                    if !perms.iter().any(|(_, _, once)| !*once)
-                        && let Some((src, a, _)) = perms.first()
-                    {
-                        self.activated_once.push((*src, *a));
-                    }
-                }
-                let spell = self.begin_cast(player, id, alt);
-                self.objects[spell].cast.set_flashback(flashback);
+            // Every way to cast a card from priority (`cast_way`): one
+            // description of it, one way to begin the cast.
+            (
+                Flow::Priority,
+                choice @ (Choice::CastEvoke(_)
+                | Choice::CastDash(_)
+                | Choice::CastSneak(_)
+                | Choice::CastImpending(_)
+                | Choice::CastWebSlinging(_)
+                | Choice::CastHarmonize { .. }
+                | Choice::CastFree(_)
+                | Choice::CastWarp(_)
+                | Choice::CastBestow(_)
+                | Choice::CastOverload(_)
+                | Choice::CastAwaken(_)
+                | Choice::CastDisturb(_)
+                | Choice::CastAlt(_)
+                | Choice::CastFaceDown(_)
+                | Choice::CastFace { .. }
+                | Choice::Cast(_)),
+            ) => {
+                self.cast_choice(player, &choice);
             }
             (Flow::Priority, Choice::Suspend(id)) => {
                 // CR 702.62a, 116.2f: a special action; the player keeps
@@ -2589,65 +2456,6 @@ impl GameState {
             }
             (flow, choice) => unreachable!("choice {choice:?} does not fit flow {flow:?}"),
         }
-    }
-
-    /// The casting state after the mode (if any) is chosen: X if the cost
-    /// has one, else targets.
-    /// CR 601.2a: the card moves to the stack, cast `alt`'s way; modes come
-    /// before X, X before targets (CR 601.2b).
-    fn begin_cast(&mut self, player: PlayerId, card: ObjId, alt: crate::state::AltCast) -> ObjId {
-        self.begin_cast_as(player, card, alt, None)
-    }
-
-    /// `begin_cast`, the spell having the characteristics of `def` if
-    /// given (a bestowed Aura, CR 702.103b).
-    fn begin_cast_as(
-        &mut self,
-        player: PlayerId,
-        card: ObjId,
-        alt: crate::state::AltCast,
-        def: Option<crate::card::CardRef>,
-    ) -> ObjId {
-        self.consecutive_passes = 0;
-        let from = self.objects[card].zone;
-        // CR 307.1: whether a sorcery could have been cast now.
-        let sorcery_timing =
-            player == self.active_player && self.step.is_main() && self.stack.is_empty();
-        // A copy of a card cast from exile (cipher, CR 702.99a) is a copy
-        // on the stack too (CR 707.12).
-        let copy = self.objects[card].cast.copy();
-        let spell = self.move_object(card, Zone::Stack, true);
-        if copy {
-            self.objects[spell].cast = self.objects[spell].cast.copied();
-        }
-        self.objects[spell].controller = player;
-        self.objects[spell].alt = alt;
-        if let Some(d) = def {
-            self.objects[spell].def = d;
-            self.cbump();
-        }
-        // CR 601.2a: "if you cast it from your hand".
-        self.objects[spell].cast.set_cast_from(from);
-        let def = self.pool.get(self.objects[spell].def);
-        if def.flash_cleanup && !sorcery_timing {
-            self.objects[spell].cast.set_instant_timing();
-        }
-        // "If you cast this spell during your main phase": judged now.
-        if let Some(c) = def.cast_snapshot
-            && self.condition_now(self.pool.condition(c), player, spell)
-        {
-            self.objects[spell].cast.set_as_cast();
-        }
-        self.flow = if def.modes().is_some() {
-            Flow::ChoosingMode {
-                spell,
-                sacrifice: None,
-                discard: None,
-            }
-        } else {
-            self.after_mode(spell)
-        };
-        spell
     }
 
     /// CR 702.22c: the band being formed is finished; on to the next
@@ -3289,7 +3097,10 @@ impl GameState {
         let copy = self.new_object(face, player, Zone::Exile);
         self.objects[copy].cast = self.objects[copy].cast.copied();
         self.player_mut(player).exile.push(copy);
-        let spell = self.begin_cast(player, copy, crate::state::AltCast::None);
+        let spell = self.begin_way(
+            player,
+            cast_way::CastWay::new(copy, crate::state::AltCast::None),
+        );
         self.objects[spell].attached_to = Some(perm);
     }
 

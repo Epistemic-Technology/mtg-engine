@@ -2626,40 +2626,6 @@ impl GameState {
         }
     }
 
-    /// Cast `card` as its face `face` (CR 715.3, 709.3): the spell has
-    /// only the face's characteristics; the card is still the card.
-    /// `exiled`: cast from a graveyard with aftermath, so it is exiled as
-    /// it leaves the stack (CR 702.127a).
-    pub(super) fn cast_face(&mut self, player: PlayerId, card: ObjId, face: u8, exiled: bool) {
-        self.consecutive_passes = 0;
-        let main = self.pool.get(self.objects[card].def);
-        let face_def = main.faces[face as usize];
-        let adventure = matches!(main.layout, Layout::Adventure | Layout::Omen);
-        let from = self.objects[card].zone;
-        let spell = self.move_object(card, Zone::Stack, true);
-        self.objects[spell].controller = player;
-        self.objects[spell].def = face_def;
-        // Where it was cast from (CR 601.2a), as for a whole card: mana
-        // that may be spent only on spells cast from exile was offered
-        // for an adventurer cast from exile and then refused.
-        self.objects[spell].cast.set_cast_from(from);
-        self.objects[spell].cast.set_adventure(adventure);
-        if exiled {
-            self.objects[spell].cast.set_flashback(true);
-        }
-        self.cbump();
-        let def = self.pool.get(face_def);
-        self.flow = if def.modes().is_some() {
-            crate::state::Flow::ChoosingMode {
-                spell,
-                sacrifice: None,
-                discard: None,
-            }
-        } else {
-            self.after_mode(spell)
-        };
-    }
-
     /// A split card's half with aftermath (CR 702.127a), by its index
     /// among the card's faces.
     pub(super) fn aftermath_index(&self, card: ObjId) -> Option<u8> {
