@@ -873,7 +873,8 @@ fn cmp_words(c: mtg_core::card::Cmp) -> &'static str {
     match c {
         mtg_core::card::Cmp::AtMost => " or less",
         mtg_core::card::Cmp::AtLeast => " or greater",
-        mtg_core::card::Cmp::Exactly => "",
+        // Only filled in as a game is played (`ObjFilter::with_chosen`).
+        mtg_core::card::Cmp::Exactly | mtg_core::card::Cmp::Odd | mtg_core::card::Cmp::Even => "",
     }
 }
 
@@ -3204,6 +3205,7 @@ fn of_chosen(c: OfChosen) -> &'static str {
         OfChosen::ThatColor => " of that color",
         OfChosen::ColorOfChoice => " of the color of your choice",
         OfChosen::CreatureTypeOfChoice => " of the creature type of your choice",
+        OfChosen::ChosenQuality => " with mana value of the chosen quality",
     }
 }
 
@@ -3405,6 +3407,7 @@ fn choice_noun(k: &ChoiceKind) -> String {
         }
         ChoiceKind::LandType(lands) if lands.len() == 5 => "a basic land type".to_string(),
         ChoiceKind::Named(names) => or_list(names),
+        ChoiceKind::Parity => "odd or even".to_string(),
         ChoiceKind::CardName { nonland: false } => "a card name".to_string(),
         ChoiceKind::CardName { nonland: true } => "a nonland card name".to_string(),
         ChoiceKind::LandType(lands) => or_list(
@@ -9349,6 +9352,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     "the creature type of your choice".to_string()
                 }
                 ChoiceKind::Named(names) => or_list(names),
+                ChoiceKind::Parity => "odd or even".to_string(),
                 ChoiceKind::CardName { .. } => "the card name of your choice".to_string(),
                 // Imagecrafter: "Choose a creature type other than Wall.
                 // Target creature becomes that type until end of turn."

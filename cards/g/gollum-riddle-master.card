@@ -1,0 +1,12 @@
+card "Gollum, Riddle Master" {
+  oracle_id 514b451b-814d-45fb-a2ba-8fe6f0bdad60
+  cost {1}{B}
+  type Legendary Creature — Halfling Horror
+  pt 3/1
+  as this enters choose odd or even
+  triggered whenever an opponent casts of chosen quality spell: choose one unchosen {
+    mode: put 1 +1/+1 counter on this
+    mode: each opponent loses 2 life and you gain 2 life
+    mode: draw 1 card
+  }
+}

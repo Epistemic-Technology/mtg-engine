@@ -1214,6 +1214,9 @@ pub enum OfChosen {
     /// `of creature type of choice`: "of the creature type of your
     /// choice".
     CreatureTypeOfChoice,
+    /// `of chosen quality`: "with mana value of the chosen quality" (odd
+    /// or even, chosen earlier).
+    ChosenQuality,
 }
 
 impl OfChosen {
@@ -1322,6 +1325,9 @@ pub enum ChoiceKind {
     CardName {
         nonland: bool,
     },
+    /// `odd or even`: "odd or even" (Zero is even.), for `of chosen
+    /// quality`.
+    Parity,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

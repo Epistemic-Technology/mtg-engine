@@ -9003,6 +9003,12 @@ impl GameState {
                 DecisionKind::ChooseOption { def },
                 (0..usize::from(n)).map(Choice::Mode).collect(),
             ),
+            // "Choose odd or even.": `choose "1"` (odd) or `"2"` (even).
+            ChoiceKind::Parity => {
+                let options = vec![Choice::Mode(0), Choice::Mode(1)];
+                let k = self.choose_mid(p, DecisionKind::ChooseOption { def }, options);
+                return Chosen::Parity(k == 0);
+            }
             ChoiceKind::Colors => (
                 DecisionKind::ChooseColor,
                 Color::ALL.into_iter().map(Choice::Color).collect(),
@@ -12198,7 +12204,11 @@ impl GameState {
                         Some(c) => Modification::SetLandType(c),
                         None => Modification::SetCreatureType(s),
                     },
-                    Chosen::None | Chosen::Votes(_) | Chosen::Option(_) | Chosen::Card(_) => return,
+                    Chosen::None
+                    | Chosen::Votes(_)
+                    | Chosen::Option(_)
+                    | Chosen::Card(_)
+                    | Chosen::Parity(_) => return,
                 };
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
@@ -12281,7 +12291,14 @@ impl GameState {
                         _ if *in_addition => Modification::AddSubtype(s),
                         _ => Modification::SetCreatureType(s),
                     },
-                    (Chosen::None | Chosen::Votes(_) | Chosen::Option(_) | Chosen::Card(_), _) => {
+                    (
+                        Chosen::None
+                        | Chosen::Votes(_)
+                        | Chosen::Option(_)
+                        | Chosen::Card(_)
+                        | Chosen::Parity(_),
+                        _,
+                    ) => {
                         return;
                     }
                 };

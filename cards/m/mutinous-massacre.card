@@ -1,0 +1,6 @@
+card "Mutinous Massacre" {
+  oracle_id 9fdd445a-c8e1-4309-9d74-374676fcac1d
+  cost {3}{B}{B}{R}{R}
+  type Sorcery
+  spell: choose odd or even; destroy each single creature of chosen quality; then gain control of all creature until end of turn; untap them; they gain haste
+}

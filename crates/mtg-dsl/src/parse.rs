@@ -971,6 +971,10 @@ impl P {
             suffix(self)?;
             return Ok(ChoiceKind::LandType(Color::ALL.to_vec()));
         }
+        // "choose odd or even".
+        if self.eat_words(&["odd", "or", "even"]) {
+            return Ok(ChoiceKind::Parity);
+        }
         // "choose a card name", "choose a nonland card name".
         if self.eat_words(&["card", "name"]) {
             return Ok(ChoiceKind::CardName { nonland: false });
@@ -8845,7 +8849,7 @@ impl P {
                 if matches!(
                     self.word_at(0).as_deref(),
                     Some("color" | "creature" | "land")
-                ) =>
+                ) || self.at_words(&["odd", "or", "even"]) =>
             {
                 Ok(Effect::Choose(self.choice_kind(false)?))
             }
@@ -13096,6 +13100,7 @@ impl P {
                     let of = [
                         (&["of", "chosen", "color"][..], OfChosen::ChosenColor),
                         (&["of", "chosen", "type"][..], OfChosen::ChosenType),
+                        (&["of", "chosen", "quality"][..], OfChosen::ChosenQuality),
                         (&["of", "that", "type"][..], OfChosen::ThatType),
                         (&["of", "that", "color"][..], OfChosen::ThatColor),
                         (

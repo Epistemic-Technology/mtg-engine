@@ -2812,6 +2812,7 @@ impl Decompiler<'_> {
                 ChoiceKind::Named((1..=n).map(|i| format!("Option {i}")).collect())
             }
             CoreChoiceKind::CardName { nonland } => ChoiceKind::CardName { nonland },
+            CoreChoiceKind::Parity => ChoiceKind::Parity,
         }
     }
 }

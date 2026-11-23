@@ -288,6 +288,8 @@ pub enum Chosen {
     /// definition per name), in three bytes (`Chosen::card`) so the
     /// object stays small.
     Card([u8; 3]),
+    /// Odd (`true`) or even, for "with mana value of the chosen quality".
+    Parity(bool),
 }
 
 impl Chosen {

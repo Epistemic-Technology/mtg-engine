@@ -1,0 +1,8 @@
+card "Thanos, the Mad Titan" {
+  oracle_id 090d815b-b2c8-48cd-a0b3-dc662d5352ac
+  cost {R}{W}{B}
+  type Legendary Creature — Eternal Villain
+  pt 4/4
+  keywords deathtouch, lifelink
+  power-up {C}{W}{U}{B}{R}{G}: put 2 +1/+1 counters on this; choose odd or even; destroy each single other creature of chosen quality
+}

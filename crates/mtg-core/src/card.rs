@@ -1503,14 +1503,21 @@ pub enum Cmp {
     AtMost,
     AtLeast,
     Exactly,
+    /// "with mana value of the chosen quality" once odd was chosen (the
+    /// number is ignored; filled in by `ObjFilter::with_chosen`).
+    Odd,
+    /// ... once even was chosen ("Zero is even.").
+    Even,
 }
 
 impl Cmp {
-    pub fn holds<T: PartialOrd + Copy>(self, have: T, n: T) -> bool {
+    pub fn holds<T: PartialOrd + Copy + Into<i64>>(self, have: T, n: T) -> bool {
         match self {
             Cmp::AtMost => have <= n,
             Cmp::AtLeast => have >= n,
             Cmp::Exactly => have == n,
+            Cmp::Odd => have.into().rem_euclid(2) == 1,
+            Cmp::Even => have.into().rem_euclid(2) == 0,
         }
     }
 }
@@ -1599,6 +1606,10 @@ impl ObjFilter {
             crate::state::Chosen::Subtype(s) => f.subtypes.push(s),
             // "spell with the chosen name".
             crate::state::Chosen::Card(_) => f.named = chosen.card_ref().map(|d| (d, true)),
+            // "with mana value of the chosen quality" (odd or even).
+            crate::state::Chosen::Parity(odd) => {
+                f.mana_value = Some((if odd { Cmp::Odd } else { Cmp::Even }, 0));
+            }
             crate::state::Chosen::None
             | crate::state::Chosen::Votes(_)
             | crate::state::Chosen::Option(_) => {
@@ -5760,6 +5771,9 @@ pub enum ChoiceKind {
     /// One of this many named options ("choose Khans or Dragons", CR
     /// 614.12): `Chosen::Option` with its index.
     Named(u8),
+    /// "choose odd or even" (Zero is even.): `Chosen::Parity`, for
+    /// "with mana value of the chosen quality".
+    Parity,
     /// "choose a card name", "choose a nonland card name" (CR 201.3):
     /// `Chosen::Card`. The names offered are those of the cards in the
     /// game (any zone, either player's), since naming another card has no

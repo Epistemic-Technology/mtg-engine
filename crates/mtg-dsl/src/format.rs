@@ -3530,7 +3530,8 @@ fn cmp_suffix(c: mtg_core::card::Cmp) -> &'static str {
     match c {
         mtg_core::card::Cmp::AtMost => " or less",
         mtg_core::card::Cmp::AtLeast => " or greater",
-        mtg_core::card::Cmp::Exactly => "",
+        // Only filled in as a game is played (`ObjFilter::with_chosen`).
+        mtg_core::card::Cmp::Exactly | mtg_core::card::Cmp::Odd | mtg_core::card::Cmp::Even => "",
     }
 }
 
@@ -4080,6 +4081,7 @@ fn of_chosen(c: crate::ast::OfChosen) -> &'static str {
         OfChosen::ThatColor => "of that color",
         OfChosen::ColorOfChoice => "of color of choice",
         OfChosen::CreatureTypeOfChoice => "of creature type of choice",
+        OfChosen::ChosenQuality => "of chosen quality",
     }
 }
 
@@ -7076,6 +7078,7 @@ fn choice_kind(k: &ChoiceKind, of_choice: bool) -> String {
             .join(" or "),
         ChoiceKind::CardName { nonland: false } => "card name".to_string(),
         ChoiceKind::CardName { nonland: true } => "nonland card name".to_string(),
+        ChoiceKind::Parity => "odd or even".to_string(),
     }
 }
 
