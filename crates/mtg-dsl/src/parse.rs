@@ -3793,6 +3793,12 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::EntersTappedIfNotYourTurn)
             }
+            "enters" if self.at_words(&["enters", "tapped", "if"]) => {
+                self.pos += 3;
+                let c = self.static_cond()?;
+                self.end_stmt()?;
+                Ok(Ability::EntersTappedIf(c))
+            }
             "enters" if self.at_words(&["enters", "tapped", "unless"]) => {
                 self.pos += 3;
                 let c = self.static_cond()?;
@@ -11338,6 +11344,15 @@ impl P {
                 self.pos += 3;
                 Ok(Num::XTimes(n))
             }
+            // `3 minus X`: "three minus X".
+            Some(Tok::Num(n))
+                if self.word_at(1).as_deref() == Some("minus")
+                    && self.word_at(2).is_some_and(|w| w.eq_ignore_ascii_case("x")) =>
+            {
+                let n = *n;
+                self.pos += 3;
+                Ok(Num::NMinusX(n))
+            }
             Some(Tok::Num(n)) => {
                 let n = *n;
                 self.pos += 1;
@@ -11390,9 +11405,12 @@ impl P {
     fn count(&mut self) -> R<u32> {
         match self.num()? {
             Num::N(n) => Ok(n),
-            Num::X | Num::XPlus(_) | Num::XTimes(_) | Num::Count(_) | Num::ThatMuch => {
-                self.fail("X is not allowed here")
-            }
+            Num::X
+            | Num::XPlus(_)
+            | Num::XTimes(_)
+            | Num::NMinusX(_)
+            | Num::Count(_)
+            | Num::ThatMuch => self.fail("X is not allowed here"),
         }
     }
 

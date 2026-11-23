@@ -3886,6 +3886,9 @@ pub enum Num {
     XPlus(u32),
     /// "twice X": X times this (Torch the Witness).
     XTimes(u32),
+    /// "three minus X": this less X, never below 0 (Slumbering Trudge,
+    /// CR 107.1b).
+    NMinusX(u32),
     /// The `i`th of the source card's `CardDef::counts` ("the number of
     /// creatures you control"), evaluated as the effect happens
     /// (`GameState::eval_num`).
@@ -3908,6 +3911,7 @@ impl Num {
             Num::X => x,
             Num::XPlus(n) => x.saturating_add(n),
             Num::XTimes(n) => x.saturating_mul(n),
+            Num::NMinusX(n) => n.saturating_sub(x),
             Num::Count(_) | Num::ThatMuch => 0,
         }
     }
@@ -3919,6 +3923,7 @@ impl Num {
             Num::X | Num::Count(_) | Num::ThatMuch => 3,
             Num::XPlus(n) => 3 + n,
             Num::XTimes(n) => 3 * n,
+            Num::NMinusX(n) => n.saturating_sub(3),
         }
     }
 }

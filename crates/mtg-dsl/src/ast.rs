@@ -1681,6 +1681,11 @@ pub enum Ability {
     /// it's not your turn." (the same replacement as `enters tapped unless
     /// your turn`, worded with "if").
     EntersTappedIfNotYourTurn,
+    /// `enters tapped if x 2 or less`: "If X is 2 or less, this creature
+    /// enters tapped." (the replacement "unless" the condition fails);
+    /// after an `enters with` line, in its paragraph: "..., it enters
+    /// tapped."
+    EntersTappedIf(StaticCond),
     /// `enters with 1 +1/+1 counter if attacked this turn`: "This
     /// creature enters with a +1/+1 counter on it if you attacked this
     /// turn." (raid; CR 614.1c); `if spent 3 white, enters with 1 +1/+1

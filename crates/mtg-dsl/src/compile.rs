@@ -5881,6 +5881,17 @@ impl Compiler<'_> {
                     condition: None,
                 })
             }
+            // "If X is 2 or less, it enters tapped": unless it isn't.
+            Ability::EntersTappedIf(c) => {
+                let c = StaticCondition::Not(Box::new(self.static_cond(c)));
+                let i = self.pool.intern_condition(c);
+                AbilityDef::Replacement(ReplacementAbility {
+                    replaces: mtg_core::card::Replaces::Enters,
+                    replacement: mtg_core::card::Replacement::EnterTappedUnless(i),
+                    then: Vec::new(),
+                    condition: None,
+                })
+            }
             Ability::EntersTappedUnless(c) => {
                 let c = self.static_cond(c);
                 let i = self.pool.intern_condition(c);

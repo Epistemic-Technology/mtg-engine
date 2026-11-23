@@ -3356,6 +3356,7 @@ fn num(n: Num) -> String {
         Num::X => "X".to_string(),
         Num::XPlus(n) => format!("X plus {n}"),
         Num::XTimes(n) => format!("{n} times X"),
+        Num::NMinusX(n) => format!("{n} minus X"),
         Num::ThatMuch => "that much".to_string(),
         Num::Count(i) => COUNTS.with(|c| {
             c.borrow()
@@ -7035,6 +7036,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::EntersTappedIfNotYourTurn => {
             let _ = writeln!(out, "{indent}enters tapped if not your turn");
+        }
+        Ability::EntersTappedIf(c) => {
+            let _ = writeln!(out, "{indent}enters tapped if {}", static_cond(c));
         }
         Ability::EntersWithIf {
             n,
