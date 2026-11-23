@@ -1431,7 +1431,12 @@ impl Runner {
                     } else if *alternative {
                         Choice::CastAlt(self.in_hand(a.line, d.player, name)?)
                     } else if *from_graveyard {
-                        Choice::Cast(self.in_graveyard(a.line, d.player, name)?)
+                        // An Adventure half named from the graveyard ("you
+                        // may cast it from your graveyard as an Adventure").
+                        match self.face_in_graveyard(d.player, name) {
+                            Some(c) => c,
+                            None => Choice::Cast(self.in_graveyard(a.line, d.player, name)?),
+                        }
                     } else if let Some(c) = self.face_in_hand(d.player, name) {
                         c
                     } else if let Some(id) = self.on_adventure(d.player, name) {
@@ -2323,6 +2328,25 @@ impl Runner {
         let st = self.state();
         st.player(p).hand.iter().find_map(|id| {
             let def = st.pool.get(st.objects[*id].def);
+            def.faces
+                .iter()
+                .position(|f| st.pool.get(*f).name == name)
+                .map(|i| Choice::CastFace {
+                    card: *id,
+                    face: u8::try_from(i).unwrap_or(0),
+                })
+        })
+    }
+
+    /// `cast "Dread Whispers" from graveyard`: that face of a card in
+    /// `p`'s graveyard.
+    fn face_in_graveyard(&self, p: PlayerId, name: &str) -> Option<Choice> {
+        let st = self.state();
+        st.player(p).graveyard.iter().find_map(|id| {
+            let def = st.pool.get(st.objects[*id].def);
+            if def.layout != mtg_core::card::Layout::Adventure {
+                return None;
+            }
             def.faces
                 .iter()
                 .position(|f| st.pool.get(*f).name == name)

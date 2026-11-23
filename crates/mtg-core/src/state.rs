@@ -353,6 +353,9 @@ pub struct PlayableExile {
     /// The permanent whose control the permission lasts for
     /// (`PlayUntil::WhileYouControlSource`).
     pub source: ObjId,
+    /// "you may cast it from your graveyard as an Adventure": only the
+    /// Adventure half (CR 715.3).
+    pub adventure: bool,
 }
 
 /// How a spell was cast (on the stack; `Suspend` stays with the permanent

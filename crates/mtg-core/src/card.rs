@@ -5063,6 +5063,10 @@ pub enum Effect {
         /// graveyard or exile).
         #[serde(default)]
         what: Option<Recipient>,
+        /// "you may cast it from your graveyard as an Adventure" (CR
+        /// 715.3): only its Adventure half.
+        #[serde(default)]
+        adventure: bool,
     },
     /// "Reveal cards from the top of your library until you reveal a land
     /// card" (CR 701.20): the recipient player reveals from the top until a

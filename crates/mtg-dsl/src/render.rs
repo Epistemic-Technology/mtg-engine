@@ -6017,9 +6017,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         // "You may cast target Zombie creature card from your graveyard
         // this turn."
-        Effect::MayPlayTarget { what, until, cast } => {
+        Effect::MayPlayTarget {
+            what,
+            until,
+            cast,
+            adventure,
+        } => {
             use mtg_core::card::PlayUntil;
             let o = ctx.obj(*what);
+            // "you may cast it from your graveyard as an Adventure until
+            // the end of your next turn" (Mosswood Dreadknight).
+            let o = if *adventure {
+                let o = if o == "this card" {
+                    "it".to_string()
+                } else {
+                    o
+                };
+                format!("{o} from your graveyard as an Adventure")
+            } else {
+                o
+            };
             let verb = if *cast { "cast" } else { "play" };
             let when = match until {
                 PlayUntil::ThisTurn => " this turn",

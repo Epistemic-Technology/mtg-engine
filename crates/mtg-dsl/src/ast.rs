@@ -5168,6 +5168,10 @@ pub enum Effect {
         what: Recipient,
         until: mtg_core::card::PlayUntil,
         cast: bool,
+        /// `may cast this card from graveyard as adventure next turn`:
+        /// "you may cast it from your graveyard as an Adventure until the
+        /// end of your next turn" (only the Adventure half, CR 715.3).
+        adventure: bool,
     },
     /// `reveal until nonland card` ("reveal cards from the top of your
     /// library until you reveal a nonland card"), `<who> reveals until

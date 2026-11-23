@@ -461,11 +461,12 @@ impl GameState {
                             });
                         }
                     }
-                    if def.layout == Layout::Split {
+                    if def.layout == Layout::Split || pe.adventure {
                         continue;
                     }
                 }
                 if self.castable(p, def, pe.card, sorcery_timing, &sources, &pool, &changers)
+                    && !pe.adventure
                     && !options.contains(&Choice::Cast(pe.card))
                 {
                     options.push(Choice::Cast(pe.card));
@@ -14115,6 +14116,7 @@ impl GameState {
                 cast,
                 free,
                 what,
+                adventure,
             } => {
                 let p = ctx.controller;
                 let own_ends = if self.active_player == p { 2 } else { 1 };
@@ -14158,6 +14160,7 @@ impl GameState {
                             cast_only: *cast,
                             free: *free,
                             source: ctx.source,
+                            adventure: *adventure,
                         });
                 }
             }
@@ -15155,6 +15158,7 @@ impl GameState {
                             cast_only: true,
                             free: false,
                             source: ObjId::default(),
+                            adventure: false,
                         });
                 }
             }
@@ -15184,6 +15188,7 @@ impl GameState {
                                 cast_only: true,
                                 free: false,
                                 source: ObjId::default(),
+                                adventure: false,
                             });
                     }
                 }
@@ -15250,6 +15255,7 @@ impl GameState {
                             cast_only: false,
                             free: false,
                             source: ctx.source,
+                            adventure: false,
                         });
                 }
             }

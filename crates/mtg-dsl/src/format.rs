@@ -1000,10 +1000,20 @@ impl Fmt {
                 Some(w) => format!("{} exiles until {} card", self.recipient(*w, t), filter(f)),
             },
             Effect::MayCastThisFromExile => "may cast this while exiled".to_string(),
-            Effect::MayPlayTarget { what, until, cast } => format!(
-                "may {} {} {}",
+            Effect::MayPlayTarget {
+                what,
+                until,
+                cast,
+                adventure,
+            } => format!(
+                "may {} {}{} {}",
                 if *cast { "cast" } else { "play" },
                 self.recipient(*what, t),
+                if *adventure {
+                    " from graveyard as adventure"
+                } else {
+                    ""
+                },
                 match until {
                     mtg_core::card::PlayUntil::ThisTurn => "this turn",
                     mtg_core::card::PlayUntil::EndOfYourNextTurn => "next turn",

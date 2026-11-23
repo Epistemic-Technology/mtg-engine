@@ -10132,12 +10132,20 @@ impl P {
             // this turn`.
             "may"
                 if (self.at_word("play") || self.at_word("cast"))
-                    && self.word_at(1).as_deref() == Some("target") =>
+                    && (self.word_at(1).as_deref() == Some("target")
+                        || (self.word_at(1).as_deref() == Some("this")
+                            && self.word_at(2).as_deref() == Some("card"))) =>
             {
                 let cast = self.word()? == "cast";
                 let what = self.recipient()?;
+                let adventure = self.eat_words(&["from", "graveyard", "as", "adventure"]);
                 let until = self.play_until()?;
-                Ok(Effect::MayPlayTarget { what, until, cast })
+                Ok(Effect::MayPlayTarget {
+                    what,
+                    until,
+                    cast,
+                    adventure,
+                })
             }
             // `may cast that card this turn [first] [free]`.
             "may"

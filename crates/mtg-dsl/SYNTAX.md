@@ -3241,6 +3241,10 @@ your graveyard this turn.", Zul Ashur; `may play target ...` for "play")
 gives the same permission for the targeted cards where they are, in a
 graveyard or in exile, paying their costs with the usual timing (CR
 601.3); it ends with the duration or when the card leaves that zone.
+`may cast this card from graveyard as adventure next turn` ("you may cast
+it from your graveyard as an Adventure until the end of your next turn",
+Mosswood Dreadknight's dies trigger) gives it for the dead card, and only
+its Adventure half may be cast (CR 715.3).
 `put that card into hand and the rest on
 bottom of library random` is "Put that card into your hand and the rest
 on the bottom of your library in a random order." (the other revealed

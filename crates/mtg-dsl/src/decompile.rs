@@ -1807,10 +1807,12 @@ impl Decompiler<'_> {
                 cast,
                 free: false,
                 what: Some(w),
+                adventure,
             } => Effect::MayPlayTarget {
                 what: r(*w),
                 until: *until,
                 cast: *cast,
+                adventure: *adventure,
             },
             CoreEffect::MayPlayCard {
                 until, cast, free, ..

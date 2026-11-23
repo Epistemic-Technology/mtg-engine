@@ -1,0 +1,48 @@
+# "When this creature dies, you may cast it from your graveyard as an
+# Adventure until the end of your next turn." (CR 715.3): only the
+# Adventure half, paying its cost; the card then goes on an adventure in
+# exile and the creature may be cast from there (CR 715.4).
+
+scenario "adventure from graveyard: Mosswood Dreadknight's Adventure is cast from the graveyard" {
+  battlefield A: "Mosswood Dreadknight", 2 "Swamp", "Mountain"
+  hand A: "Lightning Bolt"
+  library A: "Island", "Island"
+  turn 1 A: cast "Lightning Bolt" targeting "Mosswood Dreadknight"
+  turn 1 A: wait
+  turn 1 A: cast "Dread Whispers" from graveyard
+  run_to turn 1 postcombat_main
+  assert life A 19
+  assert hand A contains "Island"
+  assert exile A contains "Mosswood Dreadknight"
+}
+
+scenario "adventure from graveyard: not the creature half" {
+  battlefield A: "Mosswood Dreadknight", 2 "Forest", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Mosswood Dreadknight"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Mosswood Dreadknight" from graveyard
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Mosswood Dreadknight"
+}
+
+scenario "adventure from graveyard: still allowed on the next turn, gone after it" {
+  battlefield A: "Mosswood Dreadknight", 2 "Swamp", "Mountain"
+  hand A: "Lightning Bolt"
+  library A: "Island", "Island", "Island", "Island"
+  turn 1 A: cast "Lightning Bolt" targeting "Mosswood Dreadknight"
+  run_to turn 4 precombat_main
+  illegal turn 5 A: cast "Dread Whispers" from graveyard
+  run_to turn 5 postcombat_main
+  assert graveyard A contains "Mosswood Dreadknight"
+}
+
+scenario "adventure from graveyard: on the next turn" {
+  battlefield A: "Mosswood Dreadknight", 2 "Swamp", "Mountain"
+  hand A: "Lightning Bolt"
+  library A: "Island", "Island", "Island", "Island"
+  turn 1 A: cast "Lightning Bolt" targeting "Mosswood Dreadknight"
+  turn 3 A: cast "Dread Whispers" from graveyard
+  run_to turn 3 postcombat_main
+  assert exile A contains "Mosswood Dreadknight"
+}
