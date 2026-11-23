@@ -1,0 +1,7 @@
+card "Sanctuary Lockdown" {
+  oracle_id 66793ddf-aca3-44cb-8742-4eee178f31c6
+  cost {2}{W}
+  type Enchantment
+  static Human you control: +1/+1
+  activated {2}, tap 2 untapped Human you control: tap target creature an opponent controls
+}

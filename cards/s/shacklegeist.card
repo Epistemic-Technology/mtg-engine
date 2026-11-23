@@ -1,0 +1,9 @@
+card "Shacklegeist" {
+  oracle_id 7a1e4880-9abb-4018-84bd-91b5ec702c51
+  cost {1}{U}
+  type Creature — Spirit
+  pt 2/2
+  keywords flying
+  can block only creature with flying
+  activated tap 2 untapped Spirit you control: tap target creature you don't control
+}

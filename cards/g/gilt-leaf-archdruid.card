@@ -1,0 +1,8 @@
+card "Gilt-Leaf Archdruid" {
+  oracle_id 0bd5cce9-364f-4d0d-85cb-1a0e09b4f015
+  cost {3}{G}{G}
+  type Creature — Elf Druid
+  pt 3/3
+  triggered whenever you cast Druid spell: you may draw 1 cards
+  activated tap 7 untapped Druid you control: gain control of all land target player controls indefinitely
+}

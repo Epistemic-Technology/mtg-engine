@@ -1,0 +1,171 @@
+# "Tap three untapped Merfolk you control" (a creature type in the cost)
+# and "Discard a card at random" in an activated ability's cost.
+
+scenario "Heritage Druid: three untapped Elves pay {G}{G}{G} of a spell" {
+  battlefield A: "Heritage Druid", "Llanowar Elves", "Elvish Mystic", 3 "Forest"
+  hand A: "Craw Wurm"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Heritage Druid"
+  turn 1 A: cast "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Craw Wurm"
+}
+
+scenario "Heritage Druid: the Elves pay for a spell" {
+  battlefield A: "Heritage Druid", "Llanowar Elves", "Elvish Mystic", "Forest"
+  hand A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Heritage Druid"
+  run_to turn 1 begin_combat
+  assert tapped "Llanowar Elves"
+  assert tapped "Elvish Mystic"
+  assert tapped "Heritage Druid"
+}
+
+scenario "Devout Chaplain: itself and two Humans exile an artifact" {
+  battlefield A: "Devout Chaplain", "Acolyte of Xathrid", "Cathar Commando"
+  battlefield B: "Sol Ring"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Devout Chaplain" targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Sol Ring"
+  assert tapped "Acolyte of Xathrid"
+  assert tapped "Cathar Commando"
+}
+
+scenario "Devout Chaplain: not with one other Human" {
+  battlefield A: "Devout Chaplain", "Acolyte of Xathrid", "Grizzly Bears"
+  battlefield B: "Sol Ring"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Devout Chaplain" targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Sol Ring"
+}
+
+scenario "Sanctuary Lockdown: two Humans tap a creature" {
+  battlefield A: "Sanctuary Lockdown", "Acolyte of Xathrid", "Cathar Commando", 2 "Plains"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sanctuary Lockdown" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert power "Cathar Commando" 4
+}
+
+scenario "Benthicore: two Merfolk untap it and give it shroud" {
+  battlefield A: "Benthicore" tapped, 2 "Merfolk Wizard"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Benthicore"
+  run_to turn 1 begin_combat
+  assert untapped "Benthicore"
+  assert has "Benthicore" shroud
+}
+
+scenario "Summon the School: four Merfolk return it from the graveyard" {
+  battlefield A: 4 "Merfolk Wizard"
+  graveyard A: "Summon the School"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Summon the School"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Summon the School"
+}
+
+scenario "Summon the School: not with three Merfolk" {
+  battlefield A: 3 "Merfolk Wizard"
+  graveyard A: "Summon the School"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Summon the School"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Summon the School"
+}
+
+scenario "Kumena, Tyrant of Orazca: three Merfolk draw a card" {
+  battlefield A: "Kumena, Tyrant of Orazca", 2 "Merfolk Wizard"
+  library A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kumena, Tyrant of Orazca" ability 2
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+}
+
+scenario "Kumena, Tyrant of Orazca: five Merfolk put a counter on each Merfolk" {
+  battlefield A: "Kumena, Tyrant of Orazca", 4 "Merfolk Wizard", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kumena, Tyrant of Orazca" ability 3
+  run_to turn 1 postcombat_main
+  assert counters "Kumena, Tyrant of Orazca" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Shacklegeist: two Spirits tap a creature" {
+  battlefield A: "Shacklegeist", "Suture Spirit"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Shacklegeist" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+}
+
+scenario "Skystrike Officer: three Soldiers draw a card" {
+  battlefield A: "Skystrike Officer", 3 "Soldier"
+  library A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Skystrike Officer"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+}
+
+scenario "Deathless Ancient: three Vampires return it" {
+  battlefield A: 3 "Blood Host"
+  graveyard A: "Deathless Ancient"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Deathless Ancient"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Deathless Ancient"
+}
+
+scenario "Myr Turbine: five Myr fetch a Myr creature card" {
+  battlefield A: "Myr Turbine", 5 "Myr"
+  library A: "Grizzly Bears", "Myr Turbine"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Myr Turbine" ability 2
+  run_to turn 1 postcombat_main
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "Cloudgoat Ranger: three Kithkin, +2/+0 and flying" {
+  battlefield A: "Cloudgoat Ranger", 3 "Kithkin Soldier"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Cloudgoat Ranger"
+  run_to turn 1 begin_combat
+  assert power "Cloudgoat Ranger" 5
+  assert has "Cloudgoat Ranger" flying
+}
+
+scenario "Gilt-Leaf Archdruid: seven Druids take the lands" {
+  battlefield A: "Gilt-Leaf Archdruid", 6 "Llanowar Elves"
+  battlefield B: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Gilt-Leaf Archdruid" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Island"
+  assert battlefield A contains "Forest"
+}
+
+scenario "Stormbind: discard a card at random, 2 damage" {
+  battlefield A: "Stormbind", 2 "Mountain"
+  hand A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Stormbind" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Island"
+}
+
+scenario "Stormbind: not with an empty hand" {
+  battlefield A: "Stormbind", 2 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Stormbind" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

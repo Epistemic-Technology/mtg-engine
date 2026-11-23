@@ -1,0 +1,7 @@
+card "Heritage Druid" {
+  oracle_id 0b7f9c71-6f3c-4056-9bed-04b9f2296f3b
+  cost {G}
+  type Creature — Elf Druid
+  pt 1/1
+  activated tap 3 untapped Elf you control: add {G}{G}{G}
+}

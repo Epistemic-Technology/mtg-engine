@@ -4711,8 +4711,9 @@ fn cost_text(s: &str) -> Option<String> {
     .unwrap();
     let adj_creature = Regex::new(r"^(?:colorless|nontoken) creature$").unwrap();
     // "Tap three untapped creatures you control".
+    // "Tap two untapped Merfolk you control" (a subtype too).
     let tap_n = Regex::new(
-        r"^Tap (two|three|four|five|six|seven) untapped (creature|artifact|land)s you control$",
+        r"^Tap (two|three|four|five|six|seven) untapped ([A-Za-z]+) you control$",
     )
     .unwrap();
     // "Remove three quest counters from this enchantment and sacrifice it"
@@ -4755,11 +4756,15 @@ fn cost_text(s: &str) -> Option<String> {
             }
             format!("sacrifice other {rest}")
         } else if let Some(c) = tap_n.captures(part) {
-            format!(
-                "tap {} untapped {} you control",
-                number(cap(&c, 1))?,
-                cap(&c, 2)
-            )
+            let what = singular(cap(&c, 2));
+            if what.chars().next().is_some_and(char::is_lowercase)
+                && !matches!(what.as_str(), "creature" | "artifact" | "land")
+            {
+                return None;
+            }
+            format!("tap {} untapped {what} you control", number(cap(&c, 1))?)
+        } else if part == "Discard a card at random" {
+            "discard 1 card at random".to_string()
         } else if let Some(c) = remove_and_sac.captures(part) {
             let n = if matches!(cap(&c, 1), "a" | "an") {
                 "1".to_string()
