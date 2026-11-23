@@ -1,0 +1,8 @@
+card "Hateflayer" {
+  oracle_id 681d07e6-234f-4544-a2ea-bfbefe6b0b36
+  cost {5}{R}{R}
+  type Creature — Elemental
+  pt 5/5
+  keywords wither
+  activated {2}{R}, {Q}: deal damage equal power to any target
+}

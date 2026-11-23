@@ -1,0 +1,78 @@
+# {Q}, the untap symbol (CR 107.6): the cost untaps the source, so it is
+# payable only while the source is tapped; a creature's {Q} ability needs
+# it to have been under its controller's control since their most recent
+# turn began (CR 302.6).
+
+scenario "Silkbind Faerie: untap it to tap a creature" {
+  battlefield A: "Silkbind Faerie" tapped, 2 "Plains"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Silkbind Faerie" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert untapped "Silkbind Faerie"
+}
+
+scenario "Silkbind Faerie: an untapped source can't pay {Q}" {
+  battlefield A: "Silkbind Faerie", 2 "Plains"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  illegal turn 2 A: activate "Silkbind Faerie" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Merrow Wavebreakers: after attacking, untap it to gain flying" {
+  battlefield A: "Merrow Wavebreakers", 2 "Island"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Merrow Wavebreakers"
+  turn 2 declare_attackers A: activate "Merrow Wavebreakers"
+  run_to turn 2 end
+  assert has "Merrow Wavebreakers" flying
+  assert untapped "Merrow Wavebreakers"
+  assert life B 17
+}
+
+scenario "Patrol Signaler: a summoning-sick creature can't use {Q}" {
+  battlefield A: 4 "Plains"
+  hand A: "Patrol Signaler"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Patrol Signaler"
+  run_to turn 2 postcombat_main
+  illegal turn 2 postcombat_main A: activate "Patrol Signaler"
+  run_to turn 2 end
+  assert battlefield A lacks "Kithkin Soldier"
+}
+
+scenario "Patrol Signaler: untap it for a Kithkin" {
+  battlefield A: "Patrol Signaler" tapped, 2 "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Patrol Signaler"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Kithkin Soldier"
+}
+
+scenario "Hateflayer: damage equal to its power" {
+  battlefield A: "Hateflayer" tapped, 3 "Mountain"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Hateflayer" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 15
+}
+
+scenario "Gilder Bairn doubles each kind of counter" {
+  battlefield A: "Gilder Bairn" tapped, 3 "Forest", "Grizzly Bears" with 2 +1/+1
+  start turn 2 A precombat_main
+  turn 2 A: activate "Gilder Bairn" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 4
+}
+
+scenario "Order of Whiteclay returns a small creature card" {
+  battlefield A: "Order of Whiteclay" tapped, 3 "Plains"
+  graveyard A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Order of Whiteclay" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}

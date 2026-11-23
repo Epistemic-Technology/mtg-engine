@@ -1,0 +1,7 @@
+card "Martyr of Sands" {
+  oracle_id f2048140-b691-4753-8239-1aa75059e389
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {1}, reveal X white cards, sacrifice this: you gain 3 times X life
+}

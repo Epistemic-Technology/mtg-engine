@@ -1,0 +1,7 @@
+card "Safehold Sentry" {
+  oracle_id 22534fab-2c62-4113-bcea-f305ae9f664f
+  cost {1}{W}
+  type Creature — Elf Warrior
+  pt 2/2
+  activated {2}{W}, {Q}: this gets +0/+2
+}

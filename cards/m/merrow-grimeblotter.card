@@ -1,0 +1,7 @@
+card "Merrow Grimeblotter" {
+  oracle_id 4e9a63d2-b48b-4740-95ba-7966ada95baf
+  cost {3}{U/B}
+  type Creature — Merfolk Wizard
+  pt 2/2
+  activated {1}{U/B}, {Q}: target creature gets -2/-0
+}

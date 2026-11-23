@@ -3353,6 +3353,7 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
     let default_order = [
         CostItem::Mana,
         CostItem::Tap,
+        CostItem::Untap,
         CostItem::Sacrifice,
         CostItem::Discard,
         CostItem::Life,
@@ -3381,6 +3382,11 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
             CostItem::Tap => {
                 if cost.tap {
                     parts.push("{T}".to_string());
+                }
+            }
+            CostItem::Untap => {
+                if cost.untap {
+                    parts.push("{Q}".to_string());
                 }
             }
             CostItem::Sacrifice => match &cost.sacrifice {
@@ -3552,6 +3558,13 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
             // a Dragon", "Behold three Elementals".
             CostItem::Behold => {
                 if let Some(b) = &cost.behold
+                    && b.reveal
+                    && b.x
+                {
+                    // "Reveal X red cards from your hand".
+                    let what = card_filter_phrase(&b.filter, ctx.card);
+                    parts.push(format!("Reveal X {what} cards from your hand"));
+                } else if let Some(b) = &cost.behold
                     && b.reveal
                 {
                     let what = card_filter_a(&b.filter, ctx.card);

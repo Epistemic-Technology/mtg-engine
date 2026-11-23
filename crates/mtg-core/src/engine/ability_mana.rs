@@ -234,7 +234,7 @@ impl GameState {
                 let AbilityDef::Activated(ab) = self.pool.ability(*a) else {
                     continue;
                 };
-                if ab.cost.tap && (o.tapped || sick) {
+                if ab.cost.tap && (o.tapped || sick) || ab.cost.untap {
                     continue;
                 }
                 if let Some(m) = self.usable_mana_ability(p, id, *a, ab) {

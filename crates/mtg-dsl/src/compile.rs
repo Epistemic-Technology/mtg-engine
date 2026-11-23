@@ -2639,6 +2639,7 @@ impl Compiler<'_> {
             remove_from_creature: c.remove_from_creature,
             sacrifice_any: c.sacrifice_any,
             remove_x: c.remove_x,
+            untap: c.untap,
             chosen: c.chosen,
             life: c.life,
             discard: c.discard,
@@ -2670,6 +2671,7 @@ impl Compiler<'_> {
                     n: b.n,
                     exile: b.exile,
                     hand: b.reveal,
+                    x: b.x,
                 })
             }),
         }

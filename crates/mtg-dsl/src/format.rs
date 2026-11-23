@@ -4646,6 +4646,7 @@ fn cost_text(c: &Cost) -> String {
     let default_order = [
         CostItem::Mana,
         CostItem::Tap,
+        CostItem::Untap,
         CostItem::Sacrifice,
         CostItem::Discard,
         CostItem::Life,
@@ -4669,6 +4670,11 @@ fn cost_text(c: &Cost) -> String {
                     parts.push(format!("waterbend {mana}"));
                 } else if !mana.is_empty() {
                     parts.push(mana);
+                }
+            }
+            CostItem::Untap => {
+                if c.untap {
+                    parts.push("{Q}".to_string());
                 }
             }
             CostItem::Tap => {
@@ -4811,6 +4817,11 @@ fn cost_text(c: &Cost) -> String {
                     let mut s = String::new();
                     if b.optional {
                         s.push_str("may ");
+                    }
+                    if b.reveal && b.x {
+                        let _ = write!(s, "reveal X {} cards", filter(&b.filter));
+                        parts.push(s);
+                        continue;
                     }
                     if b.reveal {
                         let _ = write!(s, "reveal {} card", filter(&b.filter));

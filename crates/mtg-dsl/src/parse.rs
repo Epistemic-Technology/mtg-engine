@@ -13922,6 +13922,14 @@ impl P {
                                 saw_mana = false;
                             }
                             cost.order.push(CostItem::Tap);
+                        } else if s == "Q" {
+                            // CR 107.6: the untap symbol.
+                            cost.untap = true;
+                            if saw_mana {
+                                cost.order.push(CostItem::Mana);
+                                saw_mana = false;
+                            }
+                            cost.order.push(CostItem::Untap);
                         } else {
                             mana.push('{');
                             mana.push_str(s);
@@ -14269,6 +14277,7 @@ impl P {
                             exile,
                             optional,
                             reveal: false,
+                            x: false,
                         }));
                         cost.order.push(CostItem::Behold);
                     }
@@ -14322,14 +14331,17 @@ impl P {
                     {
                         let optional = self.eat_word("may");
                         self.pos += 1;
+                        // `reveal X red cards` (X the ability's).
+                        let x = self.eat_word("x");
                         let filter = self.filter()?;
                         self.cards_word()?;
                         cost.behold = Some(Box::new(crate::ast::Behold {
                             filter,
-                            n: 1,
+                            n: u32::from(!x),
                             exile: false,
                             optional,
                             reveal: true,
+                            x,
                         }));
                         cost.order.push(CostItem::Behold);
                     }

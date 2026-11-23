@@ -1,0 +1,7 @@
+card "Order of Whiteclay" {
+  oracle_id 16c46eaf-7a31-4957-ab7c-ff07fbbd9ddc
+  cost {1}{W}{W}
+  type Creature — Kithkin Cleric
+  pt 1/4
+  activated {1}{W}{W}, {Q}: return target creature card with mana value 3 or less from your graveyard to battlefield
+}

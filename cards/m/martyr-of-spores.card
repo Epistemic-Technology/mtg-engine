@@ -1,0 +1,7 @@
+card "Martyr of Spores" {
+  oracle_id 46c128d5-92b7-4132-a865-4db299879579
+  cost {G}
+  type Creature — Human Shaman
+  pt 1/1
+  activated {1}, reveal X green cards, sacrifice this: target creature gets +1/+1 X
+}

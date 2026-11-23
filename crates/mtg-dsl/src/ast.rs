@@ -777,6 +777,8 @@ pub struct Cost {
     /// `remove X ki counters from this`: "Remove X ki counters from this
     /// creature", X the ability's.
     pub remove_x: bool,
+    /// `{Q}`: the untap symbol.
+    pub untap: bool,
 }
 
 /// `behold Kithkin`: "behold a Kithkin" (CR 701.69a); `and exile`: "and
@@ -791,6 +793,9 @@ pub struct Behold {
     /// `reveal Kithkin card`: "reveal a Kithkin card from your hand", a
     /// card from the hand only.
     pub reveal: bool,
+    /// `reveal X red cards`: "Reveal X red cards from your hand", X the
+    /// ability's.
+    pub x: bool,
 }
 
 /// A cost exiling cards from the graveyard: `n` (or X) cards matching
@@ -828,6 +833,8 @@ pub enum CostItem {
     Exile,
     Mana,
     Tap,
+    /// `{Q}`.
+    Untap,
     Sacrifice,
     Discard,
     Life,

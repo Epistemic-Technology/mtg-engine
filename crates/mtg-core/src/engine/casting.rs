@@ -4824,6 +4824,10 @@ impl GameState {
                 if ab.cost.tap && (o.tapped || sick) {
                     continue;
                 }
+                // CR 107.6: {Q} untaps a tapped source.
+                if ab.cost.untap && (!o.tapped || sick) {
+                    continue;
+                }
                 let mut req = self.activation_mana(id, ab);
                 // A cost that depends on the target: the cheapest target.
                 if self.target_reduces(ab) {
@@ -5355,6 +5359,7 @@ impl GameState {
             self.pool.ability(ability),
             AbilityDef::Activated(a) if (a.cost.mana.has_x()
                 || a.cost.remove_x
+                || a.cost.behold.as_ref().is_some_and(|b| b.x)
                 || a.cost.exile_cards.as_ref().is_some_and(|g| g.x))
                 && !a.is_mana_ability()
         );
@@ -5518,6 +5523,15 @@ impl GameState {
             max_x.min(u32::try_from(self.player(caster).life.max(0)).unwrap_or(0))
         } else {
             max_x
+        };
+        // "Reveal X red cards from your hand": no more than there are.
+        let max_x = match ability {
+            Some((source, a)) if a.cost.behold.as_ref().is_some_and(|b| b.x) => {
+                let b = a.cost.behold.as_deref().expect("checked");
+                let n = self.behold_candidates(caster, b, source).len();
+                max_x.min(u32::try_from(n).unwrap_or(MAX_X))
+            }
+            _ => max_x,
         };
         // "Remove X ki counters from this creature": no more than it has.
         let max_x = match ability {
@@ -6147,6 +6161,9 @@ impl GameState {
         if ab.cost.tap {
             self.tap(sa.source);
         }
+        if ab.cost.untap {
+            self.untap(sa.source);
+        }
         // "Tap two untapped Beasts you control": before the mana.
         let mut sacrifice = sacrifice;
         let mut tapped_paid: SmallVec<[ObjId; 2]> = SmallVec::new();
@@ -6230,6 +6247,7 @@ impl GameState {
             // not the source's.
             if ab.cost.life_x
                 || ab.cost.remove_x
+                || ab.cost.behold.as_ref().is_some_and(|b| b.x)
                 || ab.cost.exile_cards.as_ref().is_some_and(|g| g.x)
             {
                 let mut cost = ab.cost.clone();
@@ -6246,6 +6264,11 @@ impl GameState {
                     && let Some((_, n)) = &mut cost.remove_counters
                 {
                     *n = s.x_of(obj);
+                }
+                if let Some(b) = &mut cost.behold
+                    && b.x
+                {
+                    b.n = s.x_of(obj);
                 }
                 s.pay_other_costs(controller, &cost, sa.source, sacrifice, discard);
             } else {

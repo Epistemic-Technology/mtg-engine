@@ -1,0 +1,7 @@
+card "Gilder Bairn" {
+  oracle_id a4441c7d-e22a-4e19-8365-34d52da9fe86
+  cost {1}{G/U}{G/U}
+  type Creature — Ouphe
+  pt 1/3
+  activated {2}{G/U}, {Q}: double the number of each kind of counter on target permanent
+}

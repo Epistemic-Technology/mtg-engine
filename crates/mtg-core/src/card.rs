@@ -6889,6 +6889,11 @@ pub struct Cost {
     /// activated, at most the source's counters of that kind.
     #[serde(default)]
     pub remove_x: bool,
+    /// {Q}, the untap symbol (CR 107.6): untap the source. Payable only
+    /// while it is tapped; a creature's needs it to have been controlled
+    /// since the turn began (CR 302.6).
+    #[serde(default)]
+    pub untap: bool,
 }
 
 /// A behold cost (CR 701.69a): `n` objects matching `filter`, each a
@@ -6908,6 +6913,11 @@ pub struct Behold {
     /// cast this spell").
     #[serde(default)]
     pub hand: bool,
+    /// "Reveal X red cards from your hand" (an activated ability's cost):
+    /// `n` is the ability's X, announced as it is activated, at most the
+    /// matching cards.
+    #[serde(default)]
+    pub x: bool,
 }
 
 /// A cost that exiles cards from its payer's graveyard: `n` of them (X,
@@ -6979,6 +6989,7 @@ impl Cost {
             remove_from_creature: false,
             sacrifice_any: 0,
             remove_x: false,
+            untap: false,
         }
     }
 

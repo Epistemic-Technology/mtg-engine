@@ -11,6 +11,10 @@ free text.
 
 Comments start with `#`. One statement per line. Mana and tap symbols are
 written in braces as Scryfall prints them (`{1}{G}`, `{T}`, `{X}`).
+`{Q}`, the untap symbol (CR 107.6), is a cost that untaps the source:
+payable only while it is tapped, and for a creature only once it has been
+under its controller's control since their most recent turn began (CR
+302.6); automatic mana payment never uses a {Q} mana ability.
 
 ```
 card "Name" {
@@ -1258,7 +1262,11 @@ revealed card's power"), read as the spell resolves. With a reveal cost,
 cast this spell": the card was revealed, or its caster controlled a
 matching permanent as the spell was cast (CR 601.2); a permanent keeps
 it for `enters with 1 +1/+1 counter if beheld` and `triggered when this
-enters if beheld: ...`.
+enters if beheld: ...`. In an activated ability's cost, `reveal X white
+cards` prints "Reveal X white cards from your hand": X is the ability's,
+announced as it is activated, at most the matching cards in hand (the
+engine picks which); `{1}, reveal X white cards, sacrifice this: you gain
+3 times X life` (Martyr of Sands).
 
 Collect evidence (CR 701.59): `collect evidence 4` is an effect (the
 controller exiles cards with total mana value 4 or greater from their
