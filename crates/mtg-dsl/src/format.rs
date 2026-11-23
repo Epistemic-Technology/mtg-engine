@@ -729,6 +729,7 @@ impl Fmt {
                 mtg_core::card::Lasting::SourceTapped => " for as long as this remains tapped",
                 mtg_core::card::Lasting::UntilCastFromExile => " until this is cast from exile",
                 mtg_core::card::Lasting::EndOfCombat => " until end of combat",
+                mtg_core::card::Lasting::Indefinitely => " indefinitely",
             });
         }
         out

@@ -1,0 +1,7 @@
+card "Whip of Erebos" {
+  oracle_id 53987a39-c18c-4c13-b1ea-fd1b2a369f9e
+  cost {2}{B}{B}
+  type Legendary Enchantment Artifact
+  static creature you control: has lifelink
+  activated {2}{B}{B}, {T}, sorcery: return target creature card from your graveyard to battlefield; target 1 gains haste indefinitely; delayed target 1: exile it at beginning of the next end step; leaving exiles target 1
+}

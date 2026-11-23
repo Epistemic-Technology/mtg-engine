@@ -1,0 +1,6 @@
+card "Gruesome Encore" {
+  oracle_id f87bf51e-6218-4418-ae3e-98055e9601e4
+  cost {2}{B}
+  type Sorcery
+  spell: put target creature card from an opponent's graveyard onto battlefield under your control; target 1 gains haste indefinitely; delayed target 1: exile it at beginning of the next end step; leaving exiles that creature
+}

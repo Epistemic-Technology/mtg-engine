@@ -2477,6 +2477,9 @@ pub enum Lasting {
     /// "until end of combat", "this combat" (CR 500.5a, 511.2): ends as
     /// the combat phase ends (or with the turn, if it has no combat).
     EndOfCombat,
+    /// No duration ("It gains haste." on a returned creature, CR 611.2a):
+    /// what would last until end of turn lasts indefinitely.
+    Indefinitely,
 }
 
 /// How long cards exiled by an impulse effect stay playable.

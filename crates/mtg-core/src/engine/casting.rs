@@ -10210,6 +10210,7 @@ impl GameState {
                 self.combat_durations += 1;
                 Duration::UntilEndOfCombat
             }
+            crate::card::Lasting::Indefinitely => Duration::Permanent,
         };
         if d.linked() {
             self.linked_durations += 1;

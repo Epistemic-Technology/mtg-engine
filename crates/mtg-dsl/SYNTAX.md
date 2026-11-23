@@ -1985,6 +1985,14 @@ end of combat` ("That creature can't block this combat."), `target
 creature defending player controls blocks this if able until end of
 combat` ("... blocks it this combat if able").
 
+`indefinitely` after a sentence whose clauses would last until end of
+turn makes them last for good, printing no duration (CR 611.2a): `target
+1 gains haste indefinitely` ("It gains haste.", on a creature returned to
+the battlefield, Whip of Erebos). `leaving exiles that creature` prints
+"If that creature would leave the battlefield, exile it instead of
+putting it anywhere else." (`leaving exiles target 1`: "If it would
+...").
+
 Subject-first clauses: `<who> gains 3 life`, `<who> loses 1 life`, `<who> loses half life` ("that player loses half their life, rounded up", CR 107.1a; `you lose half life`: "your life"), `you lose game` ("You lose the game.", CR 104.3e: not while the player can't lose the game),
 `<who> draws 2 cards`, `<who> discards 2 cards`, `<who> mills 20 cards`,
 `<what> gets +3/+3`, `<what> gains flying`, `<what> can't block` (this

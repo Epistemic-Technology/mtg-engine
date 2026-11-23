@@ -7253,8 +7253,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         // CR 702.84a's replacement, as its own sentence (Whip of Erebos).
         Effect::ExileOnLeave { what } => {
             let o = ctx.obj(*what);
+            // "If that creature would leave the battlefield, exile it
+            // instead ..." (Gruesome Encore).
+            let it = if o.starts_with("those ") || o == "them" {
+                "them"
+            } else {
+                "it"
+            };
             Clause::imperative(format!(
-                "if {o} would leave the battlefield, exile {o} instead of putting {o} anywhere else"
+                "if {o} would leave the battlefield, exile {it} instead of putting {it} anywhere else"
             ))
         }
         Effect::Detain { what } => {
@@ -10727,6 +10734,9 @@ fn lowercase_first(s: &str) -> String {
 /// its own period ("gain \"{T}: This creature deals 2 damage to any
 /// target\" until end of turn").
 fn push_suffix(out: &mut String, suffix: &str) {
+    if suffix.is_empty() {
+        return;
+    }
     if out.ends_with(".\"") {
         out.truncate(out.len() - 2);
         out.push('"');
@@ -10974,6 +10984,8 @@ fn lasting_text(l: mtg_core::card::Lasting, ctx: &Ctx) -> String {
         Lasting::SourceTapped => format!("for as long as {} remains tapped", ctx.source_name()),
         Lasting::UntilCastFromExile => "until this card is cast from exile".to_string(),
         Lasting::EndOfCombat => "until end of combat".to_string(),
+        // No duration printed ("It gains haste.").
+        Lasting::Indefinitely => String::new(),
     }
 }
 

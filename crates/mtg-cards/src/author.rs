@@ -1827,6 +1827,23 @@ impl Templates {
                     ))
                 },
             ),
+            // CR 614.1a: "If it would leave the battlefield, exile it
+            // instead of putting it anywhere else." about a returned card.
+            (
+                r(
+                    r"^If (it|that creature) would leave the battlefield, exile it instead of putting it anywhere else$",
+                ),
+                |c, t| {
+                    if *t == 0 {
+                        return None;
+                    }
+                    Some(if cap(c, 1) == "it" {
+                        format!("leaving exiles target {}", *t)
+                    } else {
+                        "leaving exiles that creature".to_string()
+                    })
+                },
+            ),
             // "It loses all abilities" (with a duration after it).
             (r(r"^(.+?) loses? all abilities$"), |c, t| {
                 let who = all_subject(cap(c, 1), recipient(&subject(cap(c, 1)), t)?);
@@ -1839,7 +1856,18 @@ impl Templates {
                         return None;
                     }
                     let who = all_subject(cap(c, 1), recipient(&subject(cap(c, 1)), t)?);
-                    Some(format!("{who} gains {}", keyword_list(cap(c, 2))?))
+                    // "It gains haste." with no duration (a returned
+                    // creature, Whip of Erebos): for good (CR 611.2a).
+                    let forever = !c[0].ends_with(" until end of turn")
+                        && matches!(
+                            cap(c, 1),
+                            "It" | "That creature" | "They" | "Those creatures"
+                        );
+                    Some(format!(
+                        "{who} gains {}{}",
+                        keyword_list(cap(c, 2))?,
+                        if forever { " indefinitely" } else { "" }
+                    ))
                 },
             ),
             (
@@ -3662,6 +3690,12 @@ impl Templates {
             *targets = before;
             return None;
         };
+        // "It gains haste until your next turn": the duration replaces the
+        // one-word "for good" of a bare grant.
+        let out = match out.strip_suffix(" indefinitely") {
+            Some(o) if !out.starts_with("gain control of ") => o.to_string(),
+            _ => out,
+        };
         // "Gain control of target creature for as long as ...": the
         // duration takes the place of "for good".
         let out = match out.strip_prefix("gain control of ") {
@@ -4270,12 +4304,11 @@ impl Templates {
                     // Sacrificed or destroyed where it is; a card returning
                     // from exile is a new object (CR 400.7).
                     "this".to_string()
-                } else if *targets > 0
-                    && matches!(obj, "it" | "that card" | "that creature")
-                    && !out.iter().any(|l| l.contains("to battlefield"))
-                {
-                    // Not a card just returned to the battlefield: the
-                    // target was the card in the graveyard.
+                } else if *targets > 0 && matches!(obj, "it" | "that card" | "that creature") {
+                    // The target: a card returned to the battlefield is
+                    // followed to its new object (`Effect::Delayed`, CR
+                    // 400.7 exceptions), as Whip of Erebos's scenario
+                    // shows.
                     format!("target {}", *targets)
                 } else {
                     return Err(Skip::Sentence(sentence));

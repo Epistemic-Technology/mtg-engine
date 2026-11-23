@@ -5449,6 +5449,10 @@ impl P {
         if self.eat_words(&["until", "end", "of", "combat"]) {
             return Some(Lasting::EndOfCombat);
         }
+        // "It gains haste." (no duration).
+        if self.eat_word("indefinitely") {
+            return Some(Lasting::Indefinitely);
+        }
         None
     }
 
