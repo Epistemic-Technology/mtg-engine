@@ -2728,6 +2728,7 @@ impl Compiler<'_> {
                 .filter(|m| m + 1 < ts.len())
                 .map(|m| (m, ts.len())),
             shift: 0,
+            they_target: false,
         };
         let mut specs: Vec<TargetSpec> = ts.iter().map(|t| self.target(t)).collect();
         if let Some((m, _)) = self.tmap.group {
@@ -2858,6 +2859,7 @@ impl Compiler<'_> {
             Recipient::TriggeringObject
             | Recipient::TriggeringIt
             | Recipient::TheTriggeringObject => CoreRecipient::TriggeringObject,
+            Recipient::TriggeringThey if tmap.they_target => CoreRecipient::ControllerOf(ti(0)),
             Recipient::TriggeringPlayer | Recipient::TriggeringThey => {
                 CoreRecipient::TriggeringPlayer
             }
@@ -5537,7 +5539,14 @@ impl Compiler<'_> {
                         ))
                     }
                 },
-                targets: self.targets(targets),
+                targets: {
+                    let ts = self.targets(targets);
+                    let enters_this = |t: &Trigger| matches!(t, Trigger::Enters(TriggerObj::This));
+                    self.tmap.they_target = !ts.is_empty()
+                        && (enters_this(trigger)
+                            || matches!(trigger, Trigger::When(t) if enters_this(t)));
+                    ts
+                },
                 effects: self.sentences(effects)?,
                 from_graveyard: *from_graveyard,
             }),
@@ -7753,6 +7762,11 @@ struct TargetMap {
     /// Inside a kicked spell's "instead" with its own targets: how many
     /// targets the kicked spell doesn't have (`CardDef::kicked_drops`).
     shift: usize,
+    /// "When this enters, destroy target permanent an opponent controls.
+    /// They create a Treasure token." (Vraska, the Cutting Glare): the
+    /// triggering player is you, so "they" is the first target's
+    /// controller (CR 608.2c).
+    they_target: bool,
 }
 
 /// The engine's index of the ability's `i`th target (`TargetMap`).
