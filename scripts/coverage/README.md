@@ -62,7 +62,15 @@ pass. Everything here is about reaching that at less cost.
    Oracle text names a feature known to be missing. Stop batches for a
    format when yield falls below about 15% (Pauper reached 14.5% in the
    sixth wave, at three times the tokens per card of any other source):
-   that means the engine, not the authoring, is the limit. The template
+   that means the engine, not the authoring, is the limit. That figure
+   was for retries: the 253 Pauper cards no batch had tried still
+   yielded 23% in the eighth wave, so check for never-tried cards
+   before stopping a format. Retry batches (`RETRY` in `wave-lists.py`)
+   of cards with old reports did not pay: 7 of 72 Pauper cards right
+   after the eighth wave's merges, and 22 of 360 Standard cards in the
+   ninth (6%, about 80k Sonnet tokens a card). What is left in a format
+   at that point needs a rule of its own per card or small group; give
+   those cards to feature agents. The template
    author is the cheapest source of all; give one feature agent the
    template author itself every wave.
 7. **Clean up.** Delete `target/` in finished worktrees before the next

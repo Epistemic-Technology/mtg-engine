@@ -1,0 +1,9 @@
+card "Balduvian Atrocity" {
+  oracle_id 0dcd13ab-37f9-4d66-8227-1e72d920f297
+  cost {2}{B}
+  type Creature — Phyrexian Berserker
+  pt 2/3
+  kicker {R}
+  keyword menace
+  triggered when this enters if kicked: return target creature card with mana value 3 or less from your graveyard to battlefield; target 1 gains haste indefinitely; delayed target 1: sacrifice It at beginning of the next end step
+}

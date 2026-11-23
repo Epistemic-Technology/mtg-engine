@@ -1,0 +1,63 @@
+# Cards the template author wrote after the ninth wave's merges.
+
+scenario "Goryo's Vengeance: the legend returns with haste and is exiled at end of turn" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Isamaru, Hound of Konda"
+  hand A: "Goryo's Vengeance"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Goryo's Vengeance" targeting "Isamaru, Hound of Konda"
+  turn 1 A: attack "Isamaru, Hound of Konda"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  run_to turn 2 upkeep
+  assert exile A contains "Isamaru, Hound of Konda"
+}
+
+scenario "The Locust God returns to its owner's hand at the next end step" {
+  battlefield A: "The Locust God", 2 "Swamp"
+  hand A: "Doom Blade"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Doom Blade" targeting "The Locust God"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "The Locust God"
+  run_to turn 2 upkeep
+  assert hand A contains "The Locust God"
+}
+
+scenario "Balduvian Atrocity kicked: the returned creature has haste and is sacrificed" {
+  battlefield A: 3 "Swamp", "Mountain"
+  graveyard A: "Grizzly Bears"
+  hand A: "Balduvian Atrocity"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Balduvian Atrocity" kicked
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  run_to turn 2 upkeep
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Balduvian Atrocity"
+}
+
+scenario "Postmortem Lunge: X picks the mana value; the creature is exiled at end of turn" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Postmortem Lunge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Postmortem Lunge" x 2 targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  run_to turn 2 upkeep
+  assert exile A contains "Grizzly Bears"
+}
+
+scenario "Fated Return: the creature comes back under your control, indestructible" {
+  battlefield A: 7 "Swamp"
+  graveyard B: "Hill Giant"
+  hand A: "Fated Return"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fated Return" targeting "Hill Giant"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Hill Giant"
+  assert has "Hill Giant" indestructible
+}

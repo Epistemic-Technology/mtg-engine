@@ -1,0 +1,17 @@
+card "Joshua, Phoenix's Dominant // Phoenix, Warden of Fire" {
+  oracle_id f4629329-a79b-4460-a1bc-9ae0f59adf5a
+  layout transform
+  cost {1}{R}{W}
+  type Legendary Creature — Human Noble Wizard
+  pt 3/4
+  triggered when this enters: discard up to 2 cards chosen then draw count that many discarded this way cards
+  activated {3}{R}{W}, {T}, sorcery: exile this then return this to battlefield transformed
+  face "Phoenix, Warden of Fire" {
+    type Legendary Enchantment Creature — Saga Phoenix
+    pt 4/4
+    color red white
+    label "Rising Flames" triggered chapter 1, 2: deal 2 damage to each opponent
+    label "Flames of Rebirth" triggered chapter 3: return any number of target creature cards from your graveyard with total mana value 6 or less to battlefield; exile this then return this to battlefield front face up
+    keyword flying, lifelink
+  }
+}

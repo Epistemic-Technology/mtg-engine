@@ -1,0 +1,6 @@
+card "Postmortem Lunge" {
+  oracle_id aacd1aae-1bf0-43e4-99f4-c6d738af812c
+  cost {X}{B/P}
+  type Sorcery
+  spell: return target creature card with mana value X from your graveyard to battlefield; target 1 gains haste indefinitely; delayed target 1: exile it at beginning of the next end step
+}

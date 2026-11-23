@@ -1,0 +1,10 @@
+card "The Locust God" {
+  oracle_id e025a714-02da-4b0c-8021-cf3e8dc9b19e
+  cost {4}{U}{R}
+  type Legendary Creature — God
+  pt 4/4
+  keywords flying
+  triggered whenever you draw a card: create 1 "1/1 blue and red Insect creature with flying and haste"
+  activated {2}{U}{R}: draw 1 cards then discard 1 cards
+  triggered when this dies: delayed this: return it to hand at beginning of the next end step
+}

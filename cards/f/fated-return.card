@@ -1,0 +1,6 @@
+card "Fated Return" {
+  oracle_id 0eeab568-9186-4813-87e7-9c1e6a7c76e7
+  cost {4}{B}{B}{B}
+  type Instant
+  spell: put target creature card from a graveyard onto battlefield under your control; target 1 gains indestructible indefinitely; if your turn, scry 2
+}
