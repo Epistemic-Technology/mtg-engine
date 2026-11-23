@@ -20,9 +20,14 @@ impl GameState {
     // ----- priority actions --------------------------------------------------------
 
     #[allow(clippy::too_many_lines)] // one block per zone cast from
-    pub(super) fn priority_options(&self, p: PlayerId) -> Vec<Choice> {
-        // Room for a typical listing, so it isn't regrown push by push.
-        let mut options = Vec::with_capacity(8);
+    pub(super) fn priority_options(&self, p: PlayerId, mut options: Vec<Choice>) -> Vec<Choice> {
+        // `options` is the last decision's emptied list (`spare_options`),
+        // reused; else room for a typical listing, so it isn't regrown
+        // push by push.
+        debug_assert!(options.is_empty());
+        if options.capacity() == 0 {
+            options.reserve(8);
+        }
         let sorcery_timing =
             p == self.active_player && self.step.is_main() && self.stack.is_empty();
         let ps = self.player(p);

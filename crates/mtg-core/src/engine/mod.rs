@@ -379,7 +379,12 @@ impl Engine {
         let player = decision.player;
         let mut options = decision.options;
         let option = options.swap_remove(choice as usize);
-        drop(options);
+        // The emptied list is kept for the next priority listing (one
+        // allocation fewer per decision); a very long one is let go.
+        options.clear();
+        if options.capacity() <= 64 {
+            self.state.spare_options = options;
+        }
         self.history.push(choice);
         if let Some(snap) = self.snapshot.take() {
             // Answering a question met in the middle of an event: replay the
@@ -667,6 +672,7 @@ impl GameState {
             cache: crate::state::DerivedCache::default(),
             mana_cache: std::cell::RefCell::new(Default::default()),
             tap_epoch: 0,
+            spare_options: Vec::new(),
         }
     }
 
@@ -813,7 +819,8 @@ impl GameState {
                         continue;
                     }
                     let player = self.priority;
-                    let options = self.priority_options(player);
+                    let spare = std::mem::take(&mut self.spare_options);
+                    let options = self.priority_options(player, spare);
                     return StepResult::Decision(Decision {
                         player,
                         kind: DecisionKind::PriorityAction,
