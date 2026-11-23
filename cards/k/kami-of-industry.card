@@ -1,0 +1,7 @@
+card "Kami of Industry" {
+  oracle_id b308fa9a-3f69-4e59-9d4b-8007d9a2b1f1
+  cost {4}{R}
+  type Creature — Spirit
+  pt 3/6
+  triggered when this enters: return target artifact card with mana value 3 or less from your graveyard to battlefield; target 1 gains haste indefinitely; delayed target 1: sacrifice it at beginning of the next end step
+}

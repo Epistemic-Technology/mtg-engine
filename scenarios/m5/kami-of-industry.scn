@@ -1,0 +1,18 @@
+# "Return target artifact card with mana value 3 or less from your
+# graveyard to the battlefield. It gains haste. Sacrifice it at the
+# beginning of the next end step." (Kami of Industry): haste for good on
+# the returned permanent (CR 611.2a), and a delayed trigger about it.
+
+scenario "Kami of Industry: the returned artifact creature attacks, then is sacrificed" {
+  battlefield A: 5 "Mountain"
+  graveyard A: "Bottle Gnomes"
+  hand A: "Kami of Industry"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Kami of Industry"
+  turn 2 A: trigger "Kami of Industry" targeting "Bottle Gnomes"
+  turn 2 A: attack "Bottle Gnomes"
+  run_to turn 2 postcombat_main
+  assert life B 19
+  run_to turn 3 upkeep
+  assert graveyard A contains "Bottle Gnomes"
+}
