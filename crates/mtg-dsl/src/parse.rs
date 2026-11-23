@@ -1717,6 +1717,7 @@ impl P {
         }
     }
 
+    #[allow(clippy::too_many_lines)] // one branch per wording
     fn mana_restriction_base(&mut self) -> R<crate::ast::ManaRestriction> {
         use mtg_core::card::{SpendPlural, SpendWays, SpendWording};
         if self.eat_word("not") {
@@ -1781,7 +1782,7 @@ impl P {
         let x_spells = if self.eat_words(&["or", "x"]) {
             let g = self.spend_filter()?;
             self.spell_noun()?;
-            Some(g)
+            Some(Box::new(g))
         } else {
             None
         };

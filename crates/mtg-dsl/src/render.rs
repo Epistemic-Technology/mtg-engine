@@ -613,6 +613,7 @@ fn spell_noun_plural(what: &str) -> String {
 /// "Spend this mana only to cast an instant or sorcery spell.", "Spend
 /// this mana only to cast artifact spells or activate abilities of
 /// artifacts." (CR 106.6).
+#[allow(clippy::too_many_lines)] // one branch per wording
 fn spend_rule(card: &Card, r: &crate::ast::ManaRestriction) -> String {
     use mtg_core::card::{SpendPlural, SpendWays, SpendWording};
     if r.ways.has(SpendWays::ON_COSTS) {
@@ -652,7 +653,7 @@ fn spend_rule(card: &Card, r: &crate::ast::ManaRestriction) -> String {
             }
         }
         if let Some(x) = &r.x_spells {
-            if *x == Filter::default() {
+            if **x == Filter::default() {
                 let _ = write!(
                     s,
                     " or {} with {{X}} in {} mana cost{}",

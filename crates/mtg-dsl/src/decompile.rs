@@ -211,7 +211,7 @@ impl Decompiler<'_> {
             plural: r.plural,
             bare: r.bare,
             ways: r.ways,
-            x_spells: r.x_spells.as_ref().map(|f| self.filter(f)),
+            x_spells: r.x_spells.as_ref().map(|f| Box::new(self.filter(f))),
         }
     }
 

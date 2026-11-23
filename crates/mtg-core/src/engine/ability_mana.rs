@@ -588,6 +588,7 @@ impl GameState {
         Some((made.out, made.tie, made.rest))
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per way to add mana
     fn mana_made_into(&self, ctx: &EffectCtx, effects: &[Effect], made: &mut Made) -> Option<()> {
         let id = ctx.source;
         let chosen = self.chosen_color_of(id).map_or(0, |c| 1 << (c as u8));

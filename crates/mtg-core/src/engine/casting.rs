@@ -7429,7 +7429,7 @@ impl GameState {
                 (a, b) => a == b,
             };
             let mut restricted = false;
-            let mut plain = false;
+            let mut unrestricted = false;
             for a in &c.abilities {
                 match self.pool.ability(*a) {
                     AbilityDef::RestrictedMana {
@@ -7440,11 +7440,11 @@ impl GameState {
                     {
                         restricted = true;
                     }
-                    AbilityDef::TapForMana(m) if makes(*m) => plain = true,
+                    AbilityDef::TapForMana(m) if makes(*m) => unrestricted = true,
                     _ => {}
                 }
             }
-            if restricted && !plain {
+            if restricted && !unrestricted {
                 self.spent_uncounterable = true;
             }
         }
@@ -10553,7 +10553,8 @@ impl GameState {
                 let k = self.lands_could_produce(p, *whose, *basic);
                 // "any type": {C} when no color is possible (the choice
                 // offers colors only).
-                let colorless = *any_type && k & 0b1_1111 == 0 && k & (1 << 5) != 0;
+                // No color bit (the low five), the colorless one (bit 5).
+                let colorless = *any_type && k.trailing_zeros() == 5;
                 if colorless {
                     self.player_mut(p).mana_pool.add(Mana::Colorless);
                     self.bump();

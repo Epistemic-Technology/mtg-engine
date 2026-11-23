@@ -146,7 +146,7 @@ pub struct ManaRestriction {
     /// see `mtg_core::card::SpendWays`.
     pub ways: mtg_core::card::SpendWays,
     /// `or x spells`: "or spells with {X} in their mana costs".
-    pub x_spells: Option<Filter>,
+    pub x_spells: Option<Box<Filter>>,
 }
 
 /// The pronoun a character's text uses for it after its name: `pronoun
