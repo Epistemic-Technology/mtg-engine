@@ -4584,6 +4584,13 @@ pub enum Effect {
         opponents: bool,
         inner: Vec<Sentence>,
     },
+    /// `<clause> unless any player may this deals 4 damage to you`: "...
+    /// unless a player has this creature deal 4 damage to them" (the
+    /// clause happens if no player does it; `AnyPlayerMay`).
+    UnlessAnyPlayer {
+        act: Box<Effect>,
+        effect: Box<Effect>,
+    },
     /// "If this spell was kicked, ..." (CR 702.33c).
     IfKicked(Vec<Sentence>),
     /// `each player puts 1 creature card from graveyard onto battlefield`:

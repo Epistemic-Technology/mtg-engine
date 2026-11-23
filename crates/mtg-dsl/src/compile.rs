@@ -3932,6 +3932,17 @@ impl Compiler<'_> {
                     effects,
                 });
             }
+            Effect::UnlessAnyPlayer { act, effect } => {
+                let mut acts = Vec::new();
+                self.effect(act, &mut acts)?;
+                let mut effects = Vec::new();
+                self.effect(effect, &mut effects)?;
+                out.push(CoreEffect::AnyPlayerMay {
+                    opponents: false,
+                    effects: acts,
+                });
+                out.push(CoreEffect::Otherwise(effects));
+            }
             Effect::AnyPlayerMay { opponents, inner } => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::AnyPlayerMay {

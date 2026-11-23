@@ -2603,6 +2603,11 @@ impl Fmt {
                 let who = self.recipient(*who, t);
                 format!("{who} may {}", self.line(inner, t))
             }
+            Effect::UnlessAnyPlayer { act, effect } => format!(
+                "{} unless any player may {}",
+                self.effect(effect, t),
+                self.effect(act, t)
+            ),
             Effect::AnyPlayerMay { opponents, inner } => format!(
                 "any {} may {}",
                 if *opponents { "opponent" } else { "player" },

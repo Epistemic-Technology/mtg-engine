@@ -10249,6 +10249,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             )
             .until_eot()
         }
+        // "This creature gets +2/+2 until end of turn unless a player has
+        // this creature deal 4 damage to them."
+        Effect::UnlessAnyPlayer { act, effect } => {
+            let mut c = clause(effect, ctx);
+            ctx.source_mentioned = false;
+            let a = clause(act, ctx);
+            let text = a.text.trim_end_matches('.');
+            let body = match (&a.subject, text.strip_prefix("deals ")) {
+                (Some((_, who)), Some(dmg)) if dmg.ends_with(" damage to you") => format!(
+                    "has {who} deal {} damage to them",
+                    dmg.trim_end_matches(" damage to you")
+                ),
+                _ => text.to_string(),
+            };
+            let _ = write!(c.tail, " unless a player {body}");
+            c
+        }
         Effect::AnyPlayerMay { opponents, inner } => {
             let body = sentences(inner, ctx);
             let body = if starts_with_name(&body, ctx.card) {

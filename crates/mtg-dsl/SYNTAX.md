@@ -2401,7 +2401,9 @@ you` ("have Book Burning deal 6 damage to them"); a following `if a player
 does, <clause>` (or `if you do,`) prints "If a player does, ...", and `if
 no one does, <clause>` (or `otherwise,`) "If no one does, ..."; `counter
 this` there in a "When you cast this spell" trigger names the spell
-("counter Brain Gorgers"), `the creature` (in a triggered ability, the triggering
+("counter Brain Gorgers"); `<clause> unless any player may this deals 4
+damage to you` prints "... unless a player has this creature deal 4
+damage to them" (the clause happens if no one does), `the creature` (in a triggered ability, the triggering
 object printed "the creature": "untap the creature"), `if you do,
 <clause>` (only if the optional action before it happened: "You may pay
 {2}. If you do, draw a card."), `if you don't, <clause>` / `if you dont, <clause>` (only if it

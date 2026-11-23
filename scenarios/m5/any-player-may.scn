@@ -178,3 +178,28 @@ scenario "Rhystic Circle does nothing when the opponent pays" {
   run_to turn 2 postcombat_main
   assert life A 18
 }
+
+scenario "Barbarian Bully: an opponent takes 4 instead of the pump" {
+  battlefield A: "Barbarian Bully"
+  hand A: "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Barbarian Bully"
+  turn 1 A: decline "Barbarian Bully"
+  turn 1 B: accept "Barbarian Bully"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert power "Barbarian Bully" 2
+  assert graveyard A contains "Plains"
+}
+
+scenario "Barbarian Bully gets +2/+2 when no one takes the damage" {
+  battlefield A: "Barbarian Bully"
+  hand A: "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Barbarian Bully"
+  turn 1 A: decline "Barbarian Bully"
+  turn 1 B: decline "Barbarian Bully"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert power "Barbarian Bully" 4
+}

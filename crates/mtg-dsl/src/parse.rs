@@ -5659,6 +5659,16 @@ impl P {
             }
             self.pos = at;
         }
+        // `unless any player may this deals 4 damage to you`: "unless a
+        // player has this creature deal 4 damage to them".
+        if self.at_words(&["unless", "any", "player", "may"]) {
+            self.pos += 4;
+            let act = self.clause()?;
+            return Ok(Effect::UnlessAnyPlayer {
+                act: Box::new(act),
+                effect: Box::new(e),
+            });
+        }
         // `unless you sacrifice 1 Forest chosen`: an act, not a payment.
         if self.at_words(&["unless", "you"])
             && !matches!(self.word_at(2).as_deref(), Some("pay" | "do"))

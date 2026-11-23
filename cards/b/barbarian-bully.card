@@ -1,0 +1,7 @@
+card "Barbarian Bully" {
+  oracle_id 5a88f616-986d-4e97-9457-26c783489123
+  cost {2}{R}
+  type Creature — Human Barbarian
+  pt 2/2
+  activated discard 1 card at random, once: this gets +2/+2 unless any player may this deals 4 damage to you
+}
