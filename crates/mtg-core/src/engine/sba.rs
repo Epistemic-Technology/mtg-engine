@@ -482,19 +482,19 @@ impl GameState {
 
     /// The battlefield as it is now, for look-back trigger detection.
     pub(super) fn snapshot_battlefield(&self) -> Vec<Lookback> {
-        self.battlefield
-            .iter()
-            .filter_map(|id| {
-                let o = &self.objects[*id];
-                Some(Lookback {
-                    id: *id,
-                    controller: o.controller,
-                    tapped: o.tapped,
-                    characteristics: self.characteristics(*id)?,
-                    except: o.except,
-                })
+        // Sized up front: a filtered iterator would grow it push by push.
+        let mut out = Vec::with_capacity(self.battlefield.len());
+        out.extend(self.battlefield.iter().filter_map(|id| {
+            let o = &self.objects[*id];
+            Some(Lookback {
+                id: *id,
+                controller: o.controller,
+                tapped: o.tapped,
+                characteristics: self.characteristics(*id)?,
+                except: o.except,
             })
-            .collect()
+        }));
+        out
     }
 
     pub(super) fn check_game_over(&mut self) -> Option<GameResult> {

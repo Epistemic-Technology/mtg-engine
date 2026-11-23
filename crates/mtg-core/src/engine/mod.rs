@@ -3056,21 +3056,20 @@ impl GameState {
         } else {
             self.phase_in_all(active)
         };
-        let perms: Vec<(ObjId, bool, bool)> = self
-            .permanents_of(active)
-            .map(|id| {
-                let (phases, doesnt_untap) = self.characteristics(id).map_or((false, false), |c| {
-                    (c.has(Keyword::Phasing), c.has(Keyword::DoesntUntap))
-                });
-                let creature_stays =
-                    no_creatures && self.characteristics(id).is_some_and(|c| c.is_creature());
-                (
-                    id,
-                    phases,
-                    doesnt_untap || creature_stays || keep.contains(&id),
-                )
-            })
-            .collect();
+        // Sized up front: a filtered iterator would grow it push by push.
+        let mut perms: Vec<(ObjId, bool, bool)> = Vec::with_capacity(self.battlefield.len());
+        perms.extend(self.permanents_of(active).map(|id| {
+            let (phases, doesnt_untap) = self.characteristics(id).map_or((false, false), |c| {
+                (c.has(Keyword::Phasing), c.has(Keyword::DoesntUntap))
+            });
+            let creature_stays =
+                no_creatures && self.characteristics(id).is_some_and(|c| c.is_creature());
+            (
+                id,
+                phases,
+                doesnt_untap || creature_stays || keep.contains(&id),
+            )
+        }));
         let mut phasing: smallvec::SmallVec<[ObjId; 2]> = smallvec::SmallVec::new();
         for (id, phases, doesnt_untap) in perms {
             // Those with phasing phase out instead of untapping, all at
