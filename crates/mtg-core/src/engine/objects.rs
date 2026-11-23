@@ -731,15 +731,14 @@ impl GameState {
             for (kind, n) in entered {
                 if n > 0 {
                     if kind == CounterKind::PlusOnePlusOne {
-                        self.turn_log.counter_put_by |= 1 << by.index().min(7);
+                        self.log_event(TurnEvent::PlusCountersBy, by, 1);
                     }
                     // Asked once per player each turn (the cache was bumped
                     // as it entered).
-                    let bit = 1 << by.index().min(7);
-                    if self.turn_log.any_counter_put_by & bit == 0
+                    if self.tallied(TurnEvent::CountersOnCreatureBy, by) == 0
                         && self.characteristics(new).is_some_and(|c| c.is_creature())
                     {
-                        self.turn_log.any_counter_put_by |= bit;
+                        self.log_event(TurnEvent::CountersOnCreatureBy, by, 1);
                     }
                     // CR 702.155c: a Saga with read ahead entering with
                     // lore counters triggers only its chosen chapter.
@@ -1625,7 +1624,7 @@ impl GameState {
                     && c.is_creature()
                     && c.has_subtype(a)
                 {
-                    self.assassin_damage |= 1 << ctl.index().min(7);
+                    self.log_event(TurnEvent::AssassinDamage, ctl, 1);
                 }
                 // CR 702.76a: combat damage by a creature of a prowl type.
                 if combat
@@ -1805,19 +1804,19 @@ impl GameState {
         let before = o.counters(kind);
         o.add_counters(kind, n);
         let by = self.effect_controller.unwrap_or(o.controller);
+        let on = o.controller;
         if kind == CounterKind::PlusOnePlusOne {
-            self.turn_log.counter_put |= 1 << o.controller.index().min(7);
-            self.turn_log.counter_put_by |= 1 << by.index().min(7);
+            self.log_event(TurnEvent::PlusCountersOn, on, 1);
+            self.log_event(TurnEvent::PlusCountersBy, by, 1);
         }
         self.cbump();
         // "if you put a counter on a creature this turn": asked once per
         // player each turn, after the bump (the counters may change what
         // the permanent is).
-        let bit = 1 << by.index().min(7);
-        if self.turn_log.any_counter_put_by & bit == 0
+        if self.tallied(TurnEvent::CountersOnCreatureBy, by) == 0
             && self.characteristics(id).is_some_and(|c| c.is_creature())
         {
-            self.turn_log.any_counter_put_by |= bit;
+            self.log_event(TurnEvent::CountersOnCreatureBy, by, 1);
         }
         self.emit(Event::CountersAdded {
             obj: id,

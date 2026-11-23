@@ -2106,9 +2106,6 @@ pub enum CountExpr {
     /// Opponents you're attacking: those a creature you control is
     /// attacking (CR 506.2).
     OpponentsAttacked,
-    /// Creatures you attacked with this turn (declared as attackers, CR
-    /// 508.1).
-    AttackedWithThisTurn,
     /// Converge: the number of colors of mana spent to cast the source
     /// (CR 601.2h).
     SpentColors,
@@ -2194,9 +2191,6 @@ pub enum CountExpr {
     /// 2 to the power of the source's X ("draws 2ˣ cards"), capped so it
     /// fits.
     TwoToX,
-    /// Creatures that attacked this turn, any player's ("for each creature
-    /// that attacked this turn"; CR 508.1).
-    AttackedThisTurn,
     /// Opponents who have more cards in hand than you.
     OpponentsMoreCards,
     /// The total power, toughness, or mana value of the battlefield
@@ -2262,7 +2256,7 @@ impl CountExpr {
     /// using it must be recomputed as that changes (`history_static`).
     pub fn reads_history(&self) -> bool {
         match self {
-            CountExpr::Happened(_) | CountExpr::AttackedThisTurn => true,
+            CountExpr::Happened(_) => true,
             CountExpr::Times(_, c)
             | CountExpr::Plus(_, c)
             | CountExpr::Difference(_, c)
@@ -2306,7 +2300,6 @@ impl CountExpr {
             | CountExpr::Happened(_)
             | CountExpr::CardTypesInGraveyard
             | CountExpr::SourceAllCounters
-            | CountExpr::AttackedThisTurn
             | CountExpr::OpponentsMoreCards
             | CountExpr::ExiledWith(_)
             | CountExpr::CardsInExile { .. }
@@ -2335,7 +2328,6 @@ impl CountExpr {
             | CountExpr::SpellsCastThisTurn { .. }
             | CountExpr::OtherInstantSorceryCast { .. }
             | CountExpr::OpponentsAttacked
-            | CountExpr::AttackedWithThisTurn
             | CountExpr::SpentColors
             | CountExpr::TimesKicked
             | CountExpr::EnergyPaid
@@ -2621,11 +2613,37 @@ pub enum TurnEvent {
     /// Permanents the player sacrificed (CR 701.21), with their card types
     /// as they last existed (`TurnLog::types`).
     Sacrificed,
+    /// Times the player scried (CR 701.22b: scry 0 is no scry) and
+    /// surveilled (CR 701.25c).
+    Scried,
+    Surveilled,
+    /// Crimes the player committed (CR 700.13), one per spell or ability.
+    Crime,
+    /// Times +1/+1 counters were put on a permanent the player controls.
+    PlusCountersOn,
+    /// Times the player put +1/+1 counters on a permanent (CR 122.6: as
+    /// the controller of the effect, or of a permanent entering with
+    /// them).
+    PlusCountersBy,
+    /// Whether the player put counters of any kind on a creature (CR
+    /// 122.6): counted once a turn, since asking what the permanent is
+    /// costs characteristics.
+    CountersOnCreatureBy,
+    /// Equip abilities the player activated ("the first equip ability you
+    /// activate each turn").
+    Equipped,
+    /// Creatures the player declared as attackers (CR 508.1), counted as
+    /// they are declared, before any is tapped.
+    Attacked,
+    /// Combat damage dealt to a player by an Assassin creature the player
+    /// controlled (freerunning, CR 702.173a); counted only with a
+    /// freerunning card in the pool.
+    AssassinDamage,
 }
 
 impl TurnEvent {
     /// The number of kinds: the turn log's rows.
-    pub const COUNT: usize = 21;
+    pub const COUNT: usize = 30;
 
     /// Whether a static ability reading this kind must be refreshed as it
     /// is counted (`CardDef::history_static`), the kinds counted without a
@@ -2642,7 +2660,13 @@ impl TurnEvent {
             | TurnEvent::Warped
             | TurnEvent::CardToGraveyard
             | TurnEvent::LeftGraveyard
-            | TurnEvent::Sacrificed => true,
+            | TurnEvent::Sacrificed
+            | TurnEvent::Scried
+            | TurnEvent::Surveilled
+            | TurnEvent::Crime
+            | TurnEvent::PlusCountersBy
+            | TurnEvent::CountersOnCreatureBy
+            | TurnEvent::Attacked => true,
             TurnEvent::CreatureEntered
             | TurnEvent::NonlandEntered
             | TurnEvent::LandEntered
@@ -2654,7 +2678,10 @@ impl TurnEvent {
             | TurnEvent::ToGraveyard
             | TurnEvent::Drew
             | TurnEvent::Discarded
-            | TurnEvent::Descended => false,
+            | TurnEvent::Descended
+            | TurnEvent::PlusCountersOn
+            | TurnEvent::Equipped
+            | TurnEvent::AssassinDamage => false,
         }
     }
 
@@ -2751,8 +2778,6 @@ pub enum StaticCondition {
     YourMainPhase,
     YourCombatPhase,
     FirstCombatPhase,
-    /// "you've put one or more +1/+1 counters on a creature this turn".
-    PutCounterThisTurn,
     /// "this is the second time this ability has resolved this turn": the
     /// resolving ability's object has resolved it this many times this
     /// turn, counting this time.
@@ -2843,8 +2868,6 @@ pub enum StaticCondition {
     /// "you control an Urza's Mine and an Urza's Power-Plant": at least
     /// one permanent matching each filter.
     YouControlEach(Vec<ObjFilter>),
-    /// Raid: "you attacked this turn".
-    AttackedThisTurn,
     /// "if it attacked during your last turn" (Giant Turtle, Goblin Rock
     /// Sled): the source was declared as an attacker during its
     /// controller's most recent turn before this one (or this one, while
@@ -2963,17 +2986,8 @@ pub enum StaticCondition {
     /// spell whose cost is being determined would be your Nth this turn,
     /// that is, you've cast exactly N - 1 spells before it.
     SpellNumber(u32),
-    /// "you've surveilled this turn" (CR 701.25).
-    SurveilledThisTurn,
-    /// "you've scried or surveilled this turn" (CR 701.22, 701.25).
-    ScriedOrSurveilledThisTurn,
-    /// "a +1/+1 counter was put on a permanent under your control this
-    /// turn".
-    CounterPutThisTurn,
     /// "it's night" (CR 731).
     Night,
-    /// "you've committed a crime this turn" (CR 700.13).
-    CrimeThisTurn,
     /// "you have more cards in hand than each opponent".
     MoreCardsInHand,
     /// "an opponent is poisoned" (1), "an opponent has three or more poison
@@ -3040,11 +3054,6 @@ pub enum StaticCondition {
         n: u32,
         at_least: bool,
     },
-    /// Freerunning's condition (CR 702.173a): "a player was dealt combat
-    /// damage this turn by a creature that, at the time it dealt that
-    /// damage, was an Assassin creature or a commander under your
-    /// control" (the game has no commanders).
-    AssassinDealtCombatDamage,
     /// "If the gift wasn't promised" (CR 702.174; a promised gift is the
     /// kicker flag): the source wasn't kicked.
     NotKicked,
@@ -3095,9 +3104,6 @@ pub enum StaticCondition {
     /// "if you cast it" (CR 601.2a): the source was cast, from any zone;
     /// a permanent remembers it from its spell.
     WasCast,
-    /// "you put a counter on a creature this turn": a spell or ability you
-    /// controlled put counters of any kind on a creature (CR 122.6).
-    PutAnyCounterThisTurn,
     /// "you attacked with three or more Merfolk this turn": at least `n`
     /// creatures matching the filter (judged now, or as they last existed)
     /// attacked under your control this turn.
@@ -10939,13 +10945,7 @@ impl CardPool {
         );
         def.history_static = def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::Static(sa) if matches!(sa.condition, Some(
-                StaticCondition::CrimeThisTurn
-                    | StaticCondition::PutCounterThisTurn
-                    | StaticCondition::SurveilledThisTurn
-                    | StaticCondition::ScriedOrSurveilledThisTurn
-                    | StaticCondition::AttackedWith(_)
-                    | StaticCondition::AttackedWithAtLeast(..)
-                    | StaticCondition::PutAnyCounterThisTurn
+                StaticCondition::AttackedWith(_) | StaticCondition::AttackedWithAtLeast(..)
             )) || sa.condition.as_ref().is_some_and(StaticCondition::refreshes_with_turn_log)
                 || sa.parts.iter().any(|m| matches!(
                 m,

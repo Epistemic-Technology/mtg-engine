@@ -680,9 +680,6 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         | StaticCondition::OthersInCombat { .. }
         | StaticCondition::MoreCreaturesThanOpponent { .. }
         | StaticCondition::Escaped => false,
-        StaticCondition::AttackedThisTurn => {
-            state.attacked_this_turn & (1 << you.index().min(7)) != 0
-        }
         StaticCondition::AttackedLastTurn => state.attacked_last_turn.contains(&(you, source)),
         // Fixed as the permanent enters (CR 702.33c), so no cache bump.
         StaticCondition::Kicked => state.objects.get(source).is_some_and(|o| o.cast.kicked()),
@@ -1275,7 +1272,6 @@ fn per_count(
             .and_then(|s| state.objects.get(s))
             .map_or(0, |o| o.counters.iter().map(|(_, n)| *n as usize).sum()),
         CountExpr::Happened(c) => state.turn_count(c, you, source.unwrap_or_default()) as usize,
-        CountExpr::AttackedThisTurn => state.attackers_this_turn.len(),
         CountExpr::OpponentsMoreCards => {
             let mine = state.player(you).hand.len();
             state
@@ -1432,7 +1428,6 @@ fn per_count(
         | CountExpr::SpellsCastThisTurn { .. }
         | CountExpr::OtherInstantSorceryCast { .. }
         | CountExpr::OpponentsAttacked
-        | CountExpr::AttackedWithThisTurn
         | CountExpr::SpentColors
         | CountExpr::TimesKicked
         | CountExpr::EnergyPaid

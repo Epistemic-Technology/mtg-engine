@@ -1781,28 +1781,12 @@ pub struct TurnLog {
     /// permanents put into a graveyard from the battlefield, the cards put
     /// into a graveyard, and the permanents sacrificed.
     pub types: [[crate::card::TypeSet; 4]; crate::card::TurnEvent::COUNT],
-    /// Players who surveilled (CR 701.25).
-    pub surveilled: u8,
-    /// Players who scried (CR 701.22).
-    pub scried: u8,
-    /// Players who had a +1/+1 counter put on a permanent they control.
-    pub counter_put: u8,
-    /// Players who put a +1/+1 counter on a creature ("if you've put one
-    /// or more +1/+1 counters on a creature this turn").
-    pub counter_put_by: u8,
     /// Generic mana face-down spells each player casts this turn cost less
     /// ("face-down spells you cast this turn cost {1} less to cast").
     pub face_down_less: [u8; 4],
-    /// Players who committed a crime (CR 700.13).
-    pub crime: u8,
-    /// Players who put counters of any kind on a creature.
-    pub any_counter_put_by: u8,
     /// Players who cast a spell from their hand ("if you haven't cast a
     /// spell from your hand this turn").
     pub cast_from_hand: u8,
-    /// Players who activated an equip ability ("the first equip ability
-    /// you activate each turn").
-    pub equipped: u8,
 }
 
 /// Day and night (CR 731): neither until something makes it day.
@@ -2067,8 +2051,6 @@ pub struct GameState {
     /// for: "Whenever you expend 4" triggers on the spell that crosses 4.
     pub mana_spent_this_turn: [u16; 4],
     pub mana_spent_before_cast: [u16; 4],
-    /// Players who declared an attacker this turn (raid), one bit each.
-    pub attacked_this_turn: u8,
     /// "Target creature blocks this creature this turn if able": (blocker,
     /// attacker) requirements for this turn (CR 509.1c).
     pub block_demands: Vec<(ObjId, ObjId)>,
@@ -2083,10 +2065,6 @@ pub struct GameState {
     /// were, their controller, and their characteristics, for "for each
     /// Zubera that died this turn". Empty, unallocated, on most turns.
     pub died_this_turn: Vec<(ObjId, PlayerId, Characteristics)>,
-    /// Players who controlled an Assassin creature as it dealt combat
-    /// damage to a player this turn (freerunning, CR 702.173a), one bit
-    /// each; kept only with a freerunning card in the pool.
-    pub assassin_damage: u8,
     /// The players who dealt combat damage to a player this turn with a
     /// creature of each prowl card's creature types (CR 702.76a), kept
     /// only with a prowl card in the pool.
@@ -4053,9 +4031,7 @@ impl GameState {
             C::OpponentPoisonAtLeast(n) => self
                 .players_in_game()
                 .any(|p| p != you && self.player(p).poison >= *n),
-            C::AttackedThisTurn => self.attacked_this_turn & (1 << you.index().min(7)) != 0,
             C::AttackedLastTurn => self.attacked_last_turn.contains(&(you, source)),
-            C::AssassinDealtCombatDamage => self.assassin_damage & (1 << you.index().min(7)) != 0,
             C::Kicked => self.objects.get(source).is_some_and(|o| o.cast.kicked()),
             C::NotKicked => self.objects.get(source).is_some_and(|o| !o.cast.kicked()),
             C::ManaSpent {
@@ -4403,14 +4379,7 @@ impl GameState {
                     .count();
                 cast + 1 == *n as usize
             }
-            C::SurveilledThisTurn => self.turn_log.surveilled & (1 << you.index().min(7)) != 0,
-            C::ScriedOrSurveilledThisTurn => {
-                (self.turn_log.surveilled | self.turn_log.scried) & (1 << you.index().min(7)) != 0
-            }
-            C::CounterPutThisTurn => self.turn_log.counter_put & (1 << you.index().min(7)) != 0,
             C::Night => self.desig.day_night == DayNight::Night,
-            C::CrimeThisTurn => self.turn_log.crime & (1 << you.index().min(7)) != 0,
-            C::PutCounterThisTurn => self.turn_log.counter_put_by & (1 << you.index().min(7)) != 0,
             C::NthResolution(n) => self.resolution_number == *n,
             C::MoreCardsInHand => {
                 let mine = self.player(you).hand.len();
@@ -4461,9 +4430,6 @@ impl GameState {
                 .or_else(|| self.lki.get(&source).map(|l| &l.object))
                 .and_then(|o| o.cast.cast_from())
                 .is_some_and(|z| z != *zone),
-            C::PutAnyCounterThisTurn => {
-                self.turn_log.any_counter_put_by & (1 << you.index().min(7)) != 0
-            }
             C::AttackedWithAtLeast(f, n) => {
                 self.attackers_this_turn
                     .iter()

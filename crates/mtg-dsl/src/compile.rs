@@ -937,7 +937,7 @@ impl Compiler<'_> {
                         },
                         Mechanic::Freerunning(_) => {
                             self.pool.note_freerunning();
-                            StaticCondition::AssassinDealtCombatDamage
+                            StaticCondition::happened(TurnEvent::AssassinDamage, TurnWho::You)
                         }
                         _ => StaticCondition::happened(TurnEvent::LifeLost, TurnWho::Opponent),
                     };
@@ -2375,7 +2375,9 @@ impl Compiler<'_> {
                     .map(|f| self.filter(f).who(Who::You))
                     .collect(),
             ),
-            StaticCond::AttackedThisTurn => StaticCondition::AttackedThisTurn,
+            StaticCond::AttackedThisTurn => {
+                StaticCondition::happened(TurnEvent::Attacked, TurnWho::You)
+            }
             StaticCond::UnlockedDoors(n) => StaticCondition::UnlockedDoors(*n),
             StaticCond::AttackedWith(f) => StaticCondition::AttackedWith(self.filter(f)),
             StaticCond::EnteredWith { filter, had } => StaticCondition::EnteredWith {
@@ -2489,7 +2491,9 @@ impl Compiler<'_> {
                 StaticCondition::NotCastFrom(mtg_core::state::Zone::Hand)
             }
             StaticCond::WasCast => StaticCondition::WasCast,
-            StaticCond::PutAnyCounterThisTurn => StaticCondition::PutAnyCounterThisTurn,
+            StaticCond::PutAnyCounterThisTurn => {
+                StaticCondition::happened(TurnEvent::CountersOnCreatureBy, TurnWho::You)
+            }
             StaticCond::AttackedWithAtLeast(f, n) => {
                 StaticCondition::AttackedWithAtLeast(self.filter(f), *n)
             }
@@ -2561,8 +2565,16 @@ impl Compiler<'_> {
                 StaticCondition::happened(TurnEvent::Descended, TurnWho::You)
             }
             StaticCond::SpellNumber(n) => StaticCondition::SpellNumber(*n),
-            StaticCond::SurveilledThisTurn => StaticCondition::SurveilledThisTurn,
-            StaticCond::ScriedOrSurveilledThisTurn => StaticCondition::ScriedOrSurveilledThisTurn,
+            StaticCond::SurveilledThisTurn => {
+                StaticCondition::happened(TurnEvent::Surveilled, TurnWho::You)
+            }
+            StaticCond::ScriedOrSurveilledThisTurn => StaticCondition::Or(
+                Box::new(StaticCondition::happened(TurnEvent::Scried, TurnWho::You)),
+                Box::new(StaticCondition::happened(
+                    TurnEvent::Surveilled,
+                    TurnWho::You,
+                )),
+            ),
             StaticCond::CreaturesEnteredThisTurn { n, opponent } => at_least(
                 TurnEvent::CreatureEntered,
                 if *opponent {
@@ -2572,7 +2584,9 @@ impl Compiler<'_> {
                 },
                 u32::from(*n),
             ),
-            StaticCond::CounterPutThisTurn => StaticCondition::CounterPutThisTurn,
+            StaticCond::CounterPutThisTurn => {
+                StaticCondition::happened(TurnEvent::PlusCountersOn, TurnWho::You)
+            }
             StaticCond::FaceDownEnteredThisTurn => {
                 StaticCondition::happened(TurnEvent::FaceDownEntered, TurnWho::You)
             }
@@ -2601,11 +2615,13 @@ impl Compiler<'_> {
             }
             StaticCond::Night => StaticCondition::Night,
             StaticCond::LifeGainedThisTurn(n) => at_least(TurnEvent::LifeGained, TurnWho::You, *n),
-            StaticCond::CrimeThisTurn => StaticCondition::CrimeThisTurn,
+            StaticCond::CrimeThisTurn => StaticCondition::happened(TurnEvent::Crime, TurnWho::You),
             StaticCond::YourMainPhase => StaticCondition::YourMainPhase,
             StaticCond::YourCombatPhase => StaticCondition::YourCombatPhase,
             StaticCond::FirstCombatPhase => StaticCondition::FirstCombatPhase,
-            StaticCond::PutCounterThisTurn => StaticCondition::PutCounterThisTurn,
+            StaticCond::PutCounterThisTurn => {
+                StaticCondition::happened(TurnEvent::PlusCountersBy, TurnWho::You)
+            }
             StaticCond::NthResolution { n, .. } => StaticCondition::NthResolution(*n),
             StaticCond::OpponentNoncombatDamagedThisTurn { .. } => {
                 StaticCondition::happened(TurnEvent::NoncombatDamaged, TurnWho::Opponent)
@@ -2740,7 +2756,10 @@ impl Compiler<'_> {
                 graveyard: *graveyard,
             },
             A::OpponentsAttacked => C::OpponentsAttacked,
-            A::AttackedWithThisTurn => C::AttackedWithThisTurn,
+            // Only the active player declares attackers (CR 508.1).
+            A::AttackedWithThisTurn => {
+                C::Happened(TurnCount::of(TurnEvent::Attacked, TurnWho::You))
+            }
             A::AndOr(inner) => self.count_expr(inner),
             A::DiedThisTurn(f) => C::DiedThisTurn(self.filter(f)),
             A::GreatestPowerInGraveyard(f) => C::GreatestPowerInGraveyard(self.filter(f)),
@@ -2770,7 +2789,8 @@ impl Compiler<'_> {
                 C::Happened(TurnCount::of(TurnEvent::Sacrificed, TurnWho::You))
             }
             A::TwoToX => C::TwoToX,
-            A::AttackedThisTurn => C::AttackedThisTurn,
+            // Every attacker declared this turn, by any player.
+            A::AttackedThisTurn => C::Happened(TurnCount::of(TurnEvent::Attacked, TurnWho::Anyone)),
             A::OpponentsLostLife => {
                 C::Happened(TurnCount::of(TurnEvent::LifeLost, TurnWho::Opponent))
             }

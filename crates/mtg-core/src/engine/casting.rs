@@ -1349,11 +1349,6 @@ impl GameState {
                 }
                 seen.len()
             }
-            // Only the active player declares attackers (CR 508.1).
-            CountExpr::AttackedWithThisTurn if self.active_player == you => {
-                self.attackers_this_turn.len()
-            }
-            CountExpr::AttackedWithThisTurn => 0,
             CountExpr::CardsInOpponentsGraveyards(f) => {
                 let f = f.as_ref().map(|f| self.chosen_filter(f, ctx));
                 let players: SmallVec<[PlayerId; 4]> =
@@ -1474,8 +1469,6 @@ impl GameState {
                     .as_ref()
                     .map_or(0, |log| if *excess { log.excess } else { log.damage });
             }
-            // Every attacker declared this turn, by any player (CR 508.1).
-            CountExpr::AttackedThisTurn => self.attackers_this_turn.len(),
 
             CountExpr::OpponentsMoreCards => {
                 let mine = self.player(you).hand.len();
@@ -5681,7 +5674,7 @@ impl GameState {
                 } = self.pool.ability(*a)
                 {
                     if ab.is_equip()
-                        && self.turn_log.equipped & (1 << p.index().min(7)) == 0
+                        && self.tallied(crate::card::TurnEvent::Equipped, p) == 0
                         && (!*your_turns || self.active_player == p)
                         && condition
                             .is_none_or(|i| self.condition_now(self.pool.condition(i), p, *id))
@@ -6644,7 +6637,6 @@ impl GameState {
     /// ability however many such targets it has.
     fn check_crime(&mut self, obj: ObjId) {
         let who = self.objects[obj].controller;
-        let bit = 1 << who.index().min(7);
         if self.objects[obj].targets.iter().any(|t| match t {
             Target::Player(p) => *p != who,
             Target::Object(id) => self.objects.get(*id).is_some_and(|o| {
@@ -6655,10 +6647,7 @@ impl GameState {
                 }
             }),
         }) {
-            if self.turn_log.crime & bit == 0 {
-                self.turn_log.crime |= bit;
-                self.history_bump();
-            }
+            self.log_event(crate::card::TurnEvent::Crime, who, 1);
             self.emit(Event::CommittedCrime { player: who });
         }
     }
@@ -6837,7 +6826,7 @@ impl GameState {
         }
         self.pay_from(controller, &req, &sources, Some(sa.source));
         if ab.is_equip() {
-            self.turn_log.equipped |= 1 << controller.index().min(7);
+            self.log_event(crate::card::TurnEvent::Equipped, controller, 1);
         }
         if ab.cost.crew > 0 {
             for c in self.crew_choice(controller, sa.source, ab.cost.crew, ab.saddles()) {
@@ -8802,15 +8791,13 @@ impl GameState {
     pub(super) fn scry_or_surveil(&mut self, p: PlayerId, n: u32, graveyard: bool) {
         // "If you've surveilled this turn" (CR 701.25c: surveil 0 is no
         // surveil).
-        if graveyard && n > 0 && self.turn_log.surveilled & (1 << p.index().min(7)) == 0 {
-            self.turn_log.surveilled |= 1 << p.index().min(7);
-            self.history_bump();
+        if graveyard && n > 0 {
+            self.log_event(crate::card::TurnEvent::Surveilled, p, 1);
         }
         // "If you've scried or surveilled this turn" (CR 701.22b: scry 0
         // is no scry).
-        if !graveyard && n > 0 && self.turn_log.scried & (1 << p.index().min(7)) == 0 {
-            self.turn_log.scried |= 1 << p.index().min(7);
-            self.history_bump();
+        if !graveyard && n > 0 {
+            self.log_event(crate::card::TurnEvent::Scried, p, 1);
         }
         let lib = &self.player(p).library;
         let n = (n as usize).min(lib.len()).min(4);

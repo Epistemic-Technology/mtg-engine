@@ -539,13 +539,11 @@ impl GameState {
             next_uncounterable: 0,
             mana_spent_this_turn: [0; 4],
             mana_spent_before_cast: [0; 4],
-            attacked_this_turn: 0,
             block_demands: Vec::new(),
             block_bans: Vec::new(),
             no_regen: Vec::new(),
             no_combat_damage: Vec::new(),
             died_this_turn: Vec::new(),
-            assassin_damage: 0,
             prowl_damage: Vec::new(),
             enter_notes: Vec::new(),
             mayhem_discarded: Vec::new(),
@@ -3686,8 +3684,6 @@ impl GameState {
             }
             self.mana_spent_this_turn = [0; 4];
             self.mana_spent_before_cast = [0; 4];
-            self.attacked_this_turn = 0;
-            self.assassin_damage = 0;
             self.prowl_damage.clear();
             if !self.enter_notes.is_empty() {
                 let objects = &self.objects;

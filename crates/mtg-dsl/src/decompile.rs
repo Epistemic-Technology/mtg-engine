@@ -100,6 +100,14 @@ fn happened(count: &TurnCount, cmp: mtg_core::card::Cmp, n: u32) -> StaticCond {
             StaticCond::CardToGraveyardThisTurn(card_types(count.types))
         }
         (TurnEvent::Sacrificed, ..) => StaticCond::SacrificedThisTurn(card_types(count.types)),
+        (TurnEvent::Scried | TurnEvent::Surveilled, ..) => StaticCond::SurveilledThisTurn,
+        (TurnEvent::Crime, ..) => StaticCond::CrimeThisTurn,
+        (TurnEvent::PlusCountersOn, ..) => StaticCond::CounterPutThisTurn,
+        (TurnEvent::PlusCountersBy, ..) => StaticCond::PutCounterThisTurn,
+        (TurnEvent::CountersOnCreatureBy, ..) => StaticCond::PutAnyCounterThisTurn,
+        (TurnEvent::Attacked, ..) => StaticCond::AttackedThisTurn,
+        (TurnEvent::Equipped, ..) => unreachable!("only the first equip ability"),
+        (TurnEvent::AssassinDamage, ..) => unreachable!("only freerunning's alternative cost"),
     }
 }
 
@@ -667,7 +675,6 @@ impl Decompiler<'_> {
                     attacking: *attacking,
                 }
             }
-            StaticCondition::AttackedThisTurn => StaticCond::AttackedThisTurn,
             StaticCondition::UnlockedDoors(n) => StaticCond::UnlockedDoors(*n),
             StaticCondition::AttackedWith(f) => StaticCond::AttackedWith(self.filter(f)),
             StaticCondition::EnteredWith { filter, had } => StaticCond::EnteredWith {
@@ -677,9 +684,6 @@ impl Decompiler<'_> {
             StaticCondition::SourceAttackedBattle => StaticCond::AttackedBattleThisTurn,
             StaticCondition::AttackedLastTurn => StaticCond::AttackedLastTurn,
             StaticCondition::ProwlDamage(_) => unreachable!("only prowl's alternative cost"),
-            StaticCondition::AssassinDealtCombatDamage => {
-                unreachable!("only freerunning's alternative cost")
-            }
             StaticCondition::Escaped => StaticCond::Escaped,
             StaticCondition::Kicked => StaticCond::Kicked,
             StaticCondition::Bargained => StaticCond::Bargained,
@@ -707,7 +711,6 @@ impl Decompiler<'_> {
             StaticCondition::NotYourMainPhase => StaticCond::NotYourMainPhase,
             StaticCondition::NotCastFrom(_) => StaticCond::NotCastFromHand,
             StaticCondition::WasCast => StaticCond::WasCast,
-            StaticCondition::PutAnyCounterThisTurn => StaticCond::PutAnyCounterThisTurn,
             StaticCondition::AttackedWithAtLeast(f, n) => {
                 StaticCond::AttackedWithAtLeast(self.filter(f), *n)
             }
@@ -731,6 +734,12 @@ impl Decompiler<'_> {
             }
             StaticCondition::SorceryTiming => StaticCond::Not(Box::new(StaticCond::FlashPay(2))),
             StaticCondition::Not(a) => StaticCond::Not(Box::new(self.static_cond(a))),
+            StaticCondition::Or(a, b)
+                if **a == StaticCondition::happened(TurnEvent::Scried, TurnWho::You)
+                    && **b == StaticCondition::happened(TurnEvent::Surveilled, TurnWho::You) =>
+            {
+                StaticCond::ScriedOrSurveilledThisTurn
+            }
             StaticCondition::Or(a, b)
                 if **a == StaticCondition::happened(TurnEvent::NonlandLeft, TurnWho::Anyone)
                     && **b == StaticCondition::happened(TurnEvent::Warped, TurnWho::Anyone) =>
@@ -773,15 +782,10 @@ impl Decompiler<'_> {
             },
             StaticCondition::CastFrom(z) => StaticCond::CastFrom(*z),
             StaticCondition::SpellNumber(n) => StaticCond::SpellNumber(*n),
-            StaticCondition::SurveilledThisTurn => StaticCond::SurveilledThisTurn,
-            StaticCondition::ScriedOrSurveilledThisTurn => StaticCond::ScriedOrSurveilledThisTurn,
-            StaticCondition::CounterPutThisTurn => StaticCond::CounterPutThisTurn,
             StaticCondition::Night => StaticCond::Night,
-            StaticCondition::CrimeThisTurn => StaticCond::CrimeThisTurn,
             StaticCondition::YourMainPhase => StaticCond::YourMainPhase,
             StaticCondition::YourCombatPhase => StaticCond::YourCombatPhase,
             StaticCondition::FirstCombatPhase => StaticCond::FirstCombatPhase,
-            StaticCondition::PutCounterThisTurn => StaticCond::PutCounterThisTurn,
             StaticCondition::NthResolution(n) => StaticCond::NthResolution {
                 n: *n,
                 again: false,
