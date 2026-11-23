@@ -4137,12 +4137,11 @@ impl GameState {
                 return false;
             }
         }
-        let mut req = def.mana_cost.requirements(0);
+        // On top of what the spell costs the way it is cast (`cost_of`:
+        // nothing for a spell cast without paying its mana cost, CR
+        // 118.9), not its mana cost.
+        let mut req = self.spell_requirements(spell, 0);
         req.add(&k.requirements(0));
-        adjust_generic(
-            &mut req,
-            self.cost_delta(o.controller, def, spell, &self.cost_changers()),
-        );
         self.spell_payable(o.controller, spell, &req)
     }
 
@@ -6388,20 +6387,17 @@ impl GameState {
                 if m.split.is_none() || o.kind == ObjKind::Ability {
                     return true;
                 }
-                let (e, times) = if let Some(e) = &def.escalate {
-                    (e, u32::try_from(*i + 1).unwrap_or(0).count_ones() - 1)
-                } else if let Some(e) = &def.entwine {
-                    (e, 1)
-                } else {
+                if def.escalate.is_none() && def.entwine.is_none() {
                     return true;
-                };
-                let mut req = def.mana_cost.requirements(0);
-                for _ in 0..times {
-                    req.add(&e.requirements(0));
                 }
-                adjust_generic(
-                    &mut req,
-                    self.cost_delta(o.controller, def, spell, &self.cost_changers()),
+                // What the spell costs with this mode (`cost_of`: the
+                // entwine or escalate cost on top of what it costs the way
+                // it is cast).
+                let req = self.spell_requirements_mode(
+                    spell,
+                    0,
+                    o.cast.other_cost(),
+                    u8::try_from(*i).unwrap_or(0),
                 );
                 self.spell_payable(o.controller, spell, &req)
             })

@@ -131,3 +131,22 @@ scenario "cast paths: with a third land, Heap Gate taps a Gate for a Treasure" {
   run_to turn 1 postcombat_main
   assert battlefield A contains "Treasure"
 }
+
+scenario "cast paths: a spell cast without paying its mana cost may be kicked for the kicker alone" {
+  battlefield A: "Omniscience", "Mountain"
+  hand A: "Goblin Bushwhacker"
+  turn 1 A: cast "Goblin Bushwhacker" free kicked
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Goblin Bushwhacker"
+  assert tapped "Mountain"
+}
+
+scenario "cast paths: a spell cast without paying its mana cost may be entwined for the entwine cost alone" {
+  battlefield A: "Omniscience", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Barbed Lightning"
+  turn 1 A: cast "Barbed Lightning" free mode 3 targeting "Hill Giant", player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 17
+}
