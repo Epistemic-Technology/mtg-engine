@@ -629,3 +629,44 @@ scenario "West Wind Avatar: a token sacrificed for 3 life, then a card at the en
   assert battlefield A lacks "Treasure"
   assert hand A count 1
 }
+
+scenario "Dredger's Insight: mill four, a creature card to hand, 1 life as it leaves" {
+  battlefield A: 2 "Forest"
+  hand A: "Dredger's Insight"
+  library A: "Shock", "Hill Giant", "Shock", "Shock", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dredger's Insight"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert graveyard A count 3
+  assert life A 21
+}
+
+scenario "Malevolent Witchkite: sacrifice artifacts and tokens, draw that many" {
+  battlefield A: 6 "Swamp", "Smuggler's Copter", "Treasure", "Grizzly Bears"
+  hand A: "Malevolent Witchkite"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Malevolent Witchkite"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Smuggler's Copter"
+}
+
+scenario "Waterbender Ascension: the fourth quest counter draws a card" {
+  battlefield A: "Waterbender Ascension" with 3 quest, "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Waterbender Ascension" quest 4
+  assert hand A count 1
+}
+
+scenario "Waterbender Ascension: the third counter draws nothing" {
+  battlefield A: "Waterbender Ascension" with 2 quest, "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Waterbender Ascension" quest 3
+  assert hand A count 0
+}

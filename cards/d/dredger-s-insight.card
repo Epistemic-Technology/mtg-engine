@@ -1,0 +1,7 @@
+card "Dredger's Insight" {
+  oracle_id 3f21c1c6-7992-4036-ad3e-b599153e54fe
+  cost {1}{G}
+  type Enchantment
+  triggered whenever one or more andor artifact or creature cards leave your graveyard: you gain 1 life
+  triggered when this enters: mill 4 cards; you may put 1 artifact, creature, or land card from among milled cards into hand chosen
+}

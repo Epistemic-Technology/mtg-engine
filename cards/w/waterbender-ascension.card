@@ -1,0 +1,7 @@
+card "Waterbender Ascension" {
+  oracle_id aeddfdc2-149b-4703-ba57-8d844b25ef08
+  cost {1}{U}
+  type Enchantment
+  triggered whenever creature you control deals combat damage to a player: put 1 quest counter on this; then if this has 4 or more quest counters, draw 1 card
+  activated waterbend {4}: target creature can't be blocked this turn
+}

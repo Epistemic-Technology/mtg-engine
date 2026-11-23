@@ -7846,7 +7846,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ChooseAct::Tap | ChooseAct::Enlist => format!("tap {}", permanents()),
                 ChooseAct::Untap => format!("untap {}", permanents()),
                 ChooseAct::Transform => format!("transform {}", permanents()),
-                ChooseAct::Sacrifice => format!("sacrifice {}", permanents()),
+                // "sacrifice any number of artifacts, enchantments, and/or
+                // tokens" (Malevolent Witchkite).
+                ChooseAct::Sacrifice => {
+                    let p = permanents();
+                    let parts: Vec<&str> = p.split(" and/or ").collect();
+                    if parts.len() > 2 {
+                        let (last, rest) = parts.split_last().expect("three or more");
+                        format!("sacrifice {}, and/or {last}", rest.join(", "))
+                    } else {
+                        format!("sacrifice {p}")
+                    }
+                }
                 ChooseAct::Bounce => format!(
                     "return {} to {} owner's hand",
                     permanents(),
@@ -8972,6 +8983,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     &format!("this {} is", self_noun(ctx.card)),
                     1,
                 )
+            } else if matches!(c, StaticCond::SourceCounters { at_least: true, n, .. } if *n > 1)
+                && ctx.source_mentioned
+                && !is_spell(ctx.card)
+            {
+                // "put a quest counter on this enchantment. Then if it has
+                // four or more quest counters on it" (Waterbender
+                // Ascension).
+                static_cond_text(c, ctx.card).replacen(&this_ref(ctx.card), "it", 1)
             } else if matches!(c, StaticCond::AttachedIs(_))
                 && matches!(
                     ctx.trigger,
@@ -10518,6 +10537,12 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             "whenever one or more {} leave your graveyard",
             if *f == Filter::default() {
                 "cards".to_string()
+            } else if f.and_or {
+                // "artifact and/or creature cards" (Dredger's Insight).
+                format!(
+                    "{} cards",
+                    card_filter_phrase(f, ctx.card).replace(" or ", " and/or ")
+                )
             } else {
                 format!("{} cards", card_filter_phrase(f, ctx.card))
             }
