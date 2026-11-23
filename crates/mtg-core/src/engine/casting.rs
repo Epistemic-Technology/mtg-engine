@@ -5146,9 +5146,17 @@ impl GameState {
             .copied()
             .filter(|c| {
                 self.tap_picks(p, f, source, ab.cost.tap, n, Some(*c), sources)
-                    .is_some_and(|picks| {
+                    .is_some_and(|mut picks| {
+                        // The source tapped for {T} makes no mana either
+                        // (Heap Gate: "{1}, {T}, Tap an untapped Gate you
+                        // control"); without it, the outer check stands.
+                        if ab.cost.tap {
+                            picks.push(source);
+                        }
                         req == ManaRequirement::default()
-                            || !picks.iter().any(|x| sources.iter().any(|(s, _)| s == x))
+                            || !picks
+                                .iter()
+                                .any(|x| *x != source && sources.iter().any(|(s, _)| s == x))
                             || self.payable(
                                 p,
                                 &without(sources, &picks),

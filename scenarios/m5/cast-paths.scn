@@ -117,3 +117,17 @@ scenario "cast paths: the cheaper target is chosen first" {
   assert hand B contains "Hill Giant"
   assert hand A contains "Grizzly Bears"
 }
+
+scenario "cast paths: a source tapped for {T} doesn't also pay the mana of its ability" {
+  battlefield A: "Heap Gate", "Azorius Guildgate"
+  illegal turn 1 A: activate "Heap Gate" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "cast paths: with a third land, Heap Gate taps a Gate for a Treasure" {
+  battlefield A: "Heap Gate", "Azorius Guildgate", "Island"
+  turn 1 A: activate "Heap Gate" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treasure"
+}
