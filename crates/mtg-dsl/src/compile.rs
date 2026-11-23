@@ -1725,7 +1725,8 @@ impl Compiler<'_> {
                     SameRef::SameNameAs(_)
                     | SameRef::SharesColorWith(_)
                     | SameRef::ShareCardType
-                    | SameRef::ShareCreatureType,
+                    | SameRef::ShareCreatureType
+                    | SameRef::DifferentControllers,
                 ) => Relation::Any,
                 _ => f.relation,
             },
@@ -1754,6 +1755,10 @@ impl Compiler<'_> {
                     SameRef::ShareCreatureType => Same {
                         of: target(0),
                         what: SameWhat::SharesCreatureType,
+                    },
+                    SameRef::DifferentControllers => Same {
+                        of: target(0),
+                        what: SameWhat::DifferentController,
                     },
                     SameRef::SharesColorWith(n) => Same {
                         of: target(n),
@@ -2702,11 +2707,14 @@ impl Compiler<'_> {
             Recipient::TargetAnd(t, i) => {
                 CoreRecipient::TargetAndGroup(ti(t), groups[usize::from(i)])
             }
+            Recipient::AttachedAnd(i) => CoreRecipient::AttachedAndSharing(groups[usize::from(i)]),
             // A variable group: its targets to the end of the list.
             Recipient::Target(i) if Some(i) == many => {
                 CoreRecipient::Targets(u8::try_from(ti(i)).unwrap_or(u8::MAX), u8::MAX)
             }
             Recipient::Target(i)
+            | Recipient::YouAndTarget(i)
+            | Recipient::SourceAndTarget(i)
             | Recipient::ThatTarget(i)
             | Recipient::TheTarget(i)
             | Recipient::TheTargetFull(i, _)
@@ -2960,14 +2968,40 @@ impl Compiler<'_> {
         let tmap = self.tmap;
         let implied = self.implied.clone();
         let used = std::rc::Rc::clone(&self.implied_used);
+        // A pair subject ("you and target opponent", "this creature and
+        // up to one other target creature") only where an arm below splits
+        // it into one effect for each.
+        let pair = std::cell::Cell::new(false);
         let r = |x: Recipient| {
             if let Recipient::Group(i) = x
                 && let Some(Some(k)) = implied.get(usize::from(i))
             {
                 used.set(Some(*k));
             }
+            if matches!(
+                x,
+                Recipient::YouAndTarget(_) | Recipient::SourceAndTarget(_)
+            ) {
+                pair.set(true);
+            }
             Self::recipient(&groups, many, tmap, x)
         };
+        let result = self.effect_match(e, out, &r);
+        if pair.get() {
+            return self.err(
+                "`you and target ...` and `this and target ...` as a subject only of `draw` and `gets`",
+            );
+        }
+        result
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn effect_match(
+        &mut self,
+        e: &Effect,
+        out: &mut Vec<CoreEffect>,
+        r: &dyn Fn(Recipient) -> CoreRecipient,
+    ) -> Result<(), CompileError> {
         match e {
             Effect::DealDamage { to, .. } if to.is_empty() => {
                 return self.err("`deal N damage` without `to` only in an `instead` sentence");
@@ -2993,6 +3027,22 @@ impl Compiler<'_> {
                     out.push(CoreEffect::DealDamage {
                         amount: *amount,
                         to: r(*t),
+                    });
+                }
+            }
+            // "This creature and up to one other target creature each get
+            // +3/+3 until end of turn": the source, then the target (if
+            // one was chosen).
+            Effect::Pump {
+                power,
+                toughness,
+                to: Recipient::SourceAndTarget(a),
+            } => {
+                for to in [CoreRecipient::Source, r(Recipient::Target(*a))] {
+                    out.push(CoreEffect::Pump {
+                        power: *power,
+                        toughness: *toughness,
+                        to,
                     });
                 }
             }
@@ -3034,6 +3084,16 @@ impl Compiler<'_> {
             }),
             Effect::LoseHalfLife { who } => out.push(CoreEffect::LoseHalfLife { who: r(*who) }),
             Effect::LoseGame { who } => out.push(CoreEffect::LoseGame { who: r(*who) }),
+            // "You and target opponent each draw a card": you, then the
+            // target.
+            Effect::DrawCards {
+                count,
+                who: Some(Recipient::YouAndTarget(a)),
+            } => {
+                for who in [CoreRecipient::You, r(Recipient::Target(*a))] {
+                    out.push(CoreEffect::DrawCards { count: *count, who });
+                }
+            }
             Effect::DrawCards { count, who } => out.push(CoreEffect::DrawCards {
                 count: *count,
                 who: who.map_or(CoreRecipient::You, r),
@@ -3846,6 +3906,7 @@ impl Compiler<'_> {
                     // (CR 608.2c): the optional action wasn't taken.
                     Some(
                         CoreEffect::IfCondition(..)
+                            | CoreEffect::IfTarget { .. }
                             | CoreEffect::Clash { .. }
                             | CoreEffect::IfCard { .. }
                             | CoreEffect::IfYouDo(..)
@@ -4900,6 +4961,7 @@ impl Compiler<'_> {
             Mod::ChosenLandType => Modification::ChosenLandType,
             Mod::AddChosenType => Modification::AddChosenType,
             Mod::AddSubtype(s) => Modification::AddSubtype(self.pool.subtype(s)),
+            Mod::AddSupertype(s) => Modification::AddSupertype(*s),
             Mod::SetSubtype(s) => Modification::SetCreatureType(self.pool.subtype(s)),
             // A static ability compiles all five (`Ability::Static`).
             Mod::AddAllLandTypes => Modification::AddLandType(Color::White),

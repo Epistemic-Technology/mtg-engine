@@ -1,0 +1,6 @@
+card "Practiced Tactics" {
+  oracle_id 612c9079-adae-4fe5-9a72-8efc09ddfe5c
+  cost {W}
+  type Instant
+  spell: choose target attacking or blocking creature; deal count equal 2 party damage to that target 1
+}

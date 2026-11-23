@@ -575,6 +575,7 @@ impl GameState {
                     mulligans_taken: 0,
                     skip_draw: 0,
                     skip_combat: 0,
+                    skip_creature_untap: 0,
                     skip_combat_this_turn: 0,
                     combat_mana: 0,
                     turn_mana: crate::mana::ManaPool::default(),
@@ -751,6 +752,20 @@ impl GameState {
                         // A set-up position: play begins at its step.
                         self.flow = Flow::BeginStep;
                     }
+                }
+                Flow::ChoosingUntap { asked, keep } => {
+                    let active = self.active_player;
+                    if let Some(id) = self.next_may_not_untap(active, &asked) {
+                        // "Unscripted" (the first option) untaps it.
+                        return StepResult::Decision(Decision {
+                            player: active,
+                            kind: DecisionKind::YouMay {
+                                def: self.objects[id].def,
+                            },
+                            options: vec![Choice::Decline, Choice::Accept],
+                        });
+                    }
+                    self.finish_untap(active, &keep);
                 }
                 Flow::BeginStep => self.begin_step(),
                 Flow::Priority => {
@@ -1784,6 +1799,23 @@ impl GameState {
                         current: first,
                     };
                 }
+            }
+            // "You may choose not to untap this creature": `Accept` keeps it
+            // tapped.
+            (
+                Flow::ChoosingUntap {
+                    mut asked,
+                    mut keep,
+                },
+                c @ (Choice::Accept | Choice::Decline),
+            ) => {
+                if let Some(id) = self.next_may_not_untap(self.active_player, &asked) {
+                    asked.push(id);
+                    if c == Choice::Accept {
+                        keep.push(id);
+                    }
+                }
+                self.flow = Flow::ChoosingUntap { asked, keep };
             }
             (Flow::OpeningHand { mut asked }, c @ (Choice::Accept | Choice::Decline)) => {
                 if let Some((_, card)) = self.next_opening_hand_card(&asked) {
@@ -2890,20 +2922,70 @@ impl GameState {
         self.flow = Flow::BeginStep;
     }
 
+    /// The untap step's actions once any "you may choose not to untap"
+    /// questions are answered: `keep` stay tapped.
+    fn finish_untap(&mut self, active: PlayerId, keep: &[ObjId]) {
+        // "Creatures don't untap during target player's next untap step":
+        // this one, every creature (any player's, Seedborn Muse's too).
+        let no_creatures = self.player(active).skip_creature_untap > 0;
+        if no_creatures {
+            self.player_mut(active).skip_creature_untap -= 1;
+        }
+        self.untap_all(active, keep, no_creatures);
+        self.untap_others(active, no_creatures);
+        self.player_mut(active).lands_played_this_turn = 0;
+        for p in 0..self.num_players() {
+            self.players[p].extra_land_plays = 0;
+        }
+        self.flow = Flow::EndStep;
+    }
+
+    /// The next tapped permanent of `active` with "You may choose not to
+    /// untap this creature during your untap step" not yet `asked` about
+    /// (CR 502.3); one that phases out instead (CR 702.26a), or that
+    /// wouldn't untap anyway, isn't asked about.
+    fn next_may_not_untap(&self, active: PlayerId, asked: &[ObjId]) -> Option<ObjId> {
+        self.permanents_of(active).find(|id| {
+            let o = &self.objects[*id];
+            o.tapped
+                && !o.skip_untap
+                && !asked.contains(id)
+                && self.characteristics(*id).is_some_and(|c| {
+                    c.has(Keyword::MayNotUntap)
+                        && !c.has(Keyword::Phasing)
+                        && !c.has(Keyword::DoesntUntap)
+                        && !c.has(Keyword::CantBecomeUntapped)
+                })
+        })
+    }
+
     /// CR 502.1, 502.3: the active player's permanents phase (CR 702.26a),
-    /// then untap.
-    fn untap_all(&mut self, active: PlayerId) {
+    /// then untap, all at once: what keeps a permanent from untapping is
+    /// judged before any untaps ("for as long as this creature remains
+    /// tapped"). `keep` stay tapped by their controller's choice.
+    fn untap_all(&mut self, active: PlayerId, keep: &[ObjId], no_creatures: bool) {
         let phased_in = if self.phased_out.is_empty() {
             smallvec::SmallVec::new()
         } else {
             self.phase_in_all(active)
         };
-        let perms: Vec<ObjId> = self.permanents_of(active).collect();
+        let perms: Vec<(ObjId, bool, bool)> = self
+            .permanents_of(active)
+            .map(|id| {
+                let (phases, doesnt_untap) = self.characteristics(id).map_or((false, false), |c| {
+                    (c.has(Keyword::Phasing), c.has(Keyword::DoesntUntap))
+                });
+                let creature_stays =
+                    no_creatures && self.characteristics(id).is_some_and(|c| c.is_creature());
+                (
+                    id,
+                    phases,
+                    doesnt_untap || creature_stays || keep.contains(&id),
+                )
+            })
+            .collect();
         let mut phasing: smallvec::SmallVec<[ObjId; 2]> = smallvec::SmallVec::new();
-        for id in perms {
-            let (phases, doesnt_untap) = self.characteristics(id).map_or((false, false), |c| {
-                (c.has(Keyword::Phasing), c.has(Keyword::DoesntUntap))
-            });
+        for (id, phases, doesnt_untap) in perms {
             // Those with phasing phase out instead of untapping, all at
             // once with those phasing in (which don't phase out again).
             if phases && !phased_in.contains(&id) {
@@ -2924,7 +3006,7 @@ impl GameState {
 
     /// "Untap this creature during each other player's untap step" (CR
     /// 502.3): the other players' permanents with it untap too.
-    fn untap_others(&mut self, active: PlayerId) {
+    fn untap_others(&mut self, active: PlayerId, no_creatures: bool) {
         let ids: smallvec::SmallVec<[ObjId; 4]> = self
             .battlefield
             .iter()
@@ -2934,7 +3016,9 @@ impl GameState {
                 o.controller != active
                     && o.tapped
                     && self.characteristics(*id).is_some_and(|c| {
-                        c.has(Keyword::UntapsDuringOthers) && !c.has(Keyword::DoesntUntap)
+                        c.has(Keyword::UntapsDuringOthers)
+                            && !c.has(Keyword::DoesntUntap)
+                            && !(no_creatures && c.is_creature())
                     })
             })
             .collect();
@@ -2945,6 +3029,7 @@ impl GameState {
 
     /// Turn-based actions at the start of the current step (CR 500.1 and the
     /// step rules), then priority or straight to the end of the step.
+    #[allow(clippy::too_many_lines)] // one arm per step
     fn begin_step(&mut self) {
         self.emit(Event::StepBegin { step: self.step });
         let active = self.active_player;
@@ -2954,13 +3039,16 @@ impl GameState {
                 if self.desig.day_night != crate::state::DayNight::Neither {
                     self.day_night_check();
                 }
-                self.untap_all(active);
-                self.untap_others(active);
-                self.player_mut(active).lands_played_this_turn = 0;
-                for p in 0..self.num_players() {
-                    self.players[p].extra_land_plays = 0;
+                // CR 502.3: "You may choose not to untap this creature
+                // during your untap step": asked first.
+                if self.next_may_not_untap(active, &[]).is_some() {
+                    self.flow = Flow::ChoosingUntap {
+                        asked: Vec::new(),
+                        keep: Vec::new(),
+                    };
+                    return;
                 }
-                self.flow = Flow::EndStep;
+                self.finish_untap(active, &[]);
             }
             Step::Draw => {
                 // CR 103.8a: the starting player skips their first draw.

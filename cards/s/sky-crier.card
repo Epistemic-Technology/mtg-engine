@@ -1,0 +1,8 @@
+card "Sky Crier" {
+  oracle_id d88c2375-65ec-4909-aef3-ee1a658a07cc
+  cost {1}{W}
+  type Creature — Bird Citizen
+  pt 1/1
+  keywords flying, lifelink
+  activated {3}{W}: you and target opponent each draw 1 card
+}

@@ -1,0 +1,8 @@
+card "Agrus Kos, Spirit of Justice" {
+  oracle_id 11b7ee78-fca6-4b34-93e4-e60492583d50
+  cost {2}{R}{W}
+  type Legendary Creature — Spirit Detective
+  pt 2/4
+  keywords double strike, vigilance
+  triggered whenever this enters or attacks: choose up to 1 target creature; if target 1 is suspected, exile target 1; otherwise, suspect target 1
+}

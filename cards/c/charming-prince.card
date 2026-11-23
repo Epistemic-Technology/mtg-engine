@@ -1,0 +1,11 @@
+card "Charming Prince" {
+  oracle_id c48d844c-3976-4fa5-8e0d-3f0e535e7619
+  cost {1}{W}
+  type Creature — Human Noble
+  pt 2/2
+  triggered when this enters: choose one {
+    mode: scry 2
+    mode: you gain 3 life
+    mode: exile another target creature you own; delayed target 1: return it to battlefield under your control at beginning of the next end step
+  }
+}

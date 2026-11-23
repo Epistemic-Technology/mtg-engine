@@ -966,6 +966,9 @@ pub struct PlayerState {
     /// Combat phases this player skips: "Target opponent skips their next
     /// combat phase."
     pub skip_combat: u8,
+    /// Untap steps of this player's in which no creature untaps:
+    /// "Creatures don't untap during target player's next untap step."
+    pub skip_creature_untap: u8,
     /// Combat phases this player skips this turn only ("... skips their
     /// next combat phase this turn"); cleared as the turn ends.
     pub skip_combat_this_turn: u8,
@@ -1586,6 +1589,14 @@ pub enum Flow {
     /// battlefield, one question per card; `asked` are those decided.
     OpeningHand {
         asked: Vec<ObjId>,
+    },
+    /// The untap step (CR 502.3): the active player decides, one question
+    /// per tapped permanent with "You may choose not to untap this
+    /// creature during your untap step", whether it stays tapped; `asked`
+    /// are those decided, `keep` those that stay tapped.
+    ChoosingUntap {
+        asked: Vec<ObjId>,
+        keep: Vec<ObjId>,
     },
     /// Perform the turn-based actions of the current step.
     BeginStep,
@@ -2527,6 +2538,8 @@ impl GameState {
             // "Whenever a creature blocks this turn": a delayed trigger
             // may watch any event (rare: only while one waits).
             || (!self.delayed_triggers.is_empty() && event.watch_bit() != 0)
+            // An emblem's triggered abilities (CR 114.4); emblems are rare.
+            || (!self.emblems.is_empty() && event.watch_bit() != 0)
             || matches!(&event, Event::ZoneChange { def, .. } if self.pool.get(*def).has_triggers())
             // "When you cycle this card": the card itself watches.
             || matches!(&event, Event::Cycled { def, .. } if self.pool.get(*def).has_triggers())
@@ -3156,6 +3169,14 @@ impl GameState {
         c
     }
 
+    /// Whether an Equipment may be attached to `host`: not if it "can't be
+    /// equipped" (CR 301.5c).
+    pub fn can_be_equipped(&self, host: ObjId) -> bool {
+        !self
+            .characteristics(host)
+            .is_some_and(|c| c.has(Keyword::CantBeEquipped))
+    }
+
     /// Whether an Aura with enchant `spec`, or an Equipment (CR 301.5c,
     /// `TargetSpec::Creature`), may be attached to `target` (CR 303.4c,
     /// 704.5n). Unlike targeting, hexproof and the "you control" of equip
@@ -3289,6 +3310,15 @@ impl GameState {
             return false;
         }
         if q.blocked_this_turn && !self.blockers_this_turn.contains(&id) {
+            return false;
+        }
+        // "target nonattacking creature".
+        if q.nonattacking
+            && self
+                .combat
+                .as_ref()
+                .is_some_and(|cb| cb.attackers.iter().any(|a| a.id == id))
+        {
             return false;
         }
         if q.attacked_this_turn && !self.attackers_this_turn.contains(&id) {
@@ -3425,6 +3455,7 @@ impl GameState {
         match spec {
             TargetSpec::Any
             | TargetSpec::AnyOther
+            | TargetSpec::AnyDamaged
             | TargetSpec::Creature
             | TargetSpec::CreatureYouControl
             | TargetSpec::OtherCreature
@@ -4463,7 +4494,10 @@ impl GameState {
             // (`that_player_ok`).
             Some(crate::card::Same {
                 of: crate::card::SameOf::Target(_),
-                what: crate::card::SameWhat::SharesType | crate::card::SameWhat::SharesCreatureType,
+                what:
+                    crate::card::SameWhat::SharesType
+                    | crate::card::SameWhat::SharesCreatureType
+                    | crate::card::SameWhat::DifferentController,
             }) => {
                 let mut g = f.clone();
                 g.same = None;
@@ -4661,6 +4695,7 @@ impl GameState {
     /// owned by) the triggering player or an earlier target's controller,
     /// as it last existed if it has left. With that player unknown, or no
     /// such relation, it doesn't restrict.
+    #[allow(clippy::too_many_lines)] // one check per relation
     pub fn that_player_ok(
         &self,
         spec: crate::card::TargetSpec,
@@ -4692,6 +4727,32 @@ impl GameState {
                 return false;
             };
             if !a.shares_creature_type(&b) {
+                return false;
+            }
+        }
+        // "two target creatures controlled by different players": against
+        // each other target, as it is or last existed (both targets are
+        // illegal once one player controls both).
+        if let Some(crate::card::Same {
+            what: crate::card::SameWhat::DifferentController,
+            ..
+        }) = filter.same
+            && let Target::Object(id) = t
+        {
+            let controller = |id: &ObjId| {
+                self.objects
+                    .get(*id)
+                    .filter(|o| o.zone == Zone::Battlefield)
+                    .map(|o| o.controller)
+                    .or_else(|| self.lki.get(id).map(|l| l.object.controller))
+            };
+            let mine = controller(&id);
+            if targets.iter().any(|o| match o {
+                Target::Object(other) if *other != id => {
+                    mine.is_some() && controller(other) == mine
+                }
+                _ => false,
+            }) {
                 return false;
             }
         }
@@ -4803,6 +4864,9 @@ impl GameState {
                         | TargetSpec::Player
                         | TargetSpec::PlayerOrPlaneswalker
                         | TargetSpec::PlayerOrBattle => true,
+                        TargetSpec::AnyDamaged => {
+                            self.damaged_this_turn & (1 << p.index().min(7)) != 0
+                        }
                         TargetSpec::Opponent | TargetSpec::OpponentOrPlaneswalker => p != caster,
                         _ => false,
                     }
@@ -4927,6 +4991,10 @@ impl GameState {
                         (c.is_creature() || c.is_planeswalker() || c.is_battle())
                             && Some(id) != source
                     }
+                    TargetSpec::AnyDamaged => {
+                        (c.is_creature() || c.is_planeswalker() || c.is_battle())
+                            && self.damaged_by_this_turn.iter().any(|(_, d)| *d == id)
+                    }
                     TargetSpec::CreatureOrPlaneswalker => c.is_creature() || c.is_planeswalker(),
                     TargetSpec::PlayerOrBattle => c.is_battle(),
                     TargetSpec::PlayerOrPlaneswalker | TargetSpec::OpponentOrPlaneswalker => {
@@ -4983,6 +5051,8 @@ impl GameState {
                         let f = self.source_filter(self.pool.filter(f), source, x);
                         f.matches(id, obj.controller, &c, source, Some(caster))
                             && self.status_ok(&f, id)
+                            // "target creature you own".
+                            && (!f.status.you_own || obj.owner == caster)
                             && self.combat_with_ok(f.combat_with, source, id)
                             // "other than enchanted creature".
                             && !(f.not_attached

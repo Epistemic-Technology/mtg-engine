@@ -1,0 +1,50 @@
+# "Enchanted land is snow." (layer 4, CR 205.4: a supertype in addition
+# to its others; it stays basic and a Forest).
+
+scenario "Glittering Frost: the enchanted land is snow and still a basic Forest" {
+  battlefield A: "Forest", "Glittering Frost" on "Forest"
+  start turn 3 A precombat_main
+  run_to turn 3 precombat_main
+  assert is "Forest" snow
+  assert is "Forest" basic
+  assert is "Forest" forest
+  assert is "Glittering Frost" snow
+}
+
+scenario "Glittering Frost: the land stops being snow once the Aura leaves" {
+  battlefield A: "Forest", "Glittering Frost" on "Forest"
+  battlefield B: "Forest", "Forest"
+  hand B: "Naturalize"
+  start turn 3 A precombat_main
+  turn 3 B: cast "Naturalize" targeting "Glittering Frost"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Glittering Frost"
+  assert is not A "Forest" snow
+}
+
+scenario "Glittering Frost: tapped for mana, it adds one more of any color" {
+  battlefield A: "Forest", "Glittering Frost" on "Forest"
+  hand A: "Grizzly Bears"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Glittering Frost: the enchanted land pays {S}" {
+  battlefield A: "Forest", "Glittering Frost" on "Forest"
+  hand A: "Icehide Golem"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Icehide Golem"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Icehide Golem"
+}
+
+scenario "Glittering Frost: an unenchanted land doesn't pay {S}" {
+  battlefield A: "Forest"
+  hand A: "Icehide Golem"
+  start turn 3 A precombat_main
+  illegal turn 3 A: cast "Icehide Golem"
+  run_to turn 3 postcombat_main
+  assert hand A contains "Icehide Golem"
+}

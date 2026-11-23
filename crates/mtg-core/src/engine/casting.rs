@@ -5891,7 +5891,9 @@ impl GameState {
             TargetSpec::Filtered(f) | TargetSpec::GraveyardCard { filter: f, .. } if matches!(
                 self.pool.filter(f).same,
                 Some(crate::card::Same {
-                    what: crate::card::SameWhat::SharesType | crate::card::SameWhat::SharesCreatureType,
+                    what: crate::card::SameWhat::SharesType
+                        | crate::card::SameWhat::SharesCreatureType
+                        | crate::card::SameWhat::DifferentController,
                     ..
                 })
             )
@@ -9131,6 +9133,32 @@ impl GameState {
                     out.push(all[i]);
                 }
             }
+            // "Enchanted creature and other creatures that share a creature
+            // type with it" (CR 205.3m).
+            Recipient::AttachedAndSharing(f) => {
+                let host = self.recipients(ctx, Recipient::Attached);
+                let Some(Target::Object(h)) = host.first().copied() else {
+                    return out;
+                };
+                out.push(Target::Object(h));
+                let Some(hc) = self.characteristics_or_lki(h) else {
+                    return out;
+                };
+                let mut group = SmallVec::new();
+                self.group_into(ctx, f, &mut group);
+                out.extend(group.into_iter().filter(|t| {
+                    match t {
+                        Target::Object(id) => {
+                            *id != h
+                                && self
+                                    .characteristics(*id)
+                                    .is_some_and(|c| c.shares_creature_type(&hc))
+                        }
+                        Target::Player(_) => false,
+                    }
+                }));
+                self.note_group(&out);
+            }
             // "Target creature and all other creatures with the same name as
             // that creature": the target, if still legal, and the group
             // judged against it as it is now (CR 608.2b, 608.2h).
@@ -9199,6 +9227,7 @@ impl GameState {
             // stops being a creature while attached.
             (!c.is_creature() || self.pool.get(self.objects[obj].def).reconfigure)
                 && self.is_legal_attachment(TargetSpec::Creature, host)
+                && self.can_be_equipped(host)
         } else {
             false
         };
@@ -9266,6 +9295,8 @@ impl GameState {
                 .filter(|id| !other_than_targets || !ctx.targets.contains(&Target::Object(*id)))
                 .filter(|id| host.is_none_or(|h| self.objects[*id].attached_to == h))
                 .filter(|id| that.is_none_or(|p| self.objects[*id].controller == p))
+                // "all Auras you own".
+                .filter(|id| !filter.status.you_own || self.objects[*id].owner == ctx.controller)
                 .filter(|id| {
                     let o = &self.objects[*id];
                     self.characteristics(*id).is_some_and(|c| {
@@ -9863,6 +9894,7 @@ impl GameState {
             crate::card::Lasting::YouControlSource => {
                 Duration::WhileControlled(ctx.source, ctx.controller)
             }
+            crate::card::Lasting::SourceTapped => Duration::WhileTapped(ctx.source),
         };
         if d.linked() {
             self.linked_durations += 1;
@@ -9886,6 +9918,12 @@ impl GameState {
         };
         match lasting {
             crate::card::Lasting::SourceOnBattlefield if !source_ok() => return,
+            // CR 611.2b: untapped already, the duration has ended.
+            crate::card::Lasting::SourceTapped
+                if !source_ok() || !self.objects[ctx.source].tapped =>
+            {
+                return;
+            }
             crate::card::Lasting::YouControlSource
                 if !source_ok() || self.objects[ctx.source].controller != ctx.controller =>
             {
@@ -11024,6 +11062,9 @@ impl GameState {
                         crate::card::SkipWhat::CombatPhaseThisTurn => {
                             ps.skip_combat_this_turn += 1;
                         }
+                        crate::card::SkipWhat::CreatureUntap => {
+                            ps.skip_creature_untap = ps.skip_creature_untap.saturating_add(1);
+                        }
                     }
                 }
             }
@@ -11971,10 +12012,15 @@ impl GameState {
                 }
             }
             Effect::IfTarget { n, filter, then } => {
+                // `ctx.did` for an "Otherwise" after it ("If it's
+                // suspected, exile it. Otherwise, suspect it.").
                 if self.nth_target_matches(ctx, *n, filter) {
+                    ctx.did = true;
                     for e in then {
                         self.apply_effect(ctx, e);
                     }
+                } else {
+                    ctx.did = false;
                 }
             }
             Effect::Instead { cond, base, alt } => {

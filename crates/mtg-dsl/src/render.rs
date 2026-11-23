@@ -272,6 +272,8 @@ pub fn is_restriction(k: Keyword) -> bool {
             | Keyword::CantActivateNonMana
             | Keyword::CantCrew
             | Keyword::UntapsDuringOthers
+            | Keyword::MayNotUntap
+            | Keyword::CantBeEquipped
             | Keyword::AssignsToughness
             | Keyword::CantTransform
     )
@@ -376,6 +378,12 @@ fn keyword_line(card: &Card, k: Keyword) -> String {
     if k == Keyword::UntapsDuringOthers {
         return format!(
             "Untap {} during each other player's untap step.",
+            this_ref(card)
+        );
+    }
+    if k == Keyword::MayNotUntap {
+        return format!(
+            "You may choose not to untap {} during your untap step.",
             this_ref(card)
         );
     }
@@ -1651,6 +1659,25 @@ impl<'a> Ctx<'a> {
             }
             Recipient::BlockingIt => "each creature blocking it".to_string(),
             Recipient::TargetAnd(t, i) => self.target_and(t, i),
+            // "Enchanted creature and other creatures that share a creature
+            // type with it".
+            Recipient::AttachedAnd(i) => {
+                let first = self.obj(Recipient::Attached);
+                let rest = self.card.groups.get(usize::from(i)).map_or_else(
+                    || "other creatures".to_string(),
+                    |f| {
+                        let mut g = f.clone();
+                        g.same = None;
+                        filter_phrase(&g, self.card, true)
+                    },
+                );
+                format!("{first} and {rest} that share a creature type with it")
+            }
+            Recipient::YouAndTarget(a) => format!("you and {}", self.obj(Recipient::Target(a))),
+            Recipient::SourceAndTarget(a) => {
+                let first = self.obj(Recipient::Source);
+                format!("{first} and {}", self.obj(Recipient::Target(a)))
+            }
             Recipient::ExiledCard => "the exiled card".to_string(),
             Recipient::ExiledWith(i) => {
                 // CR 607.2a: "all cards exiled with this artifact", "each
@@ -1859,6 +1886,14 @@ impl<'a> Ctx<'a> {
                 }
             }
             Recipient::Source => self.source_subj(),
+            // "You and target opponent each draw a card."
+            Recipient::YouAndTarget(a) => format!("you and {}", self.subj(Recipient::Target(a))),
+            // "This creature and up to one other target creature each get
+            // +3/+3 until end of turn."
+            Recipient::SourceAndTarget(a) => {
+                let first = self.source_subj();
+                format!("{first} and {}", self.subj(Recipient::Target(a)))
+            }
             // "Put a +1/+1 counter on Metalhead. He gains menace and haste
             // until end of turn."
             Recipient::SourceIt => {
@@ -2012,7 +2047,11 @@ impl<'a> Ctx<'a> {
         // controls. Put a stun counter on each of those creatures."
         let per_opponent = matches!(self.targets.get(a).map(Target::base),
             Some(Target::Filter(f)) if f.per_opponent);
-        if alike && !per_opponent {
+        // "Choose two target creatures controlled by different players.
+        // Return those creatures ...": the relation isn't repeated.
+        let related = matches!(self.targets.get(a).map(Target::base),
+            Some(Target::Filter(f)) if f.same == Some(SameRef::DifferentControllers));
+        if alike && !per_opponent && !related {
             self.plural_target_noun(a)
         } else {
             pluralize(&self.target_noun[a])
@@ -2116,6 +2155,9 @@ impl<'a> Ctx<'a> {
                 | Recipient::ThoseTargets(..)
                 | Recipient::ChosenTargets(..)
                 | Recipient::TargetAnd(..)
+                | Recipient::AttachedAnd(_)
+                | Recipient::YouAndTarget(_)
+                | Recipient::SourceAndTarget(_)
                 | Recipient::CreatedTokens
                 | Recipient::CreatedThem
                 | Recipient::CreatedThose
@@ -2144,7 +2186,9 @@ fn target_noun(t: &Target) -> String {
         Target::SpellOr(_) => "spell or permanent".to_string(),
         Target::GraveyardCard { .. } => "card".to_string(),
         Target::Spec(s) => match s {
-            TargetSpec::Any | TargetSpec::AnyOther => "permanent or player".to_string(),
+            TargetSpec::Any | TargetSpec::AnyOther | TargetSpec::AnyDamaged => {
+                "permanent or player".to_string()
+            }
             TargetSpec::Creature
             | TargetSpec::TappedCreature
             | TargetSpec::CreatureYouControl
@@ -2225,6 +2269,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
         TargetSpec::OnStack { .. } => unreachable!("above"),
         TargetSpec::Any => "any target",
         TargetSpec::AnyOther => "any other target",
+        TargetSpec::AnyDamaged => "any target that was dealt damage this turn",
         TargetSpec::Creature | TargetSpec::CreatureWithSubtype(_) => "target creature",
         TargetSpec::PlayerOrPlaneswalker => "target player or planeswalker",
         TargetSpec::PlayerOrBattle => "target player or battle",
@@ -2364,6 +2409,13 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     };
     let mut base = f.clone();
     base.or = None;
+    // "target attacking, blocking, or tapped creature" (Sonar Strike).
+    if let Some(rest) = crate::format::attacking_blocking_or_tapped(&base, alt) {
+        return format!(
+            "attacking, blocking, or tapped {}",
+            filter_phrase_one(&rest, card, plural_form)
+        );
+    }
     if let Some(rest) = crate::format::attacking_or_blocking(&base, alt) {
         // "each face-down creature that's attacking or blocking".
         if rest.attacking_late {
@@ -2582,6 +2634,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if let Some(t) = f.tapped {
         words.push(if t { "tapped" } else { "untapped" }.to_string());
     }
+    if f.status.nonattacking {
+        words.push("nonattacking".to_string());
+    }
     // "a nontoken modified creature".
     let nontoken_first = f.status.modified && f.status.token == Some(false);
     if nontoken_first {
@@ -2735,7 +2790,7 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     // "creatures you control with defender": Oracle names your control
     // before the qualities (but "creatures with flying your opponents
     // control").
-    if f.status.commander == Some(true) {
+    if f.status.commander == Some(true) || f.status.you_own {
         s.push_str(" you own");
     }
     let you_first = f.who == Some(Who::You) && f.or.is_none() && !f.named_first && !f.control_late;
@@ -3033,6 +3088,7 @@ fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             " that {} a creature type",
             if plural_form { "share" } else { "shares" }
         ),
+        Some(SameRef::DifferentControllers) => " controlled by different players".to_string(),
     }
 }
 
@@ -5060,7 +5116,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         } => {
             let mut s = ctx.subj(*to);
             // "Up to two target creatures each get +1/+0".
-            let each = if matches!(to, Recipient::Targets(..)) || ctx.is_many(*to) {
+            let each = if matches!(to, Recipient::Targets(..) | Recipient::SourceAndTarget(_))
+                || ctx.is_many(*to)
+            {
                 "each "
             } else {
                 ""
@@ -6071,6 +6129,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*to);
             Clause::with_subject(*to, s, "can't be regenerated this turn".to_string())
         }
+        // "Creatures don't untap during target player's next untap step."
+        Effect::SkipNext {
+            who,
+            what: mtg_core::card::SkipWhat::CreatureUntap,
+        } => {
+            let whose = if *who == Recipient::You {
+                "your".to_string()
+            } else {
+                format!("{}'s", ctx.obj(*who))
+            };
+            Clause::imperative(format!(
+                "creatures don't untap during {whose} next untap step"
+            ))
+        }
         Effect::SkipNext { who, what } => {
             let s = ctx.subj(*who);
             let whose = if *who == Recipient::You {
@@ -6082,6 +6154,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 mtg_core::card::SkipWhat::DrawStep => "draw step",
                 mtg_core::card::SkipWhat::CombatPhase => "combat phase",
                 mtg_core::card::SkipWhat::CombatPhaseThisTurn => "combat phase this turn",
+                mtg_core::card::SkipWhat::CreatureUntap => "untap step",
             };
             let v = ctx.verb(*who, "skips", "skip");
             Clause::with_subject(*who, s, format!("{v} {whose} next {w}"))
@@ -6378,7 +6451,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     let s = ctx.subj(*w);
                     // "Two target players each draw a card" (Gleaming
                     // Splendor).
-                    let each = if matches!(w, Recipient::Targets(..)) {
+                    let each = if matches!(w, Recipient::Targets(..) | Recipient::YouAndTarget(_)) {
                         "each "
                     } else {
                         ctx.each_many(*w)
@@ -6494,7 +6567,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // same name as that permanent ... to their owners' hands".
             let target_and = matches!(what.as_slice(), [Recipient::TargetAnd(..)]);
             // "Return X target creatures to their owners' hands".
-            let plural = what.len() > 1 || all || target_and || ctx.is_many(what[0]);
+            let plural = what.len() > 1
+                || all
+                || target_and
+                || ctx.is_many(what[0])
+                || matches!(
+                    what[0],
+                    Recipient::Targets(..)
+                        | Recipient::ThoseTargets(..)
+                        | Recipient::ChosenTargets(..)
+                );
             // "Return target creature card and all other cards with the
             // same name as that card from your graveyard to your hand."
             if let [Recipient::TargetAnd(t, _)] = what.as_slice()
@@ -7083,6 +7165,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     Clause::with_subject(*w, s, format!("{v} {what}"))
                 }
             }
+        }
+        // "Choose two target creatures controlled by different players."
+        Effect::ChooseTarget(r @ Recipient::Targets(a, 2))
+            if ctx.targets.get(*a) == ctx.targets.get(a + 1) =>
+        {
+            Clause::imperative(format!("choose {}", ctx.obj(*r)))
         }
         Effect::ChooseTarget(Recipient::Targets(a, 2)) => {
             let first = ctx.obj(Recipient::Target(*a));
@@ -7851,9 +7939,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 lowercase_first(&body)
             };
+            // "to that creature", "to that permanent": the damaged target's
+            // noun.
+            let that = if *to_that {
+                format!(
+                    "to that {} ",
+                    ctx.target_noun.last().map_or("permanent", String::as_str)
+                )
+            } else {
+                String::new()
+            };
             Clause::imperative(format!(
-                "if excess damage was dealt {}this way, {}",
-                if *to_that { "to that permanent " } else { "" },
+                "if excess damage was dealt {that}this way, {}",
                 body.trim_end_matches('.')
             ))
         }
@@ -9868,14 +9965,20 @@ fn this_way_text(c: &crate::ast::ThisWayCond, card: &Card) -> String {
 /// A target check that names only a state ("attacking", "tapped",
 /// "untapped", "blocking"): the adjective, or `None`.
 fn status_only(f: &Filter) -> Option<&'static str> {
-    let bare = Filter {
+    let mut bare = Filter {
         tapped: None,
         attacking: false,
         blocking: false,
         ..f.clone()
     };
+    // "If it's suspected, exile it." (Agrus Kos).
+    let suspected = bare.status.suspected == Some(true);
+    bare.status.suspected = None;
     if bare != Filter::default() {
         return None;
+    }
+    if suspected {
+        return (f.tapped.is_none() && !f.attacking && !f.blocking).then_some("suspected");
     }
     match (f.tapped, f.attacking, f.blocking) {
         (Some(true), false, false) => Some("tapped"),
@@ -10329,6 +10432,7 @@ fn lasting_text(l: mtg_core::card::Lasting, ctx: &Ctx) -> String {
         }
         Lasting::WhileTapped => "for as long as it remains tapped".to_string(),
         Lasting::YouControlSource => format!("for as long as you control {}", ctx.source_name()),
+        Lasting::SourceTapped => format!("for as long as {} remains tapped", ctx.source_name()),
     }
 }
 
@@ -12363,6 +12467,17 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
         Mod::AddAllLandTypes => format!(
             "{} every basic land type in addition to its other types",
             v("is", "are")
+        ),
+        // "Enchanted land is snow."
+        Mod::AddSupertype(s) => format!(
+            "{} {}",
+            v("is", "are"),
+            match s {
+                Supertype::Basic => "basic",
+                Supertype::Legendary => "legendary",
+                Supertype::Snow => "snow",
+                Supertype::World => "world",
+            }
         ),
         // "are Oozes in addition to their other types".
         Mod::AddSubtype(s) if plural_form => {

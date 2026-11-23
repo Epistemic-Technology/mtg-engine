@@ -318,6 +318,12 @@ impl Fmt {
                 }
             }
             Recipient::You => "you".to_string(),
+            Recipient::YouAndTarget(a) => {
+                format!("you and {}", self.recipient(Recipient::Target(a), targets))
+            }
+            Recipient::SourceAndTarget(a) => {
+                format!("this and {}", self.recipient(Recipient::Target(a), targets))
+            }
             Recipient::EachOpponent => "each opponent".to_string(),
             Recipient::EachOtherPlayer => "each other player".to_string(),
             Recipient::EachOfYourOpponents => "each of your opponents".to_string(),
@@ -380,6 +386,10 @@ impl Fmt {
             // `all` prints with the filter.
             // `target creature and all other creature with same name as
             // target 1`.
+            Recipient::AttachedAnd(i) => {
+                let group = self.recipient(Recipient::Group(i), targets);
+                format!("enchanted creature and {group}")
+            }
             Recipient::TargetAnd(t, i) => {
                 let first = self.recipient(Recipient::Target(t), targets);
                 let group = self.recipient(Recipient::Group(i), targets);
@@ -692,6 +702,7 @@ impl Fmt {
                 mtg_core::card::Lasting::SourceOnBattlefield => " for as long as this remains",
                 mtg_core::card::Lasting::WhileTapped => " for as long as it remains tapped",
                 mtg_core::card::Lasting::YouControlSource => " for as long as you control this",
+                mtg_core::card::Lasting::SourceTapped => " for as long as this remains tapped",
             });
         }
         out
@@ -728,7 +739,14 @@ impl Fmt {
                 power,
                 toughness,
                 to,
-            } => format!("{} gets {power:+}/{toughness:+}", self.recipient(*to, t)),
+            } => {
+                let each = if matches!(to, Recipient::SourceAndTarget(_)) {
+                    "each get"
+                } else {
+                    "gets"
+                };
+                format!("{} {each} {power:+}/{toughness:+}", self.recipient(*to, t))
+            }
             Effect::Destroy {
                 to,
                 no_regen,
@@ -1308,6 +1326,7 @@ impl Fmt {
                     mtg_core::card::SkipWhat::DrawStep => "draw step",
                     mtg_core::card::SkipWhat::CombatPhase => "combat phase",
                     mtg_core::card::SkipWhat::CombatPhaseThisTurn => "combat phase this turn",
+                    mtg_core::card::SkipWhat::CreatureUntap => "creature untap",
                 };
                 format!("{} {v} next {w}", self.recipient(*who, t))
             }
@@ -1417,10 +1436,10 @@ impl Fmt {
             Effect::DrawCards { count, who } => match who {
                 None => format!("draw {} {}", num(*count), cards(*count)),
                 Some(w) => {
-                    let v = if *w == Recipient::You {
-                        "draw"
-                    } else {
-                        "draws"
+                    let v = match w {
+                        Recipient::You => "draw",
+                        Recipient::YouAndTarget(_) => "each draw",
+                        _ => "draws",
                     };
                     format!(
                         "{} {v} {} {}",
@@ -1946,6 +1965,10 @@ impl Fmt {
             Effect::IfWonFlip(inner) => format!("if you win the flip, {}", self.line(inner, t)),
             // "Choose target creature you control and target creature you
             // don't control."
+            // `choose 2 target creature controlled by different players`.
+            Effect::ChooseTarget(r @ Recipient::Targets(a, 2)) if t.get(*a) == t.get(a + 1) => {
+                format!("choose {}", self.recipient(*r, t))
+            }
             Effect::ChooseTarget(Recipient::Targets(a, 2)) => {
                 let first = self.recipient(Recipient::Target(*a), t);
                 let second = self.recipient(Recipient::Target(a + 1), t);
@@ -3430,7 +3453,11 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     // filter, before `card`.
     let shares = matches!(
         f.same,
-        Some(crate::ast::SameRef::ShareCreatureType | crate::ast::SameRef::ShareCardType)
+        Some(
+            crate::ast::SameRef::ShareCreatureType
+                | crate::ast::SameRef::ShareCardType
+                | crate::ast::SameRef::DifferentControllers
+        )
     );
     let named = match f.same {
         _ if shares => "",
@@ -3519,6 +3546,9 @@ pub fn filter(f: &Filter) -> String {
         if let Some(rest) = attacking_or_blocking(&base, alt) {
             let late = if rest.attacking_late { " late" } else { "" };
             return format!("attacking or blocking{late} {}", filter(&rest));
+        }
+        if let Some(rest) = attacking_blocking_or_tapped(&base, alt) {
+            return format!("attacking or blocking or tapped {}", filter(&rest));
         }
         if let Some(k) = keyword_alternative(&base, alt) {
             return format!("{} or {}", filter_one(&base), keyword_name(k));
@@ -3613,6 +3643,9 @@ fn filter_one(f: &Filter) -> String {
     if f.status.token == Some(false) {
         words.push("nontoken".to_string());
     }
+    if f.status.nonattacking {
+        words.push("nonattacking".to_string());
+    }
     if let Some(t) = f.tapped {
         words.push(if t { "tapped" } else { "untapped" }.to_string());
     }
@@ -3675,7 +3708,7 @@ fn filter_one(f: &Filter) -> String {
             .collect();
         words.push(names.join(" or "));
     }
-    if f.status.commander == Some(true) {
+    if f.status.commander == Some(true) || f.status.you_own {
         words.push("you own".to_string());
     }
     if f.status.token == Some(true) {
@@ -3919,6 +3952,7 @@ pub fn same_ref(r: crate::ast::SameRef) -> String {
         SameRef::SharesColorWith(n) => format!("that shares color with target {}", n + 1),
         SameRef::ShareCardType => "that share card type".to_string(),
         SameRef::ShareCreatureType => "that share creature type".to_string(),
+        SameRef::DifferentControllers => "controlled by different players".to_string(),
         SameRef::LesserPower => "with lesser power".to_string(),
         SameRef::ManaValueAtMostPower => "with mana value at most this power".to_string(),
     }
@@ -4057,6 +4091,21 @@ pub fn keyword_alternative(base: &Filter, alt: &Filter) -> Option<Keyword> {
     let mut a = alt.clone();
     a.keywords.clone_from(&base.keywords);
     (a == *base && a.or.is_none()).then_some(k)
+}
+
+/// "attacking, blocking, or tapped creature": three sides differing only
+/// there (the second's alternative is the tapped one); the shared rest.
+pub fn attacking_blocking_or_tapped(base: &Filter, alt: &Filter) -> Option<Filter> {
+    let third = alt.or.as_deref()?;
+    let mut middle = alt.clone();
+    middle.or = None;
+    let rest = attacking_or_blocking(base, &middle)?;
+    let mut t = third.clone();
+    if t.tapped != Some(true) || t.attacking || t.blocking {
+        return None;
+    }
+    t.tapped = None;
+    (t == rest && rest.tapped.is_none()).then_some(rest)
 }
 
 /// "attacking or blocking creature": the two sides differ only there; the
@@ -5068,6 +5117,15 @@ fn modification(m: &Mod) -> String {
         Mod::ChosenLandType => "set land chosen".to_string(),
         Mod::AddChosenType => "add chosen type".to_string(),
         Mod::AddSubtype(s) => format!("add subtype {s}"),
+        Mod::AddSupertype(s) => format!(
+            "add supertype {}",
+            match s {
+                Supertype::Basic => "basic",
+                Supertype::Legendary => "legendary",
+                Supertype::Snow => "snow",
+                Supertype::World => "world",
+            }
+        ),
         Mod::SetSubtype(s) => format!("set subtype {s}"),
         Mod::AddAllLandTypes => "add land all".to_string(),
         Mod::Control => "control".to_string(),

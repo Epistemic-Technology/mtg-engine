@@ -1,0 +1,8 @@
+card "Crown of Vigor" {
+  oracle_id 0b5f94be-7e56-44ee-9af2-d664d9f91193
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1
+  activated sacrifice this: enchanted creature and each other creature that share creature type gets +1/+1
+}

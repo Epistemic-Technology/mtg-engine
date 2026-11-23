@@ -1,0 +1,38 @@
+# "Creatures don't untap during target player's next untap step."
+# (Blinding Beam): in that player's next untap step no creature untaps;
+# their other permanents do, and the step after is normal.
+
+scenario "Blinding Beam: the target player's creatures stay tapped, their lands untap" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Grizzly Bears" tapped, "Forest" tapped
+  hand A: "Blinding Beam"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Blinding Beam" mode 2 targeting player B
+  run_to turn 4 upkeep
+  assert tapped "Grizzly Bears"
+  assert untapped "Forest"
+  run_to turn 6 upkeep
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Blinding Beam: entwined, tap two creatures that then don't untap" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Blinding Beam"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Blinding Beam" mode 3 targeting "Grizzly Bears", "Hill Giant", player B
+  run_to turn 4 upkeep
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+}
+
+scenario "Blinding Beam: the caster's own creatures untap as usual" {
+  battlefield A: "Grizzly Bears" tapped, 3 "Plains"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Blinding Beam"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Blinding Beam" mode 2 targeting player B
+  run_to turn 5 upkeep
+  assert untapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+}

@@ -1,0 +1,8 @@
+card "Crown of Suspicion" {
+  oracle_id 6586f8d1-196d-42a4-816f-629d432ece2f
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/-1
+  activated sacrifice this: enchanted creature and each other creature that share creature type gets +2/-1
+}

@@ -1123,6 +1123,10 @@ pub enum SameRef {
     /// `that share creature type`: "that share a creature type" (with the
     /// first target).
     ShareCreatureType,
+    /// `controlled by different players`: "two target creatures
+    /// controlled by different players" (each controlled by a player
+    /// other than the other's controller).
+    DifferentControllers,
     /// `with lesser power`: "with lesser power" (than the source's power,
     /// as it is or last existed; mentor, CR 702.134a).
     LesserPower,
@@ -3399,6 +3403,8 @@ pub enum Mod {
     /// `add chosen type`: "is the chosen type in addition to its other
     /// types".
     AddChosenType,
+    /// `add supertype snow`: "is snow" (CR 205.4).
+    AddSupertype(Supertype),
     AddSubtype(String),
     /// `set subtype Spirit`: "is a Spirit" (it loses its other creature
     /// types, CR 205.1b).
@@ -3641,6 +3647,20 @@ pub enum Recipient {
     /// 1`: the `n`th target and the `g`th group, whose filter relates to
     /// that target.
     TargetAnd(usize, u16),
+    /// `enchanted creature and each other creature that share creature
+    /// type`: what this is attached to and the `g`th group, the creatures
+    /// that share a creature type with it, "Enchanted creature and other
+    /// creatures that share a creature type with it" (Crown of Vigor).
+    AttachedAnd(u16),
+    /// `you and target opponent each draw 1 card`: you and the `n`th
+    /// target as one subject, "You and target opponent each draw a card."
+    /// (Sky Crier); the effect happens to each, you first.
+    YouAndTarget(usize),
+    /// `this and up to 1 other target creature each get +3/+3`: the
+    /// source and the `n`th target as one subject, "This creature and up
+    /// to one other target creature each get +3/+3 until end of turn."
+    /// (Razorgrass Invoker).
+    SourceAndTarget(usize),
     /// `exiled card`: "the exiled card", what this permanent's linked
     /// ability exiled (CR 607.2a).
     ExiledCard,

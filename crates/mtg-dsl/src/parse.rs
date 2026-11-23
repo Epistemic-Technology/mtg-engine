@@ -205,6 +205,11 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     ),
     (&["doesn't", "untap"], Keyword::DoesntUntap),
     (
+        &["may", "choose", "not", "to", "untap"],
+        Keyword::MayNotUntap,
+    ),
+    (&["can't", "be", "equipped"], Keyword::CantBeEquipped),
+    (
         &[
             "assigns",
             "combat",
@@ -5158,6 +5163,9 @@ impl P {
         if self.eat_words(&["until", "your", "next", "turn"]) {
             return Some(Lasting::YourNextTurn);
         }
+        if self.eat_words(&["for", "as", "long", "as", "this", "remains", "tapped"]) {
+            return Some(Lasting::SourceTapped);
+        }
         if self.eat_words(&["for", "as", "long", "as", "this", "remains"]) {
             return Some(Lasting::SourceOnBattlefield);
         }
@@ -5503,6 +5511,11 @@ impl P {
 
     fn at_subject_verb(&self) -> bool {
         if self.revealed && self.at_word("puts") {
+            return true;
+        }
+        // "That creature can't be blocked this turn and has base power
+        // and toughness 1/1 until end of turn."
+        if self.at_words(&["has", "base"]) {
             return true;
         }
         matches!(
@@ -6373,17 +6386,12 @@ impl P {
             ));
         }
         // "If excess damage was dealt this way, ..." (CR 120.4a).
-        let to_that = self.at_words(&[
-            "if",
-            "excess",
-            "damage",
-            "dealt",
-            "to",
-            "that",
-            "permanent",
-            "this",
-            "way",
-        ]);
+        // "... to that creature this way" (Torch the Witness): the noun is
+        // the target's, as printed.
+        let to_that = self.at_words(&["if", "excess", "damage", "dealt", "to", "that"])
+            && matches!(self.word_at(6).as_deref(), Some("permanent" | "creature"))
+            && self.word_at(7).as_deref() == Some("this")
+            && self.word_at(8).as_deref() == Some("way");
         if to_that || self.at_words(&["if", "excess", "damage", "dealt", "this", "way"]) {
             self.pos += if to_that { 9 } else { 6 };
             self.expect(&Tok::Comma)?;
@@ -6475,7 +6483,17 @@ impl P {
             if group.is_some() || self.is_many_subject(&subjects) {
                 self.subject_each = self.eat_word("each");
             }
-            let subject = if let Some(g) = group {
+            // "You and target opponent each draw a card", "This creature
+            // and up to one other target creature each get +3/+3".
+            let pair = match subjects.as_slice() {
+                [Recipient::You, Recipient::Target(a)] => Some(Recipient::YouAndTarget(*a)),
+                [Recipient::Source, Recipient::Target(a)] => Some(Recipient::SourceAndTarget(*a)),
+                _ => None,
+            };
+            if pair.is_some() {
+                self.subject_each = self.eat_word("each");
+            }
+            let subject = if let Some(g) = group.or(pair) {
                 g
             } else if subjects.len() == 1 {
                 subjects[0]
@@ -7509,6 +7527,8 @@ impl P {
                 self.pos += 1;
                 let what = if self.eat_words(&["draw", "step"]) {
                     SkipWhat::DrawStep
+                } else if self.eat_words(&["creature", "untap"]) {
+                    SkipWhat::CreatureUntap
                 } else {
                     self.expect_words(&["combat", "phase"])?;
                     if self.eat_words(&["this", "turn"]) {
@@ -8392,7 +8412,25 @@ impl P {
             }
             // "Choose target creature, then roll a d20.": the target
             // named before what acts on it.
-            "choose" if self.at_word("target") || self.at_words(&["any", "target"]) => {
+            // "Choose two target creatures controlled by different
+            // players."
+            "choose"
+                if self.at_word("target")
+                    || self.at_words(&["any", "target"])
+                    // "Choose up to one target creature."
+                    || self.at_words(&["up", "to"])
+                    || (matches!(self.peek(), Some(Tok::Num(2)))
+                        && self.word_at(1).as_deref() == Some("target")) =>
+            {
+                if matches!(self.peek(), Some(Tok::Num(_))) {
+                    let rs = self.recipient_group()?;
+                    return match rs.as_slice() {
+                        [Recipient::Target(a), Recipient::Target(b)] if *b == a + 1 => {
+                            Ok(Effect::ChooseTarget(Recipient::Targets(*a, 2)))
+                        }
+                        _ => self.fail("`choose 2 target ...` takes two new targets"),
+                    };
+                }
                 let first = self.recipient()?;
                 // "Choose target creature you control and target creature
                 // you don't control.": two targets named at once.
@@ -11182,6 +11220,20 @@ impl P {
                 true
             }
         {
+            // `enchanted creature and each other creature that share
+            // creature type`: the host and the creatures sharing a
+            // creature type with it.
+            if self.at_words(&["and", "each", "other"]) {
+                let save = (self.pos, self.groups.len());
+                self.pos += 1;
+                if let Ok(Recipient::Group(g)) = self.recipient()
+                    && self.groups[usize::from(g)].same == Some(SameRef::ShareCreatureType)
+                {
+                    return Ok(Recipient::AttachedAnd(g));
+                }
+                self.pos = save.0;
+                self.groups.truncate(save.1);
+            }
             return Ok(Recipient::Attached);
         }
         if self.eat_words(&["triggering", "card"]) {
@@ -11253,6 +11305,13 @@ impl P {
             } else {
                 Recipient::CreatedObject
             });
+        }
+        // "any target that was dealt damage this turn".
+        if self.eat_words(&[
+            "any", "target", "that", "was", "dealt", "damage", "this", "turn",
+        ]) {
+            self.targets.push(Target::Spec(TargetSpec::AnyDamaged));
+            return Ok(Recipient::Target(self.targets.len() - 1));
         }
         if self.eat_words(&["any", "target"]) {
             self.targets.push(Target::Spec(TargetSpec::Any));
@@ -11685,7 +11744,7 @@ impl P {
                             .is_some_and(|w| card_type(&w).is_some() || w == "or"));
                 let more = matches!(
                     (next.as_deref(), after.as_deref()),
-                    (Some("you"), Some("don't" | "control"))
+                    (Some("you"), Some("don't" | "control" | "own"))
                         | (Some("an"), Some("opponent"))
                         | (Some("target"), Some("player" | "opponent"))
                         | (Some("defending" | "your"), Some("player" | "opponents"))
@@ -11697,7 +11756,7 @@ impl P {
                         | (Some("controller"), Some("of"))
                         | (Some("with" | "without"), Some("aura"))
                         | (Some("with"), Some("counter" | "toxic" | "morph" | "no"))
-                        | (Some("blocked"), Some("by"))
+                        | (Some("blocked" | "controlled"), Some("by"))
                         | (Some("blocking"), Some("this" | "it" | "or"))
                 ) || comma_type
                     || (next.as_deref() == Some("or")
@@ -11879,6 +11938,7 @@ impl P {
         let mut f = Filter::default();
         let mut consumed = 0;
         let mut or_blocking = false;
+        let mut or_tapped = false;
         let mut named_before_who = false;
         loop {
             // "nonartifact, nonblack creature"; "artifact, enchantment, or
@@ -12407,6 +12467,17 @@ impl P {
                     f.status.commander = Some(true);
                     self.pos += 2;
                 }
+                // "target creature you own" (CR 108.3), not "cards you own
+                // in exile".
+                "you"
+                    if self.at_words(&["you", "own"])
+                        && !f.status.you_own
+                        && f.who.is_none()
+                        && !matches!(self.word_at(2).as_deref(), Some("in" | "exiled")) =>
+                {
+                    f.status.you_own = true;
+                    self.pos += 2;
+                }
                 // CR 708.2: "face-down creature".
                 "face-down" if !f.status.face_down => {
                     f.status.face_down = true;
@@ -12468,6 +12539,11 @@ impl P {
                     f.attacking = true;
                     or_blocking = true;
                     self.pos += 3;
+                    // "attacking, blocking, or tapped creature".
+                    if self.at_words(&["or", "tapped"]) {
+                        or_tapped = true;
+                        self.pos += 2;
+                    }
                     // "face-down creature that's attacking or blocking".
                     if self.eat_word("late") {
                         f.attacking_late = true;
@@ -12567,6 +12643,14 @@ impl P {
                 {
                     self.pos += 4;
                     f.same = Some(SameRef::ShareCreatureType);
+                }
+                // "two target creatures controlled by different players".
+                "controlled"
+                    if self.at_words(&["controlled", "by", "different", "players"])
+                        && f.same.is_none() =>
+                {
+                    self.pos += 4;
+                    f.same = Some(SameRef::DifferentControllers);
                 }
                 // "with lesser power" (mentor, CR 702.134a).
                 "with" if self.at_words(&["with", "lesser", "power"]) && f.same.is_none() => {
@@ -12756,6 +12840,9 @@ impl P {
                         } else if rest == "snow" {
                             // "nonsnow" (CR 205.4g).
                             f.not_supertypes.push(Supertype::Snow);
+                        } else if rest == "attacking" && !f.status.nonattacking {
+                            // "target nonattacking creature".
+                            f.status.nonattacking = true;
                         } else if rest_raw == crate::ast::OUTLAW {
                             // "non-outlaw" (CR 700.12): none of the five.
                             f.not_subtypes.push(crate::ast::OUTLAW.to_string());
@@ -12824,6 +12911,13 @@ impl P {
             let mut alt = f.clone();
             alt.attacking = false;
             alt.blocking = true;
+            // "attacking, blocking, or tapped": a third side, tapped.
+            if or_tapped {
+                let mut tapped = f.clone();
+                tapped.attacking = false;
+                tapped.tapped = Some(true);
+                alt.or = Some(Box::new(tapped));
+            }
             f.or = Some(Box::new(alt));
         }
         // "creature named ~ you control": the name before the controller.
@@ -15212,6 +15306,14 @@ impl P {
                         })
                     }
                     "chosen" if !set && self.eat_word("type") => Ok(Mod::AddChosenType),
+                    // `add supertype snow`: "is snow".
+                    "supertype" if !set => {
+                        let w = self.word()?;
+                        let Some(s) = supertype(&w) else {
+                            return self.fail(format!("not a supertype: {w}"));
+                        };
+                        Ok(Mod::AddSupertype(s))
+                    }
                     "subtype" if !set && self.eat_word("every") => {
                         Ok(Mod::AllCreatureTypes { every: true })
                     }

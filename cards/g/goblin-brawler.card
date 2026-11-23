@@ -1,0 +1,7 @@
+card "Goblin Brawler" {
+  oracle_id 4abb4fb0-f674-44b5-962c-c66219fb0deb
+  cost {2}{R}
+  type Creature — Goblin Warrior
+  pt 2/2
+  keywords first strike, can't be equipped
+}

@@ -217,7 +217,10 @@ fn a_target_becomes_a_copy() {
 
 #[test]
 fn a_filter_with_three_alternatives_is_an_error() {
-    let e = spell_error("deal 4 damage to target attacking or blocking or tapped creature");
+    // "attacking, blocking, or tapped" is a form of its own; another
+    // alternative after "attacking or blocking" would be lost.
+    let e =
+        spell_error("deal 4 damage to target attacking or blocking creature with flying or reach");
     assert!(e.contains("three alternatives"), "{e}");
 }
 

@@ -1692,9 +1692,11 @@ impl GameState {
                     if deathtouch {
                         o.deathtouch_damage = true;
                     }
-                    if !self.damaged_by_this_turn.contains(&(source, id)) {
-                        self.damaged_by_this_turn.push((source, id));
-                    }
+                }
+                // A planeswalker or battle was dealt damage too ("any
+                // target that was dealt damage this turn").
+                if !self.damaged_by_this_turn.contains(&(source, id)) {
+                    self.damaged_by_this_turn.push((source, id));
                 }
                 self.bump();
                 self.sba_touch();

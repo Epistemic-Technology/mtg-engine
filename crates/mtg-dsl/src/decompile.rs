@@ -274,6 +274,9 @@ impl Decompiler<'_> {
                     }
                     (SameOf::Target(_), SameWhat::SharesType) => SameRef::ShareCardType,
                     (SameOf::Target(_), SameWhat::SharesCreatureType) => SameRef::ShareCreatureType,
+                    (SameOf::Target(_), SameWhat::DifferentController) => {
+                        SameRef::DifferentControllers
+                    }
                     (SameOf::Target(n), _) => SameRef::SameNameAs(usize::from(n)),
                 }
             }),
@@ -784,6 +787,7 @@ impl Decompiler<'_> {
             CoreRecipient::OpponentsWithout(i) => Recipient::OpponentsWithout(i),
             CoreRecipient::DamagedThisWay => Recipient::DamagedThisWay,
             CoreRecipient::TargetAndGroup(t, i) => Recipient::TargetAnd(t, i),
+            CoreRecipient::AttachedAndSharing(i) => Recipient::AttachedAnd(i),
             CoreRecipient::Attached => Recipient::Attached,
             CoreRecipient::AttachedController => Recipient::AttachedController,
             CoreRecipient::BlockingIt => Recipient::BlockingIt,
@@ -2351,6 +2355,7 @@ impl Decompiler<'_> {
             Modification::ChosenLandType => Mod::ChosenLandType,
             Modification::AddChosenType => Mod::AddChosenType,
             Modification::AddSubtype(s) => Mod::AddSubtype(self.pool.subtype_name(*s).to_string()),
+            Modification::AddSupertype(s) => Mod::AddSupertype(*s),
             Modification::SetCreatureType(s) => {
                 Mod::SetSubtype(self.pool.subtype_name(*s).to_string())
             }

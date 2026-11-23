@@ -1,0 +1,9 @@
+card "Needle Drop" {
+  oracle_id 8622a2b2-fe07-41bd-bef3-e60731e0d701
+  cost {R}
+  type Instant
+  spell {
+    deal 1 damage to any target that was dealt damage this turn
+    draw 1 card
+  }
+}

@@ -1,0 +1,6 @@
+card "Torch the Witness" {
+  oracle_id 51473069-68dc-4e87-b345-d7cbcfdeea74
+  cost {X}{R}
+  type Sorcery
+  spell: deal 2 times X damage to target creature; if excess damage dealt to that creature this way, investigate
+}

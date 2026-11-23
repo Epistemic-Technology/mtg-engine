@@ -1,0 +1,24 @@
+# "Torch the Witness deals twice X damage to target creature. If excess
+# damage was dealt to that creature this way, investigate." (CR 120.4a)
+
+scenario "Torch the Witness: X 2 deals 4 to a 2/2, excess, a Clue" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Torch the Witness"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Torch the Witness" x 2 targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Clue"
+}
+
+scenario "Torch the Witness: X 1 deals 2 to a 3/3, no excess, no Clue" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Torch the Witness"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Torch the Witness" x 1 targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert damage "Hill Giant" 2
+  assert battlefield A lacks "Clue"
+}

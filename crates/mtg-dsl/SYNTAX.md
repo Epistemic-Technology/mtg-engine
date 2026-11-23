@@ -135,6 +135,7 @@ like the card; either half may still be cast alone.
 | `pronoun he`, `pronoun she`, `pronoun they` | Wording only: after naming it, the card's text calls itself "he"/"him"/"his", "she"/"her", or "they"/"them"/"their" instead of "it" (and `they` makes a trigger about it plural: "Whenever Bebop & Rocksteady attack or block") ("Put a +1/+1 counter on Abomination. He fights up to one target creature an opponent controls."; "Morlun enters with X +1/+1 counters on him."). The template author adds it for a legendary card whose Oracle text uses those words. |
 | `color green` | Color indicator (CR 204): for cards and tokens whose color is not their cost's. |
 | `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14), `protection from white` (and the other colors, CR 702.16), `devoid` (CR 702.114), `changeling` (CR 702.73), `shroud`, `fear`, `intimidate`, `shadow`, `horsemanship`, `skulk`, `wither`, `infect` (damage to players as poison counters; ten lose, CR 704.5c), `exalted`, `persist`, `undying`, `flanking`, `convoke` (CR 702.51: untapped creatures may be tapped to pay {1} or one mana of their color), and `improvise` (CR 702.126: artifacts pay {1}), and `banding` (CR 702.22: attacking bands, blocked as a group, the banding player dividing the combat damage; "bands with other" is not supported), `decayed` (CR 702.147: can't block; when it attacks, it's sacrificed at end of combat), and `phasing` (CR 702.26: phases in or out before its controller untaps). The restrictions `can't attack`, `can't block`, `attacks each combat if able`, `can't be blocked`, `can't attack alone`, and `can't block alone` (both together print "can't attack or block alone", CR 506.5), `doesn't untap` ("This creature doesn't untap during your untap step."; granted, "Enchanted creature doesn't untap during its controller's untap step."), `can't become untapped` (no effect or untap step untaps it, and a stun counter stays on it; granted, "Enchanted creature loses all abilities and can't become untapped."), `untaps during each other player's untap step` ("Untap this creature during each other player's untap step.", CR 502.3: it untaps in the other players' untap steps too; granted to a group, `static permanent you control: has untaps during each other player's untap step` prints "Untap all permanents you control during each other player's untap step.", `static andlist creature or land you control: ...` "... all creatures and lands you control ...", `static andor green or blue creature you control: ...` "... all green and/or blue creatures ...", and with `each` "Untap each creature you control with a +1/+1 counter on it during ..."; granted by an Aura, `static enchanted: has untaps during each other player's untap step` is quoted, 'Enchanted land has "Untap this land during each other player's untap step."'), `assigns combat damage equal to toughness` ("This creature assigns combat damage equal to its toughness rather than its power.", CR 510.1a; `static each creature you control: has ...` prints "Each creature you control assigns ..."), and the blocking requirements and allowances (CR 509.1a, 509.1c) `blocks each combat if able`, `must be blocked if able`, `lure` ("All creatures able to block this creature do so."), `can block an additional creature each combat`, and `can block any number of creatures`, and `can attack as though it didn't have defender` (CR 702.3b; granted to a group, "... as though they didn't have defender"; with `can't be blocked` after it, "... and it can't be blocked") are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
+| `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14), `protection from white` (and the other colors, CR 702.16), `devoid` (CR 702.114), `changeling` (CR 702.73), `shroud`, `fear`, `intimidate`, `shadow`, `horsemanship`, `skulk`, `wither`, `infect` (damage to players as poison counters; ten lose, CR 704.5c), `exalted`, `persist`, `undying`, `flanking`, `convoke` (CR 702.51: untapped creatures may be tapped to pay {1} or one mana of their color), and `improvise` (CR 702.126: artifacts pay {1}), and `banding` (CR 702.22: attacking bands, blocked as a group, the banding player dividing the combat damage; "bands with other" is not supported), `decayed` (CR 702.147: can't block; when it attacks, it's sacrificed at end of combat), and `phasing` (CR 702.26: phases in or out before its controller untaps). The restrictions `can't attack`, `can't block`, `attacks each combat if able`, `can't be blocked`, `can't attack alone`, and `can't block alone` (both together print "can't attack or block alone", CR 506.5), `doesn't untap` ("This creature doesn't untap during your untap step."; granted, "Enchanted creature doesn't untap during its controller's untap step."), `can't become untapped` (no effect or untap step untaps it, and a stun counter stays on it; granted, "Enchanted creature loses all abilities and can't become untapped."), `untaps during each other player's untap step` ("Untap this creature during each other player's untap step.", CR 502.3: it untaps in the other players' untap steps too; granted to a group, `static permanent you control: has untaps during each other player's untap step` prints "Untap all permanents you control during each other player's untap step.", `static andlist creature or land you control: ...` "... all creatures and lands you control ...", `static andor green or blue creature you control: ...` "... all green and/or blue creatures ...", and with `each` "Untap each creature you control with a +1/+1 counter on it during ..."), `may choose not to untap` ("You may choose not to untap this creature during your untap step.", CR 502.3: as its controller's untap step untaps their permanents, they are asked about each such tapped permanent; scenarios: `turn 5 untap A: accept "Phyrexian Gremlins"` keeps it tapped, unscripted it untaps), `can't be equipped` ("This creature can't be equipped.", CR 301.5c: equip may target it, but no Equipment becomes attached to it, and one already attached becomes unattached, CR 704.5n), `assigns combat damage equal to toughness` ("This creature assigns combat damage equal to its toughness rather than its power.", CR 510.1a; `static each creature you control: has ...` prints "Each creature you control assigns ..."), and the blocking requirements and allowances (CR 509.1a, 509.1c) `blocks each combat if able`, `must be blocked if able`, `lure` ("All creatures able to block this creature do so."), `can block an additional creature each combat`, and `can block any number of creatures`, and `can attack as though it didn't have defender` (CR 702.3b; granted to a group, "... as though they didn't have defender"; with `can't be blocked` after it, "... and it can't be blocked") are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
 | `additional cost sacrifice creature` | "As an additional cost to cast this spell, ..." (CR 601.2b). Same syntax as an activated ability's cost. |
 | `additional cost sacrifice creature` then `additional cost or {3}{B}` | "As an additional cost to cast this spell, sacrifice a creature or pay {3}{B}." (CR 601.2b): two additional costs, of which the caster pays one, chosen as the spell is cast (before the kicker and X); only those that can be paid are offered. A mana part prints "pay {3}{B}", and the total cost includes it (CR 601.2f). |
 | `alternative cost sacrifice Mountain`, `alternative cost sacrifice 2 Mountain`, `alternative cost sacrifice Mountain, if your turn`, `alternative cost {1}, return basic land you control` | An alternative cost of the card's own (CR 118.9): "You may sacrifice a Mountain rather than pay this spell's mana cost.", "You may sacrifice two Mountains ...", "If it's your turn, you may ...", "You may pay {1} and return a basic land you control to its owner's hand ...". Mana and one kind of permanent (sacrificed, returned with `return`, or tapped with `tap untapped creature you control`), offered while the condition holds; the chosen permanent is the first and the engine picks the rest. Not combined with an additional cost that also chooses a permanent. `alternative cost pay 4 life, if you control Swamp` pays life (offered only with that much life, CR 119.4); `alternative cost if cast another white spell this turn`, with no cost at all, prints "If you've cast another white spell this turn, you may cast this spell without paying its mana cost."; `alternative cost reveal hand, if hand has no land card` prints "If you have no land cards in hand, you may reveal your hand rather than pay this spell's mana cost." (every card left in the hand is then known to every player, CR 701.20). `alternative cost exile blue card from hand` (a pitch spell) prints "You may exile a blue card from your hand rather than pay this spell's mana cost." (`exile 2 white cards from hand`: "exile two white cards from your hand"; `, if not your turn` for "If it's not your turn, ..."): the caster chooses the card as a discard is chosen (scenarios: `cast "Snapback" alternative discarding "Wind Drake"`; the engine picks any others), never the spell itself, and it is exiled, not discarded. `alternative cost each other player gains 6 life, if you control Forest` prints the older wording "If you control a Forest, rather than pay this spell's mana cost, you may have each other player gain 6 life." (the cost is paid by each other player gaining that life). |
@@ -1106,7 +1107,12 @@ chosen and as the spell resolves; `return 2 target creature that share
 creature type card from your graveyard to hand`: "Return two target
 creature cards that share a creature type from your graveyard to your
 hand.", each sharing a creature type with the first, a changeling every
-one, CR 702.73a); `exchange control of this and target
+one, CR 702.73a; `choose 2 target creature controlled by different
+players; return those targets to hand`: "Choose two target creatures
+controlled by different players. Return those creatures to their owners'
+hands.", each controlled by someone other than the other's controller, as
+it is or last existed, as chosen and as the spell resolves, so once one
+player controls both, neither is legal); `exchange control of this and target
 nonland permanent`, `exchange control of target land you control and
 target land an opponent controls` name the two. Nothing happens unless
 both are still on the battlefield (CR 701.12a) under different
@@ -1465,12 +1471,18 @@ that's blue or red"; `other token creature or Rabbit creature you
 control` is "other creature you control that's a token or a Rabbit"
 (write `token creature`: a bare `token` is any token, a Treasure too).
 
+`target creature you own` (CR 108.3: owned by the caster, whoever
+controls it; `exile target creature you own then return it to
+battlefield under your control`, Slip On the Ring) is judged for targets
+and an effect's groups, by the caster or the effect's controller;
+elsewhere it doesn't restrict.
 `commander creature you own` ("commander creatures you own") and
 `commander creature or planeswalker` ("a commander that's a creature or
 planeswalker") match nothing: the game has no commanders (CR 903.3).
 
 More filter words: `token` ("a token", "artifact token", CR 111.1),
-`nontoken`, `tapped`, `untapped`, `attacking`, `blocking`,
+`nontoken`, `tapped`, `untapped`, `attacking`, `blocking`, `nonattacking`
+("target nonattacking creature": not an attacking creature),
 `damaged` (also written `that was dealt damage this turn`),
 `multicolored`, `monocolored`, `colorless`, `basic`, `legendary`, `snow`,
 `nonsnow`, `modified` (CR 700.9; `nontoken modified creature` prints
@@ -1634,7 +1646,8 @@ of CR 613: `+1/+1`, `base 1/1`,
 `has flying, trample`, `loses all abilities`, `add type creature`,
 `loses flying`, `set land Mountain`, `set land Mountain Forest Plains` ("is a
 Mountain, Forest, and Plains": all of them and no other), `add land Swamp`,
-`add subtype Saproling`, `goaded` ("is goaded", CR 701.15: attacks each
+`add subtype Saproling`, `add supertype snow` ("Enchanted land is snow.",
+layer 4: a supertype added to its others, CR 205.4), `goaded` ("is goaded", CR 701.15: attacks each
 combat if able, and a player other than the source's controller if able),
 `control`
 (you control it), `add color white`, `set color blue`, `set color chosen`,
@@ -1914,10 +1927,13 @@ opponents control get -3/-0 until your next turn"; `until your next turn,
 up to 1 target creature gets -5/-0` prints it first), `for as long as this
 remains` ("for as long as this creature remains on the battlefield", "...
 The Wondrous Wasp remains ..."), `for as long as you control this` ("for as
-long as you control this creature"), and `for as long as it remains tapped`
-(each affected permanent, while it stays tapped). The last three end when
-the source leaves the battlefield or changes control, or the permanent
-untaps (checked with the state-based actions), and do nothing if that has
+long as you control this creature"), `for as long as it remains tapped`
+(each affected permanent, while it stays tapped), and `for as long as this
+remains tapped` ("for as long as this creature remains tapped": while the
+source stays tapped; Phyrexian Gremlins' `tap target artifact; target 1
+gains doesn't untap for as long as this remains tapped`). The last four end when
+the source leaves the battlefield or changes control, or the permanent (or
+source) untaps (checked with the state-based actions), and do nothing if that has
 already happened as the effect would begin. `gain control of target
 creature for as long as you control this`, `that target 1 can't attack or
 block for as long as you control this` ("That creature can't attack or
@@ -2070,7 +2086,10 @@ loses life equal to that card's mana value"), `<who> skips next draw
 step` ("Target player skips their next draw step", CR 500.11), `<who>
 skips next combat phase` ("Target opponent skips their next combat
 phase"; `... combat phase this turn`: only a combat phase of this turn;
-the main phase after it still happens), `<who> takes extra turn` ("Take
+the main phase after it still happens), `<who> skips next creature
+untap` ("Creatures don't untap during target player's next untap step.",
+Blinding Beam: no creature untaps in that player's next untap step,
+whoever controls it; their other permanents do), `<who> takes extra turn` ("Take
 an extra turn after this one." for `you take extra turn`; `target player
 takes 2 extra turns`: "... two extra turns after this one", CR 500.7: the
 most recently created extra turn comes first), `after this phase,
@@ -2608,6 +2627,20 @@ colorless, CR 105.2c), and targets. After such a recipient, `those
 creatures` is the target and the group together ("Untap target creature
 and each other creature that shares a color with it. Those creatures get
 +2/+0 until end of turn.", Rally the Righteous).
+Two subjects, one of them a target, each doing the same thing: `you and
+target opponent each draw 1 card` ("You and target opponent each draw a
+card.", you first, then the target) and `this and up to 1 another target
+creature each get +3/+3` ("This creature and up to one other target
+creature each get +3/+3 until end of turn."; with the target declined, the
+source still gets it; with the only target illegal, the ability does
+nothing, CR 608.2b). Only `draw` and `get` take such a subject.
+`enchanted creature and each other creature that share creature type`
+("Enchanted creature and other creatures that share a creature type with
+it", Crown of Vigor's `activated sacrifice this: enchanted creature and
+each other creature that share creature type gets +1/+1`): what the
+source is attached to (as it last existed, once the Aura is sacrificed)
+and every other creature, any player's, sharing a creature type with it
+(CR 205.3m; a changeling has them all, CR 702.73a).
 creatures you control get +2/+2" as a subject; `each creature your
 opponents control`), and targets. A group is "they" again within its
 sentence and named in full in a later one ("... to each creature your
@@ -2675,7 +2708,9 @@ loses its share. `another target creature` excludes the source.
 `another target any` (or `any other target`) prints "any other target":
 not the source nor what the ability's other "target" words chose (CR
 115.3; `deal 2 damage to any target and deal 1 damage to another target
-any`, Boulder Dash). `another target blocking creature` prints "another
+any`, Boulder Dash). `any target that was dealt damage this turn` (Needle
+Drop): a player, creature, planeswalker, or battle that was dealt damage
+this turn, judged as it is chosen and as the spell resolves. `another target blocking creature` prints "another
 target blocking creature". `another` before a target with no "other"
 form is an error rather than dropped.
 `deal X plus 1 damage divided among any number of targets` ("X plus 1
@@ -2705,7 +2740,9 @@ Specifications: `any target`, `creature`, `player`, `player or planeswalker`,
 ("target instant or sorcery spell"), `card from a graveyard`, `<filter>
 card from your graveyard` / `from an opponent's graveyard` / `from that
 player's graveyard` (the triggering player's), `opponent`,
-`artifact or creature`, `attacking or blocking creature`, `attacking
+`artifact or creature`, `attacking or blocking creature`, `attacking or
+blocking or tapped creature` ("target attacking, blocking, or tapped
+creature": any of the three), `attacking
 creature`, `blocking creature`, `<Subtype> creature` ("target Assembly-Worker creature"), and any filter
 ("target nonblack creature", "target creature an opponent controls").
 Targets relative to a player: `target creature that player controls` (the
@@ -3341,6 +3378,7 @@ Forms that change only how Oracle words what an existing form does:
 | `reduced {1} during your turn` | "This ability costs {1} less to activate during your turn." |
 | `the chosen target 1` | "the chosen creature", after "choose target creature" |
 | `for each opponent, tap up to 1 target creature that opponent controls` | "For each opponent, tap up to one target creature that player controls." The game has two players, so it happens once, with one target an opponent controls (or none); `that opponent controls` is allowed only in such a sentence, and "those creatures" names its targets plainly ("Put a stun counter on each of those creatures."). |
+| `choose up to 1 target creature`, `choose up to 1 another target creature` | "Choose up to one target creature.", "Choose up to one other target creature." (no effect of its own; the later sentences name it: `that target 1 can't be blocked and has base power and toughness 1/1`, "That creature can't be blocked this turn and has base power and toughness 1/1 until end of turn."; with none chosen they do nothing). `if target 1 is suspected, exile target 1; otherwise, suspect target 1` prints "If it's suspected, exile it. Otherwise, suspect it.": an `otherwise` may follow a target check. |
 | `choose target creature you control and target creature you don't control` | "Choose target creature you control and target creature you don't control." (two targets named at once; no effect of its own) |
 | `the full target 1`, `the chosen full target 1` | "the creature you control", "the chosen creature you control": the target named by its whole filter |
 | `those targets fight each other`, `the chosen targets fight each other` | "Then those creatures fight each other.", "Then the chosen creatures fight each other." (CR 701.14a; the first two targets; "those creatures" is the plain noun when the targets differ) |
@@ -3350,7 +3388,7 @@ Forms that change only how Oracle words what an existing form does:
 | `your opponents control 3 creature` | "your opponents control three or more creatures" (a static condition: the opponents' permanents counted together) |
 | `at beginning of your next end step` | In a delayed trigger: "at the beginning of your next end step". |
 | `this is with counter` | "this creature has a counter on it" (any kind) |
-| `if excess damage dealt to that permanent this way, ...` | "If excess damage was dealt to that permanent this way, ..."; inside either form a `count where excess damage dealt this way` prints "where X is that excess damage" |
+| `if excess damage dealt to that permanent this way, ...` | "If excess damage was dealt to that permanent this way, ..." (`to that creature` likewise; either prints the damaged target's noun: "to that creature" after "target creature"); inside either form a `count where excess damage dealt this way` prints "where X is that excess damage" |
 | `8 cards are in your graveyard` | "eight or more cards are in your graveyard" (`8 cards in your graveyard`: "there are eight or more cards in your graveyard") |
 | `if you controlled it, ...` | "If you controlled it, ..." about the last target (`if you controlled target 1` prints "that creature") |
 | `that created token` | "that token", the token just created (`that token` prints "it") |

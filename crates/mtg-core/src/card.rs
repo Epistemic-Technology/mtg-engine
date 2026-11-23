@@ -338,6 +338,14 @@ pub enum Keyword {
     /// "Untap this creature during each other player's untap step." (CR
     /// 502.3): it untaps in every untap step, not only its controller's.
     UntapsDuringOthers,
+    /// "You may choose not to untap this creature during your untap step."
+    /// (CR 502.3): its controller is asked, as their untap step untaps
+    /// permanents, whether it stays tapped.
+    MayNotUntap,
+    /// "This creature can't be equipped." (CR 301.5c): an Equipment
+    /// doesn't become attached to it, and one attached to it becomes
+    /// unattached (CR 704.5n); it can still be targeted by equip.
+    CantBeEquipped,
     /// "assigns combat damage equal to its toughness rather than its
     /// power" (CR 510.1a): its combat damage is its toughness.
     AssignsToughness,
@@ -597,7 +605,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 77] = [
+    pub const ALL: [Keyword; 79] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -675,6 +683,8 @@ impl Keyword {
         Keyword::Fuse,
         Keyword::CantTransform,
         Keyword::LandwalkFilter,
+        Keyword::MayNotUntap,
+        Keyword::CantBeEquipped,
     ];
 
     /// The keyword as Oracle prints it.
@@ -758,6 +768,8 @@ impl Keyword {
             }
             Keyword::CantCrew => "can't crew Vehicles",
             Keyword::UntapsDuringOthers => "untaps during each other player's untap step",
+            Keyword::MayNotUntap => "may choose not to untap",
+            Keyword::CantBeEquipped => "can't be equipped",
             Keyword::AssignsToughness => {
                 "assigns combat damage equal to its toughness rather than its power"
             }
@@ -1302,6 +1314,15 @@ pub struct StatusQuals {
     pub morph: bool,
     /// "suspected creature" (`true`, CR 701.60) or not suspected.
     pub suspected: Option<bool>,
+    /// "creature you own" (CR 108.3): owned by the player judging (the
+    /// caster of a spell choosing targets, an effect's controller for its
+    /// groups), whoever controls it. Judged for targets and effect
+    /// groups; elsewhere it doesn't restrict.
+    #[serde(default)]
+    pub you_own: bool,
+    /// "nonattacking creature": not an attacking creature (CR 508.1).
+    #[serde(default)]
+    pub nonattacking: bool,
     /// "with power or toughness 1 or less": `ObjFilter::power` and
     /// `toughness` (the same threshold) are alternatives, either enough.
     /// A characteristic, not game state: `any` leaves it out.
@@ -1393,6 +1414,8 @@ impl StatusQuals {
             || self.transformed
             || self.morph
             || self.suspected.is_some()
+            || self.you_own
+            || self.nonattacking
             || self.bound.is_some()
             || self.commander.is_some()
     }
@@ -1455,6 +1478,11 @@ pub enum SameWhat {
     /// 702.73a): "two target creature cards that share a creature type".
     /// Only a relation between targets (`GameState::that_player_ok`).
     SharesCreatureType,
+    /// Controlled by a player other than the other targets' controllers
+    /// ("two target creatures controlled by different players"; as they
+    /// last existed if they have left the battlefield). Only a relation
+    /// between targets (`GameState::that_player_ok`).
+    DifferentController,
 }
 
 /// What a spell must target ("that targets a creature", "that targets you
@@ -1616,7 +1644,7 @@ impl ObjFilter {
             }
             SameWhat::SharesType => f.any_types = types,
             // Judged against the other target (`that_player_ok`).
-            SameWhat::SharesCreatureType => {}
+            SameWhat::SharesCreatureType | SameWhat::DifferentController => {}
         }
         f
     }
@@ -1811,6 +1839,9 @@ pub enum PtValue {
 pub enum Modification {
     /// "is a creature in addition to its other types" (layer 4).
     AddTypes(TypeSet),
+    /// "Enchanted land is snow." (layer 4, CR 205.4: a supertype added
+    /// to its others).
+    AddSupertype(Supertype),
     /// "becomes an artifact creature" (layer 4): these card types replace
     /// its others (CR 205.1a), except land ("It's still a land", CR
     /// 205.1b; see `Effect::Animate`).
@@ -1919,6 +1950,7 @@ impl Modification {
         match self {
             Modification::Control => Layer::L2Control,
             Modification::AddTypes(_)
+            | Modification::AddSupertype(_)
             | Modification::BecomeTypes(_)
             | Modification::SetTypes(_)
             | Modification::AddLandType(_)
@@ -2435,6 +2467,9 @@ pub enum Lasting {
     WhileTapped,
     /// "for as long as you control this creature".
     YouControlSource,
+    /// "for as long as this creature remains tapped": while the source
+    /// stays a tapped permanent (Phyrexian Gremlins).
+    SourceTapped,
 }
 
 /// How long cards exiled by an impulse effect stay playable.
@@ -3510,6 +3545,9 @@ pub enum TargetSpec {
     /// ability's "target" words chose (Boulder Dash's "2 damage to any
     /// target and 1 damage to any other target").
     AnyOther,
+    /// "any target that was dealt damage this turn" (Needle Drop): as
+    /// `Any`, but only a player or permanent dealt damage this turn.
+    AnyDamaged,
 }
 
 /// `CardDef::modes_if`: when a modal spell's larger choice is allowed.
@@ -3651,6 +3689,12 @@ pub enum Recipient {
     /// that creature", "target creature and each other creature that
     /// shares a color with it").
     TargetAndGroup(usize, u16),
+    /// What the source is attached to and every other battlefield object
+    /// matching the pool's `g`th filter that shares a creature type with
+    /// it (CR 205.3m): "Enchanted creature and other creatures that share
+    /// a creature type with it get +1/+1 until end of turn." (Crown of
+    /// Vigor). Judged against the host as it is, or as it last existed.
+    AttachedAndSharing(u16),
     /// The cards the source's linked ability exiled ("the exiled card",
     /// CR 607.2a: Journey to Nowhere's "When this enchantment leaves the
     /// battlefield, return the exiled card ..."), still in exile; see
@@ -5565,6 +5609,10 @@ pub enum SkipWhat {
     CombatPhase,
     /// "their next combat phase this turn".
     CombatPhaseThisTurn,
+    /// "Creatures don't untap during target player's next untap step."
+    /// (Blinding Beam): no creature untaps in that player's next untap
+    /// step, whoever controls it.
+    CreatureUntap,
 }
 
 /// `Effect::MoveCounters::count` for "move any number of +1/+1 counters":

@@ -1,0 +1,49 @@
+# "target attacking, blocking, or tapped creature" (Sonar Strike): any
+# one of the three; an untapped creature out of combat can't be chosen.
+# "You gain 3 life if you control a Bat."
+
+scenario "Sonar Strike: a tapped creature out of combat" {
+  battlefield A: "Plains", "Plains"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Sonar Strike"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Sonar Strike" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 20
+}
+
+scenario "Sonar Strike: an untapped creature out of combat can't be targeted" {
+  battlefield A: "Plains", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Sonar Strike"
+  start turn 3 A precombat_main
+  illegal turn 3 A: cast "Sonar Strike" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Sonar Strike: a vigilant attacker, untapped, is attacking" {
+  battlefield A: "Plains", "Plains", "Sengir Bats"
+  battlefield B: "Serra Angel"
+  hand A: "Sonar Strike"
+  start turn 3 B
+  turn 3 B: attack "Serra Angel"
+  turn 3 declare_attackers A: cast "Sonar Strike" targeting "Serra Angel"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert life A 23
+}
+
+scenario "Sonar Strike: an untapped blocker" {
+  battlefield A: "Plains", "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Sonar Strike"
+  start turn 3 A
+  turn 3 A: attack "Grizzly Bears"
+  turn 3 B: block "Grizzly Bears" with "Hill Giant"
+  turn 3 declare_blockers A: cast "Sonar Strike" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+}

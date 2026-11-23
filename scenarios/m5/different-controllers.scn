@@ -1,0 +1,38 @@
+# "Choose two target creatures controlled by different players. Return
+# those creatures to their owners' hands." (Run Away Together): the second
+# target must be controlled by someone other than the first's controller;
+# a target that has left is judged as it last existed.
+
+scenario "Run Away Together: one creature of each player returns" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Run Away Together"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Run Away Together" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+}
+
+scenario "Run Away Together: two creatures of one player can't be chosen" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Run Away Together"
+  start turn 3 A precombat_main
+  illegal turn 3 A: cast "Run Away Together" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Run Away Together: with one target gone, the other still returns" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  battlefield B: "Raging Goblin", "Mountain"
+  hand A: "Run Away Together"
+  hand B: "Shock"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Run Away Together" targeting "Grizzly Bears", "Raging Goblin"
+  turn 3 B: cast "Shock" targeting "Raging Goblin" in response to "Run Away Together"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Raging Goblin"
+  assert hand A contains "Grizzly Bears"
+}
