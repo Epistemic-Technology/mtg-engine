@@ -11714,6 +11714,7 @@ impl P {
         let mut f = Filter::default();
         let mut consumed = 0;
         let mut or_blocking = false;
+        let mut or_tapped = false;
         let mut named_before_who = false;
         loop {
             // "nonartifact, nonblack creature"; "artifact, enchantment, or
@@ -12291,6 +12292,11 @@ impl P {
                     f.attacking = true;
                     or_blocking = true;
                     self.pos += 3;
+                    // "attacking, blocking, or tapped creature".
+                    if self.at_words(&["or", "tapped"]) {
+                        or_tapped = true;
+                        self.pos += 2;
+                    }
                     // "face-down creature that's attacking or blocking".
                     if self.eat_word("late") {
                         f.attacking_late = true;
@@ -12655,6 +12661,13 @@ impl P {
             let mut alt = f.clone();
             alt.attacking = false;
             alt.blocking = true;
+            // "attacking, blocking, or tapped": a third side, tapped.
+            if or_tapped {
+                let mut tapped = f.clone();
+                tapped.attacking = false;
+                tapped.tapped = Some(true);
+                alt.or = Some(Box::new(tapped));
+            }
             f.or = Some(Box::new(alt));
         }
         // "creature named ~ you control": the name before the controller.

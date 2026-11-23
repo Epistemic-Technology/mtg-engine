@@ -2652,7 +2652,9 @@ Specifications: `any target`, `creature`, `player`, `player or planeswalker`,
 ("target instant or sorcery spell"), `card from a graveyard`, `<filter>
 card from your graveyard` / `from an opponent's graveyard` / `from that
 player's graveyard` (the triggering player's), `opponent`,
-`artifact or creature`, `attacking or blocking creature`, `attacking
+`artifact or creature`, `attacking or blocking creature`, `attacking or
+blocking or tapped creature` ("target attacking, blocking, or tapped
+creature": any of the three), `attacking
 creature`, `blocking creature`, `<Subtype> creature` ("target Assembly-Worker creature"), and any filter
 ("target nonblack creature", "target creature an opponent controls").
 Targets relative to a player: `target creature that player controls` (the

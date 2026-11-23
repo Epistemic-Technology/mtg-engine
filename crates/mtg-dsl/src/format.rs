@@ -3467,6 +3467,9 @@ pub fn filter(f: &Filter) -> String {
             let late = if rest.attacking_late { " late" } else { "" };
             return format!("attacking or blocking{late} {}", filter(&rest));
         }
+        if let Some(rest) = attacking_blocking_or_tapped(&base, alt) {
+            return format!("attacking or blocking or tapped {}", filter(&rest));
+        }
         if let Some(k) = keyword_alternative(&base, alt) {
             return format!("{} or {}", filter_one(&base), keyword_name(k));
         }
@@ -4005,6 +4008,21 @@ pub fn keyword_alternative(base: &Filter, alt: &Filter) -> Option<Keyword> {
     let mut a = alt.clone();
     a.keywords.clone_from(&base.keywords);
     (a == *base && a.or.is_none()).then_some(k)
+}
+
+/// "attacking, blocking, or tapped creature": three sides differing only
+/// there (the second's alternative is the tapped one); the shared rest.
+pub fn attacking_blocking_or_tapped(base: &Filter, alt: &Filter) -> Option<Filter> {
+    let third = alt.or.as_deref()?;
+    let mut middle = alt.clone();
+    middle.or = None;
+    let rest = attacking_or_blocking(base, &middle)?;
+    let mut t = third.clone();
+    if t.tapped != Some(true) || t.attacking || t.blocking {
+        return None;
+    }
+    t.tapped = None;
+    (t == rest && rest.tapped.is_none()).then_some(rest)
 }
 
 /// "attacking or blocking creature": the two sides differ only there; the

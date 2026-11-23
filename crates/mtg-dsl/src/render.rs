@@ -2406,6 +2406,13 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     };
     let mut base = f.clone();
     base.or = None;
+    // "target attacking, blocking, or tapped creature" (Sonar Strike).
+    if let Some(rest) = crate::format::attacking_blocking_or_tapped(&base, alt) {
+        return format!(
+            "attacking, blocking, or tapped {}",
+            filter_phrase_one(&rest, card, plural_form)
+        );
+    }
     if let Some(rest) = crate::format::attacking_or_blocking(&base, alt) {
         // "each face-down creature that's attacking or blocking".
         if rest.attacking_late {
