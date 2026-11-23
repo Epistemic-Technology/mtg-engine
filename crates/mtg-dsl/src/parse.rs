@@ -6276,17 +6276,12 @@ impl P {
             ));
         }
         // "If excess damage was dealt this way, ..." (CR 120.4a).
-        let to_that = self.at_words(&[
-            "if",
-            "excess",
-            "damage",
-            "dealt",
-            "to",
-            "that",
-            "permanent",
-            "this",
-            "way",
-        ]);
+        // "... to that creature this way" (Torch the Witness): the noun is
+        // the target's, as printed.
+        let to_that = self.at_words(&["if", "excess", "damage", "dealt", "to", "that"])
+            && matches!(self.word_at(6).as_deref(), Some("permanent" | "creature"))
+            && self.word_at(7).as_deref() == Some("this")
+            && self.word_at(8).as_deref() == Some("way");
         if to_that || self.at_words(&["if", "excess", "damage", "dealt", "this", "way"]) {
             self.pos += if to_that { 9 } else { 6 };
             self.expect(&Tok::Comma)?;

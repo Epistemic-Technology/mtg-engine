@@ -7744,9 +7744,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 lowercase_first(&body)
             };
+            // "to that creature", "to that permanent": the damaged target's
+            // noun.
+            let that = if *to_that {
+                format!(
+                    "to that {} ",
+                    ctx.target_noun.last().map_or("permanent", String::as_str)
+                )
+            } else {
+                String::new()
+            };
             Clause::imperative(format!(
-                "if excess damage was dealt {}this way, {}",
-                if *to_that { "to that permanent " } else { "" },
+                "if excess damage was dealt {that}this way, {}",
                 body.trim_end_matches('.')
             ))
         }
