@@ -1,0 +1,9 @@
+card "The Speed Demon" {
+  oracle_id c9fb22b4-dc22-4291-91f2-89c07cee7569
+  cost {3}{B}{B}
+  type Legendary Creature — Demon
+  pt 5/5
+  keywords flying, trample
+  start your engines
+  triggered at beginning of your end step: you draw count where speed cards and lose count where speed life
+}

@@ -9886,7 +9886,10 @@ impl P {
             "search" | "searches" => {
                 let graveyard = self.eat_words(&["library", "or", "graveyard"]);
                 let up_to = self.eat_words(&["up", "to"]);
-                let count = if matches!(self.peek(), Some(Tok::Num(_))) {
+                let count = if matches!(self.peek(), Some(Tok::Num(_)))
+                    // "up to X basic land cards, where X is your speed".
+                    || (up_to && self.at_words(&["count", "where"]))
+                {
                     self.num()?
                 } else if self.eat_words(&["any", "number"]) {
                     Num::N(crate::ast::ANY_NUMBER)
@@ -10895,6 +10898,9 @@ impl P {
         }
         if self.eat_word("life") {
             return Ok(CountExpr::Life);
+        }
+        if self.eat_word("speed") {
+            return Ok(CountExpr::Speed);
         }
         // "for each creature blocking it [beyond the first]".
         if self.eat_words(&["creature", "blocking", "it"]) {

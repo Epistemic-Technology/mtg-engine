@@ -2553,6 +2553,7 @@ impl Compiler<'_> {
                 toughness: *toughness,
             },
             A::Life => C::Life,
+            A::Speed => C::Speed,
             A::Times(n, inner) => C::Times(*n, Box::new(self.count_expr(inner))),
             A::Divided { by, up, inner } => C::Divided {
                 by: *by,

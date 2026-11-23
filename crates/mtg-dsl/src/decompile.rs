@@ -196,6 +196,7 @@ impl Decompiler<'_> {
         match c {
             C::Permanents(f) => A::Permanents(self.filter(f)),
             C::Life => A::Life,
+            C::Speed => A::Speed,
             C::CardsInHand => A::CardsInHand,
             C::CardsInGraveyard(f) => A::CardsInGraveyard(f.as_ref().map(|f| self.filter(f))),
             C::CardsInAllGraveyards(f) => A::CardsInGraveyards {

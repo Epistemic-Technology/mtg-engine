@@ -3317,6 +3317,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             n + 1
         ),
         CountExpr::Life => "life".to_string(),
+        CountExpr::Speed => "speed".to_string(),
         CountExpr::BlockingIt { beyond: 0 } => "creature blocking it".to_string(),
         CountExpr::BlockingIt { beyond } => format!("creature blocking it beyond {beyond}"),
         CountExpr::GreatestPower(f) => format!("greatest power {}", filter(f)),

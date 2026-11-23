@@ -4367,6 +4367,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::ExilePlayable { count, .. }
         | Effect::ExileTop { count, .. }
         | Effect::Earthbend { count, .. }
+        | Effect::Search { count, .. }
         | Effect::InvestigateCount { count, .. } => vec![*count],
         Effect::CreateToken { count, sized, .. } => std::iter::once(*count).chain(*sized).collect(),
         Effect::CopySpells { times, .. } => vec![*times],
@@ -4587,6 +4588,7 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             return format!("{whose} {stat}");
         }
         CountExpr::Life => return "your life total".to_string(),
+        CountExpr::Speed => return "your speed".to_string(),
         CountExpr::BlockingIt { beyond } => {
             let rest = match beyond {
                 0 => String::new(),
@@ -5091,6 +5093,19 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 c.text = c.text.replacen(
                     " cards of your library",
                     &format!(" cards of your library, where X is {phrase}"),
+                    1,
+                );
+            }
+            // "Search your library for up to X basic land cards, where X
+            // is your speed. Put those cards onto the battlefield tapped,
+            // then shuffle."
+            CountStyle::Where
+                if matches!(e, Effect::Search { .. }) && c.text.contains(" cards, put them ") =>
+            {
+                let phrase = count_phrase_in(&count.expr, ctx, false);
+                c.text = c.text.replacen(
+                    " cards, put them ",
+                    &format!(" cards, where X is {phrase}. Put those cards "),
                     1,
                 );
             }

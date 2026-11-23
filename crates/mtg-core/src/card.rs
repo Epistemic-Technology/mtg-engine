@@ -2006,6 +2006,8 @@ pub enum CountExpr {
     TargetStat { n: usize, toughness: bool },
     /// Your life total.
     Life,
+    /// Your speed (CR 702.179: "where X is your speed"; 0 with none).
+    Speed,
     /// N times another count ("2 life for each creature you control").
     Times(u32, Box<CountExpr>),
     /// Another count divided by `by`, rounded down or (`up`) up: "half the
@@ -2278,6 +2280,7 @@ impl CountExpr {
             | CountExpr::OpponentsMoreCards
             | CountExpr::ExiledWith(_)
             | CountExpr::CardsInExile { .. }
+            | CountExpr::Speed
             | CountExpr::Life => true,
 
             // Total power and toughness would read the characteristics

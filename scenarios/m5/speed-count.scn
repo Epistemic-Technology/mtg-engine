@@ -1,0 +1,35 @@
+# "where X is your speed" (CR 702.179): a count of the controller's speed.
+
+scenario "The Speed Demon draws and loses life equal to speed" {
+  battlefield A: "The Speed Demon"
+  speed A: 3
+  start turn 1 A precombat_main
+  run_to turn 2 untap
+  assert hand A count 3
+  assert life A 17
+}
+
+scenario "The Speed Demon: start your engines gives speed 1" {
+  battlefield A: "The Speed Demon"
+  start turn 1 A precombat_main
+  run_to turn 2 untap
+  assert speed A 1
+  assert hand A count 1
+  assert life A 19
+}
+
+scenario "Point the Way finds up to speed basic lands" {
+  battlefield A: "Point the Way", 3 "Plains", "Forest"
+  library A: "Island", "Island", "Island", "Swamp"
+  speed A: 2
+  start turn 1 A precombat_main
+  turn 1 A: activate "Point the Way"
+  turn 1 A: choose "Island"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Island"
+  assert tapped oldest A "Island"
+  assert tapped newest A "Island"
+  assert library A contains "Island"
+  assert graveyard A contains "Point the Way"
+}

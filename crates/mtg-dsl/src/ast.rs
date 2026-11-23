@@ -379,6 +379,8 @@ pub enum CountExpr {
         that: bool,
     },
     Life,
+    /// `speed`: "your speed" (CR 702.179).
+    Speed,
     /// `count each 2 creature you control`: "2 life for each creature
     /// you control".
     Times(u32, Box<CountExpr>),

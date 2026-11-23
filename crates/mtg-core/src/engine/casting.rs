@@ -1005,6 +1005,7 @@ impl GameState {
                 };
             }
             CountExpr::Life => return u32::try_from(self.player(you).life.max(0)).unwrap_or(0),
+            CountExpr::Speed => return u32::from(self.desig.speed(you)),
             CountExpr::Votes(i) => {
                 return match ctx.chosen {
                     Chosen::Votes(v) => u32::from(v.get(usize::from(*i)).copied().unwrap_or(0)),

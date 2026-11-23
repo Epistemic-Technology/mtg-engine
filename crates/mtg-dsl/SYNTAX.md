@@ -1851,7 +1851,11 @@ the stack; `mana value of the spell target 1` is "the spell's mana
 value"), `greatest power creature you control` ("the greatest power
 among creatures you control"), or `life`; `this gets +1/+1 count each creature you
 it has left), `mana value of target 1` ("its mana value"), `toughness`
-(the source's), `life`, `party` ("creatures in your party", CR 700.8: one
+(the source's), `life`, `speed` ("your speed", CR 702.179: 0 with no
+speed; `search up to count where speed basic land card to battlefield
+tapped` prints "Search your library for up to X basic land cards, where X
+is your speed. Put those cards onto the battlefield tapped, then
+shuffle."), `party` ("creatures in your party", CR 700.8: one
 each of Cleric, Rogue, Warrior, and Wizard at most), `devotion green`
 ("your devotion to green", CR 700.5: the green mana symbols in the mana
 costs of permanents you control, a hybrid symbol counting once;
