@@ -1,0 +1,8 @@
+card "Diamond Faerie" {
+  oracle_id 7a25ccf3-0fe1-447c-bdf4-57ec31b19a0f
+  cost {2}{G}{W}{U}
+  type Snow Creature — Faerie
+  pt 3/3
+  keywords flying
+  activated {1}{S}: each Snow creature you control gets +1/+1
+}

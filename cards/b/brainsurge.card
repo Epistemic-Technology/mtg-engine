@@ -1,0 +1,6 @@
+card "Brainsurge" {
+  oracle_id 46c727cb-1f47-4775-8af4-0230ef53966b
+  cost {2}{U}
+  type Instant
+  spell: draw 4 cards then put 2 cards from hand on top of library
+}

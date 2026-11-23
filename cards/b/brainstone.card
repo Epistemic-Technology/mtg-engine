@@ -1,0 +1,6 @@
+card "Brainstone" {
+  oracle_id ffac1923-99d0-48e6-b1e7-168e5c324a80
+  cost {1}
+  type Artifact
+  activated {2}, {T}, sacrifice this: draw 3 cards then put 2 cards from hand on top of library
+}

@@ -7727,6 +7727,7 @@ impl Builder<'_> {
         // Statics on the attached or on a class of permanents ("All
         // creatures get -2/-2 until end of turn." is a spell's effect).
         if !line.contains(" until end of turn")
+            && !line.contains(" this turn do so")
             && let Some(c) = Regex::new(
             r"^(Enchanted creature|Equipped creature|Creatures you control|Other creatures you control with flying|Other creatures you control|Creatures your opponents control|All creatures|White creatures|Blue creatures|Black creatures|Red creatures|Green creatures|Enchanted land|Enchanted permanent) (.+)\.$",
         )

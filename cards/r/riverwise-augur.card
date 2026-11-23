@@ -1,0 +1,7 @@
+card "Riverwise Augur" {
+  oracle_id eac79f15-3b63-457a-b6a8-f9237439c93c
+  cost {3}{U}
+  type Creature — Merfolk Wizard
+  pt 2/2
+  triggered when this enters: draw 3 cards then put 2 cards from hand on top of library
+}

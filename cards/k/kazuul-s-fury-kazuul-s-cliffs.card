@@ -1,0 +1,13 @@
+card "Kazuul's Fury // Kazuul's Cliffs" {
+  oracle_id f8410804-632b-4f18-9a73-6dccc7e4582d
+  layout modal_dfc
+  cost {2}{R}
+  type Instant
+  additional cost sacrifice creature
+  spell: deal damage equal power of the sacrificed creature to any target
+  face "Kazuul's Cliffs" {
+    type Land
+    enters tapped
+    mana {R}
+  }
+}

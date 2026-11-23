@@ -1,0 +1,8 @@
+card "Shadow Stinger" {
+  oracle_id 214562b1-fdf0-4d5d-93f0-594b31b80bb3
+  cost {2}{B}
+  type Creature — Vampire Rogue
+  pt 1/4
+  activated tap other untapped Rogue you control: this gains deathtouch
+  triggered whenever this deals combat damage to a player: that player mills 3 cards
+}

@@ -1,0 +1,8 @@
+card "Hailstorm Valkyrie" {
+  oracle_id d42ecab7-f6ce-4e50-97de-7aa1ced64ebe
+  cost {3}{B}
+  type Snow Creature — Angel Wizard
+  pt 2/2
+  keywords flying, trample
+  activated {S}{S}: this gets +2/+2
+}
