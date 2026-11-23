@@ -2764,7 +2764,11 @@ do` then sees:
   green cards in your hand", CR 701.20a): the cards stay in the hand,
   known to every player; `count where revealed this way` ("the number of
   cards revealed this way") and `count each revealed this way` ("for each
-  card revealed this way") count them; `count each creature card milled
+  card revealed this way") count them; `each player loses count each
+  creature they control life` ("Each player loses 1 life for each creature
+  they control.", Stronghold Discipline) counts each player's own (you,
+  then your opponent; elsewhere `they control` in a count for each player
+  is refused); `count each creature card milled
   this way` prints "for each creature card milled this way" (a milled
   filter always names cards)
 - `exile 2 creature card from your graveyard chosen`

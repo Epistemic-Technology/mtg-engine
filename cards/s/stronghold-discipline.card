@@ -1,0 +1,6 @@
+card "Stronghold Discipline" {
+  oracle_id 90e46d04-9d53-4a24-aff0-f8c61e1db97d
+  cost {2}{B}{B}
+  type Sorcery
+  spell: each player loses count each creature they control life
+}

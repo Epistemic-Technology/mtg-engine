@@ -1,0 +1,7 @@
+card "Unnatural Aggression" {
+  oracle_id 597d1dce-67e8-4c37-9781-eeaeb7c2d7b7
+  cost {2}{G}
+  type Instant
+  keywords devoid
+  spell: target creature you control fights target creature an opponent controls; this turn, replace target 2 dies: exile
+}

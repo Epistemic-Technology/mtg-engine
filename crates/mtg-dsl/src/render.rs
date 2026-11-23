@@ -3330,6 +3330,29 @@ fn hand_exile_text(cost: &crate::ast::Cost, card: &Card) -> String {
 }
 
 fn filter_a(f: &Filter, card: &Card) -> String {
+    // "a black or artifact creature" (Soldevi Adnate): a colored creature
+    // or an artifact creature, sharing the noun.
+    if let Some(alt) = &f.or
+        && alt.or.is_none()
+        && f.types == [CardType::Creature]
+        && f.colors.as_ref().is_some_and(|c| c.len() == 1)
+        && (Filter {
+            colors: None,
+            or: None,
+            ..f.clone()
+        }) == (Filter {
+            types: vec![CardType::Creature],
+            ..Filter::default()
+        })
+        && (**alt)
+            == (Filter {
+                types: vec![CardType::Artifact, CardType::Creature],
+                ..Filter::default()
+            })
+    {
+        let color = f.colors.as_ref().map_or("", |c| color_name(c[0]));
+        return format!("a {color} or artifact creature");
+    }
     // "an artifact or another creature", "another creature or an
     // artifact": one side is other, each with its own article.
     if let Some(alt) = &f.or
@@ -6695,9 +6718,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let whose = match o.as_str() {
                 "you" => "your".to_string(),
                 "it" | "them" => "their".to_string(),
+                // "Exile any number of target players' graveyards."
+                // (Thraben Charm).
+                o if o.ends_with("players") => format!("{o}'"),
                 o => format!("{o}'s"),
             };
-            Clause::imperative(format!("exile {whose} graveyard"))
+            let yards = if whose.ends_with("players'") {
+                "graveyards"
+            } else {
+                "graveyard"
+            };
+            Clause::imperative(format!("exile {whose} {yards}"))
         }
         Effect::Sacrifice { what } => {
             let o = ctx.obj_written(*what);
@@ -12104,6 +12135,14 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                         Some(Target::Spec(TargetSpec::CreatureOrPlaneswalker))
                     ) {
                         "that creature or planeswalker".to_string()
+                    } else if (0..ctx.targets.len())
+                        .any(|j| j != *i && ctx.target_noun[j] == ctx.target_noun[*i])
+                    {
+                        // "If the creature an opponent controls would die
+                        // this turn" (Unnatural Aggression): another target
+                        // has the same noun.
+                        let phrase = ctx.target_phrase_of(*i);
+                        format!("the {}", phrase.strip_prefix("target ").unwrap_or(&phrase))
                     } else {
                         format!("that {}", ctx.target_noun[*i])
                     }

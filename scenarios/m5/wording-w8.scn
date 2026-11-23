@@ -445,3 +445,68 @@ scenario "Reckless Cohort: another Ally, no attack needed" {
   run_to turn 1 postcombat_main
   assert life B 20
 }
+
+scenario "Stronghold Discipline: each player loses life for their own creatures" {
+  battlefield A: "Grizzly Bears", 4 "Swamp"
+  battlefield B: "Hill Giant", "Grizzly Bears", "Arlinn's Wolf"
+  hand A: "Stronghold Discipline"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Stronghold Discipline"
+  run_to turn 1 postcombat_main
+  assert life A 19
+  assert life B 17
+}
+
+scenario "Thraben Charm: twice the number of creatures you control" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  battlefield B: "Affa Protector"
+  hand A: "Thraben Charm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Thraben Charm" mode 1 targeting "Affa Protector"
+  run_to turn 1 postcombat_main
+  assert damage "Affa Protector" 2
+}
+
+scenario "Thraben Charm: any number of target players' graveyards exiled" {
+  battlefield A: 2 "Plains"
+  graveyard A: "Shock"
+  graveyard B: "Hill Giant", "Grizzly Bears"
+  hand A: "Thraben Charm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Thraben Charm" mode 3 targeting player A, player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 0
+  assert exile A contains "Shock"
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Unnatural Aggression: the opponent's creature is exiled if it would die" {
+  battlefield A: "Hill Giant", 3 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Unnatural Aggression"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Unnatural Aggression" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Soldevi Adnate: an artifact creature's mana value in {B}" {
+  battlefield A: "Soldevi Adnate", "Tower Worker"
+  hand A: "Gorging Vulture"
+  library A: "Plains", "Plains", "Plains", "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Soldevi Adnate" sacrificing "Tower Worker"
+  turn 1 A: cast "Gorging Vulture"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Gorging Vulture"
+  assert graveyard A contains "Tower Worker"
+}
+
+scenario "Soldevi Adnate: a green creature can't be sacrificed" {
+  battlefield A: "Soldevi Adnate", "Hill Giant"
+  hand A: "Gorging Vulture"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Soldevi Adnate" sacrificing "Hill Giant"
+  run_to turn 1 postcombat_main
+}

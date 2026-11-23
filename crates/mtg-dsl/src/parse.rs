@@ -6404,7 +6404,12 @@ impl P {
         // "Each player loses 1 life for each creature they control":
         // `they control` compiles to "an opponent controls", not the
         // player losing life, so it would count the wrong creatures.
+        // "Each player loses 1 life for each creature they control"
+        // compiles to each player's own count (Stronghold Discipline).
+        let own_count = subject == Recipient::EachPlayer
+            && matches!(e, Effect::LoseLife { amount: Num::Count(_), .. });
         if matches!(subject, Recipient::EachPlayer | Recipient::You)
+            && !own_count
             && self.counts[counts..]
                 .iter()
                 .any(|c| matches!(&c.expr, crate::ast::CountExpr::Permanents(f) if f.they_control))

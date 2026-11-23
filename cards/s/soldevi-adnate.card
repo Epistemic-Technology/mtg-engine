@@ -1,0 +1,7 @@
+card "Soldevi Adnate" {
+  oracle_id e3174070-542f-429e-9149-b572f6614537
+  cost {1}{B}
+  type Creature — Human Cleric
+  pt 1/2
+  activated {T}, sacrifice black creature or artifact creature: add {B} count equal mana value of the sacrificed creature
+}
