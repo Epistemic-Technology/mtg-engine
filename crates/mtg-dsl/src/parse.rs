@@ -3793,6 +3793,12 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::EntersTappedIfNotYourTurn)
             }
+            "enters" if self.at_words(&["enters", "tapped", "if"]) => {
+                self.pos += 3;
+                let c = self.static_cond()?;
+                self.end_stmt()?;
+                Ok(Ability::EntersTappedIf(c))
+            }
             "enters" if self.at_words(&["enters", "tapped", "unless"]) => {
                 self.pos += 3;
                 let c = self.static_cond()?;
@@ -5060,6 +5066,21 @@ impl P {
         }
         if self.eat_words(&["no", "mana", "spent"]) {
             return Ok(StaticCond::NoManaSpent);
+        }
+        // `x 10 or more`: "X is 10 or more" (CR 107.3).
+        if self.word_at(0).is_some_and(|w| w.eq_ignore_ascii_case("x"))
+            && matches!(self.peek_at(1), Some(Tok::Num(_)))
+        {
+            self.pos += 1;
+            let n = self.number()?;
+            self.expect_word("or")?;
+            let at_least = if self.eat_word("more") {
+                true
+            } else {
+                self.expect_word("less")?;
+                false
+            };
+            return Ok(StaticCond::XIs { n, at_least });
         }
         if self.eat_words(&["not", "kicked"]) {
             return Ok(StaticCond::NotKicked);
@@ -10154,7 +10175,20 @@ impl P {
                 let (mana, life) = self.pay_amount()?;
                 Ok(Effect::Pay { mana, life })
             }
-            "proliferate" => Ok(Effect::Proliferate),
+            "proliferate" => {
+                // `proliferate X times`.
+                let times = if self
+                    .word_at(0)
+                    .is_some_and(|w| w.eq_ignore_ascii_case("x") || w == "count")
+                {
+                    let n = self.num()?;
+                    self.expect_word("times")?;
+                    Some(n)
+                } else {
+                    None
+                };
+                Ok(Effect::Proliferate { times })
+            }
             "adapt" => Ok(Effect::Adapt(self.count()?)),
             "bolster" => Ok(Effect::Bolster(self.num()?)),
             "monstrosity" => Ok(Effect::Monstrosity(self.num()?)),
@@ -11310,6 +11344,15 @@ impl P {
                 self.pos += 3;
                 Ok(Num::XTimes(n))
             }
+            // `3 minus X`: "three minus X".
+            Some(Tok::Num(n))
+                if self.word_at(1).as_deref() == Some("minus")
+                    && self.word_at(2).is_some_and(|w| w.eq_ignore_ascii_case("x")) =>
+            {
+                let n = *n;
+                self.pos += 3;
+                Ok(Num::NMinusX(n))
+            }
             Some(Tok::Num(n)) => {
                 let n = *n;
                 self.pos += 1;
@@ -11362,9 +11405,12 @@ impl P {
     fn count(&mut self) -> R<u32> {
         match self.num()? {
             Num::N(n) => Ok(n),
-            Num::X | Num::XPlus(_) | Num::XTimes(_) | Num::Count(_) | Num::ThatMuch => {
-                self.fail("X is not allowed here")
-            }
+            Num::X
+            | Num::XPlus(_)
+            | Num::XTimes(_)
+            | Num::NMinusX(_)
+            | Num::Count(_)
+            | Num::ThatMuch => self.fail("X is not allowed here"),
         }
     }
 

@@ -1610,6 +1610,20 @@ impl GameState {
         } else {
             filter
         };
+        // "return a creature card with mana value X or less from your
+        // graveyard": X of the resolving spell (CR 107.3).
+        let with_x;
+        let filter = if filter.status.mana_value_x {
+            let mut g = filter.clone();
+            g.status.mana_value_x = false;
+            g.mana_value = g
+                .mana_value
+                .map(|(cmp, _)| (cmp, u8::try_from(ctx.x).unwrap_or(u8::MAX)));
+            with_x = g;
+            &with_x
+        } else {
+            filter
+        };
         let card_ok = |id: ObjId| {
             let o = &self.objects[id];
             let c = self.base_characteristics(o);
@@ -13155,6 +13169,14 @@ impl GameState {
                         }
                         _ => false,
                     },
+                    // "If X is 10 or more": the resolution's X (CR 107.3).
+                    crate::card::StaticCondition::XIs { n, at_least } => {
+                        if at_least {
+                            ctx.x >= n
+                        } else {
+                            ctx.x <= n
+                        }
+                    }
                     _ => self.condition_for(&c, ctx.controller, ctx.source, ctx.trigger_obj),
                 };
                 if holds {
@@ -13301,10 +13323,21 @@ impl GameState {
                 // instruction; exactly one of them happens.
                 let holds = match cond {
                     EffectCond::Kicked => self.was_kicked(ctx.source),
-                    EffectCond::Static(i) => {
-                        let c = self.pool.condition(*i).clone();
-                        self.condition_for(&c, ctx.controller, ctx.source, ctx.trigger_obj)
-                    }
+                    EffectCond::Static(i) => match self.pool.condition(*i) {
+                        // "If X is 10 or more, instead ...": the
+                        // resolution's X (CR 107.3).
+                        crate::card::StaticCondition::XIs { n, at_least } => {
+                            if *at_least {
+                                ctx.x >= *n
+                            } else {
+                                ctx.x <= *n
+                            }
+                        }
+                        c => {
+                            let c = c.clone();
+                            self.condition_for(&c, ctx.controller, ctx.source, ctx.trigger_obj)
+                        }
+                    },
                     EffectCond::Target { n, filter } => self.nth_target_matches(ctx, *n, filter),
                     EffectCond::ThisWay(c) => self.this_way_holds(ctx, c),
                 };
@@ -14316,7 +14349,11 @@ impl GameState {
                     }
                 }
             }
-            Effect::Proliferate => self.proliferate(ctx.controller),
+            Effect::Proliferate { times } => {
+                for _ in 0..self.eval_num(*times, ctx) {
+                    self.proliferate(ctx.controller);
+                }
+            }
             Effect::BecomeStage(stage) => self.become_stage(ctx.source, *stage),
             Effect::BecomeMonarch { who } => {
                 for t in self.recipients(ctx, *who) {

@@ -2394,6 +2394,10 @@ impl Compiler<'_> {
             StaticCond::Teamwork => StaticCondition::Teamwork,
             StaticCond::Beheld => StaticCondition::Beheld,
             StaticCond::NoManaSpent => StaticCondition::NoManaSpent,
+            StaticCond::XIs { n, at_least } => StaticCondition::XIs {
+                n: *n,
+                at_least: *at_least,
+            },
             StaticCond::NotKicked => StaticCondition::NotKicked,
             StaticCond::ThatKicked => StaticCondition::ThatKicked,
             StaticCond::Impending => StaticCondition::Impending,
@@ -4411,7 +4415,9 @@ impl Compiler<'_> {
                 who: r(*who),
                 kind: *kind,
             }),
-            Effect::Proliferate => out.push(CoreEffect::Proliferate),
+            Effect::Proliferate { times } => out.push(CoreEffect::Proliferate {
+                times: times.unwrap_or(Num::N(1)),
+            }),
             Effect::RingTempts => out.push(CoreEffect::RingTempts),
             Effect::BecomeMonarch => out.push(CoreEffect::BecomeMonarch {
                 who: CoreRecipient::You,
@@ -5871,6 +5877,17 @@ impl Compiler<'_> {
                         filter,
                         or,
                     },
+                    then: Vec::new(),
+                    condition: None,
+                })
+            }
+            // "If X is 2 or less, it enters tapped": unless it isn't.
+            Ability::EntersTappedIf(c) => {
+                let c = StaticCondition::Not(Box::new(self.static_cond(c)));
+                let i = self.pool.intern_condition(c);
+                AbilityDef::Replacement(ReplacementAbility {
+                    replaces: mtg_core::card::Replaces::Enters,
+                    replacement: mtg_core::card::Replacement::EnterTappedUnless(i),
                     then: Vec::new(),
                     condition: None,
                 })

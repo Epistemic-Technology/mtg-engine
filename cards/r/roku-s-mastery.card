@@ -1,0 +1,6 @@
+card "Roku's Mastery" {
+  oracle_id e5659c45-e064-4690-b90a-24ffe3793d4d
+  cost {X}{R}{R}
+  type Instant
+  spell: deal X damage to target creature; if x 4 or more, scry 2
+}

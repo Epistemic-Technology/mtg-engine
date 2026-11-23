@@ -1681,6 +1681,11 @@ pub enum Ability {
     /// it's not your turn." (the same replacement as `enters tapped unless
     /// your turn`, worded with "if").
     EntersTappedIfNotYourTurn,
+    /// `enters tapped if x 2 or less`: "If X is 2 or less, this creature
+    /// enters tapped." (the replacement "unless" the condition fails);
+    /// after an `enters with` line, in its paragraph: "..., it enters
+    /// tapped."
+    EntersTappedIf(StaticCond),
     /// `enters with 1 +1/+1 counter if attacked this turn`: "This
     /// creature enters with a +1/+1 counter on it if you attacked this
     /// turn." (raid; CR 614.1c); `if spent 3 white, enters with 1 +1/+1
@@ -2799,6 +2804,12 @@ pub enum StaticCond {
     },
     /// `no mana spent`: "it wasn't cast or no mana was spent to cast it".
     NoManaSpent,
+    /// `x 10 or more`: "X is 10 or more"; `x 2 or less`: "X is 2 or
+    /// less" (X of the resolving spell or ability, CR 107.3).
+    XIs {
+        n: u32,
+        at_least: bool,
+    },
     /// `not kicked`: "this spell wasn't kicked"; on a card with gift, "the
     /// gift wasn't promised" (CR 702.174).
     NotKicked,
@@ -4973,8 +4984,11 @@ pub enum Effect {
         who: Recipient,
         kind: mtg_core::card::PlayerRuleKind,
     },
-    /// `proliferate` (CR 701.27).
-    Proliferate,
+    /// `proliferate` (CR 701.27); `proliferate X times`: "Proliferate X
+    /// times." (`count where ...` for X).
+    Proliferate {
+        times: Option<Num>,
+    },
     /// `the ring tempts you` (CR 701.54): "the Ring tempts you".
     RingTempts,
     /// `become monarch` (CR 725): "you become the monarch".

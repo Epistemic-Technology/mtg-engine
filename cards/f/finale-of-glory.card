@@ -1,0 +1,6 @@
+card "Finale of Glory" {
+  oracle_id 68273453-1059-4eab-8c27-5d96f998f3b1
+  cost {X}{W}{W}
+  type Sorcery
+  spell: create X "2/2 white Soldier creature with vigilance"; if x 10 or more, also create X "4/4 white Angel creature with flying and vigilance"
+}

@@ -1,0 +1,6 @@
+card "Expansion Algorithm" {
+  oracle_id afbc348a-7b27-4577-8c24-cd6d5b894dc1
+  cost {X}{U}{U}
+  type Sorcery
+  spell: proliferate X times
+}

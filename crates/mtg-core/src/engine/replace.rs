@@ -1972,8 +1972,9 @@ impl GameState {
         }
     }
 
-    /// Whether these candidates are all plain "enters tapped" and "enters
-    /// with counters" effects, whose order changes nothing.
+    /// Whether these candidates are all plain "enters tapped" (also
+    /// conditional: the condition reads no other replacement's result)
+    /// and "enters with counters" effects, whose order changes nothing.
     fn commute(candidates: &[Candidate]) -> bool {
         candidates.iter().all(|c| {
             c.ability.then.is_empty()
@@ -1981,6 +1982,7 @@ impl GameState {
                 && matches!(
                     c.ability.replacement,
                     crate::card::Replacement::EnterTapped
+                        | crate::card::Replacement::EnterTappedUnless(_)
                         | crate::card::Replacement::EnterPrepared
                         | crate::card::Replacement::EnterWithCounters { .. }
                         | crate::card::Replacement::EnterWithCountersIf { .. }

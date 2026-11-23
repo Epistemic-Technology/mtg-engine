@@ -633,6 +633,10 @@ impl Decompiler<'_> {
             StaticCondition::Teamwork => StaticCond::Teamwork,
             StaticCondition::Beheld => StaticCond::Beheld,
             StaticCondition::NoManaSpent => StaticCond::NoManaSpent,
+            StaticCondition::XIs { n, at_least } => StaticCond::XIs {
+                n: *n,
+                at_least: *at_least,
+            },
             StaticCondition::NotKicked => StaticCond::NotKicked,
             StaticCondition::ThatKicked => StaticCond::ThatKicked,
             StaticCondition::Impending => StaticCond::Impending,
@@ -1658,7 +1662,9 @@ impl Decompiler<'_> {
                 who: Self::recipient(*who),
             },
             CoreEffect::PayEnergy(n) => Effect::PayEnergy(*n),
-            CoreEffect::Proliferate => Effect::Proliferate,
+            CoreEffect::Proliferate { times } => Effect::Proliferate {
+                times: (*times != mtg_core::card::Num::N(1)).then_some(*times),
+            },
             CoreEffect::BecomeStage(_) => {
                 unreachable!("a Class's level or a Case's to-solve line, never decompiled")
             }
@@ -2884,7 +2890,10 @@ impl Decompiler<'_> {
             AbilityDef::Replacement(ReplacementAbility {
                 replacement: mtg_core::card::Replacement::EnterTappedUnless(i),
                 ..
-            }) => Ability::EntersTappedUnless(self.static_cond(self.pool.condition(*i))),
+            }) => match self.pool.condition(*i) {
+                StaticCondition::Not(c) => Ability::EntersTappedIf(self.static_cond(c)),
+                c => Ability::EntersTappedUnless(self.static_cond(c)),
+            },
             AbilityDef::Replacement(ReplacementAbility {
                 replacement: mtg_core::card::Replacement::EnterTappedUnlessReveal { filter, or },
                 ..

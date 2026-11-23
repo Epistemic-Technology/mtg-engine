@@ -2993,6 +2993,14 @@ pub enum StaticCondition {
     /// paid to cast the source (CR 601.2h; cast without paying its mana
     /// cost, plotted, or not cast at all).
     NoManaSpent,
+    /// "If X is 10 or more", "if X is 2 or less" (`at_least` false): X of
+    /// the resolving spell or ability (CR 107.3), as its other X effects
+    /// read it; elsewhere (a permanent's "enters tapped" replacement), X
+    /// of the source as it was cast (CR 107.3m; 0 if it wasn't).
+    XIs {
+        n: u32,
+        at_least: bool,
+    },
     /// Freerunning's condition (CR 702.173a): "a player was dealt combat
     /// damage this turn by a creature that, at the time it dealt that
     /// damage, was an Assassin creature or a commander under your
@@ -3878,6 +3886,9 @@ pub enum Num {
     XPlus(u32),
     /// "twice X": X times this (Torch the Witness).
     XTimes(u32),
+    /// "three minus X": this less X, never below 0 (Slumbering Trudge,
+    /// CR 107.1b).
+    NMinusX(u32),
     /// The `i`th of the source card's `CardDef::counts` ("the number of
     /// creatures you control"), evaluated as the effect happens
     /// (`GameState::eval_num`).
@@ -3900,6 +3911,7 @@ impl Num {
             Num::X => x,
             Num::XPlus(n) => x.saturating_add(n),
             Num::XTimes(n) => x.saturating_mul(n),
+            Num::NMinusX(n) => n.saturating_sub(x),
             Num::Count(_) | Num::ThatMuch => 0,
         }
     }
@@ -3911,6 +3923,7 @@ impl Num {
             Num::X | Num::Count(_) | Num::ThatMuch => 3,
             Num::XPlus(n) => 3 + n,
             Num::XTimes(n) => 3 * n,
+            Num::NMinusX(n) => n.saturating_sub(3),
         }
     }
 }
@@ -4969,8 +4982,11 @@ pub enum Effect {
     /// counter already there to the permanents and players they choose;
     /// the engine chooses their own permanents' and players' beneficial
     /// counters and opponents' harmful ones (+1/+1 and loyalty on yours,
-    /// -1/-1 on theirs, poison on opponents).
-    Proliferate,
+    /// -1/-1 on theirs, poison on opponents). "Proliferate X times":
+    /// `times` separate proliferates, each its own event (CR 701.27).
+    Proliferate {
+        times: Num,
+    },
     /// The recipient creature explores (CR 701.44): its controller reveals
     /// the top card of their library; a land goes to their hand, otherwise
     /// the creature gets a +1/+1 counter and the card may go to the

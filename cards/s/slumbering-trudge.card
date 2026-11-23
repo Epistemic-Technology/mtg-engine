@@ -1,0 +1,8 @@
+card "Slumbering Trudge" {
+  oracle_id d04bce9a-822b-4a52-8826-b503ef5f5b2e
+  cost {X}{G}
+  type Creature — Plant Beast
+  pt 6/6
+  enters with 3 minus X stun counters
+  enters tapped if x 2 or less
+}

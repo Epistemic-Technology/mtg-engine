@@ -94,6 +94,7 @@ fn count_words(n: Num, article: &str) -> String {
         Num::X | Num::Count(_) => "X".to_string(),
         Num::XPlus(n) => format!("X plus {n}"),
         Num::XTimes(n) => times_x(n),
+        Num::NMinusX(n) => format!("{} minus X", number_word(n)),
         Num::N(1) => article.to_string(),
         Num::N(n) => NUMBER_WORDS
             .get(n as usize - 1)
@@ -107,8 +108,16 @@ fn digits(n: Num) -> String {
         Num::X | Num::Count(_) => "X".to_string(),
         Num::XPlus(n) => format!("X plus {n}"),
         Num::XTimes(n) => times_x(n),
+        Num::NMinusX(n) => format!("{n} minus X"),
         Num::N(n) => n.to_string(),
     }
+}
+
+/// "three" (a number in words, digits past twenty).
+fn number_word(n: u32) -> String {
+    NUMBER_WORDS
+        .get((n as usize).wrapping_sub(1))
+        .map_or_else(|| n.to_string(), |w| (*w).to_string())
 }
 
 /// "twice X", "three times X".
@@ -846,8 +855,13 @@ fn spend_rule_plain(
 
 /// "a" or "an".
 fn article(word: &str) -> &'static str {
+    // "an 8/8 red Lizard creature token", "an 11/11": said as "eight",
+    // "eleven".
+    if word.starts_with("11/") || word.starts_with("18/") {
+        return "an";
+    }
     match word.chars().next() {
-        Some('a' | 'e' | 'i' | 'o' | 'u' | 'A' | 'E' | 'I' | 'O' | 'U') => "an",
+        Some('a' | 'e' | 'i' | 'o' | 'u' | 'A' | 'E' | 'I' | 'O' | 'U' | '8') => "an",
         _ => "a",
     }
 }
@@ -5866,7 +5880,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
             )
         }
-        Effect::Proliferate => Clause::imperative("proliferate".to_string()),
+        Effect::Proliferate { times } => Clause::imperative(match times {
+            Some(n) => format!("proliferate {} times", digits(*n)),
+            None => "proliferate".to_string(),
+        }),
         Effect::RingTempts => Clause::imperative("the Ring tempts you".to_string()),
         Effect::BecomeMonarch => Clause::imperative("you become the monarch".to_string()),
         Effect::TakeInitiative => Clause::imperative("you take the initiative".to_string()),
@@ -13693,6 +13710,21 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 if *each { "it" } else { "them" }
             )
         }
+        // "enters with a number of stun counters on it equal to three
+        // minus X".
+        (
+            Replaces::Enters,
+            Outcome::EnterWithCounters {
+                kind,
+                n: n @ Num::NMinusX(_),
+            },
+        ) => format!(
+            "{} enters with a number of {} counters on {} equal to {}.",
+            capitalize(&this_ref(ctx.card)),
+            counter_name(*kind),
+            it_obj(ctx.card),
+            count_words(*n, "a")
+        ),
         (Replaces::Enters, Outcome::EnterWithCounters { kind, n }) => format!(
             "{} enters with {} on {}.",
             capitalize(&this_ref(ctx.card)),
@@ -15248,6 +15280,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("{what} was beheld")
         }
         StaticCond::NoManaSpent => "it wasn't cast or no mana was spent to cast it".to_string(),
+        StaticCond::XIs { n, at_least } => {
+            format!("X is {n} or {}", if *at_least { "more" } else { "less" })
+        }
         StaticCond::WebSlung(p) => format!(
             "{} cast using web-slinging",
             match p {
@@ -17365,6 +17400,11 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             "{} enters tapped if it's not your turn.",
             capitalize(&this_ref(card))
         ),
+        Ability::EntersTappedIf(c) => format!(
+            "If {}, {} enters tapped.",
+            static_cond_text(c, card),
+            this_ref(card)
+        ),
         Ability::AttackUnless { .. } if only_attacks_alone(a) => {
             format!("{} can only attack alone.", capitalize(&this_ref(card)))
         }
@@ -18149,8 +18189,23 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             Ability::XManaColor(_) => {
                 i > 0 && matches!(card.abilities[i - 1], Ability::Activated { .. })
             }
+            // "This creature enters with ... counters on it. If X is 2 or
+            // less, it enters tapped."
+            Ability::EntersTappedIf(_) => {
+                i > 0
+                    && matches!(
+                        &card.abilities[i - 1],
+                        Ability::Replacement(r) if r.event == Replaces::Enters
+                    )
+            }
             _ => false,
         };
+        if joined && matches!(card.abilities[i], Ability::EntersTappedIf(_)) {
+            let this = format!(", {} enters tapped.", this_ref(card));
+            if let Some(head) = text.strip_suffix(&this) {
+                text = format!("{head}, it enters tapped.");
+            }
+        }
         match lines.last_mut() {
             Some(last) if joined => *last = format!("{last} {text}"),
             _ => lines.push(text),

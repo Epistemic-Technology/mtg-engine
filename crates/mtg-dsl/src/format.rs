@@ -826,7 +826,10 @@ impl Fmt {
                 };
                 format!("{} {v} {} life", self.recipient(*who, t), num(*amount))
             }
-            Effect::Proliferate => "proliferate".to_string(),
+            Effect::Proliferate { times } => match times {
+                Some(n) => format!("proliferate {} times", num(*n)),
+                None => "proliferate".to_string(),
+            },
             Effect::RingTempts => "the ring tempts you".to_string(),
             Effect::BecomeMonarch => "become monarch".to_string(),
             Effect::TakeInitiative => "take initiative".to_string(),
@@ -3353,6 +3356,7 @@ fn num(n: Num) -> String {
         Num::X => "X".to_string(),
         Num::XPlus(n) => format!("X plus {n}"),
         Num::XTimes(n) => format!("{n} times X"),
+        Num::NMinusX(n) => format!("{n} minus X"),
         Num::ThatMuch => "that much".to_string(),
         Num::Count(i) => COUNTS.with(|c| {
             c.borrow()
@@ -5781,6 +5785,9 @@ fn static_cond(c: &StaticCond) -> String {
         ),
         StaticCond::Saddled => "saddled".to_string(),
         StaticCond::NoManaSpent => "no mana spent".to_string(),
+        StaticCond::XIs { n, at_least } => {
+            format!("x {n} or {}", if *at_least { "more" } else { "less" })
+        }
         StaticCond::NotKicked => "not kicked".to_string(),
         StaticCond::ThatKicked => "that spell kicked".to_string(),
         StaticCond::Impending => "impending".to_string(),
@@ -7029,6 +7036,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::EntersTappedIfNotYourTurn => {
             let _ = writeln!(out, "{indent}enters tapped if not your turn");
+        }
+        Ability::EntersTappedIf(c) => {
+            let _ = writeln!(out, "{indent}enters tapped if {}", static_cond(c));
         }
         Ability::EntersWithIf {
             n,
