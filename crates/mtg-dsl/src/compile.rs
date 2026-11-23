@@ -2728,6 +2728,10 @@ impl Compiler<'_> {
                 .filter(|m| m + 1 < ts.len())
                 .map(|m| (m, ts.len())),
             shift: 0,
+            they_target: false,
+            spell: false,
+            put_creature: false,
+            kicked: None,
         };
         let mut specs: Vec<TargetSpec> = ts.iter().map(|t| self.target(t)).collect();
         if let Some((m, _)) = self.tmap.group {
@@ -2855,9 +2859,11 @@ impl Compiler<'_> {
             Recipient::TriggeringController { .. } | Recipient::TheTriggeringController => {
                 CoreRecipient::TriggeringController
             }
+            Recipient::TriggeringObject if tmap.put_creature => CoreRecipient::CreatedObject,
             Recipient::TriggeringObject
             | Recipient::TriggeringIt
             | Recipient::TheTriggeringObject => CoreRecipient::TriggeringObject,
+            Recipient::TriggeringThey if tmap.they_target => CoreRecipient::ControllerOf(ti(0)),
             Recipient::TriggeringPlayer | Recipient::TriggeringThey => {
                 CoreRecipient::TriggeringPlayer
             }
@@ -2971,6 +2977,13 @@ impl Compiler<'_> {
             if let Some(lasting) = s.lasting {
                 let effects = out.split_off(start);
                 out.push(CoreEffect::Lasting { lasting, effects });
+            }
+            if self.tmap.spell
+                && s.effects
+                    .iter()
+                    .any(|e| matches!(e, Effect::PutFromHand { .. }))
+            {
+                self.tmap.put_creature = true;
             }
             prev = Some((start, s));
         }
@@ -4067,6 +4080,31 @@ impl Compiler<'_> {
                 out.push(CoreEffect::IfCondition(i, effects));
             }
             Effect::WhenYouDo { targets, effects } => {
+                // "When you do, if it has four or more quest counters on
+                // it, put a +1/+1 counter on target creature you control.
+                // It gains trample until end of turn." (Earthbender
+                // Ascension): an intervening "if" right after the trigger
+                // condition covers the whole ability (CR 603.4), not only
+                // its first sentence.
+                let folded;
+                let effects = match effects.split_first() {
+                    Some((first, rest)) if !rest.is_empty() => match first.effects.as_slice() {
+                        [Effect::IfCondition(c, inner, crate::ast::IfWording::Lead)] => {
+                            let mut all = inner.clone();
+                            all.extend_from_slice(rest);
+                            let mut s = first.clone();
+                            s.effects = vec![Effect::IfCondition(
+                                c.clone(),
+                                all,
+                                crate::ast::IfWording::Lead,
+                            )];
+                            folded = vec![s];
+                            &folded
+                        }
+                        _ => effects,
+                    },
+                    _ => effects,
+                };
                 let effects = self.sentences(effects)?;
                 let targets = self.targets(targets);
                 let id = self
@@ -4213,7 +4251,14 @@ impl Compiler<'_> {
                         "a delayed trigger about another object can't watch `this` leave or die",
                     );
                 }
-                let effects = self.sentences(effects)?;
+                // Inside the delayed ability "that creature" is the
+                // object it is about.
+                let outer = self.tmap;
+                self.tmap.put_creature = false;
+                self.tmap.spell = false;
+                let effects = self.sentences(effects);
+                self.tmap = outer;
+                let effects = effects?;
                 // A delayed triggered mana ability ("whenever a land is
                 // tapped for mana this turn, add ...", CR 605.1b) has no
                 // form here.
@@ -5370,7 +5415,12 @@ impl Compiler<'_> {
             Ability::XManaColor(c) => AbilityDef::XManaColor(*c),
             Ability::Enchant(t) => AbilityDef::Enchant(self.target(t)),
             Ability::Spell { targets, effects } => AbilityDef::Spell {
-                targets: self.targets(targets),
+                targets: {
+                    let ts = self.targets(targets);
+                    self.tmap.spell = true;
+                    self.tmap.kicked = self.card.kicked_drops;
+                    ts
+                },
                 effects: self.sentences(effects)?,
             },
             // CR 702.42a: entwined, every mode.
@@ -5548,7 +5598,14 @@ impl Compiler<'_> {
                         ))
                     }
                 },
-                targets: self.targets(targets),
+                targets: {
+                    let ts = self.targets(targets);
+                    let enters_this = |t: &Trigger| matches!(t, Trigger::Enters(TriggerObj::This));
+                    self.tmap.they_target = !ts.is_empty()
+                        && (enters_this(trigger)
+                            || matches!(trigger, Trigger::When(t) if enters_this(t)));
+                    ts
+                },
                 effects: self.sentences(effects)?,
                 from_graveyard: *from_graveyard,
             }),
@@ -7775,6 +7832,23 @@ struct TargetMap {
     /// Inside a kicked spell's "instead" with its own targets: how many
     /// targets the kicked spell doesn't have (`CardDef::kicked_drops`).
     shift: usize,
+    /// "When this enters, destroy target permanent an opponent controls.
+    /// They create a Treasure token." (Vraska, the Cutting Glare): the
+    /// triggering player is you, so "they" is the first target's
+    /// controller (CR 608.2c).
+    they_target: bool,
+    /// Compiling a spell's effects: it has no triggering object.
+    spell: bool,
+    /// In a spell, after "you may put a creature card from your hand onto
+    /// the battlefield": "That creature gains haste. Sacrifice that
+    /// creature at the beginning of the next end step." (Through the
+    /// Breach) is the creature put there, not a triggering object.
+    put_creature: bool,
+    /// A kicked spell's `CardDef::kicked_drops`: after "If this spell was
+    /// kicked, choose target creature instead.", a later "its controller"
+    /// names the kicked target as written (`kicked_drops` or more), which
+    /// is the engine's first target either way (Expel the Unworthy).
+    kicked: Option<usize>,
 }
 
 /// The engine's index of the ability's `i`th target (`TargetMap`).
@@ -7784,7 +7858,10 @@ fn target_index(tmap: TargetMap, i: usize) -> usize {
         Some((m, _)) if i > m => i - 1,
         _ => i,
     };
-    i.saturating_sub(tmap.shift)
+    match tmap.kicked {
+        Some(n) if tmap.shift == 0 && i >= n => i - n,
+        _ => i.saturating_sub(tmap.shift),
+    }
 }
 
 /// Modes chosen together, as one mode: their targets and effects in

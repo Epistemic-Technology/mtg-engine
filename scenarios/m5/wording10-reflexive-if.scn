@@ -1,0 +1,23 @@
+# An intervening "if" right after a reflexive trigger's "When you do"
+# covers the whole ability (CR 603.4), not only its first sentence.
+
+scenario "Earthbender Ascension: with a fourth quest counter, the creature gets a counter and trample" {
+  battlefield A: "Earthbender Ascension" with 3 quest, "Grizzly Bears"
+  hand A: "Forest"
+  turn 1 A: play "Forest"
+  turn 1 A: trigger "Earthbender Ascension" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert counters "Earthbender Ascension" quest 4
+  assert counters "Grizzly Bears" +1/+1 1
+  assert has "Grizzly Bears" trample
+}
+
+scenario "Earthbender Ascension: with only three quest counters, neither a counter nor trample" {
+  battlefield A: "Earthbender Ascension" with 2 quest, "Grizzly Bears"
+  hand A: "Forest"
+  turn 1 A: play "Forest"
+  run_to turn 1 begin_combat
+  assert counters "Earthbender Ascension" quest 3
+  assert counters "Grizzly Bears" +1/+1 0
+  assert has not "Grizzly Bears" trample
+}

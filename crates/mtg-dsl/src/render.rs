@@ -1197,6 +1197,17 @@ fn plural_subject_verbs(text: &str, name: &str) -> String {
     format!("{head}{}{tail}", words.join(" "))
 }
 
+/// A character's "it's": "he's", "she's", "they're" ("If he's
+/// attacking, untap him", The Incredible Hulk).
+fn its_is(card: &Card) -> &'static str {
+    match card.pronoun {
+        Some(crate::ast::Pronoun::He) => "he's",
+        Some(crate::ast::Pronoun::She) => "she's",
+        Some(crate::ast::Pronoun::They) => "they're",
+        None => "it's",
+    }
+}
+
 /// A character's possessive: "its", "his", "her" ("draw a card if her
 /// power is 4 or greater").
 fn its_poss(card: &Card) -> &'static str {
@@ -9787,7 +9798,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("if {who}, {}", body.trim_end_matches('.')))
         }
         Effect::Waterbend(mana) => Clause::imperative(format!("waterbend {mana}")),
-        Effect::Pay { mana, life } => Clause::imperative(if *life > 0 {
+        Effect::Pay { mana, life } => Clause::imperative(if *life > 0 && !mana.is_empty() {
+            format!("pay {mana} and {life} life")
+        } else if *life > 0 {
             format!("pay {life} life")
         } else {
             format!("pay {mana}")
@@ -9981,6 +9994,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     },
                     None => t,
                 }
+            } else if ctx.card.pronoun.is_some()
+                && ctx.source_mentioned
+                && !is_spell(ctx.card)
+                && matches!(
+                    c,
+                    StaticCond::Is(_)
+                        | StaticCond::Attacking
+                        | StaticCond::AttackingAlone
+                        | StaticCond::Blocked
+                        | StaticCond::Modified
+                )
+            {
+                // "put a +1/+1 counter on him. If he's attacking, untap
+                // him" (The Incredible Hulk).
+                static_cond_text(c, ctx.card).replacen("it's", its_is(ctx.card), 1)
             } else {
                 static_cond_text(c, ctx.card)
             };
@@ -16199,6 +16227,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                         && let Some(rest) = text.strip_prefix(&format!("{this} "))
                     {
                         text = format!("{} {rest}", it_subj(card));
+                    }
+                    // "Whenever you cast a spell while Fire Lord Azula is
+                    // attacking": not named yet, so named here.
+                    if !out.contains(&capitalize(&this))
+                        && !out.contains(&format!(" {this}"))
+                        && let Some(rest) = text.strip_prefix("it's ")
+                    {
+                        text = format!("{this} is {rest}");
                     }
                     out.push_str(&text);
                 }

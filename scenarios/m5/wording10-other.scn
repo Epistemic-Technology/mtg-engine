@@ -1,0 +1,22 @@
+# "if you control at least five other Forests" in a trigger about an
+# entering Forest, on a source that isn't a Forest: "other" excludes the
+# entering Forest (Roiling Canopy).
+
+scenario "Roiling Canopy: a sixth Forest entering with five others pumps" {
+  battlefield A: "Roiling Canopy", 5 "Forest", "Grizzly Bears"
+  hand A: "Forest"
+  turn 1 A: play "Forest"
+  turn 1 A: trigger "Roiling Canopy" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+}
+
+scenario "Roiling Canopy: a fifth Forest entering with four others doesn't trigger" {
+  battlefield A: "Roiling Canopy", 4 "Forest", "Grizzly Bears"
+  hand A: "Forest"
+  turn 1 A: play "Forest"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}

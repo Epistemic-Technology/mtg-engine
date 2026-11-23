@@ -1,0 +1,8 @@
+card "Vraska, the Cutting Glare" {
+  oracle_id 580de511-863c-4b7a-9d2e-fcdf6e12d54b
+  cost {B}{B}{G}
+  type Legendary Creature — Gorgon Assassin
+  pt 4/4
+  keywords deathtouch
+  triggered whenever this enters if you control 6 land: destroy target permanent an opponent controls; they create 1 "Treasure"
+}

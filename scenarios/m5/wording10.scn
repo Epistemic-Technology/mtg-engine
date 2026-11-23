@@ -1,0 +1,52 @@
+# Wording and reference binding (the tenth wave's wording branch):
+# pronouns and references that bind to the object or player the Oracle
+# text means (CR 608.2c).
+
+# ---- "They" after a target with no triggering player ----
+
+scenario "Vraska, the Cutting Glare: the destroyed permanent's controller creates the Treasure" {
+  battlefield A: 4 "Swamp", 3 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Vraska, the Cutting Glare"
+  turn 1 A: cast "Vraska, the Cutting Glare"
+  turn 1 A: trigger "Vraska, the Cutting Glare" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Treasure"
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "Vraska, the Cutting Glare: with five lands it doesn't trigger" {
+  battlefield A: 3 "Swamp", 2 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Vraska, the Cutting Glare"
+  turn 1 A: cast "Vraska, the Cutting Glare"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert battlefield B lacks "Treasure"
+}
+
+# ---- The creature an effect put onto the battlefield ----
+
+scenario "Through the Breach: the creature put onto the battlefield gains haste and is sacrificed at end step" {
+  battlefield A: 5 "Mountain"
+  hand A: "Through the Breach", "Hill Giant"
+  turn 1 A: cast "Through the Breach"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield A contains "Hill Giant"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A lacks "Hill Giant"
+}
+
+scenario "Through the Breach: declining puts nothing onto the battlefield" {
+  battlefield A: 5 "Mountain"
+  hand A: "Through the Breach", "Hill Giant"
+  turn 1 A: cast "Through the Breach"
+  turn 1 A: choose done
+  run_to turn 2 upkeep
+  assert hand A contains "Hill Giant"
+}

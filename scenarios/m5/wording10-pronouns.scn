@@ -1,0 +1,30 @@
+# Pronouns for legendary characters ("If he's attacking, untap him").
+
+scenario "The Incredible Hulk: dealt damage while attacking, a counter, untap, and another combat" {
+  battlefield A: "Bruce Banner", 2 "Mountain", 2 "Forest", 2 "Island"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 A
+  turn 2 A: activate "Bruce Banner" ability 2
+  turn 2 A: attack "The Incredible Hulk"
+  turn 2 declare_attackers B: cast "Shock" targeting "The Incredible Hulk"
+  run_to turn 2 end_combat
+  assert counters "The Incredible Hulk" +1/+1 1
+  assert untapped "The Incredible Hulk"
+  assert life B 11
+  turn 2 declare_attackers combat 2 A: attack "The Incredible Hulk"
+  run_to turn 2 postcombat_main
+  assert life B 2
+}
+
+scenario "The Incredible Hulk: dealt damage while not attacking, only the counter" {
+  battlefield A: "Bruce Banner", 2 "Mountain", 2 "Forest", 2 "Island"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 A
+  turn 2 A: activate "Bruce Banner" ability 2
+  turn 2 end B: cast "Shock" targeting "The Incredible Hulk"
+  run_to turn 2 cleanup
+  assert counters "The Incredible Hulk" +1/+1 1
+  assert life B 20
+}
