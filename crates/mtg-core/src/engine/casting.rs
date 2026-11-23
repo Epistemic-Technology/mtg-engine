@@ -2607,6 +2607,15 @@ impl GameState {
             return false;
         }
         let mut req = def.mana_cost.requirements(0);
+        // CR 601.2f: an additional cost's mana ("As an additional cost to
+        // cast this spell, waterbend {5}") is part of the total cost, as
+        // payment charges it (a choice of two adds its own below).
+        if !def.additional.mana.is_empty()
+            && def.additional_or.is_none()
+            && !def.additional.taps_chosen()
+        {
+            req.add(&def.additional.mana.requirements(0));
+        }
         if def.self_cost.is_some()
             || def.cond_cost.is_some()
             || !changers.is_empty()

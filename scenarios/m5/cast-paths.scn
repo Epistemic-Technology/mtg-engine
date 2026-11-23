@@ -1,0 +1,11 @@
+# A cast is offered only when payment, charging the same total cost (CR
+# 601.2f), can pay for it: the offer and the payment share one
+# requirement for every way to cast a card.
+
+scenario "cast paths: an additional cost's mana is part of the cost offered" {
+  battlefield A: 2 "Island"
+  hand A: "Benevolent River Spirit"
+  illegal turn 1 A: cast "Benevolent River Spirit"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Benevolent River Spirit"
+}
