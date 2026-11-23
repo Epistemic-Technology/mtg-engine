@@ -1,0 +1,7 @@
+card "Felidar Guardian" {
+  oracle_id 33869ba6-13e5-4e48-8963-92f7965648fb
+  cost {3}{W}
+  type Creature — Cat Beast
+  pt 1/4
+  triggered when this enters: you may exile another target permanent you control, then return that card to the battlefield under its owner's control
+}

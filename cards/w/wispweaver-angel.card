@@ -1,0 +1,8 @@
+card "Wispweaver Angel" {
+  oracle_id f8a88521-80e5-419b-ab4e-f4b3aba8afa0
+  cost {4}{W}{W}
+  type Creature — Angel
+  pt 4/4
+  keywords flying
+  triggered when this enters: you may exile another target creature you control, then return that card to the battlefield under its owner's control
+}

@@ -1,0 +1,6 @@
+card "Conjurer's Closet" {
+  oracle_id cd1eda60-53e4-44d0-9b2c-7a57395e291f
+  cost {5}
+  type Artifact
+  triggered at beginning of your end step: you may exile target creature you control, then return that card to the battlefield under your control
+}

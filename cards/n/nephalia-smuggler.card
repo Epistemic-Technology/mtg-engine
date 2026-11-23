@@ -1,0 +1,7 @@
+card "Nephalia Smuggler" {
+  oracle_id f96a2aa6-3259-4bb6-92cd-4d17215d04d0
+  cost {U}
+  type Creature — Human Rogue
+  pt 1/1
+  activated {3}{U}, {T}: exile another target creature you control, then return that card to the battlefield under your control
+}

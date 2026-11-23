@@ -3275,6 +3275,25 @@ impl Templates {
             // A transforming card's back face returning itself: "Exile
             // Shiva, then return it to the battlefield (front face up)."
             // (CR 712.14; Oracle names no controller only there).
+            // A flicker: "Exile target creature you control, then return
+            // that card to the battlefield under its owner's control"
+            // (Blur, Cloudshift).
+            (
+                r(
+                    r"^[Ee]xile (.+), then return that card to the battlefield under (your|its owner's) control$",
+                ),
+                |c, t| {
+                    let what = recipient(cap(c, 1), t)?;
+                    let under = if cap(c, 2) == "your" {
+                        " under your control"
+                    } else {
+                        ""
+                    };
+                    Some(format!(
+                        "exile {what} then return that card to battlefield{under}"
+                    ))
+                },
+            ),
             (
                 r(r"^Exile ~, then return it to the battlefield$"),
                 |_, _| Some("exile this then return this to battlefield front face up".to_string()),
@@ -4465,6 +4484,7 @@ impl Templates {
                 || body.ends_with("explores, then it explores again")
                 || body.contains(", then meld them into ")
                 || body == "Exile ~, then return it to the battlefield"
+                || body.contains(", then return that card to the battlefield under ")
             {
                 vec![body.as_str()]
             } else {
@@ -6321,6 +6341,23 @@ impl Builder<'_> {
             }
             self.statements
                 .push(format!("static {filter}: {pump}has ability {{ {inner} }}"));
+            return Ok(());
+        }
+        // "Elves you control have \"{T}: Add {G}{G}.\"", "Sliver creatures
+        // you control have \"...\"", "Artifacts you control have \"...\"".
+        if let Some(c) = Regex::new(
+            r#"^([A-Z][a-z]+(?: creatures)?|Artifacts) you control have "(.+)"$"#,
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let what = singular(cap(&c, 1));
+            let what = if what == "Artifact" { "artifact".to_string() } else { what };
+            let inner = self
+                .quoted(cap(&c, 2))
+                .ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            self.statements
+                .push(format!("static {what} you control: has ability {{ {inner} }}"));
             return Ok(());
         }
         // Keyword lines: first, or in place among the abilities.

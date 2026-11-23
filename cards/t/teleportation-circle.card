@@ -1,0 +1,6 @@
+card "Teleportation Circle" {
+  oracle_id c786a0aa-d86f-42c3-a7ea-5cb6ab72b5ec
+  cost {3}{W}
+  type Enchantment
+  triggered at beginning of your end step: exile up to 1 target artifact or creature you control, then return that card to the battlefield under its owner's control
+}
