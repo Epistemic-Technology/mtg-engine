@@ -3888,6 +3888,7 @@ impl Compiler<'_> {
                     // (CR 608.2c): the optional action wasn't taken.
                     Some(
                         CoreEffect::IfCondition(..)
+                            | CoreEffect::IfTarget { .. }
                             | CoreEffect::Clash { .. }
                             | CoreEffect::IfCard { .. }
                             | CoreEffect::IfYouDo(..)

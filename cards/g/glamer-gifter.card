@@ -1,0 +1,8 @@
+card "Glamer Gifter" {
+  oracle_id e67a820b-6249-478e-91db-9827e44aa60a
+  cost {1}{U}
+  type Creature — Faerie Wizard
+  pt 1/2
+  keywords flash, flying
+  triggered when this enters: choose up to 1 another target creature; until end of turn, that target 1 has base power and toughness 4/4 and gains all creature types
+}

@@ -1,0 +1,10 @@
+card "Chandra, Spark Hunter" {
+  oracle_id 30bb01c1-9253-4251-80e7-fb8236b3d858
+  cost {3}{R}
+  type Legendary Planeswalker — Chandra
+  loyalty 4
+  triggered at beginning of your combat: choose up to 1 target Vehicle you control; until end of turn, target 1 becomes artifact creature and gains haste
+  loyalty +2: you may sacrifice 1 artifact chosen or discard 1 card; if you do, draw 1 card
+  loyalty 0: create 1 "3/2 colorless Vehicle artifact with crew 1"
+  loyalty -7: emblem "Chandra, Spark Hunter emblem"
+}

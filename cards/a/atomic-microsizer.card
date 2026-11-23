@@ -1,0 +1,8 @@
+card "Atomic Microsizer" {
+  oracle_id 048c3b0b-48ef-42f5-a2af-90aa1d133296
+  cost {U}
+  type Artifact — Equipment
+  static enchanted: +1/+0
+  triggered whenever equipped creature attacks: choose up to 1 target creature; that target 1 can't be blocked and has base power and toughness 1/1
+  equip {2}
+}

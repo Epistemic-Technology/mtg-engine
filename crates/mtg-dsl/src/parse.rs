@@ -5475,6 +5475,11 @@ impl P {
         if self.revealed && self.at_word("puts") {
             return true;
         }
+        // "That creature can't be blocked this turn and has base power
+        // and toughness 1/1 until end of turn."
+        if self.at_words(&["has", "base"]) {
+            return true;
+        }
         matches!(
             self.word_at(0).as_deref(),
             Some(
@@ -8268,6 +8273,8 @@ impl P {
             "choose"
                 if self.at_word("target")
                     || self.at_words(&["any", "target"])
+                    // "Choose up to one target creature."
+                    || self.at_words(&["up", "to"])
                     || (matches!(self.peek(), Some(Tok::Num(2)))
                         && self.word_at(1).as_deref() == Some("target")) =>
             {

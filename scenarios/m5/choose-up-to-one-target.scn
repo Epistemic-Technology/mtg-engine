@@ -1,0 +1,91 @@
+# "Choose up to one target creature." and what follows it: the target is
+# "that creature" / "it" in the later sentences, and with none chosen they
+# do nothing. "If it's suspected, exile it. Otherwise, suspect it."
+
+scenario "Glamer Gifter: the other creature is 4/4 with all creature types until end of turn" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  hand A: "Glamer Gifter"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Glamer Gifter"
+  turn 3 A: trigger "Glamer Gifter" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert is "Grizzly Bears" "Elf"
+  assert power "Glamer Gifter" 1
+  run_to turn 4 upkeep
+  assert power "Grizzly Bears" 2
+  assert is not "Grizzly Bears" "Elf"
+}
+
+scenario "Glamer Gifter: it can't choose itself" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  hand A: "Glamer Gifter"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Glamer Gifter"
+  illegal turn 3 A: trigger "Glamer Gifter" targeting "Glamer Gifter"
+  turn 3 A: trigger "Glamer Gifter" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert power "Glamer Gifter" 1
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Atomic Microsizer: the chosen attacker is an unblockable 1/1" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Atomic Microsizer" on "Grizzly Bears"
+  battlefield B: "Wall of Wood"
+  start turn 3 A
+  turn 3 A: attack "Grizzly Bears", "Hill Giant"
+  turn 3 A: trigger "Atomic Microsizer" targeting "Hill Giant"
+  illegal turn 3 B: block "Hill Giant" with "Wall of Wood"
+  run_to turn 3 postcombat_main
+  assert life B 16
+  run_to turn 4 upkeep
+  assert power "Hill Giant" 3
+}
+
+scenario "Atomic Microsizer: no target chosen, nothing happens" {
+  battlefield A: "Grizzly Bears", "Atomic Microsizer" on "Grizzly Bears"
+  start turn 3 A
+  turn 3 A: attack "Grizzly Bears"
+  turn 3 A: trigger "Atomic Microsizer" targeting none
+  run_to turn 3 postcombat_main
+  assert life B 17
+}
+
+scenario "Agrus Kos: an unsuspected creature is suspected, then exiled the next time" {
+  battlefield A: "Agrus Kos, Spirit of Justice"
+  battlefield B: "Grizzly Bears"
+  start turn 3 A
+  turn 3 A: attack "Agrus Kos, Spirit of Justice"
+  turn 3 A: trigger "Agrus Kos, Spirit of Justice" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert has "Grizzly Bears" menace
+  assert battlefield B contains "Grizzly Bears"
+  turn 5 A: attack "Agrus Kos, Spirit of Justice"
+  turn 5 A: trigger "Agrus Kos, Spirit of Justice" targeting "Grizzly Bears"
+  run_to turn 5 postcombat_main
+  assert exile B contains "Grizzly Bears"
+}
+
+scenario "Chandra, Spark Hunter: the target Vehicle is an artifact creature with haste this turn" {
+  battlefield A: "Chandra, Spark Hunter", "Smuggler's Copter"
+  start turn 3 A
+  turn 3 begin_combat A: trigger "Chandra, Spark Hunter" targeting "Smuggler's Copter"
+  turn 3 A: attack "Smuggler's Copter"
+  run_to turn 3 postcombat_main
+  assert life B 17
+  run_to turn 4 upkeep
+  assert is not "Smuggler's Copter" creature
+}
+
+scenario "Chandra, Spark Hunter: the emblem deals 3 damage as an artifact enters" {
+  battlefield A: "Chandra, Spark Hunter" with 8 loyalty
+  hand A: "Ornithopter"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Chandra, Spark Hunter" ability 3
+  turn 3 A: wait
+  turn 3 A: cast "Ornithopter"
+  turn 3 A: trigger "Chandra, Spark Hunter emblem" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 17
+}

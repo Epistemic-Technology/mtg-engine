@@ -9713,14 +9713,20 @@ fn this_way_text(c: &crate::ast::ThisWayCond, card: &Card) -> String {
 /// A target check that names only a state ("attacking", "tapped",
 /// "untapped", "blocking"): the adjective, or `None`.
 fn status_only(f: &Filter) -> Option<&'static str> {
-    let bare = Filter {
+    let mut bare = Filter {
         tapped: None,
         attacking: false,
         blocking: false,
         ..f.clone()
     };
+    // "If it's suspected, exile it." (Agrus Kos).
+    let suspected = bare.status.suspected == Some(true);
+    bare.status.suspected = None;
     if bare != Filter::default() {
         return None;
+    }
+    if suspected {
+        return (f.tapped.is_none() && !f.attacking && !f.blocking).then_some("suspected");
     }
     match (f.tapped, f.attacking, f.blocking) {
         (Some(true), false, false) => Some("tapped"),
