@@ -1,0 +1,9 @@
+card "Wormfang Drake" {
+  oracle_id d37c4e77-5023-4d13-9cfe-a43f513364bf
+  cost {2}{U}
+  type Creature — Nightmare Drake
+  pt 3/4
+  keywords flying
+  triggered when this enters: sacrifice it unless you exile 1 other creature you control chosen
+  triggered when this leaves the battlefield: return exiled card to battlefield
+}

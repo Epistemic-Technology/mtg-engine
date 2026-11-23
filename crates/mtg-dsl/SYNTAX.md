@@ -309,7 +309,9 @@ cost to cast this spell, discard X cards."; X is announced as the spell
 is cast, at most the other cards in hand, CR 601.2b; `discard X creature
 cards` counts only matching cards), `discard this`, `exile this from graveyard` ("Exile this card from
 your graveyard"; the ability is activated from the graveyard), `exile
-this` ("Exile this artifact": the permanent exiles itself), `return
+this from hand` ("Exile this card from your hand"; the ability is
+activated from the hand, and the card goes to exile as the cost is paid),
+`exile this` ("Exile this artifact": the permanent exiles itself), `return
 land you control` ("Return a land you control to its owner's hand";
 `return this`: "Return this enchantment to its owner's hand") and
 `tap untapped creature you control` ("Tap an untapped creature you
@@ -323,7 +325,10 @@ from graveyard`, `exile creature card from graveyard`, `exile X creature
 cards from graveyard` ("Exile two cards from your graveyard", "exile a
 creature card from your graveyard"; X announced as a spell is cast, at
 most the cards there; the engine exiles the oldest matching cards other
-than the source, sparing what the spell or ability targets), `pay 3
+than the source, sparing what the spell or ability targets; `exile top
+card from graveyard`, `exile top creature card from graveyard`: "Exile the
+top card of your graveyard", "Exile the top creature card of your
+graveyard", the most recent, CR 404.2), `pay 3
 life`, `pay x life` (a spell's additional cost: "As an additional cost to
 cast this spell, pay X life."; X is announced as the spell is cast, at most
 the caster's life, CR 119.4), `exert this` ("Exert this creature", "Exert
@@ -1869,7 +1874,11 @@ up to 1 target creature gets -5/-0` prints it first), `for as long as this
 remains` ("for as long as this creature remains on the battlefield", "...
 The Wondrous Wasp remains ..."), `for as long as you control this` ("for as
 long as you control this creature"), and `for as long as it remains tapped`
-(each affected permanent, while it stays tapped). The last three end when
+(each affected permanent, while it stays tapped), and `until this is cast
+from exile` ("until this card is cast from exile", after an `exile this
+from hand` cost: while that card stays in exile; with `may cast this while
+exiled`, "You may cast this card for as long as it remains exiled.", its
+controller may cast it from there, CR 601.3). The last three end when
 the source leaves the battlefield or changes control, or the permanent
 untaps (checked with the state-based actions), and do nothing if that has
 already happened as the effect would begin. `gain control of target
@@ -1978,7 +1987,8 @@ the battlefield under their owner's control", each target found as the
 card it became, CR 400.7),
 `exile all graveyards`, `exile graveyard of target player` ("Exile target
 player's graveyard"; `of each opponent`: "Exile each opponent's
-graveyard"), `put <what> on top of library` / `on bottom of
+graveyard"; `exile all creature card from graveyard of target player`:
+"Exile all creature cards from target player's graveyard"), `put <what> on top of library` / `on bottom of
 library` / `into library 2 from top` ("Put target creature into its
 owner's library second from the top"; fewer cards, the bottom, CR 401.7),
 `shuffle <what> into library` ("Shuffle enchanted creature into its
@@ -2760,7 +2770,21 @@ do` then sees:
   known to every player; `count where revealed this way` ("the number of
   cards revealed this way") and `count each revealed this way` ("for each
   card revealed this way") count them
-- `exile 2 creature card from your graveyard chosen`
+- `exile 2 creature card from your graveyard chosen`; `exile top 1
+  creature card from your graveyard chosen` ("exile the top creature card
+  of your graveyard", CR 404.2: the most recent, nothing chosen)
+- `exile 1 land you control chosen` ("exile a land you control"; `exile 1
+  other creature you control chosen`: "exile a creature you control other
+  than this creature"): on a card whose other ability says `return
+  exiled card to battlefield`, what it exiles is linked to it (CR 607.2a,
+  Wormfang Newt)
+- `return 1 creature card from your graveyard to battlefield chosen`
+  ("return a creature card from your graveyard to the battlefield"; `to
+  battlefield tapped`: "... to the battlefield tapped"), under its owner's
+  control
+- `put 1 creature card from among them onto battlefield chosen` ("put a
+  creature card from among them onto the battlefield"; `from among milled
+  cards`: "from among the milled cards"), as `into hand` below
 - `attach 1 Equipment you control to target 1 chosen` ("attach an Equipment
   you control to it": permanents you control, attached to that target)
 - `return 1 creature or land card from your graveyard to hand chosen`

@@ -433,6 +433,7 @@ impl Decompiler<'_> {
             sorcery: false,
             from_graveyard: false,
             exile_self: c.exile_self,
+            exile_from_hand: c.exile_from_hand,
             exile_this: c.exile_this,
             crew: c.crew,
             remove_counters: c.remove_counters,
@@ -988,7 +989,10 @@ impl Decompiler<'_> {
             }
             CoreEffect::ExileLinked { what, until: true } => Effect::ExileUntil { what: r(*what) },
             CoreEffect::ExileAllGraveyards => Effect::ExileAllGraveyards,
-            CoreEffect::ExileGraveyard { who } => Effect::ExileGraveyard { who: r(*who) },
+            CoreEffect::ExileGraveyard { who, filter } => Effect::ExileGraveyard {
+                who: r(*who),
+                filter: filter.as_ref().map(|f| self.filter(f)),
+            },
             CoreEffect::Sacrifice { what } => Effect::Sacrifice { what: r(*what) },
             CoreEffect::Tap { to } => Effect::Tap { to: vec![r(*to)] },
             CoreEffect::TapOrUntap { to } => Effect::TapOrUntap { to: r(*to) },
@@ -1700,6 +1704,7 @@ impl Decompiler<'_> {
                 },
                 filter: self.filter(filter),
             },
+            CoreEffect::MayCastThisFromExile => Effect::MayCastThisFromExile,
             CoreEffect::MayPlayCard { until, cast, free } => Effect::MayPlayCard {
                 until: *until,
                 cast: *cast,

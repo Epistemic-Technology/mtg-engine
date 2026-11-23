@@ -3453,6 +3453,18 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                         .filter
                         .as_ref()
                         .map_or(String::new(), |f| card_filter_phrase(f, ctx.card) + " ");
+                    if g.top {
+                        // "Exile the top card of your graveyard", "Exile
+                        // the top creature card of your graveyard" (the
+                        // most recent, CR 404.2).
+                        let what = if n == Num::N(1) {
+                            format!("{kind}card")
+                        } else {
+                            format!("{} {kind}cards", count_words(n, "one"))
+                        };
+                        parts.push(format!("Exile the top {what} of your graveyard"));
+                        continue;
+                    }
                     let what = if n == Num::N(1) {
                         with_article(&format!("{kind}card"))
                     } else {
@@ -3462,7 +3474,9 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 }
             }
             CostItem::Exile => {
-                if cost.exile_self {
+                if cost.exile_from_hand {
+                    parts.push("Exile this card from your hand".to_string());
+                } else if cost.exile_self {
                     parts.push("Exile this card from your graveyard".to_string());
                 } else if cost.exile_this {
                     parts.push(format!("Exile {}", ctx.source()));
@@ -5407,6 +5421,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
             }
         }
+        Effect::MayCastThisFromExile => Clause::imperative(
+            "you may cast this card for as long as it remains exiled".to_string(),
+        ),
         Effect::MayPlayCard {
             until,
             cast,
@@ -6600,14 +6617,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             ))
         }
         Effect::ExileAllGraveyards => Clause::imperative("exile all graveyards".to_string()),
-        Effect::ExileGraveyard { who } => {
+        Effect::ExileGraveyard { who, filter } => {
             let o = ctx.obj(*who);
             let whose = match o.as_str() {
                 "you" => "your".to_string(),
                 "it" | "them" => "their".to_string(),
                 o => format!("{o}'s"),
             };
-            Clause::imperative(format!("exile {whose} graveyard"))
+            match filter {
+                // "Exile all creature cards from target player's graveyard."
+                Some(f) => Clause::imperative(format!(
+                    "exile all {} from {whose} graveyard",
+                    cards_phrase(f, ctx.card, true)
+                )),
+                None => Clause::imperative(format!("exile {whose} graveyard")),
+            }
         }
         Effect::Sacrifice { what } => {
             let o = ctx.obj_written(*what);
@@ -7735,6 +7759,31 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ChooseAct::ExileFromGraveyard => {
                     format!("exile {} from your graveyard", cards())
                 }
+                // CR 404.2: "exile the top creature card of your graveyard".
+                ChooseAct::ExileTopOfGraveyard => {
+                    let what = if one {
+                        cards_phrase(filter, ctx.card, false)
+                    } else {
+                        format!(
+                            "{} {}",
+                            count_words(*count, "one"),
+                            cards_phrase(filter, ctx.card, true)
+                        )
+                    };
+                    format!("exile the top {what} of your graveyard")
+                }
+                // "exile a creature you control other than this creature".
+                ChooseAct::Exile if filter.relation == mtg_core::card::Relation::Other => {
+                    let mut rest = filter.clone();
+                    rest.relation = mtg_core::card::Relation::Any;
+                    let what = if one {
+                        filter_a(&rest, ctx.card)
+                    } else {
+                        format!("{n} {}", filter_phrase(&rest, ctx.card, true))
+                    };
+                    format!("exile {what} other than {}", ctx.source_name())
+                }
+                ChooseAct::Exile => format!("exile {}", permanents()),
                 ChooseAct::GraveyardToTop => {
                     format!("put {} from your graveyard on top of your library", cards())
                 }
@@ -7773,8 +7822,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ChooseAct::MilledToHand if *returns => {
                     format!("return {} from among them to your hand", cards())
                 }
-                ChooseAct::MilledToHand => format!(
-                    "put {} from among {} into your hand",
+                ChooseAct::GraveyardToBattlefield { tapped } => format!(
+                    "return {} from your graveyard to the battlefield{}",
+                    cards(),
+                    if *tapped { " tapped" } else { "" }
+                ),
+                ChooseAct::MilledToHand | ChooseAct::MilledToBattlefield => format!(
+                    "put {} from among {} {}",
                     cards(),
                     if *among_them {
                         "them"
@@ -7784,6 +7838,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                         "the cards milled this way"
                     } else {
                         "the milled cards"
+                    },
+                    if *act == ChooseAct::MilledToHand {
+                        "into your hand"
+                    } else {
+                        "onto the battlefield"
                     }
                 ),
             })
@@ -10100,6 +10159,7 @@ fn lasting_text(l: mtg_core::card::Lasting, ctx: &Ctx) -> String {
         }
         Lasting::WhileTapped => "for as long as it remains tapped".to_string(),
         Lasting::YouControlSource => format!("for as long as you control {}", ctx.source_name()),
+        Lasting::UntilCastFromExile => "until this card is cast from exile".to_string(),
     }
 }
 

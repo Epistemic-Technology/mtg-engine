@@ -1,0 +1,14 @@
+card "Bramble Familiar // Fetch Quest" {
+  oracle_id 68f36dfa-bbd2-4860-b09b-37e35136be72
+  layout adventure
+  cost {1}{G}
+  type Creature — Elemental Raccoon
+  pt 2/2
+  activated {T}: add {G}
+  activated {1}{G}, {T}, discard 1 card: return this to hand
+  face "Fetch Quest" {
+    cost {5}{G}{G}
+    type Sorcery — Adventure
+    spell: mill 7 cards; then put 1 creature, enchantment, or land card from among milled cards onto battlefield chosen
+  }
+}

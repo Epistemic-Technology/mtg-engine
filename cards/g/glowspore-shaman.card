@@ -1,0 +1,7 @@
+card "Glowspore Shaman" {
+  oracle_id ac7a9d73-dbdf-4e97-b382-67cd30ef5649
+  cost {B}{G}
+  type Creature — Elf Shaman
+  pt 3/1
+  triggered when this enters: mill 3 cards; you may put 1 land card from your graveyard on top of library chosen
+}

@@ -5129,6 +5129,9 @@ impl P {
         if self.eat_words(&["for", "as", "long", "as", "you", "control", "this"]) {
             return Some(Lasting::YouControlSource);
         }
+        if self.eat_words(&["until", "this", "is", "cast", "from", "exile"]) {
+            return Some(Lasting::UntilCastFromExile);
+        }
         None
     }
 
@@ -7722,7 +7725,7 @@ impl P {
                 // `return 1 Zombie card from your graveyard to hand at
                 // random`.
                 Some("random") if verb == "return" && hand => return true,
-                Some("hand") => hand = true,
+                Some("hand" | "battlefield") => hand = true,
                 // `put 1 card an opponent owns from exile into graveyard
                 // chosen`: a zone, not a verb.
                 Some("exile") if self.word_at(k - 1).as_deref() == Some("from") => {}
@@ -7743,6 +7746,9 @@ impl P {
     fn chosen_act(&mut self) -> R<Effect> {
         use mtg_core::card::ChooseAct;
         let verb = self.word()?;
+        // `exile top 1 creature card from your graveyard chosen`: "exile
+        // the top creature card of your graveyard".
+        let top = verb == "exile" && self.eat_word("top");
         // `discard any number cards chosen`: "discard any number of
         // cards".
         let (up_to, count) = if self.eat_words(&["any", "number"]) {
@@ -7787,9 +7793,22 @@ impl P {
                 (ChooseAct::AttachToTarget(n), f)
             }
             "exile" => {
-                let f = card_filter(self)?;
-                self.expect_words(&["from", "your", "graveyard"])?;
-                (ChooseAct::ExileFromGraveyard, f)
+                let at = self.pos;
+                let graveyard = card_filter(self).is_ok()
+                    && self.at_words(&["from", "your", "graveyard"]);
+                self.pos = at;
+                if graveyard || top {
+                    let f = card_filter(self)?;
+                    self.expect_words(&["from", "your", "graveyard"])?;
+                    if top {
+                        (ChooseAct::ExileTopOfGraveyard, f)
+                    } else {
+                        (ChooseAct::ExileFromGraveyard, f)
+                    }
+                } else {
+                    // `exile 1 land you control chosen`.
+                    (ChooseAct::Exile, self.filter()?)
+                }
             }
             "return" => {
                 let f = if self.at_word("card") || self.at_word("cards") {
@@ -7815,6 +7834,11 @@ impl P {
                         among_them = true;
                         returns = true;
                         (ChooseAct::MilledToHand, f)
+                    } else if self.eat_words(&["from", "your", "graveyard", "to", "battlefield"]) {
+                        // `return 1 land card from your graveyard to
+                        // battlefield tapped chosen`.
+                        let tapped = self.eat_word("tapped");
+                        (ChooseAct::GraveyardToBattlefield { tapped }, f)
                     } else {
                         self.expect_words(&["from", "your", "graveyard", "to", "hand"])?;
                         (ChooseAct::ReturnFromGraveyard, f)
@@ -7897,8 +7921,14 @@ impl P {
                 } else {
                     self.expect_words(&["milled", "cards"])?;
                 }
-                self.expect_words(&["into", "hand"])?;
-                (ChooseAct::MilledToHand, f)
+                // `put 1 creature card from among them onto battlefield
+                // chosen`.
+                if self.eat_words(&["onto", "battlefield"]) {
+                    (ChooseAct::MilledToBattlefield, f)
+                } else {
+                    self.expect_words(&["into", "hand"])?;
+                    (ChooseAct::MilledToHand, f)
+                }
             }
         };
         let act = if act == ChooseAct::ReturnFromGraveyard && self.eat_words(&["at", "random"]) {
@@ -8795,7 +8825,26 @@ impl P {
                 }
                 if self.eat_words(&["graveyard", "of"]) {
                     let who = self.recipient()?;
-                    return Ok(Effect::ExileGraveyard { who });
+                    return Ok(Effect::ExileGraveyard { who, filter: None });
+                }
+                // `exile all creature card from graveyard of target player`.
+                if self.at_word("all")
+                    && (2..6).any(|k| {
+                        matches!(self.word_at(k).as_deref(), Some("card" | "cards"))
+                            && self.word_at(k + 1).as_deref() == Some("from")
+                            && self.word_at(k + 2).as_deref() == Some("graveyard")
+                            && self.word_at(k + 3).as_deref() == Some("of")
+                    })
+                {
+                    self.pos += 1;
+                    let filter = self.filter()?;
+                    self.cards_word()?;
+                    self.expect_words(&["from", "graveyard", "of"])?;
+                    let who = self.recipient()?;
+                    return Ok(Effect::ExileGraveyard {
+                        who,
+                        filter: Some(filter),
+                    });
                 }
                 let what = self.recipients()?;
                 // "until this enchantment leaves the battlefield" (CR 610.3).
@@ -9028,6 +9077,11 @@ impl P {
                 let filter = self.filter()?;
                 self.expect_word("card")?;
                 Ok(Effect::RevealUntil { who: None, filter })
+            }
+            // `may cast this while exiled`.
+            "may" if self.at_words(&["cast", "this", "while", "exiled"]) => {
+                self.pos += 4;
+                Ok(Effect::MayCastThisFromExile)
             }
             // `may cast that card this turn [first] [free]`.
             "may"
@@ -14072,6 +14126,11 @@ impl P {
                     "exile" if self.at_words(&["exile", "this", "from", "graveyard"]) => {
                         self.pos += 4;
                         cost.exile_self = true;
+                        cost.order.push(CostItem::Exile);
+                    }
+                    "exile" if self.at_words(&["exile", "this", "from", "hand"]) => {
+                        self.pos += 4;
+                        cost.exile_from_hand = true;
                         cost.order.push(CostItem::Exile);
                     }
                     // "Exile this artifact" (CR 602.2b).

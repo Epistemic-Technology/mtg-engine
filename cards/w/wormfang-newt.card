@@ -1,0 +1,8 @@
+card "Wormfang Newt" {
+  oracle_id be014a79-5550-4f79-8789-b4d6783d7ec8
+  cost {1}{U}
+  type Creature — Nightmare Salamander Beast
+  pt 2/2
+  triggered when this enters: exile 1 land you control chosen
+  triggered when this leaves the battlefield: return exiled card to battlefield
+}

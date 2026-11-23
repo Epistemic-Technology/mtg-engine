@@ -1,0 +1,69 @@
+# "Exile the top card of your graveyard" (CR 404.2: the card put there
+# most recently) as a cost and as an effect.
+
+scenario "Alms exiles the top card of the graveyard and prevents 1 damage" {
+  battlefield A: "Alms", 2 "Mountain", "Grizzly Bears"
+  graveyard A: "Raging Goblin", "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: activate "Alms" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Hill Giant"
+  assert graveyard A contains "Raging Goblin"
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 1
+}
+
+scenario "Alms can't be activated with an empty graveyard" {
+  battlefield A: "Alms", 2 "Mountain", "Grizzly Bears"
+  illegal turn 1 A: activate "Alms" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Nature's Kiss pumps the enchanted creature" {
+  battlefield A: "Forest", "Grizzly Bears", "Nature's Kiss" on "Grizzly Bears"
+  graveyard A: "Raging Goblin", "Hill Giant"
+  turn 1 A: activate "Nature's Kiss"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert exile A contains "Hill Giant"
+  assert graveyard A contains "Raging Goblin"
+}
+
+scenario "Zombie Scavengers exiles the top creature card, not a later instant" {
+  battlefield A: "Zombie Scavengers", "Mountain"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Lightning Bolt"
+  hand A: "Shock"
+  turn 1 A: activate "Zombie Scavengers"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Zombie Scavengers"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Hill Giant"
+  assert exile A lacks "Lightning Bolt"
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Zombie Scavengers"
+  assert tapped "Zombie Scavengers"
+}
+
+scenario "Barrow Ghoul: exile the top creature card to keep it" {
+  battlefield A: "Barrow Ghoul"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Shock"
+  start turn 3 A
+  turn 3 upkeep A: accept "Barrow Ghoul"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Barrow Ghoul"
+  assert exile A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Shock"
+}
+
+scenario "Barrow Ghoul is sacrificed with no creature card to exile" {
+  battlefield A: "Barrow Ghoul"
+  graveyard A: "Shock"
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Barrow Ghoul"
+  assert graveyard A contains "Shock"
+}

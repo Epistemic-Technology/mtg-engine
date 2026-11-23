@@ -1,0 +1,6 @@
+card "Crypt Incursion" {
+  oracle_id ce00e0d0-c6f4-4fe8-97c3-7279b06d8fdb
+  cost {2}{B}
+  type Instant
+  spell: exile all creature card from graveyard of target player; you gain count each 3 exiled this way life
+}

@@ -1524,6 +1524,7 @@ impl GameState {
             | ChooseAct::Sacrifice
             | ChooseAct::Bounce
             | ChooseAct::Transform
+            | ChooseAct::Exile
             | ChooseAct::AttachToTarget(_) => self
                 .battlefield
                 .iter()
@@ -1547,11 +1548,21 @@ impl GameState {
                 .collect(),
             ChooseAct::ExileFromGraveyard
             | ChooseAct::ReturnFromGraveyard
+            | ChooseAct::GraveyardToBattlefield { .. }
             | ChooseAct::GraveyardToTop
             | ChooseAct::ReturnRandomFromGraveyard => self
                 .player(p)
                 .graveyard
                 .iter()
+                .copied()
+                .filter(|id| card_ok(*id))
+                .collect(),
+            // CR 404.2: the most recent matching cards first.
+            ChooseAct::ExileTopOfGraveyard => self
+                .player(p)
+                .graveyard
+                .iter()
+                .rev()
                 .copied()
                 .filter(|id| card_ok(*id))
                 .collect(),
@@ -1568,7 +1579,8 @@ impl GameState {
                 })
                 .collect(),
             // "from among the milled cards": those still in the graveyard.
-            ChooseAct::MilledToHand => self.this_way.as_ref().map_or_else(Vec::new, |log| {
+            ChooseAct::MilledToHand | ChooseAct::MilledToBattlefield => {
+                self.this_way.as_ref().map_or_else(Vec::new, |log| {
                 log.moved
                     .iter()
                     .filter(|m| m.is(crate::card::ThisWay::Milled))
@@ -1580,7 +1592,8 @@ impl GameState {
                             && card_ok(*id)
                     })
                     .collect()
-            }),
+            })
+            }
         }
     }
 
@@ -1668,7 +1681,9 @@ impl GameState {
             let id = if act == ChooseAct::ReturnRandomFromGraveyard {
                 // "at random": from the game's random number generator.
                 cands[rand::Rng::random_range(&mut self.rng, 0..cands.len())]
-            } else if !up_to && cands.len() == n - done {
+            } else if act == ChooseAct::ExileTopOfGraveyard
+                || (!up_to && cands.len() == n - done)
+            {
                 cands[0]
             } else {
                 let mut options: Vec<Choice> = cands
@@ -1732,14 +1747,29 @@ impl GameState {
                 ChooseAct::ExileToGraveyard => {
                     ctx.created = Some(self.move_object(id, Zone::Graveyard, false));
                 }
-                ChooseAct::ExileFromGraveyard => {
+                ChooseAct::ExileFromGraveyard | ChooseAct::ExileTopOfGraveyard => {
                     ctx.created = Some(self.move_object(id, Zone::Exile, false));
+                }
+                ChooseAct::Exile => {
+                    ctx.created = Some(self.move_object(id, Zone::Exile, true));
                 }
                 ChooseAct::Bounce
                 | ChooseAct::ReturnFromGraveyard
                 | ChooseAct::ReturnRandomFromGraveyard
                 | ChooseAct::MilledToHand => {
                     ctx.created = Some(self.move_object(id, Zone::Hand, false));
+                }
+                ChooseAct::MilledToBattlefield | ChooseAct::GraveyardToBattlefield { .. } => {
+                    let tapped = matches!(act, ChooseAct::GraveyardToBattlefield { tapped: true });
+                    let owner = self.objects[id].owner;
+                    ctx.created = Some(self.put_onto_battlefield_with(
+                        id,
+                        owner,
+                        super::replace::Enter {
+                            tapped,
+                            ..super::replace::Enter::default()
+                        },
+                    ));
                 }
                 // An illegal target by now: nothing to attach to (CR
                 // 608.2b).
@@ -6172,6 +6202,7 @@ impl GameState {
         }
         if ab.cost.exile_self && self.objects[sa.source].zone == Zone::Graveyard
             || ab.cost.exile_this && self.objects[sa.source].zone == Zone::Battlefield
+            || ab.cost.exile_from_hand && self.objects[sa.source].zone == Zone::Hand
         {
             self.move_object(sa.source, Zone::Exile, false);
         }
@@ -9731,11 +9762,21 @@ impl GameState {
             crate::card::Lasting::YouControlSource => {
                 Duration::WhileControlled(ctx.source, ctx.controller)
             }
+            crate::card::Lasting::UntilCastFromExile => {
+                Duration::WhileInExile(self.source_in_exile(ctx).unwrap_or_default())
+            }
         };
         if d.linked() {
             self.linked_durations += 1;
         }
         d
+    }
+
+    /// The card an ability activated from the hand exiled as its cost
+    /// ("Exile this card from your hand"), while it is still in exile.
+    fn source_in_exile(&self, ctx: &EffectCtx) -> Option<ObjId> {
+        self.current_object(ctx.source)
+            .filter(|id| self.objects[*id].zone == Zone::Exile)
     }
 
     /// CR 611.2b: the effects of `Effect::Lasting`. A duration linked to
@@ -9757,6 +9798,10 @@ impl GameState {
             crate::card::Lasting::YouControlSource
                 if !source_ok() || self.objects[ctx.source].controller != ctx.controller =>
             {
+                return;
+            }
+            // Already cast (or otherwise gone): the duration is over.
+            crate::card::Lasting::UntilCastFromExile if self.source_in_exile(ctx).is_none() => {
                 return;
             }
             _ => {}
@@ -10580,10 +10625,17 @@ impl GameState {
                     self.deal_damage(x, y, n, false);
                 }
             }
-            Effect::ExileGraveyard { who } => {
+            Effect::ExileGraveyard { who, filter } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        let cards = self.player(p).graveyard.clone();
+                        let mut cards = self.player(p).graveyard.clone();
+                        if let Some(f) = filter {
+                            cards.retain(|id| {
+                                let o = &self.objects[*id];
+                                let c = self.base_characteristics(o);
+                                f.matches(*id, o.owner, &c, Some(ctx.source), Some(ctx.controller))
+                            });
+                        }
                         for id in cards {
                             self.move_object(id, Zone::Exile, true);
                         }
@@ -14000,6 +14052,24 @@ impl GameState {
             }
             // CR 702.185a: the warped permanent is exiled; its owner may
             // cast it from exile on a later turn.
+            // CR 601.3: "You may cast this card for as long as it remains
+            // exiled."
+            Effect::MayCastThisFromExile => {
+                if let Some(card) = self.source_in_exile(ctx) {
+                    self.exile_casts
+                        .get_or_insert_with(Box::default)
+                        .playable
+                        .push(crate::state::PlayableExile {
+                            card,
+                            player: ctx.controller,
+                            until: crate::card::PlayUntil::Forever,
+                            own_ends: 0,
+                            cast_only: true,
+                            free: false,
+                            source: ObjId::default(),
+                        });
+                }
+            }
             Effect::WarpExile => {
                 for t in self.recipients(ctx, crate::card::Recipient::SameObject) {
                     let Target::Object(id) = t else {

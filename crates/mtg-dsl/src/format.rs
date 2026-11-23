@@ -692,6 +692,7 @@ impl Fmt {
                 mtg_core::card::Lasting::SourceOnBattlefield => " for as long as this remains",
                 mtg_core::card::Lasting::WhileTapped => " for as long as it remains tapped",
                 mtg_core::card::Lasting::YouControlSource => " for as long as you control this",
+                mtg_core::card::Lasting::UntilCastFromExile => " until this is cast from exile",
             });
         }
         out
@@ -883,6 +884,7 @@ impl Fmt {
                 None => format!("exile until {} card", filter(f)),
                 Some(w) => format!("{} exiles until {} card", self.recipient(*w, t), filter(f)),
             },
+            Effect::MayCastThisFromExile => "may cast this while exiled".to_string(),
             Effect::MayPlayCard {
                 until,
                 cast,
@@ -1527,7 +1529,15 @@ impl Fmt {
                 format!("exile {} until this leaves", self.recipient(*what, t))
             }
             Effect::ExileAllGraveyards => "exile all graveyards".to_string(),
-            Effect::ExileGraveyard { who } => {
+            Effect::ExileGraveyard {
+                who,
+                filter: Some(f),
+            } => format!(
+                "exile all {} card from graveyard of {}",
+                filter(f),
+                self.recipient(*who, t)
+            ),
+            Effect::ExileGraveyard { who, filter: None } => {
                 format!("exile graveyard of {}", self.recipient(*who, t))
             }
             Effect::Sacrifice { what } => format!("sacrifice {}", self.recipient(*what, t)),
@@ -2596,6 +2606,13 @@ impl Fmt {
                     ChooseAct::ExileFromGraveyard => {
                         format!("exile {n} {f} {cs} from your graveyard chosen")
                     }
+                    ChooseAct::ExileTopOfGraveyard if unfiltered => {
+                        format!("exile top {n} {cs} from your graveyard chosen")
+                    }
+                    ChooseAct::ExileTopOfGraveyard => {
+                        format!("exile top {n} {f} {cs} from your graveyard chosen")
+                    }
+                    ChooseAct::Exile => format!("exile {n} {f} chosen"),
                     ChooseAct::GraveyardToTop => {
                         format!("put {n} {f} {cs} from your graveyard on top of library chosen")
                     }
@@ -2630,8 +2647,8 @@ impl Fmt {
                     ChooseAct::MilledToHand if *returns => {
                         format!("return {n} {f} {cs} from among them to hand chosen")
                     }
-                    ChooseAct::MilledToHand => format!(
-                        "put {n} {f} {cs} from among {} into hand chosen",
+                    ChooseAct::MilledToHand | ChooseAct::MilledToBattlefield => format!(
+                        "put {n} {f} {cs} from among {} {} chosen",
                         if *among_them {
                             "them"
                         } else if *among_those {
@@ -2640,7 +2657,16 @@ impl Fmt {
                             "milled this way cards"
                         } else {
                             "milled cards"
+                        },
+                        if *act == ChooseAct::MilledToHand {
+                            "into hand"
+                        } else {
+                            "onto battlefield"
                         }
+                    ),
+                    ChooseAct::GraveyardToBattlefield { tapped } => format!(
+                        "return {n} {f} {cs} from your graveyard to battlefield{} chosen",
+                        if *tapped { " tapped" } else { "" }
                     ),
                     ChooseAct::AttachToTarget(i) => {
                         format!("attach {n} {f} to target {} chosen", i + 1)
@@ -4710,7 +4736,9 @@ fn cost_text(c: &Cost) -> String {
                 }
             }
             CostItem::Exile => {
-                if c.exile_self {
+                if c.exile_from_hand {
+                    parts.push("exile this from hand".to_string());
+                } else if c.exile_self {
                     parts.push("exile this from graveyard".to_string());
                 } else if c.exile_this {
                     parts.push("exile this".to_string());

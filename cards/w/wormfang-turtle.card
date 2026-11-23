@@ -1,0 +1,8 @@
+card "Wormfang Turtle" {
+  oracle_id 771f9ba4-6c65-4497-ad48-869994435556
+  cost {2}{U}
+  type Creature — Nightmare Turtle Beast
+  pt 2/4
+  triggered when this enters: exile 1 land you control chosen
+  triggered when this leaves the battlefield: return exiled card to battlefield
+}

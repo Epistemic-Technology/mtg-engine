@@ -2622,6 +2622,7 @@ impl Compiler<'_> {
             mana: c.mana.clone(),
             discard_self: c.discard_self,
             exile_self: c.exile_self,
+            exile_from_hand: c.exile_from_hand,
             exile_this: c.exile_this,
             crew: c.crew,
             remove_counters: c.remove_counters,
@@ -3157,7 +3158,10 @@ impl Compiler<'_> {
                 until: true,
             }),
             Effect::ExileAllGraveyards => out.push(CoreEffect::ExileAllGraveyards),
-            Effect::ExileGraveyard { who } => out.push(CoreEffect::ExileGraveyard { who: r(*who) }),
+            Effect::ExileGraveyard { who, filter } => out.push(CoreEffect::ExileGraveyard {
+                who: r(*who),
+                filter: filter.as_ref().map(|f| Box::new(self.filter(f))),
+            }),
             Effect::Sacrifice { what } | Effect::SacrificeBy { what, .. } => {
                 out.push(CoreEffect::Sacrifice { what: r(*what) });
             }
@@ -3464,7 +3468,10 @@ impl Compiler<'_> {
                     count: *count,
                 });
                 if *graveyard {
-                    out.push(CoreEffect::ExileGraveyard { who: r(*who) });
+                    out.push(CoreEffect::ExileGraveyard {
+                        who: r(*who),
+                        filter: None,
+                    });
                 }
             }
             Effect::ExileFromHand {
@@ -4131,6 +4138,7 @@ impl Compiler<'_> {
                 who: who.map_or(CoreRecipient::You, r),
                 filter: self.filter(filter),
             }),
+            Effect::MayCastThisFromExile => out.push(CoreEffect::MayCastThisFromExile),
             Effect::MayPlayCard {
                 until, cast, free, ..
             } => out.push(CoreEffect::MayPlayCard {
@@ -5098,7 +5106,7 @@ impl Compiler<'_> {
                     .collect(),
                 once_ever: cost.once_ever,
                 activators: cost.activators,
-                from_hand: *cycling || cost.discard_self || cost.reveal_this,
+                from_hand: *cycling || cost.discard_self || cost.reveal_this || cost.exile_from_hand,
                 cycling: *cycling,
                 from_graveyard: cost.from_graveyard || cost.exile_self,
                 keyword: cost.keyword,
@@ -7144,6 +7152,22 @@ fn link_exiles(def: &mut mtg_core::card::CardDef) {
     });
     if !refers {
         return;
+    }
+    // "exile a land you control" (a choice, not a target): what the
+    // resolution exiles is linked to the permanent (Wormfang Newt).
+    if def.abilities.iter().any(|a| {
+        matches!(a, AbilityDef::Triggered(_))
+            && a.all_effects().iter().any(|e| {
+                matches!(
+                    e,
+                    CoreEffect::ChooseAct {
+                        act: mtg_core::card::ChooseAct::Exile,
+                        ..
+                    }
+                )
+            })
+    }) {
+        def.links_exile = true;
     }
     for a in &mut def.abilities {
         if let AbilityDef::Triggered(t) = a {

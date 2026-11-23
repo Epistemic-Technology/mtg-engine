@@ -22,6 +22,7 @@ impl GameState {
                 Duration::WhileOnBattlefield(id) => on(id).is_some(),
                 Duration::WhileTapped(id) => on(id).is_some_and(|o| o.tapped),
                 Duration::WhileControlled(id, p) => on(id).is_some_and(|o| o.controller == p),
+                Duration::WhileInExile(id) => st.objects.get(id).is_some_and(|o| o.zone == Zone::Exile),
                 _ => true,
             }
         };

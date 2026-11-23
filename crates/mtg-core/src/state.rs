@@ -1071,6 +1071,9 @@ pub enum Duration {
     /// "For as long as you control this creature" (CR 611.2b): while that
     /// object is on the battlefield under that player's control.
     WhileControlled(ObjId, PlayerId),
+    /// "Until this card is cast from exile": while that object is in
+    /// exile (it leaves exile as it is cast, CR 601.2a).
+    WhileInExile(ObjId),
 }
 
 impl Duration {
@@ -1082,6 +1085,7 @@ impl Duration {
             Duration::WhileOnBattlefield(_)
                 | Duration::WhileTapped(_)
                 | Duration::WhileControlled(..)
+                | Duration::WhileInExile(_)
         )
     }
 }

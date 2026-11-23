@@ -1,0 +1,8 @@
+card "Masked Bandits" {
+  oracle_id 84ac3096-098a-477a-8907-fc30ac15f00f
+  cost {3}{B}{R}{G}
+  type Creature — Raccoon Rogue
+  pt 5/5
+  keywords vigilance, menace
+  activated {2}, exile this from hand: target land gains ability { activated {T}: add {B} or {R} or {G} } until this is cast from exile; may cast this while exiled
+}

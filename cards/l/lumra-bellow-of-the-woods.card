@@ -1,0 +1,8 @@
+card "Lumra, Bellow of the Woods" {
+  oracle_id 97a84e9d-bfc4-4ca2-b1e8-908dba56ccdb
+  cost {4}{G}{G}
+  type Legendary Creature — Elemental Bear
+  keywords reach, vigilance
+  static this: cda pt count land you control
+  triggered when this enters: mill 4 cards; then return all land card from your graveyard to battlefield tapped
+}

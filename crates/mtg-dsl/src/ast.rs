@@ -693,6 +693,9 @@ pub struct Cost {
     pub exile_self: bool,
     /// `exile this`: "Exile this artifact" (from the battlefield).
     pub exile_this: bool,
+    /// `exile this from hand`: "Exile this card from your hand" (activated
+    /// from the hand).
+    pub exile_from_hand: bool,
     /// Crew's cost (from its expansion).
     pub crew: u32,
     /// `pay 2 energy`: "Pay {E}{E}".
@@ -3776,8 +3779,11 @@ pub enum Effect {
     ExileAllGraveyards,
     /// `exile graveyard of target player`: "Exile target player's
     /// graveyard."
+    /// `exile all creature card from graveyard of target player`: "Exile
+    /// all creature cards from target player's graveyard."
     ExileGraveyard {
         who: Recipient,
+        filter: Option<Filter>,
     },
     Sacrifice {
         what: Recipient,
@@ -4785,6 +4791,9 @@ pub enum Effect {
     /// turn."; `may play that card next turn first`: "Until the end of
     /// your next turn, you may play that card."; `free`: "... without
     /// paying its mana cost"; `it`: "it" for "that card".
+    /// `may cast this while exiled`: "You may cast this card for as long
+    /// as it remains exiled." (after `exile this from hand` paid).
+    MayCastThisFromExile,
     MayPlayCard {
         until: mtg_core::card::PlayUntil,
         cast: bool,

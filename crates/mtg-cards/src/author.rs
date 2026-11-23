@@ -2828,6 +2828,75 @@ impl Templates {
                     ))
                 },
             ),
+            // "Return a creature card from your graveyard to the
+            // battlefield", "... a land card ... tapped" (chosen as it
+            // resolves).
+            (
+                r(
+                    r"^[Rr]eturn an? ((?:[a-z]+|[A-Z][a-z]+)(?: or (?:[a-z]+|[A-Z][a-z]+))?) card from your graveyard to the battlefield( tapped)?$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "return 1 {} card from your graveyard to battlefield{} chosen",
+                        cap(c, 1),
+                        cap(c, 2)
+                    ))
+                },
+            ),
+            // "Put a creature card from among them onto the battlefield",
+            // "... from among the milled cards ...".
+            (
+                r(
+                    r"^[Pp]ut an? ((?:[a-z]+|[A-Z][a-z]+)(?:, (?:[a-z]+|[A-Z][a-z]+))*,? (?:or (?:[a-z]+|[A-Z][a-z]+))?|[a-z]+|[A-Z][a-z]+) card from among (them|the milled cards) onto the battlefield$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "put 1 {} card from among {} onto battlefield chosen",
+                        cap(c, 1),
+                        if cap(c, 2) == "them" {
+                            "them"
+                        } else {
+                            "milled cards"
+                        }
+                    ))
+                },
+            ),
+            // "Exile a land you control", "exile a creature you control
+            // other than this creature" (chosen as it resolves).
+            (
+                r(
+                    r"^[Ee]xile an? ([a-z]+) you control( other than this (?:creature|artifact|enchantment|permanent))?$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "exile 1 {}{} you control chosen",
+                        if cap(c, 2).is_empty() { "" } else { "other " },
+                        cap(c, 1)
+                    ))
+                },
+            ),
+            // CR 404.2: "Exile the top creature card of your graveyard".
+            (
+                r(r"^[Ee]xile the top (?:([a-z]+) )?card of your graveyard$"),
+                |c, _| {
+                    Some(if cap(c, 1).is_empty() {
+                        "exile top 1 card from your graveyard chosen".to_string()
+                    } else {
+                        format!("exile top 1 {} card from your graveyard chosen", cap(c, 1))
+                    })
+                },
+            ),
+            // "Exile all creature cards from target player's graveyard".
+            (
+                r(r"^[Ee]xile all ([a-z]+) cards from target player's graveyard$"),
+                |c, t| {
+                    *t += 1;
+                    Some(format!(
+                        "exile all {} card from graveyard of target player",
+                        cap(c, 1)
+                    ))
+                },
+            ),
             // "Return two cards at random from your graveyard to your hand."
             (
                 r(r"^Return (\w+) cards at random from your graveyard to your hand$"),
@@ -3936,6 +4005,14 @@ impl Templates {
                 ("otherwise, ", rest.to_string())
             } else if let Some(rest) = sentence.strip_prefix("When you do, ") {
                 ("when you do, ", rest.to_string())
+            } else if let Some(rest) = sentence
+                .strip_prefix("Then ")
+                .filter(|_| !out.is_empty())
+                .filter(|r| r.starts_with("return ") || r.starts_with("put "))
+            {
+                // "You may mill three cards. Then return a creature card
+                // from your graveyard to the battlefield."
+                ("then ", rest.to_string())
             } else if let Some((cond, rest)) = sentence
                 .strip_prefix("If ")
                 .and_then(|r| r.split_once(", "))
@@ -4299,6 +4376,13 @@ fn cost_text(s: &str) -> Option<String> {
             format!("remove {n} {} counters from this", cap(&c, 2))
         } else if part == "Exile this card from your graveyard" {
             "exile this from graveyard".to_string()
+        } else if let Some(kind) = part
+            .strip_prefix("Exile the top ")
+            .and_then(|r| r.strip_suffix("card of your graveyard"))
+            .filter(|k| k.is_empty() || (k.ends_with(' ') && !k.trim_end().contains(' ')))
+        {
+            // CR 404.2: "Exile the top creature card of your graveyard".
+            format!("exile top {kind}card from graveyard")
         } else if let Some(rest) = part
             .strip_prefix("Return an ")
             .or_else(|| part.strip_prefix("Return a "))

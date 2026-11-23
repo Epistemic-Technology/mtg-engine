@@ -2424,6 +2424,10 @@ pub enum Lasting {
     WhileTapped,
     /// "for as long as you control this creature".
     YouControlSource,
+    /// "until this card is cast from exile" (an ability activated from the
+    /// hand that exiled its card as a cost): while that card stays in
+    /// exile.
+    UntilCastFromExile,
 }
 
 /// How long cards exiled by an impulse effect stay playable.
@@ -4153,9 +4157,12 @@ pub enum Effect {
     /// Exile every card in every graveyard.
     ExileAllGraveyards,
     /// Exile every card in the recipient players' graveyards ("Exile target
-    /// player's graveyard", "Exile each opponent's graveyard").
+    /// player's graveyard", "Exile each opponent's graveyard"); with a
+    /// filter, those matching it ("Exile all creature cards from target
+    /// player's graveyard").
     ExileGraveyard {
         who: Recipient,
+        filter: Option<Box<ObjFilter>>,
     },
     /// Create a replacement or prevention effect that lasts until end of
     /// turn (CR 614.3, 615.3): "Prevent all combat damage that would be
@@ -4717,6 +4724,10 @@ pub enum Effect {
     },
     /// The source's echo has been dealt with (CR 702.30a).
     ClearEcho,
+    /// "You may cast this card for as long as it remains exiled" (CR
+    /// 601.3): the source's card, in exile (exiled as the ability's cost),
+    /// may be cast by the ability's controller while it stays there.
+    MayCastThisFromExile,
     /// Warp's delayed trigger (CR 702.185a, `Builtin::WarpExile`): exile
     /// the permanent; its owner may cast it from exile on a later turn.
     WarpExile,
@@ -5527,6 +5538,13 @@ pub enum ChooseAct {
     Discard,
     /// "exile two creature cards from your graveyard".
     ExileFromGraveyard,
+    /// "exile the top creature card of your graveyard" (CR 404.2: the
+    /// most recent matching cards; nothing is chosen).
+    ExileTopOfGraveyard,
+    /// "exile a land you control" (permanents you control). On a card
+    /// whose leaves-the-battlefield ability returns "the exiled card", what
+    /// it exiles is linked to it (CR 607.2a; Wormfang Newt).
+    Exile,
     /// "return a creature card from your graveyard to your hand".
     ReturnFromGraveyard,
     /// "return a Zombie card at random from your graveyard to your hand":
@@ -5535,6 +5553,13 @@ pub enum ChooseAct {
     /// "put a permanent card from among the milled cards into your hand":
     /// cards this resolution milled, still in the graveyard.
     MilledToHand,
+    /// "put a creature card from among them onto the battlefield": cards
+    /// this resolution milled, still in the graveyard, onto the
+    /// battlefield under their owner's control.
+    MilledToBattlefield,
+    /// "return a land card from your graveyard to the battlefield
+    /// [tapped]" (cards in your graveyard).
+    GraveyardToBattlefield { tapped: bool },
     /// "you may attach an Equipment you control to it" (permanents you
     /// control): attached to the `n`th target (CR 701.3).
     AttachToTarget(u8),
@@ -6761,6 +6786,10 @@ pub struct Cost {
     /// battlefield as the cost is paid (CR 602.2b).
     #[serde(default)]
     pub exile_this: bool,
+    /// "Exile this card from your hand" (an ability activated from the
+    /// hand, CR 602.2b): the card goes to exile as the cost is paid.
+    #[serde(default)]
+    pub exile_from_hand: bool,
     /// Crew N (CR 702.122): tap any number of other untapped creatures you
     /// control with total power N or more.
     pub crew: u32,
@@ -6945,6 +6974,7 @@ impl Cost {
             exile_cards: None,
             reveal_hand: false,
             reveal_self: false,
+            exile_from_hand: false,
             blight: 0,
             behold: None,
             evidence: 0,

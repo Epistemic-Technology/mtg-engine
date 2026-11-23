@@ -447,6 +447,7 @@ impl GameState {
             || cost.discard_self
             || cost.exile_self
             || cost.exile_this
+            || cost.exile_from_hand
             || cost.crew > 0
             || cost
                 .remove_counters

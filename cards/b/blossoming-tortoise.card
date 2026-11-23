@@ -1,0 +1,9 @@
+card "Blossoming Tortoise" {
+  oracle_id 5e1bf23b-7fb0-45ff-8544-fce9fa3eba00
+  cost {2}{G}{G}
+  type Creature — Turtle
+  pt 3/3
+  triggered whenever this enters or attacks: mill 3 cards, then return 1 land card from your graveyard to battlefield tapped chosen
+  activated abilities of land you control cost {1} less
+  static land creature you control: +1/+1
+}
