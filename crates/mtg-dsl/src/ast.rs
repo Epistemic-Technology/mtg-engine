@@ -4892,7 +4892,9 @@ pub enum Effect {
     },
     /// `reveal it`: "reveal it", the card looked at before (`reveal that
     /// card`: "reveal that card").
-    RevealIt { that: bool },
+    RevealIt {
+        that: bool,
+    },
     /// `draw 1 card and reveal it`: "Draw a card and reveal it." (it is
     /// `it` after).
     DrawReveal,

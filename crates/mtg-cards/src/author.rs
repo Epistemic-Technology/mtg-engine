@@ -2335,7 +2335,9 @@ impl Templates {
             ),
             // "Target player shuffles their library." (CR 701.24).
             (
-                r(r"^(Target player|Target opponent|Each player|Each opponent) shuffles their library$"),
+                r(
+                    r"^(Target player|Target opponent|Each player|Each opponent) shuffles their library$",
+                ),
                 |c, t| {
                     let who = recipient(&subject(cap(c, 1)), t)?;
                     Some(format!("{who} shuffles library"))
@@ -3556,7 +3558,9 @@ impl Templates {
             let Some(d) = self.dig(&plain, targets)? else {
                 return Ok(None);
             };
-            let (head, tail) = d.split_once("; ").map_or((d.as_str(), None), |(a, b)| (a, Some(b)));
+            let (head, tail) = d
+                .split_once("; ")
+                .map_or((d.as_str(), None), |(a, b)| (a, Some(b)));
             if !head.starts_with("dig ") {
                 return Ok(None);
             }

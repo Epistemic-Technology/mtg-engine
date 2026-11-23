@@ -14724,7 +14724,10 @@ impl GameState {
         // anything left in place (a card already there stays, still known
         // to the player who looked).
         for id in on_top.into_iter().rev() {
-            if self.objects.get(id).is_some_and(|o| o.zone == Zone::Library)
+            if self
+                .objects
+                .get(id)
+                .is_some_and(|o| o.zone == Zone::Library)
                 && self.player(owner).library.last() != Some(&id)
             {
                 self.move_object(id, Zone::Library, true);

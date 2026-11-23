@@ -5393,7 +5393,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let subject = ctx.subj(*who);
             let v = ctx.verb(*who, "shuffles", "shuffle");
             if *library {
-                let whose = if *who == Recipient::You { "your" } else { "their" };
+                let whose = if *who == Recipient::You {
+                    "your"
+                } else {
+                    "their"
+                };
                 Clause::with_subject(*who, subject, format!("{v} {whose} library"))
             } else {
                 Clause::with_subject(*who, subject, v.to_string())
@@ -5480,9 +5484,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
             }
         }
-        Effect::RevealIt { that } => {
-            Clause::imperative(if *that { "reveal that card" } else { "reveal it" }.to_string())
-        }
+        Effect::RevealIt { that } => Clause::imperative(
+            if *that {
+                "reveal that card"
+            } else {
+                "reveal it"
+            }
+            .to_string(),
+        ),
         Effect::IfYouDont { cant, then, words } => {
             // "If you don't draw a card this way, put a +1/+1 counter on
             // this creature." (Trade Route Envoy): the source named again.
@@ -5672,12 +5681,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     let last = parts.pop().unwrap_or_default();
                     let mut s = format!("{head}. Put one of those cards {}", parts[0]);
                     for p in &parts[1..] {
-                        s.push_str(&format!(", one {p}"));
+                        let _ = write!(s, ", one {p}");
                     }
                     if ds.len() == 2 {
-                        s.push_str(&format!(" and one {last}"));
+                        let _ = write!(s, " and one {last}");
                     } else {
-                        s.push_str(&format!(", and one {last}"));
+                        let _ = write!(s, ", and one {last}");
                     }
                     s
                 }

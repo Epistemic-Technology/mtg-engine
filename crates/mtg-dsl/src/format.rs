@@ -968,9 +968,12 @@ impl Fmt {
                     format!("{} {v} until {} card", self.recipient(*w, t), filter(f))
                 }
             },
-            Effect::RevealIt { that } => {
-                if *that { "reveal that card" } else { "reveal it" }.to_string()
+            Effect::RevealIt { that } => if *that {
+                "reveal that card"
+            } else {
+                "reveal it"
             }
+            .to_string(),
             Effect::IfYouDont { cant, then, words } => format!(
                 "if you {}, {}",
                 match words {
@@ -2188,7 +2191,8 @@ impl Fmt {
                     let _ = write!(t, " {}", same_ref(r));
                 }
                 if let Some(n) = name {
-                    let names: Vec<String> = n.split('|').map(|n| format!("named \"{n}\"")).collect();
+                    let names: Vec<String> =
+                        n.split('|').map(|n| format!("named \"{n}\"")).collect();
                     let _ = write!(t, " {}", names.join(" or "));
                 }
                 if let Some(mv) = mv {
