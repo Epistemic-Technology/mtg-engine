@@ -1,0 +1,152 @@
+# A cast is offered only when payment, charging the same total cost (CR
+# 601.2f), can pay for it: the offer and the payment share one
+# requirement for every way to cast a card.
+
+scenario "cast paths: an additional cost's mana is part of the cost offered" {
+  battlefield A: 2 "Island"
+  hand A: "Benevolent River Spirit"
+  illegal turn 1 A: cast "Benevolent River Spirit"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Benevolent River Spirit"
+}
+
+scenario "cast paths: a spell cast without paying its mana cost still pays a cost increase" {
+  battlefield A: "Omniscience"
+  battlefield B: "Thalia, Guardian of Thraben"
+  hand A: "Divination"
+  library A: "Plains", "Plains", "Plains"
+  illegal turn 1 A: cast "Divination" free
+  run_to turn 1 postcombat_main
+  assert hand A contains "Divination"
+}
+
+scenario "cast paths: with the mana for the increase, the free spell is cast" {
+  battlefield A: "Omniscience", "Island"
+  battlefield B: "Thalia, Guardian of Thraben"
+  hand A: "Divination"
+  library A: "Plains", "Plains", "Plains"
+  turn 1 A: cast "Divination" free
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Divination"
+  assert tapped "Island"
+}
+
+scenario "cast paths: a free spell still pays its additional cost's mana" {
+  battlefield A: "Omniscience"
+  hand A: "Benevolent River Spirit"
+  illegal turn 1 A: cast "Benevolent River Spirit" free
+  run_to turn 1 postcombat_main
+  assert hand A contains "Benevolent River Spirit"
+}
+
+scenario "cast paths: a face-down spell pays a creature spell tax" {
+  battlefield A: 3 "Plains", "Geist-Fueled Scarecrow"
+  hand A: "Atarka Efreet"
+  illegal turn 1 A: cast "Atarka Efreet" face_down
+  run_to turn 1 postcombat_main
+  assert hand A contains "Atarka Efreet"
+}
+
+scenario "cast paths: a cleaved spell is paid for with its cleave cost" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Alchemist's Retrieval"
+  turn 1 A: cast "Alchemist's Retrieval" alternative targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert tapped oldest "Island"
+  assert tapped newest "Island"
+}
+
+scenario "cast paths: with four lands the taxed face-down spell is cast" {
+  battlefield A: 4 "Plains", "Geist-Fueled Scarecrow"
+  hand A: "Atarka Efreet"
+  turn 1 A: cast "Atarka Efreet" face_down
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "face-down creature"
+}
+
+scenario "cast paths: an alternative cost that taps an artifact leaves the mana payable" {
+  battlefield A: 3 "Island", "Mind Stone"
+  hand A: "Zahid, Djinn of the Lamp"
+  illegal turn 1 A: cast "Zahid, Djinn of the Lamp" alternative
+  run_to turn 1 postcombat_main
+  assert hand A contains "Zahid, Djinn of the Lamp"
+}
+
+scenario "cast paths: with another artifact to tap, Zahid is cast for its alternative cost" {
+  battlefield A: 3 "Island", "Mind Stone", "Ornithopter"
+  hand A: "Zahid, Djinn of the Lamp"
+  turn 1 A: cast "Zahid, Djinn of the Lamp" alternative
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zahid, Djinn of the Lamp"
+  assert tapped "Ornithopter"
+}
+
+scenario "cast paths: the face-down creature's own card costs {3}, as payment charges" {
+  battlefield A: 2 "Plains"
+  hand A: "face-down creature"
+  illegal turn 1 A: cast "face-down creature"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "cast paths: with three lands the face-down creature's card is cast" {
+  battlefield A: 3 "Plains"
+  hand A: "face-down creature"
+  turn 1 A: cast "face-down creature"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "face-down creature"
+}
+
+scenario "cast paths: a target cost's first target is declined only if the full cost is payable" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "This Town Ain't Big Enough"
+  illegal turn 1 A: cast "This Town Ain't Big Enough" targeting none, "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "cast paths: the cheaper target is chosen first" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "This Town Ain't Big Enough"
+  turn 1 A: cast "This Town Ain't Big Enough" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "cast paths: a source tapped for {T} doesn't also pay the mana of its ability" {
+  battlefield A: "Heap Gate", "Azorius Guildgate"
+  illegal turn 1 A: activate "Heap Gate" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "cast paths: with a third land, Heap Gate taps a Gate for a Treasure" {
+  battlefield A: "Heap Gate", "Azorius Guildgate", "Island"
+  turn 1 A: activate "Heap Gate" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treasure"
+}
+
+scenario "cast paths: a spell cast without paying its mana cost may be kicked for the kicker alone" {
+  battlefield A: "Omniscience", "Mountain"
+  hand A: "Goblin Bushwhacker"
+  turn 1 A: cast "Goblin Bushwhacker" free kicked
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Goblin Bushwhacker"
+  assert tapped "Mountain"
+}
+
+scenario "cast paths: a spell cast without paying its mana cost may be entwined for the entwine cost alone" {
+  battlefield A: "Omniscience", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Barbed Lightning"
+  turn 1 A: cast "Barbed Lightning" free mode 3 targeting "Hill Giant", player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 17
+}
