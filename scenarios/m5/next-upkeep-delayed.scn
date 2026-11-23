@@ -1,0 +1,58 @@
+# Delayed triggers at the next upkeep (CR 603.7): "at the beginning of
+# the next turn's upkeep" for a target player (Sapphire Charm), and "at
+# the beginning of your next upkeep" (Force of Rage).
+
+scenario "next turn's upkeep: Sapphire Charm's target player draws then" {
+  battlefield A: "Island"
+  hand A: "Sapphire Charm"
+  library B: "Forest", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Sapphire Charm" mode 1 targeting player B
+  run_to turn 2 end
+  assert hand B count 0
+  assert hand A count 0
+  run_to turn 3 upkeep
+  assert hand B count 0
+  assert stack count 1
+  run_to turn 3 precombat_main
+  assert hand B count 2
+  assert hand A count 0
+}
+
+scenario "next turn's upkeep: Sapphire Charm targeting yourself" {
+  battlefield A: "Island"
+  hand A: "Sapphire Charm"
+  library A: "Forest", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Sapphire Charm" mode 1 targeting player A
+  run_to turn 3 precombat_main
+  assert hand A count 1
+}
+
+scenario "your next upkeep: Force of Rage's tokens are sacrificed at its caster's upkeep" {
+  battlefield A: 3 "Mountain"
+  hand A: "Force of Rage"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Force of Rage"
+  turn 2 A: attack "Elemental", "Elemental"
+  run_to turn 2 postcombat_main
+  assert life B 14
+  run_to turn 3 precombat_main
+  assert battlefield A contains 2 "Elemental"
+  run_to turn 4 draw
+  assert battlefield A lacks "Elemental"
+}
+
+scenario "your next upkeep: Force of Rage cast for its alternative cost on an opponent's turn" {
+  battlefield B: "Grizzly Bears"
+  hand A: "Force of Rage", "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Force of Rage" alternative
+  turn 2 A: block "Grizzly Bears" with "Elemental"
+  run_to turn 3 upkeep
+  assert battlefield A contains "Elemental"
+  run_to turn 3 draw
+  assert battlefield A lacks "Elemental"
+  assert graveyard B contains "Grizzly Bears"
+}

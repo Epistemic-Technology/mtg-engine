@@ -10313,11 +10313,28 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
                 _ => None,
             };
+            // "Target player draws a card at the beginning of the next
+            // turn's upkeep": a target player first named by the delayed
+            // trigger's own effect (`that player` in it).
+            let player_first = match about {
+                Recipient::Target(i)
+                    if !ctx.target_mentioned[*i] && ctx.target_noun[*i] == "player" =>
+                {
+                    Some(ctx.obj(*about))
+                }
+                _ => None,
+            };
             let was = (ctx.in_delayed, ctx.delayed_that);
             ctx.in_delayed = true;
             ctx.delayed_that = *about == Recipient::TriggeringObject;
             let body = sentences(effects, ctx);
             (ctx.in_delayed, ctx.delayed_that) = was;
+            let body = match player_first {
+                Some(who) if body.starts_with("That player ") => {
+                    format!("{}{}", capitalize(&who), &body["That player".len()..])
+                }
+                _ => body,
+            };
             let body = body.trim_end_matches('.').to_string();
             let t = if let Some(named) = named {
                 named

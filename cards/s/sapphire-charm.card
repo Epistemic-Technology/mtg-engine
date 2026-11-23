@@ -1,0 +1,10 @@
+card "Sapphire Charm" {
+  oracle_id 2ea2bf6c-a427-4d0c-b447-159959327697
+  cost {U}
+  type Instant
+  choose one {
+    mode: delayed target player: that player draws 1 card at beginning of the next turn's upkeep
+    mode: target creature gains flying
+    mode: target creature an opponent controls phases out
+  }
+}

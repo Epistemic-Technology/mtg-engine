@@ -4143,7 +4143,7 @@ impl Templates {
         )
         .unwrap();
         let delayed = Regex::new(
-            r"^(Sacrifice|Exile|Destroy|Return) (it|them|that card|that creature|that token|those tokens|this creature|~)( to (?:its owner's|their owners') hand| to the battlefield under (?:its|their) owner's control)? at (the beginning of the next end step|end of combat)$",
+            r"^(Sacrifice|Exile|Destroy|Return) (it|them|that card|that creature|that token|those tokens|this creature|~)( to (?:its owner's|their owners') hand| to the battlefield under (?:its|their) owner's control)? at (the beginning of the next end step|end of combat|the beginning of your next upkeep)$",
         )
         .unwrap();
         // A token whose quoted ability spans sentences: the corpus's
@@ -4294,6 +4294,8 @@ impl Templates {
                 };
                 let when = if cap(&c, 4) == "end of combat" {
                     "end of combat"
+                } else if cap(&c, 4) == "the beginning of your next upkeep" {
+                    "beginning of your next upkeep"
                 } else {
                     "beginning of the next end step"
                 };

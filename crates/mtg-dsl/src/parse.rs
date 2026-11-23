@@ -45,6 +45,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         counts: Vec::new(),
         in_delayed: false,
         delayed_that: false,
+        delayed_player: None,
         delayed_dies: false,
         in_trigger: false,
         per_opponent: false,
@@ -585,6 +586,10 @@ struct P {
     /// Inside a delayed trigger about the triggering object: "that
     /// creature" is the object it is about (`it`).
     delayed_that: bool,
+    /// Inside a delayed trigger about a target player (`delayed target
+    /// player: that player draws 1 card ...`): that target's index, "that
+    /// player" being the player it is about.
+    delayed_player: Option<usize>,
     /// Inside "When that creature dies (leaves the battlefield) this
     /// turn": "its controller" is the controller that object had.
     delayed_dies: bool,
@@ -10176,8 +10181,20 @@ impl P {
                 self.expect(&Tok::Colon)?;
                 let saved_subject = self.subject.take();
                 let was = (self.in_delayed, self.delayed_that);
+                let was_player = self.delayed_player;
                 self.in_delayed = true;
                 self.delayed_that = about == Recipient::TriggeringObject;
+                self.delayed_player = match about {
+                    Recipient::Target(i) | Recipient::ThatTarget(i)
+                        if matches!(
+                            self.targets.get(i),
+                            Some(Target::Spec(TargetSpec::Player | TargetSpec::Opponent))
+                        ) =>
+                    {
+                        Some(i)
+                    }
+                    _ => None,
+                };
                 // `{ when ..., <effects> }`: the body ends at the brace.
                 let closed = self.peek() == Some(&Tok::LBrace);
                 if closed {
@@ -10254,6 +10271,7 @@ impl P {
                     );
                 }
                 (self.in_delayed, self.delayed_that) = was;
+                self.delayed_player = was_player;
                 self.subject = saved_subject;
                 Ok(Effect::Delayed {
                     about,
@@ -11266,6 +11284,7 @@ impl P {
             counts: self.counts.clone(),
             in_delayed: self.in_delayed,
             delayed_that: self.delayed_that,
+            delayed_player: self.delayed_player,
             delayed_dies: self.delayed_dies,
             in_trigger: self.in_trigger,
             per_opponent: self.per_opponent,
@@ -11887,6 +11906,17 @@ impl P {
         // discards two cards. ... it deals 3 damage to that player"), in
         // a triggered ability too ("target player mills three cards ...
         // that player mills ten cards instead").
+        // In a delayed trigger about that target player, the player it is
+        // about (CR 603.7).
+        if self.in_delayed
+            && self.at_words(&["that", "player"])
+            && self
+                .delayed_player
+                .is_some_and(|i| i + 1 == self.targets.len())
+        {
+            self.pos += 2;
+            return Ok(Recipient::TriggeringPlayer);
+        }
         if self.at_words(&["that", "player"])
             && self.targets.last().is_some_and(|t| {
                 matches!(
@@ -12087,6 +12117,7 @@ impl P {
                         counts: Vec::new(),
                         in_delayed: false,
                         delayed_that: false,
+                        delayed_player: None,
                         delayed_dies: false,
                         in_trigger: false,
                         per_opponent: false,

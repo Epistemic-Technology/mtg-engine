@@ -13003,8 +13003,28 @@ impl GameState {
                     .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
                     .expect("a resolving spell or its last known information exists");
                 for t in self.recipients(ctx, *about) {
-                    let Target::Object(id) = t else {
-                        continue;
+                    // "Target player draws a card at the beginning of the
+                    // next turn's upkeep" (Sapphire Charm): a delayed
+                    // trigger about a player, `that player` in its effects.
+                    let id = match t {
+                        Target::Object(id) => id,
+                        Target::Player(p) => {
+                            self.delayed_triggers.push(DelayedTrigger {
+                                controller: ctx.controller,
+                                ability: StackAbility {
+                                    ability: *ability,
+                                    source: ctx.source,
+                                    def,
+                                    trigger_obj: None,
+                                    trigger_player: Some(p),
+                                    trigger_amount: 0,
+                                },
+                                this_turn: *this_turn,
+                                forever: false,
+                                turn: self.turn_number,
+                            });
+                            continue;
+                        }
                     };
                     // "That card": the object it became after the effect
                     // that moved it (CR 400.7 exceptions).

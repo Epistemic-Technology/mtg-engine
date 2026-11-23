@@ -2572,7 +2572,11 @@ damage only, CR 615.12), and
 `delayed <what>: <effects> at beginning of the next end step` (a delayed
 triggered ability, CR 603.7; write the trigger first, then a comma, then the
 effects, to print it that way); `at beginning of the next turn's upkeep`
-also works ("Draw a card at the beginning of the next turn's upkeep"),
+also works ("Draw a card at the beginning of the next turn's upkeep";
+about a target player, `delayed target player: that player draws 1 card
+at beginning of the next turn's upkeep` prints "Target player draws a
+card at the beginning of the next turn's upkeep.", `that player` in it
+being the player it is about),
 `delayed this: at beginning of your next upkeep, discard 3 cards at
 random` ("At the beginning of your next upkeep, ..."), `delayed that
 token: at beginning of the end step on your next turn, sacrifice that
