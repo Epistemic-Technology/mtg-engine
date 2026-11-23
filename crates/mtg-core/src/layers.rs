@@ -490,18 +490,17 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         StaticCondition::TypesExiledWith(n) => state.types_exiled_with(source) >= *n,
         // Permanents still on the battlefield are judged with the
         // characteristics worked out so far, the rest as they last existed.
-        StaticCondition::EnteredWith { filter, .. } => {
-            state.entered_this_turn.iter().any(|&(controller, id)| {
-                let c = match work.get(id) {
-                    Some(c) => Some(*c),
-                    None if state.objects.get(id).is_some() => None,
-                    None => state.lki.get(&id).map(|l| l.characteristics),
-                };
-                controller == you
-                    && c.is_some_and(|c| {
-                        filter.matches(id, controller, &c, Some(source), Some(you))
-                    })
-            })
+        StaticCondition::Happened { count, cmp, n }
+            if count.who == crate::card::TurnWho::You
+                && matches!(
+                    count.kind,
+                    crate::card::TurnEvent::Entered | crate::card::TurnEvent::Attacked
+                ) =>
+        {
+            match &count.filter {
+                Some(f) => cmp.holds(listed(work, chars, count.kind, f, you, source), *n),
+                None => state.condition_history(cond, you, source),
+            }
         }
         StaticCondition::CardTypesInGraveyard(n) => {
             let mut types = crate::card::TypeSet::default();
@@ -693,17 +692,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         | StaticCondition::OthersInCombat { .. }
         | StaticCondition::MoreCreaturesThanOpponent { .. }
         | StaticCondition::Escaped => false,
-        StaticCondition::AttackedThisTurn => {
-            state.attacked_this_turn & (1 << you.index().min(7)) != 0
-        }
         StaticCondition::AttackedLastTurn => state.attacked_last_turn.contains(&(you, source)),
-        StaticCondition::CreatureDiedThisTurn => state.creatures_died_this_turn > 0,
-        StaticCondition::LandEnteredThisTurn => {
-            state.lands_entered_this_turn & (1 << you.index().min(7)) != 0
-        }
-        StaticCondition::ArtifactEnteredThisTurn => {
-            state.artifacts_entered_this_turn & (1 << you.index().min(7)) != 0
-        }
         // Fixed as the permanent enters (CR 702.33c), so no cache bump.
         StaticCondition::Kicked => state.objects.get(source).is_some_and(|o| o.cast.kicked()),
         StaticCondition::Bargained => state
@@ -721,18 +710,6 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             .objects
             .get(source)
             .is_some_and(|o| o.cast.offspring()),
-        StaticCondition::CardsDrawnThisTurn(n) => {
-            u32::from(state.drawn_this_turn[you.index().min(3)]) >= *n
-        }
-        StaticCondition::OpponentDamagedThisTurn => state
-            .players_in_game()
-            .any(|p| p != you && state.damaged_this_turn & (1 << p.index().min(7)) != 0),
-        StaticCondition::OpponentLostLifeThisTurn => state
-            .players_in_game()
-            .any(|p| p != you && state.lost_life_this_turn & (1 << p.index().min(7)) != 0),
-        StaticCondition::PermanentLeftThisTurn => {
-            state.left_this_turn & (1 << you.index().min(7)) != 0
-        }
         StaticCondition::ActivatedThisTurn(n) => {
             state
                 .activated_once
@@ -855,31 +832,6 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         StaticCondition::And(a, b) => {
             static_condition_holds(work, a, source) && static_condition_holds(work, b, source)
         }
-        // The attackers as the layers have them so far, or as they last
-        // existed (asking `characteristics` here would compute them again).
-        StaticCondition::AttackedWith(f) | StaticCondition::AttackedWithAtLeast(f, _) => {
-            let n = match cond {
-                StaticCondition::AttackedWithAtLeast(_, n) => *n as usize,
-                _ => 1,
-            };
-            state
-                .attackers_this_turn
-                .iter()
-                .filter(|id| {
-                    let (controller, c) = match work.index.get(*id) {
-                        Some(wi) if work.on_battlefield(**id) => {
-                            (work.controller_of(**id), chars[*wi])
-                        }
-                        _ => match state.lki.get(*id) {
-                            Some(l) => (l.object.controller, l.characteristics),
-                            None => return false,
-                        },
-                    };
-                    controller == you && f.matches(**id, controller, &c, None, Some(you))
-                })
-                .count()
-                >= n
-        }
         StaticCondition::TotalToughness(n) => {
             work.ids
                 .iter()
@@ -930,6 +882,53 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         }
         _ => state.condition_history(cond, you, source),
     }
+}
+
+/// `GameState::listed` for the layer system: your attackers, or the
+/// permanents that entered under your control, this turn matching the
+/// filter, judged with the characteristics worked out so far if they are
+/// still on the battlefield (asking `characteristics` here would compute
+/// them again), or as they last existed.
+fn listed(
+    work: &Work<'_>,
+    chars: &[Characteristics],
+    kind: crate::card::TurnEvent,
+    f: &crate::card::ObjFilter,
+    you: crate::ids::PlayerId,
+    source: ObjId,
+) -> u32 {
+    let state = work.state;
+    let n = if kind == crate::card::TurnEvent::Attacked {
+        state
+            .attackers_this_turn
+            .iter()
+            .filter(|id| {
+                let (controller, c) = match work.index.get(*id) {
+                    Some(wi) if work.on_battlefield(**id) => (work.controller_of(**id), chars[*wi]),
+                    _ => match state.lki.get(*id) {
+                        Some(l) => (l.object.controller, l.characteristics),
+                        None => return false,
+                    },
+                };
+                controller == you && f.matches(**id, controller, &c, None, Some(you))
+            })
+            .count()
+    } else {
+        state
+            .entered_this_turn
+            .iter()
+            .filter(|&&(controller, id)| {
+                let c = match work.get(id) {
+                    Some(c) => Some(*c),
+                    None if state.objects.get(id).is_some() => None,
+                    None => state.lki.get(&id).map(|l| l.characteristics),
+                };
+                controller == you
+                    && c.is_some_and(|c| f.matches(id, controller, &c, Some(source), Some(you)))
+            })
+            .count()
+    };
+    u32::try_from(n).unwrap_or(u32::MAX)
 }
 
 /// Static abilities of battlefield permanents whose ability currently exists
@@ -1306,18 +1305,7 @@ fn per_count(
         CountExpr::SourceAllCounters => source
             .and_then(|s| state.objects.get(s))
             .map_or(0, |o| o.counters.iter().map(|(_, n)| *n as usize).sum()),
-        CountExpr::LifeGainedThisTurn => state.turn_log.life_gained[you.index().min(3)] as usize,
-        CountExpr::SacrificedThisTurn => {
-            usize::from(state.turn_log.sacrificed_n[you.index().min(3)])
-        }
-        CountExpr::AttackedThisTurn => state.attackers_this_turn.len(),
-        CountExpr::OpponentsLostLife => state
-            .players_in_game()
-            .filter(|p| *p != you && state.lost_life_this_turn & (1 << p.index().min(7)) != 0)
-            .count(),
-        CountExpr::CreaturesEnteredThisTurn => {
-            usize::from(state.turn_log.creatures_entered[you.index().min(3)])
-        }
+        CountExpr::Happened(c) => state.turn_count(c, you, source.unwrap_or_default()) as usize,
         CountExpr::OpponentsMoreCards => {
             let mine = state.player(you).hand.len();
             state
@@ -1395,9 +1383,6 @@ fn per_count(
                 .unwrap_or(0)
                 .max(per_count(work, source, controller, inner));
         }
-        CountExpr::CreaturesLeftThisTurn => {
-            usize::from(state.turn_log.creatures_left[you.index().min(3)])
-        }
         // From the mana costs as the layers have them so far, like
         // `GreatestManaValue`.
         CountExpr::GreatestManaValueOf(f) => {
@@ -1474,11 +1459,8 @@ fn per_count(
         | CountExpr::Devoured(_)
         | CountExpr::Party(_)
         | CountExpr::SourceToughness
-        | CountExpr::CardsDrawnThisTurn
-        | CountExpr::SpellsCastThisTurn { .. }
         | CountExpr::OtherInstantSorceryCast { .. }
         | CountExpr::OpponentsAttacked
-        | CountExpr::AttackedWithThisTurn
         | CountExpr::SpentColors
         | CountExpr::TimesKicked
         | CountExpr::EnergyPaid
@@ -1486,14 +1468,11 @@ fn per_count(
         | CountExpr::SpentTotal
         | CountExpr::ThatSpellSpent
         | CountExpr::ThatSpellSpentColors
-        | CountExpr::DiedThisTurn(_)
         | CountExpr::TriggerStat(_)
         | CountExpr::AttachedStat(_)
         | CountExpr::MovedStat { .. }
         | CountExpr::TargetHand(_)
         | CountExpr::GreatestToughness(_)
-        | CountExpr::LifeLostThisTurn
-        | CountExpr::DiscardedThisTurn
         | CountExpr::TargetLibrary(_)
         | CountExpr::ThatSpellColors
         | CountExpr::SourceDamage

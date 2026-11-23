@@ -1769,67 +1769,31 @@ pub struct DamageAssignment {
 
 /// Records of the turn so far that static conditions read, one bit per
 /// player unless noted; `TurnLog::default()` as each turn begins.
-#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct TurnLog {
-    /// Players who gained life ("if you gained life this turn").
-    pub gained_life: u8,
-    /// Players who descended (CR 700.11): a permanent card was put into
-    /// their graveyard from anywhere.
-    pub descended: u8,
-    /// Players who surveilled (CR 701.25).
-    pub surveilled: u8,
-    /// Players who scried (CR 701.22).
-    pub scried: u8,
-    /// Players who had a +1/+1 counter put on a permanent they control.
-    pub counter_put: u8,
-    /// Players who put a +1/+1 counter on a creature ("if you've put one
-    /// or more +1/+1 counters on a creature this turn").
-    pub counter_put_by: u8,
-    /// Players dealt noncombat damage.
-    pub noncombat_damaged: u8,
-    /// Players under whose control a face-down creature entered the
-    /// battlefield (CR 708.3).
-    pub face_down_entered: u8,
+    /// How many events of each kind each player had this turn (life for
+    /// the life kinds), by `TurnEvent` and player index: what
+    /// `StaticCondition::Happened` and `CountExpr::Happened` read. Counted
+    /// in one place per kind (`GameState::log_event`).
+    pub tally: [[u32; 4]; crate::card::TurnEvent::COUNT],
+    /// The card types among the objects of each kind's events, by player,
+    /// for the kinds a count asks types of (`TurnCount::types`): the
+    /// permanents put into a graveyard from the battlefield, the cards put
+    /// into a graveyard, and the permanents sacrificed.
+    pub types: [[crate::card::TypeSet; 4]; crate::card::TurnEvent::COUNT],
     /// Generic mana face-down spells each player casts this turn cost less
     /// ("face-down spells you cast this turn cost {1} less to cast").
     pub face_down_less: [u8; 4],
-    /// Creatures that entered the battlefield under each player's control.
-    pub creatures_entered: [u8; 4],
-    /// Creatures that left the battlefield under each player's control.
-    pub creatures_left: [u8; 4],
-    /// Nonland permanents that did (celebration).
-    pub nonland_entered: [u8; 4],
-    /// The card types among permanents put into a graveyard from the
-    /// battlefield, as they last existed.
-    pub to_graveyard: crate::card::TypeSet,
-    /// Life each player gained in all.
-    pub life_gained: [u32; 4],
-    /// Players who committed a crime (CR 700.13).
-    pub crime: u8,
-    /// Players a card left the graveyard of.
-    pub left_graveyard: u8,
-    /// The card types among cards put into each player's graveyard from
-    /// anywhere (tokens are no cards).
-    pub cards_to_graveyard: [crate::card::TypeSet; 4],
-    /// The card types among permanents each player sacrificed.
-    pub sacrificed: [crate::card::TypeSet; 4],
-    /// How many permanents each player sacrificed.
-    pub sacrificed_n: [u16; 4],
-    /// Players who put counters of any kind on a creature.
-    pub any_counter_put_by: u8,
-    /// Void: a nonland permanent left the battlefield (any player's).
-    pub nonland_left: bool,
-    /// Void: a spell was cast for its warp cost (CR 702.185a).
-    pub warped: bool,
-    /// Players who cast a spell from their hand ("if you haven't cast a
-    /// spell from your hand this turn").
-    pub cast_from_hand: u8,
-    /// Cards each player discarded ("for each card you've discarded this
-    /// turn").
-    pub discards: [u8; 4],
-    /// Players who activated an equip ability ("the first equip ability
-    /// you activate each turn").
-    pub equipped: u8,
+}
+
+impl Default for TurnLog {
+    fn default() -> Self {
+        TurnLog {
+            tally: [[0; 4]; crate::card::TurnEvent::COUNT],
+            types: [[crate::card::TypeSet::EMPTY; 4]; crate::card::TurnEvent::COUNT],
+            face_down_less: [0; 4],
+        }
+    }
 }
 
 /// Day and night (CR 731): neither until something makes it day.
@@ -2075,9 +2039,6 @@ pub struct GameState {
     /// Spells and abilities that have resolved this turn; at
     /// `MAX_RESOLUTIONS_PER_TURN` the game is a draw.
     pub resolutions_this_turn: u32,
-    /// Spells each player has cast this turn, and the most any one player
-    /// cast last turn ("if no spells were cast last turn", werewolves).
-    pub spells_this_turn: [u8; 4],
     /// Generic mana the next spell each player casts this turn costs less
     /// ("the next spell you cast this turn costs {1} less to cast"), by
     /// player index like `spells_this_turn`; zero in most games.
@@ -2089,18 +2050,11 @@ pub struct GameState {
     /// Players (by index bit) whose next spell this turn can't be
     /// countered (`Effect::NextSpellUncounterable`); zero in most games.
     pub next_uncounterable: u8,
-    /// Cards each player drew this turn ("your second card each turn").
-    pub drawn_this_turn: [u8; 4],
     /// Total mana each player has spent to cast spells this turn (expend,
     /// CR 700.14), and what it was before their latest spell was paid
     /// for: "Whenever you expend 4" triggers on the spell that crosses 4.
     pub mana_spent_this_turn: [u16; 4],
     pub mana_spent_before_cast: [u16; 4],
-    /// Life each player has lost this turn ("the life you've lost this
-    /// turn"; CR 119.3).
-    pub life_lost_this_turn: [u32; 4],
-    /// Players who declared an attacker this turn (raid), one bit each.
-    pub attacked_this_turn: u8,
     /// "Target creature blocks this creature this turn if able": (blocker,
     /// attacker) requirements for this turn (CR 509.1c).
     pub block_demands: Vec<(ObjId, ObjId)>,
@@ -2111,25 +2065,10 @@ pub struct GameState {
     pub no_regen: Vec<ObjId>,
     /// Creatures that assign no combat damage this turn (CR 510.1a).
     pub no_combat_damage: Vec<ObjId>,
-    /// Players who had a land enter under their control this turn
-    /// (landfall), one bit each.
-    pub lands_entered_this_turn: u8,
-    /// Players who had an artifact enter under their control this turn,
-    /// one bit each.
-    pub artifacts_entered_this_turn: u8,
-    /// Creatures put into a graveyard from the battlefield this turn
-    /// (morbid).
-    pub creatures_died_this_turn: u16,
     /// Those creatures as they last existed (CR 700.4): the object they
     /// were, their controller, and their characteristics, for "for each
     /// Zubera that died this turn". Empty, unallocated, on most turns.
     pub died_this_turn: Vec<(ObjId, PlayerId, Characteristics)>,
-    /// Players dealt damage this turn (bloodthirst), one bit each.
-    pub damaged_this_turn: u8,
-    /// Players who controlled an Assassin creature as it dealt combat
-    /// damage to a player this turn (freerunning, CR 702.173a), one bit
-    /// each; kept only with a freerunning card in the pool.
-    pub assassin_damage: u8,
     /// The players who dealt combat damage to a player this turn with a
     /// creature of each prowl card's creature types (CR 702.76a), kept
     /// only with a prowl card in the pool.
@@ -2139,14 +2078,6 @@ pub struct GameState {
     /// 702.104b). Keyed by the permanent; pruned as turns begin once it
     /// has left the battlefield.
     pub enter_notes: Vec<(ObjId, EnterNote)>,
-    /// Players who lost life this turn ("if an opponent lost life this
-    /// turn"), one bit each.
-    pub lost_life_this_turn: u8,
-    /// Players a permanent left the battlefield under the control of this
-    /// turn (revolt), one bit each.
-    pub left_this_turn: u8,
-    /// Players who discarded a card this turn, one bit each.
-    pub discarded_this_turn: u8,
     /// Cards with mayhem discarded this turn, as the graveyard objects
     /// they became (castable for their mayhem cost until the turn ends).
     pub mayhem_discarded: Vec<ObjId>,
@@ -2471,35 +2402,189 @@ impl GameState {
         })
     }
 
-    /// Whether a creature matching `f` attacked under `p`'s control this
-    /// turn ("if you attacked with a Spacecraft this turn"), judged as it
-    /// is or as it last existed.
-    pub fn attacked_with(&self, p: PlayerId, f: &crate::card::ObjFilter) -> bool {
-        self.attackers_this_turn.iter().any(|id| {
-            let (controller, c) = match self.objects.get(*id) {
-                Some(o) => (o.controller, self.characteristics(*id)),
-                None => match self.lki.get(id) {
-                    Some(l) => (l.object.controller, Some(l.characteristics)),
-                    None => return false,
-                },
-            };
-            controller == p && c.is_some_and(|c| f.matches(*id, controller, &c, None, Some(p)))
-        })
+    /// The turn log's count of one kind of event for `p` (`TurnLog::tally`).
+    pub fn tallied(&self, kind: crate::card::TurnEvent, p: PlayerId) -> u32 {
+        self.turn_log.tally[kind as usize][p.index().min(3)]
     }
 
-    /// Whether a permanent matching `f` entered the battlefield under
-    /// `p`'s control this turn, judged as it is or as it last existed
-    /// ("another Knight entered the battlefield under your control this
-    /// turn"; `Relation::Other` in `f` excludes `source`).
-    pub fn entered_with(&self, p: PlayerId, f: &crate::card::ObjFilter, source: ObjId) -> bool {
-        self.entered_this_turn.iter().any(|&(controller, id)| {
-            let c = match self.objects.get(id) {
-                Some(_) => self.characteristics(id),
-                None => self.lki.get(&id).map(|l| l.characteristics),
+    /// Whether `source` is a spell `you` cast this turn, or the permanent
+    /// such a spell became, matching (`TurnCount::other` of spells cast).
+    fn own_cast(
+        &self,
+        you: PlayerId,
+        source: ObjId,
+        matches: impl Fn(crate::card::CardRef) -> bool,
+    ) -> bool {
+        self.objects
+            .get(source)
+            .or_else(|| self.lki.get(&source).map(|l| &l.object))
+            .is_some_and(|o| {
+                o.cast.cast_from().is_some()
+                    && o.controller == you
+                    && (o.zone == Zone::Stack || o.timestamp >= self.turn_started_at)
+                    && matches(o.def)
+            })
+    }
+
+    /// A filtered turn count (`TurnCount::filter`) of `p`'s events, or with
+    /// none every player's, from the turn's list of the objects involved:
+    /// attackers and entered permanents judged as they are or as they last
+    /// existed, dead creatures as they last existed (CR 700.4), and spells
+    /// as they were cast. The layer system judges attackers and entered
+    /// permanents with the characteristics it has so far instead
+    /// (`layers::listed`).
+    pub fn listed(
+        &self,
+        c: &crate::card::TurnCount,
+        f: &crate::card::ObjFilter,
+        p: Option<PlayerId>,
+        you: PlayerId,
+        source: ObjId,
+    ) -> u32 {
+        use crate::card::TurnEvent;
+        let whose = |controller: PlayerId| p.is_none_or(|p| controller == p);
+        let n = match c.kind {
+            TurnEvent::Attacked => self
+                .attackers_this_turn
+                .iter()
+                .filter(|id| {
+                    let (controller, ch) = match self.objects.get(**id) {
+                        Some(o) => (o.controller, self.characteristics(**id)),
+                        None => match self.lki.get(id) {
+                            Some(l) => (l.object.controller, Some(l.characteristics)),
+                            None => return false,
+                        },
+                    };
+                    whose(controller)
+                        && ch.is_some_and(|ch| f.matches(**id, controller, &ch, None, Some(you)))
+                })
+                .count(),
+            // `Relation::Other` in the filter excludes the source.
+            TurnEvent::Entered => self
+                .entered_this_turn
+                .iter()
+                .filter(|&&(controller, id)| {
+                    let ch = match self.objects.get(id) {
+                        Some(_) => self.characteristics(id),
+                        None => self.lki.get(&id).map(|l| l.characteristics),
+                    };
+                    whose(controller)
+                        && ch.is_some_and(|ch| {
+                            f.matches(id, controller, &ch, Some(source), Some(you))
+                        })
+                })
+                .count(),
+            TurnEvent::Died => self
+                .died_this_turn
+                .iter()
+                .filter(|(id, controller, ch)| {
+                    whose(*controller) && f.matches(*id, *controller, ch, None, Some(you))
+                })
+                .count(),
+            TurnEvent::Cast => {
+                // "a spell with mana value 4 or greater": the mana value
+                // `matches_characteristics` leaves to the caller, judged
+                // from the card's mana cost.
+                let matches = |def: crate::card::CardRef| {
+                    f.matches_characteristics(&self.printed(def))
+                        && f.mana_value.is_none_or(|(cmp, n)| {
+                            cmp.holds(self.pool.get(def).mana_cost.mana_value(), u32::from(n))
+                        })
+                };
+                let n = self
+                    .cast_this_turn
+                    .iter()
+                    .filter(|(q, def)| whose(*q) && matches(*def))
+                    .count();
+                // "Another": the source's own cast (as a spell, or as the
+                // permanent it became) is not counted.
+                n.saturating_sub(usize::from(c.other && self.own_cast(you, source, matches)))
+            }
+            _ => 0,
+        };
+        u32::try_from(n).unwrap_or(u32::MAX)
+    }
+
+    /// A turn count (`TurnCount`) of `p`'s events alone, for `you` about
+    /// `source`.
+    fn turn_count_of(
+        &self,
+        c: &crate::card::TurnCount,
+        p: PlayerId,
+        you: PlayerId,
+        source: ObjId,
+    ) -> u32 {
+        if let Some(f) = &c.filter {
+            return self.listed(c, f, Some(p), you, source);
+        }
+        if !c.types.is_empty() {
+            let had = self.turn_log.types[c.kind as usize][p.index().min(3)];
+            return u32::from(had.intersects(c.types));
+        }
+        let n = self.tallied(c.kind, p);
+        // "Another": the source's own event this turn is not counted.
+        let own = c.other
+            && match c.kind {
+                crate::card::TurnEvent::CreatureEntered => {
+                    self.objects.get(source).is_some_and(|o| {
+                        o.zone == Zone::Battlefield
+                            && o.controller == p
+                            && o.timestamp >= self.turn_started_at
+                            && self.base_characteristics(o).is_creature()
+                    })
+                }
+                crate::card::TurnEvent::Cast => self.own_cast(p, source, |_| true),
+                _ => false,
             };
-            controller == p
-                && c.is_some_and(|c| f.matches(id, controller, &c, Some(source), Some(p)))
-        })
+        n.saturating_sub(u32::from(own))
+    }
+
+    /// What a turn count (`TurnCount`) counts, for `you` about `source`:
+    /// your events, the opponents who had one or more, or every player's.
+    pub fn turn_count(&self, c: &crate::card::TurnCount, you: PlayerId, source: ObjId) -> u32 {
+        use crate::card::TurnWho;
+        match c.who {
+            TurnWho::You => self.turn_count_of(c, you, you, source),
+            TurnWho::Opponent => {
+                let n = self
+                    .players_in_game()
+                    .filter(|p| *p != you && self.turn_count_of(c, *p, you, source) > 0)
+                    .count();
+                u32::try_from(n).unwrap_or(u32::MAX)
+            }
+            TurnWho::Anyone if c.filter.is_some() => {
+                let f = c.filter.as_deref().expect("a filter");
+                self.listed(c, f, None, you, source)
+            }
+            TurnWho::Anyone if !c.types.is_empty() => {
+                let had = self.turn_log.types[c.kind as usize]
+                    .iter()
+                    .fold(crate::card::TypeSet::EMPTY, |a, t| a.union(*t));
+                u32::from(had.intersects(c.types))
+            }
+            TurnWho::Anyone => self.turn_log.tally[c.kind as usize]
+                .iter()
+                .fold(0u32, |a, n| a.saturating_add(*n)),
+        }
+    }
+
+    /// Whether a turn count compared with `n` holds for `you` about
+    /// `source` (`StaticCondition::Happened`): for `TurnWho::Opponent`,
+    /// for any one opponent.
+    pub fn turn_count_holds(
+        &self,
+        c: &crate::card::TurnCount,
+        cmp: crate::card::Cmp,
+        n: u32,
+        you: PlayerId,
+        source: ObjId,
+    ) -> bool {
+        match c.who {
+            crate::card::TurnWho::Opponent => self
+                .players_in_game()
+                .any(|p| p != you && cmp.holds(self.turn_count_of(c, p, you, source), n)),
+            _ => cmp.holds(self.turn_count(c, you, source), n),
+        }
     }
 
     /// Unlocked doors among Rooms `p` controls (CR 709.5j).
@@ -3927,8 +4012,6 @@ impl GameState {
         match cond {
             C::CardsInGraveyard(n) => self.cards_in_graveyard(you) >= *n as usize,
             C::UnlockedDoors(n) => self.unlocked_doors(you) >= *n,
-            C::AttackedWith(f) => self.attacked_with(you, f),
-            C::EnteredWith { filter, .. } => self.entered_with(you, filter, source),
             C::CardTypesInGraveyard(n) => {
                 let mut types = crate::card::TypeSet::default();
                 for g in &self.player(you).graveyard {
@@ -4032,14 +4115,7 @@ impl GameState {
             C::OpponentPoisonAtLeast(n) => self
                 .players_in_game()
                 .any(|p| p != you && self.player(p).poison >= *n),
-            C::AttackedThisTurn => self.attacked_this_turn & (1 << you.index().min(7)) != 0,
             C::AttackedLastTurn => self.attacked_last_turn.contains(&(you, source)),
-            C::CreatureDiedThisTurn => self.creatures_died_this_turn > 0,
-            C::AssassinDealtCombatDamage => self.assassin_damage & (1 << you.index().min(7)) != 0,
-            C::LandEnteredThisTurn => self.lands_entered_this_turn & (1 << you.index().min(7)) != 0,
-            C::ArtifactEnteredThisTurn => {
-                self.artifacts_entered_this_turn & (1 << you.index().min(7)) != 0
-            }
             C::Kicked => self.objects.get(source).is_some_and(|o| o.cast.kicked()),
             C::NotKicked => self.objects.get(source).is_some_and(|o| !o.cast.kicked()),
             C::ManaSpent {
@@ -4124,18 +4200,10 @@ impl GameState {
                 .map(|o| o.cast.offspring())
                 .or_else(|| self.lki.get(&source).map(|l| l.object.cast.offspring()))
                 .unwrap_or(false),
-            C::CardsDrawnThisTurn(n) => u32::from(self.drawn_this_turn[you.index().min(3)]) >= *n,
             C::Escaped => self
                 .objects
                 .get(source)
                 .is_some_and(|o| o.alt == AltCast::Escape),
-            C::OpponentDamagedThisTurn => self
-                .players_in_game()
-                .any(|p| p != you && self.damaged_this_turn & (1 << p.index().min(7)) != 0),
-            C::OpponentLostLifeThisTurn => self
-                .players_in_game()
-                .any(|p| p != you && self.lost_life_this_turn & (1 << p.index().min(7)) != 0),
-            C::PermanentLeftThisTurn => self.left_this_turn & (1 << you.index().min(7)) != 0,
             // "If this ability has been activated four or more times this
             // turn": the source's counted activations, this one included.
             C::ActivatedThisTurn(n) => {
@@ -4347,117 +4415,14 @@ impl GameState {
                 .as_ref()
                 .and_then(|c| c.attacker(source))
                 .is_some_and(|a| !a.blockers.is_empty()),
-            C::DrawnThisTurn(n) => u32::from(self.drawn_this_turn[you.index().min(3)]) >= *n,
-            C::CastThisTurn {
-                filter,
-                at_least,
-                other,
-            } => {
-                // "a spell with mana value 4 or greater": the mana value
-                // `matches_characteristics` leaves to the caller, judged from
-                // the card's mana cost.
-                let matches = |def: crate::card::CardRef| {
-                    filter.matches_characteristics(&self.printed(def))
-                        && filter.mana_value.is_none_or(|(cmp, n)| {
-                            cmp.holds(self.pool.get(def).mana_cost.mana_value(), u32::from(n))
-                        })
-                };
-                let n = self
-                    .cast_this_turn
-                    .iter()
-                    .filter(|(p, def)| *p == you && matches(*def))
-                    .count();
-                // "Another": the source's own cast (as a spell, or as the
-                // permanent it became) is not counted.
-                let own = *other
-                    && self
-                        .objects
-                        .get(source)
-                        .or_else(|| self.lki.get(&source).map(|l| &l.object))
-                        .is_some_and(|o| {
-                            o.cast.cast_from().is_some()
-                                && o.controller == you
-                                && (o.zone == Zone::Stack || o.timestamp >= self.turn_started_at)
-                                && matches(o.def)
-                        });
-                n >= *at_least as usize + usize::from(own)
-            }
             C::CastFrom(zone) => self
                 .objects
                 .get(source)
                 .or_else(|| self.lki.get(&source).map(|l| &l.object))
                 .is_some_and(|o| o.cast.cast_from() == Some(*zone)),
-            C::LostLifeThisTurn { gained } => {
-                let bit = 1 << you.index().min(7);
-                self.lost_life_this_turn & bit != 0
-                    && (!*gained || self.turn_log.gained_life & bit != 0)
-            }
-            C::GainedLifeThisTurn { or_lost } => {
-                let bit = 1 << you.index().min(7);
-                self.turn_log.gained_life & bit != 0
-                    || (*or_lost && self.lost_life_this_turn & bit != 0)
-            }
-            C::DescendedThisTurn => self.turn_log.descended & (1 << you.index().min(7)) != 0,
-            C::SpellNumber(n) => {
-                let cast = self
-                    .cast_this_turn
-                    .iter()
-                    .filter(|(p, _)| *p == you)
-                    .count();
-                cast + 1 == *n as usize
-            }
-            C::SurveilledThisTurn => self.turn_log.surveilled & (1 << you.index().min(7)) != 0,
-            C::ScriedOrSurveilledThisTurn => {
-                (self.turn_log.surveilled | self.turn_log.scried) & (1 << you.index().min(7)) != 0
-            }
-            C::CreaturesEnteredThisTurn { n, opponent } => {
-                if *opponent {
-                    self.players_in_game().any(|p| {
-                        p != you && self.turn_log.creatures_entered[p.index().min(3)] >= *n
-                    })
-                } else {
-                    self.turn_log.creatures_entered[you.index().min(3)] >= *n
-                }
-            }
-            C::CounterPutThisTurn => self.turn_log.counter_put & (1 << you.index().min(7)) != 0,
-            C::FaceDownEnteredThisTurn => {
-                self.turn_log.face_down_entered & (1 << you.index().min(7)) != 0
-            }
-            C::CreatureEnteredThisTurn { other } => {
-                let n = self.turn_log.creatures_entered[you.index().min(3)];
-                // "Another creature": the source's own entry this turn is
-                // not counted.
-                let own = *other
-                    && self.objects.get(source).is_some_and(|o| {
-                        o.zone == Zone::Battlefield
-                            && o.controller == you
-                            && o.timestamp >= self.turn_started_at
-                            && self.base_characteristics(o).is_creature()
-                    });
-                n > u8::from(own)
-            }
-            C::PutIntoGraveyardThisTurn(types) => self.turn_log.to_graveyard.intersects(*types),
-            C::NonlandEnteredThisTurn(n) => {
-                u32::from(self.turn_log.nonland_entered[you.index().min(3)]) >= *n
-            }
-            C::DiscardedThisTurn => self.discarded_this_turn & (1 << you.index().min(7)) != 0,
+            C::Happened { count, cmp, n } => self.turn_count_holds(count, *cmp, *n, you, source),
             C::Night => self.desig.day_night == DayNight::Night,
-            C::LifeGainedThisTurn(n) => self.turn_log.life_gained[you.index().min(3)] >= *n,
-            C::CrimeThisTurn => self.turn_log.crime & (1 << you.index().min(7)) != 0,
-            C::PutCounterThisTurn => self.turn_log.counter_put_by & (1 << you.index().min(7)) != 0,
             C::NthResolution(n) => self.resolution_number == *n,
-            C::OpponentNoncombatDamagedThisTurn => self.players_in_game().any(|p| {
-                p != you && self.turn_log.noncombat_damaged & (1 << p.index().min(7)) != 0
-            }),
-            C::LeftGraveyardThisTurn => {
-                self.turn_log.left_graveyard & (1 << you.index().min(7)) != 0
-            }
-            C::SacrificedThisTurn(types) => {
-                self.turn_log.sacrificed[you.index().min(3)].intersects(*types)
-            }
-            C::CardToGraveyardThisTurn(types) => {
-                self.turn_log.cards_to_graveyard[you.index().min(3)].intersects(*types)
-            }
             C::MoreCardsInHand => {
                 let mine = self.player(you).hand.len();
                 self.players_in_game()
@@ -4480,12 +4445,6 @@ impl GameState {
                 .get(source)
                 .or_else(|| self.lki.get(&source).map(|l| &l.object))
                 .is_some_and(|o| o.chosen == Chosen::Option(*i)),
-            C::NoSpellsCastThisTurn { from_hand: true } => {
-                self.turn_log.cast_from_hand & (1 << you.index().min(7)) == 0
-            }
-            C::NoSpellsCastThisTurn { from_hand: false } => {
-                !self.cast_this_turn.iter().any(|(p, _)| *p == you)
-            }
             C::During(crate::card::TurnTime::AttackedThisStep) => {
                 self.step == crate::turn::Step::DeclareAttackers
                     && self.combat.as_ref().is_some_and(|c| {
@@ -4495,19 +4454,6 @@ impl GameState {
                     })
             }
             C::During(t) => t.now(self.step, self.active_player, you),
-            // CR 700.4: as they last existed, under whose control.
-            C::CreaturesDied { n, yours } => {
-                let died = if *yours {
-                    self.died_this_turn
-                        .iter()
-                        .filter(|(_, controller, _)| *controller == you)
-                        .count()
-                } else {
-                    usize::from(self.creatures_died_this_turn)
-                };
-                died >= *n as usize
-            }
-            C::Void => self.turn_log.nonland_left || self.turn_log.warped,
             C::NotYourMainPhase => !(self.active_player == you && self.step.is_main()),
             C::WasCast => self
                 .objects
@@ -4520,26 +4466,6 @@ impl GameState {
                 .or_else(|| self.lki.get(&source).map(|l| &l.object))
                 .and_then(|o| o.cast.cast_from())
                 .is_some_and(|z| z != *zone),
-            C::PutAnyCounterThisTurn => {
-                self.turn_log.any_counter_put_by & (1 << you.index().min(7)) != 0
-            }
-            C::AttackedWithAtLeast(f, n) => {
-                self.attackers_this_turn
-                    .iter()
-                    .filter(|id| {
-                        let (controller, c) = match self.objects.get(**id) {
-                            Some(o) => (o.controller, self.characteristics(**id)),
-                            None => match self.lki.get(id) {
-                                Some(l) => (l.object.controller, Some(l.characteristics)),
-                                None => return false,
-                            },
-                        };
-                        controller == you
-                            && c.is_some_and(|c| f.matches(**id, controller, &c, None, Some(you)))
-                    })
-                    .count()
-                    >= *n as usize
-            }
             // The layer system and `condition_now` judge both parts their
             // own way.
             C::And(a, b) => {
@@ -5039,7 +4965,7 @@ impl GameState {
                         | TargetSpec::PlayerOrPlaneswalker
                         | TargetSpec::PlayerOrBattle => true,
                         TargetSpec::AnyDamaged => {
-                            self.damaged_this_turn & (1 << p.index().min(7)) != 0
+                            self.tallied(crate::card::TurnEvent::Damaged, p) > 0
                         }
                         TargetSpec::Opponent | TargetSpec::OpponentOrPlaneswalker => p != caster,
                         _ => false,

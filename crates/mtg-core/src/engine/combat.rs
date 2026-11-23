@@ -703,7 +703,8 @@ impl GameState {
             tax = self.attack_tax(&set);
         }
         if !set.is_empty() {
-            self.attacked_this_turn |= 1 << self.active_player.index().min(7);
+            let n = u32::try_from(set.len()).unwrap_or(u32::MAX);
+            self.log_event(crate::card::TurnEvent::Attacked, self.active_player, n);
         }
         let mut attackers = Vec::new();
         // Pack tactics: the attackers' total power as they are declared.

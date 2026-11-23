@@ -533,30 +533,18 @@ impl GameState {
             goads: Vec::new(),
             turn_number: 0,
             resolutions_this_turn: 0,
-            spells_this_turn: [0; 4],
             next_spell_less: [0; 4],
             next_spell_free: Vec::new(),
             next_uncounterable: 0,
             mana_spent_this_turn: [0; 4],
             mana_spent_before_cast: [0; 4],
-            drawn_this_turn: [0; 4],
-            life_lost_this_turn: [0; 4],
-            attacked_this_turn: 0,
             block_demands: Vec::new(),
             block_bans: Vec::new(),
             no_regen: Vec::new(),
             no_combat_damage: Vec::new(),
-            lands_entered_this_turn: 0,
-            artifacts_entered_this_turn: 0,
-            creatures_died_this_turn: 0,
             died_this_turn: Vec::new(),
-            damaged_this_turn: 0,
-            assassin_damage: 0,
             prowl_damage: Vec::new(),
             enter_notes: Vec::new(),
-            lost_life_this_turn: 0,
-            left_this_turn: 0,
-            discarded_this_turn: 0,
             mayhem_discarded: Vec::new(),
             granted_flashback: Vec::new(),
             granted_harmonize: Vec::new(),
@@ -3700,11 +3688,11 @@ impl GameState {
             for p in &mut self.players {
                 p.skip_combat_this_turn = 0;
             }
-            self.spells_last_turn = std::mem::take(&mut self.spells_this_turn);
+            let cast = self.turn_log.tally[crate::card::TurnEvent::Cast as usize];
+            self.spells_last_turn = cast.map(|n| u8::try_from(n).unwrap_or(u8::MAX));
             self.next_spell_less = [0; 4];
             self.next_spell_free.clear();
             self.next_uncounterable = 0;
-            self.drawn_this_turn = [0; 4];
             // "As long as you've drawn two or more cards this turn" and
             // the other this-turn statics start over (CR 611.3a).
             if self.turn_static_sources > 0 {
@@ -3712,9 +3700,6 @@ impl GameState {
             }
             self.mana_spent_this_turn = [0; 4];
             self.mana_spent_before_cast = [0; 4];
-            self.life_lost_this_turn = [0; 4];
-            self.attacked_this_turn = 0;
-            self.assassin_damage = 0;
             self.prowl_damage.clear();
             if !self.enter_notes.is_empty() {
                 let objects = &self.objects;
@@ -3724,18 +3709,11 @@ impl GameState {
                         .is_some_and(|o| o.zone == crate::state::Zone::Battlefield)
                 });
             }
-            self.lands_entered_this_turn = 0;
             self.block_demands.clear();
             self.block_bans.clear();
             self.no_regen.clear();
             self.no_combat_damage.clear();
-            self.artifacts_entered_this_turn = 0;
-            self.creatures_died_this_turn = 0;
             self.died_this_turn.clear();
-            self.damaged_this_turn = 0;
-            self.lost_life_this_turn = 0;
-            self.left_this_turn = 0;
-            self.discarded_this_turn = 0;
             self.mayhem_discarded.clear();
             self.cast_this_turn.clear();
             self.turn_log = crate::state::TurnLog::default();

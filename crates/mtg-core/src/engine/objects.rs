@@ -8,7 +8,7 @@ use smallvec::SmallVec;
 
 use super::replace::{Enter, Proposed};
 use crate::card::CounterKind;
-use crate::card::{CardRef, DefFlags, Keyword, RuleKind};
+use crate::card::{CardRef, DefFlags, Keyword, RuleKind, TurnEvent};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
 use crate::state::{
@@ -303,27 +303,27 @@ impl GameState {
             self.face_down_count = self.face_down_count.saturating_sub(1);
         }
         if old.zone == Zone::Battlefield && to == Zone::Graveyard && characteristics.is_creature() {
-            self.creatures_died_this_turn = self.creatures_died_this_turn.saturating_add(1);
+            self.log_event(TurnEvent::Died, old.controller, 1);
             self.died_this_turn
                 .push((id, old.controller, characteristics));
         }
         // Revolt: under its controller's control as it left.
         if old.zone == Zone::Battlefield {
-            self.left_this_turn |= 1 << old.controller.index().min(7);
+            self.log_event(TurnEvent::PermanentLeft, old.controller, 1);
             if characteristics.is_creature() {
-                let n = &mut self.turn_log.creatures_left[old.controller.index().min(3)];
-                *n = n.saturating_add(1);
-                self.history_bump();
+                self.log_event(TurnEvent::CreatureLeft, old.controller, 1);
             }
             // Void (CR 702.185): "a nonland permanent left the battlefield
             // this turn".
-            if !characteristics_is_land && !self.turn_log.nonland_left {
-                self.turn_log.nonland_left = true;
-                self.history_bump();
+            if !characteristics_is_land {
+                self.log_event(TurnEvent::NonlandLeft, old.controller, 1);
             }
             if to == Zone::Graveyard {
-                self.turn_log.to_graveyard =
-                    self.turn_log.to_graveyard.union(characteristics.types);
+                self.log_typed(
+                    TurnEvent::ToGraveyard,
+                    old.controller,
+                    characteristics.types,
+                );
             }
         }
         // CR 700.11: its owner descended if a permanent card went to their
@@ -331,23 +331,15 @@ impl GameState {
         if to == Zone::Graveyard && old.kind == crate::state::ObjKind::Card {
             let types = self.pool.get(old.card).types;
             if types.is_permanent_type() {
-                self.turn_log.descended |= 1 << old.owner.index().min(7);
+                self.log_event(TurnEvent::Descended, old.owner, 1);
             }
             // "if a creature card was put into your graveyard from anywhere
             // this turn".
-            let seen = &mut self.turn_log.cards_to_graveyard[old.owner.index().min(3)];
-            if !seen.contains_all(types) {
-                *seen = seen.union(types);
-                self.history_bump();
-            }
+            self.log_typed(TurnEvent::CardToGraveyard, old.owner, types);
         }
         // "if one or more cards left your graveyard this turn".
         if old.zone == Zone::Graveyard {
-            let bit = 1 << old.owner.index().min(7);
-            if self.turn_log.left_graveyard & bit == 0 {
-                self.turn_log.left_graveyard |= bit;
-                self.history_bump();
-            }
+            self.log_event(TurnEvent::LeftGraveyard, old.owner, 1);
         }
         let old_flags = self.flags_of(&old);
         let (attacking, blocking) = match &self.combat {
@@ -600,21 +592,20 @@ impl GameState {
         }
         if to == Zone::Battlefield {
             self.entered_this_turn.push((controller, new));
+            self.log_event(TurnEvent::Entered, controller, 1);
             if characteristics_is_land {
                 // Landfall: "you had a land enter the battlefield under
                 // your control this turn".
-                self.lands_entered_this_turn |= 1 << controller.index().min(7);
+                self.log_event(TurnEvent::LandEntered, controller, 1);
             }
             if characteristics_is_artifact {
-                self.artifacts_entered_this_turn |= 1 << controller.index().min(7);
+                self.log_event(TurnEvent::ArtifactEntered, controller, 1);
             }
             if characteristics.is_creature() {
-                let n = &mut self.turn_log.creatures_entered[controller.index().min(3)];
-                *n = n.saturating_add(1);
+                self.log_event(TurnEvent::CreatureEntered, controller, 1);
             }
             if !characteristics_is_land {
-                let n = &mut self.turn_log.nonland_entered[controller.index().min(3)];
-                *n = n.saturating_add(1);
+                self.log_event(TurnEvent::NonlandEntered, controller, 1);
             }
             let flags = self.flags_of(&self.objects[new]);
             self.count_sources(flags, self.pool.get(def).is_legendary(), true);
@@ -622,7 +613,7 @@ impl GameState {
                 self.face_down_count += 1;
                 // "if a face-down creature entered the battlefield under
                 // your control this turn".
-                self.turn_log.face_down_entered |= 1 << controller.index().min(7);
+                self.log_event(TurnEvent::FaceDownEntered, controller, 1);
             }
         }
         match to {
@@ -741,15 +732,14 @@ impl GameState {
             for (kind, n) in entered {
                 if n > 0 {
                     if kind == CounterKind::PlusOnePlusOne {
-                        self.turn_log.counter_put_by |= 1 << by.index().min(7);
+                        self.log_event(TurnEvent::PlusCountersBy, by, 1);
                     }
                     // Asked once per player each turn (the cache was bumped
                     // as it entered).
-                    let bit = 1 << by.index().min(7);
-                    if self.turn_log.any_counter_put_by & bit == 0
+                    if self.tallied(TurnEvent::CountersOnCreatureBy, by) == 0
                         && self.characteristics(new).is_some_and(|c| c.is_creature())
                     {
-                        self.turn_log.any_counter_put_by |= bit;
+                        self.log_event(TurnEvent::CountersOnCreatureBy, by, 1);
                     }
                     // CR 702.155c: a Saga with read ahead entering with
                     // lore counters triggers only its chosen chapter.
@@ -1190,13 +1180,10 @@ impl GameState {
         let (def, who) = (o.def, o.controller);
         // "If you've sacrificed an artifact this turn".
         // "the number of permanents you've sacrificed this turn".
-        let n = &mut self.turn_log.sacrificed_n[who.index().min(3)];
-        *n = n.saturating_add(1);
-        if let Some(c) = self.characteristics(id) {
-            let seen = &mut self.turn_log.sacrificed[who.index().min(3)];
-            *seen = seen.union(c.types);
-        }
-        self.history_bump();
+        let types = self
+            .characteristics(id)
+            .map_or(crate::card::TypeSet::EMPTY, |c| c.types);
+        self.log_typed(TurnEvent::Sacrificed, who, types);
         self.emit(Event::Sacrificed { obj: id, def });
         self.move_object(id, Zone::Graveyard, true);
         self.note_moved_how(id, true);
@@ -1370,12 +1357,11 @@ impl GameState {
     fn draw_now(&mut self, p: PlayerId) {
         if let Some(top) = self.player(p).library.last().copied() {
             let new = self.move_object(top, Zone::Hand, false);
-            let n = &mut self.drawn_this_turn[p.index().min(3)];
-            *n = n.saturating_add(1);
+            self.log_event(TurnEvent::Drew, p, 1);
             // CR 702.94a: the first card drawn this turn, with miracle, is
             // revealed (always: revealing costs nothing), and its trigger
             // lets its owner cast it for the miracle cost.
-            let first = *n == 1;
+            let first = self.tallied(TurnEvent::Drew, p) == 1;
             if first
                 && let Some(o) = self.objects.get(new)
                 && o.zone == Zone::Hand
@@ -1519,31 +1505,42 @@ impl GameState {
         }
     }
 
+    /// Count `n` events of a kind for `p` in the turn log (`TurnLog::tally`;
+    /// life for the life kinds), the one place each kind is counted, and
+    /// refresh the statics that read it (`history_bump`).
+    pub(super) fn log_event(&mut self, kind: crate::card::TurnEvent, p: PlayerId, n: u32) {
+        let t = &mut self.turn_log.tally[kind as usize][p.index().min(3)];
+        *t = t.saturating_add(n);
+        self.history_bump();
+    }
+
+    /// Count an event of a kind for `p` whose objects had these card types
+    /// (`TurnLog::types`; `TurnCount::types`).
+    pub(super) fn log_typed(
+        &mut self,
+        kind: crate::card::TurnEvent,
+        p: PlayerId,
+        types: crate::card::TypeSet,
+    ) {
+        let t = &mut self.turn_log.types[kind as usize][p.index().min(3)];
+        *t = t.union(types);
+        self.log_event(kind, p, 1);
+    }
+
     /// Change a life total directly (life loss, or a gain that has passed
     /// through the pipeline).
     pub(super) fn change_life(&mut self, p: PlayerId, delta: i32) {
         if delta == 0 {
             return;
         }
-        let bit = 1 << p.index().min(7);
         if delta < 0 {
-            let lost = &mut self.life_lost_this_turn[p.index().min(3)];
-            *lost = lost.saturating_add(delta.unsigned_abs());
-            if self.lost_life_this_turn & bit == 0 {
-                self.lost_life_this_turn |= bit;
-                self.history_bump();
-            }
+            self.log_event(TurnEvent::LifeLost, p, delta.unsigned_abs());
             if let Some(log) = &mut self.this_way {
                 log.life_lost = log.life_lost.saturating_add(delta.unsigned_abs());
             }
         } else {
-            let gained = &mut self.turn_log.life_gained[p.index().min(3)];
-            *gained = gained.saturating_add(delta.unsigned_abs());
-            if self.turn_log.gained_life & bit == 0 {
-                self.turn_log.gained_life |= bit;
-            }
             // "If you've gained 3 or more life this turn" may now hold.
-            self.history_bump();
+            self.log_event(TurnEvent::LifeGained, p, delta.unsigned_abs());
         }
         let ps = self.player_mut(p);
         ps.life += delta;
@@ -1615,13 +1612,9 @@ impl GameState {
                 if !self.player_grants.is_empty() && self.player_protected_from(p, source) {
                     return;
                 }
-                if self.damaged_this_turn & (1 << p.index().min(7)) == 0 {
-                    self.damaged_this_turn |= 1 << p.index().min(7);
-                    self.history_bump();
-                }
-                if !combat && self.turn_log.noncombat_damaged & (1 << p.index().min(7)) == 0 {
-                    self.turn_log.noncombat_damaged |= 1 << p.index().min(7);
-                    self.history_bump();
+                self.log_event(TurnEvent::Damaged, p, 1);
+                if !combat {
+                    self.log_event(TurnEvent::NoncombatDamaged, p, 1);
                 }
                 self.note_damage_source(source);
                 // CR 702.173a: an Assassin's combat damage enables
@@ -1632,7 +1625,7 @@ impl GameState {
                     && c.is_creature()
                     && c.has_subtype(a)
                 {
-                    self.assassin_damage |= 1 << ctl.index().min(7);
+                    self.log_event(TurnEvent::AssassinDamage, ctl, 1);
                 }
                 // CR 702.76a: combat damage by a creature of a prowl type.
                 if combat
@@ -1812,19 +1805,19 @@ impl GameState {
         let before = o.counters(kind);
         o.add_counters(kind, n);
         let by = self.effect_controller.unwrap_or(o.controller);
+        let on = o.controller;
         if kind == CounterKind::PlusOnePlusOne {
-            self.turn_log.counter_put |= 1 << o.controller.index().min(7);
-            self.turn_log.counter_put_by |= 1 << by.index().min(7);
+            self.log_event(TurnEvent::PlusCountersOn, on, 1);
+            self.log_event(TurnEvent::PlusCountersBy, by, 1);
         }
         self.cbump();
         // "if you put a counter on a creature this turn": asked once per
         // player each turn, after the bump (the counters may change what
         // the permanent is).
-        let bit = 1 << by.index().min(7);
-        if self.turn_log.any_counter_put_by & bit == 0
+        if self.tallied(TurnEvent::CountersOnCreatureBy, by) == 0
             && self.characteristics(id).is_some_and(|c| c.is_creature())
         {
-            self.turn_log.any_counter_put_by |= bit;
+            self.log_event(TurnEvent::CountersOnCreatureBy, by, 1);
         }
         self.emit(Event::CountersAdded {
             obj: id,
@@ -1871,9 +1864,7 @@ impl GameState {
 
     /// Discard a card from hand (CR 701.8).
     pub(super) fn discard_card(&mut self, p: PlayerId, card: ObjId) {
-        self.discarded_this_turn |= 1 << p.index().min(7);
-        let n = &mut self.turn_log.discards[p.index().min(3)];
-        *n = n.saturating_add(1);
+        self.log_event(TurnEvent::Discarded, p, 1);
         self.emit(Event::Discard { player: p, card });
         let def = self.objects[card].def;
         if self

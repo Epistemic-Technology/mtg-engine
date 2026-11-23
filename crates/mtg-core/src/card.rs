@@ -33,6 +33,8 @@ pub enum CardType {
 pub struct TypeSet(u16);
 
 impl TypeSet {
+    pub const EMPTY: TypeSet = TypeSet(0);
+
     pub fn of(types: impl IntoIterator<Item = CardType>) -> Self {
         types.into_iter().fold(TypeSet(0), TypeSet::with)
     }
@@ -2091,12 +2093,6 @@ pub enum CountExpr {
     Party(Box<[ObjFilter; 4]>),
     /// The greatest mana value among permanents you control.
     GreatestManaValue,
-    /// Cards you've drawn this turn.
-    CardsDrawnThisTurn,
-    /// Spells you've cast this turn; with `other`, not counting the
-    /// source's own cast ("the number of other spells you've cast this
-    /// turn").
-    SpellsCastThisTurn { other: bool },
     /// The other instant and sorcery spells you've cast this turn (not
     /// the source or triggering spell itself); with `before`, only those
     /// cast before it ("copy it for each other instant and sorcery spell
@@ -2111,9 +2107,6 @@ pub enum CountExpr {
     /// Opponents you're attacking: those a creature you control is
     /// attacking (CR 506.2).
     OpponentsAttacked,
-    /// Creatures you attacked with this turn (declared as attackers, CR
-    /// 508.1).
-    AttackedWithThisTurn,
     /// Converge: the number of colors of mana spent to cast the source
     /// (CR 601.2h).
     SpentColors,
@@ -2138,10 +2131,6 @@ pub enum CountExpr {
     /// The votes the resolution's vote (`Effect::Vote`) gave its `n`th
     /// choice ("for each sprout vote").
     Votes(u8),
-    /// Creatures put into a graveyard from the battlefield this turn that
-    /// matched the filter as they last existed ("for each Zubera that
-    /// died this turn"; CR 700.4).
-    DiedThisTurn(ObjFilter),
     /// The greatest power among cards in your graveyard matching the
     /// filter ("the greatest power among creature cards in your
     /// graveyard"); 0 with none.
@@ -2167,9 +2156,6 @@ pub enum CountExpr {
     /// One count plus another ("the number of creatures on the battlefield
     /// plus the number of artifacts on the battlefield").
     Sum(Box<CountExpr>, Box<CountExpr>),
-    /// The life you've lost this turn (CR 119.3; damage causes loss of
-    /// life).
-    LifeLostThisTurn,
     /// The damage the resolution has dealt (CR 120.3), or of it the
     /// excess (CR 120.4a: beyond lethal damage to a creature, beyond its
     /// loyalty to a planeswalker): "You gain life equal to the damage
@@ -2193,33 +2179,15 @@ pub enum CountExpr {
     /// chroma's "the number of red mana symbols in the mana costs of
     /// permanents you control".
     Devotion(ColorSet),
-    /// "the amount of life you gained this turn" (CR 119.3), in all,
-    /// whatever life was also lost.
-    LifeGainedThisTurn,
     /// Card types among cards in your graveyard (CR 205.2a; Nethergoyf).
     CardTypesInGraveyard,
     /// Counters of every kind on the source ("the number of counters on
     /// Savanti Romero"), as it last existed on the battlefield once it
     /// has left (CR 608.2h).
     SourceAllCounters,
-    /// The permanents you've sacrificed this turn (CR 701.21).
-    SacrificedThisTurn,
     /// 2 to the power of the source's X ("draws 2ˣ cards"), capped so it
     /// fits.
     TwoToX,
-    /// Creatures that attacked this turn, any player's ("for each creature
-    /// that attacked this turn"; CR 508.1).
-    AttackedThisTurn,
-    /// Opponents who lost life this turn ("for each opponent who lost life
-    /// this turn"; CR 119.3).
-    OpponentsLostLife,
-    /// Creatures that entered the battlefield under your control this
-    /// turn ("the number of creatures that entered the battlefield under
-    /// your control this turn").
-    CreaturesEnteredThisTurn,
-    /// Cards you've discarded this turn ("for each card you've discarded
-    /// this turn", CR 701.8).
-    DiscardedThisTurn,
     /// Opponents who have more cards in hand than you.
     OpponentsMoreCards,
     /// The total power, toughness, or mana value of the battlefield
@@ -2264,13 +2232,13 @@ pub enum CountExpr {
     /// damage dealt to it this turn" of a creature that died): the damage
     /// marked on it, as it last existed on the battlefield (CR 120.6).
     SourceDamage,
-    /// Creatures that left the battlefield under your control this turn
-    /// ("for each creature that left the battlefield under your control
-    /// this turn").
-    CreaturesLeftThisTurn,
     /// The colors of the `n`th target ("for each of its colors"), as it
     /// last existed once it has left (CR 608.2h).
     TargetColors(usize),
+    /// The turn's count of a kind of event ("the life you've lost this
+    /// turn", "the amount of life you gained this turn", "for each
+    /// opponent who lost life this turn"; `GameState::turn_count`).
+    Happened(TurnCount),
 }
 
 impl CountExpr {
@@ -2297,12 +2265,7 @@ impl CountExpr {
     /// using it must be recomputed as that changes (`history_static`).
     pub fn reads_history(&self) -> bool {
         match self {
-            CountExpr::LifeGainedThisTurn
-            | CountExpr::SacrificedThisTurn
-            | CountExpr::AttackedThisTurn
-            | CountExpr::OpponentsLostLife
-            | CountExpr::CreaturesLeftThisTurn
-            | CountExpr::CreaturesEnteredThisTurn => true,
+            CountExpr::Happened(_) => true,
             CountExpr::Times(_, c)
             | CountExpr::Plus(_, c)
             | CountExpr::Difference(_, c)
@@ -2322,6 +2285,21 @@ impl CountExpr {
     #[must_use]
     pub fn in_static(&self) -> bool {
         match self {
+            // The card language keeps the rest (your draws, discards, life
+            // lost, spells cast, attackers, deaths) for a resolving effect.
+            CountExpr::Happened(c) => {
+                matches!(
+                    (c.kind, c.who),
+                    (
+                        TurnEvent::LifeGained
+                            | TurnEvent::Sacrificed
+                            | TurnEvent::CreatureEntered
+                            | TurnEvent::CreatureLeft,
+                        _
+                    ) | (TurnEvent::Attacked, TurnWho::Anyone)
+                        | (TurnEvent::LifeLost, TurnWho::Opponent)
+                ) && c.filter.is_none()
+            }
             CountExpr::Sum(a, b) => a.in_static() && b.in_static(),
             CountExpr::Plus(_, c)
             | CountExpr::Times(_, c)
@@ -2341,16 +2319,10 @@ impl CountExpr {
             | CountExpr::GreatestManaValue
             | CountExpr::GreatestManaValueOf(_)
             | CountExpr::GreatestManaValueInGraveyard(_)
-            | CountExpr::CreaturesLeftThisTurn
             | CountExpr::Devotion(_)
             | CountExpr::CardsInHand
-            | CountExpr::LifeGainedThisTurn
             | CountExpr::CardTypesInGraveyard
             | CountExpr::SourceAllCounters
-            | CountExpr::SacrificedThisTurn
-            | CountExpr::AttackedThisTurn
-            | CountExpr::OpponentsLostLife
-            | CountExpr::CreaturesEnteredThisTurn
             | CountExpr::OpponentsMoreCards
             | CountExpr::ExiledWith(_)
             | CountExpr::CardsInExile { .. }
@@ -2376,11 +2348,8 @@ impl CountExpr {
             | CountExpr::Devoured(_)
             | CountExpr::Party(_)
             | CountExpr::SourceToughness
-            | CountExpr::CardsDrawnThisTurn
-            | CountExpr::SpellsCastThisTurn { .. }
             | CountExpr::OtherInstantSorceryCast { .. }
             | CountExpr::OpponentsAttacked
-            | CountExpr::AttackedWithThisTurn
             | CountExpr::SpentColors
             | CountExpr::TimesKicked
             | CountExpr::EnergyPaid
@@ -2388,15 +2357,11 @@ impl CountExpr {
             | CountExpr::SpentTotal
             | CountExpr::ThatSpellSpent
             | CountExpr::ThatSpellSpentColors
-            | CountExpr::DiedThisTurn(_)
             | CountExpr::TriggerStat(_)
             | CountExpr::AttachedStat(_)
             | CountExpr::MovedStat { .. }
             | CountExpr::TargetHand(_)
             | CountExpr::GreatestToughness(_)
-            | CountExpr::LifeLostThisTurn
-            // Discards are counted only as an effect resolves.
-            | CountExpr::DiscardedThisTurn
             | CountExpr::TargetLibrary(_)
             | CountExpr::ThatSpellColors
             | CountExpr::SourceDamage
@@ -2617,6 +2582,199 @@ pub struct StaticAbility {
     pub condition: Option<StaticCondition>,
 }
 
+/// A kind of event the turn log counts for each player (`TurnLog::tally`),
+/// what "this turn" conditions and counts read (`TurnCount`): "if you
+/// gained life this turn", "an opponent lost life this turn".
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum TurnEvent {
+    /// Life the player gained (CR 119.3), in life rather than in gains.
+    LifeGained,
+    /// Life the player lost (CR 119.3: damage to a player is life loss
+    /// too), in life.
+    LifeLost,
+    /// Times the player was dealt damage (CR 120.3), after prevention.
+    Damaged,
+    /// Times the player was dealt noncombat damage.
+    NoncombatDamaged,
+    /// Permanents that entered the battlefield under the player's control,
+    /// by their characteristics just before they entered: creatures,
+    /// nonland permanents, lands, artifacts, and face-down permanents (CR
+    /// 708.3).
+    CreatureEntered,
+    NonlandEntered,
+    LandEntered,
+    ArtifactEntered,
+    FaceDownEntered,
+    /// Permanents that left the battlefield under the player's control
+    /// (revolt), as they last existed: any, creatures, nonland ones.
+    PermanentLeft,
+    CreatureLeft,
+    NonlandLeft,
+    /// Creatures put into a graveyard from the battlefield under the
+    /// player's control (CR 700.4), as they last existed.
+    Died,
+    /// Permanents put into a graveyard from the battlefield under the
+    /// player's control, with their card types as they last existed
+    /// (`TurnLog::types`).
+    ToGraveyard,
+    /// Spells the player cast for their warp cost (CR 702.185a).
+    Warped,
+    /// Cards the player drew (CR 121.1).
+    Drew,
+    /// Cards the player discarded (CR 701.8).
+    Discarded,
+    /// Permanent cards put into the player's graveyard from anywhere: the
+    /// player descended (CR 700.11).
+    Descended,
+    /// Cards put into the player's graveyard from anywhere (tokens are no
+    /// cards), with their card types there (`TurnLog::types`).
+    CardToGraveyard,
+    /// Cards that left the player's graveyard.
+    LeftGraveyard,
+    /// Permanents the player sacrificed (CR 701.21), with their card types
+    /// as they last existed (`TurnLog::types`).
+    Sacrificed,
+    /// Times the player scried (CR 701.22b: scry 0 is no scry) and
+    /// surveilled (CR 701.25c).
+    Scried,
+    Surveilled,
+    /// Crimes the player committed (CR 700.13), one per spell or ability.
+    Crime,
+    /// Times +1/+1 counters were put on a permanent the player controls.
+    PlusCountersOn,
+    /// Times the player put +1/+1 counters on a permanent (CR 122.6: as
+    /// the controller of the effect, or of a permanent entering with
+    /// them).
+    PlusCountersBy,
+    /// Whether the player put counters of any kind on a creature (CR
+    /// 122.6): counted once a turn, since asking what the permanent is
+    /// costs characteristics.
+    CountersOnCreatureBy,
+    /// Equip abilities the player activated ("the first equip ability you
+    /// activate each turn").
+    Equipped,
+    /// Creatures the player declared as attackers (CR 508.1), counted as
+    /// they are declared, before any is tapped.
+    Attacked,
+    /// Combat damage dealt to a player by an Assassin creature the player
+    /// controlled (freerunning, CR 702.173a); counted only with a
+    /// freerunning card in the pool.
+    AssassinDamage,
+    /// Permanents that entered the battlefield under the player's control.
+    Entered,
+    /// Spells the player cast (CR 601.2i), and those cast from their hand
+    /// (CR 601.2a).
+    Cast,
+    CastFromHand,
+}
+
+impl TurnEvent {
+    /// The number of kinds: the turn log's rows.
+    pub const COUNT: usize = 33;
+
+    /// Whether a static ability reading this kind must be refreshed as it
+    /// is counted (`CardDef::history_static`), the kinds counted without a
+    /// zone change that refreshes characteristics anyway; a count of any
+    /// kind in a static ability refreshes (`CountExpr::reads_history`).
+    #[must_use]
+    pub const fn refreshes(self) -> bool {
+        match self {
+            TurnEvent::LifeGained
+            | TurnEvent::LifeLost
+            | TurnEvent::Damaged
+            | TurnEvent::NoncombatDamaged
+            | TurnEvent::NonlandLeft
+            | TurnEvent::Warped
+            | TurnEvent::CardToGraveyard
+            | TurnEvent::LeftGraveyard
+            | TurnEvent::Sacrificed
+            | TurnEvent::Scried
+            | TurnEvent::Surveilled
+            | TurnEvent::Crime
+            | TurnEvent::PlusCountersBy
+            | TurnEvent::CountersOnCreatureBy
+            | TurnEvent::Attacked => true,
+            TurnEvent::CreatureEntered
+            | TurnEvent::NonlandEntered
+            | TurnEvent::LandEntered
+            | TurnEvent::ArtifactEntered
+            | TurnEvent::FaceDownEntered
+            | TurnEvent::PermanentLeft
+            | TurnEvent::CreatureLeft
+            | TurnEvent::Died
+            | TurnEvent::ToGraveyard
+            | TurnEvent::Drew
+            | TurnEvent::Discarded
+            | TurnEvent::Descended
+            | TurnEvent::PlusCountersOn
+            | TurnEvent::Equipped
+            | TurnEvent::AssassinDamage
+            | TurnEvent::Entered
+            | TurnEvent::Cast
+            | TurnEvent::CastFromHand => false,
+        }
+    }
+
+    /// Whether a static ability reading this kind must be refreshed as a
+    /// card leaves a hand (`CardDef::hand_static`).
+    #[must_use]
+    pub const fn with_hand(self) -> bool {
+        matches!(
+            self,
+            TurnEvent::Drew | TurnEvent::Discarded | TurnEvent::Cast | TurnEvent::CastFromHand
+        )
+    }
+}
+
+/// Whose events a turn count counts, judged from the ability's controller.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum TurnWho {
+    You,
+    /// As a condition, any one opponent's ("an opponent lost life this
+    /// turn"); as a count, the opponents with one or more ("for each
+    /// opponent who lost life this turn").
+    Opponent,
+    /// Every player's together ("two or more creatures died this turn").
+    Anyone,
+}
+
+/// "Events of kind K by player P this turn": what a `StaticCondition::
+/// Happened` compares and a `CountExpr::Happened` counts, read from the
+/// turn log.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct TurnCount {
+    pub kind: TurnEvent,
+    pub who: TurnWho,
+    /// Only events about objects with one of these card types ("an
+    /// artifact or creature was put into a graveyard"); empty, all. The
+    /// log keeps the types each player's events had, not each event's, so
+    /// with types a count is 1 or 0: whether one or more happened.
+    pub types: TypeSet,
+    /// "Another": not counting the source's own event ("another creature
+    /// entered the battlefield under your control this turn", "another
+    /// blue spell").
+    pub other: bool,
+    /// Only events about objects matching the filter ("you attacked with
+    /// three or more Merfolk this turn", "for each Zubera that died this
+    /// turn"), read from the turn's list of those objects, for the kinds
+    /// that keep one (`GameState::listed`): attackers, entered permanents,
+    /// dead creatures as they last existed, spells as they were cast.
+    pub filter: Option<Box<ObjFilter>>,
+}
+
+impl TurnCount {
+    #[must_use]
+    pub const fn of(kind: TurnEvent, who: TurnWho) -> Self {
+        TurnCount {
+            kind,
+            who,
+            types: TypeSet::EMPTY,
+            other: false,
+            filter: None,
+        }
+    }
+}
+
 /// What a conditional static ability checks (threshold, metalcraft,
 /// delirium, "during your turn", "as long as you control an Island").
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -2626,19 +2784,6 @@ pub enum StaticCondition {
     /// "there are two or more unlocked doors among Rooms you control"
     /// (CR 709.5j).
     UnlockedDoors(u32),
-    /// "you attacked with a Spacecraft this turn": a creature matching
-    /// the filter (judged now, or as it last existed) attacked under your
-    /// control this turn.
-    AttackedWith(ObjFilter),
-    /// "another Knight entered the battlefield under your control this
-    /// turn": a permanent matching the filter (judged now, or as it last
-    /// existed; `Relation::Other` excludes the source) entered under your
-    /// control this turn. `had` prints "you had another creature enter the
-    /// battlefield under your control this turn".
-    EnteredWith {
-        filter: ObjFilter,
-        had: bool,
-    },
     /// "there are four or more card types among cards in your graveyard"
     /// (delirium).
     CardTypesInGraveyard(u32),
@@ -2661,10 +2806,6 @@ pub enum StaticCondition {
     YourMainPhase,
     YourCombatPhase,
     FirstCombatPhase,
-    /// "you've put one or more +1/+1 counters on a creature this turn".
-    PutCounterThisTurn,
-    /// "an opponent has been dealt noncombat damage this turn".
-    OpponentNoncombatDamagedThisTurn,
     /// "this is the second time this ability has resolved this turn": the
     /// resolving ability's object has resolved it this many times this
     /// turn, counting this time.
@@ -2755,8 +2896,6 @@ pub enum StaticCondition {
     /// "you control an Urza's Mine and an Urza's Power-Plant": at least
     /// one permanent matching each filter.
     YouControlEach(Vec<ObjFilter>),
-    /// Raid: "you attacked this turn".
-    AttackedThisTurn,
     /// "if it attacked during your last turn" (Giant Turtle, Goblin Rock
     /// Sled): the source was declared as an attacker during its
     /// controller's most recent turn before this one (or this one, while
@@ -2764,16 +2903,6 @@ pub enum StaticCondition {
     AttackedLastTurn,
     /// The entering object was cast with escape ("escapes with").
     Escaped,
-    /// Bloodthirst: "an opponent was dealt damage this turn".
-    OpponentDamagedThisTurn,
-    /// "an opponent lost life this turn" (CR 119.3: damage to a player
-    /// is life loss too).
-    OpponentLostLifeThisTurn,
-    /// Revolt: "a permanent left the battlefield under your control this
-    /// turn".
-    PermanentLeftThisTurn,
-    /// Morbid: "a creature died this turn".
-    CreatureDiedThisTurn,
     /// Hellbent-style: "you have N or fewer cards in hand" (`at_most`) /
     /// "N or more".
     CardsInHand {
@@ -2809,13 +2938,6 @@ pub enum StaticCondition {
     /// The source is saddled (CR 702.171b): "whenever this creature
     /// attacks while saddled".
     Saddled,
-    /// Landfall: "you had a land enter the battlefield under your control
-    /// this turn".
-    LandEnteredThisTurn,
-    /// "an artifact entered the battlefield under your control this turn".
-    ArtifactEnteredThisTurn,
-    /// "you've drawn two or more cards this turn".
-    CardsDrawnThisTurn(u32),
     /// "there are two or more instant and/or sorcery cards in your
     /// graveyard" (spell mastery), "three or more creature cards".
     GraveyardCards {
@@ -2874,84 +2996,12 @@ pub enum StaticCondition {
     /// "equipped creature is legendary": the permanent the source is
     /// attached to matches.
     AttachedIs(ObjFilter),
-    /// "you've drawn two or more cards this turn".
-    DrawnThisTurn(u32),
-    /// "you've cast an instant or sorcery spell this turn", "you've cast
-    /// two or more spells this turn" (`at_least`), "you've cast another
-    /// blue spell this turn" (`other`: not counting the source's own cast,
-    /// if it was cast), judged on the spells' characteristics as they were
-    /// cast.
-    CastThisTurn {
-        filter: ObjFilter,
-        at_least: u32,
-        other: bool,
-    },
     /// "if you cast it from your hand", "if this spell was cast from a
     /// graveyard" (CR 601.2a): where the source was cast from; a
     /// permanent remembers it from its spell.
     CastFrom(crate::state::Zone),
-    /// "you gained life this turn"; with `or_lost`, "you gained or lost
-    /// life this turn".
-    GainedLifeThisTurn {
-        or_lost: bool,
-    },
-    /// "you've lost life this turn" (CR 119.3); with `gained`, "you
-    /// gained and lost life this turn".
-    LostLifeThisTurn {
-        gained: bool,
-    },
-    /// "you descended this turn" (CR 700.11): a permanent card was put
-    /// into your graveyard from anywhere.
-    DescendedThisTurn,
-    /// "the second spell you cast each turn" (Highspire Bell-Ringer): the
-    /// spell whose cost is being determined would be your Nth this turn,
-    /// that is, you've cast exactly N - 1 spells before it.
-    SpellNumber(u32),
-    /// "you've surveilled this turn" (CR 701.25).
-    SurveilledThisTurn,
-    /// "you've scried or surveilled this turn" (CR 701.22, 701.25).
-    ScriedOrSurveilledThisTurn,
-    /// "a +1/+1 counter was put on a permanent under your control this
-    /// turn".
-    CounterPutThisTurn,
-    /// "a face-down creature entered the battlefield under your control
-    /// this turn" (CR 708.3).
-    FaceDownEnteredThisTurn,
-    /// "another creature entered the battlefield under your control this
-    /// turn" (`other`: not counting the source's own entry).
-    CreatureEnteredThisTurn {
-        other: bool,
-    },
-    /// "two or more creatures entered the battlefield under your control
-    /// this turn"; with `opponent`, "an opponent had two or more creatures
-    /// enter the battlefield under their control this turn".
-    CreaturesEnteredThisTurn {
-        n: u8,
-        opponent: bool,
-    },
-    /// Celebration: "two or more nonland permanents entered the
-    /// battlefield under your control this turn".
-    NonlandEnteredThisTurn(u32),
-    /// "an artifact or creature was put into a graveyard from the
-    /// battlefield this turn": a permanent with one of these types, as it
-    /// last existed, under any player's control.
-    PutIntoGraveyardThisTurn(TypeSet),
-    /// "you've discarded a card this turn".
-    DiscardedThisTurn,
     /// "it's night" (CR 731).
     Night,
-    /// "you've gained 3 or more life this turn": at least this much in all.
-    LifeGainedThisTurn(u32),
-    /// "you've committed a crime this turn" (CR 700.13).
-    CrimeThisTurn,
-    /// "one or more cards left your graveyard this turn".
-    LeftGraveyardThisTurn,
-    /// "a creature card was put into your graveyard from anywhere this
-    /// turn": a card of one of these types, as it is in the graveyard.
-    CardToGraveyardThisTurn(TypeSet),
-    /// "you've sacrificed an artifact this turn": a permanent with one of
-    /// these types, as it last existed.
-    SacrificedThisTurn(TypeSet),
     /// "you have more cards in hand than each opponent".
     MoreCardsInHand,
     /// "an opponent is poisoned" (1), "an opponent has three or more poison
@@ -2988,11 +3038,6 @@ pub enum StaticCondition {
     /// "• Khans — ...": the source's controller chose this one of its
     /// named options as it entered (`ChoiceKind::Named`; the Sieges).
     Chose(u8),
-    /// "you haven't cast a spell this turn"; with `from_hand`, "you
-    /// haven't cast a spell from your hand this turn" (CR 601.2a).
-    NoSpellsCastThisTurn {
-        from_hand: bool,
-    },
     /// "If {B} was spent to cast this spell", "if at least three red mana
     /// was spent to cast it" (adamant), "if mana from a Treasure was spent
     /// to cast it": at least `at_least` of the mana paid to cast the
@@ -3018,11 +3063,6 @@ pub enum StaticCondition {
         n: u32,
         at_least: bool,
     },
-    /// Freerunning's condition (CR 702.173a): "a player was dealt combat
-    /// damage this turn by a creature that, at the time it dealt that
-    /// damage, was an Assassin creature or a commander under your
-    /// control" (the game has no commanders).
-    AssassinDealtCombatDamage,
     /// "If the gift wasn't promised" (CR 702.174; a promised gift is the
     /// kicker flag): the source wasn't kicked.
     NotKicked,
@@ -3060,22 +3100,11 @@ pub enum StaticCondition {
     /// Both hold ("if there is an Elf card in your graveyard and this
     /// creature has a -1/-1 counter on it").
     And(Box<StaticCondition>, Box<StaticCondition>),
-    /// "two or more creatures died this turn" (`n`); with `yours`, "a
-    /// creature died under your control this turn": creatures put into a
-    /// graveyard from the battlefield this turn (CR 700.4), under your
-    /// control as they died.
-    CreaturesDied {
-        n: u32,
-        yours: bool,
-    },
     /// "an opponent controls more lands than you".
     OpponentMoreLands,
     /// "an opponent controls more creatures than you", "an opponent has
     /// more life than you", "an opponent has more cards in hand than you".
     OpponentHasMore(MoreWhat),
-    /// Void: "a nonland permanent left the battlefield this turn or a
-    /// spell was warped this turn" (CR 702.185).
-    Void,
     /// "it isn't your main phase" (CR 505.1).
     NotYourMainPhase,
     /// "this spell was cast from anywhere other than your hand": the
@@ -3084,15 +3113,41 @@ pub enum StaticCondition {
     /// "if you cast it" (CR 601.2a): the source was cast, from any zone;
     /// a permanent remembers it from its spell.
     WasCast,
-    /// "you put a counter on a creature this turn": a spell or ability you
-    /// controlled put counters of any kind on a creature (CR 122.6).
-    PutAnyCounterThisTurn,
-    /// "you attacked with three or more Merfolk this turn": at least `n`
-    /// creatures matching the filter (judged now, or as they last existed)
-    /// attacked under your control this turn.
-    AttackedWithAtLeast(ObjFilter, u32),
     /// "creatures you control have total toughness 10 or greater".
     TotalToughness(u32),
+    /// "you gained life this turn", "an opponent lost life this turn",
+    /// "you've gained 3 or more life this turn": the turn's count of a kind
+    /// of event compared with `n` (CR 611.3a; `GameState::turn_count`).
+    Happened {
+        count: TurnCount,
+        cmp: Cmp,
+        n: u32,
+    },
+}
+
+impl StaticCondition {
+    /// "One or more events of this kind this turn".
+    #[must_use]
+    pub const fn happened(kind: TurnEvent, who: TurnWho) -> Self {
+        StaticCondition::Happened {
+            count: TurnCount::of(kind, who),
+            cmp: Cmp::AtLeast,
+            n: 1,
+        }
+    }
+
+    /// Whether a static ability with this condition must be refreshed as
+    /// the turn log counts an event (`CardDef::history_static`).
+    #[must_use]
+    pub fn refreshes_with_turn_log(&self) -> bool {
+        match self {
+            StaticCondition::Happened { count, .. } => count.kind.refreshes(),
+            StaticCondition::And(a, b) | StaticCondition::Or(a, b) => {
+                a.refreshes_with_turn_log() || b.refreshes_with_turn_log()
+            }
+            _ => false,
+        }
+    }
 }
 
 /// What a "mana spent to cast" condition or count looks at (CR 601.2h).
@@ -10862,11 +10917,8 @@ impl CardPool {
             )) || matches!(sa.condition, Some(
                 StaticCondition::CardsInHand { .. }
                     | StaticCondition::MoreCardsInHand
-                    | StaticCondition::DrawnThisTurn(_)
-                    | StaticCondition::CastThisTurn { .. }
-                    | StaticCondition::NoSpellsCastThisTurn { .. }
-                    | StaticCondition::DiscardedThisTurn
-            )))
+            )) || matches!(&sa.condition, Some(StaticCondition::Happened { count, .. })
+                if count.kind.with_hand()))
         });
         def.step_static = def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::Static(sa) if matches!(sa.condition, Some(StaticCondition::During(_))))
@@ -10897,25 +10949,9 @@ impl CardPool {
             },
         );
         def.history_static = def.abilities.iter().any(|a| {
-            matches!(a, AbilityDef::Static(sa) if matches!(sa.condition, Some(
-                StaticCondition::GainedLifeThisTurn { .. }
-                    | StaticCondition::LostLifeThisTurn { .. }
-                    | StaticCondition::LifeGainedThisTurn(_)
-                    | StaticCondition::CrimeThisTurn
-                    | StaticCondition::PutCounterThisTurn
-                    | StaticCondition::OpponentNoncombatDamagedThisTurn
-                    | StaticCondition::LeftGraveyardThisTurn
-                    | StaticCondition::CardToGraveyardThisTurn(_)
-                    | StaticCondition::SacrificedThisTurn(_)
-                    | StaticCondition::SurveilledThisTurn
-                    | StaticCondition::ScriedOrSurveilledThisTurn
-                    | StaticCondition::OpponentDamagedThisTurn
-                    | StaticCondition::OpponentLostLifeThisTurn
-                    | StaticCondition::AttackedWith(_)
-                    | StaticCondition::AttackedWithAtLeast(..)
-                    | StaticCondition::PutAnyCounterThisTurn
-                    | StaticCondition::Void
-            )) || sa.parts.iter().any(|m| matches!(
+            matches!(a, AbilityDef::Static(sa)
+                if sa.condition.as_ref().is_some_and(StaticCondition::refreshes_with_turn_log)
+                || sa.parts.iter().any(|m| matches!(
                 m,
                 Modification::ModifyPtPer { count, .. } | Modification::CdaPt { count, .. }
                     if count.reads_history()

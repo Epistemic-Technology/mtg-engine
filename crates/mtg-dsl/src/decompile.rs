@@ -7,7 +7,7 @@ use mtg_core::card::{
     Cost as CoreCost, Effect as CoreEffect, KeywordSet, Modification, ObjFilter,
     Recipient as CoreRecipient, ReplacementAbility, Replaces as CoreReplaces,
     SacCost as CoreSacCost, StaticCondition, Supertype, SupertypeSet, TargetSpec,
-    TriggerObj as CoreTriggerObj, TriggerSpec, TypeSet,
+    TriggerObj as CoreTriggerObj, TriggerSpec, TurnCount, TurnEvent, TurnWho, TypeSet,
 };
 use mtg_core::mana::{Color, ColorSet};
 
@@ -44,6 +44,75 @@ fn supertypes(t: SupertypeSet) -> Vec<Supertype> {
         .into_iter()
         .filter(|x| t.contains(*x))
         .collect()
+}
+
+/// The card types of a set, in the card language's order.
+fn card_types(t: TypeSet) -> Vec<CardType> {
+    crate::render::CARD_TYPES
+        .into_iter()
+        .filter(|c| t.contains(*c))
+        .collect()
+}
+
+/// A turn count's condition (`StaticCondition::Happened`) as the card
+/// language words it.
+fn happened(count: &TurnCount, cmp: mtg_core::card::Cmp, n: u32) -> StaticCond {
+    use mtg_core::card::Cmp;
+    match (count.kind, count.who, cmp, n) {
+        (TurnEvent::LifeGained, TurnWho::You, Cmp::AtLeast, 1) => {
+            StaticCond::GainedLifeThisTurn { or_lost: false }
+        }
+        (TurnEvent::LifeGained, _, _, n) => StaticCond::LifeGainedThisTurn(n),
+        (TurnEvent::LifeLost, TurnWho::You, ..) => StaticCond::LostLifeThisTurn { gained: false },
+        (TurnEvent::LifeLost, ..) => StaticCond::OpponentLostLifeThisTurn,
+        (TurnEvent::Damaged, ..) => StaticCond::OpponentDamagedThisTurn,
+        (TurnEvent::NoncombatDamaged, ..) => {
+            StaticCond::OpponentNoncombatDamagedThisTurn { was: false }
+        }
+        (TurnEvent::CreatureEntered, TurnWho::You, _, 1) => {
+            StaticCond::CreatureEnteredThisTurn { other: count.other }
+        }
+        (TurnEvent::CreatureEntered, who, _, n) => StaticCond::CreaturesEnteredThisTurn {
+            n: u8::try_from(n).unwrap_or(u8::MAX),
+            opponent: who == TurnWho::Opponent,
+        },
+        (TurnEvent::NonlandEntered, _, _, n) => StaticCond::NonlandEnteredThisTurn(n),
+        (TurnEvent::LandEntered, ..) => StaticCond::LandEnteredThisTurn,
+        (TurnEvent::ArtifactEntered, ..) => StaticCond::ArtifactEnteredThisTurn,
+        (TurnEvent::FaceDownEntered, ..) => StaticCond::FaceDownEnteredThisTurn,
+        (TurnEvent::PermanentLeft, ..) => StaticCond::PermanentLeftThisTurn,
+        (TurnEvent::Died, TurnWho::Anyone, _, 1) => StaticCond::CreatureDiedThisTurn,
+        (TurnEvent::Died, who, _, n) => StaticCond::CreaturesDied {
+            n,
+            yours: who == TurnWho::You,
+        },
+        (TurnEvent::ToGraveyard, ..) => {
+            StaticCond::PutIntoGraveyardThisTurn(card_types(count.types))
+        }
+        // Only as void's (an `Or` of both).
+        (TurnEvent::NonlandLeft | TurnEvent::Warped, ..) => StaticCond::Void,
+        (TurnEvent::CreatureLeft, ..) => unreachable!("only counted"),
+        (TurnEvent::Drew, _, _, n) => StaticCond::CardsDrawnThisTurn(n),
+        (TurnEvent::Discarded, ..) => StaticCond::DiscardedThisTurn,
+        (TurnEvent::Descended, ..) => StaticCond::DescendedThisTurn,
+        (TurnEvent::LeftGraveyard, ..) => StaticCond::LeftGraveyardThisTurn,
+        (TurnEvent::CardToGraveyard, ..) => {
+            StaticCond::CardToGraveyardThisTurn(card_types(count.types))
+        }
+        (TurnEvent::Sacrificed, ..) => StaticCond::SacrificedThisTurn(card_types(count.types)),
+        (TurnEvent::Scried | TurnEvent::Surveilled, ..) => StaticCond::SurveilledThisTurn,
+        (TurnEvent::Crime, ..) => StaticCond::CrimeThisTurn,
+        (TurnEvent::PlusCountersOn, ..) => StaticCond::CounterPutThisTurn,
+        (TurnEvent::PlusCountersBy, ..) => StaticCond::PutCounterThisTurn,
+        (TurnEvent::CountersOnCreatureBy, ..) => StaticCond::PutAnyCounterThisTurn,
+        (TurnEvent::Attacked, ..) => StaticCond::AttackedThisTurn,
+        (TurnEvent::Equipped, ..) => unreachable!("only the first equip ability"),
+        (TurnEvent::AssassinDamage, ..) => unreachable!("only freerunning's alternative cost"),
+        (TurnEvent::Entered, ..) => unreachable!("only with a filter"),
+        (TurnEvent::Cast, _, Cmp::Exactly, n) => StaticCond::SpellNumber(n + 1),
+        (TurnEvent::Cast, ..) => StaticCond::NoSpellsCastThisTurn { from_hand: false },
+        (TurnEvent::CastFromHand, ..) => StaticCond::NoSpellsCastThisTurn { from_hand: true },
+    }
 }
 
 fn colors(c: ColorSet) -> Vec<Color> {
@@ -610,23 +679,10 @@ impl Decompiler<'_> {
                     attacking: *attacking,
                 }
             }
-            StaticCondition::AttackedThisTurn => StaticCond::AttackedThisTurn,
             StaticCondition::UnlockedDoors(n) => StaticCond::UnlockedDoors(*n),
-            StaticCondition::AttackedWith(f) => StaticCond::AttackedWith(self.filter(f)),
-            StaticCondition::EnteredWith { filter, had } => StaticCond::EnteredWith {
-                filter: self.filter(filter),
-                had: *had,
-            },
             StaticCondition::SourceAttackedBattle => StaticCond::AttackedBattleThisTurn,
             StaticCondition::AttackedLastTurn => StaticCond::AttackedLastTurn,
-            StaticCondition::CreatureDiedThisTurn => StaticCond::CreatureDiedThisTurn,
-            StaticCondition::OpponentDamagedThisTurn => StaticCond::OpponentDamagedThisTurn,
-            StaticCondition::OpponentLostLifeThisTurn => StaticCond::OpponentLostLifeThisTurn,
             StaticCondition::ProwlDamage(_) => unreachable!("only prowl's alternative cost"),
-            StaticCondition::AssassinDealtCombatDamage => {
-                unreachable!("only freerunning's alternative cost")
-            }
-            StaticCondition::PermanentLeftThisTurn => StaticCond::PermanentLeftThisTurn,
             StaticCondition::Escaped => StaticCond::Escaped,
             StaticCondition::Kicked => StaticCond::Kicked,
             StaticCondition::Bargained => StaticCond::Bargained,
@@ -640,23 +696,20 @@ impl Decompiler<'_> {
             StaticCondition::NotKicked => StaticCond::NotKicked,
             StaticCondition::ThatKicked => StaticCond::ThatKicked,
             StaticCondition::Impending => StaticCond::Impending,
+            StaticCondition::And(a, b)
+                if **a == StaticCondition::happened(TurnEvent::LifeLost, TurnWho::You)
+                    && **b == StaticCondition::happened(TurnEvent::LifeGained, TurnWho::You) =>
+            {
+                StaticCond::LostLifeThisTurn { gained: true }
+            }
             StaticCondition::And(a, b) => {
                 StaticCond::And(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
             }
-            StaticCondition::CreaturesDied { n, yours } => StaticCond::CreaturesDied {
-                n: *n,
-                yours: *yours,
-            },
             StaticCondition::OpponentMoreLands => StaticCond::OpponentMoreLands,
             StaticCondition::OpponentHasMore(w) => StaticCond::OpponentHasMore(*w),
-            StaticCondition::Void => StaticCond::Void,
             StaticCondition::NotYourMainPhase => StaticCond::NotYourMainPhase,
             StaticCondition::NotCastFrom(_) => StaticCond::NotCastFromHand,
             StaticCondition::WasCast => StaticCond::WasCast,
-            StaticCondition::PutAnyCounterThisTurn => StaticCond::PutAnyCounterThisTurn,
-            StaticCondition::AttackedWithAtLeast(f, n) => {
-                StaticCond::AttackedWithAtLeast(self.filter(f), *n)
-            }
             StaticCondition::TotalToughness(n) => StaticCond::TotalToughness(*n),
             StaticCondition::SneakPaid(p) => StaticCond::SneakPaid(*p),
             StaticCondition::ProwlPaid => StaticCond::ProwlPaid,
@@ -666,9 +719,6 @@ impl Decompiler<'_> {
             StaticCondition::OffspringPaid => unreachable!("only offspring's trigger"),
             StaticCondition::Chose(_) => unreachable!("only a named option's ability"),
             StaticCondition::Saddled => StaticCond::Saddled,
-            StaticCondition::LandEnteredThisTurn => StaticCond::LandEnteredThisTurn,
-            StaticCondition::ArtifactEnteredThisTurn => StaticCond::ArtifactEnteredThisTurn,
-            StaticCondition::CardsDrawnThisTurn(n) => StaticCond::CardsDrawnThisTurn(*n),
             StaticCondition::GraveyardCards { filter, at_least } => StaticCond::GraveyardCards {
                 filter: unowned(filter),
                 at_least: *at_least,
@@ -680,6 +730,24 @@ impl Decompiler<'_> {
             }
             StaticCondition::SorceryTiming => StaticCond::Not(Box::new(StaticCond::FlashPay(2))),
             StaticCondition::Not(a) => StaticCond::Not(Box::new(self.static_cond(a))),
+            StaticCondition::Or(a, b)
+                if **a == StaticCondition::happened(TurnEvent::Scried, TurnWho::You)
+                    && **b == StaticCondition::happened(TurnEvent::Surveilled, TurnWho::You) =>
+            {
+                StaticCond::ScriedOrSurveilledThisTurn
+            }
+            StaticCondition::Or(a, b)
+                if **a == StaticCondition::happened(TurnEvent::NonlandLeft, TurnWho::Anyone)
+                    && **b == StaticCondition::happened(TurnEvent::Warped, TurnWho::Anyone) =>
+            {
+                StaticCond::Void
+            }
+            StaticCondition::Or(a, b)
+                if **a == StaticCondition::happened(TurnEvent::LifeGained, TurnWho::You)
+                    && **b == StaticCondition::happened(TurnEvent::LifeLost, TurnWho::You) =>
+            {
+                StaticCond::GainedLifeThisTurn { or_lost: true }
+            }
             StaticCondition::Or(a, b) => {
                 StaticCond::Or(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
             }
@@ -699,73 +767,31 @@ impl Decompiler<'_> {
             StaticCondition::SourceBlocked => StaticCond::Blocked,
             StaticCondition::SourceBeingBlocked => StaticCond::BeingBlocked,
             StaticCondition::AttachedIs(f) => StaticCond::AttachedIs(unowned(f)),
-            StaticCondition::DrawnThisTurn(n) => StaticCond::DrawnThisTurn(*n),
-            StaticCondition::CastThisTurn {
-                filter,
-                at_least,
-                other,
-            } => StaticCond::CastThisTurn {
-                filter: unowned(filter),
-                at_least: *at_least,
-                other: *other,
-            },
             StaticCondition::CastFrom(z) => StaticCond::CastFrom(*z),
-            StaticCondition::LostLifeThisTurn { gained } => {
-                StaticCond::LostLifeThisTurn { gained: *gained }
-            }
-            StaticCondition::GainedLifeThisTurn { or_lost } => {
-                StaticCond::GainedLifeThisTurn { or_lost: *or_lost }
-            }
-            StaticCondition::DescendedThisTurn => StaticCond::DescendedThisTurn,
-            StaticCondition::SpellNumber(n) => StaticCond::SpellNumber(*n),
-            StaticCondition::SurveilledThisTurn => StaticCond::SurveilledThisTurn,
-            StaticCondition::ScriedOrSurveilledThisTurn => StaticCond::ScriedOrSurveilledThisTurn,
-            StaticCondition::CreaturesEnteredThisTurn { n, opponent } => {
-                StaticCond::CreaturesEnteredThisTurn {
-                    n: *n,
-                    opponent: *opponent,
-                }
-            }
-            StaticCondition::CounterPutThisTurn => StaticCond::CounterPutThisTurn,
-            StaticCondition::FaceDownEnteredThisTurn => StaticCond::FaceDownEnteredThisTurn,
-            StaticCondition::CreatureEnteredThisTurn { other } => {
-                StaticCond::CreatureEnteredThisTurn { other: *other }
-            }
-            StaticCondition::NonlandEnteredThisTurn(n) => StaticCond::NonlandEnteredThisTurn(*n),
-            StaticCondition::PutIntoGraveyardThisTurn(t) => StaticCond::PutIntoGraveyardThisTurn(
-                crate::render::CARD_TYPES
-                    .into_iter()
-                    .filter(|c| t.contains(*c))
-                    .collect(),
-            ),
-            StaticCondition::DiscardedThisTurn => StaticCond::DiscardedThisTurn,
             StaticCondition::Night => StaticCond::Night,
-            StaticCondition::LifeGainedThisTurn(n) => StaticCond::LifeGainedThisTurn(*n),
-            StaticCondition::CrimeThisTurn => StaticCond::CrimeThisTurn,
             StaticCondition::YourMainPhase => StaticCond::YourMainPhase,
             StaticCondition::YourCombatPhase => StaticCond::YourCombatPhase,
             StaticCondition::FirstCombatPhase => StaticCond::FirstCombatPhase,
-            StaticCondition::PutCounterThisTurn => StaticCond::PutCounterThisTurn,
             StaticCondition::NthResolution(n) => StaticCond::NthResolution {
                 n: *n,
                 again: false,
             },
-            StaticCondition::OpponentNoncombatDamagedThisTurn => {
-                StaticCond::OpponentNoncombatDamagedThisTurn { was: false }
-            }
-            StaticCondition::LeftGraveyardThisTurn => StaticCond::LeftGraveyardThisTurn,
-            StaticCondition::SacrificedThisTurn(t) => StaticCond::SacrificedThisTurn(
-                crate::render::CARD_TYPES
-                    .into_iter()
-                    .filter(|c| t.contains(*c))
-                    .collect(),
-            ),
-            StaticCondition::CardToGraveyardThisTurn(t) => StaticCond::CardToGraveyardThisTurn(
-                crate::render::CARD_TYPES
-                    .into_iter()
-                    .filter(|c| t.contains(*c))
-                    .collect(),
-            ),
+            StaticCondition::Happened { count, cmp, n } => match count.filter.as_deref() {
+                Some(f) => match count.kind {
+                    TurnEvent::Attacked if *n == 1 => StaticCond::AttackedWith(self.filter(f)),
+                    TurnEvent::Attacked => StaticCond::AttackedWithAtLeast(self.filter(f), *n),
+                    TurnEvent::Entered => StaticCond::EnteredWith {
+                        filter: self.filter(f),
+                        had: false,
+                    },
+                    _ => StaticCond::CastThisTurn {
+                        filter: unowned(f),
+                        at_least: *n,
+                        other: count.other,
+                    },
+                },
+                None => happened(count, *cmp, *n),
+            },
             StaticCondition::MoreCardsInHand => StaticCond::MoreCardsInHand,
             StaticCondition::OpponentPoison(n) => StaticCond::OpponentPoison(*n),
             StaticCondition::OwnCardInExile => StaticCond::OwnCardInExile,
@@ -777,11 +803,6 @@ impl Decompiler<'_> {
             StaticCondition::EnduringStory => StaticCond::EnduringStory,
             StaticCondition::NoEnduringStory => StaticCond::NoEnduringStory,
             StaticCondition::MaxSpeed => StaticCond::MaxSpeed,
-            StaticCondition::NoSpellsCastThisTurn { from_hand } => {
-                StaticCond::NoSpellsCastThisTurn {
-                    from_hand: *from_hand,
-                }
-            }
             StaticCondition::TotalPower(n) => StaticCond::TotalPower(*n),
             StaticCondition::DifferentPowers(n) => StaticCond::DifferentPowers(*n),
             StaticCondition::During(t) => StaticCond::During(*t),
@@ -2912,8 +2933,8 @@ impl Decompiler<'_> {
                 StaticCondition::Kicked if *kind == mtg_core::card::CounterKind::PlusOnePlusOne => {
                     Ability::Mechanic(crate::ast::Mechanic::KickedWith(*n, None, Vec::new()))
                 }
-                StaticCondition::OpponentDamagedThisTurn
-                    if *kind == mtg_core::card::CounterKind::PlusOnePlusOne =>
+                c if *c == StaticCondition::happened(TurnEvent::Damaged, TurnWho::Opponent)
+                    && *kind == mtg_core::card::CounterKind::PlusOnePlusOne =>
                 {
                     Ability::Mechanic(crate::ast::Mechanic::Bloodthirst(*n))
                 }

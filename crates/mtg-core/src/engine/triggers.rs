@@ -1351,7 +1351,7 @@ impl GameState {
             (TriggerSpec::GainsLifeFirst { whose }, Event::LifeChange { player, delta, .. }) => {
                 (*delta > 0
                     && whose_ok(*whose, *player)
-                    && self.turn_log.life_gained[player.index().min(3)] == delta.unsigned_abs())
+                    && self.tallied(crate::card::TurnEvent::LifeGained, *player) == delta.unsigned_abs())
                 .then_some((None, Some(*player)))
             }
             (TriggerSpec::BecomesAttachedTo(f), Event::Attached { obj, to }) => {
@@ -1575,7 +1575,7 @@ impl GameState {
                 .then_some((Some(*spell), Some(*player)))
             }
             (TriggerSpec::DrawsNth { whose, n }, Event::Draw { player, .. }) => {
-                (whose_ok(*whose, *player) && self.drawn_this_turn[player.index().min(3)] == *n)
+                (whose_ok(*whose, *player) && self.tallied(crate::card::TurnEvent::Drew, *player) == u32::from(*n))
                     .then_some((None, Some(*player)))
             }
             // Valiant: by a spell or ability its controller controls, the
@@ -1756,7 +1756,8 @@ impl GameState {
                 (whose_ok(*whose, *player) && from_exile).then_some((Some(*spell), Some(*player)))
             }
             (TriggerSpec::CastsNth { whose, nth }, Event::Cast { player, spell, .. }) => {
-                let n = self.spells_this_turn[player.index().min(3)];
+                let n = u8::try_from(self.tallied(crate::card::TurnEvent::Cast, *player))
+                    .unwrap_or(u8::MAX);
                 (whose_ok(*whose, *player) && nth.holds(n, self.active_player == *player))
                     .then_some((Some(*spell), Some(*player)))
             }

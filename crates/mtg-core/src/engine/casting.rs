@@ -1258,9 +1258,6 @@ impl GameState {
                         .unwrap_or(0),
                 };
             }
-            CountExpr::CreaturesLeftThisTurn => {
-                usize::from(self.turn_log.creatures_left[you.index().min(3)])
-            }
             CountExpr::TargetColors(n) => match ctx.targets.get(*n) {
                 Some(Target::Object(id)) => self
                     .characteristics_or_lki(*id)
@@ -1274,22 +1271,6 @@ impl GameState {
                     .map(|c| self.pool.get(c.def).mana_cost.mana_value())
                     .max()
                     .unwrap_or(0);
-            }
-            CountExpr::CardsDrawnThisTurn => {
-                return u32::from(self.drawn_this_turn[you.index().min(3)]);
-            }
-            CountExpr::SpellsCastThisTurn { other } => {
-                let n = self
-                    .cast_this_turn
-                    .iter()
-                    .filter(|(p, _)| *p == you)
-                    .count();
-                let own = *other
-                    && self
-                        .objects
-                        .get(ctx.source)
-                        .is_some_and(|o| o.zone == Zone::Stack && o.cast.cast_from().is_some());
-                return u32::try_from(n.saturating_sub(usize::from(own))).unwrap_or(u32::MAX);
             }
             CountExpr::OtherInstantSorceryCast { before } => {
                 let pool = &self.pool;
@@ -1355,23 +1336,12 @@ impl GameState {
                 }
                 seen.len()
             }
-            // Only the active player declares attackers (CR 508.1).
-            CountExpr::AttackedWithThisTurn if self.active_player == you => {
-                self.attackers_this_turn.len()
-            }
-            CountExpr::AttackedWithThisTurn => 0,
             CountExpr::CardsInOpponentsGraveyards(f) => {
                 let f = f.as_ref().map(|f| self.chosen_filter(f, ctx));
                 let players: SmallVec<[PlayerId; 4]> =
                     self.players_in_game().filter(|p| *p != you).collect();
                 self.graveyard_count(&players, f.as_deref(), you)
             }
-            // Judged on the creatures as they last existed (CR 700.4).
-            CountExpr::DiedThisTurn(f) => self
-                .died_this_turn
-                .iter()
-                .filter(|(id, controller, c)| f.matches(*id, *controller, c, None, Some(you)))
-                .count(),
             CountExpr::GreatestPowerInGraveyard(f) => {
                 return u32::try_from(self.greatest_power_in_graveyard(you, f).max(0)).unwrap_or(0);
             }
@@ -1437,9 +1407,7 @@ impl GameState {
                     .eval_count(a, ctx)
                     .saturating_add(self.eval_count(b, ctx));
             }
-            CountExpr::LifeLostThisTurn => {
-                return self.life_lost_this_turn[you.index().min(3)];
-            }
+            CountExpr::Happened(c) => return self.turn_count(c, you, ctx.source),
             // CR 608.2h: once the source has left the battlefield, the
             // counters it had there.
             CountExpr::SourceCounters(kind) => {
@@ -1482,22 +1450,6 @@ impl GameState {
                     .as_ref()
                     .map_or(0, |log| if *excess { log.excess } else { log.damage });
             }
-            CountExpr::LifeGainedThisTurn => {
-                return self.turn_log.life_gained[you.index().min(3)];
-            }
-            CountExpr::SacrificedThisTurn => {
-                return u32::from(self.turn_log.sacrificed_n[you.index().min(3)]);
-            }
-            // Every attacker declared this turn, by any player (CR 508.1).
-            CountExpr::AttackedThisTurn => self.attackers_this_turn.len(),
-            CountExpr::OpponentsLostLife => self
-                .players_in_game()
-                .filter(|p| *p != you && self.lost_life_this_turn & (1 << p.index().min(7)) != 0)
-                .count(),
-            CountExpr::CreaturesEnteredThisTurn => {
-                usize::from(self.turn_log.creatures_entered[you.index().min(3)])
-            }
-            CountExpr::DiscardedThisTurn => usize::from(self.turn_log.discards[you.index().min(3)]),
 
             CountExpr::OpponentsMoreCards => {
                 let mine = self.player(you).hand.len();
@@ -3407,7 +3359,8 @@ impl GameState {
                             && !self.activated_once.contains(&(*src, *a))
                     }
                     FreeCastLimit::FirstEachPlayer => {
-                        self.active_player == p && self.spells_this_turn[p.index().min(3)] == 0
+                        self.active_player == p
+                            && self.tallied(crate::card::TurnEvent::Cast, p) == 0
                     }
                 };
                 if !ok_player {
@@ -3548,19 +3501,19 @@ impl GameState {
             // the spell being cast isn't cast until its costs are paid (CR
             // 601.2i), so it is never among the spells counted, even once
             // it is on the stack paying them.
-            let met = if let crate::card::StaticCondition::CastThisTurn {
-                filter,
-                at_least,
-                other: true,
-            } = cond
+            let met = if let crate::card::StaticCondition::Happened { count, cmp, n } = cond
+                && count.kind == crate::card::TurnEvent::Cast
+                && count.other
+                && let Some(filter) = &count.filter
             {
-                self.cast_this_turn
+                let cast = self
+                    .cast_this_turn
                     .iter()
                     .filter(|(q, def)| {
                         *q == p && filter.matches_characteristics(&self.printed(*def))
                     })
-                    .count()
-                    >= *at_least as usize
+                    .count();
+                cmp.holds(u32::try_from(cast).unwrap_or(u32::MAX), *n)
             } else {
                 self.condition_now(cond, p, id)
             };
@@ -5705,7 +5658,7 @@ impl GameState {
                 } = self.pool.ability(*a)
                 {
                     if ab.is_equip()
-                        && self.turn_log.equipped & (1 << p.index().min(7)) == 0
+                        && self.tallied(crate::card::TurnEvent::Equipped, p) == 0
                         && (!*your_turns || self.active_player == p)
                         && condition
                             .is_none_or(|i| self.condition_now(self.pool.condition(i), p, *id))
@@ -6668,7 +6621,6 @@ impl GameState {
     /// ability however many such targets it has.
     fn check_crime(&mut self, obj: ObjId) {
         let who = self.objects[obj].controller;
-        let bit = 1 << who.index().min(7);
         if self.objects[obj].targets.iter().any(|t| match t {
             Target::Player(p) => *p != who,
             Target::Object(id) => self.objects.get(*id).is_some_and(|o| {
@@ -6679,10 +6631,7 @@ impl GameState {
                 }
             }),
         }) {
-            if self.turn_log.crime & bit == 0 {
-                self.turn_log.crime |= bit;
-                self.history_bump();
-            }
+            self.log_event(crate::card::TurnEvent::Crime, who, 1);
             self.emit(Event::CommittedCrime { player: who });
         }
     }
@@ -6861,7 +6810,7 @@ impl GameState {
         }
         self.pay_from(controller, &req, &sources, Some(sa.source));
         if ab.is_equip() {
-            self.turn_log.equipped |= 1 << controller.index().min(7);
+            self.log_event(crate::card::TurnEvent::Equipped, controller, 1);
         }
         if ab.cost.crew > 0 {
             for c in self.crew_choice(controller, sa.source, ab.cost.crew, ab.saddles()) {
@@ -8686,8 +8635,6 @@ impl GameState {
                 self.objects[spell].cast.set_conspired(false);
             }
         }
-        let n = &mut self.spells_this_turn[caster.index().min(3)];
-        *n = n.saturating_add(1);
         // "The next spell you cast this turn costs {1} less": used up by
         // this spell, its total cost paid (CR 601.2f-h).
         self.next_spell_less[caster.index().min(3)] = 0;
@@ -8716,13 +8663,13 @@ impl GameState {
             self.uncounterable_spells.push(spell);
         }
         self.cast_this_turn.push((caster, def_ref));
+        self.log_event(crate::card::TurnEvent::Cast, caster, 1);
         if self.objects[spell].cast.cast_from() == Some(Zone::Hand) {
-            self.turn_log.cast_from_hand |= 1 << caster.index().min(7);
+            self.log_event(crate::card::TurnEvent::CastFromHand, caster, 1);
         }
         // Void: "a spell was warped this turn" (CR 702.185).
-        if self.objects[spell].alt == crate::state::AltCast::Warp && !self.turn_log.warped {
-            self.turn_log.warped = true;
-            self.history_bump();
+        if self.objects[spell].alt == crate::state::AltCast::Warp {
+            self.log_event(crate::card::TurnEvent::Warped, caster, 1);
         }
         // "As long as you've cast an instant or sorcery spell this turn":
         // the cast is recorded after the card left its zone, so a
@@ -8827,15 +8774,13 @@ impl GameState {
     pub(super) fn scry_or_surveil(&mut self, p: PlayerId, n: u32, graveyard: bool) {
         // "If you've surveilled this turn" (CR 701.25c: surveil 0 is no
         // surveil).
-        if graveyard && n > 0 && self.turn_log.surveilled & (1 << p.index().min(7)) == 0 {
-            self.turn_log.surveilled |= 1 << p.index().min(7);
-            self.history_bump();
+        if graveyard && n > 0 {
+            self.log_event(crate::card::TurnEvent::Surveilled, p, 1);
         }
         // "If you've scried or surveilled this turn" (CR 701.22b: scry 0
         // is no scry).
-        if !graveyard && n > 0 && self.turn_log.scried & (1 << p.index().min(7)) == 0 {
-            self.turn_log.scried |= 1 << p.index().min(7);
-            self.history_bump();
+        if !graveyard && n > 0 {
+            self.log_event(crate::card::TurnEvent::Scried, p, 1);
         }
         let lib = &self.player(p).library;
         let n = (n as usize).min(lib.len()).min(4);
