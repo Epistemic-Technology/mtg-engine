@@ -1,0 +1,6 @@
+card "Crackle with Power" {
+  oracle_id 273f5483-b67e-4dd6-bba8-c0a047fa34d7
+  cost {X}{X}{X}{R}{R}
+  type Sorcery
+  spell: deal 5 times X damage to up to X targets
+}

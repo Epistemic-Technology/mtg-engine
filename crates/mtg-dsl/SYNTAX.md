@@ -2737,7 +2737,10 @@ untapped creature you control; target 1 bites target creature an opponent
 controls`, Coordinated Clobbering: scenarios script the creature an
 opponent controls first; in a `choose two` pair whose first mode ends
 with a group, the second mode's targets come first): `X target creature` ("X target creatures": exactly X, the spell's
-X, which can't exceed what there is to target), `1 to 2 target creature`
+X, which can't exceed what there is to target), `up to X target card`
+("up to X target cards": at most the spell's X, any number of them; as
+the amount's only recipient, "deals five times X damage to each of up
+to X targets"), `1 to 2 target creature`
 ("one or two target creatures"; `1 to 3` prints "one, two, or three"),
 `any number of target player`, and `1 to 2 targets` / `any number of
 targets` for "any target". Later mentions (`target 1`) print "them" or

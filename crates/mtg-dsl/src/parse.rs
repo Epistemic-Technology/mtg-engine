@@ -11326,6 +11326,7 @@ impl P {
     fn at_many(&self) -> bool {
         let target = |k: usize| matches!(self.word_at(k).as_deref(), Some("target" | "targets"));
         (self.at_word("x") && target(1))
+            || (self.at_words(&["up", "to", "x"]) && target(3))
             || (self.at_words(&["any", "number", "of"])
                 && (target(3) || (self.word_at(3).as_deref() == Some("another") && target(4))))
             || (matches!(self.peek(), Some(Tok::Num(_)))
@@ -11338,6 +11339,9 @@ impl P {
     fn many_target(&mut self) -> R<Recipient> {
         let (min, max) = if self.eat_word("x") {
             (Num::X, Some(Num::X))
+        } else if self.eat_words(&["up", "to", "x"]) {
+            // "up to X target cards" (CR 601.2c).
+            (Num::N(0), Some(Num::X))
         } else if self.eat_words(&["any", "number", "of"]) {
             (Num::N(0), None)
         } else {

@@ -1526,7 +1526,8 @@ fn all_subject(oracle: &str, who: String) -> String {
 /// The count of a variable target group in DSL form and the rest of the
 /// phrase ("one or two target creatures" → `1 to 2`, "target creatures").
 fn many_count(s: &str) -> Option<(&'static str, &str)> {
-    const COUNTS: [(&str, &str); 4] = [
+    const COUNTS: [(&str, &str); 5] = [
+        ("up to X ", "up to X"),
         ("X ", "X"),
         ("one or two ", "1 to 2"),
         ("one, two, or three ", "1 to 3"),

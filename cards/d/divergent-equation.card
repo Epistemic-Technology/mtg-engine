@@ -1,0 +1,9 @@
+card "Divergent Equation" {
+  oracle_id 84681f12-2978-4f62-ab89-b579033c5192
+  cost {X}{X}{U}
+  type Instant
+  spell {
+    return up to X target andor instant or sorcery card from your graveyard to hand
+    exile this
+  }
+}

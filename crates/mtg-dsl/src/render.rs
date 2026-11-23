@@ -1465,6 +1465,8 @@ impl<'a> Ctx<'a> {
             let count = match max {
                 None => "any number of".to_string(),
                 Some(m) if m == min => count_words(*m, "one"),
+                // "up to X target cards".
+                Some(Num::X) if *min == Num::N(0) => "up to X".to_string(),
                 Some(Num::N(m)) => {
                     let lo = match min {
                         Num::N(n) => *n,
@@ -2149,6 +2151,10 @@ impl<'a> Ctx<'a> {
     fn fresh_target_group(&self, rs: &[Recipient]) -> bool {
         match rs {
             [Recipient::Targets(a, n)] => *n > 1 && !self.target_mentioned[*a],
+            // "deals five times X damage to each of up to X targets".
+            [Recipient::Target(i)] => {
+                !self.target_mentioned[*i] && matches!(self.targets[*i], Target::Many { .. })
+            }
             [Recipient::Target(first), _, ..] => rs.iter().all(|r| {
                 matches!(r, Recipient::Target(i)
                     if !self.target_mentioned[*i] && self.targets[*i] == self.targets[*first])

@@ -3143,6 +3143,8 @@ fn many_prefix(min: Num, max: Option<Num>) -> String {
     match max {
         None => "any number of".to_string(),
         Some(m) if m == min => num(m),
+        // `up to X target card`: "up to X target cards" (CR 601.2c).
+        Some(Num::X) if min == Num::N(0) => "up to X".to_string(),
         Some(m) => format!("{} to {}", num(min), num(m)),
     }
 }

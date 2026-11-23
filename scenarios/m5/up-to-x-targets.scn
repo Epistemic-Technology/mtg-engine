@@ -1,0 +1,53 @@
+# "up to X target cards" (CR 601.2c): a variable group of at most the
+# spell's X targets, any number of them chosen.
+
+scenario "up to X targets: Divergent Equation with X 2 returns two instants" {
+  battlefield A: 5 "Island"
+  hand A: "Divergent Equation"
+  graveyard A: "Shock", "Opt", "Grizzly Bears"
+  turn 1 A: cast "Divergent Equation" x 2 targeting "Shock", "Opt"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+  assert hand A contains "Opt"
+  assert graveyard A contains "Grizzly Bears"
+  assert exile A contains "Divergent Equation"
+}
+
+scenario "up to X targets: Divergent Equation with X 2 may target just one" {
+  battlefield A: 5 "Island"
+  hand A: "Divergent Equation"
+  graveyard A: "Shock", "Opt"
+  turn 1 A: cast "Divergent Equation" x 2 targeting "Shock"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+  assert graveyard A contains "Opt"
+}
+
+scenario "up to X targets: Divergent Equation can't target more than X" {
+  battlefield A: 5 "Island"
+  hand A: "Divergent Equation"
+  graveyard A: "Shock", "Opt", "Lightning Bolt"
+  illegal turn 1 A: cast "Divergent Equation" x 1 targeting "Shock", "Opt"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Divergent Equation"
+}
+
+scenario "up to X targets: Divergent Equation can't target a creature card" {
+  battlefield A: 5 "Island"
+  hand A: "Divergent Equation"
+  graveyard A: "Grizzly Bears"
+  illegal turn 1 A: cast "Divergent Equation" x 1 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Divergent Equation"
+}
+
+scenario "each of up to X targets: Crackle with Power with X 2 deals 10 damage to each of two targets" {
+  battlefield A: 8 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Crackle with Power"
+  life B 20
+  turn 1 A: cast "Crackle with Power" x 2 targeting "Serra Angel", player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert life B 10
+}
