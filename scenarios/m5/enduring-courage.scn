@@ -1,0 +1,32 @@
+# "When Enduring Courage dies, if it was a creature, return it to the
+# battlefield under its owner's control. It's an enchantment." (CR
+# 603.10a: judged as it last existed).
+
+scenario "Enduring Courage: returns as an enchantment, and pumps an entering creature" {
+  battlefield A: 2 "Forest", "Enduring Courage"
+  battlefield B: 2 "Swamp"
+  hand A: "Grizzly Bears"
+  hand B: "Doom Blade"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Doom Blade" targeting "Enduring Courage"
+  turn 3 A: cast "Grizzly Bears"
+  run_to turn 2 end
+  assert battlefield A contains "Enduring Courage"
+  assert is not "Enduring Courage" creature
+  assert is "Enduring Courage" enchantment
+  run_to turn 3 combat_damage
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" haste
+}
+
+scenario "Enduring Courage: destroyed as an enchantment, it stays in the graveyard" {
+  battlefield A: "Enduring Courage"
+  battlefield B: 2 "Swamp", "Forest", "Plains"
+  hand B: "Doom Blade", "Disenchant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Doom Blade" targeting "Enduring Courage"
+  turn 2 B: wait
+  turn 2 B: cast "Disenchant" targeting "Enduring Courage"
+  run_to turn 2 end
+  assert graveyard A contains "Enduring Courage"
+}

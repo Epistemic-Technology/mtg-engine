@@ -7978,6 +7978,12 @@ impl Builder<'_> {
             {
                 // The source's own cast (CR 601.2a), from any zone.
                 (" if you cast it", r)
+            } else if let Some(r) = rest
+                .strip_prefix("if it was a creature, ")
+                .filter(|_| trigger == "when this dies")
+            {
+                // As it last existed (CR 603.10a): the Enduring cycle.
+                (" if this is creature", r)
             } else if let Some(r) = rest.strip_prefix("if tribute wasn't paid, ") {
                 // CR 702.104b.
                 (" if tribute not paid", r)
@@ -8012,6 +8018,13 @@ impl Builder<'_> {
                 && rest.trim_end_matches('.') == "return that card to its owner's hand"
             {
                 "return triggering card to hand".to_string()
+            } else if trigger == "when this dies"
+                && condition == " if this is creature"
+                && rest.trim_end_matches('.')
+                    == "return it to the battlefield under its owner's control. It's an enchantment"
+            {
+                // The Enduring cycle (CR 205.1a: no longer a creature).
+                "return this to battlefield; it is now enchantment".to_string()
             } else {
                 self.templates.effects(rest, &mut targets)?
             };
@@ -8969,6 +8982,16 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         if found {
             short = Some(first.to_string());
         }
+    }
+    // "When Enduring Courage dies, ...": a nonlegendary permanent whose
+    // text calls it by its full name (the Enduring cycle) gets that name
+    // as its `short_name`, so `this` prints it.
+    if short.is_none()
+        && !type_line.contains("Legendary")
+        && oracle.contains("When ~ dies")
+        && !oracle.contains("named ~")
+    {
+        short = Some(s.name.clone());
     }
     // A character's text calls it "he" or "she"; the templates read "it"
     // and the card gets a `pronoun` line.
