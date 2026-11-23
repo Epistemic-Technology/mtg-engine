@@ -2363,6 +2363,10 @@ impl Decompiler<'_> {
                 CoreReplaces::PlusCounters { on } => Replaces::PlusCounters {
                     on: self.filter(on),
                 },
+                CoreReplaces::AnyCounters { on, by } => Replaces::AnyCounters {
+                    on: self.filter(on),
+                    by: *by,
+                },
                 CoreReplaces::Dies { to } => Replaces::Dies {
                     to: self.affects(to),
                 },

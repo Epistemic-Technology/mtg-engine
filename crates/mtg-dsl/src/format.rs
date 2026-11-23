@@ -668,6 +668,15 @@ impl Fmt {
                 if *effect { " by an effect" } else { "" }
             ),
             Replaces::PlusCounters { on } => format!("+1/+1 counters put on {}", filter(on)),
+            Replaces::AnyCounters { on, by } => format!(
+                "counters {} {}",
+                match by {
+                    mtg_core::card::CountersBy::Any => "put on",
+                    mtg_core::card::CountersBy::Effect => "put by effect on",
+                    mtg_core::card::CountersBy::You => "you put on",
+                },
+                filter(on)
+            ),
             Replaces::Destroy { to } => format!("destroy {}", self.affects(to, targets)),
             Replaces::Dies { to } => format!("{} dies", self.affects(to, targets)),
             Replaces::Enters => "enters".to_string(),

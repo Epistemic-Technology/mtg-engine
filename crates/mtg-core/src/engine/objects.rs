@@ -181,6 +181,17 @@ impl GameState {
         def
     }
 
+    /// Whether a permanent of `def` enters with counters by its own rules
+    /// (`entering_counters`): loyalty, defense, a Saga's lore counter,
+    /// modular, graft, vanishing, fading.
+    pub(super) fn enters_with_own_counters(&self, def: CardRef) -> bool {
+        let d = self.pool.get(def);
+        (d.types.contains(crate::card::CardType::Planeswalker) && d.loyalty > 0)
+            || (d.types.contains(crate::card::CardType::Battle) && d.defense > 0)
+            || d.final_chapter > 0
+            || d.modular + d.graft + d.vanishing + d.fading > 0
+    }
+
     /// Counters a permanent enters the battlefield with: those the event
     /// says ("with a +1/+1 counter"), and a planeswalker's printed loyalty
     /// (CR 306.5b). Nothing off the battlefield.
@@ -194,6 +205,11 @@ impl GameState {
         if to != Zone::Battlefield {
             return counters;
         }
+        let given = [enter.counters, enter.more]
+            .into_iter()
+            .flatten()
+            .filter(|(_, n)| *n > 0)
+            .count();
         for (kind, n) in [enter.counters, enter.more].into_iter().flatten() {
             if n > 0 {
                 counters.push((kind, n));
@@ -230,6 +246,14 @@ impl GameState {
             match counters.iter_mut().find(|(k, _)| *k == kind) {
                 Some((_, n)) => *n += extra,
                 None => counters.push((kind, extra)),
+            }
+        }
+        // Doubling Season and the like on the counters it enters with by
+        // its own rules (CR 122.6); those the event gave were replaced
+        // already. (A kind in both is counted with the event's.)
+        if enter.intrinsic_doubled > 0 || enter.intrinsic_plus > 0 {
+            for (_, n) in counters.iter_mut().skip(given) {
+                *n = (*n << enter.intrinsic_doubled.min(16)) + u32::from(enter.intrinsic_plus);
             }
         }
         counters

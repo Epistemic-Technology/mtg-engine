@@ -8453,6 +8453,7 @@ impl GameState {
                             more: None,
                             haste: false,
                             prepared: false,
+                            ..Default::default()
                         },
                     );
                 } else {
@@ -8519,6 +8520,7 @@ impl GameState {
                 more: None,
                 haste: false,
                 prepared: false,
+                ..Default::default()
             },
         );
         if self

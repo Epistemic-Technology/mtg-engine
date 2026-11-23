@@ -15512,6 +15512,25 @@ impl P {
             self.expect_words(&["counters", "put", "on"])?;
             return Ok(Replaces::PlusCounters { on: self.filter()? });
         }
+        // Counters of any kind (CR 122.6).
+        if self.at_words(&["counters", "put", "on"])
+            || self.at_words(&["counters", "put", "by", "effect", "on"])
+            || self.at_words(&["counters", "you", "put", "on"])
+        {
+            self.pos += 1;
+            let by = if self.eat_words(&["put", "by", "effect", "on"]) {
+                mtg_core::card::CountersBy::Effect
+            } else if self.eat_words(&["you", "put", "on"]) {
+                mtg_core::card::CountersBy::You
+            } else {
+                self.expect_words(&["put", "on"])?;
+                mtg_core::card::CountersBy::Any
+            };
+            return Ok(Replaces::AnyCounters {
+                on: self.filter()?,
+                by,
+            });
+        }
         let combat = if self.eat_word("combat") {
             Some(true)
         } else if self.eat_word("noncombat") {

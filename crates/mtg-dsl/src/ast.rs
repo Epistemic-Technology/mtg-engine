@@ -2982,6 +2982,14 @@ pub enum Replaces {
     PlusCounters {
         on: Filter,
     },
+    /// `counters put on permanent you control` ("If one or more counters
+    /// would be put on ..."), `counters put by effect on ...` ("If an
+    /// effect would put one or more counters on ..."), `counters you put
+    /// on ...` ("If you would put one or more counters on ...").
+    AnyCounters {
+        on: Filter,
+        by: mtg_core::card::CountersBy,
+    },
     Destroy {
         to: Affects,
     },

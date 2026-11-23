@@ -1072,6 +1072,21 @@ Hawkeye's power." (Hawkeye, Young Avenger); for counters, `replace +1/+1 counter
 creature you control: double` prints "If one or more +1/+1 counters would
 be put on a creature you control, twice that many +1/+1 counters are put
 on that creature instead." (also the counters it enters with, CR 122.6).
+Counters of any kind: `replace counters put on creature or Spacecraft or
+Planet you control: double` prints "If one or more counters would be put
+on a creature, Spacecraft, or Planet you control, twice that many of each
+of those kinds of counters are put on it instead." (Loading Zone; `plus
+one`: "that many plus one of each ..."); `replace counters put by effect
+on permanent you control: double` prints "If an effect would put one or
+more counters on a permanent you control, it puts twice that many of those
+counters on that permanent instead." (Doubling Season: not a cost's
+counters); `replace counters you put on permanent you control: plus one`
+prints "If you would put one or more counters on a permanent you control,
+put that many plus one of each of those kinds of counters on that
+permanent instead." (Doc Samson: counters the replacement's controller's
+spells, abilities, and costs put). Each also changes the counters a
+permanent enters with, its own included (a planeswalker's loyalty, a
+Saga's lore counter, modular's, CR 122.6).
 Token creation (CR 111.1, 614.1a): `replace tokens created under your
 control: double` prints "If one or more tokens would be created under your
 control, twice that many of those tokens are created instead." (`... by

@@ -5958,6 +5958,10 @@ pub enum Replaces {
     /// +1/+1 counters would be put on a permanent matching `on`, including
     /// as it enters (CR 122.6).
     PlusCounters { on: ObjFilter },
+    /// Counters of any kind would be put on a permanent matching `on`,
+    /// including as it enters (CR 122.6): "If one or more counters would
+    /// be put on ..." (`by` says whose putting counts).
+    AnyCounters { on: ObjFilter, by: CountersBy },
     /// A permanent would be destroyed (CR 701.7); regeneration shields
     /// (CR 701.15) replace this.
     Destroy { to: Affects },
@@ -5981,6 +5985,20 @@ pub enum Replaces {
         artifact: bool,
         you: bool,
     },
+}
+
+/// Whose putting counters a counter replacement applies to
+/// (`Replaces::AnyCounters`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum CountersBy {
+    /// "If one or more counters would be put on ...": any.
+    Any,
+    /// "If an effect would put one or more counters on ...": an effect's
+    /// (not a cost's, CR 122.6).
+    Effect,
+    /// "If you would put one or more counters on ...": the replacement's
+    /// controller's spells, abilities, and costs.
+    You,
 }
 
 /// What happens instead.

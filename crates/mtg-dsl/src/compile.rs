@@ -4998,6 +4998,10 @@ impl Compiler<'_> {
             Replaces::PlusCounters { on } => CoreReplaces::PlusCounters {
                 on: self.filter(on),
             },
+            Replaces::AnyCounters { on, by } => CoreReplaces::AnyCounters {
+                on: self.filter(on),
+                by: *by,
+            },
             Replaces::Dies { to } => CoreReplaces::Dies {
                 to: self.affects(to),
             },

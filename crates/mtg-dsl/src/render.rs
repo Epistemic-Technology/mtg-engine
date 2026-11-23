@@ -12768,6 +12768,29 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 "permanent"
             }
         ),
+        (Replaces::AnyCounters { on, by }, Outcome::Double | Outcome::PlusOne) => {
+            use mtg_core::card::CountersBy;
+            let on_text = filter_a(on, ctx.card);
+            let many = if r.outcome == Outcome::Double {
+                "twice that many"
+            } else {
+                "that many plus one"
+            };
+            match by {
+                // Doubling Season.
+                CountersBy::Effect => format!(
+                    "If an effect would put one or more counters on {on_text}, it puts {many} of those counters on that permanent instead."
+                ),
+                // Doc Samson.
+                CountersBy::You => format!(
+                    "If you would put one or more counters on {on_text}, put {many} of each of those kinds of counters on that permanent instead."
+                ),
+                // Loading Zone.
+                CountersBy::Any => format!(
+                    "If one or more counters would be put on {on_text}, {many} of each of those kinds of counters are put on it instead."
+                ),
+            }
+        }
         (Replaces::PlusCounters { on }, Outcome::PlusOne) => format!(
             "If one or more +1/+1 counters would be put on {}, that many plus one +1/+1 counters are put on it instead.",
             filter_a(on, ctx.card)

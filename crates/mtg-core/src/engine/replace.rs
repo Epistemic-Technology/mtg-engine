@@ -48,6 +48,12 @@ pub(crate) struct Enter {
     pub haste: bool,
     /// "This creature enters prepared." (CR 722.3a).
     pub prepared: bool,
+    /// The counters it enters with by its own rules (a planeswalker's
+    /// loyalty, a Saga's lore counter, modular's +1/+1 counters, ...),
+    /// doubled this many times and then `plus` added to each kind, by
+    /// replacements of counters of any kind (Doubling Season, CR 122.6).
+    pub intrinsic_doubled: u8,
+    pub intrinsic_plus: u8,
 }
 
 impl Enter {
@@ -659,6 +665,50 @@ impl GameState {
                     n,
                 },
             ) => *n > 0 && self.filter_matches(on, *obj, source, controller),
+            // "If one or more counters would be put on a permanent you
+            // control" (Doubling Season, Loading Zone): any kind.
+            (Replaces::AnyCounters { on, by }, Proposed::AddCounters { obj, n, .. }) => {
+                *n > 0
+                    && match by {
+                        crate::card::CountersBy::Any => true,
+                        crate::card::CountersBy::Effect => self.effect_controller.is_some(),
+                        crate::card::CountersBy::You => {
+                            self.effect_controller.or_else(|| self.objects.get(*obj).map(|o| o.controller))
+                                == Some(controller)
+                        }
+                    }
+                    && self.filter_matches(on, *obj, source, controller)
+            }
+            (
+                Replaces::AnyCounters { on, by },
+                Proposed::ZoneChange {
+                    obj,
+                    to: Zone::Battlefield,
+                    controller: ctl,
+                    enter,
+                    ..
+                },
+            ) => {
+                // CR 122.6: counters it enters with count as being put on
+                // it, by the replacement effect that has it enter so (or
+                // by its own rules: a planeswalker's loyalty).
+                (enter.counters.is_some_and(|(_, n)| n > 0)
+                    || self
+                        .objects
+                        .get(*obj)
+                        .is_some_and(|o| self.enters_with_own_counters(o.def)))
+                    && (*by != crate::card::CountersBy::You
+                        || self.effect_controller.unwrap_or(*ctl) == controller)
+                    && self.objects.get(*obj).is_some_and(|o| {
+                        on.matches(
+                            *obj,
+                            *ctl,
+                            &self.printed(o.def),
+                            Some(source),
+                            Some(controller),
+                        )
+                    })
+            }
             // "Each Dragon you control enters with an additional +1/+1
             // counter on it" (CR 614.1c).
             (
@@ -1245,6 +1295,8 @@ impl GameState {
                     enter: Enter {
                         counters: enter.counters.map(|(k, n)| (k, n.saturating_mul(2))),
                         more: enter.more.map(|(k, n)| (k, n.saturating_mul(2))),
+                        intrinsic_doubled: enter.intrinsic_doubled
+                            + u8::from(matches!(c.ability.replaces, Replaces::AnyCounters { .. })),
                         ..enter
                     },
                 })
@@ -1298,6 +1350,14 @@ impl GameState {
                     controller,
                     enter: Enter {
                         counters: enter.counters.map(|(k, n)| (k, n + 1)),
+                        // "that many plus one of each of those kinds".
+                        more: if matches!(c.ability.replaces, Replaces::AnyCounters { .. }) {
+                            enter.more.map(|(k, n)| (k, n + 1))
+                        } else {
+                            enter.more
+                        },
+                        intrinsic_plus: enter.intrinsic_plus
+                            + u8::from(matches!(c.ability.replaces, Replaces::AnyCounters { .. })),
                         ..enter
                     },
                 })
