@@ -1,0 +1,17 @@
+card "Bruce Banner // The Incredible Hulk" {
+  oracle_id b6c0ee14-2028-4e8b-9acd-ff78821bca9b
+  layout modal_dfc
+  cost {U}
+  type Legendary Creature — Human Scientist Hero
+  pt 1/1
+  activated {X}{X}, {T}, sorcery: draw X cards
+  activated {2}{R}{R}{G}{G}, sorcery: transform this
+  face "The Incredible Hulk" {
+    cost {2}{R}{R}{G}{G}
+    type Legendary Creature — Gamma Berserker Hero
+    pt 8/8
+    pronoun he
+    keywords reach, trample
+    label "Enrage" triggered whenever this is dealt damage: put 1 +1/+1 counter on this; if this is attacking, untap this and additional combat phase after this phase
+  }
+}
