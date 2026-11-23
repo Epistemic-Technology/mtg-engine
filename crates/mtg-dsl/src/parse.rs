@@ -3202,6 +3202,7 @@ impl P {
                         graveyard: false,
                         name: None,
                         old: false,
+                        those: false,
                     }])],
                     equip: false,
                     cycling: true,
@@ -4717,6 +4718,12 @@ impl P {
         }
         if self.eat_words(&["gained", "life", "this", "turn"]) {
             return Ok(StaticCond::GainedLifeThisTurn { or_lost: false });
+        }
+        if self.eat_words(&["lost", "life", "this", "turn"]) {
+            return Ok(StaticCond::LostLifeThisTurn { gained: false });
+        }
+        if self.eat_words(&["gained", "and", "lost", "life", "this", "turn"]) {
+            return Ok(StaticCond::LostLifeThisTurn { gained: true });
         }
         if self.eat_words(&["gained", "or", "lost", "life", "this", "turn"]) {
             return Ok(StaticCond::GainedLifeThisTurn { or_lost: true });
@@ -7945,6 +7952,7 @@ impl P {
                         graveyard,
                         name,
                         old,
+                        those,
                         ..
                     } => Ok(Effect::Search {
                         filter,
@@ -7959,6 +7967,7 @@ impl P {
                         graveyard,
                         name,
                         old,
+                        those,
                     }),
                     _ => self.fail("expected a search"),
                 }
@@ -10507,6 +10516,7 @@ impl P {
                 if old {
                     self.pos += 1;
                 }
+                let those = self.eat_word("those");
                 Ok(Effect::Search {
                     filter,
                     count,
@@ -10520,6 +10530,7 @@ impl P {
                     graveyard,
                     name,
                     old,
+                    those,
                 })
             }
             "add" => {
@@ -15345,6 +15356,10 @@ impl P {
         }
         if self.eat_words(&["it", "had", "counters"]) {
             return Ok(Condition::TriggerHadCounters);
+        }
+        // "if it had no counters on it": of any kind.
+        if self.eat_words(&["it", "had", "no", "counters"]) {
+            return Ok(Condition::HadNoCounters(CounterKind::Any));
         }
         if self.eat_words(&["it", "had", "no"]) {
             let k = self.counter_kind()?;

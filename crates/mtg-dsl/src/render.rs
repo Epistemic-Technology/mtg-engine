@@ -5249,6 +5249,30 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     1,
                 );
             }
+            // "... for up to X basic land cards, where X is the number of
+            // Shrines you control. Put those cards onto the battlefield
+            // tapped, then shuffle.", "... Reveal those cards, put them
+            // into your hand, then shuffle."
+            CountStyle::Where
+                if matches!(e, Effect::Search { those: true, .. })
+                    && (c.text.contains(" cards, put them ")
+                        || c.text.contains(" cards, reveal them, put them ")) =>
+            {
+                let phrase = count_phrase_in(&count.expr, ctx, false);
+                c.text = if c.text.contains(" cards, reveal them, put them ") {
+                    c.text.replacen(
+                        " cards, reveal them, put them ",
+                        &format!(" cards, where X is {phrase}. Reveal those cards, put them "),
+                        1,
+                    )
+                } else {
+                    c.text.replacen(
+                        " cards, put them ",
+                        &format!(" cards, where X is {phrase}. Put those cards "),
+                        1,
+                    )
+                };
+            }
             // "... for up to X basic land cards, where X
             // is the number of lands you control, put them onto the
             // battlefield tapped, then shuffle."
@@ -7214,7 +7238,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "return up to two target creature cards ... from your
             // graveyard to the battlefield" too.
             let yours = match what {
-                Recipient::Target(i) | Recipient::ThatTarget(i) => from_yours(*i),
+                Recipient::Target(i) | Recipient::ThatTarget(i) | Recipient::ChosenTarget(i) => {
+                    from_yours(*i)
+                }
                 Recipient::Targets(first, count) => (*first..*first + *count).all(from_yours),
                 // "Whenever a creature is put into your graveyard from the
                 // battlefield, ... return that card to the battlefield"
@@ -7772,7 +7798,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let second = ctx.obj(Recipient::Target(a + 1));
             Clause::imperative(format!("choose {first} and {second}"))
         }
-        Effect::ChooseTarget(r) => Clause::imperative(format!("choose {}", ctx.obj(*r))),
+        // "choose target artifact card in your graveyard" (Daretti,
+        // Rocketeer Engineer): "in", where a move says "from".
+        Effect::ChooseTarget(r) => Clause::imperative(format!(
+            "choose {}",
+            ctx.obj(*r)
+                .replacen(" from your graveyard", " in your graveyard", 1)
+        )),
         Effect::FlipCoin => Clause::imperative("flip a coin".to_string()),
         Effect::Clash => Clause::imperative("clash with an opponent".to_string()),
         Effect::IfWonClash(inner) => {
@@ -8946,6 +8978,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             graveyard,
             name,
             old,
+            ..
         } => {
             if *graveyard || name.is_some() {
                 return search_named_text(e, ctx);
@@ -12625,6 +12658,9 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         }
         // "if he was kicked" (Josu Vess).
         Condition::Kicked => format!("if {} was kicked", it_subj(ctx.card)),
+        Condition::HadNoCounters(mtg_core::card::CounterKind::Any) => {
+            "if it had no counters on it".to_string()
+        }
         Condition::HadNoCounters(k) => format!("if it had no {} counters on it", counter_name(k)),
         Condition::HadCounters(k) => format!(
             "if it had {} on it",
@@ -15435,6 +15471,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             "you gained {}life this turn",
             if *or_lost { "or lost " } else { "" }
         ),
+        StaticCond::LostLifeThisTurn { gained: false } => "you've lost life this turn".to_string(),
+        StaticCond::LostLifeThisTurn { gained: true } => {
+            "you gained and lost life this turn".to_string()
+        }
         StaticCond::DescendedThisTurn => "you descended this turn".to_string(),
         StaticCond::SpellNumber(n) => {
             format!("it's the {} spell you cast this turn", ordinal_word(*n))
@@ -16607,14 +16647,19 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             }
             // "... cost {1} less to cast for each creature you control with
             // power 4 or greater."
-            let per_text = per
-                .and_then(|n| match n {
-                    Num::Count(i) => card.counts.get(usize::from(i)),
-                    _ => None,
-                })
-                .map_or_else(String::new, |c| {
+            let per_count = per.and_then(|n| match n {
+                Num::Count(i) => card.counts.get(usize::from(i)),
+                _ => None,
+            });
+            // "... cost {X} less to cast, where X is your speed."
+            let per_where = per_count.is_some_and(|c| c.style == crate::ast::CountStyle::Where);
+            let per_text = per_count.map_or_else(String::new, |c| {
+                if per_where {
+                    format!(", where X is {}", count_phrase(&c.expr, card, false))
+                } else {
                     format!(" {}", count_phrase(&c.expr, card, true))
-                });
+                }
+            });
             let head = match cond {
                 Some(StaticCond::NotYourTurn) => "During turns other than yours, ",
                 Some(StaticCond::DuringYourTurn) => "During your turn, ",
@@ -16666,10 +16711,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 Some((cmp, n)) => (f, format!(" with mana value {n}{}", cmp_words(cmp))),
                 None => (filter.clone(), String::new()),
             };
+            let amount = if per_where {
+                "X".to_string()
+            } else {
+                generic.unsigned_abs().to_string()
+            };
             let body = format!(
-                "{} {whose}{mv} cost {{{}}} {more} to cast{per_text}.",
+                "{} {whose}{mv} cost {{{amount}}} {more} to cast{per_text}.",
                 cost_spells_subject(&f, card),
-                generic.unsigned_abs()
             )
             .replace("  ", " ");
             if head.is_empty() {

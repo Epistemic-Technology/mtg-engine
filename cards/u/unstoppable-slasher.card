@@ -1,0 +1,9 @@
+card "Unstoppable Slasher" {
+  oracle_id 6662968e-ca9e-454c-be44-24ad10e43d3e
+  cost {2}{B}
+  type Creature — Zombie Assassin
+  pt 2/3
+  keywords deathtouch
+  triggered whenever this deals combat damage to a player: they lose half life
+  triggered when this dies if it had no counters: return this to battlefield tapped under its owner's control with 2 stun counters
+}

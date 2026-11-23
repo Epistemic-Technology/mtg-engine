@@ -2866,6 +2866,11 @@ pub enum StaticCondition {
     GainedLifeThisTurn {
         or_lost: bool,
     },
+    /// "you've lost life this turn" (CR 119.3); with `gained`, "you
+    /// gained and lost life this turn".
+    LostLifeThisTurn {
+        gained: bool,
+    },
     /// "you descended this turn" (CR 700.11): a permanent card was put
     /// into your graveyard from anywhere.
     DescendedThisTurn,
@@ -10613,6 +10618,7 @@ impl CardPool {
         def.history_static = def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::Static(sa) if matches!(sa.condition, Some(
                 StaticCondition::GainedLifeThisTurn { .. }
+                    | StaticCondition::LostLifeThisTurn { .. }
                     | StaticCondition::LifeGainedThisTurn(_)
                     | StaticCondition::CrimeThisTurn
                     | StaticCondition::PutCounterThisTurn

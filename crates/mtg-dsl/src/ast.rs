@@ -2607,6 +2607,11 @@ pub enum StaticCond {
     GainedLifeThisTurn {
         or_lost: bool,
     },
+    /// `lost life this turn` ("you've lost life this turn"), `gained and
+    /// lost life this turn` ("you gained and lost life this turn").
+    LostLifeThisTurn {
+        gained: bool,
+    },
     /// `descended this turn`: "you descended this turn".
     DescendedThisTurn,
     /// `spell number 2 this turn`: the spell being cast would be your
@@ -4507,6 +4512,11 @@ pub enum Effect {
         /// `... to battlefield that card then`: the older wording "and put
         /// that card onto the battlefield. Then shuffle." (wording only).
         old: bool,
+        /// `... to battlefield tapped those`: a count-sized search's
+        /// newer wording, "..., where X is .... Put those cards onto the
+        /// battlefield tapped" ("Reveal those cards, put them into your
+        /// hand") (wording only).
+        those: bool,
     },
     /// `add {B}{B}`, `add any`: "Add {B}{B}.", "Add one mana of any
     /// color." (CR 106.4).

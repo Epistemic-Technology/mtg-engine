@@ -4276,6 +4276,11 @@ impl GameState {
                 .get(source)
                 .or_else(|| self.lki.get(&source).map(|l| &l.object))
                 .is_some_and(|o| o.cast.cast_from() == Some(*zone)),
+            C::LostLifeThisTurn { gained } => {
+                let bit = 1 << you.index().min(7);
+                self.lost_life_this_turn & bit != 0
+                    && (!*gained || self.turn_log.gained_life & bit != 0)
+            }
             C::GainedLifeThisTurn { or_lost } => {
                 let bit = 1 << you.index().min(7);
                 self.turn_log.gained_life & bit != 0

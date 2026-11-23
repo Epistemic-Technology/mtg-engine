@@ -2285,6 +2285,7 @@ impl Fmt {
                 graveyard,
                 name,
                 old,
+                those,
             } => {
                 let searcher = who.map(|w| self.recipient(w, t));
                 let mut t = String::new();
@@ -2382,6 +2383,9 @@ impl Fmt {
                 }
                 if *old {
                     t.push_str(" then");
+                }
+                if *those {
+                    t.push_str(" those");
                 }
                 t
             }
@@ -5845,6 +5849,10 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::GainedLifeThisTurn { or_lost: true } => {
             "gained or lost life this turn".to_string()
         }
+        StaticCond::LostLifeThisTurn { gained: false } => "lost life this turn".to_string(),
+        StaticCond::LostLifeThisTurn { gained: true } => {
+            "gained and lost life this turn".to_string()
+        }
         StaticCond::DescendedThisTurn => "descended this turn".to_string(),
         StaticCond::SpellNumber(n) => format!("spell number {n} this turn"),
         StaticCond::SurveilledThisTurn => "surveilled this turn".to_string(),
@@ -6432,6 +6440,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 Some(mtg_core::card::Condition::TwoSpellsLastTurn) => {
                     head.push_str(" if a player cast two or more spells last turn");
+                }
+                Some(mtg_core::card::Condition::HadNoCounters(
+                    mtg_core::card::CounterKind::Any,
+                )) => {
+                    head.push_str(" if it had no counters");
                 }
                 Some(mtg_core::card::Condition::HadNoCounters(k)) => {
                     let _ = write!(head, " if it had no {}", counter(*k, Num::N(2)));

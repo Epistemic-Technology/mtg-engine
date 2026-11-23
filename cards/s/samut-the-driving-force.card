@@ -1,0 +1,10 @@
+card "Samut, the Driving Force" {
+  oracle_id ee89c719-5ae8-4316-bfd0-cfe3684b5859
+  cost {3}{R}{G}{W}
+  type Legendary Creature — Human Warrior Cleric
+  pt 4/5
+  keywords first strike, vigilance, haste
+  start your engines
+  static other creature you control: +1/+0 count where speed
+  spells noncreature you cast cost {1} less count where speed
+}

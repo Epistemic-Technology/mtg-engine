@@ -699,6 +699,9 @@ impl Decompiler<'_> {
                 other: *other,
             },
             StaticCondition::CastFrom(z) => StaticCond::CastFrom(*z),
+            StaticCondition::LostLifeThisTurn { gained } => {
+                StaticCond::LostLifeThisTurn { gained: *gained }
+            }
             StaticCondition::GainedLifeThisTurn { or_lost } => {
                 StaticCond::GainedLifeThisTurn { or_lost: *or_lost }
             }
@@ -1306,6 +1309,7 @@ impl Decompiler<'_> {
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
                 may: *may,
                 old: false,
+                those: false,
             },
             CoreEffect::Surveil { count } => Effect::Surveil(*count),
             CoreEffect::Discard { count, who } => Effect::Discard {

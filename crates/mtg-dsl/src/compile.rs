@@ -2481,6 +2481,9 @@ impl Compiler<'_> {
                 other: *other,
             },
             StaticCond::CastFrom(z) => StaticCondition::CastFrom(*z),
+            StaticCond::LostLifeThisTurn { gained } => {
+                StaticCondition::LostLifeThisTurn { gained: *gained }
+            }
             StaticCond::GainedLifeThisTurn { or_lost } => {
                 StaticCondition::GainedLifeThisTurn { or_lost: *or_lost }
             }
@@ -6173,6 +6176,7 @@ impl Compiler<'_> {
                             who: None,
                             may: false,
                             old: false,
+                            those: false,
                         }])],
                         equip: false,
                         cycling: false,

@@ -1,0 +1,8 @@
+card "Daretti, Rocketeer Engineer" {
+  oracle_id 0eb1d539-6301-46b0-903e-487eda34253f
+  cost {4}{R}
+  type Legendary Creature — Goblin Artificer
+  pt */5
+  static this: cda power greatest mana value among artifact you control
+  triggered whenever this enters or attacks: choose target artifact card from your graveyard; you may sacrifice 1 artifact chosen; if you do, return the chosen target 1 to battlefield
+}
