@@ -565,3 +565,76 @@ scenario "White Sun's Zenith: X Cats, then into the library" {
   assert battlefield A contains 2 "Cat"
   assert library A contains "White Sun's Zenith"
 }
+
+# ---- written by the template author after the eighth wave's merges ----
+
+scenario "Celestus Sanctifier: one of the top two goes to the graveyard when it becomes night" {
+  battlefield A: 3 "Plains"
+  hand A: "Celestus Sanctifier"
+  library A: "Grizzly Bears", "Hill Giant", "Plains", "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Celestus Sanctifier"
+  run_to turn 3 precombat_main
+  assert daynight night
+  assert graveyard A count 1
+}
+
+scenario "Gruul Charm: you take back a permanent you own" {
+  battlefield A: "Mountain", "Forest", 2 "Island", "Grizzly Bears"
+  battlefield B: 3 "Island", "Hill Giant"
+  hand A: "Gruul Charm"
+  hand B: "Act of Treason"
+  battlefield B: 3 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gruul Charm" mode 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  assert battlefield B count 7
+}
+
+scenario "Dream Strix: sacrificed when a spell targets it, then learn" {
+  battlefield A: "Mountain", "Dream Strix"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Dream Strix"
+}
+
+scenario "Labyrinth Guardian: sacrificed when a spell targets it" {
+  battlefield A: "Forest", "Labyrinth Guardian"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Labyrinth Guardian"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Labyrinth Guardian"
+}
+
+scenario "Word of Undoing: the creature and its owner's white Auras return" {
+  battlefield A: "Island", "Grizzly Bears"
+  battlefield A: "Pacifism" on "Grizzly Bears"
+  hand A: "Word of Undoing"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Word of Undoing" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Pacifism"
+}
+
+scenario "Kiyomaro: vigilance with four cards, power equal to the hand" {
+  battlefield A: "Kiyomaro, First to Stand"
+  hand A: 4 "Plains"
+  start turn 1 A precombat_main
+  assert power "Kiyomaro, First to Stand" 4
+  assert has "Kiyomaro, First to Stand" vigilance
+}
+
+scenario "Chamber Sentry: remove X counters to deal X damage" {
+  battlefield A: 3 "Island", "Chamber Sentry" with 3 +1/+1
+  start turn 1 A precombat_main
+  turn 1 A: activate "Chamber Sentry" x 2 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert power "Chamber Sentry" 1
+}

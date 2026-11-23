@@ -1,0 +1,8 @@
+card "Celestus Sanctifier" {
+  oracle_id 6885aa03-fbfe-4c2e-a785-0865788574b4
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 3/2
+  becomes day as this enters
+  triggered whenever day becomes night or night becomes day: split top 2 into graveyard
+}

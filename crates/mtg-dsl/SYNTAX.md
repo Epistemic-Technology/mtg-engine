@@ -327,7 +327,6 @@ paid; an ability that only adds mana is a mana ability, resolving at
 once, CR 605.3b, though payment doesn't activate it on its own: Simian
 Spirit Guide),
 `exile this` ("Exile this artifact": the permanent exiles itself), `return
-`exile this` ("Exile this artifact": the permanent exiles itself), `return
 land you control` ("Return a land you control to its owner's hand";
 `return this`: "Return this enchantment to its owner's hand") and
 `tap untapped creature you control` ("Tap an untapped creature you

@@ -1,0 +1,6 @@
+card "Word of Undoing" {
+  oracle_id 2597a1ee-fe9e-44b5-a5e3-d34332c6c123
+  cost {U}
+  type Instant
+  spell: return target creature and all white Auras you own attached to it to hand
+}

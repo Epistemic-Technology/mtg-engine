@@ -1,0 +1,10 @@
+card "Gruul Charm" {
+  oracle_id e552cab2-cee0-4420-9419-4bada4b2f241
+  cost {R}{G}
+  type Instant
+  choose one {
+    mode: each creature without flying can't block
+    mode: gain control of all permanent you own indefinitely
+    mode: deal 3 damage to each creature with flying
+  }
+}

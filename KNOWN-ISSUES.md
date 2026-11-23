@@ -126,6 +126,34 @@ wrong thing in some case.
 - **A leaves-the-battlefield trigger granted by another permanent that
   leaves at the same time** may still be missed: the pre-check looks at
   the departing object's own grants, not at grants that left with it.
+  The eighth wave could not reproduce it with an Aura granting its own
+  creature a dies trigger (`scenarios/m5/granted-leaves-together.scn`);
+  a permanent granting a leaves trigger to other permanents is untested
+  (no corpus card).
+- **Engine picks, eighth wave:** a reveal-from-hand cost reveals the
+  first matching cards in hand, which matters where the revealed card's
+  mana value or power is used (Living Destiny, Induce Despair, Disaster
+  Radius, Charge of the Forever-Beast); "sacrifice any number of
+  creatures" as a cost lets the caster choose the number and the first
+  creature only (Vicious Betrayal), and as a trigger's effect sacrifices
+  every matching permanent (Malevolent Witchkite); Cavern of Souls'
+  spell is uncounterable only if payment happened to spend Cavern's
+  mana; "an opponent chooses one of them" (Murmurs from Beyond) asks the
+  next player.
+- **Approximations, eighth wave:** "until this card is cast from exile"
+  ends when the card leaves exile by any route (the Masked cycle); a
+  card cast by "You may cast this card from your graveyard" counts as
+  cast with flashback and as having a flashback cost (Gravecrawler,
+  Skaab Ruinator); "counts as a card named X" applies to any source of
+  that name, not only spells (Pardic Firecat); "one mana of any type"
+  offers colors only when a color is possible (Reflecting Pool); "a cost
+  that contains {C}" or "{X}" is judged on the printed cost; "if this
+  ability has been activated four or more times this turn" counts every
+  counted ability of the source; a mana ability activated from the hand
+  or made by an effect is never used by automatic payment (Simian Spirit
+  Guide); "if a creature card is revealed this way" counts a top card
+  kept revealed by another effect even if the optional reveal was
+  declined (Delver of Secrets).
 - **Loops** end the game in a draw once 1,000 spells and abilities have
   resolved in one turn (`MAX_RESOLUTIONS_PER_TURN`). That is the rule for
   a loop of mandatory actions (CR 104.4b). A loop a player could leave
@@ -141,18 +169,13 @@ The renderer prints the right Oracle text for these, but the compiled
 card does something else. Scenarios catch them; the gate does not. Fix
 by rejecting the form at compile time or by binding it correctly.
 
-- **Found in the seventh wave; none is used by a card in the corpus**
-  (each card named was rejected):
-  - `pay x life` as an activated ability's cost pays no life (Krumar
-    Initiate). As a spell's additional cost it works (Toxic Deluge).
+- **Found in the seventh wave and still open; none is used by a card
+  in the corpus** (each card named was rejected):
   - A dig's "with mana value X or less" reads the spell's X, not the
     dig's count (Hatchery Spider).
   - "cards revealed this way" after `reveal until ...; put that card
     onto battlefield` misses the card that was moved (Madcap
     Experiment).
-  - A target first named after "If this spell was bargained, ..." is
-    required even when the spell isn't bargained (Brave the Wilds):
-    `kicker_targets` covers "if kicked" only.
   - A target check (`if target 1 is ...`) judges only the state
     qualifiers `live_state` lists (attacking, blocking, tapped, counters,
     suspected, enchanted, equipped, modified, attached-to, token,
@@ -161,6 +184,44 @@ by rejecting the form at compile time or by binding it correctly.
   - "As long as you control <filter>" in the layers ignores most status
     qualifiers (tapped, token, attacking): only counters and
     `transformed` are checked. Worth an audit.
+- **Found in the eighth wave** (each card named was rejected unless
+  noted):
+  - `cycling sacrifice land` sacrifices nothing: the card is cycled for
+    free (Edge of Autumn).
+  - `each other creature you control` after a first group does not
+    exclude that group: "other" means "not the Zombies" on In Oketra's
+    Name, and the Zombies got both pumps.
+  - A second `spell:` line with a label (`label "Revolt" spell: ...`)
+    gates but never resolves (Decommission).
+  - `prevent all damage permanent of color of choice would deal this
+    turn` asks for the color and prevents nothing (Prismatic Strands).
+  - `if this is noncreature` in a trigger reads the triggering object
+    (Answered Prayers).
+  - `becomes land type of choice in addition` drops "in addition": the
+    land loses its own types (Navigator's Compass).
+  - `has first strike as long as this is blocking and you control snow
+    land` ignores the blocking half on an Aura (Snow Devil).
+  - `count each tapped artifact they control` with a target player
+    counts the opponent's (Burden of Greed).
+  - `return that card to battlefield` in "Whenever a creature is put
+    into your graveyard" returns nothing; `triggering card` works
+    (Angelic Renewal, accepted with that form).
+  - `its controller` after "choose target ...; if kicked, instead choose
+    target ..." binds to the kicked-only target; `controller of that
+    target 1` works (Expel the Unworthy, accepted with that form).
+  - "you may exile it and collect evidence 4" in a dies trigger exiles
+    the card even when the evidence can't be collected, and `return this
+    card` after `exile it` returns nothing (Lamplight Phoenix).
+  - `you own` in a filter is judged only for targets and an effect's
+    groups, not in a count or a static's subject.
+  - An "If you do" after a target check (`if target 1 is ...`) now reads
+    the check, not an earlier optional action. No card has that order.
+  - The formatter rewrites a second target written `target other
+    creature` as `another target creature`, which does not parse
+    (Falling Timber fails the round trip).
+  - The template author reads "attach it to" as the source (Sigarda's
+    Aid), and `search up to X land card` takes X as a subtype (Nylea's
+    Intervention).
 - **`put its counters on <target>` in a trigger about another object**
   now moves the triggering object's counters but renders "put those
   counters on" (Host of the Hereafter does not gate).
@@ -287,10 +348,8 @@ named the feature; a card may need more than one.
   another act besides mana, life, a discard, or one sacrifice; a kicker cost that isn't mana (four cards); "assigns
   combat damage equal to its toughness" (five); "Otherwise" after a
   conditional static (four); "Choose target X and target Y" as one
-  sentence with "those creatures fight each other" (four); "Remove X
-  counters" as a cost; "enchant player" Curses; "exile this, then return
-  it to the battlefield transformed"; restricted mana of more than one
-  symbol or added by an effect; "if that spell was kicked"; a combined subject ("you and other Heroes you control have
+  sentence with "those creatures fight each other" (four); "enchant player" Curses; "exile this, then return
+  it to the battlefield transformed"; a combined subject ("you and other Heroes you control have
   hexproof"); "flash if you pay {2} more"; copying a card and casting
   the copy; choose a number, a card name, odd or even; piles.
 - **Most often named in the sixth wave** (356 unsupported or failed of
@@ -313,31 +372,33 @@ named the feature; a card may need more than one.
   (Magma Burst) after kicker, wording only; "Then if it has no oil
   counters on it" (Evolved Spinoderm, which the `otherwise` form
   otherwise covers).
-- **Most often named in the seventh wave** (88 unsupported of 138
-  Standard cards): wording near-misses (about 20: "they lose" for "that player
-  loses", "one or more other Heroes", "at least five other", "their
-  owners' control", "are lands in addition to their other types"); a
-  quoted ability gained with no duration; casting a card as an effect
-  while paying its cost (Tinybones, Boiling Rock Rioter); changing a
-  spell's target (Return the Favor, Untimely Malfunction); milled or
-  graveyard cards put onto the battlefield (Random Encounter, Bonny
-  Pall); "choose up to one target" and what follows it; non-targeting
-  "choose a creature you control" effects; conditions "scried or
-  surveilled this turn", "two or more creatures entered this turn",
-  "if a Rat is attacking"; filters "you own", "spell you control", "with
-  {X} in its mana cost"; pay {0} for the first equip or exile cast each
-  turn.
-- **Left by the seventh wave's branches:** restricted mana for ability
-  kinds and spell properties (power-up, equip, cast from exile or
-  graveyard, kicked, face-down, {X} costs, Class level), "and that spell
-  can't be countered" (Cavern of Souls), conditions on the mana spent
-  (Tokka & Rahzar, Unravel); "As an additional cost ... reveal a card
-  from your hand" (about 20 cards); opening-hand reveals, three-way dig
-  splits, searches for up to X cards, linked-exile returns; two static
-  abilities on one Oracle line (Elenda, Akawalli), setting a life total,
-  odd or even; conditional transforms, Phyrexian-hybrid activation
-  costs, "all creature types" in an indefinite becomes; "target spell,
-  activated ability, or triggered ability" (7 cards), "nonattacking",
+- **Most often named in the eighth wave** (194 unsupported or failed of
+  253 Pauper cards, and the eight branches' notes; the full lists are in
+  the wave's reports): wording near-misses (about 45: "your team
+  controls", "defending player may pay", "that player or that
+  planeswalker's controller", "you may have enchanted creature fight",
+  "gains flying and toxic 1", trailing "also ... if" clauses, "Choose
+  target creature. You gain life equal to its power" for one sentence);
+  "until end of combat" and "this combat" durations (five cards); an
+  effect that makes an attacker blocked, and "cast only during the
+  declare blockers step" (five); "any player may pay / sacrifice / have
+  it deal damage to them" (six); a granted ability that sacrifices the
+  granting Equipment (Blazing Torch, Ninja's Kunai, Deconstruction
+  Hammer); non-targeting "choose a creature you control" as a recipient
+  (five); a payment window before a future step (Quenchable Fire, Nafs
+  Asp, Sabertooth Cobra); "pay any amount of {E}"; attack or block taxes
+  on an enchanted creature (Brainwash, Oppressive Rays, Cowed by
+  Wisdom); a mana ability whose cost has X or a counter removal (the
+  storage lands, Petalmane Baku); a conditional "this spell can't be
+  countered" (four); variable target counts ("up to X target creatures",
+  "with total mana value 4 or less"); partial hand reveals; older
+  multi-sentence search splits; the Flagbearer targeting rule; "that
+  spell's controller" as a recipient; changing a spell's target; casting
+  a card as an effect while paying its cost (Tinybones); "pay {0} for
+  the first equip or exile cast each turn"; "if a Rat is attacking";
+  opening-hand reveals; searches for up to X cards; two static abilities
+  on one Oracle line; setting a life total; Phyrexian-hybrid activation
+  costs; "target spell, activated ability, or triggered ability";
   total-mana-value target groups.
 - **Mechanics not yet in:** harness, hideaway, cloak, epic,
   offering, compleated, companion, mutate, the Everywhere land token;

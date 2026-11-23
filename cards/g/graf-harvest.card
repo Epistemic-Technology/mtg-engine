@@ -1,0 +1,7 @@
+card "Graf Harvest" {
+  oracle_id d3ba6922-c2f7-45ab-87a3-d4bbd770d1ba
+  cost {B}
+  type Enchantment
+  static Zombie you control: has menace
+  activated {3}{B}, exile creature card from graveyard: create 1 "2/2 black Zombie creature"
+}

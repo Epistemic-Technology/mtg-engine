@@ -1,0 +1,9 @@
+card "Dream Strix" {
+  oracle_id bfd6a73e-d126-4afe-99db-98cf716a1772
+  cost {2}{U}
+  type Creature — Bird Illusion
+  pt 3/2
+  keywords flying
+  triggered when this becomes targeted by spell: sacrifice this
+  triggered when this dies: learn
+}

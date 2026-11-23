@@ -1,0 +1,8 @@
+card "Labyrinth Guardian" {
+  oracle_id 867ee3e7-88df-4e4b-b199-f441a8460573
+  cost {1}{U}
+  type Creature — Illusion Warrior
+  pt 2/3
+  triggered when this becomes targeted by spell: sacrifice this
+  embalm {3}{U}
+}

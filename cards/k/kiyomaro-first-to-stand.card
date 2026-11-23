@@ -1,0 +1,8 @@
+card "Kiyomaro, First to Stand" {
+  oracle_id 340ec369-1761-4134-a96d-5537b4e08703
+  cost {3}{W}{W}
+  type Legendary Creature — Spirit
+  static this: cda pt hand
+  static as long as hand 4 or more, this: has vigilance
+  triggered whenever this deals damage if hand 7 or more: you gains 7 life
+}

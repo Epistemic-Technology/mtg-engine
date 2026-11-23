@@ -221,3 +221,23 @@ scenario "Priest of Yawgmoth adds black equal to the sacrificed artifact's mana 
   assert battlefield A contains "Hypnotic Specter"
   assert graveyard A contains "Standing Stones"
 }
+
+# An adventurer cast from exile is a spell cast from exile: the cast was
+# offered with this mana and then could not be paid, because casting one
+# face of a card did not record where it was cast from (found by the
+# fuzz).
+scenario "Interdimensional Web Watch's mana casts an adventurer from exile" {
+  battlefield A: "Mountain", "Island", "Interdimensional Web Watch"
+  hand A: "Frolicking Familiar"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blow Off Steam" targeting player B
+  turn 1 A: wait
+  turn 1 A: activate "Interdimensional Web Watch"
+  turn 1 A: choose blue
+  turn 1 A: choose blue
+  turn 1 A: cast "Frolicking Familiar"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert battlefield A contains "Frolicking Familiar"
+  assert tapped "Island"
+}

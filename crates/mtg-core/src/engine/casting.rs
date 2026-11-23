@@ -2510,9 +2510,14 @@ impl GameState {
         let main = self.pool.get(self.objects[card].def);
         let face_def = main.faces[face as usize];
         let adventure = matches!(main.layout, Layout::Adventure | Layout::Omen);
+        let from = self.objects[card].zone;
         let spell = self.move_object(card, Zone::Stack, true);
         self.objects[spell].controller = player;
         self.objects[spell].def = face_def;
+        // Where it was cast from (CR 601.2a), as for a whole card: mana
+        // that may be spent only on spells cast from exile was offered
+        // for an adventurer cast from exile and then refused.
+        self.objects[spell].cast.set_cast_from(from);
         self.objects[spell].cast.set_adventure(adventure);
         if exiled {
             self.objects[spell].cast.set_flashback(true);

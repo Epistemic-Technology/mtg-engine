@@ -1,0 +1,10 @@
+card "Staff of Compleation" {
+  oracle_id 11c7662f-e688-40a6-98fd-6ae89d231b44
+  cost {3}
+  type Artifact
+  activated {T}, pay 1 life: destroy target permanent you own
+  activated {T}, pay 2 life: add any
+  activated {T}, pay 3 life: proliferate
+  activated {T}, pay 4 life: draw 1 cards
+  activated {5}: untap this
+}

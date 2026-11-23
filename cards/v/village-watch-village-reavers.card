@@ -1,0 +1,16 @@
+card "Village Watch // Village Reavers" {
+  oracle_id b2ecaae4-41ee-4c61-b5ce-db4364b307fc
+  layout transform
+  cost {4}{R}
+  type Creature — Human Werewolf
+  pt 4/3
+  keywords haste
+  daybound
+  face "Village Reavers" {
+    type Creature — Werewolf
+    pt 5/4
+    color red
+    static Wolf or Werewolf you control: has haste
+    nightbound
+  }
+}

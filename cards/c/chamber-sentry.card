@@ -1,0 +1,9 @@
+card "Chamber Sentry" {
+  oracle_id 65f8e726-be50-49ee-96fc-d3a2080d7b8c
+  cost {X}
+  type Artifact Creature — Construct
+  pt 0/0
+  enters with count each colors spent +1/+1 counters
+  activated {X}, {T}, remove X +1/+1 counters from this: deal X damage to any target
+  activated {W}{U}{B}{R}{G}, from graveyard: return this to hand
+}
