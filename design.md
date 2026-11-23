@@ -2842,3 +2842,39 @@ Modern; gate 17,070 match; 10,120 scenarios pass; fuzz clean in release
 and debug builds. Pauper needs 273 more cards for 95%; its card batches
 yield less each wave (17%, then 14.5%), so the features its reports name
 matter more than further batches.
+
+Status 2026-11-22, later: the seventh wave, run to a cheaper procedure
+after a review of the sixth (list and prompt generators in
+`scripts/coverage/`, batch lists screened, six feature agents with a
+30-card floor, agents keeping notes files and leaving shared files
+alone, branches merged in turn and verified once, no Pauper card
+batches). Agents used about 3.95M tokens against 7.4M for the sixth
+wave. Four Standard card batches accepted 50 of 138; two ran on Opus
+(26 of 70, 415k tokens) and two on Sonnet (24 of 68, 374k), so card
+batches run on Sonnet from here. Six feature agents: the template author
+and its phrases (118 cards; every wrong-meaning form then listed is
+bound or rejected, and the author skips what had to be dropped by
+hand); zones (112); mana (40; restricted mana kept per unit in the
+pool, riders, mana-spent counts); counters and costs (40; 38 counter
+kinds, tiered, pitch costs); transform (33); and rules text (66;
+commander text in a game with no commanders, abilities any player may
+activate, pack tactics). The template author then wrote 17 cards, all
+accepted. Fixed in accepted cards: a dies trigger dealing "damage equal
+to its power" dealt none; Loyal Cathar's return did not follow an exile;
+a delayed trigger made by a copy. The fuzz afterwards found four older
+engine bugs, each fixed with a scenario: an X cost counting the mana of
+a source it also taps (Treasure Vault); "when enchanted creature leaves
+the battlefield" firing for every creature, which beside a sacrifice
+outlet never ended and held the fuzz for an hour and a half; evoke,
+dash, warp, impending, sneak, and web-slinging offered without the
+taxes the payment charged; and the legend rule arising from "becomes a
+copy" with no snapshot. Since then a turn in which 1,000 spells and
+abilities resolve is a draw (CR 104.4b; a loop a player could leave
+draws too, the engine having no shortcuts), the baseline agents stop any
+one ability at 50 activations a turn, and the fuzz scripts kill and
+report a run that outlasts its limit. A debug `cargo test` overflowed
+the test-thread stack loading the corpus; `.cargo/config.toml` gives it
+16 MB. Coverage: 93.2% of Pauper, 76.8% of Standard, 65.5% of Modern;
+gate 17,535 match; 10,858 scenarios pass; fuzz clean in release and
+debug builds; 3,660 games/s (3,724 for the pre-first-wave binary in the
+same run). Pauper needs 197 more cards for 95%.
