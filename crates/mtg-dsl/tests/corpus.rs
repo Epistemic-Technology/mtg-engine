@@ -225,6 +225,13 @@ fn a_filter_with_three_alternatives_is_an_error() {
 }
 
 #[test]
+fn a_mana_value_range_is_an_error() {
+    // "with mana value 4 or 5" would otherwise be read as mana value 4.
+    let e = spell_error("destroy target creature with mana value 4 or 5");
+    assert!(e.contains("range"), "{e}");
+}
+
+#[test]
 fn it_after_a_target_in_a_trigger_is_that_target() {
     let card = |ability: &str| {
         let text = format!(

@@ -13489,6 +13489,19 @@ impl P {
                     } else {
                         Cmp::Exactly
                     };
+                    // "with mana value 4 or 5": a range, which a filter
+                    // can't hold; read as 4 it would mean something else.
+                    if cmp == Cmp::Exactly
+                        && self.word_at(0).as_deref() == Some("or")
+                        && (matches!(self.peek_at(1), Some(Tok::Num(_)))
+                            || self.word_at(1).is_some_and(|w| {
+                                NUMBER_WORDS.contains(&w.to_ascii_lowercase().as_str())
+                            }))
+                    {
+                        return self.fail(format!(
+                            "`with {what} {n} or ...`: a range of values is not supported"
+                        ));
+                    }
                     match what.as_str() {
                         "power" if either => {
                             let n = i16::try_from(n).unwrap_or(i16::MAX);
