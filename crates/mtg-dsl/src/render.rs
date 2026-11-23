@@ -11103,7 +11103,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             whose,
             whenever,
         } => {
-            let what = if *spells { "a spell" } else { "a spell or ability" };
+            let what = if *spells {
+                "a spell"
+            } else {
+                "a spell or ability"
+            };
             let whose = match whose {
                 Who::Opponents => " an opponent controls",
                 Who::You => " you control",
@@ -13816,7 +13820,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("it's the {} spell you cast this turn", ordinal_word(*n))
         }
         StaticCond::SurveilledThisTurn => "you've surveilled this turn".to_string(),
-        StaticCond::ScriedOrSurveilledThisTurn => "you've scried or surveilled this turn".to_string(),
+        StaticCond::ScriedOrSurveilledThisTurn => {
+            "you've scried or surveilled this turn".to_string()
+        }
         StaticCond::CreaturesEnteredThisTurn { n, opponent: false } => format!(
             "{} creatures entered the battlefield under your control this turn",
             or_more(u32::from(*n))

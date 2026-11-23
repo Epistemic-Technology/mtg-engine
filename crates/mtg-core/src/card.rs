@@ -6551,6 +6551,7 @@ impl TriggerSpec {
     /// `Event::watch_bit`. A definition's mask is the union over its
     /// triggers, so "could anything here care about this event" is one
     /// `&` instead of a walk over abilities.
+    #[allow(clippy::too_many_lines)] // one arm per trigger kind
     pub fn watch_mask(&self) -> u32 {
         match self {
             TriggerSpec::Enters(_)

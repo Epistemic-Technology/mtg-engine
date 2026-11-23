@@ -4438,7 +4438,11 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             "{} {} becomes targeted by {}{}",
             if *whenever { "whenever" } else { "when" },
             trigger_obj(obj),
-            if *whose == Who::Opponents { "opponent " } else { "" },
+            if *whose == Who::Opponents {
+                "opponent "
+            } else {
+                ""
+            },
             if *spells { "spell" } else { "" }
         )
         .trim_end()

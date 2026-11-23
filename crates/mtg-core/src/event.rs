@@ -422,7 +422,9 @@ impl Event {
             Event::LifeChange { .. } => WATCH_LIFE_CHANGE,
             Event::Cast { .. } | Event::SpellCopied { .. } => WATCH_CAST,
             Event::Targeted { .. } | Event::CommittedCrime { .. } => WATCH_TARGETED,
-            Event::Tapped { .. } | Event::Untapped { .. } | Event::TappedForMana { .. } => WATCH_TAP,
+            Event::Tapped { .. } | Event::Untapped { .. } | Event::TappedForMana { .. } => {
+                WATCH_TAP
+            }
             Event::TurnedFaceUp { .. } => WATCH_FACE_UP,
             Event::Draw { .. } => WATCH_DRAW,
             Event::Cycled { .. } => WATCH_CYCLE,
