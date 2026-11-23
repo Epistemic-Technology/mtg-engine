@@ -2634,6 +2634,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if let Some(t) = f.tapped {
         words.push(if t { "tapped" } else { "untapped" }.to_string());
     }
+    if f.status.nonattacking {
+        words.push("nonattacking".to_string());
+    }
     // "a nontoken modified creature".
     let nontoken_first = f.status.modified && f.status.token == Some(false);
     if nontoken_first {

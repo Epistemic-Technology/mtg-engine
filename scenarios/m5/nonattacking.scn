@@ -1,0 +1,36 @@
+# "target nonattacking creature" (Alarum): any creature but an attacking
+# one; a blocker qualifies.
+
+scenario "Alarum: untap a blocker and give it +1/+3" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Grizzly Bears" tapped, "Plains", "Plains"
+  hand B: "Alarum"
+  start turn 3 A
+  turn 3 A: attack "Hill Giant"
+  turn 3 declare_attackers B: cast "Alarum" targeting "Grizzly Bears"
+  turn 3 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert toughness "Grizzly Bears" 5
+  assert life B 20
+}
+
+scenario "Alarum: an attacking creature can't be chosen" {
+  battlefield A: "Hill Giant", "Plains", "Plains"
+  hand A: "Alarum"
+  start turn 3 A
+  turn 3 A: attack "Hill Giant"
+  illegal turn 3 declare_attackers A: cast "Alarum" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert life B 17
+}
+
+scenario "Alarum: outside combat any creature" {
+  battlefield A: "Hill Giant" tapped, "Plains", "Plains"
+  hand A: "Alarum"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Alarum" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert untapped "Hill Giant"
+  assert power "Hill Giant" 4
+}

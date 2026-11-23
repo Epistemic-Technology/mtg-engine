@@ -1,0 +1,6 @@
+card "Alarum" {
+  oracle_id 18e96674-6fd8-4046-a3fe-7ba80138d85d
+  cost {1}{W}
+  type Instant
+  spell: untap target nonattacking creature; target 1 gets +1/+3
+}

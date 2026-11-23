@@ -1436,7 +1436,8 @@ elsewhere it doesn't restrict.
 planeswalker") match nothing: the game has no commanders (CR 903.3).
 
 More filter words: `token` ("a token", "artifact token", CR 111.1),
-`nontoken`, `tapped`, `untapped`, `attacking`, `blocking`,
+`nontoken`, `tapped`, `untapped`, `attacking`, `blocking`, `nonattacking`
+("target nonattacking creature": not an attacking creature),
 `damaged` (also written `that was dealt damage this turn`),
 `multicolored`, `monocolored`, `colorless`, `basic`, `legendary`, `snow`,
 `nonsnow`, `modified` (CR 700.9; `nontoken modified creature` prints

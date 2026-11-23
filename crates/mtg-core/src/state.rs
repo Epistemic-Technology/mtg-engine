@@ -3298,6 +3298,15 @@ impl GameState {
         if q.blocked_this_turn && !self.blockers_this_turn.contains(&id) {
             return false;
         }
+        // "target nonattacking creature".
+        if q.nonattacking
+            && self
+                .combat
+                .as_ref()
+                .is_some_and(|cb| cb.attackers.iter().any(|a| a.id == id))
+        {
+            return false;
+        }
         if q.attacked_this_turn && !self.attackers_this_turn.contains(&id) {
             return false;
         }

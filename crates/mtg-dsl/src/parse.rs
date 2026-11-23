@@ -12618,6 +12618,9 @@ impl P {
                         } else if rest == "snow" {
                             // "nonsnow" (CR 205.4g).
                             f.not_supertypes.push(Supertype::Snow);
+                        } else if rest == "attacking" && !f.status.nonattacking {
+                            // "target nonattacking creature".
+                            f.status.nonattacking = true;
                         } else if rest_raw == crate::ast::OUTLAW {
                             // "non-outlaw" (CR 700.12): none of the five.
                             f.not_subtypes.push(crate::ast::OUTLAW.to_string());

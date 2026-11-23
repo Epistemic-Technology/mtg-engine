@@ -1320,6 +1320,9 @@ pub struct StatusQuals {
     /// groups; elsewhere it doesn't restrict.
     #[serde(default)]
     pub you_own: bool,
+    /// "nonattacking creature": not an attacking creature (CR 508.1).
+    #[serde(default)]
+    pub nonattacking: bool,
     /// "with power or toughness 1 or less": `ObjFilter::power` and
     /// `toughness` (the same threshold) are alternatives, either enough.
     /// A characteristic, not game state: `any` leaves it out.
@@ -1412,6 +1415,7 @@ impl StatusQuals {
             || self.morph
             || self.suspected.is_some()
             || self.you_own
+            || self.nonattacking
             || self.bound.is_some()
             || self.commander.is_some()
     }

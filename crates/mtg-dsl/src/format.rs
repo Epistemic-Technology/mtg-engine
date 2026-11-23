@@ -3563,6 +3563,9 @@ fn filter_one(f: &Filter) -> String {
     if f.status.token == Some(false) {
         words.push("nontoken".to_string());
     }
+    if f.status.nonattacking {
+        words.push("nonattacking".to_string());
+    }
     if let Some(t) = f.tapped {
         words.push(if t { "tapped" } else { "untapped" }.to_string());
     }
