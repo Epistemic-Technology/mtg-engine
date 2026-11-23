@@ -529,3 +529,47 @@ scenario "Nature's Panoply: three Forests pay for one target, not two" {
   illegal turn 1 A: cast "Nature's Panoply" targeting "Grizzly Bears", "Hill Giant"
   run_to turn 1 postcombat_main
 }
+
+scenario "Mai, Scornful Striker: the caster of a noncreature spell loses 2" {
+  battlefield A: "Mai, Scornful Striker", 2 "Forest"
+  battlefield B: "Mountain"
+  hand A: "Grizzly Bears"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Shock" targeting player A
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 18
+}
+
+scenario "Vengeful Tracker: the opponent who sacrifices an artifact takes 2" {
+  battlefield A: "Vengeful Tracker"
+  battlefield B: "Treasure"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert life A 18
+}
+
+scenario "Razorkin Needlehead: first strike on your turn only; 1 damage per opponent draw" {
+  battlefield A: "Razorkin Needlehead"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has "Razorkin Needlehead" first_strike
+  run_to turn 2 precombat_main
+  assert has not "Razorkin Needlehead" first_strike
+  assert life B 19
+}
+
+scenario "Ingenious Prodigy: X counters; remove one in upkeep to draw" {
+  battlefield A: 3 "Island"
+  hand A: "Ingenious Prodigy"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ingenious Prodigy" x 2
+  run_to turn 3 precombat_main
+  assert counters "Ingenious Prodigy" +1/+1 1
+  assert hand A count 2
+}

@@ -2232,6 +2232,11 @@ impl Compiler<'_> {
                 n: *n,
                 at_least: *at_least,
             },
+            StaticCond::SourceCountersOneOrMore(kind) => StaticCondition::SourceCounters {
+                kind: *kind,
+                n: 1,
+                at_least: true,
+            },
             StaticCond::SourceCountersThere { kind, n } => StaticCondition::SourceCounters {
                 kind: *kind,
                 n: *n,
@@ -2745,7 +2750,9 @@ impl Compiler<'_> {
             Recipient::TriggeringObject
             | Recipient::TriggeringIt
             | Recipient::TheTriggeringObject => CoreRecipient::TriggeringObject,
-            Recipient::TriggeringPlayer => CoreRecipient::TriggeringPlayer,
+            Recipient::TriggeringPlayer | Recipient::TriggeringThey => {
+                CoreRecipient::TriggeringPlayer
+            }
             Recipient::DefendingPlayer | Recipient::DefendingPlayerWord => {
                 CoreRecipient::DefendingPlayer
             }

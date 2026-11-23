@@ -343,6 +343,7 @@ impl Fmt {
             }
             Recipient::TheTriggeringController => "controller of the creature".to_string(),
             Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
+            Recipient::TriggeringThey => "they".to_string(),
             Recipient::DefendingPlayer => "defending player".to_string(),
             Recipient::DefendingPlayerWord => "that defending player".to_string(),
             Recipient::ControllerOf(_) | Recipient::TriggeringController { that: false } => {
@@ -5127,6 +5128,9 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::OpponentPoison(1) => "opponent poisoned".to_string(),
         StaticCond::OpponentPoisonAtLeast(n) | StaticCond::OpponentPoison(n) => {
             format!("opponent poison {n} or more")
+        }
+        StaticCond::SourceCountersOneOrMore(kind) => {
+            format!("this has one or more {} counters", kind.name())
         }
         StaticCond::SourceCountersThere { kind, n } => {
             format!("there are {n} or more {} counters on this", kind.name())

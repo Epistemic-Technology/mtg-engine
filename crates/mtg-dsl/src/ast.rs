@@ -2217,6 +2217,10 @@ pub enum StaticCond {
         kind: CounterKind,
         n: u32,
     },
+    /// `this has one or more +1/+1 counters`: "this creature has one or
+    /// more +1/+1 counters on it" (Ingenious Prodigy; `1 or more` prints
+    /// "a +1/+1 counter").
+    SourceCountersOneOrMore(CounterKind),
     /// `defending player controls Island`: "defending player controls an
     /// Island"; `at_least` 0, `defending player controls no Glimmer
     /// creature`: "... controls no Glimmer creatures".
@@ -3525,6 +3529,9 @@ pub enum Recipient {
     /// The triggering object written `it` in a triggered ability ("Whenever
     /// another creature you control attacks, it gets +0/+1").
     TriggeringIt,
+    /// The triggering player written `they` ("Whenever a player casts a
+    /// noncreature spell, they lose 2 life"; "deals 2 damage to them").
+    TriggeringThey,
     /// The triggering object written `the creature` in a triggered
     /// ability: "If the player does, untap the creature." (Paralyze).
     TheTriggeringObject,

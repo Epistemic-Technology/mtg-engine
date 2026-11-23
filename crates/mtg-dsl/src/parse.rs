@@ -445,6 +445,7 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     (&["that", "object"], Recipient::TriggeringObject),
     (&["that", "spell"], Recipient::TriggeringObject),
     (&["that", "player"], Recipient::TriggeringPlayer),
+    (&["they"], Recipient::TriggeringThey),
     (
         &["that", "defending", "player"],
         Recipient::DefendingPlayerWord,
@@ -3785,6 +3786,9 @@ impl P {
 
     /// After `this has`: `4 or more oil counters`, `no arrowhead counters`.
     fn source_counters_cond(&mut self) -> R<StaticCond> {
+        if self.eat_words(&["one", "or", "more"]) {
+            return Ok(StaticCond::SourceCountersOneOrMore(self.counter_kind()?));
+        }
         if self.eat_word("no") {
             let kind = self.counter_kind()?;
             return Ok(StaticCond::SourceCounters {

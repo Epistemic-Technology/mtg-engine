@@ -401,6 +401,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever you activate an ability of a creature`, `whenever you activate an exhaust ability`, `whenever an opponent activates a loyalty ability` | as an activated ability is activated (CR 602.2), before it resolves: of a creature (mana abilities included, CR 605.3a; mana the engine taps for automatically while paying a cost is not an activation), an exhaust ability (CR 702.177), a loyalty ability (CR 606). The activating player is `that player` |
 | `whenever you discard one or more cards` | once for the cards you discard together (CR 603.2c), counted as `that much` ("put that many +1/+1 counters", "deals that much damage"); cards discarded before the next time a player gets priority count as together. Cycling a card discards it |
 | `whenever you sacrifice one or more Food` | once for the matching permanents you sacrifice together (CR 603.2c), counted as `that much` |
+| `they lose 2 life`, `deal 2 damage to they` | The triggering player written "they" ("Whenever a player casts a noncreature spell, they lose 2 life.") and "them" as an object ("... deals 2 damage to them"); the same player as `that player` |
 | `whenever you attack with one or more Faerie`, `whenever you attack a player with one or more creature with power 4 or greater` | once as you declare attackers if a matching creature attacks (CR 508.1m); with `a player`, once for each player a matching creature attacks, that player being `that player` |
 | `whenever this transforms`, `whenever this enters or transforms` | "Whenever this creature transforms into Ashling, Rimebound" (CR 701.27): the ability is on that face, so it sees only the transformation to it; the face's name prints |
 | `whenever one or more creature you control deal combat damage to a player`, `whenever one or more Ally you control deal combat damage to a player` | once for each player dealt combat damage by matching creatures in one combat damage step (CR 603.2c; a first-strike step and the regular one trigger separately); that player is `that player` |
@@ -631,7 +632,7 @@ in hand"), `hand 1 or less` ("you have one or fewer cards in hand"),
 counters", corrupted), `this has 4 or more oil counters` ("this creature
 has four or more oil counters on it"; first, "As long as ..., it gets
 ..."; `this has 3 or more counters`: "this creature has three or more
-counters on it", every kind together), `this has no arrowhead counters` ("there are no arrowhead counters
+counters on it", every kind together; `this has 1 or more +1/+1 counters` prints "a +1/+1 counter on it", `this has one or more +1/+1 counters` "one or more +1/+1 counters on it"), `this has no arrowhead counters` ("there are no arrowhead counters
 on this artifact"), `there are 3 or more brick counters on this` ("there
 are three or more brick counters on this artifact"), and the shorthands `threshold`, `delirium`,
 `metalcraft`.

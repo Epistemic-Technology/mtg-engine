@@ -1,0 +1,7 @@
+card "Vengeful Tracker" {
+  oracle_id fe540a23-0357-44fa-8e1c-0a5c2a04cb01
+  cost {1}{R}
+  type Creature — Human Detective
+  pt 2/2
+  triggered whenever an opponent sacrifices artifact: deal 2 damage to they
+}

@@ -1573,6 +1573,7 @@ impl<'a> Ctx<'a> {
             Recipient::TheTriggeringObject => "the creature".to_string(),
             Recipient::SameToken | Recipient::CreatedThatToken => "that token".to_string(),
             Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
+            Recipient::TriggeringThey => "them".to_string(),
             Recipient::TriggeringCard | Recipient::SameCard => "that card".to_string(),
             Recipient::TriggeringController { that: true } => {
                 let noun = if self.trigger_is_enchanted() {
@@ -1823,6 +1824,7 @@ impl<'a> Ctx<'a> {
 
     fn subj(&mut self, r: Recipient) -> String {
         match r {
+            Recipient::TriggeringThey => "they".to_string(),
             // "Untap them. They gain haste until end of turn."; "Create
             // two 1/1 red Warrior creature tokens. They gain haste until
             // end of turn." (Salt Road Skirmish).
@@ -2151,7 +2153,7 @@ impl<'a> Ctx<'a> {
     }
 
     fn verb(&self, r: Recipient, singular: &'static str, plural: &'static str) -> &'static str {
-        if r == Recipient::You || (Self::is_plural(r) && !self.each_group(r)) || self.is_many(r) {
+        if r == Recipient::You || r == Recipient::TriggeringThey || (Self::is_plural(r) && !self.each_group(r)) || self.is_many(r) {
             plural
         } else {
             singular
@@ -13252,6 +13254,11 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             filter_a(f, card)
         ),
         StaticCond::AnyPlayerLifeAtMost(n) => format!("a player has {n} or less life"),
+        StaticCond::SourceCountersOneOrMore(kind) => format!(
+            "{} has one or more {} counters on it",
+            this_ref(card),
+            kind.name()
+        ),
         StaticCond::SourceCountersThere { kind, n } => format!(
             "there are {} or more {} counters on this {}",
             count_words(Num::N(*n), "one"),
@@ -14263,7 +14270,7 @@ fn conditional_static(
     }
     if first {
         let this = format!("{} ", capitalize(&this_ref(card)));
-        let rest = if matches!(c, StaticCond::SourceCounters { .. }) && body.starts_with(&this) {
+        let rest = if matches!(c, StaticCond::SourceCounters { .. } | StaticCond::SourceCountersOneOrMore(_)) && body.starts_with(&this) {
             // "As long as this creature has four or more oil counters on
             // it, it gets +2/+0."
             format!("it {}", &body[this.len()..])
@@ -14821,7 +14828,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     ctx.source_mentioned = named
                         || matches!(
                             c,
-                            StaticCond::SourceCounters { .. }
+                            StaticCond::SourceCounters { .. } | StaticCond::SourceCountersOneOrMore(_)
                                 | StaticCond::ManaSpent { that: false, .. }
                                 | StaticCond::AttackedOrBlocked
                         );
@@ -14955,6 +14962,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     if *c == StaticCond::NoEnduringStory {
                         return format!(
                             "{} unless you have an enduring story.",
+                            body.strip_suffix('.').unwrap_or(&body)
+                        );
+                    }
+                    // "This creature has first strike during your turn."
+                    // (Razorkin Needlehead).
+                    if matches!(c, StaticCond::YourTurn | StaticCond::DuringYourTurn) {
+                        return format!(
+                            "{} during your turn.",
                             body.strip_suffix('.').unwrap_or(&body)
                         );
                     }

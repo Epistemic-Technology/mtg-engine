@@ -1,0 +1,8 @@
+card "Razorkin Needlehead" {
+  oracle_id a78f981a-bf8a-42a4-b171-d655cc2cc1a2
+  cost {R}{R}
+  type Creature — Human Assassin
+  pt 2/2
+  static this: has first strike if your turn
+  triggered whenever an opponent draws a card: deal 1 damage to they
+}
