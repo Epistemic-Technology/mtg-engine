@@ -471,3 +471,97 @@ scenario "Old-Growth Dryads: each opponent may search for a basic land, tapped" 
   assert battlefield B contains "Mountain"
   assert tapped "Mountain"
 }
+
+# Day and night (CR 726): "If it's neither day nor night, it becomes day
+# as this creature enters." and "Whenever day becomes night or night
+# becomes day".
+
+scenario "Firmament Sage: day as it enters, a card when it becomes night" {
+  battlefield A: 4 "Island"
+  hand A: "Firmament Sage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Firmament Sage"
+  run_to turn 1 postcombat_main
+  assert daynight day
+  run_to turn 3 precombat_main
+  assert daynight night
+  assert hand A count 2
+}
+
+scenario "Firmament Sage: no card while it stays day" {
+  battlefield A: 4 "Island", "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Firmament Sage"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Firmament Sage"
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 3 precombat_main
+  assert daynight day
+  assert hand A count 1
+}
+
+scenario "Sunrise Cavalier: a +1/+1 counter when it becomes night" {
+  battlefield A: "Mountain", "Plains", "Mountain"
+  hand A: "Sunrise Cavalier"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sunrise Cavalier"
+  turn 3 A: trigger "Sunrise Cavalier" targeting "Sunrise Cavalier"
+  run_to turn 3 precombat_main
+  assert daynight night
+  assert counters "Sunrise Cavalier" +1/+1 1
+}
+
+scenario "Gavony Dawnguard: a creature card with mana value 3 or less when it becomes night" {
+  battlefield A: 3 "Plains"
+  hand A: "Gavony Dawnguard"
+  library A: "Plains", "Craw Wurm", "Grizzly Bears", "Shock", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gavony Dawnguard"
+  run_to turn 3 precombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A lacks "Craw Wurm"
+}
+
+scenario "Obsessive Astronomer: discard up to two, draw that many" {
+  battlefield A: 2 "Mountain"
+  hand A: "Obsessive Astronomer", "Forest", "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Obsessive Astronomer"
+  turn 3 A: choose "Forest"
+  turn 3 A: choose "Forest"
+  run_to turn 3 precombat_main
+  assert graveyard A contains 2 "Forest"
+  assert hand A count 4
+}
+
+scenario "Sunstreak Phoenix: back from the graveyard tapped when day becomes night" {
+  battlefield A: 4 "Island", 2 "Mountain"
+  hand A: "Firmament Sage"
+  graveyard A: "Sunstreak Phoenix"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Firmament Sage"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Sunstreak Phoenix"
+  assert tapped "Sunstreak Phoenix"
+}
+
+scenario "Indestructibility: enchanted permanent has indestructible" {
+  battlefield A: "Grizzly Bears", "Indestructibility" on "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert has "Grizzly Bears" indestructible
+}
+
+scenario "White Sun's Zenith: X Cats, then into the library" {
+  battlefield A: 5 "Plains"
+  hand A: "White Sun's Zenith"
+  start turn 1 A precombat_main
+  turn 1 A: cast "White Sun's Zenith" x 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Cat"
+  assert library A contains "White Sun's Zenith"
+}

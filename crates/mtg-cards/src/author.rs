@@ -4392,6 +4392,10 @@ fn trigger_text(head: &str) -> Option<String> {
         | "When this permanent enters"
         | "When this Aura enters" => "when this enters",
         "Whenever another creature enters" => "whenever other creature enters",
+        // CR 726.3: the day/night switch.
+        "Whenever day becomes night or night becomes day" => {
+            "whenever day becomes night or night becomes day"
+        }
         // CR 702.55b-c: haunt.
         "When this creature enters or the creature it haunts dies" => {
             "when this enters or haunted dies"
@@ -5200,7 +5204,7 @@ fn conditional_static(line: &str) -> Option<String> {
     let line = line.strip_suffix('.')?;
     let subject = |s: &str| -> Option<&'static str> {
         Some(match s {
-            "this creature" | "This creature" | "this permanent" | "This permanent" => "this",
+            "this creature" | "This creature" | "this permanent" | "This permanent" | "~" => "this",
             "creatures you control" | "Creatures you control" => "creature you control",
             "other creatures you control" | "Other creatures you control" => {
                 "other creature you control"
@@ -5211,7 +5215,7 @@ fn conditional_static(line: &str) -> Option<String> {
         })
     };
     let split_subject = |s: &str| -> Option<(&'static str, String)> {
-        for n in [4, 3, 2] {
+        for n in [4, 3, 2, 1] {
             let words: Vec<&str> = s.splitn(n + 1, ' ').collect();
             if words.len() == n + 1
                 && let Some(f) = subject(&words[..n].join(" "))
@@ -5679,6 +5683,15 @@ impl Builder<'_> {
             return Ok(());
         }
         // CR 702.131: "Ascend" as an ability line.
+        // CR 726.2: "If it's neither day nor night, it becomes day as this
+        // creature enters."
+        if line == "If it's neither day nor night, it becomes day as this creature enters."
+            || line == "If it's neither day nor night, it becomes day as ~ enters."
+        {
+            self.statements
+                .push("becomes day as this enters".to_string());
+            return Ok(());
+        }
         if line == "Ascend" {
             self.statements.push("ascend".to_string());
             return Ok(());
@@ -5748,7 +5761,7 @@ impl Builder<'_> {
             let parts: Vec<&str> = line.split(", ").collect();
             // "Flying, ward {2}", "Menace, ward {2}, haste": ward with its
             // cost among plain keywords (CR 702.21).
-            let ward = Regex::new(r"^[Ww]ard \{\d+\}$").unwrap();
+            let ward = Regex::new(r"^(?:[Ww]ard \{\d+\}|[Ff]irebending \d+)$").unwrap();
             if parts.iter().all(|p| {
                 keyword_list(p).is_some()
                     || p.to_ascii_lowercase().starts_with("protection from ")

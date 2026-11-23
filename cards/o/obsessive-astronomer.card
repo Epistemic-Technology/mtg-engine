@@ -1,0 +1,8 @@
+card "Obsessive Astronomer" {
+  oracle_id fde06097-1cf1-4774-b6ca-7cf15dfe4837
+  cost {1}{R}
+  type Creature — Human Wizard
+  pt 2/2
+  becomes day as this enters
+  triggered whenever day becomes night or night becomes day: discard up to 2 cards chosen then draw count that many discarded this way cards
+}

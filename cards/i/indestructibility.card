@@ -1,0 +1,7 @@
+card "Indestructibility" {
+  oracle_id 9aaa0a28-e342-48bd-8f59-0cd289491f98
+  cost {3}{W}
+  type Enchantment — Aura
+  enchant permanent
+  static enchanted permanent: has indestructible
+}

@@ -1,0 +1,8 @@
+card "Firmament Sage" {
+  oracle_id 57163ade-fe89-4ba0-98a9-daeeed5badb9
+  cost {3}{U}
+  type Creature — Human Wizard
+  pt 2/3
+  becomes day as this enters
+  triggered whenever day becomes night or night becomes day: draw 1 cards
+}

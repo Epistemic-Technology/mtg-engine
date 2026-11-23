@@ -1,0 +1,9 @@
+card "Sunstreak Phoenix" {
+  oracle_id 94f14f42-ea66-4432-81cc-667ad62a4497
+  cost {2}{R}{R}
+  type Creature — Phoenix
+  pt 4/2
+  keywords flying
+  becomes day as this enters
+  triggered from graveyard whenever day becomes night or night becomes day: you may pay {1}{R}; if you do, return this to battlefield tapped
+}

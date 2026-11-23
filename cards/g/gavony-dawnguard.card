@@ -1,0 +1,9 @@
+card "Gavony Dawnguard" {
+  oracle_id 2788cc1e-18b6-4506-be4c-f4056600e33c
+  cost {1}{W}{W}
+  type Creature — Human Soldier
+  pt 3/3
+  ward {1}
+  becomes day as this enters
+  triggered whenever day becomes night or night becomes day: dig 4 take creature with mana value 3 or less card may revealing rest bottom
+}
