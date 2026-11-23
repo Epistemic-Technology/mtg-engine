@@ -1787,7 +1787,19 @@ impl Decompiler<'_> {
                 filter: self.filter(filter),
             },
             CoreEffect::MayCastThisFromExile => Effect::MayCastThisFromExile,
-            CoreEffect::MayPlayCard { until, cast, free } => Effect::MayPlayCard {
+            CoreEffect::MayPlayCard {
+                until,
+                cast,
+                free: false,
+                what: Some(w),
+            } => Effect::MayPlayTarget {
+                what: r(*w),
+                until: *until,
+                cast: *cast,
+            },
+            CoreEffect::MayPlayCard {
+                until, cast, free, ..
+            } => Effect::MayPlayCard {
                 until: *until,
                 cast: *cast,
                 free: *free,

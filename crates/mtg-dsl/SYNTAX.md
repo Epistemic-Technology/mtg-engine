@@ -3101,7 +3101,13 @@ turn."; `may play that card next turn first`: "Until the end of your next
 turn, you may play that card."; `free`: "... without paying its mana
 cost"; `it` for "it"; the durations are impulse's) lets the controller
 play or cast the resolution's card from exile, also after `exile target
-... card from your graveyard`. `put that card into hand and the rest on
+... card from your graveyard`. `may cast target Zombie creature card from
+your graveyard this turn` ("You may cast target Zombie creature card from
+your graveyard this turn.", Zul Ashur; `may play target ...` for "play")
+gives the same permission for the targeted cards where they are, in a
+graveyard or in exile, paying their costs with the usual timing (CR
+601.3); it ends with the duration or when the card leaves that zone.
+`put that card into hand and the rest on
 bottom of library random` is "Put that card into your hand and the rest
 on the bottom of your library in a random order." (the other revealed
 cards; `random` after any `on bottom of library` shuffles them first).

@@ -5895,6 +5895,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 Clause::imperative(format!("you may {verb} {what}{free}{when}"))
             }
         }
+        // "You may cast target Zombie creature card from your graveyard
+        // this turn."
+        Effect::MayPlayTarget { what, until, cast } => {
+            use mtg_core::card::PlayUntil;
+            let o = ctx.obj(*what);
+            let verb = if *cast { "cast" } else { "play" };
+            let when = match until {
+                PlayUntil::ThisTurn => " this turn",
+                PlayUntil::EndOfYourNextTurn => " until the end of your next turn",
+                PlayUntil::YourNextEndStep => " until your next end step",
+                PlayUntil::Forever | PlayUntil::WhileYouControlSource => "",
+            };
+            Clause::imperative(format!("you may {verb} {o}{when}"))
+        }
         Effect::RevealUntil { who, filter } => {
             let pred = card_filter_a(filter, ctx.card);
             match who {

@@ -3550,7 +3550,10 @@ impl GameState {
                     // with the player's next turn.
                     let (objects, active) = (&self.objects, self.active_player);
                     e.playable.retain_mut(|pe| {
-                        if !objects.get(pe.card).is_some_and(|o| o.zone == Zone::Exile) {
+                        if !objects
+                            .get(pe.card)
+                            .is_some_and(|o| matches!(o.zone, Zone::Exile | Zone::Graveyard))
+                        {
                             return false;
                         }
                         match pe.until {

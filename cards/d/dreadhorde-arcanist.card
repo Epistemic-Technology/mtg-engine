@@ -1,0 +1,8 @@
+card "Dreadhorde Arcanist" {
+  oracle_id 4c05b382-58ab-4a2d-a81c-408ea273b6b6
+  cost {1}{R}
+  type Creature — Zombie Wizard
+  pt 1/3
+  keywords trample
+  triggered whenever this attacks: cast free target instant or sorcery card with mana value at most count equal power from your graveyard exile instead
+}

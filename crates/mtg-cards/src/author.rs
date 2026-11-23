@@ -2408,6 +2408,15 @@ impl Templates {
                     Some(format!("{who} reveals {n} cards discarding {take}card"))
                 },
             ),
+            // "You may cast target Zombie creature card from your graveyard
+            // this turn." (CR 601.3).
+            (
+                r(r"^[Yy]ou may cast (target [^,]+? card from your graveyard) this turn$"),
+                |c, t| {
+                    let what = recipient(cap(c, 1), t)?;
+                    Some(format!("may cast {what} this turn"))
+                },
+            ),
             // "Target player shuffles their library." (CR 701.24).
             (
                 r(
@@ -4396,6 +4405,9 @@ impl Templates {
                 .strip_prefix("you may ")
                 .or_else(|| sentence.strip_prefix("You may "))
                 .filter(|r| !(r.starts_with("cast ") && r.contains("without paying its mana cost")))
+                // "You may cast target ... card from your graveyard this
+                // turn": the DSL's `may cast target` keeps it too.
+                .filter(|r| !(r.starts_with("cast target ") && r.ends_with(" this turn")))
             {
                 ("you may ", rest.to_string())
             } else if let Some(rest) = sentence.strip_prefix("If you do, ") {

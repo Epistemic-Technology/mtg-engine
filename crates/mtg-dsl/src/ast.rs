@@ -5000,6 +5000,15 @@ pub enum Effect {
         first: bool,
         it: bool,
     },
+    /// `may cast target Zombie creature card from your graveyard this
+    /// turn`: "You may cast target Zombie creature card from your
+    /// graveyard this turn." (`play`: "You may play ..."), paying its
+    /// costs with the usual timing (CR 601.3).
+    MayPlayTarget {
+        what: Recipient,
+        until: mtg_core::card::PlayUntil,
+        cast: bool,
+    },
     /// `reveal until nonland card` ("reveal cards from the top of your
     /// library until you reveal a nonland card"), `<who> reveals until
     /// land card` ("... until they reveal a land card"): the matching card

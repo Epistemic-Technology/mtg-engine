@@ -4351,6 +4351,13 @@ impl Compiler<'_> {
                 until: *until,
                 cast: *cast,
                 free: *free,
+                what: None,
+            }),
+            Effect::MayPlayTarget { what, until, cast } => out.push(CoreEffect::MayPlayCard {
+                until: *until,
+                cast: *cast,
+                free: false,
+                what: Some(r(*what)),
             }),
             Effect::RevealUntil { who, filter } => out.push(CoreEffect::RevealUntil {
                 who: r(who.unwrap_or(Recipient::You)),

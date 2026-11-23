@@ -349,8 +349,10 @@ impl GameState {
                     continue;
                 };
                 // CR 702.185a: a warped card, not until a later turn.
+                // A graveyard card a target permission names ("You may
+                // cast target ... card from your graveyard this turn").
                 if pe.player != p
-                    || o.zone != Zone::Exile
+                    || !matches!(o.zone, Zone::Exile | Zone::Graveyard)
                     || pe.own_ends == crate::state::WARP_LATER
                 {
                     continue;
@@ -13640,12 +13642,37 @@ impl GameState {
                     }
                 }
             }
-            Effect::MayPlayCard { until, cast, free } => {
+            Effect::MayPlayCard {
+                until,
+                cast,
+                free,
+                what,
+            } => {
                 let p = ctx.controller;
                 let own_ends = if self.active_player == p { 2 } else { 1 };
-                if let Some(id) = ctx.created
-                    && self.objects.get(id).is_some_and(|o| o.zone == Zone::Exile)
-                {
+                // "You may cast target Zombie creature card from your
+                // graveyard this turn": the targets, where they are.
+                let cards: SmallVec<[ObjId; 2]> = match what {
+                    Some(r) => self
+                        .recipients(ctx, *r)
+                        .into_iter()
+                        .filter_map(|t| match t {
+                            Target::Object(id) => Some(id),
+                            Target::Player(_) => None,
+                        })
+                        .filter(|id| {
+                            self.objects
+                                .get(*id)
+                                .is_some_and(|o| matches!(o.zone, Zone::Graveyard | Zone::Exile))
+                        })
+                        .collect(),
+                    None => ctx
+                        .created
+                        .filter(|id| self.objects.get(*id).is_some_and(|o| o.zone == Zone::Exile))
+                        .into_iter()
+                        .collect(),
+                };
+                for id in cards {
                     self.exile_casts
                         .get_or_insert_with(Box::default)
                         .playable

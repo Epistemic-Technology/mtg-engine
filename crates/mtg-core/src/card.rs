@@ -4948,6 +4948,11 @@ pub enum Effect {
         until: PlayUntil,
         cast: bool,
         free: bool,
+        /// "You may cast target Zombie creature card from your graveyard
+        /// this turn.": the targeted cards instead, where they are (a
+        /// graveyard or exile).
+        #[serde(default)]
+        what: Option<Recipient>,
     },
     /// "Reveal cards from the top of your library until you reveal a land
     /// card" (CR 701.20): the recipient player reveals from the top until a

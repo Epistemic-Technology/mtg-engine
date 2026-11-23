@@ -9672,6 +9672,17 @@ impl P {
                 self.pos += 4;
                 Ok(Effect::MayCastThisFromExile)
             }
+            // `may cast target Zombie creature card from your graveyard
+            // this turn`.
+            "may"
+                if (self.at_word("play") || self.at_word("cast"))
+                    && self.word_at(1).as_deref() == Some("target") =>
+            {
+                let cast = self.word()? == "cast";
+                let what = self.recipient()?;
+                let until = self.play_until()?;
+                Ok(Effect::MayPlayTarget { what, until, cast })
+            }
             // `may cast that card this turn [first] [free]`.
             "may"
                 if (self.at_word("play") || self.at_word("cast"))
