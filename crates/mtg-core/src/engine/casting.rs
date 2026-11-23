@@ -2,6 +2,9 @@
 
 use smallvec::SmallVec;
 
+mod ways;
+use ways::CostBasis;
+
 use crate::card::{
     AbilityDef, AbilityId, ActivatedAbility, ActivatedKeyword, Affects, CardDest, CardSet,
     ChoiceKind, Cost, CounterKind, Effect, EffectCond, Keyword, KeywordSet, Layout, Modification,
@@ -32,7 +35,6 @@ impl GameState {
             p == self.active_player && self.step.is_main() && self.stack.is_empty();
         let ps = self.player(p);
         let sources = self.mana_sources(p);
-        let pool = ps.mana_pool;
         let changers = self.cost_changers();
         let free_from_hand = (self.player_static_sources > 0 && self.may_cast_free(p))
             || self.next_spell_free.iter().any(|(who, _)| *who == p);
@@ -139,7 +141,7 @@ impl GameState {
                 if matches!(def.layout, Layout::Adventure | Layout::Omen) {
                     for (i, f) in def.faces.iter().enumerate() {
                         let face = self.pool.get(*f);
-                        if self.castable(p, face, *id, sorcery_timing, &sources, &pool, &changers) {
+                        if self.castable(p, face, *id, sorcery_timing, &sources, &changers) {
                             options.push(Choice::CastFace {
                                 card: *id,
                                 face: u8::try_from(i).unwrap_or(0),
@@ -167,7 +169,7 @@ impl GameState {
                     if face.keywords.contains(Keyword::Aftermath) {
                         continue;
                     }
-                    if self.castable(p, face, *id, sorcery_timing, &sources, &pool, &changers) {
+                    if self.castable(p, face, *id, sorcery_timing, &sources, &changers) {
                         options.push(Choice::CastFace {
                             card: *id,
                             face: u8::try_from(i).unwrap_or(0),
@@ -181,7 +183,7 @@ impl GameState {
             // Timing first, as `castable` does: off-timing cards, most of
             // the hand at most priorities, skip the call.
             if (sorcery_timing || def.is_instant() || self.has_flash(p, def, *id))
-                && self.castable(p, def, *id, sorcery_timing, &sources, &pool, &changers)
+                && self.castable(p, def, *id, sorcery_timing, &sources, &changers)
                 && self.undone_cast != Some((*id, self.version))
             {
                 options.push(Choice::Cast(*id));
@@ -200,13 +202,15 @@ impl GameState {
                 continue;
             }
             // CR 702.74a: cast for the evoke cost instead.
-            if let Some(ev) = &def.evoke
+            if def.evoke.is_some()
                 && sorcery_timing
-                && self.payable_for(
-                    p,
+                && self.basis_payable(
+                    &CostBasis {
+                        evoked: true,
+                        ..self.offer_basis(p, *id, def, AltCast::None)
+                    },
                     &sources,
-                    &self.taxed(p, def, *id, ev.requirements(0)),
-                    Spend::Spell(&self.printed(self.objects[*id].def), *id),
+                    &changers,
                 )
                 && self.targets_available(p, def.unkicked_cast_targets(), Some(*id))
             {
@@ -219,27 +223,17 @@ impl GameState {
                 options.push(Choice::CastAlt(*id));
             }
             // CR 702.109a: cast for the dash cost instead.
-            if let Some(dash) = &def.dash
+            if def.dash.is_some()
                 && (sorcery_timing || self.has_flash(p, def, *id))
-                && self.payable_for(
-                    p,
-                    &sources,
-                    &self.taxed(p, def, *id, dash.requirements(0)),
-                    Spend::Spell(&self.printed(self.objects[*id].def), *id),
-                )
+                && self.alt_payable(p, *id, def, AltCast::Dash, &sources, &changers)
                 && self.targets_available(p, def.unkicked_cast_targets(), Some(*id))
             {
                 options.push(Choice::CastDash(*id));
             }
             // CR 702.185a: cast for the warp cost instead.
-            if let Some(warp) = &def.warp
+            if def.warp.is_some()
                 && (sorcery_timing || self.has_flash(p, def, *id))
-                && self.payable_for(
-                    p,
-                    &sources,
-                    &self.taxed(p, def, *id, warp.requirements(0)),
-                    Spend::Spell(&self.printed(self.objects[*id].def), *id),
-                )
+                && self.alt_payable(p, *id, def, AltCast::Warp, &sources, &changers)
                 && self.targets_available(p, def.unkicked_cast_targets(), Some(*id))
             {
                 options.push(Choice::CastWarp(*id));
@@ -257,15 +251,9 @@ impl GameState {
                 options.push(Choice::CastWebSlinging(*id));
             }
             // CR 702.176a: cast for the impending cost.
-            if let Some(imp) = def.impending.as_deref()
+            if def.impending.is_some()
                 && (sorcery_timing || self.has_flash(p, def, *id))
-                && self.payable_for(
-                    p,
-                    &sources,
-                    &self.taxed(p, def, *id, imp.1.requirements(0)),
-                    Spend::Spell(&self.printed(self.objects[*id].def), *id),
-                )
-                && self.additional_payable(p, &def.additional, *id)
+                && self.alt_payable(p, *id, def, AltCast::Impending, &sources, &changers)
                 && self.targets_available(p, def.unkicked_cast_targets(), Some(*id))
             {
                 options.push(Choice::CastImpending(*id));
@@ -367,7 +355,7 @@ impl GameState {
                     }
                     continue;
                 }
-                if self.castable(p, def, *id, sorcery_timing, &sources, &pool, &changers) {
+                if self.castable(p, def, *id, sorcery_timing, &sources, &changers) {
                     options.push(Choice::Cast(*id));
                 }
             }
@@ -451,15 +439,7 @@ impl GameState {
                         {
                             continue;
                         }
-                        if self.castable(
-                            p,
-                            face,
-                            pe.card,
-                            sorcery_timing,
-                            &sources,
-                            &pool,
-                            &changers,
-                        ) {
+                        if self.castable(p, face, pe.card, sorcery_timing, &sources, &changers) {
                             options.push(Choice::CastFace {
                                 card: pe.card,
                                 face: u8::try_from(i).unwrap_or(0),
@@ -470,7 +450,7 @@ impl GameState {
                         continue;
                     }
                 }
-                if self.castable(p, def, pe.card, sorcery_timing, &sources, &pool, &changers)
+                if self.castable(p, def, pe.card, sorcery_timing, &sources, &changers)
                     && !pe.adventure
                     && !options.contains(&Choice::Cast(pe.card))
                 {
@@ -494,7 +474,7 @@ impl GameState {
                     }
                 } else if spell_ok
                     && !options.contains(&Choice::Cast(card))
-                    && self.castable(p, def, card, sorcery_timing, &sources, &pool, &changers)
+                    && self.castable(p, def, card, sorcery_timing, &sources, &changers)
                 {
                     options.push(Choice::Cast(card));
                 }
@@ -526,7 +506,7 @@ impl GameState {
                 if sorcery_timing && ps.lands_played_this_turn < 1 {
                     options.push(Choice::PlayLand(top));
                 }
-            } else if self.castable(p, def, top, sorcery_timing, &sources, &pool, &changers) {
+            } else if self.castable(p, def, top, sorcery_timing, &sources, &changers) {
                 options.push(Choice::Cast(top));
             }
         }
@@ -541,7 +521,7 @@ impl GameState {
             }
             let def = self.pool.get(o.def);
             if def.flashback.is_none()
-                && self.castable(p, def, *id, sorcery_timing, &sources, &pool, &changers)
+                && self.castable(p, def, *id, sorcery_timing, &sources, &changers)
             {
                 options.push(Choice::Cast(*id));
             }
@@ -694,7 +674,6 @@ impl GameState {
                             *id,
                             sorcery_timing,
                             &sources,
-                            &pool,
                             &changers,
                         )
                     {
@@ -724,14 +703,13 @@ impl GameState {
                 if !(instant_speed || sorcery_timing) {
                     continue;
                 }
-                let mut req = fb.mana.requirements(0);
-                adjust_generic(&mut req, self.cost_delta(p, def, *id, &changers));
-                if !self.payable_for(
-                    p,
-                    &sources,
-                    &req,
-                    Spend::Spell(&self.printed(self.objects[*id].def), *id),
-                ) {
+                // The flashback cost, the card's additional costs, and its
+                // cost changes, as payment charges them (`cost_of`).
+                let b = CostBasis {
+                    flashback: true,
+                    ..self.offer_basis(p, *id, def, AltCast::None)
+                };
+                if !self.basis_payable(&b, &sources, &changers) {
                     continue;
                 }
                 if fb.life > 0 && ps.life < i32::try_from(fb.life).unwrap_or(i32::MAX) {
@@ -752,17 +730,11 @@ impl GameState {
                 // "Flashback—{1}{R}, Behold three Elementals.": its other
                 // parts too (CR 601.2h, 702.34a).
                 if !(if fb.sacrifice.is_some() && fb.taps_chosen() {
+                    let req = self.cost_of(&b, &changers);
                     self.cost_option_payable(p, fb, *id, &sources, req, false)
                 } else {
                     self.additional_payable(p, fb, *id)
                 }) {
-                    continue;
-                }
-                if def.additional_or.is_some() || def.additional.taps_chosen() {
-                    if !self.additional_options_payable(p, def, *id, &sources, &req) {
-                        continue;
-                    }
-                } else if !self.additional_payable(p, &def.additional, *id) {
                     continue;
                 }
                 let targets_ok = match def.modes() {
@@ -2410,18 +2382,11 @@ impl GameState {
         sources: &Sources,
         changers: &[ObjId],
     ) -> bool {
-        let Some(cost) = &def.bestow else {
-            return false;
-        };
-        if !(sorcery_timing || self.has_flash(p, def, id)) {
+        if def.bestow.is_none() || !(sorcery_timing || self.has_flash(p, def, id)) {
             return false;
         }
         let face = self.pool.get(face_ref);
-        let mut req = cost.requirements(0);
-        if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
-            adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
-        }
-        self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref), id))
+        self.alt_payable(p, id, face, AltCast::Bestow, sources, changers)
             && self.targets_available(p, face.unkicked_cast_targets(), Some(id))
     }
 
@@ -2440,18 +2405,13 @@ impl GameState {
         sources: &Sources,
         changers: &[ObjId],
     ) -> bool {
-        let Some(cost) = &def.overload else {
-            return false;
-        };
-        if !(sorcery_timing || def.is_instant() || self.has_flash(p, def, id)) {
+        if def.overload.is_none()
+            || !(sorcery_timing || def.is_instant() || self.has_flash(p, def, id))
+        {
             return false;
         }
         let face = self.pool.get(face_ref);
-        let mut req = cost.requirements(0);
-        if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
-            adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
-        }
-        self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref), id))
+        self.alt_payable(p, id, face, AltCast::Overload, sources, changers)
     }
 
     /// CR 702.113a: whether `p` could cast `def` for its awaken cost now,
@@ -2469,21 +2429,14 @@ impl GameState {
         sources: &Sources,
         changers: &[ObjId],
     ) -> bool {
-        let Some((_, cost)) = &def.awaken else {
-            return false;
-        };
-        if !(sorcery_timing || def.is_instant() || self.has_flash(p, def, id)) {
+        if def.awaken.is_none()
+            || !(sorcery_timing || def.is_instant() || self.has_flash(p, def, id))
+        {
             return false;
         }
         let face = self.pool.get(face_ref);
-        if !self.targets_available(p, face.cast_targets(), Some(id)) {
-            return false;
-        }
-        let mut req = cost.requirements(0);
-        if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
-            adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
-        }
-        self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref), id))
+        self.targets_available(p, face.cast_targets(), Some(id))
+            && self.alt_payable(p, id, face, AltCast::Awaken, sources, changers)
     }
 
     /// CR 702.146a: whether `p` could cast `def` (the card `id`, in their
@@ -2500,21 +2453,15 @@ impl GameState {
         sources: &Sources,
         changers: &[ObjId],
     ) -> bool {
-        let (Some(cost), Some(face_ref)) = (&def.disturb, def.faces.first().copied()) else {
+        let (Some(_), Some(face_ref)) = (&def.disturb, def.faces.first().copied()) else {
             return false;
         };
         let face = self.pool.get(face_ref);
         if !(sorcery_timing || face.is_instant() || self.has_flash(p, face, id)) {
             return false;
         }
-        if !self.targets_available(p, face.cast_targets(), Some(id)) {
-            return false;
-        }
-        let mut req = cost.requirements(0);
-        if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
-            adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
-        }
-        self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref), id))
+        self.targets_available(p, face.cast_targets(), Some(id))
+            && self.alt_payable(p, id, face, AltCast::Disturb, sources, changers)
     }
 
     /// CR 702.180a: the ways `p` may cast `id` from their graveyard for
@@ -2535,8 +2482,8 @@ impl GameState {
         changers: &[ObjId],
         options: &mut Vec<Choice>,
     ) {
-        // Its own harmonize cost, or one given to it: its mana cost.
-        let cost = def.harmonize.as_deref().unwrap_or(&def.mana_cost);
+        // Its own harmonize cost, or one given to it: its mana cost
+        // (`cost_of`).
         if !(sorcery_timing || def.is_instant() || self.has_flash(p, def, id))
             || !self.additional_payable(p, &def.additional, id)
         {
@@ -2551,16 +2498,12 @@ impl GameState {
         if !targets_ok {
             return;
         }
-        let mut req = cost.requirements(0);
-        if def.self_cost.is_some()
-            || def.cond_cost.is_some()
-            || !changers.is_empty()
-            || self.next_spell_less[p.index().min(3)] > 0
-        {
-            adjust_generic(&mut req, self.cost_delta(p, def, id, changers));
-        }
-        let printed = self.printed(self.objects[id].def);
-        if self.payable_for(p, sources, &req, Spend::Spell(&printed, id)) {
+        // As it is cast: exiled as it leaves the stack (CR 702.180a).
+        let b = CostBasis {
+            flashback: true,
+            ..self.offer_basis(p, id, def, AltCast::Harmonize)
+        };
+        if self.basis_payable(&b, sources, changers) {
             options.push(Choice::CastHarmonize {
                 card: id,
                 tap: None,
@@ -2573,9 +2516,8 @@ impl GameState {
             .filter(|(_, power)| *power > 0)
             .collect();
         for (c, power) in tappers {
-            let mut r = req;
-            adjust_generic(&mut r, -i32::from(power));
-            if self.payable_for(p, &without(sources, &[c]), &r, Spend::Spell(&printed, id)) {
+            let less = u32::try_from(power).unwrap_or(0);
+            if self.basis_payable(&CostBasis { less, ..b }, &without(sources, &[c]), changers) {
                 options.push(Choice::CastHarmonize {
                     card: id,
                     tap: Some(c),
@@ -2585,9 +2527,9 @@ impl GameState {
     }
 
     /// Whether `p` could cast `def` (the card `id`, or one of its faces)
-    /// now: timing, mana, additional costs, and targets (CR 601.2).
+    /// now for its mana cost: timing, the cost payment will charge
+    /// (`basis_payable`), and targets (CR 601.2).
     #[inline]
-    #[allow(clippy::too_many_arguments)] // the parts precomputed once per listing
     fn castable(
         &self,
         p: PlayerId,
@@ -2595,7 +2537,6 @@ impl GameState {
         id: ObjId,
         sorcery_timing: bool,
         sources: &Sources,
-        pool: &crate::mana::ManaPool,
         changers: &[ObjId],
     ) -> bool {
         // CR 118.6: no mana cost is a cost that can't be paid.
@@ -2606,102 +2547,21 @@ impl GameState {
         if !(instant_speed || sorcery_timing) {
             return false;
         }
-        let mut req = def.mana_cost.requirements(0);
-        // CR 601.2f: an additional cost's mana ("As an additional cost to
-        // cast this spell, waterbend {5}") is part of the total cost, as
-        // payment charges it (a choice of two adds its own below).
-        if !def.additional.mana.is_empty()
-            && def.additional_or.is_none()
-            && !def.additional.taps_chosen()
-        {
-            req.add(&def.additional.mana.requirements(0));
-        }
-        if def.self_cost.is_some()
-            || def.cond_cost.is_some()
-            || !changers.is_empty()
-            || self.next_spell_less[p.index().min(3)] > 0
-        {
-            adjust_generic(&mut req, self.cost_delta(p, def, id, changers));
-        }
-        // Cheaper with a fitting target: castable if one exists (targets
-        // are then held to what's payable).
-        if let Some(tc) = &def.target_cost
-            && tc.0 < 0
-            && def.cast_targets().first().is_some_and(|spec| {
-                self.legal_targets(p, *spec, Some(id))
-                    .iter()
-                    .any(|t| self.target_fits(&tc.1, *t, p, id))
-            })
-        {
-            adjust_generic(&mut req, tc.0);
-        }
-        // Dearer with a fitting target: castable for the base cost only if
-        // some legal target doesn't fit (Vanish into Eternity with only
-        // creatures to target costs {3} more).
-        if let Some(tc) = &def.target_cost
-            && tc.0 > 0
-            && def.cast_targets().first().is_some_and(|spec| {
-                self.legal_targets(p, *spec, Some(id))
-                    .iter()
-                    .all(|t| self.target_fits(&tc.1, *t, p, id))
-            })
-        {
-            adjust_generic(&mut req, tc.0);
-        }
-        let keywords = self.spell_keywords(p, def, id).0;
-        let helped = Keyword::helps_pay(keywords) || def.additional.waterbend;
-        let restricted = match (self.restricted_mana_possible(), &def.printed) {
-            (false, _) | (_, None) => None,
-            (true, Some(c)) => self.with_restricted(p, sources, Spend::Spell(c, id)),
-        };
-        let all = if helped || restricted.is_some() {
-            let mut all = restricted.unwrap_or_else(|| sources.clone());
-            if helped {
-                all.extend(self.helper_sources(p, def, keywords));
-            }
-            Some(all)
-        } else {
-            None
-        };
-        let srcs = all.as_ref().unwrap_or(sources);
-        // CR 601.2b: a choice of additional costs, or one that taps
-        // permanents the mana might need.
-        if def.additional_or.is_some() || def.additional.taps_chosen() {
-            if !self.additional_options_payable(p, def, id, srcs, &req) {
-                return false;
-            }
-        } else if !self.payable(p, srcs, pool, &req, self.player(p).life, None)
-            || !self.additional_payable(p, &def.additional, id)
-        {
+        let b = self.offer_basis(p, id, def, AltCast::None);
+        if !self.basis_payable(&b, sources, changers) {
             return false;
         }
-        // A modal spell needs some mode to have its targets (CR 601.2b);
-        // a spree spell, one it can also pay that mode's cost for (CR
-        // 702.172a).
-        if !def.spree.is_empty()
-            && let Some(modes) = def.modes()
-        {
-            return def.spree.iter().enumerate().any(|(i, c)| {
-                let mut more = req;
-                more.add(&c.requirements(0));
-                modes
-                    .get((1 << i) - 1)
-                    .is_some_and(|m| self.targets_available(p, &m.targets, Some(id)))
-                    && self.payable(p, srcs, pool, &more, self.player(p).life, None)
-            });
+        // A spree or tiered spell's mode, with its targets, was judged
+        // with its cost (CR 702.172a, 702.183a).
+        if (!def.spree.is_empty() || !def.tiered.is_empty()) && def.modes().is_some() {
+            return true;
         }
-        // CR 702.183a: a tiered spell, likewise, needs a mode with its
-        // targets whose cost it can pay.
-        if !def.tiered.is_empty()
-            && let Some(modes) = def.modes()
-        {
-            return def.tiered.iter().zip(modes).any(|(c, m)| {
-                let mut more = req;
-                more.add(&c.requirements(0));
-                self.targets_available(p, &m.targets, Some(id))
-                    && self.payable(p, srcs, pool, &more, self.player(p).life, None)
-            });
-        }
+        self.way_targets_available(p, def, id)
+    }
+
+    /// A modal spell needs some mode to have its targets (CR 601.2b); any
+    /// other, its targets (`spell_targets_available`).
+    fn way_targets_available(&self, p: PlayerId, def: &crate::card::CardDef, id: ObjId) -> bool {
         match def.modes() {
             Some(modes) => modes
                 .iter()
@@ -2719,19 +2579,15 @@ impl GameState {
         sources: &Sources,
         options: &mut Vec<Choice>,
     ) {
-        let fd = self.pool.face_down(false);
-        let face_down = self.printed(fd);
-        // CR 601.2f: a face-down spell is a creature spell, which "Creature
-        // spells you cast cost {1} more" taxes as payment does.
-        let mut req = self.face_down_cost(p);
-        let changers = self.cost_changers();
-        if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
-            adjust_generic(
-                &mut req,
-                self.cost_delta(p, self.pool.get(fd), id, &changers),
-            );
-        }
-        if self.payable_for(p, sources, &req, Spend::Spell(&face_down, id)) {
+        // CR 702.37c, 708.4: a 2/2 creature spell for {3}, taxed as one.
+        let mut b = self.offer_basis(
+            p,
+            id,
+            self.pool.get(self.pool.face_down(false)),
+            AltCast::None,
+        );
+        b.face_down = true;
+        if self.basis_payable(&b, sources, &self.cost_changers()) {
             options.push(Choice::CastFaceDown(id));
         }
     }
@@ -2760,19 +2616,10 @@ impl GameState {
         options: &mut Vec<Choice>,
     ) {
         let face = self.pool.get(back);
-        let ps = self.player(p);
         let ok = if face.is_land() {
             sorcery_timing && self.may_play_another_land(p)
         } else {
-            self.castable(
-                p,
-                face,
-                id,
-                sorcery_timing,
-                sources,
-                &ps.mana_pool,
-                changers,
-            )
+            self.castable(p, face, id, sorcery_timing, sources, changers)
         };
         if ok {
             options.push(Choice::CastFace { card: id, face: 0 });
@@ -2887,7 +2734,6 @@ impl GameState {
         changers: &[ObjId],
         options: &mut Vec<Choice>,
     ) {
-        let pool = self.player(p).mana_pool;
         for id in self.permanents_of(p) {
             if !self.objects[id].prepared() {
                 continue;
@@ -2901,7 +2747,6 @@ impl GameState {
                 id,
                 sorcery_timing,
                 sources,
-                &pool,
                 changers,
             ) {
                 options.push(Choice::CastFace { card: id, face: 0 });
@@ -3528,24 +3373,6 @@ impl GameState {
             .collect()
     }
 
-    /// An alternative cost (evoke, dash, warp, impending, sneak,
-    /// web-slinging) as it will be charged: taxed and reduced like the
-    /// mana cost it replaces (CR 601.2f). Offering the cast on the printed
-    /// cost offered one that could not then be paid.
-    fn taxed(
-        &self,
-        p: PlayerId,
-        def: &crate::card::CardDef,
-        id: ObjId,
-        mut req: ManaRequirement,
-    ) -> ManaRequirement {
-        let changers = self.cost_changers();
-        if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
-            adjust_generic(&mut req, self.cost_delta(p, def, id, &changers));
-        }
-        req
-    }
-
     /// CR 601.2f: how much more (or, below zero, less) generic mana `def`
     /// costs `p` to cast as the card `id`, from its own text and from
     /// `changers`' static abilities.
@@ -3834,29 +3661,13 @@ impl GameState {
             return false;
         }
         // CR 601.2f: cost reductions (affinity) apply to an alternative
-        // cost too.
-        let mut req = alt.cost.mana.requirements(0);
-        if def.self_cost.is_some()
-            || def.cond_cost.is_some()
-            || !changers.is_empty()
-            || self.next_spell_less[p.index().min(3)] > 0
-        {
-            adjust_generic(&mut req, self.cost_delta(p, def, id, changers));
-        }
-        // CR 702.119a: emerge, reduced by the mana value of the creature
-        // sacrificed: some creature must leave the rest payable without
-        // its own mana.
-        let spend = Spend::Spell(&self.printed(self.objects[id].def), id);
-        let payable = if def.emerge
-            && let Some(SacCost::Filter(f)) = &alt.cost.sacrifice
-        {
-            !self
-                .emerge_options(p, f, id, &req, sources, spend)
-                .is_empty()
-        } else {
-            self.payable_for(p, sources, &req, spend)
-        };
-        if !payable || !self.additional_payable(p, &def.additional, id) {
+        // cost too; the spell is its prototype face (CR 718.3b) or its
+        // cleave face (CR 702.148a), as `CastAlt` casts it.
+        let face = def
+            .prototype_face
+            .or(def.cleave_face)
+            .map_or(def, |f| self.pool.get(f));
+        if !self.alt_payable(p, id, face, AltCast::AltCost, sources, changers) {
             return false;
         }
         // CR 702.148a: cleaved, the spell's targets are its cleave face's.
@@ -3881,9 +3692,9 @@ impl GameState {
         sorcery_timing: bool,
         sources: &Sources,
     ) -> bool {
-        let Some(cost) = &def.web_slinging else {
+        if def.web_slinging.is_none() {
             return false;
-        };
+        }
         if !(sorcery_timing || def.is_instant() || self.has_flash(p, def, id))
             || def.additional.sacrifice.is_some()
             || def.additional_or.is_some()
@@ -3891,13 +3702,14 @@ impl GameState {
         {
             return false;
         }
-        if !self.payable_for(
+        if !self.alt_payable(
             p,
+            id,
+            def,
+            AltCast::WebSlinging,
             sources,
-            &self.taxed(p, def, id, cost.requirements(0)),
-            Spend::Spell(&self.printed(self.objects[id].def), id),
-        ) || !self.additional_payable(p, &def.additional, id)
-        {
+            &self.cost_changers(),
+        ) {
             return false;
         }
         match def.modes() {
@@ -3928,9 +3740,9 @@ impl GameState {
         id: ObjId,
         sources: &Sources,
     ) -> bool {
-        let Some(cost) = &def.sneak else {
+        if def.sneak.is_none() {
             return false;
-        };
+        }
         if self.step != crate::turn::Step::DeclareBlockers
             || p != self.active_player
             || def.additional.sacrifice.is_some()
@@ -3939,13 +3751,7 @@ impl GameState {
         {
             return false;
         }
-        if !self.payable_for(
-            p,
-            sources,
-            &self.taxed(p, def, id, cost.requirements(0)),
-            Spend::Spell(&self.printed(self.objects[id].def), id),
-        ) || !self.additional_payable(p, &def.additional, id)
-        {
+        if !self.alt_payable(p, id, def, AltCast::Sneak, sources, &self.cost_changers()) {
             return false;
         }
         match def.modes() {
@@ -4075,35 +3881,6 @@ impl GameState {
         if let Some(o) = self.objects.get_mut(this) {
             o.cast.set_beheld();
         }
-    }
-
-    /// Whether either of a spell's additional costs ("sacrifice a creature
-    /// or pay {3}") could be paid, apart from mana.
-    fn some_additional_payable(&self, p: PlayerId, def: &crate::card::CardDef, id: ObjId) -> bool {
-        self.additional_payable(p, &def.additional, id)
-            || def
-                .additional_or
-                .as_deref()
-                .is_some_and(|c| self.additional_payable(p, c, id))
-    }
-
-    /// Whether a spell whose mana cost is `req` could be cast paying one
-    /// of its additional costs (CR 601.2b, 601.2h): with two ("sacrifice
-    /// a creature or pay {3}"), either; one that taps permanents ("tap
-    /// three untapped white creatures you control") leaves enough mana.
-    #[cold]
-    #[inline(never)]
-    fn additional_options_payable(
-        &self,
-        p: PlayerId,
-        def: &crate::card::CardDef,
-        id: ObjId,
-        sources: &Sources,
-        req: &ManaRequirement,
-    ) -> bool {
-        std::iter::once(&def.additional)
-            .chain(def.additional_or.as_deref())
-            .any(|c| self.cost_option_payable(p, c, id, sources, *req, true))
     }
 
     /// Whether `p` could pay `req` plus the additional cost `c` of the
@@ -4672,203 +4449,19 @@ impl GameState {
     }
 
     /// `spell_requirements_as` with `mode` chosen, for a spree spell's
-    /// mode costs (CR 702.172a).
-    #[allow(clippy::too_many_lines)] // one arm per alternative cost
-    fn spell_requirements_mode(
+    /// mode costs (CR 702.172a): `cost_of` the spell as it is being cast,
+    /// the requirement its offer judged.
+    pub(super) fn spell_requirements_mode(
         &self,
         spell: ObjId,
         x: u32,
         other: bool,
         mode: u8,
     ) -> ManaRequirement {
-        let o = &self.objects[spell];
-        let def = self.pool.get(o.def);
-        let mut req = match (&def.flashback, o.cast.flashback()) {
-            (Some(fb), true) => fb.mana.requirements(x),
-            // Cast without paying its mana cost: X is 0 (CR 107.3b).
-            _ if matches!(o.alt, AltCast::Free | AltCast::Suspend | AltCast::FreeExile) => {
-                ManaRequirement::default()
-            }
-            (_, false) if o.alt == AltCast::Madness && def.madness.is_some() => {
-                def.madness.as_ref().expect("checked").requirements(x)
-            }
-            (_, false) if o.alt == AltCast::Miracle && def.miracle.is_some() => {
-                def.miracle.as_ref().expect("checked").requirements(x)
-            }
-            (_, false) if o.alt == AltCast::Foretell && def.foretell.is_some() => {
-                def.foretell.as_ref().expect("checked").requirements(x)
-            }
-            (_, false) if o.alt == AltCast::Escape && def.escape.is_some() => {
-                def.escape.as_ref().expect("checked").0.requirements(x)
-            }
-            (_, false) if o.alt == AltCast::Mayhem && def.mayhem.is_some() => {
-                def.mayhem.as_ref().expect("checked").requirements(x)
-            }
-            (_, false) if o.alt == AltCast::Bestow && def.bestow.is_some() => {
-                def.bestow.as_ref().expect("checked").requirements(x)
-            }
-            (_, false) if o.alt == AltCast::Dash && def.dash.is_some() => {
-                def.dash.as_ref().expect("checked").requirements(x)
-            }
-            (_, false) if o.alt == AltCast::Warp && def.warp.is_some() => {
-                def.warp.as_ref().expect("checked").requirements(x)
-            }
-            // CR 701.65a: {2} rather than its mana cost (X is 0).
-            (_, false) if o.alt == AltCast::Airbend => ManaRequirement {
-                generic: 2,
-                ..ManaRequirement::default()
-            },
-            (_, false) if o.alt == AltCast::Sneak && def.sneak.is_some() => {
-                def.sneak.as_ref().expect("checked").requirements(x)
-            }
-            (_, false) if o.alt == AltCast::Impending && def.impending.is_some() => {
-                def.impending.as_ref().expect("checked").1.requirements(x)
-            }
-            (_, false) if o.alt == AltCast::WebSlinging && def.web_slinging.is_some() => {
-                def.web_slinging.as_ref().expect("checked").requirements(x)
-            }
-            // CR 702.180a: cast from the graveyard (as with flashback, the
-            // spell is exiled as it leaves the stack).
-            _ if o.alt == AltCast::Harmonize => def
-                .harmonize
-                .as_deref()
-                .unwrap_or(&def.mana_cost)
-                .requirements(x),
-            (_, false) if o.alt == AltCast::Overload && def.overload.is_some() => {
-                def.overload.as_ref().expect("checked").requirements(x)
-            }
-            // The face has no awaken of its own: the card's cost.
-            (_, false) if o.alt == AltCast::Awaken && self.pool.get(o.card).awaken.is_some() => {
-                self.pool
-                    .get(o.card)
-                    .awaken
-                    .as_ref()
-                    .expect("checked")
-                    .1
-                    .requirements(x)
-            }
-            // The back face has no disturb of its own: the card's cost.
-            (_, false) if o.alt == AltCast::Disturb && self.pool.get(o.card).disturb.is_some() => {
-                self.pool
-                    .get(o.card)
-                    .disturb
-                    .as_ref()
-                    .expect("checked")
-                    .requirements(x)
-            }
-            // The card's: a cleaved spell's face has no alternative cost of
-            // its own (CR 702.148a), a prototyped one's is its mana cost.
-            (_, false) if o.alt == AltCast::AltCost && self.pool.get(o.card).alt_cost.is_some() => {
-                self.pool
-                    .get(o.card)
-                    .alt_cost
-                    .as_ref()
-                    .expect("checked")
-                    .cost
-                    .mana
-                    .requirements(x)
-            }
-            (_, false) if o.cast.evoked() && def.evoke.is_some() => {
-                def.evoke.as_ref().expect("checked").requirements(x)
-            }
-            // CR 702.37c: a face-down spell costs {3}.
-            _ if self.pool.is_face_down(o.def) => self.face_down_cost(o.controller),
-            _ => def.mana_cost.requirements(x),
-        };
-        // CR 107.3: "Spend only black mana on X." X is then paid as that
-        // many black symbols.
-        if x > 0
-            && req.generic >= x
-            && let Some(c) = def
-                .ability_ids
-                .iter()
-                .find_map(|a| match self.pool.ability(*a) {
-                    AbilityDef::XManaColor(c) => Some(*c),
-                    _ => None,
-                })
-        {
-            req.generic -= x;
-            req.colored[c as usize] += x;
-        }
-        if o.cast.kicked()
-            && let Some(k) = &def.kicker
-        {
-            req.add(&k.requirements(0));
-        }
-        // CR 702.33c: the multikicker cost, once for each time it was paid.
-        if let Some(k) = &def.multikicker {
-            for _ in 0..o.cast.kicks() {
-                req.add(&k.requirements(0));
-            }
-        }
-        if o.cast.bought_back()
-            && let Some(b) = &def.buyback
-        {
-            req.add(&b.requirements(0));
-        }
-        if o.cast.offspring()
-            && let Some(b) = &def.offspring
-        {
-            req.add(&b.requirements(0));
-        }
-        self.add_splice_and_strive(spell, def, o.targets.len(), &mut req);
-        // CR 702.42a: every mode, for the entwine cost on top.
-        if let Some(e) = &def.entwine
-            && self.mode_split_of(spell).is_some()
-        {
-            req.add(&e.requirements(0));
-        }
-        // CR 702.120a: escalate, once for each mode beyond the first.
-        if let Some(e) = &def.escalate {
-            for _ in 1..(u32::from(mode) + 1).count_ones() {
-                req.add(&e.requirements(0));
-            }
-        }
-        // CR 702.183a: the chosen tiered mode's cost.
-        if let Some(c) = def.tiered.get(usize::from(mode)) {
-            req.add(&c.requirements(0));
-        }
-        // CR 702.172a: the chosen spree modes' costs.
-        if !def.spree.is_empty() {
-            let bits = u32::from(mode) + 1;
-            for (i, c) in def.spree.iter().enumerate() {
-                if bits & (1 << i) != 0 {
-                    req.add(&c.requirements(0));
-                }
-            }
-        }
-        // "As an additional cost to cast this spell, sacrifice a creature
-        // or pay {3}".
-        if let Some(c) = def.additional_or.as_deref().filter(|_| other)
-            && !c.mana.is_empty()
-        {
-            req.add(&c.mana.requirements(0));
-        } else if !other && !def.additional.mana.is_empty() {
-            req.add(&def.additional.mana.requirements(0));
-        }
-        if def.self_cost.is_some()
-            || def.cond_cost.is_some()
-            || !self.cost_changers().is_empty()
-            || self.next_spell_less[o.controller.index().min(3)] > 0
-        {
-            adjust_generic(
-                &mut req,
-                self.cost_delta(o.controller, def, spell, &self.cost_changers()),
-            );
-        }
-        if let Some(tc) = &def.target_cost
-            && let Some(t) = o.targets.first()
-            && self.target_fits(&tc.1, *t, o.controller, spell)
-        {
-            adjust_generic(&mut req, tc.0);
-        }
-        // CR 702.180a: reduced by the tapped creature's power.
-        if o.alt == AltCast::Harmonize
-            && let Some((_, _, power)) = self.harmonized.iter().find(|(s, ..)| *s == spell)
-        {
-            adjust_generic(&mut req, -i32::try_from(*power).unwrap_or(i32::MAX));
-        }
-        req
+        self.cost_of(
+            &self.spell_basis(spell, x, other, mode),
+            &self.cost_changers(),
+        )
     }
 
     /// Mayhem: a card its owner discarded this turn, in their graveyard,
@@ -4878,9 +4471,9 @@ impl GameState {
     #[inline(never)]
     fn mayhem_castable(&self, p: PlayerId, card: ObjId, sorcery_timing: bool) -> bool {
         let def = self.pool.get(self.objects[card].def);
-        let Some(cost) = def.mayhem.as_deref() else {
+        if def.mayhem.is_none() {
             return false;
-        };
+        }
         if def.is_land() || !self.mayhem_discarded.contains(&card) {
             return false;
         }
@@ -4888,12 +4481,15 @@ impl GameState {
         if !(instant || sorcery_timing) {
             return false;
         }
-        let mut req = cost.requirements(0);
-        adjust_generic(
-            &mut req,
-            self.cost_delta(p, def, card, &self.cost_changers()),
-        );
-        if !self.spell_payable(p, card, &req) {
+        let sources = self.mana_sources(p);
+        if !self.alt_payable(
+            p,
+            card,
+            def,
+            AltCast::Mayhem,
+            &sources,
+            &self.cost_changers(),
+        ) {
             return false;
         }
         match def.modes() {
@@ -4910,19 +4506,22 @@ impl GameState {
     #[inline(never)]
     fn escape_castable(&self, p: PlayerId, card: ObjId, sorcery_timing: bool) -> bool {
         let def = self.pool.get(self.objects[card].def);
-        let Some((cost, n)) = def.escape.as_deref() else {
+        let Some((_, n)) = def.escape.as_deref() else {
             return false;
         };
         let instant = def.is_instant() || self.has_flash(p, def, card);
         if !(instant || sorcery_timing) || self.player(p).graveyard.len() <= *n as usize {
             return false;
         }
-        let mut req = cost.requirements(0);
-        adjust_generic(
-            &mut req,
-            self.cost_delta(p, def, card, &self.cost_changers()),
-        );
-        if !self.spell_payable(p, card, &req) {
+        let sources = self.mana_sources(p);
+        if !self.alt_payable(
+            p,
+            card,
+            def,
+            AltCast::Escape,
+            &sources,
+            &self.cost_changers(),
+        ) {
             return false;
         }
         match def.modes() {
@@ -4958,64 +4557,29 @@ impl GameState {
                 .any(|m| self.targets_available(p, &m.targets, Some(card))),
             None => self.spell_targets_available(p, def, card),
         };
-        // CR 601.2h: casting it without paying its mana cost still pays its
-        // additional costs (Improvised Club's sacrifice).
-        if !targets_ok || !self.some_additional_payable(p, def, card) {
+        if !targets_ok {
             return false;
         }
-        let mut req = match alt {
-            AltCast::Madness => def.madness.as_ref().map(|c| c.requirements(0)),
-            AltCast::Miracle => def.miracle.as_ref().map(|c| c.requirements(0)),
-            AltCast::Foretell => def.foretell.as_ref().map(|c| c.requirements(0)),
-            // CR 701.65a.
-            AltCast::Airbend => Some(ManaRequirement {
-                generic: 2,
-                ..ManaRequirement::default()
-            }),
-            // "You may cast the copy" (CR 707.12): for its mana cost.
-            AltCast::None => Some(def.mana_cost.requirements(0)),
-            // CR 702.172a, 702.183a: a spree or tiered spell cast without
-            // paying its mana cost still pays for the mode it chooses
-            // (Shifting Grift off Sram's Expertise): it needs a mode with
-            // its targets whose cost can be paid, or the cast was offered
-            // and then failed at payment.
-            _ if !def.spree.is_empty() || !def.tiered.is_empty() => {
-                let spree = !def.spree.is_empty();
-                let costs = if spree { &def.spree } else { &def.tiered };
-                let delta = self.cost_delta(p, def, card, &self.cost_changers());
-                return def.modes().is_some_and(|modes| {
-                    costs.iter().enumerate().any(|(i, c)| {
-                        let m = if spree {
-                            modes.get((1 << i) - 1)
-                        } else {
-                            modes.get(i)
-                        };
-                        let mut req = c.requirements(0);
-                        adjust_generic(&mut req, delta);
-                        m.is_some_and(|m| self.targets_available(p, &m.targets, Some(card)))
-                            && self.spell_payable(p, card, &req)
-                    })
-                });
-            }
-            // Without paying its mana cost: what payment still charges,
-            // an additional cost's mana and cost increases (CR 601.2f,
-            // 118.9d: "Spells cost {1} more" applies to a free spell).
-            _ => {
-                let mut req = ManaRequirement::default();
-                if def.additional_or.is_none() {
-                    req.add(&def.additional.mana.requirements(0));
-                }
-                Some(req)
-            }
+        // A cost the card doesn't have can't be paid (CR 118.6).
+        let has_cost = match alt {
+            AltCast::Madness => def.madness.is_some(),
+            AltCast::Miracle => def.miracle.is_some(),
+            AltCast::Foretell => def.foretell.is_some(),
+            _ => true,
         };
-        let Some(mut req) = req.take() else {
-            return false;
-        };
-        adjust_generic(
-            &mut req,
-            self.cost_delta(p, def, card, &self.cost_changers()),
-        );
-        self.spell_payable(p, card, &req)
+        // CR 601.2f-h: what payment charges, without paying its mana cost
+        // too: its additional costs (Improvised Club's sacrifice) and cost
+        // increases, and a spree or tiered spell's mode (Shifting Grift off
+        // Sram's Expertise, CR 702.172a, 702.183a).
+        has_cost
+            && self.alt_payable(
+                p,
+                card,
+                def,
+                alt,
+                &self.mana_sources(p),
+                &self.cost_changers(),
+            )
     }
 
     /// "You may cast it": if `card` can be cast `alt`'s way, its owner
