@@ -2140,7 +2140,9 @@ followed by an additional main phase"; the conditions `your main phase`,
 "it's your combat phase", "it's the first combat phase of the turn"),
 `sacrifice <what>`, `tap <what>`, `untap <what> [and <what>]`,
 `gain control of <what>`, `attach to <what>` (this: "attach this Equipment to ..."),
-`attach <what> to <what>` ("Attach target Equipment you control to target
+`attach it to <what>` (in a trigger about another object, that object:
+"Whenever an Equipment you control enters, you may attach it to target
+creature you control"), `attach <what> to <what>` ("Attach target Equipment you control to target
 creature you control": an Aura only where its enchant ability allows, an
 Equipment only onto a creature and not while it is a creature, nothing if
 already attached there, CR 701.3, 301.5c), `unattach all Equipment attached to
@@ -2273,7 +2275,8 @@ counters, sacrifice this` resolves at once, and payment activates it
 (removing the counter, then the rest) when plain sources fall short,
 `add {C}; if you control Urza's Mine and Urza's Tower, add {C}{C}
 instead` counting as the mana it would make now. `search basic land card reveal to hand`, `search up to 2
-Forest card to battlefield tapped`, `search basic land card reveal to
+Forest card to battlefield tapped`, `search up to X land card reveal to
+hand` ("up to X land cards": X is the count, the spell's X), `search basic land card reveal to
 top` ("Search your library for ..., then shuffle"; add `that card` to
 print "that card" for "it"; `search up to 3 card named this reveal to hand`,
 `search any number card named this reveal to hand`: "a card named ~",
@@ -2728,7 +2731,8 @@ with a group, the second mode's targets come first): `X target creature` ("X tar
 X, which can't exceed what there is to target), `1 to 2 target creature`
 ("one or two target creatures"; `1 to 3` prints "one, two, or three"),
 `any number of target player`, and `1 to 2 targets` / `any number of
-targets` for "any target". Later mentions (`target 1`) print "them" or
+targets` for "any target" (`deal 1 damage to 1 to 2 targets`: "deals 1
+damage to each of one or two targets"). Later mentions (`target 1`) print "them" or
 "they", and a group as subject takes "each" where Oracle has it ("One or
 two target creatures each get +2/+1", "Any number of target players each
 gain 6 life"). "X target cards from a single graveyard" (`X target card

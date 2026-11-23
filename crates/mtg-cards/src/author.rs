@@ -2536,8 +2536,12 @@ impl Templates {
                 r(r"^Return an? ([a-z ]+? you control) to its owner's hand$"),
                 |c, _| Some(format!("return 1 {} chosen", cap(c, 1))),
             ),
-            (r(r"^Attach (?:it|this Equipment) to (.+)$"), |c, t| {
-                Some(format!("attach to {}", recipient(cap(c, 1), t)?))
+            // "attach it to": in a trigger about another object (Sigarda's
+            // Aid's "Whenever an Equipment you control enters, you may
+            // attach it to ..."), "it" is that object, not the source.
+            (r(r"^Attach (it|this Equipment) to (.+)$"), |c, t| {
+                let it = if cap(c, 1) == "it" { "it " } else { "" };
+                Some(format!("attach {it}to {}", recipient(cap(c, 2), t)?))
             }),
             (
                 r(
@@ -2762,8 +2766,9 @@ impl Templates {
                     Some(format!("{a} bites {b}"))
                 },
             ),
-            (r(r"^Attach (?:it|~|this) to (.+)$"), |c, t| {
-                Some(format!("attach to {}", recipient(cap(c, 1), t)?))
+            (r(r"^Attach (it|~|this) to (.+)$"), |c, t| {
+                let it = if cap(c, 1) == "it" { "it " } else { "" };
+                Some(format!("attach {it}to {}", recipient(cap(c, 2), t)?))
             }),
             (
                 r(r"^(.+?) can't (block|attack|be blocked|attack or block) this turn$"),

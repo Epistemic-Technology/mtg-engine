@@ -9886,7 +9886,9 @@ impl P {
             "search" | "searches" => {
                 let graveyard = self.eat_words(&["library", "or", "graveyard"]);
                 let up_to = self.eat_words(&["up", "to"]);
-                let count = if matches!(self.peek(), Some(Tok::Num(_))) {
+                // "Search your library for up to X land cards" (Nylea's
+                // Intervention): `x` is the count, not a subtype.
+                let count = if matches!(self.peek(), Some(Tok::Num(_))) || self.at_word("x") {
                     self.num()?
                 } else if self.eat_words(&["any", "number"]) {
                     Num::N(crate::ast::ANY_NUMBER)
