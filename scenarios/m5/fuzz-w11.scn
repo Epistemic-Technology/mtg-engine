@@ -40,3 +40,23 @@ scenario "The Cruelty of Gix read ahead at chapter III with no creature card in 
   run_to turn 1 postcombat_main
   assert graveyard A contains "The Cruelty of Gix"
 }
+
+# CR 113.2c: the same triggered ability granted twice is two abilities.
+# The layer pass dropped a granted ability the creature already had.
+scenario "one Snake Umbra draws one" {
+  battlefield A: "Grizzly Bears"
+  battlefield A: "Snake Umbra" on "Grizzly Bears"
+  library A: 5 "Forest"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+scenario "two Snake Umbras draw two" {
+  battlefield A: "Grizzly Bears"
+  battlefield A: 2 "Snake Umbra" on "Grizzly Bears"
+  library A: 5 "Forest"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert life B 16
+}

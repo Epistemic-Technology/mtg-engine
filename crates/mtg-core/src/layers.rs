@@ -1515,6 +1515,15 @@ fn same_filled<'f>(
     ))
 }
 
+/// CR 113.2c: an object given the same triggered ability twice has two
+/// instances, and each triggers (two Snake Umbras on one creature draw two
+/// cards). Other kinds gain nothing from a second copy, and an ability
+/// that names its granter is told apart by granter where it triggers.
+fn granted_twice(state: &GameState, a: crate::card::AbilityId) -> bool {
+    matches!(state.pool.ability(a), crate::card::AbilityDef::Triggered(_))
+        && !state.pool.ability_names_granter(a)
+}
+
 fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id: ObjId) {
     match part {
         Modification::AddTypes(t) => c.types = c.types.union(*t),
@@ -1588,7 +1597,7 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
         Modification::SetColors(cs) | Modification::CdaColors(cs) => c.colors = *cs,
         Modification::AddKeywords(k) => c.keywords = c.keywords.union(*k),
         Modification::AddAbility(a) => {
-            if !c.abilities.contains(a) && c.abilities.len() < 8 {
+            if (granted_twice(state, *a) || !c.abilities.contains(a)) && c.abilities.len() < 8 {
                 c.abilities.push(*a);
             }
             // A granted protection from a quality (CR 702.16): the keyword

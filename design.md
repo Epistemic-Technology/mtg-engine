@@ -2965,4 +2965,8 @@ creature stayed on after it untapped; a Saga whose last chapter was
 removed for want of a target was sacrificed without the state-based
 check being marked. Coverage: 95.5% of Pauper, 80.2% of Standard
 (4,142 of 5,164), 68.8% of Modern; gate 18,354 match; 12,223 scenarios
-pass in release and debug builds; fuzz clean in both.
+pass in release and debug builds; fuzz clean in both. Afterwards, with
+what was left of the period: one more narrow agent (conditions on a
+spell's X, "proliferate X times"; 8 cards) and a fix for two copies of
+a granted triggered ability, which triggered once (two Snake Umbras):
+Standard 4,143, gate 18,362, 12,247 scenarios, fuzz clean.

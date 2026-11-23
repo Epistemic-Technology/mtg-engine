@@ -153,11 +153,6 @@ wrong thing in some case.
   judges earlier spells by their printed characteristics; "until end of
   combat" made outside combat lasts to the end of the turn's next
   combat.
-- **Two copies of a granted triggered ability probably trigger once**
-  (two Snake Umbras on one creature): `AddAbility` in `layers.rs` drops
-  an ability id the creature already has. Read from the code, not
-  tested. Abilities that name their granter (`granter`, Blazing Torch)
-  are kept apart and are not affected.
 - **Engine picks and approximations, the tenth wave's follow-ups:**
   collect evidence and blight paid as a ward cost are chosen by the
   engine; the Flagbearer rule forces only the last eligible target, a
@@ -217,6 +212,12 @@ by rejecting the form at compile time or by binding it correctly.
   - `whenever creature you control enters if you cast it` never fires:
     "you cast it" is remembered for the source, not for the entering
     creature (The Sibsig Ceremony).
+  - `destroy each other creature` after creating tokens also destroys
+    those tokens: "all other creatures" on Martial Coup means all but
+    the Soldiers just made.
+  - A replacement-order choice that comes up while a spell resolves in
+    a scripted scenario panics the runner ("choice Replacement does not
+    fit flow Priority").
   - A filter "is put into a graveyard" without "from the battlefield"
     compiles to a dies trigger, wrong for a card going there from a hand
     or library. Not audited.
