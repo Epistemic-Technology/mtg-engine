@@ -1,0 +1,19 @@
+scenario "Crown of Fury aura bonus" {
+  battlefield A: "Grizzly Bears", "Crown of Fury" on "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" first_strike
+}
+scenario "Crown of Fury sacrifice shares with same type only" {
+  battlefield A: "Grizzly Bears", "Crown of Fury" on "Grizzly Bears", "Hill Giant", "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  turn 1 precombat_main A: activate "Crown of Fury"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Crown of Fury"
+  assert power newest A "Grizzly Bears" 3
+  assert has newest A "Grizzly Bears" first_strike
+  assert power "Hill Giant" 3
+  assert has not "Hill Giant" first_strike
+  assert power B "Grizzly Bears" 3
+  assert has B "Grizzly Bears" first_strike
+}

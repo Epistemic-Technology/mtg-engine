@@ -1,0 +1,13 @@
+card "Colossal Badger // Dig Deep" {
+  oracle_id 96aab05a-49bc-418a-9980-f3322955de1e
+  layout adventure
+  cost {5}{G}
+  type Creature — Badger
+  pt 6/5
+  triggered when this enters: you gain 3 life
+  face "Dig Deep" {
+    cost {1}{G}
+    type Sorcery — Adventure
+    spell: choose target creature; mill 4 cards then put count each creature card milled this way +1/+1 counters on that target 1
+  }
+}

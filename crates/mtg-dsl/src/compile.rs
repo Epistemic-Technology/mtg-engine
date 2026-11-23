@@ -38,6 +38,12 @@ pub fn compile_all(cards: &[Card]) -> Result<CardPool, CompileError> {
     for c in cards {
         add_card(&mut pool, c, &by_name)?;
     }
+    if let Some(n) = pool.unfilled_reservation() {
+        return Err(CompileError {
+            card: n.to_string(),
+            message: "named by another card but never defined".to_string(),
+        });
+    }
     // The dungeon cards (CR 309), after the tokens their rooms make.
     mtg_core::dungeons::add_dungeons(&mut pool);
     Ok(pool)
@@ -1846,13 +1852,16 @@ impl Compiler<'_> {
             }),
             // `named "Keimi"`: a token definition's name; an unknown one
             // matches nothing.
+            // A card compiled later (the three Workers name each other)
+            // gets its slot now.
             named: f.named_card.as_ref().map(|n| {
-                (
-                    self.pool
-                        .lookup(n)
-                        .unwrap_or(mtg_core::card::CardRef(u32::MAX)),
-                    true,
-                )
+                let known = self.pool.lookup(n).or_else(|| {
+                    let later = self.lookup.get(n).is_some_and(|c| {
+                        c.kind == Kind::Card && c.name == *n && c.faces.is_empty()
+                    });
+                    if later { self.pool.reserve(n) } else { None }
+                });
+                (known.unwrap_or(mtg_core::card::CardRef(u32::MAX)), true)
             }),
             enchanted: f.enchanted,
             paired: f.paired.is_some(),

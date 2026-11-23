@@ -1,0 +1,12 @@
+scenario "Farsight Adept makes you and the opponent each draw a card" {
+  battlefield A: 3 "Plains"
+  hand A: "Farsight Adept"
+  hand B: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Farsight Adept"
+  turn 1 A: trigger "Farsight Adept" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Farsight Adept"
+  assert hand A count 1
+  assert hand B count 2
+}

@@ -1,0 +1,21 @@
+scenario "unkicked prevents one creature's combat damage" {
+  battlefield A: 3 "Forest"
+  hand A: "Falling Timber"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 declare_attackers B: attack "Hill Giant", "Grizzly Bears"
+  turn 2 declare_blockers A: cast "Falling Timber" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}
+scenario "kicked prevents both" {
+  battlefield A: 4 "Forest"
+  hand A: "Falling Timber"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 declare_attackers B: attack "Hill Giant", "Grizzly Bears"
+  turn 2 declare_blockers A: cast "Falling Timber" kicked sacrificing "Forest" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert battlefield A contains 3 "Forest"
+}

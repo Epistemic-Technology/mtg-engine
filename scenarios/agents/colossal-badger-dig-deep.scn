@@ -1,0 +1,27 @@
+scenario "Dig Deep counts creature cards milled" {
+  battlefield A: "Forest", "Forest", "Grizzly Bears"
+  hand A: "Colossal Badger"
+  library A: "Grizzly Bears", "Forest", "Hill Giant", "Forest", "Forest"
+  turn 1 precombat_main A: cast "Dig Deep" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert power "Grizzly Bears" 4
+  assert graveyard A contains "Hill Giant"
+  assert exile A contains "Colossal Badger"
+}
+scenario "Dig Deep with no creatures milled" {
+  battlefield A: "Forest", "Forest", "Grizzly Bears"
+  hand A: "Colossal Badger"
+  library A: "Forest", "Forest", "Forest", "Forest", "Forest"
+  turn 1 precombat_main A: cast "Dig Deep" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+}
+scenario "Colossal Badger enters and gains life" {
+  battlefield A: "Forest", "Forest", "Forest", "Forest", "Forest", "Forest"
+  hand A: "Colossal Badger"
+  turn 1 precombat_main A: cast "Colossal Badger"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert power "Colossal Badger" 6
+}

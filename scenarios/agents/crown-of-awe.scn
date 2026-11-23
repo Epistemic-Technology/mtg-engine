@@ -1,0 +1,19 @@
+scenario "Crown of Awe aura gives protection" {
+  battlefield A: "Grizzly Bears", "Crown of Awe" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand B: "Murder", "Shock"
+  battlefield B: "Swamp", "Swamp", "Swamp", "Mountain"
+  illegal turn 1 precombat_main B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+scenario "Crown of Awe sacrifice shares protection with same type" {
+  battlefield A: "Grizzly Bears", "Crown of Awe" on "Grizzly Bears", "Hill Giant", "Grizzly Bears"
+  battlefield B: "Swamp", "Swamp", "Swamp", "Mountain"
+  hand B: "Murder", "Shock"
+  turn 1 precombat_main A: activate "Crown of Awe"
+  illegal turn 1 postcombat_main B: cast "Murder" targeting newest A "Grizzly Bears"
+  turn 1 postcombat_main B: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 end
+  assert damage "Hill Giant" 2
+  assert graveyard A contains "Crown of Awe"
+}

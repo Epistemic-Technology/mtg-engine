@@ -1,0 +1,7 @@
+card "Falling Timber" {
+  oracle_id 4ea19457-97ef-4ac8-b67c-41be1109ca73
+  cost {2}{G}
+  type Instant
+  kicker sacrifice land
+  spell: prevent all combat damage target creature would deal this turn; if kicked, prevent all combat damage target other creature would deal this turn
+}

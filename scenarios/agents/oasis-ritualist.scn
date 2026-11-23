@@ -1,0 +1,30 @@
+scenario "Oasis Ritualist taps for one mana of any color" {
+  battlefield A: "Oasis Ritualist", "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Oasis Ritualist"
+  assert tapped "Forest"
+}
+
+scenario "Oasis Ritualist exerted pays for a two-mana spell alone" {
+  battlefield A: "Oasis Ritualist"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Oasis Ritualist" ability 2
+  turn 1 A: choose green
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Oasis Ritualist"
+}
+
+scenario "An exerted Oasis Ritualist stays tapped through the next untap" {
+  battlefield A: "Oasis Ritualist"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Oasis Ritualist" ability 2
+  run_to turn 3 precombat_main
+  assert tapped "Oasis Ritualist"
+}

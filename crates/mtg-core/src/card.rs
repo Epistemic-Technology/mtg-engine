@@ -9006,7 +9006,11 @@ impl DefFlags {
                 matches!(a, AbilityDef::Static(s) if matches!(&s.condition,
                     Some(StaticCondition::YouControlNone(f)
                         | StaticCondition::SourceIs(f)
-                        | StaticCondition::AttachedIs(f)) if f.tapped.is_some()))
+                        | StaticCondition::AttachedIs(f)) if f.tapped.is_some())
+                    // "Other tapped creatures you control have
+                    // deathtouch" (Saryth, the Viper's Fang): whom the
+                    // static affects changes as permanents tap.
+                    || s.affected.tapped.is_some())
             }),
         );
         flags.set(
@@ -9305,6 +9309,9 @@ impl CardDef {
 pub struct CardPool {
     defs: Vec<CardDef>,
     by_name: HashMap<String, CardRef>,
+    /// Slots held for cards that an earlier card names and that are not
+    /// compiled yet (`reserve`).
+    reserved: HashMap<String, CardRef>,
     subtypes: Vec<String>,
     subtype_ids: HashMap<String, Subtype>,
     abilities: Vec<AbilityDef>,
@@ -9413,6 +9420,7 @@ impl CardPool {
         let mut pool = CardPool {
             defs: Vec::new(),
             by_name: HashMap::new(),
+            reserved: HashMap::new(),
             subtypes: Vec::new(),
             subtype_ids: HashMap::new(),
             abilities: Vec::new(),
@@ -10137,6 +10145,9 @@ impl CardPool {
 
     #[allow(clippy::too_many_lines)] // one flag per kind of definition
     pub fn add(&mut self, mut def: CardDef) -> CardRef {
+        // Taken before any face of this card is added: the slot is the
+        // card's own.
+        let slot = self.reserved.remove(&def.name);
         self.equip_discounts |= def.equip_discount > 0;
         // CR 702.103b: the Aura a bestowed spell is, registered first so
         // the card's own definition keeps its name.
@@ -10232,7 +10243,9 @@ impl CardPool {
             }
             def.awaken_face = Some(self.add(face));
         }
-        let r = CardRef(u32::try_from(self.defs.len()).expect("card pool too large"));
+        let r = slot.unwrap_or(CardRef(
+            u32::try_from(self.defs.len()).expect("card pool too large"),
+        ));
         def.subtype_ids = def
             .subtypes
             .clone()
@@ -10434,8 +10447,34 @@ impl CardPool {
             abilities: def.ability_ids,
         });
         self.by_name.insert(def.name.clone(), r);
-        self.defs.push(def);
+        if slot.is_some() {
+            self.defs[r.0 as usize] = def;
+        } else {
+            self.defs.push(def);
+        }
         r
+    }
+
+    /// The definition a card not yet compiled will have, for a card that
+    /// names it ("if you control a creature named Tower Worker" on Power
+    /// Plant Worker, compiled first): a slot `add` fills when that card
+    /// arrives. Without it the name stood for no card, and the condition
+    /// was never true. Nothing while the pool is empty.
+    pub fn reserve(&mut self, name: &str) -> Option<CardRef> {
+        if let Some(r) = self.reserved.get(name) {
+            return Some(*r);
+        }
+        let mut hold = self.defs.first()?.clone();
+        hold.name = name.to_string();
+        let r = CardRef(u32::try_from(self.defs.len()).expect("card pool too large"));
+        self.defs.push(hold);
+        self.reserved.insert(name.to_string(), r);
+        Some(r)
+    }
+
+    /// A name reserved and never defined, if any: an error in the caller.
+    pub fn unfilled_reservation(&self) -> Option<&str> {
+        self.reserved.keys().next().map(String::as_str)
     }
 
     /// Link a Class's levels or a Case's states (`CardDef::stages`), the

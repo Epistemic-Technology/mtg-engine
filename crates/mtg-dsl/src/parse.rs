@@ -13428,11 +13428,16 @@ impl P {
         {
             return Ok(Affects::Players(Who::Any));
         }
-        if self.at_word("target") || self.at_words(&["that", "target"]) {
+        // `another target creature` is how the formatter writes a second
+        // target (Falling Timber's kicked half).
+        if self.at_word("target")
+            || self.at_words(&["that", "target"])
+            || self.at_words(&["another", "target"])
+        {
             return match self.recipient()? {
                 Recipient::Target(i) => Ok(Affects::Target(i)),
                 Recipient::ThatTarget(i) => Ok(Affects::ThatTarget(i)),
-                _ => unreachable!(),
+                _ => self.fail("expected a target".to_string()),
             };
         }
         // `chosen red source`: "a red source of your choice" (CR 609.7a).

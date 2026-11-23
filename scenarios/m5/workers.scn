@@ -1,0 +1,60 @@
+# The three Workers name each other. A card that named one compiled after
+# it stood for no card, so Power Plant Worker's and Mine Worker's bonuses
+# never applied (reported by a card agent in the eighth wave).
+
+scenario "Mine Worker alone gains 1" {
+  battlefield A: "Mine Worker"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Mine Worker"
+  run_to turn 1 postcombat_main
+  assert life A 21
+}
+
+scenario "Mine Worker with the other two gains 3" {
+  battlefield A: "Mine Worker", "Power Plant Worker", "Tower Worker"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Mine Worker"
+  run_to turn 1 postcombat_main
+  assert life A 23
+}
+
+scenario "Mine Worker with only one of the two gains 1" {
+  battlefield A: "Mine Worker", "Tower Worker"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Mine Worker"
+  run_to turn 1 postcombat_main
+  assert life A 21
+}
+
+scenario "Power Plant Worker with the other two gets two counters" {
+  battlefield A: "Mine Worker", "Power Plant Worker", "Tower Worker", 3 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Power Plant Worker"
+  run_to turn 1 postcombat_main
+  assert counters "Power Plant Worker" +1/+1 2
+  assert power "Power Plant Worker" 6
+}
+
+scenario "Tower Worker with the other two casts a three-drop artifact" {
+  battlefield A: "Mine Worker", "Power Plant Worker", "Tower Worker"
+  hand A: "Tower Worker"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tower Worker"
+  run_to turn 1 postcombat_main
+  assert battlefield A count 4
+}
+
+# A static whose subject depends on being tapped must be re-read when a
+# permanent taps: an attacker kept hexproof and never got deathtouch
+# (found by the debug-build fuzz).
+scenario "Saryth: an attacker trades hexproof for deathtouch as it taps" {
+  battlefield A: "Saryth, the Viper's Fang", "Grizzly Bears"
+  start turn 1 A precombat_main
+  assert has "Grizzly Bears" hexproof
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert has "Grizzly Bears" deathtouch
+  run_to turn 3 precombat_main
+  assert has "Grizzly Bears" hexproof
+}

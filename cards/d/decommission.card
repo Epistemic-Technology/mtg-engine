@@ -1,0 +1,9 @@
+card "Decommission" {
+  oracle_id d001321d-b272-4f94-a333-7cfe8482da20
+  cost {2}{W}
+  type Instant
+  spell {
+    destroy target artifact or enchantment
+    label "Revolt" if permanent left this turn, you gain 3 life
+  }
+}

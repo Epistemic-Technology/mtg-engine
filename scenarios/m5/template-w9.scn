@@ -638,3 +638,16 @@ scenario "Chamber Sentry: remove X counters to deal X damage" {
   assert life B 18
   assert power "Chamber Sentry" 1
 }
+
+scenario "Saving Grasp returns a creature you own, not an opponent's" {
+  battlefield A: "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Saving Grasp"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Saving Grasp" targeting "Hill Giant"
+  turn 1 A: cast "Saving Grasp" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Saving Grasp"
+  assert battlefield B contains "Hill Giant"
+}

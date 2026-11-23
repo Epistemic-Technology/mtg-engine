@@ -1,0 +1,8 @@
+card "Crown of Ascension" {
+  oracle_id 32ddb0a3-2848-4939-87ad-ebcc5547fd60
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has flying
+  activated sacrifice this: enchanted creature and each other creature that share creature type gains flying
+}

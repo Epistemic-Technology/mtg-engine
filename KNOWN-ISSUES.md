@@ -192,7 +192,8 @@ by rejecting the form at compile time or by binding it correctly.
     exclude that group: "other" means "not the Zombies" on In Oketra's
     Name, and the Zombies got both pumps.
   - A second `spell:` line with a label (`label "Revolt" spell: ...`)
-    gates but never resolves (Decommission).
+    gates but never resolves; the block form `spell { ...; label "Revolt"
+    if ... }` works (Decommission, accepted with that form).
   - `prevent all damage permanent of color of choice would deal this
     turn` asks for the color and prevents nothing (Prismatic Strands).
   - `if this is noncreature` in a trigger reads the triggering object
@@ -216,9 +217,6 @@ by rejecting the form at compile time or by binding it correctly.
     groups, not in a count or a static's subject.
   - An "If you do" after a target check (`if target 1 is ...`) now reads
     the check, not an earlier optional action. No card has that order.
-  - The formatter rewrites a second target written `target other
-    creature` as `another target creature`, which does not parse
-    (Falling Timber fails the round trip).
   - The template author reads "attach it to" as the source (Sigarda's
     Aid), and `search up to X land card` takes X as a subtype (Nylea's
     Intervention).
@@ -297,7 +295,8 @@ named the feature; a card may need more than one.
   (Thought-Stalker Warlock); "it had no counters on it" (any kind,
   Unstoppable Slasher).
 - **Costs:** a mana ability with exert, "discard your hand", or another
-  cost automatic payment doesn't use (Oasis Ritualist, Diamond Lion).
+  cost automatic payment doesn't use (Diamond Lion; Oasis Ritualist is
+  in, its exert ability activated by hand before the spell is cast).
 - **Mass graveyard return of two types:** "Return each artifact and
   creature card with mana value X from your graveyard" (Fix What's
   Broken) doesn't parse (`artifact or creature card`).

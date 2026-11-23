@@ -6853,6 +6853,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     Recipient::Target(i) if matches!(ctx.targets[*i].base(),
                         Target::Spec(TargetSpec::CreatureCardInYourGraveyard)
                         | Target::GraveyardCard { who: Who::You, .. })
+                        // "Return target creature you own to your hand."
+                        // (Saving Grasp).
+                        || matches!(ctx.targets[*i].base(),
+                            Target::Filter(f) if f.status.you_own)
                 )
             });
             // "each other creature you control ... to its owner's hand";

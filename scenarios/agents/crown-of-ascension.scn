@@ -1,0 +1,15 @@
+scenario "Crown of Ascension aura gives flying" {
+  battlefield A: "Grizzly Bears", "Crown of Ascension" on "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert has "Grizzly Bears" flying
+}
+scenario "Crown of Ascension sacrifice gives flying to same type only" {
+  battlefield A: "Grizzly Bears", "Crown of Ascension" on "Grizzly Bears", "Hill Giant", "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  turn 1 precombat_main A: activate "Crown of Ascension"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Crown of Ascension"
+  assert has newest A "Grizzly Bears" flying
+  assert has B "Grizzly Bears" flying
+  assert has not "Hill Giant" flying
+}

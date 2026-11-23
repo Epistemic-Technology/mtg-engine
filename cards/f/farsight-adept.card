@@ -1,0 +1,7 @@
+card "Farsight Adept" {
+  oracle_id 72b10cba-0f46-4b99-9634-e7173ac4c259
+  cost {2}{W}
+  type Creature — Kor Wizard
+  pt 3/3
+  triggered whenever this enters: you and target opponent each draw 1 card
+}

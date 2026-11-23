@@ -1,0 +1,7 @@
+card "Saving Grasp" {
+  oracle_id f7a4458a-7e8a-46bb-b62d-991c606c7a15
+  cost {U}
+  type Instant
+  spell: return target creature you own to hand
+  flashback {W}
+}

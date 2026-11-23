@@ -1,0 +1,8 @@
+card "Crown of Awe" {
+  oracle_id 602d0d09-00c6-4073-80ec-2ad33aef1a97
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has protection from black and protection from red
+  activated sacrifice this: enchanted creature and each other creature that share creature type gains protection from black and protection from red
+}

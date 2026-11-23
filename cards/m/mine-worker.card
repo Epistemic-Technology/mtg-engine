@@ -1,0 +1,7 @@
+card "Mine Worker" {
+  oracle_id 4de71245-9d9b-44ca-9c13-37dc3dfbbcd5
+  cost {2}
+  type Artifact Creature — Assembly-Worker
+  pt 2/1
+  activated {T}: you gain 1 life; if you control creature named "Power Plant Worker" and creature named "Tower Worker", you gain 3 life instead
+}
