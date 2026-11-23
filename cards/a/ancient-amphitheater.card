@@ -1,0 +1,6 @@
+card "Ancient Amphitheater" {
+  oracle_id 7211221d-d4d8-4bbe-9d2a-b82e005bfe8a
+  type Land
+  enters tapped unless reveal Giant card
+  mana {R} or {W}
+}

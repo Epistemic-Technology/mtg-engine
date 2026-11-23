@@ -1971,6 +1971,34 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::HexproofFrom(filter))
             }
+            // `opening hand reveal first upkeep: ...`.
+            "opening" if self.at_words(&["opening", "hand", "reveal"]) => {
+                self.pos += 3;
+                let whose = if self.eat_word("your") {
+                    Who::You
+                } else {
+                    Who::Any
+                };
+                self.expect_word("first")?;
+                let step = if self.eat_word("upkeep") {
+                    Step::Upkeep
+                } else if whose == Who::You && self.eat_word("main") {
+                    Step::PrecombatMain
+                } else {
+                    return self.unexpected("`upkeep` or `main`");
+                };
+                let after = self.eat_word("after");
+                let effects = self.effects_body()?;
+                if !self.targets.is_empty() {
+                    return self.fail("an opening hand reveal has no targets");
+                }
+                Ok(Ability::OpeningHandReveal {
+                    step,
+                    whose,
+                    after,
+                    effects,
+                })
+            }
             "opening" if self.at_words(&["opening", "hand"]) => {
                 self.pos += 2;
                 self.end_stmt()?;
@@ -3561,6 +3589,22 @@ impl P {
                     then: Vec::new(),
                     token: None,
                 }))
+            }
+            // "As this land enters, you may reveal a Mountain or Forest
+            // card from your hand. If you don't, this land enters tapped."
+            "enters" if self.at_words(&["enters", "tapped", "unless", "reveal"]) => {
+                self.pos += 4;
+                let filter = self.filter()?;
+                if !(self.eat_word("card") || self.eat_word("cards")) {
+                    return self.unexpected("`card`");
+                }
+                let or = if self.eat_word("or") {
+                    Some(self.static_cond()?)
+                } else {
+                    None
+                };
+                self.end_stmt()?;
+                Ok(Ability::EntersTappedUnlessReveal { filter, or })
             }
             "enters" if self.at_words(&["enters", "tapped", "if", "not", "your", "turn"]) => {
                 self.pos += 6;
@@ -7376,6 +7420,45 @@ impl P {
                 self.expect_words(&["card", "at", "random", "from", "hand"])?;
                 Ok(Effect::RevealRandom { who: subject })
             }
+            // "Target player reveals three cards from their hand and you
+            // choose one of them. That player discards that card."
+            "reveal" | "reveals"
+                if ((matches!(self.peek(), Some(Tok::Num(_)))
+                    || self.word_at(0).is_some_and(|w| w.eq_ignore_ascii_case("x")))
+                    && matches!(self.word_at(1).as_deref(), Some("card" | "cards"))
+                    && self.word_at(2).as_deref() == Some("discarding"))
+                    || self.at_words(&["count", "where"]) =>
+            {
+                let n = self.num()?;
+                // `reveals count where Faerie you control, cards
+                // discarding card`: the comma ends the count.
+                if matches!(n, Num::Count(_)) {
+                    if self.peek() != Some(&Tok::Comma) {
+                        return self.unexpected("`,` after the count");
+                    }
+                    self.pos += 1;
+                }
+                if !(self.eat_word("cards") || self.eat_word("card")) {
+                    return self.unexpected("`cards`");
+                }
+                self.expect_word("discarding")?;
+                let take = match self.peek() {
+                    Some(Tok::Num(k)) if self.word_at(1).is_some() => {
+                        let k = u8::try_from(*k).map_err(|_| ParseError {
+                            line: self.line(),
+                            message: "too many cards".to_string(),
+                        })?;
+                        self.pos += 1;
+                        k
+                    }
+                    _ => 1,
+                };
+                let mut e = self.discard_chosen(subject, false)?;
+                if let Effect::DiscardChosen { reveal, .. } = &mut e {
+                    *reveal = Some((n, take));
+                }
+                Ok(e)
+            }
             "reveal" | "reveals" => {
                 self.eat_word("their");
                 self.expect_word("hand")?;
@@ -7405,6 +7488,7 @@ impl P {
                         let joined = !self.eat_word("split");
                         let until = self.eat_words(&["until", "this", "leaves"]);
                         return Ok(Effect::DiscardChosen {
+                            reveal: None,
                             who: subject,
                             filter: (filter != Filter::default()).then_some(filter),
                             may: false,
@@ -8714,6 +8798,7 @@ impl P {
         Ok(Effect::DiscardChosen {
             who,
             filter,
+            reveal: None,
             may,
             look,
             exile: None,
@@ -9816,6 +9901,17 @@ impl P {
                 self.pos += 4;
                 Ok(Effect::MayCastThisFromExile)
             }
+            // `may cast target Zombie creature card from your graveyard
+            // this turn`.
+            "may"
+                if (self.at_word("play") || self.at_word("cast"))
+                    && self.word_at(1).as_deref() == Some("target") =>
+            {
+                let cast = self.word()? == "cast";
+                let what = self.recipient()?;
+                let until = self.play_until()?;
+                Ok(Effect::MayPlayTarget { what, until, cast })
+            }
             // `may cast that card this turn [first] [free]`.
             "may"
                 if (self.at_word("play") || self.at_word("cast"))
@@ -9892,6 +9988,7 @@ impl P {
                     };
                     let until = self.eat_words(&["until", "this", "leaves"]);
                     return Ok(Effect::DiscardChosen {
+                        reveal: None,
                         who,
                         filter,
                         may,
@@ -10093,10 +10190,25 @@ impl P {
             "search" | "searches" => {
                 let graveyard = self.eat_words(&["library", "or", "graveyard"]);
                 let up_to = self.eat_words(&["up", "to"]);
-                // "Search your library for up to X land cards" (Nylea's
-                // Intervention): `x` is the count, not a subtype.
-                let count = if matches!(self.peek(), Some(Tok::Num(_))) || self.at_word("x") {
-                    self.num()?
+                // `search up to X ...`, `search up to count where ...`,
+                // `search up to that much ...`: "for up to X basic land
+                // cards, where X is ...", "for up to that many land cards".
+                let count = if matches!(self.peek(), Some(Tok::Num(_)))
+                    || self.word_at(0).is_some_and(|w| w.eq_ignore_ascii_case("x"))
+                    || (self.at_word("count")
+                        && matches!(self.word_at(1).as_deref(), Some("where" | "that")))
+                    || self.at_words(&["that", "much"])
+                {
+                    let n = self.num()?;
+                    // `search up to count where land you control, basic
+                    // land card ...`: the comma ends the count's filter.
+                    if matches!(n, Num::Count(_)) {
+                        if self.peek() != Some(&Tok::Comma) {
+                            return self.unexpected("`,` after the count");
+                        }
+                        self.pos += 1;
+                    }
+                    n
                 } else if self.eat_words(&["any", "number"]) {
                     Num::N(crate::ast::ANY_NUMBER)
                 } else {
@@ -11522,6 +11634,7 @@ impl P {
     fn at_many(&self) -> bool {
         let target = |k: usize| matches!(self.word_at(k).as_deref(), Some("target" | "targets"));
         (self.at_word("x") && target(1))
+            || (self.at_words(&["up", "to", "x"]) && target(3))
             || (self.at_words(&["any", "number", "of"])
                 && (target(3) || (self.word_at(3).as_deref() == Some("another") && target(4))))
             || (matches!(self.peek(), Some(Tok::Num(_)))
@@ -11534,6 +11647,9 @@ impl P {
     fn many_target(&mut self) -> R<Recipient> {
         let (min, max) = if self.eat_word("x") {
             (Num::X, Some(Num::X))
+        } else if self.eat_words(&["up", "to", "x"]) {
+            // "up to X target cards" (CR 601.2c).
+            (Num::N(0), Some(Num::X))
         } else if self.eat_words(&["any", "number", "of"]) {
             (Num::N(0), None)
         } else {
@@ -11558,13 +11674,26 @@ impl P {
                 spec
             }
         };
+        let total = self.total_mana_value()?;
         let i = self.targets.len();
         self.targets.push(Target::Many {
             target: Box::new(target),
             min,
             max,
+            total,
         });
         Ok(Recipient::Target(i))
+    }
+
+    /// After a group's target: `with total mana value 3 or less` (CR
+    /// 601.2c), or nothing.
+    fn total_mana_value(&mut self) -> R<Option<Num>> {
+        if !self.eat_words(&["with", "total", "mana", "value"]) {
+            return Ok(None);
+        }
+        let n = self.num()?;
+        self.expect_words(&["or", "less"])?;
+        Ok(Some(n))
     }
 
     /// A recipient, or `N target <spec>` declaring several.
@@ -11614,6 +11743,18 @@ impl P {
             let mut spec = self.target_spec()?;
             if another {
                 spec = self.another_target(spec)?;
+            }
+            // "up to three target creature cards with total mana value 3
+            // or less": one variable group (CR 601.2c).
+            if up_to && let Some(total) = self.total_mana_value()? {
+                let i = self.targets.len();
+                self.targets.push(Target::Many {
+                    target: Box::new(spec),
+                    min: Num::N(0),
+                    max: Some(Num::N(count)),
+                    total: Some(total),
+                });
+                return Ok(vec![Recipient::Target(i)]);
             }
             if up_to {
                 spec = Target::UpTo(Box::new(spec));
@@ -13439,6 +13580,9 @@ impl P {
                 // `... you control with exceptions`: the copy's, not the
                 // filter's.
                 "with" if self.word_at(1).as_deref() == Some("exceptions") => break,
+                // `any number of target nonland permanent with total mana
+                // value 6 or less`: the group's bound, not the filter's.
+                "with" if self.word_at(1).as_deref() == Some("total") => break,
                 "with" => {
                     self.pos += 1;
                     let Some(k) = self.keyword() else {

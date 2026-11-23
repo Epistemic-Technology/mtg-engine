@@ -860,11 +860,8 @@ fn dig_general(text: &str) -> Option<(String, String)> {
             _ => "onto battlefield tapped",
         };
         let random = if cap(&c, 3) == "a random" { " random" } else { "" };
-        // "the number of cards revealed this way" after the card was put
-        // somewhere would miss it (Madcap Experiment).
-        if cap(&c, 4).contains("revealed this way") {
-            return None;
-        }
+        // "the number of cards revealed this way" counts the card put
+        // somewhere too (Madcap Experiment).
         return Some((
             format!(
                 "reveal until {filter} card; put that card {to} and the rest on bottom of library{random}"
@@ -888,12 +885,8 @@ fn dig_general(text: &str) -> Option<(String, String)> {
         ""
     };
     let body = cap(&c, 4);
-    // A filter's "mana value X" is the spell's X (CR 107.3), not a count
-    // the dig names ("where X is the number of creature cards in your
-    // graveyard", Hatchery Spider).
-    if c.get(3).is_some() && body.contains(" X ") {
-        return None;
-    }
+    // A filter's "mana value X" after "where X is ..." is the dig's X
+    // (Hatchery Spider), as the engine reads it.
     let reveal = Regex::new(
         r"^You may reveal (.+?) from among them and put (it|that card|them) into your hand\. (Then put|Put) the rest (.+?)\.\s*(.*)$",
     )
@@ -1422,6 +1415,18 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
     }
     // "X target creatures", "one or two target creatures", "any number of
     // target players": a variable group (CR 601.2c).
+    // "up to three target creature cards with total mana value 3 or less
+    // from your graveyard": the DSL puts the group's bound last.
+    if let Some(c) = Regex::new(r"^(.+?) with total mana value (\w+) or less( from .+)?$")
+        .unwrap()
+        .captures(s)
+        && (cap(&c, 1).starts_with("up to ") || cap(&c, 1).starts_with("any number of "))
+    {
+        let n = number(cap(&c, 2))?;
+        let head = format!("{}{}", cap(&c, 1), cap(&c, 3));
+        let r = recipient(&head, targets)?;
+        return Some(format!("{r} with total mana value {n} or less"));
+    }
     if let Some((count, rest)) = many_count(s) {
         *targets += 1;
         return Some(format!("{count} {rest}"));
@@ -1526,7 +1531,8 @@ fn all_subject(oracle: &str, who: String) -> String {
 /// The count of a variable target group in DSL form and the rest of the
 /// phrase ("one or two target creatures" → `1 to 2`, "target creatures").
 fn many_count(s: &str) -> Option<(&'static str, &str)> {
-    const COUNTS: [(&str, &str); 4] = [
+    const COUNTS: [(&str, &str); 5] = [
+        ("up to X ", "up to X"),
         ("X ", "X"),
         ("one or two ", "1 to 2"),
         ("one, two, or three ", "1 to 3"),
@@ -2287,21 +2293,37 @@ impl Templates {
             (r(r"^(?:you may )?[Ff]lip (this creature|it|~)$"), |_, _| {
                 Some("flip this".to_string())
             }),
+            // "Search your library for up to X basic land cards, where X
+            // is the number of lands you control, put them onto the
+            // battlefield tapped, then shuffle."; "for up to that many land
+            // cards" (the triggering amount).
             (
                 r(
-                    r"^Search your library for (a|an|up to \S+) ([A-Za-z][A-Za-z -]*?)? ?cards?( with [^,]+)?, (reveal (?:it|them|that card), )?(?:put (it|them|that card|one) (into your hand or graveyard|into your hand|into your graveyard|onto the battlefield tapped and the other into your hand|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
+                    r"^[Ss]earch your library for (a|an|up to that many|up to \S+) ([A-Za-z][A-Za-z -]*?|[a-z]+, [a-z]+, and/or [a-z]+)? ?cards?( with [^,]+)?(?:, where X is ([^,]+))?, (reveal (?:it|them|that card|those cards), )?(?:put (it|them|that card|those cards|one) (into your hand or graveyard|into your hand|into your graveyard|onto the battlefield tapped and the other into your hand|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
                 ),
                 |c, _| {
                     let n = cap(c, 1);
-                    let (up_to, count) = match n.strip_prefix("up to ") {
+                    let (up_to, mut count) = match n.strip_prefix("up to ") {
+                        Some("that many") => ("up to ", "that much".to_string()),
                         Some(k) => ("up to ", number(k)?),
                         None => ("", "1".to_string()),
                     };
+                    if !cap(c, 4).is_empty() {
+                        if count != "X" {
+                            return None;
+                        }
+                        count = format!("{},", x_count(cap(c, 4))?);
+                    }
                     let mut t = format!("search {up_to}");
                     if count != "1" || !up_to.is_empty() {
                         let _ = write!(t, "{count} ");
                     }
-                    if !cap(c, 2).is_empty() {
+                    // "artifact, creature, and/or enchantment cards":
+                    // `andor artifact or creature or enchantment`.
+                    if cap(c, 2).contains(", and/or ") {
+                        let types = cap(c, 2).replace(", and/or ", " or ").replace(", ", " or ");
+                        let _ = write!(t, "andor {types} ");
+                    } else if !cap(c, 2).is_empty() {
                         let _ = write!(t, "{} ", cap(c, 2));
                     }
                     // "with power 2 or less": part of the filter, before
@@ -2314,10 +2336,10 @@ impl Templates {
                         t.push_str("card");
                         t.push_str(with);
                     }
-                    if !cap(c, 4).is_empty() {
+                    if !cap(c, 5).is_empty() {
                         t.push_str(" reveal");
                     }
-                    t.push_str(match cap(c, 6) {
+                    t.push_str(match cap(c, 7) {
                         "into your hand" => " to hand",
                         "into your hand or graveyard" => " to hand or graveyard",
                         // "put one onto the battlefield tapped and the other
@@ -2330,14 +2352,79 @@ impl Templates {
                         "onto the battlefield" => " to battlefield",
                         _ => " to top",
                     });
-                    // "then shuffle and put that card on top".
-                    if cap(c, 5) == "that card"
-                        || cap(c, 4) == "reveal that card, "
-                        || cap(c, 6).is_empty()
+                    // "then shuffle and put that card on top"; "put those
+                    // cards onto the battlefield".
+                    if matches!(cap(c, 6), "that card" | "those cards")
+                        || matches!(cap(c, 5), "reveal that card, " | "reveal those cards, ")
+                        || cap(c, 7).is_empty()
                     {
                         t.push_str(" that card");
                     }
                     Some(t)
+                },
+            ),
+            // "Search your library and/or graveyard for a creature card
+            // with no abilities, reveal it, and put it into your hand. If
+            // you search your library this way, shuffle." (the second
+            // sentence joined as `\u{2}` above): one card, either zone.
+            (
+                r(
+                    r"^[Ss]earch your library and/or graveyard for an? ((?:[A-Z][a-z]+ |non[a-z]+ |artifact |creature |enchantment |land |instant |sorcery |planeswalker |legendary |basic |permanent )+)card( with (?:mana value \d+ or (?:less|greater)|power \d+ or (?:less|greater)|toughness \d+ or (?:less|greater)|no abilities))?(, reveal it, and put it into your hand| and put it onto the battlefield)\x{2}$",
+                ),
+                |c, _| {
+                    let what = cap(c, 1).trim_end();
+                    let with = cap(c, 2);
+                    // "with mana value 2 or less" after `card`; the rest
+                    // of the filter before it.
+                    let (before, after) = if with.starts_with(" with mana value") {
+                        ("", with)
+                    } else {
+                        (with, "")
+                    };
+                    let to = if cap(c, 3).starts_with(", reveal") {
+                        "reveal to hand"
+                    } else {
+                        "to battlefield"
+                    };
+                    Some(format!(
+                        "search library or graveyard {what}{before} card{after} {to}"
+                    ))
+                },
+            ),
+            // "Target player reveals three cards from their hand and you
+            // choose one of them. That player discards that card." (joined
+            // by `\u{2}` above); "..., where X is the number of Faeries you
+            // control. You choose one of those cards. ..."; "... You choose
+            // two of them. That player discards those cards."
+            (
+                r(
+                    r"^([Tt]arget player|[Tt]arget opponent) reveals (\w+) cards from their hand(?:, where X is ([^\x{2}]+))?(?: and you choose one of them|\x{2}You choose (one|two) of (?:them|those cards))\x{2}That player discards (that card|those cards)$",
+                ),
+                |c, t| {
+                    let who = recipient(&lowercase_first(cap(c, 1)), t)?;
+                    let n = if cap(c, 3).is_empty() {
+                        number(cap(c, 2))?
+                    } else {
+                        if cap(c, 2) != "X" {
+                            return None;
+                        }
+                        format!("{},", x_count(cap(c, 3))?)
+                    };
+                    let take = match cap(c, 4) {
+                        "two" if cap(c, 5) == "those cards" => "2 ",
+                        "" | "one" if cap(c, 5) == "that card" => "",
+                        _ => return None,
+                    };
+                    Some(format!("{who} reveals {n} cards discarding {take}card"))
+                },
+            ),
+            // "You may cast target Zombie creature card from your graveyard
+            // this turn." (CR 601.3).
+            (
+                r(r"^[Yy]ou may cast (target [^,]+? card from your graveyard) this turn$"),
+                |c, t| {
+                    let what = recipient(cap(c, 1), t)?;
+                    Some(format!("may cast {what} this turn"))
                 },
             ),
             // "Target player shuffles their library." (CR 701.24).
@@ -4220,6 +4307,33 @@ impl Templates {
             })
             .into_owned()
         });
+        // "... search your library and/or graveyard for a creature card
+        // with no abilities, reveal it, and put it into your hand. If you
+        // search your library this way, shuffle." (Fang-Druid Summoner):
+        // the shuffle sentence joins the search's as `\u{2}`, which the
+        // search template below reads.
+        let text = Regex::new(
+            r"(earch your library and/or graveyard for [^.]+)\. If you search your library this way, shuffle",
+        )
+        .map_or(text.clone(), |re| {
+            re.replace_all(&text, "$1\u{2}").into_owned()
+        });
+        // "Target player reveals three cards from their hand and you
+        // choose one of them. That player discards that card." (Blackmail,
+        // Thieving Sprite, Noggin Whack): one sentence for the template
+        // below, joined by `\u{2}`.
+        let text = Regex::new(
+            r"(reveals (?:\w+) cards from their hand(?:, where X is [^.]+| and you choose one of them)?)\.( You choose (?:one|two) of (?:them|those cards)\.)? That player discards (that card|those cards)",
+        )
+        .map_or(text.clone(), |re| {
+            re.replace_all(&text, |c: &regex::Captures| {
+                let mid = c.get(2).map_or(String::new(), |m| {
+                    format!("\u{2}{}", m.as_str().trim().trim_end_matches('.'))
+                });
+                format!("{}{mid}\u{2}That player discards {}", &c[1], &c[3])
+            })
+            .into_owned()
+        });
         // "Exile target artifact. Search its controller's graveyard, hand,
         // and library for all cards with the same name as that artifact
         // and exile them. Then that player shuffles." (Splinter).
@@ -4423,6 +4537,9 @@ impl Templates {
                 .strip_prefix("you may ")
                 .or_else(|| sentence.strip_prefix("You may "))
                 .filter(|r| !(r.starts_with("cast ") && r.contains("without paying its mana cost")))
+                // "You may cast target ... card from your graveyard this
+                // turn": the DSL's `may cast target` keeps it too.
+                .filter(|r| !(r.starts_with("cast target ") && r.ends_with(" this turn")))
             {
                 ("you may ", rest.to_string())
             } else if let Some(rest) = sentence.strip_prefix("If you do, ") {
@@ -6972,6 +7089,50 @@ impl Builder<'_> {
             }
             _ => None,
         };
+        // "You may reveal this card from your opening hand. If you do, at
+        // the beginning of the first upkeep, ..." (the Chancellors).
+        if let Some(rest) =
+            line.strip_prefix("You may reveal this card from your opening hand. If you do, ")
+        {
+            let rest = rest.trim_end_matches('.');
+            let heads = [
+                (
+                    "at the beginning of the first upkeep, ",
+                    "first upkeep",
+                    false,
+                ),
+                (
+                    "at the beginning of your first upkeep, ",
+                    "your first upkeep",
+                    false,
+                ),
+                (
+                    "at the beginning of your first main phase of the game, ",
+                    "your first main",
+                    false,
+                ),
+            ];
+            let found = heads
+                .iter()
+                .find_map(|(h, d, a)| rest.strip_prefix(h).map(|body| (body.to_string(), *d, *a)));
+            // "scry 3 at the beginning of your first upkeep".
+            let found = found.or_else(|| {
+                rest.strip_suffix(" at the beginning of your first upkeep")
+                    .map(|body| (body.to_string(), "your first upkeep after", true))
+            });
+            if let Some((body, when, _)) = found {
+                let mut t = 0;
+                let effects = self
+                    .templates
+                    .effects(&format!("{}.", capitalize(&body)), &mut t)?;
+                if t == 0 {
+                    self.statements
+                        .push(format!("opening hand reveal {when}: {effects}"));
+                    return Ok(());
+                }
+            }
+            return Err(Skip::Sentence(line.to_string()));
+        }
         if let Some(s) = player_static {
             self.statements.push(s.to_string());
             return Ok(());
@@ -7654,6 +7815,27 @@ impl Builder<'_> {
         {
             self.statements
                 .push(format!("enters tapped unless pay {} life", cap(&c, 1)));
+            return Ok(());
+        }
+        // "As this land enters, you may reveal a Mountain or Forest card
+        // from your hand. If you don't, this land enters tapped." (the
+        // snarls, the Lorwyn tribal lands); "... This land enters tapped
+        // unless you revealed a Dragon card this way or you control a
+        // Dragon."
+        if let Some(c) = Regex::new(
+            r"^As this land enters, you may reveal an? ([A-Z][a-z]+(?: or [A-Z][a-z]+)?) card from your hand\. (?:If you don't, this land enters tapped|This land enters tapped unless you revealed an? ([A-Z][a-z]+) card this way or you control an? ([A-Z][a-z]+))\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let mut s = format!("enters tapped unless reveal {} card", cap(&c, 1));
+            if !cap(&c, 2).is_empty() {
+                if cap(&c, 2) != cap(&c, 1) || cap(&c, 3) != cap(&c, 1) {
+                    return Err(Skip::Sentence(line.to_string()));
+                }
+                let _ = write!(s, " or you control {}", cap(&c, 3));
+            }
+            self.statements.push(s);
             return Ok(());
         }
         if line == "This creature enters prepared." || line == "~ enters prepared." {

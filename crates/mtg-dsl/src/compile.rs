@@ -2697,12 +2697,18 @@ impl Compiler<'_> {
                 let inner = self.target(t);
                 self.pool.intern_up_to(inner)
             }
-            Target::Many { target, min, max } => {
+            Target::Many {
+                target,
+                min,
+                max,
+                total,
+            } => {
                 let spec = self.target(target);
                 self.pool.intern_many(mtg_core::card::ManyTargets {
                     spec,
                     min: *min,
                     max: *max,
+                    total_mv: *total,
                 })
             }
         }
@@ -3037,7 +3043,15 @@ impl Compiler<'_> {
                 .iter()
                 .rev()
                 .map_while(|c| match c {
-                    CoreEffect::Tap { to } | CoreEffect::Pump { to, .. } => Some(*to),
+                    // "Return up to three target creature cards ... to the
+                    // battlefield. Put a +1/+1 counter on each of them."
+                    // (the targets found where they went, CR 400.7).
+                    CoreEffect::Tap { to }
+                    | CoreEffect::Pump { to, .. }
+                    | CoreEffect::ReturnToBattlefield {
+                        what: to @ CoreRecipient::Targets(..),
+                        ..
+                    } => Some(*to),
                     _ => None,
                 })
                 .collect();
@@ -3702,6 +3716,7 @@ impl Compiler<'_> {
                 exile,
                 until,
                 top,
+                reveal,
                 ..
             } => {
                 let filter = filter.as_ref().map(|f| self.filter(f));
@@ -3712,6 +3727,7 @@ impl Compiler<'_> {
                     exile: exile.is_some(),
                     until: *until,
                     top: *top,
+                    reveal: *reveal,
                 });
             }
             Effect::Transform { what } => out.push(CoreEffect::Transform { what: r(*what) }),
@@ -4369,6 +4385,13 @@ impl Compiler<'_> {
                 until: *until,
                 cast: *cast,
                 free: *free,
+                what: None,
+            }),
+            Effect::MayPlayTarget { what, until, cast } => out.push(CoreEffect::MayPlayCard {
+                until: *until,
+                cast: *cast,
+                free: false,
+                what: Some(r(*what)),
             }),
             Effect::RevealUntil { who, filter } => out.push(CoreEffect::RevealUntil {
                 who: r(who.unwrap_or(Recipient::You)),
@@ -4475,18 +4498,6 @@ impl Compiler<'_> {
                 choose: *choose,
                 from: from.map(r),
             }),
-            // "Reveal the top X cards ..., where X is ... a card with mana
-            // value X or less" (Hatchery Spider): `mana value X` reads the
-            // spell's X, not the count.
-            Effect::Dig {
-                count: Num::Count(_),
-                filter: Some(f),
-                ..
-            } if f.status.mana_value_x => {
-                return self.err(
-                    "`dig count ...` with a `mana value X` filter: X is the spell's, not the count; this form isn't supported",
-                );
-            }
             Effect::Dig {
                 count,
                 filter,
@@ -5594,6 +5605,23 @@ impl Compiler<'_> {
                     condition: None,
                 })
             }
+            Ability::EntersTappedUnlessReveal { filter, or } => {
+                let f = self.filter(filter);
+                let filter = self.pool.intern_filter(f);
+                let or = or.as_ref().map(|c| {
+                    let c = self.static_cond(c);
+                    self.pool.intern_condition(c)
+                });
+                AbilityDef::Replacement(ReplacementAbility {
+                    replaces: mtg_core::card::Replaces::Enters,
+                    replacement: mtg_core::card::Replacement::EnterTappedUnlessReveal {
+                        filter,
+                        or,
+                    },
+                    then: Vec::new(),
+                    condition: None,
+                })
+            }
             Ability::EntersTappedUnless(c) => {
                 let c = self.static_cond(c);
                 let i = self.pool.intern_condition(c);
@@ -5753,6 +5781,26 @@ impl Compiler<'_> {
             Ability::Landwalk(f) => AbilityDef::Landwalk(self.filter(f)),
             Ability::HexproofFrom(f) => AbilityDef::HexproofFrom(self.filter(f)),
             Ability::OpeningHand => AbilityDef::OpeningHand,
+            // The delayed trigger the revealed card leaves (CR 603.7).
+            Ability::OpeningHandReveal {
+                step,
+                whose,
+                effects,
+                ..
+            } => {
+                let def = self.ability(&Ability::Triggered {
+                    limit: mtg_core::card::TurnLimit::None,
+                    from_graveyard: false,
+                    trigger: Trigger::BeginningOfStep {
+                        step: *step,
+                        whose: *whose,
+                    },
+                    condition: None,
+                    targets: Vec::new(),
+                    effects: effects.clone(),
+                })?;
+                AbilityDef::OpeningHandReveal(self.pool.register_ability(def))
+            }
             Ability::TriggerAgain {
                 filter,
                 entering,

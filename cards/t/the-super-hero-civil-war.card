@@ -1,0 +1,8 @@
+card "The Super Hero Civil War" {
+  oracle_id 11d74dc2-8c11-4d4b-b727-8216d2eb6b4e
+  cost {3}{R}{W}
+  type Enchantment — Saga
+  triggered chapter 1: gain control of up to 2 target creatures with total mana value 6 or less for as long as this remains
+  triggered chapter 2: each creature you control gets +1/+1 and gains vigilance
+  triggered chapter 3: target creature you control fights up to 1 another target creature
+}

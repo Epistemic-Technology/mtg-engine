@@ -1,0 +1,6 @@
+card "Gilt-Leaf Palace" {
+  oracle_id 85573a3d-2993-491a-8f8d-bbdb844fa84e
+  type Land
+  enters tapped unless reveal Elf card
+  mana {B} or {G}
+}

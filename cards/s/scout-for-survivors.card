@@ -1,0 +1,6 @@
+card "Scout for Survivors" {
+  oracle_id 5a367c9c-9a7f-4587-aa05-c0fba46ed838
+  cost {2}{W}
+  type Sorcery
+  spell: return up to 3 target creature card from your graveyard with total mana value 3 or less to battlefield; put 1 +1/+1 counter on each of them
+}

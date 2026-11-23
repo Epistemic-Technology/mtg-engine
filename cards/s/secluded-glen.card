@@ -1,0 +1,6 @@
+card "Secluded Glen" {
+  oracle_id 09f52275-99e6-45e0-b2db-cafe26d5fb91
+  type Land
+  enters tapped unless reveal Faerie card
+  mana {U} or {B}
+}

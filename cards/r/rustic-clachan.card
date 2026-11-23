@@ -1,0 +1,7 @@
+card "Rustic Clachan" {
+  oracle_id cde68428-0033-4ede-92f1-ab91de0a41fb
+  type Land
+  enters tapped unless reveal Kithkin card
+  mana {W}
+  reinforce 1 {1}{W}
+}

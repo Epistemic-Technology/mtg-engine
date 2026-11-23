@@ -1352,6 +1352,32 @@ impl GameState {
                             _ => true,
                         });
                     }
+                    // "up to three target creature cards with total mana
+                    // value 3 or less" (CR 601.2c): only a card that keeps
+                    // the group's total within the bound.
+                    if let TargetSpec::Many(i) = spec
+                        && let Some(total) = self.pool.many(i).total_mv
+                    {
+                        let total = total.eval(self.x_of(spell));
+                        let mv = |id: ObjId| {
+                            self.objects
+                                .get(id)
+                                .map_or(0, |o| self.pool.get(o.def).mana_cost.mana_value())
+                        };
+                        let used: u32 = self.objects[spell]
+                            .targets
+                            .iter()
+                            .skip(next_target)
+                            .filter_map(|t| match t {
+                                Target::Object(id) => Some(mv(*id)),
+                                Target::Player(_) => None,
+                            })
+                            .sum();
+                        options.retain(|c| match c {
+                            Choice::Target(Target::Object(id)) => used + mv(*id) <= total,
+                            _ => true,
+                        });
+                    }
                     // A cost that depends on the first target: only targets
                     // the caster can pay for (CR 601.2f comes after 601.2c,
                     // but an unpayable choice would be illegal to finish).
@@ -1842,10 +1868,39 @@ impl GameState {
                 self.flow = Flow::ChoosingUntap { asked, keep };
             }
             (Flow::OpeningHand { mut asked }, c @ (Choice::Accept | Choice::Decline)) => {
-                if let Some((_, card)) = self.next_opening_hand_card(&asked) {
+                if let Some((p, card)) = self.next_opening_hand_card(&asked) {
                     asked.push(card);
-                    if c == Choice::Accept {
-                        self.move_object(card, Zone::Battlefield, true);
+                    let def = self.objects[card].def;
+                    let reveal = self.pool.get(def).abilities.iter().find_map(|a| match a {
+                        crate::card::AbilityDef::OpeningHandReveal(id) => Some(*id),
+                        _ => None,
+                    });
+                    match (c, reveal) {
+                        // "You may reveal this card from your opening hand.
+                        // If you do, at the beginning of the first upkeep,
+                        // ...": revealed, the card leaves a delayed
+                        // trigger behind (CR 603.7).
+                        (Choice::Accept, Some(ability)) => {
+                            self.reveal_in_hand(card);
+                            self.delayed_triggers.push(crate::state::DelayedTrigger {
+                                controller: p,
+                                ability: crate::state::StackAbility {
+                                    ability,
+                                    source: card,
+                                    def,
+                                    trigger_obj: None,
+                                    trigger_player: None,
+                                    trigger_amount: 0,
+                                },
+                                this_turn: false,
+                                forever: false,
+                                turn: self.turn_number,
+                            });
+                        }
+                        (Choice::Accept, None) => {
+                            self.move_object(card, Zone::Battlefield, true);
+                        }
+                        _ => {}
                     }
                 }
                 self.flow = Flow::OpeningHand { asked };
@@ -2926,7 +2981,13 @@ impl GameState {
                         .get(self.objects[*id].def)
                         .abilities
                         .iter()
-                        .any(|a| matches!(a, crate::card::AbilityDef::OpeningHand))
+                        .any(|a| {
+                            matches!(
+                                a,
+                                crate::card::AbilityDef::OpeningHand
+                                    | crate::card::AbilityDef::OpeningHandReveal(_)
+                            )
+                        })
                 {
                     return Some((p, *id));
                 }
@@ -3573,7 +3634,10 @@ impl GameState {
                     // with the player's next turn.
                     let (objects, active) = (&self.objects, self.active_player);
                     e.playable.retain_mut(|pe| {
-                        if !objects.get(pe.card).is_some_and(|o| o.zone == Zone::Exile) {
+                        if !objects
+                            .get(pe.card)
+                            .is_some_and(|o| matches!(o.zone, Zone::Exile | Zone::Graveyard))
+                        {
                             return false;
                         }
                         match pe.until {

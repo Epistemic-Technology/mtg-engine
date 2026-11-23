@@ -1,0 +1,77 @@
+# "You may cast target Zombie creature card from your graveyard this
+# turn." (CR 601.3): a permission for that card where it is, paying its
+# costs with the usual timing, ending with the turn.
+
+scenario "cast target from graveyard: Zul Ashur lets a Zombie be cast from the graveyard" {
+  battlefield A: "Zul Ashur, Lich Lord", 2 "Swamp"
+  graveyard A: "Walking Corpse"
+  turn 1 A: activate "Zul Ashur, Lich Lord" targeting "Walking Corpse"
+  turn 1 A: cast "Walking Corpse" from graveyard
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Walking Corpse"
+  assert graveyard A count 0
+  assert tapped oldest "Swamp"
+  assert tapped newest "Swamp"
+}
+
+scenario "cast target from graveyard: without the permission the Zombie stays put" {
+  battlefield A: "Zul Ashur, Lich Lord", 2 "Swamp"
+  graveyard A: "Walking Corpse"
+  illegal turn 1 A: cast "Walking Corpse" from graveyard
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Walking Corpse"
+}
+
+scenario "cast target from graveyard: the permission ends with the turn" {
+  battlefield A: "Zul Ashur, Lich Lord", 2 "Swamp"
+  graveyard A: "Walking Corpse"
+  turn 1 A: activate "Zul Ashur, Lich Lord" targeting "Walking Corpse"
+  illegal turn 3 A: cast "Walking Corpse" from graveyard
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Walking Corpse"
+}
+
+scenario "cast target from graveyard: a non-Zombie can't be targeted" {
+  battlefield A: "Zul Ashur, Lich Lord", 2 "Swamp"
+  graveyard A: "Grizzly Bears"
+  illegal turn 1 A: activate "Zul Ashur, Lich Lord" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Zul Ashur, Lich Lord"
+}
+
+scenario "cast target from graveyard: Heiko attacking alone lets an artifact be cast from the graveyard" {
+  battlefield A: "Heiko Yamazaki, the General", 2 "Plains"
+  graveyard A: "Ornithopter", "Grizzly Bears"
+  turn 1 A: attack "Heiko Yamazaki, the General"
+  turn 1 A: trigger "Heiko Yamazaki, the General" targeting "Ornithopter"
+  turn 1 postcombat_main A: cast "Ornithopter" from graveyard
+  run_to turn 1 end
+  assert battlefield A contains "Ornithopter"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+# "you may cast target instant or sorcery card with mana value less than
+# or equal to this creature's power from your graveyard without paying
+# its mana cost. If that spell would be put into your graveyard, exile it
+# instead."
+scenario "cast free target from graveyard: Dreadhorde Arcanist casts Shock and exiles it" {
+  battlefield A: "Dreadhorde Arcanist"
+  graveyard A: "Shock"
+  life B 20
+  turn 1 A: attack "Dreadhorde Arcanist"
+  turn 1 A: trigger "Dreadhorde Arcanist" targeting "Shock"
+  turn 1 declare_attackers A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert exile A contains "Shock"
+}
+
+scenario "cast free target from graveyard: Dreadhorde Arcanist's power bounds the mana value" {
+  battlefield A: "Dreadhorde Arcanist"
+  graveyard A: "Lightning Helix"
+  life B 20
+  turn 1 A: attack "Dreadhorde Arcanist"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Lightning Helix"
+  assert life B 19
+}

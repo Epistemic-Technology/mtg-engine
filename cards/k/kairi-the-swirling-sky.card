@@ -1,0 +1,12 @@
+card "Kairi, the Swirling Sky" {
+  oracle_id 85aa53e8-f062-4d02-bc69-1413f7f0dcf1
+  cost {4}{U}{U}
+  type Legendary Creature — Dragon Spirit
+  pt 6/6
+  keywords flying
+  ward {3}
+  triggered when this dies: choose one {
+    mode: return any number of target nonland permanent with total mana value 6 or less to hand
+    mode: mill 6 cards, then return up to 2 andor instant or sorcery card from your graveyard to hand chosen
+  }
+}

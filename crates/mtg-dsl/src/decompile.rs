@@ -378,6 +378,7 @@ impl Decompiler<'_> {
                     target: Box::new(self.target(m.spec)),
                     min: m.min,
                     max: m.max,
+                    total: m.total_mv,
                 }
             }
             other => Target::Spec(other),
@@ -1262,9 +1263,11 @@ impl Decompiler<'_> {
                 exile,
                 until,
                 top,
+                reveal,
             } => Effect::DiscardChosen {
                 who: r(*who),
                 filter: filter.as_ref().map(|f| self.filter(f)),
+                reveal: *reveal,
                 may: *optional,
                 look: false,
                 exile: exile.then_some(!*until),
@@ -1788,7 +1791,19 @@ impl Decompiler<'_> {
                 filter: self.filter(filter),
             },
             CoreEffect::MayCastThisFromExile => Effect::MayCastThisFromExile,
-            CoreEffect::MayPlayCard { until, cast, free } => Effect::MayPlayCard {
+            CoreEffect::MayPlayCard {
+                until,
+                cast,
+                free: false,
+                what: Some(w),
+            } => Effect::MayPlayTarget {
+                what: r(*w),
+                until: *until,
+                cast: *cast,
+            },
+            CoreEffect::MayPlayCard {
+                until, cast, free, ..
+            } => Effect::MayPlayCard {
                 until: *until,
                 cast: *cast,
                 free: *free,
@@ -2462,6 +2477,19 @@ impl Decompiler<'_> {
             AbilityDef::Landwalk(f) => Ability::Landwalk(self.filter(f)),
             AbilityDef::HexproofFrom(f) => Ability::HexproofFrom(self.filter(f)),
             AbilityDef::OpeningHand => Ability::OpeningHand,
+            AbilityDef::OpeningHandReveal(id) => match self.ability(self.pool.ability(*id)) {
+                Ability::Triggered {
+                    trigger: crate::ast::Trigger::BeginningOfStep { step, whose },
+                    effects,
+                    ..
+                } => Ability::OpeningHandReveal {
+                    step,
+                    whose,
+                    after: false,
+                    effects,
+                },
+                _ => unreachable!("an opening hand reveal's delayed trigger is a step trigger"),
+            },
             AbilityDef::TriggerAgain {
                 filter,
                 entering,
@@ -2779,6 +2807,13 @@ impl Decompiler<'_> {
                 replacement: mtg_core::card::Replacement::EnterTappedUnless(i),
                 ..
             }) => Ability::EntersTappedUnless(self.static_cond(self.pool.condition(*i))),
+            AbilityDef::Replacement(ReplacementAbility {
+                replacement: mtg_core::card::Replacement::EnterTappedUnlessReveal { filter, or },
+                ..
+            }) => Ability::EntersTappedUnlessReveal {
+                filter: self.filter(self.pool.filter(*filter)),
+                or: or.map(|c| self.static_cond(self.pool.condition(c))),
+            },
             AbilityDef::Replacement(ReplacementAbility {
                 replacement: mtg_core::card::Replacement::EnterWithCountersIf { n, cond, kind },
                 ..

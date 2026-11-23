@@ -1,0 +1,7 @@
+card "Primal Beyond" {
+  oracle_id 541744d9-449d-420a-a5a1-2fffba18450f
+  type Land
+  enters tapped unless reveal Elemental card
+  mana {C}
+  activated {T}: add any only to cast Elemental spell or activate of Elemental bare
+}

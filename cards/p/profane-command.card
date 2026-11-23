@@ -1,0 +1,11 @@
+card "Profane Command" {
+  oracle_id 6f9ecfc4-85bd-4171-9031-dbe0e39e0135
+  cost {X}{B}{B}
+  type Sorcery
+  choose two {
+    mode: target player loses X life
+    mode: return target creature card with mana value X or less from your graveyard to battlefield
+    mode: target creature gets -1/-1 X
+    mode: up to X target creatures gains fear
+  }
+}

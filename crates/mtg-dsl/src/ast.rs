@@ -1289,6 +1289,9 @@ pub enum Target {
         target: Box<Target>,
         min: Num,
         max: Option<Num>,
+        /// `... with total mana value 3 or less`: "up to three target
+        /// creature cards with total mana value 3 or less" (CR 601.2c).
+        total: Option<Num>,
     },
 }
 
@@ -1566,6 +1569,19 @@ pub enum Ability {
     /// `opening hand`: "If this card is in your opening hand, you may begin
     /// the game with it on the battlefield." (CR 103.6a).
     OpeningHand,
+    /// `opening hand reveal first upkeep: ...`: "You may reveal this card
+    /// from your opening hand. If you do, at the beginning of the first
+    /// upkeep, ..." (the Chancellors); `your first upkeep` ("at the
+    /// beginning of your first upkeep"), `your first main` ("at the
+    /// beginning of your first main phase of the game"); `after` puts the
+    /// time last ("If you do, scry 3 at the beginning of your first
+    /// upkeep.").
+    OpeningHandReveal {
+        step: Step,
+        whose: Who,
+        after: bool,
+        effects: Vec<Sentence>,
+    },
     /// `trigger again another Elemental you control`: "If a triggered
     /// ability of another Elemental you control triggers, it triggers an
     /// additional time." (CR 603.2d); `trigger again permanent you control
@@ -1597,6 +1613,15 @@ pub enum Ability {
     /// `enters tapped unless you control planeswalker`: "This land enters
     /// tapped unless you control a planeswalker." (CR 614.1d)
     EntersTappedUnless(StaticCond),
+    /// `enters tapped unless reveal Mountain or Forest card`: "As this
+    /// land enters, you may reveal a Mountain or Forest card from your
+    /// hand. If you don't, this land enters tapped." (CR 614.12); `...
+    /// card or you control Dragon`: "This land enters tapped unless you
+    /// revealed a Dragon card this way or you control a Dragon."
+    EntersTappedUnlessReveal {
+        filter: Filter,
+        or: Option<StaticCond>,
+    },
     /// `enters tapped if not your turn`: "This creature enters tapped if
     /// it's not your turn." (the same replacement as `enters tapped unless
     /// your turn`, worded with "if").
@@ -4354,6 +4379,13 @@ pub enum Effect {
     DiscardChosen {
         who: Recipient,
         filter: Option<Filter>,
+        /// `target player reveals 3 cards discarding card`: "Target
+        /// player reveals three cards from their hand and you choose one
+        /// of them. That player discards that card." (Blackmail); `... 3
+        /// cards discarding 2 card`: "... You choose two of them. That
+        /// player discards those cards." (the count revealed, the number
+        /// chosen).
+        reveal: Option<(Num, u8)>,
         /// `discarding may ...`: "You may choose ...".
         may: bool,
         /// `look at hand of target player discarding ...`: "Look at
@@ -5055,6 +5087,15 @@ pub enum Effect {
         /// card from exile this turn." (Norin, Swift Survivalist; wording
         /// only).
         from_exile: bool,
+    },
+    /// `may cast target Zombie creature card from your graveyard this
+    /// turn`: "You may cast target Zombie creature card from your
+    /// graveyard this turn." (`play`: "You may play ..."), paying its
+    /// costs with the usual timing (CR 601.3).
+    MayPlayTarget {
+        what: Recipient,
+        until: mtg_core::card::PlayUntil,
+        cast: bool,
     },
     /// `reveal until nonland card` ("reveal cards from the top of your
     /// library until you reveal a nonland card"), `<who> reveals until

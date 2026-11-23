@@ -1484,10 +1484,16 @@ impl<'a> Ctx<'a> {
         self.target_mentioned[i] = true;
         // "X target creatures", "one or two targets", "any number of
         // target creature cards from your graveyard".
-        if let Target::Many { min, max, .. } = &self.targets[i] {
+        if let Target::Many {
+            min, max, total, ..
+        } = &self.targets[i]
+        {
             let count = match max {
                 None => "any number of".to_string(),
                 Some(m) if m == min => count_words(*m, "one"),
+                // "up to X target cards", "up to three target creature
+                // cards with total mana value 3 or less".
+                Some(m) if *min == Num::N(0) => format!("up to {}", count_words(*m, "one")),
                 Some(Num::N(m)) => {
                     let lo = match min {
                         Num::N(n) => *n,
@@ -1504,7 +1510,16 @@ impl<'a> Ctx<'a> {
                 return format!("{count} targets");
             }
             // "any number of other target nonland permanents you control".
-            let noun = self.plural_target_noun(i);
+            let mut noun = self.plural_target_noun(i);
+            // "creature cards with total mana value 3 or less from your
+            // graveyard".
+            if let Some(n) = total {
+                let with = format!(" with total mana value {} or less", digits(*n));
+                noun = match noun.split_once(" from ") {
+                    Some((a, b)) => format!("{a}{with} from {b}"),
+                    None => format!("{noun}{with}"),
+                };
+            }
             return match noun.strip_prefix("other ") {
                 Some(rest) => format!("{count} other target {rest}"),
                 None => format!("{count} target {noun}"),
@@ -2173,6 +2188,10 @@ impl<'a> Ctx<'a> {
     fn fresh_target_group(&self, rs: &[Recipient]) -> bool {
         match rs {
             [Recipient::Targets(a, n)] => *n > 1 && !self.target_mentioned[*a],
+            // "deals five times X damage to each of up to X targets".
+            [Recipient::Target(i)] => {
+                !self.target_mentioned[*i] && matches!(self.targets[*i], Target::Many { .. })
+            }
             [Recipient::Target(first), _, ..] => rs.iter().all(|r| {
                 matches!(r, Recipient::Target(i)
                     if !self.target_mentioned[*i] && self.targets[*i] == self.targets[*first])
@@ -3369,6 +3388,11 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     {
         mv = format!(" with {}", bound_phrase(b, card));
     }
+    // "a creature card with no abilities" (Fang-Druid Summoner).
+    if g.or.is_none() && mv.is_empty() && g.no_abilities {
+        g.no_abilities = false;
+        mv = " with no abilities".to_string();
+    }
     let p = if g == Filter::default() {
         String::new()
     } else {
@@ -4394,6 +4418,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::ExilePlayable { count, .. }
         | Effect::ExileTop { count, .. }
         | Effect::Earthbend { count, .. }
+        | Effect::Search { count, .. }
         | Effect::InvestigateCount { count, .. } => vec![*count],
         Effect::CreateToken { count, sized, .. } => std::iter::once(*count).chain(*sized).collect(),
         Effect::CopySpells { times, .. } => vec![*times],
@@ -5125,6 +5150,17 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     &format!(" cards of your library, where X is {phrase}"),
                     1,
                 );
+            }
+            // "Search your library for up to X basic land cards, where X
+            // is the number of lands you control, put them onto the
+            // battlefield tapped, then shuffle."
+            CountStyle::Where
+                if matches!(e, Effect::Search { .. }) && c.text.contains(" cards, ") =>
+            {
+                let phrase = count_phrase_in(&count.expr, ctx, false);
+                c.text = c
+                    .text
+                    .replacen(" cards, ", &format!(" cards, where X is {phrase}, "), 1);
             }
             // "Target player draws 2ˣ cards."
             CountStyle::Where if count.expr == crate::ast::CountExpr::TwoToX => {
@@ -5922,6 +5958,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 };
                 Clause::imperative(format!("you may {verb} {what}{free}{when}"))
             }
+        }
+        // "You may cast target Zombie creature card from your graveyard
+        // this turn."
+        Effect::MayPlayTarget { what, until, cast } => {
+            use mtg_core::card::PlayUntil;
+            let o = ctx.obj(*what);
+            let verb = if *cast { "cast" } else { "play" };
+            let when = match until {
+                PlayUntil::ThisTurn => " this turn",
+                PlayUntil::EndOfYourNextTurn => " until the end of your next turn",
+                PlayUntil::YourNextEndStep => " until your next end step",
+                PlayUntil::Forever | PlayUntil::WhileYouControlSource => "",
+            };
+            Clause::imperative(format!("you may {verb} {o}{when}"))
         }
         Effect::RevealUntil { who, filter } => {
             let pred = card_filter_a(filter, ctx.card);
@@ -8284,6 +8334,55 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
             )
         }
+        // "Target player reveals three cards from their hand and you
+        // choose one of them. That player discards that card."
+        // (Blackmail); "... reveals X cards from their hand, where X is
+        // .... You choose one of those cards. ..." (Thieving Sprite); "...
+        // You choose two of them. That player discards those cards."
+        // (Noggin Whack).
+        Effect::DiscardChosen {
+            who,
+            reveal: Some((n, take)),
+            exile: None,
+            filter: None,
+            may: false,
+            ..
+        } => {
+            let s = ctx.subj(*who);
+            let verb = ctx.verb(*who, "reveals", "reveal");
+            let cards = if *n == Num::N(1) { "card" } else { "cards" };
+            let (lead, first) = match n {
+                Num::Count(i) => {
+                    let phrase = ctx
+                        .card
+                        .counts
+                        .get(usize::from(*i))
+                        .map(|c| count_phrase_in(&c.expr, ctx, false))
+                        .unwrap_or_default();
+                    (
+                        format!("{verb} X cards from their hand, where X is {phrase}"),
+                        ". You choose one of those cards".to_string(),
+                    )
+                }
+                _ => (
+                    format!("{verb} {} {cards} from their hand", count_words(*n, "a")),
+                    if *take == 1 {
+                        " and you choose one of them".to_string()
+                    } else {
+                        format!(
+                            ". You choose {} of them",
+                            count_words(Num::N(u32::from(*take)), "one")
+                        )
+                    },
+                ),
+            };
+            let then = if *take == 1 {
+                "That player discards that card"
+            } else {
+                "That player discards those cards"
+            };
+            Clause::with_subject(*who, s, format!("{lead}{first}. {then}"))
+        }
         Effect::DiscardChosen {
             who,
             filter,
@@ -8753,7 +8852,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 } else if one {
                     "a card".to_string()
                 } else {
-                    format!("{} cards", count_words(*count, "a"))
+                    format!(
+                        "{}{} cards",
+                        if *up_to { "up to " } else { "" },
+                        count_words(*count, "a")
+                    )
                 }
             } else if one && filter.or.is_none() {
                 // "a Rebel permanent card with mana value 3 or less".
@@ -16635,6 +16738,21 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             capitalize(&this_ref(card)),
             static_cond_text(c, card)
         ),
+        // "As this land enters, you may reveal a Mountain or Forest card
+        // from your hand. If you don't, this land enters tapped."
+        Ability::EntersTappedUnlessReveal { filter, or } => {
+            let this = this_ref(card);
+            let what = with_article(&cards_phrase(filter, card, false));
+            let rest = match or {
+                None => format!("If you don't, {this} enters tapped."),
+                Some(c) => format!(
+                    "{} enters tapped unless you revealed {what} this way or {}.",
+                    capitalize(&this),
+                    static_cond_text(c, card)
+                ),
+            };
+            format!("As {this} enters, you may reveal {what} from your hand. {rest}")
+        }
         Ability::EntersTappedIfNotYourTurn => format!(
             "{} enters tapped if it's not your turn.",
             capitalize(&this_ref(card))
@@ -16911,6 +17029,29 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         }
         // A legendary card names itself ("If Quicksilver is in your
         // opening hand, ...").
+        // "You may reveal this card from your opening hand. If you do, at
+        // the beginning of the first upkeep, ..." (the Chancellors).
+        Ability::OpeningHandReveal {
+            step,
+            whose,
+            after,
+            effects,
+        } => {
+            let mut ctx = Ctx::new(card, lookup, &[]);
+            ctx.current = Some(a);
+            let when = match (step, whose) {
+                (Step::Upkeep, Who::You) => "at the beginning of your first upkeep",
+                (Step::Upkeep, _) => "at the beginning of the first upkeep",
+                _ => "at the beginning of your first main phase of the game",
+            };
+            let body = lowercase_first(&sentences(effects, &mut ctx));
+            let body = if *after {
+                format!("{} {when}.", body.trim_end_matches('.'))
+            } else {
+                format!("{when}, {body}")
+            };
+            format!("You may reveal this card from your opening hand. If you do, {body}")
+        }
         Ability::OpeningHand => format!(
             "If {} is in your opening hand, you may begin the game with it on the battlefield.",
             if card.supertypes.contains(&Supertype::Legendary) {

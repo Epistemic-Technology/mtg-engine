@@ -1,0 +1,90 @@
+# "Return up to three target creature cards with total mana value 3 or
+# less from your graveyard to the battlefield." (CR 601.2c): each target
+# chosen must keep the group's total mana value within the bound.
+
+scenario "total mana value: Patch Up returns two creatures within the total" {
+  battlefield A: 3 "Plains"
+  hand A: "Patch Up"
+  graveyard A: "Grizzly Bears", "Elite Vanguard", "Hill Giant"
+  turn 1 A: cast "Patch Up" targeting "Grizzly Bears", "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Elite Vanguard"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "total mana value: Patch Up can't target past the total" {
+  battlefield A: 3 "Plains"
+  hand A: "Patch Up"
+  graveyard A: "Grizzly Bears", "Elite Vanguard", "Hill Giant"
+  illegal turn 1 A: cast "Patch Up" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Patch Up"
+}
+
+scenario "total mana value: Scout for Survivors returns three one-drops with a counter on each" {
+  battlefield A: 3 "Plains"
+  hand A: "Scout for Survivors"
+  graveyard A: "Elite Vanguard", "Savannah Lions", "Ornithopter"
+  turn 1 A: cast "Scout for Survivors" targeting "Elite Vanguard", "Savannah Lions", "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert counters "Elite Vanguard" +1/+1 1
+  assert counters "Savannah Lions" +1/+1 1
+  assert counters "Ornithopter" +1/+1 1
+}
+
+scenario "total mana value: March from the Tomb takes any number of Allies up to the total" {
+  battlefield A: 4 "Plains", "Swamp"
+  hand A: "March from the Tomb"
+  graveyard A: "Kazandu Blademaster", "Grizzly Bears"
+  turn 1 A: cast "March from the Tomb" targeting "Kazandu Blademaster"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Kazandu Blademaster"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "total mana value: Orcus with X 3 returns creatures with total mana value 3 that gain haste" {
+  battlefield A: 3 "Swamp", 4 "Mountain"
+  hand A: "Orcus, Prince of Undeath"
+  graveyard A: "Grizzly Bears", "Elite Vanguard", "Hill Giant"
+  turn 1 A: cast "Orcus, Prince of Undeath" x 3
+  turn 1 A: trigger "Orcus, Prince of Undeath" mode 2 targeting "Grizzly Bears", "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Elite Vanguard"
+  assert has "Grizzly Bears" haste
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "total mana value: The Super Hero Civil War takes two creatures with total mana value 6" {
+  battlefield A: 3 "Mountain", 2 "Plains"
+  battlefield B: "Hill Giant", "Grizzly Bears", "Serra Angel"
+  hand A: "The Super Hero Civil War"
+  turn 1 A: cast "The Super Hero Civil War"
+  turn 1 A: trigger "The Super Hero Civil War" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "total mana value: The Super Hero Civil War can't take creatures past the total" {
+  battlefield A: 3 "Mountain", 2 "Plains"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "The Super Hero Civil War"
+  turn 1 A: cast "The Super Hero Civil War"
+  run_to turn 1 postcombat_main
+  assert battlefield B count 1
+}
+
+scenario "total mana value: Kairi bounces nonland permanents with total mana value 6" {
+  battlefield A: "Kairi, the Swirling Sky", 3 "Swamp"
+  battlefield B: "Hill Giant", "Grizzly Bears", "Serra Angel"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Kairi, the Swirling Sky"
+  turn 1 A: trigger "Kairi, the Swirling Sky" mode 1 targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert hand B contains "Grizzly Bears"
+  assert battlefield B contains "Serra Angel"
+}

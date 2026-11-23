@@ -367,8 +367,10 @@ impl GameState {
                     continue;
                 };
                 // CR 702.185a: a warped card, not until a later turn.
+                // A graveyard card a target permission names ("You may
+                // cast target ... card from your graveyard this turn").
                 if pe.player != p
-                    || o.zone != Zone::Exile
+                    || !matches!(o.zone, Zone::Exile | Zone::Graveyard)
                     || pe.own_ends == crate::state::WARP_LATER
                 {
                     continue;
@@ -1036,12 +1038,22 @@ impl GameState {
                 .revealed
                 .iter()
                 .filter(|id| {
-                    let Some(o) = self.objects.get(**id) else {
+                    // A revealed card the resolution moved since is found
+                    // as the card it became (Madcap Experiment).
+                    let id = if self.objects.contains_key(**id) {
+                        **id
+                    } else {
+                        match self.current_object(**id) {
+                            Some(n) => n,
+                            None => return false,
+                        }
+                    };
+                    let Some(o) = self.objects.get(id) else {
                         return false;
                     };
                     f.as_ref().is_none_or(|f| {
                         let c = self.base_characteristics(o);
-                        f.matches(**id, o.owner, &c, Some(ctx.source), Some(ctx.controller))
+                        f.matches(id, o.owner, &c, Some(ctx.source), Some(ctx.controller))
                     })
                 })
                 .count(),
@@ -9280,7 +9292,27 @@ impl GameState {
                     if ctx.legal.get(i).copied().unwrap_or(false)
                         && let Some(t) = ctx.targets.get(i)
                     {
-                        out.push(*t);
+                        // "Return up to three target creature cards ... to
+                        // the battlefield. Put a +1/+1 counter on each of
+                        // them.": a target this resolution put onto the
+                        // battlefield is found there (CR 400.7, 608.2c; it
+                        // was legal as the resolution began, so only the
+                        // resolution moved it).
+                        match *t {
+                            Target::Object(id) if !self.objects.contains_key(id) => {
+                                if let Some(new) = self.current_object(id)
+                                    && self
+                                        .objects
+                                        .get(new)
+                                        .is_some_and(|o| o.zone == Zone::Battlefield)
+                                {
+                                    out.push(Target::Object(new));
+                                } else {
+                                    out.push(*t);
+                                }
+                            }
+                            _ => out.push(*t),
+                        }
                     }
                 }
             }
@@ -11916,6 +11948,7 @@ impl GameState {
                 exile,
                 until,
                 top,
+                reveal,
             } => {
                 // "If you do" / "If you don't": whether a card was chosen.
                 ctx.did = false;
@@ -11935,13 +11968,40 @@ impl GameState {
                     let Target::Player(p) = t else {
                         continue;
                     };
-                    self.reveal_hand(p);
+                    // "reveals three cards from their hand": the player
+                    // chooses which (CR 701.20a); the rest stay hidden.
+                    let shown: SmallVec<[ObjId; 8]> = if let Some((n, _)) = reveal {
+                        let n = self.eval_num(*n, ctx) as usize;
+                        let mut rest: SmallVec<[ObjId; 8]> =
+                            self.player(p).hand.iter().copied().collect();
+                        let mut shown = SmallVec::new();
+                        while shown.len() < n && !rest.is_empty() {
+                            let k = if rest.len() + shown.len() <= n {
+                                0
+                            } else {
+                                let options: Vec<Choice> = rest
+                                    .iter()
+                                    .map(|id| Choice::Discard {
+                                        card: *id,
+                                        def: self.objects[*id].def,
+                                    })
+                                    .collect();
+                                self.choose_mid(p, DecisionKind::ChooseCard, options)
+                            };
+                            shown.push(rest.remove(k));
+                        }
+                        for id in &shown {
+                            self.reveal_in_hand(*id);
+                        }
+                        shown
+                    } else {
+                        self.reveal_hand(p);
+                        self.player(p).hand.iter().copied().collect()
+                    };
                     if gone {
                         continue;
                     }
-                    let mut options: Vec<Choice> = self
-                        .player(p)
-                        .hand
+                    let mut options: Vec<Choice> = shown
                         .iter()
                         .filter(|id| {
                             filter.as_ref().is_none_or(|f| {
@@ -11960,8 +12020,19 @@ impl GameState {
                     if *optional {
                         options.push(Choice::Done);
                     }
-                    let k = self.choose_mid(ctx.controller, DecisionKind::Discard, options.clone());
-                    if let Choice::Discard { card, .. } = options[k] {
+                    // "You choose two of them. That player discards those
+                    // cards." (Noggin Whack).
+                    let picks = reveal.map_or(1, |(_, k)| usize::from(k.max(1)));
+                    let mut chosen: SmallVec<[ObjId; 2]> = SmallVec::new();
+                    while chosen.len() < picks && !options.is_empty() {
+                        let k =
+                            self.choose_mid(ctx.controller, DecisionKind::Discard, options.clone());
+                        match options.remove(k) {
+                            Choice::Discard { card, .. } => chosen.push(card),
+                            _ => break,
+                        }
+                    }
+                    for card in chosen {
                         if *exile {
                             let new = self.move_object(card, Zone::Exile, false);
                             if *until
@@ -13716,12 +13787,37 @@ impl GameState {
                     }
                 }
             }
-            Effect::MayPlayCard { until, cast, free } => {
+            Effect::MayPlayCard {
+                until,
+                cast,
+                free,
+                what,
+            } => {
                 let p = ctx.controller;
                 let own_ends = if self.active_player == p { 2 } else { 1 };
-                if let Some(id) = ctx.created
-                    && self.objects.get(id).is_some_and(|o| o.zone == Zone::Exile)
-                {
+                // "You may cast target Zombie creature card from your
+                // graveyard this turn": the targets, where they are.
+                let cards: SmallVec<[ObjId; 2]> = match what {
+                    Some(r) => self
+                        .recipients(ctx, *r)
+                        .into_iter()
+                        .filter_map(|t| match t {
+                            Target::Object(id) => Some(id),
+                            Target::Player(_) => None,
+                        })
+                        .filter(|id| {
+                            self.objects
+                                .get(*id)
+                                .is_some_and(|o| matches!(o.zone, Zone::Graveyard | Zone::Exile))
+                        })
+                        .collect(),
+                    None => ctx
+                        .created
+                        .filter(|id| self.objects.get(*id).is_some_and(|o| o.zone == Zone::Exile))
+                        .into_iter()
+                        .collect(),
+                };
+                for id in cards {
                     self.exile_casts
                         .get_or_insert_with(Box::default)
                         .playable
@@ -14595,6 +14691,26 @@ impl GameState {
             } => {
                 let p = ctx.controller;
                 let n = self.eval_num(*count, ctx) as usize;
+                // "reveal the top X cards of your library, where X is ....
+                // You may put a green permanent card with mana value X or
+                // less from among them ..." (Hatchery Spider): the dig's X.
+                // Only a counted dig names its own X; with a number, X is
+                // the spell's or ability's (CR 107.3).
+                let counted = matches!(count, crate::card::Num::Count(_));
+                let fill_x = |f: Option<&crate::card::ObjFilter>| {
+                    f.filter(|f| counted && f.status.mana_value_x).map(|f| {
+                        let mut g = f.clone();
+                        g.status.mana_value_x = false;
+                        g.mana_value = g
+                            .mana_value
+                            .map(|(cmp, _)| (cmp, u8::try_from(n).unwrap_or(u8::MAX)));
+                        g
+                    })
+                };
+                let filled = fill_x(filter.as_ref()).map(Some);
+                let filled_also = fill_x(also.as_ref()).map(Some);
+                let filter = filled.as_ref().unwrap_or(filter);
+                let also = filled_also.as_ref().unwrap_or(also);
                 let lib = &self.player(p).library;
                 let top: Vec<ObjId> = lib.iter().rev().take(n).copied().collect();
                 let matches = |s: &Self, f: Option<&crate::card::ObjFilter>, id: ObjId| {
@@ -15515,13 +15631,11 @@ impl GameState {
         if what == CardSet::It {
             ctx.created = last;
         }
-        if to != CardDest::LibraryBottom {
-            ctx.revealed.retain(|id| {
-                self.objects
-                    .get(*id)
-                    .is_some_and(|o| o.zone == Zone::Library)
-            });
-        }
+        // The revealed cards stay listed when one moves ("Put that card
+        // onto the battlefield and the rest on the bottom ... deals
+        // damage to you equal to the number of cards revealed this way",
+        // Madcap Experiment): a moved one is a new object, which only the
+        // count follows; later moves skip it.
     }
 
     /// "If that creature was a Human" / "If it's a Human": whether the

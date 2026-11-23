@@ -1,0 +1,6 @@
+card "Choked Estuary" {
+  oracle_id d473b507-8c33-4118-bc10-b0a268776074
+  type Land
+  enters tapped unless reveal Island or Swamp card
+  mana {U} or {B}
+}

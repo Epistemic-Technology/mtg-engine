@@ -1,0 +1,6 @@
+card "Shineshadow Snarl" {
+  oracle_id c9fc13d6-bd10-47bc-b2b6-7f67a1f3371e
+  type Land
+  enters tapped unless reveal Plains or Swamp card
+  mana {W} or {B}
+}

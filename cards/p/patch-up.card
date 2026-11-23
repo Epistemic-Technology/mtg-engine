@@ -1,0 +1,6 @@
+card "Patch Up" {
+  oracle_id 34a7026f-c6ca-4d89-8364-fd60fb613634
+  cost {2}{W}
+  type Sorcery
+  spell: return up to 3 target creature card from your graveyard with total mana value 3 or less to battlefield
+}

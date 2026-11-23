@@ -1,0 +1,8 @@
+card "Brightglass Gearhulk" {
+  oracle_id 0c7019a7-3cca-481a-9af0-abedb89c15ad
+  cost {G}{G}{W}{W}
+  type Artifact Creature — Construct
+  pt 4/4
+  keywords first strike, trample
+  triggered when this enters: you may search up to 2 andor artifact or creature or enchantment card with mana value 1 or less reveal to hand
+}

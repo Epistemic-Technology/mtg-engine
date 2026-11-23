@@ -3617,6 +3617,10 @@ pub struct ManyTargets {
     pub spec: TargetSpec,
     pub min: Num,
     pub max: Option<Num>,
+    /// "with total mana value 3 or less": the chosen objects' printed
+    /// mana values add up to at most this (CR 601.2c).
+    #[serde(default)]
+    pub total_mv: Option<Num>,
 }
 
 /// The spec the `i`th chosen target answers: a variable group's spec
@@ -4147,6 +4151,12 @@ pub enum Effect {
         /// Memories): the chosen card goes there instead.
         #[serde(default)]
         top: bool,
+        /// "Target player reveals three cards from their hand and you
+        /// choose one of them" (Blackmail): the player reveals that many
+        /// cards of their choice (all of them with no more in hand), and
+        /// the controller chooses the second number of them from those.
+        #[serde(default)]
+        reveal: Option<(Num, u8)>,
     },
     /// "Transform this creature" (CR 701.27): a double-faced permanent
     /// turns to its other face; it stays the same object.
@@ -4989,6 +4999,11 @@ pub enum Effect {
         until: PlayUntil,
         cast: bool,
         free: bool,
+        /// "You may cast target Zombie creature card from your graveyard
+        /// this turn.": the targeted cards instead, where they are (a
+        /// graveyard or exile).
+        #[serde(default)]
+        what: Option<Recipient>,
     },
     /// "Reveal cards from the top of your library until you reveal a land
     /// card" (CR 701.20): the recipient player reveals from the top until a
@@ -6067,6 +6082,13 @@ pub enum Replacement {
     /// "As this land enters, you may pay 3 life. If you don't, it enters
     /// tapped." (CR 614.12, 119.4): its controller is asked as it enters.
     EnterTappedUnlessPay(u32),
+    /// "As this land enters, you may reveal a Mountain or Forest card
+    /// from your hand. If you don't, this land enters tapped." (CR
+    /// 614.12, 701.20a): its controller is asked as it enters if a card in
+    /// their hand matches the pool's `filter`th filter (judged as printed).
+    /// `or`: "This land enters tapped unless you revealed a Dragon card
+    /// this way or you control a Dragon." (the pool's `or`th condition).
+    EnterTappedUnlessReveal { filter: u16, or: Option<u16> },
     /// Enters tapped unless the pool's `n`th condition holds for its
     /// controller ("unless you control a planeswalker", CR 614.1d).
     EnterTappedUnless(u16),
@@ -7957,6 +7979,12 @@ pub enum AbilityDef {
     /// "If this card is in your opening hand, you may begin the game with
     /// it on the battlefield." (CR 103.6a; the Leylines).
     OpeningHand,
+    /// "You may reveal this card from your opening hand. If you do, at
+    /// the beginning of the first upkeep, ..." (the Chancellors; CR
+    /// 103.6a's moment): revealed, the card creates the delayed
+    /// triggered ability `AbilityId` (a registered `BeginningOfStep`
+    /// trigger), which happens once, at the next such step.
+    OpeningHandReveal(AbilityId),
     /// "You have no maximum hand size" (`delta` None), "Your maximum hand
     /// size is increased by one" (CR 402.2); `whose` from the controller.
     HandSize {
@@ -8075,6 +8103,7 @@ impl AbilityDef {
             | AbilityDef::HexproofFrom(_)
             | AbilityDef::PlayerStatic { .. }
             | AbilityDef::OpeningHand
+            | AbilityDef::OpeningHandReveal(_)
             | AbilityDef::TriggerAgain { .. }
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
@@ -8113,6 +8142,7 @@ impl AbilityDef {
             | AbilityDef::HexproofFrom(_)
             | AbilityDef::PlayerStatic { .. }
             | AbilityDef::OpeningHand
+            | AbilityDef::OpeningHandReveal(_)
             | AbilityDef::TriggerAgain { .. }
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
@@ -8135,7 +8165,8 @@ impl AbilityDef {
                     | Replacement::EnterAmplify(_)
                     | Replacement::EnterTribute(_)
                     | Replacement::EnterReadAhead
-                    | Replacement::EnterTappedUnlessPay(_),
+                    | Replacement::EnterTappedUnlessPay(_)
+                    | Replacement::EnterTappedUnlessReveal { .. },
                 ..
             })
         )

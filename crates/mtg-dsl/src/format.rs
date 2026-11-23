@@ -250,7 +250,10 @@ impl Fmt {
                     self.mentioned[i] = true;
                     let up_to = matches!(targets[i], Target::UpTo(_));
                     // `1 to 2 target creature`, `any number of targets`.
-                    if let Target::Many { min, max, .. } = &targets[i] {
+                    if let Target::Many {
+                        min, max, total, ..
+                    } = &targets[i]
+                    {
                         let prefix = many_prefix(*min, *max);
                         if let Target::Spec(mtg_core::card::TargetSpec::Any) = targets[i].base() {
                             return format!("{prefix} targets");
@@ -261,7 +264,14 @@ impl Fmt {
                             mentioned: vec![false; inner.len()],
                             groups: self.groups.clone(),
                         };
-                        return format!("{prefix} {}", f.recipient(Recipient::Target(i), &inner));
+                        // `... with total mana value 3 or less`.
+                        let total = total.map_or(String::new(), |n| {
+                            format!(" with total mana value {} or less", num(n))
+                        });
+                        return format!(
+                            "{prefix} {}{total}",
+                            f.recipient(Recipient::Target(i), &inner)
+                        );
                     }
                     let phrase = match targets[i].base() {
                         Target::Spec(s) => target_phrase(*s),
@@ -983,6 +993,18 @@ impl Fmt {
                 Some(w) => format!("{} exiles until {} card", self.recipient(*w, t), filter(f)),
             },
             Effect::MayCastThisFromExile => "may cast this while exiled".to_string(),
+            Effect::MayPlayTarget { what, until, cast } => format!(
+                "may {} {} {}",
+                if *cast { "cast" } else { "play" },
+                self.recipient(*what, t),
+                match until {
+                    mtg_core::card::PlayUntil::ThisTurn => "this turn",
+                    mtg_core::card::PlayUntil::EndOfYourNextTurn => "next turn",
+                    mtg_core::card::PlayUntil::YourNextEndStep => "next end step",
+                    mtg_core::card::PlayUntil::Forever => "forever",
+                    mtg_core::card::PlayUntil::WhileYouControlSource => "while you control this",
+                }
+            ),
             Effect::MayPlayCard {
                 until,
                 cast,
@@ -2120,6 +2142,33 @@ impl Fmt {
             Effect::DiscardChosen {
                 who,
                 filter: f,
+                reveal: Some((n, take)),
+                may,
+                ..
+            } => {
+                let count = if let Num::Count(_) = n {
+                    format!("{},", num(*n))
+                } else {
+                    num(*n)
+                };
+                let take = if *take == 1 {
+                    String::new()
+                } else {
+                    format!("{take} ")
+                };
+                let may = if *may { "may " } else { "" };
+                let what = match f {
+                    None => "card".to_string(),
+                    Some(f) => format!("{} card", filter(f)),
+                };
+                format!(
+                    "{} reveals {count} cards discarding {take}{may}{what}",
+                    self.recipient(*who, t)
+                )
+            }
+            Effect::DiscardChosen {
+                who,
+                filter: f,
                 may,
                 look,
                 and_choose,
@@ -2239,6 +2288,10 @@ impl Fmt {
                 }
                 if *count == Num::N(crate::ast::ANY_NUMBER) {
                     t.push_str("any number ");
+                } else if let Num::Count(_) = count {
+                    // `search up to count where land you control, basic
+                    // land card`: the comma ends the count's filter.
+                    let _ = write!(t, "{}, ", num(*count));
                 } else if *count != Num::N(1) {
                     let _ = write!(t, "{} ", num(*count));
                 }
@@ -3154,6 +3207,8 @@ fn many_prefix(min: Num, max: Option<Num>) -> String {
     match max {
         None => "any number of".to_string(),
         Some(m) if m == min => num(m),
+        // `up to X target card`: "up to X target cards" (CR 601.2c).
+        Some(m) if min == Num::N(0) => format!("up to {}", num(m)),
         Some(m) => format!("{} to {}", num(min), num(m)),
     }
 }
@@ -3506,6 +3561,7 @@ fn outcome(o: &Outcome) -> String {
         Outcome::DrawTwo => "draw two".to_string(),
         Outcome::WinGame => "win".to_string(),
         Outcome::EnterTappedUnless(_)
+        | Outcome::EnterTappedUnlessReveal { .. }
         | Outcome::EnterWithCountersIf { .. }
         | Outcome::EnterWithCountersMay { .. }
         | Outcome::EnterWithCounterChoice { .. }
@@ -6794,6 +6850,17 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         Ability::EntersTappedUnless(c) => {
             let _ = writeln!(out, "{indent}enters tapped unless {}", static_cond(c));
         }
+        Ability::EntersTappedUnlessReveal { filter: f, or } => {
+            let _ = write!(
+                out,
+                "{indent}enters tapped unless reveal {} card",
+                filter(f)
+            );
+            if let Some(c) = or {
+                let _ = write!(out, " or {}", static_cond(c));
+            }
+            out.push('\n');
+        }
         Ability::EntersTappedIfNotYourTurn => {
             let _ = writeln!(out, "{indent}enters tapped if not your turn");
         }
@@ -7029,6 +7096,24 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::OpeningHand => {
             let _ = writeln!(out, "{indent}opening hand");
+        }
+        Ability::OpeningHandReveal {
+            step,
+            whose,
+            after,
+            effects,
+        } => {
+            let head = format!(
+                "opening hand reveal {}first {}{}",
+                if *whose == Who::You { "your " } else { "" },
+                if *step == Step::Upkeep {
+                    "upkeep"
+                } else {
+                    "main"
+                },
+                if *after { " after" } else { "" }
+            );
+            body(out, indent, &head, effects, &[], groups);
         }
         Ability::TriggerAgain {
             filter: f,

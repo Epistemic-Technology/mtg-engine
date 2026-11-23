@@ -1,0 +1,8 @@
+card "Hatchery Spider" {
+  oracle_id d1950094-2cc9-48ce-ae1a-0ae78ba252c1
+  cost {5}{G}{G}
+  type Creature — Spider
+  pt 5/7
+  keywords reach
+  label "Undergrowth" triggered when you cast this: dig count where graveyard creature reveal take green permanent with mana value X or less card may onto battlefield rest bottom random
+}

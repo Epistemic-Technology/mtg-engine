@@ -177,6 +177,7 @@ like the card; either half may still be cast alone.
 | `activated {1}: add {B}; if activated 4 times this turn, delayed this: sacrifice this at beginning of the next end step` | The condition `activated N times this turn` ("If this ability has been activated four or more times this turn", Initiates of the Ebon Hand): the source's activations of such an ability this turn, this one included, whether a player or payment activated it (the ability then records its activations, `ActivatedAbility::counted`). |
 | `enters tapped if not your turn` | "This creature enters tapped if it's not your turn." (the same replacement as `enters tapped unless your turn`, CR 614.1d) |
 | `enters tapped unless pay 3 life` | "As this land enters, you may pay 3 life. If you don't, it enters tapped." (CR 614.12; only with that much life, CR 119.4). |
+| `enters tapped unless reveal Mountain or Forest card`, `enters tapped unless reveal Dragon card or you control Dragon` | "As this land enters, you may reveal a Mountain or Forest card from your hand. If you don't, this land enters tapped." (CR 614.12, 701.20a; the snarls and the Lorwyn tribal lands): its controller is asked only with a matching card in hand (judged as printed; the land itself doesn't count while it is played), and the engine reveals the first such card, known to every player until it moves. With `or <condition>`: "This land enters tapped unless you revealed a Dragon card this way or you control a Dragon." (Temple of the Dragon Queen). |
 | `can't attack unless defending player controls Island`, `can't block unless you control other Goblin`, `can't attack or block unless ...` | Attack and block restrictions with a condition (CR 508.1c, 509.1c). Conditions only these use: `defending player poisoned` ("defending player is poisoned"), `on battlefield Mountain` / `on battlefield 5 Island` ("there is a Mountain on the battlefield", "there are five or more Islands on the battlefield"), `you control more creatures than defending player` (or `attacking player`), and, judged on the whole declaration, `at least 2 other creatures attack` (or `block`) and `black or green creature also attacks` ("a black or green creature also attacks"): a creature whose condition the declared attackers (blockers) don't meet can't be among them. `opponent damaged this turn` prints "an opponent has been dealt damage this turn" here. `can't attack if defending player controls untapped land` (`if`: the restriction applies while the condition holds: "This creature can't attack if ..."); `can't attack if creature also attacks` prints "can only attack alone" (granted: "Enchanted creature ... can only attack alone."). `attacked last turn` ("it attacked during your last turn": the source was declared as an attacker during its controller's most recent turn) also works in `static this: has doesn't untap if attacked last turn`. `defending player controls no Glimmer creature` prints "controls no Glimmer creatures". A condition's alternative written with its own article (`you control Knight or a Soldier`) prints it ("a Knight or a Soldier"). |
 | `tax attacking you {2}`, `tax attacking you {1} those`, `tax attacking you or planeswalkers {1}`, `tax attacking you or planeswalkers {X} count where enchantment you control`, `tax enchanted attack {3}`, `tax enchanted attack or block {X} count each hand`, `tax enchanted blocked {3}`, `... as long as enduring story` | Attack and block taxes (CR 508.1d, 508.1g-h, 509.1d, 509.1f-g): "Creatures can't attack you unless their controller pays {2} for each creature they control that's attacking you." (`those`: "... for each of those creatures."), "Creatures can't attack you or planeswalkers you control unless their controller pays {1} for each of those creatures." (`{X} count where ...` adds ", where X is ..."), "Enchanted creature can't attack unless its controller pays {3}.", "... can't attack or block unless its controller pays {1} for each card in your hand." (`{X} count each ...`: {1} for each, counted for the tax's controller), "Enchanted creature can't be blocked unless defending player pays {3} for each creature they control that's blocking it."; `as long as <condition>` prints "As long as you have an enduring story, creatures can't attack you ...". Generic mana only. A declaration whose taxes its player can't pay isn't offered (each attacker counted at what it costs to attack the cheapest of the defending player, their planeswalkers, and battles); the taxes are paid, automatically, once the attackers are tapped (or the blockers declared). A creature that attacks each combat if able needn't when no declaration with it can be paid for. |
 | `activated <cost>: <effects>` | An activated ability (CR 602). With {X} in its cost (`activated {X}, sacrifice this: destroy target artifact with mana value X`), X is announced as it is activated, before targets (CR 602.2b, 601.2b), only as high as can be paid and some target fits; the effects read it. A mana ability's X is not asked. |
@@ -292,6 +293,7 @@ like the card; either half may still be cast alone.
 | `trigger again Ninja creature you control`, `trigger again other Elemental you control`, `trigger again permanent you control when permanent enters the battlefield`, `trigger again permanent you control when artifact or creature enters`, `trigger again permanent you control when creature dies`, `trigger again permanent you control when creature attacks` | CR 603.2d: "If a triggered ability of a Ninja creature you control triggers, that ability triggers an additional time." ("it triggers" after `other`, as Twinflame Travelers prints); with `when ... enters`, only when that permanent entering caused it ("If a permanent entering the battlefield causes a triggered ability of a permanent you control to trigger, that ability triggers an additional time.", `the battlefield` printed where written); `when creature dies` ("If a creature dying causes ...", the creature judged as it last existed) and `when creature attacks` ("If a creature attacking causes ...") likewise. Only such abilities on the battlefield as the event happens count (one dying with the creature doesn't). Each such ability adds one more instance; each instance is put on the stack with its own targets and choices |
 | `trigger never permanent when creature enters`, `trigger never permanent when andlist artifact or creature enters the battlefield` | CR 603.6a (Torpor Orb): "Creatures entering don't cause abilities to trigger.", "Artifacts and creatures entering the battlefield don't cause abilities to trigger.": an enters trigger (`when this enters`, `whenever other creature enters`, `whenever one or more ... enter`, either event of two) of a permanent matching the first filter (any player's) doesn't trigger at all on a permanent matching the second entering, whatever would make it trigger more. Replacement effects on entering (counters, tapped) still apply |
 | `opening hand` | "If this card is in your opening hand, you may begin the game with it on the battlefield." (CR 103.6a; a legendary card names itself: "If Quicksilver is in your opening hand, ..."). After mulligans, starting with the starting player, each player is asked about each such card in their hand. |
+| `opening hand reveal first upkeep: create 1 "Phyrexian Goblin"`, `opening hand reveal your first upkeep: ...`, `opening hand reveal your first main: add {G}`, `opening hand reveal your first upkeep after: scry 3` | "You may reveal this card from your opening hand. If you do, at the beginning of the first upkeep, create ..." (the Chancellors; "at the beginning of your first upkeep, ...", "at the beginning of your first main phase of the game, ..."; `after` puts the time last: "If you do, scry 3 at the beginning of your first upkeep."). Asked with the opening-hand cards; the revealed card stays in hand, known to every player, and leaves a delayed trigger for the next such step (CR 603.7), which happens once, controlled by the card's owner. |
 | `play exiled spells`, `play exiled lands and spells`, `play exiled your turn lands and spells`, `play exiled owned spells Dinosaur creature` | "You may cast spells from among cards exiled with Rona.", "You may play lands and cast spells from among cards exiled with this creature.", "During your turn, you may play cards exiled with this artifact.", "You may cast Dinosaur creature spells from among cards you own exiled with this creature." (CR 607.2a, 601.3): the controller may play the cards this permanent's abilities exiled while they stay in exile, paying their costs with the usual timing and land plays. |
 | `play from top lands`, `play from top spells creature`, `play from top lands and spells`, `play from top once spells instant or sorcery` | "You may play lands from the top of your library.", "You may cast creature spells from the top of your library.", "You may play lands and cast spells from the top of your library.", "Once each turn, you may cast an instant or sorcery spell from the top of your library." (CR 601.3, 305.1): the controller may play the top card of their library, paying its costs, with the usual timing and a land only with a land play left. The spells' filter is any filter (`Spider or noncreature`: "Spider spells and noncreature spells"; `with mana value 4 or greater`: "spells with mana value 4 or greater"; `with flash or flying`); `once` allows one spell a turn by that permanent's permission. |
 | `top revealed`, `top revealed players` | "Play with the top card of your library revealed.", "Players play with the top card of their libraries revealed.": every player knows that top card (CR 401.2). |
@@ -2139,7 +2141,17 @@ library"), `<who> sacrifices 1 creature` ("of their choice"; `sacrifices 1 creat
 of their choice with flying` puts the "with" after it; `sacrifices 1
 artifact and 1 land` is "an artifact and a land of their choice", one
 choice after the other), `<what>
-loses flying`, `<who> reveals hand`, `<who> reveals hand discarding
+loses flying`, `<who> reveals hand`, `<who> reveals 3 cards discarding
+card` ("Target player reveals three cards from their hand and you choose
+one of them. That player discards that card.", Blackmail: the player
+chooses which cards to reveal, all of them with no more in hand, and you
+choose among those; `... 3 cards discarding 2 card`: "... You choose two
+of them. That player discards those cards."; `<who> reveals count where
+Faerie you control, cards discarding card`: "... reveals X cards from
+their hand, where X is the number of Faeries you control. You choose one
+of those cards. ...", the comma ending the count; scenarios: the
+revealing player's `choose "Card"` lines, then your `discard "Card"`),
+`<who> reveals hand discarding
 nonland card` (Duress: you choose the card; `<who> reveals hand and
 discarding of that color card` after `choose color`: "Target player
 reveals their hand and you choose a card of that color from it. That
@@ -2336,7 +2348,18 @@ named Sunlit Hoplite and put it onto the battlefield. If ..."; a player
 subject prints "... reveals it, and puts it into their hand. If they
 search their library this way, they shuffle."): one card, from either
 zone, into the hand or onto the battlefield; the library is shuffled if
-the card came from it or nothing was found. `card named "X"` names
+the card came from it or nothing was found (`search library or
+graveyard creature with no abilities card reveal to hand`, `... artifact
+card with mana value 2 or less ...`: "for a creature card with no
+abilities", "for an artifact card with mana value 2 or less", by a
+filter). A counted search: `search up to X card to hand that card` ("for
+up to X cards, put those cards into your hand", the spell's X), `search
+up to count where land you control, basic land card to battlefield
+tapped` ("for up to X basic land cards, where X is the number of lands
+you control, put them onto ..."; the comma ends the count, which is read
+as the search begins), `search up to that much land card to battlefield
+tapped` ("for up to that many land cards", the triggering amount).
+`card named "X"` names
 another card by its name (`card named "X" or named "Y"`: "a card named X
 or Y", either name) (also without `library or graveyard`: "Search
 your library for a card named X, put it onto the battlefield, then
@@ -2501,7 +2524,11 @@ cards with mana value 3 or less from among them onto the battlefield. Put
 the rest ..." (`reword`: "You may put up to two ..."), `dig 5 reveal take
 land card onto battlefield rest graveyard` "Put a land card from among
 them onto the battlefield and the rest into your graveyard"; `permanent
-with mana value 5 or less` is a permanent card there), `look at top 3` ("look at
+with mana value 5 or less` is a permanent card there; after a counted
+dig, `dig count where graveyard creature reveal take green permanent with
+mana value X or less card ...`, X is the dig's count: "reveal the top X
+cards of your library, where X is .... You may put a green permanent card
+with mana value X or less from among them ...", Hatchery Spider), `look at top 3` ("look at
 the top three cards of your library, then put them back in any order";
 `look at top count where hand` puts "where X is the number of cards in
 your hand" before ", then put them back"; `look at top 3 of target
@@ -2769,7 +2796,16 @@ untapped creature you control; target 1 bites target creature an opponent
 controls`, Coordinated Clobbering: scenarios script the creature an
 opponent controls first; in a `choose two` pair whose first mode ends
 with a group, the second mode's targets come first): `X target creature` ("X target creatures": exactly X, the spell's
-X, which can't exceed what there is to target), `1 to 2 target creature`
+X, which can't exceed what there is to target), `up to X target card`
+("up to X target cards": at most the spell's X, any number of them; as
+the amount's only recipient, "deals five times X damage to each of up
+to X targets"), `up to 3 target creature card from your graveyard with
+total mana value 3 or less` ("up to three target creature cards with
+total mana value 3 or less from your graveyard", Patch Up; also after
+`any number of` and `up to X`: the printed mana values of the chosen
+objects add up to at most the bound, X the spell's; after a return to
+the battlefield, `put 1 +1/+1 counter on each of them` finds them there,
+CR 400.7), `1 to 2 target creature`
 ("one or two target creatures"; `1 to 3` prints "one, two, or three"),
 `any number of target player`, and `1 to 2 targets` / `any number of
 targets` for "any target" (`deal 1 damage to 1 to 2 targets`: "deals 1
@@ -2959,7 +2995,11 @@ do` then sees:
   green cards in your hand", CR 701.20a): the cards stay in the hand,
   known to every player; `count where revealed this way` ("the number of
   cards revealed this way") and `count each revealed this way` ("for each
-  card revealed this way") count them; `each player loses count each
+  card revealed this way") count them, also any the resolution has
+  moved since (`reveal until artifact card; put that card onto
+  battlefield and the rest on bottom of library random; deal count equal
+  revealed this way damage to you`, Madcap Experiment, counts the
+  artifact put onto the battlefield); `each player loses count each
   creature they control life` ("Each player loses 1 life for each creature
   they control.", Stronghold Discipline) counts each player's own (you,
   then your opponent; elsewhere `they control` in a count for each player
@@ -3121,7 +3161,13 @@ turn."; `may play that card next turn first`: "Until the end of your next
 turn, you may play that card."; `free`: "... without paying its mana
 cost"; `it` for "it"; the durations are impulse's) lets the controller
 play or cast the resolution's card from exile, also after `exile target
-... card from your graveyard`. `put that card into hand and the rest on
+... card from your graveyard`. `may cast target Zombie creature card from
+your graveyard this turn` ("You may cast target Zombie creature card from
+your graveyard this turn.", Zul Ashur; `may play target ...` for "play")
+gives the same permission for the targeted cards where they are, in a
+graveyard or in exile, paying their costs with the usual timing (CR
+601.3); it ends with the duration or when the card leaves that zone.
+`put that card into hand and the rest on
 bottom of library random` is "Put that card into your hand and the rest
 on the bottom of your library in a random order." (the other revealed
 cards; `random` after any `on bottom of library` shuffles them first).
@@ -3509,7 +3555,7 @@ Forms that change only how Oracle words what an existing form does:
 | `cycling sacrifice land` | "Cycling—Sacrifice a land.": offered once per land that could be sacrificed, which is sacrificed as the cost (none: it can't be cycled) |
 | a static ability's `as long as` condition on an object's state | Judged in the layers: tapped and untapped (of the source or what it's attached to), counters, `token`, `transformed` (of what you control), toxic; `attacking`, `blocking`, damaged and other states (`static enchanted: has first strike as long as this is blocking`) are rejected, since the layers wouldn't see them |
 | `if target 1 is face-down, ...` and other state checks on a target | Every state qualifier is judged (`face-down`, `that attacked this turn`, ...), as it last existed if the target has left the battlefield |
-| rejected | `prevent all damage ... of color of choice would deal this turn` (the prevention never saw the color); `each other creature you control` in a spell after another group (`other` excludes the spell, not the group: In Oketra's Name); `dig count ...` with a `mana value X` filter (X is the spell's) |
+| rejected | `prevent all damage ... of color of choice would deal this turn` (the prevention never saw the color); `each other creature you control` in a spell after another group (`other` excludes the spell, not the group: In Oketra's Name) |
 | `that created token gains haste indefinitely`, `this gains ability { ... } indefinitely` | "That token gains haste.", "This creature gains \"...\"" (no duration, CR 611.2a: until the object leaves; `indefinitely` after a sentence makes everything in it that would last until end of turn last for good). A legendary card granting itself a quoted ability names itself in it ("Kellan ... gains \"Whenever Kellan deals combat damage ...\""). |
 | `static plural artifact you control: add subtype Food, ...` | "Artifacts you control are Foods in addition to their other types and have ..." rather than "Each artifact you control is a Food ...". An added subtype and the card types added after it are one noun ("are Food artifacts", "is a Golem creature with base power and toughness 5/4"), and a quoted ability of a holder given a card type names "this permanent". |
 | `reduced {1} during your turn` | "This ability costs {1} less to activate during your turn." |

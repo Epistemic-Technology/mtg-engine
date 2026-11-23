@@ -1,0 +1,8 @@
+card "Heiko Yamazaki, the General" {
+  oracle_id a4d67f2d-6b0f-4feb-bf7d-90ab4f2e46ab
+  cost {3}{R}
+  type Legendary Creature — Human Samurai
+  pt 3/3
+  keywords trample
+  triggered whenever Samurai or Warrior you control attacks alone: may cast target artifact card from your graveyard this turn
+}

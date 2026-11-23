@@ -1514,6 +1514,53 @@ impl GameState {
                 })
             }
             (
+                Replacement::EnterTappedUnlessReveal { filter, or },
+                Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter,
+                },
+            ) => {
+                // CR 701.20a: a matching card in the hand (not the land
+                // itself, still there while it is played), judged as
+                // printed; the engine picks the first such card.
+                let f = self.pool.filter(filter).clone();
+                let card = self.player(controller).hand.iter().copied().find(|&id| {
+                    id != obj && {
+                        let c = self.base_characteristics(&self.objects[id]);
+                        f.matches(id, controller, &c, Some(obj), Some(controller))
+                    }
+                });
+                let def = self.objects[obj].def;
+                let revealed = card.is_some()
+                    && self.choose_mid(
+                        controller,
+                        DecisionKind::YouMay { def },
+                        vec![Choice::Accept, Choice::Decline],
+                    ) == 0;
+                if revealed && let Some(id) = card {
+                    self.reveal_in_hand(id);
+                }
+                // "unless you revealed a Dragon card this way or you
+                // control a Dragon".
+                let untapped = revealed
+                    || or.is_some_and(|c| {
+                        self.condition_now(self.pool.condition(c), controller, obj)
+                    });
+                Outcome::Event(Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter: Enter {
+                        tapped: enter.tapped || !untapped,
+                        ..enter
+                    },
+                })
+            }
+            (
                 Replacement::EnterPrepared,
                 Proposed::ZoneChange {
                     obj,

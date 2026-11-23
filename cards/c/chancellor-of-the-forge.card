@@ -1,0 +1,8 @@
+card "Chancellor of the Forge" {
+  oracle_id 0aedf049-db6b-420e-80e7-591ed38d4fba
+  cost {4}{R}{R}{R}
+  type Creature — Phyrexian Giant
+  pt 5/5
+  opening hand reveal first upkeep: create 1 "1/1 red Phyrexian Goblin creature with haste"
+  triggered when this enters: create count where creature you control "1/1 red Phyrexian Goblin creature with haste"
+}

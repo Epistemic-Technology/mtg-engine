@@ -1,0 +1,6 @@
+card "Diabolic Revelation" {
+  oracle_id dcf438a7-adc4-4658-b75a-2dd633f595a7
+  cost {X}{3}{B}{B}
+  type Sorcery
+  spell: search up to X card to hand that card
+}

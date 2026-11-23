@@ -1,0 +1,8 @@
+card "Norika Yamazaki, the Poet" {
+  oracle_id 6f143c8f-cb5c-4abc-a01b-b6813f5a524c
+  cost {2}{W}
+  type Legendary Creature — Human Samurai
+  pt 3/2
+  keywords vigilance
+  triggered whenever Samurai or Warrior you control attacks alone: may cast target enchantment card from your graveyard this turn
+}

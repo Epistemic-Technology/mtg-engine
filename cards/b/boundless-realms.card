@@ -1,0 +1,6 @@
+card "Boundless Realms" {
+  oracle_id e6acafb7-856f-4125-a908-a620635b8ba3
+  cost {6}{G}
+  type Sorcery
+  spell: search up to count where land you control, basic land card to battlefield tapped
+}

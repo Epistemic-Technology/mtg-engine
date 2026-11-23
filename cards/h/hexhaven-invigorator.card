@@ -1,0 +1,8 @@
+card "Hexhaven Invigorator" {
+  oracle_id 12d617b1-c95b-4b1c-a586-ccfdf5898b03
+  cost {G}{G}{G}{G}
+  type Creature — Chimera Horror
+  pt 6/6
+  keywords vigilance
+  triggered whenever this is dealt damage: you may search up to that much land card to battlefield tapped
+}
