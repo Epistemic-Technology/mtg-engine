@@ -2209,7 +2209,16 @@ it last existed). Abilities on the stack are copied the same way (CR
 target triggered ability you control new targets`, `copy target
 activated or triggered ability you control [from a creature source | from
 an artifact source]` (targets "you control" only the ability's
-controller's), `copy target 1 may cast [free]` (CR 707.12: "Copy it. You
+controller's; `copy target instant spell, sorcery spell, activated
+ability, or triggered ability` a spell only if it is an instant or
+sorcery), `change target of target spell or ability with single target`
+("Change the target of target spell or ability with a single target.",
+CR 115.7a: the effect's controller changes it to another target legal for
+that spell or ability, judged for its controller and source; with none,
+it is unchanged; `choose "Hill Giant"` or `choose "player B"` in
+scenarios; "with a single target" is one target chosen, CR 115.9a),
+`counter target spell, activated ability, or triggered ability` (the
+listed wording of `spell or ability`), `copy target 1 may cast [free]` (CR 707.12: "Copy it. You
 may cast the copy [without paying its mana cost]."; `copy target 1 then
 may cast free` "Copy it, then you may cast the copy without paying its
 mana cost."; after `exile up to one target black card from your

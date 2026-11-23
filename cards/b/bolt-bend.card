@@ -1,0 +1,7 @@
+card "Bolt Bend" {
+  oracle_id c20a96f7-aa5a-4c15-b8b1-806685c99b27
+  cost {3}{R}
+  type Instant
+  this spell costs {3} less if you control creature with power 4 or greater
+  spell: change target of target spell or ability with single target
+}

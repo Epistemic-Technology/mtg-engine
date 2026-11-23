@@ -1129,6 +1129,7 @@ impl Decompiler<'_> {
                 to: r(*to),
                 dest: *dest,
             },
+            CoreEffect::ChangeTarget { what } => Effect::ChangeTarget { what: r(*what) },
             CoreEffect::CounterUnlessPays { to, mana, x, dest } => Effect::CounterUnlessPays {
                 to: r(*to),
                 mana: mana.clone(),

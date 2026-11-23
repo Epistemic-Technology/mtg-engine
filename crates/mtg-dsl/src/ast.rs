@@ -4108,6 +4108,10 @@ pub enum Effect {
         to: Recipient,
         dest: CounteredTo,
     },
+    /// `change target of target spell or ability with single target`:
+    /// "Change the target of target spell or ability with a single
+    /// target." (CR 115.7a).
+    ChangeTarget { what: Recipient },
     /// `counter target spell unless its controller pays {X} [count ...]
     /// [to exile]`: an {X} is `x` (the spell's X when no count is given).
     CounterUnlessPays {

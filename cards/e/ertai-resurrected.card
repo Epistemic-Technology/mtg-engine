@@ -1,0 +1,11 @@
+card "Ertai Resurrected" {
+  oracle_id 3d038f7c-95fa-4b71-8f74-b9b4dd45cde0
+  cost {2}{U}{B}
+  type Legendary Creature — Phyrexian Human Wizard
+  pt 3/2
+  keywords flash
+  triggered when this enters: choose up to 1 {
+    mode: counter target spell, activated ability, or triggered ability; its controller draws 1 card
+    mode: destroy another target creature or planeswalker; its controller draws 1 card
+  }
+}

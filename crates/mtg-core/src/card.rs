@@ -3510,6 +3510,18 @@ pub enum TargetSpec {
         source: Option<CardType>,
         #[serde(default)]
         yours: bool,
+        /// "... with a single target" (CR 115.9a): one target was chosen
+        /// for it as it was put on the stack.
+        #[serde(default)]
+        single: bool,
+        /// "target instant spell, sorcery spell, activated ability, or
+        /// triggered ability": a spell only if it is an instant or sorcery.
+        #[serde(default)]
+        instant_sorcery: bool,
+        /// Printed as a list: "target spell, activated ability, or
+        /// triggered ability" (the same objects as "spell or ability").
+        #[serde(default)]
+        listed: bool,
     },
     /// "target opponent".
     Opponent,
@@ -3933,6 +3945,11 @@ pub enum Effect {
         to: Recipient,
         dest: CounteredTo,
     },
+    /// "Change the target of target spell or ability with a single
+    /// target" (CR 115.7a): the effect's controller changes that object's
+    /// target to another one legal for it, if there is one; otherwise it
+    /// is unchanged.
+    ChangeTarget { what: Recipient },
     /// "Counter target spell unless its controller pays {N}" (CR 701.5?):
     /// the controller may pay; if they do not, it is countered. An {X} in
     /// `mana` is `x` as the effect resolves ("unless its controller pays
@@ -5478,6 +5495,7 @@ impl Effect {
                 | Effect::RemoveCounterChosen { .. }
                 | Effect::CopySpell
                 | Effect::CopySpells { .. }
+                | Effect::ChangeTarget { .. }
                 | Effect::Discard { .. }
                 | Effect::HandToLibrary { .. }
                 | Effect::ShuffleIntoLibrary { .. }

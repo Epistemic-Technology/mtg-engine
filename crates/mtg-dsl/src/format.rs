@@ -1842,6 +1842,9 @@ impl Fmt {
             Effect::Counter { to, dest } => {
                 format!("counter {}{}", self.recipient(*to, t), countered_to(*dest))
             }
+            Effect::ChangeTarget { what } => {
+                format!("change target of {}", self.recipient(*what, t))
+            }
             Effect::CounterUnlessPays { to, mana, x, dest } => format!(
                 "counter {} unless its controller pays {mana}{}{}",
                 self.recipient(*to, t),

@@ -289,6 +289,9 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             triggered: true,
             source: Some(CardType::Creature),
             yours: true,
+            single: false,
+            instant_sorcery: false,
+            listed: false,
         },
     ),
     (
@@ -310,6 +313,9 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             triggered: true,
             source: Some(CardType::Artifact),
             yours: true,
+            single: false,
+            instant_sorcery: false,
+            listed: false,
         },
     ),
     (
@@ -320,6 +326,9 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             triggered: true,
             source: None,
             yours: true,
+            single: false,
+            instant_sorcery: false,
+            listed: false,
         },
     ),
     (
@@ -330,6 +339,70 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             triggered: true,
             source: None,
             yours: true,
+            single: false,
+            instant_sorcery: false,
+            listed: false,
+        },
+    ),
+    (
+        &[
+            "instant",
+            "spell",
+            ",",
+            "sorcery",
+            "spell",
+            ",",
+            "activated",
+            "ability",
+            ",",
+            "or",
+            "triggered",
+            "ability",
+        ],
+        TargetSpec::OnStack {
+            spells: true,
+            activated: true,
+            triggered: true,
+            source: None,
+            yours: false,
+            single: false,
+            instant_sorcery: true,
+            listed: true,
+        },
+    ),
+    (
+        &[
+            "spell",
+            ",",
+            "activated",
+            "ability",
+            ",",
+            "or",
+            "triggered",
+            "ability",
+        ],
+        TargetSpec::OnStack {
+            spells: true,
+            activated: true,
+            triggered: true,
+            source: None,
+            yours: false,
+            single: false,
+            instant_sorcery: false,
+            listed: true,
+        },
+    ),
+    (
+        &["spell", "or", "ability", "with", "single", "target"],
+        TargetSpec::OnStack {
+            spells: true,
+            activated: true,
+            triggered: true,
+            source: None,
+            yours: false,
+            single: true,
+            instant_sorcery: false,
+            listed: false,
         },
     ),
     (
@@ -340,6 +413,9 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             triggered: true,
             source: None,
             yours: false,
+            single: false,
+            instant_sorcery: false,
+            listed: false,
         },
     ),
     (
@@ -350,6 +426,9 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             triggered: true,
             source: None,
             yours: false,
+            single: false,
+            instant_sorcery: false,
+            listed: false,
         },
     ),
     (
@@ -360,6 +439,9 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             triggered: false,
             source: Some(CardType::Artifact),
             yours: false,
+            single: false,
+            instant_sorcery: false,
+            listed: false,
         },
     ),
     (
@@ -370,6 +452,9 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             triggered: false,
             source: None,
             yours: false,
+            single: false,
+            instant_sorcery: false,
+            listed: false,
         },
     ),
     (
@@ -380,6 +465,9 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             triggered: true,
             source: None,
             yours: false,
+            single: false,
+            instant_sorcery: false,
+            listed: false,
         },
     ),
     (&["noncreature", "spell"], TargetSpec::NoncreatureSpell),
@@ -10071,6 +10159,13 @@ impl P {
                     except,
                     and_may,
                 })
+            }
+            // "Change the target of target spell or ability with a single
+            // target" (CR 115.7a).
+            "change" if self.at_words(&["target", "of"]) => {
+                self.pos += 2;
+                let what = self.recipient()?;
+                Ok(Effect::ChangeTarget { what })
             }
             "counter" => {
                 let to = self.recipient()?;

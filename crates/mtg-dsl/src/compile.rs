@@ -3461,6 +3461,7 @@ impl Compiler<'_> {
                 to: r(*to),
                 dest: *dest,
             }),
+            Effect::ChangeTarget { what } => out.push(CoreEffect::ChangeTarget { what: r(*what) }),
             Effect::CounterUnlessPays { to, mana, x, dest } => {
                 out.push(CoreEffect::CounterUnlessPays {
                     to: r(*to),

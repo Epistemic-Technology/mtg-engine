@@ -1,0 +1,8 @@
+card "Redirect Lightning" {
+  oracle_id c62b5c22-e058-436f-9575-a01cb2112829
+  cost {R}
+  type Instant — Lesson
+  additional cost pay 5 life
+  additional cost or {2}
+  spell: change target of target spell or ability with single target
+}

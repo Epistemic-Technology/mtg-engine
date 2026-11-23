@@ -1,0 +1,6 @@
+card "Voidslime" {
+  oracle_id c4851768-e210-4aaf-935e-715942e198f9
+  cost {G}{U}{U}
+  type Instant
+  spell: counter target spell, activated ability, or triggered ability
+}

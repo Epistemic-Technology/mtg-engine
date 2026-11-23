@@ -2439,9 +2439,16 @@ pub fn target_phrase(s: TargetSpec) -> String {
         triggered,
         source,
         yours,
+        single,
+        instant_sorcery,
+        listed,
     } = s
     {
         let kinds = match (activated, triggered) {
+            _ if instant_sorcery => {
+                "instant spell, sorcery spell, activated ability, or triggered ability"
+            }
+            _ if listed => "spell, activated ability, or triggered ability",
             (true, true) if spells => "spell or ability",
             (true, true) => "activated or triggered ability",
             (true, false) => "activated ability",
@@ -2454,7 +2461,8 @@ pub fn target_phrase(s: TargetSpec) -> String {
         });
         // "target triggered ability you control from a creature source".
         let yours = if yours { " you control" } else { "" };
-        return format!("target {kinds}{yours}{from}");
+        let single = if single { " with a single target" } else { "" };
+        return format!("target {kinds}{yours}{from}{single}");
     }
     match s {
         TargetSpec::OnStack { .. } => unreachable!("above"),
@@ -7724,6 +7732,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Counter { to, .. } => {
             let o = ctx.obj(*to);
             Clause::imperative(format!("counter {o}"))
+        }
+        Effect::ChangeTarget { what } => {
+            let o = ctx.obj(*what);
+            Clause::imperative(format!("change the target of {o}"))
         }
         Effect::CounterUnlessPays { to, mana, .. } => {
             ctx.they_paid = true;

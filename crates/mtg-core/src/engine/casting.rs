@@ -8687,6 +8687,57 @@ impl GameState {
         copy
     }
 
+    /// CR 115.7a: `chooser` changes the single target of `obj` on the
+    /// stack to another target legal for it (judged for its controller and
+    /// source); with none, the target is unchanged. It becomes the target
+    /// anew (CR 115.7, "becomes the target" triggers).
+    #[cold]
+    #[inline(never)]
+    fn change_target(&mut self, obj: ObjId, chooser: PlayerId) {
+        let Some(o) = self.objects.get(obj).filter(|o| o.zone == Zone::Stack) else {
+            return;
+        };
+        let (controller, kind) = (o.controller, o.kind);
+        let source = match (kind, o.ability) {
+            (ObjKind::Ability, Some(sa)) => sa.source,
+            _ => obj,
+        };
+        let specs: Vec<TargetSpec> = crate::state::targets_in(&self.pool, o).to_vec();
+        let Some(i) = o.targets.iter().position(|t| !t.is_none()) else {
+            return;
+        };
+        let Some(spec) = crate::card::spec_for(&specs, i) else {
+            return;
+        };
+        let current = o.targets[i];
+        let options: Vec<Choice> = self
+            .legal_targets(controller, spec, Some(source))
+            .into_iter()
+            .filter(|t| *t != current && *t != Target::Object(obj))
+            .map(Choice::Target)
+            .collect();
+        if options.is_empty() {
+            return;
+        }
+        let k = if options.len() == 1 {
+            0
+        } else {
+            self.choose_mid(
+                chooser,
+                DecisionKind::CopyTarget {
+                    spell: obj,
+                    index: i,
+                },
+                options.clone(),
+            )
+        };
+        if let Some(Choice::Target(t)) = options.get(k) {
+            self.objects[obj].targets[i] = *t;
+            self.cbump();
+            self.emit_targeted_objects(obj);
+        }
+    }
+
     /// CR 707.10c: the copy's controller may change each of its targets to
     /// another one legal for its spec (judged from `source`), or keep it.
     fn choose_copy_targets(&mut self, copy: ObjId, controller: PlayerId, source: ObjId) {
@@ -10651,6 +10702,13 @@ impl GameState {
                 for t in self.recipients(ctx, *to) {
                     if let Target::Object(id) = t {
                         self.counter_spell(id, *dest);
+                    }
+                }
+            }
+            Effect::ChangeTarget { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t {
+                        self.change_target(id, ctx.controller);
                     }
                 }
             }
