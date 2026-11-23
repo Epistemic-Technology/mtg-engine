@@ -1,0 +1,9 @@
+card "Lightwheel Enhancements" {
+  oracle_id 17fae94e-558f-449a-b30c-e3c37a068b79
+  cost {W}
+  type Enchantment — Aura
+  enchant creature or Vehicle
+  start your engines
+  static enchanted permanent: +1/+1, has vigilance
+  cast from graveyard at max speed
+}

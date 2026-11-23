@@ -1079,6 +1079,37 @@ impl Compiler<'_> {
             }
             b = b.flashback(self.cost(fb));
         }
+        // CR 601.3: "You may cast this card from your graveyard ...".
+        if let Some(g) = &card.graveyard_cast {
+            if card.flashback.is_some() {
+                return self.err("casting from the graveyard and flashback together");
+            }
+            let mut cost = g.extra.as_ref().map(|c| self.cost(c)).unwrap_or_default();
+            if g.extra.as_ref().is_some_and(|c| c.discard_self || c.tap || !c.mana.is_empty()) {
+                return self.err("an added graveyard-cast cost is life, discards, and a sacrifice");
+            }
+            cost.mana = g.mana.clone().unwrap_or_else(|| card.cost.clone());
+            let condition = if g.max_speed {
+                Some(self.pool.intern_condition(StaticCondition::MaxSpeed))
+            } else {
+                match &g.cond {
+                    Some(c) => {
+                        let c = self.static_cond(c);
+                        Some(self.pool.intern_condition(c))
+                    }
+                    None => None,
+                }
+            };
+            b = b.graveyard_cast(
+                cost,
+                mtg_core::card::GraveyardCast {
+                    condition,
+                    as_long_as: g.as_long_as,
+                    max_speed: g.max_speed,
+                    alt_mana: g.mana.is_some(),
+                },
+            );
+        }
         self.groups = Vec::new();
         self.implied = Vec::new();
         for g in &card.groups {

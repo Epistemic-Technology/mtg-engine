@@ -1,0 +1,155 @@
+# "You may cast this card from your graveyard [as long as ...] [by paying
+# {2}{W} rather than paying its mana cost | by discarding a card in
+# addition to paying its other costs]" (CR 601.3). The card isn't exiled
+# as it leaves the stack.
+
+scenario "Raffine's Guidance is cast from the graveyard for {2}{W}" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  graveyard A: "Raffine's Guidance"
+  turn 1 A: cast "Raffine's Guidance" from graveyard targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Raffine's Guidance" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert graveyard A lacks "Raffine's Guidance"
+}
+
+scenario "Raffine's Guidance needs three mana from the graveyard" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  graveyard A: "Raffine's Guidance"
+  illegal turn 1 A: cast "Raffine's Guidance" from graveyard targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Raffine's Guidance goes back to the graveyard, not exile" {
+  battlefield A: 3 "Plains", "Mountain", "Grizzly Bears"
+  graveyard A: "Raffine's Guidance"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Raffine's Guidance" from graveyard targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Raffine's Guidance"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Gravecrawler returns while you control a Zombie" {
+  battlefield A: "Swamp", "Scathe Zombies"
+  graveyard A: "Gravecrawler"
+  turn 1 A: cast "Gravecrawler" from graveyard
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Gravecrawler"
+}
+
+scenario "Gravecrawler stays without a Zombie" {
+  battlefield A: "Swamp", "Grizzly Bears"
+  graveyard A: "Gravecrawler"
+  illegal turn 1 A: cast "Gravecrawler" from graveyard
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Gravecrawler"
+}
+
+scenario "Marang River Prowler needs a black or green permanent" {
+  battlefield A: 3 "Island", "Grizzly Bears"
+  graveyard A: "Marang River Prowler"
+  turn 1 A: cast "Marang River Prowler" from graveyard
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Marang River Prowler"
+}
+
+scenario "Marang River Prowler: an Island isn't enough" {
+  battlefield A: 3 "Island"
+  graveyard A: "Marang River Prowler"
+  illegal turn 1 A: cast "Marang River Prowler" from graveyard
+  run_to turn 1 postcombat_main
+}
+
+scenario "Oathsworn Vampire after gaining life" {
+  battlefield A: 3 "Swamp", "Plains"
+  graveyard A: "Oathsworn Vampire"
+  hand A: "Healing Salve"
+  illegal turn 1 A: cast "Oathsworn Vampire" from graveyard
+  turn 1 postcombat_main A: cast "Healing Salve" targeting player A
+  turn 1 postcombat_main A: wait
+  turn 1 postcombat_main A: cast "Oathsworn Vampire" from graveyard
+  run_to turn 1 end
+  assert battlefield A contains "Oathsworn Vampire"
+  assert tapped "Oathsworn Vampire"
+}
+
+scenario "Alien Symbiosis: cast from the graveyard by discarding a card" {
+  battlefield A: 2 "Swamp", "Grizzly Bears"
+  graveyard A: "Alien Symbiosis"
+  hand A: "Forest"
+  turn 1 A: cast "Alien Symbiosis" from graveyard discarding "Forest" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Alien Symbiosis" to "Grizzly Bears"
+  assert has "Grizzly Bears" menace
+  assert is "Grizzly Bears" "Symbiote"
+  assert graveyard A contains "Forest"
+}
+
+scenario "Alien Symbiosis: no card to discard" {
+  battlefield A: 2 "Swamp", "Grizzly Bears"
+  graveyard A: "Alien Symbiosis"
+  illegal turn 1 A: cast "Alien Symbiosis" from graveyard targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Demonic Embrace: 3 life and a discard" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  graveyard A: "Demonic Embrace"
+  hand A: "Forest"
+  turn 1 A: cast "Demonic Embrace" from graveyard discarding "Forest" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 17
+  assert power "Grizzly Bears" 5
+  assert has "Grizzly Bears" flying
+  assert hand A count 0
+}
+
+scenario "Rona discards two cards to return" {
+  battlefield A: 2 "Swamp", 2 "Island"
+  graveyard A: "Rona, Sheoldred's Faithful"
+  hand A: "Forest", "Plains", "Mountain"
+  turn 1 A: cast "Rona, Sheoldred's Faithful" from graveyard discarding "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Rona, Sheoldred's Faithful"
+  assert hand A count 1
+  assert graveyard A contains "Forest"
+}
+
+scenario "Rona can't with one card in hand" {
+  battlefield A: 2 "Swamp", 2 "Island"
+  graveyard A: "Rona, Sheoldred's Faithful"
+  hand A: "Forest"
+  illegal turn 1 A: cast "Rona, Sheoldred's Faithful" from graveyard discarding "Forest"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Wickerfolk Indomitable: 2 life and a sacrifice" {
+  battlefield A: 4 "Swamp", "Ornithopter"
+  graveyard A: "Wickerfolk Indomitable"
+  turn 1 A: cast "Wickerfolk Indomitable" from graveyard sacrificing "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wickerfolk Indomitable"
+  assert graveyard A contains "Ornithopter"
+  assert life A 18
+}
+
+scenario "Lightwheel Enhancements at max speed" {
+  speed A: 4
+  battlefield A: "Plains", "Grizzly Bears"
+  graveyard A: "Lightwheel Enhancements"
+  turn 1 A: cast "Lightwheel Enhancements" from graveyard targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" vigilance
+}
+
+scenario "Lightwheel Enhancements below max speed stays" {
+  speed A: 3
+  battlefield A: "Plains", "Grizzly Bears"
+  graveyard A: "Lightwheel Enhancements"
+  illegal turn 1 A: cast "Lightwheel Enhancements" from graveyard targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}

@@ -154,6 +154,25 @@ fn format_inner(card: &Card) -> String {
     if let Some(c) = &card.flashback {
         let _ = writeln!(out, "  flashback {}", cost_text(c));
     }
+    if let Some(g) = &card.graveyard_cast {
+        let mut line = "  cast from graveyard".to_string();
+        if g.max_speed {
+            line.push_str(" at max speed");
+        } else if let Some(c) = &g.cond {
+            let _ = write!(
+                line,
+                " {} {}",
+                if g.as_long_as { "while" } else { "if" },
+                static_cond(c)
+            );
+        }
+        if let Some(m) = &g.mana {
+            let _ = write!(line, " for {m}");
+        } else if let Some(c) = &g.extra {
+            let _ = write!(line, " with {}", cost_text(c));
+        }
+        let _ = writeln!(out, "{line}");
+    }
     for a in &card.abilities {
         ability(&mut out, a, "  ", &card.groups);
     }

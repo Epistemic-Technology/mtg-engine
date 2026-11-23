@@ -6311,6 +6311,69 @@ impl Builder<'_> {
             self.statements.push(s.to_string());
             return Ok(());
         }
+        // CR 601.3: "You may cast this card from your graveyard [as long
+        // as ...] [by paying {2}{W} rather than paying its mana cost | by
+        // discarding a card in addition to paying its other costs]."
+        if line == "Max speed \u{2014} You may cast this card from your graveyard." {
+            self.statements.push("cast from graveyard at max speed".to_string());
+            return Ok(());
+        }
+        if let Some(rest) = line
+            .strip_prefix("You may cast this card from your graveyard")
+            .and_then(|r| r.strip_suffix('.'))
+        {
+            let fail = || Skip::Sentence(line.to_string());
+            let (cond, how) = match rest.find(" by ") {
+                Some(i) => (&rest[..i], &rest[i + 4..]),
+                None => (rest, ""),
+            };
+            let mut out = "cast from graveyard".to_string();
+            if let Some(c) = cond.strip_prefix(" as long as ") {
+                let _ = write!(out, " while {}", static_condition(c).ok_or_else(fail)?);
+            } else if let Some(c) = cond.strip_prefix(" if ") {
+                let _ = write!(out, " if {}", static_condition(c).ok_or_else(fail)?);
+            } else if !cond.is_empty() {
+                return Err(fail());
+            }
+            if let Some(m) = how
+                .strip_prefix("paying ")
+                .and_then(|r| r.strip_suffix(" rather than paying its mana cost"))
+                .filter(|m| m.starts_with('{'))
+            {
+                let _ = write!(out, " for {m}");
+            } else if let Some(parts) = how.strip_suffix(" in addition to paying its other costs") {
+                let mut costs = Vec::new();
+                for part in parts.split(" and ") {
+                    costs.push(if let Some(n) = part
+                        .strip_prefix("paying ")
+                        .and_then(|r| r.strip_suffix(" life"))
+                        .filter(|n| n.bytes().all(|b| b.is_ascii_digit()))
+                    {
+                        format!("pay {n} life")
+                    } else if part == "discarding a card" {
+                        "discard 1 card".to_string()
+                    } else if let Some(n) = part
+                        .strip_prefix("discarding ")
+                        .and_then(|r| r.strip_suffix(" cards"))
+                        .and_then(number)
+                    {
+                        format!("discard {n} cards")
+                    } else if let Some(what) = part
+                        .strip_prefix("sacrificing an ")
+                        .or_else(|| part.strip_prefix("sacrificing a "))
+                    {
+                        format!("sacrifice {what}")
+                    } else {
+                        return Err(fail());
+                    });
+                }
+                let _ = write!(out, " with {}", costs.join(", "));
+            } else if !how.is_empty() {
+                return Err(fail());
+            }
+            self.statements.push(out);
+            return Ok(());
+        }
         if let Some(c) = Regex::new(
             r"^As long as (.+), you may play an additional land on each of your turns\.$",
         )

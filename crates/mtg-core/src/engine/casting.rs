@@ -670,6 +670,13 @@ impl GameState {
                 let Some(fb) = &def.flashback else {
                     continue;
                 };
+                // "You may cast this card from your graveyard as long as
+                // you control a Zombie."
+                if let Some(c) = def.graveyard_cast.as_ref().and_then(|g| g.condition)
+                    && !self.condition_now(self.pool.condition(c), p, *id)
+                {
+                    continue;
+                }
                 let instant_speed = def.is_instant() || self.has_flash(p, def, *id);
                 if !(instant_speed || sorcery_timing) {
                     continue;

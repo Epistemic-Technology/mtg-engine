@@ -1,0 +1,8 @@
+card "Rona, Sheoldred's Faithful" {
+  oracle_id 52e92296-7af9-4e68-8045-40b6d6b73910
+  cost {1}{U}{B}{B}
+  type Legendary Creature — Human Wizard
+  pt 3/4
+  triggered whenever you cast instant or sorcery spell: each opponent loses 1 life
+  cast from graveyard with discard 2 cards
+}

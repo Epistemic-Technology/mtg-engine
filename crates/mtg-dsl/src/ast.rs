@@ -237,6 +237,9 @@ pub struct Card {
     pub kicker_targets: Option<u8>,
     /// `flashback {4}{R}` or `flashback {1}{U}, pay 3 life` (CR 702.34).
     pub flashback: Option<Cost>,
+    /// `cast from graveyard ...`: "You may cast this card from your
+    /// graveyard ..." (CR 601.3).
+    pub graveyard_cast: Option<GraveyardCast>,
     /// Filters behind `Recipient::Group`, in order of first mention.
     pub groups: Vec<Filter>,
     pub abilities: Vec<Ability>,
@@ -294,6 +297,7 @@ impl Card {
             kicker_cost: None,
             kicker_targets: None,
             flashback: None,
+            graveyard_cast: None,
             groups: Vec::new(),
             abilities: Vec::new(),
             except: None,
@@ -656,6 +660,24 @@ pub struct AltCost {
     /// spell's mana cost if there are thirteen or more creatures on the
     /// battlefield."); wording only.
     pub cond_late: bool,
+}
+
+/// `cast from graveyard [while <cond> | if <cond> | at max speed] [for
+/// <mana>] [with <cost>]`: "[Max speed — ]You may cast this card from your
+/// graveyard [as long as <cond> | if <cond>] [by paying <mana> rather than
+/// paying its mana cost | by <cost> in addition to paying its other
+/// costs]." (CR 601.3): not exiled as it leaves the stack.
+#[derive(Clone, Eq, PartialEq, Debug, Default)]
+pub struct GraveyardCast {
+    pub cond: Option<StaticCond>,
+    /// `while`: printed "as long as".
+    pub as_long_as: bool,
+    /// `at max speed`: "Max speed — " first.
+    pub max_speed: bool,
+    /// `for {2}{W}`: rather than its mana cost.
+    pub mana: Option<ManaCost>,
+    /// `with discard 1 card`: in addition to its other costs.
+    pub extra: Option<Cost>,
 }
 
 /// A cost (CR 118): of an activated ability or the additional cost of a

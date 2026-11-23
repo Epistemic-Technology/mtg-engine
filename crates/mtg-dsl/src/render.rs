@@ -15642,6 +15642,51 @@ pub fn mode_text(card: &Card, m: &crate::ast::Mode, lookup: &dyn Lookup) -> Stri
 const FLASH_CLEANUP: &str = "You may cast this spell as though it had flash. If you cast it any \
     time a sorcery couldn't have been cast, the controller of the permanent it becomes \
     sacrifices it at the beginning of the next cleanup step.";
+/// "You may cast this card from your graveyard as long as you control a
+/// Zombie.", "... by paying {2}{W} rather than paying its mana cost.", "...
+/// by paying 3 life and discarding a card in addition to paying its other
+/// costs." (CR 601.3).
+fn graveyard_cast_text(card: &Card, g: &crate::ast::GraveyardCast) -> String {
+    let mut s = String::new();
+    if g.max_speed {
+        s.push_str("Max speed \u{2014} ");
+    }
+    s.push_str("You may cast this card from your graveyard");
+    if let Some(c) = &g.cond {
+        let _ = write!(
+            s,
+            " {} {}",
+            if g.as_long_as { "as long as" } else { "if" },
+            static_cond_text(c, card)
+        );
+    }
+    if let Some(m) = &g.mana {
+        let _ = write!(s, " by paying {m} rather than paying its mana cost");
+    } else if let Some(c) = &g.extra {
+        let mut parts = Vec::new();
+        if c.life > 0 {
+            parts.push(format!("paying {} life", c.life));
+        }
+        if let Some(SacCost::Filter(f)) = &c.sacrifice {
+            parts.push(format!("sacrificing {}", filter_a(f, card)));
+        }
+        if c.discard > 0 {
+            parts.push(if c.discard == 1 {
+                "discarding a card".to_string()
+            } else {
+                format!("discarding {} cards", count_words(Num::N(c.discard), "a"))
+            });
+        }
+        let _ = write!(
+            s,
+            " by {} in addition to paying its other costs",
+            parts.join(" and ")
+        );
+    }
+    s.push('.');
+    s
+}
+
 /// "Cast this spell only during combat.", "Cast this spell only if you
 /// control a creature." (CR 601.3).
 fn cast_only_text(card: &Card) -> Option<String> {
@@ -15874,6 +15919,10 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
         } else {
             lines.push(format!("Flashback—{}.", cost_text(fb, &mut ctx)));
         }
+    }
+    // CR 601.3: "You may cast this card from your graveyard ...".
+    if let Some(g) = &card.graveyard_cast {
+        lines.push(graveyard_cast_text(card, g));
     }
     // Oracle prints rebound after the spell's effect.
     if card.keywords.contains(&Keyword::Rebound) {

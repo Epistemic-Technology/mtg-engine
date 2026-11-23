@@ -121,7 +121,26 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             .cloned(),
         kicker_cost: def.kicker_cost.as_deref().map(|c| d.cost(c)),
         kicker_targets: def.kicker_targets,
-        flashback: def.flashback.as_ref().map(|c| d.cost(c)),
+        flashback: def
+            .flashback
+            .as_ref()
+            .filter(|_| def.graveyard_cast.is_none())
+            .map(|c| d.cost(c)),
+        graveyard_cast: def.graveyard_cast.as_deref().map(|g| {
+            let fb = def.flashback.as_deref().cloned().unwrap_or_default();
+            let mut rest = fb.clone();
+            rest.mana = mtg_core::mana::ManaCost::default();
+            crate::ast::GraveyardCast {
+                cond: g
+                    .condition
+                    .filter(|_| !g.max_speed)
+                    .map(|c| d.static_cond(pool.condition(c))),
+                as_long_as: g.as_long_as,
+                max_speed: g.max_speed,
+                mana: g.alt_mana.then(|| fb.mana.clone()),
+                extra: (!g.alt_mana && rest != CoreCost::default()).then(|| d.cost(&rest)),
+            }
+        }),
         groups: pool.filters().iter().map(|f| d.filter(f)).collect(),
         // Unleash's second static ability comes back with its keyword line.
         abilities: def

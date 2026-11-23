@@ -6932,6 +6932,23 @@ pub struct GraveExile {
     pub top: bool,
 }
 
+/// A card's permission to be cast from its owner's graveyard
+/// (`CardDef::graveyard_cast`).
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Default)]
+pub struct GraveyardCast {
+    /// Offered only while this holds ("as long as you control a Zombie",
+    /// "if you gained life this turn"; "Max speed —").
+    pub condition: Option<u16>,
+    /// Printed "as long as" rather than "if".
+    pub as_long_as: bool,
+    /// Printed "Max speed — " first (the condition is max speed).
+    pub max_speed: bool,
+    /// The cost's mana replaces the mana cost ("by paying {2}{W} rather
+    /// than paying its mana cost"); otherwise it is the mana cost and the
+    /// rest is paid in addition.
+    pub alt_mana: bool,
+}
+
 /// "You may pay {1} and return a basic land you control to its owner's hand
 /// rather than pay this spell's mana cost" (CR 118.9): mana and one chosen
 /// permanent to sacrifice or return (`cost.sacrifice`, `cost.chosen`),
@@ -8195,6 +8212,13 @@ pub struct CardDef {
     /// card discarded, and the spell isn't exiled as it leaves the stack.
     #[serde(default)]
     pub retrace: bool,
+    /// "You may cast this card from your graveyard [as long as ...] [by
+    /// paying {2}{W} rather than paying its mana cost | by discarding a
+    /// card in addition to paying its other costs]" (CR 601.3): `flashback`
+    /// holds the cost and `retrace` is set (the card isn't exiled); this
+    /// holds the condition and the wording.
+    #[serde(default)]
+    pub graveyard_cast: Option<Box<GraveyardCast>>,
     /// Event kinds any of this definition's triggers (keyword triggers
     /// included) can fire on; see `TriggerSpec::watch_mask`.
     watch_mask: u32,
@@ -10451,6 +10475,7 @@ impl Builder {
             fading: 0,
             flashback: None,
             retrace: false,
+            graveyard_cast: None,
             watch_mask: 0,
             except_watch_mask: 0,
             printed: None,
@@ -11130,6 +11155,17 @@ impl Builder {
     #[must_use]
     pub fn flashback(mut self, cost: Cost) -> Self {
         self.0.flashback = Some(Box::new(cost));
+        self
+    }
+
+    /// "You may cast this card from your graveyard ..." (CR 601.3): for
+    /// `cost` (the mana cost and other parts unless `alt_mana`), not
+    /// exiled as it leaves the stack.
+    #[must_use]
+    pub fn graveyard_cast(mut self, cost: Cost, how: GraveyardCast) -> Self {
+        self.0.flashback = Some(Box::new(cost));
+        self.0.retrace = true;
+        self.0.graveyard_cast = Some(Box::new(how));
         self
     }
 

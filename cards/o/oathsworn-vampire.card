@@ -1,0 +1,8 @@
+card "Oathsworn Vampire" {
+  oracle_id e1fb696f-1df8-4571-9710-0d79001326d3
+  cost {1}{B}
+  type Creature — Vampire Knight
+  pt 2/2
+  enters tapped
+  cast from graveyard if gained life this turn
+}

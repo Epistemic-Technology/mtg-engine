@@ -1,0 +1,8 @@
+card "Marang River Prowler" {
+  oracle_id 002e767c-0b30-4ad1-a924-88da400a4cff
+  cost {2}{U}
+  type Creature — Human Rogue
+  pt 2/1
+  static this: has can't block, has can't be blocked
+  cast from graveyard while you control black or green permanent
+}

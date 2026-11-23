@@ -944,6 +944,7 @@ impl P {
             kicker_cost: None,
             kicker_targets: None,
             flashback: None,
+            graveyard_cast: None,
             groups: Vec::new(),
             abilities: Vec::new(),
             except: None,
@@ -1210,6 +1211,28 @@ impl P {
                 card.flash_if_named = self.eat_word("named");
                 self.pos += 3;
                 card.flash_if = Some(self.static_cond()?);
+                self.end_stmt()
+            }
+            // `cast from graveyard while you control Zombie`, `cast from
+            // graveyard for {2}{W}`, `cast from graveyard with discard 1
+            // card` (CR 601.3).
+            "cast" if self.at_words(&["cast", "from", "graveyard"]) => {
+                self.pos += 3;
+                let mut g = crate::ast::GraveyardCast::default();
+                if self.eat_words(&["at", "max", "speed"]) {
+                    g.max_speed = true;
+                } else if self.eat_word("while") {
+                    g.as_long_as = true;
+                    g.cond = Some(self.static_cond()?);
+                } else if self.eat_word("if") {
+                    g.cond = Some(self.static_cond()?);
+                }
+                if self.eat_word("for") {
+                    g.mana = Some(self.mana_cost()?);
+                } else if self.eat_word("with") {
+                    g.extra = Some(self.cost()?);
+                }
+                card.graveyard_cast = Some(g);
                 self.end_stmt()
             }
             "cast" if self.at_words(&["cast", "only"]) => {
