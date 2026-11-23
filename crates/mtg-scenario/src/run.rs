@@ -417,7 +417,11 @@ impl Runner {
             // Bottom nothing; keep everything on top; put nothing in the
             // graveyard; pay a counter's ransom.
             DecisionKind::Scry { .. } | DecisionKind::Surveil { .. } => self.choose_down(d, pos),
-            DecisionKind::Bottom | DecisionKind::PutFromHand => Ok(0),
+            DecisionKind::Bottom => Ok(0),
+            // "You may put a creature card from your hand onto the
+            // battlefield": `choose "Hill Giant"`, `choose done`;
+            // unscripted, the first card.
+            DecisionKind::PutFromHand => Ok(self.choose_offered(d, pos)),
             // What to sacrifice or return for an effect ("return another
             // permanent you control to its owner's hand", "sacrifice a
             // creature"), and the card a library search finds: `choose

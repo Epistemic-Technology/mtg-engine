@@ -2616,7 +2616,12 @@ harmonize cost is equal to its mana cost.", cast that way this turn,
 tapping up to one creature to reduce it, CR 702.180a), `put land card from hand onto battlefield [tapped]` ("put a land
 card from your hand onto the battlefield"; `put creature card and land
 card from hand onto battlefield`: "put a creature card and/or a land card
-from your hand onto the battlefield", a choice of each in turn), `<what> doesn't untap next
+from your hand onto the battlefield", a choice of each in turn; in a
+spell, `that creature` after it is the creature put there, also as what a
+delayed trigger is about: `spell: you may put creature card from hand
+onto battlefield; that creature gains haste indefinitely; delayed that
+creature: sacrifice that creature at beginning of the next end step`,
+Through the Breach), `<what> doesn't untap next
 untap step` ("It doesn't untap during its controller's next untap
 step."; a group of targets named again, `targets 1 to 2 doesn't untap
 next untap step`, is "Those creatures don't untap during their

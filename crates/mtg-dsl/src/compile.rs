@@ -2729,6 +2729,8 @@ impl Compiler<'_> {
                 .map(|m| (m, ts.len())),
             shift: 0,
             they_target: false,
+            spell: false,
+            put_creature: false,
         };
         let mut specs: Vec<TargetSpec> = ts.iter().map(|t| self.target(t)).collect();
         if let Some((m, _)) = self.tmap.group {
@@ -2856,6 +2858,7 @@ impl Compiler<'_> {
             Recipient::TriggeringController { .. } | Recipient::TheTriggeringController => {
                 CoreRecipient::TriggeringController
             }
+            Recipient::TriggeringObject if tmap.put_creature => CoreRecipient::CreatedObject,
             Recipient::TriggeringObject
             | Recipient::TriggeringIt
             | Recipient::TheTriggeringObject => CoreRecipient::TriggeringObject,
@@ -2973,6 +2976,14 @@ impl Compiler<'_> {
             if let Some(lasting) = s.lasting {
                 let effects = out.split_off(start);
                 out.push(CoreEffect::Lasting { lasting, effects });
+            }
+            if self.tmap.spell
+                && s
+                    .effects
+                    .iter()
+                    .any(|e| matches!(e, Effect::PutFromHand { .. }))
+            {
+                self.tmap.put_creature = true;
             }
             prev = Some((start, s));
         }
@@ -4211,7 +4222,14 @@ impl Compiler<'_> {
                         "a delayed trigger about another object can't watch `this` leave or die",
                     );
                 }
-                let effects = self.sentences(effects)?;
+                // Inside the delayed ability "that creature" is the
+                // object it is about.
+                let outer = self.tmap;
+                self.tmap.put_creature = false;
+                self.tmap.spell = false;
+                let effects = self.sentences(effects);
+                self.tmap = outer;
+                let effects = effects?;
                 // A delayed triggered mana ability ("whenever a land is
                 // tapped for mana this turn, add ...", CR 605.1b) has no
                 // form here.
@@ -5361,7 +5379,11 @@ impl Compiler<'_> {
             Ability::XManaColor(c) => AbilityDef::XManaColor(*c),
             Ability::Enchant(t) => AbilityDef::Enchant(self.target(t)),
             Ability::Spell { targets, effects } => AbilityDef::Spell {
-                targets: self.targets(targets),
+                targets: {
+                    let ts = self.targets(targets);
+                    self.tmap.spell = true;
+                    ts
+                },
                 effects: self.sentences(effects)?,
             },
             // CR 702.42a: entwined, every mode.
@@ -7767,6 +7789,13 @@ struct TargetMap {
     /// triggering player is you, so "they" is the first target's
     /// controller (CR 608.2c).
     they_target: bool,
+    /// Compiling a spell's effects: it has no triggering object.
+    spell: bool,
+    /// In a spell, after "you may put a creature card from your hand onto
+    /// the battlefield": "That creature gains haste. Sacrifice that
+    /// creature at the beginning of the next end step." (Through the
+    /// Breach) is the creature put there, not a triggering object.
+    put_creature: bool,
 }
 
 /// The engine's index of the ability's `i`th target (`TargetMap`).

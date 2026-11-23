@@ -1,0 +1,7 @@
+card "Through the Breach" {
+  oracle_id c207aaee-0b67-4520-ad02-2c289228be2a
+  cost {4}{R}
+  type Instant — Arcane
+  spell: you may put creature card from hand onto battlefield; that creature gains haste indefinitely; delayed that creature: sacrifice that creature at beginning of the next end step
+  splice {2}{R}{R}
+}
