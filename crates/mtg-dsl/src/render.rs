@@ -16655,7 +16655,17 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             let per_where = per_count.is_some_and(|c| c.style == crate::ast::CountStyle::Where);
             let per_text = per_count.map_or_else(String::new, |c| {
                 if per_where {
-                    format!(", where X is {}", count_phrase(&c.expr, card, false))
+                    // "where X is The Scarlet Witch's power".
+                    let phrase = count_phrase(&c.expr, card, false);
+                    let phrase = if matches!(
+                        c.expr,
+                        crate::ast::CountExpr::SourcePower | crate::ast::CountExpr::SourceToughness
+                    ) {
+                        phrase.replacen("its", &format!("{}'s", this_ref(card)), 1)
+                    } else {
+                        phrase
+                    };
+                    format!(", where X is {phrase}")
                 } else {
                     format!(" {}", count_phrase(&c.expr, card, true))
                 }

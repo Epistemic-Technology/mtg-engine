@@ -1,0 +1,7 @@
+card "The Scarlet Witch" {
+  oracle_id d8ae8c38-501e-44ea-9faf-cf9d11ba6616
+  cost {2}{R}
+  type Legendary Creature — Mutant Warlock Hero
+  pt 2/3
+  spells instant or sorcery with mana value 4 or greater you cast cost {1} less count where power
+}

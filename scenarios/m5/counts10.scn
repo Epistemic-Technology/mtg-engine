@@ -281,3 +281,42 @@ scenario "Essence Channeler has flying once you've lost life this turn" {
   run_to turn 2 precombat_main
   assert has not "Essence Channeler" flying
 }
+
+scenario "The Scarlet Witch: big instants and sorceries cost {X} less, X her power" {
+  battlefield A: "The Scarlet Witch", 2 "Island"
+  hand A: "Concentrate"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Concentrate"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Concentrate"
+}
+
+scenario "The Scarlet Witch doesn't reduce a spell with mana value 3" {
+  battlefield A: "The Scarlet Witch", 2 "Island"
+  hand A: "Divination"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Divination"
+  run_to turn 1 end
+  assert hand A contains "Divination"
+}
+
+scenario "Lunar Convocation: gained and lost life, a Bat" {
+  battlefield A: "Lunar Convocation", 2 "Mountain", "Plains"
+  hand A: "Lightning Helix", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Helix" targeting player B
+  turn 1 A: cast "Shock" targeting player A
+  run_to turn 2 upkeep
+  assert life B 16
+  assert battlefield A contains "Bat"
+}
+
+scenario "Lunar Convocation: gained life only, no Bat" {
+  battlefield A: "Lunar Convocation", "Mountain", "Plains"
+  hand A: "Lightning Helix"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Helix" targeting player B
+  run_to turn 2 upkeep
+  assert life B 16
+  assert battlefield A lacks "Bat"
+}
