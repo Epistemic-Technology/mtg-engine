@@ -1456,6 +1456,13 @@ fn singular(s: &str) -> String {
             "Elves" => "Elf".to_string(),
             "Dwarves" => "Dwarf".to_string(),
             "Wolves" => "Wolf".to_string(),
+            "Werewolves" => "Werewolf".to_string(),
+            "Foxes" => "Fox".to_string(),
+            "Sphinxes" => "Sphinx".to_string(),
+            "Heroes" => "Hero".to_string(),
+            "Mice" => "Mouse".to_string(),
+            "Oxen" => "Ox".to_string(),
+            "Homunculi" => "Homunculus".to_string(),
             // A planeswalker type spelled with "s" in the singular.
             "Bolas" | "Plains" => w.to_string(),
             other
@@ -5492,7 +5499,13 @@ impl Builder<'_> {
                 .filter(|w| !w.is_empty() && *w != "and")
                 .map(singular)
                 .collect();
-            if types.iter().all(|t| !card_type_word(&t.to_lowercase())) {
+            // Each a creature type some card has: the singular of an
+            // irregular plural must be known ("Werewolves").
+            let known = |t: &String| self.corpus.iter().any(|c| c.subtypes.contains(t));
+            if types
+                .iter()
+                .all(|t| !card_type_word(&t.to_lowercase()) && known(t))
+            {
                 self.statements
                     .push(format!("static {} you control: {mods}", types.join(" or ")));
                 return Ok(());

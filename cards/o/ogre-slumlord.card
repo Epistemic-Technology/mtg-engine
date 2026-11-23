@@ -1,0 +1,8 @@
+card "Ogre Slumlord" {
+  oracle_id 0a5e3748-2e58-4e53-9653-8af4e21cf223
+  cost {3}{B}{B}
+  type Creature — Ogre Rogue
+  pt 3/3
+  triggered whenever other nontoken creature dies: you may create 1 "1/1 black Rat creature"
+  static Rat you control: has deathtouch
+}

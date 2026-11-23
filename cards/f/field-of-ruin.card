@@ -1,0 +1,6 @@
+card "Field of Ruin" {
+  oracle_id f825c98f-a327-440b-8c0d-ebe02e23bfb7
+  type Land
+  mana {C}
+  activated {2}, {T}, sacrifice this: destroy target nonbasic land an opponent controls; each player searches basic land card to battlefield
+}

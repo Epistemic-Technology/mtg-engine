@@ -1,0 +1,6 @@
+card "Ghost Quarter" {
+  oracle_id 2ec4288e-34c6-4831-a2c0-ba1ca1d9d1dc
+  type Land
+  mana {C}
+  activated {T}, sacrifice this: destroy target land; its controller may search basic land card to battlefield
+}
