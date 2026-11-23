@@ -4803,6 +4803,11 @@ fn cost_text(c: &Cost) -> String {
                     if b.optional {
                         s.push_str("may ");
                     }
+                    if b.reveal {
+                        let _ = write!(s, "reveal {} card", filter(&b.filter));
+                        parts.push(s);
+                        continue;
+                    }
                     s.push_str("behold ");
                     if b.exile {
                         s.push_str("and exile ");

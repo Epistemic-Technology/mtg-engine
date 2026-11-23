@@ -1,0 +1,8 @@
+card "Goldmeadow Stalwart" {
+  oracle_id 1aff8653-12c5-4549-915f-ac2fd6dfd43b
+  cost {W}
+  type Creature — Kithkin Soldier
+  pt 2/2
+  additional cost reveal Kithkin card
+  additional cost or {3}
+}

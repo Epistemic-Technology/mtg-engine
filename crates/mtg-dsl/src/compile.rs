@@ -2667,6 +2667,7 @@ impl Compiler<'_> {
                     filter: self.filter(&b.filter),
                     n: b.n,
                     exile: b.exile,
+                    hand: b.reveal,
                 })
             }),
         }

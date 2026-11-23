@@ -6888,6 +6888,13 @@ pub struct Behold {
     pub filter: ObjFilter,
     pub n: u32,
     pub exile: bool,
+    /// "Reveal a Kithkin card from your hand" (the older wording, CR
+    /// 601.2b): a card from the hand only, never a permanent. As the
+    /// spell is cast, controlling a matching permanent also counts as
+    /// paid ("If you revealed a Dragon card or controlled a Dragon as you
+    /// cast this spell").
+    #[serde(default)]
+    pub hand: bool,
 }
 
 /// A cost that exiles cards from its payer's graveyard: `n` of them (X,

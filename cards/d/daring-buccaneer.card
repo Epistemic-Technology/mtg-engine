@@ -1,0 +1,8 @@
+card "Daring Buccaneer" {
+  oracle_id 1e6f2997-a84b-4302-9d8b-ca4928961d24
+  cost {R}
+  type Creature — Human Pirate
+  pt 2/2
+  additional cost reveal Pirate card
+  additional cost or {2}
+}

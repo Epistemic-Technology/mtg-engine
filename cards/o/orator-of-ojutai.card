@@ -1,0 +1,9 @@
+card "Orator of Ojutai" {
+  oracle_id fbed6f1a-e224-413c-b13e-3555caaef02a
+  cost {1}{W}
+  type Creature — Bird Monk
+  pt 0/4
+  additional cost may reveal Dragon card
+  keywords defender, flying
+  triggered when this enters if beheld: draw 1 card
+}

@@ -1,0 +1,9 @@
+card "Surtland Elementalist" {
+  oracle_id b1a3b2ab-d9f8-4a0a-b2e2-aaa9989b2e41
+  cost {5}{U}{U}
+  type Creature — Giant Wizard
+  pt 8/8
+  additional cost reveal Giant card
+  additional cost or {2}
+  triggered whenever this attacks: cast free instant or sorcery spell from hand
+}

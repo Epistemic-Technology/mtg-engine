@@ -1,0 +1,9 @@
+card "Squeaking Pie Sneak" {
+  oracle_id 7243b935-73fc-47d2-ac65-ab390ed94f3f
+  cost {1}{B}
+  type Creature — Goblin Rogue
+  pt 2/2
+  additional cost reveal Goblin card
+  additional cost or {3}
+  keywords fear
+}

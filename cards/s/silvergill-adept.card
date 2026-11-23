@@ -1,0 +1,9 @@
+card "Silvergill Adept" {
+  oracle_id cb66c5ec-e7a4-4bd2-b825-6c9b846ba40d
+  cost {1}{U}
+  type Creature — Merfolk Wizard
+  pt 2/1
+  additional cost reveal Merfolk card
+  additional cost or {3}
+  triggered when this enters: draw 1 card
+}

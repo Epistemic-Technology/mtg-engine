@@ -1,0 +1,7 @@
+card "Induce Despair" {
+  oracle_id 1e8ff8b3-5b7f-47f2-9321-7a3b6f6e88aa
+  cost {2}{B}
+  type Instant
+  additional cost reveal creature card
+  spell: target creature gets -1/-1 count where mana value of the revealed card
+}

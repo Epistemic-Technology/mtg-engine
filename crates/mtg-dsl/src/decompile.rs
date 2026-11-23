@@ -472,6 +472,7 @@ impl Decompiler<'_> {
                     n: b.n,
                     exile: b.exile,
                     optional: false,
+                    reveal: b.hand,
                 })
             }),
         }

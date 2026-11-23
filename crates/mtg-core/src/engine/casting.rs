@@ -3502,7 +3502,8 @@ impl GameState {
         let mut board: SmallVec<[ObjId; 4]> = self
             .permanents_of(p)
             .filter(|s| {
-                *s != this
+                !b.hand
+                    && *s != this
                     && self.characteristics(*s).is_some_and(|c| {
                         b.filter
                             .matches(*s, self.objects[*s].controller, &c, Some(this), Some(p))
@@ -3541,6 +3542,18 @@ impl GameState {
         for id in picks {
             if self.objects[id].zone == Zone::Hand {
                 self.reveal_in_hand(id);
+                // "the revealed card's mana value" as the spell resolves.
+                if let Some(log) = &mut self.this_way {
+                    log.moved.push(crate::state::Moved {
+                        old: id,
+                        new: id,
+                        from: Zone::Hand,
+                        to: Zone::Hand,
+                        owner: p,
+                        sacrificed: false,
+                        destroyed: false,
+                    });
+                }
             }
             if b.exile {
                 let new = self.move_object(id, Zone::Exile, true);
@@ -5495,7 +5508,11 @@ impl GameState {
         };
         // "As an additional cost to cast this spell, pay X life": no more
         // than the caster's life (CR 119.4).
-        let max_x = if add.life_x {
+        let life_x = match ability {
+            Some((_, a)) => a.cost.life_x,
+            None => add.life_x,
+        };
+        let max_x = if life_x {
             max_x.min(u32::try_from(self.player(caster).life.max(0)).unwrap_or(0))
         } else {
             max_x
@@ -6190,12 +6207,18 @@ impl GameState {
             }
             // "Exile X artifact cards from your graveyard": as many as the
             // X announced (CR 602.2b, 601.2b).
-            if let Some(g) = &ab.cost.exile_cards
-                && g.x
-            {
+            // "Pay X life" likewise (CR 119.4, 602.2b): the ability's X,
+            // not the source's.
+            if ab.cost.life_x || ab.cost.exile_cards.as_ref().is_some_and(|g| g.x) {
                 let mut cost = ab.cost.clone();
-                if let Some(g) = &mut cost.exile_cards {
+                if let Some(g) = &mut cost.exile_cards
+                    && g.x
+                {
                     g.n = s.x_of(obj);
+                }
+                if cost.life_x {
+                    cost.life_x = false;
+                    cost.life = cost.life.saturating_add(s.x_of(obj));
                 }
                 s.pay_other_costs(controller, &cost, sa.source, sacrifice, discard);
             } else {
@@ -7608,6 +7631,27 @@ impl GameState {
                 }
             }
         });
+        // "If you revealed a Dragon card or controlled a Dragon as you
+        // cast this spell": a reveal-from-hand cost counts as paid when the
+        // caster controls a matching permanent.
+        if let Some(b) = def.additional.behold.as_deref()
+            && b.hand
+            && !self.objects[spell].cast.beheld()
+            && self.permanents_of(caster).any(|s| {
+                s != spell
+                    && self.characteristics(s).is_some_and(|c| {
+                        b.filter.matches(
+                            s,
+                            self.objects[s].controller,
+                            &c,
+                            Some(spell),
+                            Some(caster),
+                        )
+                    })
+            })
+        {
+            self.objects[spell].cast.set_beheld();
+        }
         // CR 702.166a: bargain's sacrifice (and buyback's, "Buyback—
         // Sacrifice a land.", kept in the same list).
         if !self.bargains.is_empty()

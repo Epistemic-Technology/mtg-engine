@@ -1,0 +1,7 @@
+card "Living Destiny" {
+  oracle_id ba7be3e9-d240-4fed-943d-a405409b13b5
+  cost {3}{G}
+  type Instant
+  additional cost reveal creature card
+  spell: you gain count equal mana value of the revealed card life
+}

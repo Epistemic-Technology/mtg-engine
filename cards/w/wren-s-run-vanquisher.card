@@ -1,0 +1,9 @@
+card "Wren's Run Vanquisher" {
+  oracle_id fe9cdd15-a390-4a1e-bae9-474ce8d355b8
+  cost {1}{G}
+  type Creature — Elf Warrior
+  pt 3/3
+  additional cost reveal Elf card
+  additional cost or {3}
+  keywords deathtouch
+}

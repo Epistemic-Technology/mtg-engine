@@ -1,0 +1,8 @@
+card "Scaleguard Sentinels" {
+  oracle_id 5c0c01c1-c207-4348-aaec-fbefa77cfcd4
+  cost {G}{G}
+  type Creature — Human Soldier
+  pt 2/3
+  additional cost may reveal Dragon card
+  enters with 1 +1/+1 counter if beheld
+}

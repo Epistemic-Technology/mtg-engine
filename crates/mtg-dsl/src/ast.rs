@@ -781,6 +781,9 @@ pub struct Behold {
     pub n: u32,
     pub exile: bool,
     pub optional: bool,
+    /// `reveal Kithkin card`: "reveal a Kithkin card from your hand", a
+    /// card from the hand only.
+    pub reveal: bool,
 }
 
 /// A cost exiling cards from the graveyard: `n` (or X) cards matching

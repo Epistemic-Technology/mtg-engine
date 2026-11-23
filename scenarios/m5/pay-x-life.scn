@@ -1,0 +1,24 @@
+# "Pay X life" in an activated ability's cost (CR 119.4, 602.2b): X is the
+# ability's, announced as it is activated, and no more than the
+# activator's life.
+
+scenario "Krumar Initiate: pay X life and endure X" {
+  battlefield A: "Krumar Initiate", 3 "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Krumar Initiate" x 2
+  turn 2 A: choose "1"
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert counters "Krumar Initiate" +1/+1 2
+  assert tapped "Krumar Initiate"
+}
+
+scenario "Krumar Initiate: paying all your life loses the game" {
+  battlefield A: "Krumar Initiate", 4 "Swamp"
+  life A 2
+  start turn 2 A precombat_main
+  turn 2 A: activate "Krumar Initiate" x 2
+  run_to turn 2 postcombat_main
+  assert life A 0
+  assert game_over
+}

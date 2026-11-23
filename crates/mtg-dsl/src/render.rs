@@ -3541,7 +3541,17 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
             // CR 701.69a: "behold a Kithkin and exile it", "you may behold
             // a Dragon", "Behold three Elementals".
             CostItem::Behold => {
-                if let Some(b) = &cost.behold {
+                if let Some(b) = &cost.behold
+                    && b.reveal
+                {
+                    let what = card_filter_a(&b.filter, ctx.card);
+                    let may = if b.optional {
+                        "you may reveal"
+                    } else {
+                        "Reveal"
+                    };
+                    parts.push(format!("{may} {what} from your hand"));
+                } else if let Some(b) = &cost.behold {
                     let what = if b.n == 1 {
                         filter_a(&b.filter, ctx.card)
                     } else {
@@ -13328,11 +13338,16 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::Teamwork => "this spell was cast using teamwork".to_string(),
         // "If a Dragon was beheld": the card's behold cost's filter.
         StaticCond::Beheld => {
-            let what = card
-                .additional
-                .as_ref()
-                .and_then(|c| c.behold.as_ref())
-                .map_or_else(|| "a card".to_string(), |b| filter_a(&b.filter, card));
+            let behold = card.additional.as_ref().and_then(|c| c.behold.as_ref());
+            if let Some(b) = behold.filter(|b| b.reveal) {
+                // The older wording (CR 601.2b).
+                return format!(
+                    "you revealed {} or controlled {} as you cast this spell",
+                    card_filter_a(&b.filter, card),
+                    filter_a(&b.filter, card)
+                );
+            }
+            let what = behold.map_or_else(|| "a card".to_string(), |b| filter_a(&b.filter, card));
             format!("{what} was beheld")
         }
         StaticCond::NoManaSpent => "it wasn't cast or no mana was spent to cast it".to_string(),

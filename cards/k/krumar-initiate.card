@@ -1,0 +1,7 @@
+card "Krumar Initiate" {
+  oracle_id 65a7fb13-77b9-44ea-9e0e-34daef82eb69
+  cost {1}{B}
+  type Creature — Human Cleric
+  pt 2/2
+  activated {X}{B}, {T}, pay x life, sorcery: this endures X
+}

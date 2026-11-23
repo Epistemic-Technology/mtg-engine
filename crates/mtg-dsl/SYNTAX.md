@@ -326,7 +326,8 @@ most the cards there; the engine exiles the oldest matching cards other
 than the source, sparing what the spell or ability targets), `pay 3
 life`, `pay x life` (a spell's additional cost: "As an additional cost to
 cast this spell, pay X life."; X is announced as the spell is cast, at most
-the caster's life, CR 119.4), `exert this` ("Exert this creature", "Exert
+the caster's life, CR 119.4; in an activated ability's cost, "{X}{B}, {T},
+Pay X life: ...", the ability's X), `exert this` ("Exert this creature", "Exert
 Basri": it won't untap during its controller's next untap step, CR
 701.43a), `discard hand` ("Discard your hand"; payable with no cards in
 hand), `sorcery` (printed "Activate only as a sorcery."), `once` (activate
@@ -1231,6 +1232,23 @@ behold cost exiles is linked to the permanent the spell becomes (CR
 to hand` ("return the exiled card to its owner's hand"). The condition
 `beheld` (`if beheld, you gain 2 life`) prints "If a Dragon was beheld"
 with the card's behold filter: the behold cost was paid.
+
+The older wording reveals from the hand only: `additional cost reveal
+Kithkin card` with `additional cost or {3}` prints "As an additional cost
+to cast this spell, reveal a Kithkin card from your hand or pay {3}.";
+alone (`additional cost reveal creature card`) "..., reveal a creature
+card from your hand." (castable only with such a card in hand, other
+than the spell; a permanent doesn't pay it); `additional cost may reveal
+Dragon card` "..., you may reveal a Dragon card from your hand." (an
+optional cost, declined with `other_cost`). The revealed card is "the
+revealed card": `count equal mana value of the revealed card` prints
+"the revealed card's mana value" (`power of the revealed card`, "the
+revealed card's power"), read as the spell resolves. With a reveal cost,
+`beheld` prints "you revealed a Dragon card or controlled a Dragon as you
+cast this spell": the card was revealed, or its caster controlled a
+matching permanent as the spell was cast (CR 601.2); a permanent keeps
+it for `enters with 1 +1/+1 counter if beheld` and `triggered when this
+enters if beheld: ...`.
 
 Collect evidence (CR 701.59): `collect evidence 4` is an effect (the
 controller exiles cards with total mana value 4 or greater from their

@@ -1,0 +1,9 @@
+card "Sadistic Skymarcher" {
+  oracle_id 9e1fe5ec-1669-4587-8e42-b189fd6d39e0
+  cost {2}{B}
+  type Creature — Vampire Soldier
+  pt 2/2
+  additional cost reveal Vampire card
+  additional cost or {1}
+  keywords flying, lifelink
+}

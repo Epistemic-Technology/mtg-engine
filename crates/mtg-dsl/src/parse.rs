@@ -1103,7 +1103,10 @@ impl P {
                         return self.fail("`additional cost or` follows an `additional cost`");
                     }
                     card.additional_or = Some(self.cost()?);
-                } else if !self.at_words(&["may", "behold"]) && self.eat_word("may") {
+                } else if !self.at_words(&["may", "behold"])
+                    && !self.at_words(&["may", "reveal"])
+                    && self.eat_word("may")
+                {
                     // `additional cost may collect evidence 6` (CR 601.2b).
                     let c = self.cost()?;
                     if !c.mana.is_empty() || c.blight == 0 && c.evidence == 0 {
@@ -14244,6 +14247,7 @@ impl P {
                             n,
                             exile,
                             optional,
+                            reveal: false,
                         }));
                         cost.order.push(CostItem::Behold);
                     }
@@ -14287,6 +14291,26 @@ impl P {
                         self.pos += 2;
                         cost.reveal_this = true;
                         cost.order.push(CostItem::RevealThis);
+                    }
+                    // `reveal Kithkin card`, `may reveal Dragon card`: "reveal
+                    // a Kithkin card from your hand" (a behold from the hand
+                    // only).
+                    "reveal" | "may"
+                        if self.word_at(0).as_deref() == Some("reveal")
+                            || self.word_at(1).as_deref() == Some("reveal") =>
+                    {
+                        let optional = self.eat_word("may");
+                        self.pos += 1;
+                        let filter = self.filter()?;
+                        self.cards_word()?;
+                        cost.behold = Some(Box::new(crate::ast::Behold {
+                            filter,
+                            n: 1,
+                            exile: false,
+                            optional,
+                            reveal: true,
+                        }));
+                        cost.order.push(CostItem::Behold);
                     }
                     "sorcery" => {
                         self.pos += 1;
