@@ -7611,6 +7611,21 @@ pub struct ActivationReduction {
     /// 601.2f comes after the targets are chosen, 601.2c).
     #[serde(default)]
     pub target: Option<ObjFilter>,
+    /// "This ability costs {1} less to activate for each +1/+1 counter on
+    /// the creature it targets" / "for each color of the creature it
+    /// targets": `by` once for each, judged on the first target.
+    #[serde(default)]
+    pub per_target: Option<PerTarget>,
+}
+
+/// What an activation reduction counts on its first target
+/// (`ActivationReduction::per_target`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum PerTarget {
+    /// Its counters of this kind.
+    Counters(CounterKind),
+    /// Its colors (CR 105.2).
+    Colors,
 }
 
 /// A keyword that adds rules to the activated ability after it.

@@ -1,0 +1,7 @@
+card "Plate Armor" {
+  oracle_id 36082b5e-760b-4245-af59-00d308470d1a
+  cost {2}{W}
+  type Artifact — Equipment
+  static equipped creature: +3/+3, has ward {1}
+  equip {3}, reduced {1} each other Equipment you control
+}

@@ -5353,6 +5353,10 @@ impl Compiler<'_> {
                             crate::ast::ReduceBy::Targets(f) => Some(self.filter(f)),
                             _ => None,
                         },
+                        per_target: match how {
+                            crate::ast::ReduceBy::PerTarget(p) => Some(*p),
+                            _ => None,
+                        },
                     })
                 }),
             }),

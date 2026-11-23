@@ -655,6 +655,10 @@ pub enum ReduceBy {
     /// ability costs {1} less to activate if it targets a creature with
     /// power 3 or less." (the first target).
     Targets(Filter),
+    /// `reduced {1} each +1/+1 counter on target`, `reduced {1} each color
+    /// of target`: "... for each +1/+1 counter on the creature it
+    /// targets", "... for each color of the creature it targets".
+    PerTarget(mtg_core::card::PerTarget),
 }
 
 /// `alternative cost {1}, return basic land you control`, `alternative

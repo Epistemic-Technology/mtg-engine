@@ -5168,6 +5168,12 @@ fn cost_text(c: &Cost) -> String {
         Some((by, crate::ast::ReduceBy::If(d))) => {
             parts.push(format!("reduced {by} if {}", static_cond(d)));
         }
+        Some((by, crate::ast::ReduceBy::PerTarget(mtg_core::card::PerTarget::Colors))) => {
+            parts.push(format!("reduced {by} each color of target"));
+        }
+        Some((by, crate::ast::ReduceBy::PerTarget(mtg_core::card::PerTarget::Counters(k)))) => {
+            parts.push(format!("reduced {by} each {} counter on target", k.name()));
+        }
         None => {}
     }
     if parts.is_empty() {
@@ -7178,6 +7184,7 @@ pub(crate) fn granted_mechanic(a: &Ability) -> Option<String> {
         }
         Ability::Protection(f) => Some(format!("protection from {}", filter(f))),
         Ability::Landwalk(f) => Some(format!("landwalk {}", filter(f))),
+        Ability::HexproofFrom(f) => Some(format!("hexproof from {}", filter(f))),
         _ => None,
     }
 }

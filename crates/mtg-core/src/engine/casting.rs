@@ -5302,7 +5302,9 @@ impl GameState {
     /// or less", or an equip ability while some card has "Equip abilities
     /// you activate that target this creature cost {2} less".
     pub(super) fn target_reduces(&self, ab: &ActivatedAbility) -> bool {
-        ab.reduction.as_ref().is_some_and(|r| r.target.is_some())
+        ab.reduction
+            .as_ref()
+            .is_some_and(|r| r.target.is_some() || r.per_target.is_some())
             || (self.pool.equip_discounts && ab.is_equip())
     }
 
@@ -5322,6 +5324,22 @@ impl GameState {
             && self.target_fits(f, t, p, source)
         {
             req.reduce_by(&r.by);
+        }
+        if let Some(r) = &ab.reduction
+            && let Some(per) = r.per_target
+            && let Target::Object(id) = t
+        {
+            let n = match per {
+                crate::card::PerTarget::Counters(k) => {
+                    self.objects.get(id).map_or(0, |o| o.counters(k))
+                }
+                crate::card::PerTarget::Colors => self
+                    .characteristics(id)
+                    .map_or(0, |c| c.colors.iter().count() as u32),
+            };
+            for _ in 0..n.min(64) {
+                req.reduce_by(&r.by);
+            }
         }
         if self.pool.equip_discounts
             && ab.is_equip()

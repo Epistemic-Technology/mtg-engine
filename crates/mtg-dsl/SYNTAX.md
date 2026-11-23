@@ -389,7 +389,14 @@ mana off the ability's cost as it is activated (CR 601.2f by way of
 {1} if targets creature with power 3 or less` ("... if it targets a
 creature with power 3 or less") once if the first target matches, so the
 ability is offered if some target makes it payable and only such targets
-are offered. The card-level line `equip abilities targeting this cost {2}
+are offered. `reduced {1} each +1/+1 counter on target` and `reduced {1} each
+color of target` ("... for each +1/+1 counter on the creature it
+targets", "... for each color of the creature it targets") take `by` off
+once for each, judged on the first target the same way. On an equip
+ability, `equip {3}, reduced {1} each other Equipment you control` prints
+"Equip {3}. This ability costs {1} less to activate for each other
+Equipment you control." `static equipped creature: +2/+2, has hexproof
+from monocolored` grants "hexproof from monocolored" (CR 702.11d) bare. The card-level line `equip abilities targeting this cost {2}
 less` prints "Equip abilities you activate that target this creature cost
 {2} less to activate." (generic mana off any equip ability aimed at it).
 An ability whose cost

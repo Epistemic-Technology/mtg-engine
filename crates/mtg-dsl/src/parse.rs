@@ -3883,6 +3883,11 @@ impl P {
             self.pos += 1;
             return Ok(Some(Ability::Mechanic(Mechanic::Ward(self.mana_cost()?))));
         }
+        // `has hexproof from monocolored` (CR 702.11d).
+        if self.at_words(&["hexproof", "from"]) {
+            self.pos += 2;
+            return Ok(Some(Ability::HexproofFrom(self.filter()?)));
+        }
         // `has ward pay 2 life`: 'have "Ward—Pay 2 life."'.
         if self.at_words(&["ward", "pay"]) {
             self.pos += 1;
@@ -3935,6 +3940,8 @@ impl P {
             || self.at_words(&["ward", "pay"])
             || (self.at_word("toxic") && matches!(self.peek_at(1), Some(Tok::Num(_))))
             || self.granted_protection_ahead()
+            || (self.at_words(&["hexproof", "from"])
+                && self.word_at(2).as_deref().is_some_and(|w| color(w).is_none()))
             || (self
                 .word_at(0)
                 .is_some_and(|w| matches!(w.as_str(), "poisonous" | "frenzy" | "absorb"))
@@ -15259,6 +15266,18 @@ impl P {
                         })?;
                         let how = if self.eat_words(&["if", "targets"]) {
                             crate::ast::ReduceBy::Targets(self.filter()?)
+                        } else if self.eat_words(&["each", "color", "of", "target"]) {
+                            crate::ast::ReduceBy::PerTarget(mtg_core::card::PerTarget::Colors)
+                        } else if self.at_word("each")
+                            && self.word_at(2).as_deref() == Some("counter")
+                            && self.word_at(3).as_deref() == Some("on")
+                            && self.word_at(4).as_deref() == Some("target")
+                        {
+                            self.pos += 1;
+                            let kind = self.counter_kind()?;
+                            self.eat_word("counter");
+                            self.expect_words(&["on", "target"])?;
+                            crate::ast::ReduceBy::PerTarget(mtg_core::card::PerTarget::Counters(kind))
                         } else if self.eat_word("each") {
                             crate::ast::ReduceBy::Each(self.count_expr()?)
                         } else if self.eat_words(&["during", "your", "turn"]) {

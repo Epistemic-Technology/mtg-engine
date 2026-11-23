@@ -13984,6 +13984,11 @@ fn granted_keyword(a: &Ability, card: &Card) -> Option<String> {
             Some(format!("p{}", &t[1..]))
         }
         Ability::Landwalk(f) => Some(landwalk_text(f, card)),
+        // "has hexproof from monocolored".
+        Ability::HexproofFrom(f) => Some(format!(
+            "hexproof{}",
+            &protection_text(f, card)["Protection".len()..]
+        )),
         // 'have "Ward—Pay 2 life."': quoted.
         Ability::Mechanic(crate::ast::Mechanic::WardCost(_)) => None,
         _ => crate::format::granted_mechanic(a),
@@ -15085,6 +15090,38 @@ fn restrictions_text(cost: &Cost, card: &Card) -> String {
 
 /// Whether an equip ability's cost is more than mana ("Equip—{2}, Pay 2
 /// life."), so it prints after a dash.
+/// " This ability costs {1} less to activate for each ..." (an activated
+/// ability's `reduced`), or nothing.
+fn reduce_text(cost: &crate::ast::Cost, card: &Card) -> String {
+    match cost.reduce.as_deref() {
+        Some((by, crate::ast::ReduceBy::Each(e))) => format!(
+            " This ability costs {by} less to activate {}.",
+            count_phrase(e, card, true)
+        ),
+        Some((by, crate::ast::ReduceBy::If(StaticCond::DuringYourTurn))) => {
+            format!(" This ability costs {by} less to activate during your turn.")
+        }
+        Some((by, crate::ast::ReduceBy::Targets(f))) => format!(
+            " This ability costs {by} less to activate if it targets {}.",
+            filter_a(f, card)
+        ),
+        Some((by, crate::ast::ReduceBy::PerTarget(p))) => match p {
+            mtg_core::card::PerTarget::Colors => format!(
+                " This ability costs {by} less to activate for each color of the creature it targets."
+            ),
+            mtg_core::card::PerTarget::Counters(k) => format!(
+                " This ability costs {by} less to activate for each {} counter on the creature it targets.",
+                k.name()
+            ),
+        },
+        Some((by, crate::ast::ReduceBy::If(c))) => format!(
+            " This ability costs {by} less to activate if {}.",
+            static_cond_text(c, card)
+        ),
+        None => String::new(),
+    }
+}
+
 pub(crate) fn equip_full_cost(cost: &crate::ast::Cost) -> bool {
     cost.order
         .iter()
@@ -15449,6 +15486,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 } else {
                     ""
                 };
+                // "Equip {3}. This ability costs {1} less to activate for
+                // each other Equipment you control."
+                let reduce = reduce_text(cost, card);
+                if !reduce.is_empty() {
+                    return format!("Equip {sub}{}.{reduce}", cost.mana);
+                }
                 return format!("Equip {sub}{}{once}", cost.mana);
             }
             if *cycling {
@@ -15473,36 +15516,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             if let Some(k) = cost.keyword {
                 text = format!("{} — {text}", k.name());
             }
-            match cost.reduce.as_deref() {
-                Some((by, crate::ast::ReduceBy::Each(e))) => {
-                    let _ = write!(
-                        text,
-                        " This ability costs {by} less to activate {}.",
-                        count_phrase(e, card, true)
-                    );
-                }
-                Some((by, crate::ast::ReduceBy::If(StaticCond::DuringYourTurn))) => {
-                    let _ = write!(
-                        text,
-                        " This ability costs {by} less to activate during your turn."
-                    );
-                }
-                Some((by, crate::ast::ReduceBy::Targets(f))) => {
-                    let _ = write!(
-                        text,
-                        " This ability costs {by} less to activate if it targets {}.",
-                        filter_a(f, card)
-                    );
-                }
-                Some((by, crate::ast::ReduceBy::If(c))) => {
-                    let _ = write!(
-                        text,
-                        " This ability costs {by} less to activate if {}.",
-                        static_cond_text(c, card)
-                    );
-                }
-                None => {}
-            }
+            text.push_str(&reduce_text(cost, card));
             text.push_str(&restrictions_text(cost, card));
             text
         }
