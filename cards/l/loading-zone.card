@@ -1,0 +1,7 @@
+card "Loading Zone" {
+  oracle_id 16156274-8dc0-439c-94c4-e8c89bbb5687
+  cost {3}{G}
+  type Enchantment
+  replace counters put on creature or Spacecraft or Planet you control: double
+  warp {G}
+}

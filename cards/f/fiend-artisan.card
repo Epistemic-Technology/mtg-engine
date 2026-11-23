@@ -1,0 +1,8 @@
+card "Fiend Artisan" {
+  oracle_id 43b8456a-3333-4936-a09c-324327619c36
+  cost {B/G}{B/G}
+  type Creature — Nightmare
+  pt 1/1
+  static this: +1/+1 count each graveyard creature
+  activated {X}{B/G}, {T}, sacrifice other creature, sorcery: search creature card with mana value X or less to battlefield
+}

@@ -1,0 +1,10 @@
+card "Woe Strider" {
+  oracle_id 3adbd963-e85d-4569-963a-4472594f06f9
+  cost {2}{B}
+  type Creature — Horror
+  pt 3/2
+  triggered when this enters: create 1 "0/1 white Goat creature"
+  activated sacrifice other creature: scry 1
+  escape {3}{B}{B} exile 4
+  escapes with 2 +1/+1 counters
+}

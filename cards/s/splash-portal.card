@@ -1,0 +1,6 @@
+card "Splash Portal" {
+  oracle_id 29b537f5-4d9f-40ed-b38b-e8faa2b5af7d
+  cost {U}
+  type Sorcery
+  spell: exile target creature you control then return it to battlefield under its owner's control; if that target 1 is Bird or Frog or Otter or Rat, draw 1 card
+}

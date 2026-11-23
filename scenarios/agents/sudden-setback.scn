@@ -1,0 +1,23 @@
+scenario "bounces a permanent into its owner library" {
+  battlefield A: 2 "Island", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Sudden Setback"
+  turn 1 A: cast "Sudden Setback" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B lacks "Hill Giant"
+  assert library B contains "Hill Giant"
+}
+scenario "targets a spell" {
+  battlefield A: 4 "Island"
+  battlefield B: 2 "Forest"
+  hand A: "Sudden Setback"
+  hand B: "Grizzly Bears"
+  library B: "Forest", "Forest"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Sudden Setback" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B lacks "Grizzly Bears"
+  assert library B contains "Grizzly Bears"
+  assert graveyard B lacks "Grizzly Bears"
+}

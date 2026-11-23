@@ -1,0 +1,7 @@
+card "Fire Nation Palace" {
+  oracle_id f2000fb8-39c6-4ad6-a020-5245faaa1eba
+  type Land
+  enters tapped unless you control basic land
+  mana {R}
+  activated {1}{R}, {T}: target creature you control gains firebending 4
+}

@@ -1,0 +1,7 @@
+card "Hajar, Loyal Bodyguard" {
+  oracle_id 63584001-7f58-42ee-b072-914baa66c78a
+  cost {R}{G}
+  type Legendary Creature — Human Soldier
+  pt 3/3
+  activated sacrifice this: each Legendary creature you control gets +1/+0 and gains indestructible
+}

@@ -1,0 +1,9 @@
+card "Skystrike Officer" {
+  oracle_id 862798c6-1c38-4bb9-b4a1-3ef1fcf8f7f7
+  cost {2}{U}
+  type Creature — Human Soldier
+  pt 2/3
+  keywords flying
+  triggered whenever this attacks: create 1 "1/1 colorless Soldier artifact creature"
+  activated tap 3 untapped Soldier you control: draw 1 cards
+}

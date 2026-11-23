@@ -1,0 +1,7 @@
+card "Scuttling Sliver" {
+  oracle_id 7c3dcfea-f42c-4515-9b7d-6e9d8cb4d7f9
+  cost {2}{U}
+  type Creature — Sliver Trilobite
+  pt 2/2
+  static Sliver creature you control: has ability { activated {2}: untap this }
+}

@@ -1,0 +1,8 @@
+card "Adarkar Windform" {
+  oracle_id dd66b8ab-14a9-455b-98f6-5356df72a522
+  cost {4}{U}
+  type Snow Creature — Illusion
+  pt 3/3
+  keywords flying
+  activated {1}{S}: target creature loses flying
+}

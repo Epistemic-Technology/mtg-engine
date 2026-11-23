@@ -562,6 +562,7 @@ impl Compiler<'_> {
         for (i, c) in card.counts.iter().enumerate() {
             if let crate::ast::CountExpr::Permanents(f) = &c.expr
                 && f.they_control
+                && f.that_player.is_none()
             {
                 let mut g = f.clone();
                 g.they_control = false;
@@ -590,7 +591,7 @@ impl Compiler<'_> {
                 Ability::EquipDiscount(n) => {
                     b = b.equip_discount(*n);
                 }
-                Ability::CondCost { delta, cond } => {
+                Ability::CondCost { delta, cond, .. } => {
                     let c = self.static_cond(cond);
                     let i = self.pool.intern_condition(c);
                     b = b.cond_cost(*delta, i);
@@ -1176,6 +1177,12 @@ impl Compiler<'_> {
         let spells = card
             .abilities
             .iter()
+            // `label "Revolt" spell: ...` counts too (it never resolved as
+            // a second spell paragraph).
+            .map(|a| match a {
+                Ability::Labeled { ability, .. } => &**ability,
+                a => a,
+            })
             .filter(|a| {
                 matches!(
                     a,
@@ -2248,7 +2255,11 @@ impl Compiler<'_> {
         match c {
             StaticCond::CardsInGraveyard(n) => StaticCondition::CardsInGraveyard(*n),
             StaticCond::CardTypesInGraveyard(n) => StaticCondition::CardTypesInGraveyard(*n),
-            StaticCond::YouControl { filter, at_least } => StaticCondition::YouControl {
+            StaticCond::YouControl { filter, at_least }
+            | StaticCond::YouControlAtLeast {
+                filter,
+                n: at_least,
+            } => StaticCondition::YouControl {
                 filter: self.filter(filter).who(Who::You),
                 at_least: *at_least,
             },
@@ -2441,6 +2452,10 @@ impl Compiler<'_> {
                 }
             }
             StaticCond::Is(filter) => StaticCondition::SourceIs(self.filter(filter)),
+            StaticCond::Isnt(f) => StaticCondition::SourceIs(self.filter(&Filter {
+                not_types: f.types.clone(),
+                ..Filter::default()
+            })),
             StaticCond::IsntToken => StaticCondition::SourceIs(self.filter(&Filter {
                 status: mtg_core::card::StatusQuals {
                     token: Some(false),
@@ -2601,6 +2616,7 @@ impl Compiler<'_> {
             A::ManaSpent { that: false } => C::SpentTotal,
             A::ManaSpent { that: true } => C::ThatSpellSpent,
             A::TimesKicked => C::TimesKicked,
+            A::EnergyPaid => C::EnergyPaid,
             A::SpentTreasure => C::SpentTreasure,
             A::CardsInOpponentsGraveyards(f) => {
                 C::CardsInOpponentsGraveyards(f.as_ref().map(|f| self.filter(f)))
@@ -2855,6 +2871,7 @@ impl Compiler<'_> {
             | Recipient::SameToken
             | Recipient::SameTokens
             | Recipient::SameCards
+            | Recipient::SameExiledCards
             | Recipient::SameThem => CoreRecipient::SameObject,
             Recipient::CreatedTokens | Recipient::CreatedThem | Recipient::CreatedThose => {
                 CoreRecipient::CreatedTokens
@@ -3359,6 +3376,7 @@ impl Compiler<'_> {
                 out.push(CoreEffect::ExileSameName { what: r(*what) });
             }
             Effect::NextSpellLess(n) => out.push(CoreEffect::NextSpellLess(*n)),
+            Effect::NextSpellUncounterable => out.push(CoreEffect::NextSpellUncounterable),
             Effect::ExtraLandPlays(n) => out.push(CoreEffect::ExtraLandPlays(*n)),
             Effect::FaceDownSpellsLess(n) => out.push(CoreEffect::FaceDownSpellsLess(*n)),
             Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),
@@ -4089,6 +4107,7 @@ impl Compiler<'_> {
                 discard,
                 waterbend,
                 discard_random,
+                both,
                 effect,
             } => {
                 let mut effects = Vec::new();
@@ -4100,6 +4119,7 @@ impl Compiler<'_> {
                     discard: *discard,
                     waterbend: *waterbend,
                     discard_random: *discard_random,
+                    both: *both,
                     effects,
                 });
             }
@@ -5018,6 +5038,10 @@ impl Compiler<'_> {
             Replaces::PlusCounters { on } => CoreReplaces::PlusCounters {
                 on: self.filter(on),
             },
+            Replaces::AnyCounters { on, by } => CoreReplaces::AnyCounters {
+                on: self.filter(on),
+                by: *by,
+            },
             Replaces::Dies { to } => CoreReplaces::Dies {
                 to: self.affects(to),
             },
@@ -5369,6 +5393,10 @@ impl Compiler<'_> {
                             crate::ast::ReduceBy::Targets(f) => Some(self.filter(f)),
                             _ => None,
                         },
+                        per_target: match how {
+                            crate::ast::ReduceBy::PerTarget(p) => Some(*p),
+                            _ => None,
+                        },
                     })
                 }),
             }),
@@ -5422,6 +5450,9 @@ impl Compiler<'_> {
                     }
                     None => None,
                     Some(crate::ast::TrigCond::Core(c)) => Some(*c),
+                    Some(crate::ast::TrigCond::HadCounter { .. }) => {
+                        Some(mtg_core::card::Condition::TriggerHadCounters)
+                    }
                     Some(crate::ast::TrigCond::Static(c)) => {
                         let c = self.static_cond(c);
                         Some(mtg_core::card::Condition::Static(
@@ -5468,10 +5499,27 @@ impl Compiler<'_> {
             // CR 701.43: modeled as an attack trigger: exerting is "it
             // doesn't untap during your next untap step".
             Ability::Exert(effects) => {
-                let mut inner = vec![Sentence::new(vec![crate::ast::Effect::SkipNextUntap {
+                let exert = Sentence::new(vec![crate::ast::Effect::SkipNextUntap {
                     to: Recipient::Source,
                     steps: false,
-                }])];
+                }]);
+                // With targets: "you may exert it; when you do, ..." (the
+                // reflexive trigger's targets are chosen once it's exerted,
+                // CR 603.12).
+                if !crate::ast::exert_parts(effects).0.is_empty() {
+                    return self.ability(&Ability::Triggered {
+                        limit: mtg_core::card::TurnLimit::None,
+                        from_graveyard: false,
+                        trigger: Trigger::Attacks(TriggerObj::This),
+                        condition: None,
+                        targets: Vec::new(),
+                        effects: vec![
+                            Sentence::new(vec![crate::ast::Effect::YouMay(vec![exert])]),
+                            effects[0].clone(),
+                        ],
+                    });
+                }
+                let mut inner = vec![exert];
                 inner.extend(effects.iter().cloned());
                 return self.ability(&Ability::Triggered {
                     limit: mtg_core::card::TurnLimit::None,
@@ -5487,40 +5535,50 @@ impl Compiler<'_> {
                 mods,
                 condition,
                 ..
-            } => AbilityDef::Static(StaticAbility {
-                affected: self.filter(filter),
-                parts: {
-                    let mut parts = Vec::new();
-                    for m in mods {
-                        // "is a Mountain, Forest, and Plains": the first
-                        // replaces its land types, the rest add to it.
-                        if *m == Mod::AddAllLandTypes {
-                            parts.extend(Color::ALL.iter().map(|c| Modification::AddLandType(*c)));
-                            continue;
-                        }
-                        if let Mod::SetLandTypes(lands) = m {
-                            for (i, c) in lands.iter().enumerate() {
-                                parts.push(if i == 0 {
-                                    Modification::SetLandType(*c)
-                                } else {
-                                    Modification::AddLandType(*c)
-                                });
+            } => {
+                let condition = condition.as_ref().map(|c| self.static_cond(c));
+                if let Some(why) = condition.as_ref().and_then(layers_ignore) {
+                    return self.err(format!(
+                        "a static ability's condition {why}: the layers would ignore it (it would hold whatever that state)"
+                    ));
+                }
+                AbilityDef::Static(StaticAbility {
+                    affected: self.filter(filter),
+                    parts: {
+                        let mut parts = Vec::new();
+                        for m in mods {
+                            // "is a Mountain, Forest, and Plains": the first
+                            // replaces its land types, the rest add to it.
+                            if *m == Mod::AddAllLandTypes {
+                                parts.extend(
+                                    Color::ALL.iter().map(|c| Modification::AddLandType(*c)),
+                                );
+                                continue;
                             }
-                            continue;
+                            if let Mod::SetLandTypes(lands) = m {
+                                for (i, c) in lands.iter().enumerate() {
+                                    parts.push(if i == 0 {
+                                        Modification::SetLandType(*c)
+                                    } else {
+                                        Modification::AddLandType(*c)
+                                    });
+                                }
+                                continue;
+                            }
+                            // "has defender, and loses all other abilities": the
+                            // loss applies before what it gains in layer 6 (CR
+                            // 613.1f: the effect's parts in order).
+                            if *m == Mod::RemoveAllAbilities {
+                                parts.insert(0, Modification::RemoveAllAbilities);
+                                continue;
+                            }
+                            parts.push(self.modification_or_grant(m)?);
                         }
-                        // "has defender, and loses all other abilities": the
-                        // loss applies before what it gains in layer 6 (CR
-                        // 613.1f: the effect's parts in order).
-                        if *m == Mod::RemoveAllAbilities {
-                            parts.insert(0, Modification::RemoveAllAbilities);
-                            continue;
-                        }
-                        parts.push(self.modification_or_grant(m)?);
-                    }
-                    parts
-                },
-                condition: condition.as_ref().map(|c| self.static_cond(c)),
-            }),
+                        parts
+                    },
+                    condition,
+                })
+            }
             Ability::EntersWithIf { n, kind, cond, .. } => {
                 let c = self.static_cond(cond);
                 let cond = self.pool.intern_condition(c);
@@ -5669,6 +5727,9 @@ impl Compiler<'_> {
                 whose,
                 generic,
                 cond,
+                per,
+                first,
+                flash,
             } => {
                 let cond = cond.as_ref().map(|c| {
                     let c = self.static_cond(c);
@@ -5679,7 +5740,19 @@ impl Compiler<'_> {
                     whose: *whose,
                     generic: *generic,
                     cond,
-                    grant: None,
+                    // "... and can be cast as though it had flash" (CR
+                    // 702.8).
+                    grant: flash.then(|| {
+                        Box::new(mtg_core::card::SpellGrant {
+                            keywords: KeywordSet::of([Keyword::Flash]),
+                            storm: false,
+                            affinity: None,
+                            from_hand: false,
+                            uncounterable: false,
+                        })
+                    }),
+                    per: *per,
+                    first: *first,
                 })
             }
             Ability::SpellsHave {
@@ -5701,6 +5774,8 @@ impl Compiler<'_> {
                     from_hand: *from_hand,
                     uncounterable: *uncounterable,
                 })),
+                per: None,
+                first: false,
             }),
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
             Ability::Landwalk(f) => AbilityDef::Landwalk(self.filter(f)),
@@ -6343,6 +6418,23 @@ impl Compiler<'_> {
                     return self.ability(&expanded);
                 }
             },
+            Ability::CombatTax {
+                scope,
+                generic,
+                per,
+                cond,
+            } => {
+                let condition = cond.as_ref().map(|c| {
+                    let c = self.static_cond(c);
+                    self.pool.intern_condition(c)
+                });
+                AbilityDef::CombatTax(mtg_core::card::CombatTax {
+                    scope: *scope,
+                    generic: *generic,
+                    per: *per,
+                    condition,
+                })
+            }
             Ability::HandSize { whose, delta, set } => AbilityDef::HandSize {
                 whose: *whose,
                 delta: *delta,
@@ -7154,6 +7246,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 discard: cost.discard,
                 waterbend: cost.waterbend,
                 discard_random: cost.discard_random,
+                both: true,
                 effect: Box::new(E::Counter {
                     to: Recipient::TriggeringObject,
                     dest: crate::ast::CounteredTo::Graveyard,
@@ -7186,6 +7279,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         discard: cost.discard,
                         waterbend: cost.waterbend,
                         discard_random: cost.discard_random,
+                        both: true,
                         effect: Box::new(E::Sacrifice {
                             what: Recipient::Source,
                         }),
@@ -7696,4 +7790,80 @@ fn counts_activations(s: &crate::ast::Sentence) -> bool {
             Effect::IfCondition(StaticCond::ActivatedThisTurn(_), _, _)
         )
     })
+}
+
+/// What a static ability's condition asks of an object that the layers
+/// don't judge (`layers.rs`, `static_condition_holds`): a status the
+/// condition would ignore, so it would hold whatever that state ("has
+/// first strike as long as it's blocking" on an Aura, Snow Devil). `None`
+/// when everything it asks is judged.
+fn layers_ignore(c: &StaticCondition) -> Option<String> {
+    use mtg_core::card::StatusQuals;
+    // The qualifiers each kind of condition judges in the layers.
+    let check = |f: &mtg_core::card::ObjFilter, tapped: bool, keep: StatusQuals| {
+        let mut rest = f.status;
+        // Judged everywhere (`is_token_ok`); "noncommander" holds for
+        // everything in a game without commanders.
+        rest.token = None;
+        if rest.commander == Some(false) {
+            rest.commander = None;
+        }
+        if keep.counter.is_some() {
+            rest.counter = None;
+        }
+        rest.entered_this_turn &= !keep.entered_this_turn;
+        rest.transformed &= !keep.transformed;
+        rest.toxic &= !keep.toxic;
+        if f.attacking {
+            Some("asks for an attacking permanent".to_string())
+        } else if f.blocking {
+            Some("asks for a blocking permanent".to_string())
+        } else if f.damaged {
+            Some("asks for a damaged permanent".to_string())
+        } else if f.tapped.is_some() && !tapped {
+            Some("asks for a tapped or untapped permanent".to_string())
+        } else if rest.any() {
+            Some(format!("asks for a status ({rest:?})"))
+        } else {
+            None
+        }
+    };
+    let any_counter = StatusQuals {
+        counter: Some(mtg_core::card::CounterQual::Any),
+        ..StatusQuals::default()
+    };
+    match c {
+        StaticCondition::SourceIs(f) => check(
+            f,
+            true,
+            StatusQuals {
+                entered_this_turn: true,
+                ..any_counter
+            },
+        ),
+        StaticCondition::AttachedIs(f) => check(
+            f,
+            true,
+            StatusQuals {
+                toxic: true,
+                ..any_counter
+            },
+        ),
+        StaticCondition::YouControl { filter, .. } => check(
+            filter,
+            false,
+            StatusQuals {
+                transformed: true,
+                ..any_counter
+            },
+        ),
+        StaticCondition::OpponentControls { filter, .. } => {
+            check(filter, true, StatusQuals::default())
+        }
+        StaticCondition::And(a, b) | StaticCondition::Or(a, b) => {
+            layers_ignore(a).or_else(|| layers_ignore(b))
+        }
+        StaticCondition::Not(a) => layers_ignore(a),
+        _ => None,
+    }
 }

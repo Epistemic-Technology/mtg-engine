@@ -1,0 +1,8 @@
+card "Guru Pathik" {
+  oracle_id 4dcd7b78-ce5a-43eb-a16d-3b9ea411795d
+  cost {2}{G/U}{G/U}
+  type Legendary Creature — Human Monk Ally
+  pt 2/4
+  triggered whenever this enters: dig 5 take Lesson or Saga or Shrine card may revealing rest bottom random
+  triggered whenever you cast Lesson or Saga or Shrine spell: put 1 +1/+1 counter on another target creature you control
+}

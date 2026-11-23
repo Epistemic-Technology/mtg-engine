@@ -1,0 +1,7 @@
+card "Sentinel Totem" {
+  oracle_id 5432bd43-e92c-464b-9ad2-3515f3042799
+  cost {1}
+  type Artifact
+  triggered when this enters: scry 1
+  activated {T}, exile this: exile all graveyards
+}

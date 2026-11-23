@@ -1,0 +1,41 @@
+scenario "Greenshell enters, top land goes to battlefield tapped" {
+  battlefield A: 5 "Forest"
+  hand A: "Fecund Greenshell"
+  library A: "Mountain", "Hill Giant"
+  turn 1 A: cast "Fecund Greenshell"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mountain"
+  assert tapped "Mountain"
+  assert hand A count 0
+}
+scenario "Greenshell enters, top nonland goes to hand" {
+  battlefield A: 5 "Forest"
+  hand A: "Fecund Greenshell"
+  library A: "Hill Giant", "Mountain"
+  turn 1 A: cast "Fecund Greenshell"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert hand A count 1
+}
+scenario "another creature with toughness greater than power triggers, others don't; ten lands pump" {
+  battlefield A: 9 "Forest", "Fecund Greenshell", "Grizzly Bears"
+  hand A: "Island"
+  library A: "Mountain", "Hill Giant"
+  turn 1 A: play "Island"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert power "Fecund Greenshell" 6
+  assert hand A count 0
+  assert not game_over
+}
+scenario "a Wall with toughness greater than power triggers it; Grizzly Bears does not" {
+  battlefield A: 2 "Mountain", 2 "Forest", "Fecund Greenshell"
+  hand A: "Aetherflame Wall", "Grizzly Bears"
+  library A: "Hill Giant", "Mountain"
+  turn 1 A: cast "Aetherflame Wall"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert hand A count 1
+}

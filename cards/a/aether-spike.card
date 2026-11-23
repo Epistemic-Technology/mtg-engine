@@ -1,0 +1,6 @@
+card "Aether Spike" {
+  oracle_id e4a85647-0b8c-40b2-a5d5-43c78877ce36
+  cost {1}{U}
+  type Instant
+  spell: choose target spell; you get 2 energy then you may pay any energy; counter that target 1 unless its controller pays {X} count each energy paid
+}

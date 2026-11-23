@@ -1,0 +1,56 @@
+# Equip abilities whose cost is reduced (CR 601.2f by way of 602.2b):
+# "for each other Equipment you control", and by what the creature it
+# targets has ("for each +1/+1 counter on", "for each color of"): offered
+# if some target makes it payable, and then only such targets.
+
+scenario "Plate Armor: {1} less for each other Equipment" {
+  battlefield A: "Plate Armor", "Warrior's Blades", "Grizzly Bears", 2 "Plains"
+  turn 1 A: activate "Plate Armor" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert attached "Plate Armor" to "Grizzly Bears"
+  assert power "Grizzly Bears" 5
+}
+
+scenario "Plate Armor: alone, two lands don't pay equip {3}" {
+  battlefield A: "Plate Armor", "Grizzly Bears", 2 "Plains"
+  illegal turn 1 A: activate "Plate Armor" targeting "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "Warrior's Blades: {1} less for each +1/+1 counter on the creature it targets" {
+  battlefield A: "Warrior's Blades", "Grizzly Bears" with 2 +1/+1, "Hill Giant", "Plains"
+  illegal turn 1 A: activate "Warrior's Blades" targeting "Hill Giant"
+  turn 1 A: activate "Warrior's Blades" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert attached "Warrior's Blades" to "Grizzly Bears"
+  assert power "Grizzly Bears" 6
+}
+
+scenario "Warrior's Blades: it deals 3 damage and its controller gains 3 life as it enters" {
+  battlefield A: 2 "Mountain", 2 "Plains"
+  hand A: "Warrior's Blades"
+  turn 1 A: cast "Warrior's Blades"
+  turn 1 A: trigger "Warrior's Blades" targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert life A 23
+}
+
+scenario "Dragonfire Blade: {1} less for each color of the creature it targets" {
+  battlefield A: "Dragonfire Blade", "Temur Battlecrier", "Grizzly Bears", "Forest"
+  illegal turn 1 A: activate "Dragonfire Blade" targeting "Grizzly Bears"
+  turn 1 A: activate "Dragonfire Blade" targeting "Temur Battlecrier"
+  run_to turn 1 end
+  assert attached "Dragonfire Blade" to "Temur Battlecrier"
+  assert power "Temur Battlecrier" 6
+}
+
+scenario "Dragonfire Blade: hexproof from monocolored stops a mono-red Shock" {
+  battlefield A: "Dragonfire Blade" on "Grizzly Bears", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  illegal turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert battlefield A contains "Grizzly Bears"
+}

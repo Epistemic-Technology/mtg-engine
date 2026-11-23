@@ -1,0 +1,8 @@
+card "Barrage Tyrant" {
+  oracle_id f3b70d61-e33e-4243-aac9-e7bd9ba40acb
+  cost {4}{R}
+  type Creature — Eldrazi
+  pt 5/3
+  keywords devoid
+  activated {2}{R}, sacrifice other colorless creature: deal damage equal power of the sacrificed creature to any target
+}

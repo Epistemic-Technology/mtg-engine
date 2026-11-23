@@ -1,0 +1,7 @@
+card "Thud" {
+  oracle_id 5d2a9859-1353-4431-9343-f5999450acd1
+  cost {R}
+  type Sorcery
+  additional cost sacrifice creature
+  spell: deal damage equal power of the sacrificed creature to any target
+}

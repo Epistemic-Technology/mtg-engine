@@ -516,6 +516,7 @@ impl GameState {
             resolutions_this_turn: 0,
             spells_this_turn: [0; 4],
             next_spell_less: [0; 4],
+            next_uncounterable: 0,
             mana_spent_this_turn: [0; 4],
             mana_spent_before_cast: [0; 4],
             drawn_this_turn: [0; 4],
@@ -1478,7 +1479,17 @@ impl GameState {
                         .collect();
                     if incremental {
                         let mut options: Vec<Choice> = if must.is_empty() {
-                            eligible.into_iter().map(Choice::AddAttacker).collect()
+                            eligible
+                                .into_iter()
+                                .filter(|id| {
+                                    self.attack_rule_sources == 0 || {
+                                        let mut with = chosen.clone();
+                                        with.push(*id);
+                                        self.attack_set_affordable(&with)
+                                    }
+                                })
+                                .map(Choice::AddAttacker)
+                                .collect()
                         } else {
                             must.iter().copied().map(Choice::AddAttacker).collect()
                         };
@@ -1498,12 +1509,23 @@ impl GameState {
                         };
                         continue;
                     }
-                    let options: Vec<Choice> = subsets(&eligible)
+                    let mut options: Vec<Choice> = subsets(&eligible)
                         .into_iter()
                         .filter(|set| must.iter().all(|m| set.contains(m)))
                         .filter(|set| self.set_legal(set, false))
+                        .filter(|set| self.attack_set_affordable(set))
                         .map(Choice::Attackers)
                         .collect();
+                    // CR 508.1d: a creature that attacks if able needn't
+                    // when a tax would have to be paid for it.
+                    if options.is_empty() {
+                        options = subsets(&eligible)
+                            .into_iter()
+                            .filter(|set| self.set_legal(set, false))
+                            .filter(|set| self.attack_set_affordable(set))
+                            .map(Choice::Attackers)
+                            .collect();
+                    }
                     return StepResult::Decision(Decision {
                         player,
                         kind: DecisionKind::DeclareAttackers,
@@ -3569,6 +3591,7 @@ impl GameState {
             }
             self.spells_last_turn = std::mem::take(&mut self.spells_this_turn);
             self.next_spell_less = [0; 4];
+            self.next_uncounterable = 0;
             self.drawn_this_turn = [0; 4];
             // "As long as you've drawn two or more cards this turn" and
             // the other this-turn statics start over (CR 611.3a).

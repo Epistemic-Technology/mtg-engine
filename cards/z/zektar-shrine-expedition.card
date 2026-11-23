@@ -1,0 +1,7 @@
+card "Zektar Shrine Expedition" {
+  oracle_id 45bd5e97-f34e-47bc-ad21-da42d3444431
+  cost {1}{R}
+  type Enchantment
+  label "Landfall" triggered whenever land you control enters: you may put 1 quest counters on this
+  activated remove 3 quest counters from this, sacrifice this: create 1 "7/1 red Elemental creature with trample and haste"; delayed that token: exile it at beginning of the next end step
+}

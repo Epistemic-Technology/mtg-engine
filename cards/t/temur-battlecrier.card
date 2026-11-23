@@ -1,0 +1,7 @@
+card "Temur Battlecrier" {
+  oracle_id fadf984c-c224-432a-87b9-b34f929b8409
+  cost {G}{U}{R}
+  type Creature — Orc Ranger
+  pt 4/3
+  static during your turn, spells you cast cost {1} less count each creature you control with power 4 or greater
+}

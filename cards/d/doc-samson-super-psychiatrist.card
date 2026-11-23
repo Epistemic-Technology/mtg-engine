@@ -1,0 +1,8 @@
+card "Doc Samson, Super Psychiatrist" {
+  oracle_id 699610c9-c991-4faf-b712-d015ef0799ad
+  cost {4}{G}
+  type Legendary Creature — Gamma Doctor Hero
+  pt 3/6
+  replace counters you put on permanent you control: plus one
+  activated {T}: add any count where power
+}

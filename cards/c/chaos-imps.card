@@ -1,0 +1,9 @@
+card "Chaos Imps" {
+  oracle_id 31e99241-592d-4be4-9ef3-6dde522b1885
+  cost {4}{R}{R}
+  type Creature — Imp
+  pt 6/5
+  keywords flying
+  unleash
+  static this: has trample as long as this has 1 or more +1/+1 counters
+}

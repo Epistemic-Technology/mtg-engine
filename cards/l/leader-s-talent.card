@@ -1,0 +1,10 @@
+card "Leader's Talent" {
+  oracle_id 134430b7-d566-485a-bd5c-7db8a285f4ca
+  cost {1}{W}
+  type Enchantment — Class
+  triggered whenever you attack: put 1 +1/+1 counter on target attacking creature
+  level 2 {2}{W}
+  triggered whenever creature you control leaves the battlefield if it had counter: you gain 2 life
+  level 3 {3}{W}
+  triggered whenever you cast spell: put 1 +1/+1 counter on each creature you control
+}

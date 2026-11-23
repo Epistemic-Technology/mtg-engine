@@ -479,6 +479,8 @@ pub enum CountExpr {
     SpentColors(SpentOf),
     /// `times kicked`: "time(s) it was kicked" (multikicker, CR 702.33d).
     TimesKicked,
+    /// `energy paid`: "{E} paid this way" (after `pay any energy`).
+    EnergyPaid,
     /// `treasure spent`: "mana from a Treasure spent to cast it".
     SpentTreasure,
     /// `mana spent`: "the amount of mana spent to cast it"; `mana spent
@@ -655,6 +657,10 @@ pub enum ReduceBy {
     /// ability costs {1} less to activate if it targets a creature with
     /// power 3 or less." (the first target).
     Targets(Filter),
+    /// `reduced {1} each +1/+1 counter on target`, `reduced {1} each color
+    /// of target`: "... for each +1/+1 counter on the creature it
+    /// targets", "... for each color of the creature it targets".
+    PerTarget(mtg_core::card::PerTarget),
 }
 
 /// `alternative cost {1}, return basic land you control`, `alternative
@@ -1476,6 +1482,15 @@ pub enum Ability {
         /// `static during turns other than yours, spells you cast cost {1}
         /// less`: only while the condition holds, printed first.
         cond: Option<StaticCond>,
+        /// `... cost {1} less count each creature you control with power 4
+        /// or greater`: "... for each ...".
+        per: Option<Num>,
+        /// `spells first creature you cast cost {2} less`: "The first
+        /// creature spell you cast each turn costs {2} less to cast."
+        first: bool,
+        /// `... cost {2} less and flash`: "... and can be cast as though it
+        /// had flash" (with `first`).
+        flash: bool,
     },
     /// `spells instant or sorcery you cast have storm`, `spells you cast
     /// have delve`, `spells instant or sorcery you cast from hand have
@@ -1508,10 +1523,13 @@ pub enum Ability {
         /// card with mana value 3 or less".
         noun: TargetNoun,
     },
-    /// `this spell costs {3} less if creature died this turn`.
+    /// `this spell costs {3} less if creature died this turn`; `... as
+    /// long as 4 card types in your graveyard` prints "as long as" (Drag
+    /// to the Roots; wording only).
     CondCost {
         delta: i32,
         cond: StaticCond,
+        as_long_as: bool,
     },
     /// `affinity for artifact`: "Affinity for artifacts" (CR 702.41), this
     /// spell costs {1} less for each such permanent you control.
@@ -1587,7 +1605,10 @@ pub enum Ability {
     /// ("Bushido 2", "Echo {2}{R}") and compiled to what it stands for.
     Mechanic(Mechanic),
     /// `exert: effects`: "You may exert this creature as it attacks. When
-    /// you do, [effects]." (CR 701.43).
+    /// you do, [effects]." (CR 701.43). With targets ("When you do, target
+    /// creature can't block this turn"), the effects are one `WhenYouDo`
+    /// sentence holding them (see `exert_parts`): a reflexive trigger, its
+    /// targets chosen once the creature is exerted (CR 603.12).
     Exert(Vec<Sentence>),
     /// `enters tapped unless you control planeswalker`: "This land enters
     /// tapped unless you control a planeswalker." (CR 614.1d)
@@ -1629,6 +1650,17 @@ pub enum Ability {
         /// `can't attack if ...`: "This creature can't attack if defending
         /// player controls an untapped land."
         negated: bool,
+    },
+    /// `tax attacking you {2}`, `tax attacking you or planeswalkers {1}`,
+    /// `tax enchanted attack or block {3}`, `tax enchanted blocked {3}`:
+    /// an attack or block tax (CR 508.1d, 509.1d). `generic` mana for
+    /// each creature, times `per` (`{X} count each hand`: "{1} for each
+    /// card in your hand"), while `cond` holds (`... as long as <cond>`).
+    CombatTax {
+        scope: mtg_core::card::TaxScope,
+        generic: u32,
+        per: Option<Num>,
+        cond: Option<StaticCond>,
     },
     /// `hand size none`, `hand size +1`, `hand size opponents -1`: "You
     /// have no maximum hand size.", "Your maximum hand size is increased
@@ -1780,6 +1812,13 @@ pub enum TrigCond {
     /// the event happens ("Whenever this creature attacks while you control
     /// two or more artifacts, ...").
     While(StaticCond),
+    /// `if it had counter`, `if it had one or more counters`: the core
+    /// `TriggerHadCounters` ("if it had counters on it") printed "if it had
+    /// a counter on it" (Leader's Talent) or "if it had one or more
+    /// counters on it" (Ambitious Augmenter).
+    HadCounter {
+        one_or_more: bool,
+    },
 }
 
 /// Keyword abilities with a parameter (CR 702).
@@ -2374,6 +2413,13 @@ pub enum StaticCond {
         filter: Filter,
         n: u32,
     },
+    /// `you control at least 5 other Forest`: "you control at least five
+    /// other Forests" (Roiling Canopy; the same condition as `you control
+    /// 5 other Forest`).
+    YouControlAtLeast {
+        filter: Filter,
+        n: u32,
+    },
     /// `you control Urza's Mine and Urza's Power-Plant`: "you control an
     /// Urza's Mine and an Urza's Power-Plant".
     YouControlEach(Vec<Filter>),
@@ -2496,6 +2542,9 @@ pub enum StaticCond {
     /// `this isnt token`: "it isn't a token" (Sphinx of False
     /// Conclusions); `this is nontoken` prints "it's not a token".
     IsntToken,
+    /// `this isnt creature`: "this enchantment isn't a creature" (Answered
+    /// Prayers): the source has none of the filter's card types.
+    Isnt(Filter),
     /// `modified`: "it's modified" (CR 700.9).
     Modified,
     /// `attacking alone`: "it's attacking alone".
@@ -2995,6 +3044,14 @@ pub enum Replaces {
     ThisToGraveyard,
     PlusCounters {
         on: Filter,
+    },
+    /// `counters put on permanent you control` ("If one or more counters
+    /// would be put on ..."), `counters put by effect on ...` ("If an
+    /// effect would put one or more counters on ..."), `counters you put
+    /// on ...` ("If you would put one or more counters on ...").
+    AnyCounters {
+        on: Filter,
+        by: mtg_core::card::CountersBy,
     },
     Destroy {
         to: Affects,
@@ -3718,6 +3775,11 @@ pub enum Recipient {
     /// those cards to the battlefield under their owner's control at the
     /// beginning of the next end step.").
     SameCards,
+    /// `the exiled cards` inside a delayed trigger about several targets:
+    /// `SameCards` printed "the exiled cards" ("Return the exiled cards to
+    /// the battlefield under their owners' control ...", Hide on the
+    /// Ceiling).
+    SameExiledCards,
     /// `them` inside a delayed trigger about created tokens: those tokens
     /// (`SameTokens`), printed "them" ("Exile them at the beginning of the
     /// next end step").
@@ -3968,6 +4030,9 @@ pub enum Effect {
     /// `next spell costs {1} less`: "the next spell you cast this turn
     /// costs {1} less to cast".
     NextSpellLess(u32),
+    /// `next spell can't be countered`: "the next spell you cast this turn
+    /// can't be countered".
+    NextSpellUncounterable,
     /// `play additional land this turn`, `play 2 additional land this
     /// turn`: "You may play an additional land this turn.", "You may play
     /// up to two additional lands this turn." (CR 305.2).
@@ -4655,6 +4720,9 @@ pub enum Effect {
         /// `ward discard 1 card at random`: the cards are chosen at
         /// random (CR 701.9b).
         discard_random: bool,
+        /// `ward {2}, pay 2 life`: the mana and the life together (else
+        /// mana with life is "{1} or 1 life", either).
+        both: bool,
         effect: Box<Effect>,
     },
     /// `<clause> unless they sacrifice nonland permanent or discard 1
@@ -5015,6 +5083,10 @@ pub enum Effect {
         free: bool,
         first: bool,
         it: bool,
+        /// `may play that card from exile this turn`: "You may play that
+        /// card from exile this turn." (Norin, Swift Survivalist; wording
+        /// only).
+        from_exile: bool,
     },
     /// `may cast target Zombie creature card from your graveyard this
     /// turn`: "You may cast target Zombie creature card from your
@@ -5420,4 +5492,16 @@ pub enum SpentOf {
     /// `colors spent that spell`: "that spell", the spell that triggered
     /// the ability (not converge: it reads that spell, not the source).
     That,
+}
+
+/// An exert ability's targets and effects (`Ability::Exert`): a lone
+/// `WhenYouDo` sentence holds the targets.
+pub fn exert_parts(effects: &[Sentence]) -> (&[Target], &[Sentence]) {
+    match effects {
+        [s] if s.effects.len() == 1 => match &s.effects[0] {
+            Effect::WhenYouDo { targets, effects } => (targets, effects),
+            _ => (&[], effects),
+        },
+        _ => (&[], effects),
+    }
 }

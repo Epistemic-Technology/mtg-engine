@@ -1,0 +1,6 @@
+card "Ghostly Prison" {
+  oracle_id e828b189-0e8f-43b8-b909-4c23e742e028
+  cost {2}{W}
+  type Enchantment
+  tax attacking you {2}
+}

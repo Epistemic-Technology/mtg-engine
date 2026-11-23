@@ -1,0 +1,9 @@
+card "Deadly Complication" {
+  oracle_id c53c75a0-c248-4e76-8d28-f7e53b2dcc49
+  cost {1}{B}{R}
+  type Sorcery
+  choose one or both {
+    mode: destroy target creature
+    mode: put 1 +1/+1 counter on target suspected creature you control; you may target 1 no longer suspected
+  }
+}

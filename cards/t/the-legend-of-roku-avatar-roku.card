@@ -1,0 +1,15 @@
+card "The Legend of Roku // Avatar Roku" {
+  oracle_id 2f26f270-26d9-46d3-957f-19f52d51eb03
+  layout transform
+  cost {2}{R}{R}
+  type Enchantment — Saga
+  triggered chapter 1: impulse 3 next turn first
+  triggered chapter 2: add any
+  triggered chapter 3: exile this then return this to battlefield transformed under your control
+  face "Avatar Roku" {
+    type Legendary Creature — Avatar
+    pt 4/4
+    firebending 4
+    activated {8}: create 1 "4/4 red Dragon creature with flying and firebending 4"
+  }
+}

@@ -1,0 +1,8 @@
+card "Resolute Rider" {
+  oracle_id 2f8b2bca-991c-4dee-829b-c1cc7deaadfb
+  cost {W/B}{W/B}{W/B}{W/B}
+  type Creature — Human Knight
+  pt 4/2
+  activated {W/B}{W/B}: this gains lifelink
+  activated {W/B}{W/B}{W/B}: this gains indestructible
+}

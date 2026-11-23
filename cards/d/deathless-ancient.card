@@ -1,0 +1,8 @@
+card "Deathless Ancient" {
+  oracle_id 990dde55-8ee3-41ad-874b-60864ec28ff4
+  cost {4}{B}{B}
+  type Creature — Vampire Knight
+  pt 4/4
+  keywords flying
+  activated tap 3 untapped Vampire you control, from graveyard: return this to hand
+}

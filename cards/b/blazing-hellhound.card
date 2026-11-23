@@ -1,0 +1,7 @@
+card "Blazing Hellhound" {
+  oracle_id 598a7410-35e8-4d62-9bf1-d44ee7717040
+  cost {2}{B}{R}
+  type Creature — Elemental Dog
+  pt 4/3
+  activated {1}, sacrifice other creature: deal 1 damage to any target
+}

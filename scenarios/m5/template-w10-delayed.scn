@@ -1,0 +1,62 @@
+# Delayed triggers the template author learned in the tenth wave: "Exile
+# this creature. Return it to the battlefield under its owner's control at
+# the beginning of the next end step.", and "Return target creature card
+# ... Sacrifice that creature at the beginning of the next end step."
+
+scenario "Aetherling: exiled, it returns at the next end step" {
+  battlefield A: "Aetherling", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Aetherling" ability 1
+  run_to turn 1 postcombat_main
+  assert exile A contains "Aetherling"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Aetherling"
+}
+
+scenario "Fleeting Spirit: discard a card to blink it" {
+  battlefield A: "Fleeting Spirit"
+  hand A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Fleeting Spirit" ability 2
+  run_to turn 1 postcombat_main
+  assert exile A contains "Fleeting Spirit"
+  assert graveyard A contains "Island"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Fleeting Spirit"
+}
+
+scenario "Ghost Council of Orzhova: sacrifice a creature, it returns and drains again" {
+  battlefield A: "Ghost Council of Orzhova", "Grizzly Bears", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ghost Council of Orzhova" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Ghost Council of Orzhova"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Ghost Council of Orzhova"
+  assert life B 19
+  assert life A 21
+}
+
+scenario "Djinn of the Fountain: the exile mode returns it" {
+  battlefield A: "Djinn of the Fountain", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: trigger "Djinn of the Fountain" mode 2
+  run_to turn 1 postcombat_main
+  assert exile A contains "Djinn of the Fountain"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Djinn of the Fountain"
+}
+
+scenario "Footsteps of the Goryo: the returned creature is sacrificed at the end step" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Craw Wurm"
+  hand A: "Footsteps of the Goryo"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Footsteps of the Goryo" targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Craw Wurm"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Craw Wurm"
+}

@@ -1,0 +1,12 @@
+card "Virtue of Courage // Embereth Blaze" {
+  oracle_id af6438b9-3fde-45c9-af69-dff686c1e0de
+  layout adventure
+  cost {3}{R}{R}
+  type Enchantment
+  triggered whenever a source you control deals noncombat damage to an opponent: you may impulse that much this turn
+  face "Embereth Blaze" {
+    cost {1}{R}
+    type Instant — Adventure
+    spell: deal 2 damage to any target
+  }
+}

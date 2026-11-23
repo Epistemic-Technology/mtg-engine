@@ -1,0 +1,27 @@
+scenario "arc of fortune: each player discards hand and draws seven" {
+  battlefield A: 6 "Island"
+  hand A: "Variable Chaser", "Grizzly Bears", "Hill Giant"
+  hand B: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Variable Chaser"
+  turn 1 A: wait
+  turn 1 A: cast "Arc of Fortune"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard B contains "Shock"
+  assert graveyard B contains "Lightning Bolt"
+  assert hand A count 7
+  assert hand B count 7
+}
+scenario "arc of fortune: accepting, with a flying prepared creature on board" {
+  battlefield A: 6 "Island"
+  hand A: "Variable Chaser", "Grizzly Bears"
+  hand B: "Shock"
+  turn 1 A: cast "Variable Chaser"
+  turn 1 A: wait
+  turn 1 A: cast "Arc of Fortune"
+  turn 1 A: accept "Arc of Fortune"
+  run_to turn 1 postcombat_main
+  assert hand A count 7
+  assert has "Variable Chaser" flying
+}

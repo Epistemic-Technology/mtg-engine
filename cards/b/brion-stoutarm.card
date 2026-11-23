@@ -1,0 +1,8 @@
+card "Brion Stoutarm" {
+  oracle_id b816b3cc-ae4b-4fb7-8b1a-e01ab83459a3
+  cost {2}{R}{W}
+  type Legendary Creature — Giant Warrior
+  pt 4/4
+  keywords lifelink
+  activated {R}, {T}, sacrifice other creature: deal damage equal power of the sacrificed creature to target player or planeswalker
+}

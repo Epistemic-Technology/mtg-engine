@@ -1,0 +1,9 @@
+card "Summon: Primal Odin" {
+  oracle_id 032f59c3-9f47-4db3-a43c-065a99ed7efe
+  cost {4}{B}{B}
+  type Enchantment Creature — Saga Knight
+  pt 5/3
+  label "Gungnir" triggered chapter 1: destroy target creature an opponent controls
+  label "Zantetsuken" triggered chapter 2: this gains ability { triggered whenever this deals combat damage to a player: that player loses game } indefinitely
+  label "Hall of Sorrow" triggered chapter 3: draw 2 cards; each player loses 2 life
+}

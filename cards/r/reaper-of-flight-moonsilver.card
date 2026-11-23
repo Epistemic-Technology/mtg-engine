@@ -1,0 +1,8 @@
+card "Reaper of Flight Moonsilver" {
+  oracle_id 94cce37a-a752-4cde-a5b5-e8a15f8af52c
+  cost {3}{W}{W}
+  type Creature — Angel
+  pt 3/3
+  keywords flying
+  label "Delirium" activated sacrifice other creature, if 4 card types in your graveyard: this gets +2/+1
+}

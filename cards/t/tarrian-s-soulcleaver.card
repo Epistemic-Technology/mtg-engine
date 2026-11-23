@@ -1,0 +1,8 @@
+card "Tarrian's Soulcleaver" {
+  oracle_id 2ffb38ec-5852-4e91-85a5-cfccd1f23556
+  cost {1}
+  type Legendary Artifact — Equipment
+  static equipped: has vigilance
+  triggered whenever another artifact or creature is put into a graveyard from the battlefield: put 1 +1/+1 counter on equipped creature
+  equip {2}
+}

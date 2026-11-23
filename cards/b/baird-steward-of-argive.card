@@ -1,0 +1,8 @@
+card "Baird, Steward of Argive" {
+  oracle_id 69aa6809-5468-413a-94c9-562e6de93957
+  cost {2}{W}{W}
+  type Legendary Creature — Human Soldier
+  pt 2/4
+  keywords vigilance
+  tax attacking you or planeswalkers {1}
+}

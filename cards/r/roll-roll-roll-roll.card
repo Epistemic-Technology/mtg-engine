@@ -1,0 +1,6 @@
+card "Roll-Roll-Roll-Roll" {
+  oracle_id aa913409-7a7a-4e74-82ff-7ff8195585ad
+  cost {2}{U}
+  type Enchantment — Saga
+  triggered chapter 1, 2, 3, 4: exile up to 1 target creature or land you control; if you do, delayed target 1: return it to battlefield under its owner's control at beginning of the next end step
+}

@@ -1,0 +1,6 @@
+token "5/5 black Zombie Giant creature" {
+  name "Zombie Giant"
+  type Creature — Zombie Giant
+  pt 5/5
+  color black
+}

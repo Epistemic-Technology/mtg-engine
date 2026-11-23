@@ -1,0 +1,8 @@
+card "Knight of the Last Breath" {
+  oracle_id 67791323-bf21-4c72-bf57-32197d3d5775
+  cost {5}{W}{B}
+  type Creature — Giant Knight
+  pt 4/4
+  activated {3}, sacrifice other nontoken creature: create 1 "1/1 white and black Spirit creature with flying"
+  afterlife 3
+}

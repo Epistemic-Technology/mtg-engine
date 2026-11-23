@@ -1,0 +1,8 @@
+card "Taunting Arbormage" {
+  oracle_id 58254569-0ba6-4ac1-9403-dc21a1b5c2e8
+  cost {2}{G}
+  type Creature — Elf Wizard
+  pt 2/3
+  kicker {3}
+  triggered when this enters if kicked: target creature gains lure
+}

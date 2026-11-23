@@ -1,0 +1,32 @@
+scenario "Interface Ace crews with its toughness and untaps" {
+  battlefield A: "Interface Ace", "Smuggler's Copter"
+  turn 1 A: activate "Smuggler's Copter"
+  run_to turn 1 postcombat_main
+  assert is "Smuggler's Copter" creature
+  assert untapped "Interface Ace"
+}
+
+scenario "Interface Ace saddles with its toughness" {
+  battlefield A: "Interface Ace", "Gila Courser"
+  turn 1 A: activate "Gila Courser"
+  run_to turn 1 postcombat_main
+  assert power "Gila Courser" 4
+  assert untapped "Interface Ace"
+}
+
+scenario "Interface Ace untaps only once each turn" {
+  battlefield A: "Interface Ace", "Smuggler's Copter"
+  turn 1 declare_attackers A: attack "Interface Ace"
+  turn 1 postcombat_main A: activate "Smuggler's Copter"
+  run_to turn 1 end
+  assert tapped "Interface Ace"
+  assert is "Smuggler's Copter" creature
+}
+
+scenario "Interface Ace does not untap on the opponent's turn" {
+  battlefield A: "Interface Ace", "Smuggler's Copter"
+  start turn 2 B precombat_main
+  turn 2 precombat_main A: activate "Smuggler's Copter"
+  run_to turn 2 postcombat_main
+  assert tapped "Interface Ace"
+}

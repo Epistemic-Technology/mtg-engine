@@ -1,0 +1,7 @@
+card "Tendril of the Mycotyrant" {
+  oracle_id d2824464-963b-48db-a482-cc08a0a97332
+  cost {1}{G}
+  type Creature — Fungus Wizard
+  pt 2/2
+  activated {5}{G}{G}: put 7 +1/+1 counters on target noncreature land you control; target 1 becomes 0/0 Fungus creature with haste indefinitely
+}

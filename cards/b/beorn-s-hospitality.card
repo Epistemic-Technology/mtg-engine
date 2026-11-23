@@ -1,0 +1,7 @@
+card "Beorn's Hospitality" {
+  oracle_id d9ed7252-11d1-432b-9101-ac08cd28826d
+  cost {1}{G}
+  type Enchantment
+  label "Landfall" triggered whenever land you control enters: put 1 +1/+1 counter on target creature you control
+  activated {5}{G}{G}: this becomes Bear creature in addition indefinitely and gains ability { static this: cda noun pt count land you control } indefinitely
+}

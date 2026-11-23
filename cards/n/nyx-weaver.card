@@ -1,0 +1,9 @@
+card "Nyx Weaver" {
+  oracle_id 6f8bf968-0571-4582-8c04-9791e44d5df0
+  cost {1}{B}{G}
+  type Enchantment Creature — Spider
+  pt 2/3
+  keywords reach
+  triggered at beginning of your upkeep: mill 2 cards
+  activated {1}{B}{G}, exile this: return target card from your graveyard to hand
+}

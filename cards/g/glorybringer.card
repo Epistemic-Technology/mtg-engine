@@ -1,0 +1,8 @@
+card "Glorybringer" {
+  oracle_id b75c3902-633e-4d24-acde-d7a9cc8f466e
+  cost {3}{R}{R}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying, haste
+  exert: deal 4 damage to target non-Dragon creature an opponent controls
+}

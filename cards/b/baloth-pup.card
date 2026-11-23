@@ -1,0 +1,7 @@
+card "Baloth Pup" {
+  oracle_id cb06cf58-3cc6-429a-9bb0-be4b1c53de30
+  cost {1}{G}
+  type Creature — Beast
+  pt 3/1
+  static this: has trample as long as this has 1 or more +1/+1 counters
+}

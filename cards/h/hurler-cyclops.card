@@ -1,0 +1,7 @@
+card "Hurler Cyclops" {
+  oracle_id fac57730-8fd8-4702-8b35-4ef0ed5fa41a
+  cost {3}{R}{R}
+  type Creature — Cyclops
+  pt 5/4
+  activated {1}, sacrifice other creature: deal 1 damage to any target
+}

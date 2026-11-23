@@ -1,0 +1,6 @@
+card "Hide on the Ceiling" {
+  oracle_id 376fa374-ead1-4728-ab8b-aca230b72031
+  cost {X}{U}
+  type Instant
+  spell: exile X target andor artifact or creature; delayed target 1: return the exiled cards to battlefield under its owner's control at beginning of the next end step
+}

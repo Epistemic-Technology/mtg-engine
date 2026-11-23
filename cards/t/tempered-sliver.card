@@ -1,0 +1,7 @@
+card "Tempered Sliver" {
+  oracle_id 536c36d9-5ef4-441c-a6c8-5806644d805c
+  cost {2}{G}
+  type Creature — Sliver
+  pt 2/2
+  static Sliver creature you control: has ability { triggered whenever this deals combat damage to a player: put 1 +1/+1 counters on this }
+}

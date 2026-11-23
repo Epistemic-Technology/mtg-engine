@@ -1,0 +1,6 @@
+card "Mouth of Ronom" {
+  oracle_id 7c05d239-39fc-4d34-a853-e3d591f4a235
+  type Snow Land
+  mana {C}
+  activated {4}{S}, {T}, sacrifice this: deal 4 damage to target creature
+}

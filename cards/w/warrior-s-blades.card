@@ -1,0 +1,8 @@
+card "Warrior's Blades" {
+  oracle_id f47419a5-b975-4934-a987-ea064a0c7c1a
+  cost {2}{R}{W}
+  type Artifact — Equipment
+  triggered when this enters: this deals 3 damage to any target and you gain 3 life
+  static equipped creature: +2/+1
+  equip {3}, reduced {1} each +1/+1 counter on target
+}

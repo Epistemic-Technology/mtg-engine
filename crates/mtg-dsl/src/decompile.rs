@@ -1043,6 +1043,7 @@ impl Decompiler<'_> {
             CoreEffect::TapOrUntap { to } => Effect::TapOrUntap { to: r(*to) },
             CoreEffect::ExileSameName { what } => Effect::ExileSameName { what: r(*what) },
             CoreEffect::NextSpellLess(n) => Effect::NextSpellLess(*n),
+            CoreEffect::NextSpellUncounterable => Effect::NextSpellUncounterable,
             CoreEffect::ExtraLandPlays(n) => Effect::ExtraLandPlays(*n),
             CoreEffect::FaceDownSpellsLess(n) => Effect::FaceDownSpellsLess(*n),
             CoreEffect::Goad { what } => Effect::Goad { what: r(*what) },
@@ -1528,6 +1529,7 @@ impl Decompiler<'_> {
                 discard,
                 waterbend,
                 discard_random,
+                both,
                 effects,
             } => Effect::UnlessPays {
                 payer: Self::recipient(*payer),
@@ -1536,6 +1538,7 @@ impl Decompiler<'_> {
                 discard: *discard,
                 waterbend: *waterbend,
                 discard_random: *discard_random,
+                both: *both,
                 effect: Box::new(
                     effects
                         .first()
@@ -1806,6 +1809,7 @@ impl Decompiler<'_> {
                 free: *free,
                 first: false,
                 it: false,
+                from_exile: false,
             },
             CoreEffect::RevealUntil { who, filter } => Effect::RevealUntil {
                 who: match r(*who) {
@@ -2375,6 +2379,10 @@ impl Decompiler<'_> {
                 CoreReplaces::PlusCounters { on } => Replaces::PlusCounters {
                     on: self.filter(on),
                 },
+                CoreReplaces::AnyCounters { on, by } => Replaces::AnyCounters {
+                    on: self.filter(on),
+                    by: *by,
+                },
                 CoreReplaces::Dies { to } => Replaces::Dies {
                     to: self.affects(to),
                 },
@@ -2526,6 +2534,14 @@ impl Decompiler<'_> {
                 negated: *negated,
             },
             AbilityDef::Toxic(n) => Ability::Mechanic(crate::ast::Mechanic::Toxic(*n)),
+            AbilityDef::CombatTax(t) => Ability::CombatTax {
+                scope: t.scope,
+                generic: t.generic,
+                per: t.per,
+                cond: t
+                    .condition
+                    .map(|c| self.static_cond(self.pool.condition(c))),
+            },
             AbilityDef::HandSize { whose, delta, set } => Ability::HandSize {
                 whose: *whose,
                 delta: *delta,
@@ -2583,7 +2599,7 @@ impl Decompiler<'_> {
                 toughness: *toughness,
                 plus: *plus,
             },
-            AbilityDef::CostChange(c) if c.grant.is_some() => {
+            AbilityDef::CostChange(c) if c.grant.is_some() && c.generic == 0 => {
                 let g = c.grant.as_deref().expect("checked");
                 Ability::SpellsHave {
                     filter: self.filter(&c.spells),
@@ -2599,6 +2615,12 @@ impl Decompiler<'_> {
                 whose: c.whose,
                 generic: c.generic,
                 cond: c.cond.map(|i| self.static_cond(self.pool.condition(i))),
+                per: c.per,
+                first: c.first,
+                flash: c
+                    .grant
+                    .as_ref()
+                    .is_some_and(|g| g.keywords.contains(mtg_core::card::Keyword::Flash)),
             },
             AbilityDef::SacForMana(m) => Ability::SacMana(*m),
             AbilityDef::RestrictedMana { mana, restriction } => Ability::RestrictedMana {

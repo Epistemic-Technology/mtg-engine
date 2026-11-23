@@ -1,0 +1,6 @@
+card "Ghirapur Aether Grid" {
+  oracle_id 05d75b10-4f20-4083-af27-f85c6e207fd0
+  cost {2}{R}
+  type Enchantment
+  activated tap 2 untapped artifact you control: deal 1 damage to any target
+}

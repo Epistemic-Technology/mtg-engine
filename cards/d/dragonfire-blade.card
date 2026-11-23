@@ -1,0 +1,7 @@
+card "Dragonfire Blade" {
+  oracle_id e809b847-b712-4558-95ea-9bb7356cde91
+  cost {1}
+  type Artifact — Equipment
+  static equipped creature: +2/+2, has hexproof from monocolored
+  equip {4}, reduced {1} each color of target
+}

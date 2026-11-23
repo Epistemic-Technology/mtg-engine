@@ -1,0 +1,7 @@
+card "Vampire Warlord" {
+  oracle_id 393586d3-1f1a-4f3a-96b8-ed1a8fdf00c6
+  cost {4}{B}
+  type Creature — Vampire Warrior
+  pt 4/2
+  activated sacrifice other creature: regenerate this
+}

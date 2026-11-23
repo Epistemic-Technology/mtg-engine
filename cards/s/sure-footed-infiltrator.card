@@ -1,0 +1,8 @@
+card "Sure-Footed Infiltrator" {
+  oracle_id e6108735-8370-4611-ad59-d7da7fd0323f
+  cost {3}{U}
+  type Creature — Merfolk Rogue
+  pt 2/3
+  activated tap other untapped Rogue you control: this can't be blocked
+  triggered whenever this deals combat damage to a player: draw 1 cards
+}

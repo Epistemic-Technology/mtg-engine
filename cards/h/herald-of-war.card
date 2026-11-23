@@ -1,0 +1,9 @@
+card "Herald of War" {
+  oracle_id 1228bd6f-565d-4ad5-bd24-e5aa1ead5dee
+  cost {3}{W}{W}
+  type Creature — Angel
+  pt 3/3
+  keywords flying
+  triggered whenever this attacks: put 1 +1/+1 counters on this
+  spells Angel or Human you cast cost {1} less count each +1/+1 counters on this
+}

@@ -1,0 +1,23 @@
+scenario "first combat: untap and extra combat phase, double strike each time" {
+  battlefield A: "Grizzly Bears", "Genji Glove" on "Grizzly Bears"
+  turn 1 declare_attackers combat 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers combat 2 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 12
+  assert has "Grizzly Bears" double_strike
+}
+scenario "second combat attack does not trigger again" {
+  battlefield A: "Grizzly Bears", "Genji Glove" on "Grizzly Bears"
+  turn 1 declare_attackers combat 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers combat 2 A: attack "Grizzly Bears"
+  run_to turn 2 untap
+  assert life B 12
+  assert not game_over
+}
+scenario "unequipped creature has no double strike" {
+  battlefield A: "Grizzly Bears", "Genji Glove"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert has not "Grizzly Bears" double_strike
+}

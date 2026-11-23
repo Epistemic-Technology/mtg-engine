@@ -2094,6 +2094,9 @@ pub enum CountExpr {
     /// "for each time it was kicked": how many times the source's
     /// multikicker cost was paid (CR 702.33d).
     TimesKicked,
+    /// "for each {E} paid this way": the energy the resolution's "pay any
+    /// amount of {E}" paid (its X).
+    EnergyPaid,
     /// The mana from Treasures spent to cast the source ("for each mana
     /// from a Treasure spent to cast it").
     SpentTreasure,
@@ -2306,6 +2309,7 @@ impl CountExpr {
             | CountExpr::AttackedWithThisTurn
             | CountExpr::SpentColors
             | CountExpr::TimesKicked
+            | CountExpr::EnergyPaid
             | CountExpr::SpentTreasure
             | CountExpr::SpentTotal
             | CountExpr::ThatSpellSpent
@@ -2474,6 +2478,10 @@ pub enum Lasting {
     /// hand that exiled its card as a cost): while that card stays in
     /// exile.
     UntilCastFromExile,
+    /// No duration at all ("That token gains haste.", "It gains
+    /// \"...\"" from a resolving spell or ability): the effect lasts as
+    /// long as the object it affects (CR 611.2a, 400.7).
+    Forever,
 }
 
 /// How long cards exiled by an impulse effect stay playable.
@@ -3249,6 +3257,36 @@ impl Keyword {
             || set.contains(Keyword::Improvise)
             || set.contains(Keyword::Delve)
     }
+}
+
+/// What an attack or block tax applies to (`AbilityDef::CombatTax`).
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum TaxScope {
+    /// Creatures attacking the ability's controller ("Creatures can't
+    /// attack you"), and with `planeswalkers` those attacking planeswalkers
+    /// they control ("you or planeswalkers you control"). `those` is
+    /// wording only: "for each of those creatures" rather than "for each
+    /// creature they control that's attacking you".
+    AttackingYou { planeswalkers: bool, those: bool },
+    /// The creature this Aura enchants, attacking and/or blocking; its
+    /// controller pays.
+    Enchanted { attack: bool, block: bool },
+    /// Each creature blocking the creature this Aura enchants ("can't be
+    /// blocked unless defending player pays {3} for each creature they
+    /// control that's blocking it").
+    EnchantedBlocked,
+}
+
+/// An attack or block tax (CR 508.1d, 509.1d): `generic` mana for each
+/// creature in its scope, times `per` if any ("{1} for each card in your
+/// hand", counted for the ability's controller as the declaration is
+/// made), while `condition` (a pool condition) holds.
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct CombatTax {
+    pub scope: TaxScope,
+    pub generic: u32,
+    pub per: Option<Num>,
+    pub condition: Option<u16>,
 }
 
 impl CounterKind {
@@ -4294,6 +4332,9 @@ pub enum Effect {
     /// generic mana; several such effects add up, and that one spell uses
     /// them all up.
     NextSpellLess(u32),
+    /// "The next spell you cast this turn can't be countered" (CR 101.2):
+    /// the controller's next spell this turn is uncounterable.
+    NextSpellUncounterable,
     /// "You may play an additional land this turn." (CR 305.2): the
     /// controller may play `n` more lands this turn ("up to two additional
     /// lands").
@@ -4514,6 +4555,10 @@ pub enum Effect {
         waterbend: bool,
         /// "Ward—Discard a card at random." (CR 701.9b).
         discard_random: bool,
+        /// "Ward—{2}, Pay 2 life.": the mana and the life together;
+        /// otherwise mana with life is "{1} or 1 life", either.
+        #[serde(default)]
+        both: bool,
         effects: Vec<Effect>,
     },
     /// "... unless they sacrifice a nonland permanent of their choice or
@@ -4674,7 +4719,9 @@ pub enum Effect {
         count: Num,
         who: Recipient,
     },
-    /// "Pay {E}{E}", inside "you may": like `Pay`.
+    /// "Pay {E}{E}", inside "you may": like `Pay`. `PAY_ANY_ENERGY`: "you
+    /// may pay any amount of {E}", the amount chosen as it resolves; later
+    /// "X" and "that much" in the resolution are the amount paid.
     PayEnergy(u32),
     /// "Level 2" (a Class's level ability, CR 716.2a: the stage is the
     /// level less one) or "it becomes solved" (a Case's to-solve ability,
@@ -5817,6 +5864,11 @@ pub enum PlayerStaticKind {
         min_one: bool,
         keyword: Option<ActivatedKeyword>,
     },
+    /// "You may pay {0} rather than pay the equip cost of the first equip
+    /// ability you activate each turn" (CR 118.9; `your_turns`: "during
+    /// each of your turns"): the engine takes it for the first equip
+    /// ability its controller activates in such a turn.
+    FirstEquipFree { your_turns: bool },
 }
 
 /// Effects that modify the rules rather than objects (CR 613.11, 614.17).
@@ -5936,6 +5988,10 @@ pub enum Replaces {
     /// +1/+1 counters would be put on a permanent matching `on`, including
     /// as it enters (CR 122.6).
     PlusCounters { on: ObjFilter },
+    /// Counters of any kind would be put on a permanent matching `on`,
+    /// including as it enters (CR 122.6): "If one or more counters would
+    /// be put on ..." (`by` says whose putting counts).
+    AnyCounters { on: ObjFilter, by: CountersBy },
     /// A permanent would be destroyed (CR 701.7); regeneration shields
     /// (CR 701.15) replace this.
     Destroy { to: Affects },
@@ -5960,6 +6016,23 @@ pub enum Replaces {
         you: bool,
     },
 }
+
+/// Whose putting counters a counter replacement applies to
+/// (`Replaces::AnyCounters`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum CountersBy {
+    /// "If one or more counters would be put on ...": any.
+    Any,
+    /// "If an effect would put one or more counters on ...": an effect's
+    /// (not a cost's, CR 122.6).
+    Effect,
+    /// "If you would put one or more counters on ...": the replacement's
+    /// controller's spells, abilities, and costs.
+    You,
+}
+
+/// `Effect::PayEnergy`'s "any amount of {E}".
+pub const PAY_ANY_ENERGY: u32 = u32::MAX;
 
 /// What happens instead.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -7578,6 +7651,21 @@ pub struct ActivationReduction {
     /// 601.2f comes after the targets are chosen, 601.2c).
     #[serde(default)]
     pub target: Option<ObjFilter>,
+    /// "This ability costs {1} less to activate for each +1/+1 counter on
+    /// the creature it targets" / "for each color of the creature it
+    /// targets": `by` once for each, judged on the first target.
+    #[serde(default)]
+    pub per_target: Option<PerTarget>,
+}
+
+/// What an activation reduction counts on its first target
+/// (`ActivationReduction::per_target`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum PerTarget {
+    /// Its counters of this kind.
+    Counters(CounterKind),
+    /// Its colors (CR 105.2).
+    Colors,
 }
 
 /// A keyword that adds rules to the activated ability after it.
@@ -7662,6 +7750,15 @@ pub struct CostChange {
     /// spells have besides.
     #[serde(default)]
     pub grant: Option<Box<SpellGrant>>,
+    /// "... cost {1} less to cast for each creature you control with
+    /// power 4 or greater": `generic` this many times, counted for the
+    /// source's controller as the cost is determined.
+    #[serde(default)]
+    pub per: Option<Num>,
+    /// "The first creature spell you cast each turn costs {2} less": only
+    /// while its caster hasn't cast a matching spell this turn.
+    #[serde(default)]
+    pub first: bool,
 }
 
 /// What a static ability gives the spells its controller casts (CR
@@ -7824,6 +7921,11 @@ pub enum AbilityDef {
         /// the restriction applies while the condition holds.
         negated: bool,
     },
+    /// An attack or block tax (CR 508.1d, 508.1g-h, 509.1d, 509.1f-g):
+    /// "Creatures can't attack you unless their controller pays {2} for
+    /// each creature they control that's attacking you", "Enchanted
+    /// creature can't attack or block unless its controller pays {3}".
+    CombatTax(CombatTax),
     /// Protection from what matches the filter ("protection from
     /// artifacts", "from Goblins", "from everything"), judged on a source's
     /// characteristics (CR 702.16); the object also has
@@ -7986,6 +8088,7 @@ impl AbilityDef {
             | AbilityDef::BlockRule(_)
             | AbilityDef::CostChange(_)
             | AbilityDef::AttackUnless { .. }
+            | AbilityDef::CombatTax(_)
             | AbilityDef::Protection(_)
             | AbilityDef::Landwalk(_)
             | AbilityDef::HandSize { .. }
@@ -8024,6 +8127,7 @@ impl AbilityDef {
             | AbilityDef::BlockRule(_)
             | AbilityDef::CostChange(_)
             | AbilityDef::AttackUnless { .. }
+            | AbilityDef::CombatTax(_)
             | AbilityDef::Protection(_)
             | AbilityDef::Landwalk(_)
             | AbilityDef::HandSize { .. }
@@ -9027,9 +9131,12 @@ impl DefFlags {
         );
         flags.set(
             DefFlags::ATTACK_RULE,
-            abilities
-                .iter()
-                .any(|a| matches!(a, AbilityDef::AttackUnless { .. })),
+            abilities.iter().any(|a| {
+                matches!(
+                    a,
+                    AbilityDef::AttackUnless { .. } | AbilityDef::CombatTax(_)
+                )
+            }),
         );
         flags.set(
             DefFlags::TAP_STATIC,

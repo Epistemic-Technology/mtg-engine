@@ -1,0 +1,110 @@
+# Cards the template author writes after the tenth wave's phrases.
+
+# "attach it to" in a trigger about another object: "it" is that object
+# (KNOWN-ISSUES 2: the author read it as the source).
+
+scenario "Sigarda's Aid: the entering Equipment is attached, not the enchantment" {
+  battlefield A: "Sigarda's Aid", "Grizzly Bears", 2 "Plains"
+  hand A: "Bonesplitter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bonesplitter"
+  turn 1 A: trigger "Sigarda's Aid" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Bonesplitter" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert battlefield A contains "Sigarda's Aid"
+}
+
+scenario "Sigarda's Aid: the attach is optional" {
+  battlefield A: "Sigarda's Aid", "Grizzly Bears", 2 "Plains"
+  hand A: "Bonesplitter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bonesplitter"
+  turn 1 A: decline "Sigarda's Aid"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Sigarda's Aid: an Equipment cast at instant speed" {
+  battlefield A: "Sigarda's Aid", "Grizzly Bears", 2 "Plains"
+  hand A: "Bonesplitter"
+  start turn 1 A upkeep
+  turn 1 upkeep A: cast "Bonesplitter"
+  turn 1 upkeep A: trigger "Sigarda's Aid" targeting "Grizzly Bears"
+  run_to turn 1 draw
+  assert attached "Bonesplitter" to "Grizzly Bears"
+}
+
+# `search up to X land cards`: X is the count (KNOWN-ISSUES 2: it was read
+# as a subtype).
+
+scenario "Nylea's Intervention: up to X land cards to hand" {
+  battlefield A: 4 "Forest"
+  library A: "Forest", "Mountain", "Grizzly Bears", "Island"
+  hand A: "Nylea's Intervention"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Nylea's Intervention" mode 1 x 2
+  turn 1 A: choose "Mountain"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Mountain"
+  assert hand A contains "Island"
+  assert hand A lacks "Grizzly Bears"
+  assert hand A lacks "Forest"
+}
+
+scenario "Nylea's Intervention: twice X damage to each creature with flying" {
+  battlefield A: 4 "Forest", "Grizzly Bears"
+  battlefield B: "Serra Angel", "Air Elemental"
+  hand A: "Nylea's Intervention"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Nylea's Intervention" mode 2 x 2
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert graveyard B contains "Air Elemental"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+# "deals 1 damage to each of one or two targets" (a variable group).
+
+scenario "Storm of Steel: 2 damage to each of two targets" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Storm of Steel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Storm of Steel" targeting "Grizzly Bears", player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 18
+}
+
+scenario "Storm of Steel: one target only" {
+  battlefield A: 4 "Mountain"
+  hand A: "Storm of Steel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Storm of Steel" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 20
+}
+
+scenario "Prismari Charm: 1 damage to each of two creatures" {
+  battlefield A: "Island", "Mountain"
+  battlefield B: "Llanowar Elves", "Grizzly Bears"
+  hand A: "Prismari Charm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Prismari Charm" mode 2 targeting "Llanowar Elves", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Grizzly Bears" 1
+}
+
+scenario "Prismari Charm: bounce mode" {
+  battlefield A: "Island", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Prismari Charm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Prismari Charm" mode 3 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+}

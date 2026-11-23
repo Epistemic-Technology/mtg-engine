@@ -1,0 +1,6 @@
+card "Answered Prayers" {
+  oracle_id 7b238254-51b4-4e68-a8c6-93ab1180012e
+  cost {1}{W}{W}
+  type Enchantment
+  triggered whenever creature you control enters: you gain 1 life; if this isnt creature, this becomes 3/3 Angel creature with flying in addition
+}

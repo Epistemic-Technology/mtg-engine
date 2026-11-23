@@ -1,0 +1,8 @@
+card "Mole Man, Moloid Master" {
+  oracle_id 34994475-b914-44f6-8ca1-c2747b6d5956
+  cost {2}{G}
+  type Legendary Creature — Human Villain
+  pt 1/1
+  you may play lands from your graveyard
+  label "Landfall" triggered whenever land you control enters: create 1 "1/1 green Minion creature named Moloid with whenever this token attacks, you may mill a card"
+}

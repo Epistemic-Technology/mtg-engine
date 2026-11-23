@@ -1,0 +1,10 @@
+card "Prismari Charm" {
+  oracle_id c3c25a2c-f71c-4cb7-9117-0bcda9248bfd
+  cost {U}{R}
+  type Instant
+  choose one {
+    mode: surveil 2 then draw 1 cards
+    mode: deal 1 damage to 1 to 2 targets
+    mode: return target nonland permanent to hand
+  }
+}

@@ -1,0 +1,6 @@
+card "Cranial Archive" {
+  oracle_id 260f95c5-4058-4627-981f-98b9eafc2265
+  cost {2}
+  type Artifact
+  activated {2}, exile this: target player shuffles graveyard into library; draw 1 cards
+}

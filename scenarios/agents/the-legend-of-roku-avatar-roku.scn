@@ -1,0 +1,44 @@
+scenario "Roku chapter I: exile three, play one of them" {
+  battlefield A: 4 "Mountain"
+  hand A: "The Legend of Roku"
+  library A: "Forest", "Island", "Grizzly Bears", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Legend of Roku"
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+  assert exile A contains "Island"
+  assert exile A contains "Grizzly Bears"
+  assert library A lacks "Grizzly Bears"
+  assert counters "The Legend of Roku" lore 1
+}
+
+scenario "Roku chapter III: becomes Avatar Roku, a 4/4 with firebending" {
+  battlefield A: "The Legend of Roku" with 2 lore
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Avatar Roku"
+  assert battlefield A lacks "The Legend of Roku"
+  assert power "Avatar Roku" 4
+  assert toughness "Avatar Roku" 4
+  assert is "Avatar Roku" creature
+}
+
+scenario "Avatar Roku: {8} makes a 4/4 flying Dragon" {
+  battlefield A: 8 "Mountain"
+  battlefield A: "The Legend of Roku" with 2 lore
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  turn 1 A: activate "Avatar Roku"
+  run_to turn 1 end
+  assert battlefield A contains 1 "Dragon"
+  assert power "Dragon" 4
+  assert has "Dragon" flying
+}
+
+scenario "Avatar Roku: attacks for 4 with firebending" {
+  battlefield A: "The Legend of Roku" with 2 lore
+  start turn 1 A precombat_main
+  turn 3 A: attack "Avatar Roku"
+  run_to turn 3 postcombat_main
+  assert life B 16
+}

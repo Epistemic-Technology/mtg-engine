@@ -1,0 +1,8 @@
+card "Razaketh, the Foulblooded" {
+  oracle_id 136c9ecb-59b4-4ef6-bcb2-7b8d3df3ee75
+  cost {5}{B}{B}{B}
+  type Legendary Creature — Demon
+  pt 8/8
+  keywords flying, trample
+  activated pay 2 life, sacrifice other creature: search card to hand that card
+}

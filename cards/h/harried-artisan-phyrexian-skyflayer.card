@@ -1,0 +1,15 @@
+card "Harried Artisan // Phyrexian Skyflayer" {
+  oracle_id c4e51cba-e5f7-4f44-9ae9-9223a2efd004
+  layout transform
+  cost {2}{R}
+  type Creature — Human Artificer
+  pt 2/3
+  keywords haste
+  activated {3}{W/P}, sorcery: transform this
+  face "Phyrexian Skyflayer" {
+    type Creature — Phyrexian Artificer
+    pt 3/4
+    color red white
+    keywords flying, haste
+  }
+}

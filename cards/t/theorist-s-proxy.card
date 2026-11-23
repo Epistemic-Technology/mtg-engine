@@ -1,0 +1,9 @@
+card "Theorist's Proxy" {
+  oracle_id 0089acfe-da66-4dd7-b1e5-4d7407f58257
+  cost {1}{U}
+  type Creature — Illusion
+  pt 0/3
+  keywords flash
+  triggered when this enters: empower jace 3
+  activated {U}, sacrifice this: next spell can't be countered
+}

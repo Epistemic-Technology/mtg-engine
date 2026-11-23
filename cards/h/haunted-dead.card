@@ -1,0 +1,8 @@
+card "Haunted Dead" {
+  oracle_id 03259490-a789-4f96-8c5b-b410425bdd02
+  cost {3}{B}
+  type Creature — Zombie
+  pt 2/2
+  triggered when this enters: create 1 "1/1 white Spirit creature with flying"
+  activated {1}{B}, discard 2 cards, from graveyard: return this to battlefield tapped
+}

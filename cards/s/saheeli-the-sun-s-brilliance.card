@@ -1,0 +1,10 @@
+card "Saheeli, the Sun's Brilliance" {
+  oracle_id 5aa76c5d-8046-42ce-b61d-cc9b4806c11a
+  cost {U}{R}
+  type Legendary Creature — Human Artificer
+  pt 2/2
+  activated {U}{R}, {T}: create token copy of another target creature or artifact you control with exceptions; that token gains haste indefinitely; delayed that token: sacrifice it at beginning of the next end step
+  except {
+    types Artifact
+  }
+}

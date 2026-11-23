@@ -1,0 +1,9 @@
+card "Mikaeus, the Lunarch" {
+  oracle_id 82f3faa8-39fa-450b-843f-d60a4c36d8f7
+  cost {X}{W}
+  type Legendary Creature — Human Cleric
+  pt 0/0
+  enters with X +1/+1 counters
+  activated {T}: put 1 +1/+1 counters on this
+  activated {T}, remove 1 +1/+1 counters from this: put 1 +1/+1 counters on each other creature you control
+}

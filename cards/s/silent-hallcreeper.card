@@ -1,0 +1,12 @@
+card "Silent Hallcreeper" {
+  oracle_id 6aea681e-88d2-48df-a717-3ce0bc95205b
+  cost {1}{U}
+  type Enchantment Creature — Horror
+  pt 1/1
+  keywords can't be blocked
+  triggered whenever this deals combat damage to a player: choose one unchosen {
+    mode: put 2 +1/+1 counter on this
+    mode: draw 1 card
+    mode: this becomes copy of another target creature you control
+  }
+}

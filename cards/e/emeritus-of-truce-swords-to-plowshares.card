@@ -1,0 +1,13 @@
+card "Emeritus of Truce // Swords to Plowshares" {
+  oracle_id e6c41473-2398-4888-9f0c-467dce7c39a4
+  layout prepare
+  cost {1}{W}{W}
+  type Creature — Cat Cleric
+  pt 3/3
+  triggered when this enters: target player creates 1 "1/1 white and black Inkling creature with flying"; then if opponent controls more creatures, this creature becomes prepared
+  face "Swords to Plowshares" {
+    cost {W}
+    type Instant
+    spell: exile target creature; its controller gains count equal power of target 1 life
+  }
+}

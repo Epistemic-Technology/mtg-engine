@@ -1,0 +1,7 @@
+card "Crucible of the Spirit Dragon" {
+  oracle_id ecfbebc9-7fc7-474e-8c59-8ede800e082e
+  type Land
+  mana {C}
+  activated {1}, {T}: put 1 storage counters on this
+  activated {T}, remove X storage counters from this: add X mana any combination only to cast Dragon spells or activate of Dragon bare
+}

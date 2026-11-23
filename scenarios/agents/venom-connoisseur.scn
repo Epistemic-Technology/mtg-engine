@@ -1,0 +1,30 @@
+scenario "first creature gives only Venom Connoisseur deathtouch" {
+  battlefield A: "Venom Connoisseur", "Serra Angel", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Venom Connoisseur" deathtouch
+  assert has not "Serra Angel" deathtouch
+  assert has not "Grizzly Bears" deathtouch
+}
+scenario "second resolution gives all creatures deathtouch" {
+  battlefield A: "Venom Connoisseur", "Serra Angel", 4 "Forest"
+  hand A: 2 "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Venom Connoisseur" deathtouch
+  assert has "Serra Angel" deathtouch
+  assert has newest A "Grizzly Bears" deathtouch
+}
+scenario "deathtouch ends at end of turn" {
+  battlefield A: "Venom Connoisseur", "Serra Angel", 4 "Forest"
+  hand A: 2 "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert has not "Serra Angel" deathtouch
+  assert has not "Venom Connoisseur" deathtouch
+}

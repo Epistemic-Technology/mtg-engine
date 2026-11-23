@@ -1,0 +1,8 @@
+card "Fleshtaker" {
+  oracle_id 14d5fdb3-14a3-461d-8515-a520c2c9e666
+  cost {W}{B}
+  type Creature — Human Assassin
+  pt 2/2
+  triggered whenever you sacrifice other creature: you gains 1 life and scry 1
+  activated {1}, sacrifice other creature: this gets +2/+2
+}

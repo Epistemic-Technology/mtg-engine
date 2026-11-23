@@ -1,0 +1,8 @@
+card "Ordeal of Purphoros" {
+  oracle_id 652d282d-6dec-4043-a531-480f12ba471e
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature attacks: put 1 +1/+1 counter on it; then if attached is with 3 or more +1/+1 counters, sacrifice this
+  triggered when you sacrifice this: deal 3 damage to any target
+}

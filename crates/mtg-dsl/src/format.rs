@@ -396,6 +396,7 @@ impl Fmt {
             Recipient::BlockingIt => "each creature blocking it".to_string(),
             Recipient::ExiledCard => "exiled card".to_string(),
             Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
+            Recipient::SameExiledCards => "the exiled cards".to_string(),
             Recipient::ThoseTargets(..) => "those targets".to_string(),
             Recipient::Those(t) => those_word(t).to_string(),
             Recipient::EachPlayer => "each player".to_string(),
@@ -678,6 +679,15 @@ impl Fmt {
                 if *effect { " by an effect" } else { "" }
             ),
             Replaces::PlusCounters { on } => format!("+1/+1 counters put on {}", filter(on)),
+            Replaces::AnyCounters { on, by } => format!(
+                "counters {} {}",
+                match by {
+                    mtg_core::card::CountersBy::Any => "put on",
+                    mtg_core::card::CountersBy::Effect => "put by effect on",
+                    mtg_core::card::CountersBy::You => "you put on",
+                },
+                filter(on)
+            ),
             Replaces::Destroy { to } => format!("destroy {}", self.affects(to, targets)),
             Replaces::Dies { to } => format!("{} dies", self.affects(to, targets)),
             Replaces::Enters => "enters".to_string(),
@@ -737,6 +747,7 @@ impl Fmt {
                 mtg_core::card::Lasting::YouControlSource => " for as long as you control this",
                 mtg_core::card::Lasting::SourceTapped => " for as long as this remains tapped",
                 mtg_core::card::Lasting::UntilCastFromExile => " until this is cast from exile",
+                mtg_core::card::Lasting::Forever => " indefinitely",
             });
         }
         out
@@ -1000,11 +1011,13 @@ impl Fmt {
                 free,
                 first,
                 it,
+                from_exile,
             } => {
                 let mut s = format!(
-                    "may {} {} {}",
+                    "may {} {}{} {}",
                     if *cast { "cast" } else { "play" },
                     if *it { "it" } else { "that card" },
+                    if *from_exile { " from exile" } else { "" },
                     match until {
                         mtg_core::card::PlayUntil::ThisTurn => "this turn",
                         mtg_core::card::PlayUntil::EndOfYourNextTurn => "next turn",
@@ -1443,6 +1456,7 @@ impl Fmt {
                 };
                 format!("{} {v} {} energy", self.recipient(*who, t), num(*count))
             }
+            Effect::PayEnergy(mtg_core::card::PAY_ANY_ENERGY) => "pay any energy".to_string(),
             Effect::PayEnergy(n) => format!("pay {n} energy"),
             Effect::AddPoison { count, who } => {
                 let v = if *who == Recipient::You {
@@ -1678,6 +1692,7 @@ impl Fmt {
                 self.recipient(*what, t)
             ),
             Effect::NextSpellLess(n) => format!("next spell costs {{{n}}} less"),
+            Effect::NextSpellUncounterable => "next spell can't be countered".to_string(),
             Effect::ExtraLandPlays(1) => "play additional land this turn".to_string(),
             Effect::ExtraLandPlays(n) => format!("play {n} additional land this turn"),
             Effect::FaceDownSpellsLess(n) => {
@@ -3416,6 +3431,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::ManaSpent { that: false } => "mana spent".to_string(),
         CountExpr::ManaSpent { that: true } => "mana spent that spell".to_string(),
         CountExpr::TimesKicked => "times kicked".to_string(),
+        CountExpr::EnergyPaid => "energy paid".to_string(),
         CountExpr::SpentTreasure => "treasure spent".to_string(),
         CountExpr::CardsInOpponentsGraveyards(None) => "opponents graveyards".to_string(),
         CountExpr::ExiledWith(None) => "exiled with this".to_string(),
@@ -3671,9 +3687,12 @@ pub fn filter(f: &Filter) -> String {
         // `destroy all andlist creature or enchantment`: the recipient
         // parser takes `all` first (Death Begets Life).
         let inner = filter(&g);
-        return match inner.strip_prefix("all ") {
-            Some(rest) => format!("all andlist {rest}"),
-            None => format!("andlist {inner}"),
+        // `every andlist creature or Vehicle lose ...` likewise
+        // (Spectacular Pileup).
+        return match (inner.strip_prefix("all "), inner.strip_prefix("every ")) {
+            (Some(rest), _) => format!("all andlist {rest}"),
+            (_, Some(rest)) => format!("every andlist {rest}"),
+            _ => format!("andlist {inner}"),
         };
     }
     if f.and_or {
@@ -3988,6 +4007,7 @@ fn filter_one(f: &Filter) -> String {
         words.push("late".to_string());
     }
     match f.that_player {
+        Some(_) if f.they_control => words.push("they control".to_string()),
         Some(mtg_core::card::ThatPlayer::Triggering) => {
             words.push("that player controls".to_string());
         }
@@ -5214,6 +5234,12 @@ fn cost_text(c: &Cost) -> String {
         Some((by, crate::ast::ReduceBy::If(d))) => {
             parts.push(format!("reduced {by} if {}", static_cond(d)));
         }
+        Some((by, crate::ast::ReduceBy::PerTarget(mtg_core::card::PerTarget::Colors))) => {
+            parts.push(format!("reduced {by} each color of target"));
+        }
+        Some((by, crate::ast::ReduceBy::PerTarget(mtg_core::card::PerTarget::Counters(k)))) => {
+            parts.push(format!("reduced {by} each {} counter on target", k.name()));
+        }
         None => {}
     }
     if parts.is_empty() {
@@ -5511,6 +5537,9 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::YouControlAtMost { filter: fl, n } => {
             format!("you control at most {n} {}", filter(fl))
         }
+        StaticCond::YouControlAtLeast { filter: fl, n } => {
+            format!("you control at least {n} {}", filter(fl))
+        }
         StaticCond::YouControlEach(fs) => format!(
             "you control {}",
             fs.iter().map(filter).collect::<Vec<_>>().join(" and ")
@@ -5714,6 +5743,7 @@ fn static_cond(c: &StaticCond) -> String {
         } => format!("opponent controls {at_least} {}", filter(fl)),
         StaticCond::Is(fl) => format!("this is {}", filter(fl)),
         StaticCond::IsntToken => "this isnt token".to_string(),
+        StaticCond::Isnt(fl) => format!("this isnt {}", filter(fl)),
         StaticCond::Modified => "modified".to_string(),
         StaticCond::AttackingAlone => "attacking alone".to_string(),
         StaticCond::AttackedOrBlocked => "attacked or blocked this combat".to_string(),
@@ -6082,7 +6112,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 );
             }
         }
-        Ability::Exert(effects) => body(out, indent, "exert", effects, &[], groups),
+        Ability::Exert(effects) => {
+            let (targets, effects) = crate::ast::exert_parts(effects);
+            body(out, indent, "exert", effects, targets, groups);
+        }
         Ability::EquipOr {
             mana,
             other,
@@ -6188,7 +6221,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 let sub = crate::render::equip_subtype(targets)
                     .map(|s| format!("{s} "))
                     .unwrap_or_default();
-                if crate::render::equip_full_cost(cost) {
+                if crate::render::equip_full_cost(cost) || cost.reduce.is_some() {
                     // Equip is a sorcery by its keyword (CR 702.6a).
                     let c = Cost {
                         sorcery: false,
@@ -6290,6 +6323,14 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     None
                 }
                 Some(crate::ast::TrigCond::Core(c)) => Some(c),
+                Some(crate::ast::TrigCond::HadCounter { one_or_more }) => {
+                    head.push_str(if *one_or_more {
+                        " if it had one or more counters"
+                    } else {
+                        " if it had counter"
+                    });
+                    None
+                }
                 None => None,
             };
             match condition {
@@ -6546,6 +6587,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             whose,
             generic,
             cond,
+            per,
+            first,
+            flash,
         } => {
             let head = match cond {
                 Some(StaticCond::NotYourTurn) => "static during turns other than yours, ",
@@ -6566,9 +6610,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Who::Any => "",
             };
             let more = if *generic > 0 { "more" } else { "less" };
+            let first = if *first { " first" } else { "" };
+            let per = per.map_or_else(String::new, |n| format!(" {}", num(n)));
+            let flash = if *flash { " and flash" } else { "" };
             let _ = writeln!(
                 out,
-                "{indent}{head}spells{subject}{whose} cost {{{}}} {more}",
+                "{indent}{head}spells{first}{subject}{whose} cost {{{}}} {more}{per}{flash}",
                 generic.unsigned_abs()
             );
         }
@@ -6606,12 +6653,17 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 items.join(" and ")
             );
         }
-        Ability::CondCost { delta, cond } => {
+        Ability::CondCost {
+            delta,
+            cond,
+            as_long_as,
+        } => {
             let _ = writeln!(
                 out,
-                "{indent}this spell costs {{{}}} {} if {}",
+                "{indent}this spell costs {{{}}} {} {} {}",
                 delta.unsigned_abs(),
                 if *delta < 0 { "less" } else { "more" },
+                if *as_long_as { "as long as" } else { "if" },
                 static_cond(cond)
             );
         }
@@ -6994,6 +7046,38 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 if *optional { " may" } else { "" }
             );
         }
+        Ability::CombatTax {
+            scope,
+            generic,
+            per,
+            cond,
+        } => {
+            use mtg_core::card::TaxScope;
+            let (what, those) = match scope {
+                TaxScope::AttackingYou {
+                    planeswalkers: true,
+                    ..
+                } => ("attacking you or planeswalkers", ""),
+                TaxScope::AttackingYou { those, .. } => {
+                    ("attacking you", if *those { " those" } else { "" })
+                }
+                TaxScope::Enchanted {
+                    attack: true,
+                    block: true,
+                } => ("enchanted attack or block", ""),
+                TaxScope::Enchanted { attack: true, .. } => ("enchanted attack", ""),
+                TaxScope::Enchanted { .. } => ("enchanted block", ""),
+                TaxScope::EnchantedBlocked => ("enchanted blocked", ""),
+            };
+            let amount = match per {
+                Some(n) => format!("{{X}} {}", num(*n)),
+                None => format!("{{{generic}}}"),
+            };
+            let cond = cond
+                .as_ref()
+                .map_or_else(String::new, |c| format!(" as long as {}", static_cond(c)));
+            let _ = writeln!(out, "{indent}tax {what} {amount}{those}{cond}");
+        }
         Ability::HandSize { whose, delta, set } => {
             let who = if *whose == Who::Opponents {
                 " opponents"
@@ -7077,6 +7161,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
+                K::FirstEquipFree { your_turns: false } => "first equip free".to_string(),
+                K::FirstEquipFree { your_turns: true } => {
+                    "first equip free during your turns".to_string()
+                }
                 K::LandsFromGraveyard => "you may play lands from your graveyard".to_string(),
                 K::ChosenName(ban) => match ban {
                     mtg_core::card::NameBan::Cast => "spells with chosen name can't be cast",
@@ -7204,6 +7292,9 @@ pub(crate) fn granted_mechanic(a: &Ability) -> Option<String> {
             Some(format!("ward {}", cost_text(c)))
         }
         Ability::Mechanic(crate::ast::Mechanic::Toxic(n)) => Some(format!("toxic {n}")),
+        Ability::Mechanic(crate::ast::Mechanic::Firebending(Num::N(n))) => {
+            Some(format!("firebending {n}"))
+        }
         Ability::Mechanic(crate::ast::Mechanic::Poisonous(n)) => Some(format!("poisonous {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Frenzy(n)) => Some(format!("frenzy {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Absorb(n)) => Some(format!("absorb {n}")),
@@ -7215,6 +7306,7 @@ pub(crate) fn granted_mechanic(a: &Ability) -> Option<String> {
         }
         Ability::Protection(f) => Some(format!("protection from {}", filter(f))),
         Ability::Landwalk(f) => Some(format!("landwalk {}", filter(f))),
+        Ability::HexproofFrom(f) => Some(format!("hexproof from {}", filter(f))),
         _ => None,
     }
 }

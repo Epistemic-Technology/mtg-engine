@@ -1,0 +1,7 @@
+card "Sigarda's Aid" {
+  oracle_id 4f5f2792-0cc4-4caa-b798-2ee9597f2524
+  cost {W}
+  type Enchantment
+  spells Aura or Equipment you cast have flash
+  triggered whenever Equipment you control enters: you may attach it to target creature you control
+}

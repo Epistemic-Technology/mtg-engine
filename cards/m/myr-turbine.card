@@ -1,0 +1,7 @@
+card "Myr Turbine" {
+  oracle_id b9043dcd-234f-4144-80db-1cb903c009ea
+  cost {5}
+  type Artifact
+  activated {T}: create 1 "1/1 colorless Myr artifact creature"
+  activated {T}, tap 5 untapped Myr you control: search Myr creature card to battlefield
+}

@@ -1,0 +1,9 @@
+card "Myojin of Cleansing Fire" {
+  oracle_id c7b088d6-031b-4e50-aa07-69f4fd26df79
+  cost {5}{W}{W}{W}
+  type Legendary Creature — Spirit
+  pt 4/6
+  enters with 1 divinity counter if cast from hand
+  static this: has indestructible as long as this has 1 or more divinity counters
+  activated remove 1 divinity counters from this: destroy each other creature
+}

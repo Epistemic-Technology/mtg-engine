@@ -1,0 +1,9 @@
+card "Momo, Friendly Flier" {
+  oracle_id a3c56e71-0de6-447a-a9b4-0971f56c2362
+  cost {W}
+  type Legendary Creature — Lemur Bat Ally
+  pt 1/1
+  keywords flying
+  static during your turn, spells first non-Lemur creature with flying you cast cost {1} less
+  triggered whenever other creature you control with flying enters: this gets +1/+1 until end of turn
+}

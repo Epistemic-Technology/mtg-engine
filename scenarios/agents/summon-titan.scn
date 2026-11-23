@@ -1,0 +1,34 @@
+scenario "Summon: Titan chapter I mills five cards" {
+  battlefield A: 5 "Forest"
+  hand A: "Summon: Titan"
+  library A: "Island", "Island", "Island", "Island", "Island", "Swamp", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Summon: Titan"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains 5 "Island"
+  assert counters "Summon: Titan" lore 1
+}
+
+scenario "Summon: Titan chapter II returns all lands from graveyard tapped" {
+  battlefield A: "Summon: Titan" with 1 lore
+  graveyard A: "Forest", "Island", "Grizzly Bears"
+  start turn 1 A
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+  assert battlefield A contains "Island"
+  assert tapped "Forest"
+  assert tapped "Island"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A lacks "Forest"
+}
+
+scenario "Summon: Titan chapter III pumps another creature by lands controlled" {
+  battlefield A: "Summon: Titan" with 2 lore, 3 "Forest", "Grizzly Bears"
+  start turn 1 A
+  illegal turn 1 precombat_main A: trigger "Summon: Titan" targeting "Summon: Titan"
+  turn 1 A: trigger "Summon: Titan" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert has "Grizzly Bears" trample
+}

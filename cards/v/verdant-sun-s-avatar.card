@@ -1,0 +1,7 @@
+card "Verdant Sun's Avatar" {
+  oracle_id 6ee71432-a44d-495e-86ea-d495d891c331
+  cost {5}{G}{G}
+  type Creature — Dinosaur Avatar
+  pt 5/5
+  triggered whenever this or creature you control enters: you gain count equal toughness of that creature life
+}
