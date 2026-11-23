@@ -1,0 +1,8 @@
+card "Kaijin of the Vanishing Touch" {
+  oracle_id cd8bab2c-b04f-43a2-9786-df5f7411bf16
+  cost {1}{U}
+  type Creature — Spirit
+  pt 0/3
+  keywords defender
+  triggered whenever this blocks a creature: delayed that creature: return that creature to hand at end of combat
+}

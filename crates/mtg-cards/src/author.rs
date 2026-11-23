@@ -1585,6 +1585,10 @@ type Rule = (Regex, fn(&regex::Captures, &mut usize) -> Option<String>);
 
 struct Templates {
     rules: Vec<Rule>,
+    /// The triggered ability being authored is about its source ("When
+    /// this creature attacks, sacrifice it at end of combat"): a bare
+    /// "it" with no target is the source.
+    about_this: std::cell::Cell<bool>,
 }
 
 /// A sentence's duration other than "until end of turn" (CR 611.2b): the
@@ -3610,7 +3614,10 @@ impl Templates {
                 Some("damage can't be prevented this turn".to_string())
             }),
         ];
-        Templates { rules }
+        Templates {
+            rules,
+            about_this: std::cell::Cell::new(false),
+        }
     }
 
     /// Two imperative clauses joined by "and": "Tap target creature an
@@ -4177,7 +4184,13 @@ impl Templates {
         )
         .unwrap();
         let delayed = Regex::new(
-            r"^(Sacrifice|Exile|Destroy|Return) (it|them|that card|that creature|that token|those tokens|this creature|~)( to (?:its owner's|their owners') hand| to the battlefield under (?:its|their) owner's control)? at (the beginning of the next end step|end of combat|the beginning of your next upkeep)$",
+            r"^([Ss]acrifice|[Ee]xile|[Dd]estroy|[Rr]eturn) (it|them|that card|that creature|that token|the token|those tokens|this creature|~)( to (?:its owner's|their owners') hand| to the battlefield under (?:its|their) owner's control)? at (the beginning of the next end step|end of combat|the beginning of your next upkeep)$",
+        )
+        .unwrap();
+        // "Put a -1/-1 counter on it at end of combat", "remove a +1/+1
+        // counter from it at end of combat" (CR 603.7).
+        let delayed_counter = Regex::new(
+            r"^([Pp]ut|[Rr]emove) (a|an|two|three) (\S+) counters? (on|from) (it|this creature|~) at end of combat$",
         )
         .unwrap();
         // A token whose quoted ability spans sentences: the corpus's
@@ -4293,16 +4306,45 @@ impl Templates {
             // under its owner's control at the beginning of the next end
             // step." (Turn to Mist): a delayed trigger on what the earlier
             // sentence named.
+            if let Some(c) = delayed_counter.captures(&sentence)
+                && (cap(&c, 5) != "it" || (*targets == 0 && self.about_this.get()))
+            {
+                let n = number(cap(&c, 2)).ok_or_else(|| Skip::Sentence(sentence.clone()))?;
+                let (verb, prep) = if cap(&c, 1).eq_ignore_ascii_case("put") {
+                    ("put", "on")
+                } else {
+                    ("remove", "from")
+                };
+                out.push(format!(
+                    "delayed this: {verb} {n} {} counter {prep} it at end of combat",
+                    cap(&c, 3)
+                ));
+                continue;
+            }
             if let Some(c) = delayed.captures(&sentence) {
-                let obj = cap(&c, 2);
+                let obj = match cap(&c, 2) {
+                    "the token" => "that token",
+                    o => o,
+                };
                 let made_token = out.last().is_some_and(|l| l.contains("create "));
                 let who = if made_token && matches!(obj, "it" | "that token") {
                     "that token".to_string()
                 } else if made_token && matches!(obj, "them" | "those tokens") {
                     "those tokens".to_string()
-                } else if matches!(obj, "this creature" | "~") && cap(&c, 1) != "Return" {
+                } else if matches!(obj, "this creature" | "~")
+                    && !cap(&c, 1).eq_ignore_ascii_case("return")
+                {
                     // Sacrificed or destroyed where it is; a card returning
                     // from exile is a new object (CR 400.7).
+                    "this".to_string()
+                } else if *targets == 0 && obj == "that creature" {
+                    // "Whenever this creature blocks or becomes blocked by
+                    // a creature, destroy that creature at end of combat":
+                    // the triggering object.
+                    "that creature".to_string()
+                } else if *targets == 0 && obj == "it" && !made_token && self.about_this.get() {
+                    // "When this creature attacks, sacrifice it at end of
+                    // combat."
                     "this".to_string()
                 } else if *targets > 0 && matches!(obj, "it" | "that card" | "that creature") {
                     // The target: a card returned to the battlefield is
@@ -7946,6 +7988,10 @@ impl Builder<'_> {
                 (c, _) => (c.to_string(), rest),
             };
             let mut targets = 0;
+            self.templates.about_this.set(
+                (trigger.starts_with("when this ") || trigger.starts_with("whenever this "))
+                    && !trigger.contains(" by "),
+            );
             // The Zendikons: "When enchanted land dies, return that card to
             // its owner's hand." ("that card" is the land that died).
             let effects = if trigger.starts_with("when enchanted ")
@@ -7956,6 +8002,7 @@ impl Builder<'_> {
             } else {
                 self.templates.effects(rest, &mut targets)?
             };
+            self.templates.about_this.set(false);
             // "Whenever you cast a multicolored spell, you may return this
             // card from your graveyard to your hand." triggers from the
             // graveyard (a dies trigger looks back instead).

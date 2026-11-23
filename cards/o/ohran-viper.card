@@ -1,0 +1,8 @@
+card "Ohran Viper" {
+  oracle_id 879fdcd8-62ea-4d39-abd4-44e6d82adf4d
+  cost {1}{G}{G}
+  type Snow Creature — Snake
+  pt 1/3
+  triggered whenever this deals combat damage to creature: delayed that creature: destroy that creature at end of combat
+  triggered whenever this deals combat damage to a player: you may draw 1 cards
+}

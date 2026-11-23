@@ -1,0 +1,8 @@
+card "Sosuke, Son of Seshiro" {
+  oracle_id 54856e0f-3264-4f56-a7e0-0160a7b07e3d
+  cost {2}{G}{G}
+  type Legendary Creature — Snake Warrior
+  pt 3/4
+  static other Snake creature you control: +1/+0
+  triggered whenever Warrior you control deals combat damage to creature: delayed that creature: destroy that creature at end of combat
+}

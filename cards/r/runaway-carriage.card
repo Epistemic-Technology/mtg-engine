@@ -1,0 +1,8 @@
+card "Runaway Carriage" {
+  oracle_id 67c16435-54ef-4786-85cd-cacca4f06670
+  cost {4}
+  type Artifact Creature — Construct
+  pt 5/6
+  keywords trample
+  triggered when this attacks or blocks: delayed this: sacrifice it at end of combat
+}

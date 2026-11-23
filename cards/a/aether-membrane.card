@@ -1,0 +1,8 @@
+card "Aether Membrane" {
+  oracle_id 5efea57b-937d-46ac-999e-490316e0f820
+  cost {1}{R}{R}
+  type Creature — Wall
+  pt 0/5
+  keywords defender, reach
+  triggered whenever this blocks a creature: delayed that creature: return that creature to hand at end of combat
+}

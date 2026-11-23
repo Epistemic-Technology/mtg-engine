@@ -1,0 +1,7 @@
+card "Deathgazer" {
+  oracle_id 0f772f35-6d98-4ac8-88e5-02539737078b
+  cost {3}{B}
+  type Creature — Lizard
+  pt 2/2
+  triggered whenever this blocks or becomes blocked by a nonblack creature: delayed that creature: destroy that creature at end of combat
+}

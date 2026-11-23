@@ -1,0 +1,7 @@
+card "Mardu Blazebringer" {
+  oracle_id 352844c5-2160-4787-97f1-9cd0fed060eb
+  cost {2}{R}
+  type Creature — Ogre Warrior
+  pt 4/4
+  triggered when this attacks or blocks: delayed this: sacrifice it at end of combat
+}
