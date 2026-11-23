@@ -284,8 +284,22 @@ fn enchanted_creature_biting_any_other_target_is_rejected() {
 
 #[test]
 fn a_ward_cost_part_the_trigger_would_drop_is_rejected() {
-    let e = creature_error("ward collect evidence 4");
-    assert!(e.contains("ward or echo cost"), "{e}");
+    // A part the ward trigger can't pay (tapping a permanent, exiling it).
+    let e = creature_error("ward tap untapped creature you control");
+    assert!(e.contains("a ward cost may be only"), "{e}");
+    let e = creature_error("ward exert this");
+    assert!(e.contains("a ward cost may be only"), "{e}");
+    let e = creature_error("echo collect evidence 4");
+    assert!(e.contains("an echo cost may be only"), "{e}");
+    assert!(compiles("ward collect evidence 4"));
+    assert!(compiles("ward sacrifice 3 nonland permanent"));
+    assert!(compiles("ward blight 2"));
+    assert!(compiles(
+        "ward discard enchantment or instant or sorcery card"
+    ));
+    assert!(compiles("ward pay count equal power life"));
+    assert!(compiles("ward you get 2 poison counters"));
+    assert!(compiles("ward discard 1 card or {2}"));
     assert!(compiles("ward sacrifice creature"));
     assert!(compiles("ward waterbend {4}"));
     assert!(compiles("ward discard 1 card at random"));

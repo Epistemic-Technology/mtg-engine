@@ -1,0 +1,10 @@
+card "Emrakul, the Exigent Doom" {
+  oracle_id 4421ab7d-6d9b-4edd-b5a0-53a8ed84da6f
+  cost {10}
+  type Legendary Creature — Eldrazi
+  pt 12/12
+  triggered when you cast this: untap all land you control
+  keywords flying, trample
+  ward sacrifice 3 permanent
+  activated {3}, exile this from hand: target land gains ability { activated {T}: add {C}{C} } until this is cast from exile; may cast this while exiled
+}

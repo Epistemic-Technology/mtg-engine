@@ -1,0 +1,9 @@
+card "Titania, Rugged Rumbler" {
+  oracle_id e380e37d-926b-4a4b-a275-7844bf4956d5
+  cost {2}{B/G}
+  type Legendary Creature — Human Villain
+  pt 5/5
+  additional cost discard 1 card
+  additional cost or {2}
+  ward discard 1 card or {2}
+}

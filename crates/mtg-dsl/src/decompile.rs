@@ -1522,6 +1522,27 @@ impl Decompiler<'_> {
                         .map_or(Effect::ExileAllGraveyards, |e| self.effect(e)),
                 ),
             },
+            CoreEffect::UnlessPaysCost {
+                payer,
+                alts,
+                effects,
+            } => Effect::UnlessPaysCost {
+                payer: Self::recipient(*payer),
+                alts: alts
+                    .iter()
+                    .map(|a| crate::ast::WardAlt {
+                        cost: self.cost(&a.cost),
+                        life: a.life_count,
+                        poison: a.poison,
+                        you: false,
+                    })
+                    .collect(),
+                effect: Box::new(
+                    effects
+                        .first()
+                        .map_or(Effect::ExileAllGraveyards, |e| self.effect(e)),
+                ),
+            },
             CoreEffect::UnlessSacrifices {
                 payer,
                 filter,
