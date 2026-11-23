@@ -1,0 +1,7 @@
+card "Goblin Blast-Runner" {
+  oracle_id 8b69da01-3ba5-4a61-9e26-e879b6d8b63e
+  cost {R}
+  type Creature — Goblin
+  pt 1/2
+  static this: +2/+0, has menace as long as sacrificed permanent this turn
+}

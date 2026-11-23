@@ -3562,6 +3562,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::ThatSpellColors => "colors of that spell".to_string(),
         CountExpr::SourceDamage => "damage dealt to it this turn".to_string(),
         CountExpr::CreaturesLeftThisTurn => "creatures left this turn".to_string(),
+        CountExpr::TargetColors(n) => format!("colors of target {}", n + 1),
     }
 }
 
@@ -5890,6 +5891,9 @@ fn static_cond(c: &StaticCond) -> String {
             if *was { "was " } else { "" }
         ),
         StaticCond::LeftGraveyardThisTurn => "card left your graveyard this turn".to_string(),
+        StaticCond::SacrificedThisTurn(t) if t.is_empty() => {
+            "sacrificed permanent this turn".to_string()
+        }
         StaticCond::SacrificedThisTurn(t) => {
             let names: Vec<&str> = t.iter().map(|c| crate::render::type_noun(*c)).collect();
             format!("sacrificed {} this turn", names.join(" or "))

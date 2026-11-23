@@ -1241,6 +1241,12 @@ impl GameState {
             CountExpr::CreaturesLeftThisTurn => {
                 usize::from(self.turn_log.creatures_left[you.index().min(3)])
             }
+            CountExpr::TargetColors(n) => match ctx.targets.get(*n) {
+                Some(Target::Object(id)) => self
+                    .characteristics_or_lki(*id)
+                    .map_or(0, |c| c.colors.iter().count()),
+                _ => 0,
+            },
             CountExpr::GreatestManaValue => {
                 return self
                     .permanents_of(you)

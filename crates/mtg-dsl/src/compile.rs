@@ -2522,6 +2522,17 @@ impl Compiler<'_> {
             StaticCond::CardToGraveyardThisTurn(t) => StaticCondition::CardToGraveyardThisTurn(
                 mtg_core::card::TypeSet::of(t.iter().copied()),
             ),
+            // No types: any permanent.
+            StaticCond::SacrificedThisTurn(t) if t.is_empty() => {
+                StaticCondition::SacrificedThisTurn(mtg_core::card::TypeSet::of([
+                    mtg_core::card::CardType::Artifact,
+                    mtg_core::card::CardType::Battle,
+                    mtg_core::card::CardType::Creature,
+                    mtg_core::card::CardType::Enchantment,
+                    mtg_core::card::CardType::Land,
+                    mtg_core::card::CardType::Planeswalker,
+                ]))
+            }
             StaticCond::SacrificedThisTurn(t) => {
                 StaticCondition::SacrificedThisTurn(mtg_core::card::TypeSet::of(t.iter().copied()))
             }
@@ -2676,6 +2687,7 @@ impl Compiler<'_> {
             A::ThatSpellColors => C::ThatSpellColors,
             A::SourceDamage => C::SourceDamage,
             A::CreaturesLeftThisTurn => C::CreaturesLeftThisTurn,
+            A::TargetColors(n) => C::TargetColors(target_index(self.tmap, *n)),
         }
     }
 

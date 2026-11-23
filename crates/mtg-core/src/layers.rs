@@ -1484,6 +1484,7 @@ fn per_count(
         | CountExpr::TargetLibrary(_)
         | CountExpr::ThatSpellColors
         | CountExpr::SourceDamage
+        | CountExpr::TargetColors(_)
         // Power and toughness are what the layers are computing.
         | CountExpr::Total(..)
         | CountExpr::DamageThisWay { .. } => 0,

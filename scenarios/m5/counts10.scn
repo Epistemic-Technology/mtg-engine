@@ -336,3 +336,42 @@ scenario "Edgar: a spell cast this turn, no counters" {
   run_to turn 2 upkeep
   assert counters "Edgar, Moonlit Sovereign" +1/+1 0
 }
+
+scenario "Breathe Your Last: 1 life for each of the destroyed creature's colors" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Wind Drake"
+  hand A: "Breathe Your Last"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Breathe Your Last" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert life A 21
+}
+
+scenario "Breathe Your Last: a colorless creature gives no life" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Ornithopter"
+  hand A: "Breathe Your Last"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Breathe Your Last" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert life A 20
+}
+
+scenario "Goblin Blast-Runner: +2/+0 and menace after you sacrifice a permanent" {
+  battlefield A: "Goblin Blast-Runner", "Juggernaut", 5 "Mountain"
+  graveyard A: "Sol Ring"
+  hand A: "Daretti, Rocketeer Engineer"
+  start turn 1 A precombat_main
+  assert power "Goblin Blast-Runner" 1
+  assert has not "Goblin Blast-Runner" menace
+  turn 1 A: cast "Daretti, Rocketeer Engineer"
+  turn 1 A: trigger "Daretti, Rocketeer Engineer" targeting "Sol Ring"
+  turn 1 A: accept "Daretti, Rocketeer Engineer"
+  run_to turn 1 postcombat_main
+  assert power "Goblin Blast-Runner" 3
+  assert has "Goblin Blast-Runner" menace
+  run_to turn 2 precombat_main
+  assert power "Goblin Blast-Runner" 1
+}

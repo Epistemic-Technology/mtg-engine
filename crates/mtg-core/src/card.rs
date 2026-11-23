@@ -2255,6 +2255,9 @@ pub enum CountExpr {
     /// ("for each creature that left the battlefield under your control
     /// this turn").
     CreaturesLeftThisTurn,
+    /// The colors of the `n`th target ("for each of its colors"), as it
+    /// last existed once it has left (CR 608.2h).
+    TargetColors(usize),
 }
 
 impl CountExpr {
@@ -2372,6 +2375,7 @@ impl CountExpr {
             | CountExpr::TargetLibrary(_)
             | CountExpr::ThatSpellColors
             | CountExpr::SourceDamage
+            | CountExpr::TargetColors(_)
             | CountExpr::DamageThisWay { .. } => false,
         }
     }

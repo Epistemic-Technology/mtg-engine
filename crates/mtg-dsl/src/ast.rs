@@ -637,6 +637,8 @@ pub enum CountExpr {
     /// `creatures left this turn`: "for each creature that left the
     /// battlefield under your control this turn".
     CreaturesLeftThisTurn,
+    /// `colors of target 1`: "for each of its colors".
+    TargetColors(usize),
 }
 
 /// What a target-dependent cost's filter names: a permanent, a spell, or a

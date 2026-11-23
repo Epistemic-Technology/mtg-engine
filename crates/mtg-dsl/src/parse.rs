@@ -4804,6 +4804,11 @@ impl P {
             self.expect_words(&["life", "this", "turn"])?;
             return Ok(StaticCond::LifeGainedThisTurn(n));
         }
+        // `sacrificed permanent this turn`: "you sacrificed a permanent
+        // this turn" (no types: any permanent).
+        if self.eat_words(&["sacrificed", "permanent", "this", "turn"]) {
+            return Ok(StaticCond::SacrificedThisTurn(Vec::new()));
+        }
         if self.eat_word("sacrificed") {
             let mut types = Vec::new();
             loop {
@@ -11396,6 +11401,13 @@ impl P {
                 return self.fail(format!("target {n} has not been declared"));
             }
             return Ok(CountExpr::TargetHand(n - 1));
+        }
+        if self.eat_words(&["colors", "of", "target"]) {
+            let n = self.number()? as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            return Ok(CountExpr::TargetColors(n - 1));
         }
         if self.eat_words(&["library", "of", "target"]) {
             let n = self.number()? as usize;

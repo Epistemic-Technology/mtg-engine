@@ -5102,6 +5102,13 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         CountExpr::SourceDamage => {
             return "the amount of damage dealt to it this turn".to_string();
         }
+        CountExpr::TargetColors(_) => {
+            return if each {
+                "for each of its colors".to_string()
+            } else {
+                "the number of its colors".to_string()
+            };
+        }
         CountExpr::CreaturesLeftThisTurn => (
             "creature that left the battlefield under your control this turn".to_string(),
             "creatures that left the battlefield under your control this turn".to_string(),
@@ -15537,6 +15544,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             "you've put one or more +1/+1 counters on a creature this turn".to_string()
         }
         StaticCond::LeftGraveyardThisTurn => "a card left your graveyard this turn".to_string(),
+        StaticCond::SacrificedThisTurn(t) if t.is_empty() => {
+            "you sacrificed a permanent this turn".to_string()
+        }
         StaticCond::SacrificedThisTurn(t) => {
             let names: Vec<&str> = t.iter().map(|c| type_noun(*c)).collect();
             format!(

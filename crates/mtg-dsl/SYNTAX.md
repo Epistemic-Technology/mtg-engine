@@ -820,7 +820,8 @@ life this turn` ("you've gained 3 or more life this turn", in all),
 or spell an opponent controls, or a card in an opponent's graveyard),
 `card left your graveyard this turn` ("one or more cards left your
 graveyard this turn"), `sacrificed artifact this turn` ("you've
-sacrificed an artifact this turn"), and `creature card to your graveyard this turn` ("a
+sacrificed an artifact this turn"; `sacrificed permanent this turn`, "you
+sacrificed a permanent this turn", any permanent), and `creature card to your graveyard this turn` ("a
 creature card was put into your graveyard from anywhere this turn"). A
 count `differently named land you control`: "the number of differently
 named lands you control" (`this spell costs {1} less count where
@@ -3183,7 +3184,8 @@ dealt to it this turn` ("the amount of damage dealt to it this turn": the
 damage marked on the source, as it last existed on the battlefield; in a
 dies trigger, what it died with), `creatures left this turn` ("for each
 creature that left the battlefield under your control this turn"; also in
-a static ability), `greatest toughness
+a static ability), `colors of target 1` ("for each of its colors": the
+target's, as it last existed), `greatest toughness
 other creature you control` ("the greatest toughness among other
 creatures you control"), `life you lost this turn` ("the life you've lost
 this turn"), and `<expr> plus <expr>` ("the number of creatures on the

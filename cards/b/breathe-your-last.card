@@ -1,0 +1,6 @@
+card "Breathe Your Last" {
+  oracle_id dc3af7cb-03b9-445f-82eb-18798ec92934
+  cost {1}{B}{B}
+  type Instant
+  spell: destroy target creature or planeswalker; you gain count each colors of target 1 life
+}
