@@ -1495,6 +1495,14 @@ impl GameState {
     ) -> Vec<ObjId> {
         use crate::card::ChooseAct;
         let p = ctx.controller;
+        // "four cards named Dragon's Approach": "named ~" filled in.
+        let filled;
+        let filter = if filter.same.is_some() {
+            filled = self.with_same_of(filter, Some(ctx.source));
+            &filled
+        } else {
+            filter
+        };
         let card_ok = |id: ObjId| {
             let o = &self.objects[id];
             let c = self.base_characteristics(o);
@@ -1554,6 +1562,7 @@ impl GameState {
                 .filter(|id| card_ok(*id))
                 .collect(),
             ChooseAct::ExileFromGraveyard
+            | ChooseAct::ExileWithThisSpell
             | ChooseAct::ReturnFromGraveyard
             | ChooseAct::GraveyardToBattlefield { .. }
             | ChooseAct::GraveyardToTop
@@ -1754,7 +1763,9 @@ impl GameState {
                 ChooseAct::ExileToGraveyard => {
                     ctx.created = Some(self.move_object(id, Zone::Graveyard, false));
                 }
-                ChooseAct::ExileFromGraveyard | ChooseAct::ExileTopOfGraveyard => {
+                ChooseAct::ExileFromGraveyard
+                | ChooseAct::ExileTopOfGraveyard
+                | ChooseAct::ExileWithThisSpell => {
                     ctx.created = Some(self.move_object(id, Zone::Exile, false));
                 }
                 ChooseAct::Exile => {
@@ -1794,6 +1805,17 @@ impl GameState {
                 }
             }
             done += 1;
+        }
+        // "exile this spell and four cards named ~ from your graveyard":
+        // the spell too, from the stack.
+        if act == ChooseAct::ExileWithThisSpell
+            && done == n
+            && self
+                .objects
+                .get(ctx.source)
+                .is_some_and(|o| o.zone == Zone::Stack)
+        {
+            self.move_object(ctx.source, Zone::Exile, true);
         }
         done
     }

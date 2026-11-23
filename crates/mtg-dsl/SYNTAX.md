@@ -2777,7 +2777,11 @@ do` then sees:
   card revealed this way") count them
 - `exile 2 creature card from your graveyard chosen`; `exile top 1
   creature card from your graveyard chosen` ("exile the top creature card
-  of your graveyard", CR 404.2: the most recent, nothing chosen)
+  of your graveyard", CR 404.2: the most recent, nothing chosen); `exile
+  this spell and 4 named this card from your graveyard chosen` ("exile
+  this spell and four cards named Dragon's Approach from your
+  graveyard": the cards, then the resolving spell, only if all four can
+  be)
 - `exile 1 land you control chosen` ("exile a land you control"; `exile 1
   other creature you control chosen`: "exile a creature you control other
   than this creature"): on a card whose other ability says `return

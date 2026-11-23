@@ -7791,6 +7791,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     format!("exile {what} other than {}", ctx.source_name())
                 }
                 ChooseAct::Exile => format!("exile {}", permanents()),
+                ChooseAct::ExileWithThisSpell => {
+                    format!("exile this spell and {} from your graveyard", cards())
+                }
                 ChooseAct::GraveyardToTop => {
                     format!("put {} from your graveyard on top of your library", cards())
                 }

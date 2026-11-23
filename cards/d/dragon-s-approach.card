@@ -1,0 +1,7 @@
+card "Dragon's Approach" {
+  oracle_id 47e191f7-6314-4875-b5ee-57e5daf089c4
+  cost {2}{R}
+  type Sorcery
+  spell: deal 3 damage to each opponent; you may exile this spell and 4 named this card from your graveyard chosen; if you do, search Dragon creature card to battlefield
+  deck any number
+}

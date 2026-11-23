@@ -7788,6 +7788,9 @@ impl P {
         // `exile top 1 creature card from your graveyard chosen`: "exile
         // the top creature card of your graveyard".
         let top = verb == "exile" && self.eat_word("top");
+        // `exile this spell and 4 card named this from your graveyard
+        // chosen`.
+        let with_spell = verb == "exile" && !top && self.eat_words(&["this", "spell", "and"]);
         // `discard any number cards chosen`: "discard any number of
         // cards".
         let (up_to, count) = if self.eat_words(&["any", "number"]) {
@@ -7836,11 +7839,13 @@ impl P {
                 let graveyard = card_filter(self).is_ok()
                     && self.at_words(&["from", "your", "graveyard"]);
                 self.pos = at;
-                if graveyard || top {
+                if graveyard || top || with_spell {
                     let f = card_filter(self)?;
                     self.expect_words(&["from", "your", "graveyard"])?;
                     if top {
                         (ChooseAct::ExileTopOfGraveyard, f)
+                    } else if with_spell {
+                        (ChooseAct::ExileWithThisSpell, f)
                     } else {
                         (ChooseAct::ExileFromGraveyard, f)
                     }

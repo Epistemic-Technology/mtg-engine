@@ -5541,6 +5541,10 @@ pub enum ChooseAct {
     /// "exile the top creature card of your graveyard" (CR 404.2: the
     /// most recent matching cards; nothing is chosen).
     ExileTopOfGraveyard,
+    /// "exile this spell and four cards named Dragon's Approach from your
+    /// graveyard": the cards from your graveyard, then the resolving spell
+    /// itself, only if all of the cards can be.
+    ExileWithThisSpell,
     /// "exile a land you control" (permanents you control). On a card
     /// whose leaves-the-battlefield ability returns "the exiled card", what
     /// it exiles is linked to it (CR 607.2a; Wormfang Newt).
