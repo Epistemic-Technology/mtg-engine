@@ -1521,7 +1521,12 @@ impl P {
             return Ok(Effect::AddManaOneOf(out));
         }
         // `add {R} that much` (Raphael's "add that much {R}").
-        if out.len() == 1 && (self.at_word("count") || self.at_words(&["that", "much"])) {
+        if out.len() == 1
+            && (self.at_word("count")
+                || self.at_words(&["that", "much"])
+                || (matches!(self.peek(), Some(Tok::Num(_)))
+                    && matches!(out[0], Mana::Colored(_) | Mana::Colorless)))
+        {
             let count = self.num()?;
             return Ok(Effect::AddManaTimes {
                 mana: out[0],

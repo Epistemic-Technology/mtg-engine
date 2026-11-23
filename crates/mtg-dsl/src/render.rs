@@ -8266,6 +8266,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             "add {} mana of any one color",
             count_words(*n, "one")
         )),
+        // "Add six {G}." (Castle Garenbrig), "Add seven {R}."
+        Effect::AddManaTimes {
+            mana: m @ (Mana::Colored(_) | Mana::Colorless),
+            count: n @ Num::N(_),
+        } => Clause::imperative(format!(
+            "add {} {}",
+            count_words(*n, "one"),
+            mana_symbols(&[*m], "")
+        )),
         // "add that much {R}" (Raphael, after "is dealt damage").
         Effect::AddManaTimes {
             mana,

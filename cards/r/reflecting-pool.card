@@ -1,0 +1,5 @@
+card "Reflecting Pool" {
+  oracle_id 67f43ac6-2a58-4b53-b5d7-0330e2a252e2
+  type Land
+  activated {T}: add any type that land you control could produce
+}

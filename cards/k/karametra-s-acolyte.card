@@ -1,0 +1,7 @@
+card "Karametra's Acolyte" {
+  oracle_id e8cf80a1-6908-4adb-88e7-2015672d4905
+  cost {3}{G}
+  type Creature — Human Druid
+  pt 1/4
+  activated {T}: add {G} count equal devotion green
+}

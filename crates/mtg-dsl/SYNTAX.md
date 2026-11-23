@@ -2135,7 +2135,7 @@ once, CR 605), `keep mana add {R}{R}{R}{G}{G}{G}` ("Add {R}{R}{R}{G}{G}{G}.
 Until end of turn, you don't lose this mana as steps and phases end.": the
 mana that sentence adds stays in the pool as steps end, until the cleanup
 step ends, the player's other mana taken to be spent first; CR 500.4),
-`add {R} that much` ("add that much {R}", the triggering event's amount:
+`add {G} 6` ("Add six {G}.", Castle Garenbrig), `add {R} that much` ("add that much {R}", the triggering event's amount:
 "Whenever Raphael is dealt damage, add that much {R}"), `add any 2` ("Add
 two mana of any one color."; `add any count where power`: "Add X mana of
 any one color, where X is this creature's power.", the color chosen once; `add any 2 and any 2 other`: "Add two mana of any one color and two mana of any other color.", a color chosen, then another),
