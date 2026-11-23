@@ -14579,33 +14579,23 @@ impl GameState {
                 // "reveal the top X cards of your library, where X is ....
                 // You may put a green permanent card with mana value X or
                 // less from among them ..." (Hatchery Spider): the dig's X.
-                fn fill_x(
-                    f: &Option<crate::card::ObjFilter>,
-                    n: usize,
-                ) -> std::borrow::Cow<'_, Option<crate::card::ObjFilter>> {
-                    match f {
-                        Some(f) if f.status.mana_value_x => {
-                            let mut g = f.clone();
-                            g.status.mana_value_x = false;
-                            g.mana_value = g
-                                .mana_value
-                                .map(|(cmp, _)| (cmp, u8::try_from(n).unwrap_or(u8::MAX)));
-                            std::borrow::Cow::Owned(Some(g))
-                        }
-                        f => std::borrow::Cow::Borrowed(f),
-                    }
-                }
                 // Only a counted dig names its own X; with a number, X is
                 // the spell's or ability's (CR 107.3).
-                let (filter, also) = if matches!(count, crate::card::Num::Count(_)) {
-                    (fill_x(filter, n), fill_x(also, n))
-                } else {
-                    (
-                        std::borrow::Cow::Borrowed(filter),
-                        std::borrow::Cow::Borrowed(also),
-                    )
+                let counted = matches!(count, crate::card::Num::Count(_));
+                let fill_x = |f: Option<&crate::card::ObjFilter>| {
+                    f.filter(|f| counted && f.status.mana_value_x).map(|f| {
+                        let mut g = f.clone();
+                        g.status.mana_value_x = false;
+                        g.mana_value = g
+                            .mana_value
+                            .map(|(cmp, _)| (cmp, u8::try_from(n).unwrap_or(u8::MAX)));
+                        g
+                    })
                 };
-                let (filter, also) = (filter.as_ref(), also.as_ref());
+                let filled = fill_x(filter.as_ref()).map(Some);
+                let filled_also = fill_x(also.as_ref()).map(Some);
+                let filter = filled.as_ref().unwrap_or(filter);
+                let also = filled_also.as_ref().unwrap_or(also);
                 let lib = &self.player(p).library;
                 let top: Vec<ObjId> = lib.iter().rev().take(n).copied().collect();
                 let matches = |s: &Self, f: Option<&crate::card::ObjFilter>, id: ObjId| {

@@ -1369,7 +1369,7 @@ impl GameState {
                             .skip(next_target)
                             .filter_map(|t| match t {
                                 Target::Object(id) => Some(mv(*id)),
-                                _ => None,
+                                Target::Player(_) => None,
                             })
                             .sum();
                         options.retain(|c| match c {

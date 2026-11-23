@@ -3026,11 +3026,12 @@ impl Compiler<'_> {
                 .iter()
                 .rev()
                 .map_while(|c| match c {
-                    CoreEffect::Tap { to } | CoreEffect::Pump { to, .. } => Some(*to),
                     // "Return up to three target creature cards ... to the
                     // battlefield. Put a +1/+1 counter on each of them."
                     // (the targets found where they went, CR 400.7).
-                    CoreEffect::ReturnToBattlefield {
+                    CoreEffect::Tap { to }
+                    | CoreEffect::Pump { to, .. }
+                    | CoreEffect::ReturnToBattlefield {
                         what: to @ CoreRecipient::Targets(..),
                         ..
                     } => Some(*to),
