@@ -1,0 +1,8 @@
+card "Petalmane Baku" {
+  oracle_id f73f8eca-55fe-418f-a244-29ef82cfc47c
+  cost {1}{G}
+  type Creature — Spirit
+  pt 1/2
+  triggered whenever you cast Spirit or Arcane spell: you may put 1 ki counters on this
+  activated {1}, remove X ki counters from this: add any X
+}

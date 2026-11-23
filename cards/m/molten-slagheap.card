@@ -1,0 +1,7 @@
+card "Molten Slagheap" {
+  oracle_id 33587cb2-0fd3-4e4c-bc5e-e7299cc9dab5
+  type Land
+  mana {C}
+  activated {1}, {T}: put 1 storage counters on this
+  activated {1}, remove X storage counters from this: add X mana any combination of {B}{R}
+}

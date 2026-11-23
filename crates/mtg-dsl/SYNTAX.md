@@ -2306,7 +2306,13 @@ depletion counter from this: add {G}{G}; if this has no depletion
 counters, sacrifice this` resolves at once, and payment activates it
 (removing the counter, then the rest) when plain sources fall short,
 `add {C}; if you control Urza's Mine and Urza's Tower, add {C}{C}
-instead` counting as the mana it would make now. `search basic land card reveal to hand`, `search up to 2
+instead` counting as the mana it would make now. A mana ability whose cost removes X
+counters asks for X as it is activated (a scenario's `activate ... x 2`;
+payment doesn't activate it): `activated {1}, remove X storage counters
+from this: add X mana any combination of {W}{U}` (storage lands; a pair
+prints in the color wheel's order, "{G} and/or {W}"), `activated {1},
+remove X ki counters from this: add any X` ("Add X mana of any one
+color."). `search basic land card reveal to hand`, `search up to 2
 Forest card to battlefield tapped`, `search basic land card reveal to
 top` ("Search your library for ..., then shuffle"; add `that card` to
 print "that card" for "it"; `search up to 3 card named this reveal to hand`,

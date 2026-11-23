@@ -1,0 +1,7 @@
+card "Calciform Pools" {
+  oracle_id 2031bc31-81cc-407a-8615-29832f586bbc
+  type Land
+  mana {C}
+  activated {1}, {T}: put 1 storage counters on this
+  activated {1}, remove X storage counters from this: add X mana any combination of {W}{U}
+}

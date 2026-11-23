@@ -1505,6 +1505,14 @@ impl P {
                     count: self.num()?,
                 });
             }
+            // `add any X`: "Add X mana of any one color." (the ability's
+            // X: Petalmane Baku's counters removed).
+            if self.eat_word("x") {
+                return Ok(Effect::AddManaTimes {
+                    mana: Mana::Any,
+                    count: Num::X,
+                });
+            }
             return Ok(Effect::AddMana(vec![Mana::Any]));
         }
         let x = self.at_word("x") && self.word_at(1).as_deref() == Some("mana");

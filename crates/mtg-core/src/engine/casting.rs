@@ -5524,15 +5524,17 @@ impl GameState {
         self.stack.push(obj);
         self.bump();
         // CR 602.2b, 601.2b: X in the activation cost is announced before
-        // targets are chosen. (A mana ability's X is paid as it is
-        // activated, Wizard's Rockets, and isn't asked.)
+        // targets are chosen. (A mana ability's X in its mana cost is paid
+        // as it is activated, Wizard's Rockets, and isn't asked; one that
+        // removes X counters, a storage land's, is: CR 107.3, 605.3b.)
         let has_x = matches!(
             self.pool.ability(ability),
-            AbilityDef::Activated(a) if (a.cost.mana.has_x()
+            AbilityDef::Activated(a) if ((a.cost.mana.has_x()
                 || a.cost.remove_x
                 || a.cost.behold.as_ref().is_some_and(|b| b.x)
                 || a.cost.exile_cards.as_ref().is_some_and(|g| g.x))
-                && !a.is_mana_ability()
+                && !a.is_mana_ability())
+                || (a.cost.remove_x && a.is_mana_ability())
         );
         // CR 602.2b, 601.2b: a modal activated ability's mode is chosen
         // first.

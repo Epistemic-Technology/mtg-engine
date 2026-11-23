@@ -8905,10 +8905,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else if colors.count() == 5 {
                 format!("add {n} mana in any combination of colors")
             } else {
-                let syms: Vec<String> = colors
+                let mut syms: Vec<String> = colors
                     .iter()
                     .map(|c| format!("{{{}}}", c.letter()))
                     .collect();
+                // A pair prints in the color wheel's order, which wraps
+                // around: "{G} and/or {W}", "{R} and/or {W}", "{G} and/or
+                // {U}" (Saltcrusted Steppe).
+                if let [a, b] = syms.as_slice()
+                    && matches!(
+                        (a.as_str(), b.as_str()),
+                        ("{W}", "{G}") | ("{W}", "{R}") | ("{U}", "{G}")
+                    )
+                {
+                    syms.swap(0, 1);
+                }
                 format!(
                     "add {n} mana in any combination of {}",
                     syms.join(" and/or ")
