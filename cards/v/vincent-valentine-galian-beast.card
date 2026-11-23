@@ -1,0 +1,16 @@
+card "Vincent Valentine // Galian Beast" {
+  oracle_id f40e6bbf-1fed-4ec5-869d-18c2dd396d14
+  layout transform
+  cost {2}{B}{B}
+  type Legendary Creature — Assassin
+  pt 2/2
+  triggered whenever creature an opponent controls dies: put count equal power of that creature +1/+1 counters on this
+  triggered whenever this attacks: you may transform this
+  face "Galian Beast" {
+    type Legendary Creature — Werewolf Beast
+    pt 3/2
+    color black
+    keywords trample, lifelink
+    triggered when this dies: return it to battlefield tapped front face up
+  }
+}
