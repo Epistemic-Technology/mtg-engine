@@ -4971,6 +4971,7 @@ impl GameState {
             _ if !def.spree.is_empty() || !def.tiered.is_empty() => {
                 let spree = !def.spree.is_empty();
                 let costs = if spree { &def.spree } else { &def.tiered };
+                let delta = self.cost_delta(p, def, card, &self.cost_changers());
                 return def.modes().is_some_and(|modes| {
                     costs.iter().enumerate().any(|(i, c)| {
                         let m = if spree {
@@ -4978,12 +4979,23 @@ impl GameState {
                         } else {
                             modes.get(i)
                         };
+                        let mut req = c.requirements(0);
+                        adjust_generic(&mut req, delta);
                         m.is_some_and(|m| self.targets_available(p, &m.targets, Some(card)))
-                            && self.spell_payable(p, card, &c.requirements(0))
+                            && self.spell_payable(p, card, &req)
                     })
                 });
             }
-            _ => return true,
+            // Without paying its mana cost: what payment still charges,
+            // an additional cost's mana and cost increases (CR 601.2f,
+            // 118.9d: "Spells cost {1} more" applies to a free spell).
+            _ => {
+                let mut req = ManaRequirement::default();
+                if def.additional_or.is_none() {
+                    req.add(&def.additional.mana.requirements(0));
+                }
+                Some(req)
+            }
         };
         let Some(mut req) = req.take() else {
             return false;

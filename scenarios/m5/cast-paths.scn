@@ -9,3 +9,32 @@ scenario "cast paths: an additional cost's mana is part of the cost offered" {
   run_to turn 1 postcombat_main
   assert hand A contains "Benevolent River Spirit"
 }
+
+scenario "cast paths: a spell cast without paying its mana cost still pays a cost increase" {
+  battlefield A: "Omniscience"
+  battlefield B: "Thalia, Guardian of Thraben"
+  hand A: "Divination"
+  library A: "Plains", "Plains", "Plains"
+  illegal turn 1 A: cast "Divination" free
+  run_to turn 1 postcombat_main
+  assert hand A contains "Divination"
+}
+
+scenario "cast paths: with the mana for the increase, the free spell is cast" {
+  battlefield A: "Omniscience", "Island"
+  battlefield B: "Thalia, Guardian of Thraben"
+  hand A: "Divination"
+  library A: "Plains", "Plains", "Plains"
+  turn 1 A: cast "Divination" free
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Divination"
+  assert tapped "Island"
+}
+
+scenario "cast paths: a free spell still pays its additional cost's mana" {
+  battlefield A: "Omniscience"
+  hand A: "Benevolent River Spirit"
+  illegal turn 1 A: cast "Benevolent River Spirit" free
+  run_to turn 1 postcombat_main
+  assert hand A contains "Benevolent River Spirit"
+}
