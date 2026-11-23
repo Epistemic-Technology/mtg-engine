@@ -536,7 +536,10 @@ attacks while you control 2 artifact: ...`, `while saddled`, `while
 delirium`), judged only as the event happens, so the ability resolves even
 if the condition no longer holds. Any trigger takes one (`whenever other
 creature you control enters while this has 1 or more -1/-1 counters`:
-"... enters while this creature has a -1/-1 counter on it"), and `during
+"... enters while this creature has a -1/-1 counter on it"; with the
+source not yet named, `whenever you cast a spell while this is attacking`
+names it: "Whenever you cast a spell while Fire Lord Azula is
+attacking"), and `during
 your turn` is one too: "Whenever a land enters during your turn".
 
 Static conditions: `7 cards in your graveyard` ("there are seven or more

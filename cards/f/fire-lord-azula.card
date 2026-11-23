@@ -1,0 +1,8 @@
+card "Fire Lord Azula" {
+  oracle_id 2631130e-63e2-43a3-914a-648e76722203
+  cost {1}{U}{B}{R}
+  type Legendary Creature — Human Noble
+  pt 4/4
+  firebending 2
+  triggered whenever you cast a spell while this is attacking: copy that spell new targets
+}

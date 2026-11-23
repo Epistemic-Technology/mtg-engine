@@ -1,0 +1,21 @@
+# "Whenever you cast a spell while Fire Lord Azula is attacking": the
+# source named in a cast trigger's "while" condition.
+
+scenario "Fire Lord Azula: a spell cast while she attacks is copied" {
+  battlefield A: "Fire Lord Azula", "Mountain"
+  hand A: "Shock"
+  start turn 2 A
+  turn 2 A: attack "Fire Lord Azula"
+  turn 2 declare_attackers A: cast "Shock" targeting player B
+  run_to turn 2 end_combat
+  assert life B 12
+}
+
+scenario "Fire Lord Azula: a spell cast while she isn't attacking isn't copied" {
+  battlefield A: "Fire Lord Azula", "Mountain"
+  hand A: "Shock"
+  start turn 2 A
+  turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 end_combat
+  assert life B 18
+}

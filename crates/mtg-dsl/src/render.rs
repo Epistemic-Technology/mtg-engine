@@ -16198,6 +16198,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     {
                         text = format!("{} {rest}", it_subj(card));
                     }
+                    // "Whenever you cast a spell while Fire Lord Azula is
+                    // attacking": not named yet, so named here.
+                    if !out.contains(&capitalize(&this))
+                        && !out.contains(&format!(" {this}"))
+                        && let Some(rest) = text.strip_prefix("it's ")
+                    {
+                        text = format!("{this} is {rest}");
+                    }
                     out.push_str(&text);
                 }
                 // "Whenever you cast a noncreature spell, if at least four
