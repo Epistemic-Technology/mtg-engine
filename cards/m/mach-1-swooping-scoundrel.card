@@ -1,0 +1,8 @@
+card "MACH-1, Swooping Scoundrel" {
+  oracle_id 75810ce7-328c-4512-8e36-fd3badbd3997
+  cost {1}{B}
+  type Legendary Artifact Creature — Human Villain
+  pt 1/3
+  keywords flying
+  triggered once each turn when this enters and whenever you gain life: surveil 1
+}

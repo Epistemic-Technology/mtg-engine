@@ -10952,8 +10952,9 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             if base.status.all_colors && base.colors.is_some() && base.targeting.is_none() {
                 return format!("whenever {who} {}{that}", a_spell(&base, ctx.card));
             }
-            if false
-                && !base.any_types.is_empty()
+            // "an instant, sorcery, or Wizard spell" (Windrider Wizard): card
+            // types and one alternative of another kind, in one list.
+            if !base.any_types.is_empty()
                 && let Some(alt) = &base.or
                 && alt.or.is_none()
                 && !base.alt_article

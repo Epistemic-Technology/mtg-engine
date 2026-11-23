@@ -1,0 +1,17 @@
+card "Lunarch Veteran // Luminous Phantom" {
+  oracle_id 0761a0e7-d443-4bab-bb15-307c83d4a6a1
+  layout transform
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  triggered whenever other creature you control enters: you gain 1 life
+  disturb {1}{W}
+  face "Luminous Phantom" {
+    type Creature — Spirit Cleric
+    pt 1/1
+    color white
+    keywords flying
+    triggered whenever other creature you control leaves the battlefield: you gain 1 life
+    exiled instead of graveyard
+  }
+}
