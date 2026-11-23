@@ -1,0 +1,6 @@
+card "Battlefield Improvisation" {
+  oracle_id c5b85aa7-6a76-4fe2-a63e-4f376b6c9af7
+  cost {1}{W}
+  type Instant
+  spell: target creature gets +2/+2; if that target 1 is attacking, you may attach any number Equipment you control to target 1 chosen
+}

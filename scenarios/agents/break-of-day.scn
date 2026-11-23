@@ -1,0 +1,23 @@
+scenario "break of day fateful hour" {
+  life A 5
+  battlefield A: "Grizzly Bears", "Hill Giant", 2 "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Break of Day"
+  turn 1 A: cast "Break of Day"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert power "Hill Giant" 4
+  assert has "Grizzly Bears" indestructible
+  assert has "Hill Giant" indestructible
+  assert has not "Serra Angel" indestructible
+  assert power "Serra Angel" 4
+}
+scenario "break of day without fateful hour" {
+  life A 6
+  battlefield A: "Grizzly Bears", "Hill Giant", 2 "Plains"
+  hand A: "Break of Day"
+  turn 1 A: cast "Break of Day"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert has not "Grizzly Bears" indestructible
+}

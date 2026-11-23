@@ -1,0 +1,8 @@
+card "Iron Apprentice" {
+  oracle_id cd0c8db0-67ee-483b-8298-455cce35fef7
+  cost {1}
+  type Artifact Creature — Construct
+  pt 0/0
+  enters with 1 +1/+1 counter
+  triggered when this dies if it had counters: put those counters on target creature you control
+}

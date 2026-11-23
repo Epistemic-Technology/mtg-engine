@@ -1,0 +1,28 @@
+scenario "taps itself and another permanent for colorless" {
+  battlefield A: "Moonsnare Prototype", "Grizzly Bears", 2 "Island"
+  hand A: "Divination"
+  turn 1 precombat_main A: activate "Moonsnare Prototype" sacrificing "Grizzly Bears"
+  turn 1 precombat_main A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert tapped "Moonsnare Prototype"
+  assert tapped "Grizzly Bears"
+}
+scenario "cannot pay without another untapped artifact or creature" {
+  battlefield A: "Moonsnare Prototype", 2 "Island"
+  hand A: "Divination"
+  illegal turn 1 precombat_main A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+scenario "channel puts a permanent on top of its owner's library" {
+  battlefield A: 5 "Island"
+  hand A: "Moonsnare Prototype"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: activate "Moonsnare Prototype" targeting "Hill Giant"
+  turn 1 precombat_main B: accept "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Moonsnare Prototype"
+  assert library B contains "Hill Giant"
+  assert battlefield B lacks "Hill Giant"
+}

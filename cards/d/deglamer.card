@@ -1,0 +1,6 @@
+card "Deglamer" {
+  oracle_id 049d2e18-8fa9-44d9-8618-f675592cb624
+  cost {1}{G}
+  type Instant
+  spell: choose target artifact or enchantment; owner shuffles target 1 into library
+}

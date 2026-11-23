@@ -1,0 +1,9 @@
+card "Court Hussar" {
+  oracle_id 74fedfc4-3eb7-4845-9d3e-9d5243a0062a
+  cost {2}{U}
+  type Creature — Vedalken Knight
+  pt 1/3
+  keywords vigilance
+  triggered whenever this enters: dig 3 then take card rest bottom
+  triggered whenever this enters: sacrifice this unless spent 1 white
+}

@@ -1,0 +1,7 @@
+card "Cloak of Invisibility" {
+  oracle_id 68b06917-7f83-47d4-a466-4e6698cae56d
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has phasing, has ability { can't be blocked except by Wall }
+}

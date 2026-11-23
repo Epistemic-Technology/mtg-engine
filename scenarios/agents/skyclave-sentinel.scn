@@ -1,0 +1,28 @@
+scenario "Skyclave Sentinel unkicked is a 2/3 that cannot attack" {
+  battlefield A: "Skyclave Sentinel"
+  start turn 1 A
+  illegal turn 1 A: attack "Skyclave Sentinel"
+  run_to turn 1 postcombat_main
+  assert power "Skyclave Sentinel" 2
+  assert counters "Skyclave Sentinel" +1/+1 0
+}
+
+scenario "Skyclave Sentinel kicked enters with two counters and can attack" {
+  battlefield A: 7 "Island"
+  hand A: "Skyclave Sentinel"
+  library A: "Island", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Skyclave Sentinel" kicked
+  run_to turn 1 postcombat_main
+  assert counters "Skyclave Sentinel" +1/+1 2
+  assert power "Skyclave Sentinel" 4
+  assert toughness "Skyclave Sentinel" 5
+}
+
+scenario "Skyclave Sentinel with a counter can attack" {
+  battlefield A: "Skyclave Sentinel" with 1 +1/+1
+  start turn 1 A
+  turn 1 A: attack "Skyclave Sentinel"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

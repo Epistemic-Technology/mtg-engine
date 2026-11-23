@@ -1,0 +1,7 @@
+card "Bloodfire Infusion" {
+  oracle_id d5bd7c0b-c412-47ed-afb8-1a9ba04be77c
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant creature you control
+  activated {R}, sacrifice enchanted: deal damage equal power of the sacrificed creature to each creature
+}

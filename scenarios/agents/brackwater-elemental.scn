@@ -1,0 +1,30 @@
+scenario "attacking: sacrificed at the next end step" {
+  battlefield A: "Brackwater Elemental"
+  turn 1 declare_attackers A: attack "Brackwater Elemental"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert battlefield A contains "Brackwater Elemental"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Brackwater Elemental"
+}
+scenario "blocking: sacrificed at the next end step" {
+  battlefield A: "Brackwater Elemental"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 declare_attackers B: attack "Hill Giant"
+  turn 2 declare_blockers A: block "Hill Giant" with "Brackwater Elemental"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Brackwater Elemental"
+  run_to turn 2 cleanup
+  assert graveyard A contains "Brackwater Elemental"
+}
+scenario "unearth: returns with haste, exiled at the end step" {
+  battlefield A: 3 "Island"
+  graveyard A: "Brackwater Elemental"
+  turn 1 precombat_main A: activate "Brackwater Elemental"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Brackwater Elemental"
+  run_to turn 2 upkeep
+  assert exile A contains "Brackwater Elemental"
+}

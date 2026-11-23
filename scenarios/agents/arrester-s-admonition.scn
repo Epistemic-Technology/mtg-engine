@@ -1,0 +1,23 @@
+scenario "Arrester's Admonition in a main phase bounces and draws" {
+  battlefield A: "Island", "Island", "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Arrester's Admonition"
+  library A: "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Arrester's Admonition" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "Arrester's Admonition outside a main phase doesn't draw" {
+  battlefield A: "Island", "Island", "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Arrester's Admonition"
+  library A: "Forest", "Forest"
+  start turn 2 B upkeep
+  turn 2 upkeep A: cast "Arrester's Admonition" targeting "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert hand B contains "Grizzly Bears"
+  assert hand A count 0
+}

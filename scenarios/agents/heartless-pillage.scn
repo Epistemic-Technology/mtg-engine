@@ -1,0 +1,20 @@
+scenario "heartless pillage with raid" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  hand A: "Heartless Pillage"
+  hand B: "Forest", "Island", "Plains"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Heartless Pillage" targeting player B
+  run_to turn 1 end
+  assert hand B count 1
+  assert battlefield A contains "Treasure"
+}
+scenario "heartless pillage without raid" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  hand A: "Heartless Pillage"
+  hand B: "Forest", "Island", "Plains"
+  turn 1 A: cast "Heartless Pillage" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert battlefield A lacks "Treasure"
+}

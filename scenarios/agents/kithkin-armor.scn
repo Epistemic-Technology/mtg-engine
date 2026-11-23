@@ -1,0 +1,33 @@
+scenario "Kithkin Armor can't be blocked by power 3 or greater" {
+  battlefield A: "Grizzly Bears", "Kithkin Armor" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 declare_blockers B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Kithkin Armor can be blocked by power 2" {
+  battlefield A: "Hill Giant", "Kithkin Armor" on "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Kithkin Armor sacrifice prevents the next damage from a chosen source" {
+  battlefield A: "Grizzly Bears", "Kithkin Armor" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  turn 2 declare_blockers A: activate "Kithkin Armor"
+  turn 2 declare_blockers A: choose "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Kithkin Armor"
+  assert damage "Hill Giant" 2
+}

@@ -1,0 +1,7 @@
+card "Laccolith Whelp" {
+  oracle_id b16b10ec-a6a3-4bda-a561-9b7bb8eee194
+  cost {R}
+  type Creature — Beast
+  pt 1/1
+  triggered whenever this becomes blocked: you may this bites target creature; if you do, this creature assigns no combat damage this turn
+}

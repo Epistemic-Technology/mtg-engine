@@ -1,0 +1,16 @@
+scenario "sabertooth cat can't be blocked after activation" {
+  battlefield A: "Sabertooth Alley Cat", 2 "Mountain"
+  battlefield B: "Grizzly Bears", "Wind Drake"
+  turn 1 precombat_main A: activate "Sabertooth Alley Cat"
+  illegal turn 1 declare_blockers B: block "Sabertooth Alley Cat" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+scenario "sabertooth cat attacks each combat and can be blocked otherwise" {
+  battlefield A: "Sabertooth Alley Cat"
+  battlefield B: "Grizzly Bears"
+  turn 1 declare_blockers B: block "Sabertooth Alley Cat" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Sabertooth Alley Cat"
+  assert life B 20
+}

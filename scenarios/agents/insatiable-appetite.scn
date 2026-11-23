@@ -1,0 +1,26 @@
+scenario "Insatiable Appetite sacrificing a Food gives +5/+5" {
+  battlefield A: "Grizzly Bears", "Food", 2 "Forest"
+  hand A: "Insatiable Appetite"
+  turn 1 precombat_main A: cast "Insatiable Appetite" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 7
+  assert toughness "Grizzly Bears" 7
+  assert battlefield A lacks "Food"
+}
+scenario "Insatiable Appetite declining gives +3/+3" {
+  battlefield A: "Grizzly Bears", "Food", 2 "Forest"
+  hand A: "Insatiable Appetite"
+  turn 1 precombat_main A: cast "Insatiable Appetite" targeting "Grizzly Bears"
+  turn 1 precombat_main A: decline "Insatiable Appetite"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert battlefield A contains "Food"
+}
+scenario "Insatiable Appetite without Food gives +3/+3" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  hand A: "Insatiable Appetite"
+  turn 1 precombat_main A: cast "Insatiable Appetite" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 5
+}

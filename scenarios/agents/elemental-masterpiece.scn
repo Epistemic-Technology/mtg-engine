@@ -1,0 +1,19 @@
+scenario "Elemental Masterpiece creates two 4/4 Elementals" {
+  battlefield A: 5 "Island", 2 "Mountain"
+  hand A: "Elemental Masterpiece"
+  turn 1 precombat_main A: cast "Elemental Masterpiece"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 2 "Elemental"
+  assert power oldest A "Elemental" 4
+  assert toughness oldest A "Elemental" 4
+  assert is oldest A "Elemental" blue
+  assert is oldest A "Elemental" red
+}
+scenario "Elemental Masterpiece discards for a Treasure" {
+  battlefield A: 2 "Mountain"
+  hand A: "Elemental Masterpiece"
+  turn 1 precombat_main A: activate "Elemental Masterpiece"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Elemental Masterpiece"
+  assert battlefield A contains 1 "Treasure"
+}

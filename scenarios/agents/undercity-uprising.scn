@@ -1,0 +1,22 @@
+scenario "Undercity Uprising: deathtouch makes the fight lethal" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Swamp", "Forest", 2 "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Undercity Uprising"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Undercity Uprising" targeting "Grizzly Bears", "Serra Angel"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Serra Angel"
+  assert graveyard A contains "Grizzly Bears"
+  assert has "Hill Giant" deathtouch
+  assert graveyard A contains "Undercity Uprising"
+}
+
+scenario "Undercity Uprising cannot target own creature as second target" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Swamp", "Forest", 2 "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Undercity Uprising"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Undercity Uprising" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Hill Giant"
+}

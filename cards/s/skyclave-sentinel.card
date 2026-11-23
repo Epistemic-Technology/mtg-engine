@@ -1,0 +1,10 @@
+card "Skyclave Sentinel" {
+  oracle_id 3b7b166b-4329-4194-a9a7-f1fec7a92cec
+  cost {3}
+  type Artifact Creature — Gargoyle
+  pt 2/3
+  kicker {4}
+  keywords flying, defender
+  kicked with 2 +1/+1 counters
+  static as long as this has 1 or more +1/+1 counters, this: has can attack as though it didn't have defender
+}

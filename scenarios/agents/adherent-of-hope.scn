@@ -1,0 +1,6 @@
+scenario "Adherent of Hope does nothing without a Basri planeswalker" {
+  battlefield A: "Adherent of Hope", "Jace Beleren"
+  run_to turn 1 end
+  assert counters "Adherent of Hope" +1/+1 0
+  assert power "Adherent of Hope" 2
+}

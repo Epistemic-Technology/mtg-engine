@@ -1,0 +1,5 @@
+scenario "rat colony counts other rats" {
+  battlefield A: 2 "Rat Colony", "Bog Rats"
+  assert power newest A "Rat Colony" 4
+  assert power "Bog Rats" 1
+}

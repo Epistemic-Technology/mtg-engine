@@ -1,0 +1,27 @@
+scenario "Pippin's Bravery sacrificing a Food gives +4/+4" {
+  battlefield A: "Grizzly Bears", "Food", "Forest"
+  hand A: "Pippin's Bravery"
+  turn 1 precombat_main A: cast "Pippin's Bravery" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 6
+  assert toughness "Grizzly Bears" 6
+  assert graveyard A contains "Pippin's Bravery"
+  assert battlefield A lacks "Food"
+}
+scenario "Pippin's Bravery declining gives +2/+2 and keeps the Food" {
+  battlefield A: "Grizzly Bears", "Food", "Forest"
+  hand A: "Pippin's Bravery"
+  turn 1 precombat_main A: cast "Pippin's Bravery" targeting "Grizzly Bears"
+  turn 1 precombat_main A: decline "Pippin's Bravery"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert battlefield A contains "Food"
+}
+scenario "Pippin's Bravery with no Food gives +2/+2" {
+  battlefield A: "Grizzly Bears", "Forest"
+  hand A: "Pippin's Bravery"
+  turn 1 precombat_main A: cast "Pippin's Bravery" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+}

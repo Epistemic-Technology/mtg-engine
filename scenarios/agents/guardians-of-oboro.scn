@@ -1,0 +1,14 @@
+scenario "modified guardians can attack" {
+  battlefield A: "Guardians of Oboro" with 1 +1/+1
+  start turn 1 A precombat_main
+  turn 1 A: attack "Guardians of Oboro"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+scenario "unmodified guardians cannot attack" {
+  battlefield A: "Guardians of Oboro"
+  start turn 1 A precombat_main
+  illegal turn 1 A: attack "Guardians of Oboro"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

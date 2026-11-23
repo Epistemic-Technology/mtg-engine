@@ -1,0 +1,14 @@
+card "Pyretic Prankster // Glistening Goremonger" {
+  oracle_id f810e185-4498-483b-ab37-0c583dae0eaf
+  layout transform
+  cost {1}{R}
+  type Creature — Devil
+  pt 2/1
+  activated {3}{B/P}, sorcery: transform this
+  face "Glistening Goremonger" {
+    type Creature — Phyrexian Devil
+    pt 3/2
+    color black red
+    triggered when this dies: each opponent sacrifices 1 artifact or creature
+  }
+}

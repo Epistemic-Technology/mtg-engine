@@ -1,0 +1,9 @@
+card "Arrester's Admonition" {
+  oracle_id ccfb612a-762d-41a7-bc3d-268c6abf8e85
+  cost {2}{U}
+  type Instant
+  spell {
+    return target creature to hand
+    label "Addendum" if cast during main phase, draw 1 card
+  }
+}

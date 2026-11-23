@@ -1,0 +1,8 @@
+card "Brackwater Elemental" {
+  oracle_id a8af4d61-1aed-415d-8d8e-7384194ee3e2
+  cost {2}{U}
+  type Creature — Elemental
+  pt 4/4
+  triggered when this attacks or blocks: delayed this: sacrifice this at beginning of the next end step
+  unearth {2}{U}
+}

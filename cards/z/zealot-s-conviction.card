@@ -1,0 +1,9 @@
+card "Zealot's Conviction" {
+  oracle_id 79ab207f-e7ff-4236-b260-5a109a73fbed
+  cost {W}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +1/+1
+  label "Corrupted" static as long as opponent poison 3 or more, enchanted: +1/+0, has first strike
+}

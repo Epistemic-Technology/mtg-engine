@@ -1,0 +1,7 @@
+card "Golden Urn" {
+  oracle_id ddb19cac-20b0-4ab8-a31d-c5c155491780
+  cost {1}
+  type Artifact
+  triggered at beginning of your upkeep step: you may put 1 charge counter on this
+  activated {T}, sacrifice this: you gain count equal charge counters on this life
+}

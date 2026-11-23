@@ -1,0 +1,9 @@
+card "Persistent Petitioners" {
+  oracle_id 0e488c6c-aae2-450f-b969-7bb5a1b37a66
+  cost {1}{U}
+  type Creature — Human Advisor
+  pt 1/3
+  activated {1}, {T}: target player mills 1 cards
+  activated tap 4 untapped Advisor you control: target player mills 12 cards
+  deck any number
+}

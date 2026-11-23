@@ -1,0 +1,22 @@
+scenario "Laccolith Whelp deals damage equal to its power to a target and assigns no combat damage" {
+  battlefield A: "Laccolith Whelp" with 2 +1/+1
+  battlefield B: "Wind Drake", "Hill Giant"
+  turn 1 declare_attackers A: attack "Laccolith Whelp"
+  turn 1 declare_blockers B: block "Laccolith Whelp" with "Wind Drake"
+  turn 1 declare_blockers A: trigger "Laccolith Whelp" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B lacks "Wind Drake"
+  assert battlefield B contains "Wind Drake"
+  assert damage "Laccolith Whelp" 2
+}
+scenario "Laccolith Whelp declining deals combat damage normally" {
+  battlefield A: "Laccolith Whelp" with 2 +1/+1
+  battlefield B: "Wind Drake", "Hill Giant"
+  turn 1 declare_attackers A: attack "Laccolith Whelp"
+  turn 1 declare_blockers B: block "Laccolith Whelp" with "Wind Drake"
+  turn 1 declare_blockers A: decline "Laccolith Whelp"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert battlefield B contains "Hill Giant"
+}

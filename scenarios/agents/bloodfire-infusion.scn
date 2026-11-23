@@ -1,0 +1,19 @@
+scenario "Bloodfire Infusion deals the sacrificed creature's power to each creature" {
+  battlefield A: "Hill Giant", "Bloodfire Infusion" on "Hill Giant", "Wind Drake", "Mountain"
+  battlefield B: "Grizzly Bears", "Serra Angel"
+  turn 1 precombat_main A: activate "Bloodfire Infusion"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Bloodfire Infusion"
+  assert graveyard A contains "Wind Drake"
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Serra Angel"
+  assert damage "Serra Angel" 3
+}
+scenario "Bloodfire Infusion uses the power with counters" {
+  battlefield A: "Hill Giant" with 1 +1/+1, "Bloodfire Infusion" on "Hill Giant", "Mountain"
+  battlefield B: "Serra Angel"
+  turn 1 precombat_main A: activate "Bloodfire Infusion"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Serra Angel"
+}

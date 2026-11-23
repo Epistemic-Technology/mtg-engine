@@ -1,0 +1,7 @@
+card "Ritual Guardian" {
+  oracle_id 9f4719f2-0eab-464b-9ae5-2b96717ae08d
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 3/2
+  label "Coven" triggered at beginning of your combat step if 3 different powers: this gains lifelink
+}

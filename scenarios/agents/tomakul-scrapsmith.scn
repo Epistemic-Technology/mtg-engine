@@ -1,0 +1,23 @@
+scenario "Tomakul Scrapsmith takes a milled artifact" {
+  hand A: "Tomakul Scrapsmith"
+  battlefield A: 3 "Mountain"
+  library A: "Forest", "Sol Ring", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tomakul Scrapsmith"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Sol Ring"
+  assert power "Tomakul Scrapsmith" 2
+  assert graveyard A contains 2 "Forest"
+}
+
+scenario "Tomakul Scrapsmith grows when no artifact is milled" {
+  hand A: "Tomakul Scrapsmith"
+  battlefield A: 3 "Mountain"
+  library A: "Forest", "Forest", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tomakul Scrapsmith"
+  run_to turn 1 postcombat_main
+  assert power "Tomakul Scrapsmith" 3
+  assert counters "Tomakul Scrapsmith" +1/+1 1
+  assert graveyard A contains 3 "Forest"
+}

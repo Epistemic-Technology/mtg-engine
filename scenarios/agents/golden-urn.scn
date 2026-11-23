@@ -1,0 +1,10 @@
+scenario "Golden Urn gains life equal to its charge counters" {
+  battlefield A: "Golden Urn"
+  start turn 1 A upkeep
+  run_to turn 3 draw
+  assert counters "Golden Urn" charge 2
+  turn 3 draw A: activate "Golden Urn"
+  run_to turn 3 precombat_main
+  assert life A 22
+  assert graveyard A contains "Golden Urn"
+}

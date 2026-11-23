@@ -1,0 +1,14 @@
+card "Bonded Herdbeast // Plated Kilnbeast" {
+  oracle_id b06067e7-330e-47de-be59-c2874eedba1d
+  layout transform
+  cost {4}{G}
+  type Creature — Beast
+  pt 4/5
+  activated {4}{R/P}, sorcery: transform this
+  face "Plated Kilnbeast" {
+    type Creature — Phyrexian Beast
+    pt 7/5
+    color green red
+    keywords menace
+  }
+}

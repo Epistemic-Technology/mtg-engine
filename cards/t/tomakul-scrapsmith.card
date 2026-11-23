@@ -1,0 +1,7 @@
+card "Tomakul Scrapsmith" {
+  oracle_id d1559911-6621-4fd6-8b3e-16e82baf849e
+  cost {2}{R}
+  type Creature — Human Artificer
+  pt 2/1
+  triggered when this enters: mill 3 cards; you may put 1 artifact card from among milled this way cards into hand chosen; if you dont, put 1 +1/+1 counter on this creature
+}

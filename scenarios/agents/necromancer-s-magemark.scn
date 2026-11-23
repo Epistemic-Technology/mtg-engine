@@ -1,0 +1,24 @@
+scenario "Necromancer's Magemark: enchanted creature returns to hand instead of dying" {
+  battlefield A: "Hill Giant", "Grizzly Bears", "Necromancer's Magemark" on "Hill Giant"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert graveyard A lacks "Hill Giant"
+  assert graveyard A contains "Necromancer's Magemark"
+}
+
+scenario "Necromancer's Magemark: pump applies and unenchanted creatures still die" {
+  battlefield A: "Hill Giant", "Grizzly Bears", "Necromancer's Magemark" on "Hill Giant"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert power "Hill Giant" 4
+  assert toughness "Hill Giant" 4
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 0
+}

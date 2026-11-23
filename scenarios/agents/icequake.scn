@@ -1,0 +1,11 @@
+scenario "icequake destroys a snow land and hurts its controller" {
+  battlefield B: "Snow-Covered Forest", "Forest"
+  battlefield A: 6 "Swamp"
+  hand A: "Icequake", "Icequake"
+  turn 1 A: cast "Icequake" targeting "Snow-Covered Forest"
+  turn 1 A: cast "Icequake" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Snow-Covered Forest"
+  assert graveyard B contains "Forest"
+  assert life B 19
+}

@@ -1,0 +1,8 @@
+card "Dirge of Dread" {
+  oracle_id be7b16ef-32aa-40d5-b287-c5e79d52d6b9
+  cost {2}{B}
+  type Sorcery
+  spell: each creature gain fear until end of turn
+  cycling {1}{B}
+  triggered when you cycle this card: you may target creature gains fear until end of turn
+}

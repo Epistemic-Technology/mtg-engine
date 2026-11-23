@@ -1,0 +1,27 @@
+scenario "Zealot's Conviction gives +1/+1" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Zealot's Conviction"
+  turn 1 precombat_main A: cast "Zealot's Conviction" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert has not "Grizzly Bears" first_strike
+}
+scenario "Zealot's Conviction corrupted gives +2/+1 and first strike" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Zealot's Conviction"
+  poison B: 3
+  turn 1 precombat_main A: cast "Zealot's Conviction" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 3
+  assert has "Grizzly Bears" first_strike
+}
+scenario "Zealot's Conviction with poison 2 is not corrupted" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Zealot's Conviction"
+  poison B: 2
+  turn 1 precombat_main A: cast "Zealot's Conviction" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 3
+}

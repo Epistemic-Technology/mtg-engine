@@ -1,0 +1,9 @@
+card "Break of Day" {
+  oracle_id 59674589-b174-4150-b8d6-30d25c5ead4c
+  cost {1}{W}
+  type Instant
+  spell {
+    each creature you control gets +1/+1
+    label "Fateful hour" if your life 5 or less, those creatures gain indestructible
+  }
+}

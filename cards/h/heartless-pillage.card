@@ -1,0 +1,9 @@
+card "Heartless Pillage" {
+  oracle_id 8e5e8bca-b52a-4178-ab53-bdd0e0e11dc1
+  cost {2}{B}
+  type Sorcery
+  spell {
+    target opponent discards 2 cards
+    label "Raid" if attacked this turn, create 1 "Treasure"
+  }
+}

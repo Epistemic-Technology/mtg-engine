@@ -1,0 +1,21 @@
+scenario "Cinderhaze Wretch discards, then untaps for a -1/-1 counter" {
+  battlefield A: "Cinderhaze Wretch"
+  hand B: "Shock", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Cinderhaze Wretch" ability 1 targeting player B
+  turn 1 precombat_main A: activate "Cinderhaze Wretch" ability 2
+  turn 1 precombat_main A: activate "Cinderhaze Wretch" ability 1 targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+  assert counters "Cinderhaze Wretch" -1/-1 1
+  assert power "Cinderhaze Wretch" 2
+  assert tapped "Cinderhaze Wretch"
+}
+scenario "Cinderhaze Wretch discard only in your turn" {
+  battlefield A: "Cinderhaze Wretch"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  illegal turn 2 precombat_main A: activate "Cinderhaze Wretch" ability 1 targeting player B
+  run_to turn 2 postcombat_main
+  assert hand B count 1
+}

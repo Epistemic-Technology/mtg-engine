@@ -1,0 +1,8 @@
+card "Necromancer's Magemark" {
+  oracle_id dffa7c06-096a-47f8-9645-1ba7306ba5b0
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  static creature you control with aura late: +1/+1
+  replace creature you control with aura late dies: hand
+}

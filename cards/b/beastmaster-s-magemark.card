@@ -1,0 +1,8 @@
+card "Beastmaster's Magemark" {
+  oracle_id f6889f57-2965-4a82-8556-fd91c6227058
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  static creature you control with aura late: +1/+1
+  triggered whenever creature you control with aura late becomes blocked: it gets +1/+1 count each creature blocking it
+}

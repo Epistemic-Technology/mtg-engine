@@ -1,0 +1,13 @@
+card "Sword Coast Serpent // Capsizing Wave" {
+  oracle_id d60e14b4-f750-40cc-85b5-17c87ae8a584
+  layout adventure
+  cost {5}{U}{U}
+  type Creature — Serpent Dragon
+  pt 6/6
+  static this: has can't be blocked as long as cast noncreature spell this turn
+  face "Capsizing Wave" {
+    cost {1}{U}
+    type Instant — Adventure
+    spell: return target creature to hand
+  }
+}

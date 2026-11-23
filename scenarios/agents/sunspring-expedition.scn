@@ -1,0 +1,25 @@
+scenario "Sunspring Expedition gains 8 life after three landfalls" {
+  battlefield A: "Sunspring Expedition"
+  hand A: "Forest", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert counters "Sunspring Expedition" quest 1
+  assert life A 20
+}
+
+scenario "Sunspring Expedition needs three counters" {
+  battlefield A: "Sunspring Expedition"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Sunspring Expedition"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Sunspring Expedition with three counters gains 8 and is sacrificed" {
+  battlefield A: "Sunspring Expedition" with 3 quest
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sunspring Expedition"
+  run_to turn 1 postcombat_main
+  assert life A 28
+  assert graveyard A contains "Sunspring Expedition"
+}

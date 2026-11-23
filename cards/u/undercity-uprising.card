@@ -1,0 +1,6 @@
+card "Undercity Uprising" {
+  oracle_id 53e540b5-8338-4b21-a61a-c5b7fe652a6e
+  cost {2}{B}{G}
+  type Sorcery
+  spell: each creature you control gains deathtouch; then target creature you control fights target creature you don't control
+}

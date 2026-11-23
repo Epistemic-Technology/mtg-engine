@@ -1,0 +1,12 @@
+scenario "Circle of the Moon Druid is a 4/2 Bear on its controller's turn only" {
+  battlefield A: "Circle of the Moon Druid"
+  start turn 1 A precombat_main
+  assert power "Circle of the Moon Druid" 4
+  assert toughness "Circle of the Moon Druid" 2
+  assert is "Circle of the Moon Druid" Bear
+  assert is not "Circle of the Moon Druid" Druid
+  run_to turn 2 precombat_main
+  assert power "Circle of the Moon Druid" 2
+  assert toughness "Circle of the Moon Druid" 4
+  assert is "Circle of the Moon Druid" Druid
+}

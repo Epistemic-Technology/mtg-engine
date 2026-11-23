@@ -1,0 +1,44 @@
+scenario "icy prison exiles a creature and returns it when it leaves" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant", 2 "Plains"
+  hand A: "Icy Prison"
+  hand B: "Disenchant"
+  turn 1 A: cast "Icy Prison"
+  turn 1 A: trigger "Icy Prison" targeting "Hill Giant"
+  turn 1 postcombat_main B: cast "Disenchant" targeting "Icy Prison"
+  run_to turn 1 end
+  assert exile B lacks "Hill Giant"
+  assert battlefield B contains "Hill Giant"
+  assert graveyard A contains "Icy Prison"
+}
+scenario "icy prison: exiled creature while it stays" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Icy Prison"
+  turn 1 A: cast "Icy Prison"
+  turn 1 A: trigger "Icy Prison" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert battlefield A contains "Icy Prison"
+}
+scenario "icy prison upkeep: not paying sacrifices it" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Icy Prison"
+  turn 1 A: cast "Icy Prison"
+  turn 1 A: trigger "Icy Prison" targeting "Hill Giant"
+  run_to turn 3 draw
+  assert graveyard A contains "Icy Prison"
+  assert battlefield B contains "Hill Giant"
+}
+scenario "icy prison upkeep: an opponent pays and it stays" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant", 3 "Island"
+  hand A: "Icy Prison"
+  turn 1 A: cast "Icy Prison"
+  turn 1 A: trigger "Icy Prison" targeting "Hill Giant"
+  run_to turn 3 draw
+  assert battlefield A contains "Icy Prison"
+  assert exile B contains "Hill Giant"
+  assert tapped B "Island"
+}

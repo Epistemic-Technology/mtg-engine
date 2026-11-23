@@ -1,0 +1,7 @@
+card "Laccolith Grunt" {
+  oracle_id f973daa7-241e-4eb7-9d98-9ea7557caa3a
+  cost {2}{R}
+  type Creature — Beast
+  pt 2/2
+  triggered whenever this becomes blocked: you may this bites target creature; if you do, this creature assigns no combat damage this turn
+}

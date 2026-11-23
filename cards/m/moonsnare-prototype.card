@@ -1,0 +1,7 @@
+card "Moonsnare Prototype" {
+  oracle_id 7346c266-19d8-4432-acf5-f00aff074ad5
+  cost {U}
+  type Artifact
+  activated {T}, tap untapped artifact or creature you control: add {C}
+  label "Channel" activated {4}{U}, discard this: owner of target nonland puts it on top or bottom of library
+}

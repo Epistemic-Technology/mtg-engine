@@ -1,0 +1,8 @@
+card "Sabertooth Alley Cat" {
+  oracle_id 13d301d1-c1e1-4656-8700-3f1c1c7c4485
+  cost {1}{R}{R}
+  type Creature — Cat
+  pt 2/1
+  keywords attacks each combat if able
+  activated {1}{R}: each creature without defender can't block this
+}

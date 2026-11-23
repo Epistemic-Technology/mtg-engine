@@ -1,0 +1,8 @@
+card "Rat Colony" {
+  oracle_id ec77d23b-0165-450d-9aae-73b755163753
+  cost {1}{B}
+  type Creature — Rat
+  pt 2/1
+  static this: +1/+0 count each other Rat you control
+  deck any number
+}

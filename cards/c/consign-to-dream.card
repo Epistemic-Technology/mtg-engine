@@ -1,0 +1,6 @@
+card "Consign to Dream" {
+  oracle_id 624bdbfb-b611-43b6-a3c5-cc8b11dbfaae
+  cost {2}{U}
+  type Instant
+  spell: return target permanent to hand; if that target 1 is red permanent or green permanent, put target 1 on top of library instead
+}

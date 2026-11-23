@@ -1,0 +1,38 @@
+scenario "Kukemssa Serpent can't attack a player without an Island" {
+  battlefield A: "Kukemssa Serpent", "Island"
+  battlefield B: "Forest"
+  start turn 1 A
+  illegal turn 1 A: attack "Kukemssa Serpent"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Kukemssa Serpent attacks a player who controls an Island" {
+  battlefield A: "Kukemssa Serpent", "Island"
+  battlefield B: "Island"
+  start turn 1 A
+  turn 1 A: attack "Kukemssa Serpent"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Kukemssa Serpent makes a land an Island and stays while an Island remains" {
+  battlefield A: "Kukemssa Serpent", 2 "Island"
+  battlefield B: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kukemssa Serpent" targeting "Forest"
+  run_to turn 1 begin_combat
+  assert is "Forest" island
+  assert battlefield A contains "Kukemssa Serpent"
+  assert battlefield A contains 1 "Island"
+}
+
+scenario "Kukemssa Serpent is sacrificed when its controller controls no Islands" {
+  battlefield A: "Kukemssa Serpent", "Island"
+  battlefield B: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kukemssa Serpent" targeting "Forest"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Kukemssa Serpent"
+  assert is "Forest" island
+}

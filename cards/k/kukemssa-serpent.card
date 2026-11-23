@@ -1,0 +1,9 @@
+card "Kukemssa Serpent" {
+  oracle_id 49e3ac82-7c22-4dec-b61a-b581148c0419
+  cost {3}{U}
+  type Creature — Serpent
+  pt 4/3
+  can't attack unless defending player controls Island
+  activated {U}, sacrifice Island: target land an opponent controls becomes Island
+  triggered when you control no Island: sacrifice this
+}

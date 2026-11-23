@@ -1,0 +1,14 @@
+scenario "persistent petitioners mill one and twelve" {
+  battlefield A: 4 "Persistent Petitioners", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Persistent Petitioners" targeting player B
+  run_to turn 1 end
+  assert graveyard B count 1
+}
+scenario "persistent petitioners tap four advisors" {
+  battlefield A: 4 "Persistent Petitioners"
+  turn 1 A: activate "Persistent Petitioners" ability 2 targeting player B
+  run_to turn 1 end
+  assert graveyard B count 12
+  assert tapped oldest A "Persistent Petitioners"
+}

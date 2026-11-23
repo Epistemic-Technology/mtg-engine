@@ -1,0 +1,11 @@
+scenario "Matsu-Tribe Decoy forces a block and taps the creature it damages" {
+  battlefield A: "Matsu-Tribe Decoy", 3 "Forest"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 precombat_main A: activate "Matsu-Tribe Decoy" targeting "Hill Giant"
+  turn 1 A: attack "Matsu-Tribe Decoy"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 1
+  assert tapped "Hill Giant"
+  assert untapped "Grizzly Bears"
+  assert graveyard A contains "Matsu-Tribe Decoy"
+}

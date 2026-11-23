@@ -1,0 +1,6 @@
+card "Rites of Refusal" {
+  oracle_id f88e7647-49dc-4d55-99f6-2f153854e5c0
+  cost {1}{U}
+  type Instant
+  spell: discard any number cards chosen; counter target spell unless its controller pays {X} count each 3 discarded this way
+}

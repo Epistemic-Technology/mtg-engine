@@ -1,0 +1,8 @@
+card "Guardians of Oboro" {
+  oracle_id 42b28dfb-de4d-4005-b0d7-1db3917cf159
+  cost {2}{U}
+  type Creature — Moonfolk Samurai
+  pt 3/4
+  keywords defender
+  static modified creature you control: has can attack as though it didn't have defender
+}

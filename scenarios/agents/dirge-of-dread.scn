@@ -1,0 +1,25 @@
+scenario "Dirge of Dread gives all creatures fear" {
+  battlefield A: "Grizzly Bears", 3 "Swamp"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Dirge of Dread"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Dirge of Dread"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  illegal turn 1 declare_blockers B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert has "Hill Giant" fear
+  assert life B 18
+}
+scenario "Dirge of Dread cycling gives a creature fear" {
+  battlefield A: "Grizzly Bears", 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Dirge of Dread"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Dirge of Dread"
+  turn 1 precombat_main A: trigger "Dirge of Dread" targeting "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" fear
+  assert hand A count 1
+  assert life B 18
+}

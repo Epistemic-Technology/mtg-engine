@@ -1,0 +1,7 @@
+card "Coral Net" {
+  oracle_id 20b8911e-6701-485c-ac62-2b3cc79ec288
+  cost {U}
+  type Enchantment — Aura
+  enchant green or white creature
+  static enchanted: has ability { triggered at beginning of your upkeep step: sacrifice this unless you discard a card }
+}

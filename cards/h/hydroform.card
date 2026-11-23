@@ -1,0 +1,6 @@
+card "Hydroform" {
+  oracle_id d8b6ea82-da4e-4763-84b1-4caa214ed945
+  cost {G}{U}
+  type Instant
+  spell: target land becomes 3/3 Elemental creature with flying until end of turn
+}

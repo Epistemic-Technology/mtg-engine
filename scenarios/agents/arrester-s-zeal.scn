@@ -1,0 +1,17 @@
+scenario "arrester's zeal in main phase grants flying" {
+  battlefield A: "Plains", "Grizzly Bears"
+  hand A: "Arrester's Zeal"
+  turn 1 A: cast "Arrester's Zeal" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert has "Grizzly Bears" flying
+}
+scenario "arrester's zeal outside main phase gives no flying" {
+  battlefield A: "Plains", "Grizzly Bears"
+  hand A: "Arrester's Zeal"
+  turn 1 begin_combat A: cast "Arrester's Zeal" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has not "Grizzly Bears" flying
+}

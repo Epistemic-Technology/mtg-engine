@@ -1,0 +1,28 @@
+scenario "coral net: discard keeps the creature" {
+  battlefield A: "Island", "Grizzly Bears"
+  hand A: "Coral Net", "Plains"
+  library A: "Mountain", "Mountain", "Mountain"
+  turn 1 A: cast "Coral Net" targeting "Grizzly Bears"
+  turn 3 upkeep A: accept "Grizzly Bears"
+  run_to turn 3 draw
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Plains"
+}
+scenario "coral net: declining sacrifices the creature" {
+  battlefield A: "Island", "Grizzly Bears"
+  hand A: "Coral Net", "Plains"
+  turn 1 A: cast "Coral Net" targeting "Grizzly Bears"
+  turn 3 upkeep A: decline "Grizzly Bears"
+  run_to turn 3 draw
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 2
+  assert graveyard A lacks "Plains"
+  assert battlefield A lacks "Grizzly Bears"
+}
+scenario "coral net can't enchant a red creature" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Coral Net"
+  illegal turn 1 A: cast "Coral Net" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+}

@@ -1,0 +1,16 @@
+scenario "Hydroform animates a land as a 3/3 flier until end of turn" {
+  battlefield A: "Forest", "Island", "Mountain"
+  hand A: "Hydroform"
+  turn 1 precombat_main A: cast "Hydroform" targeting "Mountain"
+  turn 1 declare_attackers A: attack "Mountain"
+  run_to turn 1 postcombat_main
+  assert is "Mountain" creature
+  assert is "Mountain" land
+  assert is "Mountain" "Elemental"
+  assert power "Mountain" 3
+  assert toughness "Mountain" 3
+  assert has "Mountain" flying
+  assert life B 17
+  run_to turn 2 upkeep
+  assert is not "Mountain" creature
+}

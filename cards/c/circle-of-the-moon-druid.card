@@ -1,0 +1,7 @@
+card "Circle of the Moon Druid" {
+  oracle_id 90569b99-8b63-4d2e-b7de-b578b8adbdcb
+  cost {2}{G}
+  type Creature — Human Elf Druid
+  pt 2/4
+  label "Bear Form" static during your turn, this: set subtype Bear, base 4/2
+}

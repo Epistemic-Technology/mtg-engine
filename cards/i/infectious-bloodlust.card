@@ -1,0 +1,8 @@
+card "Infectious Bloodlust" {
+  oracle_id 9cd8ca01-e8a9-47ea-8899-b016a2dcaea8
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+1, has haste, has attacks each combat if able
+  triggered when enchanted creature dies: you may search card named this reveal to hand
+}

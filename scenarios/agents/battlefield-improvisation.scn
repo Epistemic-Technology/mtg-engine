@@ -1,0 +1,21 @@
+scenario "Battlefield Improvisation attaches Equipment to an attacking creature" {
+  battlefield A: "Grizzly Bears", "Bonesplitter", "Leonin Scimitar", 2 "Plains"
+  hand A: "Battlefield Improvisation"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: cast "Battlefield Improvisation" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Bonesplitter" to "Grizzly Bears"
+  assert attached "Leonin Scimitar" to "Grizzly Bears"
+  assert life B 13
+}
+
+scenario "Battlefield Improvisation does not attach when the creature is not attacking" {
+  battlefield A: "Grizzly Bears", "Bonesplitter", 2 "Plains"
+  hand A: "Battlefield Improvisation"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Battlefield Improvisation" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}

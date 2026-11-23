@@ -1,0 +1,8 @@
+card "Icy Prison" {
+  oracle_id d4e2cc1a-4212-4284-9ebe-d3c40931de50
+  cost {U}{U}
+  type Enchantment
+  triggered when this enters: exile target creature
+  triggered at beginning of your upkeep step: sacrifice this unless any player pays {3}
+  triggered when this leaves the battlefield: return exiled card to battlefield
+}

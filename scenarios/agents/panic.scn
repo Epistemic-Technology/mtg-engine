@@ -1,0 +1,24 @@
+scenario "Panic stops a blocker and draws at the next upkeep" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Panic"
+  start turn 1 A precombat_main
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: cast "Panic" targeting "Hill Giant"
+  illegal turn 1 declare_blockers B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers B: block "Grizzly Bears" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert graveyard A contains "Grizzly Bears"
+  run_to turn 2 draw
+  assert hand A count 1
+}
+scenario "Panic is only castable before blockers" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Panic"
+  start turn 1 A precombat_main
+  illegal turn 1 precombat_main A: cast "Panic" targeting "Hill Giant"
+  run_to turn 1 end
+  assert hand A count 1
+}

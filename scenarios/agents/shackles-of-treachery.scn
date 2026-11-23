@@ -1,0 +1,12 @@
+scenario "shackles steals, untaps, hastes and breaks equipment on damage" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Grizzly Bears" tapped, "Bonesplitter" on "Grizzly Bears"
+  hand A: "Shackles of Treachery"
+  turn 1 A: cast "Shackles of Treachery" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert life B 16
+  assert battlefield B lacks "Bonesplitter"
+  assert graveyard B contains "Bonesplitter"
+}

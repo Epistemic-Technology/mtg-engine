@@ -1,0 +1,16 @@
+scenario "Frost Bite deals 2, or 3 with three snow permanents" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Frost Bite"
+  turn 1 precombat_main A: cast "Frost Bite" targeting "Hill Giant"
+  run_to turn 1 end
+  assert damage "Hill Giant" 2
+}
+scenario "Frost Bite with three snow permanents" {
+  battlefield A: "Snow-Covered Mountain", 3 "Snow-Covered Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Frost Bite"
+  turn 1 precombat_main A: cast "Frost Bite" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}

@@ -1,0 +1,7 @@
+card "Glint Hawk Idol" {
+  oracle_id 575f032a-6ae8-4f4f-ab0b-983e7c76ad7f
+  cost {2}
+  type Artifact
+  triggered whenever other artifact you control enters: you may this becomes 2/2 Bird artifact creature with flying until end of turn
+  activated {W}: this becomes 2/2 Bird artifact creature with flying until end of turn
+}

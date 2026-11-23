@@ -1,0 +1,7 @@
+card "Adherent of Hope" {
+  oracle_id b5f5400e-f341-40e3-b935-36d9cf983a20
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/1
+  triggered at beginning of your combat step if you control Basri planeswalker: put 1 +1/+1 counter on this
+}

@@ -1,0 +1,6 @@
+card "Strength of Solidarity" {
+  oracle_id f903b76f-d405-427a-b115-5066eb311e10
+  cost {G}
+  type Sorcery
+  spell: choose target creature you control; put count each party +1/+1 counters on target 1
+}

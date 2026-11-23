@@ -1,0 +1,11 @@
+scenario "deglamer shuffles an artifact into its owner's library" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Bonesplitter"
+  hand A: "Deglamer"
+  library B: "Island"
+  turn 1 A: cast "Deglamer" targeting "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert battlefield B lacks "Bonesplitter"
+  assert library B contains "Bonesplitter"
+  assert graveyard B lacks "Bonesplitter"
+}

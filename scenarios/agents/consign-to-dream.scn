@@ -1,0 +1,30 @@
+scenario "consign to dream bounces or tucks" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  hand A: "Consign to Dream", "Consign to Dream", "Consign to Dream"
+  library B: "Forest"
+  turn 1 A: cast "Consign to Dream" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Serra Angel"
+  assert battlefield B lacks "Serra Angel"
+}
+scenario "consign to dream green goes on top" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Consign to Dream"
+  library B: "Forest", "Plains"
+  turn 1 A: cast "Consign to Dream" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B lacks "Grizzly Bears"
+  assert hand B count 0
+  assert library B contains "Grizzly Bears"
+}
+scenario "consign to dream red goes on top" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Consign to Dream"
+  turn 1 A: cast "Consign to Dream" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+  assert library B contains "Hill Giant"
+}

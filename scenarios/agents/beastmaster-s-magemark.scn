@@ -1,0 +1,27 @@
+scenario "Magemark: enchanted creature gets +1/+1, and +1/+1 per blocker" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Beastmaster's Magemark" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power A "Hill Giant" 3
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert damage "Grizzly Bears" 3
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Magemark: two blockers give +2/+2 more" {
+  battlefield A: "Grizzly Bears", "Beastmaster's Magemark" on "Grizzly Bears"
+  battlefield B: "Wind Drake", "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  turn 1 B: block "Grizzly Bears" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power A "Grizzly Bears" 5
+  assert toughness A "Grizzly Bears" 5
+  assert damage A "Grizzly Bears" 4
+  assert graveyard B contains "Wind Drake"
+}

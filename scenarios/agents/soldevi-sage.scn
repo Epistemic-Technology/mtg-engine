@@ -1,0 +1,20 @@
+scenario "Soldevi Sage sacrifices two lands, draws three, discards one" {
+  battlefield A: "Soldevi Sage", 3 "Island"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Soldevi Sage" sacrificing "Island"
+  run_to turn 1 end
+  assert tapped "Soldevi Sage"
+  assert hand A count 2
+  assert battlefield A contains 1 "Island"
+  assert graveyard A contains 2 "Island"
+  assert library A count 1
+}
+
+scenario "Soldevi Sage cannot activate with fewer than two lands" {
+  battlefield A: "Soldevi Sage", "Island"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Soldevi Sage"
+  run_to turn 1 end
+  assert hand A count 0
+}

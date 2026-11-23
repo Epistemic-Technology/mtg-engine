@@ -1,0 +1,6 @@
+card "Icequake" {
+  oracle_id 8c0a6ac1-b1cc-405a-95fb-f06b7fecbb54
+  cost {1}{B}{B}
+  type Sorcery
+  spell: destroy target land; if target 1 was snow land, deal 1 damage to controller of that target 1
+}

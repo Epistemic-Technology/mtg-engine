@@ -1,0 +1,15 @@
+scenario "prankster transforms and its death makes the opponent sacrifice" {
+  battlefield A: "Pyretic Prankster", 4 "Swamp", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  turn 1 A: activate "Pyretic Prankster"
+  turn 1 A: wait
+  run_to turn 1 begin_combat
+  assert power "Glistening Goremonger" 3
+  assert toughness "Glistening Goremonger" 2
+  turn 1 begin_combat A: cast "Lightning Bolt" targeting "Glistening Goremonger"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Pyretic Prankster"
+  assert battlefield B lacks "Grizzly Bears"
+  assert graveyard B contains "Grizzly Bears"
+}

@@ -1,0 +1,10 @@
+scenario "Bonded Herdbeast transforms into Plated Kilnbeast" {
+  battlefield A: "Bonded Herdbeast", 4 "Forest"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Bonded Herdbeast"
+  run_to turn 1 begin_combat
+  assert power "Plated Kilnbeast" 7
+  assert toughness "Plated Kilnbeast" 5
+  assert has "Plated Kilnbeast" menace
+  assert life A 18
+}

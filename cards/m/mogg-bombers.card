@@ -1,0 +1,7 @@
+card "Mogg Bombers" {
+  oracle_id 69812cd2-9885-45ed-9d79-658597bfeb8b
+  cost {3}{R}
+  type Creature — Goblin
+  pt 3/4
+  triggered when other creature enters: sacrifice this and it deals 3 damage to target player or planeswalker
+}

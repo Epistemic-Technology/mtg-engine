@@ -1,0 +1,13 @@
+scenario "Rhox Pummeler has trample with its shield counter and loses it instead of dying" {
+  battlefield A: "Rhox Pummeler" with 1 shield
+  battlefield B: "Hill Giant", "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  assert counters "Rhox Pummeler" shield 1
+  assert has "Rhox Pummeler" trample
+  turn 2 B: cast "Lightning Bolt" targeting "Rhox Pummeler"
+  run_to turn 2 begin_combat
+  assert counters "Rhox Pummeler" shield 0
+  assert has not "Rhox Pummeler" trample
+  assert damage "Rhox Pummeler" 0
+}

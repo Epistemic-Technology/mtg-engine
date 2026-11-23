@@ -1,0 +1,28 @@
+scenario "Cloak of Invisibility: only Walls can block enchanted creature" {
+  battlefield A: "Grizzly Bears", "Cloak of Invisibility" on "Grizzly Bears"
+  battlefield B: "Hill Giant", "Wall of Air"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 B: block "Grizzly Bears" with "Wall of Air"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert damage "Wall of Air" 2
+}
+
+scenario "Cloak of Invisibility: unblocked when no Wall" {
+  battlefield A: "Grizzly Bears", "Cloak of Invisibility" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Cloak of Invisibility: enchanted creature phases out in its untap step" {
+  battlefield A: "Grizzly Bears", "Cloak of Invisibility" on "Grizzly Bears"
+  start turn 1 A
+  run_to turn 1 upkeep
+  assert battlefield A lacks "Grizzly Bears"
+}

@@ -1,0 +1,15 @@
+scenario "coven gives lifelink" {
+  battlefield A: "Ritual Guardian", "Grizzly Bears", "Serra Angel"
+  turn 1 declare_attackers A: attack "Ritual Guardian"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert life B 17
+  assert has "Ritual Guardian" lifelink
+}
+scenario "no coven with repeated powers" {
+  battlefield A: "Ritual Guardian", "Grizzly Bears", "Hill Giant"
+  turn 1 declare_attackers A: attack "Ritual Guardian"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert life B 17
+}

@@ -1,0 +1,10 @@
+card "Panic" {
+  oracle_id e98429a7-a83f-4b69-afad-9eb68b09e38e
+  cost {R}
+  type Instant
+  cast only during combat before blockers
+  spell {
+    target creature can't block
+    delayed this: draw 1 card at beginning of the next upkeep step
+  }
+}

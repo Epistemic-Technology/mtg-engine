@@ -1,0 +1,6 @@
+card "Shackles of Treachery" {
+  oracle_id 3466e0be-3e59-4f5e-812e-3250c8bf19aa
+  cost {2}{R}
+  type Sorcery
+  spell: gain control of target creature; untap that target 1; until end of turn, target 1 gains haste and gains ability { triggered whenever this deals damage: destroy target Equipment attached to this }
+}

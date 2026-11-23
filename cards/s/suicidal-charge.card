@@ -1,0 +1,6 @@
+card "Suicidal Charge" {
+  oracle_id 7b052ce1-ee82-4335-bc1d-9563bc59b948
+  cost {3}{B}{R}
+  type Enchantment
+  activated sacrifice this: all creature your opponents control gets -1/-1; those creatures attacks if able
+}

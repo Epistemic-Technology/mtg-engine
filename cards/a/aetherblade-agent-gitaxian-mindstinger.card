@@ -1,0 +1,16 @@
+card "Aetherblade Agent // Gitaxian Mindstinger" {
+  oracle_id 80ecb069-36e2-490d-9f6c-ef553c00e997
+  layout transform
+  cost {1}{B}
+  type Creature — Human Rogue
+  pt 1/1
+  keywords deathtouch
+  activated {4}{U/P}, sorcery: transform this
+  face "Gitaxian Mindstinger" {
+    type Creature — Phyrexian Rogue
+    pt 3/3
+    color black blue
+    keywords deathtouch
+    triggered whenever this deals combat damage to a player or battle: draw 1 card
+  }
+}

@@ -1,0 +1,21 @@
+scenario "laccolith grunt bites a creature and deals no combat damage" {
+  battlefield A: "Laccolith Grunt"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: attack "Laccolith Grunt"
+  turn 1 declare_blockers B: block "Laccolith Grunt" with "Grizzly Bears"
+  turn 1 A: trigger "Laccolith Grunt" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+  assert damage "Grizzly Bears" 0
+  assert battlefield B contains "Grizzly Bears"
+}
+scenario "laccolith grunt declined deals combat damage" {
+  battlefield A: "Laccolith Grunt"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: attack "Laccolith Grunt"
+  turn 1 declare_blockers B: block "Laccolith Grunt" with "Grizzly Bears"
+  turn 1 A: decline "Laccolith Grunt"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 0
+  assert graveyard B contains "Grizzly Bears"
+}

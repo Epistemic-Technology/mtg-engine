@@ -1,0 +1,7 @@
+card "Soldevi Sage" {
+  oracle_id 1f612df3-53b6-4317-9d63-1f903ee3f0c4
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {T}, sacrifice 2 land: draw 3 cards then discard 1 of them
+}

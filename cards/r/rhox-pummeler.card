@@ -1,0 +1,8 @@
+card "Rhox Pummeler" {
+  oracle_id 898c8415-8769-48c4-ad16-a4ba8c3d5d7d
+  cost {5}{G}
+  type Creature — Rhino Soldier
+  pt 6/3
+  enters with 1 shield counters
+  static this: has trample as long as this has 1 or more shield counters
+}

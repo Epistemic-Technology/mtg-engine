@@ -1,0 +1,7 @@
+card "Sunspring Expedition" {
+  oracle_id f5aeed95-24f8-4f28-9e7c-1e3502d013cd
+  cost {W}
+  type Enchantment
+  label "Landfall" triggered whenever land you control enters: you may put 1 quest counter on this
+  activated remove 3 quest counters from this, sacrifice this: you gain 8 life
+}

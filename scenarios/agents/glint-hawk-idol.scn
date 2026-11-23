@@ -1,0 +1,30 @@
+scenario "Glint Hawk Idol animates for {W}" {
+  battlefield A: "Glint Hawk Idol", "Plains"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Glint Hawk Idol"
+  run_to turn 1 begin_combat
+  assert is "Glint Hawk Idol" creature
+  assert is "Glint Hawk Idol" "Bird"
+  assert power "Glint Hawk Idol" 2
+  assert toughness "Glint Hawk Idol" 2
+  assert has "Glint Hawk Idol" flying
+}
+scenario "Glint Hawk Idol animates when another artifact enters" {
+  battlefield A: "Glint Hawk Idol", "Island"
+  hand A: "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Ornithopter"
+  run_to turn 1 begin_combat
+  assert is "Glint Hawk Idol" creature
+  assert power "Glint Hawk Idol" 2
+  assert has "Glint Hawk Idol" flying
+}
+scenario "Glint Hawk Idol declined stays an artifact" {
+  battlefield A: "Glint Hawk Idol", "Island"
+  hand A: "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Ornithopter"
+  turn 1 A: decline "Glint Hawk Idol"
+  run_to turn 1 begin_combat
+  assert is not "Glint Hawk Idol" creature
+}

@@ -1,0 +1,20 @@
+scenario "Aetherblade Agent transforms and the Mindstinger draws" {
+  battlefield A: "Aetherblade Agent", 4 "Swamp", "Island"
+  hand A: "Plains"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Aetherblade Agent"
+  turn 1 declare_attackers A: attack "Gitaxian Mindstinger"
+  run_to turn 1 postcombat_main
+  assert power "Gitaxian Mindstinger" 3
+  assert has "Gitaxian Mindstinger" deathtouch
+  assert life B 17
+  assert hand A count 2
+}
+scenario "Aetherblade Agent transforms for life" {
+  battlefield A: "Aetherblade Agent", 4 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Aetherblade Agent"
+  run_to turn 1 postcombat_main
+  assert power "Gitaxian Mindstinger" 3
+  assert life A 18
+}

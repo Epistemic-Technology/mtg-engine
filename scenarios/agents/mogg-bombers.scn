@@ -1,0 +1,21 @@
+scenario "bombers sacrifice and deal 3 on another creature entering" {
+  battlefield A: "Mogg Bombers", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 precombat_main A: cast "Grizzly Bears"
+  turn 1 precombat_main A: trigger "Mogg Bombers" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Mogg Bombers"
+  assert battlefield A contains "Grizzly Bears"
+}
+scenario "opponent's creature also triggers it" {
+  battlefield A: "Mogg Bombers"
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 precombat_main B: cast "Grizzly Bears"
+  turn 2 precombat_main A: trigger "Mogg Bombers" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Mogg Bombers"
+}

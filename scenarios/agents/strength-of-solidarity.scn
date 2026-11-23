@@ -1,0 +1,15 @@
+scenario "strength of solidarity counts the party" {
+  battlefield A: "Forest", "Abbey Matron", "Agent of Horizons", "Grizzly Bears"
+  hand A: "Strength of Solidarity"
+  turn 1 A: cast "Strength of Solidarity" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert power "Grizzly Bears" 4
+}
+scenario "strength of solidarity with no party" {
+  battlefield A: "Forest", "Grizzly Bears"
+  hand A: "Strength of Solidarity"
+  turn 1 A: cast "Strength of Solidarity" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+}

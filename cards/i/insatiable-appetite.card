@@ -1,0 +1,6 @@
+card "Insatiable Appetite" {
+  oracle_id 53570a4e-a750-4776-bc52-0025cd510a35
+  cost {1}{G}
+  type Instant
+  spell: you may sacrifice 1 Food chosen; if you do, target creature gets +5/+5 until end of turn; otherwise, that target 1 gets +3/+3 until end of turn
+}
