@@ -4349,6 +4349,10 @@ fn cost_text(s: &str) -> Option<String> {
     let symbols = Regex::new(r"^(\{[0-9XWUBRGCT]+\})+$").unwrap();
     let mut items = Vec::new();
     let two = Regex::new(r"^[a-z]+ or [a-z]+$").unwrap();
+    let exile_gy = Regex::new(
+        r"^Exile (an?|two|three|four|five|six|X) (?:([a-z]+) )?cards? from your graveyard$",
+    )
+    .unwrap();
     for part in s.split(", ") {
         let item = if symbols.is_match(part) {
             part.to_string()
@@ -4430,15 +4434,15 @@ fn cost_text(s: &str) -> Option<String> {
                 number(cap(&c, 1))?
             };
             format!("remove {n} {} counters from this", cap(&c, 2))
-        } else if let Some(c) =
-            Regex::new(r"^Exile (an?|two|three|four|five|six|X) (?:([a-z]+) )?cards? from your graveyard$")
-                .unwrap()
-                .captures(part)
-        {
+        } else if let Some(c) = exile_gy.captures(part) {
             // "Exile a creature card from your graveyard", "Exile two cards
             // from your graveyard".
             let n = number(cap(&c, 1))?;
-            let n = if n == "1" { String::new() } else { format!("{n} ") };
+            let n = if n == "1" {
+                String::new()
+            } else {
+                format!("{n} ")
+            };
             if cap(&c, 2).is_empty() {
                 format!("exile {n}cards from graveyard")
             } else {
@@ -6450,7 +6454,8 @@ impl Builder<'_> {
             return Ok(());
         }
         if line == "Max speed \u{2014} You may cast this card from your graveyard." {
-            self.statements.push("cast from graveyard at max speed".to_string());
+            self.statements
+                .push("cast from graveyard at max speed".to_string());
             return Ok(());
         }
         if let Some(rest) = line
@@ -6479,28 +6484,30 @@ impl Builder<'_> {
             } else if let Some(parts) = how.strip_suffix(" in addition to paying its other costs") {
                 let mut costs = Vec::new();
                 for part in parts.split(" and ") {
-                    costs.push(if let Some(n) = part
-                        .strip_prefix("paying ")
-                        .and_then(|r| r.strip_suffix(" life"))
-                        .filter(|n| n.bytes().all(|b| b.is_ascii_digit()))
-                    {
-                        format!("pay {n} life")
-                    } else if part == "discarding a card" {
-                        "discard 1 card".to_string()
-                    } else if let Some(n) = part
-                        .strip_prefix("discarding ")
-                        .and_then(|r| r.strip_suffix(" cards"))
-                        .and_then(number)
-                    {
-                        format!("discard {n} cards")
-                    } else if let Some(what) = part
-                        .strip_prefix("sacrificing an ")
-                        .or_else(|| part.strip_prefix("sacrificing a "))
-                    {
-                        format!("sacrifice {what}")
-                    } else {
-                        return Err(fail());
-                    });
+                    costs.push(
+                        if let Some(n) = part
+                            .strip_prefix("paying ")
+                            .and_then(|r| r.strip_suffix(" life"))
+                            .filter(|n| n.bytes().all(|b| b.is_ascii_digit()))
+                        {
+                            format!("pay {n} life")
+                        } else if part == "discarding a card" {
+                            "discard 1 card".to_string()
+                        } else if let Some(n) = part
+                            .strip_prefix("discarding ")
+                            .and_then(|r| r.strip_suffix(" cards"))
+                            .and_then(number)
+                        {
+                            format!("discard {n} cards")
+                        } else if let Some(what) = part
+                            .strip_prefix("sacrificing an ")
+                            .or_else(|| part.strip_prefix("sacrificing a "))
+                        {
+                            format!("sacrifice {what}")
+                        } else {
+                            return Err(fail());
+                        },
+                    );
                 }
                 let _ = write!(out, " with {}", costs.join(", "));
             } else if !how.is_empty() {

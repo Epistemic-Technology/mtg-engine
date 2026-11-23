@@ -59,6 +59,7 @@ fn keywords(k: KeywordSet) -> Vec<mtg_core::card::Keyword> {
         .collect()
 }
 
+#[allow(clippy::too_many_lines)] // one field per line of the card
 pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
     let d = Decompiler { pool };
     Card {

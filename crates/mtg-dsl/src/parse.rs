@@ -7847,8 +7847,8 @@ impl P {
             }
             "exile" => {
                 let at = self.pos;
-                let graveyard = card_filter(self).is_ok()
-                    && self.at_words(&["from", "your", "graveyard"]);
+                let graveyard =
+                    card_filter(self).is_ok() && self.at_words(&["from", "your", "graveyard"]);
                 self.pos = at;
                 if graveyard || top || with_spell {
                     let f = card_filter(self)?;

@@ -1487,6 +1487,7 @@ impl GameState {
     }
 
     /// What `Effect::ChooseAct` may act on, for its controller.
+    #[allow(clippy::too_many_lines)] // one arm per act
     fn act_candidates(
         &self,
         ctx: &EffectCtx,
@@ -1597,18 +1598,18 @@ impl GameState {
             // "from among the milled cards": those still in the graveyard.
             ChooseAct::MilledToHand | ChooseAct::MilledToBattlefield => {
                 self.this_way.as_ref().map_or_else(Vec::new, |log| {
-                log.moved
-                    .iter()
-                    .filter(|m| m.is(crate::card::ThisWay::Milled))
-                    .map(|m| m.new)
-                    .filter(|id| {
-                        self.objects
-                            .get(*id)
-                            .is_some_and(|o| o.zone == Zone::Graveyard)
-                            && card_ok(*id)
-                    })
-                    .collect()
-            })
+                    log.moved
+                        .iter()
+                        .filter(|m| m.is(crate::card::ThisWay::Milled))
+                        .map(|m| m.new)
+                        .filter(|id| {
+                            self.objects
+                                .get(*id)
+                                .is_some_and(|o| o.zone == Zone::Graveyard)
+                                && card_ok(*id)
+                        })
+                        .collect()
+                })
             }
         }
     }
@@ -1678,6 +1679,7 @@ impl GameState {
     /// `Effect::ChooseAct`: the controller chooses `n` candidates (up to
     /// `n` with `up_to`) and each is acted on; returns how many were.
     /// Without `up_to`, nothing happens unless all `n` can be chosen.
+    #[allow(clippy::too_many_lines)] // one arm per act
     fn choose_act(
         &mut self,
         ctx: &mut EffectCtx,
@@ -1697,9 +1699,7 @@ impl GameState {
             let id = if act == ChooseAct::ReturnRandomFromGraveyard {
                 // "at random": from the game's random number generator.
                 cands[rand::Rng::random_range(&mut self.rng, 0..cands.len())]
-            } else if act == ChooseAct::ExileTopOfGraveyard
-                || (!up_to && cands.len() == n - done)
-            {
+            } else if act == ChooseAct::ExileTopOfGraveyard || (!up_to && cands.len() == n - done) {
                 cands[0]
             } else {
                 let mut options: Vec<Choice> = cands

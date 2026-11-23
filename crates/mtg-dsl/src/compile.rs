@@ -1088,7 +1088,10 @@ impl Compiler<'_> {
                 return self.err("casting from the graveyard and flashback together");
             }
             let mut cost = g.extra.as_ref().map(|c| self.cost(c)).unwrap_or_default();
-            if g.extra.as_ref().is_some_and(|c| c.discard_self || c.tap || !c.mana.is_empty()) {
+            if g.extra
+                .as_ref()
+                .is_some_and(|c| c.discard_self || c.tap || !c.mana.is_empty())
+            {
                 return self.err("an added graveyard-cast cost is life, discards, and a sacrifice");
             }
             cost.mana = g.mana.clone().unwrap_or_else(|| card.cost.clone());
@@ -5140,7 +5143,10 @@ impl Compiler<'_> {
                     .collect(),
                 once_ever: cost.once_ever,
                 activators: cost.activators,
-                from_hand: *cycling || cost.discard_self || cost.reveal_this || cost.exile_from_hand,
+                from_hand: *cycling
+                    || cost.discard_self
+                    || cost.reveal_this
+                    || cost.exile_from_hand,
                 cycling: *cycling,
                 from_graveyard: cost.from_graveyard || cost.exile_self,
                 keyword: cost.keyword,
