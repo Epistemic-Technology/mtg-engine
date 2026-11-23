@@ -1243,27 +1243,43 @@ pub(super) fn block_assignments(
     can_block: &[Vec<ObjId>],
     caps: &[usize],
 ) -> Vec<Vec<(ObjId, ObjId)>> {
-    let mut out = vec![Vec::new()];
+    let mut out: Vec<Vec<(ObjId, ObjId)>> = vec![Vec::new()];
     for ((b, allowed), cap) in blockers.iter().zip(can_block).zip(caps) {
-        let choices: Vec<Vec<ObjId>> = if *cap <= 1 {
-            std::iter::once(Vec::new())
-                .chain(allowed.iter().map(|a| vec![*a]))
-                .collect()
+        // Each partial declaration is followed by itself with each choice
+        // added; every new list is allocated once, at its final length (a
+        // clone then an extend reallocated each one).
+        if *cap <= 1 {
+            // None, or one of the allowed attackers.
+            let mut next = Vec::with_capacity(out.len() * (allowed.len() + 1));
+            for partial in out {
+                // `partial` itself first, moved in once the others are made.
+                let at = next.len();
+                next.push(Vec::new());
+                for a in allowed {
+                    let mut p = Vec::with_capacity(partial.len() + 1);
+                    p.extend_from_slice(&partial);
+                    p.push((*b, *a));
+                    next.push(p);
+                }
+                next[at] = partial;
+            }
+            out = next;
         } else {
-            subsets(allowed)
+            let choices: Vec<Vec<ObjId>> = subsets(allowed)
                 .into_iter()
                 .filter(|s| s.len() <= *cap)
-                .collect()
-        };
-        let mut next = Vec::with_capacity(out.len() * choices.len());
-        for partial in &out {
-            for choice in &choices {
-                let mut p = partial.clone();
-                p.extend(choice.iter().map(|a| (*b, *a)));
-                next.push(p);
+                .collect();
+            let mut next = Vec::with_capacity(out.len() * choices.len());
+            for partial in &out {
+                for choice in &choices {
+                    let mut p = Vec::with_capacity(partial.len() + choice.len());
+                    p.extend_from_slice(partial);
+                    p.extend(choice.iter().map(|a| (*b, *a)));
+                    next.push(p);
+                }
             }
+            out = next;
         }
-        out = next;
     }
     out
 }
