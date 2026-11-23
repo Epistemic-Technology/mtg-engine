@@ -4068,6 +4068,9 @@ pub enum Effect {
         colors: ColorSet,
         different: bool,
     },
+    /// "Add two mana of any one color and two mana of any other color":
+    /// `.0` mana of a color chosen, then `.0` of another color chosen.
+    AddManaTwoColors(u8),
     /// "Add one mana of any color that a land an opponent controls could
     /// produce" (CR 106.7): one mana of a kind the mana abilities of
     /// `whose` lands (`basic`: basic lands only) could make, judged as it
@@ -5307,6 +5310,7 @@ impl Effect {
             Effect::AddMana(_)
             | Effect::AddManaOneOf(_)
             | Effect::AddManaTimes { .. }
+            | Effect::AddManaTwoColors(_)
             | Effect::AddManaCombination { .. }
             | Effect::AddManaLandCould { .. }
             | Effect::AddManaCommander { .. } => true,
@@ -5357,6 +5361,7 @@ impl Effect {
                 | Effect::AddMana(_)
                 | Effect::AddManaOneOf(_)
                 | Effect::AddManaTimes { .. }
+                | Effect::AddManaTwoColors(_)
                 | Effect::AddManaCombination { .. }
                 | Effect::AddManaLandCould { .. }
                 | Effect::KeepMana(_)

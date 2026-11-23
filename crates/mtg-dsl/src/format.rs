@@ -2008,6 +2008,7 @@ impl Fmt {
                 2 => "add commander rider scry".to_string(),
                 _ => "add commander".to_string(),
             },
+            Effect::AddManaTwoColors(n) => format!("add any {n} and any {n} other"),
             Effect::AddManaLandCould {
                 whose,
                 basic,

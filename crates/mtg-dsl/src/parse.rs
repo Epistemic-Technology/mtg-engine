@@ -1435,6 +1435,20 @@ impl P {
         if self.eat_word("any") {
             // `add any count where power`: "Add X mana of any one color,
             // where X is this creature's power."
+            if let (Some(Tok::Num(n)), Some("and"), Some("any")) = (
+                self.peek().cloned(),
+                self.word_at(1).as_deref(),
+                self.word_at(2).as_deref(),
+            ) {
+                // `add any 2 and any 2 other`.
+                self.pos += 3;
+                let m = self.number()?;
+                self.expect_word("other")?;
+                if m != n {
+                    return self.fail("`add any N and any N other` takes the same N twice");
+                }
+                return Ok(Effect::AddManaTwoColors(u8::try_from(n).unwrap_or(u8::MAX)));
+            }
             if matches!(self.peek(), Some(Tok::Num(_))) || self.at_word("count") {
                 return Ok(Effect::AddManaTimes {
                     mana: Mana::Any,

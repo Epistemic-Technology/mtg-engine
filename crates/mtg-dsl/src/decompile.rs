@@ -1111,6 +1111,7 @@ impl Decompiler<'_> {
                 colors: *colors,
                 different: *different,
             },
+            CoreEffect::AddManaTwoColors(n) => Effect::AddManaTwoColors(*n),
             CoreEffect::AddManaLandCould {
                 whose,
                 basic,

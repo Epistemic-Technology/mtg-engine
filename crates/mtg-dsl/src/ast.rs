@@ -4224,6 +4224,9 @@ pub enum Effect {
         colors: mtg_core::mana::ColorSet,
         different: bool,
     },
+    /// `add any 2 and any 2 other`: "Add two mana of any one color and two
+    /// mana of any other color."
+    AddManaTwoColors(u8),
     /// `add any that land opponent controls could produce`, `add any that
     /// basic land you control could produce`: "Add one mana of any color
     /// that a land an opponent controls could produce." (CR 106.7).

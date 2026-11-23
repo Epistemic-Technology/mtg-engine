@@ -10575,6 +10575,23 @@ impl GameState {
                     self.bump();
                 }
             }
+            Effect::AddManaTwoColors(n) => {
+                // One color, then another.
+                let p = ctx.controller;
+                let options: Vec<Choice> = Color::ALL.into_iter().map(Choice::Color).collect();
+                let k = self.choose_mid(p, DecisionKind::ChooseColor, options);
+                let first = Color::ALL[k.min(4)];
+                let rest: Vec<Color> = Color::ALL.into_iter().filter(|c| *c != first).collect();
+                let options: Vec<Choice> = rest.iter().copied().map(Choice::Color).collect();
+                let k = self.choose_mid(p, DecisionKind::ChooseColor, options);
+                let second = rest[k.min(rest.len() - 1)];
+                for c in [first, second] {
+                    for _ in 0..*n {
+                        self.player_mut(p).mana_pool.add(Mana::Colored(c));
+                    }
+                }
+                self.bump();
+            }
             Effect::AddManaCombination {
                 count,
                 colors,

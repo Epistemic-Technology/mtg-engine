@@ -3313,6 +3313,7 @@ impl Compiler<'_> {
                 colors: *colors,
                 different: *different,
             }),
+            Effect::AddManaTwoColors(n) => out.push(CoreEffect::AddManaTwoColors(*n)),
             Effect::AddManaLandCould {
                 whose,
                 basic,

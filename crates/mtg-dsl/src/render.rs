@@ -8236,6 +8236,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 _ => "",
             }
         )),
+        Effect::AddManaTwoColors(n) => {
+            let n = count_words(Num::N(u32::from(*n)), "one");
+            Clause::imperative(format!(
+                "add {n} mana of any one color and {n} mana of any other color"
+            ))
+        }
         Effect::AddManaLandCould {
             whose,
             basic,

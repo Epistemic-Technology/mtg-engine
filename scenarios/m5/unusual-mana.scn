@@ -66,6 +66,30 @@ scenario "Naga Vitalist adds {C} when your lands make only colorless mana" {
   assert tapped "Naga Vitalist"
 }
 
+scenario "Open the Omenpaths adds two mana of one color and two of another for a creature" {
+  battlefield A: 3 "Mountain"
+  hand A: "Open the Omenpaths", "Hill Giant", "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Open the Omenpaths" mode 1
+  turn 2 A: choose red
+  turn 2 A: choose green
+  turn 2 A: wait
+  illegal turn 2 A: cast "Lightning Bolt" targeting player B
+  turn 2 A: cast "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert life B 20
+}
+
+scenario "Open the Omenpaths's second mode pumps creatures" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Open the Omenpaths"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Open the Omenpaths" mode 2
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 3
+}
+
 scenario "Foraging Wickermaw becomes the color of the mana it adds" {
   battlefield A: "Foraging Wickermaw", "Forest"
   hand A: "Lightning Bolt"

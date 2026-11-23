@@ -107,6 +107,7 @@ fn effect_kinds(e: &Effect, chosen: Kinds) -> Kinds {
         Effect::AddMana(ms) | Effect::AddManaOneOf(ms) => ms.iter().fold(0, |k, m| k | of(*m)),
         Effect::AddManaTimes { mana, .. } => of(*mana),
         Effect::AddManaCombination { colors, .. } => color_kinds(*colors),
+        Effect::AddManaTwoColors(_) => ANY_COLOR,
         Effect::Instead { base, alt, .. } => base
             .iter()
             .chain(alt)
