@@ -1,0 +1,7 @@
+card "Khalni Heart Expedition" {
+  oracle_id be6155de-c5b2-415c-ad83-142f9926462a
+  cost {1}{G}
+  type Enchantment
+  label "Landfall" triggered whenever land you control enters: you may put 1 quest counter on this
+  activated remove 3 quest counters from this, sacrifice this: search up to 2 basic land card to battlefield tapped
+}

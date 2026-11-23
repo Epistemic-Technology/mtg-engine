@@ -1152,6 +1152,12 @@ struct Ctx<'a> {
     /// Inside "If it's a creature, ...": the target the check calls "it"
     /// (Carbonize: "and if it would die this turn").
     it_target: Option<usize>,
+    /// The trigger's condition named the enchanted creature's type: "untap
+    /// that creature" (Howl of the Hunt), not "tap it" (Narcolepsy).
+    attached_by_type: bool,
+    /// The target last named "the chosen creature": its controller is
+    /// "its controller" after it (Expel the Unworthy).
+    chosen_said: Option<usize>,
     /// Inside a delayed trigger about the triggering object, which its
     /// effects call "that creature" ("destroy that creature at end of
     /// combat").
@@ -1247,6 +1253,8 @@ impl<'a> Ctx<'a> {
             groups_mentioned: HashSet::new(),
             in_delayed: false,
             it_target: None,
+            attached_by_type: false,
+            chosen_said: None,
             delayed_that: false,
             eot_first: false,
             lasting: None,
@@ -1482,7 +1490,13 @@ impl<'a> Ctx<'a> {
             }
             Recipient::ChosenTarget(i) => {
                 self.target_mentioned[i] = true;
+                self.chosen_said = Some(i);
                 format!("the chosen {}", self.target_noun[i])
+            }
+            // "Exile the chosen creature, then its controller gains life
+            // equal to its mana value."
+            Recipient::ThatControllerOf(i) if self.chosen_said == Some(i) => {
+                "its controller".to_string()
             }
             Recipient::TheTargetFull(i, chosen) => {
                 let phrase = self.target_phrase_of(i);
@@ -1639,6 +1653,12 @@ impl<'a> Ctx<'a> {
                 Some(f) => format!("{} chosen at random", filter_a(f, self.card)),
                 None => "a permanent chosen at random".to_string(),
             },
+            // "When this Aura enters, if enchanted creature is a Wolf or
+            // Werewolf, untap that creature." (Howl of the Hunt).
+            Recipient::Attached if self.attached_by_cond && self.attached_by_type => {
+                self.attached_by_cond = false;
+                "that creature".to_string()
+            }
             Recipient::Attached if self.attached_mentioned => "it".to_string(),
             Recipient::Attached => {
                 self.attached_mentioned = true;
@@ -4259,6 +4279,14 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         CountExpr::Times(..) | CountExpr::Divided { .. } => unreachable!("unwrapped above"),
         // "for each enchantment destroyed this way".
         // Parley: "For each nonland card revealed this way".
+        // "for each creature card milled this way" (Gorging Vulture).
+        CountExpr::ThisWay {
+            verb: mtg_core::card::ThisWay::Milled,
+            filter: Some(f),
+        } => (
+            format!("{} milled this way", cards_phrase(f, card, false)),
+            format!("{} milled this way", cards_phrase(f, card, true)),
+        ),
         CountExpr::ThisWay {
             verb: mtg_core::card::ThisWay::Revealed,
             filter: Some(f),
@@ -4799,6 +4827,18 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     crate::ast::CountExpr::SourcePower | crate::ast::CountExpr::SourceToughness
                 ) {
                     phrase = phrase.replacen("its", &format!("{}'s", ctx.source_name()), 1);
+                }
+                // "then its controller gains life equal to its mana value"
+                // (Expel the Unworthy).
+                if let crate::ast::CountExpr::TargetManaValue { n: i, that: true, .. } = &count.expr
+                    && let Effect::GainLife {
+                        who: Recipient::ThatControllerOf(w),
+                        ..
+                    } = e
+                    && w == i
+                    && c.subject.as_ref().is_some_and(|(_, s)| s == "its controller")
+                {
+                    phrase = "its mana value".to_string();
                 }
                 // "deals damage to that creature's controller equal to the
                 // creature's power" (Boros Fury-Shield): named once already.
@@ -9149,6 +9189,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 (TargetTense::Was, None) if let Some(state) = status_only(f) => {
                     format!("it was {state}")
                 }
+                // "If it was a legendary spell, the Ring tempts you."
+                // (Glorious Gale): a countered spell, as it last existed.
+                (TargetTense::Was, None)
+                    if noun == "spell" && !pred.starts_with("a ") && !pred.starts_with("an ") =>
+                {
+                    format!("it was {}", with_article(&format!("{pred} spell")))
+                }
                 (TargetTense::Was | TargetTense::ThatWas, _) => format!("that {noun} was {pred}"),
                 // "If an opponent controls that creature".
                 (TargetTense::ThatIs, _)
@@ -9229,6 +9276,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                             .or_else(|| p.strip_prefix("an "))
                             .unwrap_or(&p);
                         format!("another {bare}")
+                    } else if ctx.target_noun[*n] == "permanent or player"
+                        && filter.types == [CardType::Creature]
+                    {
+                        // "If it's a green creature" (Elvish Healer): any
+                        // target, so the type is named.
+                        filter_a(filter, ctx.card)
                     } else {
                         target_predicate(filter, ctx.card)
                     };
@@ -9260,11 +9313,25 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 lowercase_first(&body)
             };
-            let body = body.trim_end_matches('.');
+            let mut body = body.trim_end_matches('.');
+            // "Prevent the next 1 damage that would be dealt to any target
+            // this turn. If it's a green creature, prevent the next 2
+            // damage instead." (Elvish Healer): the recipient is the
+            // sentence before's.
+            if matches!(wording, InsteadWording::Trail)
+                && let Some(head) = body.strip_suffix(" that would be dealt to it this turn")
+                && head.starts_with("prevent the next ")
+            {
+                body = head;
+            }
             let text = match wording {
                 InsteadWording::Lead => format!("if {cond}, instead {body}"),
                 InsteadWording::Trail => format!("if {cond}, {body} instead"),
                 InsteadWording::After => format!("{body} instead if {cond}"),
+                InsteadWording::AfterBare => format!(
+                    "{} instead if {cond}",
+                    body.strip_suffix(" until end of turn").unwrap_or(body)
+                ),
             };
             Clause::imperative(match label {
                 Some(l) => format!("{l} \u{2014} {}", capitalize(&text)),
@@ -13735,6 +13802,30 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             {
                 return format!("{noun} isn't legendary");
             }
+            // "if enchanted creature is a Wolf or Werewolf" (Howl of the
+            // Hunt): two creature types share the article.
+            if let Some(alt) = &f.or
+                && f.subtypes.len() == 1
+                && alt.subtypes.len() == 1
+                && alt.or.is_none()
+                && f.subtypes[0] == "Wolf"
+                && alt.subtypes[0] == "Werewolf"
+                && (Filter {
+                    subtypes: Vec::new(),
+                    or: None,
+                    ..f.clone()
+                }) == Filter::default()
+                && (Filter {
+                    subtypes: Vec::new(),
+                    ..(**alt).clone()
+                }) == Filter::default()
+            {
+                return format!(
+                    "{noun} is {} or {}",
+                    with_article(&f.subtypes[0]),
+                    alt.subtypes[0]
+                );
+            }
             let pred = is_predicate(f, card);
             // "if enchanted creature has toxic" (Maze's Mantle).
             match pred.strip_prefix("a permanent with ") {
@@ -14651,6 +14742,8 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                         );
                     ctx.attached_mentioned = matches!(c, StaticCond::AttachedIs(_));
                     ctx.attached_by_cond = ctx.attached_mentioned;
+                    ctx.attached_by_type =
+                        matches!(c, StaticCond::AttachedIs(f) if !f.subtypes.is_empty());
                 }
                 None => {}
             }
@@ -14854,6 +14947,23 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 Who::Any => "",
             };
             let more = if *generic > 0 { "more" } else { "less" };
+            // "Each spell you cast that's red or green costs {1} less to
+            // cast." (Goblin Anarchomancer).
+            if filter.each
+                && let Some(cs) = &filter.colors
+                && (Filter {
+                    colors: None,
+                    each: false,
+                    ..filter.clone()
+                }) == Filter::default()
+            {
+                let names: Vec<String> = cs.iter().map(|c| color_name(*c).to_string()).collect();
+                return format!(
+                    "{head}Each spell{whose} that's {} costs {{{}}} {more} to cast.",
+                    or_list(&names),
+                    generic.unsigned_abs()
+                );
+            }
             // "The second spell you cast each turn costs {1} less to cast."
             if let Some(StaticCond::SpellNumber(n)) = cond
                 && *filter == Filter::default()

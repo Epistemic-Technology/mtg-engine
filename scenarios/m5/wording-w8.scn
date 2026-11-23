@@ -110,3 +110,170 @@ scenario "Collision Course: X counts creatures and Vehicles you control, not lan
   assert damage "Hill Giant" 2
   assert battlefield B contains "Hill Giant"
 }
+
+scenario "Huddle Up: two target players each draw a card" {
+  battlefield A: 3 "Island"
+  hand A: "Huddle Up"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Huddle Up" targeting player A, player B
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand B count 1
+}
+
+scenario "Wizard Mentor: itself and the target creature return to hand" {
+  battlefield A: "Wizard Mentor", "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Wizard Mentor" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Wizard Mentor"
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Festering Newt: without Bogbrew Witch, -1/-1 until end of turn" {
+  battlefield A: "Festering Newt", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Festering Newt"
+  turn 1 A: trigger "Festering Newt" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 2
+  assert toughness "Hill Giant" 2
+  run_to turn 2 upkeep
+  assert power "Hill Giant" 3
+}
+
+scenario "Elvish Healer: 2 prevented on a green creature" {
+  battlefield A: "Elvish Healer", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Elvish Healer" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Elvish Healer: 1 prevented on a player" {
+  battlefield A: "Elvish Healer", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Elvish Healer" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "Expel the Unworthy: unkicked, a small creature exiled, its controller gains its mana value" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Expel the Unworthy"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Expel the Unworthy" targeting "Hill Giant"
+  turn 1 A: cast "Expel the Unworthy" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert life B 22
+}
+
+scenario "Expel the Unworthy: kicked, any creature" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Expel the Unworthy"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Expel the Unworthy" kicked targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+  assert life B 24
+}
+
+scenario "Glorious Gale: a legendary creature spell countered, the Ring tempts you" {
+  battlefield A: 2 "Island"
+  battlefield B: "Plains"
+  hand A: "Glorious Gale"
+  hand B: "Isamaru, Hound of Konda"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Isamaru, Hound of Konda"
+  turn 2 A: cast "Glorious Gale" targeting "Isamaru, Hound of Konda"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Isamaru, Hound of Konda"
+  assert tempted A 1
+}
+
+scenario "Glorious Gale: a nonlegendary creature spell, no temptation" {
+  battlefield A: 2 "Island"
+  battlefield B: 2 "Forest"
+  hand A: "Glorious Gale"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Glorious Gale" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert tempted A 0
+}
+
+scenario "Goblin Anarchomancer: green and red spells cost {1} less, blue ones don't" {
+  battlefield A: "Goblin Anarchomancer", "Forest", 3 "Mountain"
+  hand A: "Grizzly Bears", "Hill Giant", "Wizard Mentor"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Goblin Anarchomancer: a blue spell isn't reduced" {
+  battlefield A: "Goblin Anarchomancer", "Island", "Island"
+  hand A: "Wizard Mentor"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Wizard Mentor"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Gorging Vulture: 1 life for each creature card milled" {
+  battlefield A: 3 "Swamp"
+  hand A: "Gorging Vulture"
+  library A: "Grizzly Bears", "Swamp", "Hill Giant", "Shock", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gorging Vulture"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert graveyard A count 4
+  assert library A count 1
+}
+
+scenario "Howl of the Hunt: a Wolf is untapped, a Bear isn't" {
+  battlefield A: "Arlinn's Wolf" tapped, "Grizzly Bears" tapped, 6 "Forest"
+  hand A: "Howl of the Hunt", "Howl of the Hunt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Howl of the Hunt" targeting "Arlinn's Wolf"
+  turn 1 A: wait
+  turn 1 A: cast "Howl of the Hunt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Arlinn's Wolf"
+  assert tapped "Grizzly Bears"
+  assert power "Arlinn's Wolf" 5
+  assert has "Grizzly Bears" vigilance
+}
+
+scenario "Khalni Heart Expedition: three quest counters, two basic lands onto the battlefield tapped" {
+  battlefield A: "Khalni Heart Expedition" with 2 quest
+  hand A: "Forest"
+  library A: "Forest", "Island", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  turn 1 postcombat_main A: activate "Khalni Heart Expedition"
+  run_to turn 1 end
+  assert graveyard A contains "Khalni Heart Expedition"
+  assert battlefield A contains 2 "Forest"
+  assert battlefield A contains "Island"
+  assert tapped "Island"
+}

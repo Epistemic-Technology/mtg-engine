@@ -3434,11 +3434,15 @@ impl P {
     /// static condition written before it, if any.
     fn cost_change(&mut self, cond: Option<StaticCond>) -> R<Ability> {
         self.pos += 1;
-        let filter = if self.at_word("you") || self.at_word("your") || self.at_word("cost") {
+        // `spells each red or green you cast cost {1} less`: "Each spell
+        // you cast that's red or green costs {1} less to cast."
+        let each = self.eat_word("each");
+        let mut filter = if self.at_word("you") || self.at_word("your") || self.at_word("cost") {
             Filter::default()
         } else {
             self.filter()?
         };
+        filter.each = each;
         let whose = if self.eat_words(&["you", "cast"]) {
             Who::You
         } else if self.eat_words(&["your", "opponents", "cast"]) {
@@ -5139,12 +5143,17 @@ impl P {
     /// (CR 608.2c), or `<sentence> if <cond>` ("Draw a card if ...").
     fn condition_suffix(&mut self, s: Sentence) -> R<Sentence> {
         // `<sentence> instead if <cond>` (CR 608.2c).
-        if self.at_words(&["instead", "if"]) {
-            self.pos += 2;
+        if self.at_words(&["instead", "if"]) || self.at_words(&["instead", "bare", "if"]) {
+            let bare = self.at_words(&["instead", "bare"]);
+            self.pos += if bare { 3 } else { 2 };
             let cond = self.instead_cond()?;
             return Ok(Sentence::new(vec![Effect::Instead {
                 cond,
-                wording: InsteadWording::After,
+                wording: if bare {
+                    InsteadWording::AfterBare
+                } else {
+                    InsteadWording::After
+                },
                 label: None,
                 effects: vec![s],
             }]));
@@ -9954,7 +9963,8 @@ impl P {
         }) {
             let f = self.filter()?;
             // `nonland card revealed this way` (parley): cards in a library.
-            if self.at_words(&["card", "revealed"]) {
+            // `creature card milled this way`: milled cards are cards.
+            if self.at_words(&["card", "revealed"]) || self.at_words(&["card", "milled"]) {
                 self.pos += 1;
             }
             let Some(verb) = self.word_at(0).and_then(|w| crate::ast::this_way_verb(&w)) else {

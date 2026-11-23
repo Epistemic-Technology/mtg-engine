@@ -1,0 +1,7 @@
+card "Huddle Up" {
+  oracle_id 81776a16-bf38-450b-995b-beb29121cab2
+  cost {2}{U}
+  type Sorcery
+  assist
+  spell: 2 target players each draw 1 card
+}

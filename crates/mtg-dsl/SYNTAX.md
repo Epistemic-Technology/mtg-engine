@@ -1145,7 +1145,9 @@ Human Soldier creature token. Prints "Recruit."; `you recruit` prints
 "you recruit" (The Queen of Dale's wording after another player's
 action).
 `spells red or white you cast cost {1} less` prints "Red spells and white
-spells"; `spells Goblin or Rogue ...` prints "Goblin spells and Rogue
+spells"; `spells each red or green you cast cost {1} less` prints "Each
+spell you cast that's red or green costs {1} less to cast." (Goblin
+Anarchomancer); `spells Goblin or Rogue ...` prints "Goblin spells and Rogue
 spells". `defending player` as a subject prints "defending player".
 
 Cost item `from graveyard`: activated from the graveyard ("Return this
@@ -2712,6 +2714,9 @@ resolves; only the sentence just before is replaced. Three wordings:
 - `that target 1 gets +4/+4 instead if metalcraft`: "That creature gets
   +4/+4 until end of turn instead if you control three or more
   artifacts."
+- `that target 1 gets -4/-4 instead bare if you control creature named
+  "Bogbrew Witch"`: the same without the replaced clause's "until end of
+  turn" ("That creature gets -4/-4 instead if ...", Festering Newt).
 
 A kicked "instead" that declares its own targets replaces the targets
 before it (CR 601.2c): `target creature you control gains
@@ -2759,7 +2764,9 @@ do` then sees:
   green cards in your hand", CR 701.20a): the cards stay in the hand,
   known to every player; `count where revealed this way` ("the number of
   cards revealed this way") and `count each revealed this way` ("for each
-  card revealed this way") count them
+  card revealed this way") count them; `count each creature card milled
+  this way` prints "for each creature card milled this way" (a milled
+  filter always names cards)
 - `exile 2 creature card from your graveyard chosen`
 - `attach 1 Equipment you control to target 1 chosen` ("attach an Equipment
   you control to it": permanents you control, attached to that target)

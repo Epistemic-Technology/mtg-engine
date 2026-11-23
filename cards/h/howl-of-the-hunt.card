@@ -1,0 +1,9 @@
+card "Howl of the Hunt" {
+  oracle_id 22fe038e-033e-4632-a0d7-116492cded83
+  cost {2}{G}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  triggered when this enters if attached is Wolf or Werewolf: untap attached
+  static enchanted: +2/+2, has vigilance
+}

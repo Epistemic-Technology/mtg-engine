@@ -1,0 +1,7 @@
+card "Expel the Unworthy" {
+  oracle_id 4af2e62f-150e-4fd0-98b0-c6e72f5f9a51
+  cost {1}{W}
+  type Sorcery
+  kicker {2}{W}
+  spell: choose target creature with mana value 3 or less; if kicked, instead choose target creature; exile the chosen target 1 then controller of that target 1 gains count equal mana value of that target 1 life
+}

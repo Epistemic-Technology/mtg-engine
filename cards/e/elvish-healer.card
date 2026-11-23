@@ -1,0 +1,7 @@
+card "Elvish Healer" {
+  oracle_id ea46835c-9dac-4e1e-8338-ad99136f511a
+  cost {2}{W}
+  type Creature — Elf Cleric
+  pt 1/2
+  activated {T}: prevent next 1 damage to any target this turn; if target 1 is green creature, prevent next 2 damage to target 1 this turn instead
+}

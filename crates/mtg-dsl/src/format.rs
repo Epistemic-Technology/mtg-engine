@@ -2730,6 +2730,9 @@ impl Fmt {
                     crate::ast::InsteadWording::Lead => format!("if {cond}, instead {body}"),
                     crate::ast::InsteadWording::Trail => format!("if {cond}, {body} instead"),
                     crate::ast::InsteadWording::After => format!("{body} instead if {cond}"),
+                    crate::ast::InsteadWording::AfterBare => {
+                        format!("{body} instead bare if {cond}")
+                    }
                 };
                 match label {
                     Some(l) => format!("label \"{l}\" {text}"),

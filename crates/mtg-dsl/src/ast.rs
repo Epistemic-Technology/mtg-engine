@@ -2713,6 +2713,10 @@ pub enum InsteadWording {
     /// `... instead if hand 0 or less`: "... instead if you have no cards
     /// in hand."
     After,
+    /// `... instead bare if ...`: the same, the replaced clause without
+    /// its "until end of turn" ("That creature gets -4/-4 instead if you
+    /// control a creature named Bogbrew Witch", Festering Newt).
+    AfterBare,
 }
 
 /// Effects that print as one sentence ("target player loses 1 life and you

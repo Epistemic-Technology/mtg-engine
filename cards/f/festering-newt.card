@@ -1,0 +1,7 @@
+card "Festering Newt" {
+  oracle_id 5887922e-d1fb-44e2-9498-2065ce8ac870
+  cost {B}
+  type Creature — Salamander
+  pt 1/1
+  triggered when this dies: target creature an opponent controls gets -1/-1; that target 1 gets -4/-4 instead bare if you control creature named "Bogbrew Witch"
+}
