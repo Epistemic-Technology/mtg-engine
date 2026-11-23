@@ -1,0 +1,8 @@
+card "Black Oak of Odunos" {
+  oracle_id 5fc888d1-241f-45e1-9c20-3c5ae0aadc30
+  cost {2}{B}
+  type Creature — Zombie Treefolk
+  pt 0/5
+  keywords defender
+  activated {B}, tap other untapped creature you control: this gets +1/+1
+}

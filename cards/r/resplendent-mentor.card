@@ -1,0 +1,7 @@
+card "Resplendent Mentor" {
+  oracle_id 5b60a257-e4f8-412e-b146-b7983a384753
+  cost {4}{W}
+  type Creature — Kithkin Cleric
+  pt 2/2
+  static White creature you control: has ability { activated {T}: you gains 1 life }
+}

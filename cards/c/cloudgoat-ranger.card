@@ -1,0 +1,8 @@
+card "Cloudgoat Ranger" {
+  oracle_id e1c13a19-46cd-474b-a46b-a483be6b91bb
+  cost {3}{W}{W}
+  type Creature — Giant Warrior Ranger
+  pt 3/3
+  triggered when this enters: create 3 "1/1 white Kithkin Soldier creature"
+  activated tap 3 untapped Kithkin you control: this gets +2/+0 and gains flying
+}

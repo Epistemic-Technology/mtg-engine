@@ -1,0 +1,7 @@
+card "Kagemaro, First to Suffer" {
+  oracle_id da3e399f-6801-4e4d-9b1d-ba15fcfb7ee4
+  cost {3}{B}{B}
+  type Legendary Creature — Demon Spirit
+  static this: cda pt hand
+  activated {B}, sacrifice this: all creatures gets -1/-1 count where hand
+}

@@ -1,0 +1,16 @@
+card "Armed // Dangerous" {
+  oracle_id a0593a5b-6f76-4eb3-a1b1-9794d2d36c92
+  layout split
+  face "Armed" {
+    cost {1}{R}
+    type Sorcery
+    keywords fuse
+    spell: target creature gets +1/+1 and gains double strike
+  }
+  face "Dangerous" {
+    cost {3}{G}
+    type Sorcery
+    keywords fuse
+    spell: target creature gains lure
+  }
+}

@@ -1,0 +1,7 @@
+card "Quest for the Gravelord" {
+  oracle_id c5f92560-dc82-4bd2-ae6b-4c3942d458b7
+  cost {B}
+  type Enchantment
+  triggered whenever a creature dies: you may put 1 quest counters on this
+  activated remove 3 quest counters from this, sacrifice this: create 1 "5/5 black Zombie Giant creature"
+}

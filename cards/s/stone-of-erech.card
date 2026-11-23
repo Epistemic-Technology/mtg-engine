@@ -1,0 +1,7 @@
+card "Stone of Erech" {
+  oracle_id 73dad679-1edb-41c9-9d43-56dc93c3e9fe
+  cost {1}
+  type Legendary Artifact
+  replace creature an opponent controls dies: exile
+  activated {2}, {T}, sacrifice this: exile graveyard of target player; draw 1 cards
+}

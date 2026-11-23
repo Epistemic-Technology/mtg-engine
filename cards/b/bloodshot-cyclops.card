@@ -1,0 +1,7 @@
+card "Bloodshot Cyclops" {
+  oracle_id 84d47913-53ac-4d4d-bac3-bc0306d43e12
+  cost {5}{R}
+  type Creature — Cyclops Giant
+  pt 4/4
+  activated {T}, sacrifice creature: deal damage equal power of the sacrificed creature to any target
+}

@@ -1,0 +1,6 @@
+card "Brittle Effigy" {
+  oracle_id 34909cf0-780d-4bc7-9926-9f7625b8f200
+  cost {1}
+  type Artifact
+  activated {4}, {T}, exile this: exile target creature
+}

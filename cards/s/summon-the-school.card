@@ -1,0 +1,7 @@
+card "Summon the School" {
+  oracle_id 00909d51-3da8-41eb-a535-0c325fedc59f
+  cost {3}{W}
+  type Kindred Sorcery — Merfolk
+  spell: create 2 "1/1 blue Merfolk Wizard creature"
+  activated tap 4 untapped Merfolk you control, from graveyard: return this to hand
+}

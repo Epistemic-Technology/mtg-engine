@@ -1,0 +1,8 @@
+card "Ghost Council of Orzhova" {
+  oracle_id 2ba16e4d-2de7-4906-801a-4ba2b90b5050
+  cost {W}{W}{B}{B}
+  type Legendary Creature — Spirit
+  pt 4/4
+  triggered when this enters: target opponent loses 1 life and you gains 1 life
+  activated {1}, sacrifice creature: exile this; delayed this: return it to battlefield at beginning of the next end step
+}

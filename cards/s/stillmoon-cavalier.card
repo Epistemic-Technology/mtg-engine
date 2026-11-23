@@ -1,0 +1,10 @@
+card "Stillmoon Cavalier" {
+  oracle_id 9c430b5a-83b6-4f4f-b1d3-5737e1f61947
+  cost {1}{W/B}{W/B}
+  type Creature — Zombie Knight
+  pt 2/1
+  keywords protection from white, protection from black
+  activated {W/B}: this gains flying
+  activated {W/B}: this gains first strike
+  activated {W/B}{W/B}: this gets +1/+0
+}

@@ -1,0 +1,7 @@
+card "Hollowhead Sliver" {
+  oracle_id 739ad367-a4ff-4779-8888-3c27f0f60253
+  cost {2}{R}
+  type Creature — Sliver
+  pt 2/2
+  static Sliver creature you control: has ability { activated {T}, discard 1 card: draw 1 cards }
+}

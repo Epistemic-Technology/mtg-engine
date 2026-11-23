@@ -5345,8 +5345,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 "itself".to_string()
             } else {
                 // "deals 1 damage to each of up to two target creatures":
-                // the same amount to each of several targets of one phrase.
-                let each = if ctx.fresh_target_group(to) {
+                // the same amount to each of several targets of one phrase;
+                // "deals 1 damage to each of one or two targets" (a
+                // variable group, CR 601.2c).
+                let many = matches!(to.as_slice(), [r @ Recipient::Target(i)]
+                    if ctx.is_many(*r) && !ctx.target_mentioned[*i]);
+                let each = if many || ctx.fresh_target_group(to) {
                     "each of "
                 } else {
                     ""
@@ -15458,7 +15462,8 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             }
         },
         Ability::Exert(effects) => {
-            let mut ctx = Ctx::new(card, lookup, &[]);
+            let (targets, effects) = crate::ast::exert_parts(effects);
+            let mut ctx = Ctx::new(card, lookup, targets);
             ctx.current = Some(a);
             ctx.source_mentioned = true;
             format!(

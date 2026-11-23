@@ -1,0 +1,8 @@
+card "Sachi, Daughter of Seshiro" {
+  oracle_id 0d7969b0-193b-4da0-a9eb-bd1c98016ee1
+  cost {2}{G}{G}
+  type Legendary Creature — Snake Shaman
+  pt 1/3
+  static other Snake creature you control: +0/+1
+  static Shaman you control: has ability { activated {T}: add {G}{G} }
+}

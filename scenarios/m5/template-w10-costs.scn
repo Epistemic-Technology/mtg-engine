@@ -1,0 +1,885 @@
+# Activated-ability costs the template author learned in the tenth wave:
+# "Sacrifice another creature", "Exile this artifact", "Sacrifice ~",
+# "Discard two cards", "Tap three untapped creatures you control", "Remove
+# three quest counters from this enchantment and sacrifice it", and hybrid
+# and Phyrexian mana symbols.
+
+# "Sacrifice another creature".
+
+scenario "Blazing Hellhound: sacrifice another creature, 1 damage to any target" {
+  battlefield A: "Blazing Hellhound", "Grizzly Bears", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Blazing Hellhound" sacrificing "Grizzly Bears" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Blazing Hellhound"
+}
+
+scenario "Blazing Hellhound: not by sacrificing itself" {
+  battlefield A: "Blazing Hellhound", "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Blazing Hellhound" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Hurler Cyclops: sacrifice another creature, 1 damage" {
+  battlefield A: "Hurler Cyclops", "Grizzly Bears", "Mountain"
+  battlefield B: "Llanowar Elves"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Hurler Cyclops" sacrificing "Grizzly Bears" targeting "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Fleshtaker: +2/+2, and its sacrifice trigger gains 1 life" {
+  battlefield A: "Fleshtaker", "Grizzly Bears", "Plains"
+  library A: "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Fleshtaker" sacrificing "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Fleshtaker" 4
+  assert toughness "Fleshtaker" 4
+  assert life A 21
+}
+
+scenario "Denethor, Ruling Steward: drain 1, then a token at the end step" {
+  battlefield A: "Denethor, Ruling Steward", "Grizzly Bears", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Denethor, Ruling Steward" sacrificing "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert life B 19
+  assert life A 21
+  assert battlefield A contains "Human Soldier"
+}
+
+scenario "Gobbling Ooze: a +1/+1 counter for another creature" {
+  battlefield A: "Gobbling Ooze", "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Gobbling Ooze" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Gobbling Ooze" +1/+1 1
+}
+
+scenario "Ravenous Harpy: a +1/+1 counter" {
+  battlefield A: "Ravenous Harpy", "Grizzly Bears", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ravenous Harpy" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Ravenous Harpy" +1/+1 1
+  assert power "Ravenous Harpy" 2
+}
+
+scenario "Blood Host: a counter and 2 life" {
+  battlefield A: "Blood Host", "Grizzly Bears", 2 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Blood Host" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Blood Host" +1/+1 1
+  assert life A 22
+}
+
+scenario "Aron, Benalia's Ruin: a counter on each creature you control" {
+  battlefield A: "Aron, Benalia's Ruin", "Grizzly Bears", "Llanowar Elves", "Plains", "Swamp"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Aron, Benalia's Ruin" sacrificing "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert counters "Aron, Benalia's Ruin" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Hill Giant" +1/+1 0
+  assert tapped "Aron, Benalia's Ruin"
+}
+
+scenario "Pitiless Pontiff: deathtouch and indestructible" {
+  battlefield A: "Pitiless Pontiff", "Grizzly Bears", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Pitiless Pontiff" sacrificing "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert has "Pitiless Pontiff" deathtouch
+  assert has "Pitiless Pontiff" indestructible
+}
+
+scenario "Vampire Warlord: regenerates by sacrificing another creature" {
+  battlefield A: "Vampire Warlord", "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Vampire Warlord" sacrificing "Grizzly Bears"
+  turn 1 begin_combat A: cast "Lightning Bolt" targeting "Vampire Warlord"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Vampire Warlord"
+  assert tapped "Vampire Warlord"
+}
+
+scenario "Woe Strider: sacrifice the Goat to scry 1" {
+  battlefield A: "Woe Strider", "Goat"
+  library A: "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Woe Strider" sacrificing "Goat"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Goat"
+}
+
+scenario "Qarsi High Priest: manifest the top card" {
+  battlefield A: "Qarsi High Priest", "Grizzly Bears", 2 "Swamp"
+  library A: "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Qarsi High Priest" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert library A count 1
+}
+
+scenario "Fiend Artisan: X 2 finds a creature card with mana value 2 or less" {
+  battlefield A: "Fiend Artisan", "Llanowar Elves", 3 "Swamp"
+  library A: "Hill Giant", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Fiend Artisan" x 2 sacrificing "Llanowar Elves"
+  turn 2 A: choose "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert library A contains "Hill Giant"
+  assert power "Fiend Artisan" 2
+}
+
+scenario "Wight of the Reliquary: a land card onto the battlefield tapped" {
+  battlefield A: "Wight of the Reliquary", "Grizzly Bears"
+  library A: "Forest", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Wight of the Reliquary" sacrificing "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Forest"
+  assert tapped "Forest"
+  assert power "Wight of the Reliquary" 3
+}
+
+scenario "Razaketh, the Foulblooded: 2 life and another creature for any card" {
+  battlefield A: "Razaketh, the Foulblooded", "Grizzly Bears"
+  library A: "Forest", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Razaketh, the Foulblooded" sacrificing "Grizzly Bears"
+  turn 1 A: choose "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Lightning Bolt"
+  assert life A 18
+}
+
+scenario "Warren Soultrader: 1 life and another creature for a Treasure" {
+  battlefield A: "Warren Soultrader", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Warren Soultrader" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treasure"
+  assert life A 19
+}
+
+scenario "Yawgmoth, Thran Physician: a -1/-1 counter and a card" {
+  battlefield A: "Yawgmoth, Thran Physician", "Grizzly Bears"
+  battlefield B: "Llanowar Elves"
+  library A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Yawgmoth, Thran Physician" ability 1 sacrificing "Grizzly Bears" targeting "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert hand A contains "Island"
+  assert life A 19
+}
+
+scenario "Undercity Necrolisk: a counter and menace, as a sorcery" {
+  battlefield A: "Undercity Necrolisk", "Grizzly Bears", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Undercity Necrolisk" sacrificing "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert counters "Undercity Necrolisk" +1/+1 1
+  assert has "Undercity Necrolisk" menace
+}
+
+scenario "Yahenni, Undying Partisan: indestructible for another creature" {
+  battlefield A: "Yahenni, Undying Partisan", "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Yahenni, Undying Partisan" sacrificing "Grizzly Bears"
+  turn 1 begin_combat A: cast "Lightning Bolt" targeting "Yahenni, Undying Partisan"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Yahenni, Undying Partisan"
+}
+
+scenario "Tymaret, the Murder King: 2 damage to target player" {
+  battlefield A: "Tymaret, the Murder King", "Grizzly Bears", 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Tymaret, the Murder King" sacrificing "Grizzly Bears" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Reaper of Flight Moonsilver: not without delirium" {
+  battlefield A: "Reaper of Flight Moonsilver", "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Reaper of Flight Moonsilver" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Reaper of Flight Moonsilver" 3
+}
+
+scenario "Reaper of Flight Moonsilver: +2/+1 with delirium" {
+  battlefield A: "Reaper of Flight Moonsilver", "Grizzly Bears"
+  graveyard A: "Forest", "Lightning Bolt", "Ornithopter", "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Reaper of Flight Moonsilver" sacrificing "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Reaper of Flight Moonsilver" 5
+  assert toughness "Reaper of Flight Moonsilver" 4
+}
+
+scenario "Shadow-Rite Priest: another Cleric for a black creature card" {
+  battlefield A: "Shadow-Rite Priest", "Acolyte of Xathrid", 5 "Swamp"
+  library A: "Grizzly Bears", "Black Knight"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Shadow-Rite Priest" sacrificing "Acolyte of Xathrid"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Black Knight"
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "Shadow-Rite Priest: not another non-Cleric" {
+  battlefield A: "Shadow-Rite Priest", "Grizzly Bears", 5 "Swamp"
+  library A: "Black Knight"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Shadow-Rite Priest" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+# "Sacrifice another creature or artifact", "... or planeswalker",
+# "... artifact or creature", "... permanent".
+
+scenario "Dreadmalkin: two counters for another creature" {
+  battlefield A: "Dreadmalkin", "Grizzly Bears", 3 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Dreadmalkin" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Dreadmalkin" +1/+1 2
+}
+
+scenario "Dreadmobile: another artifact for a counter" {
+  battlefield A: "Dreadmobile", "Darksteel Relic", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Dreadmobile" sacrificing "Darksteel Relic"
+  run_to turn 1 postcombat_main
+  assert counters "Dreadmobile" +1/+1 1
+  assert graveyard A contains "Darksteel Relic"
+}
+
+scenario "Stormclaw Rager: an artifact for a counter and a card" {
+  battlefield A: "Stormclaw Rager", "Darksteel Relic", "Swamp"
+  library A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Stormclaw Rager" sacrificing "Darksteel Relic"
+  run_to turn 1 postcombat_main
+  assert counters "Stormclaw Rager" +1/+1 1
+  assert hand A contains "Island"
+}
+
+scenario "Compleated Huntmaster: incubate 3" {
+  battlefield A: "Compleated Huntmaster", "Darksteel Relic", "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Compleated Huntmaster" sacrificing "Darksteel Relic"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Incubator"
+  assert counters "Incubator" +1/+1 3
+}
+
+scenario "Pious Evangel: sacrifice another permanent to transform" {
+  battlefield A: "Pious Evangel // Wayward Disciple", "Darksteel Relic", 2 "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Pious Evangel" sacrificing "Darksteel Relic"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Wayward Disciple"
+}
+
+# "Exile this artifact", "Exile ~".
+
+scenario "Brittle Effigy: exile it to exile target creature" {
+  battlefield A: "Brittle Effigy", 4 "Island"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Brittle Effigy" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert exile A contains "Brittle Effigy"
+}
+
+scenario "Perilous Vault: exile all nonland permanents" {
+  battlefield A: "Perilous Vault", 5 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Perilous Vault"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert exile A contains "Grizzly Bears"
+  assert exile A contains "Perilous Vault"
+  assert battlefield B contains "Forest"
+}
+
+scenario "Hanged Executioner: exile it to exile target creature" {
+  battlefield A: "Hanged Executioner", 4 "Plains"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Hanged Executioner" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert exile A contains "Hanged Executioner"
+}
+
+scenario "Inquisitive Puppet: exile it for a Human" {
+  battlefield A: "Inquisitive Puppet"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Inquisitive Puppet"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Human"
+  assert exile A contains "Inquisitive Puppet"
+}
+
+scenario "Nyx Weaver: exile it to return a card" {
+  battlefield A: "Nyx Weaver", "Swamp", "Forest", "Island"
+  graveyard A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Nyx Weaver" targeting "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Lightning Bolt"
+  assert exile A contains "Nyx Weaver"
+}
+
+scenario "Cranial Archive: a player shuffles their graveyard in; draw a card" {
+  battlefield A: "Cranial Archive", 2 "Island"
+  graveyard B: "Hill Giant", "Forest"
+  library A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Cranial Archive" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 0
+  assert library B contains "Hill Giant"
+  assert hand A contains "Island"
+}
+
+scenario "Crook of Condemnation: exile it to exile all graveyards" {
+  battlefield A: "Crook of Condemnation", "Island"
+  graveyard A: "Lightning Bolt"
+  graveyard B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Crook of Condemnation" ability 2
+  run_to turn 1 postcombat_main
+  assert exile A contains "Lightning Bolt"
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Sentinel Totem: exile all graveyards" {
+  battlefield A: "Sentinel Totem"
+  graveyard B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sentinel Totem"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert exile A contains "Sentinel Totem"
+}
+
+scenario "Abstergo Entertainment: a historic card back, then all graveyards exiled" {
+  battlefield A: "Abstergo Entertainment", 3 "Island"
+  graveyard A: "Darksteel Relic", "Lightning Bolt"
+  graveyard B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Abstergo Entertainment" ability 2 targeting "Darksteel Relic"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Darksteel Relic"
+  assert exile A contains "Lightning Bolt"
+  assert exile B contains "Hill Giant"
+  assert exile A contains "Abstergo Entertainment"
+}
+
+# "Sacrifice ~" (the card's name).
+
+scenario "Inventors' Fair: not with two artifacts" {
+  battlefield A: "Inventors' Fair", 4 "Island", "Darksteel Relic", "Ornithopter"
+  library A: "Sol Ring"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Inventors' Fair" ability 1
+  run_to turn 1 postcombat_main
+  assert library A contains "Sol Ring"
+}
+
+scenario "Inventors' Fair: an artifact card with three artifacts" {
+  battlefield A: "Inventors' Fair", 4 "Island", "Darksteel Relic", "Ornithopter", "Memnite"
+  library A: "Sol Ring", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Inventors' Fair" ability 1
+  run_to turn 1 postcombat_main
+  assert hand A contains "Sol Ring"
+  assert graveyard A contains "Inventors' Fair"
+}
+
+scenario "Stone of Erech: exile target player's graveyard; draw a card" {
+  battlefield A: "Stone of Erech", 2 "Island"
+  graveyard B: "Hill Giant"
+  library A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Stone of Erech" targeting player B
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert hand A contains "Island"
+  assert graveyard A contains "Stone of Erech"
+}
+
+scenario "Hajar, Loyal Bodyguard: legendary creatures get +1/+0 and indestructible" {
+  battlefield A: "Hajar, Loyal Bodyguard", "Yahenni, Undying Partisan", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Hajar, Loyal Bodyguard"
+  run_to turn 1 begin_combat
+  assert power "Yahenni, Undying Partisan" 3
+  assert has "Yahenni, Undying Partisan" indestructible
+  assert power "Grizzly Bears" 2
+  assert graveyard A contains "Hajar, Loyal Bodyguard"
+}
+
+scenario "Kagemaro, First to Suffer: -X/-X for the cards in hand" {
+  battlefield A: "Kagemaro, First to Suffer", "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kagemaro, First to Suffer"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  assert power "Hill Giant" 1
+}
+
+# "Discard two cards", "Discard three cards".
+
+scenario "Haunted Dead: discard two cards to return tapped" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Haunted Dead"
+  hand A: "Island", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Haunted Dead"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Haunted Dead"
+  assert tapped "Haunted Dead"
+  assert hand A count 0
+  assert battlefield A contains "Spirit"
+}
+
+scenario "Haunted Dead: not with one card in hand" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Haunted Dead"
+  hand A: "Island"
+  start turn 2 A precombat_main
+  illegal turn 2 A: activate "Haunted Dead"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Haunted Dead"
+}
+
+scenario "Stitchwing Skaab: discard two cards to return tapped" {
+  battlefield A: 2 "Island"
+  graveyard A: "Stitchwing Skaab"
+  hand A: "Island", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Stitchwing Skaab"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Stitchwing Skaab"
+  assert tapped "Stitchwing Skaab"
+}
+
+scenario "Ghoulsteed: discard two cards to return tapped" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Ghoulsteed"
+  hand A: "Island", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Ghoulsteed"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Ghoulsteed"
+  assert hand A count 0
+}
+
+scenario "Geralf's Masterpiece: discard three cards to return" {
+  battlefield A: 4 "Island"
+  graveyard A: "Geralf's Masterpiece"
+  hand A: "Island", "Forest", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Geralf's Masterpiece"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Geralf's Masterpiece"
+  assert hand A count 0
+  assert power "Geralf's Masterpiece" 7
+}
+
+scenario "Geralf's Masterpiece: not with two cards" {
+  battlefield A: 4 "Island"
+  graveyard A: "Geralf's Masterpiece"
+  hand A: "Island", "Forest"
+  start turn 2 A precombat_main
+  illegal turn 2 A: activate "Geralf's Masterpiece"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Geralf's Masterpiece"
+}
+
+scenario "Zombie Infestation: discard two cards for a Zombie" {
+  battlefield A: "Zombie Infestation"
+  hand A: "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Zombie Infestation"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zombie"
+  assert hand A count 0
+}
+
+# "Tap three untapped creatures you control", "Tap two untapped artifacts
+# you control".
+
+scenario "Sandsower: three untapped creatures tap target creature" {
+  battlefield A: "Sandsower", "Grizzly Bears", "Llanowar Elves"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sandsower" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert tapped "Grizzly Bears"
+  assert tapped "Llanowar Elves"
+  assert tapped "Sandsower"
+}
+
+scenario "Sandsower: not with two creatures" {
+  battlefield A: "Sandsower", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Sandsower" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert untapped "Hill Giant"
+}
+
+scenario "Skaab Wrangler: three untapped creatures tap target creature" {
+  battlefield A: "Skaab Wrangler", "Grizzly Bears", "Llanowar Elves"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Skaab Wrangler" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+}
+
+scenario "Nullmage Shepherd: four untapped creatures destroy an artifact" {
+  battlefield A: "Nullmage Shepherd", "Grizzly Bears", "Llanowar Elves", "Hill Giant"
+  battlefield B: "Sol Ring"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Nullmage Shepherd" targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Sol Ring"
+  assert tapped "Hill Giant"
+}
+
+scenario "Root-Kin Ally: two untapped creatures for +2/+2" {
+  battlefield A: "Root-Kin Ally", "Grizzly Bears", "Llanowar Elves"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Root-Kin Ally"
+  run_to turn 1 begin_combat
+  assert power "Root-Kin Ally" 5
+}
+
+scenario "Altar Golem: five untapped creatures untap it" {
+  battlefield A: "Altar Golem" tapped, "Grizzly Bears", "Llanowar Elves", "Hill Giant", "Savannah Lions", "Raging Goblin"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Altar Golem"
+  run_to turn 1 postcombat_main
+  assert untapped "Altar Golem"
+  assert tapped "Raging Goblin"
+}
+
+scenario "Skirsdag High Priest: a Demon after a creature died this turn" {
+  battlefield A: "Skirsdag High Priest", "Grizzly Bears", "Llanowar Elves", "Mountain"
+  battlefield B: "Savannah Lions"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Savannah Lions"
+  turn 1 A: activate "Skirsdag High Priest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Demon"
+}
+
+scenario "Skirsdag High Priest: not before a creature died" {
+  battlefield A: "Skirsdag High Priest", "Grizzly Bears", "Llanowar Elves"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Skirsdag High Priest"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Demon"
+}
+
+scenario "Clock of Omens: two untapped artifacts untap target artifact" {
+  battlefield A: "Clock of Omens", "Darksteel Relic", "Ornithopter", "Sol Ring" tapped
+  start turn 1 A precombat_main
+  turn 1 A: activate "Clock of Omens" targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert untapped "Sol Ring"
+}
+
+scenario "Ghirapur Aether Grid: two untapped artifacts, 1 damage" {
+  battlefield A: "Ghirapur Aether Grid", "Darksteel Relic", "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ghirapur Aether Grid" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert tapped "Ornithopter"
+}
+
+scenario "Ghirapur Aether Grid: not with one artifact" {
+  battlefield A: "Ghirapur Aether Grid", "Darksteel Relic"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Ghirapur Aether Grid" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Whirler Rogue: two Thopters make a creature unblockable" {
+  battlefield A: "Whirler Rogue", 2 "Thopter"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Whirler Rogue" targeting "Whirler Rogue"
+  turn 2 A: attack "Whirler Rogue"
+  illegal turn 2 B: block "Whirler Rogue" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 18
+}
+
+scenario "Shimmer Dragon: two untapped artifacts draw a card" {
+  battlefield A: "Shimmer Dragon", "Darksteel Relic", "Ornithopter"
+  library A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Shimmer Dragon"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+}
+
+# "Remove three quest counters from this enchantment and sacrifice it".
+
+scenario "Quest for the Gravelord: three quest counters for a 5/5 Zombie Giant" {
+  battlefield A: "Quest for the Gravelord" with 3 quest
+  start turn 1 A precombat_main
+  turn 1 A: activate "Quest for the Gravelord"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zombie Giant"
+  assert power "Zombie Giant" 5
+  assert graveyard A contains "Quest for the Gravelord"
+}
+
+scenario "Quest for the Gravelord: not with two counters" {
+  battlefield A: "Quest for the Gravelord" with 2 quest
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Quest for the Gravelord"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Zombie Giant"
+}
+
+scenario "Soul Stair Expedition: two creature cards back to hand" {
+  battlefield A: "Soul Stair Expedition" with 3 quest
+  graveyard A: "Grizzly Bears", "Hill Giant", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Soul Stair Expedition" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert graveyard A contains "Soul Stair Expedition"
+}
+
+scenario "Zektar Shrine Expedition: a 7/1 Elemental with haste, exiled at the end step" {
+  battlefield A: "Zektar Shrine Expedition" with 3 quest
+  start turn 2 A precombat_main
+  turn 2 A: activate "Zektar Shrine Expedition"
+  turn 2 A: attack "Elemental"
+  run_to turn 2 postcombat_main
+  assert life B 13
+  run_to turn 3 upkeep
+  assert battlefield A lacks "Elemental"
+}
+
+# Hybrid and Phyrexian mana in activated costs.
+
+scenario "Fireborn Knight: {R/W}x4 for +1/+1, paid with Plains" {
+  battlefield A: "Fireborn Knight", 4 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Fireborn Knight"
+  run_to turn 1 begin_combat
+  assert power "Fireborn Knight" 3
+  assert toughness "Fireborn Knight" 4
+}
+
+scenario "Duergar Cave-Guard: {R/W} for +1/+0" {
+  battlefield A: "Duergar Cave-Guard", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Duergar Cave-Guard"
+  run_to turn 1 begin_combat
+  assert power "Duergar Cave-Guard" 2
+}
+
+scenario "Talonrend: {U/R} for +1/-1" {
+  battlefield A: "Talonrend", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Talonrend"
+  run_to turn 1 begin_combat
+  assert power "Talonrend" 1
+  assert toughness "Talonrend" 4
+}
+
+scenario "Crag Puca: switch power and toughness" {
+  battlefield A: "Crag Puca", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Crag Puca"
+  run_to turn 1 begin_combat
+  assert power "Crag Puca" 4
+  assert toughness "Crag Puca" 2
+}
+
+scenario "Resolute Rider: lifelink for two hybrid mana" {
+  battlefield A: "Resolute Rider", 2 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Resolute Rider" ability 1
+  run_to turn 1 begin_combat
+  assert has "Resolute Rider" lifelink
+  assert has not "Resolute Rider" indestructible
+}
+
+scenario "Restless Apparition: +3/+3" {
+  battlefield A: "Restless Apparition", 3 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Restless Apparition"
+  run_to turn 1 begin_combat
+  assert power "Restless Apparition" 5
+}
+
+scenario "Stillmoon Cavalier: flying for {W/B}" {
+  battlefield A: "Stillmoon Cavalier", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Stillmoon Cavalier" ability 1
+  run_to turn 1 begin_combat
+  assert has "Stillmoon Cavalier" flying
+  assert has not "Stillmoon Cavalier" first_strike
+}
+
+scenario "Sturdy Hatchling: shroud for {G/U}" {
+  battlefield A: "Sturdy Hatchling" with 4 -1/-1, "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sturdy Hatchling"
+  run_to turn 1 begin_combat
+  assert has "Sturdy Hatchling" shroud
+}
+
+scenario "Suture Spirit: regenerate target creature" {
+  battlefield A: "Suture Spirit", "Grizzly Bears", 3 "Plains", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Suture Spirit" targeting "Grizzly Bears"
+  turn 1 begin_combat A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Creakwood Ghoul: exile a card from a graveyard, gain 1 life" {
+  battlefield A: "Creakwood Ghoul", 2 "Swamp"
+  graveyard B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Creakwood Ghoul" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert life A 21
+}
+
+scenario "Deity of Scars: regenerate by removing a -1/-1 counter" {
+  battlefield A: "Deity of Scars" with 2 -1/-1, "Forest", 4 "Swamp"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Deity of Scars"
+  turn 1 begin_combat A: cast "Murder" targeting "Deity of Scars"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Deity of Scars"
+  assert counters "Deity of Scars" -1/-1 1
+}
+
+scenario "Mindwrack Liege: put a red creature card onto the battlefield" {
+  battlefield A: "Mindwrack Liege", 4 "Mountain"
+  hand A: "Raging Goblin", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Mindwrack Liege"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Raging Goblin"
+  assert hand A contains "Grizzly Bears"
+  assert power "Raging Goblin" 2
+}
+
+scenario "Savageborn Hydra: a counter for {1}{R/G}" {
+  battlefield A: "Savageborn Hydra" with 2 +1/+1, 2 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Savageborn Hydra"
+  run_to turn 1 postcombat_main
+  assert counters "Savageborn Hydra" +1/+1 3
+}
+
+scenario "Creative Outburst: discard it for a Treasure" {
+  battlefield A: 2 "Island"
+  hand A: "Creative Outburst"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Creative Outburst"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treasure"
+  assert graveyard A contains "Creative Outburst"
+}
+
+scenario "Creative Outburst: 5 damage and a card from the top five" {
+  battlefield A: 5 "Island", 2 "Mountain"
+  hand A: "Creative Outburst"
+  library A: "Lightning Bolt", "Forest", "Island", "Plains", "Swamp", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Creative Outburst" targeting player B
+  turn 1 A: choose "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert hand A contains "Lightning Bolt"
+}
+
+scenario "Moltensteel Dragon: {R/P} paid with 2 life" {
+  battlefield A: "Moltensteel Dragon"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Moltensteel Dragon"
+  run_to turn 1 begin_combat
+  assert power "Moltensteel Dragon" 5
+  assert life A 18
+}
+
+scenario "Seraph of New Capenna: transform for {4}{B/P}" {
+  battlefield A: "Seraph of New Capenna // Seraph of New Phyrexia", 5 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Seraph of New Capenna"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Seraph of New Phyrexia"
+}
+
+scenario "Harried Artisan: transform for {3}{W/P}" {
+  battlefield A: "Harried Artisan // Phyrexian Skyflayer", 4 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Harried Artisan"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Phyrexian Skyflayer"
+  assert has "Phyrexian Skyflayer" flying
+}
+
+scenario "Khenra Spellspear: transform for {3}{U/P}" {
+  battlefield A: "Khenra Spellspear // Gitaxian Spellstalker", 4 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Khenra Spellspear"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Gitaxian Spellstalker"
+}
+
+scenario "Captive Weird: transform, then play the exiled card" {
+  battlefield A: "Captive Weird // Compleated Conjurer", 4 "Mountain"
+  library A: "Lightning Bolt", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Captive Weird"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Compleated Conjurer"
+  assert exile A contains "Lightning Bolt"
+}

@@ -1,0 +1,9 @@
+card "Mindwrack Liege" {
+  oracle_id c24b3135-5f23-461c-9e57-de747ca8978a
+  cost {3}{U/R}{U/R}{U/R}
+  type Creature — Horror
+  pt 4/4
+  static other blue creature you control: +1/+1
+  static other red creature you control: +1/+1
+  activated {U/R}{U/R}{U/R}{U/R}: you may put blue or red creature card from hand onto battlefield
+}

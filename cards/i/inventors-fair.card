@@ -1,0 +1,7 @@
+card "Inventors' Fair" {
+  oracle_id 91d4a5fe-fd6d-4b14-a63f-61b4d0ecd9c4
+  type Legendary Land
+  triggered at beginning of your upkeep if you control 3 artifact: you gains 1 life
+  mana {C}
+  activated {4}, {T}, sacrifice this, if you control 3 artifact: search artifact card reveal to hand
+}

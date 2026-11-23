@@ -1,0 +1,10 @@
+card "Migloz, Maze Crusher" {
+  oracle_id 85eb890e-a5e1-48f8-b813-e8424d18b28a
+  cost {1}{R}{G}
+  type Legendary Creature — Phyrexian Beast
+  pt 4/4
+  enters with 5 oil counters
+  activated {1}, remove 1 oil counters from this: this gains vigilance, menace
+  activated {2}, remove 2 oil counters from this: this gets +2/+2
+  activated {3}, remove 3 oil counters from this: destroy target artifact or enchantment
+}

@@ -1,0 +1,8 @@
+card "Phyrexian Snowcrusher" {
+  oracle_id f20aa69a-e2eb-4103-9684-12390ef07c6c
+  cost {6}
+  type Snow Artifact Creature — Phyrexian Juggernaut
+  pt 6/5
+  keywords attacks each combat if able
+  activated {1}{S}: this gets +1/+0
+}

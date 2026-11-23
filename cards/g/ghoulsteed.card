@@ -1,0 +1,7 @@
+card "Ghoulsteed" {
+  oracle_id dbc34afa-16bc-41f2-b74d-29bf2bfe24a9
+  cost {4}{B}
+  type Creature — Zombie Horse
+  pt 4/4
+  activated {2}{B}, discard 2 cards, from graveyard: return this to battlefield tapped
+}

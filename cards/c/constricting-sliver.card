@@ -1,0 +1,7 @@
+card "Constricting Sliver" {
+  oracle_id fd26f893-6f45-44df-aa4e-c919fc118aff
+  cost {5}{W}
+  type Creature — Sliver
+  pt 3/3
+  static Sliver creature you control: has ability { triggered when this enters: you may exile target creature an opponent controls until this leaves }
+}

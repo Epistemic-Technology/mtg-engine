@@ -1,0 +1,7 @@
+card "Devout Chaplain" {
+  oracle_id 1e575a82-e128-4637-87cd-f075654bc41b
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 2/2
+  activated {T}, tap 2 untapped Human you control: exile target artifact or enchantment
+}

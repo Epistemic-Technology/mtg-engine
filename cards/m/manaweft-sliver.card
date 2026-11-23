@@ -1,0 +1,7 @@
+card "Manaweft Sliver" {
+  oracle_id bd47398d-da35-4a09-8754-771af91b14f4
+  cost {1}{G}
+  type Creature — Sliver
+  pt 1/1
+  static Sliver creature you control: has ability { mana any }
+}

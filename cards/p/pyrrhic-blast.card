@@ -1,0 +1,7 @@
+card "Pyrrhic Blast" {
+  oracle_id 98ec58aa-8776-4a19-bff8-e288a9bd6bac
+  cost {3}{R}
+  type Instant
+  additional cost sacrifice creature
+  spell: deal damage equal power of the sacrificed creature to any target; draw 1 cards
+}

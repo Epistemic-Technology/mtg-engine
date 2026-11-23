@@ -1,0 +1,8 @@
+card "Aron, Benalia's Ruin" {
+  oracle_id d8b06606-9b1f-4e72-a280-12a6e912bb50
+  cost {W}{W}{B}
+  type Legendary Creature — Phyrexian Human
+  pt 3/3
+  keywords menace
+  activated {W}{B}, {T}, sacrifice other creature: put 1 +1/+1 counters on each creature you control
+}

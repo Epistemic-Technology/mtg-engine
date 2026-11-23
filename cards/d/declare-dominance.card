@@ -1,0 +1,6 @@
+card "Declare Dominance" {
+  oracle_id db640c5b-4548-44b1-a9cd-cc6838707dbb
+  cost {3}{G}{G}
+  type Sorcery
+  spell: target creature gets +3/+3; target 1 gains lure
+}

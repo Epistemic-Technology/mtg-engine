@@ -1,0 +1,8 @@
+card "Fireborn Knight" {
+  oracle_id b77695da-86fb-4675-b2d3-51732ad0325f
+  cost {R/W}{R/W}{R/W}{R/W}
+  type Creature — Human Knight
+  pt 2/3
+  keywords double strike
+  activated {R/W}{R/W}{R/W}{R/W}: this gets +1/+1
+}

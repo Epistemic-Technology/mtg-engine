@@ -1,0 +1,8 @@
+card "Talonrend" {
+  oracle_id 85c6290e-2bf2-4666-a606-326a8209ace6
+  cost {4}{U}
+  type Creature — Elemental
+  pt 0/5
+  keywords flying
+  activated {U/R}: this gets +1/-1
+}

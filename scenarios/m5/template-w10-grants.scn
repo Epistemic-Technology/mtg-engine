@@ -1,0 +1,180 @@
+# Tenth-wave templates: abilities granted to a creature type ("Sliver
+# creatures you control have \"...\"", "Elves you control have \"{T}: Add
+# {G}{G}.\"") and flickers ("exile target creature you control, then return
+# that card to the battlefield under its owner's control").
+
+# Flickers: the card returns as a new object (CR 400.7), its counters gone.
+
+scenario "Restoration Angel: the flickered creature returns without its counters" {
+  battlefield A: "Grizzly Bears" with 2 +1/+1, 4 "Plains"
+  hand A: "Restoration Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Restoration Angel"
+  turn 1 A: trigger "Restoration Angel" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Restoration Angel: not an Angel" {
+  battlefield A: "Serra Angel" with 1 +1/+1, 4 "Plains"
+  hand A: "Restoration Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Restoration Angel"
+  run_to turn 1 postcombat_main
+  assert counters "Serra Angel" +1/+1 1
+}
+
+scenario "Restoration Angel: the flicker is optional" {
+  battlefield A: "Grizzly Bears" with 2 +1/+1, 4 "Plains"
+  hand A: "Restoration Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Restoration Angel"
+  turn 1 A: trigger "Restoration Angel" targeting "Grizzly Bears"
+  turn 1 A: decline "Restoration Angel"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+}
+
+scenario "Felidar Guardian: flickers another permanent" {
+  battlefield A: "Sol Ring" tapped, 4 "Plains"
+  hand A: "Felidar Guardian"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Felidar Guardian"
+  turn 1 A: trigger "Felidar Guardian" targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert untapped "Sol Ring"
+}
+
+scenario "Wispweaver Angel: flickers another creature" {
+  battlefield A: "Grizzly Bears" with 1 +1/+1, 6 "Plains"
+  hand A: "Wispweaver Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wispweaver Angel"
+  turn 1 A: trigger "Wispweaver Angel" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Nephalia Smuggler: flickers another creature" {
+  battlefield A: "Nephalia Smuggler", "Grizzly Bears" with 1 +1/+1, 4 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Nephalia Smuggler" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Conjurer's Closet: flickers a creature at the end step" {
+  battlefield A: "Conjurer's Closet", "Grizzly Bears" with 1 +1/+1
+  start turn 1 A postcombat_main
+  turn 1 end A: trigger "Conjurer's Closet" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Teleportation Circle: flickers an artifact at the end step" {
+  battlefield A: "Teleportation Circle", "Sol Ring" tapped
+  start turn 1 A postcombat_main
+  turn 1 end A: trigger "Teleportation Circle" targeting "Sol Ring"
+  run_to turn 1 cleanup
+  assert untapped "Sol Ring"
+}
+
+# Granted abilities.
+
+scenario "Manaweft Sliver: a Sliver taps for any color" {
+  battlefield A: "Manaweft Sliver"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 18
+}
+
+scenario "Joraga Treespeaker: level 5, Elves tap for {G}{G}" {
+  battlefield A: "Joraga Treespeaker" with 5 level, "Llanowar Elves", 4 "Forest"
+  hand A: "Craw Wurm"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Llanowar Elves"
+  turn 2 A: cast "Craw Wurm"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Craw Wurm"
+}
+
+scenario "Sachi, Daughter of Seshiro: a Shaman taps for {G}{G}" {
+  battlefield A: "Sachi, Daughter of Seshiro", "Elvish Mystic"
+  hand A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Hollowhead Sliver: loot with a Sliver" {
+  battlefield A: "Hollowhead Sliver"
+  hand A: "Island"
+  library A: "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Hollowhead Sliver"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Forest"
+  assert graveyard A contains "Island"
+}
+
+scenario "Scuttling Sliver: {2}: untap this creature" {
+  battlefield A: "Scuttling Sliver" tapped, 2 "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Scuttling Sliver"
+  run_to turn 2 postcombat_main
+  assert untapped "Scuttling Sliver"
+}
+
+scenario "Resplendent Mentor: a white creature gains 1 life, not a green one" {
+  battlefield A: "Resplendent Mentor", "Savannah Lions", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Savannah Lions"
+  illegal turn 2 A: activate "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 21
+}
+
+scenario "Thorncaster Sliver: a Sliver attacking deals 1 damage" {
+  battlefield A: "Thorncaster Sliver"
+  battlefield B: "Llanowar Elves"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Thorncaster Sliver"
+  turn 2 A: trigger "Thorncaster Sliver" targeting "Llanowar Elves"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+}
+
+scenario "Tempered Sliver: combat damage to a player, a +1/+1 counter" {
+  battlefield A: "Tempered Sliver"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Tempered Sliver"
+  run_to turn 2 postcombat_main
+  assert counters "Tempered Sliver" +1/+1 1
+}
+
+scenario "Lavabelly Sliver: entering, 1 damage and 1 life" {
+  battlefield A: 2 "Mountain", "Plains"
+  hand A: "Lavabelly Sliver"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lavabelly Sliver"
+  turn 1 A: trigger "Lavabelly Sliver" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+}
+
+scenario "Constricting Sliver: entering, exiles until it leaves" {
+  battlefield A: 6 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Constricting Sliver"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Constricting Sliver"
+  turn 1 A: trigger "Constricting Sliver" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+}

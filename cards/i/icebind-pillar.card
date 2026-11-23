@@ -1,0 +1,6 @@
+card "Icebind Pillar" {
+  oracle_id 18050051-63f6-4091-bf67-7a0701a0791d
+  cost {2}{U}
+  type Snow Artifact
+  activated {S}, {T}: tap target artifact or creature
+}

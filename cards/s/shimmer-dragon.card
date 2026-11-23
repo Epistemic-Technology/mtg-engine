@@ -1,0 +1,9 @@
+card "Shimmer Dragon" {
+  oracle_id de1316f2-1cca-4ac4-aead-0fd8b4036d88
+  cost {4}{U}{U}
+  type Creature — Dragon
+  pt 5/6
+  keywords flying
+  static as long as you control 4 artifact, this: has hexproof
+  activated tap 2 untapped artifact you control: draw 1 cards
+}

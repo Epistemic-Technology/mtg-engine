@@ -1,0 +1,6 @@
+card "Perilous Vault" {
+  oracle_id 7acd7ef5-0e26-436d-962a-1a391f81c2e8
+  cost {4}
+  type Artifact
+  activated {5}, {T}, exile this: exile each nonland permanent
+}

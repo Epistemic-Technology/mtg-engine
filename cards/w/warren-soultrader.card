@@ -1,0 +1,7 @@
+card "Warren Soultrader" {
+  oracle_id ace86e56-efde-4eb7-8815-71456a4c3abe
+  cost {2}{B}
+  type Creature — Zombie Goblin Wizard
+  pt 3/3
+  activated pay 1 life, sacrifice other creature: create 1 "Treasure"
+}

@@ -2536,8 +2536,12 @@ impl Templates {
                 r(r"^Return an? ([a-z ]+? you control) to its owner's hand$"),
                 |c, _| Some(format!("return 1 {} chosen", cap(c, 1))),
             ),
-            (r(r"^Attach (?:it|this Equipment) to (.+)$"), |c, t| {
-                Some(format!("attach to {}", recipient(cap(c, 1), t)?))
+            // "attach it to": in a trigger about another object (Sigarda's
+            // Aid's "Whenever an Equipment you control enters, you may
+            // attach it to ..."), "it" is that object, not the source.
+            (r(r"^Attach (it|this Equipment) to (.+)$"), |c, t| {
+                let it = if cap(c, 1) == "it" { "it " } else { "" };
+                Some(format!("attach {it}to {}", recipient(cap(c, 2), t)?))
             }),
             (
                 r(
@@ -2762,8 +2766,42 @@ impl Templates {
                     Some(format!("{a} bites {b}"))
                 },
             ),
-            (r(r"^Attach (?:it|~|this) to (.+)$"), |c, t| {
-                Some(format!("attach to {}", recipient(cap(c, 1), t)?))
+            // "All creatures able to block target creature this turn do so."
+            // (a lure until end of turn).
+            (
+                r(r"^[Aa]ll creatures able to block (.+) this turn do so$"),
+                |c, t| {
+                    let who = recipient(cap(c, 1), t)?;
+                    Some(format!("{who} gains lure"))
+                },
+            ),
+            // "This creature deals damage equal to the sacrificed creature's
+            // power to any target" (Fling's, after a sacrifice cost).
+            (
+                r(
+                    r"^(?:~|This creature|this creature|It|it) deals damage equal to the sacrificed creature's power to (.+)$",
+                ),
+                |c, t| {
+                    let to = recipient(cap(c, 1), t)?;
+                    Some(format!(
+                        "deal damage equal power of the sacrificed creature to {to}"
+                    ))
+                },
+            ),
+            // "put two cards from your hand on top of your library in any
+            // order" (Brainstorm's).
+            (
+                r(r"^[Pp]ut (\w+) cards from your hand on top of your library in any order$"),
+                |c, _| {
+                    Some(format!(
+                        "put {} cards from hand on top of library",
+                        number(cap(c, 1))?
+                    ))
+                },
+            ),
+            (r(r"^Attach (it|~|this) to (.+)$"), |c, t| {
+                let it = if cap(c, 1) == "it" { "it " } else { "" };
+                Some(format!("attach {it}to {}", recipient(cap(c, 2), t)?))
             }),
             (
                 r(r"^(.+?) can't (block|attack|be blocked|attack or block) this turn$"),
@@ -3237,6 +3275,25 @@ impl Templates {
             // A transforming card's back face returning itself: "Exile
             // Shiva, then return it to the battlefield (front face up)."
             // (CR 712.14; Oracle names no controller only there).
+            // A flicker: "Exile target creature you control, then return
+            // that card to the battlefield under its owner's control"
+            // (Blur, Cloudshift).
+            (
+                r(
+                    r"^[Ee]xile (.+), then return that card to the battlefield under (your|its owner's) control$",
+                ),
+                |c, t| {
+                    let what = recipient(cap(c, 1), t)?;
+                    let under = if cap(c, 2) == "your" {
+                        " under your control"
+                    } else {
+                        ""
+                    };
+                    Some(format!(
+                        "exile {what} then return that card to battlefield{under}"
+                    ))
+                },
+            ),
             (
                 r(r"^Exile ~, then return it to the battlefield$"),
                 |_, _| Some("exile this then return this to battlefield front face up".to_string()),
@@ -3306,9 +3363,22 @@ impl Templates {
             (
                 r(r"^[Yy]ou gain life equal to (?:that creature's|its) (toughness|power)$"),
                 |c, t| {
-                    (*t > 0).then(|| {
-                        format!("you gain count equal {} of that target {t} life", cap(c, 1))
-                    })
+                    if *t > 0 {
+                        Some(format!(
+                            "you gain count equal {} of that target {t} life",
+                            cap(c, 1)
+                        ))
+                    } else if c[0].contains("that creature's") {
+                        // No target: the creature a trigger is about ("Whenever a
+                        // creature you control dies, you gain life equal to that
+                        // creature's toughness", as it last existed).
+                        Some(format!(
+                            "you gain count equal {} of that creature life",
+                            cap(c, 1)
+                        ))
+                    } else {
+                        None
+                    }
                 },
             ),
             (
@@ -4164,6 +4234,12 @@ impl Templates {
         let mut out: Vec<String> = Vec::new();
         let extra_land =
             Regex::new(r"^[Yy]ou may play (an|up to two) additional lands? this turn$").unwrap();
+        let ordeal = Regex::new(
+            r"^Then if it has (\w+) or more \+1/\+1 counters on it, sacrifice this Aura$",
+        )
+        .unwrap();
+        let gain_that =
+            Regex::new(r"^[Yy]ou gain life equal to that creature's (toughness|power)$").unwrap();
         for sentence in merge_impulse(&split_sentences(text)) {
             // A sentence pair `merge_impulse` already wrote as DSL.
             if let Some(dsl) = sentence.strip_prefix('\u{1}') {
@@ -4251,12 +4327,26 @@ impl Templates {
                     // Sacrificed or destroyed where it is; a card returning
                     // from exile is a new object (CR 400.7).
                     "this".to_string()
+                } else if obj == "it"
+                    && cap(&c, 1) == "Return"
+                    && out.last().is_some_and(|l| l == "exile this")
+                {
+                    // "Exile this creature. Return it to the battlefield
+                    // under its owner's control at the beginning of the next
+                    // end step." (Aetherling): the card exiled.
+                    "this".to_string()
                 } else if *targets > 0
                     && matches!(obj, "it" | "that card" | "that creature")
-                    && !out.iter().any(|l| l.contains("to battlefield"))
+                    && (!out.iter().any(|l| l.contains("to battlefield"))
+                        || (cap(&c, 1) != "Return"
+                            && out.iter().any(|l| {
+                                l.starts_with("return target ") || l.starts_with("put target ")
+                            })))
                 {
-                    // Not a card just returned to the battlefield: the
-                    // target was the card in the graveyard.
+                    // The target: the card in the graveyard, or the
+                    // permanent a single target card became ("Return target
+                    // creature card ... to the battlefield. It gains haste.
+                    // Sacrifice it at the beginning of the next end step.").
                     format!("target {}", *targets)
                 } else {
                     return Err(Skip::Sentence(sentence));
@@ -4292,6 +4382,38 @@ impl Templates {
                 } else {
                     "play 2 additional land this turn".to_string()
                 });
+                continue;
+            }
+            // The Ordeals: "Whenever enchanted creature attacks, put a +1/+1
+            // counter on it. Then if it has three or more +1/+1 counters on
+            // it, sacrifice this Aura." ("it" is the enchanted creature).
+            if let Some(c) = ordeal.captures(&sentence)
+                && out
+                    .last()
+                    .is_some_and(|p| p.starts_with("put 1 +1/+1 counter"))
+            {
+                // The counter goes on the attacking creature, `it` (the
+                // templates read the first "it" as the source).
+                if let Some(p) = out.last_mut() {
+                    *p = "put 1 +1/+1 counter on it".to_string();
+                }
+                let n = number(cap(&c, 1)).ok_or_else(|| Skip::Sentence(sentence.clone()))?;
+                out.push(format!(
+                    "then if attached is with {n} or more +1/+1 counters, sacrifice this"
+                ));
+                continue;
+            }
+            // "Sacrifice a creature. You gain life equal to that creature's
+            // toughness." (Doomgape): the creature sacrificed this way.
+            if let Some(c) = gain_that.captures(&sentence)
+                && out
+                    .last()
+                    .is_some_and(|p| p.starts_with("sacrifice 1 creature"))
+            {
+                out.push(format!(
+                    "you gain count equal {} of that sacrificed creature life",
+                    cap(&c, 1)
+                ));
                 continue;
             }
             let if_cond;
@@ -4365,6 +4487,7 @@ impl Templates {
                 || body.ends_with("explores, then it explores again")
                 || body.contains(", then meld them into ")
                 || body == "Exile ~, then return it to the battlefield"
+                || body.contains(", then return that card to the battlefield under ")
             {
                 vec![body.as_str()]
             } else {
@@ -4611,14 +4734,28 @@ fn split_sentences(text: &str) -> Vec<String> {
 #[allow(clippy::too_many_lines)] // one arm per cost item
 fn cost_text(s: &str) -> Option<String> {
     let remove = Regex::new(
-        r"^Remove (an?|two|three|\w+) ([a-z+/1-]+(?: strike)?) counters? from this (?:artifact|creature|land|enchantment|permanent)$",
+        r"^Remove (an?|two|three|\w+) ([a-z+/1-]+(?: strike)?) counters? from (?:this (?:artifact|creature|land|enchantment|permanent)|~)$",
     )
     .unwrap();
-    let symbols = Regex::new(r"^(\{[0-9XWUBRGCT]+\})+$").unwrap();
+    // Hybrid symbols too ("{R/W}{R/W}"): the caller has checked that each
+    // parses.
+    let symbols = Regex::new(r"^(\{[0-9XWUBRGCSTP/]+\})+$").unwrap();
     let mut items = Vec::new();
     let two = Regex::new(r"^[a-z]+ or [a-z]+$").unwrap();
     let exile_gy = Regex::new(
         r"^Exile (an?|two|three|four|five|six|X) (?:([a-z]+) )?cards? from your graveyard$",
+    )
+    .unwrap();
+    let adj_creature = Regex::new(r"^(?:colorless|nontoken) creature$").unwrap();
+    // "Tap three untapped creatures you control".
+    // "Tap two untapped Merfolk you control" (a subtype too).
+    let tap_n =
+        Regex::new(r"^Tap (two|three|four|five|six|seven) untapped ([A-Za-z]+) you control$")
+            .unwrap();
+    // "Remove three quest counters from this enchantment and sacrifice it"
+    // (the Expeditions and Quests): two costs joined by "and".
+    let remove_and_sac = Regex::new(
+        r"^Remove (an?|two|three|four|five|six|seven|eight|nine|ten) ([a-z]+) counters? from this (?:artifact|creature|land|enchantment|permanent) and sacrifice it$",
     )
     .unwrap();
     for part in s.split(", ") {
@@ -4632,8 +4769,56 @@ fn cost_text(s: &str) -> Option<String> {
                 | "Sacrifice this permanent"
                 | "Sacrifice this land"
                 | "Sacrifice this Aura"
+                | "Sacrifice this Equipment"
+                | "Sacrifice this Vehicle"
+                | "Sacrifice ~"
         ) {
             "sacrifice this".to_string()
+        } else if matches!(
+            part,
+            "Exile this creature"
+                | "Exile this artifact"
+                | "Exile this enchantment"
+                | "Exile this permanent"
+                | "Exile this land"
+                | "Exile ~"
+        ) {
+            "exile this".to_string()
+        } else if let Some(rest) = part.strip_prefix("Sacrifice another ") {
+            // "Sacrifice another creature", "... another creature or
+            // enchantment", "... another colorless creature".
+            if rest.contains(' ') && !two.is_match(rest) && !adj_creature.is_match(rest) {
+                return None;
+            }
+            format!("sacrifice other {rest}")
+        } else if let Some(c) = tap_n.captures(part) {
+            let what = singular(cap(&c, 2));
+            if what.chars().next().is_some_and(char::is_lowercase)
+                && !matches!(what.as_str(), "creature" | "artifact" | "land")
+            {
+                return None;
+            }
+            format!("tap {} untapped {what} you control", number(cap(&c, 1))?)
+        } else if part == "Discard a card at random" {
+            "discard 1 card at random".to_string()
+        } else if let Some(c) = remove_and_sac.captures(part) {
+            let n = if matches!(cap(&c, 1), "a" | "an") {
+                "1".to_string()
+            } else {
+                number(cap(&c, 1))?
+            };
+            format!(
+                "remove {n} {} counters from this, sacrifice this",
+                cap(&c, 2)
+            )
+        } else if let Some(n) = part
+            .strip_prefix("Discard ")
+            .and_then(|r| r.strip_suffix(" cards"))
+            .filter(|n| *n != "X")
+            .and_then(number)
+        {
+            // "Discard two cards".
+            format!("discard {n} cards")
         } else if let Some(rest) = part
             .strip_prefix("Sacrifice a ")
             .or_else(|| part.strip_prefix("Sacrifice an "))
@@ -4743,6 +4928,12 @@ fn cost_text(s: &str) -> Option<String> {
             .or_else(|| part.strip_prefix("Tap a "))
         {
             format!("tap {rest}")
+        } else if let Some(rest) = part
+            .strip_prefix("Tap another ")
+            .filter(|r| r.starts_with("untapped "))
+        {
+            // "Tap another untapped creature you control".
+            format!("tap other {rest}")
         } else if let Some(what) = part
             .strip_prefix("Discard a ")
             .or_else(|| part.strip_prefix("Discard an "))
@@ -4789,6 +4980,10 @@ fn trigger_text(head: &str) -> Option<String> {
         | "When this permanent enters"
         | "When this Aura enters" => "when this enters",
         "Whenever another creature enters" => "whenever other creature enters",
+        // The Ordeals.
+        "When you sacrifice this Aura" | "When you sacrifice this enchantment" => {
+            "when you sacrifice this"
+        }
         // CR 726.3: the day/night switch.
         "Whenever day becomes night or night becomes day" => {
             "whenever day becomes night or night becomes day"
@@ -5646,8 +5841,18 @@ fn conditional_static(line: &str) -> Option<String> {
         let (f, pred) = split_subject(line)?;
         return Some(format!("static {f}: {}", static_mods(&pred)?));
     };
-    let cond = static_condition(cond)?;
     let (f, pred) = split_subject(body)?;
+    // "~ has indestructible as long as it has a divinity counter on it"
+    // (the Myojin): "it" is the subject, the source.
+    let one_counter = Regex::new(&format!(
+        r"^it has an? ([+-]\d/[+-]\d|{}) counter on it$",
+        counter_names()
+    ))
+    .unwrap();
+    let cond = match one_counter.captures(cond) {
+        Some(c) if f == "this" => format!("this has 1 or more {} counters", cap(&c, 1)),
+        _ => static_condition(cond)?,
+    };
     Some(format!(
         "static {f}: {} as long as {cond}",
         static_mods(&pred)?
@@ -6141,6 +6346,27 @@ impl Builder<'_> {
             }
             self.statements
                 .push(format!("static {filter}: {pump}has ability {{ {inner} }}"));
+            return Ok(());
+        }
+        // "Elves you control have \"{T}: Add {G}{G}.\"", "Sliver creatures
+        // you control have \"...\"", "Artifacts you control have \"...\"".
+        if let Some(c) =
+            Regex::new(r#"^([A-Z][a-z]+(?: creatures)?|Artifacts) you control have "(.+)"$"#)
+                .unwrap()
+                .captures(line)
+        {
+            let what = singular(cap(&c, 1));
+            let what = if what == "Artifact" {
+                "artifact".to_string()
+            } else {
+                what
+            };
+            let inner = self
+                .quoted(cap(&c, 2))
+                .ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            self.statements.push(format!(
+                "static {what} you control: has ability {{ {inner} }}"
+            ));
             return Ok(());
         }
         // Keyword lines: first, or in place among the abilities.
@@ -6694,6 +6920,22 @@ impl Builder<'_> {
                 self.keywords.push("doesn't untap".to_string());
             } else {
                 self.statements.push("keyword doesn't untap".to_string());
+            }
+            return Ok(());
+        }
+        // CR 502.3: "You may choose not to untap this artifact during your
+        // untap step."
+        if Regex::new(
+            r"^You may choose not to untap (?:this (?:creature|artifact|land|permanent)|~) during your untap step\.$",
+        )
+        .unwrap()
+        .is_match(line)
+        {
+            if self.statements.is_empty() {
+                self.keywords.push("may choose not to untap".to_string());
+            } else {
+                self.statements
+                    .push("keyword may choose not to untap".to_string());
             }
             return Ok(());
         }
@@ -7550,6 +7792,7 @@ impl Builder<'_> {
         // Statics on the attached or on a class of permanents ("All
         // creatures get -2/-2 until end of turn." is a spell's effect).
         if !line.contains(" until end of turn")
+            && !line.contains(" this turn do so")
             && let Some(c) = Regex::new(
             r"^(Enchanted creature|Equipped creature|Creatures you control|Other creatures you control with flying|Other creatures you control|Creatures your opponents control|All creatures|White creatures|Blue creatures|Black creatures|Red creatures|Green creatures|Enchanted land|Enchanted permanent) (.+)\.$",
         )
@@ -7806,11 +8049,9 @@ impl Builder<'_> {
         if let Some(rest) =
             line.strip_prefix("You may exert this creature as it attacks. When you do, ")
         {
+            // Targets belong to the reflexive "When you do" (CR 603.12).
             let mut targets = 0;
             let effects = self.templates.effects(rest, &mut targets)?;
-            if targets > 0 {
-                return Err(Skip::Sentence(line.to_string()));
-            }
             self.statements.push(format!("exert: {effects}"));
             return Ok(());
         }

@@ -1,0 +1,7 @@
+card "Soul Stair Expedition" {
+  oracle_id 24b11ede-26c8-40ed-b874-c0f6b21572c3
+  cost {B}
+  type Enchantment
+  label "Landfall" triggered whenever land you control enters: you may put 1 quest counters on this
+  activated remove 3 quest counters from this, sacrifice this: return up to 2 target creature card from your graveyard to hand
+}

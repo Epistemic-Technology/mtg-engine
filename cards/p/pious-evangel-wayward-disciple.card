@@ -1,0 +1,15 @@
+card "Pious Evangel // Wayward Disciple" {
+  oracle_id e2fc5069-374b-4feb-acd9-976ddf90e504
+  layout transform
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 2/2
+  triggered whenever this or creature you control enters: you gains 1 life
+  activated {2}, {T}, sacrifice other permanent: transform this
+  face "Wayward Disciple" {
+    type Creature — Human Cleric
+    pt 2/4
+    color black
+    triggered whenever creature you control dies: target opponent loses 1 life and you gains 1 life
+  }
+}

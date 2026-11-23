@@ -1,0 +1,8 @@
+card "Duergar Cave-Guard" {
+  oracle_id 79d7950b-92c1-4431-a69e-26544eb0c7f0
+  cost {3}{R}
+  type Creature — Dwarf Warrior
+  pt 1/3
+  keywords wither
+  activated {R/W}: this gets +1/+0
+}

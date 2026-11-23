@@ -1,0 +1,8 @@
+card "Benthicore" {
+  oracle_id 68eb3566-c74d-42a6-89a6-b468677fc485
+  cost {6}{U}
+  type Creature — Elemental
+  pt 5/5
+  triggered when this enters: create 2 "1/1 blue Merfolk Wizard creature"
+  activated tap 2 untapped Merfolk you control: untap this; this gains shroud
+}

@@ -1,0 +1,8 @@
+card "Trostani, Selesnya's Voice" {
+  oracle_id e94ef397-f5c5-4b8d-ae27-528352fa1d1e
+  cost {G}{G}{W}{W}
+  type Legendary Creature — Dryad
+  pt 2/5
+  triggered whenever other creature you control enters: you gain count equal toughness of that creature life
+  activated {1}{G}{W}, {T}: populate
+}

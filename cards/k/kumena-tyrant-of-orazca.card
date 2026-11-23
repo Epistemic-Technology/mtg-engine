@@ -1,0 +1,9 @@
+card "Kumena, Tyrant of Orazca" {
+  oracle_id e7125493-febc-4e8e-abdc-5fc4f94a281c
+  cost {1}{G}{U}
+  type Legendary Creature — Merfolk Shaman
+  pt 2/4
+  activated tap other untapped Merfolk you control: this can't be blocked
+  activated tap 3 untapped Merfolk you control: draw 1 cards
+  activated tap 5 untapped Merfolk you control: put 1 +1/+1 counters on each Merfolk you control
+}

@@ -218,7 +218,7 @@ like the card; either half may still be cast alone.
 | `counts as named "Flame Burst" in graveyard` | "If this card is in a graveyard, effects from spells named Flame Burst count it as a card named Flame Burst.": a spell of that name counting the cards named ~ in graveyards counts this card too. Printed after the other abilities. |
 | `mayhem {1}{R}` | Mayhem: a card its owner discarded this turn may be cast from their graveyard for this cost (scenarios: `from graveyard`), timing rules still applying; the discarded card is remembered as the graveyard object it became, until the turn ends. Prints `Mayhem {1}{R}` in place. The land form ("You may play this card from your graveyard ...") is not supported. |
 | `poisonous 1`, `frenzy 1`, `absorb 1`, `provoke` | Poisonous (CR 702.70): combat damage to a player gives them N poison counters. Frenzy (CR 702.68): attacks and isn't blocked, +N/+0 until end of turn. Absorb (CR 702.64): prevent N of each damage dealt to it (a static `prevent next N` prevents N of every event, not a shield). Provoke (CR 702.39): attacks, you may have target creature defending player controls untap and block it if able. All four, and `outlast {2}`, may be granted bare: `static all Sliver creature: has poisonous 1` ("All Sliver creatures have poisonous 1."). |
-| `modular 2`, `cumulative upkeep {1}`, `exert: this gets +2/+2` | Modular (CR 702.43): enters with N +1/+1 counters; as it dies, they may move to target artifact creature. Cumulative upkeep (CR 702.24): each upkeep an age counter, then pay the cost per counter or sacrifice it. Exert (CR 701.43): as it attacks, its controller may exert it (it doesn't untap during their next untap step) for the effects. The keyword `delve` (CR 702.66) lets graveyard cards pay {1} each. |
+| `modular 2`, `cumulative upkeep {1}`, `exert: this gets +2/+2` | Modular (CR 702.43): enters with N +1/+1 counters; as it dies, they may move to target artifact creature. Cumulative upkeep (CR 702.24): each upkeep an age counter, then pay the cost per counter or sacrifice it. Exert (CR 701.43): as it attacks, its controller may exert it (it doesn't untap during their next untap step) for the effects. With targets (`exert: target creature can't block`, "When you do, target creature can't block this turn."), the effects are a reflexive trigger (CR 603.12): the targets are chosen once the creature is exerted, and with none legal nothing happens. The keyword `delve` (CR 702.66) lets graveyard cards pay {1} each. |
 | `graft 2`, `vanishing 3` | Graft (CR 702.58): enters with N +1/+1 counters; whenever another creature enters, if it has a +1/+1 counter, its controller may move one onto that creature. Vanishing (CR 702.63): enters with N time counters; at the beginning of its controller's upkeep, if it has a time counter, one is removed, and as the last is removed this way it is sacrificed (part of the same trigger here). `vanishing` without a number (CR 702.63b) has no entering counters. Print `Graft 2`, `Vanishing 3`, `Vanishing`. |
 | `keywords split second` | Split second (CR 702.61): as long as the spell is on the stack, no player is offered casting a spell or activating an ability other than a mana ability; special actions (turning a face-down creature face up, unlocking a door) remain. |
 | `fading 3`, `annihilator 2`, `rampage 2`, `battle cry`, `training`, `melee`, `dethrone`, `myriad`, `for mirrodin` | Fading (CR 702.32): enters with N fade counters; at the beginning of its controller's upkeep a fade counter is removed, or, with none to remove, it is sacrificed. Annihilator (CR 702.86): whenever it attacks, defending player sacrifices N permanents of their choice. Rampage (CR 702.23): whenever it becomes blocked, +N/+N until end of turn for each creature blocking it beyond the first (counted as the trigger resolves). Battle cry (CR 702.91): whenever it attacks, each other attacking creature gets +1/+0 until end of turn. Training (CR 702.149): whenever it attacks along with another attacking creature its controller controls with greater power (judged as attackers are declared), a +1/+1 counter on it. Melee (CR 702.121): whenever it attacks, +1/+1 until end of turn if a creature attacked the opponent this combat (the game's one opponent; attacking only a planeswalker doesn't count). Dethrone (CR 702.105): whenever it attacks a player with the most life or tied for the most, a +1/+1 counter on it (not when it attacks a planeswalker). Myriad (CR 702.116): its copies attack the opponents other than the defending player, of whom a two-player game has none, so it does nothing. For Mirrodin! (CR 702.163): when this Equipment enters, a 2/2 red Rebel creature token, then attach this to it. Printed "Fading 3", "Annihilator 2", "Rampage 2", "Battle cry", "Training", "Melee", "Dethrone", "Myriad", "For Mirrodin!". |
@@ -2141,7 +2141,9 @@ followed by an additional main phase"; the conditions `your main phase`,
 "it's your combat phase", "it's the first combat phase of the turn"),
 `sacrifice <what>`, `tap <what>`, `untap <what> [and <what>]`,
 `gain control of <what>`, `attach to <what>` (this: "attach this Equipment to ..."),
-`attach <what> to <what>` ("Attach target Equipment you control to target
+`attach it to <what>` (in a trigger about another object, that object:
+"Whenever an Equipment you control enters, you may attach it to target
+creature you control"), `attach <what> to <what>` ("Attach target Equipment you control to target
 creature you control": an Aura only where its enchant ability allows, an
 Equipment only onto a creature and not while it is a creature, nothing if
 already attached there, CR 701.3, 301.5c), `unattach all Equipment attached to
@@ -2274,7 +2276,8 @@ counters, sacrifice this` resolves at once, and payment activates it
 (removing the counter, then the rest) when plain sources fall short,
 `add {C}; if you control Urza's Mine and Urza's Tower, add {C}{C}
 instead` counting as the mana it would make now. `search basic land card reveal to hand`, `search up to 2
-Forest card to battlefield tapped`, `search basic land card reveal to
+Forest card to battlefield tapped`, `search up to X land card reveal to
+hand` ("up to X land cards": X is the count, the spell's X), `search basic land card reveal to
 top` ("Search your library for ..., then shuffle"; add `that card` to
 print "that card" for "it"; `search up to 3 card named this reveal to hand`,
 `search any number card named this reveal to hand`: "a card named ~",
@@ -2729,7 +2732,8 @@ with a group, the second mode's targets come first): `X target creature` ("X tar
 X, which can't exceed what there is to target), `1 to 2 target creature`
 ("one or two target creatures"; `1 to 3` prints "one, two, or three"),
 `any number of target player`, and `1 to 2 targets` / `any number of
-targets` for "any target". Later mentions (`target 1`) print "them" or
+targets` for "any target" (`deal 1 damage to 1 to 2 targets`: "deals 1
+damage to each of one or two targets"). Later mentions (`target 1`) print "them" or
 "they", and a group as subject takes "each" where Oracle has it ("One or
 two target creatures each get +2/+1", "Any number of target players each
 gain 6 life"). "X target cards from a single graveyard" (`X target card

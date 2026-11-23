@@ -1,0 +1,7 @@
+card "Thorncaster Sliver" {
+  oracle_id 70623348-7eda-4c68-89cd-2356b0896b79
+  cost {4}{R}
+  type Creature — Sliver
+  pt 2/2
+  static Sliver creature you control: has ability { triggered whenever this attacks: deal 1 damage to any target }
+}

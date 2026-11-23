@@ -1,0 +1,8 @@
+card "Ordeal of Erebos" {
+  oracle_id e12497ba-2c49-4609-befa-ebba828bedd6
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature attacks: put 1 +1/+1 counter on it; then if attached is with 3 or more +1/+1 counters, sacrifice this
+  triggered when you sacrifice this: target player discards 2 cards
+}

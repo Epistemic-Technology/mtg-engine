@@ -1,0 +1,7 @@
+card "Sigiled Contender" {
+  oracle_id 84ec7820-6608-459c-b172-80e8e3750cf4
+  cost {3}{W}
+  type Creature — Human Warrior
+  pt 3/3
+  static this: has lifelink as long as this has 1 or more +1/+1 counters
+}

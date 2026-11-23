@@ -1,0 +1,322 @@
+# More tenth-wave template phrases: lures until end of turn, damage equal
+# to the sacrificed creature's power, Brainstorm's "put two cards from your
+# hand on top", "Tap another untapped Rogue you control", "Sacrifice
+# another colorless creature", and {S} in costs.
+
+# "All creatures able to block target creature this turn do so."
+
+scenario "Bloodscent: every able creature must block the target" {
+  battlefield A: "Grizzly Bears", 4 "Forest", "Hill Giant"
+  battlefield B: "Llanowar Elves", "Savannah Lions"
+  hand A: "Bloodscent"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Bloodscent" targeting "Grizzly Bears"
+  turn 2 A: attack "Grizzly Bears", "Hill Giant"
+  illegal turn 2 B: block "Hill Giant" with "Savannah Lions"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Grizzly Bears"
+}
+
+# Lead's target from the graveyard can't be scripted (the runner reads a
+# graveyard cast's targets from the card, see scenarios/m5/aftermath.scn);
+# Lead's text is Bloodscent's.
+scenario "Destined // Lead: Destined, +1/+0 and indestructible" {
+  battlefield A: "Grizzly Bears", 2 "Swamp", "Mountain"
+  hand A: "Destined // Lead", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Destined" targeting "Grizzly Bears"
+  turn 1 begin_combat A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Destined // Lead"
+}
+
+scenario "Armed // Dangerous: Dangerous makes a lure" {
+  battlefield A: "Grizzly Bears", 4 "Forest"
+  battlefield B: "Llanowar Elves"
+  hand A: "Armed // Dangerous"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Dangerous" targeting "Grizzly Bears"
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+}
+
+scenario "Declare Dominance: +3/+3 and a lure" {
+  battlefield A: "Grizzly Bears", 5 "Forest"
+  battlefield B: "Llanowar Elves"
+  hand A: "Declare Dominance"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Declare Dominance" targeting "Grizzly Bears"
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert power "Grizzly Bears" 5
+}
+
+scenario "Taunting Arbormage: kicked, the target is a lure" {
+  battlefield A: "Grizzly Bears", 6 "Forest"
+  battlefield B: "Llanowar Elves"
+  hand A: "Taunting Arbormage"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Taunting Arbormage" kicked
+  turn 2 A: trigger "Taunting Arbormage" targeting "Grizzly Bears"
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+}
+
+scenario "Taunting Arbormage: not kicked, no lure" {
+  battlefield A: "Grizzly Bears", 6 "Forest"
+  battlefield B: "Llanowar Elves"
+  hand A: "Taunting Arbormage"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Taunting Arbormage"
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Llanowar Elves"
+  assert life B 18
+}
+
+# "deals damage equal to the sacrificed creature's power".
+
+scenario "Thud: the sacrificed creature's power as damage" {
+  battlefield A: "Hill Giant", "Mountain"
+  hand A: "Thud"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Thud" sacrificing "Hill Giant" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Pyrrhic Blast: damage and a card" {
+  battlefield A: "Craw Wurm", 5 "Mountain"
+  hand A: "Pyrrhic Blast"
+  library A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pyrrhic Blast" sacrificing "Craw Wurm" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert hand A contains "Island"
+}
+
+scenario "Kazuul's Fury: the sacrificed creature's power" {
+  battlefield A: "Grizzly Bears", 3 "Mountain"
+  hand A: "Kazuul's Fury // Kazuul's Cliffs"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kazuul's Fury" sacrificing "Grizzly Bears" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Bloodshot Cyclops: tap and sacrifice a creature, its power as damage" {
+  battlefield A: "Bloodshot Cyclops", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bloodshot Cyclops" sacrificing "Hill Giant" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Brion Stoutarm: another creature's power to a player, with lifelink" {
+  battlefield A: "Brion Stoutarm", "Hill Giant", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Brion Stoutarm" sacrificing "Hill Giant" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+}
+
+scenario "Barrage Tyrant: another colorless creature's power" {
+  battlefield A: "Barrage Tyrant", "Ornithopter", "Memnite", 3 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Barrage Tyrant" sacrificing "Memnite" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard A contains "Memnite"
+}
+
+scenario "Barrage Tyrant: not a colored creature" {
+  battlefield A: "Barrage Tyrant", "Grizzly Bears", 3 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Barrage Tyrant" sacrificing "Grizzly Bears" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Tiger-Tribe Hunter: pack tactics, the sacrificed creature's power to a creature" {
+  battlefield A: "Tiger-Tribe Hunter", "Craw Wurm", "Hill Giant"
+  battlefield B: "Serra Angel"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Tiger-Tribe Hunter", "Craw Wurm"
+  turn 2 A: choose "Hill Giant"
+  turn 2 A: trigger "Tiger-Tribe Hunter" targeting "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert damage "Serra Angel" 3
+}
+
+# "put two cards from your hand on top of your library in any order".
+
+scenario "Brainsurge: draw four, put two back" {
+  battlefield A: 3 "Island"
+  hand A: "Brainsurge"
+  library A: "Island", "Forest", "Plains", "Swamp", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brainsurge"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert library A count 3
+}
+
+scenario "Riverwise Augur: draw three, put two back" {
+  battlefield A: 4 "Island"
+  hand A: "Riverwise Augur"
+  library A: "Island", "Forest", "Plains", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Riverwise Augur"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert library A count 3
+}
+
+scenario "Brainstone: sacrifice it, draw three, put two back" {
+  battlefield A: "Brainstone", 2 "Island"
+  library A: "Island", "Forest", "Plains", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Brainstone"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert library A count 3
+  assert graveyard A contains "Brainstone"
+}
+
+# "Tap another untapped Rogue/creature you control".
+
+scenario "Shadow Stinger: tap another Rogue for deathtouch" {
+  battlefield A: "Shadow Stinger", "Sure-Footed Infiltrator"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Shadow Stinger"
+  run_to turn 1 begin_combat
+  assert has "Shadow Stinger" deathtouch
+  assert tapped "Sure-Footed Infiltrator"
+  assert untapped "Shadow Stinger"
+}
+
+scenario "Shadow Stinger: not by tapping itself" {
+  battlefield A: "Shadow Stinger", "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Shadow Stinger"
+  run_to turn 1 begin_combat
+  assert has not "Shadow Stinger" deathtouch
+}
+
+scenario "Sure-Footed Infiltrator: tap another Rogue, can't be blocked" {
+  battlefield A: "Sure-Footed Infiltrator", "Shadow Stinger"
+  battlefield B: "Hill Giant"
+  library A: "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Sure-Footed Infiltrator"
+  turn 2 A: attack "Sure-Footed Infiltrator"
+  illegal turn 2 B: block "Sure-Footed Infiltrator" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert hand A contains "Island"
+}
+
+scenario "Black Oak of Odunos: tap another creature for +1/+1" {
+  battlefield A: "Black Oak of Odunos", "Grizzly Bears", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Black Oak of Odunos"
+  run_to turn 1 begin_combat
+  assert power "Black Oak of Odunos" 1
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Knight of the Last Breath: another nontoken creature for a Spirit" {
+  battlefield A: "Knight of the Last Breath", "Grizzly Bears", 3 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Knight of the Last Breath" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Spirit"
+}
+
+scenario "Knight of the Last Breath: not a token" {
+  battlefield A: "Knight of the Last Breath", "Goat", 3 "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Knight of the Last Breath" sacrificing "Goat"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Goat"
+}
+
+# {S}: mana from a snow source.
+
+scenario "Hailstorm Valkyrie: {S}{S} from snow lands" {
+  battlefield A: "Hailstorm Valkyrie", 2 "Snow-Covered Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Hailstorm Valkyrie"
+  run_to turn 1 begin_combat
+  assert power "Hailstorm Valkyrie" 4
+}
+
+scenario "Hailstorm Valkyrie: not with plain Plains" {
+  battlefield A: "Hailstorm Valkyrie", 2 "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Hailstorm Valkyrie"
+  run_to turn 1 begin_combat
+  assert power "Hailstorm Valkyrie" 2
+}
+
+scenario "Icebind Pillar: {S}, {T}: tap target creature" {
+  battlefield A: "Icebind Pillar", "Snow-Covered Island"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Icebind Pillar" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+}
+
+scenario "Diamond Faerie: snow creatures you control get +1/+1" {
+  battlefield A: "Diamond Faerie", "Abominable Treefolk", "Grizzly Bears", 2 "Snow-Covered Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Diamond Faerie"
+  run_to turn 1 begin_combat
+  assert power "Diamond Faerie" 4
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Mouth of Ronom: 4 damage to target creature" {
+  battlefield A: "Mouth of Ronom", 5 "Snow-Covered Mountain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Mouth of Ronom" ability 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Mouth of Ronom"
+}
+
+scenario "Phyrexian Ironfoot: {1}{S} untaps it" {
+  battlefield A: "Phyrexian Ironfoot" tapped, 2 "Snow-Covered Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Phyrexian Ironfoot"
+  run_to turn 1 postcombat_main
+  assert untapped "Phyrexian Ironfoot"
+}
+
+scenario "Adarkar Windform: target creature loses flying" {
+  battlefield A: "Adarkar Windform", 2 "Snow-Covered Island"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Adarkar Windform" targeting "Serra Angel"
+  run_to turn 1 begin_combat
+  assert has not "Serra Angel" flying
+}
+
+scenario "Phyrexian Snowcrusher: {1}{S} for +1/+0" {
+  battlefield A: "Phyrexian Snowcrusher", 2 "Snow-Covered Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Phyrexian Snowcrusher"
+  run_to turn 1 begin_combat
+  assert power "Phyrexian Snowcrusher" 7
+}

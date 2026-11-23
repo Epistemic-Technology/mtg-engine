@@ -1,0 +1,7 @@
+card "Gobbling Ooze" {
+  oracle_id 765a12fc-9b66-4bb7-88f6-6e7bd2d2f8c7
+  cost {4}{G}
+  type Creature — Ooze
+  pt 3/3
+  activated {G}, sacrifice other creature: put 1 +1/+1 counters on this
+}

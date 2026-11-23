@@ -1,0 +1,6 @@
+card "Bloodscent" {
+  oracle_id b2aabfaf-5996-4b41-987a-6bd941f6ae88
+  cost {3}{G}
+  type Instant
+  spell: target creature gains lure
+}

@@ -1,0 +1,8 @@
+card "Denethor, Ruling Steward" {
+  oracle_id 1b82312c-f748-4c36-8934-ecbcfc10cc7d
+  cost {1}{W}{B}
+  type Legendary Creature — Human Noble
+  pt 2/4
+  triggered at beginning of your end step if creature died under your control this turn: create 1 "1/1 white Human Soldier creature"
+  activated {2}, sacrifice other creature: each opponent loses 1 life and you gains 1 life
+}

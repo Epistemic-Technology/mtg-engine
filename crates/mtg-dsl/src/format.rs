@@ -6038,7 +6038,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 );
             }
         }
-        Ability::Exert(effects) => body(out, indent, "exert", effects, &[], groups),
+        Ability::Exert(effects) => {
+            let (targets, effects) = crate::ast::exert_parts(effects);
+            body(out, indent, "exert", effects, targets, groups);
+        }
         Ability::EquipOr {
             mana,
             other,

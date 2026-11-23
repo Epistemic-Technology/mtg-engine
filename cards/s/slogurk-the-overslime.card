@@ -1,0 +1,10 @@
+card "Slogurk, the Overslime" {
+  oracle_id cee836f1-87a4-43db-a6ea-55575a4ce781
+  cost {1}{G}{U}
+  type Legendary Creature — Ooze
+  pt 3/3
+  keywords trample
+  triggered whenever land card is put into your graveyard from anywhere: put 1 +1/+1 counters on this
+  activated remove 3 +1/+1 counters from this: return this to hand
+  triggered when this leaves the battlefield: return up to 3 target land card from your graveyard to hand
+}

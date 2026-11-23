@@ -1,0 +1,7 @@
+card "Compleated Huntmaster" {
+  oracle_id 65b8bb9b-91f9-44e2-aa6e-e82e3760a4d9
+  cost {2}{B}
+  type Creature — Phyrexian Elf Warrior
+  pt 2/3
+  activated {1}, {T}, sacrifice other creature or artifact: incubate 3
+}

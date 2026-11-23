@@ -2528,10 +2528,15 @@ impl P {
             "exert" if self.peek_at(1) == Some(&Tok::Colon) => {
                 self.pos += 1;
                 let effects = self.effects_body()?;
-                if !self.targets.is_empty() {
-                    return self.fail("an exert ability has no targets");
+                if self.targets.is_empty() {
+                    return Ok(Ability::Exert(effects));
                 }
-                Ok(Ability::Exert(effects))
+                // "When you do, target creature can't block this turn": a
+                // reflexive trigger with the targets (CR 603.12).
+                let targets = std::mem::take(&mut self.targets);
+                Ok(Ability::Exert(vec![Sentence::new(vec![
+                    Effect::WhenYouDo { targets, effects },
+                ])]))
             }
             "escape" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
                 self.pos += 1;
@@ -9956,7 +9961,9 @@ impl P {
             "search" | "searches" => {
                 let graveyard = self.eat_words(&["library", "or", "graveyard"]);
                 let up_to = self.eat_words(&["up", "to"]);
-                let count = if matches!(self.peek(), Some(Tok::Num(_))) {
+                // "Search your library for up to X land cards" (Nylea's
+                // Intervention): `x` is the count, not a subtype.
+                let count = if matches!(self.peek(), Some(Tok::Num(_))) || self.at_word("x") {
                     self.num()?
                 } else if self.eat_words(&["any", "number"]) {
                     Num::N(crate::ast::ANY_NUMBER)

@@ -1,0 +1,9 @@
+card "Altar Golem" {
+  oracle_id ac143b8e-f993-4989-8833-e26dc9faffa4
+  cost {7}
+  type Artifact Creature — Golem
+  keywords trample
+  static this: cda pt count creature on battlefield
+  keyword doesn't untap
+  activated tap 5 untapped creature you control: untap this
+}
