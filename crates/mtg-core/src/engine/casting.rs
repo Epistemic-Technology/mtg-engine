@@ -14341,7 +14341,11 @@ impl GameState {
                     }
                 }
             }
-            Effect::Proliferate => self.proliferate(ctx.controller),
+            Effect::Proliferate { times } => {
+                for _ in 0..self.eval_num(*times, ctx) {
+                    self.proliferate(ctx.controller);
+                }
+            }
             Effect::BecomeStage(stage) => self.become_stage(ctx.source, *stage),
             Effect::BecomeMonarch { who } => {
                 for t in self.recipients(ctx, *who) {

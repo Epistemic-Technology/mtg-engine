@@ -826,7 +826,10 @@ impl Fmt {
                 };
                 format!("{} {v} {} life", self.recipient(*who, t), num(*amount))
             }
-            Effect::Proliferate => "proliferate".to_string(),
+            Effect::Proliferate { times } => match times {
+                Some(n) => format!("proliferate {} times", num(*n)),
+                None => "proliferate".to_string(),
+            },
             Effect::RingTempts => "the ring tempts you".to_string(),
             Effect::BecomeMonarch => "become monarch".to_string(),
             Effect::TakeInitiative => "take initiative".to_string(),

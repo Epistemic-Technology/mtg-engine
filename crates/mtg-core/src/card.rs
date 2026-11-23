@@ -4977,8 +4977,11 @@ pub enum Effect {
     /// counter already there to the permanents and players they choose;
     /// the engine chooses their own permanents' and players' beneficial
     /// counters and opponents' harmful ones (+1/+1 and loyalty on yours,
-    /// -1/-1 on theirs, poison on opponents).
-    Proliferate,
+    /// -1/-1 on theirs, poison on opponents). "Proliferate X times":
+    /// `times` separate proliferates, each its own event (CR 701.27).
+    Proliferate {
+        times: Num,
+    },
     /// The recipient creature explores (CR 701.44): its controller reveals
     /// the top card of their library; a land goes to their hand, otherwise
     /// the creature gets a +1/+1 counter and the card may go to the

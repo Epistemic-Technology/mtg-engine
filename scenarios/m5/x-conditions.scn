@@ -135,3 +135,25 @@ scenario "x condition: Black Sun's Twilight's mana value X or less" {
   run_to turn 1 postcombat_main
   assert graveyard A contains "Craterhoof Behemoth"
 }
+
+# "Proliferate X times" (CR 701.27): X separate proliferates.
+
+scenario "proliferate X times: Expansion Algorithm with X 3" {
+  poison B: 1
+  battlefield A: 5 "Island", "Grizzly Bears" with 1 +1/+1
+  hand A: "Expansion Algorithm"
+  turn 1 A: cast "Expansion Algorithm" x 3
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 4
+  assert poison B 4
+}
+
+scenario "proliferate X times: X 0 does nothing" {
+  poison B: 1
+  battlefield A: 2 "Island", "Grizzly Bears" with 1 +1/+1
+  hand A: "Expansion Algorithm"
+  turn 1 A: cast "Expansion Algorithm" x 0
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert poison B 1
+}

@@ -10169,7 +10169,20 @@ impl P {
                 let (mana, life) = self.pay_amount()?;
                 Ok(Effect::Pay { mana, life })
             }
-            "proliferate" => Ok(Effect::Proliferate),
+            "proliferate" => {
+                // `proliferate X times`.
+                let times = if self
+                    .word_at(0)
+                    .is_some_and(|w| w.eq_ignore_ascii_case("x") || w == "count")
+                {
+                    let n = self.num()?;
+                    self.expect_word("times")?;
+                    Some(n)
+                } else {
+                    None
+                };
+                Ok(Effect::Proliferate { times })
+            }
             "adapt" => Ok(Effect::Adapt(self.count()?)),
             "bolster" => Ok(Effect::Bolster(self.num()?)),
             "monstrosity" => Ok(Effect::Monstrosity(self.num()?)),

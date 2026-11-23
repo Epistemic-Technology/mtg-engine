@@ -4979,8 +4979,11 @@ pub enum Effect {
         who: Recipient,
         kind: mtg_core::card::PlayerRuleKind,
     },
-    /// `proliferate` (CR 701.27).
-    Proliferate,
+    /// `proliferate` (CR 701.27); `proliferate X times`: "Proliferate X
+    /// times." (`count where ...` for X).
+    Proliferate {
+        times: Option<Num>,
+    },
     /// `the ring tempts you` (CR 701.54): "the Ring tempts you".
     RingTempts,
     /// `become monarch` (CR 725): "you become the monarch".

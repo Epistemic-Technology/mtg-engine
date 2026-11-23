@@ -4415,7 +4415,9 @@ impl Compiler<'_> {
                 who: r(*who),
                 kind: *kind,
             }),
-            Effect::Proliferate => out.push(CoreEffect::Proliferate),
+            Effect::Proliferate { times } => out.push(CoreEffect::Proliferate {
+                times: times.unwrap_or(Num::N(1)),
+            }),
             Effect::RingTempts => out.push(CoreEffect::RingTempts),
             Effect::BecomeMonarch => out.push(CoreEffect::BecomeMonarch {
                 who: CoreRecipient::You,

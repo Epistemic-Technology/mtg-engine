@@ -5871,7 +5871,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
             )
         }
-        Effect::Proliferate => Clause::imperative("proliferate".to_string()),
+        Effect::Proliferate { times } => Clause::imperative(match times {
+            Some(n) => format!("proliferate {} times", digits(*n)),
+            None => "proliferate".to_string(),
+        }),
         Effect::RingTempts => Clause::imperative("the Ring tempts you".to_string()),
         Effect::BecomeMonarch => Clause::imperative("you become the monarch".to_string()),
         Effect::TakeInitiative => Clause::imperative("you take the initiative".to_string()),

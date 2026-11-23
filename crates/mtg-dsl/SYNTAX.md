@@ -2699,7 +2699,8 @@ gains \"...\" until end of turn."; after `gains deathtouch and`, the
 second "gains" is dropped: "gains deathtouch and \"When this creature
 dies, ...\""), `proliferate` (CR
 701.27; the engine makes the usual choices: your permanents' +1/+1 and
-loyalty counters, opponents' -1/-1 counters and poison), `<what>
+loyalty counters, opponents' -1/-1 counters and poison; `proliferate X
+times`: "Proliferate X times.", that many separate proliferates), `<what>
 explores` (CR 701.44; `<what> explores twice` prints "explores, then it explores again"; `it explores X times` explores that many times, each a separate explore; a creature card returned from a graveyard is "that creature" afterwards), `<what> endures 2` (CR 701.63: its controller puts that many +1/+1 counters on it or creates an N/N white Spirit token, needing the token "N/N white Spirit creature"; `endures X` makes a 0/0 Spirit that size; one that has left the battlefield makes the token; endure 0 does nothing; `this endures 1` prints "it endures 1" after the source is named, "this creature endures 1" after another clause, "Anafenza endures 2" for a legendary source; scenarios `choose "1"` counters, `choose "2"` the token), `<what> phases out` (CR 702.26: treated as though
 it doesn't exist, with what's attached to it, until it phases in as its
 controller's next untap step begins; `keywords phasing` phases a

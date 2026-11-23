@@ -1662,7 +1662,9 @@ impl Decompiler<'_> {
                 who: Self::recipient(*who),
             },
             CoreEffect::PayEnergy(n) => Effect::PayEnergy(*n),
-            CoreEffect::Proliferate => Effect::Proliferate,
+            CoreEffect::Proliferate { times } => Effect::Proliferate {
+                times: (*times != mtg_core::card::Num::N(1)).then_some(*times),
+            },
             CoreEffect::BecomeStage(_) => {
                 unreachable!("a Class's level or a Case's to-solve line, never decompiled")
             }
