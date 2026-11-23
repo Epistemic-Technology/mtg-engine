@@ -1,0 +1,6 @@
+card "Finale of Eternity" {
+  oracle_id 3113afec-d4ae-46b5-9952-89e2e2c9ae7b
+  cost {X}{B}{B}
+  type Sorcery
+  spell: destroy up to 3 target creature with toughness at most X; if x 10 or more, return all creature card from your graveyard to battlefield
+}

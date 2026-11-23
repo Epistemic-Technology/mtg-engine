@@ -206,3 +206,36 @@ scenario "three minus X: a stun counter keeps Slumbering Trudge tapped" {
   assert counters "Slumbering Trudge" stun 0
   assert tapped "Slumbering Trudge"
 }
+
+scenario "x condition: Finale of Eternity at 2 destroys toughness 2 or less only" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grizzly Bears", "Raging Goblin"
+  graveyard A: "Hill Giant"
+  hand A: "Finale of Eternity"
+  turn 1 A: cast "Finale of Eternity" x 2 targeting "Grizzly Bears", "Raging Goblin"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Raging Goblin"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "x condition: Finale of Eternity can't target toughness above X" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Finale of Eternity"
+  illegal turn 1 A: cast "Finale of Eternity" x 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+}
+
+scenario "x condition: Finale of Eternity at 10 returns all creature cards" {
+  battlefield A: 12 "Swamp"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Hill Giant", "Serra Angel", "Lightning Bolt"
+  hand A: "Finale of Eternity"
+  turn 1 A: cast "Finale of Eternity" x 10 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Serra Angel"
+  assert graveyard A contains "Lightning Bolt"
+}
