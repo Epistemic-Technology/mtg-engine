@@ -90,6 +90,40 @@ scenario "Open the Omenpaths's second mode pumps creatures" {
   assert power "Grizzly Bears" 3
 }
 
+scenario "Initiates of the Ebon Hand activated four times is sacrificed at the next end step" {
+  battlefield A: "Initiates of the Ebon Hand", "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Initiates of the Ebon Hand"
+  turn 2 A: activate "Initiates of the Ebon Hand"
+  turn 2 A: activate "Initiates of the Ebon Hand"
+  turn 2 A: activate "Initiates of the Ebon Hand"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Initiates of the Ebon Hand"
+  run_to turn 3 upkeep
+  assert graveyard A contains "Initiates of the Ebon Hand"
+}
+
+scenario "Initiates of the Ebon Hand activated three times stays" {
+  battlefield A: "Initiates of the Ebon Hand", "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Initiates of the Ebon Hand"
+  turn 2 A: activate "Initiates of the Ebon Hand"
+  turn 2 A: activate "Initiates of the Ebon Hand"
+  run_to turn 3 upkeep
+  assert battlefield A contains "Initiates of the Ebon Hand"
+}
+
+scenario "Initiates of the Ebon Hand's count starts over each turn" {
+  battlefield A: "Initiates of the Ebon Hand", "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Initiates of the Ebon Hand"
+  turn 2 A: activate "Initiates of the Ebon Hand"
+  turn 4 A: activate "Initiates of the Ebon Hand"
+  turn 4 A: activate "Initiates of the Ebon Hand"
+  run_to turn 5 upkeep
+  assert battlefield A contains "Initiates of the Ebon Hand"
+}
+
 scenario "Foraging Wickermaw becomes the color of the mana it adds" {
   battlefield A: "Foraging Wickermaw", "Forest"
   hand A: "Lightning Bolt"

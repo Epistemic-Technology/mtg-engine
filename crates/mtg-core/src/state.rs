@@ -3950,6 +3950,15 @@ impl GameState {
                 .players_in_game()
                 .any(|p| p != you && self.lost_life_this_turn & (1 << p.index().min(7)) != 0),
             C::PermanentLeftThisTurn => self.left_this_turn & (1 << you.index().min(7)) != 0,
+            // "If this ability has been activated four or more times this
+            // turn": the source's counted activations, this one included.
+            C::ActivatedThisTurn(n) => {
+                self.activated_once
+                    .iter()
+                    .filter(|(id, _)| *id == source)
+                    .count()
+                    >= *n as usize
+            }
             C::CardsInHand { n, at_most } => {
                 let h = self.player(you).hand.len();
                 if *at_most {

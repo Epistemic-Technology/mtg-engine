@@ -5309,7 +5309,7 @@ impl GameState {
             if a.cost.loyalty != 0 {
                 self.loyalty_activated.push(source);
             }
-            if a.per_turn > 0 || a.keyword == Some(ActivatedKeyword::Boast) {
+            if a.per_turn > 0 || a.keyword == Some(ActivatedKeyword::Boast) || a.counted {
                 self.activated_once.push((source, ability));
             }
             if a.once_ever || a.keyword.is_some_and(ActivatedKeyword::once_ever) {

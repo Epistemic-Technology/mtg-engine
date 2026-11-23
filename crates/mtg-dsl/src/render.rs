@@ -13605,6 +13605,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             "you have fewer than {} cards in hand",
             count_words(Num::N(*n), "one")
         ),
+        StaticCond::ActivatedThisTurn(n) => format!(
+            "this ability has been activated {} times this turn",
+            or_more(*n)
+        ),
         StaticCond::CardsInHand { n, at_most } => match (n, at_most) {
             (0, true) => "you have no cards in hand".to_string(),
             (n, true) => format!(

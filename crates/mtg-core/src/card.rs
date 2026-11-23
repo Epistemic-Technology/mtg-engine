@@ -2638,6 +2638,11 @@ pub enum StaticCondition {
         n: u32,
         at_most: bool,
     },
+    /// "If this ability has been activated four or more times this turn"
+    /// (Initiates of the Ebon Hand): the source's counted abilities
+    /// (`ActivatedAbility::counted`) activated at least N times this turn
+    /// (`GameState::activated_once`), this activation included.
+    ActivatedThisTurn(u32),
     /// The entering or resolving object was kicked (CR 702.33c): "If this
     /// creature was kicked, it enters with ..." and the abilities it then
     /// has.
@@ -7280,6 +7285,11 @@ pub struct ActivatedAbility {
     /// control" (CR 601.2f, by way of 602.2b).
     #[serde(default)]
     pub reduction: Option<Box<ActivationReduction>>,
+    /// Its activations are recorded each turn (`GameState::activated_once`)
+    /// for a condition on how often it has been activated
+    /// (`StaticCondition::ActivatedThisTurn`).
+    #[serde(default)]
+    pub counted: bool,
     /// Who may activate it (CR 602.1): `None`, its controller; `Any`,
     /// "Any player may activate this ability."; `Opponents`, "Only your
     /// opponents may activate this ability." The activating player pays

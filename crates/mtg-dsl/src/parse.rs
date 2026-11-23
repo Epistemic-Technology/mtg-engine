@@ -4636,6 +4636,14 @@ impl P {
             self.expect_words(&["or", "less"])?;
             return Ok(StaticCond::AnyPlayerLifeAtMost(n));
         }
+        // `activated 4 times this turn`: "this ability has been activated
+        // four or more times this turn".
+        if self.at_word("activated") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            self.pos += 1;
+            let n = self.number()?;
+            self.expect_words(&["times", "this", "turn"])?;
+            return Ok(StaticCond::ActivatedThisTurn(n));
+        }
         if self.eat_word("hand") {
             // `hand has no land card`: "you have no land cards in hand".
             if self.eat_words(&["has", "no"]) {

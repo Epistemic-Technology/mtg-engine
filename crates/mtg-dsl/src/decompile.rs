@@ -738,6 +738,7 @@ impl Decompiler<'_> {
                 at_least: *at_least,
                 that: *that,
             },
+            StaticCondition::ActivatedThisTurn(n) => StaticCond::ActivatedThisTurn(*n),
             StaticCondition::CardsInHand { n, at_most } => StaticCond::CardsInHand {
                 n: *n,
                 at_most: *at_most,

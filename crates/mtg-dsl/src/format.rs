@@ -5331,6 +5331,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::LandEnteredThisTurn => "land entered this turn".to_string(),
         StaticCond::ArtifactEnteredThisTurn => "artifact entered this turn".to_string(),
         StaticCond::CardsDrawnThisTurn(n) => format!("drew {n} cards this turn"),
+        StaticCond::ActivatedThisTurn(n) => format!("activated {n} times this turn"),
         StaticCond::CardsInHand { n, at_most } => {
             format!("hand {n} or {}", if *at_most { "less" } else { "more" })
         }

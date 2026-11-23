@@ -534,7 +534,7 @@ impl GameState {
             life: cost.life,
             tap: cost.tap,
             sac,
-            per_turn: ab.per_turn > 0,
+            per_turn: ab.per_turn > 0 || ab.counted,
             once_ever: ab.once_ever,
             remove: cost.remove_counters,
             put: cost.put_counters,

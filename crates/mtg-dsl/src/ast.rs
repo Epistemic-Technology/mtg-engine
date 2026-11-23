@@ -2342,6 +2342,9 @@ pub enum StaticCond {
     CardsDrawnThisTurn(u32),
     /// `hand 1 or less`: "you have one or fewer cards in hand"; `hand 0 or
     /// less`: "you have no cards in hand".
+    /// `activated 4 times this turn`: "this ability has been activated
+    /// four or more times this turn".
+    ActivatedThisTurn(u32),
     CardsInHand {
         n: u32,
         at_most: bool,
