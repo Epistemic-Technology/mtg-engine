@@ -711,12 +711,6 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         StaticCondition::CardsDrawnThisTurn(n) => {
             u32::from(state.drawn_this_turn[you.index().min(3)]) >= *n
         }
-        StaticCondition::OpponentDamagedThisTurn => state
-            .players_in_game()
-            .any(|p| p != you && state.damaged_this_turn & (1 << p.index().min(7)) != 0),
-        StaticCondition::OpponentLostLifeThisTurn => state
-            .players_in_game()
-            .any(|p| p != you && state.lost_life_this_turn & (1 << p.index().min(7)) != 0),
         StaticCondition::PermanentLeftThisTurn => {
             state.left_this_turn & (1 << you.index().min(7)) != 0
         }
@@ -1293,15 +1287,11 @@ fn per_count(
         CountExpr::SourceAllCounters => source
             .and_then(|s| state.objects.get(s))
             .map_or(0, |o| o.counters.iter().map(|(_, n)| *n as usize).sum()),
-        CountExpr::LifeGainedThisTurn => state.turn_log.life_gained[you.index().min(3)] as usize,
+        CountExpr::Happened(c) => state.turn_count(c, you) as usize,
         CountExpr::SacrificedThisTurn => {
             usize::from(state.turn_log.sacrificed_n[you.index().min(3)])
         }
         CountExpr::AttackedThisTurn => state.attackers_this_turn.len(),
-        CountExpr::OpponentsLostLife => state
-            .players_in_game()
-            .filter(|p| *p != you && state.lost_life_this_turn & (1 << p.index().min(7)) != 0)
-            .count(),
         CountExpr::CreaturesEnteredThisTurn => {
             usize::from(state.turn_log.creatures_entered[you.index().min(3)])
         }
@@ -1479,7 +1469,6 @@ fn per_count(
         | CountExpr::MovedStat { .. }
         | CountExpr::TargetHand(_)
         | CountExpr::GreatestToughness(_)
-        | CountExpr::LifeLostThisTurn
         | CountExpr::DiscardedThisTurn
         | CountExpr::TargetLibrary(_)
         | CountExpr::ThatSpellColors

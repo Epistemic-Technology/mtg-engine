@@ -1351,7 +1351,7 @@ impl GameState {
             (TriggerSpec::GainsLifeFirst { whose }, Event::LifeChange { player, delta, .. }) => {
                 (*delta > 0
                     && whose_ok(*whose, *player)
-                    && self.turn_log.life_gained[player.index().min(3)] == delta.unsigned_abs())
+                    && self.tallied(crate::card::TurnEvent::LifeGained, *player) == delta.unsigned_abs())
                 .then_some((None, Some(*player)))
             }
             (TriggerSpec::BecomesAttachedTo(f), Event::Attached { obj, to }) => {

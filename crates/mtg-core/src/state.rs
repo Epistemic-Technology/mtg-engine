@@ -1771,8 +1771,11 @@ pub struct DamageAssignment {
 /// player unless noted; `TurnLog::default()` as each turn begins.
 #[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Hash)]
 pub struct TurnLog {
-    /// Players who gained life ("if you gained life this turn").
-    pub gained_life: u8,
+    /// How many events of each kind each player had this turn (life for
+    /// the life kinds), by `TurnEvent` and player index: what
+    /// `StaticCondition::Happened` and `CountExpr::Happened` read. Counted
+    /// in one place per kind (`GameState::log_event`).
+    pub tally: [[u32; 4]; crate::card::TurnEvent::COUNT],
     /// Players who descended (CR 700.11): a permanent card was put into
     /// their graveyard from anywhere.
     pub descended: u8,
@@ -1785,8 +1788,6 @@ pub struct TurnLog {
     /// Players who put a +1/+1 counter on a creature ("if you've put one
     /// or more +1/+1 counters on a creature this turn").
     pub counter_put_by: u8,
-    /// Players dealt noncombat damage.
-    pub noncombat_damaged: u8,
     /// Players under whose control a face-down creature entered the
     /// battlefield (CR 708.3).
     pub face_down_entered: u8,
@@ -1802,8 +1803,6 @@ pub struct TurnLog {
     /// The card types among permanents put into a graveyard from the
     /// battlefield, as they last existed.
     pub to_graveyard: crate::card::TypeSet,
-    /// Life each player gained in all.
-    pub life_gained: [u32; 4],
     /// Players who committed a crime (CR 700.13).
     pub crime: u8,
     /// Players a card left the graveyard of.
@@ -2096,9 +2095,6 @@ pub struct GameState {
     /// for: "Whenever you expend 4" triggers on the spell that crosses 4.
     pub mana_spent_this_turn: [u16; 4],
     pub mana_spent_before_cast: [u16; 4],
-    /// Life each player has lost this turn ("the life you've lost this
-    /// turn"; CR 119.3).
-    pub life_lost_this_turn: [u32; 4],
     /// Players who declared an attacker this turn (raid), one bit each.
     pub attacked_this_turn: u8,
     /// "Target creature blocks this creature this turn if able": (blocker,
@@ -2124,8 +2120,6 @@ pub struct GameState {
     /// were, their controller, and their characteristics, for "for each
     /// Zubera that died this turn". Empty, unallocated, on most turns.
     pub died_this_turn: Vec<(ObjId, PlayerId, Characteristics)>,
-    /// Players dealt damage this turn (bloodthirst), one bit each.
-    pub damaged_this_turn: u8,
     /// Players who controlled an Assassin creature as it dealt combat
     /// damage to a player this turn (freerunning, CR 702.173a), one bit
     /// each; kept only with a freerunning card in the pool.
@@ -2139,9 +2133,6 @@ pub struct GameState {
     /// 702.104b). Keyed by the permanent; pruned as turns begin once it
     /// has left the battlefield.
     pub enter_notes: Vec<(ObjId, EnterNote)>,
-    /// Players who lost life this turn ("if an opponent lost life this
-    /// turn"), one bit each.
-    pub lost_life_this_turn: u8,
     /// Players a permanent left the battlefield under the control of this
     /// turn (revolt), one bit each.
     pub left_this_turn: u8,
@@ -2485,6 +2476,48 @@ impl GameState {
             };
             controller == p && c.is_some_and(|c| f.matches(*id, controller, &c, None, Some(p)))
         })
+    }
+
+    /// The turn log's count of one kind of event for `p` (`TurnLog::tally`).
+    pub fn tallied(&self, kind: crate::card::TurnEvent, p: PlayerId) -> u32 {
+        self.turn_log.tally[kind as usize][p.index().min(3)]
+    }
+
+    /// What a turn count (`TurnCount`) counts, for `you`: your events,
+    /// the opponents who had one or more, or every player's.
+    pub fn turn_count(&self, c: &crate::card::TurnCount, you: PlayerId) -> u32 {
+        use crate::card::TurnWho;
+        match c.who {
+            TurnWho::You => self.tallied(c.kind, you),
+            TurnWho::Opponent => {
+                let n = self
+                    .players_in_game()
+                    .filter(|p| *p != you && self.tallied(c.kind, *p) > 0)
+                    .count();
+                u32::try_from(n).unwrap_or(u32::MAX)
+            }
+            TurnWho::Anyone => self.turn_log.tally[c.kind as usize]
+                .iter()
+                .fold(0u32, |a, n| a.saturating_add(*n)),
+        }
+    }
+
+    /// Whether a turn count compared with `n` holds for `you`
+    /// (`StaticCondition::Happened`): for `TurnWho::Opponent`, for any one
+    /// opponent.
+    pub fn turn_count_holds(
+        &self,
+        c: &crate::card::TurnCount,
+        cmp: crate::card::Cmp,
+        n: u32,
+        you: PlayerId,
+    ) -> bool {
+        match c.who {
+            crate::card::TurnWho::Opponent => self
+                .players_in_game()
+                .any(|p| p != you && cmp.holds(self.tallied(c.kind, p), n)),
+            _ => cmp.holds(self.turn_count(c, you), n),
+        }
     }
 
     /// Whether a permanent matching `f` entered the battlefield under
@@ -4129,12 +4162,6 @@ impl GameState {
                 .objects
                 .get(source)
                 .is_some_and(|o| o.alt == AltCast::Escape),
-            C::OpponentDamagedThisTurn => self
-                .players_in_game()
-                .any(|p| p != you && self.damaged_this_turn & (1 << p.index().min(7)) != 0),
-            C::OpponentLostLifeThisTurn => self
-                .players_in_game()
-                .any(|p| p != you && self.lost_life_this_turn & (1 << p.index().min(7)) != 0),
             C::PermanentLeftThisTurn => self.left_this_turn & (1 << you.index().min(7)) != 0,
             // "If this ability has been activated four or more times this
             // turn": the source's counted activations, this one included.
@@ -4387,16 +4414,7 @@ impl GameState {
                 .get(source)
                 .or_else(|| self.lki.get(&source).map(|l| &l.object))
                 .is_some_and(|o| o.cast.cast_from() == Some(*zone)),
-            C::LostLifeThisTurn { gained } => {
-                let bit = 1 << you.index().min(7);
-                self.lost_life_this_turn & bit != 0
-                    && (!*gained || self.turn_log.gained_life & bit != 0)
-            }
-            C::GainedLifeThisTurn { or_lost } => {
-                let bit = 1 << you.index().min(7);
-                self.turn_log.gained_life & bit != 0
-                    || (*or_lost && self.lost_life_this_turn & bit != 0)
-            }
+            C::Happened { count, cmp, n } => self.turn_count_holds(count, *cmp, *n, you),
             C::DescendedThisTurn => self.turn_log.descended & (1 << you.index().min(7)) != 0,
             C::SpellNumber(n) => {
                 let cast = self
@@ -4442,13 +4460,9 @@ impl GameState {
             }
             C::DiscardedThisTurn => self.discarded_this_turn & (1 << you.index().min(7)) != 0,
             C::Night => self.desig.day_night == DayNight::Night,
-            C::LifeGainedThisTurn(n) => self.turn_log.life_gained[you.index().min(3)] >= *n,
             C::CrimeThisTurn => self.turn_log.crime & (1 << you.index().min(7)) != 0,
             C::PutCounterThisTurn => self.turn_log.counter_put_by & (1 << you.index().min(7)) != 0,
             C::NthResolution(n) => self.resolution_number == *n,
-            C::OpponentNoncombatDamagedThisTurn => self.players_in_game().any(|p| {
-                p != you && self.turn_log.noncombat_damaged & (1 << p.index().min(7)) != 0
-            }),
             C::LeftGraveyardThisTurn => {
                 self.turn_log.left_graveyard & (1 << you.index().min(7)) != 0
             }
@@ -5039,7 +5053,7 @@ impl GameState {
                         | TargetSpec::PlayerOrPlaneswalker
                         | TargetSpec::PlayerOrBattle => true,
                         TargetSpec::AnyDamaged => {
-                            self.damaged_this_turn & (1 << p.index().min(7)) != 0
+                            self.tallied(crate::card::TurnEvent::Damaged, p) > 0
                         }
                         TargetSpec::Opponent | TargetSpec::OpponentOrPlaneswalker => p != caster,
                         _ => false,

@@ -7,7 +7,7 @@ use mtg_core::card::{
     Cost as CoreCost, Effect as CoreEffect, KeywordSet, Modification, ObjFilter,
     Recipient as CoreRecipient, ReplacementAbility, Replaces as CoreReplaces,
     SacCost as CoreSacCost, StaticCondition, Supertype, SupertypeSet, TargetSpec,
-    TriggerObj as CoreTriggerObj, TriggerSpec, TypeSet,
+    TriggerObj as CoreTriggerObj, TriggerSpec, TurnCount, TurnEvent, TurnWho, TypeSet,
 };
 use mtg_core::mana::{Color, ColorSet};
 
@@ -44,6 +44,24 @@ fn supertypes(t: SupertypeSet) -> Vec<Supertype> {
         .into_iter()
         .filter(|x| t.contains(*x))
         .collect()
+}
+
+/// A turn count's condition (`StaticCondition::Happened`) as the card
+/// language words it.
+fn happened(count: &TurnCount, cmp: mtg_core::card::Cmp, n: u32) -> StaticCond {
+    use mtg_core::card::Cmp;
+    match (count.kind, count.who, cmp, n) {
+        (TurnEvent::LifeGained, TurnWho::You, Cmp::AtLeast, 1) => {
+            StaticCond::GainedLifeThisTurn { or_lost: false }
+        }
+        (TurnEvent::LifeGained, _, _, n) => StaticCond::LifeGainedThisTurn(n),
+        (TurnEvent::LifeLost, TurnWho::You, ..) => StaticCond::LostLifeThisTurn { gained: false },
+        (TurnEvent::LifeLost, ..) => StaticCond::OpponentLostLifeThisTurn,
+        (TurnEvent::Damaged, ..) => StaticCond::OpponentDamagedThisTurn,
+        (TurnEvent::NoncombatDamaged, ..) => {
+            StaticCond::OpponentNoncombatDamagedThisTurn { was: false }
+        }
+    }
 }
 
 fn colors(c: ColorSet) -> Vec<Color> {
@@ -620,8 +638,6 @@ impl Decompiler<'_> {
             StaticCondition::SourceAttackedBattle => StaticCond::AttackedBattleThisTurn,
             StaticCondition::AttackedLastTurn => StaticCond::AttackedLastTurn,
             StaticCondition::CreatureDiedThisTurn => StaticCond::CreatureDiedThisTurn,
-            StaticCondition::OpponentDamagedThisTurn => StaticCond::OpponentDamagedThisTurn,
-            StaticCondition::OpponentLostLifeThisTurn => StaticCond::OpponentLostLifeThisTurn,
             StaticCondition::ProwlDamage(_) => unreachable!("only prowl's alternative cost"),
             StaticCondition::AssassinDealtCombatDamage => {
                 unreachable!("only freerunning's alternative cost")
@@ -640,6 +656,12 @@ impl Decompiler<'_> {
             StaticCondition::NotKicked => StaticCond::NotKicked,
             StaticCondition::ThatKicked => StaticCond::ThatKicked,
             StaticCondition::Impending => StaticCond::Impending,
+            StaticCondition::And(a, b)
+                if **a == StaticCondition::happened(TurnEvent::LifeLost, TurnWho::You)
+                    && **b == StaticCondition::happened(TurnEvent::LifeGained, TurnWho::You) =>
+            {
+                StaticCond::LostLifeThisTurn { gained: true }
+            }
             StaticCondition::And(a, b) => {
                 StaticCond::And(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
             }
@@ -680,6 +702,12 @@ impl Decompiler<'_> {
             }
             StaticCondition::SorceryTiming => StaticCond::Not(Box::new(StaticCond::FlashPay(2))),
             StaticCondition::Not(a) => StaticCond::Not(Box::new(self.static_cond(a))),
+            StaticCondition::Or(a, b)
+                if **a == StaticCondition::happened(TurnEvent::LifeGained, TurnWho::You)
+                    && **b == StaticCondition::happened(TurnEvent::LifeLost, TurnWho::You) =>
+            {
+                StaticCond::GainedLifeThisTurn { or_lost: true }
+            }
             StaticCondition::Or(a, b) => {
                 StaticCond::Or(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
             }
@@ -710,12 +738,6 @@ impl Decompiler<'_> {
                 other: *other,
             },
             StaticCondition::CastFrom(z) => StaticCond::CastFrom(*z),
-            StaticCondition::LostLifeThisTurn { gained } => {
-                StaticCond::LostLifeThisTurn { gained: *gained }
-            }
-            StaticCondition::GainedLifeThisTurn { or_lost } => {
-                StaticCond::GainedLifeThisTurn { or_lost: *or_lost }
-            }
             StaticCondition::DescendedThisTurn => StaticCond::DescendedThisTurn,
             StaticCondition::SpellNumber(n) => StaticCond::SpellNumber(*n),
             StaticCondition::SurveilledThisTurn => StaticCond::SurveilledThisTurn,
@@ -740,7 +762,6 @@ impl Decompiler<'_> {
             ),
             StaticCondition::DiscardedThisTurn => StaticCond::DiscardedThisTurn,
             StaticCondition::Night => StaticCond::Night,
-            StaticCondition::LifeGainedThisTurn(n) => StaticCond::LifeGainedThisTurn(*n),
             StaticCondition::CrimeThisTurn => StaticCond::CrimeThisTurn,
             StaticCondition::YourMainPhase => StaticCond::YourMainPhase,
             StaticCondition::YourCombatPhase => StaticCond::YourCombatPhase,
@@ -750,9 +771,7 @@ impl Decompiler<'_> {
                 n: *n,
                 again: false,
             },
-            StaticCondition::OpponentNoncombatDamagedThisTurn => {
-                StaticCond::OpponentNoncombatDamagedThisTurn { was: false }
-            }
+            StaticCondition::Happened { count, cmp, n } => happened(count, *cmp, *n),
             StaticCondition::LeftGraveyardThisTurn => StaticCond::LeftGraveyardThisTurn,
             StaticCondition::SacrificedThisTurn(t) => StaticCond::SacrificedThisTurn(
                 crate::render::CARD_TYPES
@@ -2912,8 +2931,8 @@ impl Decompiler<'_> {
                 StaticCondition::Kicked if *kind == mtg_core::card::CounterKind::PlusOnePlusOne => {
                     Ability::Mechanic(crate::ast::Mechanic::KickedWith(*n, None, Vec::new()))
                 }
-                StaticCondition::OpponentDamagedThisTurn
-                    if *kind == mtg_core::card::CounterKind::PlusOnePlusOne =>
+                c if *c == StaticCondition::happened(TurnEvent::Damaged, TurnWho::Opponent)
+                    && *kind == mtg_core::card::CounterKind::PlusOnePlusOne =>
                 {
                     Ability::Mechanic(crate::ast::Mechanic::Bloodthirst(*n))
                 }

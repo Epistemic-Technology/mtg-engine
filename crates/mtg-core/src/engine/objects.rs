@@ -8,7 +8,7 @@ use smallvec::SmallVec;
 
 use super::replace::{Enter, Proposed};
 use crate::card::CounterKind;
-use crate::card::{CardRef, DefFlags, Keyword, RuleKind};
+use crate::card::{CardRef, DefFlags, Keyword, RuleKind, TurnEvent};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
 use crate::state::{
@@ -1519,31 +1519,29 @@ impl GameState {
         }
     }
 
+    /// Count `n` events of a kind for `p` in the turn log (`TurnLog::tally`;
+    /// life for the life kinds), the one place each kind is counted, and
+    /// refresh the statics that read it (`history_bump`).
+    pub(super) fn log_event(&mut self, kind: crate::card::TurnEvent, p: PlayerId, n: u32) {
+        let t = &mut self.turn_log.tally[kind as usize][p.index().min(3)];
+        *t = t.saturating_add(n);
+        self.history_bump();
+    }
+
     /// Change a life total directly (life loss, or a gain that has passed
     /// through the pipeline).
     pub(super) fn change_life(&mut self, p: PlayerId, delta: i32) {
         if delta == 0 {
             return;
         }
-        let bit = 1 << p.index().min(7);
         if delta < 0 {
-            let lost = &mut self.life_lost_this_turn[p.index().min(3)];
-            *lost = lost.saturating_add(delta.unsigned_abs());
-            if self.lost_life_this_turn & bit == 0 {
-                self.lost_life_this_turn |= bit;
-                self.history_bump();
-            }
+            self.log_event(TurnEvent::LifeLost, p, delta.unsigned_abs());
             if let Some(log) = &mut self.this_way {
                 log.life_lost = log.life_lost.saturating_add(delta.unsigned_abs());
             }
         } else {
-            let gained = &mut self.turn_log.life_gained[p.index().min(3)];
-            *gained = gained.saturating_add(delta.unsigned_abs());
-            if self.turn_log.gained_life & bit == 0 {
-                self.turn_log.gained_life |= bit;
-            }
             // "If you've gained 3 or more life this turn" may now hold.
-            self.history_bump();
+            self.log_event(TurnEvent::LifeGained, p, delta.unsigned_abs());
         }
         let ps = self.player_mut(p);
         ps.life += delta;
@@ -1615,13 +1613,9 @@ impl GameState {
                 if !self.player_grants.is_empty() && self.player_protected_from(p, source) {
                     return;
                 }
-                if self.damaged_this_turn & (1 << p.index().min(7)) == 0 {
-                    self.damaged_this_turn |= 1 << p.index().min(7);
-                    self.history_bump();
-                }
-                if !combat && self.turn_log.noncombat_damaged & (1 << p.index().min(7)) == 0 {
-                    self.turn_log.noncombat_damaged |= 1 << p.index().min(7);
-                    self.history_bump();
+                self.log_event(TurnEvent::Damaged, p, 1);
+                if !combat {
+                    self.log_event(TurnEvent::NoncombatDamaged, p, 1);
                 }
                 self.note_damage_source(source);
                 // CR 702.173a: an Assassin's combat damage enables

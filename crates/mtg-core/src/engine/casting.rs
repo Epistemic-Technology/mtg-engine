@@ -1437,9 +1437,7 @@ impl GameState {
                     .eval_count(a, ctx)
                     .saturating_add(self.eval_count(b, ctx));
             }
-            CountExpr::LifeLostThisTurn => {
-                return self.life_lost_this_turn[you.index().min(3)];
-            }
+            CountExpr::Happened(c) => return self.turn_count(c, you),
             // CR 608.2h: once the source has left the battlefield, the
             // counters it had there.
             CountExpr::SourceCounters(kind) => {
@@ -1482,18 +1480,11 @@ impl GameState {
                     .as_ref()
                     .map_or(0, |log| if *excess { log.excess } else { log.damage });
             }
-            CountExpr::LifeGainedThisTurn => {
-                return self.turn_log.life_gained[you.index().min(3)];
-            }
             CountExpr::SacrificedThisTurn => {
                 return u32::from(self.turn_log.sacrificed_n[you.index().min(3)]);
             }
             // Every attacker declared this turn, by any player (CR 508.1).
             CountExpr::AttackedThisTurn => self.attackers_this_turn.len(),
-            CountExpr::OpponentsLostLife => self
-                .players_in_game()
-                .filter(|p| *p != you && self.lost_life_this_turn & (1 << p.index().min(7)) != 0)
-                .count(),
             CountExpr::CreaturesEnteredThisTurn => {
                 usize::from(self.turn_log.creatures_entered[you.index().min(3)])
             }
