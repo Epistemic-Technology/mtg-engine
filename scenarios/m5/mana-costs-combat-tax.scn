@@ -1,0 +1,167 @@
+# Attack and block taxes (CR 508.1d, 508.1g-h, 509.1d, 509.1f-g): a
+# declaration whose costs its player can't pay isn't legal; the costs are
+# paid as the attackers (blockers) are declared.
+
+scenario "Propaganda: each creature attacking you costs {2}; one land can't pay" {
+  battlefield A: "Propaganda"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Mountain"
+  start turn 2 B precombat_main
+  illegal turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 B: attack "Hill Giant"
+  run_to turn 2 end
+  assert life A 20
+}
+
+scenario "Propaganda: paid, the attacker deals its damage and the lands are tapped" {
+  battlefield A: "Propaganda"
+  battlefield B: "Grizzly Bears", "Hill Giant", 2 "Mountain"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert tapped oldest "Mountain"
+  assert tapped newest "Mountain"
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Ghostly Prison: two attackers cost {4}" {
+  battlefield A: "Ghostly Prison"
+  battlefield B: "Grizzly Bears", "Hill Giant", 4 "Mountain"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 15
+}
+
+scenario "Windborn Muse: its controller's own creatures attack for free" {
+  battlefield A: "Windborn Muse", "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 18
+}
+
+scenario "Windborn Muse: Propaganda's tax doesn't cover planeswalkers" {
+  battlefield A: "Windborn Muse", "Jace Beleren"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears" at "Jace Beleren"
+  run_to turn 2 postcombat_main
+  assert counters "Jace Beleren" loyalty 1
+}
+
+scenario "Baird: attacking a planeswalker its controller controls costs {1} too" {
+  battlefield A: "Baird, Steward of Argive", "Jace Beleren"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  illegal turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 end
+  assert counters "Jace Beleren" loyalty 3
+}
+
+scenario "Archon of Absolution: {1} each, paid" {
+  battlefield A: "Archon of Absolution"
+  battlefield B: "Grizzly Bears", "Forest"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert tapped "Forest"
+}
+
+scenario "Dáin: without an enduring story, creatures attack for free" {
+  battlefield A: "Dáin, Lord of the Iron Hills"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}
+
+scenario "Dáin: with an enduring story, each attacker costs {1}" {
+  battlefield A: "Dáin, Lord of the Iron Hills", "Darksteel Relic", "Ornithopter"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  illegal turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 end
+  assert story A yes
+  assert life A 20
+}
+
+scenario "Brainwash: the enchanted creature attacks only for {3}" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  battlefield B: "Brainwash" on "Grizzly Bears"
+  illegal turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "Brainwash: paid {3}, it attacks" {
+  battlefield A: "Grizzly Bears", 3 "Plains", "Hill Giant"
+  battlefield B: "Brainwash" on "Grizzly Bears", "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert tapped newest A "Plains"
+}
+
+scenario "Cowed by Wisdom: the tax counts cards in the Aura's controller's hand, for blocking too" {
+  battlefield A: "Cowed by Wisdom" on "Hill Giant", "Grizzly Bears"
+  battlefield B: "Hill Giant", 2 "Forest"
+  hand A: "Plains", "Plains", "Plains"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Cowed by Wisdom: with two cards in its controller's hand, {2} pays for a block" {
+  battlefield A: "Cowed by Wisdom" on "Hill Giant", "Grizzly Bears"
+  battlefield B: "Hill Giant", 2 "Forest"
+  hand A: "Plains", "Plains"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Grizzly Bears"
+  assert tapped newest "Forest"
+}
+
+scenario "Sphere of Safety: X is the number of enchantments its controller controls" {
+  battlefield A: "Sphere of Safety", "Propaganda"
+  battlefield B: "Grizzly Bears", 5 "Mountain"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  # {2} for Sphere (two enchantments) and {2} for Propaganda.
+  assert life A 18
+  assert untapped newest "Mountain"
+}
+
+scenario "Sphere of Safety: two enchantments make it {2} for each attacker; one land can't pay" {
+  battlefield A: "Sphere of Safety", "Glorious Anthem"
+  battlefield B: "Grizzly Bears", "Mountain"
+  start turn 2 B precombat_main
+  illegal turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 end
+  assert life A 20
+}
+
+scenario "Awesome Presence: a blocker costs its controller {3}; two lands can't pay" {
+  battlefield A: "Grizzly Bears", "Awesome Presence" on "Grizzly Bears"
+  battlefield B: "Hill Giant", 2 "Forest"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Awesome Presence: one blocker paid for" {
+  battlefield A: "Grizzly Bears", "Awesome Presence" on "Grizzly Bears"
+  battlefield B: "Hill Giant", 3 "Forest"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Grizzly Bears"
+  assert tapped newest "Forest"
+}

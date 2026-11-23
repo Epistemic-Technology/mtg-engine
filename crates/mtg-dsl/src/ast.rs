@@ -1605,6 +1605,17 @@ pub enum Ability {
         /// player controls an untapped land."
         negated: bool,
     },
+    /// `tax attacking you {2}`, `tax attacking you or planeswalkers {1}`,
+    /// `tax enchanted attack or block {3}`, `tax enchanted blocked {3}`:
+    /// an attack or block tax (CR 508.1d, 509.1d). `generic` mana for
+    /// each creature, times `per` (`{X} count each hand`: "{1} for each
+    /// card in your hand"), while `cond` holds (`... as long as <cond>`).
+    CombatTax {
+        scope: mtg_core::card::TaxScope,
+        generic: u32,
+        per: Option<Num>,
+        cond: Option<StaticCond>,
+    },
     /// `hand size none`, `hand size +1`, `hand size opponents -1`: "You
     /// have no maximum hand size.", "Your maximum hand size is increased
     /// by one.", "Each opponent's maximum hand size is reduced by one."

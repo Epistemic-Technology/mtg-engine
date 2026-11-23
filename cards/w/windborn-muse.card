@@ -1,0 +1,8 @@
+card "Windborn Muse" {
+  oracle_id 75e09ac6-d789-4c4d-9aca-845d68f3899f
+  cost {3}{W}
+  type Creature — Spirit
+  pt 2/3
+  keywords flying
+  tax attacking you {2}
+}

@@ -2500,6 +2500,12 @@ impl Decompiler<'_> {
                 negated: *negated,
             },
             AbilityDef::Toxic(n) => Ability::Mechanic(crate::ast::Mechanic::Toxic(*n)),
+            AbilityDef::CombatTax(t) => Ability::CombatTax {
+                scope: t.scope,
+                generic: t.generic,
+                per: t.per,
+                cond: t.condition.map(|c| self.static_cond(self.pool.condition(c))),
+            },
             AbilityDef::HandSize { whose, delta, set } => Ability::HandSize {
                 whose: *whose,
                 delta: *delta,

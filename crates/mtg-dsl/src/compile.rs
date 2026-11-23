@@ -6285,6 +6285,23 @@ impl Compiler<'_> {
                     return self.ability(&expanded);
                 }
             },
+            Ability::CombatTax {
+                scope,
+                generic,
+                per,
+                cond,
+            } => {
+                let condition = cond.as_ref().map(|c| {
+                    let c = self.static_cond(c);
+                    self.pool.intern_condition(c)
+                });
+                AbilityDef::CombatTax(mtg_core::card::CombatTax {
+                    scope: *scope,
+                    generic: *generic,
+                    per: *per,
+                    condition,
+                })
+            }
             Ability::HandSize { whose, delta, set } => AbilityDef::HandSize {
                 whose: *whose,
                 delta: *delta,

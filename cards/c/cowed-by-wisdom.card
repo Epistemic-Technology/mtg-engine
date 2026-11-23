@@ -1,0 +1,7 @@
+card "Cowed by Wisdom" {
+  oracle_id 10495c22-2456-4b93-afa9-0c3c53075efe
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  tax enchanted attack or block {X} count each hand
+}

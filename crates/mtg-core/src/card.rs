@@ -3251,6 +3251,36 @@ impl Keyword {
     }
 }
 
+/// What an attack or block tax applies to (`AbilityDef::CombatTax`).
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum TaxScope {
+    /// Creatures attacking the ability's controller ("Creatures can't
+    /// attack you"), and with `planeswalkers` those attacking planeswalkers
+    /// they control ("you or planeswalkers you control"). `those` is
+    /// wording only: "for each of those creatures" rather than "for each
+    /// creature they control that's attacking you".
+    AttackingYou { planeswalkers: bool, those: bool },
+    /// The creature this Aura enchants, attacking and/or blocking; its
+    /// controller pays.
+    Enchanted { attack: bool, block: bool },
+    /// Each creature blocking the creature this Aura enchants ("can't be
+    /// blocked unless defending player pays {3} for each creature they
+    /// control that's blocking it").
+    EnchantedBlocked,
+}
+
+/// An attack or block tax (CR 508.1d, 509.1d): `generic` mana for each
+/// creature in its scope, times `per` if any ("{1} for each card in your
+/// hand", counted for the ability's controller as the declaration is
+/// made), while `condition` (a pool condition) holds.
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct CombatTax {
+    pub scope: TaxScope,
+    pub generic: u32,
+    pub per: Option<Num>,
+    pub condition: Option<u16>,
+}
+
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
     pub const NAMED: [(&'static str, CounterKind); 89] = [
@@ -7806,6 +7836,11 @@ pub enum AbilityDef {
         /// the restriction applies while the condition holds.
         negated: bool,
     },
+    /// An attack or block tax (CR 508.1d, 508.1g-h, 509.1d, 509.1f-g):
+    /// "Creatures can't attack you unless their controller pays {2} for
+    /// each creature they control that's attacking you", "Enchanted
+    /// creature can't attack or block unless its controller pays {3}".
+    CombatTax(CombatTax),
     /// Protection from what matches the filter ("protection from
     /// artifacts", "from Goblins", "from everything"), judged on a source's
     /// characteristics (CR 702.16); the object also has
@@ -7962,6 +7997,7 @@ impl AbilityDef {
             | AbilityDef::BlockRule(_)
             | AbilityDef::CostChange(_)
             | AbilityDef::AttackUnless { .. }
+            | AbilityDef::CombatTax(_)
             | AbilityDef::Protection(_)
             | AbilityDef::Landwalk(_)
             | AbilityDef::HandSize { .. }
@@ -7999,6 +8035,7 @@ impl AbilityDef {
             | AbilityDef::BlockRule(_)
             | AbilityDef::CostChange(_)
             | AbilityDef::AttackUnless { .. }
+            | AbilityDef::CombatTax(_)
             | AbilityDef::Protection(_)
             | AbilityDef::Landwalk(_)
             | AbilityDef::HandSize { .. }
@@ -9002,7 +9039,7 @@ impl DefFlags {
             DefFlags::ATTACK_RULE,
             abilities
                 .iter()
-                .any(|a| matches!(a, AbilityDef::AttackUnless { .. })),
+                .any(|a| matches!(a, AbilityDef::AttackUnless { .. } | AbilityDef::CombatTax(_))),
         );
         flags.set(
             DefFlags::TAP_STATIC,

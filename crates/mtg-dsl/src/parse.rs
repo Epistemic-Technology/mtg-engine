@@ -2411,6 +2411,79 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::DeckAnyNumber)
             }
+            // An attack or block tax (CR 508.1d, 509.1d).
+            "tax" => {
+                self.pos += 1;
+                let scope = if self.eat_words(&["attacking", "you"]) {
+                    let planeswalkers = self.eat_words(&["or", "planeswalkers"]);
+                    mtg_core::card::TaxScope::AttackingYou {
+                        planeswalkers,
+                        those: planeswalkers,
+                    }
+                } else {
+                    self.expect_word("enchanted")?;
+                    if self.eat_word("blocked") {
+                        mtg_core::card::TaxScope::EnchantedBlocked
+                    } else if self.eat_words(&["attack", "or", "block"]) {
+                        mtg_core::card::TaxScope::Enchanted {
+                            attack: true,
+                            block: true,
+                        }
+                    } else if self.eat_word("attack") {
+                        mtg_core::card::TaxScope::Enchanted {
+                            attack: true,
+                            block: false,
+                        }
+                    } else {
+                        self.expect_word("block")?;
+                        mtg_core::card::TaxScope::Enchanted {
+                            attack: false,
+                            block: true,
+                        }
+                    }
+                };
+                let mana = self.mana_cost()?;
+                let req = mana.requirements(0);
+                let only_generic = req.colored == [0; 5]
+                    && req.colorless == 0
+                    && req.hybrid == [0; 10]
+                    && req.two_hybrid == [0; 5];
+                if !only_generic {
+                    return self.fail("a combat tax is generic mana only");
+                }
+                let x = mana.has_x();
+                let (generic, per) = if x {
+                    if !self.at_word("count") {
+                        return self.fail("`{X}` in a combat tax needs a count");
+                    }
+                    (1, Some(self.num()?))
+                } else {
+                    (req.generic, None)
+                };
+                // `tax attacking you {1} those`: "for each of those creatures".
+                let scope = match scope {
+                    mtg_core::card::TaxScope::AttackingYou {
+                        planeswalkers: false,
+                        ..
+                    } if self.eat_word("those") => mtg_core::card::TaxScope::AttackingYou {
+                        planeswalkers: false,
+                        those: true,
+                    },
+                    s => s,
+                };
+                let cond = if self.eat_words(&["as", "long", "as"]) {
+                    Some(self.static_cond()?)
+                } else {
+                    None
+                };
+                self.end_stmt()?;
+                Ok(Ability::CombatTax {
+                    scope,
+                    generic,
+                    per,
+                    cond,
+                })
+            }
             "hand" if self.word_at(1).as_deref() == Some("size") => {
                 self.pos += 2;
                 let whose = if self.eat_word("opponents") {

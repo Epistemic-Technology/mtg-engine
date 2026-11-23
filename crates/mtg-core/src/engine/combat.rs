@@ -3,7 +3,7 @@
 use smallvec::SmallVec;
 
 use super::MAX_DIVISION_OPTIONS;
-use crate::card::{AbilityDef, BlockRule, Keyword};
+use crate::card::{AbilityDef, BlockRule, Keyword, TaxScope};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
 use crate::state::{Attacker, Characteristics, DamageAssignment, Flow, GameState, Target, Zone};
@@ -107,6 +107,142 @@ impl GameState {
             },
             _ => true,
         })
+    }
+
+    /// The generic mana attack taxes ask for declaring `set` (each
+    /// attacker with what it attacks; CR 508.1d, 508.1g): "Creatures can't
+    /// attack you unless their controller pays {2} for each creature they
+    /// control that's attacking you", "Enchanted creature can't attack
+    /// unless its controller pays {3}".
+    pub(super) fn attack_tax(&self, set: &[(ObjId, Target)]) -> u32 {
+        if self.attack_rule_sources == 0 || set.is_empty() {
+            return 0;
+        }
+        self.combat_tax(|scope, controller, attached| match scope {
+            TaxScope::AttackingYou { planeswalkers, .. } => set
+                .iter()
+                .filter(|(_, at)| match at {
+                    Target::Player(p) => *p == controller,
+                    Target::Object(pw) => {
+                        planeswalkers
+                            && self.objects.get(*pw).is_some_and(|x| x.controller == controller)
+                            && self.characteristics(*pw).is_some_and(|c| c.is_planeswalker())
+                    }
+                })
+                .count(),
+            TaxScope::Enchanted { attack: true, .. } => {
+                set.iter().filter(|(id, _)| Some(*id) == attached).count()
+            }
+            _ => 0,
+        })
+    }
+
+    /// The generic mana block taxes ask of the defending player for
+    /// `blocks` (CR 509.1d, 509.1f): "Enchanted creature can't block
+    /// unless its controller pays {3}" (once for the creature, however
+    /// many it blocks), "Enchanted creature can't be blocked unless
+    /// defending player pays {3} for each creature they control that's
+    /// blocking it".
+    pub(super) fn block_tax(&self, blocks: &[(ObjId, ObjId)]) -> u32 {
+        if self.attack_rule_sources == 0 || blocks.is_empty() {
+            return 0;
+        }
+        self.combat_tax(|scope, _, attached| match scope {
+            TaxScope::Enchanted { block: true, .. } => {
+                usize::from(blocks.iter().any(|(b, _)| Some(*b) == attached))
+            }
+            TaxScope::EnchantedBlocked => {
+                let mut blockers: SmallVec<[ObjId; 4]> = SmallVec::new();
+                for (b, a) in blocks {
+                    if Some(*a) == attached && !blockers.contains(b) {
+                        blockers.push(*b);
+                    }
+                }
+                blockers.len()
+            }
+            _ => 0,
+        })
+    }
+
+    /// The taxes of every `AbilityDef::CombatTax` on the battlefield whose
+    /// condition holds: `creatures(scope, its controller, what its source
+    /// is attached to)` creatures each, at its rate.
+    fn combat_tax(&self, creatures: impl Fn(TaxScope, PlayerId, Option<ObjId>) -> usize) -> u32 {
+        let mut total = 0u32;
+        for src in self.battlefield.iter().copied() {
+            let Some(c) = self.characteristics(src) else {
+                continue;
+            };
+            for a in &c.abilities {
+                let AbilityDef::CombatTax(t) = self.pool.ability(*a) else {
+                    continue;
+                };
+                let o = &self.objects[src];
+                if let Some(cond) = t.condition
+                    && !self.condition_now(self.pool.condition(cond), o.controller, src)
+                {
+                    continue;
+                }
+                let n = creatures(t.scope, o.controller, o.attached_to);
+                if n == 0 {
+                    continue;
+                }
+                let per = t.per.map_or(1, |k| self.eval_num_of(k, src, o.controller));
+                let n = u32::try_from(n).unwrap_or(u32::MAX);
+                total = total.saturating_add(n.saturating_mul(t.generic).saturating_mul(per));
+            }
+        }
+        total
+    }
+
+    /// Whether the active player can pay the attack taxes of `set`, each
+    /// attacker attacking what costs least (the defending player, one of
+    /// their planeswalkers, or a battle they protect): the taxes are per
+    /// creature, so the cheapest declaration is the sum of those.
+    pub(super) fn attack_set_affordable(&self, set: &[ObjId]) -> bool {
+        if self.attack_rule_sources == 0 || set.is_empty() {
+            return true;
+        }
+        let d = self.opponent(self.active_player);
+        let mut targets: SmallVec<[Target; 4]> = SmallVec::new();
+        targets.push(Target::Player(d));
+        targets.extend(self.planeswalkers_of(d).map(Target::Object));
+        targets.extend(self.attackable_battles(d).map(Target::Object));
+        let mut total = 0u32;
+        for id in set {
+            let least = targets
+                .iter()
+                .map(|t| self.attack_tax(&[(*id, *t)]))
+                .min()
+                .unwrap_or(0);
+            total = total.saturating_add(least);
+        }
+        self.can_pay_generic(self.active_player, total)
+    }
+
+    /// Whether `p` can pay `generic` mana (a combat tax).
+    pub(super) fn can_pay_generic(&self, p: PlayerId, generic: u32) -> bool {
+        generic == 0
+            || self.can_pay(
+                p,
+                &crate::mana::ManaRequirement {
+                    generic,
+                    ..Default::default()
+                },
+            )
+    }
+
+    /// Pay `generic` mana (a combat tax, CR 508.1h, 509.1g).
+    fn pay_generic(&mut self, p: PlayerId, generic: u32) {
+        if generic > 0 {
+            self.pay(
+                p,
+                &crate::mana::ManaRequirement {
+                    generic,
+                    ..Default::default()
+                },
+            );
+        }
     }
 
     /// Whether every creature of an attack (or block) declaration's set
@@ -413,6 +549,10 @@ impl GameState {
             if !self.set_legal(&blockers, true) {
                 return false;
             }
+            let tax = self.block_tax(blocks);
+            if tax > 0 && !self.can_pay_generic(self.opponent(self.active_player), tax) {
+                return false;
+            }
         }
         let Some(combat) = &self.combat else {
             return true;
@@ -441,6 +581,13 @@ impl GameState {
     ) -> bool {
         if self.too_many_blockers(blocks) {
             return false;
+        }
+        // A combat tax only grows as blocks are added.
+        if self.attack_rule_sources > 0 {
+            let tax = self.block_tax(blocks);
+            if tax > 0 && !self.can_pay_generic(self.opponent(self.active_player), tax) {
+                return false;
+            }
         }
         if self.block_set_legal(blocks) {
             return true;
@@ -542,7 +689,14 @@ impl GameState {
         }
     }
 
-    pub(super) fn finish_attackers_with(&mut self, set: Vec<(ObjId, Target)>) {
+    pub(super) fn finish_attackers_with(&mut self, mut set: Vec<(ObjId, Target)>) {
+        // CR 508.1d, 508.1h: a declaration whose taxes can't be paid isn't
+        // legal; the last-declared attackers stay home until they can.
+        let mut tax = self.attack_tax(&set);
+        while tax > 0 && !self.can_pay_generic(self.active_player, tax) {
+            set.pop();
+            tax = self.attack_tax(&set);
+        }
         if !set.is_empty() {
             self.attacked_this_turn |= 1 << self.active_player.index().min(7);
         }
@@ -576,6 +730,8 @@ impl GameState {
                 blocked: false,
             });
         }
+        // CR 508.1g-h: the taxes are paid once the attackers are tapped.
+        self.pay_generic(self.active_player, tax);
         // "As long as you attacked with three or more Merfolk this turn",
         // "for each creature that attacked this turn" in a static.
         self.history_bump();
@@ -737,6 +893,15 @@ impl GameState {
             }
             blocks.extend(extra);
         }
+        // CR 509.1d, 509.1f-g: block taxes; a declaration that can't pay
+        // them drops its last blocks until it can.
+        let defender = self.opponent(self.active_player);
+        let mut tax = self.block_tax(&blocks);
+        while tax > 0 && !self.can_pay_generic(defender, tax) {
+            blocks.pop();
+            tax = self.block_tax(&blocks);
+        }
+        self.pay_generic(defender, tax);
         let mut newly_blocked: SmallVec<[ObjId; 4]> = SmallVec::new();
         for (blocker, attacker) in &blocks {
             if let Some(a) = self.combat.as_mut().and_then(|c| c.attacker_mut(*attacker)) {

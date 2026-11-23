@@ -16492,6 +16492,60 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         Ability::ExtraVote { optional: true } => {
             "While voting, you may vote an additional time.".to_string()
         }
+        Ability::CombatTax {
+            scope,
+            generic,
+            per,
+            cond,
+        } => {
+            use mtg_core::card::TaxScope;
+            let count = per.and_then(|n| match n {
+                Num::Count(i) => card.counts.get(usize::from(i)),
+                _ => None,
+            });
+            // "{2}", "{1} for each card in your hand", "{X} ..., where X
+            // is the number of enchantments you control".
+            let (amount, where_x) = match count {
+                Some(c) if c.style == crate::ast::CountStyle::Where => (
+                    "{X}".to_string(),
+                    format!(", where X is {}", count_phrase(&c.expr, card, false)),
+                ),
+                Some(c) => (
+                    format!("{{1}} {}", count_phrase(&c.expr, card, true)),
+                    String::new(),
+                ),
+                None => (format!("{{{generic}}}"), String::new()),
+            };
+            let text = match scope {
+                TaxScope::AttackingYou {
+                    planeswalkers: true,
+                    ..
+                } => format!(
+                    "creatures can't attack you or planeswalkers you control unless their controller pays {amount} for each of those creatures{where_x}."
+                ),
+                TaxScope::AttackingYou { those: true, .. } => format!(
+                    "creatures can't attack you unless their controller pays {amount} for each of those creatures{where_x}."
+                ),
+                TaxScope::AttackingYou { .. } => format!(
+                    "creatures can't attack you unless their controller pays {amount} for each creature they control that's attacking you{where_x}."
+                ),
+                TaxScope::Enchanted { attack, block } => {
+                    let what = match (attack, block) {
+                        (true, true) => "attack or block",
+                        (true, false) => "attack",
+                        _ => "block",
+                    };
+                    format!("enchanted creature can't {what} unless its controller pays {amount}{where_x}.")
+                }
+                TaxScope::EnchantedBlocked => format!(
+                    "enchanted creature can't be blocked unless defending player pays {amount} for each creature they control that's blocking it{where_x}."
+                ),
+            };
+            match cond {
+                Some(c) => format!("As long as {}, {text}", static_cond_text(c, card)),
+                None => capitalize(&text),
+            }
+        }
         Ability::HandSize { whose, delta, set } => {
             let (subject, have) = if *whose == Who::Opponents {
                 ("Each opponent's", "Each opponent has")

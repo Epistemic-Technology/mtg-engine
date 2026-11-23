@@ -6927,6 +6927,38 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 if *optional { " may" } else { "" }
             );
         }
+        Ability::CombatTax {
+            scope,
+            generic,
+            per,
+            cond,
+        } => {
+            use mtg_core::card::TaxScope;
+            let (what, those) = match scope {
+                TaxScope::AttackingYou {
+                    planeswalkers: true,
+                    ..
+                } => ("attacking you or planeswalkers", ""),
+                TaxScope::AttackingYou { those, .. } => {
+                    ("attacking you", if *those { " those" } else { "" })
+                }
+                TaxScope::Enchanted {
+                    attack: true,
+                    block: true,
+                } => ("enchanted attack or block", ""),
+                TaxScope::Enchanted { attack: true, .. } => ("enchanted attack", ""),
+                TaxScope::Enchanted { .. } => ("enchanted block", ""),
+                TaxScope::EnchantedBlocked => ("enchanted blocked", ""),
+            };
+            let amount = match per {
+                Some(n) => format!("{{X}} {}", num(*n)),
+                None => format!("{{{generic}}}"),
+            };
+            let cond = cond
+                .as_ref()
+                .map_or_else(String::new, |c| format!(" as long as {}", static_cond(c)));
+            let _ = writeln!(out, "{indent}tax {what} {amount}{those}{cond}");
+        }
         Ability::HandSize { whose, delta, set } => {
             let who = if *whose == Who::Opponents {
                 " opponents"

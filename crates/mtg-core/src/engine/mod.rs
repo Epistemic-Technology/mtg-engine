@@ -1452,7 +1452,17 @@ impl GameState {
                         .collect();
                     if incremental {
                         let mut options: Vec<Choice> = if must.is_empty() {
-                            eligible.into_iter().map(Choice::AddAttacker).collect()
+                            eligible
+                                .into_iter()
+                                .filter(|id| {
+                                    self.attack_rule_sources == 0 || {
+                                        let mut with = chosen.clone();
+                                        with.push(*id);
+                                        self.attack_set_affordable(&with)
+                                    }
+                                })
+                                .map(Choice::AddAttacker)
+                                .collect()
                         } else {
                             must.iter().copied().map(Choice::AddAttacker).collect()
                         };
@@ -1472,12 +1482,23 @@ impl GameState {
                         };
                         continue;
                     }
-                    let options: Vec<Choice> = subsets(&eligible)
+                    let mut options: Vec<Choice> = subsets(&eligible)
                         .into_iter()
                         .filter(|set| must.iter().all(|m| set.contains(m)))
                         .filter(|set| self.set_legal(set, false))
+                        .filter(|set| self.attack_set_affordable(set))
                         .map(Choice::Attackers)
                         .collect();
+                    // CR 508.1d: a creature that attacks if able needn't
+                    // when a tax would have to be paid for it.
+                    if options.is_empty() {
+                        options = subsets(&eligible)
+                            .into_iter()
+                            .filter(|set| self.set_legal(set, false))
+                            .filter(|set| self.attack_set_affordable(set))
+                            .map(Choice::Attackers)
+                            .collect();
+                    }
                     return StepResult::Decision(Decision {
                         player,
                         kind: DecisionKind::DeclareAttackers,
