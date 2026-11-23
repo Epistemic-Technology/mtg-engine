@@ -2381,6 +2381,33 @@ impl Templates {
                     ))
                 },
             ),
+            // "Target player reveals three cards from their hand and you
+            // choose one of them. That player discards that card." (joined
+            // by `\u{2}` above); "..., where X is the number of Faeries you
+            // control. You choose one of those cards. ..."; "... You choose
+            // two of them. That player discards those cards."
+            (
+                r(
+                    r"^([Tt]arget player|[Tt]arget opponent) reveals (\w+) cards from their hand(?:, where X is ([^\x{2}]+))?(?: and you choose one of them|\x{2}You choose (one|two) of (?:them|those cards))\x{2}That player discards (that card|those cards)$",
+                ),
+                |c, t| {
+                    let who = recipient(&lowercase_first(cap(c, 1)), t)?;
+                    let n = if cap(c, 3).is_empty() {
+                        number(cap(c, 2))?
+                    } else {
+                        if cap(c, 2) != "X" {
+                            return None;
+                        }
+                        format!("{},", x_count(cap(c, 3))?)
+                    };
+                    let take = match cap(c, 4) {
+                        "two" if cap(c, 5) == "those cards" => "2 ",
+                        "" | "one" if cap(c, 5) == "that card" => "",
+                        _ => return None,
+                    };
+                    Some(format!("{who} reveals {n} cards discarding {take}card"))
+                },
+            ),
             // "Target player shuffles their library." (CR 701.24).
             (
                 r(
@@ -4201,6 +4228,22 @@ impl Templates {
         )
         .map_or(text.clone(), |re| {
             re.replace_all(&text, "$1\u{2}").into_owned()
+        });
+        // "Target player reveals three cards from their hand and you
+        // choose one of them. That player discards that card." (Blackmail,
+        // Thieving Sprite, Noggin Whack): one sentence for the template
+        // below, joined by `\u{2}`.
+        let text = Regex::new(
+            r"(reveals (?:\w+) cards from their hand(?:, where X is [^.]+| and you choose one of them)?)\.( You choose (?:one|two) of (?:them|those cards)\.)? That player discards (that card|those cards)",
+        )
+        .map_or(text.clone(), |re| {
+            re.replace_all(&text, |c: &regex::Captures| {
+                let mid = c.get(2).map_or(String::new(), |m| {
+                    format!("\u{2}{}", m.as_str().trim().trim_end_matches('.'))
+                });
+                format!("{}{mid}\u{2}That player discards {}", &c[1], &c[3])
+            })
+            .into_owned()
         });
         // "Exile target artifact. Search its controller's graveyard, hand,
         // and library for all cards with the same name as that artifact

@@ -11821,6 +11821,7 @@ impl GameState {
                 exile,
                 until,
                 top,
+                reveal,
             } => {
                 // "If you do" / "If you don't": whether a card was chosen.
                 ctx.did = false;
@@ -11840,13 +11841,40 @@ impl GameState {
                     let Target::Player(p) = t else {
                         continue;
                     };
-                    self.reveal_hand(p);
+                    // "reveals three cards from their hand": the player
+                    // chooses which (CR 701.20a); the rest stay hidden.
+                    let shown: SmallVec<[ObjId; 8]> = if let Some((n, _)) = reveal {
+                        let n = self.eval_num(*n, ctx) as usize;
+                        let mut rest: SmallVec<[ObjId; 8]> =
+                            self.player(p).hand.iter().copied().collect();
+                        let mut shown = SmallVec::new();
+                        while shown.len() < n && !rest.is_empty() {
+                            let k = if rest.len() + shown.len() <= n {
+                                0
+                            } else {
+                                let options: Vec<Choice> = rest
+                                    .iter()
+                                    .map(|id| Choice::Discard {
+                                        card: *id,
+                                        def: self.objects[*id].def,
+                                    })
+                                    .collect();
+                                self.choose_mid(p, DecisionKind::ChooseCard, options)
+                            };
+                            shown.push(rest.remove(k));
+                        }
+                        for id in &shown {
+                            self.reveal_in_hand(*id);
+                        }
+                        shown
+                    } else {
+                        self.reveal_hand(p);
+                        self.player(p).hand.iter().copied().collect()
+                    };
                     if gone {
                         continue;
                     }
-                    let mut options: Vec<Choice> = self
-                        .player(p)
-                        .hand
+                    let mut options: Vec<Choice> = shown
                         .iter()
                         .filter(|id| {
                             filter.as_ref().is_none_or(|f| {
@@ -11865,8 +11893,19 @@ impl GameState {
                     if *optional {
                         options.push(Choice::Done);
                     }
-                    let k = self.choose_mid(ctx.controller, DecisionKind::Discard, options.clone());
-                    if let Choice::Discard { card, .. } = options[k] {
+                    // "You choose two of them. That player discards those
+                    // cards." (Noggin Whack).
+                    let picks = reveal.map_or(1, |(_, k)| usize::from(k.max(1)));
+                    let mut chosen: SmallVec<[ObjId; 2]> = SmallVec::new();
+                    while chosen.len() < picks && !options.is_empty() {
+                        let k =
+                            self.choose_mid(ctx.controller, DecisionKind::Discard, options.clone());
+                        match options.remove(k) {
+                            Choice::Discard { card, .. } => chosen.push(card),
+                            _ => break,
+                        }
+                    }
+                    for card in chosen {
                         if *exile {
                             let new = self.move_object(card, Zone::Exile, false);
                             if *until

@@ -1,0 +1,6 @@
+card "Blackmail" {
+  oracle_id 2dc6da5d-c4d1-4f2c-8f46-11a935bc0044
+  cost {B}
+  type Sorcery
+  spell: target player reveals 3 cards discarding card
+}

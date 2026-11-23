@@ -4109,6 +4109,12 @@ pub enum Effect {
         /// Memories): the chosen card goes there instead.
         #[serde(default)]
         top: bool,
+        /// "Target player reveals three cards from their hand and you
+        /// choose one of them" (Blackmail): the player reveals that many
+        /// cards of their choice (all of them with no more in hand), and
+        /// the controller chooses the second number of them from those.
+        #[serde(default)]
+        reveal: Option<(Num, u8)>,
     },
     /// "Transform this creature" (CR 701.27): a double-faced permanent
     /// turns to its other face; it stays the same object.

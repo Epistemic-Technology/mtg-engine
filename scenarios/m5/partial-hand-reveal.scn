@@ -1,0 +1,77 @@
+# "Target player reveals three cards from their hand and you choose one of
+# them. That player discards that card." (CR 701.20a): the player chooses
+# which cards to reveal; the caster chooses only among those.
+
+scenario "partial reveal: Blackmail, the opponent reveals three and the caster picks one" {
+  battlefield A: "Swamp"
+  hand A: "Blackmail"
+  hand B: "Shock", "Opt", "Grizzly Bears", "Hill Giant", "Serra Angel"
+  turn 1 A: cast "Blackmail" targeting player B
+  turn 1 B: choose "Grizzly Bears"
+  turn 1 B: choose "Hill Giant"
+  turn 1 B: choose "Serra Angel"
+  turn 1 precombat_main A: discard "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert hand B count 4
+  assert known A "Hill Giant"
+  assert unknown A "Shock"
+}
+
+scenario "partial reveal: Blackmail can't take a card that wasn't revealed" {
+  battlefield A: "Swamp"
+  hand A: "Blackmail"
+  hand B: "Shock", "Opt", "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Blackmail" targeting player B
+  turn 1 B: choose "Grizzly Bears"
+  turn 1 B: choose "Hill Giant"
+  turn 1 B: choose "Opt"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Shock"
+  assert hand B count 3
+}
+
+scenario "partial reveal: with three or fewer cards, Blackmail sees them all" {
+  battlefield A: "Swamp"
+  hand A: "Blackmail"
+  hand B: "Shock", "Opt"
+  turn 1 A: cast "Blackmail" targeting player B
+  turn 1 precombat_main A: discard "Shock"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Shock"
+  assert hand B contains "Opt"
+  assert known A "Opt"
+}
+
+scenario "partial reveal: Thieving Sprite reveals one card for each Faerie" {
+  battlefield A: 3 "Swamp", "Faerie Miscreant"
+  hand A: "Thieving Sprite"
+  hand B: "Shock", "Opt", "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Thieving Sprite"
+  turn 1 A: trigger "Thieving Sprite" targeting player B
+  turn 1 B: choose "Grizzly Bears"
+  turn 1 B: choose "Hill Giant"
+  turn 1 precombat_main A: discard "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert known A "Grizzly Bears"
+  assert unknown A "Shock"
+  assert unknown A "Opt"
+}
+
+scenario "partial reveal: Noggin Whack takes two of the three revealed" {
+  battlefield A: 4 "Swamp"
+  hand A: "Noggin Whack"
+  hand B: "Shock", "Opt", "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Noggin Whack" targeting player B
+  turn 1 B: choose "Grizzly Bears"
+  turn 1 B: choose "Hill Giant"
+  turn 1 B: choose "Shock"
+  turn 1 precombat_main A: discard "Shock"
+  turn 1 precombat_main A: discard "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Shock"
+  assert graveyard B contains "Hill Giant"
+  assert hand B contains "Grizzly Bears"
+  assert hand B count 2
+}

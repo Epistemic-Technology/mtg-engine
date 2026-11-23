@@ -7196,6 +7196,45 @@ impl P {
                 self.expect_words(&["card", "at", "random", "from", "hand"])?;
                 Ok(Effect::RevealRandom { who: subject })
             }
+            // "Target player reveals three cards from their hand and you
+            // choose one of them. That player discards that card."
+            "reveal" | "reveals"
+                if ((matches!(self.peek(), Some(Tok::Num(_)))
+                    || self.word_at(0).is_some_and(|w| w.eq_ignore_ascii_case("x")))
+                    && matches!(self.word_at(1).as_deref(), Some("card" | "cards"))
+                    && self.word_at(2).as_deref() == Some("discarding"))
+                    || self.at_words(&["count", "where"]) =>
+            {
+                let n = self.num()?;
+                // `reveals count where Faerie you control, cards
+                // discarding card`: the comma ends the count.
+                if matches!(n, Num::Count(_)) {
+                    if self.peek() != Some(&Tok::Comma) {
+                        return self.unexpected("`,` after the count");
+                    }
+                    self.pos += 1;
+                }
+                if !(self.eat_word("cards") || self.eat_word("card")) {
+                    return self.unexpected("`cards`");
+                }
+                self.expect_word("discarding")?;
+                let take = match self.peek() {
+                    Some(Tok::Num(k)) if self.word_at(1).is_some() => {
+                        let k = u8::try_from(*k).map_err(|_| ParseError {
+                            line: self.line(),
+                            message: "too many cards".to_string(),
+                        })?;
+                        self.pos += 1;
+                        k
+                    }
+                    _ => 1,
+                };
+                let mut e = self.discard_chosen(subject, false)?;
+                if let Effect::DiscardChosen { reveal, .. } = &mut e {
+                    *reveal = Some((n, take));
+                }
+                Ok(e)
+            }
             "reveal" | "reveals" => {
                 self.eat_word("their");
                 self.expect_word("hand")?;
@@ -7225,6 +7264,7 @@ impl P {
                         let joined = !self.eat_word("split");
                         let until = self.eat_words(&["until", "this", "leaves"]);
                         return Ok(Effect::DiscardChosen {
+                            reveal: None,
                             who: subject,
                             filter: (filter != Filter::default()).then_some(filter),
                             may: false,
@@ -8534,6 +8574,7 @@ impl P {
         Ok(Effect::DiscardChosen {
             who,
             filter,
+            reveal: None,
             may,
             look,
             exile: None,
@@ -9705,6 +9746,7 @@ impl P {
                     };
                     let until = self.eat_words(&["until", "this", "leaves"]);
                     return Ok(Effect::DiscardChosen {
+                        reveal: None,
                         who,
                         filter,
                         may,

@@ -2105,6 +2105,33 @@ impl Fmt {
             Effect::DiscardChosen {
                 who,
                 filter: f,
+                reveal: Some((n, take)),
+                may,
+                ..
+            } => {
+                let count = if let Num::Count(_) = n {
+                    format!("{},", num(*n))
+                } else {
+                    num(*n)
+                };
+                let take = if *take == 1 {
+                    String::new()
+                } else {
+                    format!("{take} ")
+                };
+                let may = if *may { "may " } else { "" };
+                let what = match f {
+                    None => "card".to_string(),
+                    Some(f) => format!("{} card", filter(f)),
+                };
+                format!(
+                    "{} reveals {count} cards discarding {take}{may}{what}",
+                    self.recipient(*who, t)
+                )
+            }
+            Effect::DiscardChosen {
+                who,
+                filter: f,
                 may,
                 look,
                 and_choose,

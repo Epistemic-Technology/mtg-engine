@@ -8230,6 +8230,55 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
             )
         }
+        // "Target player reveals three cards from their hand and you
+        // choose one of them. That player discards that card."
+        // (Blackmail); "... reveals X cards from their hand, where X is
+        // .... You choose one of those cards. ..." (Thieving Sprite); "...
+        // You choose two of them. That player discards those cards."
+        // (Noggin Whack).
+        Effect::DiscardChosen {
+            who,
+            reveal: Some((n, take)),
+            exile: None,
+            filter: None,
+            may: false,
+            ..
+        } => {
+            let s = ctx.subj(*who);
+            let verb = ctx.verb(*who, "reveals", "reveal");
+            let cards = if *n == Num::N(1) { "card" } else { "cards" };
+            let (lead, first) = match n {
+                Num::Count(i) => {
+                    let phrase = ctx
+                        .card
+                        .counts
+                        .get(usize::from(*i))
+                        .map(|c| count_phrase_in(&c.expr, ctx, false))
+                        .unwrap_or_default();
+                    (
+                        format!("{verb} X cards from their hand, where X is {phrase}"),
+                        ". You choose one of those cards".to_string(),
+                    )
+                }
+                _ => (
+                    format!("{verb} {} {cards} from their hand", count_words(*n, "a")),
+                    if *take == 1 {
+                        " and you choose one of them".to_string()
+                    } else {
+                        format!(
+                            ". You choose {} of them",
+                            count_words(Num::N(u32::from(*take)), "one")
+                        )
+                    },
+                ),
+            };
+            let then = if *take == 1 {
+                "That player discards that card"
+            } else {
+                "That player discards those cards"
+            };
+            Clause::with_subject(*who, s, format!("{lead}{first}. {then}"))
+        }
         Effect::DiscardChosen {
             who,
             filter,

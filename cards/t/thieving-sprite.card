@@ -1,0 +1,8 @@
+card "Thieving Sprite" {
+  oracle_id 4c5b2be9-5d48-4e62-ae67-d61f3708bb4f
+  cost {2}{B}
+  type Creature — Faerie Rogue
+  pt 1/1
+  keywords flying
+  triggered when this enters: target player reveals count where Faerie you control, cards discarding card
+}

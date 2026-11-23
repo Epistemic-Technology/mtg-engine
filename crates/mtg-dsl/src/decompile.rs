@@ -1261,9 +1261,11 @@ impl Decompiler<'_> {
                 exile,
                 until,
                 top,
+                reveal,
             } => Effect::DiscardChosen {
                 who: r(*who),
                 filter: filter.as_ref().map(|f| self.filter(f)),
+                reveal: *reveal,
                 may: *optional,
                 look: false,
                 exile: exile.then_some(!*until),

@@ -4298,6 +4298,13 @@ pub enum Effect {
     DiscardChosen {
         who: Recipient,
         filter: Option<Filter>,
+        /// `target player reveals 3 cards discarding card`: "Target
+        /// player reveals three cards from their hand and you choose one
+        /// of them. That player discards that card." (Blackmail); `... 3
+        /// cards discarding 2 card`: "... You choose two of them. That
+        /// player discards those cards." (the count revealed, the number
+        /// chosen).
+        reveal: Option<(Num, u8)>,
         /// `discarding may ...`: "You may choose ...".
         may: bool,
         /// `look at hand of target player discarding ...`: "Look at

@@ -2105,7 +2105,17 @@ library"), `<who> sacrifices 1 creature` ("of their choice"; `sacrifices 1 creat
 of their choice with flying` puts the "with" after it; `sacrifices 1
 artifact and 1 land` is "an artifact and a land of their choice", one
 choice after the other), `<what>
-loses flying`, `<who> reveals hand`, `<who> reveals hand discarding
+loses flying`, `<who> reveals hand`, `<who> reveals 3 cards discarding
+card` ("Target player reveals three cards from their hand and you choose
+one of them. That player discards that card.", Blackmail: the player
+chooses which cards to reveal, all of them with no more in hand, and you
+choose among those; `... 3 cards discarding 2 card`: "... You choose two
+of them. That player discards those cards."; `<who> reveals count where
+Faerie you control, cards discarding card`: "... reveals X cards from
+their hand, where X is the number of Faeries you control. You choose one
+of those cards. ...", the comma ending the count; scenarios: the
+revealing player's `choose "Card"` lines, then your `discard "Card"`),
+`<who> reveals hand discarding
 nonland card` (Duress: you choose the card; `<who> reveals hand and
 discarding of that color card` after `choose color`: "Target player
 reveals their hand and you choose a card of that color from it. That

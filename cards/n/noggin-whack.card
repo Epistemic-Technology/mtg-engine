@@ -1,0 +1,7 @@
+card "Noggin Whack" {
+  oracle_id c637fedc-b7b9-4da8-bab4-0488e7c1fac1
+  cost {2}{B}{B}
+  type Kindred Sorcery — Rogue
+  prowl {1}{B}
+  spell: target player reveals 3 cards discarding 2 card
+}
