@@ -2966,7 +2966,10 @@ impl Compiler<'_> {
             {
                 used.set(Some(*k));
             }
-            if matches!(x, Recipient::YouAndTarget(_) | Recipient::SourceAndTarget(_)) {
+            if matches!(
+                x,
+                Recipient::YouAndTarget(_) | Recipient::SourceAndTarget(_)
+            ) {
                 pair.set(true);
             }
             Self::recipient(&groups, many, tmap, x)

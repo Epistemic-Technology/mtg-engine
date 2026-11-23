@@ -4672,6 +4672,7 @@ impl GameState {
     /// owned by) the triggering player or an earlier target's controller,
     /// as it last existed if it has left. With that player unknown, or no
     /// such relation, it doesn't restrict.
+    #[allow(clippy::too_many_lines)] // one check per relation
     pub fn that_player_ok(
         &self,
         spec: crate::card::TargetSpec,

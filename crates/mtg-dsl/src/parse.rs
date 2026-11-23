@@ -11539,11 +11539,10 @@ impl P {
                             Some("was" | "entered" | "dealt" | "blocked" | "player" | "share" | "opponent")
                         )
                         | (Some("other"), Some("than"))
-                        | (Some("controlled"), Some("by"))
                         | (Some("controller"), Some("of"))
                         | (Some("with" | "without"), Some("aura"))
                         | (Some("with"), Some("counter" | "toxic" | "morph" | "no"))
-                        | (Some("blocked"), Some("by"))
+                        | (Some("blocked" | "controlled"), Some("by"))
                         | (Some("blocking"), Some("this" | "it" | "or"))
                 ) || comma_type
                     || (next.as_deref() == Some("or")

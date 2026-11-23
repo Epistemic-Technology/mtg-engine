@@ -9019,14 +9019,16 @@ impl GameState {
                 };
                 let mut group = SmallVec::new();
                 self.group_into(ctx, f, &mut group);
-                out.extend(group.into_iter().filter(|t| match t {
-                    Target::Object(id) => {
-                        *id != h
-                            && self
-                                .characteristics(*id)
-                                .is_some_and(|c| c.shares_creature_type(&hc))
+                out.extend(group.into_iter().filter(|t| {
+                    match t {
+                        Target::Object(id) => {
+                            *id != h
+                                && self
+                                    .characteristics(*id)
+                                    .is_some_and(|c| c.shares_creature_type(&hc))
+                        }
+                        Target::Player(_) => false,
                     }
-                    Target::Player(_) => false,
                 }));
                 self.note_group(&out);
             }

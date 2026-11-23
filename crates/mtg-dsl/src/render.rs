@@ -5061,7 +5061,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         } => {
             let mut s = ctx.subj(*to);
             // "Up to two target creatures each get +1/+0".
-            let each = if matches!(to, Recipient::Targets(..) | Recipient::SourceAndTarget(_)) || ctx.is_many(*to) {
+            let each = if matches!(to, Recipient::Targets(..) | Recipient::SourceAndTarget(_))
+                || ctx.is_many(*to)
+            {
                 "each "
             } else {
                 ""
@@ -6413,7 +6415,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 || ctx.is_many(what[0])
                 || matches!(
                     what[0],
-                    Recipient::Targets(..) | Recipient::ThoseTargets(..) | Recipient::ChosenTargets(..)
+                    Recipient::Targets(..)
+                        | Recipient::ThoseTargets(..)
+                        | Recipient::ChosenTargets(..)
                 );
             // "Return target creature card and all other cards with the
             // same name as that card from your graveyard to your hand."

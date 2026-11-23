@@ -2973,9 +2973,13 @@ impl GameState {
                 let (phases, doesnt_untap) = self.characteristics(id).map_or((false, false), |c| {
                     (c.has(Keyword::Phasing), c.has(Keyword::DoesntUntap))
                 });
-                let creature_stays = no_creatures
-                    && self.characteristics(id).is_some_and(|c| c.is_creature());
-                (id, phases, doesnt_untap || creature_stays || keep.contains(&id))
+                let creature_stays =
+                    no_creatures && self.characteristics(id).is_some_and(|c| c.is_creature());
+                (
+                    id,
+                    phases,
+                    doesnt_untap || creature_stays || keep.contains(&id),
+                )
             })
             .collect();
         let mut phasing: smallvec::SmallVec<[ObjId; 2]> = smallvec::SmallVec::new();
@@ -3023,6 +3027,7 @@ impl GameState {
 
     /// Turn-based actions at the start of the current step (CR 500.1 and the
     /// step rules), then priority or straight to the end of the step.
+    #[allow(clippy::too_many_lines)] // one arm per step
     fn begin_step(&mut self) {
         self.emit(Event::StepBegin { step: self.step });
         let active = self.active_player;
