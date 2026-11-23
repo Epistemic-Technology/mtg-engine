@@ -15944,7 +15944,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     .iter()
                     .take_while(|b| {
                         !std::ptr::eq(*b, a)
-                            && !matches!(b, Ability::Labeled { ability, .. } if std::ptr::eq(&**ability, a))
+                            && !matches!(b, Ability::Labeled { ability, .. } if std::ptr::eq(&raw const **ability, a))
                     })
                     .map(|b| match b {
                         Ability::Labeled { ability, .. } => &**ability,
