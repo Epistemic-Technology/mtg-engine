@@ -3579,6 +3579,10 @@ pub struct ManyTargets {
     pub spec: TargetSpec,
     pub min: Num,
     pub max: Option<Num>,
+    /// "with total mana value 3 or less": the chosen objects' printed
+    /// mana values add up to at most this (CR 601.2c).
+    #[serde(default)]
+    pub total_mv: Option<Num>,
 }
 
 /// The spec the `i`th chosen target answers: a variable group's spec

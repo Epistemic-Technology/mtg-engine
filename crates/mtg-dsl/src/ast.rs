@@ -1283,6 +1283,9 @@ pub enum Target {
         target: Box<Target>,
         min: Num,
         max: Option<Num>,
+        /// `... with total mana value 3 or less`: "up to three target
+        /// creature cards with total mana value 3 or less" (CR 601.2c).
+        total: Option<Num>,
     },
 }
 

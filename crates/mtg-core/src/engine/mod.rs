@@ -1351,6 +1351,32 @@ impl GameState {
                             _ => true,
                         });
                     }
+                    // "up to three target creature cards with total mana
+                    // value 3 or less" (CR 601.2c): only a card that keeps
+                    // the group's total within the bound.
+                    if let TargetSpec::Many(i) = spec
+                        && let Some(total) = self.pool.many(i).total_mv
+                    {
+                        let total = total.eval(self.x_of(spell));
+                        let mv = |id: ObjId| {
+                            self.objects
+                                .get(id)
+                                .map_or(0, |o| self.pool.get(o.def).mana_cost.mana_value())
+                        };
+                        let used: u32 = self.objects[spell]
+                            .targets
+                            .iter()
+                            .skip(next_target)
+                            .filter_map(|t| match t {
+                                Target::Object(id) => Some(mv(*id)),
+                                _ => None,
+                            })
+                            .sum();
+                        options.retain(|c| match c {
+                            Choice::Target(Target::Object(id)) => used + mv(*id) <= total,
+                            _ => true,
+                        });
+                    }
                     // A cost that depends on the first target: only targets
                     // the caster can pay for (CR 601.2f comes after 601.2c,
                     // but an unpayable choice would be illegal to finish).

@@ -1461,12 +1461,16 @@ impl<'a> Ctx<'a> {
         self.target_mentioned[i] = true;
         // "X target creatures", "one or two targets", "any number of
         // target creature cards from your graveyard".
-        if let Target::Many { min, max, .. } = &self.targets[i] {
+        if let Target::Many {
+            min, max, total, ..
+        } = &self.targets[i]
+        {
             let count = match max {
                 None => "any number of".to_string(),
                 Some(m) if m == min => count_words(*m, "one"),
-                // "up to X target cards".
-                Some(Num::X) if *min == Num::N(0) => "up to X".to_string(),
+                // "up to X target cards", "up to three target creature
+                // cards with total mana value 3 or less".
+                Some(m) if *min == Num::N(0) => format!("up to {}", count_words(*m, "one")),
                 Some(Num::N(m)) => {
                     let lo = match min {
                         Num::N(n) => *n,
@@ -1483,7 +1487,16 @@ impl<'a> Ctx<'a> {
                 return format!("{count} targets");
             }
             // "any number of other target nonland permanents you control".
-            let noun = self.plural_target_noun(i);
+            let mut noun = self.plural_target_noun(i);
+            // "creature cards with total mana value 3 or less from your
+            // graveyard".
+            if let Some(n) = total {
+                let with = format!(" with total mana value {} or less", digits(*n));
+                noun = match noun.split_once(" from ") {
+                    Some((a, b)) => format!("{a}{with} from {b}"),
+                    None => format!("{noun}{with}"),
+                };
+            }
             return match noun.strip_prefix("other ") {
                 Some(rest) => format!("{count} other target {rest}"),
                 None => format!("{count} target {noun}"),

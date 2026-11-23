@@ -378,6 +378,7 @@ impl Decompiler<'_> {
                     target: Box::new(self.target(m.spec)),
                     min: m.min,
                     max: m.max,
+                    total: m.total_mv,
                 }
             }
             other => Target::Spec(other),

@@ -250,7 +250,10 @@ impl Fmt {
                     self.mentioned[i] = true;
                     let up_to = matches!(targets[i], Target::UpTo(_));
                     // `1 to 2 target creature`, `any number of targets`.
-                    if let Target::Many { min, max, .. } = &targets[i] {
+                    if let Target::Many {
+                        min, max, total, ..
+                    } = &targets[i]
+                    {
                         let prefix = many_prefix(*min, *max);
                         if let Target::Spec(mtg_core::card::TargetSpec::Any) = targets[i].base() {
                             return format!("{prefix} targets");
@@ -261,7 +264,14 @@ impl Fmt {
                             mentioned: vec![false; inner.len()],
                             groups: self.groups.clone(),
                         };
-                        return format!("{prefix} {}", f.recipient(Recipient::Target(i), &inner));
+                        // `... with total mana value 3 or less`.
+                        let total = total.map_or(String::new(), |n| {
+                            format!(" with total mana value {} or less", num(n))
+                        });
+                        return format!(
+                            "{prefix} {}{total}",
+                            f.recipient(Recipient::Target(i), &inner)
+                        );
                     }
                     let phrase = match targets[i].base() {
                         Target::Spec(s) => target_phrase(*s),
@@ -3183,7 +3193,7 @@ fn many_prefix(min: Num, max: Option<Num>) -> String {
         None => "any number of".to_string(),
         Some(m) if m == min => num(m),
         // `up to X target card`: "up to X target cards" (CR 601.2c).
-        Some(Num::X) if min == Num::N(0) => "up to X".to_string(),
+        Some(m) if min == Num::N(0) => format!("up to {}", num(m)),
         Some(m) => format!("{} to {}", num(min), num(m)),
     }
 }

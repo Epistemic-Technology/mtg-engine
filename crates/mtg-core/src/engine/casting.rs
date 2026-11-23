@@ -9192,7 +9192,27 @@ impl GameState {
                     if ctx.legal.get(i).copied().unwrap_or(false)
                         && let Some(t) = ctx.targets.get(i)
                     {
-                        out.push(*t);
+                        // "Return up to three target creature cards ... to
+                        // the battlefield. Put a +1/+1 counter on each of
+                        // them.": a target this resolution put onto the
+                        // battlefield is found there (CR 400.7, 608.2c; it
+                        // was legal as the resolution began, so only the
+                        // resolution moved it).
+                        match *t {
+                            Target::Object(id) if !self.objects.contains_key(id) => {
+                                if let Some(new) = self.current_object(id)
+                                    && self
+                                        .objects
+                                        .get(new)
+                                        .is_some_and(|o| o.zone == Zone::Battlefield)
+                                {
+                                    out.push(Target::Object(new));
+                                } else {
+                                    out.push(*t);
+                                }
+                            }
+                            _ => out.push(*t),
+                        }
                     }
                 }
             }

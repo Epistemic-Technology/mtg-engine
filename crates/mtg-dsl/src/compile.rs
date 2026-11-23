@@ -2681,12 +2681,18 @@ impl Compiler<'_> {
                 let inner = self.target(t);
                 self.pool.intern_up_to(inner)
             }
-            Target::Many { target, min, max } => {
+            Target::Many {
+                target,
+                min,
+                max,
+                total,
+            } => {
                 let spec = self.target(target);
                 self.pool.intern_many(mtg_core::card::ManyTargets {
                     spec,
                     min: *min,
                     max: *max,
+                    total_mv: *total,
                 })
             }
         }
@@ -3021,6 +3027,13 @@ impl Compiler<'_> {
                 .rev()
                 .map_while(|c| match c {
                     CoreEffect::Tap { to } | CoreEffect::Pump { to, .. } => Some(*to),
+                    // "Return up to three target creature cards ... to the
+                    // battlefield. Put a +1/+1 counter on each of them."
+                    // (the targets found where they went, CR 400.7).
+                    CoreEffect::ReturnToBattlefield {
+                        what: to @ CoreRecipient::Targets(..),
+                        ..
+                    } => Some(*to),
                     _ => None,
                 })
                 .collect();

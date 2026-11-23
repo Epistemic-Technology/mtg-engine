@@ -1422,6 +1422,18 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
     }
     // "X target creatures", "one or two target creatures", "any number of
     // target players": a variable group (CR 601.2c).
+    // "up to three target creature cards with total mana value 3 or less
+    // from your graveyard": the DSL puts the group's bound last.
+    if let Some(c) = Regex::new(r"^(.+?) with total mana value (\w+) or less( from .+)?$")
+        .unwrap()
+        .captures(s)
+        && (cap(&c, 1).starts_with("up to ") || cap(&c, 1).starts_with("any number of "))
+    {
+        let n = number(cap(&c, 2))?;
+        let head = format!("{}{}", cap(&c, 1), cap(&c, 3));
+        let r = recipient(&head, targets)?;
+        return Some(format!("{r} with total mana value {n} or less"));
+    }
     if let Some((count, rest)) = many_count(s) {
         *targets += 1;
         return Some(format!("{count} {rest}"));

@@ -11419,13 +11419,26 @@ impl P {
                 spec
             }
         };
+        let total = self.total_mana_value()?;
         let i = self.targets.len();
         self.targets.push(Target::Many {
             target: Box::new(target),
             min,
             max,
+            total,
         });
         Ok(Recipient::Target(i))
+    }
+
+    /// After a group's target: `with total mana value 3 or less` (CR
+    /// 601.2c), or nothing.
+    fn total_mana_value(&mut self) -> R<Option<Num>> {
+        if !self.eat_words(&["with", "total", "mana", "value"]) {
+            return Ok(None);
+        }
+        let n = self.num()?;
+        self.expect_words(&["or", "less"])?;
+        Ok(Some(n))
     }
 
     /// A recipient, or `N target <spec>` declaring several.
@@ -11475,6 +11488,18 @@ impl P {
             let mut spec = self.target_spec()?;
             if another {
                 spec = self.another_target(spec)?;
+            }
+            // "up to three target creature cards with total mana value 3
+            // or less": one variable group (CR 601.2c).
+            if up_to && let Some(total) = self.total_mana_value()? {
+                let i = self.targets.len();
+                self.targets.push(Target::Many {
+                    target: Box::new(spec),
+                    min: Num::N(0),
+                    max: Some(Num::N(count)),
+                    total: Some(total),
+                });
+                return Ok(vec![Recipient::Target(i)]);
             }
             if up_to {
                 spec = Target::UpTo(Box::new(spec));
@@ -13287,6 +13312,9 @@ impl P {
                 // `... you control with exceptions`: the copy's, not the
                 // filter's.
                 "with" if self.word_at(1).as_deref() == Some("exceptions") => break,
+                // `any number of target nonland permanent with total mana
+                // value 6 or less`: the group's bound, not the filter's.
+                "with" if self.word_at(1).as_deref() == Some("total") => break,
                 "with" => {
                     self.pos += 1;
                     let Some(k) = self.keyword() else {

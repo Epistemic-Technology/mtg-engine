@@ -2750,7 +2750,13 @@ with a group, the second mode's targets come first): `X target creature` ("X tar
 X, which can't exceed what there is to target), `up to X target card`
 ("up to X target cards": at most the spell's X, any number of them; as
 the amount's only recipient, "deals five times X damage to each of up
-to X targets"), `1 to 2 target creature`
+to X targets"), `up to 3 target creature card from your graveyard with
+total mana value 3 or less` ("up to three target creature cards with
+total mana value 3 or less from your graveyard", Patch Up; also after
+`any number of` and `up to X`: the printed mana values of the chosen
+objects add up to at most the bound, X the spell's; after a return to
+the battlefield, `put 1 +1/+1 counter on each of them` finds them there,
+CR 400.7), `1 to 2 target creature`
 ("one or two target creatures"; `1 to 3` prints "one, two, or three"),
 `any number of target player`, and `1 to 2 targets` / `any number of
 targets` for "any target". Later mentions (`target 1`) print "them" or
