@@ -1,0 +1,7 @@
+card "Earthbender Ascension" {
+  oracle_id f8966fd5-2926-4ba0-b7d6-cfea40cd4e05
+  cost {2}{G}
+  type Enchantment
+  triggered when this enters: earthbend 2; then search basic land card to battlefield tapped
+  label "Landfall" triggered whenever land you control enters: put 1 quest counter on this; when you do, if this has 4 or more quest counter, put 1 +1/+1 counter on target creature you control; target 1 gains trample until end of turn
+}

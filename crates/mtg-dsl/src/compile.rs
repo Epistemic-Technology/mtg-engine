@@ -4076,6 +4076,31 @@ impl Compiler<'_> {
                 out.push(CoreEffect::IfCondition(i, effects));
             }
             Effect::WhenYouDo { targets, effects } => {
+                // "When you do, if it has four or more quest counters on
+                // it, put a +1/+1 counter on target creature you control.
+                // It gains trample until end of turn." (Earthbender
+                // Ascension): an intervening "if" right after the trigger
+                // condition covers the whole ability (CR 603.4), not only
+                // its first sentence.
+                let folded;
+                let effects = match effects.split_first() {
+                    Some((first, rest)) if !rest.is_empty() => match first.effects.as_slice() {
+                        [Effect::IfCondition(c, inner, crate::ast::IfWording::Lead)] => {
+                            let mut all = inner.clone();
+                            all.extend_from_slice(rest);
+                            let mut s = first.clone();
+                            s.effects = vec![Effect::IfCondition(
+                                c.clone(),
+                                all,
+                                crate::ast::IfWording::Lead,
+                            )];
+                            folded = vec![s];
+                            &folded
+                        }
+                        _ => effects,
+                    },
+                    _ => effects,
+                };
                 let effects = self.sentences(effects)?;
                 let targets = self.targets(targets);
                 let id = self

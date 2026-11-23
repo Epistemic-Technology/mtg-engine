@@ -2513,7 +2513,11 @@ you do` is the reflexive ability's, and what the resolution sacrificed
 is its `that sacrificed creature`: `you may sacrifice 1 another creature
 chosen; when you do, this deals damage equal power of that sacrificed
 creature to another target creature; if excess damage dealt this way,
-...`), `<clause> unless you <clause>` (an act, not a payment: `sacrifice this
+...`; an `if` right after `when you do,` is an intervening "if" and
+covers every later sentence of the reflexive ability, CR 603.4: `when you
+do, if this has 4 or more quest counter, put 1 +1/+1 counter on target
+creature you control; target 1 gains trample until end of turn`,
+Earthbender Ascension), `<clause> unless you <clause>` (an act, not a payment: `sacrifice this
 unless you discard 1 card at random`, `... unless you return 2 Forest you
 control to hand chosen` ("... unless you return two Forests you control to
 their owner's hand"), `... unless you sacrifice 1 land chosen`, `... unless
