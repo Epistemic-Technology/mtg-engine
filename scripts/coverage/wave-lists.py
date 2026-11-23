@@ -27,17 +27,13 @@ FORMATS = ('pauper', 'standard', 'modern')
 # agent -> (template skip reasons it owns (prefix match), pattern on the
 # report detail). First match wins, in this order.
 AGENTS = [
-    ('template', [r'sentence: parse', r'mismatch'], None),
-    ('wording', [], r"^RENDER|^MEANING|\bprints\b|\brenders\b|near-miss"),
-    ('mana-costs', [r'sentence: .*transformed', r'sentence: .*transforms?\b',
-                    r'sentence: .*[Ss]pend this mana', r'sentence: Add '],
-     r"transform|becomes? a .*(creature|copy)|become a copy|still a land|animate"
-     r"|spend this mana|mana .*only|restricted mana|mana spent|amount of mana|mana abilit|any combination|add X mana|mana of any|color of mana|treasure"
-     r"|counter|cost|kicker|\bpay|tax|sacrific|discard"),
-    ('zones', [r'sentence: .*(top .* cards? of|[Ll]ook at|[Rr]eveal|[Ss]earch|[Ss]huffle|graveyard|[Ee]xile)'],
-     r'library|reveal|look at|search|scry|top card|mill|\bhand\b|shuffle|graveyard|exile|flashback|cast .* from|cop(y|ies)'),
-    ('triggers', [r'sentence: (When|At the beginning|If .* would)'],
-     r'trigger|whenever|\bwhen\b|condition|replacement|instead|prevent|delayed|at the beginning'),
+    ('wording', [r'mismatch'], r"^RENDER|^MEANING|\bprints\b|\brenders\b|near-miss"),
+    ('permissions', [],
+     r"may (cast|play)|cast .* free|without paying|cast .*from exile|from (your|a|their) graveyard"
+     r"|top (card )?of (your )?library|as though|plot|foretell|impulse|any time|for as long as .* exiled|face down|if you cast (it|them)"),
+    ('counts', [],
+     r"\bcount\b|number of|half|greatest|amount|equal to|X is|where X|that many|that much|difference|total"
+     r"|condition|\bif\b|as long as|unless"),
     ('rules', [], r'.'),
 ]
 # Oracle text that names a feature nobody has built or is building;
@@ -45,7 +41,7 @@ AGENTS = [
 SCREEN = (r'\bmutate\b|\bcompanion\b|\bhideaway\b|\bcloak|\bpiles?\b|choose a number|odd or even'
           r'|\bvote|face[- ]down|\bmeld|\bsticker|\battraction|roll (a|two|x) d\d|flip a coin'
           r'|\bante\b|\bdraft\b|\bventure\b|\bdungeon\b|initiative|\bmonarch\b')
-BATCH_FORMAT, BATCH_SIZE, BATCHES, SEED = 'standard', 36, 10, 10
+BATCH_FORMAT, BATCH_SIZE, BATCHES, SEED = 'standard', 36, 0, 11
 # RETRY: batches are drawn from cards of BATCH_FORMAT that an earlier
 # batch reported unsupported or failed, oldest report first (the most has
 # landed since), not from never-tried cards; each batch gets
