@@ -8045,6 +8045,11 @@ impl P {
                 }
                 _ => self.fail("expected +N/+N"),
             },
+            // "Target unblocked attacking creature becomes blocked."
+            "become" | "becomes" if self.at_word("blocked") => {
+                self.pos += 1;
+                Ok(Effect::BecomeBlocked { what: subject })
+            }
             "become" | "becomes" => {
                 self.eat_word("a");
                 if self.eat_word("copy") {

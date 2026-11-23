@@ -1058,6 +1058,7 @@ impl Decompiler<'_> {
             }
             CoreEffect::Untap { to } => Effect::Untap { to: vec![r(*to)] },
             CoreEffect::RemoveFromCombat { what } => Effect::RemoveFromCombat { what: r(*what) },
+            CoreEffect::BecomeBlocked { what } => Effect::BecomeBlocked { what: r(*what) },
             CoreEffect::Grant { keywords: k, to } => Effect::Grant {
                 keywords: keywords(*k),
                 to: r(*to),

@@ -5365,6 +5365,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "deals X damage to any target and X damage to itself".
             let objs = if *by == Recipient::Source && to.as_slice() == [Recipient::Source] {
                 "itself".to_string()
+            } else if let [Recipient::ThoseTargets(a, 1)] = to.as_slice()
+                && ctx.is_many(Recipient::Target(*a))
+            {
+                // "X target attacking creatures become blocked. Choking
+                // Vines deals 1 damage to each of those creatures."
+                format!("each of those {}", pluralize(&ctx.target_noun[*a]))
             } else {
                 // "deals 1 damage to each of up to two target creatures":
                 // the same amount to each of several targets of one phrase.
@@ -7321,6 +7327,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::RemoveFromCombat { what } => {
             let o = ctx.obj(*what);
             Clause::imperative(format!("remove {o} from combat"))
+        }
+        Effect::BecomeBlocked { what } => {
+            let s = ctx.subj(*what);
+            let v = ctx.verb(*what, "becomes", "become");
+            Clause::with_subject(*what, s, format!("{v} blocked"))
         }
         Effect::Grant {
             keywords,

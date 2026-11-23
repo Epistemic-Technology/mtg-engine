@@ -11359,6 +11359,22 @@ impl GameState {
                     }
                 }
             }
+            Effect::BecomeBlocked { what } => {
+                for t in self.recipients(ctx, *what) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    let newly = self
+                        .combat
+                        .as_mut()
+                        .and_then(|c| c.attacker_mut(id))
+                        .is_some_and(|a| !std::mem::replace(&mut a.blocked, true));
+                    if newly {
+                        self.bump();
+                        self.emit(Event::Blocked { attacker: id });
+                    }
+                }
+            }
             Effect::Grant { keywords, to } => {
                 for t in self.recipients(ctx, *to) {
                     // "You gain shroud until end of turn" (CR 702.18c,

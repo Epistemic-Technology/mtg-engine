@@ -4010,6 +4010,11 @@ pub enum Effect {
     RemoveFromCombat {
         what: Recipient,
     },
+    /// `target 1 becomes blocked`: "Target unblocked attacking creature
+    /// becomes blocked." (CR 509.1h).
+    BecomeBlocked {
+        what: Recipient,
+    },
     Grant {
         keywords: Vec<Keyword>,
         to: Recipient,

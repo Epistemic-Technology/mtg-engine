@@ -1683,6 +1683,9 @@ impl Fmt {
             Effect::RemoveFromCombat { what } => {
                 format!("remove {} from combat", self.recipient(*what, t))
             }
+            Effect::BecomeBlocked { what } => {
+                format!("{} becomes blocked", self.recipient(*what, t))
+            }
             Effect::Grant {
                 keywords: ks,
                 to,

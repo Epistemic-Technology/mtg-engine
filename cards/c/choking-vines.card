@@ -1,0 +1,7 @@
+card "Choking Vines" {
+  oracle_id 3b6b565e-c0b5-48f9-b3e0-4d5d4b065402
+  cost {X}{G}
+  type Instant
+  cast only during declare blockers
+  spell: X target attacking creature become blocked; this deals 1 damage to those targets
+}

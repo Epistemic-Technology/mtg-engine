@@ -1,0 +1,10 @@
+card "Dazzling Beauty" {
+  oracle_id de96ef93-a2e0-409d-9d25-fcb2405039b5
+  cost {2}{W}
+  type Instant
+  cast only during declare blockers
+  spell {
+    target unblocked attacking creature becomes blocked
+    delayed this: draw 1 card at beginning of the next turn's upkeep
+  }
+}

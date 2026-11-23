@@ -2807,6 +2807,12 @@ impl Compiler<'_> {
             | Recipient::TheTarget(i)
             | Recipient::TheTargetFull(i, _)
             | Recipient::ChosenTarget(i) => CoreRecipient::Target(ti(i)),
+            // "X target attacking creatures become blocked. ... deals 1
+            // damage to each of those creatures": through a variable
+            // group, to the end of the list.
+            Recipient::ThoseTargets(a, n) if many.is_some_and(|m| a <= m && m < a + n) => {
+                CoreRecipient::Targets(u8::try_from(ti(a)).unwrap_or(u8::MAX), u8::MAX)
+            }
             Recipient::Targets(a, n)
             | Recipient::ChosenTargets(a, n)
             | Recipient::ThoseCards(a, n)
@@ -3366,6 +3372,9 @@ impl Compiler<'_> {
                 for t in to {
                     out.push(CoreEffect::Tap { to: r(*t) });
                 }
+            }
+            Effect::BecomeBlocked { what } => {
+                out.push(CoreEffect::BecomeBlocked { what: r(*what) });
             }
             Effect::RemoveFromCombat { what } => {
                 out.push(CoreEffect::RemoveFromCombat { what: r(*what) });

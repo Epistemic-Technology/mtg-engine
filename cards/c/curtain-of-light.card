@@ -1,0 +1,10 @@
+card "Curtain of Light" {
+  oracle_id d6efbbf9-1449-45ce-b187-30041eb36d93
+  cost {1}{W}
+  type Instant
+  cast only during combat after blockers
+  spell {
+    target unblocked attacking creature becomes blocked
+    draw 1 card
+  }
+}

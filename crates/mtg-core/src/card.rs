@@ -4368,6 +4368,14 @@ pub enum Effect {
     RemoveFromCombat {
         what: Recipient,
     },
+    /// "Target unblocked attacking creature becomes blocked" (CR 509.1h,
+    /// 506.4): an attacking creature not yet blocked is blocked with no
+    /// blocker, so it assigns no combat damage unless it has trample (CR
+    /// 702.19e); "becomes blocked" triggers. Works on creatures that can't
+    /// be blocked.
+    BecomeBlocked {
+        what: Recipient,
+    },
     /// "gains haste until end of turn" (layer 6).
     Grant {
         keywords: KeywordSet,
