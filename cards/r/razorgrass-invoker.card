@@ -1,0 +1,8 @@
+card "Razorgrass Invoker" {
+  oracle_id ea2a6bee-8634-429d-a5ca-e5f9f7eb9350
+  cost {3}{G}
+  type Creature — Elf Scout
+  pt 4/3
+  keywords vigilance
+  activated {8}: this and up to 1 another target creature each get +3/+3
+}

@@ -318,6 +318,12 @@ impl Fmt {
                 }
             }
             Recipient::You => "you".to_string(),
+            Recipient::YouAndTarget(a) => {
+                format!("you and {}", self.recipient(Recipient::Target(a), targets))
+            }
+            Recipient::SourceAndTarget(a) => {
+                format!("this and {}", self.recipient(Recipient::Target(a), targets))
+            }
             Recipient::EachOpponent => "each opponent".to_string(),
             Recipient::EachOtherPlayer => "each other player".to_string(),
             Recipient::EachOfYourOpponents => "each of your opponents".to_string(),
@@ -728,7 +734,14 @@ impl Fmt {
                 power,
                 toughness,
                 to,
-            } => format!("{} gets {power:+}/{toughness:+}", self.recipient(*to, t)),
+            } => {
+                let each = if matches!(to, Recipient::SourceAndTarget(_)) {
+                    "each get"
+                } else {
+                    "gets"
+                };
+                format!("{} {each} {power:+}/{toughness:+}", self.recipient(*to, t))
+            }
             Effect::Destroy {
                 to,
                 no_regen,
@@ -1356,10 +1369,10 @@ impl Fmt {
             Effect::DrawCards { count, who } => match who {
                 None => format!("draw {} {}", num(*count), cards(*count)),
                 Some(w) => {
-                    let v = if *w == Recipient::You {
-                        "draw"
-                    } else {
-                        "draws"
+                    let v = match w {
+                        Recipient::You => "draw",
+                        Recipient::YouAndTarget(_) => "each draw",
+                        _ => "draws",
                     };
                     format!(
                         "{} {v} {} {}",

@@ -1,0 +1,63 @@
+# A subject of two recipients, one of them a target: "You and target
+# opponent each draw a card." (Sky Crier), "This creature and up to one
+# other target creature each get +3/+3 until end of turn." (Razorgrass
+# Invoker). The effect happens to each.
+
+scenario "Sky Crier: you and the target opponent each draw a card" {
+  battlefield A: "Sky Crier", 4 "Plains"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Sky Crier" targeting player B
+  run_to turn 3 postcombat_main
+  assert hand A count 1
+  assert hand B count 1
+}
+
+scenario "Sky Crier: it can't target you" {
+  battlefield A: "Sky Crier", 4 "Plains"
+  start turn 3 A precombat_main
+  illegal turn 3 A: activate "Sky Crier" targeting player A
+  run_to turn 3 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Razorgrass Invoker: it and the other target each get +3/+3" {
+  battlefield A: "Razorgrass Invoker", "Grizzly Bears", 8 "Forest"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Razorgrass Invoker" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert power "Razorgrass Invoker" 7
+  assert toughness "Razorgrass Invoker" 6
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  run_to turn 4 upkeep
+  assert power "Razorgrass Invoker" 4
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Razorgrass Invoker: with no target chosen it still gets +3/+3" {
+  battlefield A: "Razorgrass Invoker", "Grizzly Bears", 8 "Forest"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Razorgrass Invoker" targeting none
+  run_to turn 3 postcombat_main
+  assert power "Razorgrass Invoker" 7
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Razorgrass Invoker: it can't target itself" {
+  battlefield A: "Razorgrass Invoker", 8 "Forest"
+  start turn 3 A precombat_main
+  illegal turn 3 A: activate "Razorgrass Invoker" targeting "Razorgrass Invoker"
+  run_to turn 3 postcombat_main
+}
+
+scenario "Razorgrass Invoker: the target gone, the ability does nothing" {
+  battlefield A: "Razorgrass Invoker", 8 "Forest"
+  battlefield B: "Grizzly Bears", "Mountain"
+  hand B: "Shock"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Razorgrass Invoker" targeting B "Grizzly Bears"
+  turn 3 B: cast "Shock" targeting "Grizzly Bears" in response to trigger "Razorgrass Invoker"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert power "Razorgrass Invoker" 4
+}

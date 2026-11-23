@@ -2695,6 +2695,8 @@ impl Compiler<'_> {
                 CoreRecipient::Targets(u8::try_from(ti(i)).unwrap_or(u8::MAX), u8::MAX)
             }
             Recipient::Target(i)
+            | Recipient::YouAndTarget(i)
+            | Recipient::SourceAndTarget(i)
             | Recipient::ThatTarget(i)
             | Recipient::TheTarget(i)
             | Recipient::TheTargetFull(i, _)
@@ -2948,14 +2950,37 @@ impl Compiler<'_> {
         let tmap = self.tmap;
         let implied = self.implied.clone();
         let used = std::rc::Rc::clone(&self.implied_used);
+        // A pair subject ("you and target opponent", "this creature and
+        // up to one other target creature") only where an arm below splits
+        // it into one effect for each.
+        let pair = std::cell::Cell::new(false);
         let r = |x: Recipient| {
             if let Recipient::Group(i) = x
                 && let Some(Some(k)) = implied.get(usize::from(i))
             {
                 used.set(Some(*k));
             }
+            if matches!(x, Recipient::YouAndTarget(_) | Recipient::SourceAndTarget(_)) {
+                pair.set(true);
+            }
             Self::recipient(&groups, many, tmap, x)
         };
+        let result = self.effect_match(e, out, &r);
+        if pair.get() {
+            return self.err(
+                "`you and target ...` and `this and target ...` as a subject only of `draw` and `gets`",
+            );
+        }
+        result
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn effect_match(
+        &mut self,
+        e: &Effect,
+        out: &mut Vec<CoreEffect>,
+        r: &dyn Fn(Recipient) -> CoreRecipient,
+    ) -> Result<(), CompileError> {
         match e {
             Effect::DealDamage { to, .. } if to.is_empty() => {
                 return self.err("`deal N damage` without `to` only in an `instead` sentence");
@@ -2981,6 +3006,22 @@ impl Compiler<'_> {
                     out.push(CoreEffect::DealDamage {
                         amount: *amount,
                         to: r(*t),
+                    });
+                }
+            }
+            // "This creature and up to one other target creature each get
+            // +3/+3 until end of turn": the source, then the target (if
+            // one was chosen).
+            Effect::Pump {
+                power,
+                toughness,
+                to: Recipient::SourceAndTarget(a),
+            } => {
+                for to in [CoreRecipient::Source, r(Recipient::Target(*a))] {
+                    out.push(CoreEffect::Pump {
+                        power: *power,
+                        toughness: *toughness,
+                        to,
                     });
                 }
             }
@@ -3022,6 +3063,16 @@ impl Compiler<'_> {
             }),
             Effect::LoseHalfLife { who } => out.push(CoreEffect::LoseHalfLife { who: r(*who) }),
             Effect::LoseGame { who } => out.push(CoreEffect::LoseGame { who: r(*who) }),
+            // "You and target opponent each draw a card": you, then the
+            // target.
+            Effect::DrawCards {
+                count,
+                who: Some(Recipient::YouAndTarget(a)),
+            } => {
+                for who in [CoreRecipient::You, r(Recipient::Target(*a))] {
+                    out.push(CoreEffect::DrawCards { count: *count, who });
+                }
+            }
             Effect::DrawCards { count, who } => out.push(CoreEffect::DrawCards {
                 count: *count,
                 who: who.map_or(CoreRecipient::You, r),

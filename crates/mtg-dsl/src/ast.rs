@@ -3592,6 +3592,15 @@ pub enum Recipient {
     /// 1`: the `n`th target and the `g`th group, whose filter relates to
     /// that target.
     TargetAnd(usize, u16),
+    /// `you and target opponent each draw 1 card`: you and the `n`th
+    /// target as one subject, "You and target opponent each draw a card."
+    /// (Sky Crier); the effect happens to each, you first.
+    YouAndTarget(usize),
+    /// `this and up to 1 other target creature each get +3/+3`: the
+    /// source and the `n`th target as one subject, "This creature and up
+    /// to one other target creature each get +3/+3 until end of turn."
+    /// (Razorgrass Invoker).
+    SourceAndTarget(usize),
     /// `exiled card`: "the exiled card", what this permanent's linked
     /// ability exiled (CR 607.2a).
     ExiledCard,

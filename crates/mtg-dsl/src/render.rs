@@ -1651,6 +1651,11 @@ impl<'a> Ctx<'a> {
             }
             Recipient::BlockingIt => "each creature blocking it".to_string(),
             Recipient::TargetAnd(t, i) => self.target_and(t, i),
+            Recipient::YouAndTarget(a) => format!("you and {}", self.obj(Recipient::Target(a))),
+            Recipient::SourceAndTarget(a) => {
+                let first = self.obj(Recipient::Source);
+                format!("{first} and {}", self.obj(Recipient::Target(a)))
+            }
             Recipient::ExiledCard => "the exiled card".to_string(),
             Recipient::ExiledWith(i) => {
                 // CR 607.2a: "all cards exiled with this artifact", "each
@@ -1859,6 +1864,14 @@ impl<'a> Ctx<'a> {
                 }
             }
             Recipient::Source => self.source_subj(),
+            // "You and target opponent each draw a card."
+            Recipient::YouAndTarget(a) => format!("you and {}", self.subj(Recipient::Target(a))),
+            // "This creature and up to one other target creature each get
+            // +3/+3 until end of turn."
+            Recipient::SourceAndTarget(a) => {
+                let first = self.source_subj();
+                format!("{first} and {}", self.subj(Recipient::Target(a)))
+            }
             // "Put a +1/+1 counter on Metalhead. He gains menace and haste
             // until end of turn."
             Recipient::SourceIt => {
@@ -2116,6 +2129,8 @@ impl<'a> Ctx<'a> {
                 | Recipient::ThoseTargets(..)
                 | Recipient::ChosenTargets(..)
                 | Recipient::TargetAnd(..)
+                | Recipient::YouAndTarget(_)
+                | Recipient::SourceAndTarget(_)
                 | Recipient::CreatedTokens
                 | Recipient::CreatedThem
                 | Recipient::CreatedThose
@@ -5005,7 +5020,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         } => {
             let mut s = ctx.subj(*to);
             // "Up to two target creatures each get +1/+0".
-            let each = if matches!(to, Recipient::Targets(..)) || ctx.is_many(*to) {
+            let each = if matches!(to, Recipient::Targets(..) | Recipient::SourceAndTarget(_)) || ctx.is_many(*to) {
                 "each "
             } else {
                 ""
@@ -6220,7 +6235,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     let s = ctx.subj(*w);
                     // "Two target players each draw a card" (Gleaming
                     // Splendor).
-                    let each = if matches!(w, Recipient::Targets(..)) {
+                    let each = if matches!(w, Recipient::Targets(..) | Recipient::YouAndTarget(_)) {
                         "each "
                     } else {
                         ctx.each_many(*w)

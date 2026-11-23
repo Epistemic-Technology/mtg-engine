@@ -2532,6 +2532,13 @@ colorless, CR 105.2c), and targets. After such a recipient, `those
 creatures` is the target and the group together ("Untap target creature
 and each other creature that shares a color with it. Those creatures get
 +2/+0 until end of turn.", Rally the Righteous).
+Two subjects, one of them a target, each doing the same thing: `you and
+target opponent each draw 1 card` ("You and target opponent each draw a
+card.", you first, then the target) and `this and up to 1 another target
+creature each get +3/+3` ("This creature and up to one other target
+creature each get +3/+3 until end of turn."; with the target declined, the
+source still gets it; with the only target illegal, the ability does
+nothing, CR 608.2b). Only `draw` and `get` take such a subject.
 creatures you control get +2/+2" as a subject; `each creature your
 opponents control`), and targets. A group is "they" again within its
 sentence and named in full in a later one ("... to each creature your

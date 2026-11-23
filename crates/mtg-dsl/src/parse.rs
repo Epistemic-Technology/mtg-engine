@@ -6365,7 +6365,17 @@ impl P {
             if group.is_some() || self.is_many_subject(&subjects) {
                 self.subject_each = self.eat_word("each");
             }
-            let subject = if let Some(g) = group {
+            // "You and target opponent each draw a card", "This creature
+            // and up to one other target creature each get +3/+3".
+            let pair = match subjects.as_slice() {
+                [Recipient::You, Recipient::Target(a)] => Some(Recipient::YouAndTarget(*a)),
+                [Recipient::Source, Recipient::Target(a)] => Some(Recipient::SourceAndTarget(*a)),
+                _ => None,
+            };
+            if pair.is_some() {
+                self.subject_each = self.eat_word("each");
+            }
+            let subject = if let Some(g) = group.or(pair) {
                 g
             } else if subjects.len() == 1 {
                 subjects[0]
