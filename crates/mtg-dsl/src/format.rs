@@ -3430,6 +3430,7 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
         g.same = None;
     }
     g.that_player = None;
+    g.their = false;
     // "creature card with mana value X or less": the mana value after the
     // noun.
     let mut mv = String::new();

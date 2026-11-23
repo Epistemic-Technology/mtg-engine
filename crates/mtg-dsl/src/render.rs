@@ -1449,6 +1449,7 @@ impl<'a> Ctx<'a> {
                 };
                 let mut g = filter.clone();
                 g.that_player = None;
+                g.their = false;
                 let tgt = if g.relation == Relation::Other {
                     crate::format::relation_any(&mut g);
                     "another target"
@@ -2086,6 +2087,7 @@ impl<'a> Ctx<'a> {
                 };
                 let mut filter = filter.clone();
                 filter.that_player = None;
+                filter.their = false;
                 let each = std::mem::take(&mut filter.each);
                 let filter = &filter;
                 if each {
@@ -7286,7 +7288,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     }
                     _ => false,
                 };
-                let order = if any_order { " in any order" } else { "" };
+                // (From your own graveyard Oracle leaves the order out:
+                // Gravepurge.)
+                let order = if any_order && whose == "their" {
+                    " in any order"
+                } else {
+                    ""
+                };
                 return Clause::imperative(match place {
                     P::Top => format!("put {o} on top of {whose} library{order}"),
                     P::FromTop(n) => {
