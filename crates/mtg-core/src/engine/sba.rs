@@ -501,14 +501,19 @@ impl GameState {
         if let Some(r) = self.result {
             return Some(r);
         }
-        let alive: Vec<PlayerId> = self.players_in_game().collect();
-        let result = match alive.len() {
+        // The first two players still in, without collecting them: this
+        // runs at every turn of the main loop.
+        let (first, second) = {
+            let mut alive = self.players_in_game();
+            (alive.next(), alive.next())
+        };
+        let result = match (first, second) {
             // CR 104.4b: a loop is a draw (see the constant).
             _ if self.resolutions_this_turn >= crate::state::MAX_RESOLUTIONS_PER_TURN => {
                 GameResult::Draw
             }
-            0 => GameResult::Draw,
-            1 => GameResult::Win { winner: alive[0] },
+            (None, _) => GameResult::Draw,
+            (Some(winner), None) => GameResult::Win { winner },
             _ => return None,
         };
         self.result = Some(result);
