@@ -12677,6 +12677,52 @@ impl GameState {
                 ctx.did = any;
                 ctx.controller = you;
             }
+            // "Any player may pay 5 life. If a player does, ...": from the
+            // active player in turn order (CR 101.4), until one does.
+            Effect::AnyPlayerMay { opponents, effects } => {
+                let def = self.source_def(ctx);
+                let you = ctx.controller;
+                let mut p = self.active_player;
+                let mut players: SmallVec<[PlayerId; 4]> = SmallVec::new();
+                for _ in 0..self.num_players() {
+                    if self.player(p).lost.is_none() && !(*opponents && p == you) {
+                        players.push(p);
+                    }
+                    p = self.next_player(p);
+                }
+                let mut any = false;
+                for p in players {
+                    ctx.controller = p;
+                    let possible = effects.iter().all(|e| match e {
+                        Effect::Pay { mana, life } => {
+                            (*life == 0
+                                || self.player(p).life >= i32::try_from(*life).unwrap_or(i32::MAX))
+                                && self.can_pay(p, &mana.requirements(0))
+                        }
+                        e => self.can_do(ctx, e),
+                    });
+                    // The effect's own controller is asked too, declining
+                    // listed first for them.
+                    let options = if p == you {
+                        vec![Choice::Decline, Choice::Accept]
+                    } else {
+                        vec![Choice::Accept, Choice::Decline]
+                    };
+                    if possible
+                        && options.get(self.choose_mid(p, DecisionKind::YouMay { def }, options.clone()))
+                            == Some(&Choice::Accept)
+                    {
+                        ctx.did = true;
+                        for e in effects {
+                            self.apply_effect(ctx, e);
+                        }
+                        any = true;
+                        break;
+                    }
+                }
+                ctx.controller = you;
+                ctx.did = any;
+            }
             // CR 701.67a: pay it, tapping artifacts and creatures for
             // generic mana where mana runs short.
             Effect::Waterbend(mana) => {

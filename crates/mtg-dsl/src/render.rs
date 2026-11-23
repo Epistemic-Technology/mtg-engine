@@ -1354,6 +1354,13 @@ struct Ctx<'a> {
     /// "That player may pay {4}": a following "If you do" prints "If the
     /// player does".
     player_did: bool,
+    /// After "any player may ...": "If a player does" / "If no one does".
+    any_player_did: bool,
+    /// In a "When you cast this spell" trigger: "counter Brain Gorgers"
+    /// names the spell.
+    cast_this: bool,
+    /// An "any player may ..." was printed in this ability.
+    any_player_said: bool,
     /// Inside "If the player does, ...": that player is "they" (Chain
     /// Lightning's "they may copy this spell").
     player_they: bool,
@@ -1419,6 +1426,9 @@ impl<'a> Ctx<'a> {
             they_paid: false,
             lost_life_did: false,
             player_did: false,
+            any_player_did: false,
+            cast_this: false,
+            any_player_said: false,
             player_they: false,
             delayed_tail: None,
             before_if_you_dont: false,
@@ -7745,6 +7755,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::with_subject(if source { Recipient::Source } else { *who }, s, text)
         }
         // Where a countered spell goes is added in `clause`, after a count.
+        // "When you cast this spell, any player may pay 5 life. If a player
+        // does, counter Dash Hopes."
+        Effect::Counter {
+            to: Recipient::Source,
+            ..
+        } if ctx.cast_this && ctx.any_player_said => {
+            Clause::imperative(format!("counter {}", short_name(ctx.card)))
+        }
         Effect::Counter { to, .. } => {
             let o = ctx.obj(*to);
             Clause::imperative(format!("counter {o}"))
@@ -9452,6 +9470,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(format!("{when}, {}", body.trim_end_matches('.')))
         }
+        // "If no one does, target player mills six cards." (after "Any
+        // player may ...").
+        Effect::Otherwise(inner) if ctx.any_player_did => {
+            ctx.any_player_did = false;
+            let body = sentences(inner, ctx);
+            let body = if starts_with_name(&body, ctx.card) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
+            Clause::imperative(format!("if no one does, {}", body.trim_end_matches('.')))
+        }
         Effect::Otherwise(inner) => {
             // "Otherwise, create one of those tokens.": the token the
             // sentence before created.
@@ -9474,6 +9504,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // do, ...".
             let who = if std::mem::take(&mut ctx.lost_life_did) {
                 "you lost life this way"
+            } else if std::mem::take(&mut ctx.any_player_did) {
+                "a player does"
             } else if std::mem::take(&mut ctx.player_did) {
                 ctx.player_they = true;
                 "the player does"
@@ -10205,6 +10237,36 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
             )
             .until_eot()
+        }
+        Effect::AnyPlayerMay { opponents, inner } => {
+            let body = sentences(inner, ctx);
+            let body = if starts_with_name(&body, ctx.card) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
+            let body = body.trim_end_matches('.');
+            let body = body.strip_prefix("you ").unwrap_or(body);
+            // The player acts as themselves: "exile a card from their
+            // graveyard", "sacrifice a creature of their choice", "have it
+            // deal 5 damage to them".
+            let body = body.replace("your graveyard", "their graveyard");
+            let body = if body.starts_with("sacrifice ") {
+                format!("{body} of their choice")
+            } else if let Some((who, dmg)) = body.split_once(" deals ")
+                && let Some(n) = dmg.strip_suffix(" damage to you")
+            {
+                format!("have {who} deal {n} damage to them")
+            } else {
+                body
+            };
+            ctx.any_player_did = true;
+            ctx.any_player_said = true;
+            // "If a player does, sacrifice this creature.": the source is
+            // named again after "have it deal 5 damage to them".
+            ctx.source_mentioned = false;
+            let who = if *opponents { "any opponent" } else { "any player" };
+            Clause::imperative(format!("{who} may {body}"))
         }
         Effect::PlayerMay { who, inner } => {
             let you = *who == Recipient::You;
@@ -11212,6 +11274,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         }
         Trigger::CastThis { or_cycle: false } => {
             ctx.source_mentioned = true;
+            ctx.cast_this = true;
             "when you cast this spell".to_string()
         }
         Trigger::CastThis { or_cycle: true } => {

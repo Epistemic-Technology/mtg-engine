@@ -1,0 +1,7 @@
+card "Prowling Pangolin" {
+  oracle_id 92042cad-09f5-464f-85ad-baad27e6d1eb
+  cost {3}{B}{B}
+  type Creature — Pangolin Beast
+  pt 6/5
+  triggered when this enters: any player may sacrifice 2 creature chosen; if a player does, sacrifice this creature
+}

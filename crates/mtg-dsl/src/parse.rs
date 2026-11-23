@@ -6537,6 +6537,35 @@ impl P {
             self.subject = saved;
             return Ok(Effect::KeepMana(vec![s]));
         }
+        // "Any player may pay 5 life", "any opponent may sacrifice a
+        // creature of their choice".
+        if self.at_words(&["any", "player", "may"]) || self.at_words(&["any", "opponent", "may"]) {
+            let opponents = self.word_at(1).as_deref() == Some("opponent");
+            self.pos += 3;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::AnyPlayerMay {
+                opponents,
+                inner: vec![s],
+            });
+        }
+        // "if a player does, ..." / "if no one does, ..." after it.
+        if self.at_words(&["if", "a", "player", "does"]) || self.at_words(&["if", "no", "one", "does"]) {
+            let done = self.word_at(1).as_deref() == Some("a");
+            self.pos += 4;
+            if self.peek() == Some(&Tok::Comma) {
+                self.pos += 1;
+            }
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(if done {
+                Effect::IfYouDo(vec![s])
+            } else {
+                Effect::Otherwise(vec![s])
+            });
+        }
         // "you may ..." before "you" as a subject.
         if self.at_words(&["you", "may"]) {
             self.pos += 2;

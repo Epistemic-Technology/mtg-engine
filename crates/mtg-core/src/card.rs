@@ -4502,6 +4502,15 @@ pub enum Effect {
         who: Recipient,
         effects: Vec<Effect>,
     },
+    /// "Any player may pay 5 life", "any opponent may sacrifice a creature
+    /// of their choice" (CR 608.2d): starting with the active player and in
+    /// turn order (CR 101.4), each player (each opponent, with
+    /// `opponents`) may do these as their own, until one does; "If a
+    /// player does" / "If no one does" then see whether one did.
+    AnyPlayerMay {
+        opponents: bool,
+        effects: Vec<Effect>,
+    },
     /// "pay {2}" / "pay 2 life", inside "you may": it happens only if the
     /// controller can pay; "If you do" then sees whether it did.
     Pay {
@@ -5481,6 +5490,7 @@ impl Effect {
             self,
             Effect::YouMay(_)
                 | Effect::PlayerMay { .. }
+                | Effect::AnyPlayerMay { .. }
                 | Effect::ForEachCouldnt(_)
                 | Effect::EachPutsFromGraveyard { .. }
                 | Effect::IfKicked(_)
@@ -8084,6 +8094,7 @@ impl AbilityDef {
             out.push(e);
             if let Effect::YouMay(inner)
             | Effect::PlayerMay { effects: inner, .. }
+            | Effect::AnyPlayerMay { effects: inner, .. }
             | Effect::IfKicked(inner)
             | Effect::IfYouDo(inner)
             | Effect::Otherwise(inner)

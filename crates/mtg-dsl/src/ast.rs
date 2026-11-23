@@ -4568,6 +4568,17 @@ pub enum Effect {
         who: Recipient,
         inner: Vec<Sentence>,
     },
+    /// `any player may pay 5 life`, `any opponent may sacrifice 1 creature
+    /// chosen`, `any player may this deals 6 damage to you`: "Any player
+    /// may pay 5 life", "any opponent may sacrifice a creature of their
+    /// choice", "Any player may have ~ deal 6 damage to them" (each player
+    /// in turn order until one does, acting as the one who does it); a
+    /// following `if you do` prints "If a player does", `otherwise` "If no
+    /// one does".
+    AnyPlayerMay {
+        opponents: bool,
+        inner: Vec<Sentence>,
+    },
     /// "If this spell was kicked, ..." (CR 702.33c).
     IfKicked(Vec<Sentence>),
     /// `each player puts 1 creature card from graveyard onto battlefield`:

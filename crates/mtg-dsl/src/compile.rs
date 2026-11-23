@@ -3923,6 +3923,13 @@ impl Compiler<'_> {
                     effects,
                 });
             }
+            Effect::AnyPlayerMay { opponents, inner } => {
+                let effects = self.sentences(inner)?;
+                out.push(CoreEffect::AnyPlayerMay {
+                    opponents: *opponents,
+                    effects,
+                });
+            }
             Effect::IfTarget(n, f, inner, _) => {
                 let then = self.sentences(inner)?;
                 out.push(CoreEffect::IfTarget {
@@ -4032,6 +4039,8 @@ impl Compiler<'_> {
                             | CoreEffect::Clash { .. }
                             | CoreEffect::IfCard { .. }
                             | CoreEffect::IfYouDo(..)
+                            // "If no one does, ..." (Book Burning).
+                            | CoreEffect::AnyPlayerMay { .. }
                     )
                 ) {
                     return self.err("`otherwise` needs a conditional sentence before it");

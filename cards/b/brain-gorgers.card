@@ -1,0 +1,8 @@
+card "Brain Gorgers" {
+  oracle_id 3b9369ae-8827-45d1-af85-c777cde8e1bc
+  cost {3}{B}
+  type Creature — Zombie
+  pt 4/2
+  triggered when you cast this: any player may sacrifice 1 creature chosen; if a player does, counter this
+  madness {1}{B}
+}

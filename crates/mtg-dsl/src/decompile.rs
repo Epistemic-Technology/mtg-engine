@@ -1434,6 +1434,10 @@ impl Decompiler<'_> {
                 in_addition: *in_addition,
             },
             CoreEffect::YouMay(inner) => Effect::YouMay(self.sentences(inner)),
+            CoreEffect::AnyPlayerMay { opponents, effects } => Effect::AnyPlayerMay {
+                opponents: *opponents,
+                inner: self.sentences(effects),
+            },
             CoreEffect::PlayerMay { who, effects } => Effect::PlayerMay {
                 who: Self::recipient(*who),
                 inner: self.sentences(effects),

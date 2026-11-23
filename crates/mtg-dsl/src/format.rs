@@ -2600,6 +2600,11 @@ impl Fmt {
                 let who = self.recipient(*who, t);
                 format!("{who} may {}", self.line(inner, t))
             }
+            Effect::AnyPlayerMay { opponents, inner } => format!(
+                "any {} may {}",
+                if *opponents { "opponent" } else { "player" },
+                self.line(inner, t)
+            ),
             Effect::IfKicked(inner) => format!("if kicked, {}", self.line(inner, t)),
             Effect::KeepMana(inner) => format!("keep mana {}", self.line(inner, t)),
             Effect::SpendRider {

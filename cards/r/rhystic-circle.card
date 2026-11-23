@@ -1,0 +1,6 @@
+card "Rhystic Circle" {
+  oracle_id bffb7d30-b9a4-4529-a3fc-c82d6cd4b599
+  cost {2}{W}{W}
+  type Enchantment
+  activated {1}: any player may pay {1}; if no one does, this turn, replace damage from chosen source to you: prevent next time
+}

@@ -1,0 +1,7 @@
+card "Carrion Rats" {
+  oracle_id 1aa6b31b-cd30-4741-abc6-2ef72e445630
+  cost {B}
+  type Creature — Rat
+  pt 2/1
+  triggered whenever this attacks or blocks: any player may exile 1 card from your graveyard chosen; if a player does, this creature assigns no combat damage this turn
+}

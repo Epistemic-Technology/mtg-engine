@@ -2389,7 +2389,19 @@ this new targets` prints Chain Lightning's "Then that player or that
 permanent's controller may pay {R}{R}. If the player does, they may copy
 this spell and may choose a new target for that copy.": the controller of
 an "any target" that is a player is that player, and the copy is the
-paying player's, CR 707.10), `the creature` (in a triggered ability, the triggering
+paying player's, CR 707.10), `any player may <clause>` / `any opponent
+may <clause>` ("Any player may pay 5 life", CR 608.2d: starting with the
+active player and in turn order, CR 101.4, each player, or each
+opponent, may do it as their own, until one does; an act they can't
+complete isn't offered; the effect's controller has declining listed
+first): `pay 5 life`, `pay {1}`, `sacrifice 2 creature chosen` ("sacrifice
+two creatures of their choice"), `exile 1 card from your graveyard
+chosen` ("exile a card from their graveyard"), `this deals 6 damage to
+you` ("have Book Burning deal 6 damage to them"); a following `if a player
+does, <clause>` (or `if you do,`) prints "If a player does, ...", and `if
+no one does, <clause>` (or `otherwise,`) "If no one does, ..."; `counter
+this` there in a "When you cast this spell" trigger names the spell
+("counter Brain Gorgers"), `the creature` (in a triggered ability, the triggering
 object printed "the creature": "untap the creature"), `if you do,
 <clause>` (only if the optional action before it happened: "You may pay
 {2}. If you do, draw a card."), `if you don't, <clause>` / `if you dont, <clause>` (only if it
