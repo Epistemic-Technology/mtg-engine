@@ -11232,6 +11232,8 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         }
         Condition::Evoked => "if it was evoked".to_string(),
         Condition::NotRenowned => "if it isn't renowned".to_string(),
+        Condition::WasBlocking(true) => "if it was blocking".to_string(),
+        Condition::WasBlocking(false) => "if it wasn't blocking".to_string(),
         Condition::NotPrepared => format!("if {} isn't prepared", ctx.source()),
         Condition::Evolves => format!(
             "if it has greater power or toughness than {}",

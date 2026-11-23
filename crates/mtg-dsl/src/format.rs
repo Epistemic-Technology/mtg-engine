@@ -5850,6 +5850,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 Some(mtg_core::card::Condition::EchoDue) => head.push_str(" if echo due"),
                 Some(mtg_core::card::Condition::NotRenowned) => head.push_str(" if not renowned"),
+                Some(mtg_core::card::Condition::WasBlocking(true)) => {
+                    head.push_str(" if it was blocking");
+                }
+                Some(mtg_core::card::Condition::WasBlocking(false)) => {
+                    head.push_str(" if it wasn't blocking");
+                }
                 Some(mtg_core::card::Condition::NotPrepared) => {
                     head.push_str(" if this isn't prepared");
                 }

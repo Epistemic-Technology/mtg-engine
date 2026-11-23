@@ -6675,6 +6675,10 @@ pub enum Condition {
     EchoDue,
     /// "if it isn't renowned" (renown, CR 702.112a).
     NotRenowned,
+    /// "if it was blocking" (`true`), "if it wasn't blocking" (`false`) in
+    /// a leaves-the-battlefield trigger: the source as it last existed on
+    /// the battlefield (CR 603.10a).
+    WasBlocking(bool),
     /// "if this creature isn't prepared" (CR 722.3a).
     NotPrepared,
     /// Evolve (CR 702.100a): the triggering creature's power is greater

@@ -13920,6 +13920,12 @@ impl P {
         if self.eat_words(&["not", "renowned"]) {
             return Ok(Condition::NotRenowned);
         }
+        if self.eat_words(&["it", "was", "blocking"]) {
+            return Ok(Condition::WasBlocking(true));
+        }
+        if self.eat_words(&["it", "wasn't", "blocking"]) {
+            return Ok(Condition::WasBlocking(false));
+        }
         if self.eat_words(&["this", "isn't", "prepared"]) {
             return Ok(Condition::NotPrepared);
         }

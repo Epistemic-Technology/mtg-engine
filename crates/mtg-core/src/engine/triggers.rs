@@ -2343,6 +2343,7 @@ impl GameState {
                 .get(source)
                 .is_some_and(crate::state::GameObject::echo_due),
             Condition::NotRenowned => self.objects.get(source).is_some_and(|o| !o.renowned()),
+            Condition::WasBlocking(b) => self.was_blocking(source) == b,
             Condition::NotPrepared => self.objects.get(source).is_some_and(|o| !o.prepared()),
             Condition::Evolves => {
                 let this = self.characteristics_or_lki(source);
@@ -2406,6 +2407,7 @@ impl GameState {
                 .get(w.source)
                 .is_some_and(crate::state::GameObject::echo_due),
             Condition::NotRenowned => self.objects.get(w.source).is_some_and(|o| !o.renowned()),
+            Condition::WasBlocking(b) => self.was_blocking(w.source) == b,
             Condition::NotPrepared => self.objects.get(w.source).is_some_and(|o| !o.prepared()),
             Condition::Evolves => self.evolves(Some(&w.chars), trigger_obj),
             Condition::Increments => self.increments(Some(&w.chars), trigger_obj),
@@ -2542,6 +2544,18 @@ impl GameState {
                     .map(|o| o.counters.iter().any(|(_, n)| *n > 0))
             })
             .unwrap_or(false)
+    }
+
+    /// Whether `id` was a blocking creature as it left the battlefield
+    /// (or is one now, if it hasn't left).
+    fn was_blocking(&self, id: ObjId) -> bool {
+        match self.lki.get(&id) {
+            Some(l) => l.blocking,
+            None => self
+                .combat
+                .as_ref()
+                .is_some_and(|c| c.attackers.iter().any(|a| a.blockers.contains(&id))),
+        }
     }
 
     fn had_counters(&self, id: ObjId, k: crate::card::CounterKind) -> bool {
