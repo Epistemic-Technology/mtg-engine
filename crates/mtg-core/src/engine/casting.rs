@@ -9627,6 +9627,9 @@ impl GameState {
                 SearchTo::Graveyard => {
                     self.move_object(id, Zone::Graveyard, true);
                 }
+                SearchTo::Exile => {
+                    self.move_object(id, Zone::Exile, true);
+                }
                 SearchTo::HandOrGraveyard => {
                     let def = self
                         .objects

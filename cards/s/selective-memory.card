@@ -1,0 +1,6 @@
+card "Selective Memory" {
+  oracle_id 3cfb4977-5b6d-4220-9c54-70920b3087ed
+  cost {3}{U}
+  type Sorcery
+  spell: search any number nonland card to exile
+}

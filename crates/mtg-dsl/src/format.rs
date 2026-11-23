@@ -2199,6 +2199,7 @@ impl Fmt {
                         " to battlefield tapped and hand"
                     }
                     mtg_core::card::SearchTo::Graveyard => " to graveyard",
+                    mtg_core::card::SearchTo::Exile => " to exile",
                     mtg_core::card::SearchTo::HandOrGraveyard => " to hand or graveyard",
                 });
                 if *that_card {

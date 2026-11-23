@@ -2189,7 +2189,9 @@ shuffle."); `search Rebel permanent card with mana value 3 or
 less to battlefield`: the mana value after the noun, `permanent card`
 not an instant or sorcery (CR 110.4a); `search card to graveyard that
 card` ("Search your library for a card, put that card into your
-graveyard, then shuffle."); `search creature card reveal to hand or
+graveyard, then shuffle."); `search 3 cards to exile` ("Search your
+library for three cards, exile them, then shuffle.", face up and linked to
+nothing); `search creature card reveal to hand or
 graveyard` ("..., reveal it, put it into your hand or graveyard, then
 shuffle.": the searcher chooses, `choose "1"` hand or `choose "2"`
 graveyard in a scenario); `reveal to hand that card`:

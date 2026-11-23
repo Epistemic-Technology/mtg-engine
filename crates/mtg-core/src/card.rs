@@ -2473,6 +2473,9 @@ pub enum SearchTo {
     /// "put it into your hand or graveyard" (Dina's Guidance): the
     /// searcher chooses, for each card.
     HandOrGraveyard,
+    /// "exile them, then shuffle" (Foresight): face up, not linked to
+    /// anything.
+    Exile,
 }
 
 /// A static ability (CR 604) that generates a continuous effect while its

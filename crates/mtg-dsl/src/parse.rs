@@ -9458,6 +9458,8 @@ impl P {
                     mtg_core::card::SearchTo::TopOfLibrary
                 } else if self.eat_word("graveyard") {
                     mtg_core::card::SearchTo::Graveyard
+                } else if self.eat_word("exile") {
+                    mtg_core::card::SearchTo::Exile
                 } else {
                     return self.unexpected("`hand`, `battlefield`, `graveyard`, or `top`");
                 };

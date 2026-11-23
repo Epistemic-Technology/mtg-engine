@@ -8155,6 +8155,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     let gy = hand.replace("hand", "hand or graveyard");
                     let _ = write!(text, "{put} {pron} into {gy}, then {shuffle}");
                 }
+                // "exile them, then shuffle" (Foresight).
+                mtg_core::card::SearchTo::Exile => {
+                    let v = if third { "exiles" } else { "exile" };
+                    let _ = write!(text, "{v} {pron}, then {shuffle}");
+                }
             }
             match who {
                 Some(w) if *w != Recipient::You => {
