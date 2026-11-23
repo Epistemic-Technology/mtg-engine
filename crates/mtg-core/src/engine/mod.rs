@@ -1438,7 +1438,10 @@ impl GameState {
                             source,
                             &mut options,
                         );
-                    if optional && !forced {
+                    // Declining that first target ("up to two target ...")
+                    // leaves the cost unchanged: only if that is payable.
+                    let decline_ok = !cost_checked || self.target_payable(spell, Target::none());
+                    if optional && !forced && decline_ok {
                         if options.is_empty() {
                             // Nothing to choose: declined, and the later
                             // targets are still chosen (CR 601.2c).

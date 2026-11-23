@@ -98,3 +98,22 @@ scenario "cast paths: with three lands the face-down creature's card is cast" {
   run_to turn 1 postcombat_main
   assert battlefield A contains "face-down creature"
 }
+
+scenario "cast paths: a target cost's first target is declined only if the full cost is payable" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "This Town Ain't Big Enough"
+  illegal turn 1 A: cast "This Town Ain't Big Enough" targeting none, "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "cast paths: the cheaper target is chosen first" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "This Town Ain't Big Enough"
+  turn 1 A: cast "This Town Ain't Big Enough" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert hand A contains "Grizzly Bears"
+}
