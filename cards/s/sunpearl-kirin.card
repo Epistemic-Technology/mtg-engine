@@ -1,0 +1,8 @@
+card "Sunpearl Kirin" {
+  oracle_id f17b9356-a329-4f89-b690-afc2eaff4977
+  cost {1}{W}
+  type Creature — Kirin
+  pt 2/1
+  keywords flash, flying
+  triggered whenever this enters: return up to 1 another target nonland permanent you control to hand; if target 1 was token, draw 1 card
+}

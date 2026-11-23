@@ -1,0 +1,7 @@
+card "Spectacular Pileup" {
+  oracle_id 8f7479e6-b2bd-46b1-96ad-34deb43565c1
+  cost {3}{W}{W}
+  type Sorcery
+  spell: every andlist creature or Vehicle lose indestructible until end of turn then destroy all andlist creature or Vehicle
+  cycling {2}
+}

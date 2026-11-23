@@ -4471,6 +4471,18 @@ impl Compiler<'_> {
                 choose: *choose,
                 from: from.map(r),
             }),
+            // "Reveal the top X cards ..., where X is ... a card with mana
+            // value X or less" (Hatchery Spider): `mana value X` reads the
+            // spell's X, not the count.
+            Effect::Dig {
+                count: Num::Count(_),
+                filter: Some(f),
+                ..
+            } if f.status.mana_value_x => {
+                return self.err(
+                    "`dig count ...` with a `mana value X` filter: X is the spell's, not the count; this form isn't supported",
+                );
+            }
             Effect::Dig {
                 count,
                 filter,
@@ -5483,40 +5495,50 @@ impl Compiler<'_> {
                 mods,
                 condition,
                 ..
-            } => AbilityDef::Static(StaticAbility {
-                affected: self.filter(filter),
-                parts: {
-                    let mut parts = Vec::new();
-                    for m in mods {
-                        // "is a Mountain, Forest, and Plains": the first
-                        // replaces its land types, the rest add to it.
-                        if *m == Mod::AddAllLandTypes {
-                            parts.extend(Color::ALL.iter().map(|c| Modification::AddLandType(*c)));
-                            continue;
-                        }
-                        if let Mod::SetLandTypes(lands) = m {
-                            for (i, c) in lands.iter().enumerate() {
-                                parts.push(if i == 0 {
-                                    Modification::SetLandType(*c)
-                                } else {
-                                    Modification::AddLandType(*c)
-                                });
+            } => {
+                let condition = condition.as_ref().map(|c| self.static_cond(c));
+                if let Some(why) = condition.as_ref().and_then(layers_ignore) {
+                    return self.err(format!(
+                        "a static ability's condition {why}: the layers would ignore it (it would hold whatever that state)"
+                    ));
+                }
+                AbilityDef::Static(StaticAbility {
+                    affected: self.filter(filter),
+                    parts: {
+                        let mut parts = Vec::new();
+                        for m in mods {
+                            // "is a Mountain, Forest, and Plains": the first
+                            // replaces its land types, the rest add to it.
+                            if *m == Mod::AddAllLandTypes {
+                                parts.extend(
+                                    Color::ALL.iter().map(|c| Modification::AddLandType(*c)),
+                                );
+                                continue;
                             }
-                            continue;
+                            if let Mod::SetLandTypes(lands) = m {
+                                for (i, c) in lands.iter().enumerate() {
+                                    parts.push(if i == 0 {
+                                        Modification::SetLandType(*c)
+                                    } else {
+                                        Modification::AddLandType(*c)
+                                    });
+                                }
+                                continue;
+                            }
+                            // "has defender, and loses all other abilities": the
+                            // loss applies before what it gains in layer 6 (CR
+                            // 613.1f: the effect's parts in order).
+                            if *m == Mod::RemoveAllAbilities {
+                                parts.insert(0, Modification::RemoveAllAbilities);
+                                continue;
+                            }
+                            parts.push(self.modification_or_grant(m)?);
                         }
-                        // "has defender, and loses all other abilities": the
-                        // loss applies before what it gains in layer 6 (CR
-                        // 613.1f: the effect's parts in order).
-                        if *m == Mod::RemoveAllAbilities {
-                            parts.insert(0, Modification::RemoveAllAbilities);
-                            continue;
-                        }
-                        parts.push(self.modification_or_grant(m)?);
-                    }
-                    parts
-                },
-                condition: condition.as_ref().map(|c| self.static_cond(c)),
-            }),
+                        parts
+                    },
+                    condition,
+                })
+            }
             Ability::EntersWithIf { n, kind, cond, .. } => {
                 let c = self.static_cond(cond);
                 let cond = self.pool.intern_condition(c);
@@ -7655,4 +7677,80 @@ fn counts_activations(s: &crate::ast::Sentence) -> bool {
             Effect::IfCondition(StaticCond::ActivatedThisTurn(_), _, _)
         )
     })
+}
+
+/// What a static ability's condition asks of an object that the layers
+/// don't judge (`layers.rs`, `static_condition_holds`): a status the
+/// condition would ignore, so it would hold whatever that state ("has
+/// first strike as long as it's blocking" on an Aura, Snow Devil). `None`
+/// when everything it asks is judged.
+fn layers_ignore(c: &StaticCondition) -> Option<String> {
+    use mtg_core::card::StatusQuals;
+    // The qualifiers each kind of condition judges in the layers.
+    let check = |f: &mtg_core::card::ObjFilter, tapped: bool, keep: StatusQuals| {
+        let mut rest = f.status;
+        // Judged everywhere (`is_token_ok`); "noncommander" holds for
+        // everything in a game without commanders.
+        rest.token = None;
+        if rest.commander == Some(false) {
+            rest.commander = None;
+        }
+        if keep.counter.is_some() {
+            rest.counter = None;
+        }
+        rest.entered_this_turn &= !keep.entered_this_turn;
+        rest.transformed &= !keep.transformed;
+        rest.toxic &= !keep.toxic;
+        if f.attacking {
+            Some("asks for an attacking permanent".to_string())
+        } else if f.blocking {
+            Some("asks for a blocking permanent".to_string())
+        } else if f.damaged {
+            Some("asks for a damaged permanent".to_string())
+        } else if f.tapped.is_some() && !tapped {
+            Some("asks for a tapped or untapped permanent".to_string())
+        } else if rest.any() {
+            Some(format!("asks for a status ({rest:?})"))
+        } else {
+            None
+        }
+    };
+    let any_counter = StatusQuals {
+        counter: Some(mtg_core::card::CounterQual::Any),
+        ..StatusQuals::default()
+    };
+    match c {
+        StaticCondition::SourceIs(f) => check(
+            f,
+            true,
+            StatusQuals {
+                entered_this_turn: true,
+                ..any_counter
+            },
+        ),
+        StaticCondition::AttachedIs(f) => check(
+            f,
+            true,
+            StatusQuals {
+                toxic: true,
+                ..any_counter
+            },
+        ),
+        StaticCondition::YouControl { filter, .. } => check(
+            filter,
+            false,
+            StatusQuals {
+                transformed: true,
+                ..any_counter
+            },
+        ),
+        StaticCondition::OpponentControls { filter, .. } => {
+            check(filter, true, StatusQuals::default())
+        }
+        StaticCondition::And(a, b) | StaticCondition::Or(a, b) => {
+            layers_ignore(a).or_else(|| layers_ignore(b))
+        }
+        StaticCondition::Not(a) => layers_ignore(a),
+        _ => None,
+    }
 }

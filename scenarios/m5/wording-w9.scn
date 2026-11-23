@@ -423,3 +423,153 @@ scenario "Navigator's Compass: the land keeps its own type and gains the chosen 
   run_to turn 2 upkeep
   assert is not "Plains" Island
 }
+
+# --- KNOWN-ISSUES section 2: status qualifiers in a static ability's condition
+
+scenario "Druid of the Spade: no token, no bonus" {
+  battlefield A: "Druid of the Spade", "Grizzly Bears"
+  start turn 1 A precombat_main
+  assert power "Druid of the Spade" 2
+  assert has not "Druid of the Spade" trample
+}
+
+scenario "Druid of the Spade: a token gives +2/+0 and trample" {
+  battlefield A: "Druid of the Spade", "Food"
+  start turn 1 A precombat_main
+  assert power "Druid of the Spade" 4
+  assert has "Druid of the Spade" trample
+}
+
+# --- Third batch
+
+scenario "Tarrian's Soulcleaver: another creature dying grows the equipped creature" {
+  battlefield A: "Tarrian's Soulcleaver" on "Grizzly Bears", "Grizzly Bears", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert has "Grizzly Bears" vigilance
+}
+
+scenario "Sunpearl Kirin: a returned token draws a card; a returned card doesn't" {
+  battlefield A: 2 "Plains", "Food"
+  hand A: "Sunpearl Kirin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sunpearl Kirin"
+  turn 1 A: trigger "Sunpearl Kirin" targeting "Food"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Food"
+  assert hand A count 1
+}
+
+scenario "Sunpearl Kirin: a nontoken permanent returns, no card" {
+  battlefield A: 2 "Plains", "Abzan Banner"
+  hand A: "Sunpearl Kirin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sunpearl Kirin"
+  turn 1 A: trigger "Sunpearl Kirin" targeting "Abzan Banner"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Abzan Banner"
+  assert hand A count 1
+}
+
+scenario "Vindictive Triumph: a small creature is borrowed until the end step" {
+  battlefield A: "Plains", 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Vindictive Triumph"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vindictive Triumph" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert exile B contains "Grizzly Bears"
+}
+
+scenario "Vindictive Triumph: a big creature stays exiled" {
+  battlefield A: "Plains", 2 "Swamp"
+  battlefield B: "Serra Angel"
+  hand A: "Vindictive Triumph"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vindictive Triumph" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Serra Angel"
+  assert battlefield A lacks "Serra Angel"
+}
+
+scenario "Splash Portal: a Rat blinks and draws" {
+  battlefield A: "Island", "Typhoid Rats"
+  hand A: "Splash Portal"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Splash Portal" targeting "Typhoid Rats"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Typhoid Rats"
+  assert hand A count 1
+}
+
+scenario "Splash Portal: a Bear blinks, no card" {
+  battlefield A: "Island", "Grizzly Bears"
+  hand A: "Splash Portal"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Splash Portal" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 0
+}
+
+scenario "Spectacular Pileup: indestructible creatures and Vehicles die too" {
+  battlefield A: 5 "Plains", "Creepy Doll", "Grizzly Bears"
+  hand A: "Spectacular Pileup"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spectacular Pileup"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Creepy Doll"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+# --- KNOWN-ISSUES section 2: a cycling cost that sacrifices
+
+scenario "Edge of Autumn: cycling sacrifices a land and draws" {
+  battlefield A: "Forest", "Plains"
+  hand A: "Edge of Autumn"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Edge of Autumn" sacrificing "Plains"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Plains"
+  assert graveyard A contains "Edge of Autumn"
+  assert battlefield A lacks "Plains"
+  assert hand A count 1
+}
+
+scenario "Edge of Autumn: with no land it can't be cycled" {
+  hand A: "Edge of Autumn"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Edge of Autumn"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Edge of Autumn"
+}
+
+scenario "Edge of Autumn: four lands, a basic land comes in tapped" {
+  battlefield A: 4 "Forest"
+  library A: "Plains", "Island"
+  hand A: "Edge of Autumn"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Edge of Autumn"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Island"
+  assert tapped "Island"
+}
+
+scenario "Edge of Autumn: five lands, nothing" {
+  battlefield A: 5 "Forest"
+  library A: "Plains", "Island"
+  hand A: "Edge of Autumn"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Edge of Autumn"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Island"
+  assert battlefield A lacks "Plains"
+}

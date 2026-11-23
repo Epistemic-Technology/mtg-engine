@@ -7070,6 +7070,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     // "Return target artifact card ... to the battlefield.
                     // If it's a Vehicle, ..." (Tune Up): a permanent now.
                     ctx.target_noun[*i] = "permanent".to_string();
+                } else if ctx.target_noun[*i] == "card" {
+                    // "Exile target creature you control, then return it to
+                    // the battlefield ... If that creature is a Bird, ..."
+                    // (Splash Portal): back on the battlefield.
+                    ctx.target_noun[*i] = target_noun(&ctx.targets[*i]);
                 }
             }
             let tapped = match (*tapped, *attacking, *transformed) {
@@ -9813,6 +9818,35 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 {
                     format!("{} or {}", with_article(&f.subtypes[0]), alt.subtypes[0])
                 }
+                // "If that creature is a Bird, Frog, Otter, or Rat" (Splash
+                // Portal): three or more creature types.
+                Some(alt)
+                    if alt.or.is_some() && {
+                        let mut ok = true;
+                        let mut g = Some(f);
+                        while let Some(h) = g {
+                            ok &= h.subtypes.len() == 1
+                                && h.types.iter().all(|t| *t == CardType::Creature)
+                                && (Filter {
+                                    subtypes: Vec::new(),
+                                    types: Vec::new(),
+                                    or: None,
+                                    ..h.clone()
+                                }) == Filter::default();
+                            g = h.or.as_deref();
+                        }
+                        ok
+                    } =>
+                {
+                    let mut names = Vec::new();
+                    let mut g = Some(f);
+                    while let Some(h) = g {
+                        names.push(h.subtypes[0].clone());
+                        g = h.or.as_deref();
+                    }
+                    let last = names.pop().expect("three");
+                    format!("{}, or {last}", with_article(&names.join(", ")))
+                }
                 _ => target_predicate(f, ctx.card),
             };
             // "If it's a Zombie card": a card in a graveyard.
@@ -9916,8 +9950,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
                 // "If that spell's mana value was 2 or less" (Sound the
                 // Trumpets).
-                (TargetTense::ThatWas, _) if let Some((cmp, n)) = mana_value_only => {
-                    format!("that {noun}'s mana value was {n}{}", cmp_words(cmp))
+                // "If that permanent's mana value was 3 or less" after it
+                // was exiled (Vindictive Triumph): as it last existed.
+                (TargetTense::ThatWas, _) if let Some((cmp, mv)) = mana_value_only => {
+                    let was = target_noun(&ctx.targets[*n]);
+                    format!("that {was}'s mana value was {mv}{}", cmp_words(cmp))
                 }
                 // "If that creature had power 2 or less" (Driftgloom
                 // Coyote).
@@ -9954,6 +9991,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // tapped" (Brackish Blunder): a state as it last existed.
                 (TargetTense::Was, None) if let Some(state) = status_only(f) => {
                     format!("it was {state}")
+                }
+                // "If it was a token, draw a card." (Sunpearl Kirin).
+                (TargetTense::Was, None)
+                    if *f
+                        == (Filter {
+                            status: mtg_core::card::StatusQuals {
+                                token: Some(true),
+                                ..Default::default()
+                            },
+                            ..Filter::default()
+                        }) =>
+                {
+                    "it was a token".to_string()
                 }
                 // "If it was a legendary spell, the Ring tempts you."
                 // (Glorious Gale): a countered spell, as it last existed.

@@ -1,0 +1,6 @@
+card "Vindictive Triumph" {
+  oracle_id d6b478d1-5015-49ba-b1aa-cbc2b08107a6
+  cost {W}{B}{B}
+  type Instant
+  spell: exile target creature or planeswalker; if that target 1 was with mana value 3 or less, return it to battlefield tapped under your control; delayed target 1: exile it at beginning of the next end step
+}

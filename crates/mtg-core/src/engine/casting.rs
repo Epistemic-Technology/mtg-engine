@@ -75,6 +75,24 @@ impl GameState {
                             }
                             continue;
                         }
+                        // "Cycling—Sacrifice a land." (Edge of Autumn): one
+                        // option per permanent that could be sacrificed,
+                        // none without one.
+                        if let Some(SacCost::Filter(f)) = &ab.cost.sacrifice {
+                            let c = self.sacrifice_candidates(p, f, *id);
+                            if c.len() < ab.cost.chosen_count() {
+                                continue;
+                            }
+                            for s in c {
+                                options.push(Choice::Activate {
+                                    source: *id,
+                                    ability: *a,
+                                    sacrifice: Some(s),
+                                    discard: None,
+                                });
+                            }
+                            continue;
+                        }
                         options.push(Choice::Activate {
                             source: *id,
                             ability: *a,
@@ -15438,6 +15456,18 @@ impl GameState {
                 // that creature is a token".
                 || f.status.entered_this_turn
                 || f.status.token.is_some()
+                // Every other state qualifier ("if it's face down", "that
+                // attacked this turn"): judged by `status_ok`, not passed
+                // for any target. Those judged above and below on the
+                // characteristics aren't state.
+                || {
+                    let mut q = f.status;
+                    q.toxic = false;
+                    q.spent_colors = false;
+                    q.bound = None;
+                    q.mana_value_x = false;
+                    q.any()
+                }
         }
         // Converge: "if its mana value is less than or equal to the number
         // of colors of mana spent to cast this spell".
@@ -15552,6 +15582,7 @@ impl GameState {
                         })
                         && (!filter.status.entered_this_turn
                             || l.object.timestamp >= self.turn_started_at)
+                        && self.lki_status_ok(filter, id, l)
                 })))
     }
 

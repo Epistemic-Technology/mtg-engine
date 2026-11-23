@@ -10365,6 +10365,23 @@ impl P {
                 } else if next.is_none() {
                     let event = self.damage_event(combat)?;
                     self.expect_words(&["this", "turn"])?;
+                    // "Prevent all damage that sources of the color of your
+                    // choice would deal this turn" (Prismatic Strands): the
+                    // color is asked, but the prevention never sees it.
+                    if let Replaces::Damage {
+                        from: Some(Affects::Objects(f)),
+                        ..
+                    }
+                    | Replaces::Damage {
+                        to: Affects::Objects(f),
+                        ..
+                    } = &event
+                        && f.chosen.is_some_and(|c| c.implied().is_some())
+                    {
+                        return self.fail(
+                            "`of color of choice` in a prevention: the choice isn't seen by the prevention; this form isn't supported",
+                        );
+                    }
                     match event {
                         // `... this turn from <source>`: "dealt this turn by"
                         // (Vine Snare).
@@ -12069,6 +12086,16 @@ impl P {
             // `all card exiled with this`: the cards this permanent's
             // abilities exiled (CR 607.2a).
             let exiled = self.eat_words(&["exiled", "with", "this"]);
+            // "Zombies you control get +2/+1 ... Other creatures you
+            // control get +1/+1" (In Oketra's Name): in a spell, "other"
+            // after another group means not that group, but `other`
+            // excludes only the source.
+            if self.in_spell && f.relation == Relation::Other && self.groups.iter().any(|g| *g != f)
+            {
+                return self.fail(
+                    "`other` in a spell's group after another group: it excludes the spell, not the earlier group; this form isn't supported",
+                );
+            }
             let i = if let Some(i) = self.groups.iter().position(|g| *g == f) {
                 i
             } else {
