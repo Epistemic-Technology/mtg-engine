@@ -1725,7 +1725,8 @@ impl Compiler<'_> {
                     SameRef::SameNameAs(_)
                     | SameRef::SharesColorWith(_)
                     | SameRef::ShareCardType
-                    | SameRef::ShareCreatureType,
+                    | SameRef::ShareCreatureType
+                    | SameRef::DifferentControllers,
                 ) => Relation::Any,
                 _ => f.relation,
             },
@@ -1754,6 +1755,10 @@ impl Compiler<'_> {
                     SameRef::ShareCreatureType => Same {
                         of: target(0),
                         what: SameWhat::SharesCreatureType,
+                    },
+                    SameRef::DifferentControllers => Same {
+                        of: target(0),
+                        what: SameWhat::DifferentController,
                     },
                     SameRef::SharesColorWith(n) => Same {
                         of: target(n),

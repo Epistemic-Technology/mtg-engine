@@ -1900,6 +1900,10 @@ impl Fmt {
             Effect::IfWonFlip(inner) => format!("if you win the flip, {}", self.line(inner, t)),
             // "Choose target creature you control and target creature you
             // don't control."
+            // `choose 2 target creature controlled by different players`.
+            Effect::ChooseTarget(r @ Recipient::Targets(a, 2)) if t.get(*a) == t.get(a + 1) => {
+                format!("choose {}", self.recipient(*r, t))
+            }
             Effect::ChooseTarget(Recipient::Targets(a, 2)) => {
                 let first = self.recipient(Recipient::Target(*a), t);
                 let second = self.recipient(Recipient::Target(a + 1), t);
@@ -3369,7 +3373,11 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     // filter, before `card`.
     let shares = matches!(
         f.same,
-        Some(crate::ast::SameRef::ShareCreatureType | crate::ast::SameRef::ShareCardType)
+        Some(
+            crate::ast::SameRef::ShareCreatureType
+                | crate::ast::SameRef::ShareCardType
+                | crate::ast::SameRef::DifferentControllers
+        )
     );
     let named = match f.same {
         _ if shares => "",
@@ -3858,6 +3866,7 @@ pub fn same_ref(r: crate::ast::SameRef) -> String {
         SameRef::SharesColorWith(n) => format!("that shares color with target {}", n + 1),
         SameRef::ShareCardType => "that share card type".to_string(),
         SameRef::ShareCreatureType => "that share creature type".to_string(),
+        SameRef::DifferentControllers => "controlled by different players".to_string(),
         SameRef::LesserPower => "with lesser power".to_string(),
         SameRef::ManaValueAtMostPower => "with mana value at most this power".to_string(),
     }

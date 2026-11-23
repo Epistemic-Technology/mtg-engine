@@ -2046,7 +2046,11 @@ impl<'a> Ctx<'a> {
         // controls. Put a stun counter on each of those creatures."
         let per_opponent = matches!(self.targets.get(a).map(Target::base),
             Some(Target::Filter(f)) if f.per_opponent);
-        if alike && !per_opponent {
+        // "Choose two target creatures controlled by different players.
+        // Return those creatures ...": the relation isn't repeated.
+        let related = matches!(self.targets.get(a).map(Target::base),
+            Some(Target::Filter(f)) if f.same == Some(SameRef::DifferentControllers));
+        if alike && !per_opponent && !related {
             self.plural_target_noun(a)
         } else {
             pluralize(&self.target_noun[a])
@@ -3049,6 +3053,7 @@ fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             " that {} a creature type",
             if plural_form { "share" } else { "shares" }
         ),
+        Some(SameRef::DifferentControllers) => " controlled by different players".to_string(),
     }
 }
 
@@ -6373,7 +6378,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // same name as that permanent ... to their owners' hands".
             let target_and = matches!(what.as_slice(), [Recipient::TargetAnd(..)]);
             // "Return X target creatures to their owners' hands".
-            let plural = what.len() > 1 || all || target_and || ctx.is_many(what[0]);
+            let plural = what.len() > 1
+                || all
+                || target_and
+                || ctx.is_many(what[0])
+                || matches!(
+                    what[0],
+                    Recipient::Targets(..) | Recipient::ThoseTargets(..) | Recipient::ChosenTargets(..)
+                );
             // "Return target creature card and all other cards with the
             // same name as that card from your graveyard to your hand."
             if let [Recipient::TargetAnd(t, _)] = what.as_slice()
@@ -6955,6 +6967,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     Clause::with_subject(*w, s, format!("{v} {what}"))
                 }
             }
+        }
+        // "Choose two target creatures controlled by different players."
+        Effect::ChooseTarget(r @ Recipient::Targets(a, 2))
+            if ctx.targets.get(*a) == ctx.targets.get(a + 1) =>
+        {
+            Clause::imperative(format!("choose {}", ctx.obj(*r)))
         }
         Effect::ChooseTarget(Recipient::Targets(a, 2)) => {
             let first = ctx.obj(Recipient::Target(*a));

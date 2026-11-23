@@ -4448,7 +4448,10 @@ impl GameState {
             // (`that_player_ok`).
             Some(crate::card::Same {
                 of: crate::card::SameOf::Target(_),
-                what: crate::card::SameWhat::SharesType | crate::card::SameWhat::SharesCreatureType,
+                what:
+                    crate::card::SameWhat::SharesType
+                    | crate::card::SameWhat::SharesCreatureType
+                    | crate::card::SameWhat::DifferentController,
             }) => {
                 let mut g = f.clone();
                 g.same = None;
@@ -4677,6 +4680,32 @@ impl GameState {
                 return false;
             };
             if !a.shares_creature_type(&b) {
+                return false;
+            }
+        }
+        // "two target creatures controlled by different players": against
+        // each other target, as it is or last existed (both targets are
+        // illegal once one player controls both).
+        if let Some(crate::card::Same {
+            what: crate::card::SameWhat::DifferentController,
+            ..
+        }) = filter.same
+            && let Target::Object(id) = t
+        {
+            let controller = |id: &ObjId| {
+                self.objects
+                    .get(*id)
+                    .filter(|o| o.zone == Zone::Battlefield)
+                    .map(|o| o.controller)
+                    .or_else(|| self.lki.get(id).map(|l| l.object.controller))
+            };
+            let mine = controller(&id);
+            if targets.iter().any(|o| match o {
+                Target::Object(other) if *other != id => {
+                    mine.is_some() && controller(other) == mine
+                }
+                _ => false,
+            }) {
                 return false;
             }
         }

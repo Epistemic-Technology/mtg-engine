@@ -1105,6 +1105,10 @@ pub enum SameRef {
     /// `that share creature type`: "that share a creature type" (with the
     /// first target).
     ShareCreatureType,
+    /// `controlled by different players`: "two target creatures
+    /// controlled by different players" (each controlled by a player
+    /// other than the other's controller).
+    DifferentControllers,
     /// `with lesser power`: "with lesser power" (than the source's power,
     /// as it is or last existed; mentor, CR 702.134a).
     LesserPower,

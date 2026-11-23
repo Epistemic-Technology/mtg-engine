@@ -274,6 +274,9 @@ impl Decompiler<'_> {
                     }
                     (SameOf::Target(_), SameWhat::SharesType) => SameRef::ShareCardType,
                     (SameOf::Target(_), SameWhat::SharesCreatureType) => SameRef::ShareCreatureType,
+                    (SameOf::Target(_), SameWhat::DifferentController) => {
+                        SameRef::DifferentControllers
+                    }
                     (SameOf::Target(n), _) => SameRef::SameNameAs(usize::from(n)),
                 }
             }),

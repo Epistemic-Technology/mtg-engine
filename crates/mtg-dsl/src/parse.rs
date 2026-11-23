@@ -8262,7 +8262,23 @@ impl P {
             }
             // "Choose target creature, then roll a d20.": the target
             // named before what acts on it.
-            "choose" if self.at_word("target") || self.at_words(&["any", "target"]) => {
+            // "Choose two target creatures controlled by different
+            // players."
+            "choose"
+                if self.at_word("target")
+                    || self.at_words(&["any", "target"])
+                    || (matches!(self.peek(), Some(Tok::Num(2)))
+                        && self.word_at(1).as_deref() == Some("target")) =>
+            {
+                if matches!(self.peek(), Some(Tok::Num(_))) {
+                    let rs = self.recipient_group()?;
+                    return match rs.as_slice() {
+                        [Recipient::Target(a), Recipient::Target(b)] if *b == a + 1 => {
+                            Ok(Effect::ChooseTarget(Recipient::Targets(*a, 2)))
+                        }
+                        _ => self.fail("`choose 2 target ...` takes two new targets"),
+                    };
+                }
                 let first = self.recipient()?;
                 // "Choose target creature you control and target creature
                 // you don't control.": two targets named at once.
@@ -11511,6 +11527,7 @@ impl P {
                             Some("was" | "entered" | "dealt" | "blocked" | "player" | "share" | "opponent")
                         )
                         | (Some("other"), Some("than"))
+                        | (Some("controlled"), Some("by"))
                         | (Some("controller"), Some("of"))
                         | (Some("with" | "without"), Some("aura"))
                         | (Some("with"), Some("counter" | "toxic" | "morph" | "no"))
@@ -12372,6 +12389,14 @@ impl P {
                 {
                     self.pos += 4;
                     f.same = Some(SameRef::ShareCreatureType);
+                }
+                // "two target creatures controlled by different players".
+                "controlled"
+                    if self.at_words(&["controlled", "by", "different", "players"])
+                        && f.same.is_none() =>
+                {
+                    self.pos += 4;
+                    f.same = Some(SameRef::DifferentControllers);
                 }
                 // "with lesser power" (mentor, CR 702.134a).
                 "with" if self.at_words(&["with", "lesser", "power"]) && f.same.is_none() => {

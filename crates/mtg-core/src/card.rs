@@ -1461,6 +1461,11 @@ pub enum SameWhat {
     /// 702.73a): "two target creature cards that share a creature type".
     /// Only a relation between targets (`GameState::that_player_ok`).
     SharesCreatureType,
+    /// Controlled by a player other than the other targets' controllers
+    /// ("two target creatures controlled by different players"; as they
+    /// last existed if they have left the battlefield). Only a relation
+    /// between targets (`GameState::that_player_ok`).
+    DifferentController,
 }
 
 /// What a spell must target ("that targets a creature", "that targets you
@@ -1622,7 +1627,7 @@ impl ObjFilter {
             }
             SameWhat::SharesType => f.any_types = types,
             // Judged against the other target (`that_player_ok`).
-            SameWhat::SharesCreatureType => {}
+            SameWhat::SharesCreatureType | SameWhat::DifferentController => {}
         }
         f
     }

@@ -1083,7 +1083,12 @@ chosen and as the spell resolves; `return 2 target creature that share
 creature type card from your graveyard to hand`: "Return two target
 creature cards that share a creature type from your graveyard to your
 hand.", each sharing a creature type with the first, a changeling every
-one, CR 702.73a); `exchange control of this and target
+one, CR 702.73a; `choose 2 target creature controlled by different
+players; return those targets to hand`: "Choose two target creatures
+controlled by different players. Return those creatures to their owners'
+hands.", each controlled by someone other than the other's controller, as
+it is or last existed, as chosen and as the spell resolves, so once one
+player controls both, neither is legal); `exchange control of this and target
 nonland permanent`, `exchange control of target land you control and
 target land an opponent controls` name the two. Nothing happens unless
 both are still on the battlefield (CR 701.12a) under different

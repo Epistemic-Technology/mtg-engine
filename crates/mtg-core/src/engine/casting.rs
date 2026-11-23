@@ -5840,7 +5840,9 @@ impl GameState {
             TargetSpec::Filtered(f) | TargetSpec::GraveyardCard { filter: f, .. } if matches!(
                 self.pool.filter(f).same,
                 Some(crate::card::Same {
-                    what: crate::card::SameWhat::SharesType | crate::card::SameWhat::SharesCreatureType,
+                    what: crate::card::SameWhat::SharesType
+                        | crate::card::SameWhat::SharesCreatureType
+                        | crate::card::SameWhat::DifferentController,
                     ..
                 })
             )
