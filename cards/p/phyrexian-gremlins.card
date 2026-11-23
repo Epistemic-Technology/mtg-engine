@@ -1,0 +1,8 @@
+card "Phyrexian Gremlins" {
+  oracle_id 407a0761-7ccc-4607-8df6-e744d30a81a0
+  cost {2}{B}
+  type Creature — Phyrexian Gremlin
+  pt 1/1
+  keywords may choose not to untap
+  activated {T}: tap target artifact; target 1 gains doesn't untap for as long as this remains tapped
+}

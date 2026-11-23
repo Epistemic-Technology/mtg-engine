@@ -1578,6 +1578,14 @@ pub enum Flow {
     OpeningHand {
         asked: Vec<ObjId>,
     },
+    /// The untap step (CR 502.3): the active player decides, one question
+    /// per tapped permanent with "You may choose not to untap this
+    /// creature during your untap step", whether it stays tapped; `asked`
+    /// are those decided, `keep` those that stay tapped.
+    ChoosingUntap {
+        asked: Vec<ObjId>,
+        keep: Vec<ObjId>,
+    },
     /// Perform the turn-based actions of the current step.
     BeginStep,
     /// `priority` holds priority and must act.

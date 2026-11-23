@@ -272,6 +272,7 @@ pub fn is_restriction(k: Keyword) -> bool {
             | Keyword::CantActivateNonMana
             | Keyword::CantCrew
             | Keyword::UntapsDuringOthers
+            | Keyword::MayNotUntap
             | Keyword::AssignsToughness
             | Keyword::CantTransform
     )
@@ -376,6 +377,12 @@ fn keyword_line(card: &Card, k: Keyword) -> String {
     if k == Keyword::UntapsDuringOthers {
         return format!(
             "Untap {} during each other player's untap step.",
+            this_ref(card)
+        );
+    }
+    if k == Keyword::MayNotUntap {
+        return format!(
+            "You may choose not to untap {} during your untap step.",
             this_ref(card)
         );
     }
@@ -10115,6 +10122,7 @@ fn lasting_text(l: mtg_core::card::Lasting, ctx: &Ctx) -> String {
         }
         Lasting::WhileTapped => "for as long as it remains tapped".to_string(),
         Lasting::YouControlSource => format!("for as long as you control {}", ctx.source_name()),
+        Lasting::SourceTapped => format!("for as long as {} remains tapped", ctx.source_name()),
     }
 }
 

@@ -338,6 +338,10 @@ pub enum Keyword {
     /// "Untap this creature during each other player's untap step." (CR
     /// 502.3): it untaps in every untap step, not only its controller's.
     UntapsDuringOthers,
+    /// "You may choose not to untap this creature during your untap step."
+    /// (CR 502.3): its controller is asked, as their untap step untaps
+    /// permanents, whether it stays tapped.
+    MayNotUntap,
     /// "assigns combat damage equal to its toughness rather than its
     /// power" (CR 510.1a): its combat damage is its toughness.
     AssignsToughness,
@@ -597,7 +601,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 77] = [
+    pub const ALL: [Keyword; 78] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -675,6 +679,7 @@ impl Keyword {
         Keyword::Fuse,
         Keyword::CantTransform,
         Keyword::LandwalkFilter,
+        Keyword::MayNotUntap,
     ];
 
     /// The keyword as Oracle prints it.
@@ -758,6 +763,7 @@ impl Keyword {
             }
             Keyword::CantCrew => "can't crew Vehicles",
             Keyword::UntapsDuringOthers => "untaps during each other player's untap step",
+            Keyword::MayNotUntap => "may choose not to untap",
             Keyword::AssignsToughness => {
                 "assigns combat damage equal to its toughness rather than its power"
             }
@@ -2424,6 +2430,9 @@ pub enum Lasting {
     WhileTapped,
     /// "for as long as you control this creature".
     YouControlSource,
+    /// "for as long as this creature remains tapped": while the source
+    /// stays a tapped permanent (Phyrexian Gremlins).
+    SourceTapped,
 }
 
 /// How long cards exiled by an impulse effect stay playable.

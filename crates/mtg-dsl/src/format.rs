@@ -698,6 +698,7 @@ impl Fmt {
                 mtg_core::card::Lasting::SourceOnBattlefield => " for as long as this remains",
                 mtg_core::card::Lasting::WhileTapped => " for as long as it remains tapped",
                 mtg_core::card::Lasting::YouControlSource => " for as long as you control this",
+                mtg_core::card::Lasting::SourceTapped => " for as long as this remains tapped",
             });
         }
         out

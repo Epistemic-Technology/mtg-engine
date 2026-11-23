@@ -1,0 +1,65 @@
+# "You may choose not to untap this creature during your untap step." (CR
+# 502.3): `accept` keeps it tapped, unscripted it untaps. "It doesn't
+# untap during its controller's untap step for as long as this creature
+# remains tapped." (CR 611.2b): the duration ends once the source untaps;
+# what keeps a permanent from untapping is judged before anything untaps.
+
+scenario "Phyrexian Gremlins: the artifact stays tapped while the Gremlins do" {
+  battlefield A: "Phyrexian Gremlins"
+  battlefield B: "Ornithopter"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Phyrexian Gremlins" targeting "Ornithopter"
+  turn 5 untap A: accept "Phyrexian Gremlins"
+  run_to turn 4 upkeep
+  assert tapped "Ornithopter"
+  assert tapped "Phyrexian Gremlins"
+  run_to turn 5 upkeep
+  assert tapped "Phyrexian Gremlins"
+  run_to turn 6 upkeep
+  assert tapped "Ornithopter"
+}
+
+scenario "Phyrexian Gremlins: once the Gremlins untap, the artifact untaps" {
+  battlefield A: "Phyrexian Gremlins"
+  battlefield B: "Ornithopter"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Phyrexian Gremlins" targeting "Ornithopter"
+  run_to turn 5 upkeep
+  assert untapped "Phyrexian Gremlins"
+  run_to turn 6 upkeep
+  assert untapped "Ornithopter"
+}
+
+scenario "Phyrexian Gremlins: tapped together, the artifact doesn't untap with them" {
+  battlefield A: "Phyrexian Gremlins", "Ornithopter"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Phyrexian Gremlins" targeting "Ornithopter"
+  run_to turn 5 upkeep
+  assert untapped "Phyrexian Gremlins"
+  assert tapped "Ornithopter"
+  run_to turn 7 upkeep
+  assert untapped "Ornithopter"
+}
+
+scenario "Phyrexian Gremlins: untapped before it resolves, the ability does nothing" {
+  battlefield A: "Phyrexian Gremlins", "Forest"
+  battlefield B: "Ornithopter"
+  hand A: "Vitalize"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Phyrexian Gremlins" targeting "Ornithopter"
+  turn 3 A: cast "Vitalize" in response to trigger "Phyrexian Gremlins"
+  run_to turn 4 upkeep
+  assert untapped "Ornithopter"
+}
+
+scenario "Phyrexian Gremlins: untapped by an effect, the artifact untaps next time" {
+  battlefield A: "Phyrexian Gremlins", "Forest"
+  battlefield B: "Ornithopter"
+  hand A: "Vitalize"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Phyrexian Gremlins" targeting "Ornithopter"
+  turn 3 A: wait
+  turn 3 A: cast "Vitalize"
+  run_to turn 4 upkeep
+  assert untapped "Ornithopter"
+}

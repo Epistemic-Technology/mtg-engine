@@ -205,6 +205,10 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     ),
     (&["doesn't", "untap"], Keyword::DoesntUntap),
     (
+        &["may", "choose", "not", "to", "untap"],
+        Keyword::MayNotUntap,
+    ),
+    (
         &[
             "assigns",
             "combat",
@@ -5119,6 +5123,9 @@ impl P {
         use mtg_core::card::Lasting;
         if self.eat_words(&["until", "your", "next", "turn"]) {
             return Some(Lasting::YourNextTurn);
+        }
+        if self.eat_words(&["for", "as", "long", "as", "this", "remains", "tapped"]) {
+            return Some(Lasting::SourceTapped);
         }
         if self.eat_words(&["for", "as", "long", "as", "this", "remains"]) {
             return Some(Lasting::SourceOnBattlefield);

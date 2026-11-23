@@ -9731,6 +9731,7 @@ impl GameState {
             crate::card::Lasting::YouControlSource => {
                 Duration::WhileControlled(ctx.source, ctx.controller)
             }
+            crate::card::Lasting::SourceTapped => Duration::WhileTapped(ctx.source),
         };
         if d.linked() {
             self.linked_durations += 1;
@@ -9754,6 +9755,12 @@ impl GameState {
         };
         match lasting {
             crate::card::Lasting::SourceOnBattlefield if !source_ok() => return,
+            // CR 611.2b: untapped already, the duration has ended.
+            crate::card::Lasting::SourceTapped
+                if !source_ok() || !self.objects[ctx.source].tapped =>
+            {
+                return;
+            }
             crate::card::Lasting::YouControlSource
                 if !source_ok() || self.objects[ctx.source].controller != ctx.controller =>
             {
