@@ -1,0 +1,48 @@
+scenario "Brave the Wilds bargained: the target land becomes a 3/3 Elemental with haste, still a land" {
+  battlefield A: "Forest", "Ornithopter"
+  library A: "Plains", 4 "Island"
+  hand A: "Brave the Wilds"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Brave the Wilds" sacrificing "Ornithopter" targeting "Forest"
+  run_to turn 2 postcombat_main
+  assert is "Forest" creature
+  assert is "Forest" land
+  assert is "Forest" "Elemental"
+  assert power "Forest" 3
+  assert has "Forest" haste
+  assert hand A contains "Plains"
+  assert graveyard A contains "Ornithopter"
+}
+
+scenario "Brave the Wilds bargained: the land stays a creature on later turns" {
+  battlefield A: "Forest", "Ornithopter"
+  library A: "Plains", 4 "Island"
+  hand A: "Brave the Wilds"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Brave the Wilds" sacrificing "Ornithopter" targeting "Forest"
+  run_to turn 4 upkeep
+  assert is "Forest" creature
+  assert toughness "Forest" 3
+}
+
+scenario "Brave the Wilds not bargained: no target, the land isn't animated" {
+  battlefield A: "Forest", "Ornithopter"
+  library A: "Plains", 4 "Island"
+  hand A: "Brave the Wilds"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Brave the Wilds"
+  run_to turn 2 postcombat_main
+  assert is not "Forest" creature
+  assert hand A contains "Plains"
+  assert battlefield A contains "Ornithopter"
+}
+
+scenario "Brave the Wilds not bargained: castable with no land to target" {
+  battlefield A: "Llanowar Elves"
+  library A: "Plains", 4 "Island"
+  hand A: "Brave the Wilds"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Brave the Wilds"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Plains"
+}

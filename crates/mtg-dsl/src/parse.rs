@@ -6148,7 +6148,18 @@ impl P {
                         }
                         return Ok(Some(e));
                     }
-                    Err(s) => vec![s],
+                    Err(s) => {
+                        // "If this spell was bargained, target land you
+                        // control becomes ...": targets only a bargained
+                        // spell has, as for "if kicked" (CR 601.2c).
+                        if cond == StaticCond::Bargained
+                            && self.targets.len() > before
+                            && self.kicked_targets.is_none()
+                        {
+                            self.kicked_targets = Some(before);
+                        }
+                        vec![s]
+                    }
                 }
             };
             let wording = if also {

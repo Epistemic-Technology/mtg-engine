@@ -1215,8 +1215,11 @@ pub fn targets_in<'p>(pool: &'p CardPool, o: &GameObject) -> &'p [TargetSpec] {
             .get(usize::from(o.cast.mode()))
             .map_or(&[], |m| &m.targets),
         // CR 601.2c: targets only a kicked spell has (or one cast using
-        // teamwork: "If this spell was cast using teamwork, instead ...").
-        None if o.cast.kicked() || o.cast.teamwork() => def.kicked_cast_targets(),
+        // teamwork: "If this spell was cast using teamwork, instead ...";
+        // or a bargained one: "If this spell was bargained, target ...").
+        None if o.cast.kicked() || o.cast.teamwork() || (def.bargain && o.cast.bargained()) => {
+            def.kicked_cast_targets()
+        }
         None => def.unkicked_cast_targets(),
     }
 }
