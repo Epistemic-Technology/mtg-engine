@@ -1105,6 +1105,7 @@ impl P {
                     card.additional_or = Some(self.cost()?);
                 } else if !self.at_words(&["may", "behold"])
                     && !self.at_words(&["may", "reveal"])
+                    && !self.at_words(&["may", "sacrifice", "any"])
                     && self.eat_word("may")
                 {
                     // `additional cost may collect evidence 6` (CR 601.2b).
@@ -13946,6 +13947,20 @@ impl P {
                     self.pos += 1;
                 }
                 Some(Tok::Word(w)) => match w.to_ascii_lowercase().as_str() {
+                    // `sacrifice any number creature`, `may sacrifice any
+                    // number Spirit` (a spell's additional cost, CR 601.2b).
+                    "sacrifice" | "may"
+                        if (self.word_at(0).as_deref() == Some("sacrifice")
+                            && self.word_at(1).as_deref() == Some("any"))
+                            || (self.word_at(1).as_deref() == Some("sacrifice")
+                                && self.word_at(2).as_deref() == Some("any")) =>
+                    {
+                        cost.sacrifice_any = if self.eat_word("may") { 2 } else { 1 };
+                        self.pos += 1;
+                        self.expect_words(&["any", "number"])?;
+                        cost.sacrifice = Some(SacCost::Filter(self.filter()?));
+                        cost.order.push(CostItem::Sacrifice);
+                    }
                     "sacrifice" => {
                         self.pos += 1;
                         if self.eat_word("this") {

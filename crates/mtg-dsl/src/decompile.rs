@@ -448,6 +448,7 @@ impl Decompiler<'_> {
             blight_put: c.blight_put,
             process: c.process,
             remove_from_creature: c.remove_from_creature,
+            sacrifice_any: c.sacrifice_any,
             chosen: c.chosen,
             count: c.count,
             exile_cards: c.exile_cards.as_ref().map(|g| {

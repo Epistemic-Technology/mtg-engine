@@ -770,6 +770,10 @@ pub struct Cost {
     /// `remove 1 +1/+1 counter from creature you control`: the
     /// `remove_counters` from a creature the payer controls.
     pub remove_from_creature: bool,
+    /// `sacrifice any number creature` (1): "sacrifice any number of
+    /// creatures"; `may sacrifice any number Spirit` (2): "you may
+    /// sacrifice any number of Spirits".
+    pub sacrifice_any: u8,
 }
 
 /// `behold Kithkin`: "behold a Kithkin" (CR 701.69a); `and exile`: "and

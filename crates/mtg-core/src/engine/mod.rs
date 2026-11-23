@@ -1176,6 +1176,7 @@ impl GameState {
                         };
                         if sacrifice.is_none()
                             && let Some(SacCost::Filter(f)) = &add.sacrifice
+                            && (add.sacrifice_any == 0 || self.x_of(spell) > 0)
                         {
                             let emerge = self.pool.get(self.objects[spell].def).emerge
                                 && self.objects[spell].alt == crate::state::AltCast::AltCost;
@@ -2824,6 +2825,7 @@ impl GameState {
         if def.mana_cost.has_x()
             || add.discard_x
             || add.life_x
+            || add.sacrifice_any > 0
             || add.exile_cards.as_ref().is_some_and(|g| g.x)
         {
             Flow::ChoosingX {

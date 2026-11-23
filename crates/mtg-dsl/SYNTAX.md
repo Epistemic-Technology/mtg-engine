@@ -327,7 +327,13 @@ than the source, sparing what the spell or ability targets), `pay 3
 life`, `pay x life` (a spell's additional cost: "As an additional cost to
 cast this spell, pay X life."; X is announced as the spell is cast, at most
 the caster's life, CR 119.4; in an activated ability's cost, "{X}{B}, {T},
-Pay X life: ...", the ability's X), `exert this` ("Exert this creature", "Exert
+Pay X life: ...", the ability's X), `sacrifice any number creature` and
+`may sacrifice any number Spirit` (a spell's additional cost: "As an
+additional cost to cast this spell, sacrifice any number of creatures." /
+"..., you may sacrifice any number of Spirits."; the number is X,
+announced as the spell is cast, at most the matching permanents; the
+caster chooses the first and the engine the rest; `count each creature
+sacrificed this way` counts them), `exert this` ("Exert this creature", "Exert
 Basri": it won't untap during its controller's next untap step, CR
 701.43a), `discard hand` ("Discard your hand"; payable with no cards in
 hand), `sorcery` (printed "Activate only as a sorcery."), `once` (activate

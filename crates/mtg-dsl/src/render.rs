@@ -3384,6 +3384,16 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 }
             }
             CostItem::Sacrifice => match &cost.sacrifice {
+                // "you may sacrifice any number of Spirits" (CR 601.2b).
+                Some(SacCost::Filter(f)) if cost.sacrifice_any > 0 => parts.push(format!(
+                    "{} any number of {}",
+                    if cost.sacrifice_any == 2 {
+                        "you may sacrifice"
+                    } else {
+                        "Sacrifice"
+                    },
+                    filter_phrase(f, ctx.card, true)
+                )),
                 Some(SacCost::This) => parts.push(format!("Sacrifice {}", ctx.source())),
                 Some(SacCost::Filter(f)) => {
                     // "Tap two untapped artifacts and/or creatures you

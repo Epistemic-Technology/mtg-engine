@@ -6876,6 +6876,14 @@ pub struct Cost {
     /// than the source (the engine picks the one with the most of them).
     #[serde(default)]
     pub remove_from_creature: bool,
+    /// "As an additional cost to cast this spell, sacrifice any number of
+    /// creatures" (1; "you may sacrifice any number of Spirits", 2): X
+    /// announced as the spell is cast (CR 601.2b, 107.3), at most the
+    /// matching permanents, and X permanents matching the `sacrifice`
+    /// filter sacrificed (the caster chooses the first, the engine the
+    /// rest). 0: none.
+    #[serde(default)]
+    pub sacrifice_any: u8,
 }
 
 /// A behold cost (CR 701.69a): `n` objects matching `filter`, each a
@@ -6964,6 +6972,7 @@ impl Cost {
             blight_put: false,
             process: 0,
             remove_from_creature: false,
+            sacrifice_any: 0,
         }
     }
 

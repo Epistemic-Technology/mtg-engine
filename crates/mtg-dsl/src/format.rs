@@ -4677,6 +4677,11 @@ fn cost_text(c: &Cost) -> String {
                 }
             }
             CostItem::Sacrifice => match &c.sacrifice {
+                Some(SacCost::Filter(f)) if c.sacrifice_any > 0 => parts.push(format!(
+                    "{}sacrifice any number {}",
+                    if c.sacrifice_any == 2 { "may " } else { "" },
+                    filter(f)
+                )),
                 Some(SacCost::This) => parts.push("sacrifice this".to_string()),
                 Some(SacCost::Filter(f)) => parts.push(format!(
                     "{} {}{}",

@@ -3470,6 +3470,7 @@ impl GameState {
             return false;
         }
         if let Some(SacCost::Filter(f)) = &add.sacrifice
+            && add.sacrifice_any == 0
             && self.sacrifice_candidates(p, f, spell).len() < add.chosen_count()
         {
             return false;
@@ -5516,6 +5517,14 @@ impl GameState {
             max_x.min(u32::try_from(self.player(caster).life.max(0)).unwrap_or(0))
         } else {
             max_x
+        };
+        // "sacrifice any number of creatures": no more than there are.
+        let max_x = match &add.sacrifice {
+            Some(SacCost::Filter(f)) if add.sacrifice_any > 0 && ability.is_none() => {
+                let n = self.sacrifice_candidates(caster, f, spell).len();
+                max_x.min(u32::try_from(n).unwrap_or(MAX_X))
+            }
+            _ => max_x,
         };
         // "exile X cards from your graveyard": no more than there are (an
         // activated ability's cost, or a spell's additional cost).
@@ -7583,13 +7592,22 @@ impl GameState {
                 Some(c) if other => c,
                 _ => &def.additional,
             };
-            let x_cost = chosen.discard_x || chosen.exile_cards.as_ref().is_some_and(|g| g.x);
+            let x_cost = chosen.discard_x
+                || chosen.sacrifice_any > 0
+                || chosen.exile_cards.as_ref().is_some_and(|g| g.x);
             if x_cost {
                 // "Discard X cards", "exile X cards from your graveyard": as
                 // many as the X announced (CR 601.2b).
                 let mut add = chosen.clone();
                 if add.discard_x {
                     add.discard = x;
+                }
+                // "sacrifice any number of creatures": X of them.
+                if add.sacrifice_any > 0 {
+                    add.count = x;
+                    if x == 0 {
+                        add.sacrifice = None;
+                    }
                 }
                 if let Some(g) = &mut add.exile_cards
                     && g.x

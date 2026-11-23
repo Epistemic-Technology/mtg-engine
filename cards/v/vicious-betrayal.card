@@ -1,0 +1,7 @@
+card "Vicious Betrayal" {
+  oracle_id be1015a7-2ace-4b97-8884-202abae8401b
+  cost {3}{B}{B}
+  type Sorcery
+  additional cost sacrifice any number creature
+  spell: target creature gets +2/+2 count each creature sacrificed this way
+}
