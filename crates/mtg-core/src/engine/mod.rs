@@ -575,6 +575,7 @@ impl GameState {
                     mulligans_taken: 0,
                     skip_draw: 0,
                     skip_combat: 0,
+                    skip_creature_untap: 0,
                     skip_combat_this_turn: 0,
                     combat_mana: 0,
                     turn_mana: crate::mana::ManaPool::default(),
@@ -2922,8 +2923,14 @@ impl GameState {
     /// The untap step's actions once any "you may choose not to untap"
     /// questions are answered: `keep` stay tapped.
     fn finish_untap(&mut self, active: PlayerId, keep: &[ObjId]) {
-        self.untap_all(active, keep);
-        self.untap_others(active);
+        // "Creatures don't untap during target player's next untap step":
+        // this one, every creature (any player's, Seedborn Muse's too).
+        let no_creatures = self.player(active).skip_creature_untap > 0;
+        if no_creatures {
+            self.player_mut(active).skip_creature_untap -= 1;
+        }
+        self.untap_all(active, keep, no_creatures);
+        self.untap_others(active, no_creatures);
         self.player_mut(active).lands_played_this_turn = 0;
         for p in 0..self.num_players() {
             self.players[p].extra_land_plays = 0;
@@ -2954,7 +2961,7 @@ impl GameState {
     /// then untap, all at once: what keeps a permanent from untapping is
     /// judged before any untaps ("for as long as this creature remains
     /// tapped"). `keep` stay tapped by their controller's choice.
-    fn untap_all(&mut self, active: PlayerId, keep: &[ObjId]) {
+    fn untap_all(&mut self, active: PlayerId, keep: &[ObjId], no_creatures: bool) {
         let phased_in = if self.phased_out.is_empty() {
             smallvec::SmallVec::new()
         } else {
@@ -2966,7 +2973,9 @@ impl GameState {
                 let (phases, doesnt_untap) = self.characteristics(id).map_or((false, false), |c| {
                     (c.has(Keyword::Phasing), c.has(Keyword::DoesntUntap))
                 });
-                (id, phases, doesnt_untap || keep.contains(&id))
+                let creature_stays = no_creatures
+                    && self.characteristics(id).is_some_and(|c| c.is_creature());
+                (id, phases, doesnt_untap || creature_stays || keep.contains(&id))
             })
             .collect();
         let mut phasing: smallvec::SmallVec<[ObjId; 2]> = smallvec::SmallVec::new();
@@ -2991,7 +3000,7 @@ impl GameState {
 
     /// "Untap this creature during each other player's untap step" (CR
     /// 502.3): the other players' permanents with it untap too.
-    fn untap_others(&mut self, active: PlayerId) {
+    fn untap_others(&mut self, active: PlayerId, no_creatures: bool) {
         let ids: smallvec::SmallVec<[ObjId; 4]> = self
             .battlefield
             .iter()
@@ -3001,7 +3010,9 @@ impl GameState {
                 o.controller != active
                     && o.tapped
                     && self.characteristics(*id).is_some_and(|c| {
-                        c.has(Keyword::UntapsDuringOthers) && !c.has(Keyword::DoesntUntap)
+                        c.has(Keyword::UntapsDuringOthers)
+                            && !c.has(Keyword::DoesntUntap)
+                            && !(no_creatures && c.is_creature())
                     })
             })
             .collect();

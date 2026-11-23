@@ -1265,6 +1265,7 @@ impl Fmt {
                     mtg_core::card::SkipWhat::DrawStep => "draw step",
                     mtg_core::card::SkipWhat::CombatPhase => "combat phase",
                     mtg_core::card::SkipWhat::CombatPhaseThisTurn => "combat phase this turn",
+                    mtg_core::card::SkipWhat::CreatureUntap => "creature untap",
                 };
                 format!("{} {v} next {w}", self.recipient(*who, t))
             }

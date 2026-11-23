@@ -1,0 +1,10 @@
+card "Blinding Beam" {
+  oracle_id 0766cf02-ea55-4271-8c73-213c93b0baac
+  cost {2}{W}
+  type Instant
+  choose one {
+    mode: tap 2 target creature
+    mode: target player skips next creature untap
+  }
+  entwine {1}
+}

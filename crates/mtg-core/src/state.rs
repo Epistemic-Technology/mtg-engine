@@ -958,6 +958,9 @@ pub struct PlayerState {
     /// Combat phases this player skips: "Target opponent skips their next
     /// combat phase."
     pub skip_combat: u8,
+    /// Untap steps of this player's in which no creature untaps:
+    /// "Creatures don't untap during target player's next untap step."
+    pub skip_creature_untap: u8,
     /// Combat phases this player skips this turn only ("... skips their
     /// next combat phase this turn"); cleared as the turn ends.
     pub skip_combat_this_turn: u8,

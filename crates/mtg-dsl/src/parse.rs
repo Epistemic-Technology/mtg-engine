@@ -7399,6 +7399,8 @@ impl P {
                 self.pos += 1;
                 let what = if self.eat_words(&["draw", "step"]) {
                     SkipWhat::DrawStep
+                } else if self.eat_words(&["creature", "untap"]) {
+                    SkipWhat::CreatureUntap
                 } else {
                     self.expect_words(&["combat", "phase"])?;
                     if self.eat_words(&["this", "turn"]) {

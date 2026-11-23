@@ -5549,6 +5549,10 @@ pub enum SkipWhat {
     CombatPhase,
     /// "their next combat phase this turn".
     CombatPhaseThisTurn,
+    /// "Creatures don't untap during target player's next untap step."
+    /// (Blinding Beam): no creature untaps in that player's next untap
+    /// step, whoever controls it.
+    CreatureUntap,
 }
 
 /// `Effect::MoveCounters::count` for "move any number of +1/+1 counters":

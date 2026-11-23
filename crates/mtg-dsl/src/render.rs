@@ -5969,6 +5969,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*to);
             Clause::with_subject(*to, s, "can't be regenerated this turn".to_string())
         }
+        // "Creatures don't untap during target player's next untap step."
+        Effect::SkipNext {
+            who,
+            what: mtg_core::card::SkipWhat::CreatureUntap,
+        } => {
+            let whose = if *who == Recipient::You {
+                "your".to_string()
+            } else {
+                format!("{}'s", ctx.obj(*who))
+            };
+            Clause::imperative(format!(
+                "creatures don't untap during {whose} next untap step"
+            ))
+        }
         Effect::SkipNext { who, what } => {
             let s = ctx.subj(*who);
             let whose = if *who == Recipient::You {
@@ -5980,6 +5994,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 mtg_core::card::SkipWhat::DrawStep => "draw step",
                 mtg_core::card::SkipWhat::CombatPhase => "combat phase",
                 mtg_core::card::SkipWhat::CombatPhaseThisTurn => "combat phase this turn",
+                mtg_core::card::SkipWhat::CreatureUntap => "untap step",
             };
             let v = ctx.verb(*who, "skips", "skip");
             Clause::with_subject(*who, s, format!("{v} {whose} next {w}"))

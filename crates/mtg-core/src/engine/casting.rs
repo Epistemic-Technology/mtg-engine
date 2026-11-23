@@ -10928,6 +10928,9 @@ impl GameState {
                         crate::card::SkipWhat::CombatPhaseThisTurn => {
                             ps.skip_combat_this_turn += 1;
                         }
+                        crate::card::SkipWhat::CreatureUntap => {
+                            ps.skip_creature_untap = ps.skip_creature_untap.saturating_add(1);
+                        }
                     }
                 }
             }

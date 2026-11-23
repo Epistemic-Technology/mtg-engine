@@ -2033,7 +2033,10 @@ loses life equal to that card's mana value"), `<who> skips next draw
 step` ("Target player skips their next draw step", CR 500.11), `<who>
 skips next combat phase` ("Target opponent skips their next combat
 phase"; `... combat phase this turn`: only a combat phase of this turn;
-the main phase after it still happens), `<who> takes extra turn` ("Take
+the main phase after it still happens), `<who> skips next creature
+untap` ("Creatures don't untap during target player's next untap step.",
+Blinding Beam: no creature untaps in that player's next untap step,
+whoever controls it; their other permanents do), `<who> takes extra turn` ("Take
 an extra turn after this one." for `you take extra turn`; `target player
 takes 2 extra turns`: "... two extra turns after this one", CR 500.7: the
 most recently created extra turn comes first), `after this phase,
