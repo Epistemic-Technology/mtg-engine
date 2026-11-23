@@ -6561,7 +6561,9 @@ impl P {
             });
         }
         // "if a player does, ..." / "if no one does, ..." after it.
-        if self.at_words(&["if", "a", "player", "does"]) || self.at_words(&["if", "no", "one", "does"]) {
+        if self.at_words(&["if", "a", "player", "does"])
+            || self.at_words(&["if", "no", "one", "does"])
+        {
             let done = self.word_at(1).as_deref() == Some("a");
             self.pos += 4;
             if self.peek() == Some(&Tok::Comma) {

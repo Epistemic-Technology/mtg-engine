@@ -3960,7 +3960,9 @@ pub enum Effect {
     /// target" (CR 115.7a): the effect's controller changes that object's
     /// target to another one legal for it, if there is one; otherwise it
     /// is unchanged.
-    ChangeTarget { what: Recipient },
+    ChangeTarget {
+        what: Recipient,
+    },
     /// "Counter target spell unless its controller pays {N}" (CR 701.5?):
     /// the controller may pay; if they do not, it is countered. An {X} in
     /// `mana` is `x` as the effect resolves ("unless its controller pays

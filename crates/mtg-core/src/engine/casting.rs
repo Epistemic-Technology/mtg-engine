@@ -1519,8 +1519,10 @@ impl GameState {
         // "return an enchantment to its owner's hand": with no controller
         // named, any permanent (Drake Familiar); a sacrifice or tap is of
         // the player's own (CR 701.21a).
-        let any_controller = matches!(act, ChooseAct::Bounce | ChooseAct::Untap | ChooseAct::Choose)
-            && filter.who.is_none();
+        let any_controller = matches!(
+            act,
+            ChooseAct::Bounce | ChooseAct::Untap | ChooseAct::Choose
+        ) && filter.who.is_none();
         match act {
             // CR 702.154a: not attacking, and able to pay {T} (CR 302.6).
             ChooseAct::Enlist => self
@@ -12725,8 +12727,11 @@ impl GameState {
                         vec![Choice::Accept, Choice::Decline]
                     };
                     if possible
-                        && options.get(self.choose_mid(p, DecisionKind::YouMay { def }, options.clone()))
-                            == Some(&Choice::Accept)
+                        && options.get(self.choose_mid(
+                            p,
+                            DecisionKind::YouMay { def },
+                            options.clone(),
+                        )) == Some(&Choice::Accept)
                     {
                         ctx.did = true;
                         for e in effects {

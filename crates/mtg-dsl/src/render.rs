@@ -2433,9 +2433,9 @@ fn target_noun(t: &Target) -> String {
             // "creature or planeswalker ... that's red or white": "that
             // permanent" (Flourishing Grapple).
             if f.types.contains(&CardType::Creature)
-                && f.or.as_ref().is_none_or(|a| {
-                    a.types.is_empty() || a.types.contains(&CardType::Creature)
-                })
+                && f.or
+                    .as_ref()
+                    .is_none_or(|a| a.types.is_empty() || a.types.contains(&CardType::Creature))
             {
                 "creature".to_string()
             } else if f.types.contains(&CardType::Land) {
@@ -10293,7 +10293,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "If a player does, sacrifice this creature.": the source is
             // named again after "have it deal 5 damage to them".
             ctx.source_mentioned = false;
-            let who = if *opponents { "any opponent" } else { "any player" };
+            let who = if *opponents {
+                "any opponent"
+            } else {
+                "any player"
+            };
             Clause::imperative(format!("{who} may {body}"))
         }
         Effect::PlayerMay { who, inner } => {
