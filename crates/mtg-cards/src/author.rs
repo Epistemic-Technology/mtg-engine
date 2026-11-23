@@ -1595,6 +1595,25 @@ fn lasting_split(s: &str) -> Option<(String, bool, &'static str)> {
     if let Some(rest) = s.strip_prefix("Until your next turn, ") {
         return Some((capitalize(rest), true, "until your next turn"));
     }
+    // CR 500.5a: "until end of combat", "can't block this combat",
+    // "blocks it this combat if able".
+    if let Some(rest) = s.strip_prefix("Until end of combat, ") {
+        return Some((capitalize(rest), true, "until end of combat"));
+    }
+    if let Some(rest) = s.strip_suffix(" until end of combat") {
+        return Some((rest.to_string(), false, "until end of combat"));
+    }
+    let combat = Regex::new(
+        r"^(.+ (?:can't attack or block|can't attack|can't block|can't be blocked|blocks (?:it|that creature|this creature|~)|attacks|blocks)) this combat( if able)?$",
+    )
+    .ok()?;
+    if let Some(c) = combat.captures(s)
+        && !s.contains("this turn")
+        && !cap(&c, 1).contains("this combat")
+    {
+        let inner = format!("{} this turn{}", cap(&c, 1), cap(&c, 2));
+        return Some((inner, false, "until end of combat"));
+    }
     let this = r"(?:~|this (?:creature|artifact|enchantment|Saga|Vehicle|Equipment|permanent|land|planeswalker))";
     let re = Regex::new(&format!(
         r"^(.+?) (until your next turn|for as long as {this} remains on the battlefield|for as long as you control {this}|for as long as it remains tapped)$"
@@ -3350,7 +3369,7 @@ impl Templates {
                 |c, t| Some(format!("{} attacks if able", recipient(cap(c, 1), t)?)),
             ),
             (
-                r(r"^(.+?) blocks (?:this creature|~) this turn if able$"),
+                r(r"^(.+?) blocks (?:this creature|~|it) this turn if able$"),
                 |c, t| Some(format!("{} blocks this if able", recipient(cap(c, 1), t)?)),
             ),
             (r(r"^[Tt]ap or untap (.+)$"), |c, t| {
@@ -5156,6 +5175,9 @@ fn trigger_general(head: &str) -> Option<String> {
         }
         "Whenever one or more creatures you control attack" => {
             Some("whenever one or more creatures you control attack")
+        }
+        "Whenever two or more creatures your opponents control attack" => {
+            Some("whenever 2 or more creatures your opponents control attack")
         }
         "Whenever one or more creatures you control deal combat damage to a player" => {
             Some("whenever one or more creature you control deal combat damage to a player")

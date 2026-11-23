@@ -1,0 +1,7 @@
+card "Avalanche Tusker" {
+  oracle_id ccad8b03-5ff1-4895-94e0-0c96883cb875
+  cost {2}{G}{U}{R}
+  type Creature — Elephant Warrior
+  pt 6/4
+  triggered whenever this attacks: target creature defending player controls blocks this if able until end of combat
+}

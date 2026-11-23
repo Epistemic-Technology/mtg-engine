@@ -690,6 +690,7 @@ impl Fmt {
         if s.eot_first {
             out.push_str(match s.lasting {
                 Some(mtg_core::card::Lasting::YourNextTurn) => "until your next turn, ",
+                Some(mtg_core::card::Lasting::EndOfCombat) => "until end of combat, ",
                 _ => "until end of turn, ",
             });
         }
@@ -727,6 +728,7 @@ impl Fmt {
                 mtg_core::card::Lasting::YouControlSource => " for as long as you control this",
                 mtg_core::card::Lasting::SourceTapped => " for as long as this remains tapped",
                 mtg_core::card::Lasting::UntilCastFromExile => " until this is cast from exile",
+                mtg_core::card::Lasting::EndOfCombat => " until end of combat",
             });
         }
         out
@@ -4551,6 +4553,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::OneOrMoreAttack(f) => format!("whenever one or more {} attack", filter(f)),
         Trigger::CreaturesYouControlAttack => {
             "whenever one or more creatures you control attack".to_string()
+        }
+        Trigger::OpponentCreaturesAttack(n) => {
+            format!("whenever {n} or more creatures your opponents control attack")
         }
         Trigger::PlayerAttacksWith { whose, min } => format!(
             "whenever {} attacks with {min} or more creatures",

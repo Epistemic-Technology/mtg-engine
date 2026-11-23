@@ -1,0 +1,8 @@
+card "Forgestoker Dragon" {
+  oracle_id 53de1e6f-9471-4cdc-ac67-66d47da4d7eb
+  cost {4}{R}{R}
+  type Creature — Dragon
+  pt 5/4
+  keywords flying
+  activated {1}{R}, if attacking: deal 1 damage to target creature; that creature can't block until end of combat
+}

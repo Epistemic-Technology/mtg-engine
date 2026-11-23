@@ -1,0 +1,8 @@
+card "Flummoxed Cyclops" {
+  oracle_id 789a94be-020e-4f65-8f0d-0a170d4cd2f5
+  cost {3}{R}
+  type Creature — Cyclops
+  pt 4/4
+  keywords reach
+  triggered whenever 2 or more creatures your opponents control attack: this can't block until end of combat
+}

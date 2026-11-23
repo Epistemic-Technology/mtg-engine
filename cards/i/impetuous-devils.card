@@ -1,0 +1,9 @@
+card "Impetuous Devils" {
+  oracle_id 01add64a-205d-4c0e-a393-89e7a1a0ea44
+  cost {2}{R}{R}
+  type Creature — Devil
+  pt 6/1
+  keywords trample, haste
+  triggered when this attacks: up to 1 target creature defending player controls blocks this if able until end of combat
+  triggered at beginning of each end step: sacrifice this
+}

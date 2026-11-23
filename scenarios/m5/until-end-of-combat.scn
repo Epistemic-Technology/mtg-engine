@@ -1,0 +1,133 @@
+# "Until end of combat" and "this combat" (CR 500.5a, 511.2): the effect
+# ends as the combat phase ends, so a second combat phase that turn (CR
+# 500.8) is free of it.
+
+scenario "until end of combat: Murk Dwellers' pump ends with combat" {
+  battlefield A: "Murk Dwellers"
+  turn 1 A: attack "Murk Dwellers"
+  run_to turn 1 combat_damage
+  assert power "Murk Dwellers" 4
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert power "Murk Dwellers" 2
+}
+
+scenario "until end of combat: blocked, no pump" {
+  battlefield A: "Murk Dwellers"
+  battlefield B: "Wall of Wood"
+  start turn 2 A
+  turn 2 A: attack "Murk Dwellers"
+  turn 2 B: block "Murk Dwellers" with "Wall of Wood"
+  run_to turn 2 combat_damage
+  assert power "Murk Dwellers" 2
+}
+
+scenario "this combat: Forgestoker Dragon's target can't block this combat, but can the next" {
+  battlefield A: 6 "Mountain", "Forgestoker Dragon"
+  battlefield B: "Giant Spider"
+  hand A: "Relentless Assault"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Forgestoker Dragon"
+  turn 2 declare_attackers A: activate "Forgestoker Dragon" targeting "Giant Spider"
+  illegal turn 2 B: block "Forgestoker Dragon" with "Giant Spider"
+  turn 2 postcombat_main A: cast "Relentless Assault"
+  turn 2 declare_attackers combat 2 A: attack "Forgestoker Dragon"
+  turn 2 declare_blockers combat 2 B: block "Forgestoker Dragon" with "Giant Spider"
+  run_to turn 3 upkeep
+  assert life B 15
+  assert graveyard B contains "Giant Spider"
+}
+
+scenario "this combat: Forgestoker Dragon can't activate unless attacking" {
+  battlefield A: 2 "Mountain", "Forgestoker Dragon"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  illegal turn 2 A: activate "Forgestoker Dragon" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert damage "Hill Giant" 0
+}
+
+scenario "this combat: Avalanche Tusker's target must block it" {
+  battlefield A: "Avalanche Tusker"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Avalanche Tusker"
+  turn 2 declare_attackers A: trigger "Avalanche Tusker" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 20
+}
+
+scenario "this combat: Impetuous Devils' target must block it, then the Devils are sacrificed" {
+  battlefield A: "Impetuous Devils"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Impetuous Devils"
+  turn 2 declare_attackers A: trigger "Impetuous Devils" targeting "Grizzly Bears"
+  turn 2 combat_damage A: assign "Impetuous Devils" to "Grizzly Bears" 2, player B 4
+  run_to turn 3 upkeep
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Impetuous Devils"
+  assert life B 16
+}
+
+scenario "this combat: Flummoxed Cyclops can't block when two creatures attack" {
+  battlefield A: "Flummoxed Cyclops"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears", "Hill Giant"
+  illegal turn 2 A: block "Hill Giant" with "Flummoxed Cyclops"
+  run_to turn 2 postcombat_main
+  assert life A 15
+}
+
+scenario "this combat: Flummoxed Cyclops blocks a lone attacker" {
+  battlefield A: "Flummoxed Cyclops"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Flummoxed Cyclops"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "until end of combat: Jade Statue is a creature only during combat" {
+  battlefield A: 2 "Forest", "Jade Statue"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  illegal turn 2 precombat_main A: activate "Jade Statue"
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: activate "Jade Statue"
+  turn 2 A: block "Grizzly Bears" with "Jade Statue"
+  run_to turn 2 combat_damage
+  assert is "Jade Statue" creature
+  run_to turn 2 postcombat_main
+  assert is not "Jade Statue" creature
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Jade Statue"
+}
+
+scenario "until end of combat: Glyph of Destruction" {
+  battlefield A: "Mountain", "Wall of Wood"
+  battlefield B: "Hill Giant"
+  hand A: "Glyph of Destruction"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Wall of Wood"
+  turn 2 declare_blockers A: cast "Glyph of Destruction" targeting "Wall of Wood"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert damage "Wall of Wood" 0
+  assert power "Wall of Wood" 0
+  run_to turn 3 upkeep
+  assert graveyard A contains "Wall of Wood"
+}
+
+scenario "until end of combat: Glyph of Destruction needs a blocking Wall" {
+  battlefield A: "Mountain", "Wall of Wood"
+  hand A: "Glyph of Destruction"
+  start turn 2 A precombat_main
+  illegal turn 2 A: cast "Glyph of Destruction" targeting "Wall of Wood"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Wall of Wood"
+}

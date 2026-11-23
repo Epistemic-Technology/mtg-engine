@@ -10206,6 +10206,10 @@ impl GameState {
             crate::card::Lasting::UntilCastFromExile => {
                 Duration::WhileInExile(self.source_in_exile(ctx).unwrap_or_default())
             }
+            crate::card::Lasting::EndOfCombat => {
+                self.combat_durations += 1;
+                Duration::UntilEndOfCombat
+            }
         };
         if d.linked() {
             self.linked_durations += 1;

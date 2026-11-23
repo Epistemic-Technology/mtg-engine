@@ -447,7 +447,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever creature you control attacks alone` | attacks alone (CR 506.5) |
 | `whenever this attacks for the first time each turn` | the attacking creature hadn't attacked yet this turn (with additional combat phases, CR 500.8) |
 | `whenever you attack`, `whenever you attack with 3 or more creatures`, `label "Battalion" triggered whenever this and at least 2 other creatures attack` | once as the controller declares attackers (CR 508.1m), if at least that many attack (battalion: this creature among them); "Whenever this creature and at least two other creatures attack"; `whenever one or more creatures you control attack` is the same trigger in the older wording |
-| `whenever a player attacks with 3 or more creatures`, `whenever an opponent attacks with 2 or more creatures` | "Whenever a player attacks with three or more creatures": once per declaration of attackers by such a player (CR 508.1m) if at least that many attack; the attacking player is `that player` |
+| `whenever a player attacks with 3 or more creatures`, `whenever an opponent attacks with 2 or more creatures` | "Whenever a player attacks with three or more creatures": once per declaration of attackers by such a player (CR 508.1m) if at least that many attack; the attacking player is `that player`. `whenever 2 or more creatures your opponents control attack` is the opponent's form in the older wording ("Whenever two or more creatures your opponents control attack"), the same trigger |
 | `whenever this saddles a Mount or crews a Vehicle while your main phase` | "Whenever this creature saddles a Mount or crews a Vehicle during your main phase" (CR 702.122b, 702.171c): it is tapped to pay a crew or saddle cost (the engine picks the creatures); the Mount or Vehicle is "that Mount or Vehicle". `while your main phase` after a trigger prints "during your main phase" |
 | `whenever this becomes saddled first time each turn` | "Whenever this creature becomes saddled for the first time each turn" (CR 702.171b: saddled until the turn ends, so once); `target Mount you control becomes saddled` is the effect ("... becomes saddled until end of turn") |
 | `whenever this attacks and isn't blocked` | as blockers are declared, for an attacking creature no creature blocks (CR 509.1h) |
@@ -1973,6 +1973,17 @@ doesn't untap` ("That creature doesn't untap during its controller's untap
 step"; plural "Those creatures don't untap during their controllers' untap
 steps"), and `target 1 gains can't activate` ("Its activated abilities
 can't be activated").
+
+`until end of combat` (CR 500.5a, 511.2) ends a sentence the same way,
+or begins it (`until end of combat, ...`): what would last until end of
+turn ends as the combat phase ends (at the cleanup step if no combat
+phase ends first), so a later combat phase that turn is free of it. It
+prints "until end of combat" in place of "until end of turn" and "this
+combat" in place of "this turn": `this gets +2/+0 until end of combat`
+("it gets +2/+0 until end of combat"), `that creature can't block until
+end of combat` ("That creature can't block this combat."), `target
+creature defending player controls blocks this if able until end of
+combat` ("... blocks it this combat if able").
 
 Subject-first clauses: `<who> gains 3 life`, `<who> loses 1 life`, `<who> loses half life` ("that player loses half their life, rounded up", CR 107.1a; `you lose half life`: "your life"), `you lose game` ("You lose the game.", CR 104.3e: not while the player can't lose the game),
 `<who> draws 2 cards`, `<who> discards 2 cards`, `<who> mills 20 cards`,

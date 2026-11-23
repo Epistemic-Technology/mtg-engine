@@ -1085,9 +1085,20 @@ pub enum Duration {
     /// "Until this card is cast from exile": while that object is in
     /// exile (it leaves exile as it is cast, CR 601.2a).
     WhileInExile(ObjId),
+    /// "Until end of combat", "this combat" (CR 500.5a, 511.2): ends as
+    /// the combat phase ends; at the cleanup step if no combat phase
+    /// ended first.
+    UntilEndOfCombat,
 }
 
 impl Duration {
+    /// Durations over by the cleanup step (CR 514.2): "until end of turn",
+    /// and "until end of combat" if no combat phase ended it first.
+    #[inline]
+    pub fn ends_with_turn(self) -> bool {
+        matches!(self, Duration::UntilEndOfTurn | Duration::UntilEndOfCombat)
+    }
+
     /// Durations that end when an object leaves, untaps, or changes
     /// control: checked with the state-based actions.
     pub const fn linked(self) -> bool {
@@ -2272,6 +2283,10 @@ pub struct GameState {
     /// (`Duration::linked`): while nonzero the state-based actions end
     /// those whose object left, untapped, or changed control.
     pub linked_durations: u32,
+    /// Effects created "until end of combat" (`Duration::UntilEndOfCombat`)
+    /// since the last combat phase ended: nonzero means the end of combat
+    /// has some to expire.
+    pub combat_durations: u32,
     pub mid: MidDecision,
     pub lki: IdMap<LastKnown>,
     /// What the resolving spell or ability has done so far, for "this

@@ -1,0 +1,7 @@
+card "Murk Dwellers" {
+  oracle_id 00358a89-2058-448b-a2fd-389f639ba2da
+  cost {3}{B}
+  type Creature — Zombie
+  pt 2/2
+  triggered whenever this attacks and isn't blocked: this gets +2/+0 until end of combat
+}

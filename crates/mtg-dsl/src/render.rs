@@ -10778,6 +10778,12 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
     // CR 611.2b: a duration other than "until end of turn" in its place.
     let sfx = |x: &'static str| -> String {
         match &lasting {
+            // "can't block this combat" (CR 500.5a).
+            Some(_)
+                if x == "this turn" && s.lasting == Some(mtg_core::card::Lasting::EndOfCombat) =>
+            {
+                "this combat".to_string()
+            }
             Some(t) if x == EOT || x == "this turn" => t.clone(),
             _ => x.to_string(),
         }
@@ -10915,11 +10921,19 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
     if shared_suffix && !s.eot_first && !suffix_done {
         push_suffix(&mut out, &sfx(clauses[0].suffix.expect("shared")));
     }
+    // "blocks it this combat if able", "can't block this combat" (CR
+    // 500.5a): the one-turn wording printed inside a clause.
+    if s.lasting == Some(mtg_core::card::Lasting::EndOfCombat) {
+        out = out
+            .replace("until end of turn", "until end of combat")
+            .replace("this turn", "this combat");
+    }
     // "It loses all abilities for as long as ...": no clause printed a
     // duration of its own.
     if let Some(t) = &lasting
         && !s.eot_first
         && !out.contains(t.as_str())
+        && !(s.lasting == Some(mtg_core::card::Lasting::EndOfCombat) && out.contains("this combat"))
     {
         push_suffix(&mut out, t);
     }
@@ -10942,6 +10956,7 @@ fn lasting_text(l: mtg_core::card::Lasting, ctx: &Ctx) -> String {
         Lasting::YouControlSource => format!("for as long as you control {}", ctx.source_name()),
         Lasting::SourceTapped => format!("for as long as {} remains tapped", ctx.source_name()),
         Lasting::UntilCastFromExile => "until this card is cast from exile".to_string(),
+        Lasting::EndOfCombat => "until end of combat".to_string(),
     }
 }
 
@@ -11485,6 +11500,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::CreaturesYouControlAttack => {
             "whenever one or more creatures you control attack".to_string()
         }
+        Trigger::OpponentCreaturesAttack(n) => format!(
+            "whenever {} or more creatures your opponents control attack",
+            count_words(Num::N(u32::from(*n)), "one")
+        ),
         Trigger::PlayerAttacksWith { whose, min } => format!(
             "whenever {} attacks with {} or more creatures",
             if *whose == Who::Opponents {

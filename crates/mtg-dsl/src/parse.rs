@@ -5222,6 +5222,10 @@ impl P {
             // "Until your next turn, <clauses>" (CR 611.2b).
             lasting = Some(mtg_core::card::Lasting::YourNextTurn);
             true
+        } else if self.eat_words(&["until", "end", "of", "combat"]) {
+            // "Until end of combat, <clauses>" (CR 500.5a).
+            lasting = Some(mtg_core::card::Lasting::EndOfCombat);
+            true
         } else {
             self.eat_words(&["until", "end", "of", "turn"])
         };
@@ -5436,6 +5440,9 @@ impl P {
         }
         if self.eat_words(&["until", "this", "is", "cast", "from", "exile"]) {
             return Some(Lasting::UntilCastFromExile);
+        }
+        if self.eat_words(&["until", "end", "of", "combat"]) {
+            return Some(Lasting::EndOfCombat);
         }
         None
     }
@@ -14031,6 +14038,27 @@ impl P {
         if self.eat_words(&["one", "or", "more", "creatures", "you", "control", "attack"]) {
             return Ok(Trigger::CreaturesYouControlAttack);
         }
+        // "Whenever two or more creatures your opponents control attack".
+        if let Some(&Tok::Num(n)) = self.peek()
+            && self.word_at(1).as_deref() == Some("or")
+        {
+            let at = self.pos;
+            self.pos += 1;
+            if self.eat_words(&[
+                "or",
+                "more",
+                "creatures",
+                "your",
+                "opponents",
+                "control",
+                "attack",
+            ]) {
+                return Ok(Trigger::OpponentCreaturesAttack(
+                    u8::try_from(n).unwrap_or(u8::MAX),
+                ));
+            }
+            self.pos = at;
+        }
         // "Whenever one or more suspected creatures you control attack".
         if self.at_words(&["one", "or", "more"]) {
             let before = self.pos;
@@ -15887,6 +15915,7 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::EachPlayersEndStep
         | Trigger::BeginningOfStep { .. }
         | Trigger::CreaturesYouControlAttack
+        | Trigger::OpponentCreaturesAttack(_)
         | Trigger::OneOrMoreAttack(_)
         | Trigger::GainsLife { .. }
         | Trigger::GainsLifeFirst { .. }

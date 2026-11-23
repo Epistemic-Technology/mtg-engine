@@ -3086,6 +3086,10 @@ pub enum Trigger {
     /// `whenever one or more creatures you control attack`: the older
     /// wording of `whenever you attack` (CR 508.1m), the same trigger.
     CreaturesYouControlAttack,
+    /// `whenever 2 or more creatures your opponents control attack`: the
+    /// older wording of `whenever an opponent attacks with 2 or more
+    /// creatures` (one opponent), the same trigger.
+    OpponentCreaturesAttack(u8),
     /// `whenever one or more suspected creature you control attack`: the
     /// older wording of `whenever you attack with one or more ...`.
     OneOrMoreAttack(Filter),

@@ -2474,6 +2474,9 @@ pub enum Lasting {
     /// hand that exiled its card as a cost): while that card stays in
     /// exile.
     UntilCastFromExile,
+    /// "until end of combat", "this combat" (CR 500.5a, 511.2): ends as
+    /// the combat phase ends (or with the turn, if it has no combat).
+    EndOfCombat,
 }
 
 /// How long cards exiled by an impulse effect stay playable.
