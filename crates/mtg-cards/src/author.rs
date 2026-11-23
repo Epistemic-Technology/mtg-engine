@@ -722,6 +722,105 @@ fn dig_what(s: &str) -> Option<(String, String)> {
     Some((String::new(), format!("{a}{b} card").trim().to_string()))
 }
 
+/// One card's destination in a dig split: "into your hand", "on top of
+/// your library", ...
+fn split_dest(s: &str) -> Option<&'static str> {
+    match s {
+        "into your hand" => Some("hand"),
+        "into your graveyard" | "into that player's graveyard" => Some("graveyard"),
+        "on top of your library" => Some("top"),
+        "on the bottom of your library" => Some("bottom"),
+        _ => None,
+    }
+}
+
+/// The dig splits (`split top N ...`): "Look at the top three cards of
+/// your library. Put one of those cards into your hand, one on top of your
+/// library, and one on the bottom of your library.", "Look at the top two
+/// cards of target opponent's library, then exile one of them.", "Reveal
+/// the top three cards of your library. An opponent chooses one of them.
+/// Put that card into your graveyard and the rest into your hand.", and
+/// the optional reveal of a looked-at card ("You may reveal that card. If
+/// an instant or sorcery card is revealed this way, ..."). Returns the DSL
+/// and the sentences after it.
+fn dig_split(text: &str, targets: &mut usize) -> Option<(String, String)> {
+    let dest = r"(into your hand|into your graveyard|on top of your library|on the bottom of your library)";
+    if let Some(c) = Regex::new(&format!(
+        r"^Look at the top (\w+) cards of your library\. Put one of those cards {dest}, one {dest}, and one {dest}\.?\s*(.*)$"
+    ))
+    .unwrap()
+    .captures(text)
+    {
+        let n = number(cap(&c, 1))?;
+        let ds = [cap(&c, 2), cap(&c, 3), cap(&c, 4)]
+            .iter()
+            .map(|d| split_dest(d))
+            .collect::<Option<Vec<_>>>()?;
+        return Some((
+            format!("split top {n} into {}", ds.join(", ")),
+            cap(&c, 5).to_string(),
+        ));
+    }
+    if let Some(c) = Regex::new(
+        r"^Look at the top (\w+) cards of target (opponent|player)'s library, then exile one of them\.?\s*(.*)$",
+    )
+    .unwrap()
+    .captures(text)
+    {
+        let n = number(cap(&c, 1))?;
+        *targets += 1;
+        return Some((
+            format!("split top {n} of target {} into exile then", cap(&c, 2)),
+            cap(&c, 3).to_string(),
+        ));
+    }
+    if let Some(c) = Regex::new(
+        r"^Look at the top (\w+) cards of target (opponent|player)'s library\. Put one back and the rest into that player's graveyard\.?\s*(.*)$",
+    )
+    .unwrap()
+    .captures(text)
+    {
+        let n = number(cap(&c, 1))?;
+        *targets += 1;
+        return Some((
+            format!(
+                "split top {n} of target {} into top rest graveyard",
+                cap(&c, 2)
+            ),
+            cap(&c, 3).to_string(),
+        ));
+    }
+    if let Some(c) = Regex::new(
+        r"^Look at the top (\w+) cards of your library\. Put one of them into your graveyard\.?\s*(.*)$",
+    )
+    .unwrap()
+    .captures(text)
+    {
+        let n = number(cap(&c, 1))?;
+        return Some((
+            format!("split top {n} into graveyard"),
+            cap(&c, 2).to_string(),
+        ));
+    }
+    if let Some(c) = Regex::new(
+        r"^Reveal the top (\w+) cards of your library\. An opponent chooses one of them\. Put that card (into your hand|into your graveyard) and the rest (into your hand|into your graveyard)\.?\s*(.*)$",
+    )
+    .unwrap()
+    .captures(text)
+    {
+        let n = number(cap(&c, 1))?;
+        return Some((
+            format!(
+                "split top {n} reveal opponent into {} rest {}",
+                split_dest(cap(&c, 2))?,
+                split_dest(cap(&c, 3))?
+            ),
+            cap(&c, 4).to_string(),
+        ));
+    }
+    None
+}
+
 /// Where a dig puts the rest: `bottom`, `bottom random`, `graveyard`.
 fn dig_rest(s: &str) -> Option<&'static str> {
     match s {
@@ -2234,6 +2333,73 @@ impl Templates {
                     Some(t)
                 },
             ),
+            // "Target player shuffles their library." (CR 701.24).
+            (
+                r(r"^(Target player|Target opponent|Each player|Each opponent) shuffles their library$"),
+                |c, t| {
+                    let who = recipient(&subject(cap(c, 1)), t)?;
+                    Some(format!("{who} shuffles library"))
+                },
+            ),
+            (
+                r(r"^Each player shuffles their hand and graveyard into their library$"),
+                |_, _| Some("each player shuffles hand and graveyard into library".to_string()),
+            ),
+            // "Target player searches their library for a basic land card,
+            // puts it onto the battlefield tapped, then shuffles."
+            (
+                r(
+                    r"^(Target player|Target opponent|Its controller|That player) (searches|may search) their library for (?:a|an) ([a-z][a-z ]*?) card, (?:puts|put) it (onto the battlefield tapped|onto the battlefield|into their hand), then (?:shuffles|shuffle)$",
+                ),
+                |c, t| {
+                    let may = cap(c, 2) == "may search";
+                    let third = cap(c, 2) == "searches";
+                    // "searches ..., puts ..., then shuffles" and "may
+                    // search ..., put ..., then shuffle" agree in person.
+                    let puts = c.get(0)?.as_str().contains(", puts ");
+                    if puts != third {
+                        return None;
+                    }
+                    let who = recipient(&subject(cap(c, 1)), t)?;
+                    let to = match cap(c, 4) {
+                        "onto the battlefield tapped" => "battlefield tapped",
+                        "onto the battlefield" => "battlefield",
+                        _ => "hand",
+                    };
+                    let verb = if may { "may search" } else { "searches" };
+                    Some(format!("{who} {verb} {} card to {to}", cap(c, 3)))
+                },
+            ),
+            (r(r"^You may have that player shuffle$"), |_, _| {
+                Some("you may have that player shuffle".to_string())
+            }),
+            // "Search your library for three cards, exile them, then
+            // shuffle." (Foresight).
+            (
+                r(
+                    r"^Search your library for (a|an|one|two|three|four|five|up to \S+|any number of) ([A-Za-z][A-Za-z -]*?)? ?cards?, exile (?:it|them), then shuffle$",
+                ),
+                |c, _| {
+                    let n = cap(c, 1);
+                    let count = match n {
+                        "a" | "an" => String::new(),
+                        "any number of" => "any number ".to_string(),
+                        _ => match n.strip_prefix("up to ") {
+                            Some(k) => format!("up to {} ", number(k)?),
+                            None => format!("{} ", number(n)?),
+                        },
+                    };
+                    let what = cap(c, 2);
+                    let what = if what.is_empty() {
+                        String::new()
+                    } else {
+                        format!("{what} ")
+                    };
+                    let noun = if count.is_empty() { "card" } else { "cards" };
+                    let noun = if what.is_empty() { noun } else { "card" };
+                    Some(format!("search {count}{what}{noun} to exile"))
+                },
+            ),
             (r(r"^Add ((?:\{[WUBRGC]\})+)$"), |c, _| {
                 Some(format!("add {}", cap(c, 1)))
             }),
@@ -3523,6 +3689,8 @@ impl Templates {
                 ),
                 cap(&c, 4).to_string(),
             )
+        } else if let Some((dsl, tail)) = dig_split(&text, targets) {
+            (dsl, tail)
         } else if let Some((dsl, tail)) = dig_general(&text) {
             (dsl, tail)
         } else {
@@ -3609,6 +3777,75 @@ impl Templates {
                 );
             }
             let rest = cap(&c, 6).trim();
+            if !rest.is_empty() {
+                out.push_str("; ");
+                out.push_str(&self.effects(rest, targets)?);
+            }
+            return Ok(out);
+        }
+        // "look at the top card of your library. You may reveal that card.
+        // If an instant or sorcery card is revealed this way, ..."
+        // (Delver of Secrets); "Scry 3, then you may reveal the top card of
+        // your library. If a creature card is revealed this way, ..."
+        if let Some(c) = Regex::new(
+            r"^(?:([Ll]ook at the top card of your library\. You may reveal that card)|[Ss]cry (\w+), then you may reveal the top card of your library)\. If an? ([a-z][a-z ]*?) card is revealed this way, (.+?)\.?$",
+        )
+        .unwrap()
+        .captures(text)
+        {
+            let then = self.effects(&capitalize(cap(&c, 4)), targets)?;
+            let head = if c.get(1).is_some() {
+                "look at top card; you may reveal that card".to_string()
+            } else {
+                let n = number(cap(&c, 2)).ok_or_else(|| Skip::Sentence(text.to_string()))?;
+                format!("scry {n}, then you may reveal top card")
+            };
+            return Ok(format!("{head}; if revealed {} card, {then}", cap(&c, 3)));
+        }
+        // "Target player reveals their hand and you choose a card of that
+        // color from it. That player discards that card." (Addle).
+        if let Some(c) = Regex::new(
+            r"^(Choose a color\. )?(.+?) reveals their hand and you choose (?:a|an) (.+? )?card( of that color)? from it\. That player discards that card\.?(.*)$",
+        )
+        .unwrap()
+        .captures(text)
+        {
+            // "of that color" needs the color chosen first.
+            if c.get(1).is_some() != c.get(4).is_some() {
+                return Err(Skip::Sentence(text.to_string()));
+            }
+            let who = recipient(&subject(cap(&c, 2)), targets)
+                .ok_or_else(|| Skip::Sentence(text.to_string()))?;
+            let what = format!(
+                "{}{}",
+                cap(&c, 3),
+                if c.get(4).is_some() { "of that color " } else { "" }
+            );
+            let lead = if c.get(1).is_some() { "choose color; " } else { "" };
+            let mut out = format!("{lead}{who} reveals hand and discarding {what}card");
+            let rest = cap(&c, 5).trim();
+            if !rest.is_empty() {
+                out.push_str("; ");
+                out.push_str(&self.effects(rest, targets)?);
+            }
+            return Ok(out);
+        }
+        // "Look at target opponent's hand and choose a card from it. Put
+        // that card on top of that player's library." (Painful Memories).
+        if let Some(c) = Regex::new(
+            r"^Look at (target opponent|target player)'s hand and choose (?:a|an) (.+? )?card from it\. (Put that card on top of that player's library|That player discards that card)\.?(.*)$",
+        )
+        .unwrap()
+        .captures(text)
+        {
+            *targets += 1;
+            let verb = if cap(&c, 3).starts_with("Put") {
+                "topping"
+            } else {
+                "discarding"
+            };
+            let mut out = format!("look at hand of {} {verb} {}card", cap(&c, 1), cap(&c, 2));
+            let rest = cap(&c, 4).trim();
             if !rest.is_empty() {
                 out.push_str("; ");
                 out.push_str(&self.effects(rest, targets)?);
@@ -5563,6 +5800,10 @@ impl Builder<'_> {
         // CR 401.2: information only.
         if line == "You may look at the top card of your library any time." {
             self.statements.push("may look top".to_string());
+            return Ok(());
+        }
+        if line == "Players play with their hands revealed." {
+            self.statements.push("hands revealed players".to_string());
             return Ok(());
         }
         if line == "Play with the top card of your library revealed." {

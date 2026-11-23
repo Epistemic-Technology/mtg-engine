@@ -9518,7 +9518,11 @@ impl P {
                     return self.unexpected("`hand`, `battlefield`, `graveyard`, or `top`");
                 };
                 let that_card = self.eat_words(&["that", "card"]);
-                let old = self.eat_word("then");
+                // A final `then`: the older wording (not `then <clause>`).
+                let old = self.at_word("then") && !matches!(self.peek_at(1), Some(Tok::Word(_)));
+                if old {
+                    self.pos += 1;
+                }
                 Ok(Effect::Search {
                     filter,
                     count,
