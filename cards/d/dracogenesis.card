@@ -1,0 +1,6 @@
+card "Dracogenesis" {
+  oracle_id 9b06f2bf-146d-4b30-b467-e16f1a942253
+  cost {6}{R}{R}
+  type Enchantment
+  cast free spells Dragon
+}

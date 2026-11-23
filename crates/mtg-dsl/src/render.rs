@@ -6017,9 +6017,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         // "You may cast target Zombie creature card from your graveyard
         // this turn."
-        Effect::MayPlayTarget { what, until, cast } => {
+        Effect::MayPlayTarget {
+            what,
+            until,
+            cast,
+            adventure,
+        } => {
             use mtg_core::card::PlayUntil;
             let o = ctx.obj(*what);
+            // "you may cast it from your graveyard as an Adventure until
+            // the end of your next turn" (Mosswood Dreadknight).
+            let o = if *adventure {
+                let o = if o == "this card" {
+                    "it".to_string()
+                } else {
+                    o
+                };
+                format!("{o} from your graveyard as an Adventure")
+            } else {
+                o
+            };
             let verb = if *cast { "cast" } else { "play" };
             let when = match until {
                 PlayUntil::ThisTurn => " this turn",
@@ -7379,6 +7396,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::NextSpellUncounterable => {
             Clause::imperative("the next spell you cast this turn can't be countered".to_string())
         }
+        Effect::NextSpellFree(f) => Clause::imperative(format!(
+            "the next {} you cast this turn can be cast without paying its mana cost",
+            a_spell(f, ctx.card)
+                .trim_start_matches("a ")
+                .trim_start_matches("an ")
+        )),
         Effect::NextSpellLess(n) => Clause::imperative(format!(
             "the next spell you cast this turn costs {{{n}}} less to cast"
         )),
@@ -9185,12 +9208,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 "power"
             };
+            // "Until end of turn, double its power and toughness and it
+            // gains trample." (World War Hulk): the duration printed first.
+            let eot = if ctx.eot_first {
+                ""
+            } else {
+                " until end of turn"
+            };
             if *of {
                 let o = ctx.obj(*to);
-                Clause::imperative(format!("double the {pt} of {o} until end of turn"))
+                Clause::imperative(format!("double the {pt} of {o}{eot}"))
             } else {
                 let s = ctx.subj(*to);
-                Clause::imperative(format!("double {} {pt} until end of turn", possessive(&s)))
+                Clause::imperative(format!("double {} {pt}{eot}", possessive(&s)))
             }
         }
         Effect::DoubleCounters { kind, to } => {
@@ -17069,6 +17099,47 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 format!("as though its power were {plus} greater")
             };
             format!("This {} {verb} {how}.", self_noun(card))
+        }
+        // "You may cast spells from your hand without paying their mana
+        // costs." (Omniscience).
+        Ability::CastFree {
+            spells,
+            from_hand,
+            max,
+            limit,
+        } => {
+            use mtg_core::card::FreeCastLimit;
+            let hand = if *from_hand { " from your hand" } else { "" };
+            match limit {
+                FreeCastLimit::FirstEachPlayer => {
+                    let what = if *spells == Filter::default() {
+                        "spell".to_string()
+                    } else {
+                        a_spell(spells, card)
+                            .trim_start_matches("a ")
+                            .trim_start_matches("an ")
+                            .to_string()
+                    };
+                    format!(
+                        "The first {what} each player casts during each of their turns may be cast without paying its mana cost."
+                    )
+                }
+                FreeCastLimit::OnceYourTurns => format!(
+                    "Once during each of your turns, you may cast {}{hand} without paying its mana cost.",
+                    a_spell(spells, card)
+                ),
+                FreeCastLimit::Always => {
+                    let what = top_spells(spells, card);
+                    let what = match max {
+                        Some(m) => format!(
+                            "{what} with mana value less than or equal to {}",
+                            cda_count_text(m, card)
+                        ),
+                        None => what,
+                    };
+                    format!("You may cast {what}{hand} without paying their mana costs.")
+                }
+            }
         }
         Ability::PlayFromTop {
             lands,

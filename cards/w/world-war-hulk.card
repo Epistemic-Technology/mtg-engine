@@ -1,0 +1,8 @@
+card "World War Hulk" {
+  oracle_id 8c4da760-8913-46ca-b00c-bba6d877d482
+  cost {3}{G}{G}
+  type Enchantment — Saga
+  triggered chapter 1: next red or green creature spell free
+  triggered chapter 2: put 3 +1/+1 counters on target creature you control
+  triggered chapter 3: choose target creature you control; until end of turn, double target 1 power and toughness and target 1 gains trample
+}

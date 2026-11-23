@@ -6518,6 +6518,42 @@ impl Builder<'_> {
             self.statements.push(s);
             return Ok(());
         }
+        // CR 118.9: "You may cast spells from your hand without paying
+        // their mana costs." (Omniscience), "You may cast Dragon spells
+        // without paying their mana costs."
+        if let Some(c) = Regex::new(
+            r"^You may cast (?:(\w+) )?spells( from your hand)? without paying their mana costs\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let mut s = "cast free".to_string();
+            if c.get(2).is_some() {
+                s.push_str(" from hand");
+            }
+            s.push_str(" spells");
+            if let Some(k) = c.get(1) {
+                let k = k.as_str();
+                if k.chars().next().is_some_and(char::is_uppercase)
+                    || matches!(
+                        k,
+                        "artifact"
+                            | "creature"
+                            | "instant"
+                            | "sorcery"
+                            | "enchantment"
+                            | "noncreature"
+                    )
+                {
+                    s.push(' ');
+                    s.push_str(k);
+                } else {
+                    return Err(Skip::Sentence(line.to_string()));
+                }
+            }
+            self.statements.push(s);
+            return Ok(());
+        }
         // CR 702.131: "Ascend" as an ability line.
         // CR 726.2: "If it's neither day nor night, it becomes day as this
         // creature enters."

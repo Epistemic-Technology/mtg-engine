@@ -553,6 +553,12 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 false
             };
+            let free = if line.peek_ident("free") {
+                line.pos += 1;
+                true
+            } else {
+                false
+            };
             let dashed = if line.peek_ident("dashed") {
                 line.pos += 1;
                 true
@@ -719,6 +725,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                     evoked,
                     dashed,
                     warped,
+                    free,
                     sneaked,
                     webslung,
                     impending,

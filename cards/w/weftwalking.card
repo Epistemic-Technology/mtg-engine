@@ -1,0 +1,7 @@
+card "Weftwalking" {
+  oracle_id 08af6751-5848-47fb-95f5-57215e899460
+  cost {4}{U}{U}
+  type Enchantment
+  triggered when this enters if you cast it: shuffle hand and graveyard into library then draw 7 cards
+  cast free first each player spells
+}

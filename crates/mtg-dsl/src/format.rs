@@ -1000,10 +1000,20 @@ impl Fmt {
                 Some(w) => format!("{} exiles until {} card", self.recipient(*w, t), filter(f)),
             },
             Effect::MayCastThisFromExile => "may cast this while exiled".to_string(),
-            Effect::MayPlayTarget { what, until, cast } => format!(
-                "may {} {} {}",
+            Effect::MayPlayTarget {
+                what,
+                until,
+                cast,
+                adventure,
+            } => format!(
+                "may {} {}{} {}",
                 if *cast { "cast" } else { "play" },
                 self.recipient(*what, t),
+                if *adventure {
+                    " from graveyard as adventure"
+                } else {
+                    ""
+                },
                 match until {
                     mtg_core::card::PlayUntil::ThisTurn => "this turn",
                     mtg_core::card::PlayUntil::EndOfYourNextTurn => "next turn",
@@ -1699,6 +1709,7 @@ impl Fmt {
                 self.recipient(*what, t)
             ),
             Effect::NextSpellLess(n) => format!("next spell costs {{{n}}} less"),
+            Effect::NextSpellFree(f) => format!("next {} spell free", filter(f)),
             Effect::NextSpellUncounterable => "next spell can't be countered".to_string(),
             Effect::ExtraLandPlays(1) => "play additional land this turn".to_string(),
             Effect::ExtraLandPlays(n) => format!("play {n} additional land this turn"),
@@ -7020,6 +7031,34 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 if *face_down { " face-down" } else { "" },
                 if *opponents { " opponents" } else { "" }
             );
+        }
+        Ability::CastFree {
+            spells,
+            from_hand,
+            max,
+            limit,
+        } => {
+            use mtg_core::card::FreeCastLimit;
+            let mut s = format!("{indent}cast free");
+            match limit {
+                FreeCastLimit::Always => {}
+                FreeCastLimit::OnceYourTurns => s.push_str(" once your turns"),
+                FreeCastLimit::FirstEachPlayer => s.push_str(" first each player"),
+            }
+            if *from_hand {
+                s.push_str(" from hand");
+            }
+            s.push_str(" spells");
+            if *spells != Filter::default() {
+                let _ = write!(s, " {}", filter(spells));
+            }
+            if let Some(m) = max {
+                let _ = match m {
+                    crate::ast::CountExpr::Permanents(f) => write!(s, " max count {}", filter(f)),
+                    other => write!(s, " max {}", count_expr_text(other)),
+                };
+            }
+            let _ = writeln!(out, "{s}");
         }
         Ability::PlayFromTop {
             lands,

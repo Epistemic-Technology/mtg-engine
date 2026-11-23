@@ -1044,6 +1044,7 @@ impl Decompiler<'_> {
             CoreEffect::TapOrUntap { to } => Effect::TapOrUntap { to: r(*to) },
             CoreEffect::ExileSameName { what } => Effect::ExileSameName { what: r(*what) },
             CoreEffect::NextSpellLess(n) => Effect::NextSpellLess(*n),
+            CoreEffect::NextSpellFree(f) => Effect::NextSpellFree(self.filter(f)),
             CoreEffect::NextSpellUncounterable => Effect::NextSpellUncounterable,
             CoreEffect::ExtraLandPlays(n) => Effect::ExtraLandPlays(*n),
             CoreEffect::FaceDownSpellsLess(n) => Effect::FaceDownSpellsLess(*n),
@@ -1806,10 +1807,12 @@ impl Decompiler<'_> {
                 cast,
                 free: false,
                 what: Some(w),
+                adventure,
             } => Effect::MayPlayTarget {
                 what: r(*w),
                 until: *until,
                 cast: *cast,
+                adventure: *adventure,
             },
             CoreEffect::MayPlayCard {
                 until, cast, free, ..
@@ -2567,6 +2570,17 @@ impl Decompiler<'_> {
                 enters: false,
                 kind: *kind,
                 n: *n,
+            },
+            AbilityDef::CastFree {
+                spells,
+                from_hand,
+                max,
+                limit,
+            } => Ability::CastFree {
+                spells: self.filter(spells),
+                from_hand: *from_hand,
+                max: max.as_ref().map(|c| self.cda_count(c)),
+                limit: *limit,
             },
             AbilityDef::PlayFromTop {
                 lands,

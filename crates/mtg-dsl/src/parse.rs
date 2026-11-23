@@ -2522,6 +2522,42 @@ impl P {
                     once,
                 })
             }
+            // "You may cast spells from your hand without paying their mana
+            // costs." (Omniscience).
+            "cast" if self.at_words(&["cast", "free"]) => {
+                use mtg_core::card::FreeCastLimit;
+                self.pos += 2;
+                let limit = if self.eat_words(&["once", "your", "turns"]) {
+                    FreeCastLimit::OnceYourTurns
+                } else if self.eat_words(&["first", "each", "player"]) {
+                    FreeCastLimit::FirstEachPlayer
+                } else {
+                    FreeCastLimit::Always
+                };
+                let from_hand = self.eat_words(&["from", "hand"]);
+                self.expect_word("spells")?;
+                let spells = if self.at_stmt_end() || self.at_word("max") {
+                    Filter::default()
+                } else {
+                    self.filter()?
+                };
+                let max = if self.eat_word("max") {
+                    Some(if self.eat_word("count") {
+                        crate::ast::CountExpr::Permanents(self.filter()?)
+                    } else {
+                        self.count_expr()?
+                    })
+                } else {
+                    None
+                };
+                self.end_stmt()?;
+                Ok(Ability::CastFree {
+                    spells,
+                    from_hand,
+                    max,
+                    limit,
+                })
+            }
             "play" if self.at_words(&["play", "exiled"]) => {
                 self.pos += 2;
                 let your_turn = self.eat_words(&["your", "turn"]);
@@ -10096,12 +10132,20 @@ impl P {
             // this turn`.
             "may"
                 if (self.at_word("play") || self.at_word("cast"))
-                    && self.word_at(1).as_deref() == Some("target") =>
+                    && (self.word_at(1).as_deref() == Some("target")
+                        || (self.word_at(1).as_deref() == Some("this")
+                            && self.word_at(2).as_deref() == Some("card"))) =>
             {
                 let cast = self.word()? == "cast";
                 let what = self.recipient()?;
+                let adventure = self.eat_words(&["from", "graveyard", "as", "adventure"]);
                 let until = self.play_until()?;
-                Ok(Effect::MayPlayTarget { what, until, cast })
+                Ok(Effect::MayPlayTarget {
+                    what,
+                    until,
+                    cast,
+                    adventure,
+                })
             }
             // `may cast that card this turn [first] [free]`.
             "may"
@@ -10250,6 +10294,18 @@ impl P {
             "next" if self.at_words(&["spell", "can't", "be", "countered"]) => {
                 self.pos += 4;
                 Ok(Effect::NextSpellUncounterable)
+            }
+            // "The next red or green creature spell you cast this turn can
+            // be cast without paying its mana cost."
+            "next"
+                if (1..8).any(|k| {
+                    self.word_at(k).as_deref() == Some("spell")
+                        && self.word_at(k + 1).as_deref() == Some("free")
+                }) && !self.at_word("spell") =>
+            {
+                let f = self.filter()?;
+                self.expect_words(&["spell", "free"])?;
+                Ok(Effect::NextSpellFree(f))
             }
             "next" if self.at_word("spell") => {
                 self.expect_words(&["spell", "costs"])?;

@@ -3384,6 +3384,10 @@ impl Compiler<'_> {
                 out.push(CoreEffect::ExileSameName { what: r(*what) });
             }
             Effect::NextSpellLess(n) => out.push(CoreEffect::NextSpellLess(*n)),
+            Effect::NextSpellFree(f) => {
+                let f = self.filter(f);
+                out.push(CoreEffect::NextSpellFree(f));
+            }
             Effect::NextSpellUncounterable => out.push(CoreEffect::NextSpellUncounterable),
             Effect::ExtraLandPlays(n) => out.push(CoreEffect::ExtraLandPlays(*n)),
             Effect::FaceDownSpellsLess(n) => out.push(CoreEffect::FaceDownSpellsLess(*n)),
@@ -4440,12 +4444,19 @@ impl Compiler<'_> {
                 cast: *cast,
                 free: *free,
                 what: None,
+                adventure: false,
             }),
-            Effect::MayPlayTarget { what, until, cast } => out.push(CoreEffect::MayPlayCard {
+            Effect::MayPlayTarget {
+                what,
+                until,
+                cast,
+                adventure,
+            } => out.push(CoreEffect::MayPlayCard {
                 until: *until,
                 cast: *cast,
                 free: false,
                 what: Some(r(*what)),
+                adventure: *adventure,
             }),
             Effect::RevealUntil { who, filter } => out.push(CoreEffect::RevealUntil {
                 who: r(who.unwrap_or(Recipient::You)),
@@ -6569,6 +6580,17 @@ impl Compiler<'_> {
             Ability::AsTurnedFaceUp { kind, n, .. } => {
                 AbilityDef::AsTurnedFaceUp { kind: *kind, n: *n }
             }
+            Ability::CastFree {
+                spells,
+                from_hand,
+                max,
+                limit,
+            } => AbilityDef::CastFree {
+                spells: self.filter(spells),
+                from_hand: *from_hand,
+                max: max.as_ref().map(|c| self.count_expr(c)),
+                limit: *limit,
+            },
             Ability::PlayFromTop {
                 lands,
                 spells,

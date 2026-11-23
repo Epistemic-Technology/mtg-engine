@@ -1383,6 +1383,7 @@ impl Runner {
                     evoked,
                     dashed,
                     warped,
+                    free,
                     sneaked,
                     webslung,
                     impending,
@@ -1403,6 +1404,8 @@ impl Runner {
                         Choice::CastDash(self.in_hand(a.line, d.player, name)?)
                     } else if *warped {
                         Choice::CastWarp(self.in_hand(a.line, d.player, name)?)
+                    } else if *free {
+                        Choice::CastFree(self.in_hand(a.line, d.player, name)?)
                     } else if *sneaked {
                         Choice::CastSneak(self.in_hand(a.line, d.player, name)?)
                     } else if *impending {
@@ -1428,7 +1431,12 @@ impl Runner {
                     } else if *alternative {
                         Choice::CastAlt(self.in_hand(a.line, d.player, name)?)
                     } else if *from_graveyard {
-                        Choice::Cast(self.in_graveyard(a.line, d.player, name)?)
+                        // An Adventure half named from the graveyard ("you
+                        // may cast it from your graveyard as an Adventure").
+                        match self.face_in_graveyard(d.player, name) {
+                            Some(c) => c,
+                            None => Choice::Cast(self.in_graveyard(a.line, d.player, name)?),
+                        }
                     } else if let Some(c) = self.face_in_hand(d.player, name) {
                         c
                     } else if let Some(id) = self.on_adventure(d.player, name) {
@@ -1463,6 +1471,7 @@ impl Runner {
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
             | Choice::CastWarp(id)
+            | Choice::CastFree(id)
             | Choice::CastSneak(id)
             | Choice::CastWebSlinging(id)
             | Choice::CastImpending(id)
@@ -2329,6 +2338,25 @@ impl Runner {
         })
     }
 
+    /// `cast "Dread Whispers" from graveyard`: that face of a card in
+    /// `p`'s graveyard.
+    fn face_in_graveyard(&self, p: PlayerId, name: &str) -> Option<Choice> {
+        let st = self.state();
+        st.player(p).graveyard.iter().find_map(|id| {
+            let def = st.pool.get(st.objects[*id].def);
+            if def.layout != mtg_core::card::Layout::Adventure {
+                return None;
+            }
+            def.faces
+                .iter()
+                .position(|f| st.pool.get(*f).name == name)
+                .map(|i| Choice::CastFace {
+                    card: *id,
+                    face: u8::try_from(i).unwrap_or(0),
+                })
+        })
+    }
+
     /// `cast "Rampant Growth"`: a copy of the prepare spell of that name
     /// of a permanent `p` controls (CR 722.3c), offered while it is
     /// prepared.
@@ -3009,6 +3037,7 @@ impl Runner {
             Choice::CastEvoke(id) => format!("cast {} evoked", self.describe_ids(&[*id])),
             Choice::CastDash(id) => format!("cast {} dashed", self.describe_ids(&[*id])),
             Choice::CastWarp(id) => format!("cast {} warped", self.describe_ids(&[*id])),
+            Choice::CastFree(id) => format!("cast {} free", self.describe_ids(&[*id])),
             Choice::CastSneak(id) => format!("cast {} sneaked", self.describe_ids(&[*id])),
             Choice::CastImpending(id) => {
                 format!("cast {} impending", self.describe_ids(&[*id]))

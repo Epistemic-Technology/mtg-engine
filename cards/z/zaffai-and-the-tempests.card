@@ -1,0 +1,7 @@
+card "Zaffai and the Tempests" {
+  oracle_id 3f8a8650-0e38-4926-8f48-526351e6a863
+  cost {5}{U}{R}
+  type Legendary Creature — Human Bard Sorcerer
+  pt 5/7
+  cast free once your turns from hand spells instant or sorcery
+}

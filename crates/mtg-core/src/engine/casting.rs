@@ -29,6 +29,8 @@ impl GameState {
         let sources = self.mana_sources(p);
         let pool = ps.mana_pool;
         let changers = self.cost_changers();
+        let free_from_hand = (self.player_static_sources > 0 && self.may_cast_free(p))
+            || self.next_spell_free.iter().any(|(who, _)| *who == p);
         for id in &ps.hand {
             let def = self.pool.get(self.objects[*id].def);
             // Abilities activated from the hand (cycling, CR 702.29) cost
@@ -178,6 +180,15 @@ impl GameState {
                 && self.undone_cast != Some((*id, self.version))
             {
                 options.push(Choice::Cast(*id));
+            }
+            // "You may cast spells from your hand without paying their
+            // mana costs." (Omniscience), with the usual timing.
+            if free_from_hand
+                && (sorcery_timing || def.is_instant() || self.has_flash(p, def, *id))
+                && self.free_cast_permission(p, *id).is_some()
+                && self.exile_castable(p, *id, AltCast::Free)
+            {
+                options.push(Choice::CastFree(*id));
             }
             // Most cards have no other way to be cast from the hand.
             if !def.other_casts {
@@ -450,11 +461,12 @@ impl GameState {
                             });
                         }
                     }
-                    if def.layout == Layout::Split {
+                    if def.layout == Layout::Split || pe.adventure {
                         continue;
                     }
                 }
                 if self.castable(p, def, pe.card, sorcery_timing, &sources, &pool, &changers)
+                    && !pe.adventure
                     && !options.contains(&Choice::Cast(pe.card))
                 {
                     options.push(Choice::Cast(pe.card));
@@ -780,6 +792,7 @@ impl GameState {
                 Choice::Cast(id)
                 | Choice::CastEvoke(id)
                 | Choice::CastDash(id)
+                | Choice::CastFree(id)
                 | Choice::CastWarp(id)
                 | Choice::CastSneak(id)
                 | Choice::CastAlt(id)
@@ -808,6 +821,7 @@ impl GameState {
                 Choice::Cast(_)
                 | Choice::CastEvoke(_)
                 | Choice::CastDash(_)
+                | Choice::CastFree(_)
                 | Choice::CastWarp(_)
                 | Choice::CastSneak(_)
                 | Choice::CastAlt(_)
@@ -868,6 +882,7 @@ impl GameState {
             Choice::Cast(id)
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
+            | Choice::CastFree(id)
             | Choice::CastWarp(id)
             | Choice::CastSneak(id)
             | Choice::CastWebSlinging(id)
@@ -3116,6 +3131,115 @@ impl GameState {
             }
         }
         out
+    }
+
+    /// Whether any permanent gives `p` a static permission to cast spells
+    /// from their hand without paying their mana costs
+    /// (`AbilityDef::CastFree`), before looking at the cards.
+    #[cold]
+    #[inline(never)]
+    pub(super) fn may_cast_free(&self, p: PlayerId) -> bool {
+        self.battlefield.iter().any(|src| {
+            let s = &self.objects[*src];
+            self.flags_of(s).has_player_static()
+                && self.pool.get(s.def).ability_ids.iter().any(|a| {
+                    matches!(self.pool.ability(*a), AbilityDef::CastFree { limit, .. }
+                        if s.controller == p || *limit == crate::card::FreeCastLimit::FirstEachPlayer)
+                })
+        })
+    }
+
+    /// The permission that lets `p` cast `card` from their hand without
+    /// paying its mana cost now (CR 601.2b, 118.9): a static ability
+    /// (`AbilityDef::CastFree`) or "the next ... spell you cast this turn"
+    /// (`Effect::NextSpellFree`). Inside, the source and ability of a
+    /// once-each-turn permission, to be recorded as used.
+    pub(super) fn free_cast_permission(&self, p: PlayerId, card: ObjId) -> Option<FreeUse> {
+        use crate::card::FreeCastLimit;
+        let o = self.objects.get(card)?;
+        if o.zone != Zone::Hand || o.owner != p {
+            return None;
+        }
+        let def = self.pool.get(o.def);
+        let chars = self.base_characteristics(o);
+        let mv = def.mana_cost.mana_value();
+        for (who, f) in &self.next_spell_free {
+            if *who == p
+                && f.mana_value
+                    .is_none_or(|(cmp, n)| cmp.holds(mv, u32::from(n)))
+                && f.matches(card, p, &chars, None, Some(p))
+            {
+                return Some(FreeUse::Any);
+            }
+        }
+        if self.player_static_sources == 0 {
+            return None;
+        }
+        for src in &self.battlefield {
+            let s = &self.objects[*src];
+            if !self.flags_of(s).has_player_static() {
+                continue;
+            }
+            for a in &self.pool.get(s.def).ability_ids {
+                let AbilityDef::CastFree {
+                    spells, max, limit, ..
+                } = self.pool.ability(*a)
+                else {
+                    continue;
+                };
+                let ok_player = match limit {
+                    FreeCastLimit::Always => s.controller == p,
+                    FreeCastLimit::OnceYourTurns => {
+                        s.controller == p
+                            && self.active_player == p
+                            && !self.activated_once.contains(&(*src, *a))
+                    }
+                    FreeCastLimit::FirstEachPlayer => {
+                        self.active_player == p && self.spells_this_turn[p.index().min(3)] == 0
+                    }
+                };
+                if !ok_player {
+                    continue;
+                }
+                // The mana value isn't a characteristic `matches` sees.
+                if !spells
+                    .mana_value
+                    .is_none_or(|(cmp, n)| cmp.holds(mv, u32::from(n)))
+                    || !spells.matches(card, p, &chars, Some(*src), Some(s.controller))
+                {
+                    continue;
+                }
+                if let Some(m) = max {
+                    let ctx = EffectCtx {
+                        source: *src,
+                        controller: s.controller,
+                        targets: Vec::new(),
+                        division: Vec::new(),
+                        legal: Vec::new(),
+                        trigger_obj: None,
+                        trigger_player: None,
+                        trigger_amount: 0,
+                        created: None,
+                        revealed: Vec::new(),
+                        x: 0,
+                        did: true,
+                        chosen: Chosen::None,
+                        couldnt: 0,
+                        created_tokens: SmallVec::new(),
+                        counts: None,
+                    };
+                    if mv > self.eval_count(m, &ctx) {
+                        continue;
+                    }
+                }
+                return Some(if *limit == FreeCastLimit::OnceYourTurns {
+                    FreeUse::Once(*src, *a)
+                } else {
+                    FreeUse::Any
+                });
+            }
+        }
+        None
     }
 
     /// CR 607.2a, 601.3: the cards exiled with permanents `p` controls
@@ -8190,6 +8314,24 @@ impl GameState {
         // "The next spell you cast this turn costs {1} less": used up by
         // this spell, its total cost paid (CR 601.2f-h).
         self.next_spell_less[caster.index().min(3)] = 0;
+        // "The next red or green creature spell you cast this turn can be
+        // cast without paying its mana cost": used up by the next such
+        // spell, however it was cast.
+        if !self.next_spell_free.is_empty()
+            && let Some(chars) = self.characteristics(spell)
+        {
+            let mv = self
+                .pool
+                .get(self.objects[spell].def)
+                .mana_cost
+                .mana_value();
+            self.next_spell_free.retain(|(who, f)| {
+                !(*who == caster
+                    && f.mana_value
+                        .is_none_or(|(cmp, n)| cmp.holds(mv, u32::from(n)))
+                    && f.matches(spell, caster, &chars, None, Some(caster)))
+            });
+        }
         // "The next spell you cast this turn can't be countered."
         let bit = 1u8 << caster.index().min(7);
         if self.next_uncounterable & bit != 0 {
@@ -10815,7 +10957,17 @@ impl GameState {
             Effect::Mill { count, who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        self.mill(p, self.eval_num(*count, ctx));
+                        let n = self.eval_num(*count, ctx);
+                        // "Mill a card. You may play that card this turn.":
+                        // the one card milled is "that card".
+                        let before = self.player(p).graveyard.len();
+                        self.mill(p, n);
+                        if n == 1
+                            && self.player(p).graveyard.len() > before
+                            && let Some(&new) = self.player(p).graveyard.last()
+                        {
+                            ctx.created = Some(new);
+                        }
                     }
                 }
             }
@@ -11411,6 +11563,9 @@ impl GameState {
             }
             Effect::NextSpellUncounterable => {
                 self.next_uncounterable |= 1 << ctx.controller.index().min(7);
+            }
+            Effect::NextSpellFree(f) => {
+                self.next_spell_free.push((ctx.controller, f.clone()));
             }
             Effect::NextSpellLess(n) => {
                 let i = ctx.controller.index().min(3);
@@ -13961,6 +14116,7 @@ impl GameState {
                 cast,
                 free,
                 what,
+                adventure,
             } => {
                 let p = ctx.controller;
                 let own_ends = if self.active_player == p { 2 } else { 1 };
@@ -13980,9 +14136,15 @@ impl GameState {
                                 .is_some_and(|o| matches!(o.zone, Zone::Graveyard | Zone::Exile))
                         })
                         .collect(),
+                    // The card exiled, or the one card milled ("Mill a
+                    // card. You may play that card this turn.").
                     None => ctx
                         .created
-                        .filter(|id| self.objects.get(*id).is_some_and(|o| o.zone == Zone::Exile))
+                        .filter(|id| {
+                            self.objects
+                                .get(*id)
+                                .is_some_and(|o| matches!(o.zone, Zone::Exile | Zone::Graveyard))
+                        })
                         .into_iter()
                         .collect(),
                 };
@@ -13998,6 +14160,7 @@ impl GameState {
                             cast_only: *cast,
                             free: *free,
                             source: ctx.source,
+                            adventure: *adventure,
                         });
                 }
             }
@@ -14995,6 +15158,7 @@ impl GameState {
                             cast_only: true,
                             free: false,
                             source: ObjId::default(),
+                            adventure: false,
                         });
                 }
             }
@@ -15024,6 +15188,7 @@ impl GameState {
                                 cast_only: true,
                                 free: false,
                                 source: ObjId::default(),
+                                adventure: false,
                             });
                     }
                 }
@@ -15090,6 +15255,7 @@ impl GameState {
                             cast_only: false,
                             free: false,
                             source: ctx.source,
+                            adventure: false,
                         });
                 }
             }
@@ -16287,6 +16453,18 @@ pub(super) struct EffectCtx {
     /// source's: an ability another card granted it (Galuf's Final Act's
     /// "equal to its power"), or a spliced card.
     pub counts: Option<crate::card::CardRef>,
+}
+
+/// How a permission to cast a spell without paying its mana cost is used
+/// (`GameState::free_cast_permission`).
+#[derive(Copy, Clone, Debug)]
+pub(super) enum FreeUse {
+    /// Nothing to record: any number of spells, or the next spell's
+    /// permission, which casting the spell uses up.
+    Any,
+    /// A once-each-turn permission of this source and ability, recorded as
+    /// used (`activated_once`).
+    Once(ObjId, crate::card::AbilityId),
 }
 
 /// The ways to divide `total` among `k` targets, each getting at least 1

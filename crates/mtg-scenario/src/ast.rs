@@ -145,6 +145,9 @@ pub enum Action {
         dashed: bool,
         /// `warped`: cast for the warp cost (CR 702.185a).
         warped: bool,
+        /// `free`: cast from hand without paying its mana cost by a static
+        /// permission (Omniscience, CR 118.9).
+        free: bool,
         /// `sneaked`: cast for the sneak cost (CR 702.190a), returning the
         /// unblocked attacker named by `sacrificing`.
         sneaked: bool,

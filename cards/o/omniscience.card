@@ -1,0 +1,6 @@
+card "Omniscience" {
+  oracle_id 730e39e6-c61d-48b5-8827-bfd952bf1be7
+  cost {7}{U}{U}{U}
+  type Enchantment
+  cast free from hand spells
+}
