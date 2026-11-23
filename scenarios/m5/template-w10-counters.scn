@@ -1,0 +1,128 @@
+# Cards the tenth wave's templates write besides those named for a phrase:
+# "has trample as long as it has a +1/+1 counter on it", "Remove a +1/+1
+# counter from Mikaeus" (the card's name in a cost), and two Amonkhet-style
+# returns.
+
+scenario "Baloth Pup: trample only with a +1/+1 counter" {
+  battlefield A: "Baloth Pup", "Sigiled Contender" with 1 +1/+1
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert has not "Baloth Pup" trample
+  assert has "Sigiled Contender" lifelink
+}
+
+scenario "Baloth Pup: a counter gives it trample" {
+  battlefield A: "Baloth Pup" with 1 +1/+1
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert has "Baloth Pup" trample
+}
+
+scenario "Thunderblust: persisted with a -1/-1 counter, trample" {
+  battlefield A: "Thunderblust", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert has not "Thunderblust" trample
+  turn 1 begin_combat A: cast "Lightning Bolt" targeting "Thunderblust"
+  run_to turn 1 postcombat_main
+  assert counters "Thunderblust" -1/-1 1
+  assert has "Thunderblust" trample
+}
+
+scenario "Chaos Imps: unleashed, trample" {
+  battlefield A: 6 "Mountain"
+  hand A: "Chaos Imps"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Chaos Imps"
+  run_to turn 1 postcombat_main
+  assert counters "Chaos Imps" +1/+1 1
+  assert has "Chaos Imps" trample
+}
+
+scenario "Mikaeus, the Lunarch: remove a counter for one on each other creature" {
+  battlefield A: "Mikaeus, the Lunarch" with 2 +1/+1, "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Mikaeus, the Lunarch" ability 2
+  run_to turn 1 postcombat_main
+  assert counters "Mikaeus, the Lunarch" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Hill Giant" +1/+1 0
+}
+
+scenario "Migloz, Maze Crusher: three oil counters destroy an artifact" {
+  battlefield A: "Migloz, Maze Crusher" with 5 oil, 3 "Forest"
+  battlefield B: "Sol Ring"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Migloz, Maze Crusher" ability 3 targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Sol Ring"
+  assert counters "Migloz, Maze Crusher" oil 2
+}
+
+scenario "Migloz, Maze Crusher: not with two oil counters" {
+  battlefield A: "Migloz, Maze Crusher" with 2 oil, 3 "Forest"
+  battlefield B: "Sol Ring"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Migloz, Maze Crusher" ability 3 targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Sol Ring"
+}
+
+scenario "Slogurk, the Overslime: three counters return it; leaving, lands come back" {
+  battlefield A: "Slogurk, the Overslime" with 3 +1/+1
+  graveyard A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Slogurk, the Overslime"
+  turn 1 A: trigger "Slogurk, the Overslime" targeting "Forest", "Island"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Slogurk, the Overslime"
+  assert hand A contains "Forest"
+  assert hand A contains "Island"
+}
+
+scenario "Get Out: return two creatures you own" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 2 "Island"
+  start turn 1 A precombat_main
+  hand A: "Get Out"
+  turn 1 A: cast "Get Out" mode 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Get Out: not a creature you don't own" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Get Out"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Get Out" mode 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Leave // Chance: return permanents you own" {
+  battlefield A: "Grizzly Bears", "Sol Ring", 2 "Plains"
+  hand A: "Leave // Chance"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Leave" targeting "Grizzly Bears", "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Sol Ring"
+}
+
+scenario "Leave // Chance: Chance discards any number and draws that many" {
+  battlefield A: 4 "Mountain"
+  graveyard A: "Leave // Chance"
+  hand A: "Island", "Forest"
+  library A: "Plains", "Swamp", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Leave // Chance" from graveyard
+  turn 1 A: choose "Island"
+  turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Island"
+  assert hand A count 2
+  assert library A count 1
+}

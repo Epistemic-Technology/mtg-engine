@@ -1,0 +1,9 @@
+card "Thunderblust" {
+  oracle_id 30d961f7-aae2-4e5a-8f83-9dc17c7dee47
+  cost {2}{R}{R}{R}
+  type Creature — Elemental
+  pt 7/2
+  keywords haste
+  static this: has trample as long as this has 1 or more -1/-1 counters
+  keyword persist
+}
