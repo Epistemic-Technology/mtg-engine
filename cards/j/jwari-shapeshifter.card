@@ -1,0 +1,7 @@
+card "Jwari Shapeshifter" {
+  oracle_id 0b0c02eb-4d9e-4fea-bad6-9ef5d7bb5295
+  cost {1}{U}
+  type Creature — Shapeshifter Ally
+  pt 0/0
+  enters as copy of Ally creature
+}

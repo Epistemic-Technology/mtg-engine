@@ -1,0 +1,7 @@
+card "Zombie Scavengers" {
+  oracle_id 8c5298da-6759-444e-8870-6c96d226c940
+  cost {2}{B}
+  type Creature — Zombie
+  pt 3/1
+  activated exile top creature card from graveyard: regenerate this
+}

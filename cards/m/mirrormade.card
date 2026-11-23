@@ -1,0 +1,6 @@
+card "Mirrormade" {
+  oracle_id 79a71fe5-38ce-4bb5-aea0-c9b9a856d397
+  cost {1}{U}{U}
+  type Enchantment
+  enters as copy of artifact or enchantment
+}

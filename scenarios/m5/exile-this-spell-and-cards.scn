@@ -1,0 +1,56 @@
+# "You may exile this spell and four cards named Dragon's Approach from
+# your graveyard. If you do, search your library for a Dragon creature
+# card, put it onto the battlefield, then shuffle."
+
+scenario "Dragon's Approach with four more in the graveyard fetches a Dragon" {
+  battlefield A: 3 "Mountain"
+  hand A: "Dragon's Approach"
+  graveyard A: 4 "Dragon's Approach", "Shock"
+  library A: "Island", "Shivan Dragon", "Plains"
+  turn 1 A: cast "Dragon's Approach"
+  turn 1 A: accept "Dragon's Approach"
+  turn 1 A: choose "Shivan Dragon"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield A contains "Shivan Dragon"
+  assert exile A contains 5 "Dragon's Approach"
+  assert graveyard A lacks "Dragon's Approach"
+  assert graveyard A contains "Shock"
+}
+
+scenario "Dragon's Approach with three in the graveyard goes to the graveyard" {
+  battlefield A: 3 "Mountain"
+  hand A: "Dragon's Approach"
+  graveyard A: 3 "Dragon's Approach"
+  library A: "Island", "Shivan Dragon", "Plains"
+  turn 1 A: cast "Dragon's Approach"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard A contains 4 "Dragon's Approach"
+  assert library A contains "Shivan Dragon"
+}
+
+scenario "Dragon's Approach: declining keeps them in the graveyard" {
+  battlefield A: 3 "Mountain"
+  hand A: "Dragon's Approach"
+  graveyard A: 4 "Dragon's Approach"
+  library A: "Island", "Shivan Dragon", "Plains"
+  turn 1 A: cast "Dragon's Approach"
+  turn 1 A: decline "Dragon's Approach"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains 5 "Dragon's Approach"
+  assert library A contains "Shivan Dragon"
+}
+
+scenario "Sphinx's Approach draws two and fetches a Sphinx" {
+  battlefield A: 6 "Island"
+  hand A: "Sphinx's Approach"
+  graveyard A: 4 "Sphinx's Approach"
+  library A: "Island", "Plains", "Sphinx of Jwar Isle", "Forest"
+  turn 1 A: cast "Sphinx's Approach"
+  turn 1 A: accept "Sphinx's Approach"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sphinx of Jwar Isle"
+  assert hand A count 2
+  assert exile A contains 5 "Sphinx's Approach"
+}

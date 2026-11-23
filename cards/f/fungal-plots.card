@@ -1,0 +1,7 @@
+card "Fungal Plots" {
+  oracle_id 0a85402a-e3be-4ebb-8001-9d9a20dde7e8
+  cost {1}{G}
+  type Enchantment
+  activated {1}{G}, exile creature card from graveyard: create 1 "1/1 green Saproling creature"
+  activated sacrifice 2 Saproling: you gain 2 life and draw 1 card
+}

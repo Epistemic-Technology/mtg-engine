@@ -1079,6 +1079,43 @@ impl Compiler<'_> {
             }
             b = b.flashback(self.cost(fb));
         }
+        if let Some(n) = &card.graveyard_alias {
+            b = b.graveyard_alias(n.clone());
+        }
+        // CR 601.3: "You may cast this card from your graveyard ...".
+        if let Some(g) = &card.graveyard_cast {
+            if card.flashback.is_some() {
+                return self.err("casting from the graveyard and flashback together");
+            }
+            let mut cost = g.extra.as_ref().map(|c| self.cost(c)).unwrap_or_default();
+            if g.extra
+                .as_ref()
+                .is_some_and(|c| c.discard_self || c.tap || !c.mana.is_empty())
+            {
+                return self.err("an added graveyard-cast cost is life, discards, and a sacrifice");
+            }
+            cost.mana = g.mana.clone().unwrap_or_else(|| card.cost.clone());
+            let condition = if g.max_speed {
+                Some(self.pool.intern_condition(StaticCondition::MaxSpeed))
+            } else {
+                match &g.cond {
+                    Some(c) => {
+                        let c = self.static_cond(c);
+                        Some(self.pool.intern_condition(c))
+                    }
+                    None => None,
+                }
+            };
+            b = b.graveyard_cast(
+                cost,
+                mtg_core::card::GraveyardCast {
+                    condition,
+                    as_long_as: g.as_long_as,
+                    max_speed: g.max_speed,
+                    alt_mana: g.mana.is_some(),
+                },
+            );
+        }
         self.groups = Vec::new();
         self.implied = Vec::new();
         for g in &card.groups {
@@ -3242,7 +3279,10 @@ impl Compiler<'_> {
                 until: true,
             }),
             Effect::ExileAllGraveyards => out.push(CoreEffect::ExileAllGraveyards),
-            Effect::ExileGraveyard { who } => out.push(CoreEffect::ExileGraveyard { who: r(*who) }),
+            Effect::ExileGraveyard { who, filter } => out.push(CoreEffect::ExileGraveyard {
+                who: r(*who),
+                filter: filter.as_ref().map(|f| Box::new(self.filter(f))),
+            }),
             Effect::Sacrifice { what } | Effect::SacrificeBy { what, .. } => {
                 out.push(CoreEffect::Sacrifice { what: r(*what) });
             }
@@ -3556,7 +3596,10 @@ impl Compiler<'_> {
                     count: *count,
                 });
                 if *graveyard {
-                    out.push(CoreEffect::ExileGraveyard { who: r(*who) });
+                    out.push(CoreEffect::ExileGraveyard {
+                        who: r(*who),
+                        filter: None,
+                    });
                 }
             }
             Effect::ExileFromHand {
@@ -4245,6 +4288,7 @@ impl Compiler<'_> {
                 who: who.map_or(CoreRecipient::You, r),
                 filter: self.filter(filter),
             }),
+            Effect::MayCastThisFromExile => out.push(CoreEffect::MayCastThisFromExile),
             Effect::MayPlayCard {
                 until, cast, free, ..
             } => out.push(CoreEffect::MayPlayCard {
@@ -7287,6 +7331,22 @@ fn link_exiles(def: &mut mtg_core::card::CardDef) {
     });
     if !refers {
         return;
+    }
+    // "exile a land you control" (a choice, not a target): what the
+    // resolution exiles is linked to the permanent (Wormfang Newt).
+    if def.abilities.iter().any(|a| {
+        matches!(a, AbilityDef::Triggered(_))
+            && a.all_effects().iter().any(|e| {
+                matches!(
+                    e,
+                    CoreEffect::ChooseAct {
+                        act: mtg_core::card::ChooseAct::Exile,
+                        ..
+                    }
+                )
+            })
+    }) {
+        def.links_exile = true;
     }
     for a in &mut def.abilities {
         if let AbilityDef::Triggered(t) = a {

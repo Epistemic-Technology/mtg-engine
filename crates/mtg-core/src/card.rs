@@ -2470,6 +2470,10 @@ pub enum Lasting {
     /// "for as long as this creature remains tapped": while the source
     /// stays a tapped permanent (Phyrexian Gremlins).
     SourceTapped,
+    /// "until this card is cast from exile" (an ability activated from the
+    /// hand that exiled its card as a cost): while that card stays in
+    /// exile.
+    UntilCastFromExile,
 }
 
 /// How long cards exiled by an impulse effect stay playable.
@@ -4237,9 +4241,12 @@ pub enum Effect {
     /// Exile every card in every graveyard.
     ExileAllGraveyards,
     /// Exile every card in the recipient players' graveyards ("Exile target
-    /// player's graveyard", "Exile each opponent's graveyard").
+    /// player's graveyard", "Exile each opponent's graveyard"); with a
+    /// filter, those matching it ("Exile all creature cards from target
+    /// player's graveyard").
     ExileGraveyard {
         who: Recipient,
+        filter: Option<Box<ObjFilter>>,
     },
     /// Create a replacement or prevention effect that lasts until end of
     /// turn (CR 614.3, 615.3): "Prevent all combat damage that would be
@@ -4813,6 +4820,10 @@ pub enum Effect {
     },
     /// The source's echo has been dealt with (CR 702.30a).
     ClearEcho,
+    /// "You may cast this card for as long as it remains exiled" (CR
+    /// 601.3): the source's card, in exile (exiled as the ability's cost),
+    /// may be cast by the ability's controller while it stays there.
+    MayCastThisFromExile,
     /// Warp's delayed trigger (CR 702.185a, `Builtin::WarpExile`): exile
     /// the permanent; its owner may cast it from exile on a later turn.
     WarpExile,
@@ -5654,6 +5665,17 @@ pub enum ChooseAct {
     Discard,
     /// "exile two creature cards from your graveyard".
     ExileFromGraveyard,
+    /// "exile the top creature card of your graveyard" (CR 404.2: the
+    /// most recent matching cards; nothing is chosen).
+    ExileTopOfGraveyard,
+    /// "exile this spell and four cards named Dragon's Approach from your
+    /// graveyard": the cards from your graveyard, then the resolving spell
+    /// itself, only if all of the cards can be.
+    ExileWithThisSpell,
+    /// "exile a land you control" (permanents you control). On a card
+    /// whose leaves-the-battlefield ability returns "the exiled card", what
+    /// it exiles is linked to it (CR 607.2a; Wormfang Newt).
+    Exile,
     /// "return a creature card from your graveyard to your hand".
     ReturnFromGraveyard,
     /// "return a Zombie card at random from your graveyard to your hand":
@@ -5662,6 +5684,13 @@ pub enum ChooseAct {
     /// "put a permanent card from among the milled cards into your hand":
     /// cards this resolution milled, still in the graveyard.
     MilledToHand,
+    /// "put a creature card from among them onto the battlefield": cards
+    /// this resolution milled, still in the graveyard, onto the
+    /// battlefield under their owner's control.
+    MilledToBattlefield,
+    /// "return a land card from your graveyard to the battlefield
+    /// [tapped]" (cards in your graveyard).
+    GraveyardToBattlefield { tapped: bool },
     /// "you may attach an Equipment you control to it" (permanents you
     /// control): attached to the `n`th target (CR 701.3).
     AttachToTarget(u8),
@@ -5780,6 +5809,9 @@ pub enum RuleKind {
     /// "Damage can't be prevented." Prevention effects still apply but
     /// prevent nothing (CR 615.12).
     DamageCantBePrevented,
+    /// "Cards in graveyards can't be the targets of spells or abilities."
+    /// (CR 115.4): no graveyard card is a legal target.
+    GraveyardUntargetable,
 }
 
 /// A "can't" effect on certain players until end of turn (CR 614.17):
@@ -7100,6 +7132,23 @@ pub struct GraveExile {
     /// matching cards rather than the oldest.
     #[serde(default)]
     pub top: bool,
+}
+
+/// A card's permission to be cast from its owner's graveyard
+/// (`CardDef::graveyard_cast`).
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Default)]
+pub struct GraveyardCast {
+    /// Offered only while this holds ("as long as you control a Zombie",
+    /// "if you gained life this turn"; "Max speed —").
+    pub condition: Option<u16>,
+    /// Printed "as long as" rather than "if".
+    pub as_long_as: bool,
+    /// Printed "Max speed — " first (the condition is max speed).
+    pub max_speed: bool,
+    /// The cost's mana replaces the mana cost ("by paying {2}{W} rather
+    /// than paying its mana cost"); otherwise it is the mana cost and the
+    /// rest is paid in addition.
+    pub alt_mana: bool,
 }
 
 /// "You may pay {1} and return a basic land you control to its owner's hand
@@ -8489,6 +8538,18 @@ pub struct CardDef {
     /// card discarded, and the spell isn't exiled as it leaves the stack.
     #[serde(default)]
     pub retrace: bool,
+    /// "You may cast this card from your graveyard [as long as ...] [by
+    /// paying {2}{W} rather than paying its mana cost | by discarding a
+    /// card in addition to paying its other costs]" (CR 601.3): `flashback`
+    /// holds the cost and `retrace` is set (the card isn't exiled); this
+    /// holds the condition and the wording.
+    #[serde(default)]
+    pub graveyard_cast: Option<Box<GraveyardCast>>,
+    /// "If this card is in a graveyard, effects from spells named Flame
+    /// Burst count it as a card named Flame Burst." (Pardic Firecat): a
+    /// graveyard count of cards named this, for a spell of that name.
+    #[serde(default)]
+    pub graveyard_alias: Option<String>,
     /// Event kinds any of this definition's triggers (keyword triggers
     /// included) can fire on; see `TriggerSpec::watch_mask`.
     watch_mask: u32,
@@ -10750,6 +10811,8 @@ impl Builder {
             fading: 0,
             flashback: None,
             retrace: false,
+            graveyard_cast: None,
+            graveyard_alias: None,
             watch_mask: 0,
             except_watch_mask: 0,
             printed: None,
@@ -11429,6 +11492,25 @@ impl Builder {
     #[must_use]
     pub fn flashback(mut self, cost: Cost) -> Self {
         self.0.flashback = Some(Box::new(cost));
+        self
+    }
+
+    /// "If this card is in a graveyard, effects from spells named X count
+    /// it as a card named X."
+    #[must_use]
+    pub fn graveyard_alias(mut self, name: String) -> Self {
+        self.0.graveyard_alias = Some(name);
+        self
+    }
+
+    /// "You may cast this card from your graveyard ..." (CR 601.3): for
+    /// `cost` (the mana cost and other parts unless `alt_mana`), not
+    /// exiled as it leaves the stack.
+    #[must_use]
+    pub fn graveyard_cast(mut self, cost: Cost, how: GraveyardCast) -> Self {
+        self.0.flashback = Some(Box::new(cost));
+        self.0.retrace = true;
+        self.0.graveyard_cast = Some(Box::new(how));
         self
     }
 

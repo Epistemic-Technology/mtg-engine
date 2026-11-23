@@ -1,0 +1,8 @@
+card "Rakish Revelers" {
+  oracle_id 7db1402e-a434-45d2-9d21-9e0faeeaff10
+  cost {2}{R}{G}{W}
+  type Creature — Elf Druid Rogue
+  pt 5/3
+  triggered when this enters: create 1 "1/1 green and white Citizen creature"
+  activated {2}, exile this from hand: target land gains ability { activated {T}: add {R} or {G} or {W} } until this is cast from exile; may cast this while exiled
+}

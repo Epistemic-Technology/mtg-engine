@@ -1,0 +1,7 @@
+card "Clever Impersonator" {
+  oracle_id d4ec0df9-a4a3-48cf-a0aa-b1aea5c49142
+  cost {2}{U}{U}
+  type Creature — Shapeshifter
+  pt 0/0
+  enters as copy of nonland permanent
+}

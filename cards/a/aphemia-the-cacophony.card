@@ -1,0 +1,8 @@
+card "Aphemia, the Cacophony" {
+  oracle_id 820dab0f-3b6b-437c-ba4b-2311437709c3
+  cost {1}{B}
+  type Legendary Enchantment Creature — Harpy
+  pt 2/1
+  keywords flying
+  triggered at beginning of your end step: you may exile 1 enchantment card from your graveyard chosen; if you do, create 1 "2/2 black Zombie creature"
+}

@@ -3006,6 +3006,131 @@ impl Templates {
                     ))
                 },
             ),
+            // "Return a creature card from your graveyard to the
+            // battlefield", "... a land card ... tapped" (chosen as it
+            // resolves).
+            (
+                r(
+                    r"^[Rr]eturn an? ((?:[a-z]+|[A-Z][a-z]+)(?: or (?:[a-z]+|[A-Z][a-z]+))?) card from your graveyard to the battlefield( tapped)?$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "return 1 {} card from your graveyard to battlefield{} chosen",
+                        cap(c, 1),
+                        cap(c, 2)
+                    ))
+                },
+            ),
+            // "Put a creature card from among them onto the battlefield",
+            // "... from among the milled cards ...".
+            (
+                r(
+                    r"^[Pp]ut an? ((?:[a-z]+|[A-Z][a-z]+)(?:, (?:[a-z]+|[A-Z][a-z]+))*,? (?:or (?:[a-z]+|[A-Z][a-z]+))?|[a-z]+|[A-Z][a-z]+) card from among (them|the milled cards) onto the battlefield$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "put 1 {} card from among {} onto battlefield chosen",
+                        cap(c, 1),
+                        if cap(c, 2) == "them" {
+                            "them"
+                        } else {
+                            "milled cards"
+                        }
+                    ))
+                },
+            ),
+            // "Exile a land you control", "exile a creature you control
+            // other than this creature" (chosen as it resolves).
+            (
+                r(
+                    r"^[Ee]xile an? ([a-z]+) you control( other than this (?:creature|artifact|enchantment|permanent))?$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "exile 1 {}{} you control chosen",
+                        if cap(c, 2).is_empty() { "" } else { "other " },
+                        cap(c, 1)
+                    ))
+                },
+            ),
+            // CR 404.2: "Exile the top creature card of your graveyard".
+            (
+                r(r"^[Ee]xile the top (?:([a-z]+) )?card of your graveyard$"),
+                |c, _| {
+                    Some(if cap(c, 1).is_empty() {
+                        "exile top 1 card from your graveyard chosen".to_string()
+                    } else {
+                        format!("exile top 1 {} card from your graveyard chosen", cap(c, 1))
+                    })
+                },
+            ),
+            // "Exile a creature card from your graveyard", "exile two
+            // cards from your graveyard" (chosen as it resolves).
+            (
+                r(r"^[Ee]xile (an?|two|three|four) (?:([a-z]+) )?cards? from your graveyard$"),
+                |c, _| {
+                    let n = number(cap(c, 1))?;
+                    Some(if cap(c, 2).is_empty() {
+                        format!("exile {n} cards from your graveyard chosen")
+                    } else {
+                        format!("exile {n} {} card from your graveyard chosen", cap(c, 2))
+                    })
+                },
+            ),
+            // "That player exiles two cards from their graveyard".
+            (
+                r(
+                    r"^(Target player|That player|that player|Target opponent|Each player|Each opponent) exiles (a|two|three|four) cards? from their graveyard$",
+                ),
+                |c, t| {
+                    let who = recipient(cap(c, 1), t)?;
+                    Some(format!(
+                        "{who} exiles {} cards from graveyard",
+                        number(cap(c, 2))?
+                    ))
+                },
+            ),
+            // "Put target creature card from an opponent's graveyard onto
+            // the battlefield under your control".
+            (
+                r(
+                    r"^Put target ([a-z]+) card from (a|an opponent's) graveyard onto the battlefield under your control( tapped)?$",
+                ),
+                |c, t| {
+                    *t += 1;
+                    Some(format!(
+                        "put target {} card from {} graveyard onto battlefield under your control{}",
+                        cap(c, 1),
+                        cap(c, 2),
+                        cap(c, 3)
+                    ))
+                },
+            ),
+            // "Target player shuffles up to three target cards from their
+            // graveyard into their library".
+            (
+                r(
+                    r"^Target player shuffles up to (\w+) target cards from their graveyard into their library$",
+                ),
+                |c, t| {
+                    *t += 2;
+                    Some(format!(
+                        "target player shuffles up to {} target card from their graveyard into library",
+                        number(cap(c, 1))?
+                    ))
+                },
+            ),
+            // "Exile all creature cards from target player's graveyard".
+            (
+                r(r"^[Ee]xile all ([a-z]+) cards from target player's graveyard$"),
+                |c, t| {
+                    *t += 1;
+                    Some(format!(
+                        "exile all {} card from graveyard of target player",
+                        cap(c, 1)
+                    ))
+                },
+            ),
             // "Return two cards at random from your graveyard to your hand."
             (
                 r(r"^Return (\w+) cards at random from your graveyard to your hand$"),
@@ -4203,6 +4328,14 @@ impl Templates {
                 ("otherwise, ", rest.to_string())
             } else if let Some(rest) = sentence.strip_prefix("When you do, ") {
                 ("when you do, ", rest.to_string())
+            } else if let Some(rest) = sentence
+                .strip_prefix("Then ")
+                .filter(|_| !out.is_empty())
+                .filter(|r| r.starts_with("return ") || r.starts_with("put "))
+            {
+                // "You may mill three cards. Then return a creature card
+                // from your graveyard to the battlefield."
+                ("then ", rest.to_string())
             } else if let Some((cond, rest)) = sentence
                 .strip_prefix("If ")
                 .and_then(|r| r.split_once(", "))
@@ -4484,6 +4617,10 @@ fn cost_text(s: &str) -> Option<String> {
     let symbols = Regex::new(r"^(\{[0-9XWUBRGCT]+\})+$").unwrap();
     let mut items = Vec::new();
     let two = Regex::new(r"^[a-z]+ or [a-z]+$").unwrap();
+    let exile_gy = Regex::new(
+        r"^Exile (an?|two|three|four|five|six|X) (?:([a-z]+) )?cards? from your graveyard$",
+    )
+    .unwrap();
     for part in s.split(", ") {
         let item = if symbols.is_match(part) {
             part.to_string()
@@ -4565,8 +4702,36 @@ fn cost_text(s: &str) -> Option<String> {
                 number(cap(&c, 1))?
             };
             format!("remove {n} {} counters from this", cap(&c, 2))
+        } else if let Some(c) = exile_gy.captures(part) {
+            // "Exile a creature card from your graveyard", "Exile two cards
+            // from your graveyard".
+            let n = number(cap(&c, 1))?;
+            let n = if n == "1" {
+                String::new()
+            } else {
+                format!("{n} ")
+            };
+            if cap(&c, 2).is_empty() {
+                format!("exile {n}cards from graveyard")
+            } else {
+                format!("exile {n}{} card from graveyard", cap(&c, 2))
+            }
+        } else if let Some(n) = part
+            .strip_prefix("Exile ")
+            .and_then(|r| r.strip_suffix(" cards from your graveyard and this creature"))
+            .and_then(number)
+        {
+            // "Exile two cards from your graveyard and this creature".
+            format!("exile {n} cards from graveyard and this")
         } else if part == "Exile this card from your graveyard" {
             "exile this from graveyard".to_string()
+        } else if let Some(kind) = part
+            .strip_prefix("Exile the top ")
+            .and_then(|r| r.strip_suffix("card of your graveyard"))
+            .filter(|k| k.is_empty() || (k.ends_with(' ') && !k.trim_end().contains(' ')))
+        {
+            // CR 404.2: "Exile the top creature card of your graveyard".
+            format!("exile top {kind}card from graveyard")
         } else if let Some(rest) = part
             .strip_prefix("Return an ")
             .or_else(|| part.strip_prefix("Return a "))
@@ -6552,6 +6717,9 @@ impl Builder<'_> {
                 Some("you may play lands from your graveyard")
             }
             "Damage can't be prevented." => Some("damage can't be prevented"),
+            "Cards in graveyards can't be the targets of spells or abilities." => {
+                Some("graveyard cards can't be targeted")
+            }
             "You may play an additional land on each of your turns." => Some("additional land"),
             "You may play two additional lands on each of your turns." => Some("additional land 2"),
             "Each player may play an additional land on each of their turns." => {
@@ -6564,6 +6732,127 @@ impl Builder<'_> {
         };
         if let Some(s) = player_static {
             self.statements.push(s.to_string());
+            return Ok(());
+        }
+        // CR 601.3: "You may cast this card from your graveyard [as long
+        // as ...] [by paying {2}{W} rather than paying its mana cost | by
+        // discarding a card in addition to paying its other costs]."
+        // CR 707.5: "You may have this creature enter as a copy of any
+        // creature on the battlefield[, except it's an artifact in addition
+        // to its other types]."
+        if let Some(c) = Regex::new(
+            r"^You may have this (?:creature|artifact|enchantment|land|permanent) enter as a copy of (?:any ([a-z]+(?: or [a-z]+)?|nonland permanent|[A-Z][a-z]+ creature) on the battlefield|an? ([a-z]+(?: or [a-z]+)?) you control)(?:, except (.+))?\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let what = if cap(&c, 1).is_empty() {
+                format!("{} you control", cap(&c, 2))
+            } else {
+                cap(&c, 1).to_string()
+            };
+            let mut st = format!("enters as copy of {what}");
+            let x = cap(&c, 3);
+            if !x.is_empty() {
+                let inner = if let Some(pt) = x
+                    .strip_prefix("it's ")
+                    .filter(|r| Regex::new(r"^\d+/\d+$").unwrap().is_match(r))
+                {
+                    format!("pt {pt}")
+                } else if let Some(t) = x
+                    .strip_prefix("it's an? ")
+                    .and_then(|r| r.strip_suffix(" in addition to its other types"))
+                {
+                    let words: Vec<&str> = t.split(' ').collect();
+                    if words.iter().all(|w| w.chars().next().is_some_and(char::is_uppercase)) {
+                        format!("subtypes {t}")
+                    } else if words.len() == 1 && card_type_word(words[0]) {
+                        format!("types {}", capitalize(words[0]))
+                    } else {
+                        return Err(Skip::Sentence(line.to_string()));
+                    }
+                } else {
+                    return Err(Skip::Sentence(line.to_string()));
+                };
+                let _ = write!(st, "\n  except {{\n    {inner}\n  }}");
+            }
+            self.statements.push(st);
+            return Ok(());
+        }
+        // "If this card is in a graveyard, effects from spells named Flame
+        // Burst count it as a card named Flame Burst."
+        if let Some(c) = Regex::new(
+            r"^If this card is in a graveyard, effects from spells named (.+) count it as a card named (.+)\.$",
+        )
+        .unwrap()
+        .captures(line)
+            && cap(&c, 1) == cap(&c, 2)
+        {
+            self.statements
+                .push(format!("counts as named {:?} in graveyard", cap(&c, 1)));
+            return Ok(());
+        }
+        if line == "Max speed \u{2014} You may cast this card from your graveyard." {
+            self.statements
+                .push("cast from graveyard at max speed".to_string());
+            return Ok(());
+        }
+        if let Some(rest) = line
+            .strip_prefix("You may cast this card from your graveyard")
+            .and_then(|r| r.strip_suffix('.'))
+        {
+            let fail = || Skip::Sentence(line.to_string());
+            let (cond, how) = match rest.find(" by ") {
+                Some(i) => (&rest[..i], &rest[i + 4..]),
+                None => (rest, ""),
+            };
+            let mut out = "cast from graveyard".to_string();
+            if let Some(c) = cond.strip_prefix(" as long as ") {
+                let _ = write!(out, " while {}", static_condition(c).ok_or_else(fail)?);
+            } else if let Some(c) = cond.strip_prefix(" if ") {
+                let _ = write!(out, " if {}", static_condition(c).ok_or_else(fail)?);
+            } else if !cond.is_empty() {
+                return Err(fail());
+            }
+            if let Some(m) = how
+                .strip_prefix("paying ")
+                .and_then(|r| r.strip_suffix(" rather than paying its mana cost"))
+                .filter(|m| m.starts_with('{'))
+            {
+                let _ = write!(out, " for {m}");
+            } else if let Some(parts) = how.strip_suffix(" in addition to paying its other costs") {
+                let mut costs = Vec::new();
+                for part in parts.split(" and ") {
+                    costs.push(
+                        if let Some(n) = part
+                            .strip_prefix("paying ")
+                            .and_then(|r| r.strip_suffix(" life"))
+                            .filter(|n| n.bytes().all(|b| b.is_ascii_digit()))
+                        {
+                            format!("pay {n} life")
+                        } else if part == "discarding a card" {
+                            "discard 1 card".to_string()
+                        } else if let Some(n) = part
+                            .strip_prefix("discarding ")
+                            .and_then(|r| r.strip_suffix(" cards"))
+                            .and_then(number)
+                        {
+                            format!("discard {n} cards")
+                        } else if let Some(what) = part
+                            .strip_prefix("sacrificing an ")
+                            .or_else(|| part.strip_prefix("sacrificing a "))
+                        {
+                            format!("sacrifice {what}")
+                        } else {
+                            return Err(fail());
+                        },
+                    );
+                }
+                let _ = write!(out, " with {}", costs.join(", "));
+            } else if !how.is_empty() {
+                return Err(fail());
+            }
+            self.statements.push(out);
             return Ok(());
         }
         if let Some(c) = Regex::new(

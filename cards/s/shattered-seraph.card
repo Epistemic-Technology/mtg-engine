@@ -1,0 +1,9 @@
+card "Shattered Seraph" {
+  oracle_id 92eae6af-b915-4eb8-93c4-527f732bb712
+  cost {4}{W}{U}{B}
+  type Creature — Angel Rogue
+  pt 4/4
+  keywords flying
+  triggered when this enters: you gain 3 life
+  activated {2}, exile this from hand: target land gains ability { activated {T}: add {W} or {U} or {B} } until this is cast from exile; may cast this while exiled
+}

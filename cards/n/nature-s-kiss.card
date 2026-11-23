@@ -1,0 +1,7 @@
+card "Nature's Kiss" {
+  oracle_id e3e87fee-5717-4ca1-adfd-4df8732020f8
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  activated {1}, exile top card from graveyard: enchanted creature gets +1/+1 until end of turn
+}

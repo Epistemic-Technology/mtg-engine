@@ -1082,6 +1082,9 @@ pub enum Duration {
     /// "For as long as you control this creature" (CR 611.2b): while that
     /// object is on the battlefield under that player's control.
     WhileControlled(ObjId, PlayerId),
+    /// "Until this card is cast from exile": while that object is in
+    /// exile (it leaves exile as it is cast, CR 601.2a).
+    WhileInExile(ObjId),
 }
 
 impl Duration {
@@ -1093,6 +1096,7 @@ impl Duration {
             Duration::WhileOnBattlefield(_)
                 | Duration::WhileTapped(_)
                 | Duration::WhileControlled(..)
+                | Duration::WhileInExile(_)
         )
     }
 }
@@ -4894,6 +4898,14 @@ impl GameState {
                 let Some(obj) = self.objects.get(id) else {
                     return false;
                 };
+                // "Cards in graveyards can't be the targets of spells or
+                // abilities."
+                if targeting
+                    && obj.zone == Zone::Graveyard
+                    && self.rule_in_force(crate::card::RuleKind::GraveyardUntargetable)
+                {
+                    return false;
+                }
                 if spec == TargetSpec::CreatureCardInYourGraveyard {
                     return obj.zone == Zone::Graveyard
                         && obj.owner == caster

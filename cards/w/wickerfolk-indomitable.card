@@ -1,0 +1,7 @@
+card "Wickerfolk Indomitable" {
+  oracle_id 730d02c7-2f8a-47d3-99f0-e4ada7f6255c
+  cost {3}{B}
+  type Artifact Creature — Scarecrow
+  pt 4/3
+  cast from graveyard with pay 2 life, sacrifice artifact or creature
+}

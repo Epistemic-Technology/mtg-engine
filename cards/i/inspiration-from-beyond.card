@@ -1,0 +1,7 @@
+card "Inspiration from Beyond" {
+  oracle_id be87e410-4302-43ee-b880-56eedf2b3648
+  cost {2}{U}
+  type Sorcery
+  spell: mill 3 cards, then return 1 instant or sorcery card from your graveyard to hand chosen
+  flashback {5}{U}{U}
+}

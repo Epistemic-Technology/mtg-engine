@@ -1,0 +1,7 @@
+card "Mirror Image" {
+  oracle_id 7275fb8c-571a-4c4c-889a-829419332e51
+  cost {2}{U}
+  type Creature — Shapeshifter
+  pt 0/0
+  enters as copy of creature you control
+}

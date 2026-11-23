@@ -1,0 +1,144 @@
+# Chosen (untargeted) zone moves: "exile a land you control" linked to the
+# permanent for "return the exiled card" (CR 607.2a); "return a creature
+# card from your graveyard to the battlefield"; "put a creature card from
+# among the milled cards onto the battlefield"; "Exile all creature cards
+# from target player's graveyard".
+
+scenario "Wormfang Newt exiles a chosen land and returns it as it leaves" {
+  battlefield A: "Island", "Forest", "Plains", "Mountain"
+  hand A: "Wormfang Newt", "Shock"
+  turn 1 A: cast "Wormfang Newt"
+  turn 1 A: choose "Plains"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Wormfang Newt"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Wormfang Newt"
+  assert battlefield A contains "Plains"
+  assert exile A lacks "Plains"
+}
+
+scenario "Wormfang Newt keeps the land while it stays" {
+  battlefield A: "Island", "Forest", "Plains"
+  hand A: "Wormfang Newt"
+  turn 1 A: cast "Wormfang Newt"
+  turn 1 A: choose "Plains"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Plains"
+  assert battlefield A lacks "Plains"
+}
+
+scenario "Wormfang Turtle returns its land when bounced" {
+  battlefield A: 3 "Island", "Plains"
+  hand A: "Wormfang Turtle", "Unsummon"
+  turn 1 A: cast "Wormfang Turtle"
+  turn 1 A: choose "Plains"
+  turn 1 A: wait
+  run_to turn 2 untap
+  turn 3 A: cast "Unsummon" targeting "Wormfang Turtle"
+  run_to turn 3 postcombat_main
+  assert hand A contains "Wormfang Turtle"
+  assert battlefield A contains "Plains"
+}
+
+scenario "Wormfang Drake exiles another creature, which returns" {
+  battlefield A: 4 "Island", "Grizzly Bears"
+  hand A: "Wormfang Drake", "Unsummon"
+  turn 1 A: cast "Wormfang Drake"
+  turn 1 A: accept "Wormfang Drake"
+  turn 1 A: wait
+  run_to turn 1 end
+  assert exile A contains "Grizzly Bears"
+  assert battlefield A contains "Wormfang Drake"
+  turn 3 A: cast "Unsummon" targeting "Wormfang Drake"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A contains "Wormfang Drake"
+}
+
+scenario "Wormfang Drake is sacrificed with no other creature" {
+  battlefield A: 3 "Island"
+  hand A: "Wormfang Drake"
+  turn 1 A: cast "Wormfang Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Wormfang Drake"
+}
+
+scenario "Summon Undead returns a creature card to the battlefield" {
+  battlefield A: 5 "Swamp"
+  hand A: "Summon Undead"
+  graveyard A: "Grizzly Bears"
+  library A: "Hill Giant", "Shock", "Island", "Plains"
+  turn 1 A: cast "Summon Undead"
+  turn 1 A: accept "Summon Undead"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Shock"
+  assert library A count 1
+}
+
+scenario "Summon Undead without milling still returns one" {
+  battlefield A: 5 "Swamp"
+  hand A: "Summon Undead"
+  graveyard A: "Grizzly Bears"
+  library A: "Hill Giant", "Shock", "Island", "Plains"
+  turn 1 A: cast "Summon Undead"
+  turn 1 A: decline "Summon Undead"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert library A count 4
+}
+
+scenario "Blossoming Tortoise returns a land card tapped" {
+  battlefield A: 4 "Forest"
+  hand A: "Blossoming Tortoise"
+  library A: "Swamp", "Grizzly Bears", "Island", "Plains"
+  turn 1 A: cast "Blossoming Tortoise"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Island"
+  assert tapped "Island"
+  assert graveyard A contains "Swamp"
+  assert graveyard A contains "Grizzly Bears"
+  assert is not "Island" creature
+}
+
+scenario "Fetch Quest puts a milled creature onto the battlefield" {
+  battlefield A: 7 "Forest"
+  hand A: "Bramble Familiar // Fetch Quest"
+  graveyard A: "Hill Giant"
+  library A: "Island", "Grizzly Bears", "Shock", "Plains", "Swamp", "Raging Goblin", "Mountain", "Lightning Bolt"
+  turn 1 A: cast "Fetch Quest"
+  turn 1 A: choose "Raging Goblin"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Raging Goblin"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert library A count 1
+}
+
+scenario "Fetch Quest can't take a card that was already in the graveyard" {
+  battlefield A: 7 "Forest"
+  hand A: "Bramble Familiar // Fetch Quest"
+  graveyard A: "Hill Giant"
+  library A: "Island", "Shock", "Lightning Bolt", "Plains", "Swamp", "Mountain", "Island", "Grizzly Bears"
+  turn 1 A: cast "Fetch Quest"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Island"
+  assert graveyard A contains "Hill Giant"
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "Crypt Incursion exiles only creature cards and counts them" {
+  battlefield A: 3 "Swamp"
+  hand A: "Crypt Incursion"
+  graveyard B: "Grizzly Bears", "Shock", "Hill Giant"
+  turn 1 A: cast "Crypt Incursion" targeting player B
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+  assert graveyard B contains "Shock"
+  assert life A 26
+}

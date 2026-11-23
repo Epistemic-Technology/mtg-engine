@@ -1,0 +1,8 @@
+card "Diligent Farmhand" {
+  oracle_id 5f6aa548-0ab3-451f-b291-10cac3f3ea1a
+  cost {G}
+  type Creature — Human Druid
+  pt 1/1
+  activated {1}{G}, sacrifice this: search basic land card to battlefield tapped that card
+  counts as named "Muscle Burst" in graveyard
+}

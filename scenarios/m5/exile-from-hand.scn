@@ -1,0 +1,59 @@
+# "{2}, Exile this card from your hand: Target land gains "{T}: Add {B},
+# {R}, or {G}" until this card is cast from exile. You may cast this card
+# for as long as it remains exiled." (the New Capenna cycle).
+
+scenario "Masked Bandits: the land taps for red once the card is exiled" {
+  battlefield A: 2 "Plains", "Island"
+  hand A: "Masked Bandits", "Raging Goblin"
+  turn 1 A: activate "Masked Bandits" targeting "Island"
+  turn 1 A: wait
+  turn 1 A: cast "Raging Goblin"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Masked Bandits"
+  assert battlefield A contains "Raging Goblin"
+}
+
+scenario "Masked Bandits is cast from exile, and the land loses the ability" {
+  battlefield A: 3 "Plains", "Island", "Swamp", "Forest"
+  hand A: "Masked Bandits", "Raging Goblin"
+  turn 1 A: activate "Masked Bandits" targeting "Island"
+  turn 3 A: cast "Masked Bandits"
+  illegal turn 5 A: cast "Raging Goblin"
+  run_to turn 5 postcombat_main
+  assert battlefield A contains "Masked Bandits"
+  assert exile A lacks "Masked Bandits"
+  assert hand A contains "Raging Goblin"
+}
+
+scenario "Without the activation, no red mana" {
+  battlefield A: 3 "Plains"
+  hand A: "Masked Bandits", "Raging Goblin"
+  illegal turn 1 A: cast "Raging Goblin"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Shattered Seraph: cast from exile later, it gains you life" {
+  battlefield A: 5 "Plains", "Island", "Swamp"
+  hand A: "Shattered Seraph"
+  turn 1 A: activate "Shattered Seraph" targeting "Island"
+  turn 3 A: cast "Shattered Seraph"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Shattered Seraph"
+  assert life A 23
+}
+
+scenario "Rakish Revelers: the ability can't be activated from the battlefield" {
+  battlefield A: 3 "Plains", "Rakish Revelers"
+  illegal turn 1 A: activate "Rakish Revelers" targeting "Plains"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Spara's Adjudicators: activated at instant speed on another turn" {
+  battlefield A: 2 "Plains", "Island"
+  hand A: "Spara's Adjudicators"
+  start turn 2 B
+  turn 2 upkeep A: activate "Spara's Adjudicators" targeting "Island"
+  run_to turn 2 end
+  assert exile A contains "Spara's Adjudicators"
+  assert untapped "Island"
+}

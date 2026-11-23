@@ -1,0 +1,7 @@
+card "Zombie Assassin" {
+  oracle_id 7d8af783-e73f-49ce-bcdb-ba55e1650481
+  cost {4}{B}
+  type Creature — Zombie Assassin
+  pt 3/2
+  activated {T}, exile 2 cards from graveyard and this: destroy target nonblack creature without regeneration
+}

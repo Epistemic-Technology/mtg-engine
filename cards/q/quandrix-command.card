@@ -1,0 +1,11 @@
+card "Quandrix Command" {
+  oracle_id 9c0f7cdc-9095-40ae-bf83-75a5ffda72b9
+  cost {1}{G}{U}
+  type Instant
+  choose two {
+    mode: return target creature or planeswalker to hand
+    mode: counter target artifact or enchantment spell
+    mode: put 2 +1/+1 counters on target creature
+    mode: target player shuffles up to 3 target card from their graveyard into library
+  }
+}

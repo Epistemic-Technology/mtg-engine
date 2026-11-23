@@ -1,0 +1,8 @@
+card "Gravecrawler" {
+  oracle_id 09ff28b1-b6c9-48e6-b12e-2f0e644f709f
+  cost {B}
+  type Creature — Zombie
+  pt 2/1
+  keywords can't block
+  cast from graveyard while you control Zombie
+}

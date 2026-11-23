@@ -1,0 +1,14 @@
+card "Vastlands Scavenger // Bind to Life" {
+  oracle_id 3a97bc8d-bd81-468e-9277-eba4fac11ee0
+  layout prepare
+  cost {1}{G}{G}
+  type Creature — Bear Druid
+  pt 4/4
+  keywords deathtouch
+  enters prepared
+  face "Bind to Life" {
+    cost {4}{G}
+    type Instant
+    spell: mill 7 cards; then put 1 creature card from among them onto battlefield chosen
+  }
+}

@@ -1,0 +1,8 @@
+card "Alien Symbiosis" {
+  oracle_id 19504e19-2886-4d28-a813-b798a9a446a2
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has menace, add subtype Symbiote
+  cast from graveyard with discard 1 card
+}

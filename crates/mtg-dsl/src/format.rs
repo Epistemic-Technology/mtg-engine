@@ -154,6 +154,28 @@ fn format_inner(card: &Card) -> String {
     if let Some(c) = &card.flashback {
         let _ = writeln!(out, "  flashback {}", cost_text(c));
     }
+    if let Some(n) = &card.graveyard_alias {
+        let _ = writeln!(out, "  counts as named {n:?} in graveyard");
+    }
+    if let Some(g) = &card.graveyard_cast {
+        let mut line = "  cast from graveyard".to_string();
+        if g.max_speed {
+            line.push_str(" at max speed");
+        } else if let Some(c) = &g.cond {
+            let _ = write!(
+                line,
+                " {} {}",
+                if g.as_long_as { "while" } else { "if" },
+                static_cond(c)
+            );
+        }
+        if let Some(m) = &g.mana {
+            let _ = write!(line, " for {m}");
+        } else if let Some(c) = &g.extra {
+            let _ = write!(line, " with {}", cost_text(c));
+        }
+        let _ = writeln!(out, "{line}");
+    }
     for a in &card.abilities {
         ability(&mut out, a, "  ", &card.groups);
     }
@@ -703,6 +725,7 @@ impl Fmt {
                 mtg_core::card::Lasting::WhileTapped => " for as long as it remains tapped",
                 mtg_core::card::Lasting::YouControlSource => " for as long as you control this",
                 mtg_core::card::Lasting::SourceTapped => " for as long as this remains tapped",
+                mtg_core::card::Lasting::UntilCastFromExile => " until this is cast from exile",
             });
         }
         out
@@ -947,6 +970,7 @@ impl Fmt {
                 None => format!("exile until {} card", filter(f)),
                 Some(w) => format!("{} exiles until {} card", self.recipient(*w, t), filter(f)),
             },
+            Effect::MayCastThisFromExile => "may cast this while exiled".to_string(),
             Effect::MayPlayCard {
                 until,
                 cast,
@@ -1607,7 +1631,15 @@ impl Fmt {
                 format!("exile {} until this leaves", self.recipient(*what, t))
             }
             Effect::ExileAllGraveyards => "exile all graveyards".to_string(),
-            Effect::ExileGraveyard { who } => {
+            Effect::ExileGraveyard {
+                who,
+                filter: Some(f),
+            } => format!(
+                "exile all {} card from graveyard of {}",
+                filter(f),
+                self.recipient(*who, t)
+            ),
+            Effect::ExileGraveyard { who, filter: None } => {
                 format!("exile graveyard of {}", self.recipient(*who, t))
             }
             Effect::Sacrifice { what } => format!("sacrifice {}", self.recipient(*what, t)),
@@ -1870,6 +1902,7 @@ impl Fmt {
                     W::Put => format!("{put} {what} {place}"),
                     W::Owner => format!("owner {puts} {what} {place}"),
                     W::OwnerOf => format!("owner of {what} {puts} it {place}"),
+                    W::By(who) => format!("{} {puts} {what} {place}", self.recipient(*who, t)),
                 }
             }
             Effect::SacrificeChosen {
@@ -2728,6 +2761,19 @@ impl Fmt {
                     ChooseAct::ExileFromGraveyard => {
                         format!("exile {n} {f} {cs} from your graveyard chosen")
                     }
+                    ChooseAct::ExileTopOfGraveyard if unfiltered => {
+                        format!("exile top {n} {cs} from your graveyard chosen")
+                    }
+                    ChooseAct::ExileTopOfGraveyard => {
+                        format!("exile top {n} {f} {cs} from your graveyard chosen")
+                    }
+                    ChooseAct::Exile => format!("exile {n} {f} chosen"),
+                    ChooseAct::ExileWithThisSpell if unfiltered => {
+                        format!("exile this spell and {n} {cs} from your graveyard chosen")
+                    }
+                    ChooseAct::ExileWithThisSpell => {
+                        format!("exile this spell and {n} {f} {cs} from your graveyard chosen")
+                    }
                     ChooseAct::GraveyardToTop => {
                         format!("put {n} {f} {cs} from your graveyard on top of library chosen")
                     }
@@ -2762,8 +2808,8 @@ impl Fmt {
                     ChooseAct::MilledToHand if *returns => {
                         format!("return {n} {f} {cs} from among them to hand chosen")
                     }
-                    ChooseAct::MilledToHand => format!(
-                        "put {n} {f} {cs} from among {} into hand chosen",
+                    ChooseAct::MilledToHand | ChooseAct::MilledToBattlefield => format!(
+                        "put {n} {f} {cs} from among {} {} chosen",
                         if *among_them {
                             "them"
                         } else if *among_those {
@@ -2772,7 +2818,16 @@ impl Fmt {
                             "milled this way cards"
                         } else {
                             "milled cards"
+                        },
+                        if *act == ChooseAct::MilledToHand {
+                            "into hand"
+                        } else {
+                            "onto battlefield"
                         }
+                    ),
+                    ChooseAct::GraveyardToBattlefield { tapped } => format!(
+                        "return {n} {f} {cs} from your graveyard to battlefield{} chosen",
+                        if *tapped { " tapped" } else { "" }
                     ),
                     ChooseAct::AttachToTarget(i) => {
                         format!("attach {n} {f} to target {} chosen", i + 1)
@@ -3043,6 +3098,10 @@ impl Fmt {
             Effect::Rule(RuleKind::NoLifeGain) => "players can't gain life this turn".to_string(),
             Effect::Rule(RuleKind::DamageCantBePrevented) => {
                 "damage can't be prevented this turn".to_string()
+            }
+            // Not written as an effect (only a static ability).
+            Effect::Rule(RuleKind::GraveyardUntargetable) => {
+                "graveyard cards can't be targeted this turn".to_string()
             }
             Effect::DamageUnpreventable => "the damage can't be prevented".to_string(),
             Effect::ExcessToController => "excess damage to its controller instead".to_string(),
@@ -3471,6 +3530,13 @@ fn cmp_suffix(c: mtg_core::card::Cmp) -> &'static str {
 /// graveyard`.
 pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     let whose = match who {
+        _ if matches!(f.that_player, Some(mtg_core::card::ThatPlayer::Target(_))) => {
+            if f.their {
+                "their graveyard"
+            } else {
+                "target player's graveyard"
+            }
+        }
         _ if f.that_player.is_some() => "that player's graveyard",
         Who::You => "your graveyard",
         Who::Opponents => "an opponent's graveyard",
@@ -3500,6 +3566,7 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
         g.same = None;
     }
     g.that_player = None;
+    g.their = false;
     // "creature card with mana value X or less": the mana value after the
     // noun.
     let mut mv = String::new();
@@ -4930,7 +4997,8 @@ fn cost_text(c: &Cost) -> String {
                     let what = g.filter.as_ref().map_or(String::new(), |f| filter(f) + " ");
                     let cards = if g.x || g.n > 1 { "cards" } else { "card" };
                     let top = if g.top { "top " } else { "" };
-                    parts.push(format!("exile {top}{n}{what}{cards} from graveyard"));
+                    let this = if c.exile_this_joined { " and this" } else { "" };
+                    parts.push(format!("exile {top}{n}{what}{cards} from graveyard{this}"));
                 }
             }
             CostItem::FromGraveyard => parts.push("from graveyard".to_string()),
@@ -6929,6 +6997,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 K::Rule(mtg_core::card::RuleKind::DamageCantBePrevented) => {
                     "damage can't be prevented".to_string()
+                }
+                K::Rule(mtg_core::card::RuleKind::GraveyardUntargetable) => {
+                    "graveyard cards can't be targeted".to_string()
                 }
                 K::ExtraLands { n, each_player } => format!(
                     "additional land{}{}",

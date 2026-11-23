@@ -1,0 +1,6 @@
+card "Alms" {
+  oracle_id efd46a6e-a901-4224-8a29-d53a4dc7750c
+  cost {W}
+  type Enchantment
+  activated {1}, exile top card from graveyard: prevent next 1 damage to target creature this turn
+}

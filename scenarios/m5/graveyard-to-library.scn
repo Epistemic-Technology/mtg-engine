@@ -1,0 +1,38 @@
+# Graveyard cards put into a library: a target from any graveyard on the
+# bottom of its owner's library; a chosen land card on top of your own.
+
+scenario "Grazing Kelpie puts a card from an opponent's graveyard on the bottom" {
+  battlefield A: "Grazing Kelpie", "Forest"
+  graveyard B: "Hill Giant"
+  library B: "Island", "Plains"
+  turn 1 A: activate "Grazing Kelpie" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B lacks "Hill Giant"
+  assert library B count 3
+  assert battlefield A contains "Grazing Kelpie"
+  assert counters "Grazing Kelpie" -1/-1 1
+}
+
+scenario "Glowspore Shaman puts a milled land card back on top" {
+  battlefield A: "Swamp", "Forest"
+  hand A: "Glowspore Shaman"
+  library A: "Grizzly Bears", "Island", "Shock", "Plains"
+  turn 1 A: cast "Glowspore Shaman"
+  turn 1 A: accept "Glowspore Shaman"
+  run_to turn 1 postcombat_main
+  assert library A count 2
+  assert library A contains "Island"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Shock"
+}
+
+scenario "Glowspore Shaman may keep the land in the graveyard" {
+  battlefield A: "Swamp", "Forest"
+  hand A: "Glowspore Shaman"
+  library A: "Grizzly Bears", "Island", "Shock", "Plains"
+  turn 1 A: cast "Glowspore Shaman"
+  turn 1 A: decline "Glowspore Shaman"
+  run_to turn 1 postcombat_main
+  assert library A count 1
+  assert graveyard A contains "Island"
+}

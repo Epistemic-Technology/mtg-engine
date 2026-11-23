@@ -1,0 +1,49 @@
+# "Cards in graveyards can't be the targets of spells or abilities." (CR
+# 115.4).
+
+scenario "Ground Seal: Raise Dead has no legal target" {
+  battlefield A: "Swamp"
+  battlefield B: "Ground Seal"
+  hand A: "Raise Dead"
+  graveyard A: "Grizzly Bears"
+  illegal turn 1 A: cast "Raise Dead" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Ground Seal: an untargeted return still works" {
+  battlefield A: 5 "Swamp", "Ground Seal"
+  hand A: "Summon Undead"
+  graveyard A: "Grizzly Bears"
+  library A: "Island", "Plains", "Forest", "Mountain"
+  turn 1 A: cast "Summon Undead"
+  turn 1 A: decline "Summon Undead"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Ground Seal draws a card, and Raise Dead works once it's gone" {
+  battlefield A: 4 "Forest", "Swamp"
+  hand A: "Ground Seal", "Raise Dead", "Naturalize"
+  graveyard A: "Grizzly Bears"
+  library A: "Island", "Plains"
+  turn 1 A: cast "Ground Seal"
+  turn 1 A: wait
+  turn 1 A: cast "Naturalize" targeting "Ground Seal"
+  turn 1 A: wait
+  turn 1 A: cast "Raise Dead" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Island"
+}
+
+scenario "Ground Seal: Gravedigger's trigger has no target" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Ground Seal"
+  hand A: "Gravedigger"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: cast "Gravedigger"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Gravedigger"
+}

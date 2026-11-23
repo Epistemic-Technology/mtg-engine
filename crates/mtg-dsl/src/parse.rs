@@ -949,6 +949,8 @@ impl P {
             kicker_cost: None,
             kicker_targets: None,
             flashback: None,
+            graveyard_cast: None,
+            graveyard_alias: None,
             groups: Vec::new(),
             abilities: Vec::new(),
             except: None,
@@ -1219,6 +1221,35 @@ impl P {
                 card.flash_if_named = self.eat_word("named");
                 self.pos += 3;
                 card.flash_if = Some(self.static_cond()?);
+                self.end_stmt()
+            }
+            // `cast from graveyard while you control Zombie`, `cast from
+            // graveyard for {2}{W}`, `cast from graveyard with discard 1
+            // card` (CR 601.3).
+            // `counts as named "Flame Burst" in graveyard`.
+            "counts" if self.at_words(&["counts", "as", "named"]) => {
+                self.pos += 3;
+                card.graveyard_alias = Some(self.string()?);
+                self.expect_words(&["in", "graveyard"])?;
+                self.end_stmt()
+            }
+            "cast" if self.at_words(&["cast", "from", "graveyard"]) => {
+                self.pos += 3;
+                let mut g = crate::ast::GraveyardCast::default();
+                if self.eat_words(&["at", "max", "speed"]) {
+                    g.max_speed = true;
+                } else if self.eat_word("while") {
+                    g.as_long_as = true;
+                    g.cond = Some(self.static_cond()?);
+                } else if self.eat_word("if") {
+                    g.cond = Some(self.static_cond()?);
+                }
+                if self.eat_word("for") {
+                    g.mana = Some(self.mana_cost()?);
+                } else if self.eat_word("with") {
+                    g.extra = Some(self.cost()?);
+                }
+                card.graveyard_cast = Some(g);
                 self.end_stmt()
             }
             "cast" if self.at_words(&["cast", "only"]) => {
@@ -2056,6 +2087,14 @@ impl P {
                 self.pos += 4;
                 self.player_static(mtg_core::card::PlayerStaticKind::Rule(
                     mtg_core::card::RuleKind::NoLifeGain,
+                ))
+            }
+            // "Cards in graveyards can't be the targets of spells or
+            // abilities."
+            "graveyard" if self.at_words(&["graveyard", "cards", "can't", "be", "targeted"]) => {
+                self.pos += 5;
+                self.player_static(mtg_core::card::PlayerStaticKind::Rule(
+                    mtg_core::card::RuleKind::GraveyardUntargetable,
                 ))
             }
             "damage" if self.at_words(&["damage", "can't", "be", "prevented"]) => {
@@ -5384,6 +5423,9 @@ impl P {
         if self.eat_words(&["for", "as", "long", "as", "you", "control", "this"]) {
             return Some(Lasting::YouControlSource);
         }
+        if self.eat_words(&["until", "this", "is", "cast", "from", "exile"]) {
+            return Some(Lasting::UntilCastFromExile);
+        }
         None
     }
 
@@ -7283,6 +7325,17 @@ impl P {
             "shuffle" | "shuffles" if self.shuffle_zone_ahead() => {
                 self.shuffle_zone((explicit || subject != Recipient::You).then_some(subject))
             }
+            // `target player shuffles up to 3 target card from their
+            // graveyard into library`.
+            "shuffles" if matches!(subject, Recipient::Target(_)) => {
+                let what = self.recipient()?;
+                self.expect_words(&["into", "library"])?;
+                Ok(Effect::PutInLibrary {
+                    what,
+                    place: crate::ast::LibraryPlace::Shuffle,
+                    wording: LibraryWording::By(subject),
+                })
+            }
             // "Each player puts a creature card from their graveyard onto
             // the battlefield."
             "puts"
@@ -8105,7 +8158,7 @@ impl P {
                 // `return 1 Zombie card from your graveyard to hand at
                 // random`.
                 Some("random") if verb == "return" && hand => return true,
-                Some("hand") => hand = true,
+                Some("hand" | "battlefield") => hand = true,
                 // `put 1 card an opponent owns from exile into graveyard
                 // chosen`: a zone, not a verb.
                 Some("exile") if self.word_at(k - 1).as_deref() == Some("from") => {}
@@ -8126,6 +8179,12 @@ impl P {
     fn chosen_act(&mut self) -> R<Effect> {
         use mtg_core::card::ChooseAct;
         let verb = self.word()?;
+        // `exile top 1 creature card from your graveyard chosen`: "exile
+        // the top creature card of your graveyard".
+        let top = verb == "exile" && self.eat_word("top");
+        // `exile this spell and 4 card named this from your graveyard
+        // chosen`.
+        let with_spell = verb == "exile" && !top && self.eat_words(&["this", "spell", "and"]);
         // `discard any number cards chosen`: "discard any number of
         // cards".
         let (up_to, count) = if self.eat_words(&["any", "number"]) {
@@ -8170,9 +8229,24 @@ impl P {
                 (ChooseAct::AttachToTarget(n), f)
             }
             "exile" => {
-                let f = card_filter(self)?;
-                self.expect_words(&["from", "your", "graveyard"])?;
-                (ChooseAct::ExileFromGraveyard, f)
+                let at = self.pos;
+                let graveyard =
+                    card_filter(self).is_ok() && self.at_words(&["from", "your", "graveyard"]);
+                self.pos = at;
+                if graveyard || top || with_spell {
+                    let f = card_filter(self)?;
+                    self.expect_words(&["from", "your", "graveyard"])?;
+                    if top {
+                        (ChooseAct::ExileTopOfGraveyard, f)
+                    } else if with_spell {
+                        (ChooseAct::ExileWithThisSpell, f)
+                    } else {
+                        (ChooseAct::ExileFromGraveyard, f)
+                    }
+                } else {
+                    // `exile 1 land you control chosen`.
+                    (ChooseAct::Exile, self.filter()?)
+                }
             }
             "return" => {
                 let f = if self.at_word("card") || self.at_word("cards") {
@@ -8198,6 +8272,11 @@ impl P {
                         among_them = true;
                         returns = true;
                         (ChooseAct::MilledToHand, f)
+                    } else if self.eat_words(&["from", "your", "graveyard", "to", "battlefield"]) {
+                        // `return 1 land card from your graveyard to
+                        // battlefield tapped chosen`.
+                        let tapped = self.eat_word("tapped");
+                        (ChooseAct::GraveyardToBattlefield { tapped }, f)
                     } else {
                         self.expect_words(&["from", "your", "graveyard", "to", "hand"])?;
                         (ChooseAct::ReturnFromGraveyard, f)
@@ -8280,8 +8359,14 @@ impl P {
                 } else {
                     self.expect_words(&["milled", "cards"])?;
                 }
-                self.expect_words(&["into", "hand"])?;
-                (ChooseAct::MilledToHand, f)
+                // `put 1 creature card from among them onto battlefield
+                // chosen`.
+                if self.eat_words(&["onto", "battlefield"]) {
+                    (ChooseAct::MilledToBattlefield, f)
+                } else {
+                    self.expect_words(&["into", "hand"])?;
+                    (ChooseAct::MilledToHand, f)
+                }
             }
         };
         let act = if act == ChooseAct::ReturnFromGraveyard && self.eat_words(&["at", "random"]) {
@@ -8935,7 +9020,7 @@ impl P {
             // onto the battlefield tapped" (`return ... to battlefield`
             // otherwise).
             "put"
-                if (0..5).any(|k| {
+                if (0..10).any(|k| {
                     self.word_at(k).as_deref() == Some("onto")
                         && self.word_at(k + 1).as_deref() == Some("battlefield")
                 }) && !(0..8).any(|k| {
@@ -9240,7 +9325,26 @@ impl P {
                 }
                 if self.eat_words(&["graveyard", "of"]) {
                     let who = self.recipient()?;
-                    return Ok(Effect::ExileGraveyard { who });
+                    return Ok(Effect::ExileGraveyard { who, filter: None });
+                }
+                // `exile all creature card from graveyard of target player`.
+                if self.at_word("all")
+                    && (2..6).any(|k| {
+                        matches!(self.word_at(k).as_deref(), Some("card" | "cards"))
+                            && self.word_at(k + 1).as_deref() == Some("from")
+                            && self.word_at(k + 2).as_deref() == Some("graveyard")
+                            && self.word_at(k + 3).as_deref() == Some("of")
+                    })
+                {
+                    self.pos += 1;
+                    let filter = self.filter()?;
+                    self.cards_word()?;
+                    self.expect_words(&["from", "graveyard", "of"])?;
+                    let who = self.recipient()?;
+                    return Ok(Effect::ExileGraveyard {
+                        who,
+                        filter: Some(filter),
+                    });
                 }
                 let what = self.recipients()?;
                 // "until this enchantment leaves the battlefield" (CR 610.3).
@@ -9475,6 +9579,11 @@ impl P {
                 let filter = self.filter()?;
                 self.expect_word("card")?;
                 Ok(Effect::RevealUntil { who: None, filter })
+            }
+            // `may cast this while exiled`.
+            "may" if self.at_words(&["cast", "this", "while", "exiled"]) => {
+                self.pos += 4;
+                Ok(Effect::MayCastThisFromExile)
             }
             // `may cast that card this turn [first] [free]`.
             "may"
@@ -12147,6 +12256,31 @@ impl P {
                 // "from that player's graveyard": the triggering player's.
                 f.that_player = Some(mtg_core::card::ThatPlayer::Triggering);
                 Who::Any
+            } else if self.at_word("their") {
+                // "target player shuffles up to three target cards from
+                // their graveyard": the last player target's.
+                let Some(i) = self.targets.iter().rposition(|t| {
+                    matches!(
+                        t.base(),
+                        Target::Spec(TargetSpec::Player | TargetSpec::Opponent)
+                    )
+                }) else {
+                    return self.fail("`their graveyard` needs a player target before it");
+                };
+                self.pos += 1;
+                f.that_player = Some(mtg_core::card::ThatPlayer::Target(
+                    u8::try_from(i).unwrap_or(u8::MAX),
+                ));
+                f.their = true;
+                Who::Any
+            } else if self.eat_words(&["target", "player's"]) {
+                // "any number of target artifact cards from target
+                // player's graveyard": declares the player target.
+                self.targets.push(Target::Spec(TargetSpec::Player));
+                f.that_player = Some(mtg_core::card::ThatPlayer::Target(
+                    u8::try_from(self.targets.len() - 1).unwrap_or(u8::MAX),
+                ));
+                Who::Any
             } else {
                 self.expect_word("a")?;
                 Who::Any
@@ -14756,6 +14890,11 @@ impl P {
                             cost.exile_cards =
                                 Some(Box::new(crate::ast::ExileCards { n, x, filter, top }));
                             cost.order.push(CostItem::ExileCards);
+                            // `and this`: "... and this creature".
+                            if self.eat_words(&["and", "this"]) {
+                                cost.exile_this = true;
+                                cost.exile_this_joined = true;
+                            }
                         }
                     }
                     "discard" if self.word_at(1).as_deref() == Some("hand") => {

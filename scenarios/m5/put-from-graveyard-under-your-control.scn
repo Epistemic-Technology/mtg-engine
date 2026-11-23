@@ -1,0 +1,23 @@
+# "Put target creature card from an opponent's graveyard onto the
+# battlefield under your control."
+
+scenario "Macabre Mockery borrows an opponent's creature card for a turn" {
+  battlefield A: 2 "Swamp", 2 "Mountain"
+  hand A: "Macabre Mockery"
+  graveyard B: "Hill Giant"
+  turn 1 A: cast "Macabre Mockery" targeting "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  run_to turn 2 upkeep
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A lacks "Hill Giant"
+}
+
+scenario "Macabre Mockery can't take a card from your own graveyard" {
+  battlefield A: 2 "Swamp", 2 "Mountain"
+  hand A: "Macabre Mockery"
+  graveyard A: "Hill Giant"
+  illegal turn 1 A: cast "Macabre Mockery" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+}

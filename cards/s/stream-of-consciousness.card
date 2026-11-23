@@ -1,0 +1,6 @@
+card "Stream of Consciousness" {
+  oracle_id 9013214f-c066-4a09-871f-e9f8396f38a4
+  cost {1}{U}
+  type Instant — Arcane
+  spell: target player shuffles up to 4 target card from their graveyard into library
+}

@@ -1574,6 +1574,17 @@ impl<'a> Ctx<'a> {
                 graveyards,
             } => {
                 let whose = match who {
+                    _ if matches!(
+                        filter.that_player,
+                        Some(mtg_core::card::ThatPlayer::Target(_))
+                    ) =>
+                    {
+                        if filter.their {
+                            "their graveyard"
+                        } else {
+                            "target player's graveyard"
+                        }
+                    }
                     _ if filter.that_player.is_some() => "that player's graveyard",
                     Who::You => "your graveyard",
                     Who::Opponents => "an opponent's graveyard",
@@ -1582,6 +1593,7 @@ impl<'a> Ctx<'a> {
                 };
                 let mut g = filter.clone();
                 g.that_player = None;
+                g.their = false;
                 let tgt = if g.relation == Relation::Other {
                     crate::format::relation_any(&mut g);
                     "another target"
@@ -2231,6 +2243,17 @@ impl<'a> Ctx<'a> {
                 graveyards,
             } => {
                 let whose = match who {
+                    _ if matches!(
+                        filter.that_player,
+                        Some(mtg_core::card::ThatPlayer::Target(_))
+                    ) =>
+                    {
+                        if filter.their {
+                            "their graveyard"
+                        } else {
+                            "target player's graveyard"
+                        }
+                    }
                     _ if filter.that_player.is_some() => "that player's graveyard",
                     Who::You => "your graveyard",
                     Who::Opponents => "an opponent's graveyard",
@@ -2239,6 +2262,7 @@ impl<'a> Ctx<'a> {
                 };
                 let mut filter = filter.clone();
                 filter.that_player = None;
+                filter.their = false;
                 let each = std::mem::take(&mut filter.each);
                 let filter = &filter;
                 if each {
@@ -3682,11 +3706,30 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                         .filter
                         .as_ref()
                         .map_or(String::new(), |f| card_filter_phrase(f, ctx.card) + " ");
+                    if g.top {
+                        // "Exile the top card of your graveyard", "Exile
+                        // the top creature card of your graveyard" (the
+                        // most recent, CR 404.2).
+                        let what = if n == Num::N(1) {
+                            format!("{kind}card")
+                        } else {
+                            format!("{} {kind}cards", count_words(n, "one"))
+                        };
+                        parts.push(format!("Exile the top {what} of your graveyard"));
+                        continue;
+                    }
                     let what = if n == Num::N(1) {
                         with_article(&format!("{kind}card"))
                     } else {
                         format!("{} {kind}cards", count_words(n, "a"))
                     };
+                    if cost.exile_this_joined {
+                        // "Exile two cards from your graveyard and this
+                        // creature".
+                        let src = ctx.source();
+                        parts.push(format!("Exile {what} from your graveyard and {src}"));
+                        continue;
+                    }
                     parts.push(format!("Exile {what} from your graveyard"));
                 }
             }
@@ -5670,6 +5713,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
             }
         }
+        Effect::MayCastThisFromExile => Clause::imperative(
+            "you may cast this card for as long as it remains exiled".to_string(),
+        ),
         Effect::MayPlayCard {
             until,
             cast,
@@ -6978,14 +7024,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             ))
         }
         Effect::ExileAllGraveyards => Clause::imperative("exile all graveyards".to_string()),
-        Effect::ExileGraveyard { who } => {
+        Effect::ExileGraveyard { who, filter } => {
             let o = ctx.obj(*who);
             let whose = match o.as_str() {
                 "you" => "your".to_string(),
                 "it" | "them" => "their".to_string(),
                 o => format!("{o}'s"),
             };
-            Clause::imperative(format!("exile {whose} graveyard"))
+            match filter {
+                // "Exile all creature cards from target player's graveyard."
+                Some(f) => Clause::imperative(format!(
+                    "exile all {} from {whose} graveyard",
+                    cards_phrase(f, ctx.card, true)
+                )),
+                None => Clause::imperative(format!("exile {whose} graveyard")),
+            }
         }
         Effect::Sacrifice { what } => {
             let o = ctx.obj_written(*what);
@@ -7571,6 +7624,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                             who: Who::Opponents,
                             ..
                         }) => Some("their"),
+                        Some(Target::GraveyardCard { filter, .. })
+                            if matches!(
+                                filter.that_player,
+                                Some(mtg_core::card::ThatPlayer::Target(_))
+                            ) =>
+                        {
+                            Some("their")
+                        }
                         _ => None,
                     }
                 }
@@ -7596,11 +7657,35 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                         .to_string(),
                 });
             }
+            // "Target player shuffles up to three target cards from their
+            // graveyard into their library."
+            if let W::By(who) = wording {
+                let s = ctx.subj(*who);
+                let v = ctx.verb(*who, "shuffles", "shuffle");
+                let o = ctx.obj(*what);
+                let whose = graveyard_of.unwrap_or("their");
+                return Clause::with_subject(*who, s, format!("{v} {o} into {whose} library"));
+            }
             if *wording == W::Put {
                 let o = ctx.obj(*what);
                 let whose = graveyard_of.unwrap_or("its owner's");
+                // "Put any number of target artifact cards from target
+                // player's graveyard on top of their library in any order."
+                let any_order = match *what {
+                    Recipient::Target(i) => {
+                        matches!(ctx.targets.get(i), Some(Target::Many { .. }))
+                    }
+                    _ => false,
+                };
+                // (From your own graveyard Oracle leaves the order out:
+                // Gravepurge.)
+                let order = if any_order && whose == "their" {
+                    " in any order"
+                } else {
+                    ""
+                };
                 return Clause::imperative(match place {
-                    P::Top => format!("put {o} on top of {whose} library"),
+                    P::Top => format!("put {o} on top of {whose} library{order}"),
                     P::FromTop(n) => {
                         format!("put {o} into {whose} library {} from the top", ordinal(*n))
                     }
@@ -8161,6 +8246,34 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ChooseAct::ExileFromGraveyard => {
                     format!("exile {} from your graveyard", cards())
                 }
+                // CR 404.2: "exile the top creature card of your graveyard".
+                ChooseAct::ExileTopOfGraveyard => {
+                    let what = if one {
+                        cards_phrase(filter, ctx.card, false)
+                    } else {
+                        format!(
+                            "{} {}",
+                            count_words(*count, "one"),
+                            cards_phrase(filter, ctx.card, true)
+                        )
+                    };
+                    format!("exile the top {what} of your graveyard")
+                }
+                // "exile a creature you control other than this creature".
+                ChooseAct::Exile if filter.relation == mtg_core::card::Relation::Other => {
+                    let mut rest = filter.clone();
+                    rest.relation = mtg_core::card::Relation::Any;
+                    let what = if one {
+                        filter_a(&rest, ctx.card)
+                    } else {
+                        format!("{n} {}", filter_phrase(&rest, ctx.card, true))
+                    };
+                    format!("exile {what} other than {}", ctx.source_name())
+                }
+                ChooseAct::Exile => format!("exile {}", permanents()),
+                ChooseAct::ExileWithThisSpell => {
+                    format!("exile this spell and {} from your graveyard", cards())
+                }
                 ChooseAct::GraveyardToTop => {
                     format!("put {} from your graveyard on top of your library", cards())
                 }
@@ -8199,8 +8312,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ChooseAct::MilledToHand if *returns => {
                     format!("return {} from among them to your hand", cards())
                 }
-                ChooseAct::MilledToHand => format!(
-                    "put {} from among {} into your hand",
+                ChooseAct::GraveyardToBattlefield { tapped } => format!(
+                    "return {} from your graveyard to the battlefield{}",
+                    cards(),
+                    if *tapped { " tapped" } else { "" }
+                ),
+                ChooseAct::MilledToHand | ChooseAct::MilledToBattlefield => format!(
+                    "put {} from among {} {}",
                     cards(),
                     if *among_them {
                         "them"
@@ -8210,6 +8328,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                         "the cards milled this way"
                     } else {
                         "the milled cards"
+                    },
+                    if *act == ChooseAct::MilledToHand {
+                        "into your hand"
+                    } else {
+                        "onto the battlefield"
                     }
                 ),
             })
@@ -10050,6 +10173,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Rule(RuleKind::DamageCantBePrevented) => {
             Clause::imperative("damage can't be prevented this turn".to_string())
         }
+        Effect::Rule(RuleKind::GraveyardUntargetable) => Clause::imperative(
+            "cards in graveyards can't be the targets of spells or abilities this turn".to_string(),
+        ),
         Effect::DamageUnpreventable => {
             Clause::imperative("the damage can't be prevented".to_string())
         }
@@ -10616,6 +10742,7 @@ fn lasting_text(l: mtg_core::card::Lasting, ctx: &Ctx) -> String {
         Lasting::WhileTapped => "for as long as it remains tapped".to_string(),
         Lasting::YouControlSource => format!("for as long as you control {}", ctx.source_name()),
         Lasting::SourceTapped => format!("for as long as {} remains tapped", ctx.source_name()),
+        Lasting::UntilCastFromExile => "until this card is cast from exile".to_string(),
     }
 }
 
@@ -16147,6 +16274,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 K::Rule(mtg_core::card::RuleKind::DamageCantBePrevented) => {
                     "damage can't be prevented".to_string()
                 }
+                K::Rule(mtg_core::card::RuleKind::GraveyardUntargetable) => {
+                    "cards in graveyards can't be the targets of spells or abilities".to_string()
+                }
                 K::ExtraLands {
                     n,
                     each_player: true,
@@ -16213,6 +16343,51 @@ pub fn mode_text(card: &Card, m: &crate::ast::Mode, lookup: &dyn Lookup) -> Stri
 const FLASH_CLEANUP: &str = "You may cast this spell as though it had flash. If you cast it any \
     time a sorcery couldn't have been cast, the controller of the permanent it becomes \
     sacrifices it at the beginning of the next cleanup step.";
+/// "You may cast this card from your graveyard as long as you control a
+/// Zombie.", "... by paying {2}{W} rather than paying its mana cost.", "...
+/// by paying 3 life and discarding a card in addition to paying its other
+/// costs." (CR 601.3).
+fn graveyard_cast_text(card: &Card, g: &crate::ast::GraveyardCast) -> String {
+    let mut s = String::new();
+    if g.max_speed {
+        s.push_str("Max speed \u{2014} ");
+    }
+    s.push_str("You may cast this card from your graveyard");
+    if let Some(c) = &g.cond {
+        let _ = write!(
+            s,
+            " {} {}",
+            if g.as_long_as { "as long as" } else { "if" },
+            static_cond_text(c, card)
+        );
+    }
+    if let Some(m) = &g.mana {
+        let _ = write!(s, " by paying {m} rather than paying its mana cost");
+    } else if let Some(c) = &g.extra {
+        let mut parts = Vec::new();
+        if c.life > 0 {
+            parts.push(format!("paying {} life", c.life));
+        }
+        if let Some(SacCost::Filter(f)) = &c.sacrifice {
+            parts.push(format!("sacrificing {}", filter_a(f, card)));
+        }
+        if c.discard > 0 {
+            parts.push(if c.discard == 1 {
+                "discarding a card".to_string()
+            } else {
+                format!("discarding {} cards", count_words(Num::N(c.discard), "a"))
+            });
+        }
+        let _ = write!(
+            s,
+            " by {} in addition to paying its other costs",
+            parts.join(" and ")
+        );
+    }
+    s.push('.');
+    s
+}
+
 /// "Cast this spell only during combat.", "Cast this spell only if you
 /// control a creature." (CR 601.3).
 fn cast_only_text(card: &Card) -> Option<String> {
@@ -16445,6 +16620,15 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
         } else {
             lines.push(format!("Flashback—{}.", cost_text(fb, &mut ctx)));
         }
+    }
+    if let Some(n) = &card.graveyard_alias {
+        lines.push(format!(
+            "If this card is in a graveyard, effects from spells named {n} count it as a card named {n}."
+        ));
+    }
+    // CR 601.3: "You may cast this card from your graveyard ...".
+    if let Some(g) = &card.graveyard_cast {
+        lines.push(graveyard_cast_text(card, g));
     }
     // Oracle prints rebound after the spell's effect.
     if card.keywords.contains(&Keyword::Rebound) {

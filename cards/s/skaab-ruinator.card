@@ -1,0 +1,9 @@
+card "Skaab Ruinator" {
+  oracle_id 83734824-1cad-4649-87ae-a5c338771c4c
+  cost {1}{U}{U}
+  type Creature — Zombie Horror
+  pt 5/6
+  keywords flying
+  additional cost exile 3 creature card from graveyard
+  cast from graveyard
+}

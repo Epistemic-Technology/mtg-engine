@@ -1,0 +1,7 @@
+card "Havengul Runebinder" {
+  oracle_id e91e7f62-0788-445e-ba93-2c9d233ec3ab
+  cost {2}{U}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {2}{U}, {T}, exile creature card from graveyard: create 1 "2/2 black Zombie creature" then put 1 +1/+1 counters on each Zombie creature you control
+}

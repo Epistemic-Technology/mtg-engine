@@ -214,6 +214,8 @@ like the card; either half may still be cast alone.
 | `riot`, `living weapon`, `job select`, `activated {5}{R}: monstrosity 3`, `static as long as monstrous, this: has flying` | Riot (CR 702.136): as it enters, its controller may have it enter with an additional +1/+1 counter; if they don't, it has haste for as long as it is that object (scenarios: `accept`/`decline`). Living weapon (CR 702.92): when this Equipment enters, a "0/0 black Phyrexian Germ creature" token, then attach this to it. Job select (CR 702.182) likewise, with a "1/1 colorless Hero creature" token. Monstrosity N (CR 701.37), an effect, `X` allowed: if the source isn't monstrous, N +1/+1 counters on it and it becomes monstrous (a designation kept until it leaves the battlefield); `monstrous` is the condition "this creature is monstrous". |
 | `ingest`, `reinforce 1 {1}{R}` | Ingest (CR 702.115): whenever it deals combat damage to a player, that player exiles the top card of their library. Reinforce N—cost (CR 702.77): "{cost}, Discard this card: Put N +1/+1 counters on target creature." (activated from the hand). |
 | `retrace`, `jump start`, `surge {1}{R}`, `spectacle {R}` | Retrace (CR 702.81): the card may be cast from your graveyard for its mana cost and a land card discarded (scenarios: `from graveyard discarding "Forest"`); it isn't exiled. Jump-start (CR 702.133): the same with any card discarded, exiled as it leaves the stack (flashback's casting, for the mana cost and a discard). Surge (CR 702.117) and spectacle (CR 702.137): the card's alternative cost (`alternative` in scenarios), offered if you've cast another spell this turn, or if an opponent lost life this turn. Printed "Retrace", "Jump-start", "Surge {1}{R}", "Spectacle {R}" where written. `freerunning {1}{B}` (CR 702.173) likewise, offered once a creature that was an Assassin you controlled dealt combat damage to a player this turn (the game has no commanders); prints "Freerunning {1}{B}". |
+| `cast from graveyard while you control Zombie`, `cast from graveyard if gained life this turn`, `cast from graveyard for {2}{W}`, `cast from graveyard with pay 3 life, discard 1 card`, `cast from graveyard at max speed` | "You may cast this card from your graveyard as long as you control a Zombie.", "... if you gained life this turn.", "... by paying {2}{W} rather than paying its mana cost.", "... by paying 3 life and discarding a card in addition to paying its other costs." (life, discards, and a sacrifice: "sacrificing an artifact or creature"), "Max speed — You may cast this card from your graveyard." (CR 601.3): the card may be cast from its owner's graveyard with its usual timing, while the condition holds, for its mana cost and the added parts or for that mana instead; it isn't exiled as it leaves the stack (scenarios: `from graveyard`, `discarding`, `sacrificing`). Printed after the other abilities. |
+| `counts as named "Flame Burst" in graveyard` | "If this card is in a graveyard, effects from spells named Flame Burst count it as a card named Flame Burst.": a spell of that name counting the cards named ~ in graveyards counts this card too. Printed after the other abilities. |
 | `mayhem {1}{R}` | Mayhem: a card its owner discarded this turn may be cast from their graveyard for this cost (scenarios: `from graveyard`), timing rules still applying; the discarded card is remembered as the graveyard object it became, until the turn ends. Prints `Mayhem {1}{R}` in place. The land form ("You may play this card from your graveyard ...") is not supported. |
 | `poisonous 1`, `frenzy 1`, `absorb 1`, `provoke` | Poisonous (CR 702.70): combat damage to a player gives them N poison counters. Frenzy (CR 702.68): attacks and isn't blocked, +N/+0 until end of turn. Absorb (CR 702.64): prevent N of each damage dealt to it (a static `prevent next N` prevents N of every event, not a shield). Provoke (CR 702.39): attacks, you may have target creature defending player controls untap and block it if able. All four, and `outlast {2}`, may be granted bare: `static all Sliver creature: has poisonous 1` ("All Sliver creatures have poisonous 1."). |
 | `modular 2`, `cumulative upkeep {1}`, `exert: this gets +2/+2` | Modular (CR 702.43): enters with N +1/+1 counters; as it dies, they may move to target artifact creature. Cumulative upkeep (CR 702.24): each upkeep an age counter, then pay the cost per counter or sacrifice it. Exert (CR 701.43): as it attacks, its controller may exert it (it doesn't untap during their next untap step) for the effects. The keyword `delve` (CR 702.66) lets graveyard cards pay {1} each. |
@@ -281,6 +283,7 @@ like the card; either half may still be cast alone.
 | `may look face-down`, `may look face-down opponents`, `may look top`, `may look top face-down` | "You may look at face-down creatures you don't control any time." ("... your opponents control ...", the same in a two-player game), "You may look at the top card of your library any time.", "You may look at the top card of your library and at face-down creatures you don't control any time." Information only (CR 401.2, 708.5): the controller's view shows those cards. |
 | `additional land`, `additional land 2`, `additional land each player`, `additional land as long as you control other Elf` | "You may play an additional land on each of your turns.", "You may play two additional lands on each of your turns.", "Each player may play an additional land on each of their turns.", "As long as you control another Elf, you may play an additional land on each of your turns." (CR 305.2): more land plays on its controller's turns (each player's own turns with `each player`), while the condition holds. The effect `play additional land this turn` ("You may play an additional land this turn.") and `play 2 additional land this turn` ("You may play up to two additional lands this turn.") add plays for the rest of the turn. |
 | `as this enters choose card name`, `as this enters choose nonland card name`; `spells with chosen name can't be cast`, `activated abilities of sources with chosen name can't be activated [unless mana]` | "As this artifact enters, choose a [nonland] card name." (CR 201.3): the names offered are those of the cards in the game (any zone, either player's, the entering card's own included), in name order (`choose "Lightning Bolt"` in scenarios), since naming a card not in the game changes nothing. "Spells with the chosen name can't be cast." (Meddling Mage, Nevermore): no player is offered casting a spell of that name. "Activated abilities of sources with the chosen name can't be activated [unless they're mana abilities]." (Pithing Needle, Phyrexian Revoker): in any zone, and without `unless mana` not even its mana abilities to pay costs (Voidstone Gargoyle). |
+| `graveyard cards can't be targeted` | "Cards in graveyards can't be the targets of spells or abilities." (CR 115.4): while the source is on the battlefield, no card in a graveyard is a legal target (an untargeted choice still finds them). |
 | `you may play lands from your graveyard` | "You may play lands from your graveyard." (CR 305.1): its controller may play land cards from their graveyard, with their usual land plays. |
 | `you have hexproof`, `you have shroud`, `opponents can't cast spells during your turn`, `players can't gain life`, `damage can't be prevented` | Static abilities about players: "You have hexproof." (CR 702.11c: spells and abilities your opponents control can't target you), "You have shroud." (CR 702.18c: no spell or ability can target you), "Your opponents can't cast spells during your turn.", "Players can't gain life.", "Damage can't be prevented." (CR 614.17). `you can't lose the game` prints "You can't lose the game and your opponents can't win the game.": the controller doesn't lose for the state-based actions of CR 704.5a-c while it applies, and an effect that would make an opponent win does nothing. `as long as <condition>` may follow any of them. |
 | `hexproof from black`, `hexproof from monocolored`, `hexproof from instant` | "Hexproof from black" (CR 702.11d): this permanent can't be the target of spells or abilities your opponents control from sources matching the filter (a color, `multicolored`, `monocolored`, a card type: "instants", "planeswalkers"). In a keyword line ("Flying, hexproof from multicolored") write the keywords first, then this line. |
@@ -317,8 +320,14 @@ card"), `discard X cards` (a spell's additional cost: "As an additional
 cost to cast this spell, discard X cards."; X is announced as the spell
 is cast, at most the other cards in hand, CR 601.2b; `discard X creature
 cards` counts only matching cards), `discard this`, `exile this from graveyard` ("Exile this card from
-your graveyard"; the ability is activated from the graveyard), `exile this from hand` ("Exile this card from your hand"; activated from the hand at instant speed, Simian Spirit Guide: an ability that only adds mana is a mana ability, resolving at once, CR 605.3b, though payment doesn't activate it on its own), `exile
-this` ("Exile this artifact": the permanent exiles itself), `return
+your graveyard"; the ability is activated from the graveyard), `exile
+this from hand` ("Exile this card from your hand"; the ability is
+activated from the hand, and the card goes to exile as the cost is
+paid; an ability that only adds mana is a mana ability, resolving at
+once, CR 605.3b, though payment doesn't activate it on its own: Simian
+Spirit Guide),
+`exile this` ("Exile this artifact": the permanent exiles itself), `return
+`exile this` ("Exile this artifact": the permanent exiles itself), `return
 land you control` ("Return a land you control to its owner's hand";
 `return this`: "Return this enchantment to its owner's hand") and
 `tap untapped creature you control` ("Tap an untapped creature you
@@ -332,7 +341,12 @@ from graveyard`, `exile creature card from graveyard`, `exile X creature
 cards from graveyard` ("Exile two cards from your graveyard", "exile a
 creature card from your graveyard"; X announced as a spell is cast, at
 most the cards there; the engine exiles the oldest matching cards other
-than the source, sparing what the spell or ability targets), `pay 3
+than the source, sparing what the spell or ability targets; `exile top
+card from graveyard`, `exile top creature card from graveyard`: "Exile the
+top card of your graveyard", "Exile the top creature card of your
+graveyard", the most recent, CR 404.2; `exile 2 cards from graveyard and
+this`: "Exile two cards from your graveyard and this creature", one
+part), `pay 3
 life`, `pay x life` (a spell's additional cost: "As an additional cost to
 cast this spell, pay X life."; X is announced as the spell is cast, at most
 the caster's life, CR 119.4; in an activated ability's cost, "{X}{B}, {T},
@@ -1937,6 +1951,14 @@ source stays tapped; Phyrexian Gremlins' `tap target artifact; target 1
 gains doesn't untap for as long as this remains tapped`). The last four end when
 the source leaves the battlefield or changes control, or the permanent (or
 source) untaps (checked with the state-based actions), and do nothing if that has
+long as you control this creature"), and `for as long as it remains tapped`
+(each affected permanent, while it stays tapped), and `until this is cast
+from exile` ("until this card is cast from exile", after an `exile this
+from hand` cost: while that card stays in exile; with `may cast this while
+exiled`, "You may cast this card for as long as it remains exiled.", its
+controller may cast it from there, CR 601.3). The last three end when
+the source leaves the battlefield or changes control, or the permanent
+untaps (checked with the state-based actions), and do nothing if that has
 already happened as the effect would begin. `gain control of target
 creature for as long as you control this`, `that target 1 can't attack or
 block for as long as you control this` ("That creature can't attack or
@@ -2043,7 +2065,8 @@ the battlefield under their owner's control", each target found as the
 card it became, CR 400.7),
 `exile all graveyards`, `exile graveyard of target player` ("Exile target
 player's graveyard"; `of each opponent`: "Exile each opponent's
-graveyard"), `put <what> on top of library` / `on bottom of
+graveyard"; `exile all creature card from graveyard of target player`:
+"Exile all creature cards from target player's graveyard"), `put <what> on top of library` / `on bottom of
 library` / `into library 2 from top` ("Put target creature into its
 owner's library second from the top"; fewer cards, the bottom, CR 401.7),
 `shuffle <what> into library` ("Shuffle enchanted creature into its
@@ -2054,7 +2077,13 @@ your graveyard into your library"), `shuffle graveyard into library`
 graveyard into library`: "Target player shuffles their graveyard into
 their library"; `each player shuffles hand and graveyard into library then draws 7
 cards`: "Each player shuffles their hand and graveyard into their library,
-then draws seven cards.", both zones), `shuffle all creature card from graveyard of target
+then draws seven cards.", both zones), `target player shuffles up to 3 target card from their graveyard into
+library` ("Target player shuffles up to three target cards from their
+graveyard into their library": `from their graveyard` is the graveyard of
+the player target before it; `put any number of target artifact card from
+target player's graveyard on top of library`: "Put any number of target
+artifact cards from target player's graveyard on top of their library in
+any order", the player target declared by the filter), `shuffle all creature card from graveyard of target
 player into library` ("Shuffle all creature cards from target player's
 graveyard into that player's library"), `shuffle cards from hand into
 library` ("shuffle the cards from your hand into your library"; `then
@@ -2881,7 +2910,25 @@ do` then sees:
   known to every player; `count where revealed this way` ("the number of
   cards revealed this way") and `count each revealed this way` ("for each
   card revealed this way") count them
-- `exile 2 creature card from your graveyard chosen`
+- `exile 2 creature card from your graveyard chosen`; `exile top 1
+  creature card from your graveyard chosen` ("exile the top creature card
+  of your graveyard", CR 404.2: the most recent, nothing chosen); `exile
+  this spell and 4 named this card from your graveyard chosen` ("exile
+  this spell and four cards named Dragon's Approach from your
+  graveyard": the cards, then the resolving spell, only if all four can
+  be)
+- `exile 1 land you control chosen` ("exile a land you control"; `exile 1
+  other creature you control chosen`: "exile a creature you control other
+  than this creature"): on a card whose other ability says `return
+  exiled card to battlefield`, what it exiles is linked to it (CR 607.2a,
+  Wormfang Newt)
+- `return 1 creature card from your graveyard to battlefield chosen`
+  ("return a creature card from your graveyard to the battlefield"; `to
+  battlefield tapped`: "... to the battlefield tapped"), under its owner's
+  control
+- `put 1 creature card from among them onto battlefield chosen` ("put a
+  creature card from among them onto the battlefield"; `from among milled
+  cards`: "from among the milled cards"), as `into hand` below
 - `attach 1 Equipment you control to target 1 chosen` ("attach an Equipment
   you control to it": permanents you control, attached to that target)
 - `return 1 creature or land card from your graveyard to hand chosen`

@@ -1,0 +1,8 @@
+card "Littjara Glade-Warden" {
+  oracle_id 438a0a7a-00bc-4d93-8e69-a8a6084523c5
+  cost {3}{G}
+  type Creature — Shapeshifter
+  pt 3/3
+  keywords changeling
+  activated {2}{G}, {T}, exile creature card from graveyard, sorcery: put 2 +1/+1 counters on target creature
+}

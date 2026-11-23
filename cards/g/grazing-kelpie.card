@@ -1,0 +1,8 @@
+card "Grazing Kelpie" {
+  oracle_id a2db1035-008e-4de3-b5e5-2a0de83082b2
+  cost {3}{G/U}
+  type Creature — Beast
+  pt 2/3
+  activated {G/U}, sacrifice this: put target card from a graveyard on bottom of library
+  keywords persist
+}

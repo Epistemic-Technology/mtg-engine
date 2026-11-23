@@ -1,0 +1,60 @@
+# Cards the template author writes with the chosen graveyard-to-battlefield
+# forms: "return a creature card from your graveyard to the battlefield",
+# "put a creature card from among them onto the battlefield", and a
+# following "Then ..." sentence.
+
+scenario "Bind to Life puts a milled creature card onto the battlefield" {
+  battlefield A: 8 "Forest"
+  hand A: "Vastlands Scavenger // Bind to Life"
+  library A: "Island", "Hill Giant", "Shock", "Raging Goblin", "Swamp", "Mountain", "Island", "Grizzly Bears"
+  turn 1 A: cast "Vastlands Scavenger"
+  turn 1 A: wait
+  turn 1 A: cast "Bind to Life"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A contains "Shock"
+  assert library A count 1
+}
+
+scenario "Concoct: surveil, then return a creature card" {
+  battlefield A: 3 "Island", 2 "Swamp"
+  hand A: "Connive // Concoct"
+  graveyard A: "Raging Goblin"
+  library A: "Hill Giant", "Shock", "Plains", "Swamp"
+  turn 1 A: cast "Concoct"
+  turn 1 A: surveil "Hill Giant", "Shock"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A contains "Shock"
+  assert library A count 2
+}
+
+scenario "Lumra returns every milled land card tapped" {
+  battlefield A: 6 "Forest"
+  hand A: "Lumra, Bellow of the Woods"
+  graveyard A: "Mountain"
+  library A: "Island", "Hill Giant", "Plains", "Shock", "Swamp"
+  turn 1 A: cast "Lumra, Bellow of the Woods"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Island"
+  assert battlefield A contains "Plains"
+  assert battlefield A contains "Mountain"
+  assert tapped "Island"
+  assert graveyard A contains "Hill Giant"
+  assert power "Lumra, Bellow of the Woods" 9
+}
+
+scenario "Port of Karfell returns a creature card tapped" {
+  battlefield A: "Port of Karfell", 2 "Island", 4 "Swamp"
+  graveyard A: "Raging Goblin"
+  library A: "Island", "Hill Giant", "Plains", "Shock", "Swamp"
+  turn 1 A: activate "Port of Karfell"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert tapped "Hill Giant"
+  assert graveyard A contains "Port of Karfell"
+  assert library A count 1
+}

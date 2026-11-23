@@ -676,6 +676,13 @@ impl GameState {
                 let Some(fb) = &def.flashback else {
                     continue;
                 };
+                // "You may cast this card from your graveyard as long as
+                // you control a Zombie."
+                if let Some(c) = def.graveyard_cast.as_ref().and_then(|g| g.condition)
+                    && !self.condition_now(self.pool.condition(c), p, *id)
+                {
+                    continue;
+                }
                 let instant_speed = def.is_instant() || self.has_flash(p, def, *id);
                 if !(instant_speed || sorcery_timing) {
                     continue;
@@ -1486,6 +1493,7 @@ impl GameState {
     }
 
     /// What `Effect::ChooseAct` may act on, for its controller.
+    #[allow(clippy::too_many_lines)] // one arm per act
     fn act_candidates(
         &self,
         ctx: &EffectCtx,
@@ -1494,6 +1502,14 @@ impl GameState {
     ) -> Vec<ObjId> {
         use crate::card::ChooseAct;
         let p = ctx.controller;
+        // "four cards named Dragon's Approach": "named ~" filled in.
+        let filled;
+        let filter = if filter.same.is_some() {
+            filled = self.with_same_of(filter, Some(ctx.source));
+            &filled
+        } else {
+            filter
+        };
         let card_ok = |id: ObjId| {
             let o = &self.objects[id];
             let c = self.base_characteristics(o);
@@ -1530,6 +1546,7 @@ impl GameState {
             | ChooseAct::Sacrifice
             | ChooseAct::Bounce
             | ChooseAct::Transform
+            | ChooseAct::Exile
             | ChooseAct::AttachToTarget(_) => self
                 .battlefield
                 .iter()
@@ -1552,12 +1569,23 @@ impl GameState {
                 .filter(|id| card_ok(*id))
                 .collect(),
             ChooseAct::ExileFromGraveyard
+            | ChooseAct::ExileWithThisSpell
             | ChooseAct::ReturnFromGraveyard
+            | ChooseAct::GraveyardToBattlefield { .. }
             | ChooseAct::GraveyardToTop
             | ChooseAct::ReturnRandomFromGraveyard => self
                 .player(p)
                 .graveyard
                 .iter()
+                .copied()
+                .filter(|id| card_ok(*id))
+                .collect(),
+            // CR 404.2: the most recent matching cards first.
+            ChooseAct::ExileTopOfGraveyard => self
+                .player(p)
+                .graveyard
+                .iter()
+                .rev()
                 .copied()
                 .filter(|id| card_ok(*id))
                 .collect(),
@@ -1574,19 +1602,21 @@ impl GameState {
                 })
                 .collect(),
             // "from among the milled cards": those still in the graveyard.
-            ChooseAct::MilledToHand => self.this_way.as_ref().map_or_else(Vec::new, |log| {
-                log.moved
-                    .iter()
-                    .filter(|m| m.is(crate::card::ThisWay::Milled))
-                    .map(|m| m.new)
-                    .filter(|id| {
-                        self.objects
-                            .get(*id)
-                            .is_some_and(|o| o.zone == Zone::Graveyard)
-                            && card_ok(*id)
-                    })
-                    .collect()
-            }),
+            ChooseAct::MilledToHand | ChooseAct::MilledToBattlefield => {
+                self.this_way.as_ref().map_or_else(Vec::new, |log| {
+                    log.moved
+                        .iter()
+                        .filter(|m| m.is(crate::card::ThisWay::Milled))
+                        .map(|m| m.new)
+                        .filter(|id| {
+                            self.objects
+                                .get(*id)
+                                .is_some_and(|o| o.zone == Zone::Graveyard)
+                                && card_ok(*id)
+                        })
+                        .collect()
+                })
+            }
         }
     }
 
@@ -1655,6 +1685,7 @@ impl GameState {
     /// `Effect::ChooseAct`: the controller chooses `n` candidates (up to
     /// `n` with `up_to`) and each is acted on; returns how many were.
     /// Without `up_to`, nothing happens unless all `n` can be chosen.
+    #[allow(clippy::too_many_lines)] // one arm per act
     fn choose_act(
         &mut self,
         ctx: &mut EffectCtx,
@@ -1674,7 +1705,7 @@ impl GameState {
             let id = if act == ChooseAct::ReturnRandomFromGraveyard {
                 // "at random": from the game's random number generator.
                 cands[rand::Rng::random_range(&mut self.rng, 0..cands.len())]
-            } else if !up_to && cands.len() == n - done {
+            } else if act == ChooseAct::ExileTopOfGraveyard || (!up_to && cands.len() == n - done) {
                 cands[0]
             } else {
                 let mut options: Vec<Choice> = cands
@@ -1738,14 +1769,31 @@ impl GameState {
                 ChooseAct::ExileToGraveyard => {
                     ctx.created = Some(self.move_object(id, Zone::Graveyard, false));
                 }
-                ChooseAct::ExileFromGraveyard => {
+                ChooseAct::ExileFromGraveyard
+                | ChooseAct::ExileTopOfGraveyard
+                | ChooseAct::ExileWithThisSpell => {
                     ctx.created = Some(self.move_object(id, Zone::Exile, false));
+                }
+                ChooseAct::Exile => {
+                    ctx.created = Some(self.move_object(id, Zone::Exile, true));
                 }
                 ChooseAct::Bounce
                 | ChooseAct::ReturnFromGraveyard
                 | ChooseAct::ReturnRandomFromGraveyard
                 | ChooseAct::MilledToHand => {
                     ctx.created = Some(self.move_object(id, Zone::Hand, false));
+                }
+                ChooseAct::MilledToBattlefield | ChooseAct::GraveyardToBattlefield { .. } => {
+                    let tapped = matches!(act, ChooseAct::GraveyardToBattlefield { tapped: true });
+                    let owner = self.objects[id].owner;
+                    ctx.created = Some(self.put_onto_battlefield_with(
+                        id,
+                        owner,
+                        super::replace::Enter {
+                            tapped,
+                            ..super::replace::Enter::default()
+                        },
+                    ));
                 }
                 // An illegal target by now: nothing to attach to (CR
                 // 608.2b).
@@ -1763,6 +1811,17 @@ impl GameState {
                 }
             }
             done += 1;
+        }
+        // "exile this spell and four cards named ~ from your graveyard":
+        // the spell too, from the stack.
+        if act == ChooseAct::ExileWithThisSpell
+            && done == n
+            && self
+                .objects
+                .get(ctx.source)
+                .is_some_and(|o| o.zone == Zone::Stack)
+        {
+            self.move_object(ctx.source, Zone::Exile, true);
         }
         done
     }
@@ -2036,10 +2095,38 @@ impl GameState {
                 f.is_none_or(|f| {
                     let o = &self.objects[**id];
                     let c = self.base_characteristics(o);
-                    f.matches(**id, o.owner, &c, None, Some(you)) && self.status_ok(f, **id)
+                    (f.matches(**id, o.owner, &c, None, Some(you))
+                        || self.graveyard_alias_matches(f, o, &c, **id, you))
+                        && self.status_ok(f, **id)
                 })
             })
             .count()
+    }
+
+    /// "Effects from spells named Flame Burst count it as a card named
+    /// Flame Burst" (Pardic Firecat): a graveyard card whose card names
+    /// the filter's "named ~" (filled in with the counting spell) matches
+    /// the rest of the filter.
+    fn graveyard_alias_matches(
+        &self,
+        f: &crate::card::ObjFilter,
+        o: &crate::state::GameObject,
+        c: &crate::state::Characteristics,
+        id: ObjId,
+        you: PlayerId,
+    ) -> bool {
+        let Some((named, true)) = f.named else {
+            return false;
+        };
+        let Some(alias) = &self.pool.get(o.def).graveyard_alias else {
+            return false;
+        };
+        if *alias != self.pool.get(named).name {
+            return false;
+        }
+        let mut rest = f.clone();
+        rest.named = None;
+        rest.matches(id, o.owner, c, None, Some(you))
     }
 
     /// CR 702.103a: whether `p` could cast the card `id` for its bestow
@@ -10108,11 +10195,21 @@ impl GameState {
                 Duration::WhileControlled(ctx.source, ctx.controller)
             }
             crate::card::Lasting::SourceTapped => Duration::WhileTapped(ctx.source),
+            crate::card::Lasting::UntilCastFromExile => {
+                Duration::WhileInExile(self.source_in_exile(ctx).unwrap_or_default())
+            }
         };
         if d.linked() {
             self.linked_durations += 1;
         }
         d
+    }
+
+    /// The card an ability activated from the hand exiled as its cost
+    /// ("Exile this card from your hand"), while it is still in exile.
+    fn source_in_exile(&self, ctx: &EffectCtx) -> Option<ObjId> {
+        self.current_object(ctx.source)
+            .filter(|id| self.objects[*id].zone == Zone::Exile)
     }
 
     /// CR 611.2b: the effects of `Effect::Lasting`. A duration linked to
@@ -10140,6 +10237,10 @@ impl GameState {
             crate::card::Lasting::YouControlSource
                 if !source_ok() || self.objects[ctx.source].controller != ctx.controller =>
             {
+                return;
+            }
+            // Already cast (or otherwise gone): the duration is over.
+            crate::card::Lasting::UntilCastFromExile if self.source_in_exile(ctx).is_none() => {
                 return;
             }
             _ => {}
@@ -10998,10 +11099,17 @@ impl GameState {
                     self.deal_damage(x, y, n, false);
                 }
             }
-            Effect::ExileGraveyard { who } => {
+            Effect::ExileGraveyard { who, filter } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        let cards = self.player(p).graveyard.clone();
+                        let mut cards = self.player(p).graveyard.clone();
+                        if let Some(f) = filter {
+                            cards.retain(|id| {
+                                let o = &self.objects[*id];
+                                let c = self.base_characteristics(o);
+                                f.matches(*id, o.owner, &c, Some(ctx.source), Some(ctx.controller))
+                            });
+                        }
                         for id in cards {
                             self.move_object(id, Zone::Exile, true);
                         }
@@ -14464,6 +14572,24 @@ impl GameState {
             } => self.dig_split(ctx, *count, *of, *reveal, *opponent, piles, *rest),
             // CR 702.185a: the warped permanent is exiled; its owner may
             // cast it from exile on a later turn.
+            // CR 601.3: "You may cast this card for as long as it remains
+            // exiled."
+            Effect::MayCastThisFromExile => {
+                if let Some(card) = self.source_in_exile(ctx) {
+                    self.exile_casts
+                        .get_or_insert_with(Box::default)
+                        .playable
+                        .push(crate::state::PlayableExile {
+                            card,
+                            player: ctx.controller,
+                            until: crate::card::PlayUntil::Forever,
+                            own_ends: 0,
+                            cast_only: true,
+                            free: false,
+                            source: ObjId::default(),
+                        });
+                }
+            }
             Effect::WarpExile => {
                 for t in self.recipients(ctx, crate::card::Recipient::SameObject) {
                     let Target::Object(id) = t else {

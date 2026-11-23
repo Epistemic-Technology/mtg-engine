@@ -1,0 +1,7 @@
+card "Young Necromancer" {
+  oracle_id 17455491-c295-4130-99b4-1b5c6ac1cd25
+  cost {4}{B}
+  type Creature — Human Warlock
+  pt 2/3
+  triggered when this enters: you may exile 2 cards from your graveyard chosen; when you do, return target creature card from your graveyard to battlefield
+}

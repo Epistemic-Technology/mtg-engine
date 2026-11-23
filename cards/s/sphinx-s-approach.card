@@ -1,0 +1,7 @@
+card "Sphinx's Approach" {
+  oracle_id 48b1ac27-430f-4fd9-a71b-6ad125c57fe3
+  cost {1}{U}{U}
+  type Instant
+  spell: draw 2 cards; then you may exile this spell and 4 named this card from your graveyard chosen; if you do, search Sphinx creature card to battlefield
+  deck any number
+}

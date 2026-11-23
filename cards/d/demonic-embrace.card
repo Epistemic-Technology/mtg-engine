@@ -1,0 +1,8 @@
+card "Demonic Embrace" {
+  oracle_id d185c829-ef12-403a-a071-7520a0293d4a
+  cost {1}{B}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+1, has flying, add subtype Demon
+  cast from graveyard with pay 3 life, discard 1 card
+}

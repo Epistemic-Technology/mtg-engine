@@ -1,0 +1,8 @@
+card "Salvage Titan" {
+  oracle_id 823cd586-92db-4e44-ba1f-394b2404cafc
+  cost {4}{B}{B}
+  type Artifact Creature — Golem
+  pt 6/4
+  alternative cost sacrifice 3 artifact
+  activated exile 3 artifact card from graveyard, from graveyard: return this to hand
+}

@@ -109,6 +109,11 @@ pub enum LibraryWording {
     /// `owner of ... puts it ...`: "The owner of target nonland permanent
     /// puts it ...".
     OwnerOf,
+    /// `target player shuffles up to 3 target card from their graveyard
+    /// into library`: "Target player shuffles up to three target cards
+    /// from their graveyard into their library" (the player names the
+    /// cards' owner; wording only).
+    By(Recipient),
 }
 use mtg_core::mana::{Color, Mana, ManaCost};
 use mtg_core::turn::Step;
@@ -242,6 +247,13 @@ pub struct Card {
     pub kicker_targets: Option<u8>,
     /// `flashback {4}{R}` or `flashback {1}{U}, pay 3 life` (CR 702.34).
     pub flashback: Option<Cost>,
+    /// `cast from graveyard ...`: "You may cast this card from your
+    /// graveyard ..." (CR 601.3).
+    pub graveyard_cast: Option<GraveyardCast>,
+    /// `counts as named "Flame Burst" in graveyard`: "If this card is in a
+    /// graveyard, effects from spells named Flame Burst count it as a card
+    /// named Flame Burst."
+    pub graveyard_alias: Option<String>,
     /// Filters behind `Recipient::Group`, in order of first mention.
     pub groups: Vec<Filter>,
     pub abilities: Vec<Ability>,
@@ -299,6 +311,8 @@ impl Card {
             kicker_cost: None,
             kicker_targets: None,
             flashback: None,
+            graveyard_cast: None,
+            graveyard_alias: None,
             groups: Vec::new(),
             abilities: Vec::new(),
             except: None,
@@ -663,6 +677,24 @@ pub struct AltCost {
     pub cond_late: bool,
 }
 
+/// `cast from graveyard [while <cond> | if <cond> | at max speed] [for
+/// <mana>] [with <cost>]`: "[Max speed — ]You may cast this card from your
+/// graveyard [as long as <cond> | if <cond>] [by paying <mana> rather than
+/// paying its mana cost | by <cost> in addition to paying its other
+/// costs]." (CR 601.3): not exiled as it leaves the stack.
+#[derive(Clone, Eq, PartialEq, Debug, Default)]
+pub struct GraveyardCast {
+    pub cond: Option<StaticCond>,
+    /// `while`: printed "as long as".
+    pub as_long_as: bool,
+    /// `at max speed`: "Max speed — " first.
+    pub max_speed: bool,
+    /// `for {2}{W}`: rather than its mana cost.
+    pub mana: Option<ManaCost>,
+    /// `with discard 1 card`: in addition to its other costs.
+    pub extra: Option<Cost>,
+}
+
 /// A cost (CR 118): of an activated ability or the additional cost of a
 /// spell.
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
@@ -701,6 +733,10 @@ pub struct Cost {
     /// `exile this from hand`: "Exile this card from your hand" (an
     /// ability activated from the hand).
     pub exile_hand: bool,
+    /// `exile 2 cards from graveyard and this`: "Exile two cards from
+    /// your graveyard and this creature" (with `exile_this`), one cost
+    /// part.
+    pub exile_this_joined: bool,
     /// Crew's cost (from its expansion).
     pub crew: u32,
     /// `pay 2 energy`: "Pay {E}{E}".
@@ -1020,6 +1056,11 @@ pub struct Filter {
     /// With `that_player` a target (`target player controls`, `target
     /// opponent controls`): the target is an opponent.
     pub that_opponent: bool,
+    /// With `that_player` a target: `from their graveyard`, the player
+    /// targeted before ("their graveyard"), rather than `from target
+    /// player's graveyard`, which declares it ("target player's
+    /// graveyard").
+    pub their: bool,
     /// `other than enchanted`: "other than enchanted creature"
     /// (`ObjFilter::not_attached`).
     pub not_attached: bool,
@@ -3861,8 +3902,11 @@ pub enum Effect {
     ExileAllGraveyards,
     /// `exile graveyard of target player`: "Exile target player's
     /// graveyard."
+    /// `exile all creature card from graveyard of target player`: "Exile
+    /// all creature cards from target player's graveyard."
     ExileGraveyard {
         who: Recipient,
+        filter: Option<Filter>,
     },
     Sacrifice {
         what: Recipient,
@@ -4912,6 +4956,9 @@ pub enum Effect {
     /// turn."; `may play that card next turn first`: "Until the end of
     /// your next turn, you may play that card."; `free`: "... without
     /// paying its mana cost"; `it`: "it" for "that card".
+    /// `may cast this while exiled`: "You may cast this card for as long
+    /// as it remains exiled." (after `exile this from hand` paid).
+    MayCastThisFromExile,
     MayPlayCard {
         until: mtg_core::card::PlayUntil,
         cast: bool,

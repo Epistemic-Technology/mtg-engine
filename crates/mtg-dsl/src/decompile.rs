@@ -59,6 +59,7 @@ fn keywords(k: KeywordSet) -> Vec<mtg_core::card::Keyword> {
         .collect()
 }
 
+#[allow(clippy::too_many_lines)] // one field per line of the card
 pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
     let d = Decompiler { pool };
     Card {
@@ -121,7 +122,27 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             .cloned(),
         kicker_cost: def.kicker_cost.as_deref().map(|c| d.cost(c)),
         kicker_targets: def.kicker_targets,
-        flashback: def.flashback.as_ref().map(|c| d.cost(c)),
+        flashback: def
+            .flashback
+            .as_ref()
+            .filter(|_| def.graveyard_cast.is_none())
+            .map(|c| d.cost(c)),
+        graveyard_alias: def.graveyard_alias.clone(),
+        graveyard_cast: def.graveyard_cast.as_deref().map(|g| {
+            let fb = def.flashback.as_deref().cloned().unwrap_or_default();
+            let mut rest = fb.clone();
+            rest.mana = mtg_core::mana::ManaCost::default();
+            crate::ast::GraveyardCast {
+                cond: g
+                    .condition
+                    .filter(|_| !g.max_speed)
+                    .map(|c| d.static_cond(pool.condition(c))),
+                as_long_as: g.as_long_as,
+                max_speed: g.max_speed,
+                mana: g.alt_mana.then(|| fb.mana.clone()),
+                extra: (!g.alt_mana && rest != CoreCost::default()).then(|| d.cost(&rest)),
+            }
+        }),
         groups: pool.filters().iter().map(|f| d.filter(f)).collect(),
         // Unleash's second static ability comes back with its keyword line.
         abilities: def
@@ -308,6 +329,7 @@ impl Decompiler<'_> {
             }),
             that_player: f.that_player,
             that_opponent: false,
+            their: false,
             not_attached: f.not_attached,
             enchanted_player: f.enchanted_player,
             other_than_this: false,
@@ -440,6 +462,7 @@ impl Decompiler<'_> {
             exile_self: c.exile_self,
             exile_hand: c.exile_hand,
             exile_this: c.exile_this,
+            exile_this_joined: false,
             crew: c.crew,
             remove_counters: c.remove_counters,
             put_counters: c.put_counters,
@@ -1008,7 +1031,10 @@ impl Decompiler<'_> {
             }
             CoreEffect::ExileLinked { what, until: true } => Effect::ExileUntil { what: r(*what) },
             CoreEffect::ExileAllGraveyards => Effect::ExileAllGraveyards,
-            CoreEffect::ExileGraveyard { who } => Effect::ExileGraveyard { who: r(*who) },
+            CoreEffect::ExileGraveyard { who, filter } => Effect::ExileGraveyard {
+                who: r(*who),
+                filter: filter.as_ref().map(|f| self.filter(f)),
+            },
             CoreEffect::Sacrifice { what } => Effect::Sacrifice { what: r(*what) },
             CoreEffect::Tap { to } => Effect::Tap { to: vec![r(*to)] },
             CoreEffect::TapOrUntap { to } => Effect::TapOrUntap { to: r(*to) },
@@ -1756,6 +1782,7 @@ impl Decompiler<'_> {
                 },
                 filter: self.filter(filter),
             },
+            CoreEffect::MayCastThisFromExile => Effect::MayCastThisFromExile,
             CoreEffect::MayPlayCard { until, cast, free } => Effect::MayPlayCard {
                 until: *until,
                 cast: *cast,
