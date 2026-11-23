@@ -28,23 +28,27 @@ FORMATS = ('pauper', 'standard', 'modern')
 # report detail). First match wins, in this order.
 AGENTS = [
     ('template', [r'sentence: parse', r'mismatch'], None),
-    ('transform', [r'sentence: .*transformed', r'sentence: .*transforms?\b'],
-     r"transform|becomes? a .*(creature|copy)|become a copy|still a land|Zendikon|animate|that's both|and-colors|both (white|blue|black|red|green)"),
-    ('mana', [r'sentence: .*[Ss]pend this mana', r'sentence: Add '],
-     r'spend this mana|mana .*only|restricted mana|mana spent|amount of mana|mana abilit|any combination|add X mana|mana of any|color of mana|treasure'),
+    ('wording', [], r"^RENDER|^MEANING|\bprints\b|\brenders\b|near-miss"),
+    ('transform-mana', [r'sentence: .*transformed', r'sentence: .*transforms?\b',
+                        r'sentence: .*[Ss]pend this mana', r'sentence: Add '],
+     r"transform|becomes? a .*(creature|copy)|become a copy|still a land|animate"
+     r"|spend this mana|mana .*only|restricted mana|mana spent|amount of mana|mana abilit|any combination|add X mana|mana of any|color of mana|treasure"),
     ('counters-costs', [],
      r'counter|cost|kicker|\bpay|tax|sacrific|discard'),
-    ('zones', [r'sentence: .*(top .* cards? of|[Ll]ook at|[Rr]eveal|from (a|your) graveyard|[Ss]earch)'],
-     r'graveyard|exile|flashback|cast .* from|library|reveal|look at|search|scry|top card|mill|cop(y|ies)|hand'),
+    ('library', [r'sentence: .*(top .* cards? of|[Ll]ook at|[Rr]eveal|[Ss]earch|[Ss]huffle)'],
+     r'library|reveal|look at|search|scry|top card|mill|\bhand\b|shuffle'),
+    ('graveyard-exile', [r'sentence: .*(graveyard|[Ee]xile)'],
+     r'graveyard|exile|flashback|cast .* from|cop(y|ies)'),
+    ('triggers', [r'sentence: (When|At the beginning|If .* would)'],
+     r'trigger|whenever|\bwhen\b|condition|replacement|instead|prevent|delayed|at the beginning'),
     ('rules', [], r'.'),
 ]
 # Oracle text that names a feature nobody has built or is building;
 # such a card is not worth a card agent's attempt.
 SCREEN = (r'\bmutate\b|\bcompanion\b|\bhideaway\b|\bcloak|\bpiles?\b|choose a number|odd or even'
           r'|\bvote|face[- ]down|\bmeld|\bsticker|\battraction|roll (a|two|x) d\d|flip a coin'
-          r'|transformed|transforms into|[Ss]pend this mana only|mana spent to cast|becomes a copy'
-          r'|\bcommander\b|\bante\b|\bdraft\b|\bventure\b|\bdungeon\b|initiative|\bmonarch\b')
-BATCH_FORMAT, BATCH_SIZE, BATCHES, SEED = 'standard', 35, 4, 8
+          r'|\bante\b|\bdraft\b|\bventure\b|\bdungeon\b|initiative|\bmonarch\b')
+BATCH_FORMAT, BATCH_SIZE, BATCHES, SEED = 'pauper', 32, 8, 9
 
 fmt = collections.defaultdict(set)
 reason = {}
