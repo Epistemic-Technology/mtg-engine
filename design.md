@@ -2940,3 +2940,29 @@ were joined by hand. The fuzz was clean at the first run. Coverage:
 gate 18,288 match; 12,074 scenarios pass in release and debug builds;
 3,598 games/s against 3,791 for the pre-first-wave binary in the same
 run, 5% lower (3% after the eighth wave): due a profiling pass.
+
+Status 2026-11-23, last of the usage period: the tenth wave, a small
+one. A keyword census of the 1,065 uncovered Standard cards' latest
+reports named conditions and counts, renderer near-misses, and
+permissions to cast or play as the largest groups; three Opus agents
+took those (counts and conditions 21 cards; permissions 9, Omniscience
+among them; wording 7, with five more wrong-meaning forms bound
+correctly, Through the Breach's among them), and three narrower ones
+followed, one feature each: a granted ability that names the Equipment
+granting it (9; Blazing Torch), ward with any cost (7; Emrakul, the
+Exigent Doom), and choices about other players (13; Vines of Vastwood,
+the Flagbearer rule, "controlled by the same player"). About 250k
+tokens an agent, 2.0M in all with the profiling agent. That agent found
+that waves seven to nine had added no instructions (callgrind counts
+flat since before the first wave): the 5% loss was cache misses and
+branch mispredicts from hot functions carrying more rarely used code.
+It cut allocations and instructions on the paths every game runs (17%
+fewer on the mono-red mirror), and the mirror is now 4,216 games/s
+against 3,812 for the pre-first-wave binary in the same run. The fuzz
+found three older faults, fixed with scenarios: a spree spell cast free
+was offered with no mode payable; an Aura that enchants only a tapped
+creature stayed on after it untapped; a Saga whose last chapter was
+removed for want of a target was sacrificed without the state-based
+check being marked. Coverage: 95.5% of Pauper, 80.2% of Standard
+(4,142 of 5,164), 68.8% of Modern; gate 18,354 match; 12,223 scenarios
+pass in release and debug builds; fuzz clean in both.

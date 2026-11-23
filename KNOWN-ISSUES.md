@@ -153,6 +153,18 @@ wrong thing in some case.
   judges earlier spells by their printed characteristics; "until end of
   combat" made outside combat lasts to the end of the turn's next
   combat.
+- **Two copies of a granted triggered ability probably trigger once**
+  (two Snake Umbras on one creature): `AddAbility` in `layers.rs` drops
+  an ability id the creature already has. Read from the code, not
+  tested. Abilities that name their granter (`granter`, Blazing Torch)
+  are kept apart and are not affected.
+- **Engine picks and approximations, the tenth wave's follow-ups:**
+  collect evidence and blight paid as a ward cost are chosen by the
+  engine; the Flagbearer rule forces only the last eligible target, a
+  group of "any number of" targets counts as one, and a forced "up to
+  one" target can't be declined; "can't be the target of spells" counts
+  anything on the stack that isn't an ability as a spell (no corpus card
+  uses it yet).
 - **Approximations, tenth wave:** a static free cast (Omniscience,
   Dracogenesis, Weftwalking) is offered from the hand only, and not for
   split, Adventure or modal double-faced halves; a spell cast free from
