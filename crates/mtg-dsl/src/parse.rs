@@ -8711,7 +8711,11 @@ impl P {
             }
             // "You may shuffle." (CR 701.24): your library.
             // "You may have that player shuffle." (Portent).
-            "have" if self.at_words(&["that", "player", "shuffle"]) => {
+            "have"
+                if self.at_words(&["that", "player", "shuffle"])
+                    || (self.at_words(&["that", "target"])
+                        && self.word_at(3).as_deref() == Some("shuffle")) =>
+            {
                 let who = self.recipient()?;
                 self.expect_word("shuffle")?;
                 Ok(Effect::Shuffle {
