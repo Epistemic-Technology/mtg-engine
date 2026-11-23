@@ -1272,19 +1272,6 @@ impl GameState {
                     .max()
                     .unwrap_or(0);
             }
-            CountExpr::SpellsCastThisTurn { other } => {
-                let n = self
-                    .cast_this_turn
-                    .iter()
-                    .filter(|(p, _)| *p == you)
-                    .count();
-                let own = *other
-                    && self
-                        .objects
-                        .get(ctx.source)
-                        .is_some_and(|o| o.zone == Zone::Stack && o.cast.cast_from().is_some());
-                return u32::try_from(n.saturating_sub(usize::from(own))).unwrap_or(u32::MAX);
-            }
             CountExpr::OtherInstantSorceryCast { before } => {
                 let pool = &self.pool;
                 let instant_or_sorcery = |d: crate::card::CardRef| {
@@ -1355,12 +1342,6 @@ impl GameState {
                     self.players_in_game().filter(|p| *p != you).collect();
                 self.graveyard_count(&players, f.as_deref(), you)
             }
-            // Judged on the creatures as they last existed (CR 700.4).
-            CountExpr::DiedThisTurn(f) => self
-                .died_this_turn
-                .iter()
-                .filter(|(id, controller, c)| f.matches(*id, *controller, c, None, Some(you)))
-                .count(),
             CountExpr::GreatestPowerInGraveyard(f) => {
                 return u32::try_from(self.greatest_power_in_graveyard(you, f).max(0)).unwrap_or(0);
             }
@@ -3378,7 +3359,8 @@ impl GameState {
                             && !self.activated_once.contains(&(*src, *a))
                     }
                     FreeCastLimit::FirstEachPlayer => {
-                        self.active_player == p && self.spells_this_turn[p.index().min(3)] == 0
+                        self.active_player == p
+                            && self.tallied(crate::card::TurnEvent::Cast, p) == 0
                     }
                 };
                 if !ok_player {
@@ -3519,19 +3501,19 @@ impl GameState {
             // the spell being cast isn't cast until its costs are paid (CR
             // 601.2i), so it is never among the spells counted, even once
             // it is on the stack paying them.
-            let met = if let crate::card::StaticCondition::CastThisTurn {
-                filter,
-                at_least,
-                other: true,
-            } = cond
+            let met = if let crate::card::StaticCondition::Happened { count, cmp, n } = cond
+                && count.kind == crate::card::TurnEvent::Cast
+                && count.other
+                && let Some(filter) = &count.filter
             {
-                self.cast_this_turn
+                let cast = self
+                    .cast_this_turn
                     .iter()
                     .filter(|(q, def)| {
                         *q == p && filter.matches_characteristics(&self.printed(*def))
                     })
-                    .count()
-                    >= *at_least as usize
+                    .count();
+                cmp.holds(u32::try_from(cast).unwrap_or(u32::MAX), *n)
             } else {
                 self.condition_now(cond, p, id)
             };
@@ -8651,8 +8633,6 @@ impl GameState {
                 self.objects[spell].cast.set_conspired(false);
             }
         }
-        let n = &mut self.spells_this_turn[caster.index().min(3)];
-        *n = n.saturating_add(1);
         // "The next spell you cast this turn costs {1} less": used up by
         // this spell, its total cost paid (CR 601.2f-h).
         self.next_spell_less[caster.index().min(3)] = 0;
@@ -8681,8 +8661,9 @@ impl GameState {
             self.uncounterable_spells.push(spell);
         }
         self.cast_this_turn.push((caster, def_ref));
+        self.log_event(crate::card::TurnEvent::Cast, caster, 1);
         if self.objects[spell].cast.cast_from() == Some(Zone::Hand) {
-            self.turn_log.cast_from_hand |= 1 << caster.index().min(7);
+            self.log_event(crate::card::TurnEvent::CastFromHand, caster, 1);
         }
         // Void: "a spell was warped this turn" (CR 702.185).
         if self.objects[spell].alt == crate::state::AltCast::Warp {

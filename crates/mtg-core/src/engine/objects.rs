@@ -592,6 +592,7 @@ impl GameState {
         }
         if to == Zone::Battlefield {
             self.entered_this_turn.push((controller, new));
+            self.log_event(TurnEvent::Entered, controller, 1);
             if characteristics_is_land {
                 // Landfall: "you had a land enter the battlefield under
                 // your control this turn".

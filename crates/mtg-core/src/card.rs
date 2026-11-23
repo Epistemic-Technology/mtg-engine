@@ -2088,10 +2088,6 @@ pub enum CountExpr {
     Party(Box<[ObjFilter; 4]>),
     /// The greatest mana value among permanents you control.
     GreatestManaValue,
-    /// Spells you've cast this turn; with `other`, not counting the
-    /// source's own cast ("the number of other spells you've cast this
-    /// turn").
-    SpellsCastThisTurn { other: bool },
     /// The other instant and sorcery spells you've cast this turn (not
     /// the source or triggering spell itself); with `before`, only those
     /// cast before it ("copy it for each other instant and sorcery spell
@@ -2130,10 +2126,6 @@ pub enum CountExpr {
     /// The votes the resolution's vote (`Effect::Vote`) gave its `n`th
     /// choice ("for each sprout vote").
     Votes(u8),
-    /// Creatures put into a graveyard from the battlefield this turn that
-    /// matched the filter as they last existed ("for each Zubera that
-    /// died this turn"; CR 700.4).
-    DiedThisTurn(ObjFilter),
     /// The greatest power among cards in your graveyard matching the
     /// filter ("the greatest power among creature cards in your
     /// graveyard"); 0 with none.
@@ -2325,7 +2317,6 @@ impl CountExpr {
             | CountExpr::Devoured(_)
             | CountExpr::Party(_)
             | CountExpr::SourceToughness
-            | CountExpr::SpellsCastThisTurn { .. }
             | CountExpr::OtherInstantSorceryCast { .. }
             | CountExpr::OpponentsAttacked
             | CountExpr::SpentColors
@@ -2335,7 +2326,6 @@ impl CountExpr {
             | CountExpr::SpentTotal
             | CountExpr::ThatSpellSpent
             | CountExpr::ThatSpellSpentColors
-            | CountExpr::DiedThisTurn(_)
             | CountExpr::TriggerStat(_)
             | CountExpr::AttachedStat(_)
             | CountExpr::MovedStat { .. }
@@ -2639,11 +2629,17 @@ pub enum TurnEvent {
     /// controlled (freerunning, CR 702.173a); counted only with a
     /// freerunning card in the pool.
     AssassinDamage,
+    /// Permanents that entered the battlefield under the player's control.
+    Entered,
+    /// Spells the player cast (CR 601.2i), and those cast from their hand
+    /// (CR 601.2a).
+    Cast,
+    CastFromHand,
 }
 
 impl TurnEvent {
     /// The number of kinds: the turn log's rows.
-    pub const COUNT: usize = 30;
+    pub const COUNT: usize = 33;
 
     /// Whether a static ability reading this kind must be refreshed as it
     /// is counted (`CardDef::history_static`), the kinds counted without a
@@ -2681,7 +2677,10 @@ impl TurnEvent {
             | TurnEvent::Descended
             | TurnEvent::PlusCountersOn
             | TurnEvent::Equipped
-            | TurnEvent::AssassinDamage => false,
+            | TurnEvent::AssassinDamage
+            | TurnEvent::Entered
+            | TurnEvent::Cast
+            | TurnEvent::CastFromHand => false,
         }
     }
 
@@ -2689,7 +2688,10 @@ impl TurnEvent {
     /// card leaves a hand (`CardDef::hand_static`).
     #[must_use]
     pub const fn with_hand(self) -> bool {
-        matches!(self, TurnEvent::Drew | TurnEvent::Discarded)
+        matches!(
+            self,
+            TurnEvent::Drew | TurnEvent::Discarded | TurnEvent::Cast | TurnEvent::CastFromHand
+        )
     }
 }
 
@@ -2718,8 +2720,15 @@ pub struct TurnCount {
     /// with types a count is 1 or 0: whether one or more happened.
     pub types: TypeSet,
     /// "Another": not counting the source's own event ("another creature
-    /// entered the battlefield under your control this turn").
+    /// entered the battlefield under your control this turn", "another
+    /// blue spell").
     pub other: bool,
+    /// Only events about objects matching the filter ("you attacked with
+    /// three or more Merfolk this turn", "for each Zubera that died this
+    /// turn"), read from the turn's list of those objects, for the kinds
+    /// that keep one (`GameState::listed`): attackers, entered permanents,
+    /// dead creatures as they last existed, spells as they were cast.
+    pub filter: Option<Box<ObjFilter>>,
 }
 
 impl TurnCount {
@@ -2730,6 +2739,7 @@ impl TurnCount {
             who,
             types: TypeSet::EMPTY,
             other: false,
+            filter: None,
         }
     }
 }
@@ -2743,19 +2753,6 @@ pub enum StaticCondition {
     /// "there are two or more unlocked doors among Rooms you control"
     /// (CR 709.5j).
     UnlockedDoors(u32),
-    /// "you attacked with a Spacecraft this turn": a creature matching
-    /// the filter (judged now, or as it last existed) attacked under your
-    /// control this turn.
-    AttackedWith(ObjFilter),
-    /// "another Knight entered the battlefield under your control this
-    /// turn": a permanent matching the filter (judged now, or as it last
-    /// existed; `Relation::Other` excludes the source) entered under your
-    /// control this turn. `had` prints "you had another creature enter the
-    /// battlefield under your control this turn".
-    EnteredWith {
-        filter: ObjFilter,
-        had: bool,
-    },
     /// "there are four or more card types among cards in your graveyard"
     /// (delirium).
     CardTypesInGraveyard(u32),
@@ -2968,24 +2965,10 @@ pub enum StaticCondition {
     /// "equipped creature is legendary": the permanent the source is
     /// attached to matches.
     AttachedIs(ObjFilter),
-    /// "you've cast an instant or sorcery spell this turn", "you've cast
-    /// two or more spells this turn" (`at_least`), "you've cast another
-    /// blue spell this turn" (`other`: not counting the source's own cast,
-    /// if it was cast), judged on the spells' characteristics as they were
-    /// cast.
-    CastThisTurn {
-        filter: ObjFilter,
-        at_least: u32,
-        other: bool,
-    },
     /// "if you cast it from your hand", "if this spell was cast from a
     /// graveyard" (CR 601.2a): where the source was cast from; a
     /// permanent remembers it from its spell.
     CastFrom(crate::state::Zone),
-    /// "the second spell you cast each turn" (Highspire Bell-Ringer): the
-    /// spell whose cost is being determined would be your Nth this turn,
-    /// that is, you've cast exactly N - 1 spells before it.
-    SpellNumber(u32),
     /// "it's night" (CR 731).
     Night,
     /// "you have more cards in hand than each opponent".
@@ -3024,11 +3007,6 @@ pub enum StaticCondition {
     /// "• Khans — ...": the source's controller chose this one of its
     /// named options as it entered (`ChoiceKind::Named`; the Sieges).
     Chose(u8),
-    /// "you haven't cast a spell this turn"; with `from_hand`, "you
-    /// haven't cast a spell from your hand this turn" (CR 601.2a).
-    NoSpellsCastThisTurn {
-        from_hand: bool,
-    },
     /// "If {B} was spent to cast this spell", "if at least three red mana
     /// was spent to cast it" (adamant), "if mana from a Treasure was spent
     /// to cast it": at least `at_least` of the mana paid to cast the
@@ -3104,10 +3082,6 @@ pub enum StaticCondition {
     /// "if you cast it" (CR 601.2a): the source was cast, from any zone;
     /// a permanent remembers it from its spell.
     WasCast,
-    /// "you attacked with three or more Merfolk this turn": at least `n`
-    /// creatures matching the filter (judged now, or as they last existed)
-    /// attacked under your control this turn.
-    AttackedWithAtLeast(ObjFilter, u32),
     /// "creatures you control have total toughness 10 or greater".
     TotalToughness(u32),
     /// "you gained life this turn", "an opponent lost life this turn",
@@ -10910,8 +10884,6 @@ impl CardPool {
             )) || matches!(sa.condition, Some(
                 StaticCondition::CardsInHand { .. }
                     | StaticCondition::MoreCardsInHand
-                    | StaticCondition::CastThisTurn { .. }
-                    | StaticCondition::NoSpellsCastThisTurn { .. }
             )) || matches!(&sa.condition, Some(StaticCondition::Happened { count, .. })
                 if count.kind.with_hand()))
         });
@@ -10944,9 +10916,8 @@ impl CardPool {
             },
         );
         def.history_static = def.abilities.iter().any(|a| {
-            matches!(a, AbilityDef::Static(sa) if matches!(sa.condition, Some(
-                StaticCondition::AttackedWith(_) | StaticCondition::AttackedWithAtLeast(..)
-            )) || sa.condition.as_ref().is_some_and(StaticCondition::refreshes_with_turn_log)
+            matches!(a, AbilityDef::Static(sa)
+                if sa.condition.as_ref().is_some_and(StaticCondition::refreshes_with_turn_log)
                 || sa.parts.iter().any(|m| matches!(
                 m,
                 Modification::ModifyPtPer { count, .. } | Modification::CdaPt { count, .. }

@@ -108,6 +108,10 @@ fn happened(count: &TurnCount, cmp: mtg_core::card::Cmp, n: u32) -> StaticCond {
         (TurnEvent::Attacked, ..) => StaticCond::AttackedThisTurn,
         (TurnEvent::Equipped, ..) => unreachable!("only the first equip ability"),
         (TurnEvent::AssassinDamage, ..) => unreachable!("only freerunning's alternative cost"),
+        (TurnEvent::Entered, ..) => unreachable!("only with a filter"),
+        (TurnEvent::Cast, _, Cmp::Exactly, n) => StaticCond::SpellNumber(n + 1),
+        (TurnEvent::Cast, ..) => StaticCond::NoSpellsCastThisTurn { from_hand: false },
+        (TurnEvent::CastFromHand, ..) => StaticCond::NoSpellsCastThisTurn { from_hand: true },
     }
 }
 
@@ -676,11 +680,6 @@ impl Decompiler<'_> {
                 }
             }
             StaticCondition::UnlockedDoors(n) => StaticCond::UnlockedDoors(*n),
-            StaticCondition::AttackedWith(f) => StaticCond::AttackedWith(self.filter(f)),
-            StaticCondition::EnteredWith { filter, had } => StaticCond::EnteredWith {
-                filter: self.filter(filter),
-                had: *had,
-            },
             StaticCondition::SourceAttackedBattle => StaticCond::AttackedBattleThisTurn,
             StaticCondition::AttackedLastTurn => StaticCond::AttackedLastTurn,
             StaticCondition::ProwlDamage(_) => unreachable!("only prowl's alternative cost"),
@@ -711,9 +710,6 @@ impl Decompiler<'_> {
             StaticCondition::NotYourMainPhase => StaticCond::NotYourMainPhase,
             StaticCondition::NotCastFrom(_) => StaticCond::NotCastFromHand,
             StaticCondition::WasCast => StaticCond::WasCast,
-            StaticCondition::AttackedWithAtLeast(f, n) => {
-                StaticCond::AttackedWithAtLeast(self.filter(f), *n)
-            }
             StaticCondition::TotalToughness(n) => StaticCond::TotalToughness(*n),
             StaticCondition::SneakPaid(p) => StaticCond::SneakPaid(*p),
             StaticCondition::ProwlPaid => StaticCond::ProwlPaid,
@@ -771,17 +767,7 @@ impl Decompiler<'_> {
             StaticCondition::SourceBlocked => StaticCond::Blocked,
             StaticCondition::SourceBeingBlocked => StaticCond::BeingBlocked,
             StaticCondition::AttachedIs(f) => StaticCond::AttachedIs(unowned(f)),
-            StaticCondition::CastThisTurn {
-                filter,
-                at_least,
-                other,
-            } => StaticCond::CastThisTurn {
-                filter: unowned(filter),
-                at_least: *at_least,
-                other: *other,
-            },
             StaticCondition::CastFrom(z) => StaticCond::CastFrom(*z),
-            StaticCondition::SpellNumber(n) => StaticCond::SpellNumber(*n),
             StaticCondition::Night => StaticCond::Night,
             StaticCondition::YourMainPhase => StaticCond::YourMainPhase,
             StaticCondition::YourCombatPhase => StaticCond::YourCombatPhase,
@@ -790,7 +776,22 @@ impl Decompiler<'_> {
                 n: *n,
                 again: false,
             },
-            StaticCondition::Happened { count, cmp, n } => happened(count, *cmp, *n),
+            StaticCondition::Happened { count, cmp, n } => match count.filter.as_deref() {
+                Some(f) => match count.kind {
+                    TurnEvent::Attacked if *n == 1 => StaticCond::AttackedWith(self.filter(f)),
+                    TurnEvent::Attacked => StaticCond::AttackedWithAtLeast(self.filter(f), *n),
+                    TurnEvent::Entered => StaticCond::EnteredWith {
+                        filter: self.filter(f),
+                        had: false,
+                    },
+                    _ => StaticCond::CastThisTurn {
+                        filter: unowned(f),
+                        at_least: *n,
+                        other: count.other,
+                    },
+                },
+                None => happened(count, *cmp, *n),
+            },
             StaticCondition::MoreCardsInHand => StaticCond::MoreCardsInHand,
             StaticCondition::OpponentPoison(n) => StaticCond::OpponentPoison(*n),
             StaticCondition::OwnCardInExile => StaticCond::OwnCardInExile,
@@ -802,11 +803,6 @@ impl Decompiler<'_> {
             StaticCondition::EnduringStory => StaticCond::EnduringStory,
             StaticCondition::NoEnduringStory => StaticCond::NoEnduringStory,
             StaticCondition::MaxSpeed => StaticCond::MaxSpeed,
-            StaticCondition::NoSpellsCastThisTurn { from_hand } => {
-                StaticCond::NoSpellsCastThisTurn {
-                    from_hand: *from_hand,
-                }
-            }
             StaticCondition::TotalPower(n) => StaticCond::TotalPower(*n),
             StaticCondition::DifferentPowers(n) => StaticCond::DifferentPowers(*n),
             StaticCondition::During(t) => StaticCond::During(*t),

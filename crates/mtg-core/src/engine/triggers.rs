@@ -1756,7 +1756,8 @@ impl GameState {
                 (whose_ok(*whose, *player) && from_exile).then_some((Some(*spell), Some(*player)))
             }
             (TriggerSpec::CastsNth { whose, nth }, Event::Cast { player, spell, .. }) => {
-                let n = self.spells_this_turn[player.index().min(3)];
+                let n = u8::try_from(self.tallied(crate::card::TurnEvent::Cast, *player))
+                    .unwrap_or(u8::MAX);
                 (whose_ok(*whose, *player) && nth.holds(n, self.active_player == *player))
                     .then_some((Some(*spell), Some(*player)))
             }

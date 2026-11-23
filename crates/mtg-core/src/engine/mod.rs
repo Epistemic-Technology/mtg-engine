@@ -533,7 +533,6 @@ impl GameState {
             goads: Vec::new(),
             turn_number: 0,
             resolutions_this_turn: 0,
-            spells_this_turn: [0; 4],
             next_spell_less: [0; 4],
             next_spell_free: Vec::new(),
             next_uncounterable: 0,
@@ -3673,7 +3672,8 @@ impl GameState {
             for p in &mut self.players {
                 p.skip_combat_this_turn = 0;
             }
-            self.spells_last_turn = std::mem::take(&mut self.spells_this_turn);
+            let cast = self.turn_log.tally[crate::card::TurnEvent::Cast as usize];
+            self.spells_last_turn = cast.map(|n| u8::try_from(n).unwrap_or(u8::MAX));
             self.next_spell_less = [0; 4];
             self.next_spell_free.clear();
             self.next_uncounterable = 0;
