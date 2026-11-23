@@ -4299,12 +4299,26 @@ impl Templates {
                     // Sacrificed or destroyed where it is; a card returning
                     // from exile is a new object (CR 400.7).
                     "this".to_string()
+                } else if obj == "it"
+                    && cap(&c, 1) == "Return"
+                    && out.last().is_some_and(|l| l == "exile this")
+                {
+                    // "Exile this creature. Return it to the battlefield
+                    // under its owner's control at the beginning of the next
+                    // end step." (Aetherling): the card exiled.
+                    "this".to_string()
                 } else if *targets > 0
                     && matches!(obj, "it" | "that card" | "that creature")
-                    && !out.iter().any(|l| l.contains("to battlefield"))
+                    && (!out.iter().any(|l| l.contains("to battlefield"))
+                        || (cap(&c, 1) != "Return"
+                            && out.iter().any(|l| {
+                                l.starts_with("return target ") || l.starts_with("put target ")
+                            })))
                 {
-                    // Not a card just returned to the battlefield: the
-                    // target was the card in the graveyard.
+                    // The target: the card in the graveyard, or the
+                    // permanent a single target card became ("Return target
+                    // creature card ... to the battlefield. It gains haste.
+                    // Sacrifice it at the beginning of the next end step.").
                     format!("target {}", *targets)
                 } else {
                     return Err(Skip::Sentence(sentence));

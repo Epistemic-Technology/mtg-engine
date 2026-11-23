@@ -1,0 +1,10 @@
+card "Aetherling" {
+  oracle_id b980bf11-9e12-4ee9-83c1-45706d9ae344
+  cost {4}{U}{U}
+  type Creature — Shapeshifter
+  pt 4/5
+  activated {U}: exile this; delayed this: return it to battlefield at beginning of the next end step
+  activated {U}: this can't be blocked
+  activated {1}: this gets +1/-1
+  activated {1}: this gets -1/+1
+}

@@ -1,0 +1,6 @@
+card "Footsteps of the Goryo" {
+  oracle_id d0e8d9f0-86e9-46b7-ba6f-2976ff9148d6
+  cost {2}{B}
+  type Sorcery — Arcane
+  spell: return target creature card from your graveyard to battlefield; delayed target 1: sacrifice that creature at beginning of the next end step
+}

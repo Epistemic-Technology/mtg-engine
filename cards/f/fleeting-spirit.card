@@ -1,0 +1,8 @@
+card "Fleeting Spirit" {
+  oracle_id bc79eb3c-33e2-4820-a59c-92a6271fd725
+  cost {1}{W}
+  type Creature — Spirit
+  pt 3/1
+  activated {W}, exile 3 cards from graveyard: this gains first strike
+  activated discard 1 card: exile this; delayed this: return it to battlefield at beginning of the next end step
+}

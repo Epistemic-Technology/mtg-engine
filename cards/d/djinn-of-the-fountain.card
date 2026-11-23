@@ -1,0 +1,12 @@
+card "Djinn of the Fountain" {
+  oracle_id dcf28f91-1bf4-48be-a3d0-e061f443fd9e
+  cost {4}{U}{U}
+  type Creature — Djinn
+  pt 4/4
+  keywords flying
+  triggered whenever you cast an instant or sorcery spell: choose one {
+    mode: this gets +1/+1
+    mode: exile this; delayed this: return it to battlefield at beginning of the next end step
+    mode: scry 1
+  }
+}
