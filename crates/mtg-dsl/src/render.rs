@@ -614,7 +614,10 @@ fn spell_noun_plural(what: &str) -> String {
 /// this mana only to cast artifact spells or activate abilities of
 /// artifacts." (CR 106.6).
 fn spend_rule(card: &Card, r: &crate::ast::ManaRestriction) -> String {
-    use mtg_core::card::{SpendPlural, SpendWording};
+    use mtg_core::card::{SpendPlural, SpendWays, SpendWording};
+    if r.ways.has(SpendWays::ON_COSTS) {
+        return "Spend this mana only on costs that contain {X}.".to_string();
+    }
     let plural = r.plural != SpendPlural::One;
     let join = match r.plural {
         SpendPlural::And => "and",
@@ -622,11 +625,52 @@ fn spend_rule(card: &Card, r: &crate::ast::ManaRestriction) -> String {
         _ => "or",
     };
     let spells = r.spells.as_ref().map(|f| {
-        let s = if plural {
-            format!("cast {}", plural_spells(f, card, join))
-        } else {
-            format!("cast {}", a_spell(f, card))
+        let any = *f == Filter::default();
+        let mut s = match (plural, any) {
+            (true, true) => "spells".to_string(),
+            (false, true) => "a spell".to_string(),
+            (true, false) => plural_spells(f, card, join),
+            (false, false) => a_spell(f, card),
         };
+        if r.ways.has(SpendWays::FACE_DOWN) {
+            s = match s.split_once(' ') {
+                Some(("a" | "an", rest)) => format!("a face-down {rest}"),
+                _ => format!("face-down {s}"),
+            };
+        }
+        for (bit, words) in [
+            (SpendWays::FROM_EXILE, " from exile"),
+            (SpendWays::FROM_GRAVEYARD, " from your graveyard"),
+            (
+                SpendWays::NOT_FROM_HAND,
+                " from anywhere other than your hand",
+            ),
+            (SpendWays::FLASHBACK, " with flashback from a graveyard"),
+        ] {
+            if r.ways.has(bit) {
+                s.push_str(words);
+            }
+        }
+        if let Some(x) = &r.x_spells {
+            if *x == Filter::default() {
+                let _ = write!(
+                    s,
+                    " or {} with {{X}} in {} mana cost{}",
+                    if plural { "spells" } else { "a spell" },
+                    if plural { "their" } else { "its" },
+                    if plural { "s" } else { "" }
+                );
+            } else if plural {
+                let _ = write!(
+                    s,
+                    " or {} with {{X}} in their mana costs",
+                    plural_spells(x, card, join)
+                );
+            } else {
+                let _ = write!(s, " or {} with {{X}} in its mana cost", a_spell(x, card));
+            }
+        }
+        let s = format!("cast {s}");
         if r.foretell {
             format!("foretell a card from your hand or {s}")
         } else if r.disturb {
@@ -654,7 +698,102 @@ fn spend_rule(card: &Card, r: &crate::ast::ManaRestriction) -> String {
         (None, false, _) => "an ability".to_string(),
         (None, true, _) => "abilities".to_string(),
     };
-    let rule = match (r.wording, spells) {
+    let other = r.ways.0
+        & (SpendWays::ABILITY_KINDS | SpendWays::UNLOCK | SpendWays::FACE_UP | SpendWays::COST_C);
+    let rule = if other != 0 {
+        // The other ways, after the spells and abilities: "cast an
+        // enchantment spell, unlock a door, or turn a permanent face up".
+        let mut items: Vec<String> = spells.into_iter().collect();
+        if r.abilities {
+            items.push(format!("activate {ability}"));
+        }
+        items.extend(spend_way_phrases(r.ways, plural));
+        let list = match items.as_slice() {
+            [one] => one.clone(),
+            [a, b] => {
+                let joiner = if r.ways.has(SpendWays::OR_TO) {
+                    "or to"
+                } else if r.wording == SpendWording::CastAnd {
+                    "and"
+                } else {
+                    "or"
+                };
+                format!("{a} {joiner} {b}")
+            }
+            [rest @ .., last] => format!("{}, or {last}", rest.join(", ")),
+            [] => String::new(),
+        };
+        let tail = if r.ways.has(SpendWays::UNCOUNTERABLE) {
+            ", and that spell can't be countered"
+        } else {
+            ""
+        };
+        format!("Spend this mana only to {list}{tail}.")
+    } else {
+        let rule = spend_rule_plain(r, spells, &ability);
+        if r.ways.has(SpendWays::UNCOUNTERABLE) {
+            format!(
+                "{}, and that spell can't be countered.",
+                rule.trim_end_matches('.')
+            )
+        } else {
+            rule
+        }
+    };
+    // "a creature spell of the chosen type", "a creature source of the
+    // chosen type": the noun before the chosen type.
+    rule.replace(" of the chosen type spell", " spell of the chosen type")
+        .replace(" of the chosen type source", " source of the chosen type")
+}
+
+/// The phrases of a restriction's other ways (`SpendWays`), in printed
+/// order.
+fn spend_way_phrases(w: mtg_core::card::SpendWays, plural: bool) -> Vec<String> {
+    use mtg_core::card::SpendWays;
+    let mut out: Vec<String> = Vec::new();
+    let pick = |one: &str, many: &str| if plural { many } else { one }.to_string();
+    if w.has(SpendWays::POWER_UP) {
+        out.push(pick(
+            "activate a power-up ability",
+            "activate power-up abilities",
+        ));
+    }
+    if w.has(SpendWays::EQUIP) {
+        out.push(pick(
+            "activate an equip ability",
+            "activate equip abilities",
+        ));
+    }
+    if w.has(SpendWays::CLASS_LEVEL) {
+        out.push("gain a Class level".to_string());
+    }
+    if w.has(SpendWays::UNLOCK) {
+        out.push(pick("unlock a door", "unlock doors"));
+    }
+    if w.has(SpendWays::FACE_UP) {
+        if w.has(SpendWays::FACE_UP_MORPH) {
+            out.push("pay a mana cost to turn a manifested creature face up".to_string());
+            out.push("pay a morph cost".to_string());
+        } else if w.has(SpendWays::FACE_UP_CREATURES) {
+            out.push(pick("turn a creature face up", "turn creatures face up"));
+        } else {
+            out.push(pick("turn a permanent face up", "turn permanents face up"));
+        }
+    }
+    if w.has(SpendWays::COST_C) {
+        out.push("pay a cost that contains {C}".to_string());
+    }
+    out
+}
+
+/// `spend_rule` without the other ways.
+fn spend_rule_plain(
+    r: &crate::ast::ManaRestriction,
+    spells: Option<String>,
+    ability: &str,
+) -> String {
+    use mtg_core::card::SpendWording;
+    match (r.wording, spells) {
         (SpendWording::CantCast, Some(s)) => format!("This mana can't be spent to {s}."),
         (SpendWording::ActivateFirst, Some(s)) => {
             format!("Spend this mana only to activate {ability} or {s}.")
@@ -670,11 +809,7 @@ fn spend_rule(card: &Card, r: &crate::ast::ManaRestriction) -> String {
         }
         (_, Some(s)) => format!("Spend this mana only to {s}."),
         (_, None) => format!("Spend this mana only to activate {ability}."),
-    };
-    // "a creature spell of the chosen type", "a creature source of the
-    // chosen type": the noun before the chosen type.
-    rule.replace(" of the chosen type spell", " spell of the chosen type")
-        .replace(" of the chosen type source", " source of the chosen type")
+    }
 }
 
 /// "a" or "an".

@@ -1,0 +1,7 @@
+card "Interdimensional Web Watch" {
+  oracle_id 456dbec4-1b0e-48c4-abae-5c8205651872
+  cost {4}
+  type Artifact
+  triggered when this enters: impulse 2 next turn first
+  activated {T}: add 2 mana any combination only to cast spells from exile
+}

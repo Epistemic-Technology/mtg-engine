@@ -1,0 +1,7 @@
+card "Rosheen Meanderer" {
+  oracle_id 892d318e-34bd-4fca-a2a1-0c3534c68068
+  cost {3}{R/G}
+  type Legendary Creature — Giant Shaman
+  pt 4/4
+  activated {T}: add {C}{C}{C}{C} on costs with x
+}

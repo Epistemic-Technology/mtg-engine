@@ -1,0 +1,223 @@
+scenario "Quinjet Technician's {R}{R} pays for a power-up ability" {
+  battlefield A: "Quinjet Technician", "Volcanic Villain", 4 "Mountain"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Quinjet Technician" ability 2
+  turn 2 A: activate "Volcanic Villain"
+  run_to turn 2 postcombat_main
+  assert counters "Volcanic Villain" +1/+1 2
+}
+
+scenario "Quinjet Technician's {R}{R} can't cast a spell" {
+  battlefield A: "Quinjet Technician", 2 "Mountain"
+  hand A: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Quinjet Technician" ability 2
+  illegal turn 2 A: cast "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Quinjet Technician's {R}{R} can't pay for an equip ability" {
+  battlefield A: "Quinjet Technician", "Sylvok Lifestaff", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Quinjet Technician" ability 2
+  illegal turn 2 A: activate "Sylvok Lifestaff" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Creeping Peeper's mana casts an enchantment spell" {
+  battlefield A: "Creeping Peeper"
+  hand A: "Seal of Removal"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Seal of Removal"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Seal of Removal"
+}
+
+scenario "Creeping Peeper's mana can't cast a creature spell" {
+  battlefield A: "Creeping Peeper"
+  hand A: "Gudul Lurker"
+  start turn 2 A precombat_main
+  illegal turn 2 A: cast "Gudul Lurker"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Gudul Lurker"
+}
+
+scenario "Creeping Peeper's mana unlocks a door" {
+  battlefield A: "Creeping Peeper", "Slimy Aquarium"
+  library A: 5 "Island"
+  start turn 2 A precombat_main
+  turn 2 A: unlock "Underwater Tunnel"
+  run_to turn 2 postcombat_main
+  assert tapped "Creeping Peeper"
+}
+
+scenario "Creeping Peeper's mana turns a permanent face up" {
+  battlefield A: "Creeping Peeper", 3 "Island"
+  hand A: "Gudul Lurker"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Gudul Lurker" face_down
+  turn 2 A: unmorph "Gudul Lurker"
+  run_to turn 2 postcombat_main
+  assert counters "Gudul Lurker" +1/+1 1
+  assert tapped "Creeping Peeper"
+}
+
+scenario "Without Creeping Peeper, the door stays locked" {
+  battlefield A: "Grizzly Bears", "Slimy Aquarium"
+  start turn 2 A precombat_main
+  illegal turn 2 A: unlock "Underwater Tunnel"
+  run_to turn 2 postcombat_main
+  assert graveyard A count 0
+}
+
+scenario "Cultivator Drone's {C} casts a colorless spell" {
+  battlefield A: "Cultivator Drone", "Swamp"
+  hand A: "Spatial Contortion"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Spatial Contortion" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Cultivator Drone's {C} activates an ability of a colorless permanent" {
+  battlefield A: "Cultivator Drone", "Standing Stones"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Standing Stones"
+  turn 2 A: choose green
+  run_to turn 2 postcombat_main
+  assert life A 19
+  assert tapped "Cultivator Drone"
+}
+
+scenario "Cultivator Drone's {C} can't cast a colored spell without {C}" {
+  battlefield A: "Cultivator Drone"
+  hand A: "Ornithopter", "Gudul Lurker"
+  start turn 2 A precombat_main
+  illegal turn 2 A: cast "Gudul Lurker"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Gudul Lurker"
+}
+
+scenario "Overgrown Zealot's two mana turn a permanent face up" {
+  battlefield A: "Overgrown Zealot", 3 "Island"
+  hand A: "Gudul Lurker"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Gudul Lurker" face_down
+  turn 2 A: activate "Overgrown Zealot" ability 1
+  turn 2 A: choose blue
+  turn 2 A: unmorph "Gudul Lurker"
+  run_to turn 2 postcombat_main
+  assert counters "Gudul Lurker" +1/+1 1
+}
+
+scenario "Overgrown Zealot's two mana can't cast a spell" {
+  battlefield A: "Overgrown Zealot"
+  hand A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Overgrown Zealot" ability 1
+  turn 2 A: choose green
+  illegal turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Tin Street Gossip's mana casts a face-down spell" {
+  battlefield A: "Tin Street Gossip", "Mountain"
+  hand A: "Gudul Lurker"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Tin Street Gossip"
+  turn 2 A: cast "Gudul Lurker" face_down
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "face-down creature"
+}
+
+scenario "Tin Street Gossip's mana can't cast a face-up spell" {
+  battlefield A: "Tin Street Gossip"
+  hand A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Tin Street Gossip"
+  illegal turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Freya Crescent's mana casts an Equipment and pays for equip" {
+  battlefield A: "Freya Crescent", "Grizzly Bears", "Mountain"
+  hand A: "Sylvok Lifestaff"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Sylvok Lifestaff"
+  turn 2 A: activate "Sylvok Lifestaff" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert attached "Sylvok Lifestaff" to "Grizzly Bears"
+}
+
+scenario "Freya Crescent's mana can't cast a non-Equipment" {
+  battlefield A: "Freya Crescent"
+  hand A: "Ornithopter", "Shock"
+  start turn 2 A precombat_main
+  illegal turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 20
+}
+
+scenario "Troyan's mana casts a spell with {X}" {
+  battlefield A: "Troyan, Gutsy Explorer", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Street Spasm"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Troyan, Gutsy Explorer" ability 1
+  turn 2 A: cast "Street Spasm" x 2 targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Troyan's mana casts a spell with mana value 5" {
+  battlefield A: "Troyan, Gutsy Explorer", 4 "Forest"
+  hand A: "Craw Wurm"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Troyan, Gutsy Explorer" ability 1
+  turn 2 A: cast "Craw Wurm"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Craw Wurm"
+}
+
+scenario "Troyan's mana can't cast a small spell" {
+  battlefield A: "Troyan, Gutsy Explorer"
+  hand A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Troyan, Gutsy Explorer" ability 1
+  illegal turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Interdimensional Web Watch's mana casts a spell from exile, not from hand" {
+  battlefield A: 4 "Mountain"
+  hand A: "Interdimensional Web Watch", "Shock"
+  library A: "Lightning Bolt", "Island", 5 "Island"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Interdimensional Web Watch"
+  turn 2 A: wait
+  turn 2 A: activate "Interdimensional Web Watch"
+  turn 2 A: choose red
+  turn 2 A: choose red
+  illegal turn 2 A: cast "Shock" targeting player B
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert hand A contains "Shock"
+}
+
+scenario "Priest of Yawgmoth adds black equal to the sacrificed artifact's mana value" {
+  battlefield A: "Priest of Yawgmoth", "Standing Stones"
+  hand A: "Hypnotic Specter"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Priest of Yawgmoth" sacrificing "Standing Stones"
+  turn 2 A: cast "Hypnotic Specter"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Hypnotic Specter"
+  assert graveyard A contains "Standing Stones"
+}

@@ -55,7 +55,10 @@ impl GameState {
                             p,
                             &sources,
                             &ab.cost.mana.requirements(0),
-                            Spend::Ability(self.characteristics(*id).as_ref()),
+                            Spend::Ability(
+                                self.characteristics(*id).as_ref(),
+                                crate::card::SpendWays::of_ability(ab),
+                            ),
                         )
                         && self.targets_available(p, &ab.targets, Some(*id))
                     {
@@ -169,7 +172,7 @@ impl GameState {
                     p,
                     &sources,
                     &self.taxed(p, def, *id, ev.requirements(0)),
-                    Spend::Spell(&self.printed(self.objects[*id].def)),
+                    Spend::Spell(&self.printed(self.objects[*id].def), *id),
                 )
                 && self.targets_available(p, def.unkicked_cast_targets(), Some(*id))
             {
@@ -188,7 +191,7 @@ impl GameState {
                     p,
                     &sources,
                     &self.taxed(p, def, *id, dash.requirements(0)),
-                    Spend::Spell(&self.printed(self.objects[*id].def)),
+                    Spend::Spell(&self.printed(self.objects[*id].def), *id),
                 )
                 && self.targets_available(p, def.unkicked_cast_targets(), Some(*id))
             {
@@ -201,7 +204,7 @@ impl GameState {
                     p,
                     &sources,
                     &self.taxed(p, def, *id, warp.requirements(0)),
-                    Spend::Spell(&self.printed(self.objects[*id].def)),
+                    Spend::Spell(&self.printed(self.objects[*id].def), *id),
                 )
                 && self.targets_available(p, def.unkicked_cast_targets(), Some(*id))
             {
@@ -226,7 +229,7 @@ impl GameState {
                     p,
                     &sources,
                     &self.taxed(p, def, *id, imp.1.requirements(0)),
-                    Spend::Spell(&self.printed(self.objects[*id].def)),
+                    Spend::Spell(&self.printed(self.objects[*id].def), *id),
                 )
                 && self.additional_payable(p, &def.additional, *id)
                 && self.targets_available(p, def.unkicked_cast_targets(), Some(*id))
@@ -542,7 +545,10 @@ impl GameState {
                                 p,
                                 &sources,
                                 &ab.cost.mana.requirements(0),
-                                Spend::Ability(self.characteristics(*id).as_ref()),
+                                Spend::Ability(
+                                    self.characteristics(*id).as_ref(),
+                                    crate::card::SpendWays::of_ability(ab),
+                                ),
                             )
                             && self.targets_available(p, &ab.targets, Some(*id))
                         {
@@ -680,7 +686,7 @@ impl GameState {
                     p,
                     &sources,
                     &req,
-                    Spend::Spell(&self.printed(self.objects[*id].def)),
+                    Spend::Spell(&self.printed(self.objects[*id].def), *id),
                 ) {
                     continue;
                 }
@@ -2062,7 +2068,7 @@ impl GameState {
         if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
             adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
         }
-        self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
+        self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref), id))
             && self.targets_available(p, face.unkicked_cast_targets(), Some(id))
     }
 
@@ -2092,7 +2098,7 @@ impl GameState {
         if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
             adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
         }
-        self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
+        self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref), id))
     }
 
     /// CR 702.113a: whether `p` could cast `def` for its awaken cost now,
@@ -2124,7 +2130,7 @@ impl GameState {
         if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
             adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
         }
-        self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
+        self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref), id))
     }
 
     /// CR 702.146a: whether `p` could cast `def` (the card `id`, in their
@@ -2155,7 +2161,7 @@ impl GameState {
         if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
             adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
         }
-        self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
+        self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref), id))
     }
 
     /// CR 702.180a: the ways `p` may cast `id` from their graveyard for
@@ -2201,7 +2207,7 @@ impl GameState {
             adjust_generic(&mut req, self.cost_delta(p, def, id, changers));
         }
         let printed = self.printed(self.objects[id].def);
-        if self.payable_for(p, sources, &req, Spend::Spell(&printed)) {
+        if self.payable_for(p, sources, &req, Spend::Spell(&printed, id)) {
             options.push(Choice::CastHarmonize {
                 card: id,
                 tap: None,
@@ -2216,7 +2222,7 @@ impl GameState {
         for (c, power) in tappers {
             let mut r = req;
             adjust_generic(&mut r, -i32::from(power));
-            if self.payable_for(p, &without(sources, &[c]), &r, Spend::Spell(&printed)) {
+            if self.payable_for(p, &without(sources, &[c]), &r, Spend::Spell(&printed, id)) {
                 options.push(Choice::CastHarmonize {
                     card: id,
                     tap: Some(c),
@@ -2284,7 +2290,7 @@ impl GameState {
         let helped = Keyword::helps_pay(keywords) || def.additional.waterbend;
         let restricted = match (self.restricted_mana_possible(), &def.printed) {
             (false, _) | (_, None) => None,
-            (true, Some(c)) => self.with_restricted(p, sources, Spend::Spell(c)),
+            (true, Some(c)) => self.with_restricted(p, sources, Spend::Spell(c, id)),
         };
         let all = if helped || restricted.is_some() {
             let mut all = restricted.unwrap_or_else(|| sources.clone());
@@ -2351,14 +2357,12 @@ impl GameState {
         sources: &Sources,
         options: &mut Vec<Choice>,
     ) {
-        let ps = self.player(p);
-        if self.payable(
+        let face_down = self.printed(self.pool.face_down(false));
+        if self.payable_for(
             p,
             sources,
-            &ps.mana_pool,
             &self.face_down_cost(p),
-            ps.life,
-            None,
+            Spend::Spell(&face_down, id),
         ) {
             options.push(Choice::CastFaceDown(id));
         }
@@ -2535,7 +2539,6 @@ impl GameState {
     #[cold]
     #[inline(never)]
     fn unlock_options(&self, p: PlayerId, sources: &Sources, options: &mut Vec<Choice>) {
-        let ps = self.player(p);
         for id in self.permanents_of(p) {
             let def = self.objects[id].def;
             let Some(doors) = self.pool.get(def).doors.as_deref() else {
@@ -2547,14 +2550,9 @@ impl GameState {
                     continue;
                 }
                 let cost = &self.pool.get(doors.half(door)).mana_cost;
-                if self.payable(
-                    p,
-                    sources,
-                    &ps.mana_pool,
-                    &cost.requirements(0),
-                    ps.life,
-                    None,
-                ) {
+                let ways =
+                    crate::card::SpendWays::of_cost(cost).with(crate::card::SpendWays::UNLOCK);
+                if self.payable_for(p, sources, &cost.requirements(0), Spend::Special(ways)) {
                     options.push(Choice::Unlock { obj: id, door });
                 }
             }
@@ -2564,16 +2562,16 @@ impl GameState {
     #[cold]
     #[inline(never)]
     fn face_up_options(&self, p: PlayerId, sources: &Sources, options: &mut Vec<Choice>) {
-        let ps = self.player(p);
         for id in self.permanents_of(p) {
             if let Some(cost) = self.face_up_cost(id)
-                && self.payable(
+                && self.payable_for(
                     p,
                     sources,
-                    &ps.mana_pool,
                     &cost.mana.requirements(0),
-                    ps.life,
-                    None,
+                    Spend::Special(
+                        crate::card::SpendWays::of_cost(&cost.mana)
+                            .with(crate::card::SpendWays::FACE_UP),
+                    ),
                 )
                 && self.additional_payable(p, &cost, id)
             {
@@ -2753,7 +2751,8 @@ impl GameState {
     /// morph cost: mana, life, and the card discarded or permanent
     /// returned for it (`pick`, chosen by the player).
     pub(super) fn pay_face_up(&mut self, p: PlayerId, id: ObjId, cost: &Cost, pick: Option<ObjId>) {
-        self.pay(p, &cost.mana.requirements(0));
+        let sources = self.special_sources(p, &cost.mana, false);
+        self.pay_from(p, &cost.mana.requirements(0), &sources, None);
         let (sac, discard) = if cost.discard > 0 {
             (None, pick)
         } else {
@@ -2925,7 +2924,7 @@ impl GameState {
         let mut s = self.mana_sources(o.controller);
         if self.restricted_mana_possible()
             && let Some(c) = self.characteristics(spell)
-            && let Some(all) = self.with_restricted(o.controller, &s, Spend::Spell(&c))
+            && let Some(all) = self.with_restricted(o.controller, &s, Spend::Spell(&c, spell))
         {
             s = all;
         }
@@ -3342,7 +3341,7 @@ impl GameState {
         // CR 702.119a: emerge, reduced by the mana value of the creature
         // sacrificed: some creature must leave the rest payable without
         // its own mana.
-        let spend = Spend::Spell(&self.printed(self.objects[id].def));
+        let spend = Spend::Spell(&self.printed(self.objects[id].def), id);
         let payable = if def.emerge
             && let Some(SacCost::Filter(f)) = &alt.cost.sacrifice
         {
@@ -3391,7 +3390,7 @@ impl GameState {
             p,
             sources,
             &self.taxed(p, def, id, cost.requirements(0)),
-            Spend::Spell(&self.printed(self.objects[id].def)),
+            Spend::Spell(&self.printed(self.objects[id].def), id),
         ) || !self.additional_payable(p, &def.additional, id)
         {
             return false;
@@ -3439,7 +3438,7 @@ impl GameState {
             p,
             sources,
             &self.taxed(p, def, id, cost.requirements(0)),
-            Spend::Spell(&self.printed(self.objects[id].def)),
+            Spend::Spell(&self.printed(self.objects[id].def), id),
         ) || !self.additional_payable(p, &def.additional, id)
         {
             return false;
@@ -4759,8 +4758,12 @@ impl GameState {
             };
             // Restricted mana that may be spent on this source's abilities
             // first (CR 106.6).
-            let restricted = self.with_restricted(p, all_sources, Spend::Ability(Some(&c)));
-            let sources = restricted.as_ref().unwrap_or(all_sources);
+            let restricted = self.with_restricted(
+                p,
+                all_sources,
+                Spend::Ability(Some(&c), crate::card::SpendWays::default()),
+            );
+            let source_sources = restricted.as_ref().unwrap_or(all_sources);
             let sick = c.is_creature() && !o.controlled_since_turn_start && !c.has(Keyword::Haste);
             // CR 602.5: "its activated abilities can't be activated"
             // (Arrest), or all but its mana abilities (CR 605.1a).
@@ -4817,6 +4820,20 @@ impl GameState {
                 }
                 // CR 701.67a: artifacts and creatures help pay a waterbend
                 // cost.
+                // Restricted mana for this kind of ability (power-up,
+                // equip, a Class level, a cost with {X}): its own sources.
+                let kind_sources: Option<Sources>;
+                let sources = if self.restricted_mana_possible() {
+                    let ways = crate::card::SpendWays::of_ability(ab);
+                    kind_sources = if ways.0 == 0 {
+                        None
+                    } else {
+                        self.with_restricted(p, all_sources, Spend::Ability(Some(&c), ways))
+                    };
+                    kind_sources.as_ref().unwrap_or(source_sources)
+                } else {
+                    source_sources
+                };
                 let bent: Sources;
                 let sources = if ab.cost.waterbend {
                     bent = sources
@@ -5216,7 +5233,7 @@ impl GameState {
         };
         let mut req = self.activation_mana_x(sa.source, ab, self.x_of(obj));
         self.reduce_for_target(o.controller, sa.source, ab, t, &mut req);
-        let mut sources = self.ability_sources(o.controller, sa.source);
+        let mut sources = self.ability_sources(o.controller, sa.source, ab);
         if ab.cost.tap {
             sources.retain(|(s, _)| *s != sa.source);
         }
@@ -5378,7 +5395,7 @@ impl GameState {
         let sources = self.spell_sources(spell);
         let req = self.spell_requirements(spell, self.x_of(spell));
         let printed = self.printed(self.objects[spell].def);
-        self.emerge_options(p, f, spell, &req, &sources, Spend::Spell(&printed))
+        self.emerge_options(p, f, spell, &req, &sources, Spend::Spell(&printed, spell))
     }
 
     /// The creatures an emerge cost `req` (before its reduction) could be
@@ -5458,7 +5475,7 @@ impl GameState {
                 });
         let sources = match ability {
             Some((source, a)) => {
-                let mut s = self.ability_sources(caster, source);
+                let mut s = self.ability_sources(caster, source, a);
                 // A source tapped as a cost cannot also tap for mana
                 // (Treasure Vault's {X}{X}, {T}).
                 if a.cost.tap {
@@ -6115,7 +6132,7 @@ impl GameState {
         let mut sacrifice = sacrifice;
         let mut tapped_paid: SmallVec<[ObjId; 2]> = SmallVec::new();
         if let (true, Some(SacCost::Filter(f))) = (ab.cost.taps_chosen(), &ab.cost.sacrifice) {
-            let sources = self.ability_sources(controller, sa.source);
+            let sources = self.ability_sources(controller, sa.source, ab);
             let n = ab.cost.chosen_count();
             for c in self
                 .tap_picks(
@@ -6134,7 +6151,7 @@ impl GameState {
             }
             sacrifice = None;
         }
-        let mut sources = self.ability_sources(controller, sa.source);
+        let mut sources = self.ability_sources(controller, sa.source, ab);
         let mut req = self.activation_mana_x(sa.source, ab, self.x_of(obj));
         if self.target_reduces(ab)
             && let Some(t) = self.objects[obj].targets.first().copied()
@@ -6533,12 +6550,7 @@ impl GameState {
                 } else {
                     restriction
                 };
-                let allowed = match spend {
-                    Spend::Spell(sc) => restriction.allows_spell(sc),
-                    Spend::Ability(src) => restriction.allows_abilities(src),
-                    Spend::Foretell => restriction.foretell,
-                };
-                if !allowed {
+                if !self.spend_allowed(restriction, spend) {
                     continue;
                 }
                 match *mana {
@@ -6565,6 +6577,114 @@ impl GameState {
         self.restricted_mana_sources != 0 || !self.restricted_pool.is_empty()
     }
 
+    /// Whether restricted mana `r` may be spent on `spend` (CR 106.6).
+    fn spend_allowed(&self, r: &crate::card::ManaRestriction, spend: Spend) -> bool {
+        use crate::card::SpendWays;
+        let ways = r.ways;
+        match spend {
+            Spend::Spell(sc, id) => {
+                if ways.0 == 0 && r.x_spells.is_none() {
+                    return self.restriction_allows_spell(r, sc, id);
+                }
+                let mut how = self.spell_ways(id);
+                if self.pool.is_face_down(sc.def) {
+                    how.0 |= SpendWays::FACE_DOWN;
+                }
+                let quals = ways.0 & SpendWays::SPELL_QUALIFIERS;
+                (self.restriction_allows_spell(r, sc, id) && how.0 & quals == quals)
+                    || (how.has(SpendWays::COST_X)
+                        && r.x_spells.as_ref().is_some_and(|f| {
+                            f.matches_characteristics(sc) && self.spell_mana_value_ok(f, id)
+                        }))
+                    || how.0 & ways.0 & SpendWays::COSTS != 0
+            }
+            Spend::Ability(src, how) => {
+                r.allows_abilities(src)
+                    || how.0 & ways.0 & (SpendWays::ABILITY_KINDS | SpendWays::COSTS) != 0
+            }
+            Spend::Foretell => r.foretell,
+            Spend::Special(how) => {
+                how.0 & ways.0 & (SpendWays::UNLOCK | SpendWays::FACE_UP | SpendWays::COSTS) != 0
+            }
+        }
+    }
+
+    /// `ManaRestriction::allows_spell`, with the filter's mana value
+    /// ("spells with mana value 5 or greater") judged too.
+    fn restriction_allows_spell(
+        &self,
+        r: &crate::card::ManaRestriction,
+        sc: &crate::state::Characteristics,
+        id: ObjId,
+    ) -> bool {
+        let matched = r
+            .spells
+            .as_ref()
+            .is_some_and(|f| f.matches_characteristics(sc) && self.spell_mana_value_ok(f, id));
+        if r.wording == crate::card::SpendWording::CantCast {
+            !matched
+        } else {
+            matched
+        }
+    }
+
+    /// Whether the spell `id` (or the card, before it is cast) has the
+    /// mana value `f` asks for: its mana cost's, with X as chosen on the
+    /// stack (CR 202.3e) and 0 before.
+    fn spell_mana_value_ok(&self, f: &crate::card::ObjFilter, id: ObjId) -> bool {
+        let Some((cmp, n)) = f.mana_value else {
+            return true;
+        };
+        let Some(o) = self.objects.get(id) else {
+            return false;
+        };
+        let cost = &self.pool.get(o.def).mana_cost;
+        let mut mv = cost.mana_value();
+        if o.zone == Zone::Stack && cost.has_x() {
+            let xs = cost
+                .symbols()
+                .iter()
+                .filter(|s| **s == crate::mana::ManaSymbol::X)
+                .count();
+            mv += self.x_of(id) * u32::try_from(xs).unwrap_or(0);
+        }
+        cmp.holds(mv, u32::from(n))
+    }
+
+    /// How the spell `id` is cast, or would be from where it is now, for a
+    /// restriction (`SpendWays`): where from, face down or with flashback,
+    /// and its mana cost's {X} and {C}.
+    #[cold]
+    #[inline(never)]
+    fn spell_ways(&self, id: ObjId) -> crate::card::SpendWays {
+        use crate::card::SpendWays;
+        let Some(o) = self.objects.get(id) else {
+            return SpendWays::default();
+        };
+        let def = self.pool.get(o.def);
+        let mut w = SpendWays::of_cost(&def.mana_cost);
+        let from = if o.zone == Zone::Stack {
+            o.cast.cast_from()
+        } else {
+            Some(o.zone)
+        };
+        match from {
+            Some(Zone::Hand) => {}
+            Some(Zone::Graveyard) => {
+                w.0 |= SpendWays::FROM_GRAVEYARD | SpendWays::NOT_FROM_HAND;
+                if def.flashback.is_some() || o.cast.flashback() {
+                    w.0 |= SpendWays::FLASHBACK;
+                }
+            }
+            Some(Zone::Exile) => w.0 |= SpendWays::FROM_EXILE | SpendWays::NOT_FROM_HAND,
+            _ => w.0 |= SpendWays::NOT_FROM_HAND,
+        }
+        if self.pool.is_face_down(o.def) {
+            w.0 |= SpendWays::FACE_DOWN;
+        }
+        w
+    }
+
     /// `p`'s restricted mana in the pool that may be spent on `spend`, as
     /// sources (`pool_unit_id`), so that payment spends it after the
     /// unrestricted pool and before tapping permanents.
@@ -6576,13 +6696,7 @@ impl GameState {
             if u.player != p {
                 continue;
             }
-            let r = &u.restriction;
-            let allowed = match spend {
-                Spend::Spell(sc) => r.allows_spell(sc),
-                Spend::Ability(src) => r.allows_abilities(src),
-                Spend::Foretell => r.foretell,
-            };
-            if allowed {
+            if self.spend_allowed(&u.restriction, spend) {
                 units.push((pool_unit_id(i), u.mana));
             }
         }
@@ -6606,6 +6720,13 @@ impl GameState {
                     if let Some(r) = &self.restricted_pool[i].rider {
                         let r = (**r).clone();
                         self.spent_riders.push((p, r));
+                    }
+                    if self.restricted_pool[i]
+                        .restriction
+                        .ways
+                        .has(crate::card::SpendWays::UNCOUNTERABLE)
+                    {
+                        self.spent_uncounterable = true;
                     }
                 }
                 Some(_) => {}
@@ -6724,18 +6845,24 @@ impl GameState {
         let Some(c) = self.characteristics(card) else {
             return false;
         };
-        self.payable_for(p, &self.mana_sources(p), req, Spend::Spell(&c))
+        self.payable_for(p, &self.mana_sources(p), req, Spend::Spell(&c, card))
     }
 
     /// The sources `p` may tap to activate an ability: restricted mana that
     /// allows it first (CR 106.6).
-    fn ability_sources(&self, p: PlayerId, source: ObjId) -> Sources {
+    fn ability_sources(
+        &self,
+        p: PlayerId,
+        source: ObjId,
+        ab: &crate::card::ActivatedAbility,
+    ) -> Sources {
         let sources = self.mana_sources(p);
         if !self.restricted_mana_possible() {
             return sources;
         }
         let c = self.characteristics(source);
-        self.with_restricted(p, &sources, Spend::Ability(c.as_ref()))
+        let ways = crate::card::SpendWays::of_ability(ab);
+        self.with_restricted(p, &sources, Spend::Ability(c.as_ref(), ways))
             .unwrap_or(sources)
     }
 
@@ -6761,6 +6888,30 @@ impl GameState {
             }
         }
         new
+    }
+
+    /// The sources `p` may tap to unlock a door (`unlock`) or turn a
+    /// permanent face up, paying `cost`: restricted mana that allows it
+    /// first (CR 106.6).
+    pub(super) fn special_sources(
+        &self,
+        p: PlayerId,
+        cost: &crate::mana::ManaCost,
+        unlock: bool,
+    ) -> Sources {
+        use crate::card::SpendWays;
+        let sources = self.mana_sources(p);
+        if !self.restricted_mana_possible() {
+            return sources;
+        }
+        let kind = if unlock {
+            SpendWays::UNLOCK
+        } else {
+            SpendWays::FACE_UP
+        };
+        let ways = SpendWays::of_cost(cost).with(kind);
+        self.with_restricted(p, &sources, Spend::Special(ways))
+            .unwrap_or(sources)
     }
 
     /// The sources `p` may tap to foretell a card (CR 702.143a): restricted
@@ -7035,6 +7186,7 @@ impl GameState {
         if !self.spent_riders.is_empty() {
             self.spent_riders.clear();
         }
+        self.spent_uncounterable = false;
         let ps = self.player(p);
         if req.snow > 0 {
             let (plan, req, life) = self
@@ -7224,6 +7376,9 @@ impl GameState {
         } else {
             SmallVec::new()
         };
+        if self.restricted_mana_sources > 0 {
+            self.note_uncounterable(plan);
+        }
         for &(id, mana) in plan {
             // Delve's cards are exiled; everything else is tapped.
             if self
@@ -7249,6 +7404,48 @@ impl GameState {
         }
         for id in boosted {
             self.fire_mana_triggers(id);
+        }
+    }
+
+    /// Whether `plan` taps a permanent for mana of a restricted mana
+    /// ability whose restriction says "and that spell can't be countered"
+    /// (Cavern of Souls): mana its other abilities couldn't make.
+    #[cold]
+    #[inline(never)]
+    fn note_uncounterable(&mut self, plan: &Sources) {
+        for &(id, mana) in plan {
+            let Some(o) = self.objects.get(id) else {
+                continue;
+            };
+            if o.zone != Zone::Battlefield || !self.flags_of(o).has_restricted_mana() {
+                continue;
+            }
+            let Some(c) = self.characteristics(id) else {
+                continue;
+            };
+            let makes = |m: Mana| match (m, mana) {
+                (Mana::Any | Mana::Chosen, Mana::Colored(_)) => true,
+                (a, b) => a == b,
+            };
+            let mut restricted = false;
+            let mut plain = false;
+            for a in &c.abilities {
+                match self.pool.ability(*a) {
+                    AbilityDef::RestrictedMana {
+                        mana: m,
+                        restriction,
+                    } if restriction.ways.has(crate::card::SpendWays::UNCOUNTERABLE)
+                        && makes(*m) =>
+                    {
+                        restricted = true;
+                    }
+                    AbilityDef::TapForMana(m) if makes(*m) => plain = true,
+                    _ => {}
+                }
+            }
+            if restricted && !plain {
+                self.spent_uncounterable = true;
+            }
         }
     }
 
@@ -7472,6 +7669,10 @@ impl GameState {
         }
         if !self.spent_riders.is_empty() {
             self.fire_mana_riders(spell);
+        }
+        if self.spent_uncounterable {
+            self.spent_uncounterable = false;
+            self.uncounterable_spells.push(spell);
         }
         let mut discard = discard;
         if let (Some(fb), true) = (&def.flashback, flashback) {
@@ -7746,6 +7947,7 @@ impl GameState {
         // countered."
         if self.pool.get(def).uncounterable
             || (self.cost_change_sources > 0 && self.uncounterable_granted(id))
+            || (!self.uncounterable_spells.is_empty() && self.uncounterable_spells.contains(&id))
         {
             return;
         }
@@ -13642,6 +13844,10 @@ impl GameState {
                     wording: crate::card::SpendWording::CastFirst,
                     plural: crate::card::SpendPlural::One,
                     bare: false,
+                    ways: crate::card::SpendWays(
+                        crate::card::SpendWays::UNLOCK | crate::card::SpendWays::FACE_UP,
+                    ),
+                    x_spells: None,
                 });
                 let def = self
                     .objects
@@ -15277,13 +15483,22 @@ pub(super) fn pool_unit_index(id: ObjId) -> Option<usize> {
 /// What mana is being spent on, for restricted mana (CR 106.6).
 #[derive(Copy, Clone)]
 enum Spend<'a> {
-    /// Casting a spell with these characteristics.
-    Spell(&'a crate::state::Characteristics),
+    /// Casting a spell with these characteristics: the card (or the spell
+    /// on the stack) `.1`, for where it is cast from and how
+    /// (`GameState::spell_ways`).
+    Spell(&'a crate::state::Characteristics, ObjId),
     /// Activating an ability of a source with these characteristics
-    /// (`None`: not known).
-    Ability(Option<&'a crate::state::Characteristics>),
+    /// (`None`: not known), of the kind `.1` (`SpendWays::of_ability`;
+    /// empty when not known).
+    Ability(
+        Option<&'a crate::state::Characteristics>,
+        crate::card::SpendWays,
+    ),
     /// Foretelling a card (CR 702.143a).
     Foretell,
+    /// A special action: unlocking a door (`SpendWays::UNLOCK`) or turning
+    /// a permanent face up (`FACE_UP`), with the cost's symbols.
+    Special(crate::card::SpendWays),
 }
 
 /// {3}: what a face-down spell costs (CR 702.37c).

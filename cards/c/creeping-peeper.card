@@ -1,0 +1,7 @@
+card "Creeping Peeper" {
+  oracle_id acf22340-7ff9-443f-a846-c44bb5a3f4e7
+  cost {1}{U}
+  type Creature — Eye
+  pt 2/1
+  mana {U} only to cast enchantment spell plus unlock plus face up
+}

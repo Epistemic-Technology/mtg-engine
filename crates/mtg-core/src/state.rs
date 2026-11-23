@@ -2174,6 +2174,12 @@ pub struct GameState {
     /// Riders of the restricted mana the payment being made has spent
     /// (`RestrictedMana::rider`), for the spell being cast to trigger.
     pub spent_riders: Vec<(PlayerId, ManaRider)>,
+    /// The payment being made has spent mana whose restriction says "and
+    /// that spell can't be countered" (`SpendWays::UNCOUNTERABLE`).
+    pub spent_uncounterable: bool,
+    /// Spells cast with such mana (Cavern of Souls): they can't be
+    /// countered. Emptied as steps end, when the stack is empty.
+    pub uncounterable_spells: Vec<ObjId>,
     /// Battlefield permanents with a triggered mana ability (CR 605.1b,
     /// `DefFlags::MANA_TRIGGER`): tapping for mana and payment look for
     /// them only then.

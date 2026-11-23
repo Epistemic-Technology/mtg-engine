@@ -1678,6 +1678,8 @@ impl Compiler<'_> {
             wording: r.wording,
             plural: r.plural,
             bare: r.bare,
+            ways: r.ways,
+            x_spells: r.x_spells.as_ref().map(|f| self.filter(f)),
         }
     }
 

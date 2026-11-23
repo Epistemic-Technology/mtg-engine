@@ -5489,12 +5489,118 @@ fn restricted_mana(m: Mana, r: &crate::ast::ManaRestriction) -> String {
 /// `only to cast instant or sorcery spell`, `only to cast artifact spells
 /// or activate of artifact bare`: what restricted mana may be spent on.
 fn restriction_text(r: &crate::ast::ManaRestriction) -> String {
-    use mtg_core::card::{SpendPlural, SpendWording};
+    use mtg_core::card::{SpendPlural, SpendWays, SpendWording};
+    let w = r.ways;
+    if w.has(SpendWays::ON_COSTS) {
+        return "on costs with x".to_string();
+    }
+    let mut out = if r.spells.is_none() && !r.abilities && w.0 != 0 {
+        // Only the other ways: `only to power-up abilities`.
+        let ways = spend_way_words(w, r.plural != SpendPlural::One);
+        let mut s = String::from("only to");
+        for (i, way) in ways.iter().enumerate() {
+            if i > 0 {
+                s.push_str(" plus");
+                if i == 1 && w.has(SpendWays::OR_TO) {
+                    s.push_str(" to");
+                }
+            }
+            s.push(' ');
+            s.push_str(way);
+        }
+        s
+    } else {
+        let mut s = restriction_base_text(r);
+        for (i, way) in spend_way_words(w, false).iter().enumerate() {
+            s.push_str(" plus");
+            if i == 0 && w.has(SpendWays::OR_TO) {
+                s.push_str(" to");
+            } else if i == 0 && r.wording == SpendWording::CastAnd && !r.abilities {
+                s.push_str(" and");
+            }
+            s.push(' ');
+            s.push_str(way);
+        }
+        s
+    };
+    if w.has(SpendWays::UNCOUNTERABLE) {
+        out.push_str(" uncounterable");
+    }
+    out
+}
+
+/// The DSL words of a restriction's other ways (`SpendWays`), in printed
+/// order; `plural` for the forms that set the plural wording.
+fn spend_way_words(w: mtg_core::card::SpendWays, plural: bool) -> Vec<String> {
+    use mtg_core::card::SpendWays;
+    let mut out = Vec::new();
+    let pl = |s: &str, p: &str| {
+        if plural {
+            format!("{s} {p}")
+        } else {
+            s.to_string()
+        }
+    };
+    if w.has(SpendWays::POWER_UP) {
+        out.push(pl("power-up", "abilities"));
+    }
+    if w.has(SpendWays::EQUIP) {
+        out.push(pl("equip", "abilities"));
+    }
+    if w.has(SpendWays::CLASS_LEVEL) {
+        out.push("class level".to_string());
+    }
+    if w.has(SpendWays::UNLOCK) {
+        out.push(pl("unlock", "doors"));
+    }
+    if w.has(SpendWays::FACE_UP) {
+        out.push(if w.has(SpendWays::FACE_UP_CREATURES) {
+            "face up creatures".to_string()
+        } else if w.has(SpendWays::FACE_UP_MORPH) {
+            "face up morph".to_string()
+        } else {
+            pl("face up", "permanents")
+        });
+    }
+    if w.has(SpendWays::COST_C) {
+        out.push("cost with c".to_string());
+    }
+    out
+}
+
+/// `a b`, or `b` alone when `a` is empty (an empty filter before
+/// `spells`).
+fn join_words(a: &str, b: &str) -> String {
+    if a.is_empty() {
+        b.to_string()
+    } else {
+        format!("{a} {b}")
+    }
+}
+
+/// A restriction's spells and abilities, before its other ways.
+fn restriction_base_text(r: &crate::ast::ManaRestriction) -> String {
+    use mtg_core::card::{SpendPlural, SpendWays, SpendWording};
     let noun = if r.plural == SpendPlural::One {
         "spell"
     } else {
         "spells"
     };
+    let mut quals = String::new();
+    for (bit, words) in [
+        (SpendWays::FROM_EXILE, " from exile"),
+        (SpendWays::FROM_GRAVEYARD, " from graveyard"),
+        (SpendWays::NOT_FROM_HAND, " not from hand"),
+        (SpendWays::FLASHBACK, " with flashback from graveyard"),
+        (SpendWays::FACE_DOWN, " face down"),
+    ] {
+        if r.ways.has(bit) {
+            quals.push_str(words);
+        }
+    }
+    if let Some(x) = &r.x_spells {
+        let _ = write!(quals, " or x {}", join_words(&filter(x), noun));
+    }
     // Each side of an alternative whole: "Elemental spell or Chandra
     // planeswalker spell".
     let spells = r.spells.as_ref().map(|f| match &f.or {
@@ -5502,9 +5608,13 @@ fn restriction_text(r: &crate::ast::ManaRestriction) -> String {
             let mut base = f.clone();
             base.or = None;
             base.alt_article = false;
-            format!("cast {} {noun} or {} {noun}", filter(&base), filter(alt))
+            format!(
+                "cast {} {noun}{quals} or {} {noun}",
+                filter(&base),
+                filter(alt)
+            )
         }
-        _ => format!("cast {} {noun}", filter(f)),
+        _ => format!("cast {}{quals}", join_words(&filter(f), noun)),
     });
     let joined = match r.plural {
         SpendPlural::And => " joined and",

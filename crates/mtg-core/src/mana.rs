@@ -280,6 +280,11 @@ impl ManaCost {
         self.symbols.contains(&ManaSymbol::X)
     }
 
+    /// Whether the cost has a `{C}` symbol (CR 107.4c).
+    pub fn has_colorless_symbol(&self) -> bool {
+        self.symbols.contains(&ManaSymbol::Colorless)
+    }
+
     /// Requirements with `X` fixed: per-color counts, colorless count, generic.
     pub fn requirements(&self, x: u32) -> ManaRequirement {
         let mut req = ManaRequirement::default();

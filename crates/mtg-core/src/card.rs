@@ -7045,6 +7045,118 @@ pub struct ManaRestriction {
     /// named without "source". Wording only.
     #[serde(default)]
     pub bare: bool,
+    /// The other things it may be spent on (power-up and equip abilities,
+    /// a Class level, unlocking a door, turning a permanent face up, a
+    /// cost with {C} or {X}), what `spells` must have been cast as (from
+    /// exile, face down, ...), and the "that spell can't be countered"
+    /// rider.
+    #[serde(default)]
+    pub ways: SpendWays,
+    /// "or spells with {X} in their mana costs": also spells matching this
+    /// whose mana cost has {X} (CR 107.3).
+    #[serde(default)]
+    pub x_spells: Option<ObjFilter>,
+}
+
+/// What restricted mana may further be spent on, and what a spell it pays
+/// for must have been cast as (`ManaRestriction::ways`); also what a
+/// payment is (`SpendWays::of_ability`, the engine's spell context), so
+/// that a restriction allows a payment when they share an alternative.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct SpendWays(pub u32);
+
+impl SpendWays {
+    /// "activate power-up abilities" (CR 702.193).
+    pub const POWER_UP: u32 = 1;
+    /// "activate an equip ability" (CR 702.6).
+    pub const EQUIP: u32 = 1 << 1;
+    /// "gain a Class level" (CR 716.2a).
+    pub const CLASS_LEVEL: u32 = 1 << 2;
+    /// "unlock a door" (CR 709.5e).
+    pub const UNLOCK: u32 = 1 << 3;
+    /// "turn a permanent face up" (CR 116.2b).
+    pub const FACE_UP: u32 = 1 << 4;
+    /// "pay a cost that contains {C}": any spell or ability whose mana
+    /// cost has {C}.
+    pub const COST_C: u32 = 1 << 5;
+    /// "on costs that contain {X}": any spell or ability whose mana cost
+    /// has {X}.
+    pub const COST_X: u32 = 1 << 6;
+    /// The spell is cast from exile ("cast spells from exile").
+    pub const FROM_EXILE: u32 = 1 << 7;
+    /// The spell is cast from its owner's graveyard ("from your
+    /// graveyard").
+    pub const FROM_GRAVEYARD: u32 = 1 << 8;
+    /// The spell is cast from anywhere other than its caster's hand.
+    pub const NOT_FROM_HAND: u32 = 1 << 9;
+    /// The spell has flashback and is cast from a graveyard ("spells with
+    /// flashback from a graveyard").
+    pub const FLASHBACK: u32 = 1 << 10;
+    /// The spell is face down (CR 708.4: "face-down spells").
+    pub const FACE_DOWN: u32 = 1 << 11;
+    /// "..., and that spell can't be countered" (Cavern of Souls): a spell
+    /// this mana is spent to cast can't be countered.
+    pub const UNCOUNTERABLE: u32 = 1 << 12;
+    /// Wording: "turn creatures face up" rather than "permanents".
+    pub const FACE_UP_CREATURES: u32 = 1 << 13;
+    /// Wording: "pay a mana cost to turn a manifested creature face up, or
+    /// pay a morph cost" (the same rule as `FACE_UP`).
+    pub const FACE_UP_MORPH: u32 = 1 << 14;
+    /// Wording: "Spend this mana only on costs that contain {X}."
+    pub const ON_COSTS: u32 = 1 << 15;
+    /// Wording: an alternative after the first joined with "or to" ("cast
+    /// face-down spells or to turn creatures face up").
+    pub const OR_TO: u32 = 1 << 16;
+
+    /// The spell properties: each must hold of a spell for `spells` to
+    /// allow it.
+    pub const SPELL_QUALIFIERS: u32 = Self::FROM_EXILE
+        | Self::FROM_GRAVEYARD
+        | Self::NOT_FROM_HAND
+        | Self::FLASHBACK
+        | Self::FACE_DOWN;
+    /// The alternatives an activated ability's kind gives.
+    pub const ABILITY_KINDS: u32 = Self::POWER_UP | Self::EQUIP | Self::CLASS_LEVEL;
+    /// The alternatives a cost's symbols give.
+    pub const COSTS: u32 = Self::COST_C | Self::COST_X;
+
+    pub const fn has(self, bit: u32) -> bool {
+        self.0 & bit != 0
+    }
+
+    #[must_use]
+    pub const fn with(self, bit: u32) -> SpendWays {
+        SpendWays(self.0 | bit)
+    }
+
+    /// What paying for `ab` is: its kind, and the symbols of its mana
+    /// cost.
+    pub fn of_ability(ab: &ActivatedAbility) -> SpendWays {
+        let mut w = Self::of_cost(&ab.cost.mana);
+        if ab.keyword == Some(ActivatedKeyword::PowerUp) {
+            w.0 |= Self::POWER_UP;
+        }
+        if ab.is_equip() {
+            w.0 |= Self::EQUIP;
+        }
+        if ab.sorcery_speed && matches!(ab.effects.first(), Some(Effect::BecomeStage(_))) {
+            w.0 |= Self::CLASS_LEVEL;
+        }
+        w
+    }
+
+    /// `COST_C` and `COST_X` as `cost` has those symbols.
+    pub fn of_cost(cost: &crate::mana::ManaCost) -> SpendWays {
+        let mut w = 0;
+        if cost.has_x() {
+            w |= Self::COST_X;
+        }
+        if cost.has_colorless_symbol() {
+            w |= Self::COST_C;
+        }
+        SpendWays(w)
+    }
 }
 
 /// Whether a `ManaRestriction` reads in the plural ("Spend this mana only

@@ -1,0 +1,8 @@
+card "Overgrown Zealot" {
+  oracle_id 5146b291-1170-481f-a4b9-709dd5c4b09c
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 0/4
+  mana any
+  activated {T}: add any 2 only to face up permanents
+}

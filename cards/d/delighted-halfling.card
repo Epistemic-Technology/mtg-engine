@@ -1,0 +1,8 @@
+card "Delighted Halfling" {
+  oracle_id f9d3b046-0b95-4103-a630-4b3fb88bb60b
+  cost {G}
+  type Creature — Halfling Citizen
+  pt 1/2
+  activated {T}: add {C}
+  mana any only to cast legendary spell uncounterable
+}

@@ -1528,7 +1528,10 @@ impl P {
                 then: vec![then],
             });
         }
-        if self.at_words(&["only", "to"]) || self.at_words(&["not", "to"]) {
+        if self.at_words(&["only", "to"])
+            || self.at_words(&["not", "to"])
+            || self.at_words(&["on", "costs"])
+        {
             let restriction = self.mana_restriction()?;
             return Ok(Effect::SpendOnly {
                 inner: vec![Sentence::new(vec![e])],
@@ -1542,7 +1545,145 @@ impl P {
     /// spell or [to] activate`, `only to activate [or cast artifact
     /// spell]`, `not to cast nonartifact spell` (CR 106.6).
     fn mana_restriction(&mut self) -> R<crate::ast::ManaRestriction> {
-        use mtg_core::card::{SpendPlural, SpendWording};
+        use mtg_core::card::{SpendPlural, SpendWays, SpendWording};
+        let none = || crate::ast::ManaRestriction {
+            spells: None,
+            abilities: false,
+            ability_source: None,
+            foretell: false,
+            disturb: false,
+            wording: SpendWording::CastFirst,
+            plural: SpendPlural::One,
+            bare: false,
+            ways: SpendWays::default(),
+            x_spells: None,
+        };
+        // `on costs with x`: "Spend this mana only on costs that contain
+        // {X}."
+        if self.eat_words(&["on", "costs", "with", "x"]) {
+            let mut r = none();
+            r.ways = SpendWays(SpendWays::ON_COSTS | SpendWays::COST_X);
+            return Ok(r);
+        }
+        // `only to power-up abilities`, `only to face up permanents`: only
+        // the other ways, no spells or abilities.
+        if self.at_words(&["only", "to"]) && self.at_spend_way(2) {
+            self.pos += 2;
+            let mut r = none();
+            self.spend_ways(&mut r, true)?;
+            while self.eat_word("plus") {
+                if self.eat_word("to") {
+                    r.ways.0 |= SpendWays::OR_TO;
+                }
+                self.spend_ways(&mut r, false)?;
+            }
+            return Ok(r);
+        }
+        let mut r = self.mana_restriction_base()?;
+        // `plus unlock`, `plus face up`, `plus to class level`: further
+        // alternatives; `uncounterable`.
+        while self.eat_word("plus") {
+            if self.eat_word("to") {
+                r.ways.0 |= SpendWays::OR_TO;
+            } else if self.eat_word("and") {
+                r.wording = SpendWording::CastAnd;
+            }
+            self.spend_ways(&mut r, false)?;
+        }
+        if self.eat_word("uncounterable") {
+            r.ways.0 |= SpendWays::UNCOUNTERABLE;
+        }
+        Ok(r)
+    }
+
+    /// Whether the word `at` words on starts one of a restriction's other
+    /// ways (`spend_ways`).
+    fn at_spend_way(&self, at: usize) -> bool {
+        matches!(
+            self.word_at(at).as_deref(),
+            Some("power-up" | "equip" | "class" | "unlock" | "face" | "cost")
+        )
+    }
+
+    /// One of a restriction's other ways: `power-up [abilities]`, `equip
+    /// [abilities]`, `class level`, `unlock [doors]`, `face up
+    /// [permanents | creatures | morph]`, `cost with c`. The plural words
+    /// set the plural wording when `alone` (no spells before them).
+    fn spend_ways(&mut self, r: &mut crate::ast::ManaRestriction, alone: bool) -> R<()> {
+        use mtg_core::card::{SpendPlural, SpendWays};
+        let mut plural = false;
+        let w = self.word_at(0).unwrap_or_default();
+        match w.as_str() {
+            "power-up" | "equip" => {
+                self.pos += 1;
+                r.ways.0 |= if w == "equip" {
+                    SpendWays::EQUIP
+                } else {
+                    SpendWays::POWER_UP
+                };
+                plural = self.eat_word("abilities");
+            }
+            "class" => {
+                self.pos += 1;
+                self.expect_word("level")?;
+                r.ways.0 |= SpendWays::CLASS_LEVEL;
+            }
+            "unlock" => {
+                self.pos += 1;
+                r.ways.0 |= SpendWays::UNLOCK;
+                plural = self.eat_word("doors");
+            }
+            "face" => {
+                self.pos += 1;
+                self.expect_word("up")?;
+                r.ways.0 |= SpendWays::FACE_UP;
+                if self.eat_word("permanents") {
+                    plural = true;
+                } else if self.eat_word("creatures") {
+                    plural = true;
+                    r.ways.0 |= SpendWays::FACE_UP_CREATURES;
+                } else if self.eat_word("morph") {
+                    r.ways.0 |= SpendWays::FACE_UP_MORPH;
+                }
+            }
+            "cost" => {
+                self.pos += 1;
+                self.expect_words(&["with", "c"])?;
+                r.ways.0 |= SpendWays::COST_C;
+            }
+            _ => return self.fail("expected a way to spend mana"),
+        }
+        if alone && plural {
+            r.plural = SpendPlural::Or;
+        }
+        Ok(())
+    }
+
+    /// After a restriction's spell noun: `from exile`, `from graveyard`,
+    /// `not from hand`, `with flashback from graveyard`, `face down` (what
+    /// the spell must be cast as).
+    fn spend_qualifiers(&mut self) -> mtg_core::card::SpendWays {
+        use mtg_core::card::SpendWays;
+        let mut w = 0;
+        loop {
+            if self.eat_words(&["from", "exile"]) {
+                w |= SpendWays::FROM_EXILE;
+            } else if self.eat_words(&["from", "graveyard"]) {
+                w |= SpendWays::FROM_GRAVEYARD;
+            } else if self.eat_words(&["not", "from", "hand"]) {
+                w |= SpendWays::NOT_FROM_HAND;
+            } else if self.eat_words(&["with", "flashback", "from", "graveyard"]) {
+                w |= SpendWays::FLASHBACK;
+            } else if self.eat_words(&["face", "down"]) {
+                w |= SpendWays::FACE_DOWN;
+            } else {
+                return SpendWays(w);
+            }
+        }
+    }
+
+    fn mana_restriction_base(&mut self) -> R<crate::ast::ManaRestriction> {
+        use mtg_core::card::{SpendPlural, SpendWays, SpendWording};
         if self.eat_word("not") {
             self.expect_words(&["to", "cast"])?;
             let f = self.filter()?;
@@ -1556,6 +1697,8 @@ impl P {
                 wording: SpendWording::CantCast,
                 plural: SpendPlural::One,
                 bare: false,
+                ways: SpendWays::default(),
+                x_spells: None,
             });
         }
         self.expect_words(&["only", "to"])?;
@@ -1587,6 +1730,8 @@ impl P {
                 wording,
                 plural,
                 bare,
+                ways: SpendWays::default(),
+                x_spells: None,
             });
         }
         // "foretell a card from your hand or cast an instant or sorcery
@@ -1594,8 +1739,17 @@ impl P {
         let foretell = self.eat_words(&["foretell", "or"]);
         let disturb = self.eat_words(&["pay", "disturb", "or"]);
         self.expect_word("cast")?;
-        let mut f = self.filter()?;
+        let mut f = self.spend_filter()?;
         let mut plural = self.spell_noun()?;
+        let ways = self.spend_qualifiers();
+        // `or x spells`: "or spells with {X} in their mana costs".
+        let x_spells = if self.eat_words(&["or", "x"]) {
+            let g = self.spend_filter()?;
+            self.spell_noun()?;
+            Some(g)
+        } else {
+            None
+        };
         // "an Elemental spell or a Chandra planeswalker spell": each side
         // whole.
         if self.at_word("or") && !matches!(self.word_at(1).as_deref(), Some("to" | "activate")) {
@@ -1640,7 +1794,18 @@ impl P {
             wording,
             plural,
             bare,
+            ways,
+            x_spells,
         })
+    }
+
+    /// A restriction's spell filter, empty before `spells` ("cast spells
+    /// from exile").
+    fn spend_filter(&mut self) -> R<Filter> {
+        if self.at_word("spells") || self.at_word("spell") {
+            return Ok(Filter::default());
+        }
+        self.filter()
     }
 
     /// `spell` or `spells` (the plural wording) after a restriction's
@@ -2743,7 +2908,7 @@ impl P {
                         break;
                     }
                 }
-                if self.at_word("only") || self.at_word("not") {
+                if self.at_word("only") || self.at_word("not") || self.at_words(&["on", "costs"]) {
                     let [one] = out.as_slice() else {
                         return self.fail("a restricted mana ability makes one kind of mana");
                     };

@@ -1,0 +1,7 @@
+card "Qarsi Deceiver" {
+  oracle_id e12681cc-c66e-4dac-882c-bd8638a2e12c
+  cost {1}{U}
+  type Creature — Snake Wizard
+  pt 0/4
+  mana {C} only to cast creature spell face down plus face up morph
+}

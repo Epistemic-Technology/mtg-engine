@@ -1,0 +1,8 @@
+card "Freya Crescent" {
+  oracle_id 7e3085d8-9d46-41e0-ad9d-54c44d9ef267
+  cost {R}
+  type Legendary Creature — Rat Knight
+  pt 1/1
+  label "Jump" static during your turn, this: has flying
+  mana {R} only to cast Equipment spell plus equip
+}

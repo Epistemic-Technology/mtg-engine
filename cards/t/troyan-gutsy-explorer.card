@@ -1,0 +1,8 @@
+card "Troyan, Gutsy Explorer" {
+  oracle_id 1135ebc3-9537-4341-956b-6e22d8be5f20
+  cost {1}{G}{U}
+  type Legendary Creature — Vedalken Scout
+  pt 1/3
+  activated {T}: add {G}{U} only to cast with mana value 5 or greater spells or x spells
+  activated {U}, {T}: draw 1 card then discard 1 card
+}

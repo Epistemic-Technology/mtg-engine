@@ -601,6 +601,8 @@ impl GameState {
             restricted_mana_sources: 0,
             restricted_pool: Vec::new(),
             spent_riders: Vec::new(),
+            spent_uncounterable: false,
+            uncounterable_spells: Vec::new(),
             mana_trigger_sources: 0,
             turn_static_sources: 0,
             state_trigger_sources: 0,
@@ -1928,8 +1930,9 @@ impl GameState {
                     .as_deref()
                     .map(|d| d.half(door));
                 if let Some(half) = half {
-                    let req = self.pool.get(half).mana_cost.requirements(0);
-                    self.pay(player, &req);
+                    let cost = self.pool.get(half).mana_cost.clone();
+                    let sources = self.special_sources(player, &cost, true);
+                    self.pay_from(player, &cost.requirements(0), &sources, None);
                     self.unlock(obj, door);
                 }
                 self.give_priority(player);
@@ -3331,6 +3334,9 @@ impl GameState {
         }
         // Restricted mana empties too (CR 500.4).
         self.restricted_pool.clear();
+        if !self.uncounterable_spells.is_empty() {
+            self.uncounterable_spells.clear();
+        }
         if self.step == Step::EndOfCombat && self.combat.take().is_some() {
             // Filters on attacking and blocking creatures see the change.
             self.combat_bump();
