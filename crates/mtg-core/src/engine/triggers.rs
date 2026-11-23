@@ -1491,6 +1491,23 @@ impl GameState {
                 let by_ctl = self.objects.get(*by)?.controller;
                 (*target == w.source).then_some((Some(*by), Some(by_ctl)))
             }
+            (TriggerSpec::TargetedBy { what, spells, whose }, Event::Targeted { target, by }) => {
+                let b = self.objects.get(*by)?;
+                if *spells && b.kind == crate::state::ObjKind::Ability {
+                    return None;
+                }
+                let by_ctl = b.controller;
+                let ok = match whose {
+                    Who::You => by_ctl == w.controller,
+                    Who::Opponents => by_ctl != w.controller,
+                    Who::Any => true,
+                };
+                if !ok {
+                    return None;
+                }
+                on_battlefield(what, *target)?;
+                Some((Some(*target), Some(by_ctl)))
+            }
             (TriggerSpec::TargetedByOpponent, Event::Targeted { target, by }) => {
                 let by_ctl = self.objects.get(*by)?.controller;
                 (*target == w.source && by_ctl != w.controller).then_some((Some(*by), Some(by_ctl)))

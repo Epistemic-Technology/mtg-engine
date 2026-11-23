@@ -2020,6 +2020,16 @@ impl Decompiler<'_> {
                 or_copy: *or_copy,
             },
             TriggerSpec::BecomesTarget(o) => Trigger::BecomesTarget(self.trigger_obj(o)),
+            TriggerSpec::TargetedBy {
+                what,
+                spells,
+                whose,
+            } => Trigger::TargetedBy {
+                obj: self.trigger_obj(what),
+                spells: *spells,
+                whose: *whose,
+                whenever: true,
+            },
             TriggerSpec::TargetedByOpponent => Trigger::TargetedByOpponent,
             TriggerSpec::TargetedFirstTime => Trigger::TargetedFirstTime,
             TriggerSpec::TargetedByYouFirstTime => Trigger::TargetedByYouFirstTime,

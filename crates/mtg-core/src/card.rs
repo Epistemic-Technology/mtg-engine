@@ -6389,6 +6389,18 @@ pub enum TriggerSpec {
     /// mana), so it uses the stack. The permanent is the triggering
     /// object, its controller the triggering player ("that player").
     TapsForMana { what: TriggerObj, whose: Who },
+    /// "When enchanted creature becomes the target of a spell" (`spells`),
+    /// "Whenever a permanent you control becomes the target of a spell or
+    /// ability an opponent controls" (`whose` Opponents): a matching
+    /// permanent becomes a target of a spell (or, without `spells`, a spell
+    /// or ability) whose controller matches `whose`. The targeted permanent
+    /// is the triggering object, the spell's or ability's controller the
+    /// triggering player.
+    TargetedBy {
+        what: TriggerObj,
+        spells: bool,
+        whose: Who,
+    },
 }
 
 /// The event whose triggers an `AbilityDef::TriggerAgain` with a cause
@@ -6601,6 +6613,7 @@ impl TriggerSpec {
             | TriggerSpec::CastThis
             | TriggerSpec::Expends(_) => WATCH_CAST,
             TriggerSpec::BecomesTarget(_)
+            | TriggerSpec::TargetedBy { .. }
             | TriggerSpec::TargetedByOpponent
             | TriggerSpec::TargetedFirstTime
             | TriggerSpec::TargetedByYouFirstTime

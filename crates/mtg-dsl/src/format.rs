@@ -4429,6 +4429,20 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             format!("whenever {who} {what}")
         }
         Trigger::BecomesTarget(o) => format!("when {} becomes targeted", trigger_obj(o)),
+        Trigger::TargetedBy {
+            obj,
+            spells,
+            whose,
+            whenever,
+        } => format!(
+            "{} {} becomes targeted by {}{}",
+            if *whenever { "whenever" } else { "when" },
+            trigger_obj(obj),
+            if *whose == Who::Opponents { "opponent " } else { "" },
+            if *spells { "spell" } else { "" }
+        )
+        .trim_end()
+        .to_string(),
         Trigger::TargetedByOpponent => "whenever this becomes targeted by opponent".to_string(),
         Trigger::TargetedFirstTime => {
             "whenever this becomes targeted first time each turn".to_string()

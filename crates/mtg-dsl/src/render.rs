@@ -11097,6 +11097,24 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             "whenever {} becomes the target of a spell or ability for the first time each turn",
             this(ctx)
         ),
+        Trigger::TargetedBy {
+            obj,
+            spells,
+            whose,
+            whenever,
+        } => {
+            let what = if *spells { "a spell" } else { "a spell or ability" };
+            let whose = match whose {
+                Who::Opponents => " an opponent controls",
+                Who::You => " you control",
+                Who::Any => "",
+            };
+            format!(
+                "{} {} becomes the target of {what}{whose}",
+                if *whenever { "whenever" } else { "when" },
+                trigger_subject(obj, ctx)
+            )
+        }
         Trigger::TargetedByOpponent => format!(
             "whenever {} becomes the target of a spell or ability an opponent controls",
             this(ctx)

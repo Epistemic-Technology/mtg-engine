@@ -1,0 +1,9 @@
+card "Battle Mammoth" {
+  oracle_id 7a6db509-7ef4-483c-b8a0-62a4f3e16ef9
+  cost {3}{G}{G}
+  type Creature — Elephant
+  pt 6/5
+  keywords trample
+  triggered whenever permanent you control becomes targeted by opponent: you may draw 1 card
+  foretell {2}{G}{G}
+}

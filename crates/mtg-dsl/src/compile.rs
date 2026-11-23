@@ -4563,6 +4563,13 @@ impl Compiler<'_> {
                 TriggerSpec::BecomesTarget(self.trigger_obj(o))
             }
             Trigger::TargetedByOpponent => TriggerSpec::TargetedByOpponent,
+            Trigger::TargetedBy {
+                obj, spells, whose, ..
+            } => TriggerSpec::TargetedBy {
+                what: self.trigger_obj(obj),
+                spells: *spells,
+                whose: *whose,
+            },
             Trigger::TargetedFirstTime => TriggerSpec::TargetedFirstTime,
             Trigger::TargetedByYouFirstTime => TriggerSpec::TargetedByYouFirstTime,
             Trigger::TurnedFaceUp(o) => TriggerSpec::TurnedFaceUp(self.trigger_obj(o)),

@@ -1,0 +1,9 @@
+card "Gargos, Vicious Watcher" {
+  oracle_id 378fcd0f-1096-4769-9149-55b4a889ff56
+  cost {3}{G}{G}{G}
+  type Legendary Creature — Hydra
+  pt 8/7
+  keywords vigilance
+  spells Hydra you cast cost {4} less
+  triggered whenever creature you control becomes targeted by spell: this fights up to one target creature you don't control
+}

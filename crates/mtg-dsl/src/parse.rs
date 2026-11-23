@@ -13881,6 +13881,26 @@ impl P {
                 {
                     return self.unexpected("`targeted`");
                 }
+                // "the target of a spell", "... of a spell or ability an
+                // opponent controls" (a filter's, or a spell's only).
+                if self.at_words(&["by", "spell"])
+                    || self.at_words(&["by", "opponent", "spell"])
+                    || (obj != TriggerObj::This && self.at_words(&["by", "opponent"]))
+                {
+                    self.pos += 1;
+                    let whose = if self.eat_word("opponent") {
+                        Who::Opponents
+                    } else {
+                        Who::Any
+                    };
+                    let spells = self.eat_word("spell");
+                    return Ok(Trigger::TargetedBy {
+                        obj,
+                        spells,
+                        whose,
+                        whenever,
+                    });
+                }
                 if obj == TriggerObj::This && self.eat_words(&["by", "opponent"]) {
                     return Ok(Trigger::TargetedByOpponent);
                 }

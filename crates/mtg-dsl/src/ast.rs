@@ -3134,6 +3134,16 @@ pub enum Trigger {
         what: TriggerObj,
         whose: Who,
     },
+    /// `when enchanted creature becomes targeted by spell` ("When enchanted
+    /// creature becomes the target of a spell"), `whenever permanent you
+    /// control becomes targeted by opponent` ("... the target of a spell or
+    /// ability an opponent controls"), `... by opponent spell`.
+    TargetedBy {
+        obj: TriggerObj,
+        spells: bool,
+        whose: Who,
+        whenever: bool,
+    },
     /// `whenever this is dealt damage`.
     DealtDamage(TriggerObj),
     /// `when you discard this`: "When you discard this card".
