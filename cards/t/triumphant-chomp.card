@@ -1,0 +1,6 @@
+card "Triumphant Chomp" {
+  oracle_id d417f574-38a4-405c-83bb-49c5cf542648
+  cost {R}
+  type Sorcery
+  spell: deal count equal max 2 greatest power Dinosaur you control damage to target creature
+}

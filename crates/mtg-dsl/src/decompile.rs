@@ -699,6 +699,9 @@ impl Decompiler<'_> {
                 other: *other,
             },
             StaticCondition::CastFrom(z) => StaticCond::CastFrom(*z),
+            StaticCondition::LostLifeThisTurn { gained } => {
+                StaticCond::LostLifeThisTurn { gained: *gained }
+            }
             StaticCondition::GainedLifeThisTurn { or_lost } => {
                 StaticCond::GainedLifeThisTurn { or_lost: *or_lost }
             }
@@ -1307,6 +1310,7 @@ impl Decompiler<'_> {
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
                 may: *may,
                 old: false,
+                those: false,
             },
             CoreEffect::Surveil { count } => Effect::Surveil(*count),
             CoreEffect::Discard { count, who } => Effect::Discard {
@@ -1629,9 +1633,10 @@ impl Decompiler<'_> {
             CoreEffect::ExileHaunting => unreachable!("haunt is decompiled as a keyword line"),
             CoreEffect::Champion(_) => unreachable!("champion is decompiled as a keyword line"),
             CoreEffect::Lasting { .. } => unreachable!("a sentence's duration, by `sentences`"),
-            CoreEffect::Explore { what } => Effect::Explore {
+            CoreEffect::Explore { what, times } => Effect::Explore {
                 what: Self::recipient(*what),
                 twice: false,
+                times: (*times != mtg_core::card::Num::N(1)).then_some(*times),
             },
             CoreEffect::PhaseOut { what } => Effect::PhaseOut {
                 what: Self::recipient(*what),

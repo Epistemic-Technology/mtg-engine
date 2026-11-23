@@ -3238,6 +3238,7 @@ impl P {
                         graveyard: false,
                         name: None,
                         old: false,
+                        those: false,
                     }])],
                     equip: false,
                     cycling: true,
@@ -4754,6 +4755,12 @@ impl P {
         if self.eat_words(&["gained", "life", "this", "turn"]) {
             return Ok(StaticCond::GainedLifeThisTurn { or_lost: false });
         }
+        if self.eat_words(&["lost", "life", "this", "turn"]) {
+            return Ok(StaticCond::LostLifeThisTurn { gained: false });
+        }
+        if self.eat_words(&["gained", "and", "lost", "life", "this", "turn"]) {
+            return Ok(StaticCond::LostLifeThisTurn { gained: true });
+        }
         if self.eat_words(&["gained", "or", "lost", "life", "this", "turn"]) {
             return Ok(StaticCond::GainedLifeThisTurn { or_lost: true });
         }
@@ -4833,6 +4840,11 @@ impl P {
             self.expect_words(&["life", "this", "turn"])?;
             return Ok(StaticCond::LifeGainedThisTurn(n));
         }
+        // `sacrificed permanent this turn`: "you sacrificed a permanent
+        // this turn" (no types: any permanent).
+        if self.eat_words(&["sacrificed", "permanent", "this", "turn"]) {
+            return Ok(StaticCond::SacrificedThisTurn(Vec::new()));
+        }
         if self.eat_word("sacrificed") {
             let mut types = Vec::new();
             loop {
@@ -4896,6 +4908,9 @@ impl P {
         }
         if self.eat_words(&["max", "speed"]) {
             return Ok(StaticCond::MaxSpeed);
+        }
+        if self.eat_words(&["didn't", "cast", "this", "turn"]) {
+            return Ok(StaticCond::DidntCastThisTurn);
         }
         if self.eat_words(&["not", "cast", "this", "turn"]) {
             return Ok(StaticCond::NoSpellsCastThisTurn { from_hand: false });
@@ -7992,6 +8007,7 @@ impl P {
                         graveyard,
                         name,
                         old,
+                        those,
                         ..
                     } => Ok(Effect::Search {
                         filter,
@@ -8006,6 +8022,7 @@ impl P {
                         graveyard,
                         name,
                         old,
+                        those,
                     }),
                     _ => self.fail("expected a search"),
                 }
@@ -8309,10 +8326,26 @@ impl P {
                 what: subject,
                 count: self.num()?,
             }),
-            "explores" => Ok(Effect::Explore {
-                what: subject,
-                twice: self.eat_word("twice"),
-            }),
+            "explores" => {
+                let twice = self.eat_word("twice");
+                // `explores X times`.
+                let times = if !twice
+                    && self
+                        .word_at(0)
+                        .is_some_and(|w| w.eq_ignore_ascii_case("x") || w == "count")
+                {
+                    let n = self.num()?;
+                    self.expect_word("times")?;
+                    Some(n)
+                } else {
+                    None
+                };
+                Ok(Effect::Explore {
+                    what: subject,
+                    twice,
+                    times,
+                })
+            }
             "phases" => {
                 self.expect_word("out")?;
                 Ok(Effect::PhaseOut { what: subject })
@@ -10558,6 +10591,7 @@ impl P {
                 if old {
                     self.pos += 1;
                 }
+                let those = self.eat_word("those");
                 Ok(Effect::Search {
                     filter,
                     count,
@@ -10571,6 +10605,7 @@ impl P {
                     graveyard,
                     name,
                     old,
+                    those,
                 })
             }
             "add" => {
@@ -11434,6 +11469,27 @@ impl P {
             }
             return Ok(CountExpr::TargetHand(n - 1));
         }
+        if self.eat_words(&["colors", "of", "target"]) {
+            let n = self.number()? as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            return Ok(CountExpr::TargetColors(n - 1));
+        }
+        if self.eat_words(&["library", "of", "target"]) {
+            let n = self.number()? as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            return Ok(CountExpr::TargetLibrary(n - 1));
+        }
+        // `max 2 <count>`: "2 or ..., whichever is greater".
+        if self.at_word("max") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            self.pos += 1;
+            let n = self.number()?;
+            let inner = self.count_expr()?;
+            return Ok(CountExpr::AtLeast(n, Box::new(inner)));
+        }
         if let Some(Tok::Num(n)) = self.peek() {
             let n = *n;
             self.pos += 1;
@@ -11538,8 +11594,31 @@ impl P {
             }
             return Ok(CountExpr::Devotion { colors, chroma });
         }
+        if self.eat_words(&["greatest", "mana", "value", "among"]) {
+            return Ok(CountExpr::GreatestManaValueOf(self.filter()?));
+        }
+        if self.eat_words(&["greatest", "mana", "value", "graveyard"]) {
+            let f = if self.at_stmt_end()
+                || !self.word_at(0).is_some_and(|w| {
+                    card_type(&w).is_some() || w.starts_with("non") || color(&w).is_some()
+                }) {
+                None
+            } else {
+                Some(self.filter()?)
+            };
+            return Ok(CountExpr::GreatestManaValueInGraveyard(f));
+        }
         if self.eat_words(&["greatest", "mana", "value"]) {
             return Ok(CountExpr::GreatestManaValue);
+        }
+        if self.eat_words(&["colors", "of", "that", "spell"]) {
+            return Ok(CountExpr::ThatSpellColors);
+        }
+        if self.eat_words(&["damage", "dealt", "to", "it", "this", "turn"]) {
+            return Ok(CountExpr::SourceDamage);
+        }
+        if self.eat_words(&["creatures", "left", "this", "turn"]) {
+            return Ok(CountExpr::CreaturesLeftThisTurn);
         }
         if self.eat_words(&["drawn", "this", "turn"]) {
             return Ok(CountExpr::CardsDrawnThisTurn);
@@ -13492,6 +13571,19 @@ impl P {
                     } else {
                         Cmp::Exactly
                     };
+                    // "with mana value 4 or 5": a range, which a filter
+                    // can't hold; read as 4 it would mean something else.
+                    if cmp == Cmp::Exactly
+                        && self.word_at(0).as_deref() == Some("or")
+                        && (matches!(self.peek_at(1), Some(Tok::Num(_)))
+                            || self.word_at(1).is_some_and(|w| {
+                                NUMBER_WORDS.contains(&w.to_ascii_lowercase().as_str())
+                            }))
+                    {
+                        return self.fail(format!(
+                            "`with {what} {n} or ...`: a range of values is not supported"
+                        ));
+                    }
                     match what.as_str() {
                         "power" if either => {
                             let n = i16::try_from(n).unwrap_or(i16::MAX);
@@ -15359,6 +15451,10 @@ impl P {
         }
         if self.eat_words(&["it", "had", "counters"]) {
             return Ok(Condition::TriggerHadCounters);
+        }
+        // "if it had no counters on it": of any kind.
+        if self.eat_words(&["it", "had", "no", "counters"]) {
+            return Ok(Condition::HadNoCounters(CounterKind::Any));
         }
         if self.eat_words(&["it", "had", "no"]) {
             let k = self.counter_kind()?;

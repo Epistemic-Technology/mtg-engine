@@ -827,10 +827,11 @@ impl Fmt {
             Effect::TakeInitiative => "take initiative".to_string(),
             Effect::Venture { undercity: false } => "venture".to_string(),
             Effect::Venture { undercity: true } => "venture into undercity".to_string(),
-            Effect::Explore { what, twice } => format!(
-                "{} explores{}",
+            Effect::Explore { what, twice, times } => format!(
+                "{} explores{}{}",
                 self.recipient(*what, t),
-                if *twice { " twice" } else { "" }
+                if *twice { " twice" } else { "" },
+                times.map_or(String::new(), |n| format!(" {} times", num(n)))
             ),
             Effect::PhaseOut { what } => format!("{} phases out", self.recipient(*what, t)),
             Effect::Endure { what, count } => {
@@ -2295,6 +2296,7 @@ impl Fmt {
                 graveyard,
                 name,
                 old,
+                those,
             } => {
                 let searcher = who.map(|w| self.recipient(w, t));
                 let mut t = String::new();
@@ -2392,6 +2394,9 @@ impl Fmt {
                 }
                 if *old {
                     t.push_str(" then");
+                }
+                if *those {
+                    t.push_str(" those");
                 }
                 t
             }
@@ -3558,6 +3563,19 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
 
         CountExpr::OpponentsMoreCards => "opponents more cards in hand".to_string(),
         CountExpr::Total(stat, f) => format!("total {} {}", stat_word(*stat), filter(f)),
+        CountExpr::TargetLibrary(n) => format!("library of target {}", n + 1),
+        CountExpr::GreatestManaValueOf(f) => format!("greatest mana value among {}", filter(f)),
+        CountExpr::GreatestManaValueInGraveyard(None) => {
+            "greatest mana value graveyard".to_string()
+        }
+        CountExpr::GreatestManaValueInGraveyard(Some(f)) => {
+            format!("greatest mana value graveyard {}", card_filter(f))
+        }
+        CountExpr::AtLeast(n, inner) => format!("max {n} {}", count_expr_text(inner)),
+        CountExpr::ThatSpellColors => "colors of that spell".to_string(),
+        CountExpr::SourceDamage => "damage dealt to it this turn".to_string(),
+        CountExpr::CreaturesLeftThisTurn => "creatures left this turn".to_string(),
+        CountExpr::TargetColors(n) => format!("colors of target {}", n + 1),
     }
 }
 
@@ -5845,6 +5863,10 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::GainedLifeThisTurn { or_lost: true } => {
             "gained or lost life this turn".to_string()
         }
+        StaticCond::LostLifeThisTurn { gained: false } => "lost life this turn".to_string(),
+        StaticCond::LostLifeThisTurn { gained: true } => {
+            "gained and lost life this turn".to_string()
+        }
         StaticCond::DescendedThisTurn => "descended this turn".to_string(),
         StaticCond::SpellNumber(n) => format!("spell number {n} this turn"),
         StaticCond::SurveilledThisTurn => "surveilled this turn".to_string(),
@@ -5882,6 +5904,9 @@ fn static_cond(c: &StaticCond) -> String {
             if *was { "was " } else { "" }
         ),
         StaticCond::LeftGraveyardThisTurn => "card left your graveyard this turn".to_string(),
+        StaticCond::SacrificedThisTurn(t) if t.is_empty() => {
+            "sacrificed permanent this turn".to_string()
+        }
         StaticCond::SacrificedThisTurn(t) => {
             let names: Vec<&str> = t.iter().map(|c| crate::render::type_noun(*c)).collect();
             format!("sacrificed {} this turn", names.join(" or "))
@@ -5901,6 +5926,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::NoEnduringStory => "no enduring story".to_string(),
         StaticCond::MaxSpeed => "max speed".to_string(),
         StaticCond::NoSpellsCastThisTurn { from_hand: false } => "not cast this turn".to_string(),
+        StaticCond::DidntCastThisTurn => "didn't cast this turn".to_string(),
         StaticCond::NoSpellsCastThisTurn { from_hand: true } => {
             "not cast from hand this turn".to_string()
         }
@@ -6432,6 +6458,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 Some(mtg_core::card::Condition::TwoSpellsLastTurn) => {
                     head.push_str(" if a player cast two or more spells last turn");
+                }
+                Some(mtg_core::card::Condition::HadNoCounters(
+                    mtg_core::card::CounterKind::Any,
+                )) => {
+                    head.push_str(" if it had no counters");
                 }
                 Some(mtg_core::card::Condition::HadNoCounters(k)) => {
                     let _ = write!(head, " if it had no {}", counter(*k, Num::N(2)));

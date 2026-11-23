@@ -1,0 +1,9 @@
+card "Essence Channeler" {
+  oracle_id 1473580d-7cb2-48f5-a77d-08f49244c5e8
+  cost {1}{W}
+  type Creature — Bat Cleric
+  pt 2/1
+  static as long as lost life this turn, this: has flying, vigilance
+  triggered whenever you gain life: put 1 +1/+1 counters on this
+  triggered when this dies: put its counters on target creature you control
+}

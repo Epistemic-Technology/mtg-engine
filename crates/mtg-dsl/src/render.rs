@@ -4495,6 +4495,16 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
     // "half the number of artifacts you control, rounded down"; "for
     // every seven cards in your graveyard".
     if let CountExpr::Divided { by, up, inner } = c {
+        // "mills half their library, rounded down".
+        if *by == 2
+            && !each
+            && let CountExpr::TargetLibrary(_) = **inner
+        {
+            return format!(
+                "half their library, rounded {}",
+                if *up { "up" } else { "down" }
+            );
+        }
         let s = count_phrase(inner, card, false);
         if *by == 2 && !each {
             return format!("half {s}, rounded {}", if *up { "up" } else { "down" });
@@ -5069,6 +5079,51 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 controller_first(f, filter_phrase(f, card, true))
             );
         }
+        CountExpr::TargetLibrary(_) => (
+            "card in that player's library".to_string(),
+            "cards in that player's library".to_string(),
+        ),
+        CountExpr::GreatestManaValueOf(f) => {
+            return format!(
+                "the greatest mana value among {}",
+                filter_phrase(f, card, true)
+            );
+        }
+        CountExpr::GreatestManaValueInGraveyard(f) => {
+            let cards = f
+                .as_ref()
+                .map_or_else(|| "cards".to_string(), |f| cards_phrase(f, card, true));
+            return format!("the greatest mana value among {cards} in your graveyard");
+        }
+        // "2 or the greatest power among Dinosaurs you control, whichever
+        // is greater".
+        CountExpr::AtLeast(n, inner) => {
+            return format!(
+                "{n} or {}, whichever is greater",
+                count_phrase(inner, card, false)
+            );
+        }
+        CountExpr::ThatSpellColors => {
+            return if each {
+                "for each of that spell's colors".to_string()
+            } else {
+                "the number of colors that spell is".to_string()
+            };
+        }
+        CountExpr::SourceDamage => {
+            return "the amount of damage dealt to it this turn".to_string();
+        }
+        CountExpr::TargetColors(_) => {
+            return if each {
+                "for each of its colors".to_string()
+            } else {
+                "the number of its colors".to_string()
+            };
+        }
+        CountExpr::CreaturesLeftThisTurn => (
+            "creature that left the battlefield under your control this turn".to_string(),
+            "creatures that left the battlefield under your control this turn".to_string(),
+        ),
     };
     if each {
         format!("for each {one}")
@@ -5212,6 +5267,30 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     1,
                 );
             }
+            // "... for up to X basic land cards, where X is the number of
+            // Shrines you control. Put those cards onto the battlefield
+            // tapped, then shuffle.", "... Reveal those cards, put them
+            // into your hand, then shuffle."
+            CountStyle::Where
+                if matches!(e, Effect::Search { those: true, .. })
+                    && (c.text.contains(" cards, put them ")
+                        || c.text.contains(" cards, reveal them, put them ")) =>
+            {
+                let phrase = count_phrase_in(&count.expr, ctx, false);
+                c.text = if c.text.contains(" cards, reveal them, put them ") {
+                    c.text.replacen(
+                        " cards, reveal them, put them ",
+                        &format!(" cards, where X is {phrase}. Reveal those cards, put them "),
+                        1,
+                    )
+                } else {
+                    c.text.replacen(
+                        " cards, put them ",
+                        &format!(" cards, where X is {phrase}. Put those cards "),
+                        1,
+                    )
+                };
+            }
             // "... for up to X basic land cards, where X
             // is the number of lands you control, put them onto the
             // battlefield tapped, then shuffle."
@@ -5235,9 +5314,18 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 if matches!(e, Effect::Amass { .. }) {
                     ctx.source_mentioned = false;
                 }
+                // "tokens with \"This token can't block,\" where X is ...":
+                // the comma goes inside the closing quote.
+                let comma = if c.tail.is_empty() && c.text.ends_with(".\"") {
+                    c.text.truncate(c.text.len() - 2);
+                    c.text.push_str(",\"");
+                    ""
+                } else {
+                    ","
+                };
                 let _ = write!(
                     c.tail,
-                    ", where X is {}",
+                    "{comma} where X is {}",
                     count_phrase_in(&count.expr, ctx, false)
                 );
                 ctx.source_mentioned = mentioned;
@@ -5253,6 +5341,17 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     other => count_phrase(other, ctx.card, false),
                 };
                 let _ = write!(c.tail, " equal to {what}");
+            }
+            // "Target opponent mills half their library, rounded down."
+            CountStyle::Equal
+                if matches!(
+                    &count.expr,
+                    crate::ast::CountExpr::Divided { by: 2, inner, .. }
+                        if matches!(**inner, crate::ast::CountExpr::TargetLibrary(_))
+                ) =>
+            {
+                let phrase = count_phrase_in(&count.expr, ctx, false);
+                c.text = c.text.replacen("X cards", &phrase, 1);
             }
             CountStyle::Equal => {
                 // "Create a number of 1/1 red Goblin creature tokens equal
@@ -6844,14 +6943,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
             ))
         }
-        Effect::Explore { what, twice } => {
+        Effect::Explore { what, twice, times } => {
             let s = ctx.subj(*what);
             let text = if *twice {
-                "explores, then it explores again"
+                "explores, then it explores again".to_string()
+            } else if let Some(n) = times {
+                format!("explores {} times", digits(*n))
             } else {
-                "explores"
+                "explores".to_string()
             };
-            Clause::with_subject(*what, s, text.to_string())
+            Clause::with_subject(*what, s, text)
         }
         Effect::PhaseOut { what } => {
             let s = ctx.subj(*what);
@@ -7172,7 +7273,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "return up to two target creature cards ... from your
             // graveyard to the battlefield" too.
             let yours = match what {
-                Recipient::Target(i) | Recipient::ThatTarget(i) => from_yours(*i),
+                Recipient::Target(i) | Recipient::ThatTarget(i) | Recipient::ChosenTarget(i) => {
+                    from_yours(*i)
+                }
                 Recipient::Targets(first, count) => (*first..*first + *count).all(from_yours),
                 // "Whenever a creature is put into your graveyard from the
                 // battlefield, ... return that card to the battlefield"
@@ -7736,7 +7839,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let second = ctx.obj(Recipient::Target(a + 1));
             Clause::imperative(format!("choose {first} and {second}"))
         }
-        Effect::ChooseTarget(r) => Clause::imperative(format!("choose {}", ctx.obj(*r))),
+        // "choose target artifact card in your graveyard" (Daretti,
+        // Rocketeer Engineer): "in", where a move says "from".
+        Effect::ChooseTarget(r) => Clause::imperative(format!(
+            "choose {}",
+            ctx.obj(*r)
+                .replacen(" from your graveyard", " in your graveyard", 1)
+        )),
         Effect::FlipCoin => Clause::imperative("flip a coin".to_string()),
         Effect::Clash => Clause::imperative("clash with an opponent".to_string()),
         Effect::IfWonClash(inner) => {
@@ -8910,6 +9019,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             graveyard,
             name,
             old,
+            ..
         } => {
             if *graveyard || name.is_some() {
                 return search_named_text(e, ctx);
@@ -12613,6 +12723,9 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         }
         // "if he was kicked" (Josu Vess).
         Condition::Kicked => format!("if {} was kicked", it_subj(ctx.card)),
+        Condition::HadNoCounters(mtg_core::card::CounterKind::Any) => {
+            "if it had no counters on it".to_string()
+        }
         Condition::HadNoCounters(k) => format!("if it had no {} counters on it", counter_name(k)),
         Condition::HadCounters(k) => format!(
             "if it had {} on it",
@@ -15423,6 +15536,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             "you gained {}life this turn",
             if *or_lost { "or lost " } else { "" }
         ),
+        StaticCond::LostLifeThisTurn { gained: false } => "you've lost life this turn".to_string(),
+        StaticCond::LostLifeThisTurn { gained: true } => {
+            "you gained and lost life this turn".to_string()
+        }
         StaticCond::DescendedThisTurn => "you descended this turn".to_string(),
         StaticCond::SpellNumber(n) => {
             format!("it's the {} spell you cast this turn", ordinal_word(*n))
@@ -15485,6 +15602,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             "you've put one or more +1/+1 counters on a creature this turn".to_string()
         }
         StaticCond::LeftGraveyardThisTurn => "a card left your graveyard this turn".to_string(),
+        StaticCond::SacrificedThisTurn(t) if t.is_empty() => {
+            "you sacrificed a permanent this turn".to_string()
+        }
         StaticCond::SacrificedThisTurn(t) => {
             let names: Vec<&str> = t.iter().map(|c| type_noun(*c)).collect();
             format!(
@@ -15521,6 +15641,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::EnduringStory => "you have an enduring story".to_string(),
         StaticCond::NoEnduringStory => "you don't have an enduring story".to_string(),
         StaticCond::MaxSpeed => "you have max speed".to_string(),
+        StaticCond::DidntCastThisTurn => "you didn't cast a spell this turn".to_string(),
         StaticCond::NoSpellsCastThisTurn { from_hand } => format!(
             "you haven't cast a spell{} this turn",
             if *from_hand { " from your hand" } else { "" }
@@ -16603,14 +16724,29 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             }
             // "... cost {1} less to cast for each creature you control with
             // power 4 or greater."
-            let per_text = per
-                .and_then(|n| match n {
-                    Num::Count(i) => card.counts.get(usize::from(i)),
-                    _ => None,
-                })
-                .map_or_else(String::new, |c| {
+            let per_count = per.and_then(|n| match n {
+                Num::Count(i) => card.counts.get(usize::from(i)),
+                _ => None,
+            });
+            // "... cost {X} less to cast, where X is your speed."
+            let per_where = per_count.is_some_and(|c| c.style == crate::ast::CountStyle::Where);
+            let per_text = per_count.map_or_else(String::new, |c| {
+                if per_where {
+                    // "where X is The Scarlet Witch's power".
+                    let phrase = count_phrase(&c.expr, card, false);
+                    let phrase = if matches!(
+                        c.expr,
+                        crate::ast::CountExpr::SourcePower | crate::ast::CountExpr::SourceToughness
+                    ) {
+                        phrase.replacen("its", &format!("{}'s", this_ref(card)), 1)
+                    } else {
+                        phrase
+                    };
+                    format!(", where X is {phrase}")
+                } else {
                     format!(" {}", count_phrase(&c.expr, card, true))
-                });
+                }
+            });
             let head = match cond {
                 Some(StaticCond::NotYourTurn) => "During turns other than yours, ",
                 Some(StaticCond::DuringYourTurn) => "During your turn, ",
@@ -16662,10 +16798,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 Some((cmp, n)) => (f, format!(" with mana value {n}{}", cmp_words(cmp))),
                 None => (filter.clone(), String::new()),
             };
+            let amount = if per_where {
+                "X".to_string()
+            } else {
+                generic.unsigned_abs().to_string()
+            };
             let body = format!(
-                "{} {whose}{mv} cost {{{}}} {more} to cast{per_text}.",
+                "{} {whose}{mv} cost {{{amount}}} {more} to cast{per_text}.",
                 cost_spells_subject(&f, card),
-                generic.unsigned_abs()
             )
             .replace("  ", " ");
             if head.is_empty() {

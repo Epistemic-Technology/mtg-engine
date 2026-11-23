@@ -1214,6 +1214,54 @@ impl GameState {
                     .map(|c| self.pool.get(c.def).mana_cost.devotion(*colors))
                     .sum();
             }
+            CountExpr::TargetLibrary(n) => match ctx.targets.get(*n) {
+                Some(Target::Player(p)) => self.player(*p).library.len(),
+                _ => 0,
+            },
+            CountExpr::GreatestManaValueOf(f) => {
+                let f = &*self.chosen_filter(f, ctx);
+                return self
+                    .battlefield
+                    .iter()
+                    .filter_map(|id| {
+                        let o = &self.objects[*id];
+                        let c = self.characteristics(*id)?;
+                        (f.matches(*id, o.controller, &c, Some(ctx.source), Some(you))
+                            && self.status_ok(f, *id))
+                        .then(|| self.pool.get(c.def).mana_cost.mana_value())
+                    })
+                    .max()
+                    .unwrap_or(0);
+            }
+            CountExpr::GreatestManaValueInGraveyard(f) => {
+                return self.greatest_mana_value_in_graveyard(you, f.as_ref());
+            }
+            CountExpr::AtLeast(k, inner) => return (*k).max(self.eval_count(inner, ctx)),
+            CountExpr::ThatSpellColors => ctx.trigger_obj.map_or(0, |t| {
+                self.characteristics_or_lki(t)
+                    .map_or(0, |c| c.colors.iter().count())
+            }),
+            // CR 608.2h: as the source last existed on the battlefield.
+            CountExpr::SourceDamage => {
+                return match self.objects.get(ctx.source) {
+                    Some(o) if o.zone == Zone::Battlefield => o.damage,
+                    o => self
+                        .lki
+                        .get(&ctx.source)
+                        .map(|l| l.object.damage)
+                        .or_else(|| o.map(|o| o.damage))
+                        .unwrap_or(0),
+                };
+            }
+            CountExpr::CreaturesLeftThisTurn => {
+                usize::from(self.turn_log.creatures_left[you.index().min(3)])
+            }
+            CountExpr::TargetColors(n) => match ctx.targets.get(*n) {
+                Some(Target::Object(id)) => self
+                    .characteristics_or_lki(*id)
+                    .map_or(0, |c| c.colors.iter().count()),
+                _ => 0,
+            },
             CountExpr::GreatestManaValue => {
                 return self
                     .permanents_of(you)
@@ -2131,6 +2179,28 @@ impl GameState {
                 let c = self.base_characteristics(o);
                 (f.matches(*id, o.owner, &c, None, Some(you)) && self.status_ok(f, *id))
                     .then(|| c.power())
+            })
+            .max()
+            .unwrap_or(0)
+    }
+
+    /// "the greatest mana value among cards in your graveyard", all or
+    /// matching the filter; 0 with none.
+    pub(crate) fn greatest_mana_value_in_graveyard(
+        &self,
+        you: PlayerId,
+        f: Option<&crate::card::ObjFilter>,
+    ) -> u32 {
+        self.player(you)
+            .graveyard
+            .iter()
+            .filter_map(|id| {
+                let o = &self.objects[*id];
+                let c = self.base_characteristics(o);
+                f.is_none_or(|f| {
+                    f.matches(*id, o.owner, &c, None, Some(you)) && self.status_ok(f, *id)
+                })
+                .then(|| self.pool.get(c.def).mana_cost.mana_value())
             })
             .max()
             .unwrap_or(0)
@@ -13951,13 +14021,16 @@ impl GameState {
                     }
                 }
             }
-            Effect::Explore { what } => {
-                for t in self.recipients(ctx, *what) {
-                    if let Target::Object(id) = t {
-                        self.explore(ctx, id);
-                        // CR 701.44c: it explored, whatever was revealed
-                        // and even if it has left the battlefield.
-                        self.emit(Event::Explored { obj: id });
+            Effect::Explore { what, times } => {
+                let times = self.eval_num(*times, ctx);
+                for _ in 0..times {
+                    for t in self.recipients(ctx, *what) {
+                        if let Target::Object(id) = t {
+                            self.explore(ctx, id);
+                            // CR 701.44c: it explored, whatever was revealed
+                            // and even if it has left the battlefield.
+                            self.emit(Event::Explored { obj: id });
+                        }
                     }
                 }
             }

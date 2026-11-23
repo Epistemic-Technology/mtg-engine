@@ -618,6 +618,27 @@ pub enum CountExpr {
     /// `total power creature you control`: "the total power of creatures
     /// you control" (also `total toughness`, `total mana value`).
     Total(mtg_core::card::Stat, Filter),
+    /// `library of target 1`: "the number of cards in that player's
+    /// library"; halved, "half their library".
+    TargetLibrary(usize),
+    /// `greatest mana value among artifact you control`: "the greatest
+    /// mana value among artifacts you control".
+    GreatestManaValueOf(Filter),
+    /// `greatest mana value graveyard [creature]`: "the greatest mana
+    /// value among [creature] cards in your graveyard".
+    GreatestManaValueInGraveyard(Option<Filter>),
+    /// `max 2 <count>`: "2 or <count>, whichever is greater".
+    AtLeast(u32, Box<CountExpr>),
+    /// `colors of that spell`: "for each of that spell's colors".
+    ThatSpellColors,
+    /// `damage dealt to it this turn`: "the amount of damage dealt to it
+    /// this turn" (the source's).
+    SourceDamage,
+    /// `creatures left this turn`: "for each creature that left the
+    /// battlefield under your control this turn".
+    CreaturesLeftThisTurn,
+    /// `colors of target 1`: "for each of its colors".
+    TargetColors(usize),
 }
 
 /// What a target-dependent cost's filter names: a permanent, a spell, or a
@@ -2605,6 +2626,11 @@ pub enum StaticCond {
     GainedLifeThisTurn {
         or_lost: bool,
     },
+    /// `lost life this turn` ("you've lost life this turn"), `gained and
+    /// lost life this turn` ("you gained and lost life this turn").
+    LostLifeThisTurn {
+        gained: bool,
+    },
     /// `descended this turn`: "you descended this turn".
     DescendedThisTurn,
     /// `spell number 2 this turn`: the spell being cast would be your
@@ -2714,6 +2740,9 @@ pub enum StaticCond {
     NoSpellsCastThisTurn {
         from_hand: bool,
     },
+    /// `didn't cast this turn`: "you didn't cast a spell this turn" (the
+    /// same condition, worded in the past).
+    DidntCastThisTurn,
     /// `total power 8 or more` (formidable): "creatures you control have
     /// total power 8 or greater".
     TotalPower(u32),
@@ -4509,6 +4538,11 @@ pub enum Effect {
         /// `... to battlefield that card then`: the older wording "and put
         /// that card onto the battlefield. Then shuffle." (wording only).
         old: bool,
+        /// `... to battlefield tapped those`: a count-sized search's
+        /// newer wording, "..., where X is .... Put those cards onto the
+        /// battlefield tapped" ("Reveal those cards, put them into your
+        /// hand") (wording only).
+        those: bool,
     },
     /// `add {B}{B}`, `add any`: "Add {B}{B}.", "Add one mana of any
     /// color." (CR 106.4).
@@ -4881,6 +4915,8 @@ pub enum Effect {
     Explore {
         what: Recipient,
         twice: bool,
+        /// `explores X times`: "it explores X times".
+        times: Option<Num>,
     },
     /// `this endures 2`, `that creature endures X` (CR 701.63): "endures
     /// N": N +1/+1 counters on it or an N/N white Spirit token, as its

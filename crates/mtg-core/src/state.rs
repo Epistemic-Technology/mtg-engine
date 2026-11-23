@@ -1792,6 +1792,8 @@ pub struct TurnLog {
     pub face_down_less: [u8; 4],
     /// Creatures that entered the battlefield under each player's control.
     pub creatures_entered: [u8; 4],
+    /// Creatures that left the battlefield under each player's control.
+    pub creatures_left: [u8; 4],
     /// Nonland permanents that did (celebration).
     pub nonland_entered: [u8; 4],
     /// The card types among permanents put into a graveyard from the
@@ -4304,6 +4306,11 @@ impl GameState {
                 .get(source)
                 .or_else(|| self.lki.get(&source).map(|l| &l.object))
                 .is_some_and(|o| o.cast.cast_from() == Some(*zone)),
+            C::LostLifeThisTurn { gained } => {
+                let bit = 1 << you.index().min(7);
+                self.lost_life_this_turn & bit != 0
+                    && (!*gained || self.turn_log.gained_life & bit != 0)
+            }
             C::GainedLifeThisTurn { or_lost } => {
                 let bit = 1 << you.index().min(7);
                 self.turn_log.gained_life & bit != 0

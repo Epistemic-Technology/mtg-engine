@@ -1,0 +1,377 @@
+# Counts from the tenth wave: half a target player's library, the
+# greatest mana value among a group or in a graveyard, "N or ...,
+# whichever is greater", the triggering spell's colors, the damage dealt
+# to a dying creature this turn, creatures that left the battlefield this
+# turn, and "explores X times".
+
+scenario "Kitsune's Technique: target opponent mills half their library, rounded up" {
+  battlefield A: 6 "Island"
+  hand A: "Kitsune's Technique"
+  library B: "Forest", "Forest", "Forest", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kitsune's Technique" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 3
+  assert library B count 2
+}
+
+scenario "Overture: target opponent mills half their library, rounded down" {
+  battlefield A: 6 "Island"
+  hand A: "Jidoor, Aristocratic Capital // Overture"
+  library B: "Forest", "Forest", "Forest", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Overture" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 2
+  assert library B count 3
+  assert exile A contains "Jidoor, Aristocratic Capital"
+}
+
+scenario "Jadelight Spelunker explores X times" {
+  battlefield A: 3 "Forest"
+  hand A: "Jadelight Spelunker"
+  library A: "Forest", "Grizzly Bears", "Hill Giant", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Jadelight Spelunker" x 2
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Jadelight Spelunker" +1/+1 1
+  assert library A count 2
+}
+
+scenario "Jadelight Spelunker with X 0 doesn't explore" {
+  battlefield A: "Forest"
+  hand A: "Jadelight Spelunker"
+  library A: "Forest", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Jadelight Spelunker" x 0
+  run_to turn 1 postcombat_main
+  assert counters "Jadelight Spelunker" +1/+1 0
+  assert library A count 2
+}
+
+scenario "Ramos gets a counter for each of the spell's colors" {
+  battlefield A: "Ramos, Dragon Engine", "Mountain", "Plains", 3 "Island"
+  hand A: "Lightning Helix", "Ornithopter", "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Helix" targeting player B
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert counters "Ramos, Dragon Engine" +1/+1 3
+}
+
+scenario "Tangled Colony makes a Rat for each damage dealt to it this turn" {
+  battlefield A: "Tangled Colony", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Tangled Colony"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Tangled Colony"
+  assert battlefield A count 4
+}
+
+scenario "Tangled Colony: two damage, two Rats" {
+  battlefield A: "Tangled Colony", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Tangled Colony"
+  run_to turn 1 postcombat_main
+  assert battlefield A count 3
+}
+
+scenario "Kutzil's Flanker counts creatures that left under your control" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Mountain", 3 "Plains"
+  battlefield B: "Wind Drake"
+  hand A: "Lightning Bolt", "Kutzil's Flanker"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Kutzil's Flanker"
+  turn 1 A: trigger "Kutzil's Flanker" mode 1
+  run_to turn 1 postcombat_main
+  assert counters "Kutzil's Flanker" +1/+1 1
+}
+
+scenario "Kutzil's Flanker doesn't count an opponent's creature" {
+  battlefield A: "Mountain", 3 "Plains"
+  battlefield B: "Wind Drake"
+  hand A: "Lightning Bolt", "Kutzil's Flanker"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Wind Drake"
+  turn 1 A: wait
+  turn 1 A: cast "Kutzil's Flanker"
+  turn 1 A: trigger "Kutzil's Flanker" mode 1
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert counters "Kutzil's Flanker" +1/+1 0
+}
+
+scenario "Triumphant Chomp deals 2 with no bigger Dinosaur" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Triumphant Chomp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Triumphant Chomp" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+}
+
+scenario "Triumphant Chomp deals the greatest power among your Dinosaurs" {
+  battlefield A: "Mountain", "Colossal Dreadmaw"
+  battlefield B: "Serra Angel"
+  hand A: "Triumphant Chomp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Triumphant Chomp" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Wick's Patrol: -X/-X from the greatest mana value in your graveyard" {
+  battlefield A: 4 "Swamp", 2 "Forest"
+  battlefield B: "Colossal Dreadmaw"
+  hand A: "Wick's Patrol"
+  library A: "Serra Angel", "Grizzly Bears", "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wick's Patrol"
+  turn 1 A: trigger "Wick's Patrol" targeting "Colossal Dreadmaw"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Serra Angel"
+  assert toughness "Colossal Dreadmaw" 1
+  assert power "Colossal Dreadmaw" 1
+}
+
+scenario "Emissary Escort: the greatest mana value among other artifacts" {
+  battlefield A: "Emissary Escort", "Juggernaut", "Ornithopter"
+  start turn 1 A precombat_main
+  assert power "Emissary Escort" 4
+}
+
+scenario "Emissary Escort doesn't count itself" {
+  battlefield A: "Emissary Escort", "Ornithopter"
+  start turn 1 A precombat_main
+  assert power "Emissary Escort" 0
+}
+
+scenario "Daretti's power is the greatest mana value among your artifacts" {
+  battlefield A: "Daretti, Rocketeer Engineer", "Juggernaut", "Ornithopter"
+  start turn 1 A precombat_main
+  assert power "Daretti, Rocketeer Engineer" 4
+  assert toughness "Daretti, Rocketeer Engineer" 5
+}
+
+scenario "Daretti returns the chosen artifact card if you sacrifice an artifact" {
+  battlefield A: "Juggernaut", 5 "Mountain"
+  graveyard A: "Sol Ring"
+  hand A: "Daretti, Rocketeer Engineer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Daretti, Rocketeer Engineer"
+  turn 1 A: trigger "Daretti, Rocketeer Engineer" targeting "Sol Ring"
+  turn 1 A: accept "Daretti, Rocketeer Engineer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sol Ring"
+  assert graveyard A contains "Juggernaut"
+  assert power "Daretti, Rocketeer Engineer" 1
+}
+
+scenario "Daretti: no sacrifice, no return" {
+  battlefield A: "Juggernaut", 5 "Mountain"
+  graveyard A: "Sol Ring"
+  hand A: "Daretti, Rocketeer Engineer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Daretti, Rocketeer Engineer"
+  turn 1 A: trigger "Daretti, Rocketeer Engineer" targeting "Sol Ring"
+  turn 1 A: decline "Daretti, Rocketeer Engineer"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Sol Ring"
+  assert battlefield A contains "Juggernaut"
+}
+
+scenario "Hapatra: X -1/-1 counters from the greatest mana value in your graveyard" {
+  battlefield A: 2 "Swamp", 3 "Forest"
+  battlefield B: "Colossal Dreadmaw"
+  graveyard A: "Serra Angel", "Grizzly Bears"
+  hand A: "Hapatra, the Desert Fang"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hapatra, the Desert Fang"
+  turn 1 A: trigger "Hapatra, the Desert Fang" targeting "Colossal Dreadmaw"
+  run_to turn 1 postcombat_main
+  assert counters "Colossal Dreadmaw" -1/-1 5
+  assert power "Colossal Dreadmaw" 1
+}
+
+scenario "Unstoppable Slasher: they lose half their life, rounded up" {
+  battlefield A: "Unstoppable Slasher"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Unstoppable Slasher"
+  run_to turn 2 postcombat_main
+  assert life B 9
+}
+
+scenario "Unstoppable Slasher returns with two stun counters if it had none" {
+  battlefield A: "Unstoppable Slasher", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Unstoppable Slasher"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Unstoppable Slasher"
+  assert tapped "Unstoppable Slasher"
+  assert counters "Unstoppable Slasher" stun 2
+}
+
+scenario "Unstoppable Slasher with a counter stays dead" {
+  battlefield A: "Unstoppable Slasher" with 1 +1/+1, 2 "Mountain"
+  hand A: "Lightning Bolt", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Unstoppable Slasher"
+  turn 1 A: cast "Lightning Bolt" targeting "Unstoppable Slasher"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Unstoppable Slasher"
+}
+
+scenario "Kyoshi Island Plaza searches for a basic land per Shrine" {
+  battlefield A: 4 "Forest"
+  hand A: "Kyoshi Island Plaza"
+  library A: "Grizzly Bears", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kyoshi Island Plaza"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Island"
+  assert tapped "Island"
+  assert library A count 2
+}
+
+scenario "Prismatic Undercurrents finds a basic land per color" {
+  battlefield A: 4 "Forest", "Wind Drake"
+  hand A: "Prismatic Undercurrents"
+  library A: "Grizzly Bears", "Island", "Plains", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Prismatic Undercurrents"
+  turn 1 A: choose "Island"
+  turn 1 A: choose "Plains"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+  assert hand A contains "Plains"
+  assert library A count 2
+}
+
+scenario "Samut: other creatures get +X/+0 and noncreature spells cost X less" {
+  battlefield A: "Samut, the Driving Force", "Grizzly Bears", "Island"
+  hand A: "Divination"
+  speed A: 2
+  start turn 1 A precombat_main
+  assert power "Grizzly Bears" 4
+  assert power "Samut, the Driving Force" 4
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Divination"
+}
+
+scenario "Essence Channeler has flying once you've lost life this turn" {
+  battlefield A: "Essence Channeler", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  assert has not "Essence Channeler" flying
+  turn 1 A: cast "Shock" targeting player A
+  run_to turn 1 postcombat_main
+  assert has "Essence Channeler" flying
+  assert has "Essence Channeler" vigilance
+  run_to turn 2 precombat_main
+  assert has not "Essence Channeler" flying
+}
+
+scenario "The Scarlet Witch: big instants and sorceries cost {X} less, X her power" {
+  battlefield A: "The Scarlet Witch", 2 "Island"
+  hand A: "Concentrate"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Concentrate"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Concentrate"
+}
+
+scenario "The Scarlet Witch doesn't reduce a spell with mana value 3" {
+  battlefield A: "The Scarlet Witch", 2 "Island"
+  hand A: "Divination"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Divination"
+  run_to turn 1 end
+  assert hand A contains "Divination"
+}
+
+scenario "Lunar Convocation: gained and lost life, a Bat" {
+  battlefield A: "Lunar Convocation", 2 "Mountain", "Plains"
+  hand A: "Lightning Helix", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Helix" targeting player B
+  turn 1 A: cast "Shock" targeting player A
+  run_to turn 2 upkeep
+  assert life B 16
+  assert battlefield A contains "Bat"
+}
+
+scenario "Lunar Convocation: gained life only, no Bat" {
+  battlefield A: "Lunar Convocation", "Mountain", "Plains"
+  hand A: "Lightning Helix"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Helix" targeting player B
+  run_to turn 2 upkeep
+  assert life B 16
+  assert battlefield A lacks "Bat"
+}
+
+scenario "Edgar: no spell cast this turn, two counters" {
+  battlefield A: "Edgar, Moonlit Sovereign"
+  start turn 1 A precombat_main
+  run_to turn 2 upkeep
+  assert counters "Edgar, Moonlit Sovereign" +1/+1 2
+}
+
+scenario "Edgar: a spell cast this turn, no counters" {
+  battlefield A: "Edgar, Moonlit Sovereign", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 2 upkeep
+  assert counters "Edgar, Moonlit Sovereign" +1/+1 0
+}
+
+scenario "Breathe Your Last: 1 life for each of the destroyed creature's colors" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Wind Drake"
+  hand A: "Breathe Your Last"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Breathe Your Last" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert life A 21
+}
+
+scenario "Breathe Your Last: a colorless creature gives no life" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Ornithopter"
+  hand A: "Breathe Your Last"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Breathe Your Last" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert life A 20
+}
+
+scenario "Goblin Blast-Runner: +2/+0 and menace after you sacrifice a permanent" {
+  battlefield A: "Goblin Blast-Runner", "Juggernaut", 5 "Mountain"
+  graveyard A: "Sol Ring"
+  hand A: "Daretti, Rocketeer Engineer"
+  start turn 1 A precombat_main
+  assert power "Goblin Blast-Runner" 1
+  assert has not "Goblin Blast-Runner" menace
+  turn 1 A: cast "Daretti, Rocketeer Engineer"
+  turn 1 A: trigger "Daretti, Rocketeer Engineer" targeting "Sol Ring"
+  turn 1 A: accept "Daretti, Rocketeer Engineer"
+  run_to turn 1 postcombat_main
+  assert power "Goblin Blast-Runner" 3
+  assert has "Goblin Blast-Runner" menace
+  run_to turn 2 precombat_main
+  assert power "Goblin Blast-Runner" 1
+}

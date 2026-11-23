@@ -1,0 +1,7 @@
+card "Kitsune's Technique" {
+  oracle_id 3e0f8ab3-75a6-49a2-a228-fa720cbde3d8
+  cost {4}{U}{U}
+  type Instant
+  sneak {1}{U}
+  spell: target opponent mills count equal half up library of target 1 cards
+}

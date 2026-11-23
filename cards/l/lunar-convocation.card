@@ -1,0 +1,8 @@
+card "Lunar Convocation" {
+  oracle_id cb68d1e4-36aa-4a00-b671-8959e7d526d4
+  cost {W}{B}
+  type Enchantment
+  triggered at beginning of your end step if gained life this turn: each opponent loses 1 life
+  triggered at beginning of your end step if gained and lost life this turn: create 1 "1/1 black Bat creature with flying"
+  activated {1}{B}, pay 2 life: draw 1 card
+}

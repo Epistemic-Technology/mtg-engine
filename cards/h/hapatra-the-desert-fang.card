@@ -1,0 +1,7 @@
+card "Hapatra, the Desert Fang" {
+  oracle_id 6894345f-52a6-46e4-b278-0783087daee1
+  cost {2}{B}{B}{G}
+  type Legendary Creature — Human Cleric
+  pt 3/3
+  triggered when this enters: for each opponent, put count where greatest mana value graveyard -1/-1 counters on up to 1 target creature that opponent controls
+}

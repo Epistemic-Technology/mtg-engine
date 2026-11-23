@@ -1,0 +1,7 @@
+card "Kyoshi Island Plaza" {
+  oracle_id c0cdc333-6c5a-401c-9810-220d2027f2fe
+  cost {3}{G}
+  type Legendary Enchantment — Shrine
+  triggered when this enters: search up to count where Shrine you control, basic land card to battlefield tapped those
+  triggered whenever another Shrine you control enters: search basic land card to battlefield tapped
+}

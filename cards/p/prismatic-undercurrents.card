@@ -1,0 +1,7 @@
+card "Prismatic Undercurrents" {
+  oracle_id 27a3aa64-1de7-4b0c-af23-52886e7d258a
+  cost {3}{G}
+  type Enchantment
+  label "Vivid" triggered when this enters: search up to count where colors among permanents, basic land card reveal to hand those
+  additional land
+}
