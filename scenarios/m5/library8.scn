@@ -246,3 +246,56 @@ scenario "hand reveal: Painful Memories puts the chosen card on top of the libra
   assert hand B count 2
   assert graveyard B lacks "Grizzly Bears"
 }
+
+scenario "older search wording: Spoils of Victory puts a land onto the battlefield" {
+  battlefield A: 3 "Forest"
+  hand A: "Spoils of Victory"
+  library A: "Grizzly Bears", "Island", "Hill Giant"
+  turn 1 A: cast "Spoils of Victory"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Island"
+  assert untapped "Island"
+  assert library A count 2
+}
+
+scenario "you may have that player shuffle: Portent declined keeps the order, draws next upkeep" {
+  battlefield A: "Island"
+  hand A: "Portent"
+  library A: "Wind Drake", "Island"
+  library B: "Grizzly Bears", "Island", "Island", "Island", "Island", "Island"
+  turn 1 A: cast "Portent" targeting player B
+  turn 1 A: decline "Portent"
+  run_to turn 2 precombat_main
+  assert hand B contains "Grizzly Bears"
+  assert hand A contains "Wind Drake"
+}
+
+scenario "you may have that player shuffle: Portent accepted shuffles the target's library" {
+  battlefield A: "Island"
+  hand A: "Portent"
+  library B: "Grizzly Bears", "Island", "Island", "Island", "Island", "Island", "Island", "Island"
+  seed 3
+  turn 1 A: cast "Portent" targeting player B
+  turn 1 A: accept "Portent"
+  run_to turn 2 precombat_main
+  assert hand B lacks "Grizzly Bears"
+}
+
+scenario "hands revealed: with Wandering Eye every hand is known" {
+  battlefield A: "Wandering Eye"
+  hand A: "Grizzly Bears"
+  hand B: "Hill Giant"
+  run_to turn 1 precombat_main
+  assert known B "Grizzly Bears"
+  assert known A "Hill Giant"
+}
+
+scenario "hands revealed: without it the opponent's hand is unknown" {
+  battlefield A: "Wind Drake"
+  hand A: "Grizzly Bears"
+  hand B: "Hill Giant"
+  run_to turn 1 precombat_main
+  assert unknown B "Grizzly Bears"
+  assert unknown A "Hill Giant"
+}

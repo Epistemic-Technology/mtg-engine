@@ -880,7 +880,10 @@ impl Fmt {
                     format!("{} {v} top card", self.recipient(*w, t))
                 }
             },
-            Effect::Shuffle { who, library } => format!(
+            Effect::Shuffle {
+                who, have: true, ..
+            } => format!("have {} shuffle", self.recipient(*who, t)),
+            Effect::Shuffle { who, library, .. } => format!(
                 "{} shuffles{}",
                 self.recipient(*who, t),
                 if *library { " library" } else { "" }
@@ -2124,6 +2127,7 @@ impl Fmt {
                 may,
                 graveyard,
                 name,
+                old,
             } => {
                 let searcher = who.map(|w| self.recipient(w, t));
                 let mut t = String::new();
@@ -2212,6 +2216,9 @@ impl Fmt {
                 });
                 if *that_card {
                     t.push_str(" that card");
+                }
+                if *old {
+                    t.push_str(" then");
                 }
                 t
             }
@@ -6542,7 +6549,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             }
             let _ = writeln!(out, "{s}");
         }
-        Ability::TopRevealed { players } => {
+        Ability::TopRevealed { hands: true, .. } => {
+            let _ = writeln!(out, "{indent}hands revealed players");
+        }
+        Ability::TopRevealed { players, .. } => {
             let _ = writeln!(
                 out,
                 "{indent}top revealed{}",

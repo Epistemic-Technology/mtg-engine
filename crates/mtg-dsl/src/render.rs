@@ -5386,7 +5386,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 Clause::imperative(format!("move all counters from {src} onto {dst}"))
             }
         },
-        Effect::Shuffle { who, library } => {
+        Effect::Shuffle {
+            who, have: true, ..
+        } => Clause::imperative(format!("have {} shuffle", ctx.obj(*who))),
+        Effect::Shuffle { who, library, .. } => {
             let subject = ctx.subj(*who);
             let v = ctx.verb(*who, "shuffles", "shuffle");
             if *library {
@@ -8024,6 +8027,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             may,
             graveyard,
             name,
+            old,
         } => {
             if *graveyard || name.is_some() {
                 return search_named_text(e, ctx);
@@ -8125,6 +8129,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     "your hand",
                 ),
             };
+            // The older wording: "Search your library for a Plains, ...
+            // card and put that card onto the battlefield. Then shuffle."
+            if *old && who.is_none() && !*may && !*reveal {
+                let place = match to {
+                    mtg_core::card::SearchTo::Hand => format!("into {hand}"),
+                    mtg_core::card::SearchTo::Battlefield { tapped } => format!(
+                        "onto the battlefield{}",
+                        if *tapped { " tapped" } else { "" }
+                    ),
+                    _ => "(unsupported)".to_string(),
+                };
+                return Clause::imperative(format!(
+                    "{verb} {library} for {what} and put {pron} {place}. Then shuffle"
+                ));
+            }
             let mut text = format!("{verb} {library} for {what}, ");
             // "Target player searches ..., puts it onto the battlefield
             // tapped, then shuffles."
@@ -15429,7 +15448,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             };
             format!("{lead} may {what}.")
         }
-        Ability::TopRevealed { players } => {
+        Ability::TopRevealed { hands: true, .. } => {
+            "Players play with their hands revealed.".to_string()
+        }
+        Ability::TopRevealed { players, .. } => {
             if *players {
                 "Players play with the top card of their libraries revealed.".to_string()
             } else {

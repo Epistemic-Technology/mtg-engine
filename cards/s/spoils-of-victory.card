@@ -1,0 +1,6 @@
+card "Spoils of Victory" {
+  oracle_id 852bd598-6e48-43c8-9211-740ae9e0c42e
+  cost {2}{G}
+  type Sorcery
+  spell: search Plains or Island or Swamp or Mountain or Forest card to battlefield that card then
+}

@@ -7581,6 +7581,10 @@ pub enum AbilityDef {
     /// every player knows that top card while it stays there (CR 401.2).
     TopRevealed {
         players: bool,
+        /// "Players play with their hands revealed." (Wandering Eye):
+        /// every card in a hand is known to every player instead.
+        #[serde(default)]
+        hands: bool,
     },
     /// "As this creature is turned face up, put four +1/+1 counters on
     /// it." (CR 708.11: applied while it is being turned face up, before

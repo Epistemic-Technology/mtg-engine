@@ -5755,6 +5755,7 @@ impl Compiler<'_> {
                             name: None,
                             who: None,
                             may: false,
+                            old: false,
                         }])],
                         equip: false,
                         cycling: false,
@@ -6165,7 +6166,10 @@ impl Compiler<'_> {
                 your_turn: *your_turn,
                 owned: *owned,
             },
-            Ability::TopRevealed { players } => AbilityDef::TopRevealed { players: *players },
+            Ability::TopRevealed { players, hands } => AbilityDef::TopRevealed {
+                players: *players,
+                hands: *hands,
+            },
             Ability::MayLook {
                 top,
                 face_down,

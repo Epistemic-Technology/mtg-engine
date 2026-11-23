@@ -1243,6 +1243,7 @@ impl Decompiler<'_> {
                 or_card: crate::ast::OrCard::No,
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
                 may: *may,
+                old: false,
             },
             CoreEffect::Surveil { count } => Effect::Surveil(*count),
             CoreEffect::Discard { count, who } => Effect::Discard {
@@ -1705,6 +1706,7 @@ impl Decompiler<'_> {
             CoreEffect::ShuffleLibrary { who } => Effect::Shuffle {
                 who: r(*who),
                 library: false,
+                have: false,
             },
             CoreEffect::MoveCounters {
                 from,
@@ -2456,7 +2458,10 @@ impl Decompiler<'_> {
                 your_turn: *your_turn,
                 owned: *owned,
             },
-            AbilityDef::TopRevealed { players } => Ability::TopRevealed { players: *players },
+            AbilityDef::TopRevealed { players, hands } => Ability::TopRevealed {
+                players: *players,
+                hands: *hands,
+            },
             AbilityDef::MayLook {
                 top,
                 face_down,

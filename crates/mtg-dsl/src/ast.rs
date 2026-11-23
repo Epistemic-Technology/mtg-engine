@@ -1578,6 +1578,9 @@ pub enum Ability {
     /// of their libraries revealed."
     TopRevealed {
         players: bool,
+        /// `hands revealed players`: "Players play with their hands
+        /// revealed."
+        hands: bool,
     },
     /// `as turned face up put 4 +1/+1 counters`: "As this creature is
     /// turned face up, put four +1/+1 counters on it." (CR 708.11);
@@ -4203,6 +4206,9 @@ pub enum Effect {
         graveyard: bool,
         /// `card named "Ajani, Valiant Protector"`: "a card named ...".
         name: Option<String>,
+        /// `... to battlefield that card then`: the older wording "and put
+        /// that card onto the battlefield. Then shuffle." (wording only).
+        old: bool,
     },
     /// `add {B}{B}`, `add any`: "Add {B}{B}.", "Add one mana of any
     /// color." (CR 106.4).
@@ -4839,6 +4845,9 @@ pub enum Effect {
     Shuffle {
         who: Recipient,
         library: bool,
+        /// `you may have that player shuffle`: "You may have that player
+        /// shuffle." (wording only).
+        have: bool,
     },
     /// `if it is land card, <sentence>` ("If it's a land card, ..."), `if
     /// it isnt land card, ...` ("If it isn't a land card"), `if that card

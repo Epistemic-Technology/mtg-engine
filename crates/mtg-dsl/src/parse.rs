@@ -2132,7 +2132,18 @@ impl P {
                 self.pos += 2;
                 let players = self.eat_word("players");
                 self.end_stmt()?;
-                Ok(Ability::TopRevealed { players })
+                Ok(Ability::TopRevealed {
+                    players,
+                    hands: false,
+                })
+            }
+            "hands" if self.at_words(&["hands", "revealed", "players"]) => {
+                self.pos += 3;
+                self.end_stmt()?;
+                Ok(Ability::TopRevealed {
+                    players: true,
+                    hands: true,
+                })
             }
             "extra" if self.word_at(1).as_deref() == Some("vote") => {
                 self.pos += 2;
@@ -2680,6 +2691,7 @@ impl P {
                         may: false,
                         graveyard: false,
                         name: None,
+                        old: false,
                     }])],
                     equip: false,
                     cycling: true,
@@ -6801,6 +6813,7 @@ impl P {
                 Ok(Effect::Shuffle {
                     who: subject,
                     library: false,
+                    have: false,
                 })
             }
             // "Target player shuffles their library."
@@ -6811,6 +6824,7 @@ impl P {
                 Ok(Effect::Shuffle {
                     who: subject,
                     library: true,
+                    have: false,
                 })
             }
             "reveal" | "reveals" if self.at_word("until") => {
@@ -7128,6 +7142,7 @@ impl P {
                         or_card,
                         graveyard,
                         name,
+                        old,
                         ..
                     } => Ok(Effect::Search {
                         filter,
@@ -7141,6 +7156,7 @@ impl P {
                         may,
                         graveyard,
                         name,
+                        old,
                     }),
                     _ => self.fail("expected a search"),
                 }
@@ -8694,9 +8710,20 @@ impl P {
                 })
             }
             // "You may shuffle." (CR 701.24): your library.
+            // "You may have that player shuffle." (Portent).
+            "have" if self.at_words(&["that", "player", "shuffle"]) => {
+                let who = self.recipient()?;
+                self.expect_word("shuffle")?;
+                Ok(Effect::Shuffle {
+                    who,
+                    library: false,
+                    have: true,
+                })
+            }
             "shuffle" if !matches!(self.peek(), Some(Tok::Word(_))) => Ok(Effect::Shuffle {
                 who: Recipient::You,
                 library: false,
+                have: false,
             }),
             "shuffle"
                 if self.at_word("library") && !matches!(self.peek_at(1), Some(Tok::Word(_))) =>
@@ -8705,6 +8732,7 @@ impl P {
                 Ok(Effect::Shuffle {
                     who: Recipient::You,
                     library: true,
+                    have: false,
                 })
             }
             "shuffle" if !self.at_word("library") && !self.at_word("your") => {
@@ -9490,6 +9518,7 @@ impl P {
                     return self.unexpected("`hand`, `battlefield`, `graveyard`, or `top`");
                 };
                 let that_card = self.eat_words(&["that", "card"]);
+                let old = self.eat_word("then");
                 Ok(Effect::Search {
                     filter,
                     count,
@@ -9502,6 +9531,7 @@ impl P {
                     may: false,
                     graveyard,
                     name,
+                    old,
                 })
             }
             "add" => {
