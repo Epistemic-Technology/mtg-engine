@@ -75,6 +75,24 @@ impl GameState {
                             }
                             continue;
                         }
+                        // "Cycling—Sacrifice a land." (Edge of Autumn): one
+                        // option per permanent that could be sacrificed,
+                        // none without one.
+                        if let Some(SacCost::Filter(f)) = &ab.cost.sacrifice {
+                            let c = self.sacrifice_candidates(p, f, *id);
+                            if c.len() < ab.cost.chosen_count() {
+                                continue;
+                            }
+                            for s in c {
+                                options.push(Choice::Activate {
+                                    source: *id,
+                                    ability: *a,
+                                    sacrifice: Some(s),
+                                    discard: None,
+                                });
+                            }
+                            continue;
+                        }
                         options.push(Choice::Activate {
                             source: *id,
                             ability: *a,
@@ -10206,6 +10224,7 @@ impl GameState {
             crate::card::Lasting::UntilCastFromExile => {
                 Duration::WhileInExile(self.source_in_exile(ctx).unwrap_or_default())
             }
+            crate::card::Lasting::Forever => Duration::Permanent,
         };
         if d.linked() {
             self.linked_durations += 1;
@@ -10295,6 +10314,7 @@ impl GameState {
     fn grant_player(&mut self, ctx: &EffectCtx, p: PlayerId, keywords: KeywordSet) {
         let duration = match self.lasting {
             Some(crate::card::Lasting::YourNextTurn) => Duration::UntilYourNextTurn(ctx.controller),
+            Some(crate::card::Lasting::Forever) => Duration::Permanent,
             _ => Duration::UntilEndOfTurn,
         };
         self.player_grants.push(crate::state::PlayerGrant {
@@ -12216,6 +12236,12 @@ impl GameState {
                     }
                     (Chosen::Color(c), false) => Modification::SetColors(ColorSet::of([c])),
                     (Chosen::Subtype(s), _) => match s.basic_color() {
+                        // "becomes the basic land type of your choice in
+                        // addition to its other types" (Navigator's
+                        // Compass, CR 305.7): it keeps its land types.
+                        Some(c) if matches!(kind, ChoiceKind::LandType(_)) && *in_addition => {
+                            Modification::AddLandType(c)
+                        }
                         Some(c) if matches!(kind, ChoiceKind::LandType(_)) => {
                             Modification::SetLandType(c)
                         }
@@ -15430,6 +15456,18 @@ impl GameState {
                 // that creature is a token".
                 || f.status.entered_this_turn
                 || f.status.token.is_some()
+                // Every other state qualifier ("if it's face down", "that
+                // attacked this turn"): judged by `status_ok`, not passed
+                // for any target. Those judged above and below on the
+                // characteristics aren't state.
+                || {
+                    let mut q = f.status;
+                    q.toxic = false;
+                    q.spent_colors = false;
+                    q.bound = None;
+                    q.mana_value_x = false;
+                    q.any()
+                }
         }
         // Converge: "if its mana value is less than or equal to the number
         // of colors of mana spent to cast this spell".
@@ -15544,6 +15582,7 @@ impl GameState {
                         })
                         && (!filter.status.entered_this_turn
                             || l.object.timestamp >= self.turn_started_at)
+                        && self.lki_status_ok(filter, id, l)
                 })))
     }
 

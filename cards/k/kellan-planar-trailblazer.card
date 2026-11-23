@@ -1,0 +1,8 @@
+card "Kellan, Planar Trailblazer" {
+  oracle_id e8fd428f-7521-4e6a-86b7-835f20ee3c5c
+  cost {R}
+  type Legendary Creature — Human Faerie Scout
+  pt 2/1
+  activated {1}{R}: if this is Scout, this becomes Human Faerie Detective and gains ability { triggered whenever this deals combat damage to a player: impulse 1 this turn } indefinitely
+  activated {2}{R}: if this is Detective, this becomes 3/2 Human Faerie Rogue and gains double strike indefinitely
+}

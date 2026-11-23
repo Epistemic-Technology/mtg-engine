@@ -2474,6 +2474,10 @@ pub enum Lasting {
     /// hand that exiled its card as a cost): while that card stays in
     /// exile.
     UntilCastFromExile,
+    /// No duration at all ("That token gains haste.", "It gains
+    /// \"...\"" from a resolving spell or ability): the effect lasts as
+    /// long as the object it affects (CR 611.2a, 400.7).
+    Forever,
 }
 
 /// How long cards exiled by an impulse effect stay playable.

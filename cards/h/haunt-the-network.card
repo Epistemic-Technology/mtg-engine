@@ -1,0 +1,6 @@
+card "Haunt the Network" {
+  oracle_id 7e074b14-0ec8-439b-9b83-5f7c1a904384
+  cost {3}{U}{B}
+  type Sorcery
+  spell: choose target opponent; create 2 "1/1 colorless Thopter artifact creature with flying"; then the chosen target 1 loses count where artifact you control life and you gain count where artifact you control life
+}

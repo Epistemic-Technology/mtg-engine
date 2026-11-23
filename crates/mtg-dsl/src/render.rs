@@ -535,6 +535,29 @@ fn a_spell(f: &Filter, card: &Card) -> String {
             );
         }
     }
+    // "a Lesson, Saga, or Shrine spell" (Guru Pathik): three or more.
+    if f.or.as_ref().is_some_and(|a| a.or.is_some()) && !f.alt_article {
+        let mut names = Vec::new();
+        let mut g = Some(f);
+        while let Some(h) = g {
+            let bare = h.subtypes.len() == 1
+                && Filter {
+                    subtypes: Vec::new(),
+                    or: None,
+                    ..h.clone()
+                } == Filter::default();
+            if !bare {
+                names.clear();
+                break;
+            }
+            names.push(h.subtypes[0].clone());
+            g = h.or.as_deref();
+        }
+        if names.len() > 2 {
+            let last = names.pop().expect("three");
+            return format!("{}, or {last} spell", with_article(&names.join(", ")));
+        }
+    }
     if let Some(alt) = &f.or {
         let (b, a) = crate::format::factor_qualifiers(f, alt);
         return format!("{} or {}", a_spell(&b, card), a_spell(&a, card));
@@ -1883,6 +1906,7 @@ impl<'a> Ctx<'a> {
                 }
             }
             Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
+            Recipient::SameExiledCards => "the exiled cards".to_string(),
             Recipient::ThoseTargets(a, n) => format!("those {}", self.group_noun(a, n)),
         }
     }
@@ -2350,6 +2374,7 @@ impl<'a> Ctx<'a> {
                 | Recipient::CreatedThose
                 | Recipient::SameTokens
                 | Recipient::SameCards
+                | Recipient::SameExiledCards
                 | Recipient::SameThem
                 | Recipient::Those(_)
         )
@@ -3052,6 +3077,8 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         Some(Who::You | Who::Any) | None => {}
     }
     match f.that_player {
+        // "for each tapped artifact they control" after "target player".
+        Some(_) if f.they_control => s.push_str(" they control"),
         Some(mtg_core::card::ThatPlayer::Target(_)) if f.that_opponent => {
             s.push_str(" target opponent controls");
         }
@@ -5568,7 +5595,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::GiveControl { of, to } => {
             let s = ctx.subj(*to);
             let v = ctx.verb(*to, "gains", "gain");
-            let o = ctx.obj(*of);
+            // "that player gains control of Kain" (Kain, Traitorous
+            // Dragoon): a legendary card names itself again.
+            let o = if *of == Recipient::Source
+                && ctx.card.supertypes.contains(&Supertype::Legendary)
+            {
+                ctx.source_mentioned = true;
+                short_name(ctx.card).to_string()
+            } else {
+                ctx.obj(*of)
+            };
             // "If they do, you draw a card." (Stiltzkin).
             ctx.they_paid = true;
             Clause::with_subject(*to, s, format!("{v} control of {o}"))
@@ -5838,9 +5874,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             free,
             first,
             it,
+            from_exile,
         } => {
             use mtg_core::card::PlayUntil;
-            let what = if *it { "it" } else { "that card" };
+            let what = match (*it, *from_exile) {
+                (true, false) => "it",
+                (true, true) => "it from exile",
+                (false, false) => "that card",
+                (false, true) => "that card from exile",
+            };
             let verb = if *cast { "cast" } else { "play" };
             let free = if *free {
                 " without paying its mana cost"
@@ -6385,8 +6427,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 return Clause::with_subject(*to, s, block_rule_phrase(r, ctx.card, true));
             }
             // "gains toxic 1 until end of turn": a keyword ability, bare.
-            let q = granted_keyword(ability, ctx.card)
-                .unwrap_or_else(|| quoted(ability, ctx.card, CardType::Creature, ctx.lookup));
+            let q = granted_keyword(ability, ctx.card).unwrap_or_else(|| {
+                // "Kellan ... gains \"Whenever Kellan deals combat damage
+                // ...\"": a legendary card granting itself an ability
+                // names itself in it.
+                if *to == Recipient::Source && ctx.card.supertypes.contains(&Supertype::Legendary) {
+                    let mut holder = ctx.card.blank();
+                    holder.name.clone_from(&ctx.card.name);
+                    holder.short_name.clone_from(&ctx.card.short_name);
+                    holder.supertypes.clone_from(&ctx.card.supertypes);
+                    holder.types = vec![CardType::Creature];
+                    holder.groups.clone_from(&ctx.card.groups);
+                    holder.counts.clone_from(&ctx.card.counts);
+                    format!("\"{}\"", ability_text(&holder, ability, ctx.lookup))
+                } else {
+                    quoted(ability, ctx.card, CardType::Creature, ctx.lookup)
+                }
+            });
             Clause::with_subject(*to, s, format!("{} {q}", ctx.verb(*to, "gains", "gain")))
                 .until_eot()
         }
@@ -7013,6 +7070,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     // "Return target artifact card ... to the battlefield.
                     // If it's a Vehicle, ..." (Tune Up): a permanent now.
                     ctx.target_noun[*i] = "permanent".to_string();
+                } else if ctx.target_noun[*i] == "card" {
+                    // "Exile target creature you control, then return it to
+                    // the battlefield ... If that creature is a Bird, ..."
+                    // (Splash Portal): back on the battlefield.
+                    ctx.target_noun[*i] = target_noun(&ctx.targets[*i]);
                 }
             }
             let tapped = match (*tapped, *attacking, *transformed) {
@@ -7068,7 +7130,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     o
                 };
                 format!("return {o} to the battlefield{tapped} under their owner's control")
-            } else if matches!(what, Recipient::Targets(..)) {
+            } else if matches!(what, Recipient::Targets(..) | Recipient::SameExiledCards) {
                 // "exile up to one target artifact you control and up to
                 // one target creature you control. Then return them to the
                 // battlefield under their owners' control."
@@ -9255,8 +9317,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             if (ctx.card.types.contains(&CardType::Land) || land_target)
                 && !types.contains(&CardType::Land)
             {
+                // "Put seven +1/+1 counters on target noncreature land you
+                // control. It becomes a 0/0 Fungus creature with haste.
+                // It's still a land." (Tendril of the Mycotyrant): after a
+                // pronoun, its own sentence.
+                let pronoun = clause.subject.as_ref().is_some_and(|(_, t)| t == "it");
                 if (*indefinite || (ctx.eot_first && keywords.is_empty()))
                     && land_target
+                    && !pronoun
                     && !ctx.card.types.contains(&CardType::Land)
                 {
                     // "target land you control becomes a 3/3 Elemental
@@ -9614,6 +9682,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     &format!("this {} is", self_noun(ctx.card)),
                     1,
                 )
+            } else if matches!(c, StaticCond::Is(_) | StaticCond::Isnt(_))
+                && !is_spell(ctx.card)
+                && !ctx.source_mentioned
+                && static_cond_text(c, ctx.card).starts_with("it")
+            {
+                // "If Kellan is a Scout, it becomes ...", "If this
+                // enchantment isn't a creature, it becomes ..." (Answered
+                // Prayers): the source named in the condition, "it" after.
+                ctx.source_mentioned = true;
+                let t = static_cond_text(c, ctx.card);
+                let who = this_ref(ctx.card);
+                match t.strip_prefix("it's ") {
+                    Some(rest) => format!("{who} is {rest}"),
+                    None => format!("{who}{}", &t["it".len()..]),
+                }
             } else if matches!(c, StaticCond::SourceCounters { at_least: true, n, .. } if *n > 1)
                 && ctx.source_mentioned
                 && !is_spell(ctx.card)
@@ -9735,6 +9818,35 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 {
                     format!("{} or {}", with_article(&f.subtypes[0]), alt.subtypes[0])
                 }
+                // "If that creature is a Bird, Frog, Otter, or Rat" (Splash
+                // Portal): three or more creature types.
+                Some(alt)
+                    if alt.or.is_some() && {
+                        let mut ok = true;
+                        let mut g = Some(f);
+                        while let Some(h) = g {
+                            ok &= h.subtypes.len() == 1
+                                && h.types.iter().all(|t| *t == CardType::Creature)
+                                && (Filter {
+                                    subtypes: Vec::new(),
+                                    types: Vec::new(),
+                                    or: None,
+                                    ..h.clone()
+                                }) == Filter::default();
+                            g = h.or.as_deref();
+                        }
+                        ok
+                    } =>
+                {
+                    let mut names = Vec::new();
+                    let mut g = Some(f);
+                    while let Some(h) = g {
+                        names.push(h.subtypes[0].clone());
+                        g = h.or.as_deref();
+                    }
+                    let last = names.pop().expect("three");
+                    format!("{}, or {last}", with_article(&names.join(", ")))
+                }
                 _ => target_predicate(f, ctx.card),
             };
             // "If it's a Zombie card": a card in a graveyard.
@@ -9838,8 +9950,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
                 // "If that spell's mana value was 2 or less" (Sound the
                 // Trumpets).
-                (TargetTense::ThatWas, _) if let Some((cmp, n)) = mana_value_only => {
-                    format!("that {noun}'s mana value was {n}{}", cmp_words(cmp))
+                // "If that permanent's mana value was 3 or less" after it
+                // was exiled (Vindictive Triumph): as it last existed.
+                (TargetTense::ThatWas, _) if let Some((cmp, mv)) = mana_value_only => {
+                    let was = target_noun(&ctx.targets[*n]);
+                    format!("that {was}'s mana value was {mv}{}", cmp_words(cmp))
                 }
                 // "If that creature had power 2 or less" (Driftgloom
                 // Coyote).
@@ -9876,6 +9991,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // tapped" (Brackish Blunder): a state as it last existed.
                 (TargetTense::Was, None) if let Some(state) = status_only(f) => {
                     format!("it was {state}")
+                }
+                // "If it was a token, draw a card." (Sunpearl Kirin).
+                (TargetTense::Was, None)
+                    if *f
+                        == (Filter {
+                            status: mtg_core::card::StatusQuals {
+                                token: Some(true),
+                                ..Default::default()
+                            },
+                            ..Filter::default()
+                        }) =>
+                {
+                    "it was a token".to_string()
                 }
                 // "If it was a legendary spell, the Ring tempts you."
                 // (Glorious Gale): a countered spell, as it last existed.
@@ -10279,6 +10407,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 if let Some((who, rest)) = text.split_once(" has base power and toughness ") {
                     return Clause::imperative(format!(
                         "you may have {who}'s base power and toughness become {rest}"
+                    ));
+                }
+                // "You may have it become no longer suspected." (Deadly
+                // Complication).
+                if let Some(who) = text.strip_suffix(" is no longer suspected") {
+                    return Clause::imperative(format!(
+                        "you may have {who} become no longer suspected"
                     ));
                 }
                 if let Some((at, (from, to))) = verbs
@@ -10710,6 +10845,10 @@ fn lowercase_first(s: &str) -> String {
 /// its own period ("gain \"{T}: This creature deals 2 damage to any
 /// target\" until end of turn").
 fn push_suffix(out: &mut String, suffix: &str) {
+    // No duration (`Lasting::Forever`): "It gains \"...\"."
+    if suffix.is_empty() {
+        return;
+    }
     if out.ends_with(".\"") {
         out.truncate(out.len() - 2);
         out.push('"');
@@ -10826,7 +10965,19 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
         }
         let repeat = i > 0 && s.joins.get(i - 1) == Some(&Join::AndRepeat);
         let mut same_subject = false;
+        // "you draw that many cards, create that many tapped Treasure
+        // tokens, then lose that much life" (Kain, Traitorous Dragoon): a
+        // list's subject isn't repeated after subjectless clauses.
+        let list_subject = i > 1
+            && s.joins.get(i - 1) == Some(&Join::Then)
+            && s.joins[..i - 1].iter().all(|j| *j == Join::Comma)
+            && clauses[1..i].iter().all(|d| d.subject.is_none())
+            && clauses[0].subject.as_ref().map(|(r, _)| *r) == c.subject.as_ref().map(|(r, _)| *r);
         match &c.subject {
+            Some((r, _)) if list_subject => {
+                same_subject = true;
+                prev_subject = Some(*r);
+            }
             Some((r, text)) => {
                 if prev_subject != Some(*r) || repeat {
                     out.push_str(text);
@@ -10942,6 +11093,8 @@ fn lasting_text(l: mtg_core::card::Lasting, ctx: &Ctx) -> String {
         Lasting::YouControlSource => format!("for as long as you control {}", ctx.source_name()),
         Lasting::SourceTapped => format!("for as long as {} remains tapped", ctx.source_name()),
         Lasting::UntilCastFromExile => "until this card is cast from exile".to_string(),
+        // No duration: "That token gains haste."
+        Lasting::Forever => String::new(),
     }
 }
 
@@ -11878,6 +12031,13 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                     with_article(&spell_noun(&w))
                 };
                 return format!("whenever {who} {} or {}{that}", side(&one), side(alt));
+            }
+            // "a Lesson, Saga, or Shrine spell" (Guru Pathik).
+            if base.or.as_ref().is_some_and(|a| a.or.is_some()) {
+                let s = a_spell(&base, ctx.card);
+                if s.contains(", or ") {
+                    return format!("whenever {who} {s}{that}");
+                }
             }
             let what = spells_subject(&base, ctx.card);
             let what = what.strip_suffix(" spells").unwrap_or(&what);
@@ -14237,6 +14397,15 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 filter_phrase(&f, card, true)
             )
         }
+        StaticCond::YouControlAtLeast { filter, n } => {
+            let mut f = filter.clone();
+            f.who = None;
+            format!(
+                "you control at least {} {}",
+                count_words(Num::N(*n), "one"),
+                filter_phrase(&f, card, *n != 1)
+            )
+        }
         // "you control an Urza's Mine and an Urza's Power-Plant".
         StaticCond::YouControlEach(filters) => {
             // "If you control creatures named Mine Worker and Tower Worker"
@@ -14638,6 +14807,15 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         }
         // "if it isn't a token" (Sphinx of False Conclusions).
         StaticCond::IsntToken => "it isn't a token".to_string(),
+        StaticCond::Isnt(f) => format!(
+            "it isn't {}",
+            or_list(
+                &f.types
+                    .iter()
+                    .map(|t| with_article(type_noun(*t)))
+                    .collect::<Vec<_>>()
+            )
+        ),
         StaticCond::Is(f) => format!("it's {}", is_predicate(f, card)),
         StaticCond::Modified => "it's modified".to_string(),
         StaticCond::AttackingAlone => "it's attacking alone".to_string(),
@@ -14958,6 +15136,7 @@ fn about_source(c: &StaticCond) -> bool {
             | StaticCond::Suspected(_)
             | StaticCond::Is(_)
             | StaticCond::IsntToken
+            | StaticCond::Isnt(_)
             | StaticCond::Modified
             | StaticCond::AttackingAlone
             | StaticCond::Blocked
@@ -15511,6 +15690,13 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 {
                     out.push_str(" untapped");
                 }
+                Some(crate::ast::TrigCond::HadCounter { one_or_more }) => {
+                    out.push_str(if *one_or_more {
+                        ", if it had one or more counters on it"
+                    } else {
+                        ", if it had a counter on it"
+                    });
+                }
                 Some(crate::ast::TrigCond::Core(c)) => {
                     out.push_str(", ");
                     let cond = condition_text(*c, &mut ctx);
@@ -15756,10 +15942,29 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 && card
                     .abilities
                     .iter()
-                    .take_while(|b| !std::ptr::eq(*b, a))
+                    .take_while(|b| {
+                        !std::ptr::eq(*b, a)
+                            && !matches!(b, Ability::Labeled { ability, .. } if std::ptr::eq(&raw const **ability, a))
+                    })
+                    .map(|b| match b {
+                        Ability::Labeled { ability, .. } => &**ability,
+                        b => b,
+                    })
                     .any(|b| {
-                        matches!(b, Ability::Static { filter: f, condition: None, mods: m, .. }
-                        if f == filter && m.iter().any(|x| matches!(x, Mod::ModifyPt { .. })))
+                        // "Descend 8 — As long as ..., Akawalli gets an
+                        // additional +2/+2" after a pump whose condition
+                        // this one's implies (Descend 4).
+                        matches!(b, Ability::Static { filter: f, mods: m, condition: earlier, .. }
+                        if f == filter
+                            && m.iter().any(|x| matches!(x, Mod::ModifyPt { .. }))
+                            && match (earlier, condition) {
+                                (None, _) => true,
+                                (
+                                    Some(StaticCond::GraveyardCards { filter: g, at_least: a, .. }),
+                                    Some(StaticCond::GraveyardCards { filter: h, at_least: b, .. }),
+                                ) => g == h && b > a,
+                                _ => false,
+                            })
                     })
             {
                 body = body.replacen(" gets ", " gets an additional ", 1);
@@ -15985,15 +16190,21 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         Ability::CondCost {
             delta,
             cond: StaticCond::YourTurn | StaticCond::DuringYourTurn,
+            ..
         } => format!(
             "This spell costs {{{}}} {} to cast during your turn.",
             delta.unsigned_abs(),
             if *delta < 0 { "less" } else { "more" },
         ),
-        Ability::CondCost { delta, cond } => format!(
-            "This spell costs {{{}}} {} to cast if {}.",
+        Ability::CondCost {
+            delta,
+            cond,
+            as_long_as,
+        } => format!(
+            "This spell costs {{{}}} {} to cast {} {}.",
             delta.unsigned_abs(),
             if *delta < 0 { "less" } else { "more" },
+            if *as_long_as { "as long as" } else { "if" },
             match cond {
                 StaticCond::Bargained => "it's bargained".to_string(),
                 // "if one or more cards left your graveyard this turn"

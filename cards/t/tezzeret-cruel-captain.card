@@ -1,0 +1,10 @@
+card "Tezzeret, Cruel Captain" {
+  oracle_id 0eb11b2d-a397-48da-a0f3-9f0f83f42282
+  cost {3}
+  type Legendary Planeswalker — Tezzeret
+  loyalty 4
+  triggered whenever artifact you control enters: put 1 loyalty counter on this
+  loyalty 0: untap target artifact or creature; if target 1 is artifact creature, put 1 +1/+1 counter on target 1
+  loyalty -3: search artifact card with mana value 1 or less reveal to hand
+  loyalty -7: emblem "Tezzeret, Cruel Captain emblem"
+}

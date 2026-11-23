@@ -1,0 +1,7 @@
+card "Fathom Fleet Boarder" {
+  oracle_id cffcd887-660c-4646-9333-bcc8549f6609
+  cost {2}{B}
+  type Creature — Orc Pirate
+  pt 3/3
+  triggered whenever this enters: you lose 2 life unless you control other Pirate
+}

@@ -1791,6 +1791,7 @@ impl Decompiler<'_> {
                 free: *free,
                 first: false,
                 it: false,
+                from_exile: false,
             },
             CoreEffect::RevealUntil { who, filter } => Effect::RevealUntil {
                 who: match r(*who) {

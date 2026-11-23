@@ -386,6 +386,7 @@ impl Fmt {
             Recipient::BlockingIt => "each creature blocking it".to_string(),
             Recipient::ExiledCard => "exiled card".to_string(),
             Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
+            Recipient::SameExiledCards => "the exiled cards".to_string(),
             Recipient::ThoseTargets(..) => "those targets".to_string(),
             Recipient::Those(t) => those_word(t).to_string(),
             Recipient::EachPlayer => "each player".to_string(),
@@ -727,6 +728,7 @@ impl Fmt {
                 mtg_core::card::Lasting::YouControlSource => " for as long as you control this",
                 mtg_core::card::Lasting::SourceTapped => " for as long as this remains tapped",
                 mtg_core::card::Lasting::UntilCastFromExile => " until this is cast from exile",
+                mtg_core::card::Lasting::Forever => " indefinitely",
             });
         }
         out
@@ -978,11 +980,13 @@ impl Fmt {
                 free,
                 first,
                 it,
+                from_exile,
             } => {
                 let mut s = format!(
-                    "may {} {} {}",
+                    "may {} {}{} {}",
                     if *cast { "cast" } else { "play" },
                     if *it { "it" } else { "that card" },
+                    if *from_exile { " from exile" } else { "" },
                     match until {
                         mtg_core::card::PlayUntil::ThisTurn => "this turn",
                         mtg_core::card::PlayUntil::EndOfYourNextTurn => "next turn",
@@ -3615,9 +3619,12 @@ pub fn filter(f: &Filter) -> String {
         // `destroy all andlist creature or enchantment`: the recipient
         // parser takes `all` first (Death Begets Life).
         let inner = filter(&g);
-        return match inner.strip_prefix("all ") {
-            Some(rest) => format!("all andlist {rest}"),
-            None => format!("andlist {inner}"),
+        // `every andlist creature or Vehicle lose ...` likewise
+        // (Spectacular Pileup).
+        return match (inner.strip_prefix("all "), inner.strip_prefix("every ")) {
+            (Some(rest), _) => format!("all andlist {rest}"),
+            (_, Some(rest)) => format!("every andlist {rest}"),
+            _ => format!("andlist {inner}"),
         };
     }
     if f.and_or {
@@ -3932,6 +3939,7 @@ fn filter_one(f: &Filter) -> String {
         words.push("late".to_string());
     }
     match f.that_player {
+        Some(_) if f.they_control => words.push("they control".to_string()),
         Some(mtg_core::card::ThatPlayer::Triggering) => {
             words.push("that player controls".to_string());
         }
@@ -5455,6 +5463,9 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::YouControlAtMost { filter: fl, n } => {
             format!("you control at most {n} {}", filter(fl))
         }
+        StaticCond::YouControlAtLeast { filter: fl, n } => {
+            format!("you control at least {n} {}", filter(fl))
+        }
         StaticCond::YouControlEach(fs) => format!(
             "you control {}",
             fs.iter().map(filter).collect::<Vec<_>>().join(" and ")
@@ -5658,6 +5669,7 @@ fn static_cond(c: &StaticCond) -> String {
         } => format!("opponent controls {at_least} {}", filter(fl)),
         StaticCond::Is(fl) => format!("this is {}", filter(fl)),
         StaticCond::IsntToken => "this isnt token".to_string(),
+        StaticCond::Isnt(fl) => format!("this isnt {}", filter(fl)),
         StaticCond::Modified => "modified".to_string(),
         StaticCond::AttackingAlone => "attacking alone".to_string(),
         StaticCond::AttackedOrBlocked => "attacked or blocked this combat".to_string(),
@@ -6234,6 +6246,14 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     None
                 }
                 Some(crate::ast::TrigCond::Core(c)) => Some(c),
+                Some(crate::ast::TrigCond::HadCounter { one_or_more }) => {
+                    head.push_str(if *one_or_more {
+                        " if it had one or more counters"
+                    } else {
+                        " if it had counter"
+                    });
+                    None
+                }
                 None => None,
             };
             match condition {
@@ -6550,12 +6570,17 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 items.join(" and ")
             );
         }
-        Ability::CondCost { delta, cond } => {
+        Ability::CondCost {
+            delta,
+            cond,
+            as_long_as,
+        } => {
             let _ = writeln!(
                 out,
-                "{indent}this spell costs {{{}}} {} if {}",
+                "{indent}this spell costs {{{}}} {} {} {}",
                 delta.unsigned_abs(),
                 if *delta < 0 { "less" } else { "more" },
+                if *as_long_as { "as long as" } else { "if" },
                 static_cond(cond)
             );
         }
@@ -7119,6 +7144,9 @@ pub(crate) fn granted_mechanic(a: &Ability) -> Option<String> {
             Some(format!("ward {}", cost_text(c)))
         }
         Ability::Mechanic(crate::ast::Mechanic::Toxic(n)) => Some(format!("toxic {n}")),
+        Ability::Mechanic(crate::ast::Mechanic::Firebending(Num::N(n))) => {
+            Some(format!("firebending {n}"))
+        }
         Ability::Mechanic(crate::ast::Mechanic::Poisonous(n)) => Some(format!("poisonous {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Frenzy(n)) => Some(format!("frenzy {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Absorb(n)) => Some(format!("absorb {n}")),

@@ -1,0 +1,7 @@
+card "Navigator's Compass" {
+  oracle_id c994e148-1bb5-4113-a9f2-73e6dab8f72d
+  cost {1}
+  type Artifact
+  triggered whenever this enters: you gain 3 life
+  activated {T}: until end of turn, target land you control becomes land type of choice in addition
+}

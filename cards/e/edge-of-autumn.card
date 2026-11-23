@@ -1,0 +1,7 @@
+card "Edge of Autumn" {
+  oracle_id 42d86827-6459-42fc-86b6-6eb055604c36
+  cost {1}{G}
+  type Sorcery
+  spell: if you control at most 4 land, search basic land card to battlefield tapped
+  cycling sacrifice land
+}

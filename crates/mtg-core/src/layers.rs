@@ -519,6 +519,9 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                         // "As long as you control a transformed permanent".
                         && (!filter.status.transformed
                             || state.is_transformed(&state.objects[**id]))
+                        // "As long as you control a token" (Druid of the
+                        // Spade).
+                        && is_token_ok(state, filter, **id)
                 })
                 .count();
             n >= *at_least as usize
@@ -750,6 +753,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                             && filter
                                 .tapped
                                 .is_none_or(|t| state.objects[**id].tapped == t)
+                            && is_token_ok(state, filter, **id)
                     })
                     .count()
                     >= *at_least as usize
@@ -775,6 +779,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                 // bumps `cversion`.
                 && (!filter.status.entered_this_turn
                     || state.objects[source].timestamp >= state.turn_started_at)
+                && is_token_ok(state, filter, source)
         }),
         StaticCondition::AttachedIs(filter) => state.objects[source]
             .attached_to
@@ -796,6 +801,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                         .status
                         .counter
                         .is_none_or(|q| state.objects[host].counters_match(q))
+                    && is_token_ok(state, filter, host)
                     // "As long as enchanted creature has toxic" (CR 702.164).
                     && (!filter.status.toxic
                         || chars[i].abilities.iter().any(|a| {
@@ -1673,4 +1679,14 @@ fn apply_counters(work: &mut Work<'_>, layer: Layer) {
             c.power = pt16(c.power() + i32::try_from(n).unwrap_or(i32::MAX / 4));
         }
     }
+}
+
+/// A filter's "token" / "nontoken" for a static ability's condition (CR
+/// 111.1): whether the object is a token is its own state, not a
+/// characteristic.
+fn is_token_ok(state: &GameState, filter: &crate::card::ObjFilter, id: ObjId) -> bool {
+    filter
+        .status
+        .token
+        .is_none_or(|t| (state.objects[id].kind == crate::state::ObjKind::Token) == t)
 }
