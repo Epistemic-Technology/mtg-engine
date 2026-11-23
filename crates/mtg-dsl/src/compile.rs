@@ -2690,6 +2690,7 @@ impl Compiler<'_> {
             Recipient::TargetAnd(t, i) => {
                 CoreRecipient::TargetAndGroup(ti(t), groups[usize::from(i)])
             }
+            Recipient::AttachedAnd(i) => CoreRecipient::AttachedAndSharing(groups[usize::from(i)]),
             // A variable group: its targets to the end of the list.
             Recipient::Target(i) if Some(i) == many => {
                 CoreRecipient::Targets(u8::try_from(ti(i)).unwrap_or(u8::MAX), u8::MAX)

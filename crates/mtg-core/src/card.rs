@@ -3637,6 +3637,12 @@ pub enum Recipient {
     /// that creature", "target creature and each other creature that
     /// shares a color with it").
     TargetAndGroup(usize, u16),
+    /// What the source is attached to and every other battlefield object
+    /// matching the pool's `g`th filter that shares a creature type with
+    /// it (CR 205.3m): "Enchanted creature and other creatures that share
+    /// a creature type with it get +1/+1 until end of turn." (Crown of
+    /// Vigor). Judged against the host as it is, or as it last existed.
+    AttachedAndSharing(u16),
     /// The cards the source's linked ability exiled ("the exiled card",
     /// CR 607.2a: Journey to Nowhere's "When this enchantment leaves the
     /// battlefield, return the exiled card ..."), still in exile; see

@@ -1658,6 +1658,20 @@ impl<'a> Ctx<'a> {
             }
             Recipient::BlockingIt => "each creature blocking it".to_string(),
             Recipient::TargetAnd(t, i) => self.target_and(t, i),
+            // "Enchanted creature and other creatures that share a creature
+            // type with it".
+            Recipient::AttachedAnd(i) => {
+                let first = self.obj(Recipient::Attached);
+                let rest = self.card.groups.get(usize::from(i)).map_or_else(
+                    || "other creatures".to_string(),
+                    |f| {
+                        let mut g = f.clone();
+                        g.same = None;
+                        filter_phrase(&g, self.card, true)
+                    },
+                );
+                format!("{first} and {rest} that share a creature type with it")
+            }
             Recipient::YouAndTarget(a) => format!("you and {}", self.obj(Recipient::Target(a))),
             Recipient::SourceAndTarget(a) => {
                 let first = self.obj(Recipient::Source);
@@ -2136,6 +2150,7 @@ impl<'a> Ctx<'a> {
                 | Recipient::ThoseTargets(..)
                 | Recipient::ChosenTargets(..)
                 | Recipient::TargetAnd(..)
+                | Recipient::AttachedAnd(_)
                 | Recipient::YouAndTarget(_)
                 | Recipient::SourceAndTarget(_)
                 | Recipient::CreatedTokens

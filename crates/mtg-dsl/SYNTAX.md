@@ -2542,6 +2542,13 @@ creature each get +3/+3` ("This creature and up to one other target
 creature each get +3/+3 until end of turn."; with the target declined, the
 source still gets it; with the only target illegal, the ability does
 nothing, CR 608.2b). Only `draw` and `get` take such a subject.
+`enchanted creature and each other creature that share creature type`
+("Enchanted creature and other creatures that share a creature type with
+it", Crown of Vigor's `activated sacrifice this: enchanted creature and
+each other creature that share creature type gets +1/+1`): what the
+source is attached to (as it last existed, once the Aura is sacrificed)
+and every other creature, any player's, sharing a creature type with it
+(CR 205.3m; a changeling has them all, CR 702.73a).
 creatures you control get +2/+2" as a subject; `each creature your
 opponents control`), and targets. A group is "they" again within its
 sentence and named in full in a later one ("... to each creature your

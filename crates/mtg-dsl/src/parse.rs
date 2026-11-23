@@ -10985,6 +10985,20 @@ impl P {
                 true
             }
         {
+            // `enchanted creature and each other creature that share
+            // creature type`: the host and the creatures sharing a
+            // creature type with it.
+            if self.at_words(&["and", "each", "other"]) {
+                let save = (self.pos, self.groups.len());
+                self.pos += 1;
+                if let Ok(Recipient::Group(g)) = self.recipient()
+                    && self.groups[usize::from(g)].same == Some(SameRef::ShareCreatureType)
+                {
+                    return Ok(Recipient::AttachedAnd(g));
+                }
+                self.pos = save.0;
+                self.groups.truncate(save.1);
+            }
             return Ok(Recipient::Attached);
         }
         if self.eat_words(&["triggering", "card"]) {

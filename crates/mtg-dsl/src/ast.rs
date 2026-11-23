@@ -3592,6 +3592,11 @@ pub enum Recipient {
     /// 1`: the `n`th target and the `g`th group, whose filter relates to
     /// that target.
     TargetAnd(usize, u16),
+    /// `enchanted creature and each other creature that share creature
+    /// type`: what this is attached to and the `g`th group, the creatures
+    /// that share a creature type with it, "Enchanted creature and other
+    /// creatures that share a creature type with it" (Crown of Vigor).
+    AttachedAnd(u16),
     /// `you and target opponent each draw 1 card`: you and the `n`th
     /// target as one subject, "You and target opponent each draw a card."
     /// (Sky Crier); the effect happens to each, you first.

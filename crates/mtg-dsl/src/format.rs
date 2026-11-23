@@ -386,6 +386,10 @@ impl Fmt {
             // `all` prints with the filter.
             // `target creature and all other creature with same name as
             // target 1`.
+            Recipient::AttachedAnd(i) => {
+                let group = self.recipient(Recipient::Group(i), targets);
+                format!("enchanted creature and {group}")
+            }
             Recipient::TargetAnd(t, i) => {
                 let first = self.recipient(Recipient::Target(t), targets);
                 let group = self.recipient(Recipient::Group(i), targets);

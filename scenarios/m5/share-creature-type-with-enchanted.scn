@@ -1,0 +1,50 @@
+# "Sacrifice this Aura: Enchanted creature and other creatures that share
+# a creature type with it get +1/+1 until end of turn." (Crown of Vigor;
+# CR 205.3m, a changeling has every creature type, CR 702.73a). The Aura
+# is sacrificed as the cost: the creature it enchanted as it last existed
+# (CR 608.2h). Every player's creatures count.
+
+scenario "Crown of Vigor: the enchanted Bear and the other Bears, not the Goblin" {
+  battlefield A: "Grizzly Bears", "Runeclaw Bear", "Raging Goblin", "Crown of Vigor" on "Grizzly Bears"
+  battlefield B: "Balduvian Bears", "Changeling Outcast"
+  start turn 3 A precombat_main
+  run_to turn 3 precombat_main
+  assert power "Grizzly Bears" 3
+  turn 3 A: activate "Crown of Vigor"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Crown of Vigor"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert power "Runeclaw Bear" 3
+  assert power "Balduvian Bears" 3
+  assert power "Changeling Outcast" 2
+  assert power "Raging Goblin" 1
+  run_to turn 4 upkeep
+  assert power "Grizzly Bears" 2
+  assert power "Runeclaw Bear" 2
+}
+
+scenario "Crown of Suspicion: +2/-1 to the sharers, killing a changeling 1/1" {
+  battlefield A: "Raging Goblin", "Runeclaw Bear", "Grizzly Bears", "Crown of Suspicion" on "Grizzly Bears"
+  battlefield B: "Changeling Outcast"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Crown of Suspicion"
+  run_to turn 3 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 1
+  assert power "Runeclaw Bear" 4
+  assert toughness "Runeclaw Bear" 1
+  assert graveyard B contains "Changeling Outcast"
+  assert power "Raging Goblin" 1
+  assert toughness "Raging Goblin" 1
+}
+
+scenario "Crown of Vigor: an enchanted changeling shares a type with every creature" {
+  battlefield A: "Changeling Outcast", "Raging Goblin", "Ornithopter", "Crown of Vigor" on "Changeling Outcast"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Crown of Vigor"
+  run_to turn 3 postcombat_main
+  assert power "Changeling Outcast" 2
+  assert power "Raging Goblin" 2
+  assert power "Ornithopter" 1
+}

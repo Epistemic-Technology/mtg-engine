@@ -772,6 +772,7 @@ impl Decompiler<'_> {
             CoreRecipient::OpponentsWithout(i) => Recipient::OpponentsWithout(i),
             CoreRecipient::DamagedThisWay => Recipient::DamagedThisWay,
             CoreRecipient::TargetAndGroup(t, i) => Recipient::TargetAnd(t, i),
+            CoreRecipient::AttachedAndSharing(i) => Recipient::AttachedAnd(i),
             CoreRecipient::Attached => Recipient::Attached,
             CoreRecipient::AttachedController => Recipient::AttachedController,
             CoreRecipient::BlockingIt => Recipient::BlockingIt,

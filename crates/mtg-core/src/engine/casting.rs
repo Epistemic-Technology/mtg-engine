@@ -9004,6 +9004,30 @@ impl GameState {
                     out.push(all[i]);
                 }
             }
+            // "Enchanted creature and other creatures that share a creature
+            // type with it" (CR 205.3m).
+            Recipient::AttachedAndSharing(f) => {
+                let host = self.recipients(ctx, Recipient::Attached);
+                let Some(Target::Object(h)) = host.first().copied() else {
+                    return out;
+                };
+                out.push(Target::Object(h));
+                let Some(hc) = self.characteristics_or_lki(h) else {
+                    return out;
+                };
+                let mut group = SmallVec::new();
+                self.group_into(ctx, f, &mut group);
+                out.extend(group.into_iter().filter(|t| match t {
+                    Target::Object(id) => {
+                        *id != h
+                            && self
+                                .characteristics(*id)
+                                .is_some_and(|c| c.shares_creature_type(&hc))
+                    }
+                    Target::Player(_) => false,
+                }));
+                self.note_group(&out);
+            }
             // "Target creature and all other creatures with the same name as
             // that creature": the target, if still legal, and the group
             // judged against it as it is now (CR 608.2b, 608.2h).
