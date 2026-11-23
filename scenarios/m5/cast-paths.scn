@@ -47,6 +47,17 @@ scenario "cast paths: a face-down spell pays a creature spell tax" {
   assert hand A contains "Atarka Efreet"
 }
 
+scenario "cast paths: a cleaved spell is paid for with its cleave cost" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Alchemist's Retrieval"
+  turn 1 A: cast "Alchemist's Retrieval" alternative targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert tapped oldest "Island"
+  assert tapped newest "Island"
+}
+
 scenario "cast paths: with four lands the taxed face-down spell is cast" {
   battlefield A: 4 "Plains", "Geist-Fueled Scarecrow"
   hand A: "Atarka Efreet"

@@ -4756,13 +4756,18 @@ impl GameState {
                     .expect("checked")
                     .requirements(x)
             }
-            (_, false) if o.alt == AltCast::AltCost && def.alt_cost.is_some() => def
-                .alt_cost
-                .as_ref()
-                .expect("checked")
-                .cost
-                .mana
-                .requirements(x),
+            // The card's: a cleaved spell's face has no alternative cost of
+            // its own (CR 702.148a), a prototyped one's is its mana cost.
+            (_, false) if o.alt == AltCast::AltCost && self.pool.get(o.card).alt_cost.is_some() => {
+                self.pool
+                    .get(o.card)
+                    .alt_cost
+                    .as_ref()
+                    .expect("checked")
+                    .cost
+                    .mana
+                    .requirements(x)
+            }
             (_, false) if o.cast.evoked() && def.evoke.is_some() => {
                 def.evoke.as_ref().expect("checked").requirements(x)
             }
