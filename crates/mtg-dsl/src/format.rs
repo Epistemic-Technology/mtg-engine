@@ -3039,6 +3039,11 @@ impl Fmt {
             }
             Effect::Pay { mana, life } => format!("pay {}", pay_amount(mana, *life)),
             Effect::Waterbend(mana) => format!("waterbend {mana}"),
+            // No syntax of its own: written as the ward keyword.
+            Effect::UnlessPaysCost { alts, effect, .. } => {
+                let inner = self.effect(effect, t);
+                format!("{inner} unless ward {}", ward_alts(alts))
+            }
             Effect::UnlessSacrifices {
                 payer,
                 filter: f,
@@ -3273,6 +3278,27 @@ fn countered_to(d: crate::ast::CounteredTo) -> &'static str {
         CounteredTo::Exile => " to exile",
         CounteredTo::LibraryTop => " to library top",
     }
+}
+
+/// A ward cost's alternatives: `pay count equal power life`, `get 5
+/// poison counters`, `discard 1 card or {2}`.
+fn ward_alts(alts: &[crate::ast::WardAlt]) -> String {
+    alts.iter()
+        .map(|a| {
+            if let Some(n) = a.life {
+                format!("pay {} life", num(n))
+            } else if a.poison > 0 {
+                format!(
+                    "{}get {} poison counters",
+                    if a.you { "you " } else { "" },
+                    a.poison
+                )
+            } else {
+                cost_text(&a.cost)
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" or ")
 }
 
 fn num(n: Num) -> String {
@@ -6811,6 +6837,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Toxic(n) => format!("toxic {n}"),
                 crate::ast::Mechanic::Ward(c) => format!("ward {c}"),
                 crate::ast::Mechanic::WardCost(c) => format!("ward {}", cost_text(c)),
+                crate::ast::Mechanic::WardAlts(alts) => format!("ward {}", ward_alts(alts)),
                 crate::ast::Mechanic::EchoCost(c) => format!("echo {}", cost_text(c)),
                 crate::ast::Mechanic::MorphCost(c) => format!("morph {}", cost_text(c)),
                 crate::ast::Mechanic::BuybackCost(c) => format!("buyback {}", cost_text(c)),
@@ -7405,6 +7432,9 @@ pub(crate) fn granted_mechanic(a: &Ability) -> Option<String> {
         Ability::Mechanic(crate::ast::Mechanic::Ward(c)) => Some(format!("ward {c}")),
         Ability::Mechanic(crate::ast::Mechanic::WardCost(c)) => {
             Some(format!("ward {}", cost_text(c)))
+        }
+        Ability::Mechanic(crate::ast::Mechanic::WardAlts(alts)) => {
+            Some(format!("ward {}", ward_alts(alts)))
         }
         Ability::Mechanic(crate::ast::Mechanic::Toxic(n)) => Some(format!("toxic {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Firebending(Num::N(n))) => {

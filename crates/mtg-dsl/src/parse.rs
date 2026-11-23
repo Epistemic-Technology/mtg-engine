@@ -3076,6 +3076,11 @@ impl P {
                 if matches!(self.peek_at(1), Some(Tok::Word(_))) =>
             {
                 self.pos += 1;
+                if w == "ward" {
+                    let m = self.ward_cost()?;
+                    self.end_stmt()?;
+                    return Ok(Ability::Mechanic(m));
+                }
                 let c = self.cost()?;
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(match w.as_str() {
@@ -4122,7 +4127,7 @@ impl P {
         // `has ward pay 2 life`: 'have "Ward—Pay 2 life."'.
         if self.at_words(&["ward", "pay"]) {
             self.pos += 1;
-            return Ok(Some(Ability::Mechanic(Mechanic::WardCost(self.cost()?))));
+            return Ok(Some(Ability::Mechanic(self.ward_cost()?)));
         }
         if self.at_word("toxic") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
             self.pos += 1;
@@ -4172,6 +4177,55 @@ impl P {
             return Ok(Some(Ability::Protection(filter)));
         }
         Ok(None)
+    }
+
+    /// A ward cost other than mana alone (CR 702.21a): a cost (`ward pay
+    /// 3 life`, `ward sacrifice 3 permanent`, `ward collect evidence 4`),
+    /// `pay count equal power life`, `get 5 poison counters`, `you get 2
+    /// poison counters`, and alternatives joined with `or` (`ward discard
+    /// 1 card or {2}`).
+    fn ward_cost(&mut self) -> R<Mechanic> {
+        let mut alts = Vec::new();
+        loop {
+            let alt = if self.at_words(&["pay", "count"]) {
+                self.pos += 1;
+                let n = self.num()?;
+                self.expect_word("life")?;
+                crate::ast::WardAlt {
+                    life: Some(n),
+                    ..Default::default()
+                }
+            } else if self.at_word("get") || self.at_words(&["you", "get"]) {
+                let you = self.eat_word("you");
+                self.expect_word("get")?;
+                let poison = self.number()?;
+                self.expect_word("poison")?;
+                if !self.eat_word("counters") {
+                    self.expect_word("counter")?;
+                }
+                crate::ast::WardAlt {
+                    poison,
+                    you,
+                    ..Default::default()
+                }
+            } else {
+                crate::ast::WardAlt {
+                    cost: self.cost()?,
+                    ..Default::default()
+                }
+            };
+            alts.push(alt);
+            if !self.eat_word("or") {
+                break;
+            }
+        }
+        if let [a] = alts.as_slice()
+            && a.life.is_none()
+            && a.poison == 0
+        {
+            return Ok(Mechanic::WardCost(a.cost.clone()));
+        }
+        Ok(Mechanic::WardAlts(alts))
     }
 
     fn granted_mechanic_ahead(&self) -> bool {

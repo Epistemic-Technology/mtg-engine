@@ -724,6 +724,18 @@ pub struct GraveyardCast {
     pub extra: Option<Cost>,
 }
 
+/// One alternative of a ward cost (`Mechanic::WardAlts`): a cost, or
+/// `pay count ... life` ("Pay life equal to ..."), or `get N poison
+/// counters` (`you get`: "You get N poison counters").
+#[derive(Clone, Eq, PartialEq, Debug, Default)]
+pub struct WardAlt {
+    pub cost: Cost,
+    pub life: Option<Num>,
+    pub poison: u32,
+    /// `you get 2 poison counters`: "You get two poison counters".
+    pub you: bool,
+}
+
 /// A cost (CR 118): of an activated ability or the additional cost of a
 /// spell.
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
@@ -1961,6 +1973,12 @@ pub enum Mechanic {
     /// `ward pay 3 life`: "Ward—Pay 3 life." (CR 702.21a): counter it
     /// unless that player pays the life.
     WardCost(Cost),
+    /// `ward pay count equal power life`, `ward get 5 poison counters`,
+    /// `ward you get 2 poison counters`, `ward discard 1 card or {2}`:
+    /// "Ward—Pay life equal to this creature's power.", "Ward—Get five
+    /// poison counters.", "Ward—Discard a card or pay {2}." (CR 702.21a):
+    /// counter it unless that player pays one of the alternatives.
+    WardAlts(Vec<WardAlt>),
     /// CR 702.30: at your upkeep, if it came under your control since your
     /// last upkeep, sacrifice it unless you pay.
     Echo(ManaCost),
@@ -4829,6 +4847,14 @@ pub enum Effect {
         /// `ward {2}, pay 2 life`: the mana and the life together (else
         /// mana with life is "{1} or 1 life", either).
         both: bool,
+        effect: Box<Effect>,
+    },
+    /// A ward cost of any kind, from `Mechanic::WardCost` and
+    /// `Mechanic::WardAlts` only (no syntax of its own): "counter it
+    /// unless that player pays" one of the alternatives (CR 702.21a).
+    UnlessPaysCost {
+        payer: Recipient,
+        alts: Vec<WardAlt>,
         effect: Box<Effect>,
     },
     /// `<clause> unless they sacrifice nonland permanent or discard 1

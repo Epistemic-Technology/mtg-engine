@@ -4664,6 +4664,18 @@ pub enum Effect {
         both: bool,
         effects: Vec<Effect>,
     },
+    /// A ward cost of any kind (CR 702.21a: "counter it unless that player
+    /// pays [cost]"): "Ward—Sacrifice three permanents.", "Ward—Pay life
+    /// equal to this creature's power.", "Ward—Get five poison counters.",
+    /// "Ward—Collect evidence 4.", "Ward—Discard a card or pay {2}.". The
+    /// payer may pay one of the alternatives in full, chosen as it
+    /// resolves (a cost can't be paid in part, CR 118.3); if they don't,
+    /// the effects happen.
+    UnlessPaysCost {
+        payer: Recipient,
+        alts: Vec<UnlessCost>,
+        effects: Vec<Effect>,
+    },
     /// "... unless they sacrifice a nonland permanent of their choice or
     /// discard a card" (a punisher, CR 608.2d): the payer may sacrifice a
     /// permanent matching `filter` (or, with `or_discard`, discard a
@@ -5640,6 +5652,7 @@ impl Effect {
                 }
                 | Effect::Instead { .. }
                 | Effect::UnlessPays { .. }
+                | Effect::UnlessPaysCost { .. }
                 | Effect::UnlessSacrifices { .. }
                 | Effect::UnlessYou { .. }
                 | Effect::Scry { .. }
@@ -7368,6 +7381,20 @@ pub struct Cost {
     pub untap: bool,
 }
 
+/// One alternative of `Effect::UnlessPaysCost`: a cost paid by a player
+/// other than the source's controller as an effect resolves. Of `cost`,
+/// mana, life, discarded cards (of the payer's choice, any filter, or at
+/// random), waterbend, sacrificed permanents (the payer chooses each),
+/// collect evidence and blight are paid; `life_count` is life equal to a
+/// number counted as it resolves ("Pay life equal to this creature's
+/// power", CR 119.4), and `poison` poison counters the payer gets.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Default)]
+pub struct UnlessCost {
+    pub cost: Cost,
+    pub life_count: Option<Num>,
+    pub poison: u32,
+}
+
 /// A behold cost (CR 701.69a): `n` objects matching `filter`, each a
 /// permanent the payer controls or a card revealed from their hand; with
 /// `exile`, "behold a Kithkin and exile it", they are exiled, linked to
@@ -8382,6 +8409,7 @@ impl AbilityDef {
             | Effect::OneOf(inner)
             | Effect::Lasting { effects: inner, .. }
             | Effect::UnlessPays { effects: inner, .. }
+            | Effect::UnlessPaysCost { effects: inner, .. }
             | Effect::UnlessSacrifices { effects: inner, .. }
             | Effect::SpendOnly { effects: inner, .. }
             | Effect::SpendRider { effects: inner, .. } = e

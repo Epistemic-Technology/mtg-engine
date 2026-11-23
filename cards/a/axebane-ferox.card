@@ -1,0 +1,8 @@
+card "Axebane Ferox" {
+  oracle_id 35b3ae1c-4116-49b0-89a9-7332fe9bbff0
+  cost {2}{G}{G}
+  type Creature — Beast
+  pt 4/4
+  keywords deathtouch, haste
+  ward collect evidence 4
+}

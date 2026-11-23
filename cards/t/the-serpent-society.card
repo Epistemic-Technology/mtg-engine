@@ -1,0 +1,9 @@
+card "The Serpent Society" {
+  oracle_id 3688ad0d-653b-4d5d-a57e-444db679d83e
+  cost {1}{B}{G}
+  type Legendary Creature — Human Snake Villain
+  pt 3/4
+  keywords deathtouch
+  ward get 5 poison counters
+  triggered whenever other creature you control with deathtouch dies: each opponent sacrifices 1 nontoken creature
+}

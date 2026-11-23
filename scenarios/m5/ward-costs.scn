@@ -1,0 +1,339 @@
+# Ward with any cost (CR 702.21a): "counter it unless that player pays
+# [cost]", the cost paid in full or not at all (CR 118.3) by the spell's or
+# ability's controller as the ward trigger resolves. `accept "<card>"` pays
+# (`choose` names what to sacrifice, `discard` what to discard, `choose
+# "2"` the second alternative), `decline` doesn't.
+
+# Ward—Sacrifice three permanents.
+
+scenario "Emrakul: the opponent sacrifices three permanents of their choice and Doom Blade resolves" {
+  battlefield A: "Emrakul, the Exigent Doom"
+  battlefield B: 2 "Swamp", "Grizzly Bears", "Hill Giant", "Memnite"
+  hand B: "Doom Blade"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Doom Blade" targeting "Emrakul, the Exigent Doom"
+  turn 2 B: accept "Emrakul, the Exigent Doom"
+  turn 2 B: choose "Grizzly Bears"
+  turn 2 B: choose "Memnite"
+  turn 2 B: choose "Swamp"
+  run_to turn 2 end
+  assert graveyard A contains "Emrakul, the Exigent Doom"
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Memnite"
+  assert graveyard B contains "Swamp"
+  assert battlefield B contains "Hill Giant"
+  assert battlefield B contains "Swamp"
+}
+
+scenario "Emrakul: with only two permanents, the ward cost can't be paid" {
+  battlefield A: "Emrakul, the Exigent Doom"
+  battlefield B: 2 "Swamp"
+  hand B: "Doom Blade"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Doom Blade" targeting "Emrakul, the Exigent Doom"
+  run_to turn 2 end
+  assert battlefield A contains "Emrakul, the Exigent Doom"
+  assert battlefield B contains "Swamp"
+  assert graveyard B contains "Doom Blade"
+}
+
+scenario "Emrakul: declining to sacrifice counters Doom Blade and nothing is sacrificed" {
+  battlefield A: "Emrakul, the Exigent Doom"
+  battlefield B: 2 "Swamp", "Grizzly Bears", "Hill Giant"
+  hand B: "Doom Blade"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Doom Blade" targeting "Emrakul, the Exigent Doom"
+  turn 2 B: decline "Emrakul, the Exigent Doom"
+  run_to turn 2 end
+  assert battlefield A contains "Emrakul, the Exigent Doom"
+  assert battlefield B contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  assert graveyard B contains "Doom Blade"
+}
+
+scenario "Emrakul: when cast, its controller untaps all lands they control" {
+  battlefield A: 9 "Wastes", "Forest"
+  hand A: "Emrakul, the Exigent Doom"
+  turn 1 A: cast "Emrakul, the Exigent Doom"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Emrakul, the Exigent Doom"
+  assert untapped "Forest"
+}
+
+scenario "Emrakul: exiled from hand, the target land taps for {C}{C}" {
+  battlefield A: 3 "Wastes", "Forest"
+  hand A: "Emrakul, the Exigent Doom", "Mind Stone"
+  turn 1 A: activate "Emrakul, the Exigent Doom" targeting "Forest"
+  turn 1 A: wait
+  turn 1 A: cast "Mind Stone"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Emrakul, the Exigent Doom"
+  assert battlefield A contains "Mind Stone"
+}
+
+# Ward—Pay life equal to this creature's power.
+
+scenario "Phyrexian Fleshgorger: Murder resolves once its caster pays 7 life" {
+  battlefield A: "Phyrexian Fleshgorger"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Phyrexian Fleshgorger"
+  turn 2 B: accept "Phyrexian Fleshgorger"
+  run_to turn 2 end
+  assert graveyard A contains "Phyrexian Fleshgorger"
+  assert life B 13
+}
+
+scenario "Phyrexian Fleshgorger: prototyped as a 3/3, the life to pay is 3" {
+  battlefield A: 3 "Swamp"
+  battlefield B: 3 "Swamp"
+  hand A: "Phyrexian Fleshgorger"
+  hand B: "Murder"
+  turn 1 A: cast "Phyrexian Fleshgorger" prototyped
+  turn 2 B: cast "Murder" targeting "Phyrexian Fleshgorger"
+  turn 2 B: accept "Phyrexian Fleshgorger"
+  run_to turn 2 end
+  assert graveyard A contains "Phyrexian Fleshgorger"
+  assert life B 17
+}
+
+scenario "Phyrexian Fleshgorger: with less life than its power, Murder is countered" {
+  battlefield A: "Phyrexian Fleshgorger"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  life B 6
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Phyrexian Fleshgorger"
+  run_to turn 2 end
+  assert battlefield A contains "Phyrexian Fleshgorger"
+  assert life B 6
+  assert graveyard B contains "Murder"
+}
+
+scenario "Raubahn: the life paid is its power as the ward trigger resolves" {
+  battlefield A: "Raubahn, Bull of Ala Mhigo", "Forest"
+  battlefield B: "Mountain"
+  hand A: "Giant Growth"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Raubahn, Bull of Ala Mhigo"
+  turn 2 A: cast "Giant Growth" targeting "Raubahn, Bull of Ala Mhigo" in response to "Shock"
+  turn 2 B: accept "Raubahn, Bull of Ala Mhigo"
+  run_to turn 2 end
+  assert life B 15
+  assert battlefield A contains "Raubahn, Bull of Ala Mhigo"
+  assert damage "Raubahn, Bull of Ala Mhigo" 2
+}
+
+scenario "Raubahn: declining to pay 2 life counters Shock" {
+  battlefield A: "Raubahn, Bull of Ala Mhigo"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Raubahn, Bull of Ala Mhigo"
+  turn 2 B: decline "Raubahn, Bull of Ala Mhigo"
+  run_to turn 2 end
+  assert battlefield A contains "Raubahn, Bull of Ala Mhigo"
+  assert life B 20
+}
+
+scenario "Raubahn: paying 2 life, Shock kills it" {
+  battlefield A: "Raubahn, Bull of Ala Mhigo"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Raubahn, Bull of Ala Mhigo"
+  turn 2 B: accept "Raubahn, Bull of Ala Mhigo"
+  run_to turn 2 end
+  assert graveyard A contains "Raubahn, Bull of Ala Mhigo"
+  assert life B 18
+}
+
+scenario "Raubahn: attacking, it attaches an Equipment to an attacking creature" {
+  battlefield A: "Raubahn, Bull of Ala Mhigo", "Grizzly Bears", "Bonesplitter"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Raubahn, Bull of Ala Mhigo", "Grizzly Bears"
+  turn 2 declare_attackers A: trigger "Raubahn, Bull of Ala Mhigo" targeting "Bonesplitter", "Grizzly Bears"
+  run_to turn 2 end
+  assert life B 14
+}
+
+# Ward—Get five poison counters.
+
+scenario "The Serpent Society: Murder resolves and its caster gets five poison counters" {
+  battlefield A: "The Serpent Society"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "The Serpent Society"
+  turn 2 B: accept "The Serpent Society"
+  run_to turn 2 end
+  assert graveyard A contains "The Serpent Society"
+  assert poison B 5
+}
+
+scenario "The Serpent Society: declined, Murder is countered and no poison counters" {
+  battlefield A: "The Serpent Society"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "The Serpent Society"
+  turn 2 B: decline "The Serpent Society"
+  run_to turn 2 end
+  assert battlefield A contains "The Serpent Society"
+  assert poison B 0
+}
+
+scenario "The Serpent Society: a player with five poison counters who pays five more loses" {
+  battlefield A: "The Serpent Society"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  poison B: 5
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "The Serpent Society"
+  turn 2 B: accept "The Serpent Society"
+  run_to turn 2 end
+  assert winner A
+}
+
+scenario "The Serpent Society: another deathtouch creature dying makes each opponent sacrifice a nontoken creature" {
+  battlefield A: "The Serpent Society", "Typhoid Rats", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Typhoid Rats"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+}
+
+# Ward—Collect evidence 4.
+
+scenario "Axebane Ferox: exiling cards with total mana value 4 pays its ward" {
+  battlefield A: "Axebane Ferox"
+  battlefield B: 3 "Swamp"
+  graveyard B: "Hill Giant"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Axebane Ferox"
+  turn 2 B: accept "Axebane Ferox"
+  run_to turn 2 end
+  assert graveyard A contains "Axebane Ferox"
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Axebane Ferox: total mana value 3 in the graveyard can't pay; Murder is countered" {
+  battlefield A: "Axebane Ferox"
+  battlefield B: 3 "Swamp"
+  graveyard B: "Grizzly Bears", "Lightning Bolt"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Axebane Ferox"
+  run_to turn 2 end
+  assert battlefield A contains "Axebane Ferox"
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Lightning Bolt"
+}
+
+# Ward—Discard a card or pay {2}.
+
+scenario "Titania: the opponent discards a card to pay its ward" {
+  battlefield A: "Titania, Rugged Rumbler"
+  battlefield B: 3 "Mountain"
+  hand B: "Shock", "Forest"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Titania, Rugged Rumbler"
+  turn 2 B: accept "Titania, Rugged Rumbler"
+  turn 2 B: choose "1"
+  run_to turn 2 end
+  assert graveyard B contains "Forest"
+  assert damage "Titania, Rugged Rumbler" 2
+}
+
+scenario "Titania: the opponent pays {2} instead and keeps the card" {
+  battlefield A: "Titania, Rugged Rumbler"
+  battlefield B: 3 "Mountain"
+  hand B: "Shock", "Forest"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Titania, Rugged Rumbler"
+  turn 2 B: accept "Titania, Rugged Rumbler"
+  turn 2 B: choose "2"
+  run_to turn 2 end
+  assert hand B contains "Forest"
+  assert damage "Titania, Rugged Rumbler" 2
+}
+
+scenario "Titania: with no card in hand and no mana left, Shock is countered" {
+  battlefield A: "Titania, Rugged Rumbler"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Titania, Rugged Rumbler"
+  run_to turn 2 end
+  assert damage "Titania, Rugged Rumbler" 0
+  assert graveyard B contains "Shock"
+}
+
+scenario "Titania: with no card in hand, {2} still pays" {
+  battlefield A: "Titania, Rugged Rumbler"
+  battlefield B: 3 "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Titania, Rugged Rumbler"
+  turn 2 B: accept "Titania, Rugged Rumbler"
+  run_to turn 2 end
+  assert damage "Titania, Rugged Rumbler" 2
+}
+
+scenario "Titania: cast discarding a card as its additional cost" {
+  battlefield A: 3 "Swamp"
+  hand A: "Titania, Rugged Rumbler", "Forest"
+  turn 1 A: cast "Titania, Rugged Rumbler" discarding "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Titania, Rugged Rumbler"
+  assert graveyard A contains "Forest"
+}
+
+scenario "Titania: cast paying {2} more as its additional cost" {
+  battlefield A: 5 "Swamp"
+  hand A: "Titania, Rugged Rumbler", "Forest"
+  turn 1 A: cast "Titania, Rugged Rumbler" other_cost
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Titania, Rugged Rumbler"
+  assert hand A contains "Forest"
+}
+
+# Ward—Sacrifice a permanent with mana value 1 or greater.
+
+scenario "Ulamog's Dreadsire: lands and a mana value 0 artifact can't pay its ward" {
+  battlefield A: "Ulamog's Dreadsire"
+  battlefield B: 3 "Swamp", "Memnite"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Ulamog's Dreadsire"
+  run_to turn 2 end
+  assert battlefield A contains "Ulamog's Dreadsire"
+  assert battlefield B contains "Memnite"
+}
+
+scenario "Ulamog's Dreadsire: sacrificing a creature with mana value 2 pays it" {
+  battlefield A: "Ulamog's Dreadsire"
+  battlefield B: 3 "Swamp", "Memnite", "Grizzly Bears"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Ulamog's Dreadsire"
+  turn 2 B: accept "Ulamog's Dreadsire"
+  run_to turn 2 end
+  assert graveyard A contains "Ulamog's Dreadsire"
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Memnite"
+}
+
+scenario "Ulamog's Dreadsire: {T} creates a 10/10 Eldrazi token" {
+  battlefield A: "Ulamog's Dreadsire"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Ulamog's Dreadsire"
+  run_to turn 2 end
+  assert battlefield A contains "Eldrazi"
+  assert power "Eldrazi" 10
+  assert has "Ulamog's Dreadsire" vigilance
+}

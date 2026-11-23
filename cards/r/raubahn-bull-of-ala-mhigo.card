@@ -1,0 +1,8 @@
+card "Raubahn, Bull of Ala Mhigo" {
+  oracle_id d81d5749-ab4d-42c5-8903-0b400f10fe33
+  cost {1}{R}
+  type Legendary Creature — Human Warrior
+  pt 2/2
+  ward pay count equal power life
+  triggered whenever this attacks: attach up to 1 target Equipment you control to target attacking creature
+}

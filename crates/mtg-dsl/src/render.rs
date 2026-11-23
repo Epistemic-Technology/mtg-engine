@@ -3726,6 +3726,50 @@ fn additional_text(cost: &Cost, ctx: &mut Ctx) -> String {
     lowercase_first(&c)
 }
 
+/// A ward cost's alternatives (CR 702.21a), the first capitalized:
+/// "Pay life equal to Raubahn's power", "Get five poison counters", "You
+/// get two poison counters", "Discard a card or pay {2}".
+fn ward_alts_text(alts: &[crate::ast::WardAlt], ctx: &mut Ctx) -> String {
+    let mut parts = Vec::new();
+    for (i, a) in alts.iter().enumerate() {
+        let text = if let Some(n) = a.life {
+            match n {
+                Num::Count(idx) => {
+                    let phrase = match ctx.card.counts.get(usize::from(idx)).map(|c| &c.expr) {
+                        Some(crate::ast::CountExpr::SourcePower) | None => {
+                            format!("{}'s power", this_ref(ctx.card))
+                        }
+                        Some(expr) => count_phrase(expr, ctx.card, false),
+                    };
+                    format!("pay life equal to {phrase}")
+                }
+                n => format!("pay {} life", digits(n)),
+            }
+        } else if a.poison > 0 {
+            format!(
+                "{}get {} poison counters",
+                if a.you { "you " } else { "" },
+                count_words(Num::N(a.poison), "a")
+            )
+        } else if i > 0
+            && a.cost
+                == (Cost {
+                    mana: a.cost.mana.clone(),
+                    order: a.cost.order.clone(),
+                    ..Cost::default()
+                })
+        {
+            // "Discard a card or pay {2}".
+            format!("pay {}", a.cost.mana)
+        } else {
+            let t = cost_text(&a.cost, ctx);
+            if i > 0 { lowercase_first(&t) } else { t }
+        };
+        parts.push(text);
+    }
+    capitalize(&parts.join(" or "))
+}
+
 #[allow(clippy::too_many_lines)] // one arm per cost part
 fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
     if let Some(n) = cost.loyalty {
@@ -9993,6 +10037,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let _ = write!(c.tail, " unless {who} {sac} {what} of their choice{or}");
             c
         }
+        // A ward cost's effect (no syntax of its own; the keyword prints
+        // "Ward—...").
+        Effect::UnlessPaysCost { alts, effect, .. } => {
+            let mut c = clause(effect, ctx);
+            let what = ward_alts_text(alts, ctx);
+            let _ = write!(c.tail, " unless that player pays: {what}");
+            c
+        }
         // "sacrifice it unless you return an artifact you control to its
         // owner's hand".
         Effect::UnlessYou { act, effect } => {
@@ -14697,7 +14749,9 @@ fn granted_keyword(a: &Ability, card: &Card) -> Option<String> {
             &protection_text(f, card)["Protection".len()..]
         )),
         // 'have "Ward—Pay 2 life."': quoted.
-        Ability::Mechanic(crate::ast::Mechanic::WardCost(_)) => None,
+        Ability::Mechanic(
+            crate::ast::Mechanic::WardCost(_) | crate::ast::Mechanic::WardAlts(_),
+        ) => None,
         _ => crate::format::granted_mechanic(a),
     }
 }
@@ -16985,6 +17039,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 format!(
                     "Ward\u{2014}{}.",
                     cost_text(c, &mut Ctx::new(card, lookup, &[]))
+                )
+            }
+            // "Ward—Pay life equal to this creature's power.", "Ward—
+            // Discard a card or pay {2}."
+            crate::ast::Mechanic::WardAlts(alts) => {
+                format!(
+                    "Ward\u{2014}{}.",
+                    ward_alts_text(alts, &mut Ctx::new(card, lookup, &[]))
                 )
             }
             crate::ast::Mechanic::EchoCost(c) => {

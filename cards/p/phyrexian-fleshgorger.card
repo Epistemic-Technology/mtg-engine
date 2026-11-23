@@ -1,0 +1,9 @@
+card "Phyrexian Fleshgorger" {
+  oracle_id d3a5a830-cd14-49da-9412-c50049c74c92
+  cost {7}
+  type Artifact Creature — Phyrexian Wurm
+  pt 7/5
+  prototype {1}{B}{B} 3/3
+  keywords menace, lifelink
+  ward pay count equal power life
+}

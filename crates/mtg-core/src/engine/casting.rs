@@ -2102,6 +2102,129 @@ impl GameState {
         }
     }
 
+    /// `Effect::UnlessPaysCost` (CR 702.21a, 118.3): `p` may pay one of
+    /// `alts` in full; whether they did. Only alternatives `p` can pay in
+    /// full are offered: first whether to pay (`PayOrCounter`), then,
+    /// with several, which (`ChooseOption`, `Mode(i)` the `i`th).
+    #[cold]
+    #[allow(clippy::too_many_lines, clippy::many_single_char_names)] // one step per cost part
+    fn pay_unless_cost(
+        &mut self,
+        ctx: &EffectCtx,
+        p: PlayerId,
+        alts: &[crate::card::UnlessCost],
+    ) -> bool {
+        let src = ctx.source;
+        let life_of = |s: &Self, a: &crate::card::UnlessCost| {
+            a.cost.life + a.life_count.map_or(0, |n| s.eval_num(n, ctx))
+        };
+        let sources_of = |s: &Self, a: &crate::card::UnlessCost| {
+            let mut sources = s.mana_sources(p);
+            if a.cost.waterbend {
+                let req = a.cost.mana.requirements(0);
+                sources.extend(s.waterbend_sources(p, req.generic, None));
+            }
+            sources
+        };
+        let payable: Vec<usize> = alts
+            .iter()
+            .enumerate()
+            .filter(|(_, a)| {
+                let life = life_of(self, a);
+                let ps = self.player(p);
+                let req = a.cost.mana.requirements(0);
+                (life == 0 || i64::from(ps.life) >= i64::from(life))
+                    && self.additional_payable(p, &a.cost, src)
+                    && self.payable(p, &sources_of(self, a), &ps.mana_pool, &req, ps.life, None)
+            })
+            .map(|(i, _)| i)
+            .collect();
+        if payable.is_empty() {
+            return false;
+        }
+        let def = self.source_def(ctx);
+        let k = self.choose_mid(
+            p,
+            DecisionKind::PayOrCounter { def },
+            vec![Choice::Accept, Choice::Decline],
+        );
+        if k != 0 {
+            return false;
+        }
+        let i = if payable.len() == 1 {
+            payable[0]
+        } else {
+            let options: Vec<Choice> = payable.iter().map(|i| Choice::Mode(*i)).collect();
+            let k = self.choose_mid(p, DecisionKind::ChooseOption { def }, options);
+            payable.get(k).copied().unwrap_or(payable[0])
+        };
+        let a = &alts[i];
+        let c = &a.cost;
+        let life = life_of(self, a);
+        let sources = sources_of(self, a);
+        self.pay_from(p, &c.mana.requirements(0), &sources, None);
+        if life > 0 {
+            self.change_life(p, -i32::try_from(life).unwrap_or(i32::MAX));
+        }
+        self.add_poison(p, a.poison);
+        // CR 701.9: the payer chooses what to discard, or it is chosen at
+        // random (CR 701.9b).
+        for _ in 0..c.discard {
+            let cands = self.discard_candidates(p, c.discard_filter.as_ref(), src);
+            if cands.is_empty() {
+                break;
+            }
+            let card = if c.discard_random {
+                cands[rand::Rng::random_range(&mut self.rng, 0..cands.len())]
+            } else {
+                let options: Vec<Choice> = cands
+                    .iter()
+                    .map(|id| Choice::Discard {
+                        card: *id,
+                        def: self.objects[*id].def,
+                    })
+                    .collect();
+                let k = self.choose_mid(p, DecisionKind::Discard, options);
+                cands.get(k).copied().unwrap_or(cands[0])
+            };
+            self.discard_card(p, card);
+        }
+        // "Sacrifice three permanents": the payer chooses each, then they
+        // are sacrificed together.
+        if let Some(crate::card::SacCost::Filter(f)) = &c.sacrifice {
+            let mut picks: SmallVec<[ObjId; 4]> = SmallVec::new();
+            for _ in 0..c.chosen_count() {
+                let options: Vec<Choice> = self
+                    .sacrifice_candidates(p, f, src)
+                    .into_iter()
+                    .filter(|id| !picks.contains(id))
+                    .map(Choice::Sacrifice)
+                    .collect();
+                if options.is_empty() {
+                    break;
+                }
+                let k = self.choose_mid(p, DecisionKind::Edict, options.clone());
+                if let Some(Choice::Sacrifice(id)) = options.get(k).or(options.first()) {
+                    picks.push(*id);
+                }
+            }
+            for id in picks {
+                self.sacrifice(id);
+            }
+        }
+        // Collect evidence, blight and the like.
+        let rest = Cost {
+            mana: crate::mana::ManaCost::default(),
+            life: 0,
+            discard: 0,
+            discard_random: false,
+            sacrifice: None,
+            ..c.clone()
+        };
+        self.pay_other_costs(p, &rest, src, None, None);
+        true
+    }
+
     /// Whether an object the resolution moved matches `f`, as it last
     /// existed before moving (CR 608.2h).
     fn moved_matches(
@@ -13454,6 +13577,25 @@ impl GameState {
                     paid = true;
                     break;
                 }
+                if !paid {
+                    for e in effects {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+            }
+            Effect::UnlessPaysCost {
+                payer,
+                alts,
+                effects,
+            } => {
+                let payer = self
+                    .recipients(ctx, *payer)
+                    .into_iter()
+                    .find_map(|t| match t {
+                        Target::Player(p) => Some(p),
+                        Target::Object(_) => None,
+                    });
+                let paid = payer.is_some_and(|p| self.pay_unless_cost(ctx, p, alts));
                 if !paid {
                     for e in effects {
                         self.apply_effect(ctx, e);

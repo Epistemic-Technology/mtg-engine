@@ -7644,6 +7644,62 @@ impl Builder<'_> {
             self.statements.push("ward discard 1 card".to_string());
             return Ok(());
         }
+        // CR 702.21a: other ward costs: "Ward—Sacrifice three permanents.",
+        // "Ward—Pay life equal to this creature's power.", "Ward—Get five
+        // poison counters.", "Ward—Collect evidence 4.", "Ward—Discard a
+        // card or pay {2}."
+        let n = |w: &str| match w {
+            "two" => "2",
+            "three" => "3",
+            "four" => "4",
+            "five" => "5",
+            "six" => "6",
+            _ => "1",
+        };
+        if let Some(c) =
+            Regex::new(r"^Ward\u{2014}Sacrifice (two|three|four|five|six) (nonland )?permanents\.$")
+                .unwrap()
+                .captures(line)
+        {
+            let nonland = if c.get(2).is_some() { "nonland " } else { "" };
+            self.statements
+                .push(format!("ward sacrifice {} {nonland}permanent", n(&c[1])));
+            return Ok(());
+        }
+        if Regex::new(r"^Ward\u{2014}Pay life equal to (?:this creature|[A-Z][^']*)'s power\.$")
+            .unwrap()
+            .is_match(line)
+        {
+            self.statements
+                .push("ward pay count equal power life".to_string());
+            return Ok(());
+        }
+        if let Some(c) =
+            Regex::new(r"^Ward\u{2014}(You g|G)et (two|three|four|five|six) poison counters\.$")
+                .unwrap()
+                .captures(line)
+        {
+            let you = if &c[1] == "You g" { "you " } else { "" };
+            self.statements
+                .push(format!("ward {you}get {} poison counters", n(&c[2])));
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(r"^Ward\u{2014}Collect evidence (\d+)\.$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("ward collect evidence {}", cap(&c, 1)));
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(r"^Ward\u{2014}Discard a card or pay (\{\d+\})\.$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("ward discard 1 card or {}", cap(&c, 1)));
+            return Ok(());
+        }
         // CR 702.113: "Awaken 3—{5}{B}".
         if let Some(c) = Regex::new(r"^Awaken (\d+)\u{2014}((?:\{[0-9WUBRGCX/]+\})+)$")
             .unwrap()

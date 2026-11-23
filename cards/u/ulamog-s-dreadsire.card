@@ -1,0 +1,9 @@
+card "Ulamog's Dreadsire" {
+  oracle_id 2afefaab-c614-4fca-afba-d8d206d9a8b9
+  cost {10}
+  type Creature — Eldrazi
+  pt 10/10
+  keywords vigilance
+  ward sacrifice permanent with mana value 1 or greater
+  activated {T}: create 1 "10/10 colorless Eldrazi creature"
+}

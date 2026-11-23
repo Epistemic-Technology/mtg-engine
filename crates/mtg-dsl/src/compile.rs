@@ -4201,6 +4201,27 @@ impl Compiler<'_> {
                     effects,
                 });
             }
+            Effect::UnlessPaysCost {
+                payer,
+                alts,
+                effect,
+            } => {
+                let mut effects = Vec::new();
+                self.effect(effect, &mut effects)?;
+                let alts = alts
+                    .iter()
+                    .map(|a| mtg_core::card::UnlessCost {
+                        cost: self.cost(&a.cost),
+                        life_count: a.life,
+                        poison: a.poison,
+                    })
+                    .collect();
+                out.push(CoreEffect::UnlessPaysCost {
+                    payer: r(*payer),
+                    alts,
+                    effects,
+                });
+            }
             Effect::UnlessPays {
                 payer,
                 mana,
@@ -6508,12 +6529,10 @@ impl Compiler<'_> {
                     let expanded = extort(i);
                     return self.ability(&expanded);
                 }
-                // "Ward—..." and "Echo—..." are paid as the trigger resolves:
-                // mana (waterbend too), life, and discarded cards only, or
-                // for ward a sacrifice of one permanent alone ("Ward—
-                // Sacrifice a creature."). Any other part would be
-                // dropped, so it is an error.
-                Mechanic::WardCost(cost) | Mechanic::EchoCost(cost)
+                // "Echo—..." is paid as the trigger resolves: mana (waterbend
+                // too), life, and discarded cards only. Any other part
+                // would be dropped, so it is an error.
+                Mechanic::EchoCost(cost)
                     if *cost
                         != crate::ast::Cost {
                             mana: cost.mana.clone(),
@@ -6523,12 +6542,25 @@ impl Compiler<'_> {
                             discard_random: cost.discard_random,
                             order: cost.order.clone(),
                             ..Default::default()
-                        }
-                        && !(matches!(m, Mechanic::WardCost(_))
-                            && ward_sacrifice(cost).is_some()) =>
+                        } =>
                 {
                     return self.err(
-                        "a ward or echo cost may be only mana (or waterbend), life, and discarded cards, or for ward the sacrifice of one permanent",
+                        "an echo cost may be only mana (or waterbend), life, and discarded cards",
+                    );
+                }
+                // "Ward—...": a cost of the parts the ward trigger pays as
+                // it resolves (CR 702.21a); any other part would be
+                // dropped, so it is an error.
+                Mechanic::WardCost(cost) if !ward_payable(cost) => {
+                    return self.err(
+                        "a ward cost may be only mana (or waterbend), life, discarded cards, sacrificed permanents, collect evidence, and blight",
+                    );
+                }
+                Mechanic::WardAlts(alts)
+                    if alts.iter().any(|a| !ward_payable(&a.cost)) || alts.is_empty() =>
+                {
+                    return self.err(
+                        "a ward cost may be only mana (or waterbend), life, discarded cards, sacrificed permanents, collect evidence, and blight",
                     );
                 }
                 // CR 702.23a: "Whenever this creature becomes blocked, it
@@ -7405,7 +7437,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             }),
         },
         // "Ward—Pay 3 life." (CR 702.21a).
-        Mechanic::WardCost(cost) => Ability::Triggered {
+        Mechanic::WardCost(cost) if ward_simple(cost) => Ability::Triggered {
             limit: mtg_core::card::TurnLimit::None,
             trigger: Trigger::TargetedByOpponent,
             condition: None,
@@ -7419,6 +7451,32 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 waterbend: cost.waterbend,
                 discard_random: cost.discard_random,
                 both: true,
+                effect: Box::new(E::Counter {
+                    to: Recipient::TriggeringObject,
+                    dest: crate::ast::CounteredTo::Graveyard,
+                }),
+            }),
+        },
+        // "Ward—Sacrifice three permanents.", "Ward—Collect evidence 4.",
+        // "Ward—Pay life equal to this creature's power.", "Ward—Discard a
+        // card or pay {2}." (CR 702.21a): any cost, paid in full or not
+        // at all as the trigger resolves.
+        Mechanic::WardCost(_) | Mechanic::WardAlts(_) => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
+            trigger: Trigger::TargetedByOpponent,
+            condition: None,
+            from_graveyard: false,
+            targets: Vec::new(),
+            effects: one(E::UnlessPaysCost {
+                payer: Recipient::TriggeringController { that: false },
+                alts: match m {
+                    Mechanic::WardAlts(alts) => alts.clone(),
+                    Mechanic::WardCost(cost) => vec![crate::ast::WardAlt {
+                        cost: cost.clone(),
+                        ..Default::default()
+                    }],
+                    _ => Vec::new(),
+                },
                 effect: Box::new(E::Counter {
                     to: Recipient::TriggeringObject,
                     dest: crate::ast::CounteredTo::Graveyard,
@@ -7951,6 +8009,51 @@ pub(crate) fn named_option(card: &Card, label: &str) -> Option<u8> {
             .and_then(|i| u8::try_from(i).ok()),
         _ => None,
     })
+}
+
+/// A ward cost the older "unless that player pays" effect pays: mana
+/// (waterbend too), life, and discarded cards of any kind.
+fn ward_simple(cost: &crate::ast::Cost) -> bool {
+    *cost
+        == crate::ast::Cost {
+            mana: cost.mana.clone(),
+            life: cost.life,
+            discard: cost.discard,
+            waterbend: cost.waterbend,
+            discard_random: cost.discard_random,
+            order: cost.order.clone(),
+            ..Default::default()
+        }
+}
+
+/// A ward cost `Effect::UnlessPaysCost` pays in full (CR 702.21a): mana
+/// (waterbend too), life, discarded cards (any filter, or at random),
+/// sacrificed permanents of the payer's choice, collect evidence, blight.
+fn ward_payable(cost: &crate::ast::Cost) -> bool {
+    let sacrifice = match &cost.sacrifice {
+        None => None,
+        Some(crate::ast::SacCost::Filter(_))
+            if cost.chosen == mtg_core::card::ChosenCost::Sacrifice =>
+        {
+            cost.sacrifice.clone()
+        }
+        Some(_) => return false,
+    };
+    *cost
+        == crate::ast::Cost {
+            mana: cost.mana.clone(),
+            life: cost.life,
+            discard: cost.discard,
+            discard_filter: cost.discard_filter.clone(),
+            waterbend: cost.waterbend,
+            discard_random: cost.discard_random,
+            sacrifice,
+            count: cost.count,
+            evidence: cost.evidence,
+            blight: cost.blight,
+            order: cost.order.clone(),
+            ..Default::default()
+        }
 }
 
 /// "Ward—Sacrifice a creature.": the filter of a ward cost that is the
