@@ -1828,6 +1828,9 @@ pub enum PtValue {
 pub enum Modification {
     /// "is a creature in addition to its other types" (layer 4).
     AddTypes(TypeSet),
+    /// "Enchanted land is snow." (layer 4, CR 205.4: a supertype added
+    /// to its others).
+    AddSupertype(Supertype),
     /// "becomes an artifact creature" (layer 4): these card types replace
     /// its others (CR 205.1a), except land ("It's still a land", CR
     /// 205.1b; see `Effect::Animate`).
@@ -1936,6 +1939,7 @@ impl Modification {
         match self {
             Modification::Control => Layer::L2Control,
             Modification::AddTypes(_)
+            | Modification::AddSupertype(_)
             | Modification::BecomeTypes(_)
             | Modification::SetTypes(_)
             | Modification::AddLandType(_)

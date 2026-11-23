@@ -1,0 +1,8 @@
+card "Glittering Frost" {
+  oracle_id 2013df0b-9e8c-4dbf-87b2-0dec983266fa
+  cost {2}{G}
+  type Snow Enchantment — Aura
+  enchant land
+  static enchanted: add supertype snow
+  triggered whenever enchanted land is tapped for mana: add any
+}

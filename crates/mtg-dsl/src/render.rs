@@ -12124,6 +12124,17 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
             "{} every basic land type in addition to its other types",
             v("is", "are")
         ),
+        // "Enchanted land is snow."
+        Mod::AddSupertype(s) => format!(
+            "{} {}",
+            v("is", "are"),
+            match s {
+                Supertype::Basic => "basic",
+                Supertype::Legendary => "legendary",
+                Supertype::Snow => "snow",
+                Supertype::World => "world",
+            }
+        ),
         // "are Oozes in addition to their other types".
         Mod::AddSubtype(s) if plural_form => {
             format!("are {} in addition to their other types", pluralize(s))

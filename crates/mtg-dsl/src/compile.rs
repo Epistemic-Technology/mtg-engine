@@ -4913,6 +4913,7 @@ impl Compiler<'_> {
             Mod::ChosenLandType => Modification::ChosenLandType,
             Mod::AddChosenType => Modification::AddChosenType,
             Mod::AddSubtype(s) => Modification::AddSubtype(self.pool.subtype(s)),
+            Mod::AddSupertype(s) => Modification::AddSupertype(*s),
             Mod::SetSubtype(s) => Modification::SetCreatureType(self.pool.subtype(s)),
             // A static ability compiles all five (`Ability::Static`).
             Mod::AddAllLandTypes => Modification::AddLandType(Color::White),

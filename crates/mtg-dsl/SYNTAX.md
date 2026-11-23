@@ -1593,7 +1593,8 @@ of CR 613: `+1/+1`, `base 1/1`,
 `has flying, trample`, `loses all abilities`, `add type creature`,
 `loses flying`, `set land Mountain`, `set land Mountain Forest Plains` ("is a
 Mountain, Forest, and Plains": all of them and no other), `add land Swamp`,
-`add subtype Saproling`, `goaded` ("is goaded", CR 701.15: attacks each
+`add subtype Saproling`, `add supertype snow` ("Enchanted land is snow.",
+layer 4: a supertype added to its others, CR 205.4), `goaded` ("is goaded", CR 701.15: attacks each
 combat if able, and a player other than the source's controller if able),
 `control`
 (you control it), `add color white`, `set color blue`, `set color chosen`,

@@ -14930,6 +14930,14 @@ impl P {
                         })
                     }
                     "chosen" if !set && self.eat_word("type") => Ok(Mod::AddChosenType),
+                    // `add supertype snow`: "is snow".
+                    "supertype" if !set => {
+                        let w = self.word()?;
+                        let Some(s) = supertype(&w) else {
+                            return self.fail(format!("not a supertype: {w}"));
+                        };
+                        Ok(Mod::AddSupertype(s))
+                    }
                     "subtype" if !set && self.eat_word("every") => {
                         Ok(Mod::AllCreatureTypes { every: true })
                     }

@@ -3354,6 +3354,8 @@ pub enum Mod {
     /// `add chosen type`: "is the chosen type in addition to its other
     /// types".
     AddChosenType,
+    /// `add supertype snow`: "is snow" (CR 205.4).
+    AddSupertype(Supertype),
     AddSubtype(String),
     /// `set subtype Spirit`: "is a Spirit" (it loses its other creature
     /// types, CR 205.1b).

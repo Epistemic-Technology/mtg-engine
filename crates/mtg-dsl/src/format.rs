@@ -4964,6 +4964,15 @@ fn modification(m: &Mod) -> String {
         Mod::ChosenLandType => "set land chosen".to_string(),
         Mod::AddChosenType => "add chosen type".to_string(),
         Mod::AddSubtype(s) => format!("add subtype {s}"),
+        Mod::AddSupertype(s) => format!(
+            "add supertype {}",
+            match s {
+                Supertype::Basic => "basic",
+                Supertype::Legendary => "legendary",
+                Supertype::Snow => "snow",
+                Supertype::World => "world",
+            }
+        ),
         Mod::SetSubtype(s) => format!("set subtype {s}"),
         Mod::AddAllLandTypes => "add land all".to_string(),
         Mod::Control => "control".to_string(),

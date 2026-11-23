@@ -2299,6 +2299,7 @@ impl Decompiler<'_> {
             Modification::ChosenLandType => Mod::ChosenLandType,
             Modification::AddChosenType => Mod::AddChosenType,
             Modification::AddSubtype(s) => Mod::AddSubtype(self.pool.subtype_name(*s).to_string()),
+            Modification::AddSupertype(s) => Mod::AddSupertype(*s),
             Modification::SetCreatureType(s) => {
                 Mod::SetSubtype(self.pool.subtype_name(*s).to_string())
             }
