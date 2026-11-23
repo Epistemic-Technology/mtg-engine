@@ -5839,6 +5839,11 @@ pub enum PlayerStaticKind {
         min_one: bool,
         keyword: Option<ActivatedKeyword>,
     },
+    /// "You may pay {0} rather than pay the equip cost of the first equip
+    /// ability you activate each turn" (CR 118.9; `your_turns`: "during
+    /// each of your turns"): the engine takes it for the first equip
+    /// ability its controller activates in such a turn.
+    FirstEquipFree { your_turns: bool },
 }
 
 /// Effects that modify the rules rather than objects (CR 613.11, 614.17).

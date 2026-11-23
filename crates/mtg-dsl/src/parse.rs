@@ -2084,6 +2084,13 @@ impl P {
                 self.pos += 7;
                 self.player_static(mtg_core::card::PlayerStaticKind::OpponentsCantCastYourTurn)
             }
+            // "You may pay {0} rather than pay the equip cost of the first
+            // equip ability you activate each turn."
+            "first" if self.at_words(&["first", "equip", "free"]) => {
+                self.pos += 3;
+                let your_turns = self.eat_words(&["during", "your", "turns"]);
+                self.player_static(mtg_core::card::PlayerStaticKind::FirstEquipFree { your_turns })
+            }
             "players" if self.at_words(&["players", "can't", "gain", "life"]) => {
                 self.pos += 4;
                 self.player_static(mtg_core::card::PlayerStaticKind::Rule(

@@ -16757,6 +16757,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
+                K::FirstEquipFree { your_turns } => format!(
+                    "you may pay {{0}} rather than pay the equip cost of the first equip ability you activate {}",
+                    if *your_turns {
+                        "during each of your turns"
+                    } else {
+                        "each turn"
+                    }
+                ),
                 K::LandsFromGraveyard => "you may play lands from your graveyard".to_string(),
                 K::ChosenName(ban) => match ban {
                     mtg_core::card::NameBan::Cast => "spells with the chosen name can't be cast",

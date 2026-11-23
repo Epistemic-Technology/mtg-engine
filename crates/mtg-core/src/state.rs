@@ -1806,6 +1806,9 @@ pub struct TurnLog {
     /// Cards each player discarded ("for each card you've discarded this
     /// turn").
     pub discards: [u8; 4],
+    /// Players who activated an equip ability ("the first equip ability
+    /// you activate each turn").
+    pub equipped: u8,
 }
 
 /// Day and night (CR 731): neither until something makes it day.

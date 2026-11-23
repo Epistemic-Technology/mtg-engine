@@ -5263,6 +5263,23 @@ impl GameState {
                 continue;
             }
             for a in &self.pool.get(holder.def).ability_ids {
+                // "You may pay {0} rather than pay the equip cost of the
+                // first equip ability you activate each turn."
+                if let AbilityDef::PlayerStatic {
+                    kind: crate::card::PlayerStaticKind::FirstEquipFree { your_turns },
+                    condition,
+                } = self.pool.ability(*a)
+                {
+                    if ab.is_equip()
+                        && self.turn_log.equipped & (1 << p.index().min(7)) == 0
+                        && (!*your_turns || self.active_player == p)
+                        && condition
+                            .is_none_or(|i| self.condition_now(self.pool.condition(i), p, *id))
+                    {
+                        *req = ManaRequirement::default();
+                    }
+                    continue;
+                }
                 let AbilityDef::PlayerStatic {
                     kind:
                         crate::card::PlayerStaticKind::ActivationCost {
@@ -6355,6 +6372,9 @@ impl GameState {
             sources.extend(self.waterbend_sources(controller, req.generic, None));
         }
         self.pay_from(controller, &req, &sources, Some(sa.source));
+        if ab.is_equip() {
+            self.turn_log.equipped |= 1 << controller.index().min(7);
+        }
         if ab.cost.crew > 0 {
             for c in self.crew_choice(controller, sa.source, ab.cost.crew, ab.saddles()) {
                 self.tap(c);

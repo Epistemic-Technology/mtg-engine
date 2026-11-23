@@ -7046,6 +7046,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
+                K::FirstEquipFree { your_turns: false } => "first equip free".to_string(),
+                K::FirstEquipFree { your_turns: true } => {
+                    "first equip free during your turns".to_string()
+                }
                 K::LandsFromGraveyard => "you may play lands from your graveyard".to_string(),
                 K::ChosenName(ban) => match ban {
                     mtg_core::card::NameBan::Cast => "spells with chosen name can't be cast",
