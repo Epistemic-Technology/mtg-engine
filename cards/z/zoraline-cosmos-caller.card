@@ -1,0 +1,9 @@
+card "Zoraline, Cosmos Caller" {
+  oracle_id 5a775f50-20f8-4a8f-868c-8907305bfad6
+  cost {1}{W}{B}
+  type Legendary Creature — Bat Cleric
+  pt 3/3
+  keywords flying, vigilance
+  triggered whenever Bat you control attacks: you gain 1 life
+  triggered whenever this enters or attacks: you may pay {W}{B} and 2 life; when you do, return target nonland permanent card with mana value 3 or less from your graveyard to battlefield with 1 finality counter
+}

@@ -2466,7 +2466,7 @@ or triggered ability`, `target activated ability`, `target triggered
 ability`, `target activated ability from an artifact source`; `target spell that
 targets this` ("that targets this
 creature"),
-`you may <clause>`, `pay {2}` / `pay 2 life` (after `you may`),
+`you may <clause>`, `pay {2}` / `pay 2 life` / `pay {W}{B} and 2 life` (after `you may`; the last "you may pay {W}{B} and 2 life", both or neither),
 `that player may pay {4}` / `that player may discard 1 card at random`
 (another player decides and acts as it resolves, CR 608.2d; an act they
 can't complete isn't offered; a following `if they do,` prints "If the

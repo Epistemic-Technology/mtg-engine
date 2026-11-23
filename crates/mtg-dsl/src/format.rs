@@ -3229,7 +3229,9 @@ thread_local! {
 }
 
 fn pay_amount(mana: &mtg_core::mana::ManaCost, life: u32) -> String {
-    if life > 0 {
+    if life > 0 && !mana.is_empty() {
+        format!("{mana} and {life} life")
+    } else if life > 0 {
         format!("{life} life")
     } else {
         mana.to_string()

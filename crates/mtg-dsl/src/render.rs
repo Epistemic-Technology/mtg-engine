@@ -9757,7 +9757,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("if {who}, {}", body.trim_end_matches('.')))
         }
         Effect::Waterbend(mana) => Clause::imperative(format!("waterbend {mana}")),
-        Effect::Pay { mana, life } => Clause::imperative(if *life > 0 {
+        Effect::Pay { mana, life } => Clause::imperative(if *life > 0 && !mana.is_empty() {
+            format!("pay {mana} and {life} life")
+        } else if *life > 0 {
             format!("pay {life} life")
         } else {
             format!("pay {mana}")

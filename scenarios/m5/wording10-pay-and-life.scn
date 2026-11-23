@@ -1,0 +1,30 @@
+# "You may pay {W}{B} and 2 life. When you do, ..." (Zoraline, Cosmos
+# Caller): one optional payment of mana and life together.
+
+scenario "Zoraline, Cosmos Caller: paying {W}{B} and 2 life returns a permanent card with a finality counter" {
+  battlefield A: "Zoraline, Cosmos Caller", "Plains", "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  start turn 2 A
+  turn 2 A: attack "Zoraline, Cosmos Caller"
+  illegal turn 2 declare_attackers A: trigger "Zoraline, Cosmos Caller" targeting "Hill Giant"
+  turn 2 declare_attackers A: trigger "Zoraline, Cosmos Caller" targeting "Grizzly Bears"
+  run_to turn 2 end_combat
+  assert life A 19
+  assert life B 17
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" finality 1
+  assert tapped "Plains"
+  assert tapped "Swamp"
+}
+
+scenario "Zoraline, Cosmos Caller: declining pays nothing and returns nothing" {
+  battlefield A: "Zoraline, Cosmos Caller", "Plains", "Swamp"
+  graveyard A: "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Zoraline, Cosmos Caller"
+  turn 2 declare_attackers A: decline "Zoraline, Cosmos Caller"
+  run_to turn 2 end_combat
+  assert life A 21
+  assert graveyard A contains "Grizzly Bears"
+  assert untapped "Plains"
+}

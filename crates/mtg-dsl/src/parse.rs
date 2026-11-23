@@ -6031,7 +6031,18 @@ impl P {
     /// `{2}` or `2 life`.
     fn pay_amount(&mut self) -> R<(ManaCost, u32)> {
         if matches!(self.peek(), Some(Tok::Sym(_))) {
-            return Ok((self.mana_cost()?, 0));
+            let mana = self.mana_cost()?;
+            // "you may pay {W}{B} and 2 life" (Zoraline, Cosmos Caller).
+            if self.at_word("and")
+                && matches!(self.peek_at(1), Some(Tok::Num(_)))
+                && self.word_at(2).as_deref() == Some("life")
+            {
+                self.pos += 1;
+                let n = self.number()?;
+                self.expect_word("life")?;
+                return Ok((mana, n));
+            }
+            return Ok((mana, 0));
         }
         let n = self.number()?;
         self.expect_word("life")?;
