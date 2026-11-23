@@ -1,0 +1,8 @@
+card "Tablet of Discovery" {
+  oracle_id 19cf5798-4600-4a66-b1c7-de77bde157d0
+  cost {2}{R}
+  type Artifact
+  triggered when this enters: mill 1 card; may play that card this turn
+  activated {T}: add {R}
+  activated {T}: add {R}{R} only to cast instant or sorcery spells joined and
+}

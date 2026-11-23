@@ -10924,7 +10924,17 @@ impl GameState {
             Effect::Mill { count, who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        self.mill(p, self.eval_num(*count, ctx));
+                        let n = self.eval_num(*count, ctx);
+                        // "Mill a card. You may play that card this turn.":
+                        // the one card milled is "that card".
+                        let before = self.player(p).graveyard.len();
+                        self.mill(p, n);
+                        if n == 1
+                            && self.player(p).graveyard.len() > before
+                            && let Some(&new) = self.player(p).graveyard.last()
+                        {
+                            ctx.created = Some(new);
+                        }
                     }
                 }
             }
@@ -14089,9 +14099,15 @@ impl GameState {
                                 .is_some_and(|o| matches!(o.zone, Zone::Graveyard | Zone::Exile))
                         })
                         .collect(),
+                    // The card exiled, or the one card milled ("Mill a
+                    // card. You may play that card this turn.").
                     None => ctx
                         .created
-                        .filter(|id| self.objects.get(*id).is_some_and(|o| o.zone == Zone::Exile))
+                        .filter(|id| {
+                            self.objects
+                                .get(*id)
+                                .is_some_and(|o| matches!(o.zone, Zone::Exile | Zone::Graveyard))
+                        })
                         .into_iter()
                         .collect(),
                 };

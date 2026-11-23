@@ -1,0 +1,49 @@
+# "Mill a card. You may play that card this turn.": the one card milled
+# may be played from the graveyard this turn, paying its costs with the
+# usual timing (CR 601.3, 305.1).
+
+scenario "mill and play: Ark of Hunger casts the milled spell from the graveyard" {
+  battlefield A: "Ark of Hunger", "Mountain"
+  library A: "Lightning Bolt", "Island"
+  turn 1 A: activate "Ark of Hunger"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "mill and play: Ark of Hunger's milled land is played from the graveyard" {
+  battlefield A: "Ark of Hunger"
+  library A: "Forest", "Island"
+  turn 1 A: activate "Ark of Hunger"
+  turn 1 A: wait
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+  assert life B 19
+}
+
+scenario "mill and play: the permission ends with the turn" {
+  battlefield A: "Ark of Hunger", "Mountain"
+  library A: "Lightning Bolt", "Island", "Island", "Island"
+  turn 1 A: activate "Ark of Hunger"
+  turn 1 A: wait
+  illegal turn 2 upkeep A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 2 precombat_main
+  assert life B 20
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "mill and play: Tablet of Discovery's milled card, and not another graveyard card" {
+  battlefield A: 3 "Mountain"
+  hand A: "Tablet of Discovery"
+  graveyard A: "Shock"
+  library A: "Lightning Bolt", "Island"
+  turn 1 A: cast "Tablet of Discovery"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" from graveyard targeting player B
+  illegal turn 1 A: cast "Shock" from graveyard targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

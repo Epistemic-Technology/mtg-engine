@@ -1,0 +1,7 @@
+card "Ark of Hunger" {
+  oracle_id 2c654772-c786-4966-a46e-9556bbf31d7c
+  cost {2}{R}{W}
+  type Artifact
+  triggered whenever one or more cards leave your graveyard: deal 1 damage to each opponent and you gains 1 life
+  activated {T}: mill 1 card; may play that card this turn
+}
