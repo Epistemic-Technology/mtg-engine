@@ -1,0 +1,7 @@
+card "Slobad, Iron Goblin" {
+  oracle_id 72062fb6-0329-424d-936a-882b638d6d57
+  cost {2}{R}
+  type Legendary Creature — Phyrexian Goblin Artificer
+  pt 3/3
+  activated {T}, sacrifice artifact: add {R} count equal mana value of the sacrificed artifact only to cast artifact spells or activate of artifact bare
+}

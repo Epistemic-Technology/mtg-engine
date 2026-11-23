@@ -1,0 +1,7 @@
+card "Glittering Stockpile" {
+  oracle_id feaf9dcb-d845-4cf9-b35d-cd58175162e7
+  cost {2}{R}
+  type Artifact — Treasure
+  activated {T}: add {R}; put 1 stash counter on this
+  activated {T}, sacrifice this: add any count where stash counters on this
+}

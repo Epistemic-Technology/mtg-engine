@@ -56,6 +56,50 @@ scenario "Castle Garenbrig's six {G} can't cast an instant" {
   assert power "Grizzly Bears" 2
 }
 
+scenario "Slobad sacrifices an artifact for {R} equal to its mana value, for an artifact spell" {
+  battlefield A: "Slobad, Iron Goblin", "Standing Stones"
+  hand A: "Standing Stones"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Slobad, Iron Goblin" sacrificing "Standing Stones"
+  turn 2 A: cast "Standing Stones"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Standing Stones"
+  assert graveyard A contains "Standing Stones"
+}
+
+scenario "Slobad's mana can't cast a creature" {
+  battlefield A: "Slobad, Iron Goblin", "Standing Stones"
+  hand A: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Slobad, Iron Goblin" sacrificing "Standing Stones"
+  illegal turn 2 A: cast "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Glittering Stockpile adds {R} and a stash counter" {
+  battlefield A: "Glittering Stockpile"
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Glittering Stockpile" ability 1
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert counters "Glittering Stockpile" stash 1
+}
+
+scenario "Glittering Stockpile sacrificed adds one mana of one color per stash counter" {
+  battlefield A: "Glittering Stockpile" with 3 stash
+  hand A: "Hypnotic Specter"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Glittering Stockpile" ability 2
+  turn 2 A: choose black
+  turn 2 A: cast "Hypnotic Specter"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Hypnotic Specter"
+  assert graveyard A contains "Glittering Stockpile"
+}
+
 scenario "Karametra's Acolyte adds {G} equal to your devotion to green" {
   battlefield A: "Karametra's Acolyte", "Llanowar Elves" tapped
   hand A: "Grizzly Bears"
