@@ -310,7 +310,7 @@ card"), `discard X cards` (a spell's additional cost: "As an additional
 cost to cast this spell, discard X cards."; X is announced as the spell
 is cast, at most the other cards in hand, CR 601.2b; `discard X creature
 cards` counts only matching cards), `discard this`, `exile this from graveyard` ("Exile this card from
-your graveyard"; the ability is activated from the graveyard), `exile
+your graveyard"; the ability is activated from the graveyard), `exile this from hand` ("Exile this card from your hand"; activated from the hand at instant speed, Simian Spirit Guide: an ability that only adds mana is a mana ability, resolving at once, CR 605.3b, though payment doesn't activate it on its own), `exile
 this` ("Exile this artifact": the permanent exiles itself), `return
 land you control` ("Return a land you control to its owner's hand";
 `return this`: "Return this enchantment to its owner's hand") and

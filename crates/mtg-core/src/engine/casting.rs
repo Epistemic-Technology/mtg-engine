@@ -6189,6 +6189,7 @@ impl GameState {
         }
         if ab.cost.exile_self && self.objects[sa.source].zone == Zone::Graveyard
             || ab.cost.exile_this && self.objects[sa.source].zone == Zone::Battlefield
+            || ab.cost.exile_hand && self.objects[sa.source].zone == Zone::Hand
         {
             self.move_object(sa.source, Zone::Exile, false);
         }

@@ -4738,6 +4738,8 @@ fn cost_text(c: &Cost) -> String {
             CostItem::Exile => {
                 if c.exile_self {
                     parts.push("exile this from graveyard".to_string());
+                } else if c.exile_hand {
+                    parts.push("exile this from hand".to_string());
                 } else if c.exile_this {
                     parts.push("exile this".to_string());
                 }

@@ -1,0 +1,7 @@
+card "Simian Spirit Guide" {
+  oracle_id 44e0ffa3-8915-4c1f-8f1a-4aeea1365f07
+  cost {2}{R}
+  type Creature — Ape Spirit
+  pt 2/2
+  activated exile this from hand: add {R}
+}

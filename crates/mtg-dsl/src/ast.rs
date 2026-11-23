@@ -698,6 +698,9 @@ pub struct Cost {
     pub exile_self: bool,
     /// `exile this`: "Exile this artifact" (from the battlefield).
     pub exile_this: bool,
+    /// `exile this from hand`: "Exile this card from your hand" (an
+    /// ability activated from the hand).
+    pub exile_hand: bool,
     /// Crew's cost (from its expansion).
     pub crew: u32,
     /// `pay 2 energy`: "Pay {E}{E}".

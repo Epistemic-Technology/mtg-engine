@@ -14286,6 +14286,11 @@ impl P {
                         cost.exile_self = true;
                         cost.order.push(CostItem::Exile);
                     }
+                    "exile" if self.at_words(&["exile", "this", "from", "hand"]) => {
+                        self.pos += 4;
+                        cost.exile_hand = true;
+                        cost.order.push(CostItem::Exile);
+                    }
                     // "Exile this artifact" (CR 602.2b).
                     "exile" if self.at_words(&["exile", "this"]) => {
                         self.pos += 2;

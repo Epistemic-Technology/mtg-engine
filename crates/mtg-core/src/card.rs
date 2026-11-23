@@ -6775,6 +6775,10 @@ pub struct Cost {
     /// battlefield as the cost is paid (CR 602.2b).
     #[serde(default)]
     pub exile_this: bool,
+    /// "Exile this card from your hand" (Simian Spirit Guide): an ability
+    /// activated from the hand, the card exiled as the cost is paid.
+    #[serde(default)]
+    pub exile_hand: bool,
     /// Crew N (CR 702.122): tap any number of other untapped creatures you
     /// control with total power N or more.
     pub crew: u32,
@@ -6941,6 +6945,7 @@ impl Cost {
             discard_self: false,
             exile_self: false,
             exile_this: false,
+            exile_hand: false,
             crew: 0,
             remove_counters: None,
             put_counters: None,

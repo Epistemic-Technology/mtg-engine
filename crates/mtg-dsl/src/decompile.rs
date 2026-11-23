@@ -435,6 +435,7 @@ impl Decompiler<'_> {
             sorcery: false,
             from_graveyard: false,
             exile_self: c.exile_self,
+            exile_hand: c.exile_hand,
             exile_this: c.exile_this,
             crew: c.crew,
             remove_counters: c.remove_counters,

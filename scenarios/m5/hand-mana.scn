@@ -1,0 +1,39 @@
+scenario "Simian Spirit Guide exiles itself from the hand for {R}" {
+  hand A: "Simian Spirit Guide", "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Simian Spirit Guide"
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert exile A contains "Simian Spirit Guide"
+}
+
+scenario "Simian Spirit Guide's mana works at instant speed in the opponent's turn" {
+  hand A: "Simian Spirit Guide", "Lightning Bolt"
+  start turn 3 B precombat_main
+  turn 3 A: activate "Simian Spirit Guide"
+  turn 3 A: cast "Lightning Bolt" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 17
+}
+
+scenario "Simian Spirit Guide in the graveyard adds nothing" {
+  graveyard A: "Simian Spirit Guide"
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  illegal turn 2 A: activate "Simian Spirit Guide"
+  illegal turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 20
+}
+
+scenario "Elvish Spirit Guide exiles itself from the hand for {G}" {
+  battlefield A: "Forest"
+  hand A: "Elvish Spirit Guide", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Elvish Spirit Guide"
+  turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert exile A contains "Elvish Spirit Guide"
+}

@@ -3599,6 +3599,8 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
             CostItem::Exile => {
                 if cost.exile_self {
                     parts.push("Exile this card from your graveyard".to_string());
+                } else if cost.exile_hand {
+                    parts.push("Exile this card from your hand".to_string());
                 } else if cost.exile_this {
                     parts.push(format!("Exile {}", ctx.source()));
                 }
