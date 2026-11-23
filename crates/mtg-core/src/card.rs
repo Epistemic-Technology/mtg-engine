@@ -3511,6 +3511,9 @@ pub enum TargetSpec {
     /// ability's "target" words chose (Boulder Dash's "2 damage to any
     /// target and 1 damage to any other target").
     AnyOther,
+    /// "any target that was dealt damage this turn" (Needle Drop): as
+    /// `Any`, but only a player or permanent dealt damage this turn.
+    AnyDamaged,
 }
 
 /// `CardDef::modes_if`: when a modal spell's larger choice is allowed.

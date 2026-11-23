@@ -11088,6 +11088,13 @@ impl P {
                 Recipient::CreatedObject
             });
         }
+        // "any target that was dealt damage this turn".
+        if self.eat_words(&[
+            "any", "target", "that", "was", "dealt", "damage", "this", "turn",
+        ]) {
+            self.targets.push(Target::Spec(TargetSpec::AnyDamaged));
+            return Ok(Recipient::Target(self.targets.len() - 1));
+        }
         if self.eat_words(&["any", "target"]) {
             self.targets.push(Target::Spec(TargetSpec::Any));
             return Ok(Recipient::Target(self.targets.len() - 1));

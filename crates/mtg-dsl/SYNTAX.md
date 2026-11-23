@@ -2622,7 +2622,9 @@ loses its share. `another target creature` excludes the source.
 `another target any` (or `any other target`) prints "any other target":
 not the source nor what the ability's other "target" words chose (CR
 115.3; `deal 2 damage to any target and deal 1 damage to another target
-any`, Boulder Dash). `another target blocking creature` prints "another
+any`, Boulder Dash). `any target that was dealt damage this turn` (Needle
+Drop): a player, creature, planeswalker, or battle that was dealt damage
+this turn, judged as it is chosen and as the spell resolves. `another target blocking creature` prints "another
 target blocking creature". `another` before a target with no "other"
 form is an error rather than dropped.
 `deal X plus 1 damage divided among any number of targets` ("X plus 1

@@ -3430,6 +3430,7 @@ impl GameState {
         match spec {
             TargetSpec::Any
             | TargetSpec::AnyOther
+            | TargetSpec::AnyDamaged
             | TargetSpec::Creature
             | TargetSpec::CreatureYouControl
             | TargetSpec::OtherCreature
@@ -4825,6 +4826,9 @@ impl GameState {
                         | TargetSpec::Player
                         | TargetSpec::PlayerOrPlaneswalker
                         | TargetSpec::PlayerOrBattle => true,
+                        TargetSpec::AnyDamaged => {
+                            self.damaged_this_turn & (1 << p.index().min(7)) != 0
+                        }
                         TargetSpec::Opponent | TargetSpec::OpponentOrPlaneswalker => p != caster,
                         _ => false,
                     }
@@ -4948,6 +4952,10 @@ impl GameState {
                     TargetSpec::AnyOther => {
                         (c.is_creature() || c.is_planeswalker() || c.is_battle())
                             && Some(id) != source
+                    }
+                    TargetSpec::AnyDamaged => {
+                        (c.is_creature() || c.is_planeswalker() || c.is_battle())
+                            && self.damaged_by_this_turn.iter().any(|(_, d)| *d == id)
                     }
                     TargetSpec::CreatureOrPlaneswalker => c.is_creature() || c.is_planeswalker(),
                     TargetSpec::PlayerOrBattle => c.is_battle(),

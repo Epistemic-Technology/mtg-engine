@@ -2186,7 +2186,9 @@ fn target_noun(t: &Target) -> String {
         Target::SpellOr(_) => "spell or permanent".to_string(),
         Target::GraveyardCard { .. } => "card".to_string(),
         Target::Spec(s) => match s {
-            TargetSpec::Any | TargetSpec::AnyOther => "permanent or player".to_string(),
+            TargetSpec::Any | TargetSpec::AnyOther | TargetSpec::AnyDamaged => {
+                "permanent or player".to_string()
+            }
             TargetSpec::Creature
             | TargetSpec::TappedCreature
             | TargetSpec::CreatureYouControl
@@ -2267,6 +2269,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
         TargetSpec::OnStack { .. } => unreachable!("above"),
         TargetSpec::Any => "any target",
         TargetSpec::AnyOther => "any other target",
+        TargetSpec::AnyDamaged => "any target that was dealt damage this turn",
         TargetSpec::Creature | TargetSpec::CreatureWithSubtype(_) => "target creature",
         TargetSpec::PlayerOrPlaneswalker => "target player or planeswalker",
         TargetSpec::PlayerOrBattle => "target player or battle",

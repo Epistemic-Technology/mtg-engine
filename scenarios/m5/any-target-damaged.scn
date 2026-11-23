@@ -1,0 +1,71 @@
+# "any target that was dealt damage this turn" (Needle Drop): a player,
+# creature, planeswalker, or battle dealt damage this turn; nothing else
+# can be chosen.
+
+scenario "Needle Drop: a player dealt damage this turn" {
+  battlefield A: 2 "Mountain"
+  hand A: "Shock", "Needle Drop"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Shock" targeting player B
+  turn 3 A: wait
+  turn 3 A: cast "Needle Drop" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 17
+  assert hand A count 1
+}
+
+scenario "Needle Drop: an undamaged player can't be chosen" {
+  battlefield A: "Mountain"
+  hand A: "Needle Drop"
+  start turn 3 A precombat_main
+  illegal turn 3 A: cast "Needle Drop" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 20
+  assert hand A contains "Needle Drop"
+}
+
+scenario "Needle Drop: a creature dealt damage this turn" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock", "Needle Drop"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Shock" targeting "Hill Giant"
+  turn 3 A: wait
+  turn 3 A: cast "Needle Drop" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Needle Drop: an undamaged creature can't be chosen" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Shock", "Needle Drop"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Shock" targeting "Hill Giant"
+  turn 3 A: wait
+  illegal turn 3 A: cast "Needle Drop" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Needle Drop: a planeswalker dealt damage this turn" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Jace Beleren"
+  hand A: "Shock", "Needle Drop"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Shock" targeting "Jace Beleren"
+  turn 3 A: wait
+  turn 3 A: cast "Needle Drop" targeting "Jace Beleren"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Jace Beleren"
+}
+
+scenario "Needle Drop: damage dealt last turn doesn't count" {
+  battlefield A: 2 "Mountain"
+  hand A: "Shock", "Needle Drop"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Shock" targeting player B
+  illegal turn 5 A: cast "Needle Drop" targeting player B
+  run_to turn 5 postcombat_main
+  assert life B 18
+}
