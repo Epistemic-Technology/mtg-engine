@@ -113,7 +113,10 @@ impl RandomAgent {
 impl Agent for RandomAgent {
     fn choose(&mut self, state: &GameState, decision: &Decision) -> ChoiceId {
         if self.keep_hands
-            && let Some(i) = decision.options.iter().position(|c| *c == Choice::Keep)
+            && let Some(i) = decision
+                .options
+                .iter()
+                .position(|c| matches!(c, Choice::Keep))
         {
             return u32::try_from(i).unwrap_or(0);
         }
