@@ -346,3 +346,52 @@ scenario "Lat-Nam's Legacy with an empty hand draws nothing" {
   assert hand A count 0
   assert library A count 4
 }
+
+# "Search your library for a card named X or Y".
+scenario "search named X or Y: Renowned Weaponsmith finds Vial of Dragonfire" {
+  battlefield A: "Renowned Weaponsmith", "Island"
+  library A: "Grizzly Bears", "Vial of Dragonfire", "Heart-Piercer Bow", "Island"
+  turn 1 A: activate "Renowned Weaponsmith" ability 2
+  turn 1 A: choose "Vial of Dragonfire"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Vial of Dragonfire"
+  assert hand A count 1
+  assert library A contains "Heart-Piercer Bow"
+}
+
+scenario "search named X or Y: Dragonstorm Forecaster finds Boulderborn Dragon, not other cards" {
+  battlefield A: "Dragonstorm Forecaster", 2 "Island"
+  library A: "Grizzly Bears", "Boulderborn Dragon", "Island"
+  turn 1 A: activate "Dragonstorm Forecaster"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Boulderborn Dragon"
+  assert hand A count 1
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "split: Dimir Charm keeps one of target player's top three, the rest to the graveyard" {
+  battlefield A: "Island", "Swamp"
+  hand A: "Dimir Charm"
+  library B: "Grizzly Bears", "Hill Giant", "Serra Angel", "Island"
+  turn 1 A: cast "Dimir Charm" mode 3 targeting player B
+  turn 1 A: choose "Hill Giant"
+  run_to turn 2 precombat_main
+  assert hand B contains "Hill Giant"
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Serra Angel"
+  assert library B count 1
+}
+
+scenario "its controller may search: Ghost Quarter's victim fetches a basic land" {
+  battlefield A: "Ghost Quarter"
+  battlefield B: "Forest"
+  library B: "Grizzly Bears", "Forest", "Island"
+  turn 1 A: activate "Ghost Quarter" targeting B "Forest"
+  turn 1 B: choose "Island"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ghost Quarter"
+  assert graveyard B contains "Forest"
+  assert battlefield B contains "Island"
+  assert untapped B "Island"
+  assert library B count 2
+}

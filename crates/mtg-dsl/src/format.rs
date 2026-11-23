@@ -2188,7 +2188,8 @@ impl Fmt {
                     let _ = write!(t, " {}", same_ref(r));
                 }
                 if let Some(n) = name {
-                    let _ = write!(t, " named \"{n}\"");
+                    let names: Vec<String> = n.split('|').map(|n| format!("named \"{n}\"")).collect();
+                    let _ = write!(t, " {}", names.join(" or "));
                 }
                 if let Some(mv) = mv {
                     t.push_str(&mv);

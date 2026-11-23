@@ -9470,6 +9470,17 @@ impl P {
                 {
                     name = Some(s.clone());
                     self.pos += 2;
+                    // "a card named Heart-Piercer Bow or Vial of Dragonfire".
+                    while self.at_words(&["or", "named"])
+                        && let Some(Tok::Str(s)) = self.peek_at(2)
+                    {
+                        let s = s.clone();
+                        if let Some(n) = name.as_mut() {
+                            n.push('|');
+                            n.push_str(&s);
+                        }
+                        self.pos += 3;
+                    }
                 }
                 // "a creature card with mana value 6 or greater": the mana
                 // value after the noun.

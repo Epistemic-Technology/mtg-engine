@@ -3909,7 +3909,8 @@ pub enum Effect {
         #[serde(default)]
         graveyard: bool,
         /// "a card named Ajani, Valiant Protector": only cards with this
-        /// name (another card's, so by name rather than definition).
+        /// name (another card's, so by name rather than definition); "a
+        /// card named X or Y" joins the names with `|`.
         #[serde(default)]
         name: Option<Box<str>>,
     },

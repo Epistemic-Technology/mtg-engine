@@ -16249,7 +16249,7 @@ fn search_named_text(e: &Effect, ctx: &mut Ctx) -> Clause {
         unreachable!("a search");
     };
     let what = match name {
-        Some(n) => format!("a card named {n}"),
+        Some(n) => format!("a card named {}", n.replace('|', " or ")),
         None if filter == &Filter::default() => "a card".to_string(),
         None => with_article(&cards_phrase(filter, ctx.card, false)),
     };

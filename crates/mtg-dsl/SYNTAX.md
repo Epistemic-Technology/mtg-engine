@@ -2190,7 +2190,8 @@ subject prints "... reveals it, and puts it into their hand. If they
 search their library this way, they shuffle."): one card, from either
 zone, into the hand or onto the battlefield; the library is shuffled if
 the card came from it or nothing was found. `card named "X"` names
-another card by its name (also without `library or graveyard`: "Search
+another card by its name (`card named "X" or named "Y"`: "a card named X
+or Y", either name) (also without `library or graveyard`: "Search
 your library for a card named X, put it onto the battlefield, then
 shuffle."); `search Rebel permanent card with mana value 3 or
 less to battlefield`: the mana value after the noun, `permanent card`

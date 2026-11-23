@@ -9545,7 +9545,9 @@ impl GameState {
                 let c = self.base_characteristics(o);
                 if filter.matches(*id, p, &c, Some(ctx.source), Some(p))
                     && self.status_ok(filter, *id)
-                    && name.is_none_or(|n| self.pool.get(o.def).name == n)
+                    // "a card named Heart-Piercer Bow or Vial of
+                    // Dragonfire": the names joined by `|`.
+                    && name.is_none_or(|n| n.split('|').any(|n| self.pool.get(o.def).name == n))
                     && !seen.contains(&(o.def, o.zone))
                 {
                     seen.push((o.def, o.zone));
