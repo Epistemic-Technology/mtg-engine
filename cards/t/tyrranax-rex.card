@@ -1,0 +1,11 @@
+card "Tyrranax Rex" {
+  oracle_id 6e42da0c-151e-468d-91cb-5a5b117a9298
+  cost {4}{G}{G}{G}
+  type Creature — Phyrexian Dinosaur
+  pt 8/8
+  this spell can't be countered
+  keyword trample
+  ward {4}
+  keyword haste
+  toxic 4
+}

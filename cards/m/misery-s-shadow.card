@@ -1,0 +1,8 @@
+card "Misery's Shadow" {
+  oracle_id 928c62fe-9c4d-4e89-bd7a-0d3b6a81f393
+  cost {1}{B}
+  type Creature — Shade
+  pt 2/2
+  replace creature an opponent controls dies: exile
+  activated {1}: this gets +1/+1
+}

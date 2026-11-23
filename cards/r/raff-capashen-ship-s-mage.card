@@ -1,0 +1,8 @@
+card "Raff Capashen, Ship's Mage" {
+  oracle_id 13044ca1-76a3-43b2-a8e4-3bbc692c30c5
+  cost {2}{W}{U}
+  type Legendary Creature — Human Wizard
+  pt 3/3
+  keywords flash, flying
+  spells historic you cast have flash
+}

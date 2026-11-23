@@ -1,0 +1,10 @@
+card "Colossal Skyturtle" {
+  oracle_id 871e4c4e-8105-4cb9-b1cd-53c5f8e64494
+  cost {4}{G}{G}{U}
+  type Enchantment Creature — Turtle
+  pt 6/5
+  keywords flying
+  ward {2}
+  label "Channel" activated {2}{G}, discard this: return target card from your graveyard to hand
+  label "Channel" activated {1}{U}, discard this: return target creature to hand
+}

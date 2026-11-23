@@ -1,0 +1,8 @@
+card "Death-Priest of Myrkul" {
+  oracle_id af231505-bd2e-4499-9fd5-f761dde2ecef
+  cost {2}{B}{B}
+  type Creature — Tiefling Cleric
+  pt 2/2
+  static Skeleton or Vampire or Zombie you control: +1/+1
+  triggered at beginning of your end step if creature died this turn: you may pay {1}; if you do, create 1 "1/1 black Skeleton creature"
+}

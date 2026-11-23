@@ -2786,6 +2786,15 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.named_first {
         s.push_str(&same_phrase(f, card, plural_form));
     }
+    // `permanent you control late of chosen type`: "each permanent of the
+    // chosen type you control" (Pack's Disdain), the choice before the
+    // controller.
+    let chosen_first = f.control_late && f.who.is_some();
+    if let Some(c) = f.chosen
+        && chosen_first
+    {
+        s.push_str(of_chosen(c));
+    }
     match f.who {
         Some(Who::You) if !you_first => s.push_str(" you control"),
         Some(Who::Opponents) if f.dont_control => s.push_str(" you don't control"),
@@ -2913,15 +2922,10 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.status.damaged_by_source {
         let _ = write!(s, " dealt damage by {} this turn", this_ref(card));
     }
-    if let Some(c) = f.chosen {
-        s.push_str(match c {
-            OfChosen::ChosenColor => " of the chosen color",
-            OfChosen::ChosenType => " of the chosen type",
-            OfChosen::ThatType => " of that type",
-            OfChosen::ThatColor => " of that color",
-            OfChosen::ColorOfChoice => " of the color of your choice",
-            OfChosen::CreatureTypeOfChoice => " of the creature type of your choice",
-        });
+    if let Some(c) = f.chosen
+        && !chosen_first
+    {
+        s.push_str(of_chosen(c));
     }
     if !f.named_first {
         s.push_str(&same_phrase(f, card, plural_form));
@@ -2935,6 +2939,18 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         });
     }
     s
+}
+
+/// "of the chosen type", "of that color": a filter's chosen color or type.
+fn of_chosen(c: OfChosen) -> &'static str {
+    match c {
+        OfChosen::ChosenColor => " of the chosen color",
+        OfChosen::ChosenType => " of the chosen type",
+        OfChosen::ThatType => " of that type",
+        OfChosen::ThatColor => " of that color",
+        OfChosen::ColorOfChoice => " of the color of your choice",
+        OfChosen::CreatureTypeOfChoice => " of the creature type of your choice",
+    }
 }
 
 /// "power less than or equal to the number of creatures you control",
@@ -9830,8 +9846,15 @@ fn lowercase_first(s: &str) -> String {
                 | "Their"
                 | "Enchanted"
                 | "Equipped"
+                | "Historic"
+                | "Snow"
+                | "Nonlegendary"
         )
     {
+        return s.to_string();
+    }
+    // "Aura and Equipment spells": a subtype keeps its capital.
+    if matches!(s.split(' ').next(), Some("Aura" | "Equipment" | "Vehicle")) {
         return s.to_string();
     }
     // "Birds, Frogs, Otters, and Rats you control get +1/+1": a list of
@@ -12252,6 +12275,19 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
             what
         };
         return format!("Untap {what} during each other player's untap step.");
+    }
+    // Granted by an Aura, it is quoted: 'Enchanted land has "Untap this
+    // land during each other player's untap step."' (Urban Burgeoning).
+    if let [Mod::AddKeywords(ks)] = mods
+        && ks.as_slice() == [Keyword::UntapsDuringOthers]
+        && filter.enchanted
+    {
+        let who = filter_phrase(filter, card, false);
+        let noun = who.rsplit(' ').next().unwrap_or("permanent").to_string();
+        return format!(
+            "{} has \"Untap this {noun} during each other player's untap step.\"",
+            capitalize(&who)
+        );
     }
     // Soulbond (CR 702.95b): "As long as this creature is paired with
     // another creature, both creatures have flying." / "each of those

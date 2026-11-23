@@ -1,0 +1,6 @@
+card "Green Sun's Zenith" {
+  oracle_id 0d96b60b-a060-48ee-bb83-93f1c4a10669
+  cost {X}{G}
+  type Sorcery
+  spell: search green creature card with mana value X or less to battlefield; shuffle this into library
+}

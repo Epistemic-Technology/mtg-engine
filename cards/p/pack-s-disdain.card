@@ -1,0 +1,6 @@
+card "Pack's Disdain" {
+  oracle_id 8b5659bd-a272-44cd-811f-9feec7d9825f
+  cost {1}{B}
+  type Instant
+  spell: choose creature type; target creature gets -1/-1 count each permanent you control late of chosen type
+}

@@ -1,0 +1,8 @@
+card "The Meathook Massacre" {
+  oracle_id 127de52b-df75-4342-95a0-20d84c5bf916
+  cost {X}{B}{B}
+  type Legendary Enchantment
+  triggered when this enters: each single creature gets -1/-1 X
+  triggered whenever a creature you control dies: each opponent loses 1 life
+  triggered whenever a creature an opponent controls dies: you gains 1 life
+}

@@ -2234,6 +2234,34 @@ impl Templates {
                     Some(t)
                 },
             ),
+            // "Shuffle ~ into its owner's library." (the Zeniths, the
+            // Beacons): the spell, as it resolves.
+            (r(r"^Shuffle ~ into its owner's library$"), |_, _| {
+                Some("shuffle this into library".to_string())
+            }),
+            // Another player searches their own library: "Target player
+            // searches their library for a basic land card, puts it onto
+            // the battlefield tapped, then shuffles." (Fertilid), "Its
+            // controller may search their library for ...".
+            (
+                r(
+                    r"^([Tt]arget player|[Ii]ts controller|[Tt]hat player|[Ee]ach player|[Ee]ach opponent) (searches|may search) their library for (?:a|an) ([A-Za-z][A-Za-z -]*?) card, (?:put|puts) it (onto the battlefield tapped|onto the battlefield|into their hand), then (?:shuffle|shuffles)$",
+                ),
+                |c, t| {
+                    let who = recipient(&lowercase_first(cap(c, 1)), t)?;
+                    let verb = if cap(c, 2) == "searches" {
+                        "searches"
+                    } else {
+                        "may search"
+                    };
+                    let to = match cap(c, 4) {
+                        "onto the battlefield tapped" => "battlefield tapped",
+                        "onto the battlefield" => "battlefield",
+                        _ => "hand",
+                    };
+                    Some(format!("{who} {verb} {} card to {to}", cap(c, 3)))
+                },
+            ),
             (r(r"^Add ((?:\{[WUBRGC]\})+)$"), |c, _| {
                 Some(format!("add {}", cap(c, 1)))
             }),
@@ -3959,6 +3987,7 @@ impl Templates {
             let mut parts = Vec::new();
             let clauses: Vec<&str> = if body.contains("earch your library")
                 || body.contains("earch their library")
+                || body.contains("earches their library")
                 || body == "Discard all the cards in your hand, then draw that many cards"
                 || (body.contains("iscard ") && body.contains(", then draw that many cards"))
                 || body.ends_with("explores, then it explores again")
@@ -5449,6 +5478,26 @@ impl Builder<'_> {
                 .push(format!("static {class} you control: {mods}"));
             return Ok(());
         }
+        // "Zombies you control get +1/+0.", "Skeletons, Vampires, and
+        // Zombies you control get +1/+1.": creature types, one or a list.
+        if let Some(c) = Regex::new(
+            r"^((?:[A-Z][a-z]+, )*(?:[A-Z][a-z]+,? and )?[A-Z][a-z]+) you control ((?:get|have) .+)\.$",
+        )
+        .unwrap()
+        .captures(line)
+            && let Some(mods) = static_mods(cap(&c, 2))
+        {
+            let types: Vec<String> = cap(&c, 1)
+                .split([',', ' '])
+                .filter(|w| !w.is_empty() && *w != "and")
+                .map(singular)
+                .collect();
+            if types.iter().all(|t| !card_type_word(&t.to_lowercase())) {
+                self.statements
+                    .push(format!("static {} you control: {mods}", types.join(" or ")));
+                return Ok(());
+            }
+        }
         if line == "If you would gain life, you gain twice that much life instead." {
             self.statements
                 .push("replace you gain life: double".to_string());
@@ -5484,6 +5533,18 @@ impl Builder<'_> {
         {
             self.statements
                 .push("replace this put into a graveyard: shuffle into library".to_string());
+            return Ok(());
+        }
+        // CR 614.1a: "If a creature an opponent controls would die, exile
+        // it instead." (Misery's Shadow, Stone of Erech).
+        if let Some(c) = Regex::new(
+            r"^If a (creature an opponent controls|creature you don't control|nontoken creature an opponent controls) would die, exile it instead\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            self.statements
+                .push(format!("replace {} dies: exile", cap(&c, 1)));
             return Ok(());
         }
         // "If this creature would die, put it on top of its owner's
@@ -5639,6 +5700,18 @@ impl Builder<'_> {
             } else {
                 format!("{}, ", cap(&c, 2).trim_start_matches("gets "))
             };
+            // 'Enchanted land has "Untap this land during each other
+            // player's untap step."': the keyword granted (Urban
+            // Burgeoning).
+            let untaps = "untaps during each other player's untap step";
+            if filter == "enchanted"
+                && pump.is_empty()
+                && (inner == format!("keywords {untaps}") || inner == format!("keyword {untaps}"))
+            {
+                self.statements
+                    .push(format!("static enchanted: has {untaps}"));
+                return Ok(());
+            }
             self.statements
                 .push(format!("static {filter}: {pump}has ability {{ {inner} }}"));
             return Ok(());
@@ -5660,10 +5733,14 @@ impl Builder<'_> {
             && line.chars().next().is_some_and(char::is_uppercase)
         {
             let parts: Vec<&str> = line.split(", ").collect();
+            // "Flying, ward {2}", "Menace, ward {2}, haste": ward with its
+            // cost among plain keywords (CR 702.21).
+            let ward = Regex::new(r"^[Ww]ard \{\d+\}$").unwrap();
             if parts.iter().all(|p| {
                 keyword_list(p).is_some()
                     || p.to_ascii_lowercase().starts_with("protection from ")
                     || p.to_ascii_lowercase().starts_with("hexproof from ")
+                    || ward.is_match(p)
             }) {
                 for p in parts {
                     let p = capitalize(p);
@@ -6930,7 +7007,10 @@ impl Builder<'_> {
         {
             let filter = match cap(&c, 1) {
                 "Enchanted creature" | "Equipped creature" => "enchanted".to_string(),
-                "Enchanted land" | "Enchanted permanent" => return Err(Skip::Sentence(line.to_string())),
+                // "Enchanted permanent gets +1/+1 and has vigilance."
+                // (Lightwheel Enhancements: "Enchant creature or Vehicle").
+                "Enchanted permanent" => "enchanted permanent".to_string(),
+                "Enchanted land" => return Err(Skip::Sentence(line.to_string())),
                 "Creatures you control" => "creature you control".to_string(),
                 "Other creatures you control" => "other creature you control".to_string(),
                 "Other creatures you control with flying" => {
@@ -7496,6 +7576,16 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
         .replace("with no counters on it", "with no counters")
         .replace("not named ~", "not named this")
         .replace("named ~", "named this");
+    // "all legendary permanent cards" (CR 110.4a): the DSL names the
+    // types a permanent card isn't.
+    s = re(r"\b(legendary|snow) permanent card")
+        .replace_all(&s, "$1 noninstant nonsorcery permanent card")
+        .into_owned();
+    // "each permanent of the chosen type you control" (Pack's Disdain):
+    // the choice before the controller, `late`.
+    s = re(r"\b(permanent|creature)s? of the chosen type you control")
+        .replace_all(&s, "$1 you control late of chosen type")
+        .into_owned();
     s = re(r"(\w+), (\w+), and/or (\w+)")
         .replace_all(&s, |c: &regex::Captures| {
             format!(
@@ -7974,7 +8064,14 @@ fn wording_variants(text: &str) -> Vec<String> {
             let after_clause = prev.ends_with(':') || prev.ends_with(';') || VERBS.contains(&prev);
             let mut alts: Vec<String> = Vec::new();
             match *w {
-                "each" if after_clause && next != "counters" => alts.push("all".to_string()),
+                "each" if after_clause && next != "counters" => {
+                    alts.push("all".to_string());
+                    // "each creature gets -X/-X" (The Meathook Massacre):
+                    // one at a time, wording only.
+                    if next != "single" {
+                        alts.push("each single".to_string());
+                    }
+                }
                 // "put two +1/+1 counters on each creature you control
                 // instead": the group named again, not "those creatures".
                 "each" if prev == "on" && next != "single" => alts.push("each single".to_string()),
@@ -8009,6 +8106,12 @@ fn wording_variants(text: &str) -> Vec<String> {
                 // "{1}{W}, Discard this card: It deals 4 damage ...": the
                 // source, named "it" where `it` is the source.
                 "deal" if it_ok && prev.ends_with(':') => alts.push("it deals".to_string()),
+                // "Whenever this creature and at least two other creatures
+                // attack, this creature deals 3 damage ..." (Firemane
+                // Avenger): the source named in full.
+                "deal" if prev.ends_with(':') || prev.ends_with(';') => {
+                    alts.push("this creature deal".to_string());
+                }
                 _ => {}
             }
             for alt in alts {

@@ -1,0 +1,6 @@
+card "Glacial Revelation" {
+  oracle_id 92359752-74aa-499e-b2db-0342d7596691
+  cost {2}{G}
+  type Sorcery
+  spell: dig 6 reveal take any snow noninstant nonsorcery permanent card may rest graveyard
+}

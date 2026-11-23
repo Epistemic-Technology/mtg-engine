@@ -1,0 +1,6 @@
+card "Black Sun's Zenith" {
+  oracle_id 038c0165-32b6-4e81-8180-604b49905207
+  cost {X}{B}{B}
+  type Sorcery
+  spell: put X -1/-1 counters on each creature; shuffle this into library
+}

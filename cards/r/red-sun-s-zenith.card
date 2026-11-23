@@ -1,0 +1,6 @@
+card "Red Sun's Zenith" {
+  oracle_id 82e61db8-4625-488f-8a5f-66ace9bbf34a
+  cost {X}{R}
+  type Sorcery
+  spell: deal X damage to any target; this turn, replace creature dealt damage this way dies: exile; shuffle this creature into library
+}
