@@ -1,0 +1,7 @@
+token "1/1 green Minion creature named Moloid with whenever this token attacks, you may mill a card" {
+  name "Moloid"
+  type Creature — Minion
+  pt 1/1
+  color green
+  triggered whenever this attacks: you may mill 1 card
+}

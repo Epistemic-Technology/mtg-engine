@@ -1,0 +1,9 @@
+card "Fecund Greenshell" {
+  oracle_id a090be5a-b0f2-4c17-8f7d-e742f9de8f6b
+  cost {3}{G}{G}
+  type Creature — Elemental Turtle
+  pt 4/6
+  keywords reach
+  static as long as you control 10 land, creature you control: +2/+2
+  triggered whenever this or creature you control with toughness greater than power enters: look at top card; if it is land card, you may put it onto battlefield tapped; otherwise, put it into hand
+}

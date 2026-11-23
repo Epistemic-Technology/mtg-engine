@@ -1,0 +1,10 @@
+card "Ka-Zar of the Savage Land" {
+  oracle_id 88eeb519-5782-4732-bd34-81d1ee6dbc8f
+  cost {4}{G}
+  type Legendary Creature — Human Barbarian Hero
+  pt 3/2
+  short_name "Ka-Zar"
+  may look top
+  play from top lands
+  triggered when this enters: create 1 "Zabu, a legendary 2/2 green Cat creature with landfall pump"
+}

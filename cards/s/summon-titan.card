@@ -1,0 +1,10 @@
+card "Summon: Titan" {
+  oracle_id 66ce0c60-f406-4ece-915f-675da4e8b16d
+  cost {3}{G}{G}
+  type Enchantment Creature — Saga Giant
+  pt 7/7
+  triggered chapter 1: mill 5 cards
+  triggered chapter 2: return all land card from your graveyard to battlefield tapped
+  triggered chapter 3: until end of turn, another target creature you control gains trample and gets +1/+1 count where land you control
+  keywords reach, trample
+}

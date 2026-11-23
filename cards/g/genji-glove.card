@@ -1,0 +1,8 @@
+card "Genji Glove" {
+  oracle_id 8242cd78-6675-43b5-8924-0a88c3aa6f76
+  cost {5}
+  type Artifact — Equipment
+  static enchanted: has double strike
+  triggered whenever equipped creature attacks if first combat phase: untap it; after this phase, additional combat phase
+  equip {3}
+}

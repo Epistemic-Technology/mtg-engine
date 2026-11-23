@@ -1,0 +1,27 @@
+scenario "Delivery Moogle fetches an artifact with mana value 2 or less from the library" {
+  hand A: "Delivery Moogle"
+  battlefield A: 4 "Plains"
+  library A: "Gilded Lotus", "Sol Ring", "Forest"
+  turn 1 precombat_main A: cast "Delivery Moogle"
+  turn 1 precombat_main A: choose "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Sol Ring"
+  assert hand A lacks "Gilded Lotus"
+  assert library A lacks "Sol Ring"
+  assert library A contains "Gilded Lotus"
+  assert battlefield A contains "Delivery Moogle"
+}
+
+scenario "Delivery Moogle fetches from the graveyard" {
+  hand A: "Delivery Moogle"
+  battlefield A: 4 "Plains"
+  graveyard A: "Mind Stone", "Gilded Lotus"
+  library A: "Forest", "Sol Ring"
+  turn 1 precombat_main A: cast "Delivery Moogle"
+  turn 1 precombat_main A: choose "Mind Stone"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Mind Stone"
+  assert graveyard A lacks "Mind Stone"
+  assert graveyard A contains "Gilded Lotus"
+  assert hand A lacks "Gilded Lotus"
+}

@@ -1,0 +1,6 @@
+card "Wishing Well" {
+  oracle_id 78dbbc15-9304-4178-b9b2-1db6c64ca11a
+  cost {3}{U}
+  type Artifact
+  activated {T}, sorcery: put 1 coin counters on this; when you do, cast free target instant or sorcery card with mana value equal to count equal coin counters on this from your graveyard exile instead
+}

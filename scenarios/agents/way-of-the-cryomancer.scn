@@ -1,0 +1,18 @@
+scenario "enters: empowers a Jace token with five loyalty" {
+  battlefield A: 3 "Island"
+  hand A: "Way of the Cryomancer"
+  turn 1 A: cast "Way of the Cryomancer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Jace"
+  assert counters "Jace" loyalty 5
+}
+scenario "granted -3: next instant copied" {
+  battlefield A: "Way of the Cryomancer", "Jace" with 5 loyalty, 1 "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: activate "Jace" ability 3
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Jace" loyalty 2
+  assert life B 14
+}

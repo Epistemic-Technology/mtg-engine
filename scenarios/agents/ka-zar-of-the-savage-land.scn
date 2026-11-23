@@ -1,0 +1,31 @@
+scenario "Ka-Zar: enters makes Zabu, a 2/2 Cat" {
+  battlefield A: 5 "Forest"
+  hand A: "Ka-Zar of the Savage Land"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ka-Zar of the Savage Land"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ka-Zar of the Savage Land"
+  assert power "Zabu" 2
+  assert toughness "Zabu" 2
+  assert is "Zabu" legendary
+}
+
+scenario "Ka-Zar: play a land from the top; Zabu grows from landfall" {
+  battlefield A: "Ka-Zar of the Savage Land", "Zabu"
+  library A: "Forest", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+  assert counters "Zabu" +1/+1 1
+  assert power "Zabu" 3
+}
+
+scenario "Ka-Zar: a nonland top card can't be played" {
+  battlefield A: "Ka-Zar of the Savage Land", 5 "Forest"
+  library A: "Grizzly Bears", "Island"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Grizzly Bears"
+}

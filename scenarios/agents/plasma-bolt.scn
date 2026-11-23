@@ -1,0 +1,17 @@
+scenario "plasma bolt deals 2 without void" {
+  battlefield A: "Mountain"
+  hand A: "Plasma Bolt"
+  turn 1 A: cast "Plasma Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 18
+}
+scenario "plasma bolt deals 3 after a nonland permanent left" {
+  battlefield A: "Mountain", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Plasma Bolt", "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: cast "Plasma Bolt" targeting player B
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 17
+}

@@ -1,0 +1,8 @@
+card "Delivery Moogle" {
+  oracle_id 60043b87-6008-4cfa-9d8f-6ee6e3f70766
+  cost {3}{W}
+  type Creature — Moogle
+  pt 3/2
+  keywords flying
+  triggered when this enters: search library or graveyard artifact card with mana value 2 or less reveal to hand
+}

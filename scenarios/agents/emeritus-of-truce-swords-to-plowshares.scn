@@ -1,0 +1,34 @@
+scenario "Emeritus of Truce: Inkling for target player; prepared when behind on creatures" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Emeritus of Truce"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Emeritus of Truce"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Emeritus of Truce"
+  assert battlefield A contains 1 "Inkling"
+  assert has "Inkling" flying
+  assert power "Inkling" 1
+}
+
+scenario "Emeritus of Truce: prepared copy of Swords exiles and gains life equal to power" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  hand A: "Emeritus of Truce"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Emeritus of Truce"
+  turn 1 postcombat_main A: cast "Swords to Plowshares" targeting B "Serra Angel"
+  run_to turn 1 end
+  assert exile B contains "Serra Angel"
+  assert life B 24
+}
+
+scenario "Emeritus of Truce: not prepared when not behind" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  hand A: "Emeritus of Truce"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Emeritus of Truce"
+  illegal turn 1 postcombat_main A: cast "Swords to Plowshares" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+}

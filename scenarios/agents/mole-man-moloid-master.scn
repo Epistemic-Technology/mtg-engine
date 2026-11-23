@@ -1,0 +1,37 @@
+scenario "Mole Man: playing a land from the graveyard makes a Moloid" {
+  battlefield A: "Mole Man, Moloid Master"
+  graveyard A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+  assert graveyard A lacks "Forest"
+  assert battlefield A contains 1 "Moloid"
+  assert power "Moloid" 1
+  assert toughness "Moloid" 1
+  assert is "Moloid" green
+}
+
+scenario "Mole Man: landfall from the hand; only one land per turn" {
+  battlefield A: "Mole Man, Moloid Master"
+  hand A: "Island"
+  graveyard A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: play "Island"
+  illegal turn 1 postcombat_main A: play "Forest"
+  run_to turn 1 end
+  assert battlefield A contains 1 "Moloid"
+  assert graveyard A contains "Forest"
+}
+
+scenario "Mole Man: Moloid attack trigger mills a card" {
+  battlefield A: "Mole Man, Moloid Master"
+  hand A: "Island"
+  library A: "Grizzly Bears", "Hill Giant", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: play "Island"
+  turn 3 A: attack "Moloid"
+  turn 3 A: accept "Moloid"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Hill Giant"
+}

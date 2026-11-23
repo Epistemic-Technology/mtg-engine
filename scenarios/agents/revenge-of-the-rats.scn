@@ -1,0 +1,18 @@
+scenario "one tapped rat per creature card in graveyard" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Lightning Bolt"
+  graveyard B: "Serra Angel"
+  hand A: "Revenge of the Rats"
+  turn 1 A: cast "Revenge of the Rats"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Rat"
+  assert tapped oldest "Rat"
+}
+scenario "flashback" {
+  battlefield A: 8 "Swamp"
+  graveyard A: "Grizzly Bears", "Revenge of the Rats"
+  turn 1 A: cast "Revenge of the Rats" from graveyard
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Rat"
+  assert exile A contains "Revenge of the Rats"
+}

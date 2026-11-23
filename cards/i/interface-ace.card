@@ -1,0 +1,8 @@
+card "Interface Ace" {
+  oracle_id c4272676-a38a-4b23-988e-9cdb2feb46c1
+  cost {1}{W}
+  type Artifact Creature — Robot Pilot
+  pt 0/4
+  saddles and crews using toughness
+  triggered once each turn whenever this becomes tapped during your turn: untap this
+}

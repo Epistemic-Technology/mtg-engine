@@ -1,0 +1,14 @@
+card "Variable Chaser // Arc of Fortune" {
+  oracle_id 67c603cc-ad66-4a1c-8386-5901c9c01bfb
+  layout prepare
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/3
+  keywords flying, prowess
+  enters prepared
+  face "Arc of Fortune" {
+    cost {2}{U}
+    type Sorcery
+    spell: each player may discard hand and draw 7 cards
+  }
+}

@@ -1,0 +1,7 @@
+card "Revenge of the Rats" {
+  oracle_id 29e3a3d9-4839-44d0-ad48-159c01645a6a
+  cost {2}{B}{B}
+  type Sorcery
+  spell: create count each graveyard creature tapped "1/1 black Rat creature"
+  flashback {2}{B}{B}
+}

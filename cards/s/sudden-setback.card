@@ -1,0 +1,6 @@
+card "Sudden Setback" {
+  oracle_id 565ba85c-bad8-4cbd-a2ff-b4384b886308
+  cost {2}{U}{U}
+  type Instant
+  spell: owner of target spell or nonland permanent puts it on top or bottom of library
+}

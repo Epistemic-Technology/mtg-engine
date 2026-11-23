@@ -1,0 +1,33 @@
+scenario "first counter casts a mana value 1 spell free and exiles it" {
+  battlefield A: "Wishing Well"
+  graveyard A: "Lightning Bolt", "Divination"
+  turn 1 A: activate "Wishing Well"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Wishing Well" coin 1
+  assert life B 17
+  assert exile A contains "Lightning Bolt"
+  assert graveyard A lacks "Lightning Bolt"
+  assert graveyard A contains "Divination"
+  assert tapped "Wishing Well"
+}
+scenario "third counter casts mana value 3 spell, not a mana value 1 spell" {
+  battlefield A: "Wishing Well" with 2 coin
+  graveyard A: "Lightning Bolt", "Divination"
+  library A: "Forest", "Island", "Swamp"
+  turn 1 A: activate "Wishing Well"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert counters "Wishing Well" coin 3
+  assert hand A count 2
+  assert exile A contains "Divination"
+  assert graveyard A contains "Lightning Bolt"
+  assert life B 20
+}
+scenario "only at sorcery speed" {
+  battlefield A: "Wishing Well"
+  graveyard A: "Lightning Bolt"
+  illegal turn 1 begin_combat A: activate "Wishing Well"
+  run_to turn 1 end
+  assert counters "Wishing Well" coin 0
+}

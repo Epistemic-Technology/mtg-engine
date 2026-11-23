@@ -1,0 +1,14 @@
+card "The Legend of Kuruk // Avatar Kuruk" {
+  oracle_id 201b8936-18f4-4881-a1d4-c308cf3832bf
+  layout transform
+  cost {2}{U}{U}
+  type Enchantment — Saga
+  triggered chapter 1, 2: scry 2 then draw 1 card
+  triggered chapter 3: exile this then return this to battlefield transformed under your control
+  face "Avatar Kuruk" {
+    type Legendary Creature — Avatar
+    pt 4/3
+    triggered whenever you cast a spell: create 1 "1/1 colorless Spirit creature that can't block or be blocked by non-Spirits"
+    exhaust waterbend {20}: you take extra turn
+  }
+}

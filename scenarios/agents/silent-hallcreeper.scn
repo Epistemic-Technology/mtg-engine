@@ -1,0 +1,21 @@
+scenario "Silent Hallcreeper chooses each mode once" {
+  battlefield A: "Silent Hallcreeper", "Serra Angel"
+  library A: "Grizzly Bears", "Hill Giant", "Shock", "Island", "Island", "Island", "Island", "Island"
+  turn 1 declare_attackers A: attack "Silent Hallcreeper"
+  turn 1 combat_damage A: trigger "Silent Hallcreeper" mode 1
+  turn 3 declare_attackers A: attack "Silent Hallcreeper"
+  turn 3 combat_damage A: trigger "Silent Hallcreeper" mode 2
+  turn 5 declare_attackers A: attack "Silent Hallcreeper"
+  turn 5 combat_damage A: trigger "Silent Hallcreeper" mode 3 targeting "Serra Angel"
+  run_to turn 1 end
+  assert counters "Silent Hallcreeper" +1/+1 2
+  assert power "Silent Hallcreeper" 3
+  assert life B 19
+  run_to turn 3 end
+  assert life B 16
+  assert hand A count 2
+  run_to turn 5 end
+  assert life B 13
+  assert battlefield A contains 2 "Serra Angel"
+  assert counters oldest A "Serra Angel" +1/+1 2
+}

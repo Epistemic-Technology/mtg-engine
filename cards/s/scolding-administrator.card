@@ -1,0 +1,9 @@
+card "Scolding Administrator" {
+  oracle_id 3b8240ad-71d3-4117-8531-6c8e79bffdb9
+  cost {W}{B}
+  type Creature — Dwarf Cleric
+  pt 2/2
+  keywords menace
+  label "Repartee" triggered whenever you cast instant or sorcery spell that targets creature: put 1 +1/+1 counter on this
+  triggered when this dies if it had counters: put those counters on up to 1 target creature
+}
