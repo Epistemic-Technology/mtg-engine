@@ -1,0 +1,9 @@
+card "Reroute" {
+  oracle_id 997f5a5a-9ee1-4b66-9ffc-d1a2e996e615
+  cost {1}{R}
+  type Instant
+  spell {
+    change target of target activated ability with single target
+    draw 1 card
+  }
+}

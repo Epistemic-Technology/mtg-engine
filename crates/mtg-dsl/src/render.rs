@@ -5016,7 +5016,7 @@ fn count_phrase_in(c: &crate::ast::CountExpr, ctx: &Ctx, each: bool) -> String {
             if ctx
                 .target_noun
                 .get(*n)
-                .is_some_and(|t| t == "card" || t == "permanent") =>
+                .is_some_and(|t| t == "card" || t == "permanent" || t == "spell") =>
         {
             phrase.replacen(
                 "that creature's",

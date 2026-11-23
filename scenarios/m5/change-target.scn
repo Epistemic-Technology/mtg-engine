@@ -152,3 +152,74 @@ scenario "Return the Favor copies a Lightning Bolt with a new target" {
   assert life A 17
   assert life B 17
 }
+
+scenario "Swerve targets only spells" {
+  battlefield A: "Island", "Mountain"
+  battlefield B: "Prodigal Sorcerer"
+  hand A: "Swerve"
+  start turn 2 B precombat_main
+  turn 2 B: activate "Prodigal Sorcerer" targeting player A
+  illegal turn 2 A: cast "Swerve" targeting "Prodigal Sorcerer" in response to trigger "Prodigal Sorcerer"
+  run_to turn 2 postcombat_main
+  assert life A 19
+  assert hand A contains "Swerve"
+}
+
+scenario "Reroute redirects an activated ability and draws" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Prodigal Sorcerer"
+  hand A: "Reroute"
+  start turn 2 B precombat_main
+  turn 2 B: activate "Prodigal Sorcerer" targeting player A
+  turn 2 A: cast "Reroute" targeting "Prodigal Sorcerer" in response to trigger "Prodigal Sorcerer"
+  turn 2 A: choose "player B"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert life B 19
+  assert hand A count 1
+}
+
+scenario "Reroute can't target a spell" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Reroute"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  illegal turn 2 A: cast "Reroute" targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 2 postcombat_main
+  assert life A 17
+}
+
+scenario "Imp's Mischief: lose life equal to that spell's mana value" {
+  battlefield A: "Grizzly Bears", 2 "Swamp"
+  battlefield B: "Hill Giant", 2 "Swamp"
+  hand A: "Imp's Mischief"
+  hand B: "Murder"
+  battlefield B: "Swamp"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Grizzly Bears"
+  # Hill Giant is the only other legal target: no choice is asked.
+  turn 2 A: cast "Imp's Mischief" targeting "Murder" in response to "Murder"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Willbender turned face up redirects a spell" {
+  battlefield A: "Grizzly Bears", 5 "Island"
+  battlefield B: "Hill Giant", "Mountain"
+  hand A: "Willbender"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Willbender" face_down
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 2 precombat_main A: unmorph "Willbender"
+  turn 2 A: trigger "Willbender" targeting "Lightning Bolt"
+  turn 2 A: choose "Hill Giant"
+  run_to turn 2 end
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Willbender"
+  assert graveyard B contains "Hill Giant"
+}

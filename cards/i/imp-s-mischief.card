@@ -1,0 +1,6 @@
+card "Imp's Mischief" {
+  oracle_id 30ec73ad-c7a1-4527-8dc6-44bdd65b9ba6
+  cost {1}{B}
+  type Instant
+  spell: change target of target spell with single target; you lose count equal mana value of that target 1 life
+}

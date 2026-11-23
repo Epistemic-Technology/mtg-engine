@@ -393,6 +393,32 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
         },
     ),
     (
+        &["activated", "ability", "with", "single", "target"],
+        TargetSpec::OnStack {
+            spells: false,
+            activated: true,
+            triggered: false,
+            source: None,
+            yours: false,
+            single: true,
+            instant_sorcery: false,
+            listed: false,
+        },
+    ),
+    (
+        &["spell", "with", "single", "target"],
+        TargetSpec::OnStack {
+            spells: true,
+            activated: false,
+            triggered: false,
+            source: None,
+            yours: false,
+            single: true,
+            instant_sorcery: false,
+            listed: false,
+        },
+    ),
+    (
         &["spell", "or", "ability", "with", "single", "target"],
         TargetSpec::OnStack {
             spells: true,
