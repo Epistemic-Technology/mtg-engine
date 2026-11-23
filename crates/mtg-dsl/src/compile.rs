@@ -2424,7 +2424,9 @@ impl Compiler<'_> {
             StaticCond::ArtifactEnteredThisTurn => {
                 StaticCondition::happened(TurnEvent::ArtifactEntered, TurnWho::You)
             }
-            StaticCond::CardsDrawnThisTurn(n) => at_least(TurnEvent::Drew, TurnWho::You, *n),
+            StaticCond::CardsDrawnThisTurn(n) | StaticCond::DrawnThisTurn(n) => {
+                at_least(TurnEvent::Drew, TurnWho::You, *n)
+            }
             StaticCond::HandFewerThan(n) => StaticCondition::CardsInHand {
                 n: n.saturating_sub(1),
                 at_most: true,
@@ -2517,7 +2519,6 @@ impl Compiler<'_> {
             StaticCond::Blocked => StaticCondition::SourceBlocked,
             StaticCond::BeingBlocked => StaticCondition::SourceBeingBlocked,
             StaticCond::AttachedIs(filter) => StaticCondition::AttachedIs(self.filter(filter)),
-            StaticCond::DrawnThisTurn(n) => at_least(TurnEvent::Drew, TurnWho::You, *n),
             StaticCond::CastThisTurn {
                 filter,
                 at_least,

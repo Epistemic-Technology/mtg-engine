@@ -2268,6 +2268,21 @@ impl CountExpr {
     #[must_use]
     pub fn in_static(&self) -> bool {
         match self {
+            // The card language keeps the rest (your draws, discards, life
+            // lost, spells cast, attackers, deaths) for a resolving effect.
+            CountExpr::Happened(c) => {
+                matches!(
+                    (c.kind, c.who),
+                    (
+                        TurnEvent::LifeGained
+                            | TurnEvent::Sacrificed
+                            | TurnEvent::CreatureEntered
+                            | TurnEvent::CreatureLeft,
+                        _
+                    ) | (TurnEvent::Attacked, TurnWho::Anyone)
+                        | (TurnEvent::LifeLost, TurnWho::Opponent)
+                ) && c.filter.is_none()
+            }
             CountExpr::Sum(a, b) => a.in_static() && b.in_static(),
             CountExpr::Plus(_, c)
             | CountExpr::Times(_, c)
@@ -2289,7 +2304,6 @@ impl CountExpr {
             | CountExpr::GreatestManaValueInGraveyard(_)
             | CountExpr::Devotion(_)
             | CountExpr::CardsInHand
-            | CountExpr::Happened(_)
             | CountExpr::CardTypesInGraveyard
             | CountExpr::SourceAllCounters
             | CountExpr::OpponentsMoreCards
