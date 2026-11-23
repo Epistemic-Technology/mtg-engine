@@ -2088,8 +2088,6 @@ pub enum CountExpr {
     Party(Box<[ObjFilter; 4]>),
     /// The greatest mana value among permanents you control.
     GreatestManaValue,
-    /// Cards you've drawn this turn.
-    CardsDrawnThisTurn,
     /// Spells you've cast this turn; with `other`, not counting the
     /// source's own cast ("the number of other spells you've cast this
     /// turn").
@@ -2193,17 +2191,12 @@ pub enum CountExpr {
     /// Savanti Romero"), as it last existed on the battlefield once it
     /// has left (CR 608.2h).
     SourceAllCounters,
-    /// The permanents you've sacrificed this turn (CR 701.21).
-    SacrificedThisTurn,
     /// 2 to the power of the source's X ("draws 2ˣ cards"), capped so it
     /// fits.
     TwoToX,
     /// Creatures that attacked this turn, any player's ("for each creature
     /// that attacked this turn"; CR 508.1).
     AttackedThisTurn,
-    /// Cards you've discarded this turn ("for each card you've discarded
-    /// this turn", CR 701.8).
-    DiscardedThisTurn,
     /// Opponents who have more cards in hand than you.
     OpponentsMoreCards,
     /// The total power, toughness, or mana value of the battlefield
@@ -2269,9 +2262,7 @@ impl CountExpr {
     /// using it must be recomputed as that changes (`history_static`).
     pub fn reads_history(&self) -> bool {
         match self {
-            CountExpr::Happened(_)
-            | CountExpr::SacrificedThisTurn
-            | CountExpr::AttackedThisTurn => true,
+            CountExpr::Happened(_) | CountExpr::AttackedThisTurn => true,
             CountExpr::Times(_, c)
             | CountExpr::Plus(_, c)
             | CountExpr::Difference(_, c)
@@ -2315,7 +2306,6 @@ impl CountExpr {
             | CountExpr::Happened(_)
             | CountExpr::CardTypesInGraveyard
             | CountExpr::SourceAllCounters
-            | CountExpr::SacrificedThisTurn
             | CountExpr::AttackedThisTurn
             | CountExpr::OpponentsMoreCards
             | CountExpr::ExiledWith(_)
@@ -2342,7 +2332,6 @@ impl CountExpr {
             | CountExpr::Devoured(_)
             | CountExpr::Party(_)
             | CountExpr::SourceToughness
-            | CountExpr::CardsDrawnThisTurn
             | CountExpr::SpellsCastThisTurn { .. }
             | CountExpr::OtherInstantSorceryCast { .. }
             | CountExpr::OpponentsAttacked
@@ -2360,8 +2349,6 @@ impl CountExpr {
             | CountExpr::MovedStat { .. }
             | CountExpr::TargetHand(_)
             | CountExpr::GreatestToughness(_)
-            // Discards are counted only as an effect resolves.
-            | CountExpr::DiscardedThisTurn
             | CountExpr::TargetLibrary(_)
             | CountExpr::ThatSpellColors
             | CountExpr::SourceDamage
@@ -2619,11 +2606,26 @@ pub enum TurnEvent {
     ToGraveyard,
     /// Spells the player cast for their warp cost (CR 702.185a).
     Warped,
+    /// Cards the player drew (CR 121.1).
+    Drew,
+    /// Cards the player discarded (CR 701.8).
+    Discarded,
+    /// Permanent cards put into the player's graveyard from anywhere: the
+    /// player descended (CR 700.11).
+    Descended,
+    /// Cards put into the player's graveyard from anywhere (tokens are no
+    /// cards), with their card types there (`TurnLog::types`).
+    CardToGraveyard,
+    /// Cards that left the player's graveyard.
+    LeftGraveyard,
+    /// Permanents the player sacrificed (CR 701.21), with their card types
+    /// as they last existed (`TurnLog::types`).
+    Sacrificed,
 }
 
 impl TurnEvent {
     /// The number of kinds: the turn log's rows.
-    pub const COUNT: usize = 15;
+    pub const COUNT: usize = 21;
 
     /// Whether a static ability reading this kind must be refreshed as it
     /// is counted (`CardDef::history_static`), the kinds counted without a
@@ -2637,7 +2639,10 @@ impl TurnEvent {
             | TurnEvent::Damaged
             | TurnEvent::NoncombatDamaged
             | TurnEvent::NonlandLeft
-            | TurnEvent::Warped => true,
+            | TurnEvent::Warped
+            | TurnEvent::CardToGraveyard
+            | TurnEvent::LeftGraveyard
+            | TurnEvent::Sacrificed => true,
             TurnEvent::CreatureEntered
             | TurnEvent::NonlandEntered
             | TurnEvent::LandEntered
@@ -2646,8 +2651,18 @@ impl TurnEvent {
             | TurnEvent::PermanentLeft
             | TurnEvent::CreatureLeft
             | TurnEvent::Died
-            | TurnEvent::ToGraveyard => false,
+            | TurnEvent::ToGraveyard
+            | TurnEvent::Drew
+            | TurnEvent::Discarded
+            | TurnEvent::Descended => false,
         }
+    }
+
+    /// Whether a static ability reading this kind must be refreshed as a
+    /// card leaves a hand (`CardDef::hand_static`).
+    #[must_use]
+    pub const fn with_hand(self) -> bool {
+        matches!(self, TurnEvent::Drew | TurnEvent::Discarded)
     }
 }
 
@@ -2872,8 +2887,6 @@ pub enum StaticCondition {
     /// The source is saddled (CR 702.171b): "whenever this creature
     /// attacks while saddled".
     Saddled,
-    /// "you've drawn two or more cards this turn".
-    CardsDrawnThisTurn(u32),
     /// "there are two or more instant and/or sorcery cards in your
     /// graveyard" (spell mastery), "three or more creature cards".
     GraveyardCards {
@@ -2932,8 +2945,6 @@ pub enum StaticCondition {
     /// "equipped creature is legendary": the permanent the source is
     /// attached to matches.
     AttachedIs(ObjFilter),
-    /// "you've drawn two or more cards this turn".
-    DrawnThisTurn(u32),
     /// "you've cast an instant or sorcery spell this turn", "you've cast
     /// two or more spells this turn" (`at_least`), "you've cast another
     /// blue spell this turn" (`other`: not counting the source's own cast,
@@ -2948,9 +2959,6 @@ pub enum StaticCondition {
     /// graveyard" (CR 601.2a): where the source was cast from; a
     /// permanent remembers it from its spell.
     CastFrom(crate::state::Zone),
-    /// "you descended this turn" (CR 700.11): a permanent card was put
-    /// into your graveyard from anywhere.
-    DescendedThisTurn,
     /// "the second spell you cast each turn" (Highspire Bell-Ringer): the
     /// spell whose cost is being determined would be your Nth this turn,
     /// that is, you've cast exactly N - 1 spells before it.
@@ -2962,20 +2970,10 @@ pub enum StaticCondition {
     /// "a +1/+1 counter was put on a permanent under your control this
     /// turn".
     CounterPutThisTurn,
-    /// "you've discarded a card this turn".
-    DiscardedThisTurn,
     /// "it's night" (CR 731).
     Night,
     /// "you've committed a crime this turn" (CR 700.13).
     CrimeThisTurn,
-    /// "one or more cards left your graveyard this turn".
-    LeftGraveyardThisTurn,
-    /// "a creature card was put into your graveyard from anywhere this
-    /// turn": a card of one of these types, as it is in the graveyard.
-    CardToGraveyardThisTurn(TypeSet),
-    /// "you've sacrificed an artifact this turn": a permanent with one of
-    /// these types, as it last existed.
-    SacrificedThisTurn(TypeSet),
     /// "you have more cards in hand than each opponent".
     MoreCardsInHand,
     /// "an opponent is poisoned" (1), "an opponent has three or more poison
@@ -10906,11 +10904,10 @@ impl CardPool {
             )) || matches!(sa.condition, Some(
                 StaticCondition::CardsInHand { .. }
                     | StaticCondition::MoreCardsInHand
-                    | StaticCondition::DrawnThisTurn(_)
                     | StaticCondition::CastThisTurn { .. }
                     | StaticCondition::NoSpellsCastThisTurn { .. }
-                    | StaticCondition::DiscardedThisTurn
-            )))
+            )) || matches!(&sa.condition, Some(StaticCondition::Happened { count, .. })
+                if count.kind.with_hand()))
         });
         def.step_static = def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::Static(sa) if matches!(sa.condition, Some(StaticCondition::During(_))))
@@ -10944,9 +10941,6 @@ impl CardPool {
             matches!(a, AbilityDef::Static(sa) if matches!(sa.condition, Some(
                 StaticCondition::CrimeThisTurn
                     | StaticCondition::PutCounterThisTurn
-                    | StaticCondition::LeftGraveyardThisTurn
-                    | StaticCondition::CardToGraveyardThisTurn(_)
-                    | StaticCondition::SacrificedThisTurn(_)
                     | StaticCondition::SurveilledThisTurn
                     | StaticCondition::ScriedOrSurveilledThisTurn
                     | StaticCondition::AttackedWith(_)

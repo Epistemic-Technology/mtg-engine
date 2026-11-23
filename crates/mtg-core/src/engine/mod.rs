@@ -539,7 +539,6 @@ impl GameState {
             next_uncounterable: 0,
             mana_spent_this_turn: [0; 4],
             mana_spent_before_cast: [0; 4],
-            drawn_this_turn: [0; 4],
             attacked_this_turn: 0,
             block_demands: Vec::new(),
             block_bans: Vec::new(),
@@ -549,7 +548,6 @@ impl GameState {
             assassin_damage: 0,
             prowl_damage: Vec::new(),
             enter_notes: Vec::new(),
-            discarded_this_turn: 0,
             mayhem_discarded: Vec::new(),
             granted_flashback: Vec::new(),
             granted_harmonize: Vec::new(),
@@ -3681,7 +3679,6 @@ impl GameState {
             self.next_spell_less = [0; 4];
             self.next_spell_free.clear();
             self.next_uncounterable = 0;
-            self.drawn_this_turn = [0; 4];
             // "As long as you've drawn two or more cards this turn" and
             // the other this-turn statics start over (CR 611.3a).
             if self.turn_static_sources > 0 {
@@ -3705,7 +3702,6 @@ impl GameState {
             self.no_regen.clear();
             self.no_combat_damage.clear();
             self.died_this_turn.clear();
-            self.discarded_this_turn = 0;
             self.mayhem_discarded.clear();
             self.cast_this_turn.clear();
             self.turn_log = crate::state::TurnLog::default();

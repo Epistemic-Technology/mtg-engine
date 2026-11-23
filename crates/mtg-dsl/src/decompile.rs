@@ -46,6 +46,14 @@ fn supertypes(t: SupertypeSet) -> Vec<Supertype> {
         .collect()
 }
 
+/// The card types of a set, in the card language's order.
+fn card_types(t: TypeSet) -> Vec<CardType> {
+    crate::render::CARD_TYPES
+        .into_iter()
+        .filter(|c| t.contains(*c))
+        .collect()
+}
+
 /// A turn count's condition (`StaticCondition::Happened`) as the card
 /// language words it.
 fn happened(count: &TurnCount, cmp: mtg_core::card::Cmp, n: u32) -> StaticCond {
@@ -78,15 +86,20 @@ fn happened(count: &TurnCount, cmp: mtg_core::card::Cmp, n: u32) -> StaticCond {
             n,
             yours: who == TurnWho::You,
         },
-        (TurnEvent::ToGraveyard, ..) => StaticCond::PutIntoGraveyardThisTurn(
-            crate::render::CARD_TYPES
-                .into_iter()
-                .filter(|c| count.types.contains(*c))
-                .collect(),
-        ),
+        (TurnEvent::ToGraveyard, ..) => {
+            StaticCond::PutIntoGraveyardThisTurn(card_types(count.types))
+        }
         // Only as void's (an `Or` of both).
         (TurnEvent::NonlandLeft | TurnEvent::Warped, ..) => StaticCond::Void,
         (TurnEvent::CreatureLeft, ..) => unreachable!("only counted"),
+        (TurnEvent::Drew, _, _, n) => StaticCond::CardsDrawnThisTurn(n),
+        (TurnEvent::Discarded, ..) => StaticCond::DiscardedThisTurn,
+        (TurnEvent::Descended, ..) => StaticCond::DescendedThisTurn,
+        (TurnEvent::LeftGraveyard, ..) => StaticCond::LeftGraveyardThisTurn,
+        (TurnEvent::CardToGraveyard, ..) => {
+            StaticCond::CardToGraveyardThisTurn(card_types(count.types))
+        }
+        (TurnEvent::Sacrificed, ..) => StaticCond::SacrificedThisTurn(card_types(count.types)),
     }
 }
 
@@ -707,7 +720,6 @@ impl Decompiler<'_> {
             StaticCondition::OffspringPaid => unreachable!("only offspring's trigger"),
             StaticCondition::Chose(_) => unreachable!("only a named option's ability"),
             StaticCondition::Saddled => StaticCond::Saddled,
-            StaticCondition::CardsDrawnThisTurn(n) => StaticCond::CardsDrawnThisTurn(*n),
             StaticCondition::GraveyardCards { filter, at_least } => StaticCond::GraveyardCards {
                 filter: unowned(filter),
                 at_least: *at_least,
@@ -750,7 +762,6 @@ impl Decompiler<'_> {
             StaticCondition::SourceBlocked => StaticCond::Blocked,
             StaticCondition::SourceBeingBlocked => StaticCond::BeingBlocked,
             StaticCondition::AttachedIs(f) => StaticCond::AttachedIs(unowned(f)),
-            StaticCondition::DrawnThisTurn(n) => StaticCond::DrawnThisTurn(*n),
             StaticCondition::CastThisTurn {
                 filter,
                 at_least,
@@ -761,12 +772,10 @@ impl Decompiler<'_> {
                 other: *other,
             },
             StaticCondition::CastFrom(z) => StaticCond::CastFrom(*z),
-            StaticCondition::DescendedThisTurn => StaticCond::DescendedThisTurn,
             StaticCondition::SpellNumber(n) => StaticCond::SpellNumber(*n),
             StaticCondition::SurveilledThisTurn => StaticCond::SurveilledThisTurn,
             StaticCondition::ScriedOrSurveilledThisTurn => StaticCond::ScriedOrSurveilledThisTurn,
             StaticCondition::CounterPutThisTurn => StaticCond::CounterPutThisTurn,
-            StaticCondition::DiscardedThisTurn => StaticCond::DiscardedThisTurn,
             StaticCondition::Night => StaticCond::Night,
             StaticCondition::CrimeThisTurn => StaticCond::CrimeThisTurn,
             StaticCondition::YourMainPhase => StaticCond::YourMainPhase,
@@ -778,19 +787,6 @@ impl Decompiler<'_> {
                 again: false,
             },
             StaticCondition::Happened { count, cmp, n } => happened(count, *cmp, *n),
-            StaticCondition::LeftGraveyardThisTurn => StaticCond::LeftGraveyardThisTurn,
-            StaticCondition::SacrificedThisTurn(t) => StaticCond::SacrificedThisTurn(
-                crate::render::CARD_TYPES
-                    .into_iter()
-                    .filter(|c| t.contains(*c))
-                    .collect(),
-            ),
-            StaticCondition::CardToGraveyardThisTurn(t) => StaticCond::CardToGraveyardThisTurn(
-                crate::render::CARD_TYPES
-                    .into_iter()
-                    .filter(|c| t.contains(*c))
-                    .collect(),
-            ),
             StaticCondition::MoreCardsInHand => StaticCond::MoreCardsInHand,
             StaticCondition::OpponentPoison(n) => StaticCond::OpponentPoison(*n),
             StaticCondition::OwnCardInExile => StaticCond::OwnCardInExile,

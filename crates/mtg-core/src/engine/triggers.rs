@@ -1575,7 +1575,7 @@ impl GameState {
                 .then_some((Some(*spell), Some(*player)))
             }
             (TriggerSpec::DrawsNth { whose, n }, Event::Draw { player, .. }) => {
-                (whose_ok(*whose, *player) && self.drawn_this_turn[player.index().min(3)] == *n)
+                (whose_ok(*whose, *player) && self.tallied(crate::card::TurnEvent::Drew, *player) == u32::from(*n))
                     .then_some((None, Some(*player)))
             }
             // Valiant: by a spell or ability its controller controls, the

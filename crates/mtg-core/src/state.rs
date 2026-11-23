@@ -1778,11 +1778,9 @@ pub struct TurnLog {
     pub tally: [[u32; 4]; crate::card::TurnEvent::COUNT],
     /// The card types among the objects of each kind's events, by player,
     /// for the kinds a count asks types of (`TurnCount::types`): the
-    /// permanents put into a graveyard from the battlefield.
+    /// permanents put into a graveyard from the battlefield, the cards put
+    /// into a graveyard, and the permanents sacrificed.
     pub types: [[crate::card::TypeSet; 4]; crate::card::TurnEvent::COUNT],
-    /// Players who descended (CR 700.11): a permanent card was put into
-    /// their graveyard from anywhere.
-    pub descended: u8,
     /// Players who surveilled (CR 701.25).
     pub surveilled: u8,
     /// Players who scried (CR 701.22).
@@ -1797,23 +1795,11 @@ pub struct TurnLog {
     pub face_down_less: [u8; 4],
     /// Players who committed a crime (CR 700.13).
     pub crime: u8,
-    /// Players a card left the graveyard of.
-    pub left_graveyard: u8,
-    /// The card types among cards put into each player's graveyard from
-    /// anywhere (tokens are no cards).
-    pub cards_to_graveyard: [crate::card::TypeSet; 4],
-    /// The card types among permanents each player sacrificed.
-    pub sacrificed: [crate::card::TypeSet; 4],
-    /// How many permanents each player sacrificed.
-    pub sacrificed_n: [u16; 4],
     /// Players who put counters of any kind on a creature.
     pub any_counter_put_by: u8,
     /// Players who cast a spell from their hand ("if you haven't cast a
     /// spell from your hand this turn").
     pub cast_from_hand: u8,
-    /// Cards each player discarded ("for each card you've discarded this
-    /// turn").
-    pub discards: [u8; 4],
     /// Players who activated an equip ability ("the first equip ability
     /// you activate each turn").
     pub equipped: u8,
@@ -2076,8 +2062,6 @@ pub struct GameState {
     /// Players (by index bit) whose next spell this turn can't be
     /// countered (`Effect::NextSpellUncounterable`); zero in most games.
     pub next_uncounterable: u8,
-    /// Cards each player drew this turn ("your second card each turn").
-    pub drawn_this_turn: [u8; 4],
     /// Total mana each player has spent to cast spells this turn (expend,
     /// CR 700.14), and what it was before their latest spell was paid
     /// for: "Whenever you expend 4" triggers on the spell that crosses 4.
@@ -2112,8 +2096,6 @@ pub struct GameState {
     /// 702.104b). Keyed by the permanent; pruned as turns begin once it
     /// has left the battlefield.
     pub enter_notes: Vec<(ObjId, EnterNote)>,
-    /// Players who discarded a card this turn, one bit each.
-    pub discarded_this_turn: u8,
     /// Cards with mayhem discarded this turn, as the graveyard objects
     /// they became (castable for their mayhem cost until the turn ends).
     pub mayhem_discarded: Vec<ObjId>,
@@ -4158,7 +4140,6 @@ impl GameState {
                 .map(|o| o.cast.offspring())
                 .or_else(|| self.lki.get(&source).map(|l| l.object.cast.offspring()))
                 .unwrap_or(false),
-            C::CardsDrawnThisTurn(n) => u32::from(self.drawn_this_turn[you.index().min(3)]) >= *n,
             C::Escaped => self
                 .objects
                 .get(source)
@@ -4374,7 +4355,6 @@ impl GameState {
                 .as_ref()
                 .and_then(|c| c.attacker(source))
                 .is_some_and(|a| !a.blockers.is_empty()),
-            C::DrawnThisTurn(n) => u32::from(self.drawn_this_turn[you.index().min(3)]) >= *n,
             C::CastThisTurn {
                 filter,
                 at_least,
@@ -4415,7 +4395,6 @@ impl GameState {
                 .or_else(|| self.lki.get(&source).map(|l| &l.object))
                 .is_some_and(|o| o.cast.cast_from() == Some(*zone)),
             C::Happened { count, cmp, n } => self.turn_count_holds(count, *cmp, *n, you, source),
-            C::DescendedThisTurn => self.turn_log.descended & (1 << you.index().min(7)) != 0,
             C::SpellNumber(n) => {
                 let cast = self
                     .cast_this_turn
@@ -4429,20 +4408,10 @@ impl GameState {
                 (self.turn_log.surveilled | self.turn_log.scried) & (1 << you.index().min(7)) != 0
             }
             C::CounterPutThisTurn => self.turn_log.counter_put & (1 << you.index().min(7)) != 0,
-            C::DiscardedThisTurn => self.discarded_this_turn & (1 << you.index().min(7)) != 0,
             C::Night => self.desig.day_night == DayNight::Night,
             C::CrimeThisTurn => self.turn_log.crime & (1 << you.index().min(7)) != 0,
             C::PutCounterThisTurn => self.turn_log.counter_put_by & (1 << you.index().min(7)) != 0,
             C::NthResolution(n) => self.resolution_number == *n,
-            C::LeftGraveyardThisTurn => {
-                self.turn_log.left_graveyard & (1 << you.index().min(7)) != 0
-            }
-            C::SacrificedThisTurn(types) => {
-                self.turn_log.sacrificed[you.index().min(3)].intersects(*types)
-            }
-            C::CardToGraveyardThisTurn(types) => {
-                self.turn_log.cards_to_graveyard[you.index().min(3)].intersects(*types)
-            }
             C::MoreCardsInHand => {
                 let mine = self.player(you).hand.len();
                 self.players_in_game()

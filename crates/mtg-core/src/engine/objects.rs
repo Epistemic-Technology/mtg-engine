@@ -331,23 +331,15 @@ impl GameState {
         if to == Zone::Graveyard && old.kind == crate::state::ObjKind::Card {
             let types = self.pool.get(old.card).types;
             if types.is_permanent_type() {
-                self.turn_log.descended |= 1 << old.owner.index().min(7);
+                self.log_event(TurnEvent::Descended, old.owner, 1);
             }
             // "if a creature card was put into your graveyard from anywhere
             // this turn".
-            let seen = &mut self.turn_log.cards_to_graveyard[old.owner.index().min(3)];
-            if !seen.contains_all(types) {
-                *seen = seen.union(types);
-                self.history_bump();
-            }
+            self.log_typed(TurnEvent::CardToGraveyard, old.owner, types);
         }
         // "if one or more cards left your graveyard this turn".
         if old.zone == Zone::Graveyard {
-            let bit = 1 << old.owner.index().min(7);
-            if self.turn_log.left_graveyard & bit == 0 {
-                self.turn_log.left_graveyard |= bit;
-                self.history_bump();
-            }
+            self.log_event(TurnEvent::LeftGraveyard, old.owner, 1);
         }
         let old_flags = self.flags_of(&old);
         let (attacking, blocking) = match &self.combat {
@@ -1188,13 +1180,10 @@ impl GameState {
         let (def, who) = (o.def, o.controller);
         // "If you've sacrificed an artifact this turn".
         // "the number of permanents you've sacrificed this turn".
-        let n = &mut self.turn_log.sacrificed_n[who.index().min(3)];
-        *n = n.saturating_add(1);
-        if let Some(c) = self.characteristics(id) {
-            let seen = &mut self.turn_log.sacrificed[who.index().min(3)];
-            *seen = seen.union(c.types);
-        }
-        self.history_bump();
+        let types = self
+            .characteristics(id)
+            .map_or(crate::card::TypeSet::EMPTY, |c| c.types);
+        self.log_typed(TurnEvent::Sacrificed, who, types);
         self.emit(Event::Sacrificed { obj: id, def });
         self.move_object(id, Zone::Graveyard, true);
         self.note_moved_how(id, true);
@@ -1368,12 +1357,11 @@ impl GameState {
     fn draw_now(&mut self, p: PlayerId) {
         if let Some(top) = self.player(p).library.last().copied() {
             let new = self.move_object(top, Zone::Hand, false);
-            let n = &mut self.drawn_this_turn[p.index().min(3)];
-            *n = n.saturating_add(1);
+            self.log_event(TurnEvent::Drew, p, 1);
             // CR 702.94a: the first card drawn this turn, with miracle, is
             // revealed (always: revealing costs nothing), and its trigger
             // lets its owner cast it for the miracle cost.
-            let first = *n == 1;
+            let first = self.tallied(TurnEvent::Drew, p) == 1;
             if first
                 && let Some(o) = self.objects.get(new)
                 && o.zone == Zone::Hand
@@ -1876,9 +1864,7 @@ impl GameState {
 
     /// Discard a card from hand (CR 701.8).
     pub(super) fn discard_card(&mut self, p: PlayerId, card: ObjId) {
-        self.discarded_this_turn |= 1 << p.index().min(7);
-        let n = &mut self.turn_log.discards[p.index().min(3)];
-        *n = n.saturating_add(1);
+        self.log_event(TurnEvent::Discarded, p, 1);
         self.emit(Event::Discard { player: p, card });
         let def = self.objects[card].def;
         if self

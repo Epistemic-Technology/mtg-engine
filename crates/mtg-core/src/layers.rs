@@ -701,9 +701,6 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             .objects
             .get(source)
             .is_some_and(|o| o.cast.offspring()),
-        StaticCondition::CardsDrawnThisTurn(n) => {
-            u32::from(state.drawn_this_turn[you.index().min(3)]) >= *n
-        }
         StaticCondition::ActivatedThisTurn(n) => {
             state
                 .activated_once
@@ -1278,9 +1275,6 @@ fn per_count(
             .and_then(|s| state.objects.get(s))
             .map_or(0, |o| o.counters.iter().map(|(_, n)| *n as usize).sum()),
         CountExpr::Happened(c) => state.turn_count(c, you, source.unwrap_or_default()) as usize,
-        CountExpr::SacrificedThisTurn => {
-            usize::from(state.turn_log.sacrificed_n[you.index().min(3)])
-        }
         CountExpr::AttackedThisTurn => state.attackers_this_turn.len(),
         CountExpr::OpponentsMoreCards => {
             let mine = state.player(you).hand.len();
@@ -1435,7 +1429,6 @@ fn per_count(
         | CountExpr::Devoured(_)
         | CountExpr::Party(_)
         | CountExpr::SourceToughness
-        | CountExpr::CardsDrawnThisTurn
         | CountExpr::SpellsCastThisTurn { .. }
         | CountExpr::OtherInstantSorceryCast { .. }
         | CountExpr::OpponentsAttacked
@@ -1453,7 +1446,6 @@ fn per_count(
         | CountExpr::MovedStat { .. }
         | CountExpr::TargetHand(_)
         | CountExpr::GreatestToughness(_)
-        | CountExpr::DiscardedThisTurn
         | CountExpr::TargetLibrary(_)
         | CountExpr::ThatSpellColors
         | CountExpr::SourceDamage

@@ -1272,9 +1272,6 @@ impl GameState {
                     .max()
                     .unwrap_or(0);
             }
-            CountExpr::CardsDrawnThisTurn => {
-                return u32::from(self.drawn_this_turn[you.index().min(3)]);
-            }
             CountExpr::SpellsCastThisTurn { other } => {
                 let n = self
                     .cast_this_turn
@@ -1477,12 +1474,8 @@ impl GameState {
                     .as_ref()
                     .map_or(0, |log| if *excess { log.excess } else { log.damage });
             }
-            CountExpr::SacrificedThisTurn => {
-                return u32::from(self.turn_log.sacrificed_n[you.index().min(3)]);
-            }
             // Every attacker declared this turn, by any player (CR 508.1).
             CountExpr::AttackedThisTurn => self.attackers_this_turn.len(),
-            CountExpr::DiscardedThisTurn => usize::from(self.turn_log.discards[you.index().min(3)]),
 
             CountExpr::OpponentsMoreCards => {
                 let mine = self.player(you).hand.len();
