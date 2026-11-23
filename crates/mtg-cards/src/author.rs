@@ -1169,6 +1169,10 @@ fn count_expr(s: &str) -> Option<String> {
         | "creature that entered the battlefield under your control this turn" => {
             return Some("creatures entered this turn".to_string());
         }
+        "creatures that left the battlefield under your control this turn"
+        | "creature that left the battlefield under your control this turn" => {
+            return Some("creatures left this turn".to_string());
+        }
         // Vivid.
         "colors among permanents you control" | "color among permanents you control" => {
             return Some("colors among permanents".to_string());
@@ -8918,6 +8922,9 @@ fn bound_amount(a: &str) -> Option<String> {
         "this creature's toughness" | "~'s toughness" => Some("toughness"),
         "that creature's power" => Some("power of that target 1"),
         "the greatest mana value among permanents you control" => Some("greatest mana value"),
+        "the greatest mana value among cards in your graveyard" => {
+            Some("greatest mana value graveyard")
+        }
         "the greatest power among creatures you control" => Some("greatest power"),
         "your life total" => Some("life"),
         "your devotion to blue" => Some("devotion blue"),
