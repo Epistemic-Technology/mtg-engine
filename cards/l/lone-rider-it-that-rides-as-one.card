@@ -1,0 +1,14 @@
+card "Lone Rider // It That Rides as One" {
+  oracle_id 849741a3-9e64-41a9-a4f4-d146a7d42389
+  layout transform
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 1/1
+  keywords first strike, lifelink
+  triggered at beginning of each end step if gained 3 life this turn: transform this
+  face "It That Rides as One" {
+    type Creature — Eldrazi Horror
+    pt 4/4
+    keywords first strike, trample, lifelink
+  }
+}

@@ -1,0 +1,15 @@
+card "Curious Homunculus // Voracious Reader" {
+  oracle_id c38db10f-c0b7-4391-b49a-77079a4d087c
+  layout transform
+  cost {1}{U}
+  type Creature — Homunculus
+  pt 1/1
+  mana {C} only to cast instant or sorcery spell
+  triggered at beginning of your upkeep if 3 instant or sorcery cards in your graveyard: transform this
+  face "Voracious Reader" {
+    type Creature — Eldrazi Homunculus
+    pt 3/4
+    keywords prowess
+    spells instant or sorcery you cast cost {1} less
+  }
+}
