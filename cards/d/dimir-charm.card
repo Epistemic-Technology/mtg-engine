@@ -1,0 +1,10 @@
+card "Dimir Charm" {
+  oracle_id 4d99e786-585d-4026-9253-19741fb357de
+  cost {U}{B}
+  type Instant
+  choose one {
+    mode: counter target sorcery spell
+    mode: destroy target creature with power 2 or less
+    mode: split top 3 of target player into top rest graveyard
+  }
+}

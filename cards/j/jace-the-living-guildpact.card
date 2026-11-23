@@ -1,0 +1,9 @@
+card "Jace, the Living Guildpact" {
+  oracle_id 55259de3-561d-4a9e-bb28-63c6a7ac5c68
+  cost {2}{U}{U}
+  type Legendary Planeswalker — Jace
+  loyalty 5
+  loyalty +1: split top 2 into graveyard
+  loyalty -3: return another target nonland permanent to hand
+  loyalty -8: each player shuffles hand and graveyard into library; you draw 7 cards
+}

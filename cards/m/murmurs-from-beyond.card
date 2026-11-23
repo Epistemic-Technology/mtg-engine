@@ -1,0 +1,6 @@
+card "Murmurs from Beyond" {
+  oracle_id 1e8be8b4-f7be-49cb-b32e-d92015dea7a2
+  cost {2}{U}
+  type Instant — Arcane
+  spell: split top 3 reveal opponent into graveyard rest hand
+}

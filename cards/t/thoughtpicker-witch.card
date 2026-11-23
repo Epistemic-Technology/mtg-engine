@@ -1,0 +1,7 @@
+card "Thoughtpicker Witch" {
+  oracle_id 6f78d21b-1959-4edc-9f28-d7ada539abef
+  cost {B}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {1}, sacrifice creature: split top 2 of target opponent into exile then
+}

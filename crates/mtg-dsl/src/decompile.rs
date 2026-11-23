@@ -1218,6 +1218,7 @@ impl Decompiler<'_> {
                 optional,
                 exile,
                 until,
+                top,
             } => Effect::DiscardChosen {
                 who: r(*who),
                 filter: filter.as_ref().map(|f| self.filter(f)),
@@ -1226,6 +1227,7 @@ impl Decompiler<'_> {
                 exile: exile.then_some(!*until),
                 until: *until,
                 and_choose: false,
+                top: *top,
             },
             CoreEffect::Transform { what } => Effect::Transform { what: r(*what) },
             CoreEffect::Flip { what } => Effect::Flip { what: r(*what) },
@@ -1254,6 +1256,7 @@ impl Decompiler<'_> {
                 or_card: crate::ast::OrCard::No,
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
                 may: *may,
+                old: false,
             },
             CoreEffect::Surveil { count } => Effect::Surveil(*count),
             CoreEffect::Discard { count, who } => Effect::Discard {
@@ -1694,7 +1697,30 @@ impl Decompiler<'_> {
                 look: *look,
                 of: false,
             },
-            CoreEffect::ShuffleLibrary { who } => Effect::Shuffle { who: r(*who) },
+            CoreEffect::DigSplit {
+                count,
+                of,
+                reveal,
+                opponent,
+                piles,
+                rest,
+            } => Effect::DigSplit {
+                count: *count,
+                of: match r(*of) {
+                    Recipient::You => None,
+                    w => Some(w),
+                },
+                reveal: *reveal,
+                opponent: *opponent,
+                piles: piles.clone(),
+                rest: *rest,
+                then: false,
+            },
+            CoreEffect::ShuffleLibrary { who } => Effect::Shuffle {
+                who: r(*who),
+                library: false,
+                have: false,
+            },
             CoreEffect::MoveCounters {
                 from,
                 to,
@@ -1731,6 +1757,7 @@ impl Decompiler<'_> {
                 filter,
                 negated,
                 shares_type,
+                revealed,
                 then,
             } => Effect::IfCard {
                 filter: self.filter(filter),
@@ -1738,9 +1765,10 @@ impl Decompiler<'_> {
                 card: true,
                 that: false,
                 shares_type: *shares_type,
+                revealed: *revealed,
                 then: self.sentences(then),
             },
-            CoreEffect::RevealCard => Effect::RevealIt,
+            CoreEffect::RevealCard => Effect::RevealIt { that: false },
             CoreEffect::DrawReveal => Effect::DrawReveal,
             CoreEffect::PutCard { what, to, random } => Effect::PutCard {
                 random: *random,
@@ -1797,6 +1825,7 @@ impl Decompiler<'_> {
                 that_card: false,
                 short: false,
                 reword: false,
+                rest_revealed: false,
             },
             CoreEffect::Modes(modes) => match self.modal_two(modes) {
                 Some(singles) => Effect::ModesTwo(singles),
@@ -2457,7 +2486,10 @@ impl Decompiler<'_> {
                 your_turn: *your_turn,
                 owned: *owned,
             },
-            AbilityDef::TopRevealed { players } => Ability::TopRevealed { players: *players },
+            AbilityDef::TopRevealed { players, hands } => Ability::TopRevealed {
+                players: *players,
+                hands: *hands,
+            },
             AbilityDef::MayLook {
                 top,
                 face_down,

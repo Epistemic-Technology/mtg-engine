@@ -1,0 +1,8 @@
+card "Renowned Weaponsmith" {
+  oracle_id 40c1375b-1d15-4525-894a-16b7a0ac02b4
+  cost {1}{U}
+  type Creature — Human Artificer
+  pt 1/3
+  activated {T}: add {C}{C} only to cast artifact spells or activate of artifact bare
+  activated {U}, {T}: search card named "Heart-Piercer Bow" or named "Vial of Dragonfire" reveal to hand
+}

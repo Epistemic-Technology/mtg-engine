@@ -1,0 +1,397 @@
+# M5: library forms of the eighth library wave: "If a creature card is
+# revealed this way" after an optional reveal (CR 701.20), "Target player
+# shuffles their library" (CR 701.24).
+
+scenario "revealed this way: Delver reveals an instant and transforms" {
+  battlefield A: "Delver of Secrets"
+  library A: "Lightning Bolt", "Island"
+  start turn 3 A upkeep
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Insectile Aberration"
+  assert power "Insectile Aberration" 3
+  assert has "Insectile Aberration" flying
+}
+
+scenario "revealed this way: Delver declines to reveal and stays" {
+  battlefield A: "Delver of Secrets"
+  library A: "Lightning Bolt", "Island"
+  start turn 3 A upkeep
+  turn 3 upkeep A: decline "Delver of Secrets"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Delver of Secrets"
+  assert battlefield A lacks "Insectile Aberration"
+}
+
+scenario "revealed this way: Delver reveals a land and stays" {
+  battlefield A: "Delver of Secrets"
+  library A: "Island", "Lightning Bolt"
+  start turn 3 A upkeep
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Delver of Secrets"
+  assert hand A contains "Island"
+}
+
+scenario "revealed this way: Elven Farsight draws on a creature card" {
+  battlefield A: "Forest"
+  hand A: "Elven Farsight"
+  library A: "Grizzly Bears", "Island", "Island", "Island"
+  turn 1 A: cast "Elven Farsight"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "revealed this way: Elven Farsight declined draws nothing" {
+  battlefield A: "Forest"
+  hand A: "Elven Farsight"
+  library A: "Grizzly Bears", "Island", "Island", "Island"
+  turn 1 A: decline "Elven Farsight"
+  turn 1 A: cast "Elven Farsight"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "revealed this way: Elven Farsight scries the creature away first" {
+  battlefield A: "Forest"
+  hand A: "Elven Farsight"
+  library A: "Grizzly Bears", "Island", "Island", "Island"
+  turn 1 A: cast "Elven Farsight"
+  turn 1 A: scry "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "target player shuffles their library (Boggart Forager)" {
+  battlefield A: "Boggart Forager", "Mountain"
+  library B: "Grizzly Bears", "Island", "Island", "Island", "Island", "Island", "Island", "Island"
+  seed 3
+  turn 1 A: activate "Boggart Forager" targeting player B
+  run_to turn 2 precombat_main
+  assert graveyard A contains "Boggart Forager"
+  assert hand B lacks "Grizzly Bears"
+  assert library B contains "Grizzly Bears"
+}
+
+# "Look at the top three cards of your library. Put one of those cards into
+# your hand, one on top of your library, and one on the bottom" and kin.
+scenario "split: Telling Time puts one in hand, one on top, one on the bottom" {
+  battlefield A: 2 "Island"
+  hand A: "Telling Time"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Island"
+  turn 1 A: cast "Telling Time"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 3 precombat_main
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Serra Angel"
+  assert hand A count 2
+  assert library A contains "Grizzly Bears"
+  assert library A contains "Island"
+}
+
+scenario "split: Telling Time's bottom card is under the rest" {
+  battlefield A: 2 "Island"
+  hand A: "Telling Time"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Island"
+  turn 1 A: cast "Telling Time"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 5 precombat_main
+  assert hand A contains "Island"
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "split: Moment of Truth puts one in hand, one in the graveyard, one on the bottom" {
+  battlefield A: 2 "Island"
+  hand A: "Moment of Truth"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Island"
+  turn 1 A: cast "Moment of Truth"
+  turn 1 A: choose "Serra Angel"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 3 precombat_main
+  assert hand A contains "Serra Angel"
+  assert graveyard A contains "Hill Giant"
+  assert hand A contains "Island"
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "split: Moment of Truth with two cards left fills the first two" {
+  battlefield A: 2 "Island"
+  hand A: "Moment of Truth"
+  library A: "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Moment of Truth"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert library A count 0
+}
+
+scenario "split: Thoughtpicker Witch exiles one of the opponent's top two" {
+  battlefield A: "Thoughtpicker Witch", "Grizzly Bears", "Island"
+  library B: "Serra Angel", "Hill Giant", "Island"
+  turn 1 A: activate "Thoughtpicker Witch" sacrificing "Grizzly Bears" targeting player B
+  turn 1 A: choose "Serra Angel"
+  run_to turn 2 precombat_main
+  assert exile B contains "Serra Angel"
+  assert hand B contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "split: Murmurs from Beyond, the opponent picks the card for the graveyard" {
+  battlefield A: 3 "Island"
+  hand A: "Murmurs from Beyond"
+  library A: "Serra Angel", "Hill Giant", "Grizzly Bears", "Island"
+  turn 1 A: cast "Murmurs from Beyond"
+  turn 1 B: choose "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Serra Angel"
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 2
+  assert library A contains "Island"
+}
+
+scenario "split: Jace, the Living Guildpact mills one of the top two" {
+  battlefield A: "Jace, the Living Guildpact"
+  library A: "Serra Angel", "Hill Giant", "Island"
+  turn 1 A: activate "Jace, the Living Guildpact" ability 1
+  turn 1 A: choose "Hill Giant"
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Hill Giant"
+  assert hand A contains "Serra Angel"
+  assert counters "Jace, the Living Guildpact" loyalty 6
+}
+
+scenario "target player searches: Fertilid fetches a basic land for the opponent" {
+  battlefield A: "Fertilid" with 2 +1/+1, 2 "Forest"
+  library B: "Island", "Grizzly Bears", "Forest"
+  turn 1 A: activate "Fertilid" targeting player B
+  turn 1 B: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Forest"
+  assert tapped B "Forest"
+  assert counters "Fertilid" +1/+1 1
+  assert library B contains "Island"
+}
+
+# "Search your library for three cards, exile them, then shuffle."
+scenario "search to exile: Foresight exiles three cards and draws next upkeep" {
+  battlefield A: 2 "Island"
+  hand A: "Foresight"
+  library A: "Island", "Grizzly Bears", "Hill Giant", "Serra Angel", "Wind Drake"
+  turn 1 A: cast "Foresight"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 2 precombat_main
+  assert exile A contains "Grizzly Bears"
+  assert exile A contains "Hill Giant"
+  assert exile A contains "Serra Angel"
+  assert hand A count 1
+  assert library A count 1
+}
+
+scenario "search to exile: Selective Memory exiles only nonland cards" {
+  battlefield A: 4 "Island"
+  hand A: "Selective Memory"
+  library A: "Island", "Grizzly Bears", "Forest", "Hill Giant"
+  turn 1 A: cast "Selective Memory"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  assert exile A contains "Hill Giant"
+  assert library A count 2
+}
+
+# "reveals their hand and you choose a card of that color from it" and
+# "Put that card on top of that player's library".
+scenario "hand reveal: Addle discards a card of the chosen color" {
+  battlefield A: 2 "Swamp"
+  hand A: "Addle"
+  hand B: "Lightning Bolt", "Grizzly Bears", "Shock"
+  turn 1 A: cast "Addle" targeting player B
+  turn 1 A: choose red
+  turn 1 precombat_main A: discard "Shock"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Shock"
+  assert hand B contains "Lightning Bolt"
+  assert hand B contains "Grizzly Bears"
+  assert hand B count 2
+}
+
+scenario "hand reveal: Addle finds nothing of the chosen color" {
+  battlefield A: 2 "Swamp"
+  hand A: "Addle"
+  hand B: "Lightning Bolt", "Grizzly Bears"
+  turn 1 A: cast "Addle" targeting player B
+  turn 1 A: choose blue
+  run_to turn 1 postcombat_main
+  assert hand B count 2
+  assert graveyard B lacks "Lightning Bolt"
+}
+
+scenario "hand reveal: Painful Memories puts the chosen card on top of the library" {
+  battlefield A: 2 "Swamp"
+  hand A: "Painful Memories"
+  hand B: "Lightning Bolt", "Grizzly Bears"
+  library B: "Island", "Island"
+  turn 1 A: cast "Painful Memories" targeting player B
+  turn 1 precombat_main A: discard "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert hand B contains "Grizzly Bears"
+  assert hand B contains "Lightning Bolt"
+  assert hand B count 2
+  assert graveyard B lacks "Grizzly Bears"
+}
+
+scenario "older search wording: Spoils of Victory puts a land onto the battlefield" {
+  battlefield A: 3 "Forest"
+  hand A: "Spoils of Victory"
+  library A: "Grizzly Bears", "Island", "Hill Giant"
+  turn 1 A: cast "Spoils of Victory"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Island"
+  assert untapped "Island"
+  assert library A count 2
+}
+
+scenario "you may have that player shuffle: Portent declined keeps the order, draws next upkeep" {
+  battlefield A: "Island"
+  hand A: "Portent"
+  library A: "Wind Drake", "Island"
+  library B: "Grizzly Bears", "Island", "Island", "Island", "Island", "Island"
+  turn 1 A: cast "Portent" targeting player B
+  turn 1 A: decline "Portent"
+  run_to turn 2 precombat_main
+  assert hand B contains "Grizzly Bears"
+  assert hand A contains "Wind Drake"
+}
+
+scenario "you may have that player shuffle: Portent accepted shuffles the target's library" {
+  battlefield A: "Island"
+  hand A: "Portent"
+  library B: "Grizzly Bears", "Island", "Island", "Island", "Island", "Island", "Island", "Island"
+  seed 3
+  turn 1 A: cast "Portent" targeting player B
+  turn 1 A: accept "Portent"
+  run_to turn 2 precombat_main
+  assert hand B lacks "Grizzly Bears"
+}
+
+scenario "hands revealed: with Wandering Eye every hand is known" {
+  battlefield A: "Wandering Eye"
+  hand A: "Grizzly Bears"
+  hand B: "Hill Giant"
+  run_to turn 1 precombat_main
+  assert known B "Grizzly Bears"
+  assert known A "Hill Giant"
+}
+
+scenario "hands revealed: without it the opponent's hand is unknown" {
+  battlefield A: "Wind Drake"
+  hand A: "Grizzly Bears"
+  hand B: "Hill Giant"
+  run_to turn 1 precombat_main
+  assert unknown B "Grizzly Bears"
+  assert unknown A "Hill Giant"
+}
+
+scenario "dig: Kruphix's Insight takes the enchantments, the rest of the revealed cards to the graveyard" {
+  battlefield A: 3 "Forest"
+  hand A: "Kruphix's Insight"
+  library A: "Pacifism", "Grizzly Bears", "Holy Strength", "Island", "Island", "Island", "Forest"
+  turn 1 A: cast "Kruphix's Insight"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Pacifism"
+  assert hand A contains "Holy Strength"
+  assert hand A count 2
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains 3 "Island"
+  assert library A count 1
+}
+
+scenario "dig: Voda Sea Scavenger looks at X cards (domain) and keeps one on top" {
+  battlefield A: 2 "Island", "Forest"
+  hand A: "Voda Sea Scavenger"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Wind Drake"
+  turn 1 A: cast "Voda Sea Scavenger"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 3 precombat_main
+  assert hand A contains "Hill Giant"
+  assert hand A count 1
+  assert library A contains "Grizzly Bears"
+  assert library A contains "Serra Angel"
+}
+
+scenario "Lat-Nam's Legacy: shuffle a card from hand into the library, draw two next upkeep" {
+  battlefield A: 2 "Island"
+  hand A: "Lat-Nam's Legacy", "Grizzly Bears"
+  library A: "Island", "Island", "Island", "Island"
+  turn 1 A: cast "Lat-Nam's Legacy"
+  run_to turn 2 precombat_main
+  assert hand A count 2
+  assert library A count 3
+}
+
+scenario "Lat-Nam's Legacy with an empty hand draws nothing" {
+  battlefield A: 2 "Island"
+  hand A: "Lat-Nam's Legacy"
+  library A: "Island", "Island", "Island", "Island"
+  turn 1 A: cast "Lat-Nam's Legacy"
+  run_to turn 2 precombat_main
+  assert hand A count 0
+  assert library A count 4
+}
+
+# "Search your library for a card named X or Y".
+scenario "search named X or Y: Renowned Weaponsmith finds Vial of Dragonfire" {
+  battlefield A: "Renowned Weaponsmith", "Island"
+  library A: "Grizzly Bears", "Vial of Dragonfire", "Heart-Piercer Bow", "Island"
+  turn 1 A: activate "Renowned Weaponsmith" ability 2
+  turn 1 A: choose "Vial of Dragonfire"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Vial of Dragonfire"
+  assert hand A count 1
+  assert library A contains "Heart-Piercer Bow"
+}
+
+scenario "search named X or Y: Dragonstorm Forecaster finds Boulderborn Dragon, not other cards" {
+  battlefield A: "Dragonstorm Forecaster", 2 "Island"
+  library A: "Grizzly Bears", "Boulderborn Dragon", "Island"
+  turn 1 A: activate "Dragonstorm Forecaster"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Boulderborn Dragon"
+  assert hand A count 1
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "split: Dimir Charm keeps one of target player's top three, the rest to the graveyard" {
+  battlefield A: "Island", "Swamp"
+  hand A: "Dimir Charm"
+  library B: "Grizzly Bears", "Hill Giant", "Serra Angel", "Island"
+  turn 1 A: cast "Dimir Charm" mode 3 targeting player B
+  turn 1 A: choose "Hill Giant"
+  run_to turn 2 precombat_main
+  assert hand B contains "Hill Giant"
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Serra Angel"
+  assert library B count 1
+}
+
+scenario "its controller may search: Ghost Quarter's victim fetches a basic land" {
+  battlefield A: "Ghost Quarter"
+  battlefield B: "Forest"
+  library B: "Grizzly Bears", "Forest", "Island"
+  turn 1 A: activate "Ghost Quarter" targeting B "Forest"
+  turn 1 B: choose "Island"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ghost Quarter"
+  assert graveyard B contains "Forest"
+  assert battlefield B contains "Island"
+  assert untapped B "Island"
+  assert library B count 2
+}

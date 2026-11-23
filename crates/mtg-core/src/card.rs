@@ -2341,6 +2341,17 @@ pub enum CardDest {
     LibraryBottom,
 }
 
+/// Where `Effect::DigSplit` puts one of the cards looked at: its owner's
+/// hand, graveyard, the top or bottom of its library, or exile.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum SplitDest {
+    Hand,
+    Graveyard,
+    Top,
+    Bottom,
+    Exile,
+}
+
 /// Where in its owner's library an object is put.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum LibraryPlace {
@@ -2462,6 +2473,9 @@ pub enum SearchTo {
     /// "put it into your hand or graveyard" (Dina's Guidance): the
     /// searcher chooses, for each card.
     HandOrGraveyard,
+    /// "exile them, then shuffle" (Foresight): face up, not linked to
+    /// anything.
+    Exile,
 }
 
 /// A static ability (CR 604) that generates a continuous effect while its
@@ -3904,7 +3918,8 @@ pub enum Effect {
         #[serde(default)]
         graveyard: bool,
         /// "a card named Ajani, Valiant Protector": only cards with this
-        /// name (another card's, so by name rather than definition).
+        /// name (another card's, so by name rather than definition); "a
+        /// card named X or Y" joins the names with `|`.
         #[serde(default)]
         name: Option<Box<str>>,
     },
@@ -4034,6 +4049,10 @@ pub enum Effect {
         /// source has already left (CR 610.3a).
         #[serde(default)]
         until: bool,
+        /// "Put that card on top of that player's library." (Painful
+        /// Memories): the chosen card goes there instead.
+        #[serde(default)]
+        top: bool,
     },
     /// "Transform this creature" (CR 701.27): a double-faced permanent
     /// turns to its other face; it stays the same object.
@@ -4769,6 +4788,25 @@ pub enum Effect {
         #[serde(default)]
         onto: Option<bool>,
     },
+    /// "Look at the top three cards of your library. Put one of those cards
+    /// into your hand, one on top of your library, and one on the bottom of
+    /// your library." (Telling Time), "Look at the top two cards of target
+    /// opponent's library, then exile one of them.", "Reveal the top three
+    /// cards of your library. An opponent chooses one of them. Put that
+    /// card into your graveyard and the rest into your hand.": the top
+    /// `count` cards of `of`'s library (revealed with `reveal`); for each
+    /// of `piles` in turn the chooser (the controller, or with `opponent`
+    /// an opponent) picks one card still among them and it goes there; the
+    /// cards left go to `rest`, or stay where they are with none. A card
+    /// put on top stays on top once the others have gone.
+    DigSplit {
+        count: Num,
+        of: Recipient,
+        reveal: bool,
+        opponent: bool,
+        piles: Vec<SplitDest>,
+        rest: Option<SplitDest>,
+    },
     /// "Exile the top two cards of your library. Until the end of your next
     /// turn, you may play those cards." (impulse draw): the controller may
     /// play the exiled cards, paying their costs and following the usual
@@ -4873,6 +4911,11 @@ pub enum Effect {
         /// matching `filter`.
         #[serde(default)]
         shares_type: bool,
+        /// "If a creature card is revealed this way, ...": the card must
+        /// also be revealed to every player where it is (an optional
+        /// "You may reveal that card." declined leaves it unrevealed).
+        #[serde(default)]
+        revealed: bool,
         then: Vec<Effect>,
     },
     /// "you may reveal it": every player knows the resolution's card
@@ -5381,6 +5424,7 @@ impl Effect {
                 | Effect::Endure { .. }
                 | Effect::PutFromHand { .. }
                 | Effect::Dig { .. }
+                | Effect::DigSplit { .. }
                 | Effect::ManifestDread
                 | Effect::Champion(_)
                 | Effect::Blight(_)
@@ -7625,6 +7669,10 @@ pub enum AbilityDef {
     /// every player knows that top card while it stays there (CR 401.2).
     TopRevealed {
         players: bool,
+        /// "Players play with their hands revealed." (Wandering Eye):
+        /// every card in a hand is known to every player instead.
+        #[serde(default)]
+        hands: bool,
     },
     /// "As this creature is turned face up, put four +1/+1 counters on
     /// it." (CR 708.11: applied while it is being turned face up, before

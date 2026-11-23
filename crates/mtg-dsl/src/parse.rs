@@ -2136,7 +2136,18 @@ impl P {
                 self.pos += 2;
                 let players = self.eat_word("players");
                 self.end_stmt()?;
-                Ok(Ability::TopRevealed { players })
+                Ok(Ability::TopRevealed {
+                    players,
+                    hands: false,
+                })
+            }
+            "hands" if self.at_words(&["hands", "revealed", "players"]) => {
+                self.pos += 3;
+                self.end_stmt()?;
+                Ok(Ability::TopRevealed {
+                    players: true,
+                    hands: true,
+                })
             }
             "extra" if self.word_at(1).as_deref() == Some("vote") => {
                 self.pos += 2;
@@ -2684,6 +2695,7 @@ impl P {
                         may: false,
                         graveyard: false,
                         name: None,
+                        old: false,
                     }])],
                     equip: false,
                     cycling: true,
@@ -5618,6 +5630,7 @@ impl P {
                 card: false,
                 that: false,
                 shares_type: true,
+                revealed: false,
                 then: vec![s],
             });
         }
@@ -5639,6 +5652,74 @@ impl P {
             card,
             that,
             shares_type: false,
+            revealed: false,
+            then: vec![s],
+        })
+    }
+
+    /// `split top 3 [of <who>] [reveal] [opponent] into hand, top, bottom
+    /// [rest <dest>] [then]` (`Effect::DigSplit`).
+    fn dig_split(&mut self) -> R<Effect> {
+        let count = self.num()?;
+        let of = if self.eat_word("of") {
+            Some(self.recipient()?)
+        } else {
+            None
+        };
+        let reveal = self.eat_word("reveal");
+        let opponent = self.eat_word("opponent");
+        self.expect_word("into")?;
+        let mut piles = vec![self.split_dest()?];
+        while self.peek() == Some(&Tok::Comma) {
+            self.pos += 1;
+            piles.push(self.split_dest()?);
+        }
+        let rest = if self.eat_word("rest") {
+            Some(self.split_dest()?)
+        } else {
+            None
+        };
+        let then = self.eat_word("then");
+        Ok(Effect::DigSplit {
+            count,
+            of,
+            reveal,
+            opponent,
+            piles,
+            rest,
+            then,
+        })
+    }
+
+    fn split_dest(&mut self) -> R<mtg_core::card::SplitDest> {
+        use mtg_core::card::SplitDest;
+        Ok(match self.word()?.as_str() {
+            "hand" => SplitDest::Hand,
+            "graveyard" => SplitDest::Graveyard,
+            "top" => SplitDest::Top,
+            "bottom" => SplitDest::Bottom,
+            "exile" => SplitDest::Exile,
+            w => return self.fail(format!("`split`: unknown destination `{w}`")),
+        })
+    }
+
+    /// `if revealed creature card, <sentence>`: "If a creature card is
+    /// revealed this way, ...".
+    fn if_revealed_card(&mut self) -> R<Effect> {
+        self.pos += 2;
+        let filter = self.filter()?;
+        self.expect_word("card")?;
+        self.expect(&Tok::Comma)?;
+        let saved = self.subject.take();
+        let s = self.sentence()?;
+        self.subject = saved;
+        Ok(Effect::IfCard {
+            filter,
+            negated: false,
+            card: true,
+            that: false,
+            shares_type: false,
+            revealed: true,
             then: vec![s],
         })
     }
@@ -6223,6 +6304,9 @@ impl P {
                 it,
             });
         }
+        if self.revealed && self.at_words(&["if", "revealed"]) {
+            return self.if_revealed_card();
+        }
         // `if it is land card, ...` after a card is revealed.
         if self.revealed
             && (self.at_words(&["if", "it"]) || self.at_words(&["if", "that", "card"]))
@@ -6752,7 +6836,22 @@ impl P {
             }
             // "Then that player shuffles" (CR 701.24).
             "shuffle" | "shuffles" if !matches!(self.peek(), Some(Tok::Word(_))) => {
-                Ok(Effect::Shuffle { who: subject })
+                Ok(Effect::Shuffle {
+                    who: subject,
+                    library: false,
+                    have: false,
+                })
+            }
+            // "Target player shuffles their library."
+            "shuffle" | "shuffles"
+                if self.at_word("library") && !matches!(self.peek_at(1), Some(Tok::Word(_))) =>
+            {
+                self.pos += 1;
+                Ok(Effect::Shuffle {
+                    who: subject,
+                    library: true,
+                    have: false,
+                })
             }
             "reveal" | "reveals" if self.at_word("until") => {
                 self.pos += 1;
@@ -6780,6 +6879,11 @@ impl P {
                 if self.eat_word("discarding") {
                     return self.discard_chosen(subject, false);
                 }
+                // "reveals their hand and you choose a card of that color
+                // from it. That player discards that card." (Addle).
+                if self.eat_words(&["and", "discarding"]) {
+                    return self.discard_chosen_with(subject, false, true, false);
+                }
                 // "reveals their hand and you choose a nonland card from
                 // it. Exile that card until ..." (Brain Maggot).
                 let and_choose = self.eat_words(&["and", "exiling"]);
@@ -6805,6 +6909,7 @@ impl P {
                             exile: Some(joined),
                             until,
                             and_choose,
+                            top: false,
                         });
                     }
                     if and_choose {
@@ -7063,6 +7168,7 @@ impl P {
                         or_card,
                         graveyard,
                         name,
+                        old,
                         ..
                     } => Ok(Effect::Search {
                         filter,
@@ -7076,6 +7182,7 @@ impl P {
                         may,
                         graveyard,
                         name,
+                        old,
                     }),
                     _ => self.fail("expected a search"),
                 }
@@ -8025,6 +8132,19 @@ impl P {
 
     /// After `discarding`: `[may] card` or `[may] <filter> card`.
     fn discard_chosen(&mut self, who: Recipient, look: bool) -> R<Effect> {
+        self.discard_chosen_with(who, look, false, false)
+    }
+
+    /// `discard_chosen` with "reveals their hand and you choose"
+    /// (`and_choose`) or "Put that card on top of that player's library"
+    /// (`top`).
+    fn discard_chosen_with(
+        &mut self,
+        who: Recipient,
+        look: bool,
+        and_choose: bool,
+        top: bool,
+    ) -> R<Effect> {
         let may = self.eat_word("may");
         let filter = if self.eat_word("card") {
             None
@@ -8040,7 +8160,8 @@ impl P {
             look,
             exile: None,
             until: false,
-            and_choose: false,
+            and_choose,
+            top,
         })
     }
 
@@ -8411,7 +8532,11 @@ impl P {
             "put" if self.revealed && self.at_card_words() => self.put_card(None),
             "reveal" if self.revealed && self.at_word("it") => {
                 self.pos += 1;
-                Ok(Effect::RevealIt)
+                Ok(Effect::RevealIt { that: false })
+            }
+            "reveal" if self.revealed && self.at_words(&["that", "card"]) => {
+                self.pos += 2;
+                Ok(Effect::RevealIt { that: true })
             }
             "discard" if self.revealed && self.at_word("it") => {
                 self.pos += 1;
@@ -8611,9 +8736,35 @@ impl P {
                 })
             }
             // "You may shuffle." (CR 701.24): your library.
+            // "You may have that player shuffle." (Portent).
+            "have"
+                if self.at_words(&["that", "player", "shuffle"])
+                    || (self.at_words(&["that", "target"])
+                        && self.word_at(3).as_deref() == Some("shuffle")) =>
+            {
+                let who = self.recipient()?;
+                self.expect_word("shuffle")?;
+                Ok(Effect::Shuffle {
+                    who,
+                    library: false,
+                    have: true,
+                })
+            }
             "shuffle" if !matches!(self.peek(), Some(Tok::Word(_))) => Ok(Effect::Shuffle {
                 who: Recipient::You,
+                library: false,
+                have: false,
             }),
+            "shuffle"
+                if self.at_word("library") && !matches!(self.peek_at(1), Some(Tok::Word(_))) =>
+            {
+                self.pos += 1;
+                Ok(Effect::Shuffle {
+                    who: Recipient::You,
+                    library: true,
+                    have: false,
+                })
+            }
             "shuffle" if !self.at_word("library") && !self.at_word("your") => {
                 let what = self.recipient()?;
                 let place = self.library_place(true)?;
@@ -9000,6 +9151,7 @@ impl P {
                 let random = !rest_graveyard && self.eat_word("random");
                 let reword = self.eat_word("reword");
                 let short = self.eat_word("short");
+                let rest_revealed = self.eat_word("revealed");
                 Ok(Effect::Dig {
                     count,
                     filter,
@@ -9017,6 +9169,7 @@ impl P {
                     short,
                     then,
                     reword,
+                    rest_revealed,
                 })
             }
             "look" if self.at_words(&["at", "top", "card"]) => {
@@ -9111,6 +9264,11 @@ impl P {
                 if self.eat_word("discarding") {
                     return self.discard_chosen(who, true);
                 }
+                // "Look at target opponent's hand and choose a card from
+                // it. Put that card on top of that player's library."
+                if self.eat_word("topping") {
+                    return self.discard_chosen_with(who, true, false, true);
+                }
                 // "Look at target opponent's hand. You may exile a nonland
                 // card from it until this creature leaves the battlefield."
                 if self.eat_word("exiling") {
@@ -9131,6 +9289,7 @@ impl P {
                         exile: Some(false),
                         until,
                         and_choose: false,
+                        top: false,
                     });
                 }
                 Ok(Effect::LookAtHand { who })
@@ -9138,6 +9297,10 @@ impl P {
             "look" if self.at_words(&["at", "top"]) => {
                 self.pos += 2;
                 self.look_at_top(None)
+            }
+            "split" if self.at_word("top") => {
+                self.pos += 1;
+                self.dig_split()
             }
             "manifest" if self.eat_word("dread") => Ok(Effect::ManifestDread),
             "blight" => Ok(Effect::Blight(self.count()?)),
@@ -9343,6 +9506,17 @@ impl P {
                 {
                     name = Some(s.clone());
                     self.pos += 2;
+                    // "a card named Heart-Piercer Bow or Vial of Dragonfire".
+                    while self.at_words(&["or", "named"])
+                        && let Some(Tok::Str(s)) = self.peek_at(2)
+                    {
+                        let s = s.clone();
+                        if let Some(n) = name.as_mut() {
+                            n.push('|');
+                            n.push_str(&s);
+                        }
+                        self.pos += 3;
+                    }
                 }
                 // "a creature card with mana value 6 or greater": the mana
                 // value after the noun.
@@ -9387,10 +9561,17 @@ impl P {
                     mtg_core::card::SearchTo::TopOfLibrary
                 } else if self.eat_word("graveyard") {
                     mtg_core::card::SearchTo::Graveyard
+                } else if self.eat_word("exile") {
+                    mtg_core::card::SearchTo::Exile
                 } else {
                     return self.unexpected("`hand`, `battlefield`, `graveyard`, or `top`");
                 };
                 let that_card = self.eat_words(&["that", "card"]);
+                // A final `then`: the older wording (not `then <clause>`).
+                let old = self.at_word("then") && !matches!(self.peek_at(1), Some(Tok::Word(_)));
+                if old {
+                    self.pos += 1;
+                }
                 Ok(Effect::Search {
                     filter,
                     count,
@@ -9403,6 +9584,7 @@ impl P {
                     may: false,
                     graveyard,
                     name,
+                    old,
                 })
             }
             "add" => {

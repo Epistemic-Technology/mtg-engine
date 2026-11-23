@@ -1,0 +1,9 @@
+card "Portent" {
+  oracle_id e744dbb6-2d56-462a-8d49-d79c73944048
+  cost {U}
+  type Sorcery
+  spell {
+    look at top 3 of target player; you may have that player shuffle
+    delayed this: draw 1 card at beginning of the next turn's upkeep
+  }
+}

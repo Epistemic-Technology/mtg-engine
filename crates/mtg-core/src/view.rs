@@ -118,8 +118,23 @@ impl GameState {
             let o = &self.objects[*id];
             self.flags_of(o).has_top_play()
                 && self.pool.get(o.def).ability_ids.iter().any(|a| {
-                    matches!(self.pool.ability(*a), crate::card::AbilityDef::TopRevealed { players }
+                    matches!(self.pool.ability(*a), crate::card::AbilityDef::TopRevealed { players, hands: false }
                         if *players || o.controller == owner)
+                })
+        })
+    }
+
+    /// Whether every hand is revealed ("Players play with their hands
+    /// revealed.", `AbilityDef::TopRevealed` with `hands`).
+    pub fn hands_revealed(&self) -> bool {
+        self.battlefield.iter().any(|id| {
+            let o = &self.objects[*id];
+            self.flags_of(o).has_top_play()
+                && self.pool.get(o.def).ability_ids.iter().any(|a| {
+                    matches!(
+                        self.pool.ability(*a),
+                        crate::card::AbilityDef::TopRevealed { hands: true, .. }
+                    )
                 })
         })
     }
@@ -155,6 +170,9 @@ impl GameState {
                     || (self.top_play_sources > 0
                         && self.player(o.owner).library.last() == Some(&id)
                         && self.top_revealed(o.owner))
+            }
+            Zone::Hand => {
+                Self::seen_by(o, viewer) || (self.top_play_sources > 0 && self.hands_revealed())
             }
             _ => Self::seen_by(o, viewer),
         }

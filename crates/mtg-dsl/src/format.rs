@@ -827,6 +827,45 @@ impl Fmt {
                 }
                 s
             }
+            Effect::DigSplit {
+                count,
+                of,
+                reveal,
+                opponent,
+                piles,
+                rest,
+                then,
+            } => {
+                let dest = |d: &mtg_core::card::SplitDest| {
+                    use mtg_core::card::SplitDest;
+                    match d {
+                        SplitDest::Hand => "hand",
+                        SplitDest::Graveyard => "graveyard",
+                        SplitDest::Top => "top",
+                        SplitDest::Bottom => "bottom",
+                        SplitDest::Exile => "exile",
+                    }
+                };
+                let mut s = format!("split top {}", num(*count));
+                if let Some(o) = of {
+                    let _ = write!(s, " of {}", self.recipient(*o, t));
+                }
+                if *reveal {
+                    s.push_str(" reveal");
+                }
+                if *opponent {
+                    s.push_str(" opponent");
+                }
+                s.push_str(" into ");
+                s.push_str(&piles.iter().map(dest).collect::<Vec<_>>().join(", "));
+                if let Some(r) = rest {
+                    let _ = write!(s, " rest {}", dest(r));
+                }
+                if *then {
+                    s.push_str(" then");
+                }
+                s
+            }
             Effect::RevealTop { who, look, of } => match (who, look, of) {
                 (None, true, _) => "look at top card".to_string(),
                 (None, false, _) => "reveal top card".to_string(),
@@ -841,7 +880,14 @@ impl Fmt {
                     format!("{} {v} top card", self.recipient(*w, t))
                 }
             },
-            Effect::Shuffle { who } => format!("{} shuffles", self.recipient(*who, t)),
+            Effect::Shuffle {
+                who, have: true, ..
+            } => format!("have {} shuffle", self.recipient(*who, t)),
+            Effect::Shuffle { who, library, .. } => format!(
+                "{} shuffles{}",
+                self.recipient(*who, t),
+                if *library { " library" } else { "" }
+            ),
             Effect::MoveCounters {
                 from,
                 to,
@@ -922,7 +968,12 @@ impl Fmt {
                     format!("{} {v} until {} card", self.recipient(*w, t), filter(f))
                 }
             },
-            Effect::RevealIt => "reveal it".to_string(),
+            Effect::RevealIt { that } => if *that {
+                "reveal that card"
+            } else {
+                "reveal it"
+            }
+            .to_string(),
             Effect::IfYouDont { cant, then, words } => format!(
                 "if you {}, {}",
                 match words {
@@ -955,6 +1006,12 @@ impl Fmt {
                 "if it shares creature type with this, {}",
                 self.line(then, t)
             ),
+            Effect::IfCard {
+                filter: f,
+                revealed: true,
+                then,
+                ..
+            } => format!("if revealed {} card, {}", filter(f), self.line(then, t)),
             Effect::IfCard {
                 filter: f,
                 negated,
@@ -1082,6 +1139,7 @@ impl Fmt {
                 that_card,
                 short,
                 reword,
+                rest_revealed,
             } => {
                 let mut s = format!("dig {}", num(*count));
                 if *then {
@@ -1139,6 +1197,9 @@ impl Fmt {
                 }
                 if *short {
                     s.push_str(" short");
+                }
+                if *rest_revealed {
+                    s.push_str(" revealed");
                 }
                 s
             }
@@ -1963,6 +2024,7 @@ impl Fmt {
                 and_choose,
                 look,
                 may,
+                ..
             } => {
                 let what = match f {
                     None => "card".to_string(),
@@ -1988,6 +2050,8 @@ impl Fmt {
                 filter: f,
                 may,
                 look,
+                and_choose,
+                top,
                 ..
             } => {
                 let lead = if *look {
@@ -1996,9 +2060,14 @@ impl Fmt {
                     format!("{} reveals hand", self.recipient(*who, t))
                 };
                 let may = if *may { "may " } else { "" };
+                let verb = match (and_choose, top) {
+                    (_, true) => "topping",
+                    (true, _) => "and discarding",
+                    _ => "discarding",
+                };
                 match f {
-                    None => format!("{lead} discarding {may}card"),
-                    Some(f) => format!("{lead} discarding {may}{} card", filter(f)),
+                    None => format!("{lead} {verb} {may}card"),
+                    Some(f) => format!("{lead} {verb} {may}{} card", filter(f)),
                 }
             }
             Effect::Transform { what } => format!("transform {}", self.recipient(*what, t)),
@@ -2068,6 +2137,7 @@ impl Fmt {
                 may,
                 graveyard,
                 name,
+                old,
             } => {
                 let searcher = who.map(|w| self.recipient(w, t));
                 let mut t = String::new();
@@ -2124,7 +2194,9 @@ impl Fmt {
                     let _ = write!(t, " {}", same_ref(r));
                 }
                 if let Some(n) = name {
-                    let _ = write!(t, " named \"{n}\"");
+                    let names: Vec<String> =
+                        n.split('|').map(|n| format!("named \"{n}\"")).collect();
+                    let _ = write!(t, " {}", names.join(" or "));
                 }
                 if let Some(mv) = mv {
                     t.push_str(&mv);
@@ -2151,10 +2223,14 @@ impl Fmt {
                         " to battlefield tapped and hand"
                     }
                     mtg_core::card::SearchTo::Graveyard => " to graveyard",
+                    mtg_core::card::SearchTo::Exile => " to exile",
                     mtg_core::card::SearchTo::HandOrGraveyard => " to hand or graveyard",
                 });
                 if *that_card {
                     t.push_str(" that card");
+                }
+                if *old {
+                    t.push_str(" then");
                 }
                 t
             }
@@ -6550,7 +6626,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             }
             let _ = writeln!(out, "{s}");
         }
-        Ability::TopRevealed { players } => {
+        Ability::TopRevealed { hands: true, .. } => {
+            let _ = writeln!(out, "{indent}hands revealed players");
+        }
+        Ability::TopRevealed { players, .. } => {
             let _ = writeln!(
                 out,
                 "{indent}top revealed{}",

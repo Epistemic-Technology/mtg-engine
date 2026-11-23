@@ -1,0 +1,6 @@
+card "Addle" {
+  oracle_id 3745aea4-4455-4859-9772-bcfd14e4067b
+  cost {1}{B}
+  type Sorcery
+  spell: choose color; target player reveals hand and discarding of that color card
+}

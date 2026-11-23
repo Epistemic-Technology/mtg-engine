@@ -286,6 +286,7 @@ like the card; either half may still be cast alone.
 | `play exiled spells`, `play exiled lands and spells`, `play exiled your turn lands and spells`, `play exiled owned spells Dinosaur creature` | "You may cast spells from among cards exiled with Rona.", "You may play lands and cast spells from among cards exiled with this creature.", "During your turn, you may play cards exiled with this artifact.", "You may cast Dinosaur creature spells from among cards you own exiled with this creature." (CR 607.2a, 601.3): the controller may play the cards this permanent's abilities exiled while they stay in exile, paying their costs with the usual timing and land plays. |
 | `play from top lands`, `play from top spells creature`, `play from top lands and spells`, `play from top once spells instant or sorcery` | "You may play lands from the top of your library.", "You may cast creature spells from the top of your library.", "You may play lands and cast spells from the top of your library.", "Once each turn, you may cast an instant or sorcery spell from the top of your library." (CR 601.3, 305.1): the controller may play the top card of their library, paying its costs, with the usual timing and a land only with a land play left. The spells' filter is any filter (`Spider or noncreature`: "Spider spells and noncreature spells"; `with mana value 4 or greater`: "spells with mana value 4 or greater"; `with flash or flying`); `once` allows one spell a turn by that permanent's permission. |
 | `top revealed`, `top revealed players` | "Play with the top card of your library revealed.", "Players play with the top card of their libraries revealed.": every player knows that top card (CR 401.2). |
+| `hands revealed players` | "Players play with their hands revealed.": every card in a hand is known to every player while it is there. |
 | `activated abilities of artifact you control cost {1} less min one`, `activated abilities of land you control cost {1} less`, `power-up abilities of other creature you control cost {3} less`, `exhaust abilities of other permanent you control cost {2} less` | "Activated abilities of artifacts you control cost {1} less to activate. This effect can't reduce the mana in that cost to less than one mana." (`min one`), "Power-up abilities of other creatures you control cost {3} less to activate." (CR 601.2f by way of 602.2b): the generic mana of the matching permanents' activated abilities (of that keyword: `power-up`, `exhaust`, `boast`, `ninjutsu`) is reduced as they are activated; with `min one`, never below one mana in all. |
 | `hand size none`, `hand size +1`, `hand size opponents -1`, `hand size 8` | "You have no maximum hand size.", "Your maximum hand size is increased by one.", "Each opponent's maximum hand size is reduced by one.", "Your maximum hand size is eight." (CR 402.2). The count `difference 10 hand` ("draw cards equal to the difference", after the condition `hand fewer than 10`: "if you have fewer than ten cards in hand") is ten minus the count, at least 0. |
 | `except { ... }` | What this card's copy effects add (CR 707.9b): `not legendary` ("it isn't legendary"; "the copy isn't legendary" for a spell copy), `types Artifact` and `subtypes Illusion` ("it's an artifact in addition to its other types", "it's a Vehicle artifact ..." together), `keywords haste`, `pt 1/1` and `colors red` ("it's a 1/1 red Balloon creature in addition to its other colors and types": base power and toughness, and colors added), and ability lines ("it has haste and \"At the beginning of the end step, sacrifice this token.\"": on an instant or sorcery, `this` in them is the token). They are part of the copy's copiable values; the legend rule reads its supertypes. A token copy of a creature that has left the battlefield ("When this creature dies, if it's not a token, create a token that's a copy of it"; `if this is nontoken`; `if this isnt token` prints "if it isn't a token") is made as it last existed. |
@@ -2054,7 +2055,13 @@ of their choice with flying` puts the "with" after it; `sacrifices 1
 artifact and 1 land` is "an artifact and a land of their choice", one
 choice after the other), `<what>
 loses flying`, `<who> reveals hand`, `<who> reveals hand discarding
-nonland card` (Duress: you choose the card), `<who> discards 1 card at
+nonland card` (Duress: you choose the card; `<who> reveals hand and
+discarding of that color card` after `choose color`: "Target player
+reveals their hand and you choose a card of that color from it. That
+player discards that card.", the color chosen as it resolves; `look at
+hand of target opponent topping card`: "Look at target opponent's hand
+and choose a card from it. Put that card on top of that player's
+library."), `<who> discards 1 card at
 random` (`discard 1 card at random` for you; `that player discards
 another card at random`), `<who> reveals 1 card at random from hand`
 ("reveals a card at random from their hand"; the card is `that card`
@@ -2228,13 +2235,19 @@ subject prints "... reveals it, and puts it into their hand. If they
 search their library this way, they shuffle."): one card, from either
 zone, into the hand or onto the battlefield; the library is shuffled if
 the card came from it or nothing was found. `card named "X"` names
-another card by its name (also without `library or graveyard`: "Search
+another card by its name (`card named "X" or named "Y"`: "a card named X
+or Y", either name) (also without `library or graveyard`: "Search
 your library for a card named X, put it onto the battlefield, then
 shuffle."); `search Rebel permanent card with mana value 3 or
 less to battlefield`: the mana value after the noun, `permanent card`
 not an instant or sorcery (CR 110.4a); `search card to graveyard that
 card` ("Search your library for a card, put that card into your
-graveyard, then shuffle."); `search creature card reveal to hand or
+graveyard, then shuffle."); `search 3 cards to exile` ("Search your
+library for three cards, exile them, then shuffle.", face up and linked to
+nothing); a final `then` prints the older wording "... and put that
+card onto the battlefield. Then shuffle." (`search Plains or Island or
+Swamp or Mountain or Forest card to battlefield that card then`, Spoils of
+Victory; into the hand likewise); `search creature card reveal to hand or
 graveyard` ("..., reveal it, put it into your hand or graveyard, then
 shuffle.": the searcher chooses, `choose "1"` hand or `choose "2"`
 graveyard in a scenario); `reveal to hand that card`:
@@ -2368,11 +2381,13 @@ your hand"; `take creature card and land card may`: "a creature card
 and/or a land card" (one of each); `rest bottom random`: "in a random
 order"; a final `reword` (wording only) prints "two of them" for "two of
 those cards", "one of those cards" for "one of them", and "Then put the
-rest" after `revealing`; `dig 3 then take card rest graveyard`: "look at the top three
+rest" after `revealing`, and a final `revealed` prints "the rest of the revealed
+cards" for "the rest" (Kruphix's Insight); `dig 3 then take card rest graveyard`: "look at the top three
 cards of your library, then put one of them into your hand and the rest
 into your graveyard"; `dig 3 take card may top rest graveyard`: "You may
 put one of those cards back on top of your library. Put the rest into
-your graveyard.", the card kept stays on top; `revealing that card`
+your graveyard.", the card kept stays on top (with `reword`, "You may put
+one of those cards on top of your library."); `revealing that card`
 prints "put that card into your hand" ("put them" for several), `short`
 "Put one into your hand and the other ..."; `onto battlefield
 [tapped]` after `may`: onto the battlefield under your control instead of
@@ -2393,6 +2408,22 @@ order"; `look at top 3 of target player only` ends at "Look at the top
 three cards of target player's library."; `that player looks at top 3 of
 you`: "That player looks at the top three cards of your library, then puts
 them back in any order": the looker knows the cards where they are),
+`split top 3 into hand, top, bottom` ("Look at the top three cards of your
+library. Put one of those cards into your hand, one on top of your
+library, and one on the bottom of your library."; `into hand, graveyard,
+bottom`: "..., one into your graveyard, and ..."): one card to each
+destination in turn, the controller choosing (`choose "X"` in scenarios),
+a card put on top staying there; `split top 2 into graveyard` ("Look at
+the top two cards of your library. Put one of them into your graveyard.",
+the other left in place); `split top 2 of target opponent into exile
+then` ("Look at the top two cards of target opponent's library, then
+exile one of them."); `split top 3 reveal opponent into graveyard rest
+hand` ("Reveal the top three cards of your library. An opponent chooses
+one of them. Put that card into your graveyard and the rest into your
+hand.": the opponent chooses); `split top 3 of target player into top
+rest graveyard` ("Look at the top three cards of target player's library.
+Put one back and the rest into that player's graveyard."). Destinations:
+`hand`, `graveyard`, `top`, `bottom`, `exile`,
 `return 1 land you control chosen` ("return a land you control to its
 owner's hand"), `switch pt of target
 creature` ("Switch target creature's power and toughness until end of
@@ -2976,7 +3007,10 @@ and `its mana value` counts the same card printed "its mana value"
 mana value life`: "... put that card into your hand. You lose life equal
 to its mana value.", as it last existed once moved, CR 608.2h; in a
 triggered ability `mana value of it` is the triggering object's); `that player shuffles` is "Then that player
-shuffles." (CR 701.24).
+shuffles." (CR 701.24), and `target player shuffles library` "Target player
+shuffles their library." (`shuffle library`: "shuffle your library"); `you may have that player
+shuffle` is "You may have that player shuffle." (Portent: the controller
+decides, that player shuffles).
 
 After `if it is ...`, `if you dont put it into hand, <sentence>` is "If
 you don't put the card into your hand, ..." (`onto battlefield`, `into
@@ -2984,7 +3018,11 @@ graveyard`, `on bottom of library` likewise): it happens when the card
 didn't match or the optional put was declined. `if it shares creature type with this, ...` is kinship's "If it shares a
 creature type with this creature, ..." (changeling's every type
 included); `reveal it` reveals a looked-at card where it is ("you may
-reveal it. If you do, ..."). `draw 1 card and reveal it` is "Draw a card
+reveal it. If you do, ..."; `reveal that card`: "You may reveal that
+card."), and `if revealed instant or sorcery card, <sentence>` is "If an
+instant or sorcery card is revealed this way, ...": only if the card is
+revealed to every player where it is, so declining "you may reveal that
+card" stops it (Delver of Secrets). `draw 1 card and reveal it` is "Draw a card
 and reveal it." with the drawn card `it` after, and `discard it` discards
 it ("If it isn't a land card, discard it.").
 
