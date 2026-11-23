@@ -1,0 +1,8 @@
+card "Toph, the First Metalbender" {
+  oracle_id fbfef028-b10c-4ade-9503-d9af5b0c211b
+  cost {1}{R}{G}{W}
+  type Legendary Creature — Human Warrior Ally
+  pt 3/3
+  static plural nontoken artifact you control: add type land
+  triggered at beginning of your end step: earthbend 2
+}

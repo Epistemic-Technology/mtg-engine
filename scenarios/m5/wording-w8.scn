@@ -597,3 +597,35 @@ scenario "Galian Beast: dies and returns tapped, front face up" {
   assert battlefield A contains "Vincent Valentine"
   assert tapped "Vincent Valentine"
 }
+
+scenario "Spider-Suit: +2/+2 and a Spider Hero" {
+  battlefield A: "Spider-Suit", "Grizzly Bears", 3 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Spider-Suit" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert is "Grizzly Bears" Spider
+  assert is "Grizzly Bears" Hero
+  assert is "Grizzly Bears" Bear
+}
+
+scenario "Toph, the First Metalbender: nontoken artifacts are lands" {
+  battlefield A: "Toph, the First Metalbender", "Smuggler's Copter", "Treasure"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert is "Smuggler's Copter" land
+  assert is "Smuggler's Copter" artifact
+  assert is not "Treasure" land
+}
+
+scenario "West Wind Avatar: a token sacrificed for 3 life, then a card at the end step" {
+  battlefield A: 7 "Forest", "Treasure"
+  hand A: "West Wind Avatar"
+  start turn 1 A precombat_main
+  turn 1 A: cast "West Wind Avatar"
+  turn 1 A: choose "Treasure"
+  run_to turn 2 untap
+  assert life A 23
+  assert battlefield A lacks "Treasure"
+  assert hand A count 1
+}

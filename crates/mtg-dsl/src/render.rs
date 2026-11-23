@@ -7826,7 +7826,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 count_words(*count, "a")
             };
             let permanents = || {
-                if one {
+                // "sacrifice a token or a land" (West Wind Avatar).
+                if one && filter.alt_article {
+                    each_with_article(filter, ctx.card)
+                } else if one {
                     filter_a(filter, ctx.card)
                 } else {
                     format!("{n} {}", filter_phrase(filter, ctx.card, true))
@@ -12198,6 +12201,12 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
     };
     match m {
         Mod::AddAbility(_) => "has \"...\"".to_string(),
+        // "Nontoken artifacts you control are lands in addition to their
+        // other types." (Toph, the First Metalbender).
+        Mod::AddTypes(types) if plural_form && types.len() == 1 => format!(
+            "are {} in addition to their other types",
+            pluralize(type_noun(types[0]))
+        ),
         Mod::AddTypes(types) => format!(
             "{} {} in addition to its other types",
             v("is", "are"),
@@ -12837,6 +12846,20 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
                     with_article(&words.join(" "))
                 )
             };
+        }
+    }
+    // "is a Spider Hero in addition to its other types" (Spider-Suit):
+    // exactly two creature types added together are one phrase.
+    let run = mods
+        .iter()
+        .filter(|m| matches!(m, Mod::AddSubtype(_)))
+        .count();
+    if run == 2 && !plural_form {
+        for i in 0..mods.len().saturating_sub(1) {
+            if let (Mod::AddSubtype(a), Mod::AddSubtype(b)) = (&mods[i], &mods[i + 1]) {
+                parts[i] = format!("is {} in addition to its other types", with_article(&format!("{a} {b}")));
+                parts[i + 1] = "\u{2}".to_string();
+            }
         }
     }
     // "is a black Zombie in addition to its other colors and types": a
