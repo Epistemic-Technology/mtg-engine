@@ -3154,11 +3154,7 @@ impl GameState {
     /// (`AbilityDef::CastFree`) or "the next ... spell you cast this turn"
     /// (`Effect::NextSpellFree`). Inside, the source and ability of a
     /// once-each-turn permission, to be recorded as used.
-    pub(super) fn free_cast_permission(
-        &self,
-        p: PlayerId,
-        card: ObjId,
-    ) -> Option<Option<(ObjId, crate::card::AbilityId)>> {
+    pub(super) fn free_cast_permission(&self, p: PlayerId, card: ObjId) -> Option<FreeUse> {
         use crate::card::FreeCastLimit;
         let o = self.objects.get(card)?;
         if o.zone != Zone::Hand || o.owner != p {
@@ -3173,7 +3169,7 @@ impl GameState {
                     .is_none_or(|(cmp, n)| cmp.holds(mv, u32::from(n)))
                 && f.matches(card, p, &chars, None, Some(p))
             {
-                return Some(None);
+                return Some(FreeUse::Any);
             }
         }
         if self.player_static_sources == 0 {
@@ -3236,7 +3232,11 @@ impl GameState {
                         continue;
                     }
                 }
-                return Some((*limit == FreeCastLimit::OnceYourTurns).then_some((*src, *a)));
+                return Some(if *limit == FreeCastLimit::OnceYourTurns {
+                    FreeUse::Once(*src, *a)
+                } else {
+                    FreeUse::Any
+                });
             }
         }
         None
@@ -16453,6 +16453,18 @@ pub(super) struct EffectCtx {
     /// source's: an ability another card granted it (Galuf's Final Act's
     /// "equal to its power"), or a spliced card.
     pub counts: Option<crate::card::CardRef>,
+}
+
+/// How a permission to cast a spell without paying its mana cost is used
+/// (`GameState::free_cast_permission`).
+#[derive(Copy, Clone, Debug)]
+pub(super) enum FreeUse {
+    /// Nothing to record: any number of spells, or the next spell's
+    /// permission, which casting the spell uses up.
+    Any,
+    /// A once-each-turn permission of this source and ability, recorded as
+    /// used (`activated_once`).
+    Once(ObjId, crate::card::AbilityId),
 }
 
 /// The ways to divide `total` among `k` targets, each getting at least 1
