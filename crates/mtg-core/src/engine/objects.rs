@@ -1412,6 +1412,9 @@ impl GameState {
             self.tap_epoch = self.tap_epoch.wrapping_add(1);
             if self.tap_static_sources > 0 {
                 self.cbump();
+                // An Aura that enchants only a tapped (or untapped)
+                // permanent may have become illegal (CR 704.5m).
+                self.sba_touch();
             }
             self.emit(Event::Tapped { obj: id });
         }
@@ -1457,6 +1460,9 @@ impl GameState {
             self.tap_epoch = self.tap_epoch.wrapping_add(1);
             if self.tap_static_sources > 0 {
                 self.cbump();
+                // An Aura that enchants only a tapped (or untapped)
+                // permanent may have become illegal (CR 704.5m).
+                self.sba_touch();
             }
             // CR 611.2b: "for as long as it remains tapped" may end.
             if self.linked_durations > 0 {

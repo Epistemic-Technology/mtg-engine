@@ -10674,6 +10674,17 @@ impl CardPool {
             DefFlags::EQUIPMENT,
             def.subtypes.iter().any(|s| s == "Equipment"),
         );
+        // "Enchant tapped creature" (Glimmerdust Nap): whether the Aura
+        // is still legally attached changes as its permanent taps or
+        // untaps (CR 704.5m), so a tap must mark the state-based check.
+        flags.set(
+            DefFlags::TAP_STATIC,
+            match def.enchant().map(|t| self.base_spec(t)) {
+                Some(TargetSpec::TappedCreature) => true,
+                Some(TargetSpec::Filtered(f)) => self.filter(f).tapped.is_some(),
+                _ => false,
+            },
+        );
         def.history_static = def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::Static(sa) if matches!(sa.condition, Some(
                 StaticCondition::GainedLifeThisTurn { .. }

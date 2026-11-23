@@ -3280,6 +3280,10 @@ impl GameState {
         let o = &self.objects[spell];
         let (controller, source, def) = (o.controller, o.ability.map(|a| a.source), o.def);
         if is_ability {
+            // A Saga whose last chapter ability is removed for want of
+            // a target is sacrificed (CR 714.4): the state-based check
+            // must look again.
+            self.sba_touch();
             self.emit(Event::TriggerRemoved {
                 source: source.unwrap_or(spell),
                 def,

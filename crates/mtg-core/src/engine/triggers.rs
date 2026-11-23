@@ -2190,6 +2190,10 @@ impl GameState {
                 t.ability.trigger_player,
             )
         {
+            // A Saga whose last chapter ability is removed for want of
+            // a target is sacrificed (CR 714.4): the state-based check
+            // must look again.
+            self.sba_touch();
             self.emit(Event::TriggerRemoved {
                 source: t.ability.source,
                 def,
@@ -2309,6 +2313,10 @@ impl GameState {
         if let Some(cond) = condition
             && !self.condition_holds(cond, sa.source, sa.trigger_obj)
         {
+            // A Saga whose last chapter ability is removed for want of
+            // a target is sacrificed (CR 714.4): the state-based check
+            // must look again.
+            self.sba_touch();
             self.emit(Event::TriggerRemoved {
                 source: sa.source,
                 def: obj.def,

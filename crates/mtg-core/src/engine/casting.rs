@@ -4817,6 +4817,26 @@ impl GameState {
             }),
             // "You may cast the copy" (CR 707.12): for its mana cost.
             AltCast::None => Some(def.mana_cost.requirements(0)),
+            // CR 702.172a, 702.183a: a spree or tiered spell cast without
+            // paying its mana cost still pays for the mode it chooses
+            // (Shifting Grift off Sram's Expertise): it needs a mode with
+            // its targets whose cost can be paid, or the cast was offered
+            // and then failed at payment.
+            _ if !def.spree.is_empty() || !def.tiered.is_empty() => {
+                let spree = !def.spree.is_empty();
+                let costs = if spree { &def.spree } else { &def.tiered };
+                return def.modes().is_some_and(|modes| {
+                    costs.iter().enumerate().any(|(i, c)| {
+                        let m = if spree {
+                            modes.get((1 << i) - 1)
+                        } else {
+                            modes.get(i)
+                        };
+                        m.is_some_and(|m| self.targets_available(p, &m.targets, Some(card)))
+                            && self.spell_payable(p, card, &c.requirements(0))
+                    })
+                });
+            }
             _ => return true,
         };
         let Some(mut req) = req.take() else {

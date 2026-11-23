@@ -153,6 +153,13 @@ wrong thing in some case.
   judges earlier spells by their printed characteristics; "until end of
   combat" made outside combat lasts to the end of the turn's next
   combat.
+- **Approximations, tenth wave:** a static free cast (Omniscience,
+  Dracogenesis, Weftwalking) is offered from the hand only, and not for
+  split, Adventure or modal double-faced halves; a spell cast free from
+  the hand does not rebound; "damage dealt to it this turn" reads the
+  damage still marked; in scenarios, "you may put a creature card from
+  your hand onto the battlefield" takes `choose "X"` / `choose done`
+  (unscripted it takes the first card).
 - **Approximations, eighth wave:** "until this card is cast from exile"
   ends when the card leaves exile by any route (the Masked cycle); a
   card cast by "You may cast this card from your graveyard" counts as
@@ -187,9 +194,6 @@ by rejecting the form at compile time or by binding it correctly.
   - `return that card to battlefield` in "Whenever a creature is put
     into your graveyard" returns nothing; `triggering card` works
     (Angelic Renewal, accepted with that form).
-  - `its controller` after "choose target ...; if kicked, instead choose
-    target ..." binds to the kicked-only target; `controller of that
-    target 1` works (Expel the Unworthy, accepted with that form).
   - "you may exile it and collect evidence 4" in a dies trigger exiles
     the card even when the evidence can't be collected, and `return this
     card` after `exile it` returns nothing (Lamplight Phoenix).
@@ -201,22 +205,6 @@ by rejecting the form at compile time or by binding it correctly.
   - `whenever creature you control enters if you cast it` never fires:
     "you cast it" is remembered for the source, not for the entering
     creature (The Sibsig Ceremony).
-  - `mill 1 cards; may play that card this turn` gives no permission to
-    play the milled card (Tablet of Discovery).
-  - An intervening `if` in a "when you do" trigger guards only the first
-    clause: the second sentence happens regardless (Earthbender
-    Ascension).
-  - `destroy target permanent an opponent controls; they create 1
-    "Treasure"` gives the Treasure to the caster (Vraska, the Cutting
-    Glare).
-  - `you may put creature card from hand onto battlefield; that creature
-    gains haste indefinitely; delayed that creature: sacrifice ...`: the
-    creature gets no haste and is not sacrificed. The template author
-    writes Through the Breach this way; the file was deleted by hand and
-    the author will offer it again.
-  - "at least five other Forests" in a trigger about another Forest
-    counts the entering Forest: `other` excludes only the source
-    (Roiling Canopy).
   - A filter "is put into a graveyard" without "from the battlefield"
     compiles to a dies trigger, wrong for a card going there from a hand
     or library. Not audited.
@@ -451,6 +439,25 @@ named the feature; a card may need more than one.
 
 ## 4. Process
 
+- **Throughput after the tenth wave.** Waves seven to nine cost 5% on
+  the mono-red mirror without adding instructions (callgrind counts in
+  `mtg_sim::play` were flat from 9dfb5c71 to c537ba2b): the loss was
+  instruction-cache and data-cache misses and branch mispredicts, from
+  hot functions carrying more rarely used code, and a start-up heap of
+  434 MB against 179 MB. The tenth wave's perf branch cut allocations
+  and instructions on the paths every game runs (17% fewer on the
+  mirror, 8% fewer for random:3 v random:4), which put the mirror above
+  the pre-first-wave binary. Left: random-deck games spend a third of
+  their instructions in layer passes, most of it trigger detection
+  asking for every permanent's characteristics while abilities are
+  granted, right after a `cbump`; mid-event snapshots are another 10%
+  there; `characteristics` is 13% of a mirror game (an 80-byte copy per
+  hit); the state-based-action pass scans each permanent's abilities
+  twice (`CardDef::enchant()`); `mana_sources` misses its cache a third
+  of the time. Start-up is 0.70 s (0.36 s before the first wave): a
+  quarter page faults, a quarter malloc; the fix is a lower peak
+  (compile each card as it is parsed), which `compile_order` and the
+  by-name map stand in the way of.
 - **Throughput: the five-wave drop is recovered; what is left.** Binaries
   built at each wave boundary had lost about 2% a wave (mono-red mirror;
   callgrind: 731.7M instructions in `mtg_sim::play` for 300 games at

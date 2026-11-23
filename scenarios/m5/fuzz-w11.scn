@@ -1,0 +1,42 @@
+# Faults the random-deck fuzz found after the tenth wave.
+
+# An Aura that enchants only a tapped creature is illegally attached once
+# the creature untaps (CR 704.5m); untapping did not make the state-based
+# check look again.
+scenario "Glimmerdust Nap falls off when its creature is untapped" {
+  battlefield A: 3 "Island", "Forest", "Grizzly Bears"
+  hand A: "Glimmerdust Nap", "Vitalize"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Glimmerdust Nap" targeting "Grizzly Bears"
+  turn 1 postcombat_main A: wait
+  turn 1 postcombat_main A: cast "Vitalize"
+  run_to turn 1 end
+  assert untapped "Grizzly Bears"
+  assert graveyard A contains "Glimmerdust Nap"
+}
+
+# A spree spell cast without paying its mana cost still pays for the mode
+# it chooses (CR 702.172a): with nothing to pay with it is not offered.
+scenario "Sram's Expertise can't cast Shifting Grift with no mana for a mode" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Sram's Expertise", "Shifting Grift"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sram's Expertise"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shifting Grift"
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A count 8
+}
+
+# A Saga whose last chapter ability is removed for want of a target is
+# sacrificed (CR 714.4): removing the trigger did not make the
+# state-based check look again.
+scenario "The Cruelty of Gix read ahead at chapter III with no creature card in any graveyard" {
+  battlefield A: 5 "Swamp"
+  hand A: "The Cruelty of Gix"
+  turn 1 A: cast "The Cruelty of Gix"
+  turn 1 A: choose "3"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "The Cruelty of Gix"
+}
