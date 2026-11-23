@@ -1879,6 +1879,14 @@ impl P {
                     mtg_core::card::RuleKind::NoLifeGain,
                 ))
             }
+            // "Cards in graveyards can't be the targets of spells or
+            // abilities."
+            "graveyard" if self.at_words(&["graveyard", "cards", "can't", "be", "targeted"]) => {
+                self.pos += 5;
+                self.player_static(mtg_core::card::PlayerStaticKind::Rule(
+                    mtg_core::card::RuleKind::GraveyardUntargetable,
+                ))
+            }
             "damage" if self.at_words(&["damage", "can't", "be", "prevented"]) => {
                 self.pos += 4;
                 self.player_static(mtg_core::card::PlayerStaticKind::Rule(
@@ -8577,7 +8585,7 @@ impl P {
             // onto the battlefield tapped" (`return ... to battlefield`
             // otherwise).
             "put"
-                if (0..5).any(|k| {
+                if (0..10).any(|k| {
                     self.word_at(k).as_deref() == Some("onto")
                         && self.word_at(k + 1).as_deref() == Some("battlefield")
                 }) && !(0..8).any(|k| {

@@ -1,0 +1,6 @@
+card "Moorland Haunt" {
+  oracle_id 5324192b-6687-41e4-8e56-326b21a5dbf3
+  type Land
+  mana {C}
+  activated {W}{U}, {T}, exile creature card from graveyard: create 1 "1/1 white Spirit creature with flying"
+}

@@ -9615,6 +9615,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Rule(RuleKind::DamageCantBePrevented) => {
             Clause::imperative("damage can't be prevented this turn".to_string())
         }
+        Effect::Rule(RuleKind::GraveyardUntargetable) => Clause::imperative(
+            "cards in graveyards can't be the targets of spells or abilities this turn".to_string(),
+        ),
         Effect::DamageUnpreventable => {
             Clause::imperative("the damage can't be prevented".to_string())
         }
@@ -15582,6 +15585,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 }
                 K::Rule(mtg_core::card::RuleKind::DamageCantBePrevented) => {
                     "damage can't be prevented".to_string()
+                }
+                K::Rule(mtg_core::card::RuleKind::GraveyardUntargetable) => {
+                    "cards in graveyards can't be the targets of spells or abilities".to_string()
                 }
                 K::ExtraLands {
                     n,

@@ -5678,6 +5678,9 @@ pub enum RuleKind {
     /// "Damage can't be prevented." Prevention effects still apply but
     /// prevent nothing (CR 615.12).
     DamageCantBePrevented,
+    /// "Cards in graveyards can't be the targets of spells or abilities."
+    /// (CR 115.4): no graveyard card is a legal target.
+    GraveyardUntargetable,
 }
 
 /// A "can't" effect on certain players until end of turn (CR 614.17):

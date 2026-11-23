@@ -1,0 +1,281 @@
+# Cards the template author writes with "Exile a creature card from your
+# graveyard" and "Exile two cards from your graveyard" as costs, and "You
+# may have this creature enter as a copy of ..." (CR 707.5).
+
+scenario "Fungal Plots: exile a creature card for a Saproling" {
+  battlefield A: "Fungal Plots", 2 "Forest"
+  graveyard A: "Grizzly Bears", "Shock"
+  turn 1 A: activate "Fungal Plots"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Saproling"
+  assert exile A contains "Grizzly Bears"
+  assert graveyard A contains "Shock"
+}
+
+scenario "Fungal Plots needs a creature card" {
+  battlefield A: "Fungal Plots", 2 "Forest"
+  graveyard A: "Shock"
+  illegal turn 1 A: activate "Fungal Plots"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Grim Lavamancer exiles two cards to deal 2" {
+  battlefield A: "Grim Lavamancer", "Mountain"
+  graveyard A: "Shock", "Lightning Bolt", "Grizzly Bears"
+  turn 1 A: activate "Grim Lavamancer" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert exile A count 2
+  assert graveyard A count 1
+}
+
+scenario "Grim Lavamancer can't with one card" {
+  battlefield A: "Grim Lavamancer", "Mountain"
+  graveyard A: "Shock"
+  illegal turn 1 A: activate "Grim Lavamancer" targeting player B
+  run_to turn 1 postcombat_main
+}
+
+scenario "Cryptwailing makes the target player discard" {
+  battlefield A: "Cryptwailing", "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand B: "Shock"
+  turn 1 A: activate "Cryptwailing" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Shock"
+  assert exile A count 2
+}
+
+scenario "Moorland Haunt makes a flying Spirit" {
+  battlefield A: "Moorland Haunt", "Plains", "Island"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: activate "Moorland Haunt"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Spirit"
+  assert has "Spirit" flying
+  assert exile A contains "Grizzly Bears"
+}
+
+scenario "Sanctifier of Souls: a Spirit, and the pump when it enters" {
+  battlefield A: "Sanctifier of Souls", 3 "Plains"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: activate "Sanctifier of Souls"
+  run_to turn 1 combat_damage
+  assert battlefield A contains "Spirit"
+  assert power "Sanctifier of Souls" 3
+}
+
+scenario "Havengul Runebinder makes a Zombie and counters on Zombies" {
+  battlefield A: "Havengul Runebinder", 3 "Island", "Scathe Zombies"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: activate "Havengul Runebinder"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zombie"
+  assert power "Zombie" 3
+  assert counters "Scathe Zombies" +1/+1 1
+}
+
+scenario "Kessig Wolfrider makes a Wolf" {
+  battlefield A: "Kessig Wolfrider", 3 "Mountain"
+  graveyard A: "Grizzly Bears", "Shock", "Plains"
+  turn 1 A: activate "Kessig Wolfrider"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wolf"
+  assert power "Wolf" 3
+  assert exile A count 3
+}
+
+scenario "Littjara Glade-Warden puts two counters at sorcery speed" {
+  battlefield A: "Littjara Glade-Warden", 3 "Forest", "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  turn 1 A: activate "Littjara Glade-Warden" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert exile A contains "Hill Giant"
+}
+
+scenario "Mines of Moria makes two Treasures and enters tapped" {
+  battlefield A: "Mines of Moria", 4 "Mountain"
+  graveyard A: "Grizzly Bears", "Shock", "Plains"
+  turn 1 A: activate "Mines of Moria"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Treasure"
+}
+
+scenario "Mines of Moria enters tapped without a legendary creature" {
+  hand A: "Mines of Moria"
+  turn 1 A: play "Mines of Moria"
+  run_to turn 1 postcombat_main
+  assert tapped "Mines of Moria"
+}
+
+scenario "Mines of Moria enters untapped with a legendary creature" {
+  battlefield A: "Abuelo, Ancestral Echo"
+  hand A: "Mines of Moria"
+  turn 1 A: play "Mines of Moria"
+  run_to turn 1 postcombat_main
+  assert untapped "Mines of Moria"
+}
+
+scenario "Necropolis Fiend: X cards for -X/-X" {
+  battlefield A: "Necropolis Fiend", 2 "Swamp"
+  battlefield B: "Hill Giant"
+  graveyard A: "Grizzly Bears", "Shock", "Plains"
+  turn 1 A: activate "Necropolis Fiend" x 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+  assert exile A count 2
+}
+
+scenario "Salvage Titan returns from the graveyard for three artifact cards" {
+  graveyard A: "Salvage Titan", "Ornithopter", "Sol Ring", "Bonesplitter"
+  turn 1 A: activate "Salvage Titan"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Salvage Titan"
+  assert exile A count 3
+}
+
+scenario "Salvage Titan for three artifacts sacrificed" {
+  battlefield A: "Ornithopter", "Sol Ring", "Bonesplitter"
+  hand A: "Salvage Titan"
+  turn 1 A: cast "Salvage Titan" alternative sacrificing "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Salvage Titan"
+  assert graveyard A count 3
+}
+
+scenario "Skaab Ruinator exiles three creature cards, even from the graveyard" {
+  battlefield A: 3 "Island"
+  graveyard A: "Skaab Ruinator", "Grizzly Bears", "Hill Giant", "Raging Goblin"
+  turn 1 A: cast "Skaab Ruinator" from graveyard
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Skaab Ruinator"
+  assert exile A count 3
+}
+
+scenario "Skaab Ruinator needs three other creature cards" {
+  battlefield A: 3 "Island"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Shock"
+  hand A: "Skaab Ruinator"
+  illegal turn 1 A: cast "Skaab Ruinator"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Charnel Troll grows by exiling a creature card" {
+  battlefield A: "Charnel Troll"
+  graveyard A: "Grizzly Bears"
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert counters "Charnel Troll" +1/+1 1
+  assert exile A contains "Grizzly Bears"
+}
+
+scenario "Charnel Troll is sacrificed with no creature card" {
+  battlefield A: "Charnel Troll"
+  graveyard A: "Shock"
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Charnel Troll"
+}
+
+scenario "Aphemia makes a Zombie from an enchantment card" {
+  battlefield A: "Aphemia, the Cacophony"
+  graveyard A: "Pacifism"
+  turn 1 A: accept "Aphemia, the Cacophony"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Zombie"
+  assert exile A contains "Pacifism"
+}
+
+scenario "Young Necromancer exiles two cards to reanimate" {
+  battlefield A: 5 "Swamp"
+  hand A: "Young Necromancer"
+  graveyard A: "Shock", "Plains", "Hill Giant"
+  turn 1 A: cast "Young Necromancer"
+  turn 1 A: accept "Young Necromancer"
+  turn 1 A: choose "Shock"
+  turn 1 A: choose "Plains"
+  turn 1 A: trigger "Young Necromancer" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert exile A count 2
+}
+
+scenario "Mirror Image copies a creature you control" {
+  battlefield A: 3 "Island", "Hill Giant"
+  battlefield B: "Serra Angel"
+  hand A: "Mirror Image"
+  turn 1 A: cast "Mirror Image"
+  turn 1 A: copy "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Hill Giant"
+}
+
+scenario "Mirror Image can't copy an opponent's creature" {
+  battlefield A: 3 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Mirror Image"
+  turn 1 A: cast "Mirror Image"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Mirror Image"
+  assert battlefield A lacks "Serra Angel"
+}
+
+scenario "Jwari Shapeshifter copies an Ally" {
+  battlefield A: 2 "Island", "Akoum Battlesinger"
+  hand A: "Jwari Shapeshifter"
+  turn 1 A: cast "Jwari Shapeshifter"
+  turn 1 A: copy "Akoum Battlesinger"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Akoum Battlesinger"
+}
+
+scenario "Jwari Shapeshifter won't copy a non-Ally" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  hand A: "Jwari Shapeshifter"
+  turn 1 A: cast "Jwari Shapeshifter"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Jwari Shapeshifter"
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+scenario "Clever Impersonator copies an opponent's enchantment" {
+  battlefield A: 4 "Island"
+  battlefield B: "Glorious Anthem", "Grizzly Bears"
+  hand A: "Clever Impersonator"
+  turn 1 A: cast "Clever Impersonator"
+  turn 1 A: copy "Glorious Anthem"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Glorious Anthem"
+}
+
+scenario "Copy Enchantment copies an enchantment" {
+  battlefield A: 3 "Island", "Grizzly Bears"
+  battlefield B: "Glorious Anthem"
+  hand A: "Copy Enchantment"
+  turn 1 A: cast "Copy Enchantment"
+  turn 1 A: copy "Glorious Anthem"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+}
+
+scenario "Mirrormade copies an artifact" {
+  battlefield A: 3 "Island"
+  battlefield B: "Sol Ring"
+  hand A: "Mirrormade"
+  turn 1 A: cast "Mirrormade"
+  turn 1 A: copy "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sol Ring"
+}
+
+scenario "Sculpting Steel copies an artifact, not an enchantment" {
+  battlefield A: 3 "Island", "Grizzly Bears"
+  battlefield B: "Glorious Anthem", "Sol Ring"
+  hand A: "Sculpting Steel"
+  turn 1 A: cast "Sculpting Steel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sol Ring"
+  assert power "Grizzly Bears" 2
+}

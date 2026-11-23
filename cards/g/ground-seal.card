@@ -1,0 +1,7 @@
+card "Ground Seal" {
+  oracle_id 13f6f960-ef79-4f2c-8874-90fe9e77099e
+  cost {1}{G}
+  type Enchantment
+  triggered when this enters: draw 1 card
+  graveyard cards can't be targeted
+}

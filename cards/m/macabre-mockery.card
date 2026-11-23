@@ -1,0 +1,6 @@
+card "Macabre Mockery" {
+  oracle_id d66f7ee7-e9a1-4714-b79c-8c86c6b6d5dc
+  cost {2}{B}{R}
+  type Instant
+  spell: put target creature card from an opponent's graveyard onto battlefield under your control; target 1 gets +2/+0 and gains haste until end of turn; delayed target 1: sacrifice it at beginning of the next end step
+}

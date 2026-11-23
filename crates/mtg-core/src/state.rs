@@ -4793,6 +4793,14 @@ impl GameState {
                 let Some(obj) = self.objects.get(id) else {
                     return false;
                 };
+                // "Cards in graveyards can't be the targets of spells or
+                // abilities."
+                if targeting
+                    && obj.zone == Zone::Graveyard
+                    && self.rule_in_force(crate::card::RuleKind::GraveyardUntargetable)
+                {
+                    return false;
+                }
                 if spec == TargetSpec::CreatureCardInYourGraveyard {
                     return obj.zone == Zone::Graveyard
                         && obj.owner == caster

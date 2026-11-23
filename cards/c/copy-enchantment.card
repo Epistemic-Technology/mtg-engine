@@ -1,0 +1,6 @@
+card "Copy Enchantment" {
+  oracle_id 87bc0b1f-49ef-4c06-9049-2c148b467882
+  cost {2}{U}
+  type Enchantment
+  enters as copy of enchantment
+}

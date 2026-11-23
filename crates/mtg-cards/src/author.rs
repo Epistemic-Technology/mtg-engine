@@ -2912,6 +2912,22 @@ impl Templates {
                     ))
                 },
             ),
+            // "Put target creature card from an opponent's graveyard onto
+            // the battlefield under your control".
+            (
+                r(
+                    r"^Put target ([a-z]+) card from (a|an opponent's) graveyard onto the battlefield under your control( tapped)?$",
+                ),
+                |c, t| {
+                    *t += 1;
+                    Some(format!(
+                        "put target {} card from {} graveyard onto battlefield under your control{}",
+                        cap(c, 1),
+                        cap(c, 2),
+                        cap(c, 3)
+                    ))
+                },
+            ),
             // "Exile all creature cards from target player's graveyard".
             (
                 r(r"^[Ee]xile all ([a-z]+) cards from target player's graveyard$"),
@@ -4400,6 +4416,20 @@ fn cost_text(s: &str) -> Option<String> {
                 number(cap(&c, 1))?
             };
             format!("remove {n} {} counters from this", cap(&c, 2))
+        } else if let Some(c) =
+            Regex::new(r"^Exile (an?|two|three|four|five|six|X) (?:([a-z]+) )?cards? from your graveyard$")
+                .unwrap()
+                .captures(part)
+        {
+            // "Exile a creature card from your graveyard", "Exile two cards
+            // from your graveyard".
+            let n = number(cap(&c, 1))?;
+            let n = if n == "1" { String::new() } else { format!("{n} ") };
+            if cap(&c, 2).is_empty() {
+                format!("exile {n}cards from graveyard")
+            } else {
+                format!("exile {n}{} card from graveyard", cap(&c, 2))
+            }
         } else if let Some(n) = part
             .strip_prefix("Exile ")
             .and_then(|r| r.strip_suffix(" cards from your graveyard and this creature"))
@@ -6330,6 +6360,9 @@ impl Builder<'_> {
                 Some("you may play lands from your graveyard")
             }
             "Damage can't be prevented." => Some("damage can't be prevented"),
+            "Cards in graveyards can't be the targets of spells or abilities." => {
+                Some("graveyard cards can't be targeted")
+            }
             "You may play an additional land on each of your turns." => Some("additional land"),
             "You may play two additional lands on each of your turns." => Some("additional land 2"),
             "Each player may play an additional land on each of their turns." => {
@@ -6347,6 +6380,48 @@ impl Builder<'_> {
         // CR 601.3: "You may cast this card from your graveyard [as long
         // as ...] [by paying {2}{W} rather than paying its mana cost | by
         // discarding a card in addition to paying its other costs]."
+        // CR 707.5: "You may have this creature enter as a copy of any
+        // creature on the battlefield[, except it's an artifact in addition
+        // to its other types]."
+        if let Some(c) = Regex::new(
+            r"^You may have this (?:creature|artifact|enchantment|land|permanent) enter as a copy of (?:any ([a-z]+(?: or [a-z]+)?|nonland permanent|[A-Z][a-z]+ creature) on the battlefield|an? ([a-z]+(?: or [a-z]+)?) you control)(?:, except (.+))?\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let what = if cap(&c, 1).is_empty() {
+                format!("{} you control", cap(&c, 2))
+            } else {
+                cap(&c, 1).to_string()
+            };
+            let mut st = format!("enters as copy of {what}");
+            let x = cap(&c, 3);
+            if !x.is_empty() {
+                let inner = if let Some(pt) = x
+                    .strip_prefix("it's ")
+                    .filter(|r| Regex::new(r"^\d+/\d+$").unwrap().is_match(r))
+                {
+                    format!("pt {pt}")
+                } else if let Some(t) = x
+                    .strip_prefix("it's an? ")
+                    .and_then(|r| r.strip_suffix(" in addition to its other types"))
+                {
+                    let words: Vec<&str> = t.split(' ').collect();
+                    if words.iter().all(|w| w.chars().next().is_some_and(char::is_uppercase)) {
+                        format!("subtypes {t}")
+                    } else if words.len() == 1 && card_type_word(words[0]) {
+                        format!("types {}", capitalize(words[0]))
+                    } else {
+                        return Err(Skip::Sentence(line.to_string()));
+                    }
+                } else {
+                    return Err(Skip::Sentence(line.to_string()));
+                };
+                let _ = write!(st, "\n  except {{\n    {inner}\n  }}");
+            }
+            self.statements.push(st);
+            return Ok(());
+        }
         // "If this card is in a graveyard, effects from spells named Flame
         // Burst count it as a card named Flame Burst."
         if let Some(c) = Regex::new(

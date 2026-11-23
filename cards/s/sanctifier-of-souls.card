@@ -1,0 +1,8 @@
+card "Sanctifier of Souls" {
+  oracle_id 806fc324-a17a-4e65-a9b6-d739c471c7f8
+  cost {3}{W}
+  type Creature — Human Cleric
+  pt 2/3
+  triggered whenever other creature you control enters: this gets +1/+1
+  activated {2}{W}, exile creature card from graveyard: create 1 "1/1 white Spirit creature with flying"
+}

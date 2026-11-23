@@ -1,0 +1,6 @@
+card "Sculpting Steel" {
+  oracle_id 6c85271c-c711-49b0-a72e-9e576c33714d
+  cost {3}
+  type Artifact
+  enters as copy of artifact
+}

@@ -2960,6 +2960,10 @@ impl Fmt {
             Effect::Rule(RuleKind::DamageCantBePrevented) => {
                 "damage can't be prevented this turn".to_string()
             }
+            // Not written as an effect (only a static ability).
+            Effect::Rule(RuleKind::GraveyardUntargetable) => {
+                "graveyard cards can't be targeted this turn".to_string()
+            }
             Effect::DamageUnpreventable => "the damage can't be prevented".to_string(),
             Effect::ExcessToController => "excess damage to its controller instead".to_string(),
             Effect::PlayerRule { who, kind } => format!(
@@ -6632,6 +6636,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 K::Rule(mtg_core::card::RuleKind::DamageCantBePrevented) => {
                     "damage can't be prevented".to_string()
+                }
+                K::Rule(mtg_core::card::RuleKind::GraveyardUntargetable) => {
+                    "graveyard cards can't be targeted".to_string()
                 }
                 K::ExtraLands { n, each_player } => format!(
                     "additional land{}{}",

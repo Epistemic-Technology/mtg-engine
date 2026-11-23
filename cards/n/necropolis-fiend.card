@@ -1,0 +1,8 @@
+card "Necropolis Fiend" {
+  oracle_id bb714bc6-9f32-42f6-9064-f28a383675b5
+  cost {7}{B}{B}
+  type Creature — Demon
+  pt 4/5
+  keywords delve, flying
+  activated {X}, {T}, exile X cards from graveyard: target creature gets -1/-1 X
+}

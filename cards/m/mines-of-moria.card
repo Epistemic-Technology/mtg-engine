@@ -1,0 +1,7 @@
+card "Mines of Moria" {
+  oracle_id 583cdebe-0195-45be-bd2e-5765f07cb902
+  type Legendary Land
+  enters tapped unless you control legendary creature
+  mana {R}
+  activated {3}{R}, {T}, exile 3 cards from graveyard: create 2 "Treasure"
+}
