@@ -15920,6 +15920,11 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             lines.push(format!("Flashback—{}.", cost_text(fb, &mut ctx)));
         }
     }
+    if let Some(n) = &card.graveyard_alias {
+        lines.push(format!(
+            "If this card is in a graveyard, effects from spells named {n} count it as a card named {n}."
+        ));
+    }
     // CR 601.3: "You may cast this card from your graveyard ...".
     if let Some(g) = &card.graveyard_cast {
         lines.push(graveyard_cast_text(card, g));

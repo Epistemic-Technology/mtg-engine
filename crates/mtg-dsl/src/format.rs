@@ -154,6 +154,9 @@ fn format_inner(card: &Card) -> String {
     if let Some(c) = &card.flashback {
         let _ = writeln!(out, "  flashback {}", cost_text(c));
     }
+    if let Some(n) = &card.graveyard_alias {
+        let _ = writeln!(out, "  counts as named {n:?} in graveyard");
+    }
     if let Some(g) = &card.graveyard_cast {
         let mut line = "  cast from graveyard".to_string();
         if g.max_speed {

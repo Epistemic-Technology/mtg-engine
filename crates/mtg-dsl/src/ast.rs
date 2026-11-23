@@ -240,6 +240,10 @@ pub struct Card {
     /// `cast from graveyard ...`: "You may cast this card from your
     /// graveyard ..." (CR 601.3).
     pub graveyard_cast: Option<GraveyardCast>,
+    /// `counts as named "Flame Burst" in graveyard`: "If this card is in a
+    /// graveyard, effects from spells named Flame Burst count it as a card
+    /// named Flame Burst."
+    pub graveyard_alias: Option<String>,
     /// Filters behind `Recipient::Group`, in order of first mention.
     pub groups: Vec<Filter>,
     pub abilities: Vec<Ability>,
@@ -298,6 +302,7 @@ impl Card {
             kicker_targets: None,
             flashback: None,
             graveyard_cast: None,
+            graveyard_alias: None,
             groups: Vec::new(),
             abilities: Vec::new(),
             except: None,

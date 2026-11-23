@@ -2067,10 +2067,38 @@ impl GameState {
                 f.is_none_or(|f| {
                     let o = &self.objects[**id];
                     let c = self.base_characteristics(o);
-                    f.matches(**id, o.owner, &c, None, Some(you)) && self.status_ok(f, **id)
+                    (f.matches(**id, o.owner, &c, None, Some(you))
+                        || self.graveyard_alias_matches(f, o, &c, **id, you))
+                        && self.status_ok(f, **id)
                 })
             })
             .count()
+    }
+
+    /// "Effects from spells named Flame Burst count it as a card named
+    /// Flame Burst" (Pardic Firecat): a graveyard card whose card names
+    /// the filter's "named ~" (filled in with the counting spell) matches
+    /// the rest of the filter.
+    fn graveyard_alias_matches(
+        &self,
+        f: &crate::card::ObjFilter,
+        o: &crate::state::GameObject,
+        c: &crate::state::Characteristics,
+        id: ObjId,
+        you: PlayerId,
+    ) -> bool {
+        let Some((named, true)) = f.named else {
+            return false;
+        };
+        let Some(alias) = &self.pool.get(o.def).graveyard_alias else {
+            return false;
+        };
+        if *alias != self.pool.get(named).name {
+            return false;
+        }
+        let mut rest = f.clone();
+        rest.named = None;
+        rest.matches(id, o.owner, c, None, Some(you))
     }
 
     /// CR 702.103a: whether `p` could cast the card `id` for its bestow

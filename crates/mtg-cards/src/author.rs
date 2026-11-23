@@ -6314,6 +6314,19 @@ impl Builder<'_> {
         // CR 601.3: "You may cast this card from your graveyard [as long
         // as ...] [by paying {2}{W} rather than paying its mana cost | by
         // discarding a card in addition to paying its other costs]."
+        // "If this card is in a graveyard, effects from spells named Flame
+        // Burst count it as a card named Flame Burst."
+        if let Some(c) = Regex::new(
+            r"^If this card is in a graveyard, effects from spells named (.+) count it as a card named (.+)\.$",
+        )
+        .unwrap()
+        .captures(line)
+            && cap(&c, 1) == cap(&c, 2)
+        {
+            self.statements
+                .push(format!("counts as named {:?} in graveyard", cap(&c, 1)));
+            return Ok(());
+        }
         if line == "Max speed \u{2014} You may cast this card from your graveyard." {
             self.statements.push("cast from graveyard at max speed".to_string());
             return Ok(());

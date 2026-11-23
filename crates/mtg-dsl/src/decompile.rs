@@ -126,6 +126,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             .as_ref()
             .filter(|_| def.graveyard_cast.is_none())
             .map(|c| d.cost(c)),
+        graveyard_alias: def.graveyard_alias.clone(),
         graveyard_cast: def.graveyard_cast.as_deref().map(|g| {
             let fb = def.flashback.as_deref().cloned().unwrap_or_default();
             let mut rest = fb.clone();

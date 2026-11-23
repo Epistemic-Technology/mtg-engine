@@ -1079,6 +1079,9 @@ impl Compiler<'_> {
             }
             b = b.flashback(self.cost(fb));
         }
+        if let Some(n) = &card.graveyard_alias {
+            b = b.graveyard_alias(n.clone());
+        }
         // CR 601.3: "You may cast this card from your graveyard ...".
         if let Some(g) = &card.graveyard_cast {
             if card.flashback.is_some() {

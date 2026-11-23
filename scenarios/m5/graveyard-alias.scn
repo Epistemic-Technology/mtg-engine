@@ -1,0 +1,38 @@
+# "If this card is in a graveyard, effects from spells named Flame Burst
+# count it as a card named Flame Burst."
+
+scenario "Flame Burst counts Pardic Firecat in a graveyard" {
+  battlefield A: 2 "Mountain"
+  hand A: "Flame Burst"
+  graveyard A: "Pardic Firecat", "Flame Burst"
+  graveyard B: "Pardic Firecat"
+  turn 1 A: cast "Flame Burst" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Without Firecats Flame Burst deals 2 plus its own copies" {
+  battlefield A: 2 "Mountain"
+  hand A: "Flame Burst"
+  graveyard A: "Flame Burst", "Grizzly Bears"
+  turn 1 A: cast "Flame Burst" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Muscle Burst counts Diligent Farmhand" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  hand A: "Muscle Burst"
+  graveyard A: "Diligent Farmhand", "Diligent Farmhand"
+  turn 1 A: cast "Muscle Burst" targeting "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert power "Grizzly Bears" 7
+}
+
+scenario "Diligent Farmhand on the battlefield isn't counted" {
+  battlefield A: 2 "Forest", "Grizzly Bears", "Diligent Farmhand"
+  hand A: "Muscle Burst"
+  turn 1 A: cast "Muscle Burst" targeting "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert power "Grizzly Bears" 5
+}

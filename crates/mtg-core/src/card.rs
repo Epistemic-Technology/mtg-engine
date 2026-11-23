@@ -8219,6 +8219,11 @@ pub struct CardDef {
     /// holds the condition and the wording.
     #[serde(default)]
     pub graveyard_cast: Option<Box<GraveyardCast>>,
+    /// "If this card is in a graveyard, effects from spells named Flame
+    /// Burst count it as a card named Flame Burst." (Pardic Firecat): a
+    /// graveyard count of cards named this, for a spell of that name.
+    #[serde(default)]
+    pub graveyard_alias: Option<String>,
     /// Event kinds any of this definition's triggers (keyword triggers
     /// included) can fire on; see `TriggerSpec::watch_mask`.
     watch_mask: u32,
@@ -10476,6 +10481,7 @@ impl Builder {
             flashback: None,
             retrace: false,
             graveyard_cast: None,
+            graveyard_alias: None,
             watch_mask: 0,
             except_watch_mask: 0,
             printed: None,
@@ -11155,6 +11161,14 @@ impl Builder {
     #[must_use]
     pub fn flashback(mut self, cost: Cost) -> Self {
         self.0.flashback = Some(Box::new(cost));
+        self
+    }
+
+    /// "If this card is in a graveyard, effects from spells named X count
+    /// it as a card named X."
+    #[must_use]
+    pub fn graveyard_alias(mut self, name: String) -> Self {
+        self.0.graveyard_alias = Some(name);
         self
     }
 

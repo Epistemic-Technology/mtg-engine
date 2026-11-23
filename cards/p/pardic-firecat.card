@@ -1,0 +1,8 @@
+card "Pardic Firecat" {
+  oracle_id c6498ec5-fbbc-472a-9b40-5481e49efe79
+  cost {3}{R}
+  type Creature — Elemental Cat
+  pt 2/3
+  keywords haste
+  counts as named "Flame Burst" in graveyard
+}

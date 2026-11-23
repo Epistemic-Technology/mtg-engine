@@ -945,6 +945,7 @@ impl P {
             kicker_targets: None,
             flashback: None,
             graveyard_cast: None,
+            graveyard_alias: None,
             groups: Vec::new(),
             abilities: Vec::new(),
             except: None,
@@ -1216,6 +1217,13 @@ impl P {
             // `cast from graveyard while you control Zombie`, `cast from
             // graveyard for {2}{W}`, `cast from graveyard with discard 1
             // card` (CR 601.3).
+            // `counts as named "Flame Burst" in graveyard`.
+            "counts" if self.at_words(&["counts", "as", "named"]) => {
+                self.pos += 3;
+                card.graveyard_alias = Some(self.string()?);
+                self.expect_words(&["in", "graveyard"])?;
+                self.end_stmt()
+            }
             "cast" if self.at_words(&["cast", "from", "graveyard"]) => {
                 self.pos += 3;
                 let mut g = crate::ast::GraveyardCast::default();
