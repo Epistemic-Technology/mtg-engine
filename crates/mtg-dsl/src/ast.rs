@@ -1006,6 +1006,10 @@ pub struct Filter {
     /// after "each" ("put a +1/+1 counter on each Pest, Bat, and Spider
     /// you control"); wording only.
     pub and_list: bool,
+    /// `thatare andor creature or Vehicle you control` in a count: "the
+    /// number of permanents you control that are creatures and/or
+    /// Vehicles" (Collision Course); wording only.
+    pub that_are: bool,
     /// `every other creature`: a group printed with "all" as an effect's
     /// subject ("all other creatures get -2/-2"); otherwise as `all`.
     /// Wording only.
@@ -2541,6 +2545,9 @@ pub enum StaticCond {
     /// `not kicked`: "this spell wasn't kicked"; on a card with gift, "the
     /// gift wasn't promised" (CR 702.174).
     NotKicked,
+    /// `that spell kicked`: "if that spell was kicked", the spell that
+    /// triggered the ability (Bloodstone Goblin).
+    ThatKicked,
     /// `sneak paid`, `his sneak paid`, `her sneak paid`: "this spell's
     /// sneak cost was paid" (an instant or sorcery), "its (his, her) sneak
     /// cost was paid" (CR 702.190). The pronoun: 0 its, 1 his, 2 her.

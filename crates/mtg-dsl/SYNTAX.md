@@ -464,7 +464,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever land card is put into your graveyard from anywhere` | "Whenever a land card is put into your graveyard from anywhere": a card the controller owns, matching as it is in the graveyard (milled, discarded, dying, ...) |
 | `whenever creature enters from your graveyard` | "Whenever a creature enters from your graveyard": a permanent the controller owns entering from their graveyard is "it" |
 | `whenever you expend 4` | "Whenever you expend 4" (CR 700.14): as the controller spends their fourth total mana to cast spells this turn, judged as the spell that spent it becomes cast (the mana counted as its cost's mana symbols) |
-| `whenever andor other Villain or artifact you control enters` | "Whenever another Villain and/or artifact you control enters": `andor` before a filter with an alternative prints "and/or" in a trigger's subject, and between plural alternatives anywhere (`up to 2 target andor Mount or Vehicle`: "up to two target Mounts and/or Vehicles"; wording only); `andlist` likewise joins a singular list with "and" (`each andlist Pest or Bat or Spider you control`: "each Pest, Bat, and Spider you control"), and plural types (`andlist artifact or creature you control`: "artifacts and creatures you control") |
+| `whenever andor other Villain or artifact you control enters` | "Whenever another Villain and/or artifact you control enters": `andor` before a filter with an alternative prints "and/or" in a trigger's subject, and between plural alternatives anywhere (`up to 2 target andor Mount or Vehicle`: "up to two target Mounts and/or Vehicles"; wording only); `andlist` likewise joins a singular list with "and" (`each andlist Pest or Bat or Spider you control`: "each Pest, Bat, and Spider you control"), and plural types (`andlist artifact or creature you control`: "artifacts and creatures you control"). In a count, `andor thatare creature or Vehicle you control` prints "permanents you control that are creatures and/or Vehicles" (Collision Course; wording only) |
 
 A trigger's subject prints its controller before its "with" qualities
 ("Whenever a creature you control with power 5 or greater enters").
@@ -3060,7 +3060,11 @@ in an effect "If five or more mana was spent to cast that spell" (`if that
 spell spent 5 mana, put 2 +1/+1 counters on this creature instead`). After
 the comma, `also` prints "also" after the subject (`if that spell spent 5
 mana, also this creature gains double strike`: "this creature also gains
-double strike"). A spell names itself again after such a condition
+double strike"). `that spell kicked` likewise reads the triggering
+spell's kicker (CR 702.33d): `triggered whenever you cast spell if that
+spell kicked: ...` prints "Whenever you cast a spell, if that spell was
+kicked, ..." (Bloodstone Goblin); plain `kicked` is the source's own
+kicker. A spell names itself again after such a condition
 ("Adamant — If ..., Searing Barrage deals 3 damage ..."); a permanent's
 trigger says "it" ("if {R} was spent to cast it, it gains haste").
 The engine pays canonically and these riders are all bonuses, so for a

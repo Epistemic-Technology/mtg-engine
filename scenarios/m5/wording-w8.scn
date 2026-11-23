@@ -1,0 +1,112 @@
+# Cards whose Oracle wording the renderer now prints exactly (eighth
+# wave): each scenario checks that the wording means what the card does,
+# amounts and targets included.
+
+scenario "Agency Coroner: two cards for a suspected creature, one otherwise" {
+  battlefield A: "Agency Coroner", "Repeat Offender", "Grizzly Bears", 9 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Repeat Offender"
+  turn 1 A: wait
+  turn 1 A: activate "Agency Coroner" sacrificing "Repeat Offender"
+  run_to turn 1 begin_combat
+  assert hand A count 2
+  turn 1 postcombat_main A: activate "Agency Coroner" sacrificing "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A count 3
+}
+
+scenario "Angelic Renewal: the dead creature returns when the enchantment is sacrificed" {
+  battlefield A: "Angelic Renewal", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Angelic Renewal"
+  assert graveyard A lacks "Grizzly Bears"
+}
+
+scenario "Angelic Renewal: declined, the creature stays dead" {
+  battlefield A: "Angelic Renewal", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: decline "Angelic Renewal"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Angelic Renewal"
+}
+
+scenario "Bloodstone Goblin: pumped by a kicked spell, not by an unkicked one" {
+  battlefield A: "Bloodstone Goblin", 4 "Mountain"
+  hand A: "Goblin Bushwhacker", "Goblin Bushwhacker"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Goblin Bushwhacker"
+  run_to turn 1 begin_combat
+  assert toughness "Bloodstone Goblin" 2
+  assert has not "Bloodstone Goblin" menace
+  turn 1 postcombat_main A: cast "Goblin Bushwhacker" kicked
+  run_to turn 1 end
+  assert toughness "Bloodstone Goblin" 3
+  assert power "Bloodstone Goblin" 4
+  assert has "Bloodstone Goblin" menace
+}
+
+scenario "Boros Fury-Shield: with {R} spent, the attacker's power is dealt to its controller" {
+  battlefield A: "Plains", "Plains", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Boros Fury-Shield"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Boros Fury-Shield" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert life B 17
+}
+
+scenario "Boros Fury-Shield: without {R}, only the prevention" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Boros Fury-Shield"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Boros Fury-Shield" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert life B 20
+}
+
+scenario "Carbonize: a creature dealt lethal damage is exiled; a player takes 3" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Carbonize", "Carbonize"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Carbonize" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Carbonize" targeting player B
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert graveyard B lacks "Grizzly Bears"
+  assert life B 17
+}
+
+scenario "Disintegrate: X damage, the creature exiled" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Disintegrate"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Disintegrate" x 3 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Collision Course: X counts creatures and Vehicles you control, not lands" {
+  battlefield A: "Grizzly Bears", "Smuggler's Copter", 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Collision Course"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Collision Course" mode 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+  assert battlefield B contains "Hill Giant"
+}

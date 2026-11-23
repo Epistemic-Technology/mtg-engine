@@ -308,6 +308,7 @@ impl Decompiler<'_> {
             other_than_this: false,
             and_or: false,
             and_list: false,
+            that_are: false,
             all_word: false,
             article: false,
             control_late: false,
@@ -590,6 +591,7 @@ impl Decompiler<'_> {
             StaticCondition::Beheld => StaticCond::Beheld,
             StaticCondition::NoManaSpent => StaticCond::NoManaSpent,
             StaticCondition::NotKicked => StaticCond::NotKicked,
+            StaticCondition::ThatKicked => StaticCond::ThatKicked,
             StaticCondition::Impending => StaticCond::Impending,
             StaticCondition::And(a, b) => {
                 StaticCond::And(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))

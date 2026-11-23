@@ -3420,6 +3420,13 @@ pub fn filter(f: &Filter) -> String {
         };
         return format!("andor {}", filter(&g));
     }
+    if f.that_are {
+        let g = Filter {
+            that_are: false,
+            ..f.clone()
+        };
+        return format!("thatare {}", filter(&g));
+    }
     // "Aura or Equipment attached to target creature": after both sides.
     if f.attached_to.is_some() && f.or.is_some() {
         let base = Filter {
@@ -5242,6 +5249,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Saddled => "saddled".to_string(),
         StaticCond::NoManaSpent => "no mana spent".to_string(),
         StaticCond::NotKicked => "not kicked".to_string(),
+        StaticCond::ThatKicked => "that spell kicked".to_string(),
         StaticCond::Impending => "impending".to_string(),
         StaticCond::And(a, b) => format!("{} and {}", static_cond(a), static_cond(b)),
         StaticCond::CastBoth(both) => format!(

@@ -4329,6 +4329,9 @@ impl P {
         if self.eat_words(&["not", "kicked"]) {
             return Ok(StaticCond::NotKicked);
         }
+        if self.eat_words(&["that", "spell", "kicked"]) {
+            return Ok(StaticCond::ThatKicked);
+        }
         if self.at_word("kicked") && self.word_at(1).as_deref() != Some("with") {
             self.pos += 1;
             return Ok(StaticCond::Kicked);
@@ -11785,6 +11788,10 @@ impl P {
                     self.pos += 1;
                 }
                 "a" | "an" | "each" | "permanent" | "permanents" => self.pos += 1,
+                "thatare" if !f.that_are => {
+                    f.that_are = true;
+                    self.pos += 1;
+                }
                 "andor" if consumed == 0 && !f.and_or => {
                     f.and_or = true;
                     self.pos += 1;

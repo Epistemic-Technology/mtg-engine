@@ -2275,6 +2275,7 @@ impl Compiler<'_> {
             StaticCond::Beheld => StaticCondition::Beheld,
             StaticCond::NoManaSpent => StaticCondition::NoManaSpent,
             StaticCond::NotKicked => StaticCondition::NotKicked,
+            StaticCond::ThatKicked => StaticCondition::ThatKicked,
             StaticCond::Impending => StaticCondition::Impending,
             StaticCond::SneakPaid(p) => StaticCondition::SneakPaid(*p),
             StaticCond::ProwlPaid => StaticCondition::ProwlPaid,

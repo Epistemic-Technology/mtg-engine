@@ -3689,6 +3689,9 @@ impl GameState {
             return trigger_obj
                 .is_some_and(|t| self.spent_on(t).count(*kind) >= u32::from(*at_least));
         }
+        if *cond == crate::card::StaticCondition::ThatKicked {
+            return trigger_obj.is_some_and(|t| self.objects.get(t).is_some_and(|o| o.cast.kicked()));
+        }
         self.condition_now(cond, you, source)
     }
 
@@ -3858,7 +3861,7 @@ impl GameState {
             } => self.spent_on(source).count(*kind) >= u32::from(*at_least),
             // Judged by `condition_for`, which knows the triggering spell;
             // the vote is the resolution's (`IfCondition` reads it).
-            C::ManaSpent { that: true, .. } | C::MoreVotes { .. } => false,
+            C::ManaSpent { that: true, .. } | C::ThatKicked | C::MoreVotes { .. } => false,
             C::NoManaSpent => self.spent_on(source).count(crate::card::SpentKind::Total) == 0,
             C::Impending => self.objects.get(source).is_some_and(|o| {
                 o.alt == AltCast::Impending && o.counters(crate::card::CounterKind::Time) > 0

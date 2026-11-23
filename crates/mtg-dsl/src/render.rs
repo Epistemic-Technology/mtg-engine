@@ -1149,6 +1149,9 @@ struct Ctx<'a> {
     groups_mentioned: HashSet<Recipient>,
     /// Inside a delayed trigger's effects.
     in_delayed: bool,
+    /// Inside "If it's a creature, ...": the target the check calls "it"
+    /// (Carbonize: "and if it would die this turn").
+    it_target: Option<usize>,
     /// Inside a delayed trigger about the triggering object, which its
     /// effects call "that creature" ("destroy that creature at end of
     /// combat").
@@ -1243,6 +1246,7 @@ impl<'a> Ctx<'a> {
             target_noun: targets.iter().map(target_noun).collect(),
             groups_mentioned: HashSet::new(),
             in_delayed: false,
+            it_target: None,
             delayed_that: false,
             eot_first: false,
             lasting: None,
@@ -4123,6 +4127,30 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 ),
             )
         }
+        // "the number of permanents you control that are creatures and/or
+        // Vehicles" (Collision Course).
+        CountExpr::Permanents(f) if f.that_are && f.who == Some(Who::You) => {
+            let mut g = Filter {
+                that_are: false,
+                who: None,
+                ..f.clone()
+            };
+            let mut alt = &mut g.or;
+            while let Some(a) = alt {
+                a.who = None;
+                alt = &mut a.or;
+            }
+            (
+                format!(
+                    "permanent you control that's {}",
+                    with_article(&filter_phrase(&g, card, false))
+                ),
+                format!(
+                    "permanents you control that are {}",
+                    filter_phrase(&g, card, true)
+                ),
+            )
+        }
         CountExpr::Permanents(f) => {
             // "for each other attacking creature": attacking and blocking
             // creatures are on the battlefield without saying so.
@@ -4771,6 +4799,17 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     crate::ast::CountExpr::SourcePower | crate::ast::CountExpr::SourceToughness
                 ) {
                     phrase = phrase.replacen("its", &format!("{}'s", ctx.source_name()), 1);
+                }
+                // "deals damage to that creature's controller equal to the
+                // creature's power" (Boros Fury-Shield): named once already.
+                if let crate::ast::CountExpr::TargetStat { n: i, that: true, .. } = &count.expr
+                    && let Effect::DealDamage { to, .. } = e
+                    && to.as_slice() == [Recipient::ThatControllerOf(*i)]
+                {
+                    let noun = ctx.target_noun[*i].clone();
+                    if c.text.contains(&format!(" to that {noun}'s controller")) {
+                        phrase = phrase.replacen(&format!("that {noun}'s"), &format!("the {noun}'s"), 1);
+                    }
                 }
                 let _ = write!(c.tail, " equal to {phrase}");
             }
@@ -6427,6 +6466,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let yours = match what {
                 Recipient::Target(i) | Recipient::ThatTarget(i) => from_yours(*i),
                 Recipient::Targets(first, count) => (*first..*first + *count).all(from_yours),
+                // "Whenever a creature is put into your graveyard from the
+                // battlefield, ... return that card to the battlefield"
+                // (Angelic Renewal): the card is yours.
+                Recipient::SameCard | Recipient::TriggeringCard => matches!(
+                    ctx.current,
+                    Some(Ability::Triggered {
+                        trigger: Trigger::PutIntoGraveyardFromBattlefield(_)
+                            | Trigger::PutIntoGraveyard(_),
+                        ..
+                    })
+                ),
                 _ => false,
             };
             // A card from another player's graveyard isn't "returned":
@@ -8927,7 +8977,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     ctx.source_mentioned = false;
                 }
             }
+            let it_before = ctx.it_target;
+            if check.tense == TargetTense::Is && !check.after {
+                ctx.it_target = Some(*n);
+            }
             let body = sentences(inner, ctx);
+            ctx.it_target = it_before;
             let mut body = if starts_with_name(&body, ctx.card) {
                 body
             } else {
@@ -9981,6 +10036,9 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
                 Some(Join::And | Join::AndRepeat) if s.joins[..i - 1].contains(&Join::Comma) => {
                     ", and "
                 }
+                // "it can't be regenerated this turn, and if it would die
+                // this turn, exile it instead" (Carbonize).
+                Some(Join::And) if c.subject.is_none() && c.text.starts_with("if ") => ", and ",
                 _ => " and ",
             });
         }
@@ -11966,6 +12024,7 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
         }
         (Replaces::Dies { to }, Outcome::Instead(zone)) => {
             let who = match to {
+                Affects::Target(i) if ctx.it_target == Some(*i) => "it".to_string(),
                 Affects::Target(i) => {
                     ctx.target_mentioned[*i] = true;
                     // "If that creature or planeswalker would die this
@@ -13263,6 +13322,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::Kicked => "it was kicked".to_string(),
         StaticCond::NotKicked if has_gift(card) => "the gift wasn't promised".to_string(),
         StaticCond::NotKicked => format!("this {} wasn't kicked", kicked_noun(card)),
+        StaticCond::ThatKicked => "that spell was kicked".to_string(),
         StaticCond::Impending => {
             "this permanent's impending cost was paid and it has a time counter on it".to_string()
         }
