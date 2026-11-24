@@ -8598,6 +8598,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             control,
             conspire,
             casualty,
+            joined,
         } => {
             let subject = if *f == Filter::default() {
                 String::new()
@@ -8643,9 +8644,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 items.push(format!("casualty {casualty}"));
             }
             let whose = if *control { "you control" } else { "you cast" };
+            let joined = if *joined { " joined" } else { "" };
             let _ = writeln!(
                 out,
-                "{indent}spells{subject} {whose}{from} have {}",
+                "{indent}spells{subject} {whose}{from} have {}{joined}",
                 items.join(" and ")
             );
         }

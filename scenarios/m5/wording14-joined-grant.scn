@@ -1,0 +1,40 @@
+# "Noble creatures you control and Lesson spells you control have
+# lifelink." (Lo and Li, Twin Tutors): a static grant and a spell grant
+# printed as one sentence; each works as its own line does.
+
+scenario "Lo and Li: a Noble creature has lifelink, another creature doesn't" {
+  battlefield A: "Lo and Li, Twin Tutors", "Squirrel Sovereign", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Squirrel Sovereign" lifelink
+  assert has not "Grizzly Bears" lifelink
+}
+
+scenario "Lo and Li: a Lesson spell's damage gains its controller life" {
+  battlefield A: "Lo and Li, Twin Tutors", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Iroh's Demonstration"
+  turn 1 A: cast "Iroh's Demonstration" mode 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 24
+}
+
+scenario "Lo and Li: a non-Lesson spell doesn't" {
+  battlefield A: "Lo and Li, Twin Tutors", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 20
+}
+
+scenario "Lo and Li: the enters trigger finds a Lesson or Noble card" {
+  battlefield A: 5 "Swamp"
+  hand A: "Lo and Li, Twin Tutors"
+  library A: "Grizzly Bears", "Iroh's Demonstration", "Squirrel Sovereign"
+  turn 1 A: cast "Lo and Li, Twin Tutors"
+  turn 1 A: choose "Squirrel Sovereign"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Squirrel Sovereign"
+  assert library A contains "Iroh's Demonstration"
+}

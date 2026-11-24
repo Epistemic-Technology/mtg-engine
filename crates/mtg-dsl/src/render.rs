@@ -21668,6 +21668,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             control,
             conspire,
             casualty,
+            ..
         } => {
             // CR 609.4b: "You may spend mana as though it were mana of any
             // color to cast planeswalker spells.", "You can spend mana of
@@ -23212,6 +23213,31 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
                     text = format!("Then you may{rest}");
                 }
                 true
+            }
+            // "Noble creatures you control and Lesson spells you control
+            // have lifelink." (Lo and Li): the grant before it and this one
+            // share their verb.
+            Ability::SpellsHave { joined: true, .. } => {
+                if let Some(last) = lines.last_mut()
+                    && let Some((_, kws)) = text.rsplit_once(" have ")
+                    && let Some(subject) = last.strip_suffix(&format!(" have {kws}"))
+                {
+                    // A subtype keeps its capital ("Lesson spells"); a
+                    // card type or "Spells" doesn't.
+                    let first = text.split(' ').next().unwrap_or_default().to_lowercase();
+                    let lower = first == "spells"
+                        || first.starts_with("non")
+                        || crate::parse::is_card_type_word(&first);
+                    let rest = if lower {
+                        lowercase_first(&text)
+                    } else {
+                        text.clone()
+                    };
+                    *last = format!("{subject} and {rest}");
+                    i += 1;
+                    continue;
+                }
+                false
             }
             _ => false,
         };

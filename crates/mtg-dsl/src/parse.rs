@@ -656,6 +656,11 @@ const NUMBER_WORDS: [&str; 20] = [
     "twenty",
 ];
 
+/// Whether `w` names a card type ("artifact", "creatures").
+pub(crate) fn is_card_type_word(w: &str) -> bool {
+    card_type(w).is_some()
+}
+
 fn card_type(w: &str) -> Option<CardType> {
     Some(match w.to_ascii_lowercase().as_str() {
         "artifact" | "artifacts" => CardType::Artifact,
@@ -4943,6 +4948,7 @@ impl P {
                 control: false,
                 conspire: false,
                 casualty: 0,
+                joined: false,
             });
         }
         if cond.is_none()
@@ -4963,6 +4969,7 @@ impl P {
                 control: false,
                 conspire: false,
                 casualty: 0,
+                joined: false,
             });
         }
         // "Instant and sorcery spells you cast [from your hand] have
@@ -7126,6 +7133,7 @@ impl P {
                 control: false,
                 conspire: false,
                 casualty: 0,
+                joined: false,
             });
         }
         let mut keywords = Vec::new();
@@ -7176,6 +7184,7 @@ impl P {
                 break;
             }
         }
+        let joined = control && self.eat_word("joined");
         self.end_stmt()?;
         Ok(Ability::SpellsHave {
             filter,
@@ -7189,6 +7198,7 @@ impl P {
             control,
             conspire,
             casualty,
+            joined,
         })
     }
 

@@ -2089,6 +2089,11 @@ pub enum Ability {
         conspire: bool,
         /// `... have casualty 1` (CR 702.153); 0 for none.
         casualty: u8,
+        /// `spells Lesson you control have lifelink joined` after `static
+        /// Noble creature you control: has lifelink`: one sentence, "Noble
+        /// creatures you control and Lesson spells you control have
+        /// lifelink." (Lo and Li, Twin Tutors); wording only.
+        joined: bool,
     },
     /// `this spell costs {1} less count each artifact you control`: "This
     /// spell costs {1} less to cast for each artifact you control."

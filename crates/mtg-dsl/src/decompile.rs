@@ -3390,6 +3390,7 @@ impl Decompiler<'_> {
                         || g.keywords.contains(mtg_core::card::Keyword::Wither),
                     conspire: g.conspire,
                     casualty: g.casualty,
+                    joined: false,
                 }
             }
             AbilityDef::CostChange(c) => Ability::CostChange {

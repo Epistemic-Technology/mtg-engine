@@ -7297,6 +7297,7 @@ impl Compiler<'_> {
                 control: _,
                 conspire,
                 casualty,
+                ..
             } => AbilityDef::CostChange(mtg_core::card::CostChange {
                 spells: self.filter(filter),
                 whose: *whose,

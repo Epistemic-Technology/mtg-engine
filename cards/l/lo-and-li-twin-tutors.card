@@ -1,0 +1,10 @@
+card "Lo and Li, Twin Tutors" {
+  oracle_id ad643992-eb9f-4a4a-9b74-a5aee2337f30
+  cost {4}{B}
+  type Legendary Creature — Human Advisor
+  pt 2/2
+  pronoun they
+  triggered when this enters: search Lesson or Noble card reveal to hand
+  static Noble creature you control: has lifelink
+  spells Lesson you control have lifelink joined
+}
