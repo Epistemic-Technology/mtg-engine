@@ -10585,6 +10585,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 (TargetTense::Is, _) if *f == Filter::controlled_by_you() => {
                     "you controlled it".to_string()
                 }
+                // "If an opponent protects it, remove a defense counter
+                // from it." (Portent Tracker).
+                (TargetTense::Is, _)
+                    if let Some(who) = f.status.protector
+                        && *f == Filter::protected_by(who) =>
+                {
+                    if who == Who::You {
+                        "you protect it".to_string()
+                    } else {
+                        "an opponent protects it".to_string()
+                    }
+                }
                 (TargetTense::ThatWas, _) if *f == Filter::controlled_by_you() => {
                     "you controlled that permanent".to_string()
                 }
@@ -15836,7 +15848,12 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         ),
         StaticCond::PutIntoGraveyardThisTurn(t) => {
             let names: Vec<&str> = t.iter().map(|c| type_noun(*c)).collect();
-            let list = names.join(" or ");
+            // No types: any permanent (Ashen Reaper).
+            let list = if names.is_empty() {
+                "permanent".to_string()
+            } else {
+                names.join(" or ")
+            };
             format!(
                 "{} was put into a graveyard from the battlefield this turn",
                 with_article(&list)

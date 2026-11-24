@@ -1,0 +1,10 @@
+card "Etched Host Doombringer" {
+  oracle_id 85c799e9-74d5-459e-b168-b95ed78cd4e9
+  cost {4}{B}
+  type Creature — Phyrexian Demon
+  pt 3/5
+  triggered when this enters: choose one {
+    mode: target opponent loses 2 life and you gain 2 life
+    mode: choose target battle; if an opponent protects target 1, remove 3 defense counters from target 1; otherwise, put 3 defense counters on target 1
+  }
+}

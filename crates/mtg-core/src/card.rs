@@ -1365,6 +1365,12 @@ pub struct StatusQuals {
     /// matches.
     #[serde(default)]
     pub commander: Option<bool>,
+    /// "If an opponent protects it", "if you protect it": the battle's
+    /// protector (CR 310.8) relative to the effect's controller. Judged
+    /// only by a check of a target (`Effect::IfTarget`); elsewhere it
+    /// doesn't restrict.
+    #[serde(default)]
+    pub protector: Option<Who>,
 }
 
 /// A characteristic compared with an amount the source counts
@@ -1425,6 +1431,7 @@ impl StatusQuals {
             || self.nonattacking
             || self.bound.is_some()
             || self.commander.is_some()
+            || self.protector.is_some()
     }
 }
 

@@ -655,7 +655,9 @@ battlefield under your control this turn"), `2 nonland
 entered this turn` (celebration: "two or more nonland permanents entered
 the battlefield under your control this turn"), `artifact or creature to
 graveyard this turn` ("an artifact or creature was put into a graveyard
-from the battlefield this turn"; any card types joined by `or`),
+from the battlefield this turn"; any card types joined by `or`;
+`permanent to graveyard this turn`, "a permanent was put into a graveyard
+from the battlefield this turn", any permanent),
 `discarded this turn`, `opponent controls more creatures`, `opponent has more life`, `opponent
 has more cards in hand` ("an opponent controls more creatures than you",
 ...), `not cast this turn` ("you haven't cast a
@@ -982,7 +984,15 @@ trample"). `if you controlled target 1, draw 1 card`: "If you controlled
 that permanent, draw a card.", its controller as it last existed (CR
 608.2h); the target's own noun prints ("If you controlled that
 artifact"), and `if you controlled that target 1, ...` prints "that
-permanent" whatever the target is (Kellan, Inquisitive Prodigy). `then if <cond>, <clause>` prints "Then if ...". `you lose 1 life
+permanent" whatever the target is (Kellan, Inquisitive Prodigy).
+`choose target battle; if an opponent protects target 1, remove 1
+defense counter from target 1; otherwise, put 1 defense counter on
+target 1`: "Choose target battle. If an opponent protects it, remove a
+defense counter from it. Otherwise, put a defense counter on it."
+(Portent Tracker); `if you protect target 1, ...` prints "If you protect
+it". The battle's protector (CR 310.8; a Siege's is its controller's
+opponent) is judged from the ability's controller as it resolves; a
+target no longer on the battlefield matches neither. `then if <cond>, <clause>` prints "Then if ...". `you lose 1 life
 unless opponent life 10 or less` prints "you lose 1 life unless an
 opponent has 10 or less life": the clause happens only if the condition
 doesn't hold as it resolves; `you lose 2 life unless you control Villain`
@@ -2340,6 +2350,8 @@ haste until end of turn." where `those tokens` prints "They"), `copy <what> [tim
 <num>] [new targets] [with exceptions]` (CR 707.10: `copy target instant
 or sorcery spell you control new targets` prints "Copy target instant or
 sorcery spell you control. You may choose new targets for the copy.";
+`copy target spell you control new targets`, any spell of yours, a
+permanent spell's copy becoming a token (Slick Imitator);
 `copy that spell` in a cast trigger, `copy it` for "it" there or in
 `when you cast this`, `copy this` "copy this spell"; `times 2` prints
 "twice", `times x` "X times" (the copied spell's X), `times count each

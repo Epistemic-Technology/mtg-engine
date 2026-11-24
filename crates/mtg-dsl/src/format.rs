@@ -2802,6 +2802,23 @@ impl Fmt {
                     self.line(inner, t)
                 )
             }
+            Effect::IfTarget(n, f, inner, check)
+                if check.tense == crate::ast::TargetTense::Is
+                    && !check.after
+                    && let Some(who) = f.status.protector
+                    && *f == Filter::protected_by(who) =>
+            {
+                format!(
+                    "if {} target {}, {}",
+                    if who == Who::You {
+                        "you protect"
+                    } else {
+                        "an opponent protects"
+                    },
+                    n + 1,
+                    self.line(inner, t)
+                )
+            }
             Effect::IfTarget(n, f, inner, check) if check.after => format!(
                 "{} if {}target {} is {}",
                 self.line(inner, t),
@@ -5996,7 +6013,11 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::NonlandEnteredThisTurn(n) => format!("{n} nonland entered this turn"),
         StaticCond::PutIntoGraveyardThisTurn(t) => {
             let names: Vec<&str> = t.iter().map(|c| crate::render::type_noun(*c)).collect();
-            format!("{} to graveyard this turn", names.join(" or "))
+            if names.is_empty() {
+                "permanent to graveyard this turn".to_string()
+            } else {
+                format!("{} to graveyard this turn", names.join(" or "))
+            }
         }
         StaticCond::DiscardedThisTurn => "discarded this turn".to_string(),
         StaticCond::Night => "night".to_string(),

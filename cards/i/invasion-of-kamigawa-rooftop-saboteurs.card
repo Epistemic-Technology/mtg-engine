@@ -1,0 +1,15 @@
+card "Invasion of Kamigawa // Rooftop Saboteurs" {
+  oracle_id 462fa2a4-651b-4fc1-b73b-1bd4508c8f75
+  layout transform
+  cost {3}{U}
+  type Battle — Siege
+  defense 4
+  triggered when this enters: tap target artifact or creature an opponent controls and put 1 stun counter on target 1
+  face "Rooftop Saboteurs" {
+    type Creature — Moonfolk Ninja
+    pt 2/3
+    color blue
+    keywords flying
+    triggered whenever this deals combat damage to a player or battle: draw 1 card
+  }
+}

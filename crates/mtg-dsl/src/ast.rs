@@ -1160,6 +1160,18 @@ impl Filter {
             ..Filter::default()
         }
     }
+
+    /// A battle its protector is `who` of (CR 310.8): `if an opponent
+    /// protects target 1, ...`, `if you protect target 1, ...`.
+    pub fn protected_by(who: Who) -> Filter {
+        Filter {
+            status: mtg_core::card::StatusQuals {
+                protector: Some(who),
+                ..Default::default()
+            },
+            ..Filter::default()
+        }
+    }
 }
 
 /// How a search prints its filter's alternative.

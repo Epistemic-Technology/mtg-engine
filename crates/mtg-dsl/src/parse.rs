@@ -4873,6 +4873,11 @@ impl P {
             self.expect_words(&["nonland", "entered", "this", "turn"])?;
             return Ok(StaticCond::NonlandEnteredThisTurn(n));
         }
+        // `permanent to graveyard this turn`: "a permanent was put into a
+        // graveyard from the battlefield this turn" (any types).
+        if self.eat_words(&["permanent", "to", "graveyard", "this", "turn"]) {
+            return Ok(StaticCond::PutIntoGraveyardThisTurn(Vec::new()));
+        }
         // `artifact or creature to graveyard this turn`.
         let type_at = |w: Option<String>| {
             w.and_then(|w| {
@@ -7176,6 +7181,30 @@ impl P {
             return Ok(Effect::IfTarget(
                 n,
                 Filter::controlled_by_you(),
+                vec![s],
+                crate::ast::TargetCheck {
+                    tense: crate::ast::TargetTense::Is,
+                    ..crate::ast::TargetCheck::default()
+                },
+            ));
+        }
+        // `if an opponent protects target 1, ...`, `if you protect target
+        // 1, ...`: "If an opponent protects it" (CR 310.8, Portent
+        // Tracker).
+        let opp = self.at_words(&["if", "an", "opponent", "protects", "target"]);
+        if opp || self.at_words(&["if", "you", "protect", "target"]) {
+            self.pos += if opp { 5 } else { 4 };
+            let n = self.number()? as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            self.expect(&Tok::Comma)?;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfTarget(
+                n - 1,
+                Filter::protected_by(if opp { Who::Opponents } else { Who::You }),
                 vec![s],
                 crate::ast::TargetCheck {
                     tense: crate::ast::TargetTense::Is,
@@ -13182,7 +13211,9 @@ impl P {
         }
         // "card from a graveyard" / "instant card from your graveyard";
         // "card named ~ from your graveyard".
-        let mut f = if self.at_word("card") {
+        // "Copy target spell you control." (Slick Imitator): a spell of
+        // any kind with only its controller named.
+        let mut f = if self.at_word("card") || self.at_words(&["spell", "you", "control"]) {
             Filter::default()
         } else {
             self.filter()?

@@ -16092,6 +16092,7 @@ impl GameState {
                     q.spent_colors = false;
                     q.bound = None;
                     q.mana_value_x = false;
+                    q.protector = None;
                     q.any()
                 }
         }
@@ -16117,6 +16118,26 @@ impl GameState {
         let Some(Target::Object(id)) = ctx.targets.get(usize::from(n)).copied() else {
             return false;
         };
+        // "If an opponent protects it" (CR 310.8): a battle still on the
+        // battlefield, its protector judged from the effect's controller.
+        if let Some(who) = filter.status.protector {
+            let Some(p) = self
+                .objects
+                .get(id)
+                .filter(|o| o.zone == Zone::Battlefield)
+                .and_then(|_| self.protector(id))
+            else {
+                return false;
+            };
+            let ok = match who {
+                crate::card::Who::You => p == ctx.controller,
+                crate::card::Who::Opponents => p != ctx.controller,
+                crate::card::Who::Any => true,
+            };
+            if !ok {
+                return false;
+            }
+        }
         // A declined "up to one" target (`Target::none()`) or one that
         // left with no last known information matches nothing.
         let controller = match (self.lki.get(&id), self.objects.get(id)) {
