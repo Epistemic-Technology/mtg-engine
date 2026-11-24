@@ -153,6 +153,49 @@ wrong thing in some case.
   judges earlier spells by their printed characteristics; "until end of
   combat" made outside combat lasts to the end of the turn's next
   combat.
+- **Found in the eleventh wave, in cards that are in** (none fixed yet):
+  - A static ability granted inside a quoted ability is not applied:
+    `static enchanted: has ability { static this: has hexproof as long as
+    this is untapped }` gates and gives nothing (Giant's Amulet was
+    removed; the template author now skips the form, but hand-written
+    cards may use it).
+  - "Can't attack alone" is offered as a legal attack that then deals no
+    damage (Loyal Pegasus, Sightless Brawler bestowed).
+  - A granted "base power is equal to ..." is applied as a
+    characteristic-defining ability in layer 7a, not in 7b by timestamp
+    (Ms. Marvel, Kamala Khan): differs only against another effect that
+    sets base power.
+  - Evoke is offered only at sorcery timing, even for a creature with
+    flash.
+  - A target cost ("costs {3} less if it targets ...") is judged by the
+    first target only.
+  - Who may look at a hideaway card is fixed as it is exiled: a new
+    controller of the permanent can't look. The controller can't decline
+    to play the exiled card once the condition holds.
+  - A card exiled face down keeps its characteristics for counts and
+    filters (CR 406.3 says it has none), and an AI search's resampling
+    does not hide it.
+  - A spell limit ("can't cast more than one spell each turn") counts
+    spells cast earlier in the turn, before the limiter arrived (the
+    rule; recorded for review, no known discrepancy).
+  - "Creatures ... can't attack you" does not constrain a creature put
+    onto the battlefield attacking (CR 508.4 lets its controller choose
+    any defender; the engine still attacks the player): Blazing Archon,
+    Reverence, Sandwurm Convergence.
+  - Under "Players can't draw cards" a draw is skipped silently; an
+    effect that counts "cards drawn this way" counts 0. No card known
+    to combine them.
+  - "Each opponent may ... or ..." and "unless that player sacrifices"
+    act on every opponent inside each payer's turn: right for two
+    players only.
+- **Engine picks, eleventh wave:** the cards exiled by a "search their
+  graveyard, hand, and library for cards with that name" (hand first);
+  which permanents are tapped for a tap cost among mana sources (by
+  battlefield order, so a payable cast can be judged unpayable); the
+  creature copied by "a copy of one of them" (Twilight Diviner); the
+  cheapest of several granted flashback costs; an optional cost whose
+  discount the offer assumed can't be declined unless the full cost is
+  payable.
 - **Engine picks and approximations, the tenth wave's follow-ups:**
   collect evidence and blight paid as a ward cost are chosen by the
   engine; the Flagbearer rule forces only the last eligible target, a
@@ -209,9 +252,6 @@ by rejecting the form at compile time or by binding it correctly.
   - An "If you do" after a target check (`if target 1 is ...`) reads the
     check, not an earlier optional action. No card has that order.
 - **Found in the ninth wave** (each card named was rejected):
-  - `whenever creature you control enters if you cast it` never fires:
-    "you cast it" is remembered for the source, not for the entering
-    creature (The Sibsig Ceremony).
   - `destroy each other creature` after creating tokens also destroys
     those tokens: "all other creatures" on Martial Coup means all but
     the Soldiers just made.
@@ -430,6 +470,23 @@ named the feature; a card may need more than one.
   a future step; "target opponent chooses a creature they control";
   "two target creatures controlled by the same player"; the Flagbearer
   rule.
+- **Left by the eleventh wave's branches** (each several cards): "mana
+  of any type can be spent to cast it" as a rider on a play permission
+  (about fifteen cards: Gonti, Thief of Sanity, Hostage Taker, Nita,
+  Agatha's Soul Cauldron, Outrageous Robbery); a play permission given
+  to the card's owner; token copies of cards in exile or a graveyard
+  (The Scarab God, Lazav, Mimeoplasm); "that player has two or fewer
+  cards in hand" on each opponent's upkeep (Prickle Faeries, Davriel,
+  Shrieking Affliction, Bandit's Talent); a per-player choice that is
+  not a target and is remembered (Winnowing); one target per player;
+  "can't be sacrificed"; compleated (hybrid Phyrexian mana, and the
+  life paid for a spell recorded); sneak, retrace, jump-start and
+  foretell granted to cards in other zones; a land entering as a copy;
+  "activated abilities of <group> can't be activated"; a static
+  condition on the top card of a library; dig-then-exile-one-face-down;
+  "You may look at cards exiled with this"; pile forms with other
+  destinations; an as-enters number; a name ban until your next turn;
+  the remaining Sieges (each its own primitive).
 - **Mechanics not yet in:** harness, hideaway, cloak, epic,
   offering, compleated, companion, mutate, the Everywhere land token;
   "Each Sliver card in each player's hand has slivercycling {3}" (an

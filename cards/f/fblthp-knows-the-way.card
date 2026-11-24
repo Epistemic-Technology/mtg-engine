@@ -1,0 +1,8 @@
+card "Fblthp, Knows the Way" {
+  oracle_id 48b891b6-3175-4864-bb98-af131098c557
+  cost {X}{G}{G}
+  type Legendary Creature — Homunculus Scout
+  pt */2
+  label "Domain" static this: cda power domain
+  triggered when this enters: search up to X basic land card with different names reveal to hand
+}

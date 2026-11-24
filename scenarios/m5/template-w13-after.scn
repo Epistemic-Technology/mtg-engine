@@ -1,0 +1,60 @@
+# Cards the template author wrote after the eleventh wave's merges.
+
+scenario "Mausoleum Wanderer counters unless its power is paid" {
+  battlefield A: "Mausoleum Wanderer"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 2 B: cast "Shock" targeting "Mausoleum Wanderer"
+  turn 2 A: activate "Mausoleum Wanderer" targeting "Shock"
+  run_to turn 2 end
+  assert graveyard A contains "Mausoleum Wanderer"
+  assert graveyard B contains "Shock"
+  assert life A 20
+}
+
+scenario "Mausoleum Wanderer grows when another Spirit enters" {
+  battlefield A: "Mausoleum Wanderer", "Island"
+  hand A: "Mausoleum Wanderer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mausoleum Wanderer"
+  run_to turn 1 postcombat_main
+  assert battlefield A count 3
+}
+
+scenario "Fblthp, Knows the Way fetches X basic lands with different names" {
+  battlefield A: 4 "Forest"
+  hand A: "Fblthp, Knows the Way"
+  library A: "Island", "Island", "Mountain", "Plains", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fblthp, Knows the Way" x 2
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert battlefield A contains "Fblthp, Knows the Way"
+}
+
+scenario "Saheeli Rai -2: a token copy for the turn, exiled at the end step" {
+  battlefield A: "Saheeli Rai", "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Saheeli Rai" ability 2 targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield A count 3
+  assert counters "Saheeli Rai" loyalty 1
+  run_to turn 2 upkeep
+  assert battlefield A count 2
+}
+
+# A hand-size static granted by the card's own ability must be re-read
+# as the hand changes (found by the 400-pair debug sweep).
+scenario "Ms. Marvel's granted base power follows the hand within the turn" {
+  battlefield A: "Ms. Marvel, Kamala Khan", "Forest", "Mountain"
+  hand A: "Giant Growth", "Shock"
+  library A: 5 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Ms. Marvel, Kamala Khan"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert power "Ms. Marvel, Kamala Khan" 4
+  assert life B 18
+}

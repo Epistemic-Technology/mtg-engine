@@ -2523,12 +2523,11 @@ impl Compiler<'_> {
             StaticCond::NotCastFromHand => {
                 StaticCondition::NotCastFrom(mtg_core::state::Zone::Hand)
             }
-            StaticCond::WasCast => StaticCondition::WasCast,
+            StaticCond::WasCast | StaticCond::WasCastPassive => StaticCondition::WasCast,
             StaticCond::CameFrom { zone, wording } => StaticCondition::CameFrom {
                 zone: *zone,
                 wording: *wording,
             },
-            StaticCond::WasCastPassive => StaticCondition::WasCast,
             StaticCond::PutAnyCounterThisTurn => {
                 StaticCondition::happened(TurnEvent::CountersOnCreatureBy, TurnWho::You)
             }

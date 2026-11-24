@@ -621,14 +621,10 @@ mod tests {
         let card = s.player_mut(me).library.pop().unwrap();
         s.objects[card].zone = Zone::Exile;
         s.player_mut(me).exile.push(card);
-        let source = s.player(me).hand[0];
-        s.linked_exiles.push(crate::state::LinkedExile {
-            source,
-            card,
-            until: false,
-            to_hand: false,
-            face_down: true,
-        });
+        // As hideaway exiles it: face down, and only its controller may
+        // look (the face-down mark and the `revealed` bits).
+        s.objects[card].marks |= crate::state::OBJ_FACE_DOWN_EXILE;
+        s.objects[card].revealed = 1 << me.index();
         assert_eq!(s.observe(me).players[0].exile[0].name, "Forest");
         assert_eq!(
             s.observe(PlayerId(1)).players[0].exile[0].name,

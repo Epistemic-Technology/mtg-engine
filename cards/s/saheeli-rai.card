@@ -1,0 +1,12 @@
+card "Saheeli Rai" {
+  oracle_id 5f3fe679-aff1-41b3-8d75-c78c2c0636f0
+  cost {1}{U}{R}
+  type Legendary Planeswalker — Saheeli
+  loyalty 3
+  loyalty +1: scry 1; deal 1 damage to each opponent
+  loyalty -2: create token copy of target artifact or creature you control with exceptions; that created token gains haste indefinitely; delayed that token: exile it at beginning of the next end step
+  loyalty -7: search up to 3 artifact card with different names to battlefield
+  except {
+    types Artifact
+  }
+}

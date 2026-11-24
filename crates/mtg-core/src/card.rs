@@ -11373,7 +11373,7 @@ impl CardPool {
                     | StaticCondition::SourceBeingBlocked
             )))
         });
-        def.hand_static = def.abilities.iter().any(|a| {
+        let hand_reader = |a: &AbilityDef| {
             matches!(a, AbilityDef::Static(sa) if sa.parts.iter().any(|m| matches!(
                 m,
                 // Through a multiple ("twice the number of cards in your
@@ -11385,6 +11385,16 @@ impl CardPool {
                     | StaticCondition::MoreCardsInHand
             )) || matches!(&sa.condition, Some(StaticCondition::Happened { count, .. })
                 if count.kind.with_hand()))
+        };
+        // Its own statics, and those an ability of its grants ("until end
+        // of turn, Ms. Marvel has base power equal to the number of cards
+        // in your hand").
+        def.hand_static = def.abilities.iter().any(|a| {
+            hand_reader(a)
+                || a.all_effects().iter().any(|e| {
+                    matches!(e, Effect::GrantAbility { ability, .. }
+                        if hand_reader(self.ability(*ability)))
+                })
         });
         def.step_static = def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::Static(sa) if matches!(sa.condition, Some(StaticCondition::During(_))))

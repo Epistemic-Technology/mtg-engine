@@ -1,0 +1,9 @@
+card "Mausoleum Wanderer" {
+  oracle_id 1803850e-9499-4bf7-a4d9-6bf655cbe87d
+  cost {U}
+  type Creature — Spirit
+  pt 1/1
+  keywords flying
+  triggered whenever other Spirit you control enters: this gets +1/+1
+  activated sacrifice this: counter target instant or sorcery spell unless its controller pays {X} count where power
+}
