@@ -2680,7 +2680,7 @@ cost.": its owner may cast it from the graveyard for its mana cost this
 turn, with its usual timing, and it is exiled as it leaves the stack, CR
 702.34a; `gains harmonize`: "... gains harmonize until end of turn. Its
 harmonize cost is equal to its mana cost.", cast that way this turn,
-tapping up to one creature to reduce it, CR 702.180a), `put land card from hand onto battlefield [tapped]` ("put a land
+tapping up to one creature to reduce it, CR 702.180a), `grant graveyard cast to creature cards` ("Creature cards in your graveyard gain "You may cast this card from your graveyard" until end of turn.": the controller's graveyard cards matching the filter as it resolves, CR 611.2c, may be cast from there this turn for their costs with their usual timing, and aren't exiled; a card that leaves the graveyard loses it), `put land card from hand onto battlefield [tapped]` ("put a land
 card from your hand onto the battlefield"; `put creature card and land
 card from hand onto battlefield`: "put a creature card and/or a land card
 from your hand onto the battlefield", a choice of each in turn; in a

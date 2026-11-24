@@ -7058,6 +7058,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
             )
         }
+        // "Creature cards in your graveyard gain \"You may cast this card
+        // from your graveyard\" until end of turn."
+        Effect::GrantGraveyardCast(f) => Clause::imperative(format!(
+            "{} in your graveyard gain \"You may cast this card from your graveyard\" until end of turn",
+            cards_phrase(f, ctx.card, true)
+        )),
         Effect::SwitchPt { to } => {
             let o = ctx.obj(*to);
             Clause::imperative(format!("switch {o}'s power and toughness")).until_eot()

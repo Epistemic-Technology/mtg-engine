@@ -475,6 +475,21 @@ impl GameState {
                 options.push(Choice::Cast(*id));
             }
         }
+        // "Creature cards in your graveyard gain \"You may cast this card
+        // from your graveyard\" until end of turn.": for its costs, with its
+        // usual timing (CR 601.3).
+        for id in &self.granted_graveyard_cast {
+            let Some(o) = self.objects.get(*id) else {
+                continue;
+            };
+            if o.zone != Zone::Graveyard || o.owner != p || options.contains(&Choice::Cast(*id)) {
+                continue;
+            }
+            let def = self.pool.get(o.def);
+            if !def.is_land() && self.castable(p, def, *id, sorcery_timing, &sources, &changers) {
+                options.push(Choice::Cast(*id));
+            }
+        }
         // CR 702.180a: a card given harmonize, its harmonize cost its mana
         // cost.
         for id in &self.granted_harmonize {
@@ -11665,6 +11680,27 @@ impl GameState {
                         }
                     }
                 }
+            }
+            // CR 611.2c: the cards in the graveyard as it resolves.
+            Effect::GrantGraveyardCast(filter) => {
+                let p = ctx.controller;
+                let cards: Vec<ObjId> = self
+                    .player(p)
+                    .graveyard
+                    .iter()
+                    .copied()
+                    .filter(|id| {
+                        let o = &self.objects[*id];
+                        filter.matches(
+                            *id,
+                            o.owner,
+                            &self.base_characteristics(o),
+                            Some(ctx.source),
+                            Some(p),
+                        )
+                    })
+                    .collect();
+                self.granted_graveyard_cast.extend(cards);
             }
             Effect::SwitchPt { to } => {
                 for t in self.recipients(ctx, *to) {

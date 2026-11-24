@@ -2039,6 +2039,7 @@ impl Decompiler<'_> {
                 that_card: false,
                 harmonize: *harmonize,
             },
+            CoreEffect::GrantGraveyardCast(f) => Effect::GrantGraveyardCast(self.filter(f)),
             CoreEffect::SwitchPt { to } => Effect::SwitchPt {
                 to: Self::recipient(*to),
             },

@@ -10749,6 +10749,14 @@ impl P {
                 Ok(Effect::Discard { count, who: None })
             }
             "scry" => Ok(Effect::Scry(self.num()?)),
+            // "Creature cards in your graveyard gain \"You may cast this
+            // card from your graveyard\" until end of turn."
+            "grant" if self.at_words(&["graveyard", "cast", "to"]) => {
+                self.pos += 3;
+                let f = self.filter()?;
+                self.expect_word("cards")?;
+                Ok(Effect::GrantGraveyardCast(f))
+            }
             "investigate"
                 if self.at_words(&["count", "each"]) || self.at_words(&["once", "count"]) =>
             {

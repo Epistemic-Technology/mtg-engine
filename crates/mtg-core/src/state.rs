@@ -2085,6 +2085,10 @@ pub struct GameState {
     /// (`Effect::GrantFlashback`), castable for their mana cost while
     /// they stay there.
     pub granted_flashback: Vec<ObjId>,
+    /// Graveyard cards given "You may cast this card from your graveyard"
+    /// until end of turn (`Effect::GrantGraveyardCast`), castable for their
+    /// costs while they stay there and not exiled as they leave the stack.
+    pub granted_graveyard_cast: Vec<ObjId>,
     /// Graveyard cards given harmonize until end of turn, castable for
     /// their mana cost (as their harmonize cost) while they stay there.
     pub granted_harmonize: Vec<ObjId>,

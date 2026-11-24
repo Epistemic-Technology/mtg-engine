@@ -139,6 +139,15 @@ impl GameState {
         // CR 702.34a: a card cast from the graveyard is cast with
         // flashback.
         let gdef = self.pool.get(o.def);
+        // "You may cast this card from your graveyard" given until end of
+        // turn: for its mana cost, and not exiled (a grant of flashback
+        // too would exile it, so the plain cast is taken).
+        if o.zone == Zone::Graveyard
+            && gdef.flashback.is_none()
+            && self.granted_graveyard_cast.contains(&id)
+        {
+            return CastWay::new(id, AltCast::None);
+        }
         // Flashback granted until end of turn: for its mana cost.
         // Flashback a permanent gives it (CR 113.6b): for its granted cost.
         let live = o.zone == Zone::Graveyard && self.card_grants_live();

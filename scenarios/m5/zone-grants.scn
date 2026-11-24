@@ -340,3 +340,48 @@ scenario "Lorehold: at each opponent's upkeep, discard a card to draw one" {
   assert graveyard A contains "Grizzly Bears"
   assert hand A count 1
 }
+
+scenario "Case of the Uneaten Feast: solved, creature cards in your graveyard may be cast this turn" {
+  battlefield A: "Case of the Uneaten Feast", 3 "Plains", 2 "Forest", "Mountain"
+  hand A: "Renewed Faith"
+  graveyard A: "Grizzly Bears", "Serra Angel", "Lightning Bolt"
+  turn 1 A: cast "Renewed Faith"
+  turn 3 A: activate "Case of the Uneaten Feast"
+  turn 3 A: cast "Grizzly Bears" from graveyard
+  illegal turn 3 A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Case of the Uneaten Feast"
+  assert graveyard A contains "Lightning Bolt"
+  illegal turn 5 A: cast "Serra Angel" from graveyard
+  run_to turn 5 postcombat_main
+  assert graveyard A contains "Serra Angel"
+}
+
+scenario "Case of the Uneaten Feast: a card put into the graveyard later isn't affected" {
+  battlefield A: "Case of the Uneaten Feast", "Grizzly Bears", 3 "Plains", 3 "Swamp", 2 "Forest"
+  hand A: "Renewed Faith", "Murder"
+  turn 1 A: cast "Renewed Faith"
+  turn 3 A: activate "Case of the Uneaten Feast"
+  turn 3 begin_combat A: cast "Murder" targeting "Grizzly Bears"
+  illegal turn 3 postcombat_main A: cast "Grizzly Bears" from graveyard
+  run_to turn 3 end
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Case of the Uneaten Feast: not solved without 5 life gained" {
+  battlefield A: "Case of the Uneaten Feast", 3 "Plains", 2 "Forest"
+  graveyard A: "Grizzly Bears"
+  illegal turn 3 A: activate "Case of the Uneaten Feast"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Case of the Uneaten Feast"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Case of the Uneaten Feast: a creature entering gains 1 life" {
+  battlefield A: "Case of the Uneaten Feast", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 21
+}

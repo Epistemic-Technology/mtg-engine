@@ -1356,6 +1356,7 @@ impl Fmt {
                 if *harmonize { "harmonize" } else { "flashback" },
                 if *that_card { " that card" } else { "" }
             ),
+            Effect::GrantGraveyardCast(f) => format!("grant graveyard cast to {} cards", filter(f)),
             Effect::ProtectionOr { to, filter: f } => format!(
                 "{} gains protection from {} or from color of choice",
                 self.recipient(*to, t),

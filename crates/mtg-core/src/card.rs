@@ -5607,6 +5607,13 @@ pub enum Effect {
         /// equal to its mana cost." (CR 702.180a) instead.
         harmonize: bool,
     },
+    /// "Creature cards in your graveyard gain \"You may cast this card from
+    /// your graveyard\" until end of turn." (Case of the Uneaten Feast):
+    /// the controller's graveyard cards matching the filter as it resolves
+    /// (CR 611.2c) may be cast from there this turn, for their costs, with
+    /// their timing; they aren't exiled as they leave the stack. Like
+    /// `GrantFlashback`, the grant ends if the card leaves the graveyard.
+    GrantGraveyardCast(ObjFilter),
     /// "gains all creature types until end of turn" (`all`), "loses all
     /// creature types until end of turn" (layer 4).
     CreatureTypes {

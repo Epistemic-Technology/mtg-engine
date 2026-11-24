@@ -4853,6 +4853,10 @@ impl Compiler<'_> {
                     harmonize: *harmonize,
                 });
             }
+            Effect::GrantGraveyardCast(f) => {
+                let f = self.filter(f);
+                out.push(CoreEffect::GrantGraveyardCast(f));
+            }
             // One or the other, chosen as it resolves (CR 608.2d).
             Effect::ProtectionOr { to, filter } => {
                 let mut list = Vec::new();

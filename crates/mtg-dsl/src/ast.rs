@@ -5553,6 +5553,10 @@ pub enum Effect {
         /// harmonize cost is equal to its mana cost."
         harmonize: bool,
     },
+    /// `grant graveyard cast to creature cards`: "Creature cards in your
+    /// graveyard gain \"You may cast this card from your graveyard\" until
+    /// end of turn." (CR 611.2c: the cards there as it resolves).
+    GrantGraveyardCast(Filter),
     /// `target permanent you control gains protection from artifact or
     /// from color of choice`: "gains protection from artifacts or from the
     /// color of your choice until end of turn" (CR 702.16): the controller
