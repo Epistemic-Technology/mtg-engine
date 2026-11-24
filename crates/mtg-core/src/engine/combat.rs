@@ -443,6 +443,7 @@ impl GameState {
                             && self.status_ok(f, blocker)
                     }
                     BlockRule::NotByLesserPower => b.power >= a.power,
+                    BlockRule::NotByGreaterPower => b.power <= a.power,
                     _ => true,
                 };
                 if !ok {

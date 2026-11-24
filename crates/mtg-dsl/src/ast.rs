@@ -1323,6 +1323,14 @@ pub struct Filter {
     /// `other than granter`: "an artifact other than Dire Blunderbuss",
     /// not the Equipment granting the quoted ability.
     pub not_granter: bool,
+    /// `with basic land type`: "a land card with a basic land type"
+    /// (Nervous Gardener): compiled as a Plains, Island, Swamp, Mountain,
+    /// or Forest.
+    pub basic_land_type: bool,
+
+    /// `that doesn't have same name as token you control`: "that doesn't
+    /// have the same name as a token you control" (`ObjFilter::name_unlike`).
+    pub name_unlike: Option<Box<Filter>>,
     /// How `status.unchosen` is worded: `unchosen` ("all other
     /// creatures"), `not chosen this way` ("all nonland permanents not
     /// chosen this way"), `except chosen this way` ("all creatures except
@@ -1586,6 +1594,12 @@ pub enum SameRef {
     /// or equal to this creature's power" (the source's, as it is or last
     /// existed).
     ManaValueAtMostPower,
+    /// `with lesser mana value`: "with lesser mana value" (than the object
+    /// that triggered the ability, as it is or last existed).
+    LesserManaValue,
+    /// `other than that creature`: "other than that creature" (the object
+    /// that triggered the ability).
+    NotTriggering,
 }
 
 /// How a filter refers to a chosen color or type, as printed after the
@@ -2868,6 +2882,9 @@ pub enum BlockRule {
     /// `can't be blocked by creature with lesser power`: "Creatures with
     /// power less than this creature's power can't block it."
     NotByLesserPower,
+    /// `can't be blocked by creature with greater power`: "This creature
+    /// can't be blocked by creatures with greater power."
+    NotByGreaterPower,
     /// `can't be blocked except by 3 or more creatures`.
     MinBlockers(u8),
     /// `can block shadow as though had shadow` ("can block creatures with

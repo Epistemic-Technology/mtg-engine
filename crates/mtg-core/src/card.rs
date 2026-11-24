@@ -1239,6 +1239,13 @@ pub struct ObjFilter {
     /// Controlled by this player: `enchanted_player` filled in.
     #[serde(default)]
     pub controlled_by: Option<crate::ids::PlayerId>,
+    /// "that doesn't have the same name as a token you control", "... as
+    /// another permanent you control" (CR 201.2): no other permanent its
+    /// controller controls matching this filter has its name. Judged by
+    /// `GameState::status_ok`; a face-down permanent has no name (CR
+    /// 708.2), so it shares none.
+    #[serde(default)]
+    pub name_unlike: Option<Box<ObjFilter>>,
 }
 
 /// The player a filter's `that_player` means.
@@ -1425,6 +1432,31 @@ pub struct StatusQuals {
     /// was chosen for a player, then nothing shares.
     #[serde(default)]
     pub shares_chosen: Option<bool>,
+    /// "an artifact card with mana value 4 or 5": the mana value is one of
+    /// the two (judged with the mana value, `GameState::status_ok`).
+    #[serde(default)]
+    pub mana_value_range: Option<(u8, u8)>,
+    /// "a creature with the greatest power among creatures they control"
+    /// (Consumed by Greed): no other permanent its controller controls
+    /// that matches the rest of the filter has a greater power (mana
+    /// value, toughness); ties all match (the chooser picks, per the
+    /// rulings). Judged on the battlefield by `GameState::status_ok`; a
+    /// card elsewhere doesn't match. `who` is ignored for the comparison:
+    /// the group is the object's controller's.
+    #[serde(default)]
+    pub greatest: Option<Stat>,
+    /// "creatures that aren't of the chosen type" (Kindred Judgment): the
+    /// choice `ObjFilter::chosen` fills in is excluded instead of required
+    /// (a changeling is of every type, CR 702.73a). A characteristic, not
+    /// game state: `any` leaves it out.
+    #[serde(default)]
+    pub not_chosen: bool,
+    /// "each creature except for tokens you control" (Ajani Unrelenting):
+    /// not a token the effect's controller controls. A placeholder the
+    /// engine fills in for an effect's groups (`chosen_filter`: a nontoken
+    /// one, or one the other player controls); unfilled, nothing matches.
+    #[serde(default)]
+    pub except_your_tokens: bool,
 }
 
 /// What a chosen number is compared with (`StatusQuals::equal_chosen`).
@@ -1498,6 +1530,9 @@ impl StatusQuals {
             || self.bound.is_some()
             || self.commander.is_some()
             || self.protector.is_some()
+            || self.mana_value_range.is_some()
+            || self.greatest.is_some()
+            || self.except_your_tokens
     }
 }
 
@@ -1534,6 +1569,12 @@ pub enum SameOf {
     Source,
     /// The `n`th target ("with the same name as that creature").
     Target(u8),
+    /// The object that triggered the ability ("return up to one target
+    /// creature you control with lesser mana value", "target creature you
+    /// control other than that creature"), as it is or last existed. Only
+    /// a relation for a triggered ability's targets
+    /// (`GameState::trigger_rel_ok`); elsewhere it doesn't restrict.
+    Triggering,
 }
 
 /// What a `Same` relation compares.
@@ -1569,6 +1610,12 @@ pub enum SameWhat {
     /// existed if they have left the battlefield. Only a relation between
     /// targets (`GameState::that_player_ok`).
     SameController,
+    /// Has a lesser mana value (than the triggering object: Clement, the
+    /// Worrywort; Jackdaw Savior).
+    LesserManaValue,
+    /// Isn't that object ("other than that creature", Pawpatch Recruit):
+    /// neither it nor the card it became.
+    NotIt,
 }
 
 /// What a spell must target ("that targets a creature", "that targets you
@@ -1690,6 +1737,11 @@ impl ObjFilter {
         let mut f = self.clone();
         f.chosen = false;
         match chosen {
+            // "that aren't of the chosen type".
+            crate::state::Chosen::Color(c) if f.status.not_chosen => {
+                f.not_colors = f.not_colors.union(ColorSet::of([c]));
+            }
+            crate::state::Chosen::Subtype(s) if f.status.not_chosen => f.not_subtypes.push(s),
             crate::state::Chosen::Color(c) => f.colors = Some(ColorSet::of([c])),
             crate::state::Chosen::Subtype(s) => f.subtypes.push(s),
             // "spell with the chosen name".
@@ -1762,7 +1814,9 @@ impl ObjFilter {
             // Judged against the other target (`that_player_ok`).
             SameWhat::SharesCreatureType
             | SameWhat::DifferentController
-            | SameWhat::SameController => {}
+            | SameWhat::SameController
+            | SameWhat::LesserManaValue
+            | SameWhat::NotIt => {}
         }
         f
     }
@@ -1939,6 +1993,7 @@ impl ObjFilter {
             || self.damaged
             || self.mana_value.is_some()
             || self.status.any()
+            || self.name_unlike.is_some()
     }
 }
 
@@ -2698,6 +2753,9 @@ pub enum BlockRule {
     /// "Creatures with power less than this creature's power can't block
     /// it." (judged as blockers are declared, CR 509.1b).
     NotByLesserPower,
+    /// "This creature can't be blocked by creatures with greater power."
+    /// (Prehistoric Pet; judged as blockers are declared, CR 509.1b).
+    NotByGreaterPower,
     /// "can't be blocked except by three or more creatures" (CR 509.1b,
     /// like menace's two).
     MinBlockers(u8),
@@ -7567,6 +7625,7 @@ pub enum RedirectTo {
 /// The event a replacement or prevention effect watches for (CR 614.1,
 /// 615.1).
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+#[allow(clippy::large_enum_variant)] // card definitions in the pool, not a hot structure
 pub enum Replaces {
     /// Damage a source matching `from` (any source if `None`) would deal to
     /// `to`; `combat` restricts to combat or noncombat damage. `from` is

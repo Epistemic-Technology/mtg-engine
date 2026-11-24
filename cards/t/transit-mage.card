@@ -1,0 +1,7 @@
+card "Transit Mage" {
+  oracle_id 991efbf1-299d-4892-aeab-8ff9827f7168
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this enters: you may search artifact card with mana value 4 or 5 reveal to hand
+}

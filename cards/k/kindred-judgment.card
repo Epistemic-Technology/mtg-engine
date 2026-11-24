@@ -1,0 +1,6 @@
+card "Kindred Judgment" {
+  oracle_id b5dce42a-a769-4d7d-b29e-8722f79d4092
+  cost {5}{W}{W}
+  type Sorcery
+  spell: choose creature type; destroy all creature not of chosen type
+}

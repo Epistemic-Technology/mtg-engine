@@ -1,0 +1,8 @@
+card "Anticausal Vestige" {
+  oracle_id aceea999-90ab-472c-86a7-48af1542cbcf
+  cost {6}
+  type Creature — Eldrazi
+  pt 7/5
+  triggered when this leaves the battlefield: draw 1 card then you may put permanent card with mana value at most count equal land you control from hand onto battlefield tapped
+  warp {4}
+}

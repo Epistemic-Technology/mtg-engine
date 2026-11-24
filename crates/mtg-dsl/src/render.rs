@@ -3726,6 +3726,12 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if let Some((cmp, n)) = f.status.pt_total {
         let _ = write!(s, " with total power and toughness {n}{}", cmp_words(cmp));
     }
+    if let Some((lo, hi)) = f.status.mana_value_range {
+        let _ = write!(s, " with mana value {lo} or {hi}");
+    }
+    if let Some(stat) = f.status.greatest {
+        let _ = write!(s, " {}", greatest_phrase(f, stat));
+    }
     if !f.keywords.is_empty() {
         let _ = write!(s, " with {}", keywords_list(&f.keywords));
     }
@@ -3756,6 +3762,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         // control": each their own.
         None if f.they_control && f.that_player.is_none() => s.push_str(" they control"),
         Some(Who::You | Who::Any) | None => {}
+    }
+    if f.status.except_your_tokens {
+        s.push_str(" except for tokens you control");
     }
     match f.that_player {
         // "for each tapped artifact they control" after "target player".
@@ -3900,6 +3909,14 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if let Some(c) = f.chosen
         && !chosen_first
     {
+        // "creatures that aren't of the chosen type".
+        if f.status.not_chosen {
+            s.push_str(if plural_form {
+                " that aren't"
+            } else {
+                " that isn't"
+            });
+        }
         s.push_str(of_chosen(c));
         if f.other_than_this {
             let _ = write!(s, " other than {}", this_ref(card));
@@ -3907,6 +3924,19 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if !f.named_first {
         s.push_str(&same_phrase(f, card, plural_form));
+    }
+    // "that doesn't have the same name as a token you control".
+    if let Some(g) = &f.name_unlike {
+        let _ = write!(
+            s,
+            " that {} the same name as {}",
+            if plural_form {
+                "don't have"
+            } else {
+                "doesn't have"
+            },
+            with_article(&filter_phrase(g, card, false))
+        );
     }
     // "target creature that's one or more colors" (Reach of Shadows).
     if f.color_count == Some(mtg_core::card::ColorCount::Colored) {
@@ -3939,6 +3969,34 @@ fn of_chosen(c: OfChosen) -> &'static str {
         OfChosen::ThatName => " with that name",
         OfChosen::ChosenName => " with the chosen name",
     }
+}
+
+/// "with the greatest power among creatures they control", "with the
+/// greatest mana value among creatures and planeswalkers they control";
+/// after "an opponent controls", "... that player controls" (Kraven).
+fn greatest_phrase(f: &Filter, stat: mtg_core::card::Stat) -> String {
+    let what = match stat {
+        mtg_core::card::Stat::Power => "power",
+        mtg_core::card::Stat::Toughness => "toughness",
+        mtg_core::card::Stat::ManaValue => "mana value",
+    };
+    let types: Vec<String> = f
+        .types
+        .iter()
+        .chain(&f.any_types)
+        .map(|t| pluralize(&format!("{t:?}").to_lowercase()))
+        .collect();
+    let group = if types.is_empty() {
+        "permanents".to_string()
+    } else {
+        types.join(" and ")
+    };
+    let who = if f.who == Some(Who::Opponents) {
+        "that player controls"
+    } else {
+        "they control"
+    };
+    format!("with the greatest {what} among {group} {who}")
 }
 
 /// "power less than or equal to the number of creatures you control",
@@ -4014,6 +4072,8 @@ fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             if plural_form { "share" } else { "shares" }
         ),
         Some(SameRef::LesserPower) => " with lesser power".to_string(),
+        Some(SameRef::LesserManaValue) => " with lesser mana value".to_string(),
+        Some(SameRef::NotTriggering) => " other than that creature".to_string(),
         Some(SameRef::ManaValueAtMostPower) => format!(
             " with mana value less than or equal to {}'s power",
             this_ref(card)
@@ -4036,6 +4096,7 @@ fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
 
 /// "card named ~", "cards named ~", "creature card": a filter on cards
 /// (in a library or graveyard) as a noun phrase, the name after the noun.
+#[allow(clippy::too_many_lines)] // one clause per quality after the noun
 fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     // `land card or Elf card`: "land card or Elf card".
     if let Some(alt) = &f.or
@@ -4092,6 +4153,25 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
         && let Some(b) = g.status.bound.take()
     {
         mv = format!(" with {}", bound_phrase(b, card));
+    }
+    // "a land card with a basic land type".
+    if g.or.is_none() && mv.is_empty() && g.basic_land_type {
+        g.basic_land_type = false;
+        mv = " with a basic land type".to_string();
+    }
+    // "a creature card with total power and toughness 5 or less".
+    if g.or.is_none()
+        && mv.is_empty()
+        && let Some((cmp, n)) = g.status.pt_total.take()
+    {
+        mv = format!(" with total power and toughness {n}{}", cmp_words(cmp));
+    }
+    // "an artifact card with mana value 4 or 5".
+    if g.or.is_none()
+        && mv.is_empty()
+        && let Some((lo, hi)) = g.status.mana_value_range.take()
+    {
+        mv = format!(" with mana value {lo} or {hi}");
     }
     // "target card of the chosen type" (Dawn-Blessed Pennant), "all
     // creature cards of the chosen type" (Bloodline Bidding): the card
@@ -5248,6 +5328,13 @@ fn except_text(card: &Card, current: Option<&Ability>) -> String {
         && let Some(rest) = second.strip_prefix("it's ")
     {
         *second = format!("is {rest}");
+        // "..., is a Reflection in addition to its other types, and has
+        // haste" (The Apprentice's Folly).
+        for later in parts.iter_mut().skip(2) {
+            if let Some(rest) = later.strip_prefix("it has ") {
+                *later = format!("has {rest}");
+            }
+        }
     }
     list(&parts)
 }
@@ -8742,7 +8829,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 if *f == Filter::default() {
                     "a card".to_string()
                 } else {
-                    with_article(&format!("{} card", card_filter_phrase(f, ctx.card)))
+                    // "a creature card with mana value 3 or less".
+                    with_article(&cards_phrase(f, ctx.card, false))
                 }
             };
             // "a creature card and/or a land card".
@@ -8750,8 +8838,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 Some(g) => format!("{} and/or {}", one(filter), one(g)),
                 None => one(filter),
             };
+            // "a creature card with mana value X or less from your hand
+            // onto the battlefield ..., where X is ...": the X last.
+            let (what, where_x) = match what.split_once(", where X is ") {
+                Some((w, x)) => (w.to_string(), format!(", where X is {x}")),
+                None => (what, String::new()),
+            };
             Clause::imperative(format!(
-                "put {what} from your hand onto the battlefield{}",
+                "put {what} from your hand onto the battlefield{}{where_x}",
                 match (*tapped, *attacking) {
                     (true, true) => " tapped and attacking",
                     (true, false) => " tapped",
@@ -10312,11 +10406,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             if *who == Recipient::You {
                 return Clause::imperative(format!("sacrifice {what}"));
             }
+            // "a creature with the greatest power among creatures they
+            // control": no "of their choice".
+            let choice = if filter.status.greatest.is_some() {
+                ""
+            } else {
+                " of their choice"
+            };
             Clause::with_subject(
                 *who,
                 s,
                 format!(
-                    "{} {what} of their choice",
+                    "{} {what}{choice}",
                     ctx.verb(*who, "sacrifices", "sacrifice")
                 ),
             )
@@ -10506,6 +10607,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             graveyard,
         } => {
             let s = ctx.subj(*who);
+            // "a creature they control with the greatest power among
+            // creatures they control": the comparison after the controller.
+            let mut filter = filter.clone();
+            let greatest = filter
+                .status
+                .greatest
+                .take()
+                .map_or_else(String::new, |st| format!(" {}", greatest_phrase(&filter, st)));
+            let filter = &filter;
             let what = if *count == Num::N(1) {
                 with_article(&filter_phrase(filter, ctx.card, false))
             } else {
@@ -10519,7 +10629,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 *who,
                 s,
                 format!(
-                    "{} {what} they control{}",
+                    "{} {what} they control{greatest}{}",
                     ctx.verb(*who, "exiles", "exile"),
                     if *graveyard {
                         " and their graveyard"
@@ -17821,6 +17931,9 @@ fn block_rule_phrase(r: &crate::ast::BlockRule, card: &Card, this_turn: bool) ->
             "can't be blocked{turn} by creatures with power less than {}'s power",
             this_ref(card)
         ),
+        BlockRule::NotByGreaterPower => {
+            format!("can't be blocked{turn} by creatures with greater power")
+        }
         BlockRule::BlocksOnly(f) => format!("can block only {}{turn}", pl(f)),
         BlockRule::CantBlock(f) => format!("can't block {}{turn}", pl(f)),
         BlockRule::MinBlockers(n) => format!(

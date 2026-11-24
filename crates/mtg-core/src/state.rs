@@ -4122,7 +4122,93 @@ impl GameState {
                 return false;
             }
         }
+        // "with mana value 4 or 5".
+        if let Some((lo, hi)) = f.status.mana_value_range {
+            let mv = self.pool.get(o.def).mana_cost.mana_value();
+            if mv != u32::from(lo) && mv != u32::from(hi) {
+                return false;
+            }
+        }
+        if let Some(stat) = f.status.greatest
+            && !self.is_greatest(f, stat, id, o)
+        {
+            return false;
+        }
+
+        // "that doesn't have the same name as a token you control".
+        if let Some(g) = &f.name_unlike
+            && !self.name_unlike_ok(g, id, o)
+        {
+            return false;
+        }
         !f.status.any() || self.status_quals_ok(f.status, id, o)
+    }
+
+    /// "that doesn't have the same name as another permanent you control"
+    /// (`ObjFilter::name_unlike`): no other permanent `id`'s controller
+    /// controls matching `g` has its name (its definition, CR 201.2).
+    fn name_unlike_ok(&self, g: &crate::card::ObjFilter, id: ObjId, o: &GameObject) -> bool {
+        let Some(c) = self.characteristics(id) else {
+            return true;
+        };
+        if self.pool.is_face_down(c.def) {
+            return true;
+        }
+        let mut g = g.clone();
+        g.relation = crate::card::Relation::Any;
+        !self.battlefield.iter().any(|&x| {
+            x != id
+                && self.objects[x].controller == o.controller
+                && self.characteristics(x).is_some_and(|cx| {
+                    cx.def == c.def
+                        && g.matches(x, o.controller, &cx, None, Some(o.controller))
+                        && self.status_ok(&g, x)
+                })
+        })
+    }
+
+    /// "with the greatest power among creatures they control": `id`, on
+    /// the battlefield, has a `stat` no smaller than any other permanent
+    /// its controller controls matching `f` without the comparison.
+    fn is_greatest(
+        &self,
+        f: &crate::card::ObjFilter,
+        stat: crate::card::Stat,
+        id: ObjId,
+        o: &GameObject,
+    ) -> bool {
+        if o.zone != Zone::Battlefield {
+            return false;
+        }
+        let mut g = f.clone();
+        g.status.greatest = None;
+        g.who = None;
+        g.relation = crate::card::Relation::Any;
+        let value = |x: ObjId| -> Option<i64> {
+            let c = self.characteristics(x)?;
+            Some(match stat {
+                crate::card::Stat::Power => i64::from(c.power),
+                crate::card::Stat::Toughness => i64::from(c.toughness),
+                crate::card::Stat::ManaValue => i64::from(
+                    self.pool
+                        .get(self.objects.get(x)?.def)
+                        .mana_cost
+                        .mana_value(),
+                ),
+            })
+        };
+        let Some(mine) = value(id) else {
+            return false;
+        };
+        self.battlefield.iter().all(|&x| {
+            x == id
+                || self.objects[x].controller != o.controller
+                || !self
+                    .characteristics(x)
+                    .is_some_and(|c| g.matches(x, o.controller, &c, None, None))
+                || !self.status_ok(&g, x)
+                || value(x).is_none_or(|v| v <= mine)
+        })
     }
 
     /// The qualifiers of `StatusQuals` for `id` (`status_ok`).
@@ -4240,8 +4326,9 @@ impl GameState {
                 return false;
             }
         }
-        // CR 903.3: the game has no commanders.
-        if q.commander.is_some() {
+        // CR 903.3: the game has no commanders; an unfilled "except for
+        // tokens you control" matches nothing.
+        if q.commander.is_some() || q.except_your_tokens {
             return false;
         }
         // CR 708.2: a face-down permanent.
@@ -5460,14 +5547,22 @@ impl GameState {
             // A relation to another target ("two target permanents that
             // share a card type") is judged with the targets
             // (`that_player_ok`).
-            Some(crate::card::Same {
-                of: crate::card::SameOf::Target(_),
-                what:
-                    crate::card::SameWhat::SharesType
-                    | crate::card::SameWhat::SharesCreatureType
-                    | crate::card::SameWhat::DifferentController
-                    | crate::card::SameWhat::SameController,
-            }) => {
+            // A relation to the triggering object is judged with the
+            // stack object (`trigger_rel_ok`).
+            Some(
+                crate::card::Same {
+                    of: crate::card::SameOf::Triggering,
+                    ..
+                }
+                | crate::card::Same {
+                    of: crate::card::SameOf::Target(_),
+                    what:
+                        crate::card::SameWhat::SharesType
+                        | crate::card::SameWhat::SharesCreatureType
+                        | crate::card::SameWhat::DifferentController
+                        | crate::card::SameWhat::SameController,
+                },
+            ) => {
                 let mut g = f.clone();
                 g.same = None;
                 std::borrow::Cow::Owned(g)
@@ -5672,6 +5767,53 @@ impl GameState {
         source: Option<ObjId>,
     ) -> bool {
         self.is_legal_target_x(caster, spec, target, source, None)
+    }
+
+    /// A target's relation to the object that triggered its ability
+    /// (`SameOf::Triggering`): "with lesser mana value" (than it, as it is
+    /// or last existed), "other than that creature". Without a triggering
+    /// object, or for another spec, it holds.
+    pub fn trigger_rel_ok(
+        &self,
+        spec: crate::card::TargetSpec,
+        t: Target,
+        trigger_obj: Option<ObjId>,
+    ) -> bool {
+        use crate::card::TargetSpec;
+        let (TargetSpec::Filtered(f) | TargetSpec::GraveyardCard { filter: f, .. }) =
+            self.pool.base_spec(spec)
+        else {
+            return true;
+        };
+        let Some(crate::card::Same {
+            of: crate::card::SameOf::Triggering,
+            what,
+        }) = self.pool.filter(f).same
+        else {
+            return true;
+        };
+        let (Some(trig), Target::Object(id)) = (trigger_obj, t) else {
+            return true;
+        };
+        match what {
+            crate::card::SameWhat::NotIt => {
+                id != trig && self.lki.get(&trig).and_then(|l| l.moved_to) != Some(id)
+            }
+            crate::card::SameWhat::LesserManaValue => {
+                let mv = |x: ObjId| {
+                    self.objects
+                        .get(x)
+                        .map(|o| o.def)
+                        .or_else(|| self.lki.get(&x).map(|l| l.object.def))
+                        .map(|d| self.pool.get(d).mana_cost.mana_value())
+                };
+                match (mv(id), mv(trig)) {
+                    (Some(a), Some(b)) => a < b,
+                    _ => false,
+                }
+            }
+            _ => true,
+        }
     }
 
     /// Whether target `t` for `spec` answers its filter's "that player"

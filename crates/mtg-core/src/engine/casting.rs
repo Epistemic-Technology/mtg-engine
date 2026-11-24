@@ -6731,6 +6731,14 @@ impl GameState {
                 _ => true,
             });
         }
+        // "with lesser mana value", "other than that creature": against
+        // the triggering object.
+        if let Some(trigger_obj) = o.ability.and_then(|a| a.trigger_obj) {
+            options.retain(|c| match c {
+                Choice::Target(t) => self.trigger_rel_ok(spec, *t, Some(trigger_obj)),
+                _ => true,
+            });
+        }
         let related: SmallVec<[usize; 2]> = (index + 1..specs.len())
             .filter(|i| {
                 matches!(
@@ -9343,7 +9351,8 @@ impl GameState {
             let specs = spliced.as_ref().map_or(specs, |s| s.targets.as_slice());
             // CR 608.2b: targets that are no longer legal are ignored; if all
             // are illegal the spell does not resolve.
-            let legal = self.targets_legal(obj.controller, specs, &obj.targets, Some(spell), None);
+            let legal =
+                self.targets_legal(obj.controller, specs, &obj.targets, Some(spell), None, None);
             // A spell whose optional targets were all declined has none.
             if all_illegal(&legal, &obj.targets) {
                 self.emit(Event::Fizzle {
@@ -10266,6 +10275,7 @@ impl GameState {
         targets: &[Target],
         source: Option<ObjId>,
         trigger_player: Option<PlayerId>,
+        trigger_obj: Option<ObjId>,
     ) -> Vec<bool> {
         targets
             .iter()
@@ -10275,6 +10285,7 @@ impl GameState {
                     !t.is_none()
                         && self.is_legal_target_for(controller, spec, *t, source)
                         && self.that_player_ok(spec, *t, trigger_player, targets)
+                        && self.trigger_rel_ok(spec, *t, trigger_obj)
                 })
             })
             .collect()
@@ -10999,8 +11010,20 @@ impl GameState {
             && !f.status.mana_value_x
             && f.status.bound.is_none()
             && !f.enchanted_player
+            && !f.status.except_your_tokens
         {
             return std::borrow::Cow::Borrowed(f);
+        }
+        // "each creature except for tokens you control": the effect's
+        // controller's.
+        if f.status.except_your_tokens && f.or.is_none() {
+            let mut g = f.clone();
+            g.status.except_your_tokens = false;
+            let mut theirs = g.clone();
+            theirs.controlled_by = Some(self.opponent(ctx.controller));
+            g.status.token = Some(false);
+            g.or = Some(Box::new(theirs));
+            return std::borrow::Cow::Owned(self.chosen_filter(&g, ctx).into_owned());
         }
         // "each creature enchanted player controls" (CR 303.4).
         let f = &if f.enchanted_player {
@@ -11050,6 +11073,8 @@ impl GameState {
                     Some(Target::Object(id)) => Some(*id),
                     _ => None,
                 },
+                // Judged for targets only (`trigger_rel_ok`).
+                crate::card::SameOf::Triggering => None,
             };
             g = self.with_same_of(&g, of);
         }
@@ -13404,6 +13429,10 @@ impl GameState {
             }
             Effect::PutFromHand { filter, tapped } => {
                 let p = ctx.controller;
+                // "with mana value X or less", "... less than or equal to
+                // the number of lands you control": filled in as it
+                // happens.
+                let filter = &*self.chosen_filter(filter, ctx);
                 let mut options: Vec<Choice> = self
                     .player(p)
                     .hand
@@ -13418,6 +13447,9 @@ impl GameState {
                         def: self.objects[*id].def,
                     })
                     .collect();
+                // "You may put ... If you don't, draw a card." (Origin of
+                // the Avengers): nothing put is not done.
+                let mut put = false;
                 if !options.is_empty() {
                     options.push(Choice::Done);
                     let k = self.choose_mid(p, DecisionKind::PutFromHand, options.clone());
@@ -13428,7 +13460,11 @@ impl GameState {
                             self.tap(new);
                         }
                         ctx.created = Some(new);
+                        put = true;
                     }
+                }
+                if !put {
+                    ctx.did = false;
                 }
             }
             Effect::Strip { keywords, to } => {

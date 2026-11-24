@@ -404,6 +404,8 @@ impl Decompiler<'_> {
                 match (r.of, r.what) {
                     (SameOf::Source, SameWhat::NotName) => SameRef::NotNamedThis,
                     (SameOf::Source, SameWhat::LesserPower) => SameRef::LesserPower,
+                    (SameOf::Triggering, SameWhat::LesserManaValue) => SameRef::LesserManaValue,
+                    (SameOf::Triggering, _) => SameRef::NotTriggering,
                     (SameOf::Source, SameWhat::ManaValueAtMostPower) => {
                         SameRef::ManaValueAtMostPower
                     }
@@ -456,6 +458,9 @@ impl Decompiler<'_> {
             enchanted_player: f.enchanted_player,
             other_than_this: false,
             not_granter: f.not_granter,
+            name_unlike: f.name_unlike.as_ref().map(|g| Box::new(self.filter(g))),
+
+            basic_land_type: false,
             unchosen_wording: crate::ast::UnchosenWording::Other,
             and_or: false,
             and_list: false,
@@ -3295,6 +3300,9 @@ impl Decompiler<'_> {
                     crate::ast::BlockRule::OnlyBy(self.filter(f))
                 }
                 mtg_core::card::BlockRule::AtMostOne => crate::ast::BlockRule::AtMostOne,
+                mtg_core::card::BlockRule::NotByGreaterPower => {
+                    crate::ast::BlockRule::NotByGreaterPower
+                }
                 mtg_core::card::BlockRule::NotByLesserPower => {
                     crate::ast::BlockRule::NotByLesserPower
                 }

@@ -4829,6 +4829,7 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     let named = match f.same {
         _ if shares => "",
         Some(crate::ast::SameRef::ManaValueAtMostPower) => " with mana value at most this power",
+        Some(crate::ast::SameRef::LesserManaValue) => " with lesser mana value",
         Some(_) => " named this",
         None => "",
     };
@@ -5160,6 +5161,19 @@ fn filter_one(f: &Filter) -> String {
             cmp_suffix(cmp)
         ));
     }
+    if let Some((lo, hi)) = f.status.mana_value_range {
+        words.push(format!("with mana value {lo} or {hi}"));
+    }
+    if let Some(stat) = f.status.greatest {
+        words.push(
+            match stat {
+                mtg_core::card::Stat::Power => "with greatest power",
+                mtg_core::card::Stat::Toughness => "with greatest toughness",
+                mtg_core::card::Stat::ManaValue => "with greatest mana value",
+            }
+            .to_string(),
+        );
+    }
     if let Some(e) = f.status.enchanted {
         words.push(
             match (e, f.enchanted_late) {
@@ -5340,6 +5354,9 @@ fn filter_one(f: &Filter) -> String {
         None => {}
     }
     if let Some(c) = f.chosen {
+        if f.status.not_chosen {
+            words.push("not".to_string());
+        }
         words.push(of_chosen(c).to_string());
     }
     if f.per_player {
@@ -5375,6 +5392,16 @@ fn filter_one(f: &Filter) -> String {
             num(b.n)
         ));
     }
+    if f.status.except_your_tokens {
+        words.push("except for tokens you control".to_string());
+    }
+    if f.basic_land_type {
+        words.push("with basic land type".to_string());
+    }
+    // Likewise its own filter.
+    if let Some(g) = &f.name_unlike {
+        words.push(format!("that doesn't have same name as {}", filter(g)));
+    }
     words.join(" ")
 }
 
@@ -5405,6 +5432,8 @@ pub fn same_ref(r: crate::ast::SameRef) -> String {
         SameRef::SameOpponent => "controlled by the same opponent".to_string(),
         SameRef::WithSameController => "with same controller".to_string(),
         SameRef::LesserPower => "with lesser power".to_string(),
+        SameRef::LesserManaValue => "with lesser mana value".to_string(),
+        SameRef::NotTriggering => "other than that creature".to_string(),
         SameRef::ManaValueAtMostPower => "with mana value at most this power".to_string(),
     }
 }
@@ -8076,6 +8105,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 crate::ast::BlockRule::NotByLesserPower => {
                     "can't be blocked by creature with lesser power".to_string()
+                }
+                crate::ast::BlockRule::NotByGreaterPower => {
+                    "can't be blocked by creature with greater power".to_string()
                 }
                 crate::ast::BlockRule::BlocksOnly(f) => format!("can block only {}", filter(f)),
                 crate::ast::BlockRule::CantBlock(f) => format!("can't block {}", filter(f)),

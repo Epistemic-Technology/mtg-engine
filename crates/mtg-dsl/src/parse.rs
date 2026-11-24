@@ -4616,6 +4616,8 @@ impl P {
                         BlockRule::AtMostOne
                     } else if self.eat_words(&["by", "creature", "with", "lesser", "power"]) {
                         BlockRule::NotByLesserPower
+                    } else if self.eat_words(&["by", "creature", "with", "greater", "power"]) {
+                        BlockRule::NotByGreaterPower
                     } else if self.eat_words(&["except", "by"]) {
                         // "except by three or more creatures".
                         if matches!(self.peek(), Some(Tok::Num(_)))
@@ -11945,9 +11947,10 @@ impl P {
                 if (0..10).any(|k| {
                     self.word_at(k).as_deref() == Some("onto")
                         && self.word_at(k + 1).as_deref() == Some("battlefield")
-                }) && !(0..8).any(|k| {
+                }) && !(0..16).any(|k| {
                     self.word_at(k).as_deref() == Some("from")
                         && self.word_at(k + 1).as_deref() == Some("hand")
+                        && self.word_at(k + 2).as_deref() == Some("onto")
                 }) =>
             {
                 let what = self.recipient()?;
@@ -11955,17 +11958,25 @@ impl P {
                 self.battlefield_tail(what, true)
             }
             "put"
-                if (0..8).any(|k| {
+                if (0..16).any(|k| {
                     self.word_at(k).as_deref() == Some("from")
                         && self.word_at(k + 1).as_deref() == Some("hand")
+                        && self.word_at(k + 2).as_deref() == Some("onto")
                 }) =>
             {
-                let filter = if self.at_word("card") {
+                let mut filter = if self.at_word("card") {
                     Filter::default()
                 } else {
                     self.filter()?
                 };
                 self.expect_word("card")?;
+                // "a creature card with mana value 3 or less from your
+                // hand", "with total power and toughness 5 or less": the
+                // qualities after the noun.
+                if self.at_word("with") {
+                    let g = self.filter()?;
+                    Self::merge_after_card(&mut filter, &g);
+                }
                 let also = if self.eat_word("and") {
                     let f = self.filter()?;
                     self.expect_word("card")?;
@@ -13169,12 +13180,18 @@ impl P {
                         self.pos += 3;
                     }
                 }
+                // "a land card with a basic land type".
+                if self.eat_words(&["with", "basic", "land", "type"]) {
+                    filter.basic_land_type = true;
+                }
                 // "a creature card with mana value 6 or greater": the mana
                 // value after the noun.
                 if filter.mana_value.is_none() && self.at_words(&["with", "mana", "value"]) {
                     let g = self.filter()?;
                     filter.mana_value = g.mana_value;
                     filter.status.mana_value_x = g.status.mana_value_x;
+                    // "an artifact card with mana value 4 or 5".
+                    filter.status.mana_value_range = g.status.mana_value_range;
                     if g.same == Some(SameRef::ManaValueAtMostPower) {
                         filter.same = g.same;
                     }
@@ -16072,12 +16089,18 @@ impl P {
                         | (Some("defending" | "your"), Some("player" | "opponents"))
                         | (
                             Some("that"),
-                            Some("was" | "entered" | "dealt" | "blocked" | "player" | "share" | "opponent")
+                            Some(
+                                "was" | "entered" | "dealt" | "blocked" | "player" | "share"
+                                    | "opponent" | "doesn't"
+                            )
                         )
                         | (Some("other"), Some("than"))
                         | (Some("controller"), Some("of"))
                         | (Some("with" | "without"), Some("aura"))
-                        | (Some("with"), Some("counter" | "toxic" | "morph" | "no" | "same"))
+                        | (
+                            Some("with"),
+                            Some("counter" | "toxic" | "morph" | "no" | "same" | "lesser")
+                        )
                         | (Some("blocked" | "controlled"), Some("by"))
                         | (Some("blocking"), Some("this" | "it" | "or"))
                 ) || comma_type
@@ -16157,10 +16180,20 @@ impl P {
             f.targeting = self.spell_targeting()?;
             return Ok(Target::Spell(f));
         }
-        let named = self.at_words(&["card", "named", "this", "from"]);
+        let mut named = self.at_words(&["card", "named", "this", "from"]);
         if named {
             self.pos += 2;
             f.same = Some(SameRef::NamedThis);
+        }
+        // "another target creature card with lesser mana value from your
+        // graveyard" (than the triggering object, Jackdaw Savior).
+        if !named
+            && f.same.is_none()
+            && self.at_words(&["card", "with", "lesser", "mana", "value", "from"])
+        {
+            self.pos += 4;
+            f.same = Some(SameRef::LesserManaValue);
+            named = true;
         }
         // "creature card with mana value X or less from your graveyard":
         // the mana value after the noun.
@@ -16288,6 +16321,23 @@ impl P {
     }
 
     // ---- filters ----
+
+    /// The qualities written after a card noun (`creature card with mana
+    /// value 3 or less`) joined to the filter before it.
+    fn merge_after_card(f: &mut Filter, g: &Filter) {
+        f.mana_value = f.mana_value.or(g.mana_value);
+        f.power = f.power.or(g.power);
+        f.toughness = f.toughness.or(g.toughness);
+        f.keywords.extend(g.keywords.iter().copied());
+        let s = &mut f.status;
+        s.mana_value_x |= g.status.mana_value_x;
+        s.bound = s.bound.or(g.status.bound);
+        s.pt_total = s.pt_total.or(g.status.pt_total);
+        s.mana_value_range = s.mana_value_range.or(g.status.mana_value_range);
+        if g.same == Some(SameRef::ManaValueAtMostPower) {
+            f.same = g.same;
+        }
+    }
 
     #[allow(clippy::too_many_lines)]
     fn filter(&mut self) -> R<Filter> {
@@ -16446,6 +16496,15 @@ impl P {
                     f.relation = Relation::Other;
                     f.other_than_this = true;
                     self.pos += 3;
+                }
+                // "other than that creature" (the triggering object).
+                "other"
+                    if self.at_words(&["other", "than", "that", "creature"])
+                        && f.same.is_none()
+                        && consumed > 0 =>
+                {
+                    self.pos += 4;
+                    f.same = Some(SameRef::NotTriggering);
                 }
                 "other" | "another" => {
                     f.relation = Relation::Other;
@@ -16874,6 +16933,50 @@ impl P {
                     f.status.shares_chosen = Some(true);
                     self.pos += 6;
                 }
+                // "a land card with a basic land type".
+                "with"
+                    if !f.basic_land_type && self.at_words(&["with", "basic", "land", "type"]) =>
+                {
+                    self.pos += 4;
+                    f.basic_land_type = true;
+                }
+                // "each creature except for tokens you control".
+                "except"
+                    if !f.status.except_your_tokens
+                        && self.at_words(&["except", "for", "tokens", "you", "control"]) =>
+                {
+                    self.pos += 5;
+                    f.status.except_your_tokens = true;
+                }
+                // "that doesn't have the same name as a token you control".
+                "that"
+                    if f.name_unlike.is_none()
+                        && self.at_words(&["that", "doesn't", "have", "same", "name", "as"]) =>
+                {
+                    self.pos += 6;
+                    let g = self.filter()?;
+                    f.name_unlike = Some(Box::new(g));
+                }
+                // "with the greatest power among creatures they control".
+                "with"
+                    if self.at_words(&["with", "greatest"])
+                        && f.status.greatest.is_none()
+                        && matches!(
+                            self.word_at(2).as_deref(),
+                            Some("power" | "toughness" | "mana")
+                        ) =>
+                {
+                    self.pos += 2;
+                    let w = self.word()?;
+                    f.status.greatest = Some(match w.as_str() {
+                        "power" => mtg_core::card::Stat::Power,
+                        "toughness" => mtg_core::card::Stat::Toughness,
+                        _ => {
+                            self.expect_word("value")?;
+                            mtg_core::card::Stat::ManaValue
+                        }
+                    });
+                }
                 // "with toughness greater than its power".
                 "with" if self.at_words(&["with", "toughness", "greater", "than", "power"]) => {
                     f.status.toughness_over_power = true;
@@ -16908,11 +17011,23 @@ impl P {
                                 NUMBER_WORDS.contains(&w.to_ascii_lowercase().as_str())
                             }))
                     {
-                        return self.fail(format!(
-                            "`with {what} {n} or ...`: a range of values is not supported"
-                        ));
+                        // ... except a mana value, which may be one of two
+                        // (Transit Mage).
+                        if what == "mana" && f.status.mana_value_range.is_none() {
+                            self.pos += 1;
+                            let m = self.number()?;
+                            f.status.mana_value_range = Some((
+                                u8::try_from(n).unwrap_or(u8::MAX),
+                                u8::try_from(m).unwrap_or(u8::MAX),
+                            ));
+                        } else {
+                            return self.fail(format!(
+                                "`with {what} {n} or ...`: a range of values is not supported"
+                            ));
+                        }
                     }
                     match what.as_str() {
+                        _ if f.status.mana_value_range.is_some() && what == "mana" => {}
                         "power" if either => {
                             let n = i16::try_from(n).unwrap_or(i16::MAX);
                             f.power = Some((cmp, n));
@@ -17044,6 +17159,17 @@ impl P {
                     f.damaged = true;
                     self.pos += 1;
                 }
+                // "that aren't of the chosen type": `not of chosen type`.
+                "not"
+                    if f.chosen.is_none()
+                        && !f.status.not_chosen
+                        && (self.at_words(&["not", "of", "chosen"])
+                            || self.at_words(&["not", "of", "that", "type"])
+                            || self.at_words(&["not", "of", "that", "color"])) =>
+                {
+                    f.status.not_chosen = true;
+                    self.pos += 1;
+                }
                 // "of the chosen type", "of that type", "of the color of
                 // your choice".
                 "of" | "with"
@@ -17161,6 +17287,14 @@ impl P {
                     self.pos += 3;
                     f.same = Some(SameRef::WithSameController);
                 }
+                // "with lesser mana value" (than the triggering object).
+                "with"
+                    if self.at_words(&["with", "lesser", "mana", "value"]) && f.same.is_none() =>
+                {
+                    self.pos += 4;
+                    f.same = Some(SameRef::LesserManaValue);
+                }
+
                 // "with lesser power" (mentor, CR 702.134a).
                 "with" if self.at_words(&["with", "lesser", "power"]) && f.same.is_none() => {
                     self.pos += 3;

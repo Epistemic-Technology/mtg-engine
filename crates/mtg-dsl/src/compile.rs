@@ -1827,6 +1827,22 @@ impl Compiler<'_> {
             self.pool
                 .note_history(mtg_core::card::CardPool::HISTORY_COUNTERS);
         }
+        // "a land card with a basic land type" (CR 205.3i): one of the
+        // five.
+        if f.basic_land_type {
+            let mut g = f.clone();
+            g.basic_land_type = false;
+            let mut out: Option<ObjFilter> = None;
+            for t in ["Forest", "Mountain", "Swamp", "Island", "Plains"] {
+                let mut h = g.clone();
+                h.subtypes.push(t.to_string());
+                let mut one = self.filter(&h);
+                one.or = out.map(Box::new);
+                out = Some(one);
+            }
+            return out.expect("five types");
+        }
+
         // "an outlaw" (CR 700.12): one alternative per creature type.
         if let Some(i) = f.subtypes.iter().position(|s| s == crate::ast::OUTLAW) {
             let mut chain = f.or.clone();
@@ -1924,6 +1940,14 @@ impl Compiler<'_> {
                         of: SameOf::Source,
                         what: SameWhat::ManaValueAtMostPower,
                     },
+                    SameRef::LesserManaValue => Same {
+                        of: SameOf::Triggering,
+                        what: SameWhat::LesserManaValue,
+                    },
+                    SameRef::NotTriggering => Same {
+                        of: SameOf::Triggering,
+                        what: SameWhat::NotIt,
+                    },
                 }
             }),
             // `named "Keimi"`: a token definition's name; an unknown one
@@ -1980,6 +2004,7 @@ impl Compiler<'_> {
             not_granter: f.not_granter,
             enchanted_player: f.enchanted_player,
             controlled_by: None,
+            name_unlike: f.name_unlike.as_ref().map(|g| Box::new(self.filter(g))),
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
             targeting: f.targeting.as_ref().map(|t| {
                 Box::new(mtg_core::card::SpellTargets {
@@ -6436,7 +6461,14 @@ impl Compiler<'_> {
                 ..
             } => AbilityDef::Activated(ActivatedAbility {
                 cost: self.cost(cost),
-                targets: self.targets(targets),
+                targets: {
+                    let ts = self.targets(targets);
+                    // No triggering object: "That creature gains haste"
+                    // after a put from the hand is that creature (Meek
+                    // Attack).
+                    self.tmap.spell = true;
+                    ts
+                },
                 effects: self.sentences(effects)?,
                 sorcery_speed: cost.sorcery,
                 per_turn: cost.per_turn,
@@ -6841,6 +6873,9 @@ impl Compiler<'_> {
                     mtg_core::card::BlockRule::OnlyBy(self.filter(f))
                 }
                 crate::ast::BlockRule::AtMostOne => mtg_core::card::BlockRule::AtMostOne,
+                crate::ast::BlockRule::NotByGreaterPower => {
+                    mtg_core::card::BlockRule::NotByGreaterPower
+                }
                 crate::ast::BlockRule::NotByLesserPower => {
                     mtg_core::card::BlockRule::NotByLesserPower
                 }

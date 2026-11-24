@@ -1,0 +1,7 @@
+card "Extract a Confession" {
+  oracle_id 96480e86-70a8-401d-abf8-a7d509311b73
+  cost {1}{B}
+  type Sorcery
+  additional cost may collect evidence 6
+  spell: each opponent sacrifices 1 creature; if evidence collected, instead each opponent sacrifices 1 creature with greatest power
+}
