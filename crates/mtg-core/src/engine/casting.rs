@@ -9460,6 +9460,17 @@ impl GameState {
                 }
             }
             Recipient::You => out.push(Target::Player(ctx.controller)),
+            Recipient::SourceOwner => {
+                let id = ctx.source;
+                let p = self
+                    .objects
+                    .get(id)
+                    .map(|o| o.owner)
+                    .or_else(|| self.lki.get(&id).map(|l| l.object.owner));
+                if let Some(p) = p {
+                    out.push(Target::Player(p));
+                }
+            }
             Recipient::BlockingIt => {
                 out.extend(self.blocking_it(ctx).into_iter().map(Target::Object));
             }

@@ -1,0 +1,9 @@
+card "Hymn of the Faller" {
+  oracle_id ab1379b7-0016-4d2a-a83b-952666e43b89
+  cost {1}{B}
+  type Sorcery
+  spell {
+    surveil 1 then you draw 1 card and lose 1 life
+    label "Void" if void, draw another card
+  }
+}

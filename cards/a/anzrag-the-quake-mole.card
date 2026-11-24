@@ -1,0 +1,8 @@
+card "Anzrag, the Quake-Mole" {
+  oracle_id 4adcd967-9ff7-4940-b8b9-0c4215bbcb75
+  cost {2}{R}{G}
+  type Legendary Creature — Mole God
+  pt 8/4
+  triggered whenever this becomes blocked: untap each creature you control; after this phase, additional combat phase
+  activated {3}{R}{R}{G}{G}: this must be blocked each combat this turn if able
+}

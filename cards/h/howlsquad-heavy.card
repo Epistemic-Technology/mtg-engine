@@ -1,0 +1,10 @@
+card "Howlsquad Heavy" {
+  oracle_id cd45a29f-73bc-435c-9d50-09a4ecaa77be
+  cost {2}{R}
+  type Creature — Goblin Mercenary
+  pt 2/3
+  start your engines
+  static other Goblin you control: has haste
+  triggered at beginning of your combat: create 1 "1/1 red Goblin creature"; that created token attacks this turn if able until end of combat
+  label "Max speed" activated {T}: add {R} count each Goblin you control
+}

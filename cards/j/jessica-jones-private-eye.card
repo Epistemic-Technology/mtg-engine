@@ -1,0 +1,7 @@
+card "Jessica Jones, Private Eye" {
+  oracle_id 6677cd5a-0785-499b-ba99-f6bdcfb196d5
+  cost {2}{R}
+  type Legendary Creature — Human Detective Hero
+  pt 2/3
+  activated {T}, put 1 stun counter on this: impulse count where power this turn
+}

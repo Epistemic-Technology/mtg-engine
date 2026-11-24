@@ -3023,6 +3023,7 @@ impl Compiler<'_> {
             | Recipient::ThatControllerOf(i)
             | Recipient::TheControllerOf(i) => CoreRecipient::ControllerOf(ti(i)),
             Recipient::OwnerOf(i) | Recipient::ThatOwner(i) => CoreRecipient::OwnerOf(ti(i)),
+            Recipient::SourceOwner => CoreRecipient::SourceOwner,
             Recipient::EachCreature => CoreRecipient::EachCreature,
             Recipient::EachPlayer => CoreRecipient::EachPlayer,
             Recipient::EachCreatureYouControl => CoreRecipient::EachCreatureYouControl,
@@ -3307,6 +3308,7 @@ impl Compiler<'_> {
                     | Recipient::TriggeringObject
                     | Recipient::Attached
                     | Recipient::Granter),
+                ..
             } => {
                 for t in to {
                     out.push(CoreEffect::DamageFrom {
@@ -4758,6 +4760,10 @@ impl Compiler<'_> {
                 out.push(CoreEffect::Otherwise(effects));
             }
             Effect::DrawReveal => out.push(CoreEffect::DrawReveal),
+            Effect::DrawAnother => out.push(CoreEffect::DrawCards {
+                count: Num::N(1),
+                who: CoreRecipient::You,
+            }),
             Effect::DiscardIt => out.push(CoreEffect::PutCard {
                 what: mtg_core::card::CardSet::It,
                 to: mtg_core::card::CardDest::Graveyard,
@@ -7738,6 +7744,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         to: Recipient::Source,
                         each: false,
                         no_also: false,
+                        each_combat: false,
                     },
                     // CR 702.84a: "If it would leave the battlefield,
                     // exile it instead of putting it anywhere else."

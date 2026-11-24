@@ -1,0 +1,10 @@
+card "The Neutrinos" {
+  oracle_id b1462c82-7702-451b-b612-990353a79ac4
+  cost {2}{R}{W}
+  type Legendary Creature — Elf Rebel
+  pt 2/4
+  pronoun they
+  keywords flying
+  label "Alliance" triggered whenever another creature you control enters: this gets +1/+0 until end of turn
+  triggered whenever this attacks: exile up to 1 target creature you own then return it to battlefield under your control tapped and attacking
+}

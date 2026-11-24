@@ -1,0 +1,8 @@
+card "Fear of Burning Alive" {
+  oracle_id 0ae74149-60fc-407a-8782-8865458606b5
+  cost {4}{R}{R}
+  type Enchantment Creature — Nightmare
+  pt 4/4
+  triggered when this enters: this deals 4 damage to each opponent
+  label "Delirium" triggered whenever a source you control deals noncombat damage to an opponent if 4 card types in your graveyard: this deals that amount of damage to target creature that player controls
+}

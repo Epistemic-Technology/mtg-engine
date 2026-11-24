@@ -1,0 +1,8 @@
+card "Iron Fist, Living Weapon" {
+  oracle_id bbf873c2-94c1-46b8-912e-e29e48e0212c
+  cost {2}{R}
+  type Legendary Creature — Human Warrior Hero
+  pt 2/3
+  pronoun he
+  triggered whenever you cast a spell that targets creature you control: this gains ability { activated {T}: deal damage equal power to any other target } until end of turn
+}

@@ -1446,6 +1446,16 @@ impl P {
                             except.not_legendary = true;
                             self.end_stmt()?;
                         }
+                        // "except it's not legendary" (Ran and Shaw).
+                        Some("its")
+                            if self.word_at(1).as_deref() == Some("not")
+                                && self.word_at(2).as_deref() == Some("legendary") =>
+                        {
+                            self.pos += 3;
+                            except.not_legendary = true;
+                            except.its_not = true;
+                            self.end_stmt()?;
+                        }
                         // "it's an artifact in addition to its other types".
                         Some("type" | "types") => {
                             self.pos += 1;
@@ -7496,10 +7506,16 @@ impl P {
             {
                 self.pos -= 1;
                 match self.verb_first()? {
-                    Effect::DealDamage { amount, to, .. } => Ok(Effect::DealDamage {
+                    Effect::DealDamage {
+                        amount,
+                        to,
+                        that_amount,
+                        ..
+                    } => Ok(Effect::DealDamage {
                         amount,
                         to,
                         by: subject,
+                        that_amount,
                     }),
                     _ => self.fail("`deals ... divided` takes no subject"),
                 }
@@ -7616,6 +7632,7 @@ impl P {
                         to: subject,
                         each: explicit && self.subject_each,
                         no_also: false,
+                        each_combat: false,
                     });
                 }
                 let amount = self.num()?;
@@ -8380,6 +8397,7 @@ impl P {
                     to: subject,
                     each: false,
                     no_also: false,
+                    each_combat: false,
                 })
             }
             // "Target creature blocks this creature this turn if able".
@@ -8422,6 +8440,9 @@ impl P {
                     }
                     _ => Keyword::MustBlock,
                 };
+                // "Anzrag must be blocked each combat this turn if able".
+                let each_combat = keyword == Keyword::MustBeBlocked
+                    && self.eat_words(&["each", "combat", "this", "turn"]);
                 let _ = self.eat_words(&["this", "turn"]) || self.eat_words(&["each", "combat"]);
                 if matches!(keyword, Keyword::MustBlock | Keyword::MustBeBlocked) {
                     self.expect_words(&["if", "able"])?;
@@ -8432,6 +8453,7 @@ impl P {
                     to: subject,
                     each: false,
                     no_also: false,
+                    each_combat,
                 })
             }
             // "Target creature can't block this creature this turn".
@@ -8504,6 +8526,7 @@ impl P {
                     to: subject,
                     each: explicit && self.subject_each,
                     no_also: false,
+                    each_combat: false,
                 })
             }
             "get" | "gets"
@@ -9511,6 +9534,7 @@ impl P {
                     amount,
                     to,
                     by: Recipient::Source,
+                    that_amount: false,
                 })
             }
             // "Choose target creature, then roll a d20.": the target
@@ -9613,6 +9637,17 @@ impl P {
                     None => self.fail(format!("`roll d<N>`, not `roll {die}`")),
                 }
             }
+            // "deals that amount of damage to target creature that player
+            // controls" (Fear of Burning Alive): `that much`, worded so.
+            "deal" | "deals" if self.eat_words(&["that", "amount", "of", "damage", "to"]) => {
+                let to = self.recipients()?;
+                Ok(Effect::DealDamage {
+                    amount: Num::ThatMuch,
+                    to,
+                    by: Recipient::Source,
+                    that_amount: true,
+                })
+            }
             "deal" | "deals" => {
                 let amount = self.num()?;
                 self.expect_word("damage")?;
@@ -9628,6 +9663,7 @@ impl P {
                         amount,
                         to: Vec::new(),
                         by: Recipient::Source,
+                        that_amount: false,
                     });
                 }
                 self.expect_word("to")?;
@@ -9636,6 +9672,7 @@ impl P {
                     amount,
                     to,
                     by: Recipient::Source,
+                    that_amount: false,
                 })
             }
             "destroy" => {
@@ -9921,6 +9958,16 @@ impl P {
             // `owner puts target creature on top or bottom of library`,
             // `owner of target creature puts it ...`, `owner shuffles this
             // into library`.
+            // `owner of this draws 3 cards`: the source's owner as a
+            // subject.
+            "owner"
+                if self.at_words(&["of", "this"])
+                    && !matches!(self.word_at(2).as_deref(), Some("puts" | "shuffles")) =>
+            {
+                self.pos += 2;
+                self.subject = Some(Recipient::SourceOwner);
+                self.subject_verb(Recipient::SourceOwner, true)
+            }
             "owner" => {
                 let of = self.eat_word("of");
                 let what = if of { Some(self.recipient()?) } else { None };
@@ -9937,6 +9984,11 @@ impl P {
                     None => self.recipient()?,
                 };
                 let place = self.library_place(shuffle)?;
+                // "Gandalf's owner shuffles him into their library and
+                // draws three cards": the owner stays the subject.
+                if !of && what == Recipient::Source {
+                    self.subject = Some(Recipient::SourceOwner);
+                }
                 Ok(Effect::PutInLibrary {
                     what,
                     place,
@@ -10615,6 +10667,8 @@ impl P {
                 }
                 Ok(Effect::GainControl { of, forever })
             }
+            // "draw another card" (Hymn of the Faller).
+            "draw" if self.eat_words(&["another", "card"]) => Ok(Effect::DrawAnother),
             "draw" => {
                 let count = self.num()?;
                 self.cards_word()?;
@@ -17143,6 +17197,7 @@ card "Lightning Bolt" {
                         amount: Num::N(3),
                         to: vec![Recipient::Target(0)],
                         by: Recipient::Source,
+                        that_amount: false,
                     }])]
                 );
             }
