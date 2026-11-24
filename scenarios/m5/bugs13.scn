@@ -78,3 +78,23 @@ scenario "a lone creature that can't attack alone needs company when declared on
   run_to turn 1 end
   assert life B 16
 }
+
+# CR 602.2b, 601.2b: an activated ability's Phyrexian symbol may be paid
+# with 2 life even when mana could pay it; the player chooses.
+scenario "a Phyrexian symbol in an activated ability's cost can be paid with life" {
+  battlefield A: "Immolating Souleater", "Mountain"
+  turn 1 A: activate "Immolating Souleater" paying_life 1
+  run_to turn 1 end
+  assert life A 18
+  assert untapped "Mountain"
+  assert power "Immolating Souleater" 2
+}
+
+scenario "unscripted, an activated ability's Phyrexian symbol is paid with mana" {
+  battlefield A: "Immolating Souleater", "Mountain"
+  turn 1 A: activate "Immolating Souleater"
+  run_to turn 1 end
+  assert life A 20
+  assert tapped "Mountain"
+  assert power "Immolating Souleater" 2
+}

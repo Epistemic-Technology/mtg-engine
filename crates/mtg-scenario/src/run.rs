@@ -1356,6 +1356,7 @@ impl Runner {
                 ability,
                 mode,
                 x,
+                life,
                 sacrifice,
                 discard,
                 targets,
@@ -1370,7 +1371,10 @@ impl Runner {
                     discard.as_deref(),
                     targets,
                 )? {
-                    Some(idx) => return Ok(idx),
+                    Some(idx) => {
+                        self.pending_life = *life;
+                        return Ok(idx);
+                    }
                     None => continue,
                 }
             }

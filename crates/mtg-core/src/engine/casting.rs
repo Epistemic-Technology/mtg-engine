@@ -6744,7 +6744,7 @@ impl GameState {
     /// first so that it is not also tapped for mana; sacrifices come last,
     /// so a "sacrifice ~" source is still there to be tapped.
     #[allow(clippy::too_many_lines)] // one step per kind of cost
-    fn finish_activation(&mut self, obj: ObjId, sacrifice: Option<ObjId>, discard: Option<ObjId>) {
+    pub(super) fn finish_activation(&mut self, obj: ObjId, sacrifice: Option<ObjId>, discard: Option<ObjId>) {
         let o = &self.objects[obj];
         let (controller, def) = (o.controller, o.def);
         let sa = o.ability.expect("ability object");
@@ -6752,6 +6752,28 @@ impl GameState {
         let AbilityDef::Activated(ab) = pool.ability(sa.ability) else {
             unreachable!("checked by finish_ability_targets");
         };
+        // CR 602.2b, 601.2b: how its Phyrexian symbols are paid is
+        // announced before the costs are paid; the player chooses when
+        // more than one way can be paid.
+        let mut life_symbols = None;
+        if ab.cost.mana.requirements(0).phyrexian_count() > 0 && !ab.is_mana_ability() {
+            if let Some(i) = self.phyrexian_life.iter().position(|(s, _)| *s == obj) {
+                life_symbols = Some(self.phyrexian_life.swap_remove(i).1);
+            } else {
+                match self.phyrexian_options(obj, sacrifice).as_slice() {
+                    [] => {}
+                    [k] => life_symbols = Some(u8::try_from(*k).unwrap_or(u8::MAX)),
+                    _ => {
+                        self.flow = crate::state::Flow::ChoosingPhyrexian {
+                            spell: obj,
+                            sacrifice,
+                            discard,
+                        };
+                        return;
+                    }
+                }
+            }
+        }
         if ab.cost.tap {
             self.tap(sa.source);
         }
@@ -6796,6 +6818,15 @@ impl GameState {
         // CR 701.67a: a {T} source is tapped already, so it doesn't help.
         if ab.cost.waterbend {
             sources.extend(self.waterbend_sources(controller, req.generic, None));
+        }
+        if let Some(k) = life_symbols {
+            req.life_symbols = Some(k);
+            // The permanents tapped for the cost may have taken mana the
+            // announcement counted on: then any way.
+            let ps = self.player(controller);
+            if !self.payable(controller, &sources, &ps.mana_pool, &req, ps.life, Some(sa.source)) {
+                req.life_symbols = None;
+            }
         }
         self.pay_from(controller, &req, &sources, Some(sa.source));
         if ab.is_equip() {
@@ -8424,9 +8455,27 @@ impl GameState {
     /// caster could pay with 2 life each, the rest of the cost then
     /// payable, fewest first.
     pub(super) fn phyrexian_options(&self, spell: ObjId, sacrifice: Option<ObjId>) -> Vec<u32> {
-        let req = self.cast_requirements(spell, sacrifice);
         let p = self.objects[spell].controller;
-        let sources = self.spell_sources(spell);
+        let (req, sources, exclude) = match self.objects[spell].ability {
+            // An activated ability's cost (CR 602.2b), as it will be paid.
+            Some(sa) if self.objects[spell].kind == ObjKind::Ability => {
+                let AbilityDef::Activated(ab) = self.pool.ability(sa.ability) else {
+                    return Vec::new();
+                };
+                let mut req = self.activation_mana_x(sa.source, ab, self.x_of(spell), p);
+                if self.target_reduces(ab)
+                    && let Some(t) = self.objects[spell].targets.first().copied()
+                {
+                    self.reduce_for_target(p, sa.source, ab, t, &mut req);
+                }
+                (req, self.ability_sources(p, sa.source, ab), Some(sa.source))
+            }
+            _ => (
+                self.cast_requirements(spell, sacrifice),
+                self.spell_sources(spell),
+                None,
+            ),
+        };
         let ps = self.player(p);
         (0..=req.phyrexian_count())
             .filter(|k| {
@@ -8434,7 +8483,7 @@ impl GameState {
                     life_symbols: Some(u8::try_from(*k).unwrap_or(u8::MAX)),
                     ..req
                 };
-                self.payable(p, &sources, &ps.mana_pool, &r, ps.life, None)
+                self.payable(p, &sources, &ps.mana_pool, &r, ps.life, exclude)
             })
             .collect()
     }

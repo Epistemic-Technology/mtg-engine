@@ -252,6 +252,9 @@ pub enum Action {
         mode: Option<usize>,
         /// `x N` for an ability with {X} in its cost (CR 602.2b).
         x: Option<u32>,
+        /// `paying_life N`: N of its Phyrexian symbols paid with life
+        /// (CR 602.2b, 601.2b).
+        life: Option<u32>,
         sacrifice: Option<String>,
         /// `discarding "X"` for a "discard a card" cost.
         discard: Option<String>,

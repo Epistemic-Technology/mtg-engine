@@ -890,6 +890,12 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 None
             };
+            let life = if line.peek_ident("paying_life") {
+                line.pos += 1;
+                Some(u32::try_from(line.count()?).unwrap_or(u32::MAX))
+            } else {
+                None
+            };
             let sacrifice = if line.peek_ident("sacrificing") {
                 line.pos += 1;
                 Some(line.string()?)
@@ -921,6 +927,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                     ability,
                     mode,
                     x,
+                    life,
                     sacrifice,
                     discard,
                     targets,
