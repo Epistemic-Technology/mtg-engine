@@ -2086,7 +2086,14 @@ attacking creature once blockers are declared, CR 509.1h; before then it is
 neither), `with aura` and `without aura` ("target enchanted permanent",
 "creature that isn't enchanted": an Aura is attached to it, CR 303.4; who
 controls the Aura isn't checked, so `with aura you control` is an error; the
-word `enchanted` is the permanent this is attached to), `that entered this
+word `enchanted` is the permanent this is attached to), `enchanted by aura
+you control` ("other creatures you control that are enchanted by Auras you
+control", Archon of the Wild Rose; "Each creature that's enchanted by an
+Aura you control can't attack you", `ban attacking you or planeswalkers
+each creature enchanted by aura you control`, Eriette of the Charmed
+Apple: an Aura the static ability's controller controls is attached to
+it; judged only in a static ability's affected set and an attack ban,
+elsewhere matching nothing), `that entered this
 turn` (its timestamp is from this turn, CR 613.7e; `as long as this is that
 entered this turn` prints "As long as this creature entered this turn"),
 `that dealt damage this turn` (it was the source of damage this turn),

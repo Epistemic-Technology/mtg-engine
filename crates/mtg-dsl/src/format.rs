@@ -5414,6 +5414,7 @@ fn filter_one(f: &Filter) -> String {
     if let Some(e) = f.status.enchanted {
         words.push(
             match (e, f.enchanted_late) {
+                _ if f.status.aura_yours => "enchanted by aura you control",
                 (true, true) => "with aura late",
                 (true, false) => "with aura",
                 (false, _) => "without aura",

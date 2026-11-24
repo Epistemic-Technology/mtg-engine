@@ -1509,6 +1509,13 @@ pub struct StatusQuals {
     /// multikicker paid (not a promised gift, which shares the flag).
     #[serde(default)]
     pub kicked: bool,
+    /// With `enchanted`, "enchanted by an Aura you control" (Archon of
+    /// the Wild Rose, Eriette of the Charmed Apple): one of the Auras
+    /// attached to it is controlled by the player judging, the static
+    /// ability's controller. Judged in a static ability's affected set
+    /// and an attack ban; elsewhere nothing matches.
+    #[serde(default)]
+    pub aura_yours: bool,
 }
 
 /// What a chosen number is compared with (`StatusQuals::equal_chosen`).
@@ -1589,6 +1596,7 @@ impl StatusQuals {
             || self.adventure
             || self.nameless
             || self.kicked
+            || self.aura_yours
             || self.warped
             || self.prepared_spell
     }

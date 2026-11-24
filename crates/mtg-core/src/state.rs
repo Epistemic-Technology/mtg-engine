@@ -3257,6 +3257,38 @@ impl GameState {
         }
     }
 
+    /// The state an attack ban's filter asks of `attacker`, for the ban's
+    /// controller `who`: "Each creature that's enchanted by an Aura you
+    /// control can't attack you" (Eriette of the Charmed Apple).
+    fn attack_ban_status_ok(
+        &self,
+        f: &crate::card::ObjFilter,
+        attacker: ObjId,
+        who: PlayerId,
+    ) -> bool {
+        if !f.needs_state() {
+            return true;
+        }
+        if !f.status.aura_yours {
+            return self.status_ok(f, attacker);
+        }
+        let mut g = f.clone();
+        g.status.aura_yours = false;
+        g.status.enchanted = None;
+        self.status_ok(&g, attacker) && self.enchanted_by_aura_of(attacker, who)
+    }
+
+    /// Whether an Aura `p` controls is attached to `id` (CR 303.4).
+    pub fn enchanted_by_aura_of(&self, id: ObjId, p: PlayerId) -> bool {
+        self.battlefield.iter().any(|a| {
+            self.objects[*a].attached_to == Some(id)
+                && self.objects[*a].controller == p
+                && self
+                    .characteristics(*a)
+                    .is_some_and(|c| c.has_subtype(crate::card::Subtype::AURA))
+        })
+    }
+
     /// Whether `attacker` can't attack `at` (a player or a planeswalker):
     /// "Creatures with flying can't attack you [or planeswalkers you
     /// control]." (CR 508.1c).
@@ -3286,14 +3318,10 @@ impl GameState {
                                 .is_some_and(|pc| pc.is_planeswalker())
                     }
                 };
+                let f = self.pool.filter(attackers);
                 protected
-                    && self.pool.filter(attackers).matches(
-                        attacker,
-                        a.controller,
-                        &c,
-                        Some(src),
-                        Some(who),
-                    )
+                    && f.matches(attacker, a.controller, &c, Some(src), Some(who))
+                    && self.attack_ban_status_ok(f, attacker, who)
             })
         }
     }
@@ -4507,6 +4535,11 @@ impl GameState {
         }
         // CR 708.2: a face-down permanent; CR 708.2a: it has no name.
         if (q.face_down || q.nameless) && !self.pool.is_face_down(o.def) {
+            return false;
+        }
+        // "enchanted by an Aura you control": with no player judging,
+        // nothing (`attack_banned` and the layers judge it).
+        if q.aura_yours {
             return false;
         }
         // CR 702.33d: a kicked spell, its kicker (or multikicker) paid; a

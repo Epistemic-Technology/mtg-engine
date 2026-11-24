@@ -1,0 +1,8 @@
+card "Eriette of the Charmed Apple" {
+  oracle_id f43f5855-f297-4433-984b-18263b734cfc
+  cost {1}{W}{B}
+  type Legendary Creature — Human Warlock
+  pt 2/4
+  ban attacking you or planeswalkers each creature enchanted by aura you control
+  triggered at beginning of your end step: each opponent loses count where Aura you control life and you gain count where Aura you control life
+}

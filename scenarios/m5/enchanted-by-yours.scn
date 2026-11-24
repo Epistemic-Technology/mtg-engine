@@ -1,0 +1,77 @@
+# "Enchanted by an Aura you control" (CR 303.4): one of the Auras
+# attached to it is controlled by the static ability's controller
+# (Archon of the Wild Rose's affected set, Eriette of the Charmed Apple's
+# attack ban).
+
+scenario "Archon of the Wild Rose: a creature enchanted by your Aura is a 4/4 flier" {
+  battlefield A: "Archon of the Wild Rose", "Grizzly Bears", "Holy Strength" on "Grizzly Bears", "Hill Giant"
+  start turn 2 A precombat_main
+  run_to turn 2 precombat_main
+  # Base 4/4, +1/+2 from Holy Strength.
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 6
+  assert has "Grizzly Bears" flying
+  assert power "Hill Giant" 3
+  assert has not "Hill Giant" flying
+}
+
+scenario "Archon of the Wild Rose: an opponent's Aura doesn't count" {
+  battlefield A: "Archon of the Wild Rose", "Grizzly Bears"
+  battlefield B: "Holy Strength" on "Grizzly Bears"
+  start turn 2 A precombat_main
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 3
+  assert has not "Grizzly Bears" flying
+}
+
+scenario "Archon of the Wild Rose: the creature changes once the Aura is attached" {
+  battlefield A: "Archon of the Wild Rose", "Grizzly Bears", "Plains"
+  hand A: "Holy Strength"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Holy Strength" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert has "Grizzly Bears" flying
+}
+
+scenario "Archon of the Wild Rose: the creature loses it when the Aura leaves" {
+  battlefield A: "Archon of the Wild Rose", "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  battlefield B: "Plains", "Forest"
+  hand B: "Disenchant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Disenchant" targeting "Holy Strength"
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+  assert has not "Grizzly Bears" flying
+}
+
+scenario "Eriette of the Charmed Apple: a creature enchanted by her controller's Aura can't attack them" {
+  battlefield A: "Eriette of the Charmed Apple"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  battlefield A: "Holy Strength" on "Hill Giant"
+  start turn 2 B
+  illegal turn 2 B: attack "Hill Giant"
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}
+
+scenario "Eriette of the Charmed Apple: an Aura its own controller controls doesn't stop it" {
+  battlefield A: "Eriette of the Charmed Apple"
+  battlefield B: "Hill Giant", "Holy Strength" on "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 16
+}
+
+scenario "Eriette of the Charmed Apple drains for each Aura you control" {
+  battlefield A: "Eriette of the Charmed Apple", "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  battlefield A: "Holy Strength" on "Hill Giant"
+  start turn 2 A postcombat_main
+  run_to turn 3 upkeep
+  assert life B 18
+  assert life A 22
+}

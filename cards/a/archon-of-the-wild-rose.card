@@ -1,0 +1,8 @@
+card "Archon of the Wild Rose" {
+  oracle_id 180efbd4-0f77-41cc-8ae2-2e6ccf853d10
+  cost {2}{W}{W}
+  type Creature — Archon
+  pt 4/4
+  keywords flying
+  static other creature you control enchanted by aura you control: base 4/4, has flying
+}

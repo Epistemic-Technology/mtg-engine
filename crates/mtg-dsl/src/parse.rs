@@ -2973,7 +2973,11 @@ impl P {
             "ban" if self.at_words(&["ban", "attacking", "you"]) => {
                 self.pos += 3;
                 let planeswalkers = self.eat_words(&["or", "planeswalkers"]);
-                let filter = self.filter()?;
+                // `each creature ...`: "Each creature that's ... can't
+                // attack you" (wording).
+                let each = self.eat_word("each");
+                let mut filter = self.filter()?;
+                filter.each |= each;
                 self.end_stmt()?;
                 Ok(Ability::CantAttackYou {
                     filter,
@@ -17537,6 +17541,17 @@ impl P {
                 "this" if !matches!(self.word_at(1).as_deref(), Some("turn" | "way")) => {
                     f.relation = Relation::This;
                     self.pos += 1;
+                }
+                // "creatures you control that are enchanted by Auras you
+                // control" (Archon of the Wild Rose).
+                "enchanted"
+                    if self.at_words(&["enchanted", "by", "aura", "you", "control"])
+                        && f.status.enchanted.is_none() =>
+                {
+                    f.status.enchanted = Some(true);
+                    f.status.aura_yours = true;
+                    f.enchanted_late = true;
+                    self.pos += 5;
                 }
                 "enchanted" if self.at_words(&["enchanted", "player", "controls"]) => {
                     f.enchanted_player = true;

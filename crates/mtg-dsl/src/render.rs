@@ -3928,6 +3928,11 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if f.status.enchanted == Some(true) && f.enchanted_late {
         that(&mut s, " that's enchanted", " that are enchanted");
+        // "enchanted by an Aura you control", "enchanted by Auras you
+        // control".
+        if f.status.aura_yours {
+            that(&mut s, " by an Aura you control", " by Auras you control");
+        }
     }
     if let Some(r) = f.combat_with {
         let this = this_ref(card);
@@ -18713,14 +18718,16 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
         }
     }
     // "Yuna and enchantment creatures you control have trample, lifelink,
-    // and ward {2}": one "have" for a group's keywords.
+    // and ward {2}": one "have" for a group's keywords. After a new base
+    // power and toughness the second "have" stays: "have base power and
+    // toughness 4/4 and have flying" (Archon of the Wild Rose).
     let mut prev_have = false;
     for part in &mut parts {
         let have = part.starts_with("have ") && !part.starts_with("have \"");
         if have && prev_have {
             *part = part["have ".len()..].to_string();
         }
-        prev_have = have;
+        prev_have = have && !part.starts_with("have base power and toughness ");
     }
     // "is a Golem creature with base power and toughness 5/4 in addition
     // to its other types" (Zoetic Glyph), "are Food artifacts in addition
@@ -22586,7 +22593,15 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             planeswalkers,
         } => format!(
             "{} can't attack you{}.",
-            capitalize(&filter_phrase(filter, card, true)),
+            // "Each creature that's enchanted by an Aura you control can't
+            // attack you ..." (Eriette of the Charmed Apple).
+            if filter.each {
+                let mut g = filter.clone();
+                g.each = false;
+                format!("Each {}", filter_phrase(&g, card, false))
+            } else {
+                capitalize(&filter_phrase(filter, card, true))
+            },
             if *planeswalkers {
                 " or planeswalkers you control"
             } else {
