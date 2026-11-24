@@ -788,7 +788,10 @@ fn spend_rule(card: &Card, r: &crate::ast::ManaRestriction) -> String {
         .replace(" of the chosen type source", " source of the chosen type")
         // "an ability of a source of the chosen type" (Eclipsed Realms):
         // any source.
-        .replace("a permanent source of the chosen type", "a source of the chosen type")
+        .replace(
+            "a permanent source of the chosen type",
+            "a source of the chosen type",
+        )
 }
 
 /// The phrases of a restriction's other ways (`SpendWays`), in printed

@@ -15287,7 +15287,14 @@ impl GameState {
                 face_down,
                 separator,
                 opponent_chooses,
-            } => self.piles(ctx, *count, *reveal, *face_down, *separator, *opponent_chooses),
+            } => self.piles(
+                ctx,
+                *count,
+                *reveal,
+                *face_down,
+                *separator,
+                *opponent_chooses,
+            ),
             // CR 702.185a: the warped permanent is exiled; its owner may
             // cast it from exile on a later turn.
             // CR 601.3: "You may cast this card for as long as it remains
@@ -16042,7 +16049,14 @@ impl GameState {
             },
         };
         let n = self.eval_num(count, ctx) as usize;
-        let cards: Vec<ObjId> = self.player(me).library.iter().rev().take(n).copied().collect();
+        let cards: Vec<ObjId> = self
+            .player(me)
+            .library
+            .iter()
+            .rev()
+            .take(n)
+            .copied()
+            .collect();
         // The separator looks at them (CR 700.3: a pile is known to the
         // player who made it).
         let bits = 1u8 << separator.index().min(7);

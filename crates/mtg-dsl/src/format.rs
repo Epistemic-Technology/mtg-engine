@@ -3860,6 +3860,14 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     }
     if g == Filter::default() {
         format!("target card{named}{mv} from {whose}")
+    } else if let Some(c) = g.chosen
+        && (Filter {
+            chosen: None,
+            ..g.clone()
+        }) == Filter::default()
+    {
+        // `target of chosen type card`: no "permanent" for a card.
+        format!("target {} card{named}{mv} from {whose}", of_chosen(c))
     } else {
         format!("target {} card{named}{mv} from {whose}", filter(&g))
     }

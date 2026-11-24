@@ -1392,7 +1392,10 @@ pub enum ChoiceKind {
     CreatureTypeIn(Vec<String>),
     /// `number between 0 and 10`: "a number between 0 and 10", for the
     /// count `chosen number`.
-    Number { min: u8, max: u8 },
+    Number {
+        min: u8,
+        max: u8,
+    },
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

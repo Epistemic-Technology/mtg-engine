@@ -372,7 +372,7 @@ scenario "Deep Forest Hermit: Squirrels you control get +1/+1" {
 }
 
 scenario "Master Trinketeer: Servos and Thopters you control get +1/+1" {
-  battlefield A: "Master Trinketeer", "Servo", "Thopter", "Grizzly Bears"
+  battlefield A: "Master Trinketeer", "Servo", "1/1 colorless Thopter artifact creature with flying", "Grizzly Bears"
   start turn 1 A precombat_main
   run_to turn 1 postcombat_main
   assert power "Servo" 2

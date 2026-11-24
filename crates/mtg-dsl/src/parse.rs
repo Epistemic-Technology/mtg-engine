@@ -9532,9 +9532,7 @@ impl P {
             Some("up") => 3,
             _ => return false,
         };
-        (0..3).all(|i| {
-            self.word_at(skip + i).as_deref() == Some(["with", "chosen", "name"][i])
-        })
+        (0..3).all(|i| self.word_at(skip + i).as_deref() == Some(["with", "chosen", "name"][i]))
     }
 
     /// `exile up to 4 with chosen name from zones of <who>`
