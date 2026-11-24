@@ -5286,8 +5286,20 @@ fn token_description_plain(
         s.push_str(named);
     }
     if has_cda_pt {
-        // "create a white Avatar creature token. It has \"This token's
-        // power and toughness are each equal to your life total.\""
+        // "create a white Gnome Soldier artifact creature token with
+        // \"This token's power and toughness are each equal to ...\"";
+        // the older "create a white Avatar creature token. It has \"This
+        // token's power and toughness are each equal to your life
+        // total.\"" for a token whose definition says `cda noun` (the
+        // noun is always "This token's" in a token).
+        let it_has = token.abilities.iter().any(|a| {
+            matches!(a, Ability::Static { mods, .. }
+                if mods.iter().any(|m| matches!(m, Mod::CdaPt { noun: true, .. })))
+        });
+        if !it_has && bare.is_empty() && !quoted.is_empty() {
+            let _ = write!(s, " with \"{}\"", quoted.join("\" and \""));
+            return s;
+        }
         if !bare.is_empty() {
             let _ = write!(s, " with {}", list(&bare));
         }
@@ -16313,6 +16325,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 ctx,
                 next,
             );
+            // "Whenever you cast a permanent spell using mana produced by
+            // Tecutlan".
+            if *from == mtg_core::card::SpellFrom::ManaFromThis {
+                return format!("{base} using mana produced by {}", this_ref(ctx.card));
+            }
             format!("{base}{}", spell_from_text(*from))
         }
         Trigger::CastsFiltered { whose, filter, .. } => {
@@ -24056,5 +24073,6 @@ fn spell_from_text(from: mtg_core::card::SpellFrom) -> &'static str {
         SpellFrom::Exile => " from exile",
         SpellFrom::NotHand => " from anywhere other than your hand",
         SpellFrom::GraveyardOrExile => " from graveyards or from exile",
+        SpellFrom::ManaFromThis => " using mana produced by this",
     }
 }

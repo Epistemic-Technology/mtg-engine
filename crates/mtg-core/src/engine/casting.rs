@@ -8852,6 +8852,9 @@ impl GameState {
         want: crate::card::SpentUse,
     ) {
         let outer = self.spending.replace(crate::state::SpentMana::default());
+        if self.mana_from_watchers > 0 {
+            self.cast_sources.clear();
+        }
         let ps = self.player(p);
         let (pool, life) = (ps.mana_pool, ps.life);
         let mut sources = sources.clone();
@@ -8906,14 +8909,29 @@ impl GameState {
             }
         }
         self.pay_from(p, &r, &sources, None);
+        if self.mana_from_watchers > 0 {
+            for e in &mut self.cast_sources {
+                if slotmap::Key::is_null(&e.0) {
+                    e.0 = spell;
+                }
+            }
+        }
         let spent = std::mem::replace(&mut self.spending, outer).unwrap_or_default();
         self.spent_mana.push((spell, spent));
     }
 
-    /// `n` mana a Cave made while a spell whose text asks is paid for.
+    /// `n` mana permanent `id` made while a spell whose payment is
+    /// recorded is paid for: "mana from a Cave", and "using mana produced
+    /// by this" (`cast_sources`).
     #[cold]
-    fn note_cave_mana(&mut self, n: usize) {
-        if let Some(s) = &mut self.spending {
+    #[inline(never)]
+    fn note_spent_source(&mut self, id: ObjId, n: usize) {
+        if self.mana_from_watchers > 0 && !self.cast_sources.iter().any(|e| e.1 == id) {
+            self.cast_sources.push((ObjId::default(), id));
+        }
+        if self.is_cave(id)
+            && let Some(s) = &mut self.spending
+        {
             s.cave = s.cave.saturating_add(u8::try_from(n).unwrap_or(u8::MAX));
         }
     }
@@ -8950,8 +8968,8 @@ impl GameState {
             }
             self.tap(id);
             self.player_mut(p).mana_pool.add(mana);
-            if self.spending.is_some() && self.is_cave(id) {
-                self.note_cave_mana(1);
+            if self.spending.is_some() {
+                self.note_spent_source(id, 1);
             }
             if self.sacrifices_for_mana(id) {
                 if self.spending.is_some()
@@ -9152,8 +9170,8 @@ impl GameState {
             for &m in &act.mana {
                 self.player_mut(p).mana_pool.add(m);
             }
-            if self.spending.is_some() && self.is_cave(act.id) {
-                self.note_cave_mana(act.mana.len());
+            if self.spending.is_some() {
+                self.note_spent_source(act.id, act.mana.len());
             }
             // CR 106.11a: "Whenever you tap this creature for mana".
             if act.tap && made && self.mana_trigger_sources > 0 {

@@ -2469,6 +2469,16 @@ pub struct GameState {
     /// player may activate (`DefFlags::FOREIGN_ACTIVATED`): priority looks
     /// at other players' permanents only when there are any.
     pub foreign_activated_sources: u32,
+    /// Battlefield permanents with a cast trigger "using mana produced by
+    /// this" (`DefFlags::MANA_FROM_WATCH`): payment records its sources
+    /// only then.
+    pub mana_from_watchers: u32,
+    /// The permanents tapped for mana (or whose mana abilities were
+    /// activated) while the last spell whose payment was recorded was
+    /// paid for, with that spell (null while it is paid for); only while
+    /// `mana_from_watchers` is nonzero. "Whenever you cast a permanent
+    /// spell using mana produced by Tecutlan".
+    pub cast_sources: Vec<(ObjId, ObjId)>,
     /// Sagas with chapter abilities on the battlefield (CR 714): the
     /// precombat main phase and state-based actions look for them only
     /// when there are any.

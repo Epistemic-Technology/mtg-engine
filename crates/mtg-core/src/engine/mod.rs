@@ -295,6 +295,7 @@ impl Engine {
                 state.top_play_sources += u32::from(def.flags().has_top_play());
                 state.top_static_sources += u32::from(def.flags().has_top_static());
                 state.foreign_activated_sources += u32::from(def.flags().has_foreign_activated());
+                state.mana_from_watchers += u32::from(def.flags().watches_mana_from());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -670,6 +671,8 @@ impl GameState {
             grave_cast_spells: Vec::new(),
             starting_life: 20,
             foreign_activated_sources: 0,
+            mana_from_watchers: 0,
+            cast_sources: Vec::new(),
             saga_count: 0,
             player_static_sources: 0,
             mid: crate::state::MidDecision::default(),

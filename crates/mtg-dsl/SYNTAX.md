@@ -533,7 +533,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 
 | `whenever this is dealt damage` | (enrage) |
 | `whenever this deals damage`, `... deals damage to creature`, `... to player`, `... to opponent`, `... deals combat damage to creature` | the damaged creature is "that creature", the damaged player "that player"; `whenever this deals damage to Vampire`, `... to Goblin or Orc` (any filter): the damaged permanent, if it matches, is "that creature". On an Aura, the creature dealt damage by, or blocking or blocked by, the enchanted creature prints "the other creature" |
-| `whenever you cast artifact spell`, `whenever a player casts Goblin spell`, `whenever an opponent casts multicolored spell`, `whenever you cast multicolored instant or sorcery spell from your hand` | a cast trigger with any filter; `from your hand` only a spell cast from there (Lilah, Undefeated Slickshot) |
+| `whenever you cast artifact spell`, `whenever a player casts Goblin spell`, `whenever an opponent casts multicolored spell`, `whenever you cast multicolored instant or sorcery spell from your hand` | a cast trigger with any filter; `from your hand` only a spell cast from there (Lilah, Undefeated Slickshot); `using mana from this` ("Whenever you cast a permanent spell using mana produced by Tecutlan, ...", "... by Barracks of the Thousand"): payment tapped the trigger's source for mana to pay for the spell (mana it made earlier and left in the pool doesn't count). `permanent spell` is a spell that isn't an instant or sorcery (CR 110.4b). |
 | `whenever this becomes targeted first time each turn` | "Whenever this creature becomes the target of a spell or ability for the first time each turn": any controller's, once each turn; the spell or ability is `that spell` ("counter that spell or ability") |
 | `whenever this becomes targeted by opponent` | "... becomes the target of a spell or ability an opponent controls" (ward's trigger) |
 | `when enchanted creature becomes targeted by spell`, `whenever creature you control becomes targeted by spell`, `whenever permanent you control becomes targeted by opponent`, `... by opponent spell` | "When enchanted creature becomes the target of a spell" (a spell only, not an ability), "Whenever a permanent you control becomes the target of a spell or ability an opponent controls": any trigger subject; the targeted permanent is `that creature`, the spell's or ability's controller `that player` |
@@ -804,7 +804,7 @@ Counter kinds: `+1/+1`, `-1/-1`, the other power/toughness counters
 `spore`, `depletion`, `quest`, `ki`, `time`, `tide`, `shield`, `age`,
 `fade`, `ice`, `level`, `lore`, `page`, `arrowhead`, `javelin`, `polyp`,
 `healing`, `mining`, `scream`, `credit`, `brick`, `currency`, `sleep`,
-`net`, `flood`, `glyph`, `crystal`, `unlock`, `loot`, `supply`, `incubation`, `divinity`, `plan`, `storage`, `verse`, `soul`, `blood`, `slime`, `stash`, `ingenuity`, `blaze`, `aim`, `void`, `omen`, `memory`, `luck`, `hour`, `growth`, `fire`, `fate`, `devotion`, `collection`, `point`, `carrion`, `landmark`, `nest`, `bloodstain`, `invasion`, `skewer`, `revival`, `rev`, `impostor`, `fellowship`, `dream`, `dread`, `coin`, `chorus`, `blight` (none with rules of its own), `hone` (each hone counter on an Equipment gives the creature it is attached to +1/+0, layer 7c: Dwalin, Weaponmaster), `decayed` (a keyword counter, CR 122.1b), `finality` (CR
+`net`, `flood`, `glyph`, `crystal`, `unlock`, `loot`, `supply`, `incubation`, `divinity`, `plan`, `storage`, `verse`, `soul`, `blood`, `slime`, `stash`, `ingenuity`, `blaze`, `aim`, `void`, `omen`, `memory`, `luck`, `hour`, `growth`, `fire`, `fate`, `devotion`, `collection`, `point`, `carrion`, `landmark`, `nest`, `bloodstain`, `invasion`, `skewer`, `revival`, `rev`, `impostor`, `fellowship`, `dream`, `dread`, `coin`, `chorus`, `blight`, `bore` (none with rules of its own), `hone` (each hone counter on an Equipment gives the creature it is attached to +1/+0, layer 7c: Dwalin, Weaponmaster), `decayed` (a keyword counter, CR 122.1b), `finality` (CR
 122.1h: a permanent with one that would be put into a graveyard from the
 battlefield is exiled instead, so it doesn't die; `return target creature
 card from your graveyard to battlefield with 1 finality counter` prints
@@ -2188,7 +2188,10 @@ entered), `switch pt`,
 color-defining ability, CR 604.3, so the card is colorless in every zone,
 the stack included), `cda pt card types in graveyards +1`,
 `cda pt creature cards in graveyards +1`, `cda pt count Swamp you control`,
-`cda pt your life`, `cda pt domain`, `cda pt 2 hand` ("... each equal to
+`cda pt your life`, `cda pt domain`, (in a token, a quoted CDA prints "a
+white Gnome Soldier artifact creature token with \"This token's power and
+toughness are each equal to ...\""; `cda noun pt` the older "... creature
+token. It has \"This token's power ...\"", Ajani Goldmane's Avatar), `cda pt 2 hand` ("... each equal to
 twice the number of cards in your hand") (a power/toughness-defining ability,
 layer 7a, counting any count a static ability can (a count only a resolving effect has, such as `drawn this turn`, `greatest power ...`, `party`, or a target's or the triggering object's, is a compile error in a static ability: it would read 0): "~'s power and
 toughness are each equal to ..."; the count is judged from its controller

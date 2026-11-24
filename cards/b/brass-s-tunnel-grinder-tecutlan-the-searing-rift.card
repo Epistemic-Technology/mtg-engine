@@ -1,0 +1,13 @@
+card "Brass's Tunnel-Grinder // Tecutlan, the Searing Rift" {
+  oracle_id af1553eb-4f9f-4335-9078-56649bd8d8fc
+  layout transform
+  cost {2}{R}
+  type Legendary Artifact
+  triggered when this enters: discard any number cards chosen then draw count that many plus 1 discarded this way cards
+  triggered at beginning of your end step if descended this turn: put 1 bore counters on this; then if there are 3 or more bore counters on this, remove count where bore counters on this bore counters from this and transform this
+  face "Tecutlan, the Searing Rift" {
+    type Legendary Land — Cave
+    mana {R}
+    triggered whenever you cast permanent spell using mana from this: discover count where mana value of that spell
+  }
+}

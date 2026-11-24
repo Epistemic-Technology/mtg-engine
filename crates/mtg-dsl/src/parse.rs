@@ -17336,9 +17336,11 @@ impl P {
                     self.pos += 1;
                 }
                 // "a permanent card": not an instant or sorcery (CR
-                // 110.4a).
+                // 110.4a); "a permanent spell" likewise (CR 110.4b).
                 "permanent"
                     if (matches!(self.word_at(1).as_deref(), Some("card" | "cards"))
+                        || (f == Filter::default()
+                            && matches!(self.word_at(1).as_deref(), Some("spell" | "spells")))
                         || (self.card_filter && self.word_at(1).as_deref() == Some("with")))
                         && (f == Filter::default()
                             || (f.types.is_empty()
@@ -19596,9 +19598,14 @@ impl P {
                     filter.alt_article = true;
                 }
                 // "... spell from your hand" (Lilah, Undefeated Slickshot).
+                // "... spell using mana produced by Tecutlan".
                 let from =
                     if filter.targeting.is_none() && self.eat_words(&["from", "your", "hand"]) {
                         mtg_core::card::SpellFrom::Hand
+                    } else if filter.targeting.is_none()
+                        && self.eat_words(&["using", "mana", "from", "this"])
+                    {
+                        mtg_core::card::SpellFrom::ManaFromThis
                     } else {
                         mtg_core::card::SpellFrom::Anywhere
                     };

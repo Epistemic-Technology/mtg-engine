@@ -1,0 +1,13 @@
+card "Thousand Moons Smithy // Barracks of the Thousand" {
+  oracle_id 32af5f7b-a970-484a-9aff-226749551d32
+  layout transform
+  cost {2}{W}{W}
+  type Legendary Artifact
+  triggered when this enters: create 1 "Gnome Soldier"
+  triggered at beginning of your first main: you may tap 5 andor untapped artifact or creature you control chosen; if you do, transform this
+  face "Barracks of the Thousand" {
+    type Legendary Artifact Land
+    mana {W}
+    triggered whenever you cast artifact or creature spell using mana from this: create 1 "Gnome Soldier"
+  }
+}

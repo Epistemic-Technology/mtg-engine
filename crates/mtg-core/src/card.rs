@@ -4038,6 +4038,8 @@ pub enum CounterKind {
     Decayed,
     /// Zhao, the Moon Slayer.
     Conqueror,
+    /// Brass's Tunnel-Grinder.
+    Bore,
     /// Not a kind: "remove a counter from this creature" (a cost), counters
     /// of every kind. `GameObject::counters` totals them; removing them
     /// takes -1/-1 counters first, then kinds that don't change power or
@@ -4087,7 +4089,7 @@ pub struct CombatTax {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 91] = [
+    pub const NAMED: [(&'static str, CounterKind); 92] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -4179,6 +4181,7 @@ impl CounterKind {
         ("incarnation", CounterKind::Incarnation),
         ("decayed", CounterKind::Decayed),
         ("conqueror", CounterKind::Conqueror),
+        ("bore", CounterKind::Bore),
     ];
 
     /// Power/toughness counters by their Oracle name, with what each adds
@@ -10029,6 +10032,10 @@ pub enum SpellFrom {
     NotHand,
     /// "from graveyards or from exile" (Aven Interrupter).
     GraveyardOrExile,
+    /// A cast trigger's "using mana produced by Tecutlan": mana the
+    /// trigger's source was tapped for while the spell was paid for
+    /// (`GameState::cast_sources`).
+    ManaFromThis,
 }
 
 impl SpellFrom {
@@ -10042,6 +10049,8 @@ impl SpellFrom {
             SpellFrom::Exile => zone == Some(Zone::Exile),
             SpellFrom::NotHand => zone.is_some_and(|z| z != Zone::Hand),
             SpellFrom::GraveyardOrExile => matches!(zone, Some(Zone::Graveyard | Zone::Exile)),
+            // Judged by the trigger from the payment's sources.
+            SpellFrom::ManaFromThis => true,
         }
     }
 }
@@ -11363,6 +11372,10 @@ impl DefFlags {
     /// card of a library (`StaticCondition::TopCard`, `CountExpr::LibraryTop`):
     /// the characteristics cache then keys on the top cards.
     const TOP_STATIC: u64 = 1_073_741_824;
+    /// A cast trigger "using mana produced by this" (`SpellFrom::
+    /// ManaFromThis`): payment then records the permanents it taps
+    /// (`GameState::cast_sources`), and casts record what was spent.
+    const MANA_FROM_WATCH: u64 = 1 << 42;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u64 = DefFlags::MODIFIES_ENTERING;
 
@@ -11491,6 +11504,10 @@ impl DefFlags {
 
     pub const fn has_foreign_activated(self) -> bool {
         self.has(DefFlags::FOREIGN_ACTIVATED)
+    }
+
+    pub const fn watches_mana_from(self) -> bool {
+        self.has(DefFlags::MANA_FROM_WATCH)
     }
 
     pub const fn has_top_static(self) -> bool {
@@ -13193,9 +13210,16 @@ impl CardPool {
                 CountExpr::ThatSpellSpent | CountExpr::ThatSpellSpentColors
             )
         });
+        let mana_from = def.abilities.iter().any(|a| {
+            matches!(a, AbilityDef::Triggered(t) if matches!(t.trigger, TriggerSpec::CastsFiltered {
+                from: SpellFrom::ManaFromThis,
+                ..
+            }))
+        });
+        flags.set(DefFlags::MANA_FROM_WATCH, mana_from);
         flags.set(
             DefFlags::SPENT_WATCH,
-            reads_that || self.watches_spent(&def.abilities),
+            reads_that || mana_from || self.watches_spent(&def.abilities),
         );
         // "Enchanted creature ... can only attack alone" (Errantry): a
         // granted attack restriction counts its source in

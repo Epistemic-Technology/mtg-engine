@@ -6467,10 +6467,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 },
                 next
             ),
-            if *from == mtg_core::card::SpellFrom::Hand {
-                " from your hand"
-            } else {
-                ""
+            match from {
+                mtg_core::card::SpellFrom::Hand => " from your hand",
+                mtg_core::card::SpellFrom::ManaFromThis => " using mana from this",
+                _ => "",
             }
         ),
         Trigger::CastsFiltered {
@@ -9687,6 +9687,7 @@ fn spell_from(from: mtg_core::card::SpellFrom) -> &'static str {
         SpellFrom::Exile => " from exile",
         SpellFrom::NotHand => " from other than hand",
         SpellFrom::GraveyardOrExile => " from graveyards or exile",
+        SpellFrom::ManaFromThis => " using mana from this",
     }
 }
 
