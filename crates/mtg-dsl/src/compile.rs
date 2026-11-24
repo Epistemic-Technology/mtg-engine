@@ -3900,6 +3900,24 @@ impl Compiler<'_> {
                 any_type: *any_type,
             }),
             Effect::AddManaProduced => out.push(CoreEffect::AddManaProduced),
+            Effect::AddManaOneOfTimes { mana, count, each } => {
+                let mut colors = mtg_core::mana::ColorSet::COLORLESS;
+                for m in mana {
+                    if let Mana::Colored(c) = m {
+                        colors = colors.with(*c);
+                    }
+                }
+                let count = *count;
+                out.push(if *each {
+                    CoreEffect::AddManaCombination {
+                        count,
+                        colors,
+                        different: false,
+                    }
+                } else {
+                    CoreEffect::AddManaOneOfTimes { colors, count }
+                });
+            }
             Effect::AddManaColorsAmong(f) => out.push(CoreEffect::AddManaColorsAmong(self.filter(f))),
             Effect::AddManaCommander { rider } => {
                 out.push(CoreEffect::AddManaCommander { rider: *rider });

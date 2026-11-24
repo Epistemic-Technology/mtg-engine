@@ -730,6 +730,19 @@ impl GameState {
                 }
                 // CR 903.4f: no commander, no mana.
                 Effect::AddManaCommander { .. } => {}
+                Effect::AddManaOneOfTimes { colors, count } => {
+                    let n = self.eval_num(*count, ctx).min(MAX_OUT);
+                    let k = color_kinds(*colors);
+                    if n == 0 || k == 0 {
+                        continue;
+                    }
+                    if n > 1 && k.count_ones() > 1 && !set_tie(Tie::Same, &mut made.tie) {
+                        return None;
+                    }
+                    for _ in 0..n {
+                        made.out.push(k);
+                    }
+                }
                 Effect::AddManaColorsAmong(f) => {
                     for c in self.colors_among(ctx.controller, f, id).iter() {
                         made.out.push(1 << (c as u8));

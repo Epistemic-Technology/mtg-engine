@@ -5425,6 +5425,15 @@ pub enum Effect {
     AddManaCommander {
         rider: u8,
     },
+    /// `add {R} or {G} count each Raccoon you control` (`each`): "add {R}
+    /// or {G} for each Raccoon you control", each mana's color chosen;
+    /// `add x {G} or x {W} count where ...`: "Add X {G} or X {W}, where X
+    /// is ...", one color chosen for all of it.
+    AddManaOneOfTimes {
+        mana: Vec<Mana>,
+        count: Num,
+        each: bool,
+    },
     /// `add produced`: in a triggered mana ability, "add one mana of any
     /// type that land produced" (Mana Flare, CR 106.12): a kind of the mana
     /// the tapped permanent made.

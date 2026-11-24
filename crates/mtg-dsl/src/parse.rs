@@ -1835,6 +1835,29 @@ impl P {
             }
             return Ok(Effect::AddMana(vec![Mana::Any]));
         }
+        // `add x {G} or x {W} count where ...`: "Add X {G} or X {W}".
+        if self.at_word("x") && matches!(self.peek_at(1), Some(Tok::Sym(_))) {
+            let mut mana = Vec::new();
+            loop {
+                self.expect_word("x")?;
+                match self.mana_cost()?.symbols() {
+                    [mtg_core::mana::ManaSymbol::Colored(c)] => mana.push(Mana::Colored(*c)),
+                    _ => return self.unexpected("one colored mana symbol after `x`"),
+                }
+                if !self.eat_word("or") {
+                    break;
+                }
+            }
+            if mana.len() < 2 {
+                return self.unexpected("`or x {W}`");
+            }
+            let count = self.num()?;
+            return Ok(Effect::AddManaOneOfTimes {
+                mana,
+                count,
+                each: false,
+            });
+        }
         let x = self.at_word("x") && self.word_at(1).as_deref() == Some("mana");
         if x || matches!(self.peek(), Some(Tok::Num(_))) {
             let mut count = if x {
@@ -1947,6 +1970,15 @@ impl P {
                     [mtg_core::mana::ManaSymbol::Colorless] => out.push(Mana::Colorless),
                     _ => return self.unexpected("one mana symbol after `or`"),
                 }
+            }
+            // `add {R} or {G} count each Raccoon you control`.
+            if self.at_word("count") {
+                let count = self.num()?;
+                return Ok(Effect::AddManaOneOfTimes {
+                    mana: out,
+                    count,
+                    each: true,
+                });
             }
             return Ok(Effect::AddManaOneOf(out));
         }

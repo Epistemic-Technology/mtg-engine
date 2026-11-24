@@ -5042,6 +5042,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::DistributeCounters { count, .. }
         | Effect::AddManaTimes { count, .. }
         | Effect::AddManaCombination { count, .. }
+        | Effect::AddManaOneOfTimes { count, .. }
         | Effect::EmpowerJace { count }
         | Effect::Amass { count, .. }
         | Effect::Endure { count, .. }
@@ -6054,7 +6055,17 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             // "Add an amount of {G} equal to this creature's power."
             CountStyle::Equal if matches!(e, Effect::AddManaTimes { .. }) => {
-                c.text = c.text.replacen("add ", "add an amount of ", 1);
+                // "Choose a color. Add an amount of mana of that color
+                // equal to ..." (Three Tree City).
+                if matches!(e, Effect::AddManaTimes { mana: Mana::Any, .. }) {
+                    c.text = c.text.replacen(
+                        "add X mana of any one color",
+                        "choose a color. Add an amount of mana of that color",
+                        1,
+                    );
+                } else {
+                    c.text = c.text.replacen("add ", "add an amount of ", 1);
+                }
                 let what = match &count.expr {
                     crate::ast::CountExpr::SourcePower => {
                         format!("{}'s power", this_ref(ctx.card))
@@ -10586,6 +10597,24 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         // "That permanent" names the tapped permanent; the trigger's
         // sentence puts its kind in ("that land produced").
+        // "add {R} or {G} for each Raccoon you control"; "Add X {G} or X
+        // {W}, where X is ...".
+        Effect::AddManaOneOfTimes { mana, each, .. } => {
+            let syms: Vec<String> = mana.iter().map(|m| mana_symbols(&[*m], "")).collect();
+            let syms: Vec<String> = if *each {
+                syms
+            } else {
+                syms.iter().map(|s| format!("X {s}")).collect()
+            };
+            let joined = match syms.as_slice() {
+                [a, b] => format!("{a} or {b}"),
+                _ => {
+                    let (last, init) = syms.split_last().expect("two or more");
+                    format!("{}, or {last}", init.join(", "))
+                }
+            };
+            Clause::imperative(format!("add {joined}"))
+        }
         Effect::AddManaProduced => Clause::imperative(
             "add one mana of any type that permanent produced".to_string(),
         ),

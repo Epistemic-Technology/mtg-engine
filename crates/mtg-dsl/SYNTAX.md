@@ -2749,7 +2749,14 @@ permanents you control, add one mana of that color."; any filter:
 monocolored permanents you control ..."; payment uses it), `add {G} 6` ("Add six {G}.", Castle Garenbrig), `add {R} that much` ("add that much {R}", the triggering event's amount:
 "Whenever Raphael is dealt damage, add that much {R}"), `add any 2` ("Add
 two mana of any one color."; `add any count where power`: "Add X mana of
-any one color, where X is this creature's power.", the color chosen once; `add any 2 and any 2 other`: "Add two mana of any one color and two mana of any other color.", a color chosen, then another),
+any one color, where X is this creature's power.", the color chosen once;
+`add any count equal creature you control of chosen type`: "Choose a
+color. Add an amount of mana of that color equal to the number of
+creatures you control of the chosen type."; `add {R} or {G} count each
+Raccoon you control`: "add {R} or {G} for each Raccoon you control", each
+mana's color chosen as it is added; `add x {G} or x {W} count where other
+creature you control`: "Add X {G} or X {W}, where X is the number of other
+creatures you control.", one of the colors chosen for all of it; `add any 2 and any 2 other`: "Add two mana of any one color and two mana of any other color.", a color chosen, then another),
 `add 2 mana
 any combination` / `add 3 mana any combination of {R}{G}` / `add 2 mana
 different colors` ("Add two mana in any combination of colors.", "Add

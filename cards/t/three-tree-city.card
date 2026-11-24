@@ -1,0 +1,7 @@
+card "Three Tree City" {
+  oracle_id da3b17a2-e1e1-44e9-b9b1-ae54a92037db
+  type Legendary Land
+  as this enters choose creature type
+  mana {C}
+  activated {2}, {T}: add any count equal creature you control of chosen type
+}

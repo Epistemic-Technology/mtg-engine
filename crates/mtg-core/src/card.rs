@@ -4759,6 +4759,12 @@ pub enum Effect {
         colors: ColorSet,
         different: bool,
     },
+    /// "Add X {G} or X {W}, where X is ...": `count` mana of one of
+    /// `colors`, chosen once.
+    AddManaOneOfTimes {
+        colors: crate::mana::ColorSet,
+        count: Num,
+    },
     /// "Add two mana of any one color and two mana of any other color":
     /// `.0` mana of a color chosen, then `.0` of another color chosen.
     AddManaTwoColors(u8),
@@ -6287,6 +6293,7 @@ impl Effect {
             | Effect::AddManaLandCould { .. }
             | Effect::AddManaProduced
             | Effect::AddManaColorsAmong(_)
+            | Effect::AddManaOneOfTimes { .. }
             | Effect::AddManaCommander { .. } => true,
             Effect::Instead { base, alt, .. } => base.iter().chain(alt).any(Effect::adds_mana),
             Effect::SpendOnly { effects, .. } | Effect::SpendRider { effects, .. } => {
@@ -6361,6 +6368,7 @@ impl Effect {
                 | Effect::AddManaTimes { .. }
                 | Effect::AddManaTwoColors(_)
                 | Effect::AddManaCombination { .. }
+                | Effect::AddManaOneOfTimes { .. }
                 | Effect::AddManaLandCould { .. }
                 | Effect::KeepMana(_)
                 | Effect::SpendOnly { .. }

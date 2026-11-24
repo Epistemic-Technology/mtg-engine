@@ -2700,6 +2700,18 @@ impl Fmt {
             },
             Effect::AddManaTwoColors(n) => format!("add any {n} and any {n} other"),
             Effect::AddManaProduced => "add produced".to_string(),
+            Effect::AddManaOneOfTimes { mana, count, each } => {
+                let syms: Vec<String> = mana
+                    .iter()
+                    .map(|m| crate::render::mana_symbols(&[*m], "any"))
+                    .collect();
+                if *each {
+                    format!("add {} {}", syms.join(" or "), num(*count))
+                } else {
+                    let xs: Vec<String> = syms.iter().map(|s| format!("x {s}")).collect();
+                    format!("add {} {}", xs.join(" or "), num(*count))
+                }
+            }
             Effect::AddManaColorsAmong(f) => format!("add each color among {}", filter(f)),
             Effect::AddManaLandCould {
                 whose,

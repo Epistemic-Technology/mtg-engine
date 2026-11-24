@@ -12155,6 +12155,28 @@ impl GameState {
                 }
                 self.bump();
             }
+            Effect::AddManaOneOfTimes { colors, count } => {
+                // One color chosen, then that much of it.
+                let p = ctx.controller;
+                let n = self.eval_num(*count, ctx).min(1000);
+                let options: Vec<Choice> = colors.iter().map(Choice::Color).collect();
+                let c = match options.len() {
+                    0 => None,
+                    1 => options.first().cloned(),
+                    k => {
+                        let i = self.choose_mid(p, DecisionKind::ChooseColor, options.clone());
+                        options.get(i.min(k - 1)).cloned()
+                    }
+                };
+                if let Some(Choice::Color(c)) = c
+                    && n > 0
+                {
+                    for _ in 0..n {
+                        self.player_mut(p).mana_pool.add(Mana::Colored(c));
+                    }
+                    self.bump();
+                }
+            }
             Effect::Surveil { count } => {
                 self.scry_or_surveil(ctx.controller, self.eval_num(*count, ctx), true);
             }
