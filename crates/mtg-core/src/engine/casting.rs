@@ -2700,6 +2700,75 @@ impl GameState {
 
     /// "If a creature card was exiled this way" (CR 608.2c): what the
     /// resolution, or the costs paid for it, did.
+    /// Whether an `Effect::IfCondition`'s condition holds as it resolves.
+    fn if_condition_holds(&self, ctx: &EffectCtx, cond: u16) -> bool {
+        let c = self.pool.condition(cond).clone();
+        // CR 701.38: "If death gets more votes", the tally of this
+        // resolution's vote.
+        match c {
+            crate::card::StaticCondition::MoreVotes { index, ties } => match &ctx.chosen {
+                Chosen::Votes(v) => {
+                    let mine = v.get(usize::from(index)).copied().unwrap_or(0);
+                    let best = v
+                        .iter()
+                        .enumerate()
+                        .filter(|(i, _)| *i != usize::from(index))
+                        .map(|(_, n)| *n)
+                        .max()
+                        .unwrap_or(0);
+                    mine > best || (ties && mine == best)
+                }
+                _ => false,
+            },
+            // "If X is 10 or more": the resolution's X (CR 107.3).
+            crate::card::StaticCondition::XIs { n, at_least } => {
+                if at_least {
+                    ctx.x >= n
+                } else {
+                    ctx.x <= n
+                }
+            }
+            // "Then if that player has more cards in hand than
+            // you": the player the ability triggered for, else the
+            // spell's targeted player.
+            _ => {
+                let that = ctx.trigger_player.or_else(|| {
+                    ctx.targets.iter().find_map(|t| match t {
+                        Target::Player(p) => Some(*p),
+                        Target::Object(_) => None,
+                    })
+                });
+                self.condition_about(&c, ctx.controller, ctx.source, ctx.trigger_obj, that)
+            }
+        }
+    }
+
+    /// Whether an `Effect::Instead` or `Effect::IfAny` check holds as it
+    /// resolves (CR 608.2c).
+    fn effect_cond_holds(&self, ctx: &EffectCtx, cond: &EffectCond) -> bool {
+        match cond {
+            EffectCond::Kicked => self.was_kicked(ctx.source),
+            EffectCond::Static(i) => match self.pool.condition(*i) {
+                // "If X is 10 or more, instead ...": the
+                // resolution's X (CR 107.3).
+                crate::card::StaticCondition::XIs { n, at_least } => {
+                    if *at_least {
+                        ctx.x >= *n
+                    } else {
+                        ctx.x <= *n
+                    }
+                }
+                c => {
+                    let c = c.clone();
+                    self.condition_for(&c, ctx.controller, ctx.source, ctx.trigger_obj)
+                }
+            },
+            EffectCond::Target { n, filter } => self.nth_target_matches(ctx, *n, filter),
+            EffectCond::ThisWay(c) => self.this_way_holds(ctx, c),
+            EffectCond::Did => ctx.did,
+        }
+    }
+
     pub(super) fn this_way_holds(&self, ctx: &EffectCtx, cond: &crate::card::ThisWayCond) -> bool {
         // "If you didn't put a card into your hand this way" (no filter,
         // negated): nothing moved so.
@@ -15267,45 +15336,7 @@ impl GameState {
                 }
             }
             Effect::IfCondition(cond, inner) => {
-                let c = self.pool.condition(*cond).clone();
-                // CR 701.38: "If death gets more votes", the tally of this
-                // resolution's vote.
-                let holds = match c {
-                    crate::card::StaticCondition::MoreVotes { index, ties } => match &ctx.chosen {
-                        Chosen::Votes(v) => {
-                            let mine = v.get(usize::from(index)).copied().unwrap_or(0);
-                            let best = v
-                                .iter()
-                                .enumerate()
-                                .filter(|(i, _)| *i != usize::from(index))
-                                .map(|(_, n)| *n)
-                                .max()
-                                .unwrap_or(0);
-                            mine > best || (ties && mine == best)
-                        }
-                        _ => false,
-                    },
-                    // "If X is 10 or more": the resolution's X (CR 107.3).
-                    crate::card::StaticCondition::XIs { n, at_least } => {
-                        if at_least {
-                            ctx.x >= n
-                        } else {
-                            ctx.x <= n
-                        }
-                    }
-                    // "Then if that player has more cards in hand than
-                    // you": the player the ability triggered for, else the
-                    // spell's targeted player.
-                    _ => {
-                        let that = ctx.trigger_player.or_else(|| {
-                            ctx.targets.iter().find_map(|t| match t {
-                                Target::Player(p) => Some(*p),
-                                Target::Object(_) => None,
-                            })
-                        });
-                        self.condition_about(&c, ctx.controller, ctx.source, ctx.trigger_obj, that)
-                    }
-                };
+                let holds = self.if_condition_holds(ctx, *cond);
                 if holds {
                     // For an "Otherwise" after it; optional actions inside
                     // set it again.
@@ -15328,6 +15359,19 @@ impl GameState {
             }
             Effect::IfExcessDamage(then) => {
                 if self.this_way.as_ref().is_some_and(|l| l.excess > 0) {
+                    for e in then {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+            }
+            Effect::IfAny { conds, then } => {
+                let holds = conds.iter().any(|c| match c {
+                    EffectCond::Static(i) => self.if_condition_holds(ctx, *i),
+                    c => self.effect_cond_holds(ctx, c),
+                });
+                // For an "Otherwise" after it.
+                ctx.did = holds;
+                if holds {
                     for e in then {
                         self.apply_effect(ctx, e);
                     }
@@ -15465,26 +15509,7 @@ impl GameState {
             Effect::Instead { cond, base, alt } => {
                 // CR 608.2c: the later "instead" text modifies the earlier
                 // instruction; exactly one of them happens.
-                let holds = match cond {
-                    EffectCond::Kicked => self.was_kicked(ctx.source),
-                    EffectCond::Static(i) => match self.pool.condition(*i) {
-                        // "If X is 10 or more, instead ...": the
-                        // resolution's X (CR 107.3).
-                        crate::card::StaticCondition::XIs { n, at_least } => {
-                            if *at_least {
-                                ctx.x >= *n
-                            } else {
-                                ctx.x <= *n
-                            }
-                        }
-                        c => {
-                            let c = c.clone();
-                            self.condition_for(&c, ctx.controller, ctx.source, ctx.trigger_obj)
-                        }
-                    },
-                    EffectCond::Target { n, filter } => self.nth_target_matches(ctx, *n, filter),
-                    EffectCond::ThisWay(c) => self.this_way_holds(ctx, c),
-                };
+                let holds = self.effect_cond_holds(ctx, cond);
                 // "you may put it on top of its owner's library instead":
                 // declined, the earlier instruction happens.
                 if holds && let [Effect::YouMay(_)] = alt.as_slice() {

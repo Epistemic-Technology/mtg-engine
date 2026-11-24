@@ -1042,8 +1042,15 @@ impl Fmt {
             }
             Effect::DreadCardToHand => "dread card to hand".to_string(),
             Effect::ReduceSpeed { who } => format!("reduce speed of {}", self.recipient(*who, t)),
-            Effect::Behold { filter: f, n: 1 } => format!("behold {}", filter(f)),
-            Effect::Behold { filter: f, n } => format!("behold {n} {}", filter(f)),
+            Effect::Behold {
+                filter: f,
+                hand: true,
+                ..
+            } => format!("reveal {} card from hand", filter(f)),
+            Effect::Behold {
+                filter: f, n: 1, ..
+            } => format!("behold {}", filter(f)),
+            Effect::Behold { filter: f, n, .. } => format!("behold {n} {}", filter(f)),
             Effect::Blight(n) => format!("blight {n}"),
             Effect::CollectEvidence(n) => format!("collect evidence {n}"),
             Effect::Forage => "forage".to_string(),
@@ -3877,6 +3884,24 @@ impl Fmt {
             Effect::IfThisWay(c, inner) => {
                 format!("if {}, {}", this_way_cond(c), self.line(inner, t))
             }
+            Effect::PutDiscardedIt => "put it from graveyard onto battlefield tapped".to_string(),
+            // `either if A, if B, <sentence>`: written nested, A's sentence
+            // being B.
+            Effect::Either { conds, then, same } => {
+                let mut nested = conds[1].clone();
+                if let Some(b) = nested.either_body_mut() {
+                    b.clone_from(then);
+                }
+                let mut outer = conds[0].clone();
+                if let Some(b) = outer.either_body_mut() {
+                    *b = vec![crate::ast::Sentence::new(vec![nested])];
+                }
+                format!(
+                    "either {}{}",
+                    if *same { "same " } else { "" },
+                    self.effect(&outer, t)
+                )
+            }
             Effect::IfExcessDamage(inner, to_that) => format!(
                 "if excess damage dealt {}this way, {}",
                 if *to_that { "to that permanent " } else { "" },
@@ -4620,6 +4645,9 @@ fn this_way_cond(c: &crate::ast::ThisWayCond) -> String {
             format!("you put {what} into hand this way")
         }
         ThisWayWording::You => format!("you {verb} {what} this way"),
+        ThisWayWording::Returned => format!("you returned {what} to hand this way"),
+        ThisWayWording::Drew => "you drew cards this way".to_string(),
+        ThisWayWording::YouNow => format!("you discard {what} this way"),
         ThisWayWording::The(noun) => format!(
             "the {verb} {noun} {} {what}",
             if c.negated { "wasn't" } else { "was" }
@@ -7422,6 +7450,14 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "your turn".to_string(),
         StaticCond::NotYourTurn => "not your turn".to_string(),
         StaticCond::NotTheirTurn => "not their turn".to_string(),
+        StaticCond::TargetLife { life, cmp, .. } => format!(
+            "target player life {}",
+            match cmp {
+                mtg_core::card::Cmp::Exactly => format!("exactly {life}"),
+                mtg_core::card::Cmp::AtLeast => format!("{life} or more"),
+                _ => format!("{life} or less"),
+            }
+        ),
         StaticCond::AttackerIs { filter: f, you } => {
             format!(
                 "attacker {}{}",
@@ -7866,6 +7902,7 @@ fn static_cond(c: &StaticCond) -> String {
         }
         StaticCond::MoreCardsInHand => "more cards in hand than each opponent".to_string(),
         StaticCond::OwnCardInExile => "you own card in exile".to_string(),
+        StaticCond::OwnInExile(f) => format!("you own {} card in exile", filter(f)),
         StaticCond::ExiledWith(n) => format!("{n} cards exiled with this"),
         StaticCond::TypesExiledWith(n) => format!("{n} card types exiled with this"),
         StaticCond::Monarch => "you are monarch".to_string(),
@@ -8372,8 +8409,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     cmp,
                     less_than,
                     n,
+                    present,
                 }) => {
-                    let _ = write!(head, " if its {} was {}", its_stat_word(*stat), {
+                    let verb = if *present { "is" } else { "was" };
+                    let _ = write!(head, " if its {} {verb} {}", its_stat_word(*stat), {
                         if *less_than {
                             format!("less than {}", n + 1)
                         } else if *cmp == mtg_core::card::Cmp::AtLeast {

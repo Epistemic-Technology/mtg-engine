@@ -2455,6 +2455,10 @@ pub struct GameState {
     /// top card of a library (`DefFlags::TOP_STATIC`): the characteristics
     /// cache then keys on the library tops (`top_key`).
     pub top_static_sources: u32,
+    /// Permanents on the battlefield with a static ability reading the
+    /// cards their controller owns in exile (`DefFlags::EXILE_STATIC`):
+    /// moves into and out of exile then bump the characteristics cache.
+    pub exile_static_sources: u32,
     /// Permissions to play from the top of a library until end of turn
     /// (`Effect::TopPermission`), by player.
     pub top_grants: Vec<(PlayerId, crate::card::TopPlay)>,
@@ -5074,6 +5078,7 @@ impl GameState {
                 })
             }
             C::NotTheirTurn => that.is_some_and(|p| self.active_player != p),
+            C::ThatLife { n, cmp } => that.is_some_and(|p| cmp.holds(self.player(p).life, *n)),
             C::PlayerMoreHand(who) => self.hand_player_any(*who, you, source, that, |p| {
                 self.player(p).hand.len() > self.player(you).hand.len()
             }),
@@ -5308,6 +5313,7 @@ impl GameState {
             | C::ThatKicked
             | C::MoreVotes { .. }
             | C::NotTheirTurn
+            | C::ThatLife { .. }
             | C::TriggerIs(_) => false,
             C::NoManaSpent => self.spent_on(source).count(crate::card::SpentKind::Total) == 0,
             C::XIs { n, at_least } => {
@@ -5658,6 +5664,12 @@ impl GameState {
                 .players_in_game()
                 .any(|p| p != you && self.player(p).poison >= *n),
             C::OwnCardInExile => !self.player(you).exile.is_empty(),
+            C::OwnInExile(filter) => self.player(you).exile.iter().any(|id| {
+                let o = &self.objects[*id];
+                let c = self.base_characteristics(o);
+                filter.matches(*id, you, &c, None, Some(you))
+                    && Self::card_quals_ok(&filter.status, self.pool.get(o.def))
+            }),
             C::ExiledWith(n) => self.count_exiled_with(source, None, you) >= *n as usize,
             C::TypesExiledWith(n) => self.types_exiled_with(source) >= *n,
             C::Monarch => self.desig.monarch == Some(you),

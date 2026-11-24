@@ -7390,7 +7390,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*who);
             Clause::with_subject(*who, s, "manifests dread".to_string())
         }
-        Effect::Behold { filter, n } => {
+        Effect::Behold {
+            filter, hand: true, ..
+        } => Clause::imperative(format!(
+            "reveal {} from your hand",
+            card_filter_a(filter, ctx.card)
+        )),
+        Effect::Behold { filter, n, .. } => {
             let what = if *n == 1 {
                 filter_a(filter, ctx.card)
             } else {
@@ -11592,8 +11598,44 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 body.trim_end_matches('.')
             ))
         }
+        Effect::PutDiscardedIt => Clause::imperative(
+            "put it from your graveyard onto the battlefield tapped".to_string(),
+        ),
+        // "If that creature's power is 2 or less or if you control another
+        // Lizard, ...": each check rendered as its own conditional with no
+        // sentence, then joined.
+        Effect::Either { conds, then, same } => {
+            let mut parts = Vec::new();
+            for c in conds {
+                let t = clause_inner(c, ctx).text;
+                let t = t.trim_end();
+                let t = t.strip_suffix(',').unwrap_or(t);
+                parts.push(t.strip_prefix("if ").unwrap_or(t).to_string());
+            }
+            let joined = if *same {
+                let rest: Vec<String> = parts[1..]
+                    .iter()
+                    .map(|p| p.strip_prefix("you ").unwrap_or(p).to_string())
+                    .collect();
+                format!("{} or {}", parts[0], rest.join(" or "))
+            } else {
+                parts.join(" or if ")
+            };
+            let body = sentences(then, ctx);
+            let body = if starts_with_name(&body, ctx.card) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
+            Clause::imperative(format!("if {joined}, {}", body.trim_end_matches('.')))
+        }
         Effect::IfThisWay(cond, inner) => {
             let player = cond.verb == mtg_core::card::ThisWay::DamagedPlayer;
+            // "If you discard a creature card this way, this creature deals
+            // damage ...": a card the condition names makes "it" another.
+            if cond.wording == crate::ast::ThisWayWording::YouNow {
+                ctx.source_mentioned = false;
+            }
             let cond = this_way_text(cond, ctx.card);
             let mut body = sentences(inner, ctx);
             // "If a player is dealt damage this way, they discard a card."
@@ -13200,6 +13242,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "If the gift was promised, Blooming Blast also deals ...": a
             // gift names the spell again (CR 702.174).
             let kicked = *c == StaticCond::Kicked && !has_gift(ctx.card);
+            // "If target player has exactly 10 life, ... that player": the
+            // target named in the condition.
+            if let StaticCond::TargetLife { n, .. } = c
+                && let Some(m) = ctx.target_mentioned.get_mut(*n)
+            {
+                *m = true;
+            }
             // "If this spell was kicked, those creatures also gain trample".
             let cond = if kicked {
                 format!("this {} was kicked", kicked_noun(ctx.card))
@@ -14622,6 +14671,9 @@ fn this_way_text(c: &crate::ast::ThisWayCond, card: &Card) -> String {
             format!("you put {what} into your hand this way")
         }
         ThisWayWording::You => format!("you {verb} {what} this way"),
+        ThisWayWording::Returned => format!("you returned {what} to your hand this way"),
+        ThisWayWording::Drew => "you draw one or more cards this way".to_string(),
+        ThisWayWording::YouNow => format!("you discard {what} this way"),
         ThisWayWording::The(noun) => {
             let pred = match (&c.filter, c.card) {
                 // "If the sacrificed creature was legendary".
@@ -19416,6 +19468,14 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "it's your turn".to_string(),
         StaticCond::NotYourTurn => "it's not your turn".to_string(),
         StaticCond::NotTheirTurn => "it's not their turn".to_string(),
+        StaticCond::TargetLife { life, cmp, .. } => format!(
+            "target player has {}",
+            match cmp {
+                mtg_core::card::Cmp::Exactly => format!("exactly {life} life"),
+                mtg_core::card::Cmp::AtLeast => format!("{life} or more life"),
+                _ => format!("{life} or less life"),
+            }
+        ),
         StaticCond::AttackerIs { filter, you } => format!(
             "{} is attacking{}",
             with_article(&filter_phrase(filter, card, false)),
@@ -20441,6 +20501,21 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("an opponent has {} poison counters", or_more(*n))
         }
         StaticCond::OwnCardInExile => "you own a card in exile".to_string(),
+        // "you own a card in exile that has an Adventure" (Howling
+        // Galefang).
+        StaticCond::OwnInExile(f)
+            if *f
+                == (Filter {
+                    status: mtg_core::card::StatusQuals {
+                        adventure: true,
+                        ..Default::default()
+                    },
+                    ..Filter::default()
+                }) =>
+        {
+            "you own a card in exile that has an Adventure".to_string()
+        }
+        StaticCond::OwnInExile(f) => format!("you own {} in exile", card_filter_a(f, card)),
         StaticCond::ExiledWith(n) => format!(
             "there are {} cards exiled with {}",
             or_more(*n),
@@ -21165,12 +21240,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     cmp,
                     less_than,
                     n,
+                    present,
                 }) => {
                     let word = crate::format::its_stat_word(*stat);
+                    let verb = if *present { "is" } else { "was" };
                     let _ = if *less_than {
-                        write!(out, ", if its {word} was less than {}", n + 1)
+                        write!(out, ", if its {word} {verb} less than {}", n + 1)
                     } else {
-                        write!(out, ", if its {word} was {n}{}", cmp_words(*cmp))
+                        write!(out, ", if its {word} {verb} {n}{}", cmp_words(*cmp))
                     };
                 }
                 // An ∞ ability: the label says it.

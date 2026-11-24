@@ -1,0 +1,7 @@
+card "Armored Kincaller" {
+  oracle_id 6aad6906-96ec-4994-bfc3-9a76f893bc8c
+  cost {2}{G}
+  type Creature — Dinosaur
+  pt 3/3
+  triggered whenever this enters: you may reveal Dinosaur card from hand; either if you do, if you control other Dinosaur, you gain 3 life
+}

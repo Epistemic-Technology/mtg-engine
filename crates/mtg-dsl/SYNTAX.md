@@ -579,7 +579,7 @@ end of turn".
 deal ..." and `you may each Ally creature you control gets +1/+0` "you may
 have Ally creatures you control get +1/+0 ...".
 
-Conditions (intervening "if", CR 603.4): `if its toughness was less than 1` (also `power`, `mana value`, and `was N or less` / `was N or greater`: the triggering object as it is or last existed, "Whenever a creature an opponent controls dies, if its toughness was less than 1, ..."), `if its power or toughness greater than this` (evolve's check, printed "if its power is greater than this creature's power or its toughness is greater than this creature's toughness"), `if it wasn't blocking` and `if it was blocking` (in a dies trigger, as it last existed), `if this is untapped`, `if
+Conditions (intervening "if", CR 603.4): `if its toughness was less than 1` (also `power`, `mana value`, and `was N or less` / `was N or greater`: the triggering object as it is or last existed, "Whenever a creature an opponent controls dies, if its toughness was less than 1, ..."; `is` for one still there, `if its power is 2 or less`, "Whenever enchanted creature attacks, if its power is 2 or less, ..."), `if its power or toughness greater than this` (evolve's check, printed "if its power is greater than this creature's power or its toughness is greater than this creature's toughness"), `if it wasn't blocking` and `if it was blocking` (in a dies trigger, as it last existed), `if this is untapped`, `if
 this is tapped` ("if this creature is tapped"),
 `if no creatures are on the battlefield`, `if kicked` ("if it was kicked",
 CR 702.33c, for a permanent with `kicker`), `if it had no -1/-1 counters`
@@ -612,7 +612,10 @@ and `controlled Mount as cast` ("you controlled a Mount as you cast this
 spell"), both judged as the spell is cast and remembered by it, `attacking`,
 `enchanted`, `equipped` ("it's attacking", or "this creature is
 attacking" when the subject is something else), `opponent life 10 or
-less` ("an opponent has 10 or less life"), `your life 30 or more`,
+less` ("an opponent has 10 or less life"), `target player life exactly
+10` (after `if` in a spell: "If target player has exactly 10 life, ...
+that player", declaring the target; `... life 10 or less`, `... life 10
+or more`; judged as it resolves, not in a static ability), `your life 30 or more`,
 `life above starting` ("your life total is greater than your starting
 life total", CR 103.4: 20 here; the game's own in a configured game),
 `x 10 or more` and `x 2 or less` ("X is 10 or more", CR 107.3: in a spell
@@ -754,7 +757,10 @@ this turn"), `not cast from hand this turn` ("you haven't cast a
 spell from your hand this turn": a spell cast from a graveyard or exile
 doesn't count), `more cards in hand than each
 opponent`, `opponent poisoned` ("an opponent is poisoned"), `opponent poison
-3 or more`, `you own card in exile`, `3 cards exiled with this` ("there
+3 or more`, `you own card in exile`, `you own adventurer card in exile`
+("you own a card in exile that has an Adventure": by its printed
+characteristics; in a static ability, judged again as cards enter or
+leave exile), `3 cards exiled with this` ("there
 are three or more cards exiled with this creature", CR 607.2a), `4 card
 types exiled with this` ("there are four or more card types among cards
 exiled with this creature"), `total power 8 or more` ("creatures you
@@ -1706,7 +1712,9 @@ with the card's behold filter: the behold cost was paid. Behold is also
 an effect: `you may behold Dragon; if you do, create 1 "Treasure"` ("you
 may behold a Dragon. If you do, create a Treasure token."; `behold 2
 Elf`, "behold two Elves"): with too few matching permanents and cards in
-hand nothing happens and `if you do` sees that. `enters tapped unless
+hand nothing happens and `if you do` sees that. `you may reveal Dinosaur
+card from hand; if you do, ...` ("you may reveal a Dinosaur card from your
+hand. If you do, ...") is the same from the hand only. `enters tapped unless
 behold Jace` prints "As this land enters, you may behold a Jace. If you
 don't, this land enters tapped." (a Jace card in hand or a Jace it
 controls).
@@ -4306,12 +4314,31 @@ is destroyed this way"), `if land card is discarded this way, ...`, `if
 Saproling was sacrificed this way, ...`, `if you discarded card this way,
 ...` (cards you owned), `if you put Town card into hand this way, ...`,
 `if you put no cards into hand this way, ...` ("If you put no cards into
-your hand this way", Nashi), `if Dragon is damaged this way, ...` ("If a
+your hand this way", Nashi), `if you returned Squirrel card to hand this
+way, ...` ("If you returned a Squirrel card to your hand this way"), `if
+you drew cards this way, ...` ("If you draw one or more cards this way":
+cards put into your hand, Transcendent Archaic), `if you discard land card
+this way, put it from graveyard onto battlefield tapped` ("If you discard
+a land card this way, put it from your graveyard onto the battlefield
+tapped.": the present tense, and the card discarded this way if it is
+still in the graveyard, Silvan Reveler),
+`if Dragon is damaged this way, ...` ("If a
 Dragon is dealt damage this way": a permanent the resolution dealt damage
 to, as it is or last existed, The Black Arrow) and `if player is damaged
 this way, ...` ("If a player is dealt damage this way"; a target player
 acting in the sentence prints "they": "they discard a card", Sonic
 Shrieker).
+Two checks joined by "or": `either if that target 1 is with power 2 or
+less, if you control other Lizard, <sentence>` prints "If that creature's
+power is 2 or less or if you control another Lizard, ..." (Reptilian
+Recruiter), `either if you do, if you control other Dinosaur, ...` "If you
+do or if you control another Dinosaur, ..." (Armored Kincaller), and
+`either same if you control Squirrel, if you returned Squirrel card to hand
+this way, ...` "If you control a Squirrel or returned a Squirrel card to
+your hand this way, ..." (the subject said once; the second check a "this
+way" one). Each check is a target check, a condition, `if you do`, or a
+"this way" check; the sentence happens if any holds as it resolves, and an
+`otherwise` after it if none does.
 Verbs: `exiled`, `sacrificed`, `destroyed`, `discarded`, `milled`,
 `returned` (put into a hand), `shuffled` (put into a library), and in a
 count only `revealed` (parley: `each player reveals top card; you create

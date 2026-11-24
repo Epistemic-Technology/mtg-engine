@@ -1,0 +1,8 @@
+card "Reptilian Recruiter" {
+  oracle_id a12a66b5-ea4a-4a58-b0f0-13152598b7e6
+  cost {3}{R}{R}
+  type Creature — Lizard Warrior
+  pt 4/2
+  keywords trample
+  triggered whenever this enters: choose target creature; either if that target 1 is with power 2 or less, if you control other Lizard, gain control of that target 1 until end of turn, untap target 1, and target 1 gains haste until end of turn
+}

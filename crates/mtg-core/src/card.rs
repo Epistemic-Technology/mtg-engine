@@ -3413,6 +3413,14 @@ pub enum StaticCondition {
     /// triggered for ("Whenever a player casts a spell, if it's not their
     /// turn, ...") or a spell's targeted player; false without one.
     NotTheirTurn,
+    /// "If target player has exactly 10 life": the life total of the
+    /// player the ability triggered for, else the resolving spell's first
+    /// targeted player, compared with `n` (judged by `condition_about`;
+    /// never in a static ability).
+    ThatLife {
+        n: i32,
+        cmp: Cmp,
+    },
     /// "if a Rat is attacking" (any attacking creature matching), "if a
     /// creature is attacking you" (`you`: attacking the controller, not a
     /// planeswalker or battle, CR 506.3). Judged as the effect happens or
@@ -3645,6 +3653,11 @@ pub enum StaticCondition {
     OpponentPoison(u32),
     /// "you own a card in exile".
     OwnCardInExile,
+    /// "as long as you own a card in exile that has an Adventure": one of
+    /// your cards in exile matches, by its printed characteristics. A
+    /// static ability with it bumps the characteristics cache as cards
+    /// enter or leave exile (`DefFlags::EXILE_STATIC`).
+    OwnInExile(ObjFilter),
     /// "there are three or more cards exiled with this creature" (CR
     /// 607.2a: what the source's abilities exiled, still in exile).
     ExiledWith(u32),
@@ -6826,6 +6839,14 @@ pub enum Effect {
     /// "If excess damage was dealt this way, [these]" (CR 120.4a): the
     /// resolution has dealt damage beyond lethal so far.
     IfExcessDamage(Vec<Effect>),
+    /// "If that creature's power is 2 or less or if you control another
+    /// Lizard, [these]", "If you do or if you control another Dinosaur":
+    /// any of the checks holds as the effect resolves (CR 608.2c). Sets the
+    /// resolution's `did`, for an "Otherwise" after it.
+    IfAny {
+        conds: Vec<EffectCond>,
+        then: Vec<Effect>,
+    },
     /// "you may tap two other untapped creatures you control", "return up
     /// to two lands you control to their owner's hand": the controller
     /// chooses `count` objects matching `filter` (up to `count` with
@@ -6941,6 +6962,7 @@ impl Effect {
                 | Effect::Otherwise(_)
                 | Effect::IfCondition(..)
                 | Effect::IfTarget { .. }
+                | Effect::IfAny { .. }
                 | Effect::IfCard { .. }
                 // "Choose one of them."
                 | Effect::ExilePlayable { choose: true, .. }
@@ -7100,6 +7122,9 @@ pub enum EffectCond {
     /// "If the sacrificed creature was legendary": what the spell or
     /// ability did, or paid, this way.
     ThisWay(ThisWayCond),
+    /// "If you do": the optional action before happened (the
+    /// resolution's `did`, CR 608.2c); only in `Effect::IfAny`.
+    Did,
 }
 
 /// What a resolving spell or ability did to objects "this way" (CR
@@ -10687,6 +10712,7 @@ impl AbilityDef {
             | Effect::IfCard { then: inner, .. }
             | Effect::IfThisWay { then: inner, .. }
             | Effect::IfExcessDamage(inner)
+            | Effect::IfAny { then: inner, .. }
             | Effect::OneOf(inner)
             | Effect::Lasting { effects: inner, .. }
             | Effect::UnlessPays { effects: inner, .. }
@@ -11455,6 +11481,10 @@ impl DefFlags {
     /// card of a library (`StaticCondition::TopCard`, `CountExpr::LibraryTop`):
     /// the characteristics cache then keys on the top cards.
     const TOP_STATIC: u64 = 1_073_741_824;
+    /// A static ability whose condition reads the cards its controller
+    /// owns in exile (`StaticCondition::OwnInExile`): a card entering or
+    /// leaving exile then bumps the characteristics cache.
+    const EXILE_STATIC: u64 = 1 << 38;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u64 = DefFlags::MODIFIES_ENTERING;
 
@@ -11587,6 +11617,10 @@ impl DefFlags {
 
     pub const fn has_top_static(self) -> bool {
         self.has(DefFlags::TOP_STATIC)
+    }
+
+    pub const fn has_exile_static(self) -> bool {
+        self.has(DefFlags::EXILE_STATIC)
     }
 
     /// Flags describing a list of abilities (and trigger keywords).
@@ -11723,6 +11757,13 @@ impl DefFlags {
                     a,
                     AbilityDef::PlayFromTop { .. } | AbilityDef::TopRevealed { .. }
                 )
+            }),
+        );
+        flags.set(
+            DefFlags::EXILE_STATIC,
+            abilities.iter().any(|a| {
+                matches!(a, AbilityDef::Static(sa)
+                    if matches!(sa.condition, Some(StaticCondition::OwnInExile(_))))
             }),
         );
         flags.set(

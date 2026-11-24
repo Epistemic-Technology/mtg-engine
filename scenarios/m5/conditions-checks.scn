@@ -1,0 +1,108 @@
+# Checks the language already had, on cards now added: "If a Werewolf is
+# dealt damage this way" (a permanent the resolution damaged) and a
+# trigger's "if its power is 2 or less" about the attacking enchanted
+# creature as it is (`if its power is ...`).
+
+scenario "Silver Bolt: a Werewolf dealt damage this way is destroyed" {
+  battlefield A: "Silver Bolt", 3 "Plains"
+  battlefield B: "Greater Werewolf"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Silver Bolt" targeting "Greater Werewolf"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Greater Werewolf"
+  assert graveyard A contains "Silver Bolt"
+}
+
+scenario "Silver Bolt: another creature is only dealt 3 damage" {
+  battlefield A: "Silver Bolt", 3 "Plains"
+  battlefield B: "Giant Spider"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Silver Bolt" targeting "Giant Spider"
+  run_to turn 1 begin_combat
+  assert battlefield B contains "Giant Spider"
+  assert damage "Giant Spider" 3
+}
+
+scenario "Writ of Passage: a power-2 attacker can't be blocked" {
+  battlefield A: "Grizzly Bears", "Writ of Passage" on "Grizzly Bears"
+  battlefield B: "Giant Spider"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Giant Spider"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Writ of Passage: a power-3 attacker can be blocked" {
+  battlefield A: "Hill Giant", "Writ of Passage" on "Hill Giant"
+  battlefield B: "Giant Spider"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Giant Spider"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+# "If you discard a land card this way, put it from your graveyard onto
+# the battlefield tapped" (`if you discard land card this way, put it
+# from graveyard onto battlefield tapped`).
+
+scenario "Silvan Reveler: a discarded land is put onto the battlefield tapped" {
+  battlefield A: 2 "Forest", 2 "Island"
+  hand A: "Silvan Reveler", "Shock"
+  library A: "Plains", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Silvan Reveler"
+  turn 1 precombat_main A: discard "Plains"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Plains"
+  assert tapped "Plains"
+  assert hand A contains "Shock"
+  assert graveyard A lacks "Plains"
+}
+
+scenario "Silvan Reveler: a discarded nonland card stays in the graveyard" {
+  battlefield A: 2 "Forest", 2 "Island"
+  hand A: "Silvan Reveler", "Plains"
+  library A: "Shock", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Silvan Reveler"
+  turn 1 precombat_main A: discard "Shock"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Shock"
+  assert hand A contains "Plains"
+  assert battlefield A lacks "Plains"
+}
+
+scenario "Cragganwick Cremator: a creature card discarded deals damage equal to its power" {
+  battlefield A: 4 "Mountain"
+  hand A: "Cragganwick Cremator", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cragganwick Cremator"
+  turn 1 A: trigger "Cragganwick Cremator" targeting player B
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Hill Giant"
+  assert life B 17
+}
+
+scenario "Cragganwick Cremator: a noncreature card discarded deals nothing" {
+  battlefield A: 4 "Mountain"
+  hand A: "Cragganwick Cremator", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cragganwick Cremator"
+  turn 1 A: trigger "Cragganwick Cremator" targeting player B
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Shock"
+  assert life B 20
+}
+
+scenario "Silvan Reveler: landfall returns it from the graveyard for {1}{G}{U}" {
+  battlefield A: 2 "Forest", "Island"
+  hand A: "Plains"
+  graveyard A: "Silvan Reveler"
+  start turn 1 A precombat_main
+  turn 1 A: play "Plains"
+  turn 1 A: accept "Silvan Reveler"
+  run_to turn 1 begin_combat
+  assert hand A contains "Silvan Reveler"
+}

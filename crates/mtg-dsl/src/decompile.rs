@@ -681,6 +681,11 @@ impl Decompiler<'_> {
             StaticCondition::YourTurn => StaticCond::YourTurn,
             StaticCondition::NotYourTurn => StaticCond::NotYourTurn,
             StaticCondition::NotTheirTurn => StaticCond::NotTheirTurn,
+            StaticCondition::ThatLife { n, cmp } => StaticCond::TargetLife {
+                n: 0,
+                life: *n,
+                cmp: *cmp,
+            },
             StaticCondition::Attacking { filter, you } => StaticCond::AttackerIs {
                 filter: self.filter(filter),
                 you: *you,
@@ -918,6 +923,7 @@ impl Decompiler<'_> {
             StaticCondition::MoreCardsInHand => StaticCond::MoreCardsInHand,
             StaticCondition::OpponentPoison(n) => StaticCond::OpponentPoison(*n),
             StaticCondition::OwnCardInExile => StaticCond::OwnCardInExile,
+            StaticCondition::OwnInExile(f) => StaticCond::OwnInExile(self.filter(f)),
             StaticCondition::ExiledWith(n) => StaticCond::ExiledWith(*n),
             StaticCondition::TypesExiledWith(n) => StaticCond::TypesExiledWith(*n),
             StaticCondition::Monarch => StaticCond::Monarch,
@@ -1035,6 +1041,9 @@ impl Decompiler<'_> {
                     }
                     mtg_core::card::EffectCond::ThisWay(c) => {
                         crate::ast::InsteadCond::ThisWay(self.this_way_cond(c))
+                    }
+                    mtg_core::card::EffectCond::Did => {
+                        unreachable!("`Did` is a check of `IfAny` only")
                     }
                 };
                 // A dig changed by a later sentence (`instead ... if`).
@@ -2096,6 +2105,7 @@ impl Decompiler<'_> {
             CoreEffect::Behold(b) => Effect::Behold {
                 filter: self.filter(&b.filter),
                 n: b.n,
+                hand: b.hand,
             },
             CoreEffect::Blight(n) => Effect::Blight(*n),
             CoreEffect::CollectEvidence(n) => Effect::CollectEvidence(*n),
@@ -2575,6 +2585,36 @@ impl Decompiler<'_> {
                 Effect::IfThisWay(self.this_way_cond(cond), self.sentences(then))
             }
             CoreEffect::IfExcessDamage(then) => Effect::IfExcessDamage(self.sentences(then), false),
+            CoreEffect::IfAny { conds, then } => Effect::Either {
+                conds: conds
+                    .iter()
+                    .map(|c| match c {
+                        mtg_core::card::EffectCond::Target { n, filter } => Effect::IfTarget(
+                            usize::from(*n),
+                            self.filter(filter),
+                            Vec::new(),
+                            crate::ast::TargetCheck {
+                                tense: crate::ast::TargetTense::ThatIs,
+                                ..crate::ast::TargetCheck::default()
+                            },
+                        ),
+                        mtg_core::card::EffectCond::Static(i) => Effect::IfCondition(
+                            self.static_cond(self.pool.condition(*i)),
+                            Vec::new(),
+                            crate::ast::IfWording::Lead,
+                        ),
+                        mtg_core::card::EffectCond::ThisWay(c) => {
+                            Effect::IfThisWay(self.this_way_cond(c), Vec::new())
+                        }
+                        mtg_core::card::EffectCond::Did => Effect::IfYouDo(Vec::new()),
+                        mtg_core::card::EffectCond::Kicked => {
+                            unreachable!("`either` compiles no kicker check")
+                        }
+                    })
+                    .collect(),
+                then: self.sentences(then),
+                same: false,
+            },
             CoreEffect::ChooseAct {
                 act,
                 filter,

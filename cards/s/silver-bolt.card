@@ -1,0 +1,6 @@
+card "Silver Bolt" {
+  oracle_id b29a0686-2246-47a9-974d-4425e8a5546c
+  cost {1}
+  type Artifact
+  activated {3}, {T}, sacrifice this: deal 3 damage to target creature; if Werewolf is damaged this way, destroy it
+}

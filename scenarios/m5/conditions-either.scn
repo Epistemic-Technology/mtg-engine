@@ -1,0 +1,129 @@
+# Checks joined by "or" (`either if A, if B, ...`): the sentence happens if
+# either holds as the effect resolves (CR 608.2c); a target check, a
+# condition, "If you do", and a "this way" check.
+
+scenario "Reptilian Recruiter: a power-2 creature is taken without another Lizard" {
+  battlefield A: 5 "Mountain"
+  hand A: "Reptilian Recruiter"
+  battlefield B: "Grizzly Bears" tapped
+  start turn 1 A precombat_main
+  turn 1 A: cast "Reptilian Recruiter"
+  turn 1 A: trigger "Reptilian Recruiter" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert untapped "Grizzly Bears"
+  assert has "Grizzly Bears" haste
+}
+
+scenario "Reptilian Recruiter: a power-3 creature is taken with another Lizard" {
+  battlefield A: 5 "Mountain", "Canal Monitor"
+  hand A: "Reptilian Recruiter"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Reptilian Recruiter"
+  turn 1 A: trigger "Reptilian Recruiter" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Hill Giant"
+  assert has "Hill Giant" haste
+}
+
+scenario "Reptilian Recruiter: neither holds: a power-3 creature stays" {
+  battlefield A: 5 "Mountain"
+  hand A: "Reptilian Recruiter"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Reptilian Recruiter"
+  turn 1 A: trigger "Reptilian Recruiter" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert battlefield B contains "Hill Giant"
+  assert battlefield A lacks "Hill Giant"
+}
+
+scenario "Reptilian Recruiter: control returns at end of turn" {
+  battlefield A: 5 "Mountain"
+  hand A: "Reptilian Recruiter"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Reptilian Recruiter"
+  turn 1 A: trigger "Reptilian Recruiter" targeting "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Armored Kincaller: revealing a Dinosaur gains 3 life" {
+  battlefield A: 3 "Forest"
+  hand A: "Armored Kincaller", "Ancient Brontodon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Armored Kincaller"
+  turn 1 A: accept "Armored Kincaller"
+  run_to turn 1 begin_combat
+  assert life A 23
+  assert known B "Ancient Brontodon"
+}
+
+scenario "Armored Kincaller: declined, with no other Dinosaur, nothing" {
+  battlefield A: 3 "Forest"
+  hand A: "Armored Kincaller", "Ancient Brontodon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Armored Kincaller"
+  turn 1 A: decline "Armored Kincaller"
+  run_to turn 1 begin_combat
+  assert life A 20
+  assert unknown B "Ancient Brontodon"
+}
+
+scenario "Armored Kincaller: no Dinosaur card to reveal, another Dinosaur in play" {
+  battlefield A: 3 "Forest", "Ancient Brontodon"
+  hand A: "Armored Kincaller"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Armored Kincaller"
+  turn 1 A: decline "Armored Kincaller"
+  run_to turn 1 begin_combat
+  assert life A 23
+}
+
+scenario "Armored Kincaller: accepting with no Dinosaur card reveals nothing and gains nothing" {
+  battlefield A: 3 "Forest"
+  hand A: "Armored Kincaller", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Armored Kincaller"
+  turn 1 A: accept "Armored Kincaller"
+  run_to turn 1 begin_combat
+  assert life A 20
+}
+
+scenario "Cache Grab: a Squirrel card returned makes a Food" {
+  battlefield A: 2 "Forest"
+  hand A: "Cache Grab"
+  library A: "Squirrel Mob", "Forest", "Island", "Plains", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cache Grab"
+  turn 1 A: choose "Squirrel Mob"
+  run_to turn 1 begin_combat
+  assert hand A contains "Squirrel Mob"
+  assert battlefield A contains 1 "Food"
+  assert graveyard A count 4
+}
+
+scenario "Cache Grab: another permanent card returned, no Squirrel: no Food" {
+  battlefield A: 2 "Forest"
+  hand A: "Cache Grab"
+  library A: "Squirrel Mob", "Forest", "Island", "Plains", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cache Grab"
+  turn 1 A: choose "Forest"
+  run_to turn 1 begin_combat
+  assert hand A contains "Forest"
+  assert battlefield A lacks "Food"
+}
+
+scenario "Cache Grab: controlling a Squirrel makes a Food" {
+  battlefield A: 2 "Forest", "Scurrid Colony"
+  hand A: "Cache Grab"
+  library A: "Island", "Forest", "Plains", "Swamp", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cache Grab"
+  turn 1 A: choose "Forest"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 1 "Food"
+}
