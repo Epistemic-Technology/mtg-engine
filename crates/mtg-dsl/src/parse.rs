@@ -6615,6 +6615,7 @@ impl P {
             return true;
         }
         if self.at_words(&["triggering", "card"])
+            || self.at_words(&["triggering", "it"])
             || self.at_words(&["controller", "of", "that", "creature"])
             || self.at_words(&["controller", "of", "enchanted"])
         {
