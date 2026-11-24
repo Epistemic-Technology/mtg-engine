@@ -14068,7 +14068,23 @@ impl GameState {
                     return;
                 }
                 for t in self.recipients(ctx, *what) {
-                    if let Some(id) = on_battlefield(self, t) {
+                    // A permanent, or (not "until") a card in a graveyard:
+                    // "Exile target creature card from your graveyard",
+                    // linked to a Saga's later chapters (The Cloning of
+                    // Shredder).
+                    let card = match t {
+                        Target::Object(id)
+                            if !*until
+                                && self
+                                    .objects
+                                    .get(id)
+                                    .is_some_and(|o| o.zone == Zone::Graveyard) =>
+                        {
+                            Some(id)
+                        }
+                        _ => None,
+                    };
+                    if let Some(id) = on_battlefield(self, t).or(card) {
                         let new = self.move_object(id, Zone::Exile, true);
                         ctx.created = Some(new);
                         if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {

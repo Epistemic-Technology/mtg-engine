@@ -705,6 +705,10 @@ pub struct Except {
     pub exactly: bool,
     /// `the token`: "except the token isn't legendary" (wording only).
     pub the_token: bool,
+    /// `and is`: "except it isn't legendary and is a Mutant in addition
+    /// to its other types" (The Cloning of Shredder), not "and it's"
+    /// (wording only).
+    pub and_is: bool,
 }
 
 /// What takes an activated ability's cost down (`reduced {1} each Town you
@@ -4179,6 +4183,11 @@ pub enum Recipient {
     /// If you do, create a token that's a copy of the exiled card", Nexus
     /// of Becoming); `exiled card` is a linked ability's (CR 607.2a).
     CreatedExiledCard,
+    /// `a card exiled with this`: the card the source's linked ability
+    /// exiled (the core `ExiledCard`, CR 607.2a), printed "a card exiled
+    /// with this Saga" ("Create a token that's a copy of a card exiled
+    /// with this Saga", The Cloning of Shredder).
+    ACardExiledWith,
     /// `each card exiled this way` (`each creature card exiled this
     /// way` when `.2`): the targets `.0` to `.0 + .1` (the core
     /// `Targets`), found in exile after the effect before it moved them;

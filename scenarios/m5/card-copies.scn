@@ -397,3 +397,23 @@ scenario "shifting woodland: without delirium it can't be activated" {
   run_to turn 1 postcombat_main
   assert battlefield A contains "Shifting Woodland"
 }
+
+scenario "the cloning of shredder: a nonlegendary Mutant copy in each chapter of the card chapter I exiled" {
+  battlefield A: 6 "Swamp"
+  graveyard A: "Isamaru, Hound of Konda", "Grizzly Bears"
+  hand A: "The Cloning of Shredder"
+  turn 1 A: cast "The Cloning of Shredder"
+  turn 1 A: trigger "The Cloning of Shredder" targeting "Isamaru, Hound of Konda"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Isamaru, Hound of Konda"
+  assert battlefield A contains 1 "Isamaru, Hound of Konda"
+  assert is A "Isamaru, Hound of Konda" Mutant
+  assert is A "Isamaru, Hound of Konda" Dog
+  assert is not A "Isamaru, Hound of Konda" legendary
+  run_to turn 3 postcombat_main
+  assert battlefield A contains 2 "Isamaru, Hound of Konda"
+  assert graveyard A contains "Grizzly Bears"
+  run_to turn 5 postcombat_main
+  assert battlefield A contains 3 "Isamaru, Hound of Konda"
+  assert graveyard A contains "The Cloning of Shredder"
+}

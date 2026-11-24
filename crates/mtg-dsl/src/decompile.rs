@@ -250,6 +250,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             legendary: x.legendary,
             exactly: x.exactly,
             the_token: false,
+            and_is: false,
         }),
         mismatch: None,
         line: 0,

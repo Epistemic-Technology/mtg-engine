@@ -3109,7 +3109,7 @@ impl Compiler<'_> {
             Recipient::Attached => CoreRecipient::Attached,
             Recipient::AttachedController => CoreRecipient::AttachedController,
             Recipient::BlockingIt => CoreRecipient::BlockingIt,
-            Recipient::ExiledCard => CoreRecipient::ExiledCard,
+            Recipient::ExiledCard | Recipient::ACardExiledWith => CoreRecipient::ExiledCard,
             Recipient::Granter => CoreRecipient::Granter,
             Recipient::Those(_) => CoreRecipient::ThoseObjects,
         }
@@ -8244,6 +8244,9 @@ fn link_exiles(def: &mut mtg_core::card::CardDef) {
                 e,
                 CoreEffect::ReturnToBattlefield {
                     what: CoreRecipient::ExiledCard,
+                    ..
+                } | CoreEffect::CreateTokenCopy {
+                    of: CoreRecipient::ExiledCard,
                     ..
                 }
             )

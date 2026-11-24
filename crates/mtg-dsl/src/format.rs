@@ -184,6 +184,9 @@ fn format_inner(card: &Card) -> String {
         if x.the_token {
             out.push_str("    the token\n");
         }
+        if x.and_is {
+            out.push_str("    and is\n");
+        }
         if x.not_legendary && x.its_not {
             out.push_str("    its not legendary\n");
         } else if x.not_legendary {
@@ -441,6 +444,7 @@ impl Fmt {
             Recipient::CreatedThatLand => "that created land".to_string(),
             Recipient::CreatedThatCard => "that created card".to_string(),
             Recipient::CreatedExiledCard => "that exiled card".to_string(),
+            Recipient::ACardExiledWith => "a card exiled with this".to_string(),
             Recipient::SameCard => "that card".to_string(),
             Recipient::SameThem => "them".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),

@@ -578,6 +578,10 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     (&["that", "created", "land"], Recipient::CreatedThatLand),
     (&["that", "created", "card"], Recipient::CreatedThatCard),
     (&["that", "exiled", "card"], Recipient::CreatedExiledCard),
+    (
+        &["a", "card", "exiled", "with", "this"],
+        Recipient::ACardExiledWith,
+    ),
     (&["manifested", "creature"], Recipient::Manifested),
     // "attach this Equipment to the amassed Army": amass's Army (CR
     // 701.47a), created or not.
@@ -1480,6 +1484,12 @@ impl P {
                         Some("exactly") => {
                             self.pos += 1;
                             except.exactly = true;
+                            self.end_stmt()?;
+                        }
+                        // "it isn't legendary and is a Mutant ...".
+                        Some("and") if self.word_at(1).as_deref() == Some("is") => {
+                            self.pos += 2;
+                            except.and_is = true;
                             self.end_stmt()?;
                         }
                         // "except the token isn't legendary".

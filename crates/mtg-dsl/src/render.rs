@@ -1976,6 +1976,7 @@ impl<'a> Ctx<'a> {
             Recipient::CreatedThatLand => "that land".to_string(),
             Recipient::CreatedThatCard => "that card".to_string(),
             Recipient::CreatedExiledCard => "the exiled card".to_string(),
+            Recipient::ACardExiledWith => format!("a card exiled with {}", this_ref(self.card)),
             Recipient::Group(i) => {
                 self.groups_mentioned.insert(r);
                 // "each creature and planeswalker they control": Oracle
@@ -4705,6 +4706,13 @@ fn except_text(card: &Card, current: Option<&Ability>) -> String {
     }
     if !has.is_empty() {
         parts.push(format!("it has {}", list(&has)));
+    }
+    // "it isn't legendary and is a Mutant in addition to its other types".
+    if x.and_is
+        && let Some(second) = parts.get_mut(1)
+        && let Some(rest) = second.strip_prefix("it's ")
+    {
+        *second = format!("is {rest}");
     }
     list(&parts)
 }
