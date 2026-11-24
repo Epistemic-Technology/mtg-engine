@@ -2454,7 +2454,15 @@ impl Decompiler<'_> {
                 at_random,
                 split,
                 until,
+                field,
             } => Effect::Dig {
+                field: field.map(|fd| {
+                    Box::new(crate::ast::DigField {
+                        cond: fd.cond.map(|c| self.static_cond(self.pool.condition(c))),
+                        max_mv: fd.max_mv.map(u32::from),
+                        haste: fd.haste,
+                    })
+                }),
                 take_num: *take_num,
                 total_mv: *total_mv,
                 until: *until,
@@ -2471,7 +2479,7 @@ impl Decompiler<'_> {
                 all: *all,
                 rest_graveyard: *rest_graveyard,
                 reveal_top: false,
-                revealing: *optional && onto.is_none(),
+                revealing: (*optional && onto.is_none()) || field.is_some(),
                 take: *take,
                 also: also.as_ref().map(|f| self.filter(f)),
                 random: *random,

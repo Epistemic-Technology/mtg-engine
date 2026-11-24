@@ -13315,6 +13315,34 @@ impl P {
                 let optional = self.eat_word("may");
                 let revealing = self.eat_word("revealing");
                 let that_card = revealing && self.eat_words(&["that", "card"]);
+                // `field if your turn`, `field with mana value 2 or less
+                // haste`: onto the battlefield instead, the controller
+                // choosing.
+                let field = if revealing && self.eat_word("field") {
+                    let cond = if self.eat_word("if") {
+                        Some(self.static_cond()?)
+                    } else {
+                        None
+                    };
+                    let max_mv = if self.eat_words(&["with", "mana", "value"]) {
+                        let n = self.number()?;
+                        self.expect_words(&["or", "less"])?;
+                        Some(n)
+                    } else {
+                        None
+                    };
+                    let haste = self.eat_word("haste");
+                    if cond.is_none() && max_mv.is_none() {
+                        return self.fail("a dig's `field` needs `if <condition>` or a mana value");
+                    }
+                    Some(Box::new(crate::ast::DigField {
+                        cond,
+                        max_mv,
+                        haste,
+                    }))
+                } else {
+                    None
+                };
                 // `take card may top`: back on top of the library.
                 let top = self.eat_word("top");
                 // `onto battlefield [tapped]`: onto the battlefield instead
@@ -13427,6 +13455,7 @@ impl P {
                     among,
                     alt,
                     until,
+                    field,
                 })
             }
             "look" if self.at_words(&["at", "top", "card"]) => {

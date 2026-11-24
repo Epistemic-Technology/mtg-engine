@@ -5782,9 +5782,19 @@ impl Compiler<'_> {
                 split,
                 alt,
                 until,
+                field,
                 ..
             } => {
+                let field = field.as_ref().map(|fd| mtg_core::card::DigField {
+                    cond: fd.cond.as_ref().map(|c| {
+                        let c = self.static_cond(c);
+                        self.pool.intern_condition(c)
+                    }),
+                    max_mv: fd.max_mv.map(|m| u8::try_from(m).unwrap_or(u8::MAX)),
+                    haste: fd.haste,
+                });
                 let base = CoreEffect::Dig {
+                    field,
                     count: *count,
                     filter: filter.as_ref().map(|f| self.filter(f)),
                     optional: *optional,

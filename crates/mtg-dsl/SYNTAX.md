@@ -3492,7 +3492,18 @@ in a random order." (Michelangelo's Technique); `revealing` before `onto
 battlefield` prints "You may reveal a creature card ... from among them and
 put it onto the battlefield. Put the rest ..." (Loot, Exuberant Explorer:
 `take creature with mana value at most count equal land you control card
-may revealing onto battlefield`, the count as the dig happens), `dig 5 reveal take
+may revealing onto battlefield`, the count as the dig happens); `field
+...` after `revealing` lets the card revealed go onto the battlefield
+under your control instead of into the hand, the controller choosing
+(`accept`/`decline` in scenarios): `field if your turn` "You may reveal a
+creature card with mana value 3 or less from among them. You may put it
+onto the battlefield if it's your turn. If you don't put it onto the
+battlefield, put it into your hand." (Whiskervale Forerunner; any
+condition, judged as it would be put), `field with mana value 2 or less
+haste` "... If that card has mana value 2 or less, you may put it onto the
+battlefield and it gains haste until end of turn. If you didn't put the
+revealed card onto the battlefield this way, put it into your hand."
+(Break Out), `dig 5 reveal take
 land card onto battlefield rest graveyard` "Put a land card from among
 them onto the battlefield and the rest into your graveyard"; `permanent
 with mana value 5 or less` is a permanent card there; after a counted

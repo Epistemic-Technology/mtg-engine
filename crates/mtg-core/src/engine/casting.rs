@@ -17870,6 +17870,7 @@ impl GameState {
                 at_random,
                 split,
                 until,
+                field,
             } => {
                 let p = ctx.controller;
                 let n = self.eval_num(*count, ctx) as usize;
@@ -18034,6 +18035,50 @@ impl GameState {
                             },
                         );
                         ctx.created = Some(new);
+                    }
+                } else if let Some(fd) = field {
+                    // "You may put it onto the battlefield if it's your turn.
+                    // If you don't put it onto the battlefield, put it into
+                    // your hand." (CR 110.2a: under the controller's
+                    // control).
+                    for id in &taken {
+                        let mv = self.pool.get(self.objects[*id].def).mana_cost.mana_value();
+                        let ok = fd.max_mv.is_none_or(|m| mv <= u32::from(m))
+                            && fd.cond.is_none_or(|c| {
+                                let c = self.pool.condition(c).clone();
+                                self.condition_for(&c, p, ctx.source, ctx.trigger_obj)
+                            });
+                        let def = self.objects[*id].def;
+                        if ok
+                            && self.choose_mid(
+                                p,
+                                DecisionKind::YouMay { def },
+                                vec![Choice::Accept, Choice::Decline],
+                            ) == 0
+                        {
+                            let new = self.put_onto_battlefield_with(
+                                *id,
+                                p,
+                                super::replace::Enter::default(),
+                            );
+                            ctx.created = Some(new);
+                            if fd.haste
+                                && self
+                                    .objects
+                                    .get(new)
+                                    .is_some_and(|o| o.zone == Zone::Battlefield)
+                            {
+                                self.effect_until_end_of_turn(
+                                    ctx,
+                                    new,
+                                    smallvec::smallvec![Modification::AddKeywords(KeywordSet::of(
+                                        [Keyword::Haste]
+                                    ))],
+                                );
+                            }
+                        } else {
+                            self.move_object(*id, Zone::Hand, false);
+                        }
                     }
                 } else if !*back_on_top {
                     for id in &taken {

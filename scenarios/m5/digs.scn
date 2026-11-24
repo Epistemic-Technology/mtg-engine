@@ -4,8 +4,10 @@
 # mana value bound (Michelangelo's Technique, Lively Dirge), a revealed card
 # put onto the battlefield under a filter compared with a count (Loot,
 # Exuberant Explorer), each creature card milled this way put onto the
-# battlefield and returned at the next end step (Random Encounter), and
-# "reveal that many cards" (Ojer Kaslem).
+# battlefield and returned at the next end step (Random Encounter),
+# "reveal that many cards" (Ojer Kaslem), and a revealed card that may go
+# onto the battlefield instead of the hand (Whiskervale Forerunner, Break
+# Out).
 
 scenario "dig take X: Stargaze for X=2 looks at four, takes two, mills two, loses 2 life" {
   battlefield A: 4 "Swamp"
@@ -151,4 +153,66 @@ scenario "reveal that many: Ojer Kaslem puts a creature and a land from the card
   assert battlefield A contains "Plains"
   assert battlefield A lacks "Hill Giant"
   assert library A count 5
+}
+
+scenario "dig field: Whiskervale Forerunner on your turn puts the creature onto the battlefield" {
+  battlefield A: "Whiskervale Forerunner", "Forest"
+  hand A: "Giant Growth"
+  library A: "Hill Giant", "Grizzly Bears", "Plains", "Plains", "Plains", "Plains"
+  turn 1 A: cast "Giant Growth" targeting "Whiskervale Forerunner"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: accept "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A lacks "Grizzly Bears"
+  assert library A count 5
+}
+
+scenario "dig field: Whiskervale Forerunner, declined, puts it into the hand" {
+  battlefield A: "Whiskervale Forerunner", "Forest"
+  hand A: "Giant Growth"
+  library A: "Grizzly Bears", "Plains", "Plains", "Plains", "Plains"
+  turn 1 A: cast "Giant Growth" targeting "Whiskervale Forerunner"
+  turn 1 A: decline "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "dig field: Whiskervale Forerunner on an opponent's turn puts it into the hand" {
+  battlefield A: "Whiskervale Forerunner", "Forest"
+  hand A: "Giant Growth"
+  library A: "Grizzly Bears", "Plains", "Plains", "Plains", "Plains"
+  start turn 2 B
+  turn 2 A: cast "Giant Growth" targeting "Whiskervale Forerunner"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "dig field: Break Out puts a 2-drop onto the battlefield with haste" {
+  battlefield A: "Mountain", "Forest"
+  hand A: "Break Out"
+  library A: "Hill Giant", "Grizzly Bears", "Plains", "Plains", "Plains", "Plains", "Plains"
+  turn 1 A: cast "Break Out"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: accept "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert has "Grizzly Bears" haste
+  assert library A count 6
+  run_to turn 2 upkeep
+  assert has not "Grizzly Bears" haste
+}
+
+scenario "dig field: Break Out puts a larger creature into the hand" {
+  battlefield A: "Mountain", "Forest"
+  hand A: "Break Out"
+  library A: "Hill Giant", "Grizzly Bears", "Plains", "Plains", "Plains", "Plains", "Plains"
+  turn 1 A: cast "Break Out"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert battlefield A lacks "Hill Giant"
+  assert battlefield A lacks "Grizzly Bears"
 }

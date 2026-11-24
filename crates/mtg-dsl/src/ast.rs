@@ -3850,6 +3850,20 @@ pub struct DigAlt {
     pub rest: bool,
 }
 
+/// A dig's `field ...` after `revealing`: the card revealed may go onto
+/// the battlefield instead of into the hand. `field if your turn`: "You may
+/// put it onto the battlefield if it's your turn. If you don't put it onto
+/// the battlefield, put it into your hand." `field with mana value 2 or
+/// less haste`: "If that card has mana value 2 or less, you may put it onto
+/// the battlefield and it gains haste until end of turn. If you didn't put
+/// the revealed card onto the battlefield this way, put it into your hand."
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct DigField {
+    pub cond: Option<StaticCond>,
+    pub max_mv: Option<u32>,
+    pub haste: bool,
+}
+
 /// Where "instead" and the condition print.
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum InsteadWording {
@@ -6704,6 +6718,9 @@ pub enum Effect {
         /// of your library until you reveal two land cards." (the count is
         /// of cards matching the filter).
         until: bool,
+        /// `revealing field ...`: the revealed card may go onto the
+        /// battlefield instead.
+        field: Option<Box<DigField>>,
     },
     /// `look at top 3`: "look at the top three cards of your library, then
     /// put them back in any order"; `look at top 3 of target player`:

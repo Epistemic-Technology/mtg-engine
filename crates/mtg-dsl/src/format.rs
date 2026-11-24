@@ -1682,6 +1682,7 @@ impl Fmt {
                 among,
                 alt,
                 until,
+                field,
             } => {
                 let mut s = format!("dig {}", num(*count));
                 if *until {
@@ -1727,6 +1728,18 @@ impl Fmt {
                 }
                 if *that_card {
                     s.push_str(" that card");
+                }
+                if let Some(fd) = field {
+                    s.push_str(" field");
+                    if let Some(c) = &fd.cond {
+                        let _ = write!(s, " if {}", static_cond(c));
+                    }
+                    if let Some(m) = fd.max_mv {
+                        let _ = write!(s, " with mana value {m} or less");
+                    }
+                    if fd.haste {
+                        s.push_str(" haste");
+                    }
                 }
                 if *top {
                     s.push_str(" top");

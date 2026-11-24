@@ -8523,6 +8523,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             among,
             alt,
             until,
+            field,
         } => {
             // "Reveal cards from the top of your library until you reveal
             // two land cards. Put those land cards onto the battlefield
@@ -8666,6 +8667,37 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 "it"
             };
+            // "You may reveal a creature card ... from among them. You may
+            // put it onto the battlefield if it's your turn. If you don't put
+            // it onto the battlefield, put it into your hand." (Whiskervale
+            // Forerunner); "If that card has mana value 2 or less, you may
+            // put it onto the battlefield and it gains haste until end of
+            // turn. If you didn't put the revealed card onto the battlefield
+            // this way, put it into your hand." (Break Out).
+            if let (Some(fd), Some(w)) = (field, what.as_ref()) {
+                let choice = match (&fd.cond, fd.max_mv) {
+                    (Some(c), _) => format!(
+                        "You may put it onto the battlefield if {}. If you don't put it onto the \
+                         battlefield, put it into your hand",
+                        static_cond_text(c, ctx.card)
+                    ),
+                    (None, m) => format!(
+                        "If that card has mana value {} or less, you may put it onto the \
+                         battlefield{}. If you didn't put the revealed card onto the battlefield \
+                         this way, put it into your hand",
+                        m.unwrap_or(0),
+                        if fd.haste {
+                            " and it gains haste until end of turn"
+                        } else {
+                            ""
+                        }
+                    ),
+                };
+                return Clause::imperative(format!(
+                    "{head}. You may reveal {w} from among them. {choice}. Put {}",
+                    rest("the rest")
+                ));
+            }
             // "You may put one of those cards back on top of your library.
             // Put the rest into your graveyard."
             if *top {

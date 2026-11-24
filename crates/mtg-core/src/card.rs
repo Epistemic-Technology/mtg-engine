@@ -2744,6 +2744,20 @@ pub enum CardDest {
     LibraryBottom,
 }
 
+/// `Effect::Dig::field`: when a card taken may be put onto the battlefield
+/// under the controller's control instead of into the hand, the
+/// controller choosing (Whiskervale Forerunner, Break Out).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct DigField {
+    /// "if it's your turn": a pooled condition (`CardPool::condition`),
+    /// judged as the card would be put.
+    pub cond: Option<u16>,
+    /// "If that card has mana value 2 or less": its printed mana value.
+    pub max_mv: Option<u8>,
+    /// "and it gains haste until end of turn".
+    pub haste: bool,
+}
+
 /// Where `Effect::DigSplit` puts one of the cards looked at: its owner's
 /// hand, graveyard, the top or bottom of its library, or exile.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -6038,6 +6052,11 @@ pub enum Effect {
         /// library), revealed.
         #[serde(default)]
         until: bool,
+        /// "You may put it onto the battlefield if it's your turn. If you
+        /// don't put it onto the battlefield, put it into your hand.": each
+        /// card taken may go onto the battlefield instead of the hand.
+        #[serde(default)]
+        field: Option<DigField>,
     },
     /// "Look at the top three cards of your library. Put one of those cards
     /// into your hand, one on top of your library, and one on the bottom of
