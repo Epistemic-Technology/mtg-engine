@@ -3295,6 +3295,7 @@ impl Fmt {
             ),
             Effect::IfKicked(inner) => format!("if kicked, {}", self.line(inner, t)),
             Effect::KeepMana(inner) => format!("keep mana {}", self.line(inner, t)),
+            Effect::KeepRedManaThisTurn => "keep red mana this turn".to_string(),
             Effect::SpendRider {
                 inner,
                 spells,
@@ -8500,6 +8501,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     "first equip free during your turns".to_string()
                 }
                 K::LandsFromGraveyard => "you may play lands from your graveyard".to_string(),
+                K::KeepRedMana => "you don't lose unspent red mana".to_string(),
                 K::ChosenName(ban) => match ban {
                     mtg_core::card::NameBan::Cast => "spells with chosen name can't be cast",
                     mtg_core::card::NameBan::ActivateNonMana => {

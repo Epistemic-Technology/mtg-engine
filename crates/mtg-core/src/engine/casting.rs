@@ -16214,6 +16214,9 @@ impl GameState {
                 }
                 ps.turn_mana.colorless += after.colorless.saturating_sub(before.colorless);
             }
+            Effect::KeepRedManaThisTurn => {
+                self.player_mut(ctx.controller).keep_red_turn = true;
+            }
             Effect::Firebend(n) => {
                 let n = self.eval_num(*n, ctx);
                 let ps = self.player_mut(ctx.controller);

@@ -1653,6 +1653,7 @@ impl Decompiler<'_> {
             },
             CoreEffect::IfKicked(inner) => Effect::IfKicked(self.sentences(inner)),
             CoreEffect::KeepMana(inner) => Effect::KeepMana(self.sentences(inner)),
+            CoreEffect::KeepRedManaThisTurn => Effect::KeepRedManaThisTurn,
             CoreEffect::SpendRider {
                 effects,
                 spells,

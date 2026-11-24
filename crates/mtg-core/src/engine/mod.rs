@@ -594,6 +594,7 @@ impl GameState {
                     skip_combat_this_turn: 0,
                     combat_mana: 0,
                     turn_mana: crate::mana::ManaPool::default(),
+                    keep_red_turn: false,
                 })
                 .collect(),
             objects: SlotMap::with_key(),
@@ -3565,8 +3566,17 @@ impl GameState {
                 | Step::CombatDamage
         );
         let cleanup = self.step == Step::Cleanup;
-        for p in &mut self.players {
+        // "You don't lose unspent red mana as steps and phases end."
+        let mut keep_red: u64 = 0;
+        for i in 0..self.players.len().min(64) {
+            let p = PlayerId(u8::try_from(i).unwrap_or(0));
+            if (self.players[i].keep_red_turn && !cleanup) || self.keeps_red_mana(p) {
+                keep_red |= 1 << i;
+            }
+        }
+        for (i, p) in self.players.iter_mut().enumerate() {
             let red = crate::mana::Color::Red as usize;
+            let all_red = i < 64 && keep_red & (1 << i) != 0;
             let keep = if combat {
                 p.combat_mana.min(p.mana_pool.colored[red])
             } else {
@@ -3586,10 +3596,14 @@ impl GameState {
                 }
                 kept.colorless = p.turn_mana.colorless.min(p.mana_pool.colorless);
             }
+            let red_left = p.mana_pool.colored[red];
             p.mana_pool = kept;
             p.turn_mana = kept;
             p.combat_mana = keep;
             p.mana_pool.colored[red] += keep;
+            if all_red {
+                p.mana_pool.colored[red] = red_left;
+            }
         }
         // Restricted mana empties too (CR 500.4).
         self.restricted_pool.clear();
@@ -3703,6 +3717,7 @@ impl GameState {
             self.combats_this_turn = 0;
             for p in &mut self.players {
                 p.skip_combat_this_turn = 0;
+                p.keep_red_turn = false;
             }
             let cast = self.turn_log.tally[crate::card::TurnEvent::Cast as usize];
             self.spells_last_turn = cast.map(|n| u8::try_from(n).unwrap_or(u8::MAX));

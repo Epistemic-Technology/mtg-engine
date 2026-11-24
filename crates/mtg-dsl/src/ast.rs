@@ -5841,6 +5841,9 @@ pub enum Effect {
     /// `keep mana add {R}`: "Add {R}. Until end of turn, you don't lose
     /// this mana as steps and phases end."
     KeepMana(Vec<Sentence>),
+    /// `keep red mana this turn`: "Until end of turn, you don't lose
+    /// unspent red mana as steps and phases end."
+    KeepRedManaThisTurn,
     /// `add 2 mana any combination only to cast legendary spells`: "Add
     /// two mana in any combination of colors. Spend this mana only to
     /// cast legendary spells." (CR 106.6): the mana is restricted.

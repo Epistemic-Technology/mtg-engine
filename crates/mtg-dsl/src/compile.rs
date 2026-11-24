@@ -4463,6 +4463,7 @@ impl Compiler<'_> {
                     then,
                 });
             }
+            Effect::KeepRedManaThisTurn => out.push(CoreEffect::KeepRedManaThisTurn),
             Effect::KeepMana(inner) => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::KeepMana(effects));

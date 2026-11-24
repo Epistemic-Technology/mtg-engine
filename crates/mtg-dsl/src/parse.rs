@@ -2613,6 +2613,12 @@ impl P {
                 self.pos += 5;
                 self.player_static(mtg_core::card::PlayerStaticKind::CantLose)
             }
+            "you"
+                if self.at_words(&["you", "don't", "lose", "unspent", "red", "mana"]) =>
+            {
+                self.pos += 6;
+                self.player_static(mtg_core::card::PlayerStaticKind::KeepRedMana)
+            }
             "you" if self.at_words(&["you", "have", "shroud"]) => {
                 self.pos += 3;
                 self.player_static(mtg_core::card::PlayerStaticKind::Shroud)
@@ -7957,6 +7963,10 @@ impl P {
         }
         // "Add {R}. Until end of turn, you don't lose this mana as steps
         // and phases end."
+        if self.at_words(&["keep", "red", "mana", "this", "turn"]) {
+            self.pos += 5;
+            return Ok(Effect::KeepRedManaThisTurn);
+        }
         if self.at_words(&["keep", "mana"]) {
             self.pos += 2;
             let saved = self.subject.take();

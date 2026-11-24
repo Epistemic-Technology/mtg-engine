@@ -5825,6 +5825,10 @@ pub enum Effect {
     /// the controller's pool stays as steps end, until the cleanup step
     /// ends.
     KeepMana(Vec<Effect>),
+    /// "Until end of turn, you don't lose unspent red mana as steps and
+    /// phases end." (CR 500.4): the controller's red mana stays in their
+    /// pool as each step ends this turn, until the cleanup step.
+    KeepRedManaThisTurn,
     /// "[add mana]. Spend this mana only to cast creature spells." (CR
     /// 106.6): the mana these effects add goes into the controller's pool
     /// as restricted mana (`GameState::restricted_pool`), each unit
@@ -6787,6 +6791,10 @@ pub enum PlayerStaticKind {
     /// controller may play land cards from their graveyard, using their
     /// land plays.
     LandsFromGraveyard,
+    /// "You don't lose unspent red mana as steps and phases end." (CR
+    /// 500.4, 106.4): the controller's red mana stays in their pool as
+    /// each step and phase ends, cleanup included.
+    KeepRedMana,
     /// "Your opponents can't cast spells during your turn." (CR 101.2).
     OpponentsCantCastYourTurn,
     /// "You can't lose the game and your opponents can't win the game."

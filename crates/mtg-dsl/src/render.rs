@@ -12053,6 +12053,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 rule.trim_end_matches('.')
             ))
         }
+        Effect::KeepRedManaThisTurn => Clause::imperative(
+            "until end of turn, you don't lose unspent red mana as steps and phases end".to_string(),
+        ),
         Effect::KeepMana(inner) => {
             let body = sentences(inner, ctx);
             Clause::imperative(format!(
@@ -19963,6 +19966,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     }
                 ),
                 K::LandsFromGraveyard => "you may play lands from your graveyard".to_string(),
+                K::KeepRedMana => {
+                    "you don't lose unspent red mana as steps and phases end".to_string()
+                }
                 K::ChosenName(ban) => match ban {
                     mtg_core::card::NameBan::Cast => "spells with the chosen name can't be cast",
                     mtg_core::card::NameBan::ActivateNonMana => {
