@@ -7420,6 +7420,10 @@ pub enum Replacement {
     DrawTwo,
     /// The player wins the game instead.
     WinGame,
+    /// "If you would draw a card while your library has no cards in it,
+    /// skip that draw instead." (Living Conundrum, CR 614.10): the draw
+    /// doesn't happen.
+    SkipDraw,
     /// Enters tapped.
     EnterTapped,
     /// "This creature enters prepared." (CR 722.3a).

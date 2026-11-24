@@ -5341,6 +5341,9 @@ impl P {
         if self.eat_words(&["library", "empty"]) {
             return Ok(StaticCond::LibraryEmpty);
         }
+        if self.eat_words(&["no", "cards", "in", "library"]) {
+            return Ok(StaticCond::NoCardsInLibrary);
+        }
         if self.eat_words(&["opponent", "controls", "more", "creatures"]) {
             return Ok(StaticCond::OpponentHasMore(
                 mtg_core::card::MoreWhat::Creatures,
@@ -19218,6 +19221,10 @@ impl P {
             "win" => {
                 self.eat_words(&["the", "game"]);
                 Outcome::WinGame
+            }
+            "skip" => {
+                self.eat_words(&["that", "draw"]);
+                Outcome::SkipDraw
             }
             "tapped" => Outcome::EnterTapped,
             "with" => {

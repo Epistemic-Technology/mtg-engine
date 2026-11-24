@@ -2574,7 +2574,9 @@ impl Compiler<'_> {
                 at_most: *at_most,
             },
             StaticCond::PlayerMoreHand(w) => StaticCondition::PlayerMoreHand(*w),
-            StaticCond::LibraryEmpty => StaticCondition::LibraryEmpty,
+            StaticCond::LibraryEmpty | StaticCond::NoCardsInLibrary => {
+                StaticCondition::LibraryEmpty
+            }
             // CR 702.185: any player's.
             StaticCond::Void => StaticCondition::Or(
                 Box::new(StaticCondition::happened(

@@ -1472,6 +1472,10 @@ impl GameState {
                     Proposed::Draw { player }
                 ])
             }
+            (Replacement::SkipDraw, Proposed::Draw { .. }) => {
+                self.emit(Event::Replaced { by: c.def });
+                Outcome::Nothing
+            }
             (Replacement::WinGame, Proposed::Draw { player }) => {
                 self.emit(Event::Replaced { by: c.def });
                 self.win_game(player);

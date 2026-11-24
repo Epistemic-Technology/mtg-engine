@@ -3298,6 +3298,9 @@ pub enum StaticCond {
     PlayerMoreHand(mtg_core::card::HandPlayer),
     /// `library empty`: "your library has no cards in it".
     LibraryEmpty,
+    /// `no cards in library`: the same, printed "there are no cards in
+    /// your library" (Living Conundrum).
+    NoCardsInLibrary,
     /// `void`: "a nonland permanent left the battlefield this turn or a
     /// spell was warped this turn".
     Void,

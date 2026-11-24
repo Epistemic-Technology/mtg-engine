@@ -1710,7 +1710,7 @@ damage.".
 "The next time damage would be dealt to target creature this turn, destroy
 that creature instead." (a one-use replacement: the damage isn't dealt).
 Outcomes: `prevent`, `prevent next 4`, `double`, `plus one`, `exile`,
-`draw two`, `win`, `tapped`, `with 2 +1/+1 counters`, `regenerate`,
+`draw two`, `win`, `skip` (`replace you draw while your library has no cards in it: skip` prints "If you would draw a card while your library has no cards in it, skip that draw instead.", CR 614.10: the draw doesn't happen, so drawing from an empty library doesn't lose the game), `tapped`, `with 2 +1/+1 counters`, `regenerate`,
 `redirect to attached`, `umbra armor` (`replace destroy enchanted: umbra
 armor` prints "Umbra armor", CR 702.89a: if the enchanted permanent would
 be destroyed, all damage is removed from it and the Aura is destroyed

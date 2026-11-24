@@ -15265,6 +15265,9 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 Outcome::DrawTwo => {
                     format!("If {subj} would draw a card{cond}, draw two cards instead.")
                 }
+                Outcome::SkipDraw => {
+                    format!("If {subj} would draw a card{cond}, skip that draw instead.")
+                }
                 _ => format!("If {subj} would draw a card{cond}, something else happens instead."),
             }
         }
@@ -17244,6 +17247,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("{} has more cards in hand than you", hand_player_text(*w))
         }
         StaticCond::LibraryEmpty => "your library has no cards in it".to_string(),
+        StaticCond::NoCardsInLibrary => "there are no cards in your library".to_string(),
         StaticCond::OpponentHasMore(w) => match w {
             mtg_core::card::MoreWhat::Creatures => "an opponent controls more creatures than you",
             mtg_core::card::MoreWhat::Life => "an opponent has more life than you",

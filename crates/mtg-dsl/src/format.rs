@@ -4440,6 +4440,7 @@ fn outcome(o: &Outcome) -> String {
         Outcome::IntoLibrary { top: false } => "library bottom".to_string(),
         Outcome::Instead(_) => "exile".to_string(),
         Outcome::DrawTwo => "draw two".to_string(),
+        Outcome::SkipDraw => "skip".to_string(),
         Outcome::WinGame => "win".to_string(),
         Outcome::EnterTappedUnless(_)
         | Outcome::EnterTappedUnlessReveal { .. }
@@ -6799,6 +6800,7 @@ fn static_cond(c: &StaticCond) -> String {
             format!("{} more cards in hand than you", hand_player(*w))
         }
         StaticCond::LibraryEmpty => "library empty".to_string(),
+        StaticCond::NoCardsInLibrary => "no cards in library".to_string(),
         StaticCond::OpponentHasMore(w) => match w {
             mtg_core::card::MoreWhat::Creatures => "opponent controls more creatures",
             mtg_core::card::MoreWhat::Life => "opponent has more life",
