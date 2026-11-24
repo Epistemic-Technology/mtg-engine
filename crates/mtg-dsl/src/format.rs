@@ -5513,6 +5513,30 @@ fn modification(m: &Mod) -> String {
         Mod::SwitchPt => "switch pt".to_string(),
         Mod::ChosenColor => "set color chosen".to_string(),
         Mod::ProtectionFromChosen => "has protection from chosen color".to_string(),
+        Mod::ActivatedOf {
+            from,
+            word,
+            while_here,
+        } => {
+            use crate::ast::GroupWord;
+            let here = if *while_here {
+                " as long as on battlefield"
+            } else {
+                ""
+            };
+            let word = match word {
+                GroupWord::The => {
+                    return format!("has all activated abilities{here} of the exiled card");
+                }
+                GroupWord::Bare => "",
+                GroupWord::All => "all ",
+                GroupWord::Each => "each ",
+            };
+            format!(
+                "has all activated abilities{here} of {word}{}",
+                count_expr_text(from)
+            )
+        }
         Mod::CdaColors(cs) => {
             if cs.len() == 5 {
                 "cda color all".to_string()

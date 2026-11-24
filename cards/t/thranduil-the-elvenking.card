@@ -1,0 +1,8 @@
+card "Thranduil, the Elvenking" {
+  oracle_id 4a5f76e7-40be-4b06-9935-4a3b2672e1c2
+  cost {2}{B}{G}{U}
+  type Legendary Creature — Elf Noble
+  pt 5/6
+  static this: has all activated abilities of all graveyard Elf
+  triggered whenever another legendary Elf you control enters: draw 2 cards, then discard 1 card
+}

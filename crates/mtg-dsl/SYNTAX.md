@@ -1765,7 +1765,28 @@ as the layer applies), `cda power count Rat you control` ("~'s power is
 equal to the number of Rats you control"; the toughness is printed, `pt
 */1`), `cda toughness domain` ("~'s toughness is equal to ..."; `cda noun power
 ...` names the card's noun instead, "This creature's power is equal to
-...", "This Vehicle's power", where Oracle does), and `has ability { <ability line> }`: a quoted ability
+...", "This Vehicle's power", where Oracle does), `has all activated
+abilities of [all|each] <count>` (layer 6, CR 613.1f: the activated
+abilities, mana abilities included, of the objects the count counts;
+`all` and `each` are wording: "of all Elf cards in your graveyard",
+"of each other creature with a +1/+1 counter on it", and without either
+"of creatures you control ..."). The count is permanents (`creature you
+control not named this`: "creatures you control that don't have the
+same name as this creature"; their abilities as they have them,
+granted ones included, CR 613.8a), `graveyard Elf` ("Elf cards in your
+graveyard"), `all graveyards creature`, or `exiled with this creature
+card` ("creature cards exiled with it"); cards in a graveyard or in
+exile give their printed abilities, a land card the mana ability of
+each of its basic land types (CR 305.6), and abilities that work only
+from a hand or a graveyard (cycling, unearth) are left out. `has all
+activated abilities of the exiled card` is `exiled with this` printed
+"the exiled card" (Territory Forge); either makes what the card's
+abilities exile linked to it (CR 607.2a). `has all activated abilities
+as long as on battlefield of ...` prints "As long as this creature is on
+the battlefield, it has all activated abilities of ..." (Necrotic Ooze).
+A granted ability's counts are its own card's ("-X/-X, where X is the
+number of Elves you control" read for the permanent that has it), and a
+permanent holds at most eight abilities in all; and `has ability { <ability line> }`: a quoted ability
 granted in layer 6 ("Enchanted creature has \"{T}: This creature deals 1
 damage to any target.\""), written as its own ability line (`activated
 {T}: deal 1 damage to any target`), where `this` is the object that has

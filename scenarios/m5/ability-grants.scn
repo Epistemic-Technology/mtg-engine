@@ -1,0 +1,178 @@
+# "Has all activated abilities of ...": a static ability granting the
+# activated abilities of other objects (layer 6, CR 613.1f).
+
+scenario "Thranduil uses an Elf card's ability from the graveyard, its count read for Thranduil" {
+  battlefield A: "Thranduil, the Elvenking", 2 "Llanowar Elves"
+  graveyard A: "Lys Alana Scarblade"
+  hand A: "Llanowar Elves"
+  battlefield B: "Craw Wurm"
+  # "-X/-X, where X is the number of Elves you control": Thranduil and two
+  # Llanowar Elves.
+  turn 1 A: activate "Thranduil, the Elvenking" discarding "Llanowar Elves" targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert power "Craw Wurm" 3
+  assert toughness "Craw Wurm" 1
+  assert tapped "Thranduil, the Elvenking"
+  assert graveyard A contains "Llanowar Elves"
+}
+
+scenario "Thranduil's granted ability pumps Thranduil" {
+  battlefield A: "Thranduil, the Elvenking", 8 "Forest"
+  graveyard A: "Stonewood Invoker"
+  turn 1 A: activate "Thranduil, the Elvenking"
+  run_to turn 1 postcombat_main
+  assert power "Thranduil, the Elvenking" 10
+  assert toughness "Thranduil, the Elvenking" 11
+}
+
+scenario "Thranduil gets nothing from a non-Elf card or a graveyard-only ability" {
+  battlefield A: "Thranduil, the Elvenking", 8 "Forest"
+  graveyard A: "Prodigal Sorcerer", "Stoic Grove-Guide"
+  illegal turn 1 A: activate "Thranduil, the Elvenking" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Thranduil loses the ability when the Elf card leaves the graveyard" {
+  battlefield A: "Thranduil, the Elvenking", 8 "Forest"
+  graveyard A: "Stonewood Invoker"
+  battlefield B: "Scavenging Ooze", 2 "Forest"
+  turn 1 B: activate "Scavenging Ooze" targeting "Stonewood Invoker"
+  illegal turn 1 postcombat_main A: activate "Thranduil, the Elvenking"
+  run_to turn 1 end
+  assert exile A contains "Stonewood Invoker"
+  assert power "Thranduil, the Elvenking" 5
+}
+
+scenario "Marvin has the activated abilities of other creatures you control" {
+  battlefield A: "Marvin, Murderous Mimic", "Prodigal Sorcerer"
+  turn 1 A: activate "Marvin, Murderous Mimic" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert tapped "Marvin, Murderous Mimic"
+  assert untapped "Prodigal Sorcerer"
+}
+
+scenario "Marvin doesn't get an opponent's creature's abilities" {
+  battlefield A: "Marvin, Murderous Mimic"
+  battlefield B: "Prodigal Sorcerer"
+  illegal turn 1 A: activate "Marvin, Murderous Mimic" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Territory Forge has the exiled artifact's ability" {
+  battlefield A: 5 "Mountain", 3 "Plains"
+  hand A: "Territory Forge"
+  battlefield B: "Rod of Ruin"
+  turn 1 A: cast "Territory Forge"
+  turn 1 A: trigger "Territory Forge" targeting "Rod of Ruin"
+  turn 1 postcombat_main A: activate "Territory Forge" targeting player B
+  run_to turn 1 end
+  assert exile B contains "Rod of Ruin"
+  assert life B 19
+  assert tapped "Territory Forge"
+}
+
+scenario "Territory Forge taps for the mana of an exiled basic land" {
+  battlefield A: 5 "Mountain"
+  hand A: "Territory Forge", "Llanowar Elves"
+  battlefield B: "Forest"
+  turn 1 A: cast "Territory Forge"
+  turn 1 A: trigger "Territory Forge" targeting "Forest"
+  turn 1 postcombat_main A: cast "Llanowar Elves"
+  run_to turn 1 end
+  assert battlefield A contains "Llanowar Elves"
+  assert tapped "Territory Forge"
+}
+
+scenario "Patchwork Crawler exiles a creature card and has its ability" {
+  battlefield A: "Patchwork Crawler", 3 "Island"
+  graveyard A: "Prodigal Sorcerer"
+  turn 1 A: activate "Patchwork Crawler" targeting "Prodigal Sorcerer"
+  turn 1 A: wait
+  turn 1 A: activate "Patchwork Crawler" ability 2 targeting player B
+  run_to turn 1 postcombat_main
+  assert exile A contains "Prodigal Sorcerer"
+  assert counters "Patchwork Crawler" +1/+1 1
+  assert life B 19
+}
+
+scenario "Dark Impostor exiles a creature and has its ability" {
+  battlefield A: "Dark Impostor", 6 "Swamp"
+  battlefield B: "Prodigal Sorcerer"
+  turn 1 A: activate "Dark Impostor" targeting "Prodigal Sorcerer"
+  turn 1 A: wait
+  turn 1 A: activate "Dark Impostor" ability 2 targeting player B
+  run_to turn 1 postcombat_main
+  assert exile B contains "Prodigal Sorcerer"
+  assert power "Dark Impostor" 3
+  assert life B 19
+}
+
+scenario "Dark Impostor without an exiled card has one ability" {
+  battlefield A: "Dark Impostor", 6 "Swamp"
+  graveyard A: "Prodigal Sorcerer"
+  illegal turn 1 A: activate "Dark Impostor" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Myr Welder imprints an artifact card and has its ability" {
+  battlefield A: "Myr Welder", 3 "Plains"
+  graveyard B: "Rod of Ruin"
+  turn 1 A: activate "Myr Welder" targeting "Rod of Ruin"
+  turn 3 A: activate "Myr Welder" ability 2 targeting player B
+  run_to turn 3 postcombat_main
+  assert exile B contains "Rod of Ruin"
+  assert life B 19
+}
+
+scenario "Experiment Kraj gets the abilities of a creature once it has a +1/+1 counter" {
+  battlefield A: "Experiment Kraj", "Prodigal Sorcerer"
+  illegal turn 1 A: activate "Experiment Kraj" targeting player B
+  turn 1 postcombat_main A: activate "Experiment Kraj" targeting "Prodigal Sorcerer"
+  turn 3 A: activate "Experiment Kraj" ability 2 targeting player B
+  run_to turn 3 postcombat_main
+  assert counters "Prodigal Sorcerer" +1/+1 1
+  assert life B 19
+  assert untapped "Prodigal Sorcerer"
+}
+
+scenario "Necrotic Ooze has the abilities of creature cards in every graveyard" {
+  battlefield A: "Necrotic Ooze"
+  graveyard B: "Prodigal Sorcerer"
+  turn 1 A: activate "Necrotic Ooze" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "Mirran Safehouse taps for a basic land card's mana" {
+  battlefield A: "Mirran Safehouse"
+  graveyard B: "Forest"
+  hand A: "Llanowar Elves"
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Llanowar Elves"
+  assert tapped "Mirran Safehouse"
+}
+
+scenario "Mirran Safehouse without a land card makes no mana" {
+  battlefield A: "Mirran Safehouse"
+  graveyard B: "Grizzly Bears"
+  hand A: "Llanowar Elves"
+  illegal turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Llanowar Elves"
+}
+
+# CR 613.8a: Marvin's effect depends on the Aura's grant, whatever the
+# timestamps (Marvin's is earlier).
+scenario "Marvin has an ability another creature is granted later" {
+  battlefield A: "Marvin, Murderous Mimic", "Grizzly Bears", "Hermetic Study" on "Grizzly Bears"
+  turn 1 A: activate "Marvin, Murderous Mimic" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert tapped "Marvin, Murderous Mimic"
+  assert untapped "Grizzly Bears"
+}

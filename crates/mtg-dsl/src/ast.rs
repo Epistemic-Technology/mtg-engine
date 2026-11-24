@@ -3648,6 +3648,21 @@ pub enum TriggerObj {
     ThisOr(Filter),
 }
 
+/// The word before a group in "has all activated abilities of ...":
+/// wording only.
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum GroupWord {
+    /// "of creatures you control ..." (Marvin).
+    #[default]
+    Bare,
+    /// "of all Elf cards in your graveyard".
+    All,
+    /// "of each other creature with a +1/+1 counter on it".
+    Each,
+    /// "of the exiled card" (one card exiled with this, Territory Forge).
+    The,
+}
+
 #[derive(Clone, Eq, PartialEq, Debug)]
 #[allow(clippy::large_enum_variant)]
 pub enum Mod {
@@ -3717,6 +3732,19 @@ pub enum Mod {
     ChosenColor,
     /// `has protection from chosen color`.
     ProtectionFromChosen,
+    /// `has all activated abilities of [all|each] <count>`: "has all
+    /// activated abilities of all Elf cards in your graveyard" (layer 6):
+    /// those of the objects the count counts (permanents, cards in a
+    /// graveyard or all graveyards, cards exiled with this). `the exiled
+    /// card` is `exiled with this` printed "the exiled card".
+    /// `has all activated abilities as long as on battlefield of ...`
+    /// prints "As long as this creature is on the battlefield, it has
+    /// ..." (Necrotic Ooze; wording only).
+    ActivatedOf {
+        from: CountExpr,
+        word: GroupWord,
+        while_here: bool,
+    },
     /// `cda pt <count> [+N]`, `cda power <count>`, `cda toughness
     /// <count>`: a characteristic-defining ability (CR 604.3).
     CdaPt {

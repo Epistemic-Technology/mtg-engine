@@ -1,0 +1,6 @@
+card "Mirran Safehouse" {
+  oracle_id 08826de5-a2d7-4732-a5f7-f580507a7844
+  cost {3}
+  type Artifact
+  static this: has all activated abilities as long as on battlefield of all all graveyards land
+}

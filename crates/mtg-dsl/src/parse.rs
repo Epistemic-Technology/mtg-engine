@@ -16763,6 +16763,46 @@ impl P {
             "has" | "have" if self.granted_mechanic_ahead() => Ok(Mod::AddAbility(Box::new(
                 self.granted_mechanic()?.expect("checked"),
             ))),
+            "has" | "have" if self.at_words(&["all", "activated", "abilities"]) => {
+                use crate::ast::{CountExpr, GroupWord};
+                self.pos += 3;
+                let while_here = self.eat_words(&["as", "long", "as", "on", "battlefield"]);
+                self.expect_word("of")?;
+                if self.eat_words(&["the", "exiled", "card"]) {
+                    return Ok(Mod::ActivatedOf {
+                        from: CountExpr::ExiledWith(None),
+                        word: GroupWord::The,
+                        while_here,
+                    });
+                }
+                let word = if self.at_word("all") && !self.at_words(&["all", "graveyards"]) {
+                    self.pos += 1;
+                    GroupWord::All
+                } else if self.at_word("each") && !self.at_words(&["each", "graveyard"]) {
+                    self.pos += 1;
+                    GroupWord::Each
+                } else {
+                    GroupWord::Bare
+                };
+                let from = self.count_expr()?;
+                if !matches!(
+                    from,
+                    CountExpr::Permanents(_)
+                        | CountExpr::CardsInGraveyard(_)
+                        | CountExpr::CardsInGraveyards { each: false, .. }
+                        | CountExpr::ExiledWith(_)
+                ) {
+                    return self.fail(
+                        "`has all activated abilities of` takes permanents, `graveyard`, \
+                         `all graveyards`, or `exiled with this`",
+                    );
+                }
+                Ok(Mod::ActivatedOf {
+                    from,
+                    word,
+                    while_here,
+                })
+            }
             "has" | "have" if self.eat_words(&["protection", "from", "chosen", "color"]) => {
                 Ok(Mod::ProtectionFromChosen)
             }

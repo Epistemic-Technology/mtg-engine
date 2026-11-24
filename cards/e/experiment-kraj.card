@@ -1,0 +1,8 @@
+card "Experiment Kraj" {
+  oracle_id 93cfa771-067f-44ed-9e29-6caf698ee9aa
+  cost {2}{G}{G}{U}{U}
+  type Legendary Creature — Ooze Mutant
+  pt 4/6
+  static this: has all activated abilities of each other creature with +1/+1 counter on battlefield
+  activated {T}: put 1 +1/+1 counter on target creature
+}
