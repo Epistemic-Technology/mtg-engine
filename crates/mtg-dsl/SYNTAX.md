@@ -561,6 +561,9 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever an opponent searches their library`, `whenever a player searches their library`, `whenever you search your library` | "Whenever an opponent searches their library" (CR 701.19): once per search of a player's own library, whatever it finds (a search the player chose not to make, "you may search", is none); that player is `that player` |
 | `whenever you play a land`, `whenever you play a land or cast a spell`, `whenever you play a land from exile or cast a spell from exile` | "Whenever you play a land" (CR 305.1: as a land play, from the hand or wherever a permission allows; a land put onto the battlefield otherwise isn't played), `from exile` only one played from exile; `or cast a spell` is one ability with both events ("Whenever you play a land or cast a spell, draw a card.", The Endstone; the spell's `from exile` too, Ghost-Spider). The land is the triggering object. `a player plays`, `an opponent plays` likewise |
 | `whenever enchanted player is dealt damage`, `whenever you're dealt combat damage`, `whenever you're dealt damage` | "Whenever enchanted player is dealt damage, they lose half their life, rounded up." (a Curse, Grievous Wound: the player it enchants), "Whenever you're dealt combat damage" (the controller): once per damage event to that player, any source (`combat`: combat damage only); that player is `that player` ("they"), the damage `that much` |
+| `whenever you cast a spell you don't own` | "Whenever you cast a spell you don't own" (CR 108.3: an opponent's card cast from exile or wherever a permission allows; Nita, Vaan); the spell is `that spell` |
+| `whenever you untap one or more permanents during your untap step` | (CR 502.3) once for the permanents the controller untaps together in their own untap step, their number `that much` ("put that many time counters on The Millennium Calendar"); a permanent that stays tapped, or one untapped another way, doesn't count |
+| `whenever you cast creature with mana value equal to count equal power spell` | "Whenever you cast a creature spell with mana value equal to Jackal's power" (`at most`: "less than or equal to", also in `when next you cast ...` of a delayed trigger, Loki Laufeyson): the count is the source's as the spell is cast |
 | `whenever you attack with 2 or more Spider` | "Whenever you attack with two or more Spiders": once as you declare attackers if at least that many matching creatures attack (CR 508.1m); `with 3 or more creatures` is the unfiltered form |
 | `whenever this deals 4 or more damage` | "Whenever Spinneret and Spiderling deals 4 or more damage": one damage event of at least that much from the source (as it last existed, if it has left) to one creature, player, or other permanent; damage to different recipients at once doesn't add up. The recipient is `that creature` or `that player` |
 | `whenever counter put on creature you control`, `whenever one or more counters put on creature you control` | "Whenever a counter is put on a creature you control", "Whenever one or more counters are put on ...": counters of any kind put on a matching permanent, by anyone; once per instruction putting counters on it (the first form is the older wording, the same trigger) |
@@ -1529,6 +1532,10 @@ control of a permanent from you` triggers on each permanent its
 controller loses to an opponent, an "until end of turn" effect ending
 included (the permanent is the triggering object, the opponent the
 triggering player).
+`your life total becomes half starting` prints "your life total becomes
+half your starting life total, rounded up" (CR 119.5: the controller gains
+or loses the life needed; The Endstone). Numbers of 1,000 or more print
+grouped ("each opponent loses 1,000 life").
 `exchange life totals with target opponent` (CR 701.12c): each player
 gains or loses the life needed to reach the other's former total; a
 following `if you do,` prints "If you lost life this way, ..." and holds

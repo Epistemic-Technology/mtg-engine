@@ -4699,6 +4699,9 @@ impl Compiler<'_> {
                 to: r(*to),
             }),
             Effect::DoubleLife { who } => out.push(CoreEffect::DoubleLife { who: r(*who) }),
+            Effect::LifeBecomesHalfStarting { who } => {
+                out.push(CoreEffect::LifeBecomesHalfStarting { who: r(*who) });
+            }
             Effect::NoMaxHandSize { who } => out.push(CoreEffect::NoMaxHandSize { who: r(*who) }),
             Effect::EnterTappedAttacking => {
                 return self.err(
@@ -6287,34 +6290,29 @@ impl Compiler<'_> {
             Trigger::Searches { whose } => TriggerSpec::Searches { whose: *whose },
             Trigger::PlaysLand {
                 whose,
-                from_exile,
+                from,
                 or_cast,
             } => {
                 let land = TriggerSpec::PlaysLand {
                     whose: *whose,
-                    from: from_exile.then_some(mtg_core::state::Zone::Exile),
+                    from: *from,
                 };
-                if !*or_cast {
-                    land
-                } else if *from_exile {
+                if *or_cast {
                     TriggerSpec::Either(Box::new((
                         land,
-                        TriggerSpec::CastsNth {
+                        TriggerSpec::CastsFiltered {
                             whose: *whose,
-                            nth: mtg_core::card::SpellOrdinal::FromExile,
+                            filter: ObjFilter::default(),
+                            from: *from,
                         },
                     )))
                 } else {
-                    TriggerSpec::Either(Box::new((
-                        land,
-                        TriggerSpec::CastsSpell {
-                            whose: *whose,
-                            noncreature: false,
-                            instant_or_sorcery: false,
-                            or_copy: false,
-                        },
-                    )))
+                    land
                 }
+            }
+            Trigger::CastsNotOwned { whose } => TriggerSpec::CastsNotOwned { whose: *whose },
+            Trigger::UntapsDuringUntapStep => {
+                TriggerSpec::Batch(Box::new(TriggerSpec::UntapsDuringUntapStep))
             }
             Trigger::PlayerDealtDamage { enchanted, combat } => TriggerSpec::PlayerDealtDamage {
                 enchanted: *enchanted,

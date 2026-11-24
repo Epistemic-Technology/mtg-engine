@@ -1,0 +1,156 @@
+# One-off trigger events (fourteenth wave), continued: land plays, the
+# untap step, spells you don't own, a cast filter against the source's
+# power.
+
+scenario "The Endstone: playing a land and casting a spell each draw a card" {
+  battlefield A: "The Endstone", "Mountain"
+  hand A: "Forest", "Shock"
+  library A: 5 "Island"
+  turn 1 A: play "Forest"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert life B 18
+}
+
+scenario "The Endstone: a land put onto the battlefield isn't played" {
+  battlefield A: "The Endstone", "Evolving Wilds"
+  library A: "Forest", 5 "Island"
+  turn 1 A: activate "Evolving Wilds"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert battlefield A contains "Forest"
+}
+
+scenario "The Endstone: at your end step your life total becomes 10" {
+  battlefield A: "The Endstone"
+  life A 17
+  run_to turn 1 cleanup
+  assert life A 10
+}
+
+scenario "The Endstone: below half, you gain up to 10" {
+  battlefield A: "The Endstone"
+  life A 4
+  run_to turn 1 cleanup
+  assert life A 10
+}
+
+scenario "The Millennium Calendar: untapping permanents in your untap step adds that many time counters" {
+  battlefield A: "The Millennium Calendar", "Forest" tapped, "Island" tapped, "Mountain"
+  start turn 2 A untap
+  run_to turn 2 precombat_main
+  assert counters "The Millennium Calendar" time 2
+}
+
+scenario "The Millennium Calendar: nothing to untap, no counters; an opponent's untap step doesn't count" {
+  battlefield A: "The Millennium Calendar", "Forest"
+  battlefield B: "Island" tapped
+  start turn 2 B untap
+  run_to turn 2 precombat_main
+  assert counters "The Millennium Calendar" time 0
+}
+
+scenario "The Millennium Calendar: doubling to 1,000 sacrifices it and each opponent loses 1,000 life" {
+  battlefield A: "The Millennium Calendar" with 600 time, 2 "Forest"
+  turn 1 A: activate "The Millennium Calendar"
+  run_to end
+  assert winner A
+  assert graveyard A contains "The Millennium Calendar"
+}
+
+scenario "Jackal: a creature spell with mana value equal to its power is copied, and it grows" {
+  battlefield A: "Jackal, Genius Geneticist" with 1 +1/+1, 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert counters "Jackal, Genius Geneticist" +1/+1 2
+}
+
+scenario "Jackal: a creature spell with another mana value isn't copied" {
+  battlefield A: "Jackal, Genius Geneticist", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert counters "Jackal, Genius Geneticist" +1/+1 0
+}
+
+scenario "Loki Laufeyson: the next instant with mana value up to his power is copied" {
+  battlefield A: "Loki Laufeyson", 2 "Mountain"
+  hand A: "Shock"
+  turn 1 A: activate "Loki Laufeyson"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Loki Laufeyson: a spell with greater mana value isn't copied" {
+  battlefield A: "Loki Laufeyson", 4 "Island"
+  hand A: "Divination"
+  library A: 6 "Island"
+  turn 1 A: activate "Loki Laufeyson"
+  turn 1 A: wait
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}
+
+scenario "Vaan: combat damage exiles the defender's top card; casting it triggers the counter" {
+  battlefield A: "Vaan, Street Thief", 3 "Island"
+  library A: 5 "Island"
+  library B: "Divination", 5 "Island"
+  turn 1 A: attack "Vaan, Street Thief"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand A count 2
+  assert counters "Vaan, Street Thief" +1/+1 1
+  assert graveyard B contains "Divination"
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "Vaan: not casting it makes a Treasure" {
+  battlefield A: "Vaan, Street Thief"
+  library B: 6 "Island"
+  turn 1 A: attack "Vaan, Street Thief"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treasure"
+  assert exile B contains "Island"
+  assert counters "Vaan, Street Thief" +1/+1 0
+}
+
+scenario "Nita: casting an opponent's exiled instant puts a counter on each creature you control" {
+  battlefield A: "Nita, Forum Conciliator", "Grizzly Bears", "Hill Giant", 3 "Mountain"
+  graveyard B: "Shock"
+  turn 1 A: activate "Nita, Forum Conciliator" sacrificing "Hill Giant" targeting "Shock"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert counters "Nita, Forum Conciliator" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 1
+  assert exile B contains "Shock"
+}
+
+scenario "Nita: casting your own spell doesn't count" {
+  battlefield A: "Nita, Forum Conciliator", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Nita, Forum Conciliator" +1/+1 0
+}
+
+scenario "Shadow of the Goblin: a spell cast from the graveyard deals 1 damage to each opponent; one from hand doesn't" {
+  battlefield A: "Shadow of the Goblin", 6 "Mountain"
+  hand A: "Shock", "Island"
+  graveyard A: "Firebolt"
+  start turn 2 A precombat_main
+  turn 2 precombat_main A: discard "Island"
+  turn 2 A: cast "Shock" targeting player B
+  turn 2 A: wait
+  turn 2 A: cast "Firebolt" from graveyard targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 15
+}

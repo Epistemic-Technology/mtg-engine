@@ -17482,6 +17482,20 @@ impl GameState {
                     }
                 }
             }
+            Effect::LifeBecomesHalfStarting { who } => {
+                // CR 119.5: the life gained or lost to reach the total.
+                let half = (self.starting_life + 1).div_euclid(2);
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        let life = self.player(p).life;
+                        if life < half {
+                            self.gain_life(p, (half - life).unsigned_abs());
+                        } else if life > half {
+                            self.lose_life(p, (life - half).unsigned_abs());
+                        }
+                    }
+                }
+            }
             Effect::DoubleLife { who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {

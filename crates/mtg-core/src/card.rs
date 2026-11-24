@@ -6267,6 +6267,12 @@ pub enum Effect {
     DoubleLife {
         who: Recipient,
     },
+    /// "Your life total becomes half your starting life total, rounded
+    /// up" (The Endstone; CR 119.5: each recipient player gains or loses
+    /// the life needed to reach it).
+    LifeBecomesHalfStarting {
+        who: Recipient,
+    },
     /// "You have no maximum hand size for the rest of the game" (CR
     /// 402.2): each recipient player's maximum hand size is gone.
     NoMaxHandSize {
@@ -8421,12 +8427,18 @@ pub enum TriggerSpec {
     /// "Whenever you forage" (CR 701.61).
     Forages { whose: Who },
     /// "Whenever you play a land" (CR 305.1; not a land put onto the
-    /// battlefield otherwise), `from`: "a land from exile". The land is
-    /// the triggering object, its player the triggering player.
-    PlaysLand {
-        whose: Who,
-        from: Option<crate::state::Zone>,
-    },
+    /// battlefield otherwise), `from`: "a land from exile", "from anywhere
+    /// other than your hand". The land is the triggering object, its
+    /// player the triggering player.
+    PlaysLand { whose: Who, from: SpellFrom },
+    /// The per-permanent form of "Whenever you untap one or more
+    /// permanents during your untap step" (CR 502.3, `Batch` of it): a
+    /// permanent the controller controls untaps during their untap step.
+    UntapsDuringUntapStep,
+    /// "Whenever you cast a spell you don't own" (CR 108.3: a card of
+    /// another player's, cast from exile or wherever a permission allows):
+    /// the spell is the triggering object.
+    CastsNotOwned { whose: Who },
     /// "Whenever you're dealt combat damage" (`combat`), "Whenever
     /// enchanted player is dealt damage" (`enchanted`: the player the
     /// source, a Curse, is attached to; otherwise its controller): once
@@ -9028,7 +9040,8 @@ impl TriggerSpec {
             TriggerSpec::BecomesTapped(_)
             | TriggerSpec::TappedForTeamwork(_)
             | TriggerSpec::BecomesUntapped(_)
-            | TriggerSpec::TapsForMana { .. } => WATCH_TAP,
+            | TriggerSpec::TapsForMana { .. }
+            | TriggerSpec::UntapsDuringUntapStep => WATCH_TAP,
             TriggerSpec::TurnedFaceUp(_) => WATCH_FACE_UP,
             TriggerSpec::DrawsNth { .. } | TriggerSpec::Draws { .. } => WATCH_DRAW,
             TriggerSpec::Exploits
@@ -9046,6 +9059,7 @@ impl TriggerSpec {
             | TriggerSpec::CastsNth { .. }
             | TriggerSpec::CastThis
             | TriggerSpec::PlaysLand { .. }
+            | TriggerSpec::CastsNotOwned { .. }
             | TriggerSpec::Expends(_) => WATCH_CAST,
             TriggerSpec::BecomesTarget(_)
             | TriggerSpec::TargetedBy { .. }

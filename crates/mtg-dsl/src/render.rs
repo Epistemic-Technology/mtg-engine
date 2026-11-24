@@ -100,7 +100,7 @@ fn count_words(n: Num, article: &str) -> String {
         Num::N(1) => article.to_string(),
         Num::N(n) => NUMBER_WORDS
             .get(n as usize - 1)
-            .map_or_else(|| n.to_string(), |w| (*w).to_string()),
+            .map_or_else(|| grouped(n), |w| (*w).to_string()),
     }
 }
 
@@ -112,7 +112,7 @@ fn digits(n: Num) -> String {
         Num::XTimes(n) => times_x(n),
         Num::ThatMuchTimes(n) => times_x(n).replacen('X', "that much", 1),
         Num::NMinusX(n) => format!("{n} minus X"),
-        Num::N(n) => n.to_string(),
+        Num::N(n) => grouped(n),
     }
 }
 
@@ -257,7 +257,20 @@ fn tally_cond(t: crate::ast::Tally, n: u32) -> String {
 fn number_word(n: u32) -> String {
     NUMBER_WORDS
         .get((n as usize).wrapping_sub(1))
-        .map_or_else(|| n.to_string(), |w| (*w).to_string())
+        .map_or_else(|| grouped(n), |w| (*w).to_string())
+}
+
+/// Digits, grouped by thousands as Oracle prints them ("1,000").
+fn grouped(n: u32) -> String {
+    let s = n.to_string();
+    let mut out = String::new();
+    for (i, c) in s.chars().enumerate() {
+        if i > 0 && (s.len() - i) % 3 == 0 {
+            out.push(',');
+        }
+        out.push(c);
+    }
+    out
 }
 
 /// "twice X", "three times X".
@@ -12250,6 +12263,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 format!("{v} no maximum hand size for the rest of the game"),
             )
         }
+        Effect::LifeBecomesHalfStarting { .. } => Clause::imperative(
+            "your life total becomes half your starting life total, rounded up".to_string(),
+        ),
         Effect::DoubleLife { who } => {
             let s = ctx.subj(*who);
             Clause::imperative(format!("double {} life total", possessive(&s)))
@@ -15399,7 +15415,14 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             ),
             t => unreachable!("no per-object form of {t:?}"),
         },
-        Trigger::State(c) => format!("when {}", static_cond_text(c, ctx.card)),
+        Trigger::State(c) => {
+            // "When there are 1,000 or more time counters on The
+            // Millennium Calendar, sacrifice it ...": named already.
+            if matches!(c, StaticCond::SourceCountersThere { .. }) {
+                ctx.source_mentioned = true;
+            }
+            format!("when {}", static_cond_text(c, ctx.card))
+        }
         Trigger::Either(a, b) => {
             let a = trigger_text(a, ctx, next);
             let b = trigger_text(b, ctx, next);
@@ -15544,11 +15567,15 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::Searches { whose } => crate::format::searches_words(*whose).to_string(),
         Trigger::PlaysLand {
             whose,
-            from_exile,
+            from,
             or_cast,
-        } => crate::format::plays_land_words(*whose, *from_exile, *or_cast),
+        } => crate::format::plays_land_words(*whose, *from, *or_cast),
         Trigger::PlayerDealtDamage { enchanted, combat } => {
             crate::format::player_dealt_damage_words(*enchanted, *combat).to_string()
+        }
+        Trigger::CastsNotOwned { .. } => "whenever you cast a spell you don't own".to_string(),
+        Trigger::UntapsDuringUntapStep => {
+            "whenever you untap one or more permanents during your untap step".to_string()
         }
         Trigger::CreaturesDealCombatDamage(f) => format!(
             "whenever one or more {} deal combat damage to a player",
@@ -19268,10 +19295,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             )
         }
         StaticCond::SourceCountersThere { kind, n } => format!(
-            "there are {} or more {} counters on this {}",
+            "there are {} or more {} counters on {}",
             count_words(Num::N(*n), "one"),
             kind.name(),
-            self_noun(card)
+            this_ref(card)
         ),
         StaticCond::SourceCounters { kind, n, at_least } => {
             if *at_least && *n == 1 {

@@ -4594,11 +4594,20 @@ pub enum Trigger {
     /// `whenever you play a land` (CR 305.1), `... a land from exile`,
     /// `... or cast a spell` (The Endstone: one ability with both events),
     /// `whenever you play a land from exile or cast a spell from exile`
-    /// (Ghost-Spider).
+    /// (Ghost-Spider), `whenever you play a land or cast a spell from
+    /// anywhere other than your hand` (Shadow of the Goblin: both).
     PlaysLand {
         whose: Who,
-        from_exile: bool,
+        from: mtg_core::card::SpellFrom,
         or_cast: bool,
+    },
+    /// `whenever you untap one or more permanents during your untap
+    /// step` (CR 502.3): once for the permanents untapped together, their
+    /// number `that much`.
+    UntapsDuringUntapStep,
+    /// `whenever you cast a spell you don't own` (CR 108.3).
+    CastsNotOwned {
+        whose: Who,
     },
     /// `whenever enchanted player is dealt damage` (a Curse's player),
     /// `whenever you're dealt combat damage`, `whenever you're dealt
@@ -6043,6 +6052,11 @@ pub enum Effect {
     /// `double your life total`, `double target player life total`,
     /// `double its controller life total` (CR 701.10d).
     DoubleLife {
+        who: Recipient,
+    },
+    /// `your life total becomes half starting`: "your life total becomes
+    /// half your starting life total, rounded up" (CR 119.5, The Endstone).
+    LifeBecomesHalfStarting {
         who: Recipient,
     },
     /// `create 3 "..."; if sneak paid, they enter tapped and attacking`

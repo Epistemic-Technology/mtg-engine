@@ -2125,6 +2125,9 @@ impl Decompiler<'_> {
                 to: r(*to),
             },
             CoreEffect::DoubleLife { who } => Effect::DoubleLife { who: r(*who) },
+            CoreEffect::LifeBecomesHalfStarting { who } => {
+                Effect::LifeBecomesHalfStarting { who: r(*who) }
+            }
             CoreEffect::NoMaxHandSize { who } => Effect::NoMaxHandSize { who: r(*who) },
             CoreEffect::Earthbend { count, to } => Effect::Earthbend {
                 count: *count,
@@ -2840,9 +2843,11 @@ impl Decompiler<'_> {
             TriggerSpec::Searches { whose } => Trigger::Searches { whose: *whose },
             TriggerSpec::PlaysLand { whose, from } => Trigger::PlaysLand {
                 whose: *whose,
-                from_exile: from.is_some(),
+                from: *from,
                 or_cast: false,
             },
+            TriggerSpec::CastsNotOwned { whose } => Trigger::CastsNotOwned { whose: *whose },
+            TriggerSpec::UntapsDuringUntapStep => Trigger::UntapsDuringUntapStep,
             TriggerSpec::PlayerDealtDamage { enchanted, combat } => Trigger::PlayerDealtDamage {
                 enchanted: *enchanted,
                 combat: *combat,

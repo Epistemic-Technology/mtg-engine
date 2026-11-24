@@ -3354,6 +3354,9 @@ impl Fmt {
                 "{} have no maximum hand size for the rest of the game",
                 self.recipient(*who, t)
             ),
+            Effect::LifeBecomesHalfStarting { .. } => {
+                "your life total becomes half starting".to_string()
+            }
             Effect::DoubleLife { who } => {
                 if *who == Recipient::You {
                     "double your life total".to_string()
@@ -5936,16 +5939,28 @@ pub fn draws_nth(whose: Who, n: u8, in_a_turn: bool, or_next: bool) -> String {
 }
 
 /// `whenever you play a land` and kin (the same in the DSL and Oracle).
-pub(crate) fn plays_land_words(whose: Who, from_exile: bool, or_cast: bool) -> String {
+pub(crate) fn plays_land_words(
+    whose: Who,
+    from: mtg_core::card::SpellFrom,
+    or_cast: bool,
+) -> String {
+    use mtg_core::card::SpellFrom;
     let (subject, play, cast) = match whose {
         Who::You => ("you", "play", "cast"),
         Who::Any => ("a player", "plays", "casts"),
         Who::Opponents => ("an opponent", "plays", "casts"),
     };
-    let from = if from_exile { " from exile" } else { "" };
-    let mut s = format!("whenever {subject} {play} a land{from}");
+    let exile = if from == SpellFrom::Exile {
+        " from exile"
+    } else {
+        ""
+    };
+    let mut s = format!("whenever {subject} {play} a land{exile}");
     if or_cast {
-        s.push_str(&format!(" or {cast} a spell{from}"));
+        let _ = write!(s, " or {cast} a spell{exile}");
+    }
+    if from == SpellFrom::NotHand {
+        s.push_str(" from anywhere other than your hand");
     }
     s
 }
@@ -6629,11 +6644,15 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::Searches { whose } => searches_words(*whose).to_string(),
         Trigger::PlaysLand {
             whose,
-            from_exile,
+            from,
             or_cast,
-        } => plays_land_words(*whose, *from_exile, *or_cast),
+        } => plays_land_words(*whose, *from, *or_cast),
         Trigger::PlayerDealtDamage { enchanted, combat } => {
             player_dealt_damage_words(*enchanted, *combat).to_string()
+        }
+        Trigger::CastsNotOwned { .. } => "whenever you cast a spell you don't own".to_string(),
+        Trigger::UntapsDuringUntapStep => {
+            "whenever you untap one or more permanents during your untap step".to_string()
         }
         Trigger::CreaturesDealCombatDamage(f) => format!(
             "whenever one or more {} deal combat damage to a player",

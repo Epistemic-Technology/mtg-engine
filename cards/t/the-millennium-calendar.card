@@ -1,0 +1,8 @@
+card "The Millennium Calendar" {
+  oracle_id 1f250443-8d5e-46c9-920e-8e9373780e32
+  cost {1}
+  type Legendary Artifact
+  triggered whenever you untap one or more permanents during your untap step: put that much time counter on this
+  activated {2}, {T}: double the number of time counters on this
+  triggered when there are 1000 or more time counters on this: sacrifice this and each opponent loses 1000 life
+}

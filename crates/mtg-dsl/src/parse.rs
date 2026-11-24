@@ -13121,6 +13121,13 @@ impl P {
                 self.expect_word("this")?;
                 Ok(Effect::Harness)
             }
+            // CR 119.5: "your life total becomes half your starting life
+            // total, rounded up".
+            "your" if self.eat_words(&["life", "total", "becomes", "half", "starting"]) => {
+                Ok(Effect::LifeBecomesHalfStarting {
+                    who: Recipient::You,
+                })
+            }
             "exchange" if self.eat_words(&["life", "totals", "with"]) => Ok(Effect::ExchangeLife {
                 with: self.recipient()?,
             }),
@@ -19132,20 +19139,47 @@ impl P {
             ),
         ] {
             if self.eat_words(words) {
-                let from_exile = self.eat_words(&["from", "exile"]);
+                let not_hand = ["from", "anywhere", "other", "than", "your", "hand"];
+                let mut from = if self.eat_words(&["from", "exile"]) {
+                    mtg_core::card::SpellFrom::Exile
+                } else {
+                    mtg_core::card::SpellFrom::Anywhere
+                };
                 let or_cast = match whose {
                     Who::You => self.eat_words(&["or", "cast", "a", "spell"]),
                     _ => self.eat_words(&["or", "casts", "a", "spell"]),
                 };
-                if or_cast && from_exile {
+                if or_cast && from == mtg_core::card::SpellFrom::Exile {
                     self.expect_words(&["from", "exile"])?;
+                } else if self.eat_words(&not_hand) {
+                    from = mtg_core::card::SpellFrom::NotHand;
                 }
                 return Ok(Trigger::PlaysLand {
                     whose,
-                    from_exile,
+                    from,
                     or_cast,
                 });
             }
+        }
+        // CR 502.3: "you untap one or more permanents during your untap
+        // step".
+        if self.eat_words(&[
+            "you",
+            "untap",
+            "one",
+            "or",
+            "more",
+            "permanents",
+            "during",
+            "your",
+            "untap",
+            "step",
+        ]) {
+            return Ok(Trigger::UntapsDuringUntapStep);
+        }
+        // CR 108.3: "you cast a spell you don't own".
+        if self.eat_words(&["you", "cast", "a", "spell", "you", "don't", "own"]) {
+            return Ok(Trigger::CastsNotOwned { whose: Who::You });
         }
         // "enchanted player is dealt damage", "you're dealt combat damage".
         if self.eat_words(&["enchanted", "player", "is", "dealt"]) {
