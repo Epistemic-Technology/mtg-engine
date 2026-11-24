@@ -1,0 +1,6 @@
+card "Suppression Field" {
+  oracle_id 63439f19-01e5-4ae1-9841-90493d62d0c8
+  cost {1}{W}
+  type Enchantment
+  activated abilities cost {2} more unless mana
+}

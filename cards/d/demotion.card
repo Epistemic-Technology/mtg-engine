@@ -1,0 +1,7 @@
+card "Demotion" {
+  oracle_id c333eb79-300e-4dc0-9126-8dca1bac6ef2
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't block, can't activate
+}

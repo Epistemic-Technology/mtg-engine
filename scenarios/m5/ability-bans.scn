@@ -1,0 +1,277 @@
+# Restrictions and cost changes on activated abilities (CR 602.5,
+# 605.1a; CR 601.2f by way of 602.2b): "Activated abilities of <group>
+# can't be activated [unless they're mana abilities]" (a granted
+# `can't activate`), and `PlayerStaticKind::ActivationCost` with its
+# increases ("cost {2} more"), any controller's sources, every source,
+# a class of abilities (equip, loyalty, non-mana), the activator ("you
+# activate"), and the chosen name.
+
+scenario "Stony Silence: an artifact's mana ability can't be activated" {
+  battlefield A: "Stony Silence", "Mind Stone", "Forest"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Stony Silence: nor its other abilities, but creatures' work" {
+  battlefield A: "Stony Silence", "Mind Stone", 2 "Plains", "Prodigal Sorcerer"
+  illegal turn 1 A: activate "Mind Stone"
+  turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mind Stone"
+  assert life B 19
+}
+
+scenario "Collector Ouphe: an opponent's artifacts too" {
+  battlefield A: "Collector Ouphe"
+  battlefield B: "Mind Stone", 2 "Plains"
+  illegal turn 1 end B: activate "Mind Stone"
+  run_to turn 1 cleanup
+  assert battlefield B contains "Mind Stone"
+}
+
+scenario "Cursed Totem: a creature's mana ability can't be activated" {
+  battlefield A: "Cursed Totem", "Llanowar Elves", "Forest"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Cursed Totem: artifacts' abilities still work" {
+  battlefield A: "Cursed Totem", "Prodigal Sorcerer", "Mind Stone", 2 "Plains"
+  library A: "Hill Giant", "Grizzly Bears"
+  illegal turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  turn 1 A: activate "Mind Stone"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert life B 20
+}
+
+scenario "Damping Matrix: mana abilities still work" {
+  battlefield A: "Damping Matrix", "Llanowar Elves", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Damping Matrix: no other abilities of artifacts and creatures" {
+  battlefield A: "Damping Matrix", "Prodigal Sorcerer", "Mind Stone", 2 "Plains"
+  illegal turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  illegal turn 1 A: activate "Mind Stone"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mind Stone"
+  assert life B 20
+}
+
+scenario "Linvala, Keeper of Silence: the opponent's creatures only" {
+  battlefield A: "Linvala, Keeper of Silence", "Prodigal Sorcerer"
+  battlefield B: "Prodigal Sorcerer"
+  illegal turn 1 end B: activate "Prodigal Sorcerer" targeting player A
+  turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  run_to turn 1 cleanup
+  assert life A 20
+  assert life B 19
+}
+
+scenario "Heartstone: an opponent's creature's {3} costs {2}" {
+  battlefield A: "Heartstone"
+  battlefield B: "Duskworker", 2 "Plains"
+  start turn 2 B precombat_main
+  turn 2 B: activate "Duskworker"
+  run_to turn 2 postcombat_main
+  assert power "Duskworker" 3
+}
+
+scenario "Heartstone: not below one mana" {
+  battlefield A: "Heartstone", "Duskworker"
+  illegal turn 1 A: activate "Duskworker"
+  run_to turn 1 postcombat_main
+  assert power "Duskworker" 2
+}
+
+scenario "Suppression Field: {T} costs {2} more" {
+  battlefield A: "Suppression Field", "Prodigal Sorcerer", "Plains"
+  illegal turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Suppression Field: paying the {2}" {
+  battlefield A: "Suppression Field", "Prodigal Sorcerer", 2 "Plains"
+  turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "Suppression Field: mana abilities aren't taxed" {
+  battlefield A: "Suppression Field", "Llanowar Elves", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Suppression Field: cycling {2} costs {4}" {
+  battlefield A: "Suppression Field", 3 "Plains"
+  hand A: "Angelsong"
+  illegal turn 1 A: activate "Angelsong"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Angelsong"
+}
+
+scenario "Suppression Field: a loyalty ability costs {2}" {
+  battlefield A: "Suppression Field", "Ajani Goldmane", 2 "Plains"
+  turn 1 A: activate "Ajani Goldmane" ability 1
+  run_to turn 1 postcombat_main
+  assert life A 22
+}
+
+scenario "Suppression Field: no loyalty ability without the {2}" {
+  battlefield A: "Suppression Field", "Ajani Goldmane", "Plains"
+  illegal turn 1 A: activate "Ajani Goldmane" ability 1
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "Eidolon of Obstruction: an opponent's loyalty ability costs {1}" {
+  battlefield A: "Eidolon of Obstruction"
+  battlefield B: "Ajani Goldmane"
+  start turn 2 B precombat_main
+  illegal turn 2 B: activate "Ajani Goldmane" ability 1
+  run_to turn 2 postcombat_main
+  assert life B 20
+}
+
+scenario "Eidolon of Obstruction: paying the {1}" {
+  battlefield A: "Eidolon of Obstruction"
+  battlefield B: "Ajani Goldmane", "Plains"
+  start turn 2 B precombat_main
+  turn 2 B: activate "Ajani Goldmane" ability 1
+  run_to turn 2 postcombat_main
+  assert life B 22
+}
+
+scenario "Eidolon of Obstruction: not its controller's planeswalkers" {
+  battlefield A: "Eidolon of Obstruction", "Ajani Goldmane"
+  turn 1 A: activate "Ajani Goldmane" ability 1
+  run_to turn 1 postcombat_main
+  assert life A 22
+}
+
+scenario "Bureau Headmaster: equip {1} costs {0}" {
+  battlefield A: "Bureau Headmaster", "Bonesplitter", "Grizzly Bears"
+  turn 1 A: activate "Bonesplitter" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Bureau Headmaster: not the opponent's equip abilities" {
+  battlefield A: "Bureau Headmaster"
+  battlefield B: "Bonesplitter", "Grizzly Bears"
+  start turn 2 B precombat_main
+  illegal turn 2 B: activate "Bonesplitter" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Bladehold War-Whip: another Equipment's equip costs {1} less" {
+  battlefield A: "Bladehold War-Whip", "Bonesplitter", "Grizzly Bears"
+  turn 1 A: activate "Bonesplitter" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Bladehold War-Whip: not its own equip" {
+  battlefield A: "Bladehold War-Whip", "Grizzly Bears", "Mountain", 3 "Plains"
+  illegal turn 1 A: activate "Bladehold War-Whip" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Oppressive Rays: the enchanted creature's {3} costs {6}" {
+  battlefield B: "Duskworker", 5 "Plains"
+  battlefield A: "Oppressive Rays" on "Duskworker"
+  start turn 2 B precombat_main
+  illegal turn 2 B: activate "Duskworker"
+  run_to turn 2 postcombat_main
+  assert power "Duskworker" 2
+}
+
+scenario "Oppressive Rays: paying the {6}" {
+  battlefield B: "Duskworker", 6 "Plains"
+  battlefield A: "Oppressive Rays" on "Duskworker"
+  start turn 2 B precombat_main
+  turn 2 B: activate "Duskworker"
+  run_to turn 2 postcombat_main
+  assert power "Duskworker" 3
+}
+
+scenario "Oppressive Rays: other creatures' abilities aren't taxed" {
+  battlefield B: "Grizzly Bears", "Duskworker", 3 "Plains"
+  battlefield A: "Oppressive Rays" on "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: activate "Duskworker"
+  run_to turn 2 postcombat_main
+  assert power "Duskworker" 3
+}
+
+scenario "Skyseer's Chariot: the named source's abilities cost {2} more" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Prodigal Sorcerer", "Plains"
+  hand A: "Skyseer's Chariot"
+  turn 1 A: cast "Skyseer's Chariot"
+  turn 1 A: choose "Prodigal Sorcerer"
+  illegal turn 1 end B: activate "Prodigal Sorcerer" targeting player A
+  run_to turn 1 cleanup
+  assert life A 20
+}
+
+scenario "Skyseer's Chariot: paying the {2}" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Prodigal Sorcerer", 2 "Plains"
+  hand A: "Skyseer's Chariot"
+  turn 1 A: cast "Skyseer's Chariot"
+  turn 1 A: choose "Prodigal Sorcerer"
+  turn 1 end B: activate "Prodigal Sorcerer" targeting player A
+  run_to turn 1 cleanup
+  assert life A 19
+}
+
+scenario "Sorcerous Spyglass: the named source's non-mana abilities" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Prodigal Sorcerer"
+  hand A: "Sorcerous Spyglass"
+  hand B: "Grizzly Bears"
+  turn 1 A: cast "Sorcerous Spyglass"
+  turn 1 A: choose "Prodigal Sorcerer"
+  illegal turn 1 end B: activate "Prodigal Sorcerer" targeting player A
+  run_to turn 1 cleanup
+  assert life A 20
+  assert known A "Grizzly Bears"
+}
+
+scenario "Sorcerous Spyglass: mana abilities still work" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Llanowar Elves", "Forest"
+  hand A: "Sorcerous Spyglass"
+  hand B: "Grizzly Bears"
+  turn 1 A: cast "Sorcerous Spyglass"
+  turn 1 A: choose "Llanowar Elves"
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Demotion: the enchanted creature can't activate or block" {
+  battlefield B: "Prodigal Sorcerer"
+  battlefield A: "Demotion" on "Prodigal Sorcerer", "Hill Giant"
+  illegal turn 1 end B: activate "Prodigal Sorcerer" targeting player A
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 B: block "Hill Giant" with "Prodigal Sorcerer"
+  run_to turn 1 cleanup
+  assert life A 20
+  assert life B 17
+}

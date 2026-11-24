@@ -1,0 +1,6 @@
+card "Stony Silence" {
+  oracle_id 12c63a45-7eb2-4262-b571-3358182f5610
+  cost {1}{W}
+  type Enchantment
+  static artifact: has can't activate
+}

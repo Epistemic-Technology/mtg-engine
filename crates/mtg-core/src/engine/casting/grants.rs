@@ -309,7 +309,7 @@ impl GameState {
             && self.payable_for(
                 p,
                 sources,
-                &ab.cost.mana.requirements(0),
+                &self.activation_mana(id, ab, p),
                 Spend::Ability(
                     self.characteristics(id).as_ref(),
                     crate::card::SpendWays::of_ability(ab),
@@ -377,7 +377,7 @@ impl GameState {
             && self.payable_for(
                 p,
                 sources,
-                &ab.cost.mana.requirements(0),
+                &self.activation_mana(id, ab, p),
                 Spend::Ability(
                     self.characteristics(id).as_ref(),
                     crate::card::SpendWays::of_ability(ab),

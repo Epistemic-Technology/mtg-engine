@@ -1494,8 +1494,11 @@ pub enum ChoiceKind {
     Named(Vec<String>),
     /// `card name`, `nonland card name`: "a card name", "a nonland card
     /// name" (CR 201.3).
+    /// `look at opponent's hand then choose card name`: "look at an
+    /// opponent's hand, then choose any card name" (`look`).
     CardName {
         nonland: bool,
+        look: bool,
     },
     /// `odd or even`: "odd or even" (Zero is even.), for `of chosen
     /// quality`.
@@ -1527,6 +1530,18 @@ pub enum Granted {
     /// An activated keyword ability, activated from the cards' zone:
     /// `slivercycling {3}`, `cycling {2}`, `unearth {2}`.
     Ability(Box<Ability>),
+}
+
+/// Whose activated abilities an `Ability::ActivationCost` changes
+/// (`mtg_core::card::AbilitySources`).
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub enum ActivationSources {
+    /// `of <filter>`.
+    Filter(Box<Filter>),
+    /// Nothing written: every activated ability.
+    Any,
+    /// `of sources with chosen name`.
+    ChosenName,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -1765,12 +1780,19 @@ pub enum Ability {
     /// one`, `power-up abilities of other creature you control cost {3}
     /// less`: "Activated abilities of artifacts you control cost {1} less
     /// to activate. This effect can't reduce the mana in that cost to less
-    /// than one mana." (`PlayerStaticKind::ActivationCost`).
+    /// than one mana." (`PlayerStaticKind::ActivationCost`);
+    /// `activated abilities cost {2} more unless mana`, `abilities you
+    /// activate cost {2} less unless mana min one`, `equip abilities you
+    /// activate of other Equipment cost {1} less`, `activated abilities of
+    /// sources with chosen name cost {2} more`, `loyalty abilities of
+    /// planeswalker your opponents control cost {1} more`.
     ActivationCost {
-        filter: Filter,
+        sources: ActivationSources,
         by: u8,
+        more: bool,
         min_one: bool,
-        keyword: Option<mtg_core::card::ActivatedKeyword>,
+        class: mtg_core::card::AbilityClass,
+        activator: Option<mtg_core::card::RulePlayers>,
     },
     /// `opening hand`: "If this card is in your opening hand, you may begin
     /// the game with it on the battlefield." (CR 103.6a).

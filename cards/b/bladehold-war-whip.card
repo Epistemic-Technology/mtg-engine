@@ -1,0 +1,9 @@
+card "Bladehold War-Whip" {
+  oracle_id d3142c6b-86e9-42b7-916c-ce7c34e7bd53
+  cost {1}{R}{W}
+  type Artifact — Equipment
+  for mirrodin
+  equip abilities you activate of other Equipment cost {1} less
+  static enchanted: has double strike
+  equip {3}{R}{W}
+}

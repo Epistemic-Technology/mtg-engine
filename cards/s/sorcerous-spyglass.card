@@ -1,0 +1,7 @@
+card "Sorcerous Spyglass" {
+  oracle_id b2187f45-80ae-4ac4-9f83-5eb7a00978e2
+  cost {2}
+  type Artifact
+  as this enters look at opponent's hand then choose card name
+  activated abilities of sources with chosen name can't be activated unless mana
+}

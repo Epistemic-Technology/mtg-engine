@@ -3220,7 +3220,10 @@ impl Compiler<'_> {
             ChoiceKind::Named(names) => {
                 CoreChoiceKind::Named(u8::try_from(names.len()).unwrap_or(u8::MAX))
             }
-            ChoiceKind::CardName { nonland } => CoreChoiceKind::CardName { nonland: *nonland },
+            ChoiceKind::CardName { nonland, look } => CoreChoiceKind::CardName {
+                nonland: *nonland,
+                look: *look,
+            },
             ChoiceKind::Parity => CoreChoiceKind::Parity,
             ChoiceKind::CreatureTypeIn(names) => {
                 let mut types = [mtg_core::card::Subtype::default(); 8];
@@ -6395,18 +6398,31 @@ impl Compiler<'_> {
                 }
             }
             Ability::ActivationCost {
-                filter,
+                sources,
                 by,
+                more,
                 min_one,
-                keyword,
+                class,
+                activator,
             } => {
-                let f = self.filter(filter);
+                let sources = match sources {
+                    crate::ast::ActivationSources::Filter(filter) => {
+                        let f = self.filter(filter);
+                        mtg_core::card::AbilitySources::Filter(self.pool.intern_filter(f))
+                    }
+                    crate::ast::ActivationSources::Any => mtg_core::card::AbilitySources::Any,
+                    crate::ast::ActivationSources::ChosenName => {
+                        mtg_core::card::AbilitySources::ChosenName
+                    }
+                };
                 AbilityDef::PlayerStatic {
                     kind: mtg_core::card::PlayerStaticKind::ActivationCost {
-                        sources: self.pool.intern_filter(f),
+                        sources,
                         by: *by,
+                        more: *more,
                         min_one: *min_one,
-                        keyword: *keyword,
+                        class: *class,
+                        activator: *activator,
                     },
                     condition: None,
                 }

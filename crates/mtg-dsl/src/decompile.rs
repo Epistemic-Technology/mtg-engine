@@ -2714,15 +2714,29 @@ impl Decompiler<'_> {
                     mtg_core::card::PlayerStaticKind::ActivationCost {
                         sources,
                         by,
+                        more,
                         min_one,
-                        keyword,
+                        class,
+                        activator,
                     },
                 ..
             } => Ability::ActivationCost {
-                filter: self.filter(self.pool.filter(*sources)),
+                sources: match sources {
+                    mtg_core::card::AbilitySources::Filter(f) => {
+                        crate::ast::ActivationSources::Filter(Box::new(
+                            self.filter(self.pool.filter(*f)),
+                        ))
+                    }
+                    mtg_core::card::AbilitySources::Any => crate::ast::ActivationSources::Any,
+                    mtg_core::card::AbilitySources::ChosenName => {
+                        crate::ast::ActivationSources::ChosenName
+                    }
+                },
                 by: *by,
+                more: *more,
                 min_one: *min_one,
-                keyword: *keyword,
+                class: *class,
+                activator: *activator,
             },
             AbilityDef::PlayerStatic {
                 kind:
@@ -3128,7 +3142,7 @@ impl Decompiler<'_> {
             CoreChoiceKind::Named(n) => {
                 ChoiceKind::Named((1..=n).map(|i| format!("Option {i}")).collect())
             }
-            CoreChoiceKind::CardName { nonland } => ChoiceKind::CardName { nonland },
+            CoreChoiceKind::CardName { nonland, look } => ChoiceKind::CardName { nonland, look },
             CoreChoiceKind::Parity => ChoiceKind::Parity,
             CoreChoiceKind::CreatureTypeIn { types, len } => ChoiceKind::CreatureTypeIn(
                 types[..usize::from(len)]

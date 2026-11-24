@@ -6975,12 +6975,21 @@ impl Builder<'_> {
             ));
             return Ok(());
         }
-        if line
-            == "Enchanted creature can't attack or block, and its activated abilities can't be activated."
+        if let Some(c) = cached_regex(
+            r"^Enchanted (?:creature|permanent) can't (attack or block|block|attack), and its activated abilities can't be activated( unless they're mana abilities)?\.$",
+        )
+        .unwrap()
+        .captures(line)
         {
-            self.statements.push(
-                "static enchanted: has can't attack, can't block, can't activate".to_string(),
-            );
+            let bars = match cap(&c, 1) {
+                "attack or block" => "can't attack, can't block",
+                "block" => "can't block",
+                _ => "can't attack",
+            };
+            self.statements.push(format!(
+                "static enchanted: has {bars}, can't activate{}",
+                if c.get(2).is_some() { " except mana" } else { "" }
+            ));
             return Ok(());
         }
         // "Each creature you control with a +1/+1 counter on it has
@@ -7390,7 +7399,7 @@ impl Builder<'_> {
         // "As this land enters, choose a color." (CR 614.12), alone or after
         // "This land enters tapped." on the same line.
         if let Some(c) = cached_regex(
-            r"^(This (?:land|artifact|creature|permanent) enters tapped\. )?As (?:it|this (?:land|artifact|creature|enchantment|permanent|Aura)) enters, choose a (color|creature type|basic land type|card name|nonland card name)(?: other than (white|blue|black|red|green))?\.$",
+            r"^(This (?:land|artifact|creature|permanent) enters tapped\. )?As (?:it|this (?:land|artifact|creature|enchantment|permanent|Aura|Vehicle|Equipment)) enters, choose a (color|creature type|basic land type|card name|nonland card name)(?: other than (white|blue|black|red|green))?\.$",
         )
         .unwrap()
         .captures(line)
@@ -7415,6 +7424,9 @@ impl Builder<'_> {
         }
         // Chosen-name bans (CR 201.3).
         let ban = match line {
+            "As this artifact enters, look at an opponent's hand, then choose any card name." => {
+                Some("as this enters look at opponent's hand then choose card name")
+            }
             "Spells with the chosen name can't be cast." => {
                 Some("spells with chosen name can't be cast")
             }
@@ -8460,24 +8472,80 @@ impl Builder<'_> {
         }
         // "Activated abilities of artifacts you control cost {1} less to
         // activate.", "Power-up abilities of other creatures you control
-        // cost {3} less to activate."
+        // cost {3} less to activate.", "Activated abilities cost {2} more
+        // to activate unless they're mana abilities.", "Abilities you
+        // activate that aren't mana abilities cost {2} less to activate."
         if let Some(c) = cached_regex(
-            r"^(Activated|Power-up|Exhaust|Boast|Ninjutsu) abilities of (.+?) you control cost \{(\d+)\} less to activate\.( This effect can't reduce the mana in that cost to less than one mana\.)?$",
+            r"^(Activated a|Power-up a|Exhaust a|Boast a|Ninjutsu a|Equip a|Loyalty a|A)bilities( you activate| your opponents activate)?(?: of (.+?))?( that aren't mana abilities)? cost \{(\d+)\} (less|more) to activate( unless they're mana abilities)?\.( This effect can't reduce the mana in that cost to less than one mana\.)?$",
         )
         .unwrap()
         .captures(line)
         {
-            let what = cap(&c, 2);
-            let subject = if let Some(rest) = what.strip_prefix("other ") {
-                format!("other {}", singular(rest))
-            } else {
-                singular(what)
+            let head = match cap(&c, 1) {
+                "A" => "abilities".to_string(),
+                h => format!("{}bilities", h.to_ascii_lowercase()),
             };
+            let of = match c.get(3).map(|m| m.as_str()) {
+                None => String::new(),
+                Some("sources with the chosen name") => " of sources with chosen name".to_string(),
+                Some(what) => {
+                    let (what, whose) = if let Some(w) = what.strip_suffix(" you control") {
+                        (w, " you control")
+                    } else if let Some(w) = what.strip_suffix(" your opponents control") {
+                        (w, " your opponents control")
+                    } else {
+                        (what, "")
+                    };
+                    let what = what.replace(" and ", " or ");
+                    let subject = if let Some(rest) = what.strip_prefix("other ") {
+                        format!("other {}", singular(rest))
+                    } else {
+                        singular(&what)
+                    };
+                    format!(" of {subject}{whose}")
+                }
+            };
+            let nonmana = c.get(4).is_some() || c.get(7).is_some();
             self.statements.push(format!(
-                "{} abilities of {subject} you control cost {{{}}} less{}",
-                cap(&c, 1).to_ascii_lowercase(),
-                cap(&c, 3),
-                if c.get(4).is_some() { " min one" } else { "" }
+                "{head}{}{of} cost {{{}}} {}{}{}",
+                cap(&c, 2),
+                cap(&c, 5),
+                cap(&c, 6),
+                if nonmana { " unless mana" } else { "" },
+                if c.get(8).is_some() { " min one" } else { "" }
+            ));
+            return Ok(());
+        }
+        // "Activated abilities of artifacts can't be activated.",
+        // "... of creatures your opponents control can't be activated
+        // unless they're mana abilities." (CR 602.5, 605.1a)
+        if let Some(c) = cached_regex(
+            r"^Activated abilities of (.+?) can't be activated( unless they're mana abilities)?\.$",
+        )
+        .unwrap()
+        .captures(line)
+            && !cap(&c, 1).starts_with("sources with")
+        {
+            let what = cap(&c, 1);
+            let (what, whose) = if let Some(w) = what.strip_suffix(" you control") {
+                (w, " you control")
+            } else if let Some(w) = what.strip_suffix(" your opponents control") {
+                (w, " your opponents control")
+            } else {
+                (what, "")
+            };
+            let what = what
+                .replace(", and ", " or ")
+                .replace(", ", " or ")
+                .replace(" and ", " or ");
+            self.statements.push(format!(
+                "static {}{whose}: has can't activate{}",
+                singular(&what),
+                if c.get(2).is_some() {
+                    " except mana"
+                } else {
+                    ""
+                }
             ));
             return Ok(());
         }

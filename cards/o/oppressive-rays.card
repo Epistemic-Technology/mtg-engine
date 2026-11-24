@@ -1,0 +1,8 @@
+card "Oppressive Rays" {
+  oracle_id 4a17fb46-70db-4c9a-ac0e-dfc774345673
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  tax enchanted attack or block {3}
+  activated abilities of enchanted creature cost {3} more
+}
