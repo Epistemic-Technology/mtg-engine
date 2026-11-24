@@ -380,6 +380,19 @@ fn pass(
             let l = &live[i];
             let targets = l.affected.clone().unwrap_or_default();
             for part in l.parts.iter().filter(|p| p.layer() == layer) {
+                // "has all activated abilities of ...": the abilities those
+                // objects have now, each granted (CR 613.1f).
+                if let Modification::AddActivatedOf(from) = part {
+                    let granted = activated_of(&work, l.source, l.controller, from);
+                    for t in &targets {
+                        if let Some(&wi) = work.index.get(t) {
+                            for a in &granted {
+                                apply(&mut work, wi, &Modification::AddAbility(*a));
+                            }
+                        }
+                    }
+                    continue;
+                }
                 // "for each ...": the count is the source's, once.
                 let part = match part {
                     Modification::ModifyPtPer {
@@ -1084,6 +1097,26 @@ fn depends(work: &Work<'_>, _live: &[Live], a: &Live, b: &Live, layer: Layer) ->
     if b_parts.is_empty() {
         return false;
     }
+    // "has all activated abilities of creatures you control" waits for
+    // what gives those creatures abilities or takes them away (CR 613.8a:
+    // b changes what a does). Two such effects depend on each other and
+    // fall back to timestamp order.
+    if layer == Layer::L6Ability
+        && a.parts.iter().any(|p| {
+            matches!(p, Modification::AddActivatedOf(f)
+                if matches!(**f, crate::card::CountExpr::Permanents(_)))
+        })
+        && b_parts.iter().any(|p| {
+            matches!(
+                p,
+                Modification::AddAbility(_)
+                    | Modification::AddActivatedOf(_)
+                    | Modification::RemoveAllAbilities
+            )
+        })
+    {
+        return true;
+    }
     // Existence: b removes the ability generating a from a's source.
     if let (Origin::Static { source, .. }, true) =
         (a.origin, b_targets.contains(&a.source.unwrap_or_default()))
@@ -1507,6 +1540,95 @@ fn same_filled<'f>(
     ))
 }
 
+/// The activated abilities `from` names for "has all activated abilities
+/// of ..." (`Modification::AddActivatedOf`) from a static ability of
+/// `source`: a permanent's as worked out so far in this pass (they may be
+/// granted ones), a card's in another zone as printed. Basic land types'
+/// mana abilities (CR 305.6) are among them though not listed; abilities
+/// that work only from a hand or a graveyard are not.
+fn activated_of(
+    work: &Work<'_>,
+    source: Option<ObjId>,
+    controller: Option<PlayerId>,
+    from: &crate::card::CountExpr,
+) -> SmallVec<[AbilityId; 8]> {
+    use crate::card::CountExpr;
+    let state = work.state;
+    let mut out: SmallVec<[AbilityId; 8]> = SmallVec::new();
+    let Some(you) = controller.or_else(|| source.map(|s| work.controller_of(s))) else {
+        return out;
+    };
+    let mut take = |c: &Characteristics| {
+        if c.is_land() {
+            for s in &c.subtypes {
+                if let Some(color) = s.basic_color() {
+                    let a = state.pool.basic_mana(color);
+                    if !out.contains(&a) {
+                        out.push(a);
+                    }
+                }
+            }
+        }
+        for a in c.abilities.iter().copied() {
+            let activated = match state.pool.ability(a) {
+                AbilityDef::Activated(ab) => !ab.from_hand && !ab.from_graveyard,
+                AbilityDef::TapForMana(_)
+                | AbilityDef::SacForMana(_)
+                | AbilityDef::RestrictedMana { .. } => true,
+                _ => false,
+            };
+            if activated && !out.contains(&a) {
+                out.push(a);
+            }
+        }
+    };
+    // A card in another zone: its printed characteristics; a token there
+    // (gone at the next state-based check, CR 704.5d) is not a card.
+    let card_ok = |id: &ObjId, f: Option<&ObjFilter>| {
+        let o = &state.objects[*id];
+        o.kind != crate::state::ObjKind::Token
+            && f.is_none_or(|f| {
+                let c = state.base_characteristics(o);
+                f.matches(*id, o.owner, &c, None, Some(you))
+            })
+    };
+    match from {
+        CountExpr::Permanents(f) => {
+            for id in work.matching(&same_filled(work, f, source), source, Some(you)) {
+                if let Some(c) = work.get(id) {
+                    take(c);
+                }
+            }
+        }
+        CountExpr::CardsInGraveyard(f) | CountExpr::CardsInAllGraveyards(f) => {
+            let all = matches!(from, CountExpr::CardsInAllGraveyards(_));
+            let f = f.as_ref().map(|f| same_filled(work, f, source));
+            for (i, p) in state.players.iter().enumerate() {
+                if !all && usize::from(you.0) != i {
+                    continue;
+                }
+                for id in &p.graveyard {
+                    if card_ok(id, f.as_deref()) {
+                        take(&state.base_characteristics(&state.objects[*id]));
+                    }
+                }
+            }
+        }
+        CountExpr::ExiledWith(f) => {
+            if let Some(s) = source {
+                for id in state.exiled_with(s) {
+                    if card_ok(&id, f.as_ref()) {
+                        take(&state.base_characteristics(&state.objects[id]));
+                    }
+                }
+            }
+        }
+        // The card language compiles no other source.
+        _ => {}
+    }
+    out
+}
+
 /// CR 113.2c: an object given the same triggered ability twice has two
 /// instances, and each triggers (two Snake Umbras on one creature draw two
 /// cards). Other kinds gain nothing from a second copy, and an ability
@@ -1583,6 +1705,7 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
         Modification::Control
         | Modification::CdaPt { .. }
         | Modification::ModifyPtPer { .. }
+        | Modification::AddActivatedOf(_)
         | Modification::ChosenColor
         | Modification::ProtectionFromChosen
         | Modification::ChosenLandType

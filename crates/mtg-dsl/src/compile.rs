@@ -5500,6 +5500,9 @@ impl Compiler<'_> {
             Mod::CdaColors(c) => Modification::CdaColors(ColorSet::of(c.iter().copied())),
             Mod::ChosenColor => Modification::ChosenColor,
             Mod::ProtectionFromChosen => Modification::ProtectionFromChosen,
+            Mod::ActivatedOf { from, .. } => {
+                Modification::AddActivatedOf(Box::new(self.count_expr(from)))
+            }
             Mod::CdaPt {
                 count,
                 sets,
@@ -7939,6 +7942,15 @@ fn link_exiles(def: &mut mtg_core::card::CardDef) {
     // card its abilities exile is linked to the permanent (the engine
     // records them as the abilities resolve).
     if def.oracle_text.contains("exiled with") {
+        def.links_exile = true;
+    }
+    // "This artifact has all activated abilities of the exiled card"
+    // (Territory Forge): what its abilities exile.
+    if def.abilities.iter().any(|a| {
+        matches!(a, AbilityDef::Static(s) if s.parts.iter().any(|m| matches!(m,
+            mtg_core::card::Modification::AddActivatedOf(f)
+                if matches!(**f, mtg_core::card::CountExpr::ExiledWith(_)))))
+    }) {
         def.links_exile = true;
     }
     let refers = def.abilities.iter().any(|a| {

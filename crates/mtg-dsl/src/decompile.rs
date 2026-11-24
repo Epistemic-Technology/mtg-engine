@@ -2541,6 +2541,16 @@ impl Decompiler<'_> {
                 toughness: *toughness,
             },
             Modification::SwitchPt => Mod::SwitchPt,
+            Modification::AddActivatedOf(from) => Mod::ActivatedOf {
+                from: match &**from {
+                    mtg_core::card::CountExpr::ExiledWith(f) => {
+                        crate::ast::CountExpr::ExiledWith(f.as_ref().map(|f| self.filter(f)))
+                    }
+                    other => self.cda_count(other),
+                },
+                word: crate::ast::GroupWord::All,
+                while_here: false,
+            },
             Modification::CdaColors(c) => Mod::CdaColors(colors(*c)),
             Modification::CdaPt {
                 count,

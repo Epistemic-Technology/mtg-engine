@@ -1,0 +1,7 @@
+card "Marvin, Murderous Mimic" {
+  oracle_id 22f0dbbb-9d8d-42bc-8903-fc0b65e00952
+  cost {2}
+  type Legendary Artifact Creature — Toy
+  pt 2/2
+  static this: has all activated abilities of creature you control not named this
+}

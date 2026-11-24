@@ -1127,6 +1127,63 @@ fn sentence(s: &str) -> String {
     }
 }
 
+/// "has all activated abilities of all Elf cards in your graveyard",
+/// "... of creatures you control that don't have the same name as this
+/// creature", "... of each other creature with a +1/+1 counter on it",
+/// "... of the exiled card"; "exiled with it" when the source is the
+/// sentence's subject.
+fn activated_of_phrase(
+    from: &crate::ast::CountExpr,
+    word: crate::ast::GroupWord,
+    card: &Card,
+    plural_form: bool,
+    subject_this: bool,
+) -> String {
+    use crate::ast::{CountExpr, GroupWord};
+    let have = if plural_form { "have" } else { "has" };
+    let group = match (word, from) {
+        (GroupWord::The, _) => "the exiled card".to_string(),
+        (_, CountExpr::Permanents(f)) if f.same == Some(SameRef::NotNamedThis) => {
+            let g = Filter {
+                same: None,
+                ..f.clone()
+            };
+            format!(
+                "{} that don't have the same name as this {}",
+                controller_first(&g, filter_phrase(&g, card, true)),
+                self_noun(card)
+            )
+        }
+        (GroupWord::Each, _) => {
+            let s = count_phrase(from, card, true);
+            s.strip_prefix("for each ").unwrap_or(&s).to_string()
+        }
+        _ => {
+            let s = count_phrase(from, card, false);
+            s.strip_prefix("the number of ").unwrap_or(&s).to_string()
+        }
+    };
+    // "of each other creature with a +1/+1 counter on it": the place goes
+    // without saying.
+    let group = match (word, from) {
+        (GroupWord::Each | GroupWord::Bare, CountExpr::Permanents(_)) => group
+            .strip_suffix(" on the battlefield")
+            .map_or(group.clone(), str::to_string),
+        _ => group,
+    };
+    let group = if subject_this {
+        group.replace(&format!("exiled with {}", this_ref(card)), "exiled with it")
+    } else {
+        group
+    };
+    let all = match word {
+        GroupWord::All => "all ",
+        GroupWord::Each => "each ",
+        GroupWord::Bare | GroupWord::The => "",
+    };
+    format!("{have} all activated abilities of {all}{group}")
+}
+
 /// How a permanent refers to itself: "this creature", "this Aura"; a
 /// legendary permanent by its name, or the part of it before a comma
 /// ("Sacrifice Lunatic Pandora", "When Pol Jamaar enters"; CR 201.5).
@@ -13861,6 +13918,8 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
     };
     match m {
         Mod::AddAbility(_) => "has \"...\"".to_string(),
+        // Needs the card (`activated_of_phrase`).
+        Mod::ActivatedOf { .. } => v("has", "have") + " all activated abilities of ...",
         // "Nontoken artifacts you control are lands in addition to their
         // other types." (Toph, the First Metalbender).
         Mod::AddTypes(types) if plural_form && types.len() == 1 => format!(
@@ -14133,6 +14192,23 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
         };
         return format!("As long as {who} is paired with another creature, {tail}");
     }
+    // "As long as this creature is on the battlefield, it has all
+    // activated abilities of ..." (Necrotic Ooze).
+    if let [
+        Mod::ActivatedOf {
+            from,
+            word,
+            while_here: true,
+        },
+    ] = mods
+        && filter.relation == Relation::This
+    {
+        return format!(
+            "As long as {} is on the battlefield, it {}.",
+            this_ref(card),
+            activated_of_phrase(from, *word, card, false, true)
+        );
+    }
     // Characteristic-defining abilities name the card.
     if let Some(Mod::CdaPt {
         count,
@@ -14365,6 +14441,15 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
     let mut parts: Vec<String> = mods
         .iter()
         .map(|m| {
+            if let Mod::ActivatedOf { from, word, .. } = m {
+                return activated_of_phrase(
+                    from,
+                    *word,
+                    card,
+                    plural_form,
+                    filter.relation == Relation::This,
+                );
+            }
             if let Mod::AddAbility(a) = m {
                 // "Enchanted creature can't be blocked except by Walls": a
                 // granted blocking restriction prints unquoted.

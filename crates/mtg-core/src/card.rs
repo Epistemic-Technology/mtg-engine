@@ -1910,6 +1910,15 @@ pub enum Modification {
     /// "has '{T}: Add {G}.'": an ability granted (layer 6), registered in
     /// the pool.
     AddAbility(AbilityId),
+    /// "has all activated abilities of all Elf cards in your graveyard"
+    /// (layer 6, CR 613.1f): the activated abilities, mana abilities
+    /// included, of the objects `from` counts, worked out as the effect
+    /// applies: a permanent's as it has them so far in the layer pass
+    /// (`Permanents`), a card's elsewhere as printed (`CardsInGraveyard`,
+    /// `CardsInAllGraveyards`, `ExiledWith`: "cards exiled with it").
+    /// Abilities that work only from a hand or a graveyard (cycling,
+    /// unearth) are left out; they could never be activated here.
+    AddActivatedOf(Box<CountExpr>),
     /// "loses flying" (layer 6).
     RemoveKeywords(KeywordSet),
     /// "loses all abilities" (layer 6).
@@ -1994,6 +2003,7 @@ impl Modification {
             Modification::AddKeywords(_)
             | Modification::ProtectionFromChosen
             | Modification::AddAbility(_)
+            | Modification::AddActivatedOf(_)
             | Modification::RemoveKeywords(_)
             | Modification::RemoveAllAbilities => Layer::L6Ability,
             Modification::CdaPt { .. } => Layer::L7aCda,
@@ -9545,7 +9555,7 @@ impl DefFlags {
             // prowess") grants that ability too.
             abilities.iter().any(|a| {
                 matches!(a, AbilityDef::Static(s) if s.parts.iter().any(|m| match m {
-                    Modification::AddAbility(_) => true,
+                    Modification::AddAbility(_) | Modification::AddActivatedOf(_) => true,
                     Modification::AddKeywords(ks) => [
                         Keyword::Prowess,
                         Keyword::Exalted,
@@ -9944,6 +9954,11 @@ pub struct CardPool {
     /// Decayed's "When this creature attacks, sacrifice it at end of
     /// combat" (CR 702.147a).
     decayed: AbilityId,
+    /// The mana abilities basic land types give (CR 305.6), "{T}: Add
+    /// {W}" to "{T}: Add {G}" in `Color::ALL` order: not listed on a land,
+    /// but granted with the rest of its activated abilities
+    /// (`Modification::AddActivatedOf`).
+    basic_mana: [AbilityId; 5],
     builtins: [AbilityId; 15],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
@@ -10036,6 +10051,7 @@ impl CardPool {
             evoke: AbilityId(0),
             exploit: AbilityId(0),
             decayed: AbilityId(0),
+            basic_mana: [AbilityId(0); 5],
             builtins: [AbilityId(0); 15],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
@@ -10366,7 +10382,15 @@ impl CardPool {
                 pool.undying = id;
             }
         }
+        for (i, c) in crate::mana::Color::ALL.into_iter().enumerate() {
+            pool.basic_mana[i] = pool.register(AbilityDef::TapForMana(Mana::Colored(c)));
+        }
         pool
+    }
+
+    /// The mana ability a basic land type gives (CR 305.6).
+    pub fn basic_mana(&self, c: crate::mana::Color) -> AbilityId {
+        self.basic_mana[c as usize]
     }
 
     fn register(&mut self, a: AbilityDef) -> AbilityId {
@@ -10863,6 +10887,14 @@ impl CardPool {
             .into_iter()
             .map(|a| self.register(a))
             .collect();
+        // A printed ability's `Num::Count`s index its own card's counts,
+        // also when another object has it ("has all activated abilities
+        // of ...", `Modification::AddActivatedOf`).
+        if !def.counts.is_empty() {
+            for a in &def.ability_ids {
+                self.counts_owner[a.0 as usize] = Some(r);
+            }
+        }
         for i in 0..def.rooms.len() {
             def.rooms[i].id = self.register(def.rooms[i].ability.clone());
         }

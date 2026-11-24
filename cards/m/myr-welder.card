@@ -1,0 +1,8 @@
+card "Myr Welder" {
+  oracle_id ea2cbf5a-2def-450b-9db8-40a5b6a604d0
+  cost {3}
+  type Artifact Creature — Myr
+  pt 1/4
+  label "Imprint" activated {T}: exile target artifact card from a graveyard
+  static this: has all activated abilities of all exiled with this
+}
