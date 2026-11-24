@@ -1,0 +1,8 @@
+card "Falkenrath Aristocrat" {
+  oracle_id cd2a87c4-d1c3-4a9e-b2df-e6fe251421c4
+  cost {2}{B}{R}
+  type Creature — Vampire Noble
+  pt 4/1
+  keywords flying, haste
+  activated sacrifice creature: this gains indestructible; if the sacrificed creature was Human, put 1 +1/+1 counter on this creature
+}

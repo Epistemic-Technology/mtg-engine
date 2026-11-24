@@ -1,0 +1,7 @@
+card "Arisen Gorgon" {
+  oracle_id 69858691-1190-4454-af0a-87c2ac4ab6ec
+  cost {1}{B}{B}
+  type Creature — Zombie Gorgon
+  pt 3/3
+  static this: has deathtouch as long as you control Liliana planeswalker
+}

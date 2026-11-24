@@ -7930,6 +7930,18 @@ impl Builder<'_> {
             self.statements.push(format!("enters tapped unless {cond}"));
             return Ok(());
         }
+        // "If you control two or more other lands, this land enters
+        // tapped." (CR 614.1d).
+        if let Some(c) = cached_regex(
+            r"^If (.+), (?:this (?:land|creature|artifact|permanent)|~) enters tapped\.$",
+        )
+        .unwrap()
+        .captures(line)
+            && let Some(cond) = static_condition(cap(&c, 1))
+        {
+            self.statements.push(format!("enters tapped if {cond}"));
+            return Ok(());
+        }
         if let Some(c) =
             cached_regex(r"^This creature can't (attack or block|attack|block) unless (.+)\.$")
                 .unwrap()
@@ -9838,7 +9850,7 @@ fn shape_word_regex(corpus: &[Card]) -> &'static Regex {
         }
         alts.sort_by_key(|a| std::cmp::Reverse(a.len()));
         Regex::new(&format!(
-            r"\b(?:(?P<c>white|blue|black|red|green)|(?P<t>artifacts?|creatures?|enchantments?|lands?|planeswalkers?|instants?|sorcery|sorceries)|(?P<k>{}) (?P<kc>counters?)|(?P<s>{}))\b",
+            r"\b(?:(?P<c>white|blue|black|red|green)|(?P<t>artifacts?|creatures?|enchantments?|lands?|planeswalkers?|instants?|sorcery|sorceries)|(?P<k>{}) (?P<kc>counters?)|(?P<w>first strike|double strike|flying|deathtouch|haste|hexproof|indestructible|lifelink|menace|reach|trample|vigilance|shroud|fear|intimidate|wither|infect)|(?P<s>{}))\b",
             counter_names(),
             alts.join("|")
         ))
@@ -9866,6 +9878,8 @@ fn word_shape(corpus: &[Card], line: &str) -> (String, Vec<String>) {
         let w = m.as_str();
         let class = if c.name("c").is_some() {
             "C"
+        } else if c.name("w").is_some() {
+            "W"
         } else if c.name("t").is_some() {
             if singular_type(w) == w { "T" } else { "Tp" }
         } else if singular(w) == w {

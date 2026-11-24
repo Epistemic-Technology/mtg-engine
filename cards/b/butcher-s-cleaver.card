@@ -1,0 +1,8 @@
+card "Butcher's Cleaver" {
+  oracle_id 5cc5be7a-cbe6-4853-bb95-0390e25b4f2b
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: +3/+0
+  static as long as attached is Human, enchanted creature: has lifelink
+  equip {3}
+}

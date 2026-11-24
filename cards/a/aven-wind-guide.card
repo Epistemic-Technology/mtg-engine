@@ -1,0 +1,9 @@
+card "Aven Wind Guide" {
+  oracle_id bb813ffa-2615-4177-a7fb-6e0dfb819fc2
+  cost {2}{W}{U}
+  type Creature — Bird Warrior
+  pt 2/3
+  keywords flying, vigilance
+  static creature token you control: has flying, vigilance
+  embalm {4}{W}{U}
+}

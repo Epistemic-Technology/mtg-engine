@@ -1,0 +1,8 @@
+card "Fireblade Charger" {
+  oracle_id 4d83ad77-dbac-4a03-8034-43d950d0a18c
+  cost {R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  static as long as equipped, this: has haste
+  triggered when this dies: this bites any target
+}

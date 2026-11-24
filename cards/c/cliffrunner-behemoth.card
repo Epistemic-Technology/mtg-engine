@@ -1,0 +1,8 @@
+card "Cliffrunner Behemoth" {
+  oracle_id ea0dde32-1638-47f1-bef6-0813794ba35b
+  cost {3}{G}
+  type Creature — Rhino Beast
+  pt 5/3
+  static this: has haste as long as you control red permanent
+  static this: has lifelink as long as you control white permanent
+}

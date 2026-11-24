@@ -1,0 +1,126 @@
+# Cards the template author writes from a corpus line with another
+# keyword substituted ("has deathtouch as long as ..." from the haste
+# line), and "If <condition>, this land enters tapped."
+
+scenario "Arisen Gorgon: deathtouch with a Liliana" {
+  battlefield A: "Arisen Gorgon", "Liliana Vess"
+  start turn 1 A precombat_main
+  assert has "Arisen Gorgon" deathtouch
+}
+
+scenario "Arisen Gorgon: no deathtouch with another planeswalker" {
+  battlefield A: "Arisen Gorgon", "Jace Beleren"
+  start turn 1 A precombat_main
+  assert has not "Arisen Gorgon" deathtouch
+}
+
+scenario "Aven Wind Guide: creature tokens you control have flying and vigilance" {
+  battlefield A: "Aven Wind Guide", "Soldier", "Grizzly Bears"
+  battlefield B: "Soldier"
+  start turn 1 A precombat_main
+  assert has A "Soldier" flying
+  assert has A "Soldier" vigilance
+  assert has not "Grizzly Bears" flying
+  assert has not B "Soldier" flying
+}
+
+scenario "Butcher's Cleaver: +3/+0, and lifelink on a Human" {
+  battlefield A: "Butcher's Cleaver", "Elite Vanguard", 3 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Butcher's Cleaver" targeting "Elite Vanguard"
+  turn 1 A: attack "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert life A 25
+}
+
+scenario "Butcher's Cleaver: no lifelink on a non-Human" {
+  battlefield A: "Butcher's Cleaver", "Grizzly Bears", 3 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Butcher's Cleaver" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert life A 20
+}
+
+scenario "Chariot of Victory: first strike, trample, and haste" {
+  battlefield A: "Chariot of Victory", "Plains"
+  hand A: "Grizzly Bears"
+  battlefield A: 2 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Chariot of Victory" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert has "Grizzly Bears" first_strike
+  assert has "Grizzly Bears" trample
+}
+
+scenario "Cliffrunner Behemoth: haste with a red permanent, lifelink with a white one" {
+  battlefield A: 4 "Forest", "Goblin Piker", "Savannah Lions"
+  hand A: "Cliffrunner Behemoth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cliffrunner Behemoth"
+  turn 1 A: attack "Cliffrunner Behemoth"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert life A 25
+}
+
+scenario "Cliffrunner Behemoth: neither without the colors" {
+  battlefield A: "Cliffrunner Behemoth", "Grizzly Bears"
+  start turn 1 A precombat_main
+  assert has not "Cliffrunner Behemoth" haste
+  assert has not "Cliffrunner Behemoth" lifelink
+}
+
+scenario "Falkenrath Aristocrat: indestructible, and a counter for a sacrificed Human" {
+  battlefield A: "Falkenrath Aristocrat", "Elite Vanguard", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Falkenrath Aristocrat" sacrificing "Elite Vanguard"
+  turn 1 A: wait
+  turn 1 A: activate "Falkenrath Aristocrat" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Falkenrath Aristocrat" +1/+1 1
+  assert has "Falkenrath Aristocrat" indestructible
+  run_to turn 2 upkeep
+  assert has not "Falkenrath Aristocrat" indestructible
+}
+
+scenario "Fireblade Charger: haste while equipped; dies dealing damage equal to its power" {
+  battlefield A: "Fireblade Charger", "Bonesplitter", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  assert has not "Fireblade Charger" haste
+  turn 1 A: activate "Bonesplitter" targeting "Fireblade Charger"
+  run_to turn 1 postcombat_main
+  assert has "Fireblade Charger" haste
+  turn 1 postcombat_main A: cast "Shock" targeting "Fireblade Charger"
+  turn 1 postcombat_main A: trigger "Fireblade Charger" targeting player B
+  run_to turn 1 end
+  assert life B 17
+}
+
+scenario "Hope Against Hope: +1/+1 for each creature you control, first strike on a Human" {
+  battlefield A: "Elite Vanguard", "Grizzly Bears", 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Hope Against Hope"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hope Against Hope" targeting "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert power "Elite Vanguard" 4
+  assert has "Elite Vanguard" first_strike
+}
+
+scenario "Kor Duelist: double strike while equipped" {
+  battlefield A: "Kor Duelist", "Bonesplitter", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bonesplitter" targeting "Kor Duelist"
+  turn 1 A: attack "Kor Duelist"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
