@@ -486,8 +486,7 @@ impl GameState {
         // A hybrid symbol in the ability's cost ("{U/B}, {T}: Add {U}{U},
         // {U}{B}, or {B}{B}", the filter lands) is matched to mana of
         // either color; the other kinds of symbol aren't planned.
-        let plain_or_hybrid =
-            req.two_hybrid == [0; 5] && req.phyrexian == [0; 5] && req.snow == 0;
+        let plain_or_hybrid = req.two_hybrid == [0; 5] && req.phyrexian == [0; 5] && req.snow == 0;
         if !plain_or_hybrid || !self.activation_allowed(ab, a, p, id) {
             return None;
         }

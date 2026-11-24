@@ -1975,9 +1975,10 @@ impl Templates {
             // "When this creature dies, you gain life equal to its power."
             // (Packsong Pup): "its" is the triggering object, as `of it`
             // is.
-            (r(r"^[Yy]ou gain life equal to its (power|toughness)$"), |c, _| {
-                Some(format!("you gain count equal {} of it life", cap(c, 1)))
-            }),
+            (
+                r(r"^[Yy]ou gain life equal to its (power|toughness)$"),
+                |c, _| Some(format!("you gain count equal {} of it life", cap(c, 1))),
+            ),
             // "Whenever this creature attacks, you may draw cards equal to
             // its power." (Horrid Shadowspinner).
             (
@@ -1990,9 +1991,10 @@ impl Templates {
                     ))
                 },
             ),
-            (r(r"^[Dd]raw cards equal to its (power|toughness)$"), |c, _| {
-                Some(format!("draw count equal {} of it cards", cap(c, 1)))
-            }),
+            (
+                r(r"^[Dd]raw cards equal to its (power|toughness)$"),
+                |c, _| Some(format!("draw count equal {} of it cards", cap(c, 1))),
+            ),
             // "Whenever Eivor deals combat damage to a player, you mill
             // that many cards."
             (r(r"^[Yy]ou mill that many cards$"), |_, _| {
@@ -2031,7 +2033,9 @@ impl Templates {
             // "Whenever this creature is dealt damage, it deals that much
             // damage to any target." (Spitemare, Brash Taunter).
             (
-                r(r"^[Ii]t deals that much damage to (any target|any other target|target opponent|target player|you)$"),
+                r(
+                    r"^[Ii]t deals that much damage to (any target|any other target|target opponent|target player|you)$",
+                ),
                 |c, t| {
                     let to = match cap(c, 1) {
                         "any other target" => {
@@ -2999,7 +3003,9 @@ impl Templates {
             }),
             // "Add {W}{W}, {W}{U}, or {U}{U}." (the filter lands).
             (
-                r(r"^Add (\{[WUBRG]\}\{[WUBRG]\}), (\{[WUBRG]\}\{[WUBRG]\}), or (\{[WUBRG]\}\{[WUBRG]\})$"),
+                r(
+                    r"^Add (\{[WUBRG]\}\{[WUBRG]\}), (\{[WUBRG]\}\{[WUBRG]\}), or (\{[WUBRG]\}\{[WUBRG]\})$",
+                ),
                 |c, _| {
                     Some(format!(
                         "add {} or {} or {}",

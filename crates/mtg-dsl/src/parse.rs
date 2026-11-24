@@ -1852,8 +1852,10 @@ impl P {
             got.sort();
             let fits = pair.len() == 2 && {
                 let (a, b) = (Mana::Colored(pair[0]), Mana::Colored(pair[1]));
-                let mut want: Vec<Vec<String>> =
-                    [vec![a, a], vec![a, b], vec![b, b]].iter().map(key).collect();
+                let mut want: Vec<Vec<String>> = [vec![a, a], vec![a, b], vec![b, b]]
+                    .iter()
+                    .map(key)
+                    .collect();
                 want.sort();
                 got == want
             };

@@ -147,7 +147,7 @@ fn plural(n: Num, word: &str) -> String {
 /// {G}{W}, or {W}{W}", "{R}{R}, {R}{W}, or {W}{W}", "{G}{G}, {G}{U}, or
 /// {U}{U}").
 pub(crate) fn listed_pair(colors: mtg_core::mana::ColorSet) -> (char, char) {
-    let v: Vec<char> = colors.iter().map(|c| c.letter()).collect();
+    let v: Vec<char> = colors.iter().map(mtg_core::mana::Color::letter).collect();
     let a = v.first().copied().unwrap_or('W');
     let b = v.get(1).copied().unwrap_or('U');
     if matches!((a, b), ('W', 'G' | 'R') | ('U', 'G')) {
