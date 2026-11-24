@@ -1,0 +1,9 @@
+card "Kami of the Honored Dead" {
+  oracle_id be6d78c7-b7fb-46a9-99ea-f10d21c3da58
+  cost {5}{W}{W}
+  type Creature — Spirit
+  pt 3/5
+  keywords flying
+  triggered whenever this is dealt damage: you gain that much life
+  soulshift 6
+}

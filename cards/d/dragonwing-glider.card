@@ -1,0 +1,8 @@
+card "Dragonwing Glider" {
+  oracle_id 4cd4c6da-a84e-4cba-893b-799a7cb5c411
+  cost {3}{R}{R}
+  type Artifact — Equipment
+  for mirrodin
+  static enchanted: +2/+2, has flying, haste
+  equip {3}{R}{R}
+}

@@ -1,0 +1,8 @@
+card "Flumph" {
+  oracle_id bc328acc-8521-4581-88c3-99a7cb2c1cdb
+  cost {1}{W}
+  type Creature — Jellyfish
+  pt 0/4
+  keywords defender, flying
+  triggered whenever this is dealt damage: you and target opponent each draw 1 cards
+}

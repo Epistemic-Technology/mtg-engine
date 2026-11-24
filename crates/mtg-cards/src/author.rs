@@ -1700,6 +1700,85 @@ impl Templates {
     fn new() -> Self {
         let r = |s: &str| cached_regex(s).unwrap();
         let rules: Vec<Rule> = vec![
+            // Thirteenth-wave phrases the card language already says.
+            // "Target creature must be blocked this turn if able."
+            (r(r"^(.+?) must be blocked this turn if able$"), |c, t| {
+                let who = recipient(&subject(cap(c, 1)), t)?;
+                Some(format!("{who} must be blocked if able"))
+            }),
+            // "you may have target creature get -1/-1 until end of turn".
+            (
+                r(r"^[Yy]ou may have (target creature) get ([+-]\d+/[+-]\d+) until end of turn$"),
+                |c, t| {
+                    let who = recipient(cap(c, 1), t)?;
+                    Some(format!("you may {who} gets {}", cap(c, 2)))
+                },
+            ),
+            (r(r"^[Dd]efending player loses (\S+) life$"), |c, _| {
+                Some(format!(
+                    "defending player loses {} life",
+                    number(cap(c, 1))?
+                ))
+            }),
+            (r(r"^[Dd]iscard an? card at random$"), |_, _| {
+                Some("discard 1 card at random".to_string())
+            }),
+            // "Mill two cards, then you may return a creature card from
+            // your graveyard to your hand."
+            (
+                r(r"^[Yy]ou may return an? ([a-z]+) card from your graveyard to your hand$"),
+                |c, _| {
+                    Some(format!(
+                        "you may return 1 {} card from your graveyard to hand chosen",
+                        cap(c, 1)
+                    ))
+                },
+            ),
+            (
+                r(r"^[Ll]ook at the top card of (target player|target opponent)'s library$"),
+                |c, t| Some(format!("look at top card of {}", recipient(cap(c, 1), t)?)),
+            ),
+            (
+                r(r"^(target opponent|each opponent|target player) loses that much life$"),
+                |c, t| Some(format!("{} loses that much life", recipient(cap(c, 1), t)?)),
+            ),
+            (r(r"^[Yy]ou gain that much life$"), |_, _| {
+                Some("you gain that much life".to_string())
+            }),
+            // "this Aura deals 2 damage to that creature's controller".
+            (
+                r(
+                    r"^(?:~|this Aura|This Aura|this creature|This creature|this enchantment|This enchantment) deals (\S+) damage to that creature's controller$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "deal {} damage to controller of that creature",
+                        number(cap(c, 1))?
+                    ))
+                },
+            ),
+            // "Each player discards their hand, then draws seven cards."
+            (
+                r(r"^[Ee]ach player discards their hand, then draws (\S+) cards?$"),
+                |c, _| {
+                    Some(format!(
+                        "each player discards hand then draws {} cards",
+                        number(cap(c, 1))?
+                    ))
+                },
+            ),
+            // "Target player draws four cards, then discards three cards."
+            (
+                r(r"^[Tt]arget player draws (\S+) cards?, then discards (\S+) cards?$"),
+                |c, t| {
+                    *t += 1;
+                    Some(format!(
+                        "target player draws {} cards then target {t} discards {} cards",
+                        number(cap(c, 1))?,
+                        number(cap(c, 2))?
+                    ))
+                },
+            ),
             // CR 601.2d: "deals 3 damage divided as you choose among one,
             // two, or three targets".
             (
@@ -1736,6 +1815,24 @@ impl Templates {
                     }
                     let n = number(cap(c, 1))?;
                     let mut to = recipient(cap(c, 2), t)?;
+                    // "deals 2 damage to any target and 3 damage to you",
+                    // "... and 1 damage to any other target".
+                    let second = cached_regex(r"^(\S+) damage to (.+)$")
+                        .unwrap()
+                        .captures(cap(c, 3))
+                        .map(|d| (d[1].to_string(), d[2].to_string()));
+                    if let Some((m, r)) = second {
+                        let m = number(&m)?;
+                        let r = if r == "any other target" {
+                            *t += 1;
+                            "another target any".to_string()
+                        } else {
+                            recipient(&r, t)?
+                        };
+                        return Some(format!(
+                            "deal {n} damage to {to} and deal {m} damage to {r}"
+                        ));
+                    }
                     if !cap(c, 3).is_empty() {
                         let _ = write!(to, " and {}", recipient(cap(c, 3), t)?);
                     }
@@ -3580,12 +3677,28 @@ impl Templates {
             (r(r"^[Tt]hat player draws an additional card$"), |_, _| {
                 Some("that player draws 1 card".to_string())
             }),
+            // "You gain 2 life for each card in your hand": `count each 2
+            // hand` (Shepherd of Heroes).
             (r(r"^[Yy]ou gain (\S+) life for each (.+)$"), |c, _| {
-                (cap(c, 1) == "1" || cap(c, 1) == "one")
-                    .then_some(())
-                    .and_then(|()| count_expr(cap(c, 2)))
-                    .map(|e| format!("you gain count each {e} life"))
+                let n = number(cap(c, 1))?;
+                let e = count_expr(cap(c, 2))?;
+                Some(if n == "1" {
+                    format!("you gain count each {e} life")
+                } else {
+                    format!("you gain count each {n} {e} life")
+                })
             }),
+            // "You and target opponent each draw two cards."
+            (
+                r(r"^[Yy]ou and target opponent each draw (\S+) cards?$"),
+                |c, t| {
+                    *t += 1;
+                    Some(format!(
+                        "you and target opponent each draw {} cards",
+                        number(cap(c, 1))?
+                    ))
+                },
+            ),
             (
                 r(r"^[Rr]eturn the exiled card to the battlefield under its owner's control$"),
                 |_, _| Some("return exiled card to battlefield".to_string()),
@@ -4781,6 +4894,8 @@ impl Templates {
                 || body.contains(", then meld them into ")
                 || body == "Exile ~, then return it to the battlefield"
                 || body.contains(", then return that card to the battlefield under ")
+                || body.contains("ach player discards their hand, then draws ")
+                || (body.starts_with("Target player draws ") && body.contains(", then discards "))
             {
                 vec![body.as_str()]
             } else {
@@ -6401,6 +6516,47 @@ impl Builder<'_> {
             let class = singular(&lowercase_first(cap(&c, 1)));
             self.statements
                 .push(format!("static {class} you control: {mods}"));
+            return Ok(());
+        }
+        // "Sliver creatures you control get +3/+3."
+        if let Some(c) = cached_regex(r"^([A-Z][a-z]+) creatures you control ((?:get|have) .+)\.$")
+            .unwrap()
+            .captures(line)
+            && let Some(mods) = static_mods(cap(&c, 2))
+        {
+            // "Red creatures", "Modified creatures": a quality, not a
+            // creature type.
+            let w = cap(&c, 1);
+            let lower = w.to_ascii_lowercase();
+            let class = if [
+                "white",
+                "blue",
+                "black",
+                "red",
+                "green",
+                "multicolored",
+                "monocolored",
+                "colorless",
+                "modified",
+                "legendary",
+                "nontoken",
+                "artifact",
+                "enchantment",
+            ]
+            .contains(&lower.as_str())
+            {
+                lower
+            } else {
+                w.to_string()
+            };
+            self.statements
+                .push(format!("static {class} creature you control: {mods}"));
+            return Ok(());
+        }
+        // "This creature can't be blocked as long as it's attacking alone."
+        if line == "This creature can't be blocked as long as it's attacking alone." {
+            self.statements
+                .push("static this: has can't be blocked as long as attacking alone".to_string());
             return Ok(());
         }
         // "Zombies you control get +1/+0.", "Skeletons, Vampires, and
@@ -8332,6 +8488,19 @@ impl Builder<'_> {
                 } else if let Some(rest) = part.strip_prefix("has ").or_else(|| part.strip_prefix("have ")) {
                     let ks = keyword_list(rest).ok_or_else(|| Skip::Sentence(line.to_string()))?;
                     mods.push(format!("has {ks}"));
+                } else if let Some(k) = keyword_list(part)
+                    && mods.last().is_some_and(|m: &String| m.starts_with("has "))
+                {
+                    // "has trample and lifelink": the list goes on.
+                    let last = mods.pop().expect("checked");
+                    mods.push(format!("{last}, {k}"));
+                } else if let Some(k) = part.strip_prefix("loses ").and_then(keyword_list) {
+                    // "gets +10/+10 and loses flying" (Colossus Hammer).
+                    mods.push(format!("loses {k}"));
+                } else if RESTRICTIONS.contains(&part) {
+                    // "gets +1/+0 and can't be blocked", "gets +2/+2 and
+                    // attacks each combat if able".
+                    mods.push(format!("has {part}"));
                 } else {
                     return Err(Skip::Sentence(line.to_string()));
                 }

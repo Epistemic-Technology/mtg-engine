@@ -1,0 +1,8 @@
+card "Kragma Warcaller" {
+  oracle_id da04b438-aa49-4736-b0ed-131bbe70b566
+  cost {3}{B}{R}
+  type Creature — Minotaur Warrior
+  pt 2/3
+  static Minotaur creature you control: has haste
+  triggered whenever Minotaur you control attacks: it gets +2/+0
+}

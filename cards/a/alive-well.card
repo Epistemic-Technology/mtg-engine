@@ -1,0 +1,16 @@
+card "Alive // Well" {
+  oracle_id 57ad3c3a-6ac7-4a35-bc07-00f6ea0988c5
+  layout split
+  face "Alive" {
+    cost {3}{G}
+    type Sorcery
+    keywords fuse
+    spell: create 1 "3/3 green Centaur creature"
+  }
+  face "Well" {
+    cost {W}
+    type Sorcery
+    keywords fuse
+    spell: you gain count each 2 creature you control life
+  }
+}

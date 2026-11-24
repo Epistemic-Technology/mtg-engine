@@ -1,0 +1,7 @@
+card "Corrosive Mentor" {
+  oracle_id 380a1fbf-68bc-4456-9a67-f01c0174944c
+  cost {2}{B}
+  type Creature — Elemental Rogue
+  pt 1/3
+  static black creature you control: has wither
+}

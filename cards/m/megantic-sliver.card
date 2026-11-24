@@ -1,0 +1,7 @@
+card "Megantic Sliver" {
+  oracle_id 52e8ec03-23ed-43a0-bce2-ad0cd5c4d737
+  cost {5}{G}
+  type Creature — Sliver
+  pt 3/3
+  static Sliver creature you control: +3/+3
+}

@@ -1,0 +1,7 @@
+card "Goldenhide Ox" {
+  oracle_id 2934233a-b90c-45df-b604-ce462480bbb7
+  cost {5}{G}
+  type Enchantment Creature — Ox
+  pt 5/4
+  label "Constellation" triggered whenever this or enchantment you control enters: target creature must be blocked if able
+}

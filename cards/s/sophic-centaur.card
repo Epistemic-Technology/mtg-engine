@@ -1,0 +1,7 @@
+card "Sophic Centaur" {
+  oracle_id 5e8e443b-2102-4d91-b50c-1679dc893ef7
+  cost {3}{G}
+  type Creature — Centaur Spellshaper
+  pt 1/1
+  activated {2}{G}{G}, {T}, discard 1 card: you gain count each 2 hand life
+}

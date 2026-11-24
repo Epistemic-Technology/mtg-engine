@@ -1,0 +1,506 @@
+# Thirteenth-wave template statics: "<Type> creatures you control get
+# +N/+N" and "have <keywords>" (a color or "Modified" is a quality, not a
+# creature type), "Equipped creature gets +N/+N and has A and B", "...
+# and loses flying", "... and can't be blocked", "... and attacks each
+# combat if able".
+
+scenario "Battle Sliver: Slivers get +2/+0" {
+  battlefield A: "Battle Sliver", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Battle Sliver" 5
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Megantic and Steelform Sliver: +3/+3 and +0/+1 to Slivers" {
+  battlefield A: "Megantic Sliver", "Steelform Sliver"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Megantic Sliver" 6
+  assert toughness "Megantic Sliver" 7
+  assert power "Steelform Sliver" 5
+  assert toughness "Steelform Sliver" 6
+}
+
+scenario "Keyword Slivers grant their keywords to Slivers only" {
+  battlefield A: "Belligerent Sliver", "Bonescythe Sliver", "First Sliver's Chosen", "Galerider Sliver", "Syphon Sliver", "Venom Sliver", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has "Venom Sliver" menace
+  assert has "Galerider Sliver" double_strike
+  assert has "Belligerent Sliver" exalted
+  assert has "Bonescythe Sliver" flying
+  assert has "First Sliver's Chosen" lifelink
+  assert has "Syphon Sliver" deathtouch
+  assert has not "Grizzly Bears" flying
+  assert has not "Grizzly Bears" deathtouch
+}
+
+scenario "Syphon Sliver: a Sliver's damage gains life" {
+  battlefield A: "Syphon Sliver"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Syphon Sliver"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Bloodmark Mentor: red creatures have first strike" {
+  battlefield A: "Bloodmark Mentor", "Hill Giant", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has "Hill Giant" first_strike
+  assert has "Bloodmark Mentor" first_strike
+  assert has not "Grizzly Bears" first_strike
+}
+
+scenario "Corrosive Mentor: black creatures have wither" {
+  battlefield A: "Corrosive Mentor", "Typhoid Rats", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has "Typhoid Rats" wither
+  assert has not "Grizzly Bears" wither
+}
+
+scenario "Roughshod Mentor and True Conviction" {
+  battlefield A: "Roughshod Mentor", "True Conviction", "Grizzly Bears", "Savannah Lions"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" trample
+  assert has not "Savannah Lions" trample
+  assert has "Savannah Lions" double_strike
+  assert has "Savannah Lions" lifelink
+}
+
+scenario "Honor of the Pure and Glass of the Guildpact" {
+  battlefield A: "Honor of the Pure", "Glass of the Guildpact", "Savannah Lions", "Grizzly Bears", "Sky Spirit"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Savannah Lions" 3
+  assert power "Grizzly Bears" 2
+  assert power "Sky Spirit" 4
+}
+
+scenario "Crucible of Fire: Dragons get +3/+3" {
+  battlefield A: "Crucible of Fire", "Shivan Dragon", "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Shivan Dragon" 8
+  assert power "Hill Giant" 3
+}
+
+scenario "Envoy of the Ancestors: modified creatures have lifelink" {
+  battlefield A: "Envoy of the Ancestors", "Grizzly Bears" with 1 +1/+1, "Savannah Lions"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" lifelink
+  assert has not "Savannah Lions" lifelink
+}
+
+scenario "Invigorating Hot Spring: four counters, a counter moved, haste" {
+  battlefield A: 3 "Forest", 2 "Mountain"
+  hand A: "Invigorating Hot Spring", "Grizzly Bears"
+  turn 1 A: cast "Invigorating Hot Spring"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: activate "Invigorating Hot Spring" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Invigorating Hot Spring" +1/+1 3
+  assert counters "Grizzly Bears" +1/+1 1
+  assert life B 17
+}
+
+scenario "Kodama of the West Tree: a modified creature tramples and fetches a land" {
+  battlefield A: "Kodama of the West Tree", "Grizzly Bears" with 1 +1/+1
+  library A: "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" trample
+  assert has not "Kodama of the West Tree" trample
+  assert life B 17
+  assert battlefield A contains "Forest"
+  assert tapped "Forest"
+}
+
+scenario "Kinsbaile Cavalier: Knights have double strike" {
+  battlefield A: "Kinsbaile Cavalier", "Silver Knight", "Savannah Lions"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has "Silver Knight" double_strike
+  assert has "Kinsbaile Cavalier" double_strike
+  assert has not "Savannah Lions" double_strike
+}
+
+scenario "Kragma Warcaller: Minotaurs have haste and get +2/+0 attacking" {
+  battlefield A: 3 "Mountain", 2 "Swamp"
+  hand A: "Kragma Warcaller"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kragma Warcaller"
+  turn 1 A: attack "Kragma Warcaller"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Long-Forgotten Gohei: Spirits get +1/+1" {
+  battlefield A: "Long-Forgotten Gohei", "Sky Spirit", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Sky Spirit" 3
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Lord of the Unreal: Illusions get +1/+1 and hexproof" {
+  battlefield A: "Lord of the Unreal", "Chronozoa"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Chronozoa" 4
+  assert has "Chronozoa" hexproof
+  assert power "Lord of the Unreal" 2
+}
+
+scenario "Razorjaw Oni: black creatures can't block" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Razorjaw Oni", "Typhoid Rats"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Typhoid Rats"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Sylvan Anthem: green creatures get +1/+1, and a scry on entering" {
+  battlefield A: "Sylvan Anthem", 2 "Forest", "Savannah Lions"
+  hand A: "Grizzly Bears"
+  library A: "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: scry none
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert power "Savannah Lions" 2
+}
+
+scenario "Undead Warchief: Zombies get +2/+1" {
+  battlefield A: "Undead Warchief", "Siege Zombie"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Siege Zombie" 4
+  assert toughness "Siege Zombie" 3
+  assert power "Undead Warchief" 3
+}
+
+scenario "Wing Splicer: the Golem token flies" {
+  battlefield A: 4 "Island"
+  hand A: "Wing Splicer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wing Splicer"
+  run_to turn 1 postcombat_main
+  assert has "Phyrexian Golem" flying
+  assert has not "Wing Splicer" flying
+}
+
+scenario "Ulvenwald Behemoth: other creatures get +1/+1, trample, and haste" {
+  battlefield A: "Ulvenwald Oddity // Ulvenwald Behemoth", 7 "Forest", "Savannah Lions"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ulvenwald Oddity"
+  run_to turn 1 postcombat_main
+  assert power "Ulvenwald Behemoth" 8
+  assert power "Savannah Lions" 3
+  assert has "Savannah Lions" haste
+  assert has "Savannah Lions" trample
+}
+
+scenario "Gallia of the Endless Dance: Satyrs get +1/+1 and haste; three attackers loot at random" {
+  battlefield A: "Gallia of the Endless Dance", "Satyr Rambler", "Grizzly Bears"
+  hand A: "Island"
+  library A: "Plains", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Gallia of the Endless Dance", "Satyr Rambler", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Satyr Rambler" 3
+  assert graveyard A contains "Island"
+  assert hand A contains "Plains"
+  assert hand A contains "Swamp"
+  assert life B 13
+}
+
+scenario "Yuan-Ti Malison: unblockable attacking alone" {
+  battlefield A: "Yuan-Ti Malison"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Yuan-Ti Malison"
+  illegal turn 1 B: block "Yuan-Ti Malison" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Yuan-Ti Malison: blockable with company" {
+  battlefield A: "Yuan-Ti Malison", "Savannah Lions"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Yuan-Ti Malison", "Savannah Lions"
+  turn 1 B: block "Yuan-Ti Malison" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Yuan-Ti Malison"
+}
+
+# Equipment and Auras.
+
+scenario "Behemoth Sledge: +2/+2, trample, lifelink" {
+  battlefield A: "Behemoth Sledge", 3 "Plains", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Behemoth Sledge" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" trample
+  assert life B 16
+  assert life A 24
+}
+
+scenario "Batterskull: a 4/4 vigilant lifelinking Germ, and back to hand" {
+  battlefield A: 8 "Plains"
+  hand A: "Batterskull"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Batterskull"
+  turn 1 A: activate "Batterskull" ability 1
+  run_to turn 1 postcombat_main
+  assert hand A contains "Batterskull"
+  assert battlefield A lacks "Phyrexian Germ"
+}
+
+scenario "Batterbone: a 1/1 Germ with vigilance and lifelink" {
+  battlefield A: 2 "Plains"
+  hand A: "Batterbone"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Batterbone"
+  run_to turn 1 postcombat_main
+  assert power "Phyrexian Germ" 1
+  assert has "Phyrexian Germ" vigilance
+  assert has "Phyrexian Germ" lifelink
+}
+
+scenario "Colossus Hammer: +10/+10 and loses flying" {
+  battlefield A: "Colossus Hammer", 8 "Plains", "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Colossus Hammer" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert power "Wind Drake" 12
+  assert has not "Wind Drake" flying
+}
+
+scenario "Dragonwing Glider: a 4/4 flying, hasty Rebel" {
+  battlefield A: 5 "Mountain"
+  hand A: "Dragonwing Glider"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dragonwing Glider"
+  turn 1 A: attack "Rebel"
+  run_to turn 1 postcombat_main
+  assert has "Rebel" flying
+  assert life B 16
+}
+
+scenario "Embercleave: attached on entering, double strike and trample" {
+  battlefield A: "Grizzly Bears", 6 "Mountain"
+  hand A: "Embercleave"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Embercleave"
+  run_to turn 1 postcombat_main
+  assert attached "Embercleave" to "Grizzly Bears"
+  assert life B 14
+}
+
+scenario "Forebear's Blade: +3/+0, and it moves when the creature dies" {
+  battlefield A: "Forebear's Blade", 3 "Plains", "Grizzly Bears", "Savannah Lions"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Forebear's Blade" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: trigger "Forebear's Blade" targeting "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert attached "Forebear's Blade" to "Savannah Lions"
+  assert power "Savannah Lions" 5
+  assert has "Savannah Lions" trample
+}
+
+scenario "Lightning Greaves: haste and shroud for {0}" {
+  battlefield A: "Lightning Greaves", 2 "Forest"
+  battlefield B: "Mountain"
+  hand A: "Grizzly Bears"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: activate "Lightning Greaves" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Maul of the Skyclaves: attached on entering, +2/+2, flying, first strike" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  hand A: "Maul of the Skyclaves"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Maul of the Skyclaves"
+  run_to turn 1 postcombat_main
+  assert attached "Maul of the Skyclaves" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" flying
+  assert has "Grizzly Bears" first_strike
+}
+
+scenario "Tormentor's Trident: +3/+0" {
+  battlefield A: "Tormentor's Trident", 3 "Plains", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Tormentor's Trident" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+}
+
+scenario "Aether Tunnel: +1/+0 and unblockable" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Aether Tunnel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Aether Tunnel" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Serra's Embrace and Glasswing Grace" {
+  battlefield A: "Grizzly Bears", "Savannah Lions", 9 "Plains"
+  hand A: "Serra's Embrace", "Glasswing Grace // Age-Graced Chapel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Serra's Embrace" targeting "Grizzly Bears"
+  turn 1 A: cast "Glasswing Grace" targeting "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" vigilance
+  assert has "Grizzly Bears" flying
+  assert power "Savannah Lions" 4
+  assert has "Savannah Lions" lifelink
+  assert has "Savannah Lions" flying
+}
+
+scenario "Sky Tether: defender and loses flying" {
+  battlefield A: "Plains"
+  battlefield B: "Wind Drake"
+  hand A: "Sky Tether"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sky Tether" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert has "Wind Drake" defender
+  assert has not "Wind Drake" flying
+}
+
+scenario "Impending Doom: +3/+3, and its controller takes 3 when it dies" {
+  battlefield A: "Grizzly Bears", 3 "Mountain"
+  battlefield B: 2 "Swamp"
+  hand A: "Impending Doom"
+  hand B: "Doom Blade"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Impending Doom" targeting "Grizzly Bears"
+  turn 1 end B: cast "Doom Blade" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Grizzly Bears"
+  assert life A 17
+}
+
+scenario "Lust for War: 3 damage when it becomes tapped" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lust for War"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lust for War" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert life A 18
+}
+
+scenario "Spirit Loop: damage dealt gains that much; back to hand when it dies" {
+  battlefield A: "Hill Giant", 2 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Spirit Loop"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spirit Loop" targeting "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  turn 1 end B: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert life A 23
+  assert hand A contains "Spirit Loop"
+}
+
+# Bestow.
+
+scenario "Celestial Archon bestowed: +4/+4, flying, first strike" {
+  battlefield A: "Grizzly Bears", 7 "Plains"
+  hand A: "Celestial Archon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Celestial Archon" bestowed targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 6
+  assert has "Grizzly Bears" flying
+  assert has "Grizzly Bears" first_strike
+}
+
+scenario "Flitterstep Eidolon bestowed: +1/+1 and unblockable" {
+  battlefield A: "Grizzly Bears", 6 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Flitterstep Eidolon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Flitterstep Eidolon" bestowed targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Gnarled Scarhide bestowed: +2/+1 and can't block" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grizzly Bears", "Savannah Lions"
+  hand A: "Gnarled Scarhide"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gnarled Scarhide" bestowed targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 3
+}
+
+scenario "Gnarled Scarhide: it can't block" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Gnarled Scarhide"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Gnarled Scarhide"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Mogis's Warhound and Spirespine bestowed" {
+  battlefield A: "Grizzly Bears", "Savannah Lions", 3 "Mountain", 5 "Forest"
+  hand A: "Mogis's Warhound", "Spirespine"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mogis's Warhound" bestowed targeting "Grizzly Bears"
+  turn 1 A: cast "Spirespine" bestowed targeting "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert power "Savannah Lions" 6
+  assert toughness "Savannah Lions" 2
+}
+
+scenario "Sightless Brawler bestowed: +3/+2, and it can't attack alone" {
+  battlefield A: "Grizzly Bears", 5 "Plains"
+  hand A: "Sightless Brawler"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sightless Brawler" bestowed targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert life B 20
+}

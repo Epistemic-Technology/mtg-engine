@@ -1,0 +1,6 @@
+card "Char" {
+  oracle_id e57d90ad-2f54-46ca-8237-aa383353a0de
+  cost {2}{R}
+  type Instant
+  spell: deal 4 damage to any target and deal 2 damage to you
+}

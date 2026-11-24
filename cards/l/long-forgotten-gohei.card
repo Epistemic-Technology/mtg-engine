@@ -1,0 +1,7 @@
+card "Long-Forgotten Gohei" {
+  oracle_id 897910d5-13a4-4e1d-8f83-235b773b8322
+  cost {3}
+  type Artifact
+  spells Arcane you cast cost {1} less
+  static Spirit creature you control: +1/+1
+}

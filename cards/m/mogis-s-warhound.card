@@ -1,0 +1,9 @@
+card "Mogis's Warhound" {
+  oracle_id bb87917f-33fb-4024-9317-0992c2f8f55e
+  cost {1}{R}
+  type Enchantment Creature — Dog
+  pt 2/2
+  bestow {2}{R}
+  keyword attacks each combat if able
+  static enchanted: +2/+2, has attacks each combat if able
+}

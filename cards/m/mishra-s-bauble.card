@@ -1,0 +1,6 @@
+card "Mishra's Bauble" {
+  oracle_id 63afc3d1-7653-476e-838f-fc18d4a62a21
+  cost {0}
+  type Artifact
+  activated {T}, sacrifice this: look at top card of target player; delayed this: draw 1 cards at beginning of the next turn's upkeep
+}

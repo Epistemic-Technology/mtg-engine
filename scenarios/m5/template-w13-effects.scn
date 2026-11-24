@@ -1,0 +1,489 @@
+# Thirteenth-wave template effects: "deals N damage to any target and M
+# damage to you / to any other target", "you gain N life for each ...",
+# "each player discards their hand, then draws N cards", "target player
+# draws N cards, then discards M cards", "you and target opponent each
+# draw N cards", "must be blocked this turn if able", "defending player
+# loses N life", "discard a card at random", "... deals N damage to that
+# creature's controller", "you gain that much life".
+
+scenario "Arc Trail: 2 to one target, 1 to another" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Arc Trail"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Arc Trail" targeting "Grizzly Bears", player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 19
+}
+
+scenario "Arc Trail: not the same target twice" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Arc Trail"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Arc Trail" targeting "Grizzly Bears", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Explosive Welcome: 5 and 3, and {R}{R}{R}" {
+  battlefield A: 8 "Mountain"
+  battlefield B: "Craw Wurm"
+  hand A: "Explosive Welcome"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Explosive Welcome" targeting "Craw Wurm", player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Craw Wurm"
+  assert life B 17
+}
+
+scenario "Char and Psionic Blast: 4 to the target, 2 to you" {
+  battlefield A: 3 "Mountain", 3 "Island"
+  hand A: "Char", "Psionic Blast"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Char" targeting player B
+  turn 1 A: cast "Psionic Blast" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 12
+  assert life A 16
+}
+
+scenario "Goblin and Orcish Artillery: 2 to the target, 3 to you" {
+  battlefield A: "Goblin Artillery", "Orcish Artillery"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Goblin Artillery" targeting player B
+  turn 1 A: activate "Orcish Artillery" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 14
+}
+
+scenario "Burning Sun's Avatar: 3 to an opponent and 3 to up to one creature" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Burning Sun's Avatar"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Burning Sun's Avatar"
+  turn 1 A: trigger "Burning Sun's Avatar" targeting player B, "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Rakdos Firewheeler: 2 to an opponent and 2 to up to one creature" {
+  battlefield A: 2 "Swamp", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Rakdos Firewheeler"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rakdos Firewheeler"
+  turn 1 A: trigger "Rakdos Firewheeler" targeting player B, "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Dagger Caster: 1 to each opponent and each creature they control" {
+  battlefield A: 4 "Mountain", "Raging Goblin"
+  battlefield B: "Llanowar Elves", "Grizzly Bears"
+  hand A: "Dagger Caster"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dagger Caster"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Grizzly Bears" 1
+  assert battlefield A contains "Raging Goblin"
+}
+
+scenario "Reckless Rage: 4 to their creature, 2 to mine" {
+  battlefield A: "Mountain", "Hill Giant"
+  battlefield B: "Craw Wurm"
+  hand A: "Reckless Rage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Reckless Rage" targeting "Craw Wurm", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Craw Wurm"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Seismic Wave: 2 to a target, 1 to each nonartifact creature the opponent controls" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Llanowar Elves", "Memnite", "Grizzly Bears"
+  hand A: "Seismic Wave"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Seismic Wave" targeting "Grizzly Bears", player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Llanowar Elves"
+  assert battlefield B contains "Memnite"
+}
+
+scenario "Hanabi Blast: 2 damage, back to hand, discard at random" {
+  battlefield A: 3 "Mountain"
+  hand A: "Hanabi Blast"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hanabi Blast" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Hanabi Blast"
+  assert hand A count 0
+}
+
+scenario "Hanabi Blast: with another card in hand, one of the two is discarded" {
+  battlefield A: 3 "Mountain"
+  hand A: "Hanabi Blast", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hanabi Blast" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand A count 1
+  assert graveyard A count 1
+}
+
+# Life.
+
+scenario "Well: 2 life for each creature you control" {
+  battlefield A: "Plains", "Grizzly Bears", "Savannah Lions", "Llanowar Elves"
+  hand A: "Alive // Well"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Well"
+  run_to turn 1 postcombat_main
+  assert life A 26
+}
+
+scenario "Blighted Steppe: 2 life for each creature" {
+  battlefield A: "Blighted Steppe", 4 "Plains", "Grizzly Bears", "Savannah Lions"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Blighted Steppe"
+  run_to turn 1 postcombat_main
+  assert life A 24
+}
+
+scenario "Filigree Angel: 3 life for each artifact" {
+  battlefield A: 5 "Plains", 3 "Island", "Memnite", "Ornithopter"
+  hand A: "Filigree Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Filigree Angel"
+  run_to turn 1 postcombat_main
+  assert life A 29
+}
+
+scenario "Goldnight Redeemer: 2 life for each other creature" {
+  battlefield A: 6 "Plains", "Grizzly Bears", "Savannah Lions"
+  hand A: "Goldnight Redeemer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Goldnight Redeemer"
+  run_to turn 1 postcombat_main
+  assert life A 24
+}
+
+scenario "Honden of Cleansing Fire: 2 life for each Shrine at upkeep" {
+  battlefield A: "Honden of Cleansing Fire", "Sanctum of Tranquil Light"
+  start turn 1 A untap
+  run_to turn 1 precombat_main
+  assert life A 24
+}
+
+scenario "Landbind Ritual: 2 life for each Plains" {
+  battlefield A: 5 "Plains", "Island"
+  hand A: "Landbind Ritual"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Landbind Ritual"
+  run_to turn 1 postcombat_main
+  assert life A 30
+}
+
+scenario "Presence of the Wise: 2 life for each card in hand" {
+  battlefield A: 4 "Plains"
+  hand A: "Presence of the Wise", "Island", "Swamp", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Presence of the Wise"
+  run_to turn 1 postcombat_main
+  assert life A 26
+}
+
+scenario "Sophic Centaur: discard, then 2 life for each card in hand" {
+  battlefield A: "Sophic Centaur", 4 "Forest"
+  hand A: "Island", "Swamp", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sophic Centaur" discarding "Island"
+  run_to turn 1 postcombat_main
+  assert life A 24
+  assert graveyard A contains "Island"
+}
+
+scenario "Kami of the Honored Dead: gain the damage it is dealt" {
+  battlefield A: "Kami of the Honored Dead"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Kami of the Honored Dead"
+  run_to turn 2 postcombat_main
+  assert life A 23
+}
+
+scenario "Metropolis Reformer: gain the damage it is dealt; you have hexproof" {
+  battlefield A: "Metropolis Reformer"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Metropolis Reformer"
+  illegal turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 22
+}
+
+scenario "Campaign of Vengeance: each attacker drains 1" {
+  battlefield A: "Campaign of Vengeance", "Grizzly Bears", "Savannah Lions"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears", "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert life A 22
+}
+
+scenario "Leeching Sliver: an attacking Sliver drains 1" {
+  battlefield A: "Leeching Sliver"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Leeching Sliver"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 20
+}
+
+# Draw and discard.
+
+scenario "Cephalid Coliseum: threshold, draw three then discard three" {
+  battlefield A: "Cephalid Coliseum", "Island"
+  graveyard A: 7 "Plains"
+  library A: "Swamp", "Forest", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Cephalid Coliseum" ability 2 targeting player A
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert graveyard A count 11
+}
+
+scenario "Cephalid Coliseum: not without threshold" {
+  battlefield A: "Cephalid Coliseum", "Island"
+  graveyard A: 6 "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Cephalid Coliseum" ability 2 targeting player A
+  run_to turn 1 postcombat_main
+}
+
+scenario "Secret Rendezvous: you and the opponent draw three" {
+  battlefield A: 3 "Plains"
+  hand A: "Secret Rendezvous"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Secret Rendezvous" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert hand B count 3
+}
+
+scenario "Loran of the Third Path: you and the opponent draw a card" {
+  battlefield A: "Loran of the Third Path"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Loran of the Third Path" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand B count 1
+}
+
+scenario "Flumph: dealt damage, you and the opponent draw" {
+  battlefield A: "Flumph"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Flumph"
+  turn 2 A: trigger "Flumph" targeting player B
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+  assert hand B count 1
+}
+
+scenario "Love Song of Night and Day: chapter I, two cards each" {
+  battlefield A: 3 "Plains"
+  hand A: "Love Song of Night and Day"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Love Song of Night and Day"
+  turn 1 A: choose "1"
+  turn 1 A: trigger "Love Song of Night and Day" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert hand B count 2
+}
+
+scenario "Reforge the Soul: each player discards their hand and draws seven" {
+  battlefield A: 5 "Mountain"
+  hand A: "Reforge the Soul", "Island"
+  hand B: "Swamp", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Reforge the Soul"
+  run_to turn 1 postcombat_main
+  assert hand A count 7
+  assert hand B count 7
+  assert graveyard A contains "Island"
+  assert graveyard B contains "Swamp"
+}
+
+scenario "Wheel of Fate: suspended, then each player wheels for seven" {
+  battlefield A: 2 "Mountain"
+  hand A: "Wheel of Fate", "Island"
+  hand B: "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: suspend "Wheel of Fate"
+  run_to turn 9 precombat_main
+  assert graveyard A contains "Island"
+  assert graveyard B contains "Swamp"
+  assert graveyard A contains "Wheel of Fate"
+}
+
+scenario "Sensation Gorger: kinship, then each player wheels for four" {
+  battlefield A: "Sensation Gorger"
+  hand A: "Island"
+  hand B: "Swamp"
+  library A: "Raging Goblin", "Plains", "Plains", "Plains", "Plains", "Plains"
+  start turn 1 A untap
+  run_to turn 1 precombat_main
+  assert graveyard A contains "Island"
+  assert graveyard B contains "Swamp"
+  assert hand B count 4
+}
+
+scenario "Mishra's Bauble: look at the top card, draw at the next upkeep" {
+  battlefield A: "Mishra's Bauble"
+  library A: "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Mishra's Bauble" targeting player A
+  run_to turn 2 precombat_main
+  assert graveyard A contains "Mishra's Bauble"
+  assert hand A contains "Island"
+}
+
+scenario "Acolyte of Affliction: mill two, return a permanent card" {
+  battlefield A: 2 "Swamp", 2 "Forest"
+  hand A: "Acolyte of Affliction"
+  library A: "Grizzly Bears", "Lightning Bolt", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Acolyte of Affliction"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "Acolyte of Affliction: not an instant" {
+  battlefield A: 2 "Swamp", 2 "Forest"
+  hand A: "Acolyte of Affliction"
+  library A: "Lightning Bolt", "Shock", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Acolyte of Affliction"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert graveyard A contains "Lightning Bolt"
+  assert graveyard A contains "Shock"
+}
+
+scenario "Dread Presence: a Swamp enters, draw a card and lose 1 life" {
+  battlefield A: "Dread Presence"
+  hand A: "Swamp"
+  library A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: play "Swamp"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+  assert life A 19
+}
+
+# Lures.
+
+scenario "Emergent Growth: +5/+5 and it must be blocked" {
+  battlefield A: "Grizzly Bears", 4 "Forest"
+  battlefield B: "Llanowar Elves", "Savannah Lions"
+  hand A: "Emergent Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Emergent Growth" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B count 1
+  assert power "Grizzly Bears" 7
+  assert life B 20
+}
+
+scenario "Enlarge: +7/+7, trample, and it must be blocked" {
+  battlefield A: "Grizzly Bears", 5 "Forest"
+  battlefield B: "Llanowar Elves"
+  hand A: "Enlarge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Enlarge" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 combat_damage A: assign "Grizzly Bears" to "Llanowar Elves" 1, player B 8
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert life B 12
+}
+
+scenario "Deadly Allure: deathtouch and it must be blocked" {
+  battlefield A: "Grizzly Bears", "Swamp"
+  battlefield B: "Craw Wurm"
+  hand A: "Deadly Allure"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Deadly Allure" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Craw Wurm"
+}
+
+scenario "Satyr Piper: target creature must be blocked" {
+  battlefield A: "Satyr Piper", "Grizzly Bears", 4 "Forest"
+  battlefield B: "Llanowar Elves"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Satyr Piper" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+}
+
+scenario "Goldenhide Ox: entering, target creature must be blocked" {
+  battlefield A: "Grizzly Bears", 6 "Forest"
+  battlefield B: "Llanowar Elves"
+  hand A: "Goldenhide Ox"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Goldenhide Ox"
+  turn 1 A: trigger "Goldenhide Ox" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+}
+
+# "... deals 1 damage to that creature's controller".
+
+scenario "Gimli, Counter of Kills: 1 damage when an opponent's creature dies" {
+  battlefield A: "Gimli, Counter of Kills", "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "Rampaging Ferocidon: 1 damage per creature entering; no life gain" {
+  battlefield A: "Rampaging Ferocidon"
+  battlefield B: "Forest", "Plains"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 19
+}
+
+scenario "Rampaging Ferocidon: players can't gain life" {
+  battlefield A: "Rampaging Ferocidon", "Plains"
+  hand A: "Healing Salve"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Healing Salve" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 20
+}

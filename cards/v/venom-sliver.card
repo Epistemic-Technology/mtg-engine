@@ -1,0 +1,7 @@
+card "Venom Sliver" {
+  oracle_id ffe05d4b-0ec9-4319-bb11-1366dc091224
+  cost {1}{G}
+  type Creature — Sliver
+  pt 1/1
+  static Sliver creature you control: has deathtouch
+}

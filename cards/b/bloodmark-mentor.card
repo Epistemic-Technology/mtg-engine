@@ -1,0 +1,7 @@
+card "Bloodmark Mentor" {
+  oracle_id 8c22b218-cf40-47af-8c11-73c581a43390
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  static red creature you control: has first strike
+}

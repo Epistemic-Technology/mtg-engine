@@ -1,0 +1,8 @@
+card "Filigree Angel" {
+  oracle_id 4a261c42-825d-4965-8ea7-80d50c43474e
+  cost {5}{W}{W}{U}
+  type Artifact Creature — Angel
+  pt 4/4
+  keywords flying
+  triggered when this enters: you gain count each 3 artifact you control life
+}

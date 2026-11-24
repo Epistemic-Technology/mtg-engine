@@ -1,0 +1,10 @@
+card "Loran of the Third Path" {
+  oracle_id b3d81980-76f2-44e2-b1c9-01e30c726312
+  cost {2}{W}
+  type Legendary Creature — Human Artificer
+  pt 2/1
+  short_name "Loran"
+  keywords vigilance
+  triggered when this enters: destroy up to 1 target artifact or enchantment
+  activated {T}: you and target opponent each draw 1 cards
+}

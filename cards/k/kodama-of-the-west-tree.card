@@ -1,0 +1,9 @@
+card "Kodama of the West Tree" {
+  oracle_id d69b1e68-8d8e-460b-9eb4-6a68be886197
+  cost {2}{G}
+  type Legendary Creature — Spirit
+  pt 3/3
+  keywords reach
+  static modified creature you control: has trample
+  triggered whenever modified creature you control deals combat damage to a player: search basic land card to battlefield tapped
+}

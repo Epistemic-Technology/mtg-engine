@@ -1,0 +1,7 @@
+card "Razorjaw Oni" {
+  oracle_id ed8bc0f2-5a65-4eb4-bf88-3642a55b6889
+  cost {3}{B}
+  type Creature — Demon Spirit
+  pt 4/5
+  static black creature: has can't block
+}

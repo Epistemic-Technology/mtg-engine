@@ -1,0 +1,7 @@
+card "Orcish Artillery" {
+  oracle_id c000811e-bde7-4840-a3bb-9714d5c977eb
+  cost {1}{R}{R}
+  type Creature — Orc Warrior
+  pt 1/3
+  activated {T}: deal 2 damage to any target and deal 3 damage to you
+}

@@ -1,0 +1,9 @@
+card "Batterskull" {
+  oracle_id d12e5ce0-5705-4c35-9a93-b883db52c80c
+  cost {5}
+  type Artifact — Equipment
+  living weapon
+  static enchanted: +4/+4, has vigilance, lifelink
+  activated {3}: return this to hand
+  equip {5}
+}

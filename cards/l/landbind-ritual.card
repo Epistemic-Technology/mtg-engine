@@ -1,0 +1,6 @@
+card "Landbind Ritual" {
+  oracle_id 63500b81-8fac-4208-91d3-0fe642899d87
+  cost {3}{W}{W}
+  type Sorcery
+  spell: you gain count each 2 Plains you control life
+}

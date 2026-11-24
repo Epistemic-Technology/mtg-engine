@@ -1,0 +1,7 @@
+card "Bonescythe Sliver" {
+  oracle_id 1d95ad32-768f-40a1-a461-e0562326b2b7
+  cost {3}{W}
+  type Creature — Sliver
+  pt 2/2
+  static Sliver creature you control: has double strike
+}

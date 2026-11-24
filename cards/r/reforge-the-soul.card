@@ -1,0 +1,7 @@
+card "Reforge the Soul" {
+  oracle_id ece854f8-8c60-4f30-894f-2286d3dd61b9
+  cost {3}{R}{R}
+  type Sorcery
+  spell: each player discards hand then draws 7 cards
+  miracle {1}{R}
+}

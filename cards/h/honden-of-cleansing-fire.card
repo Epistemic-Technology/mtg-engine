@@ -1,0 +1,6 @@
+card "Honden of Cleansing Fire" {
+  oracle_id 15ee7e1d-b13e-4fd0-bc41-345b6ed34f53
+  cost {3}{W}
+  type Legendary Enchantment — Shrine
+  triggered at beginning of your upkeep: you gain count each 2 Shrine you control life
+}

@@ -1,0 +1,7 @@
+card "Acolyte of Affliction" {
+  oracle_id d57c246f-18e5-4523-898c-1509db738363
+  cost {2}{B}{G}
+  type Creature — Human Cleric
+  pt 2/3
+  triggered when this enters: mill 2 cards then you may return 1 permanent card from your graveyard to hand chosen
+}

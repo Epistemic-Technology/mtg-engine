@@ -1,0 +1,7 @@
+card "Kinsbaile Cavalier" {
+  oracle_id e21ed0d0-26b1-4ffe-971a-babf37f4492c
+  cost {3}{W}
+  type Creature — Kithkin Knight
+  pt 2/2
+  static Knight creature you control: has double strike
+}

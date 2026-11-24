@@ -1,0 +1,9 @@
+card "Flitterstep Eidolon" {
+  oracle_id 4280191f-e2cb-4cee-a3b4-660b3efd62e9
+  cost {1}{U}
+  type Enchantment Creature — Spirit
+  pt 1/1
+  bestow {5}{U}
+  keyword can't be blocked
+  static enchanted: +1/+1, has can't be blocked
+}

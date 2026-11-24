@@ -1,0 +1,9 @@
+card "Rampaging Ferocidon" {
+  oracle_id 3e5ca524-8dd1-4f7f-a467-5210d768b8a1
+  cost {2}{R}
+  type Creature — Dinosaur
+  pt 3/3
+  keywords menace
+  players can't gain life
+  triggered whenever other creature enters: deal 1 damage to controller of that creature
+}

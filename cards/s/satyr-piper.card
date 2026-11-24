@@ -1,0 +1,7 @@
+card "Satyr Piper" {
+  oracle_id d15eed8e-6c2c-4427-9f72-a46e90c562b9
+  cost {2}{G}
+  type Creature — Satyr Rogue
+  pt 2/1
+  activated {3}{G}: target creature must be blocked if able
+}

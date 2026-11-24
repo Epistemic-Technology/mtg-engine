@@ -1,0 +1,6 @@
+card "Glass of the Guildpact" {
+  oracle_id a967921c-cfd4-422c-a08b-42cdd80f89c0
+  cost {2}
+  type Artifact
+  static multicolored creature you control: +1/+1
+}

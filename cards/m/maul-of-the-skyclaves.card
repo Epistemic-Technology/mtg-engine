@@ -1,0 +1,8 @@
+card "Maul of the Skyclaves" {
+  oracle_id 088a1f56-198c-41a1-b244-ec1c7a771041
+  cost {2}{W}
+  type Artifact — Equipment
+  triggered when this enters: attach it to target creature you control
+  static enchanted: +2/+2, has flying, first strike
+  equip {2}{W}{W}
+}

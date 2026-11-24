@@ -1,0 +1,7 @@
+card "Wheel of Fate" {
+  oracle_id 15e4938d-1cd3-4670-9de5-2dc10abe4c19
+  type Sorcery
+  color red
+  suspend 4 {1}{R}
+  spell: each player discards hand then draws 7 cards
+}

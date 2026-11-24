@@ -1,0 +1,7 @@
+card "Belligerent Sliver" {
+  oracle_id 7d54a535-e924-47c7-81db-e04df1c3f44e
+  cost {2}{R}
+  type Creature — Sliver
+  pt 2/2
+  static Sliver creature you control: has menace
+}

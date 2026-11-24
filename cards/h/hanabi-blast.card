@@ -1,0 +1,6 @@
+card "Hanabi Blast" {
+  oracle_id 8e47b355-98fe-452a-a81e-b901c1f2cb6f
+  cost {1}{R}{R}
+  type Instant
+  spell: deal 2 damage to any target; return this creature to its owner's hand then discard 1 card at random
+}

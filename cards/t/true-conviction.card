@@ -1,0 +1,6 @@
+card "True Conviction" {
+  oracle_id fc299c1c-50f3-492a-b6b8-a3664bb72ab7
+  cost {3}{W}{W}{W}
+  type Enchantment
+  static creature you control: has double strike, lifelink
+}

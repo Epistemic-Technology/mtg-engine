@@ -1,0 +1,6 @@
+card "Cephalid Coliseum" {
+  oracle_id c733873e-77db-471f-8061-139db24f7e7c
+  type Land
+  activated {T}: add {U}; deal 1 damage to you
+  label "Threshold" activated {U}, {T}, sacrifice this, if 7 cards in your graveyard: target player draws 3 cards then target 1 discards 3 cards
+}

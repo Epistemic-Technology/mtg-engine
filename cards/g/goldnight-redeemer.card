@@ -1,0 +1,8 @@
+card "Goldnight Redeemer" {
+  oracle_id 6fe35d1f-20b6-4fa8-a318-79e2d415701a
+  cost {4}{W}{W}
+  type Creature — Angel
+  pt 4/4
+  keywords flying
+  triggered when this enters: you gain count each 2 other creature you control life
+}

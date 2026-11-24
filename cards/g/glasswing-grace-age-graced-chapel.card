@@ -1,0 +1,13 @@
+card "Glasswing Grace // Age-Graced Chapel" {
+  oracle_id 3a3e8c9b-e458-4661-980d-0a84a4c2452b
+  layout modal_dfc
+  cost {3}{W/B}{W/B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has flying, lifelink
+  face "Age-Graced Chapel" {
+    type Land
+    enters tapped
+    mana {W} or {B}
+  }
+}

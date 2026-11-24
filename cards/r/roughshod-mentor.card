@@ -1,0 +1,7 @@
+card "Roughshod Mentor" {
+  oracle_id ec43fb64-122d-4fc5-9fe0-b7913373f7a4
+  cost {5}{G}
+  type Creature — Giant Warrior
+  pt 5/4
+  static green creature you control: has trample
+}
