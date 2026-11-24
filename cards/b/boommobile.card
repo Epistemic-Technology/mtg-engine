@@ -1,0 +1,9 @@
+card "Boommobile" {
+  oracle_id cb3edb86-ddd5-461c-98b5-ffb4df437a39
+  cost {2}{R}{R}
+  type Artifact — Vehicle
+  pt 5/5
+  triggered when this enters: add any 4 only to activate abilities
+  exhaust {X}{2}{R}: deal X damage to any target; put 1 +1/+1 counters on this Vehicle
+  crew 2
+}
