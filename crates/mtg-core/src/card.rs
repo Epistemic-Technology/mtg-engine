@@ -3518,6 +3518,7 @@ pub enum CounterKind {
     Chorus,
     Blight,
     Bait,
+    Incarnation,
     /// Keyword counter (CR 122.1b): the permanent has decayed (Rot-Curse
     /// Rakshasa).
     Decayed,
@@ -3570,7 +3571,7 @@ pub struct CombatTax {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 89] = [
+    pub const NAMED: [(&'static str, CounterKind); 90] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -3659,6 +3660,7 @@ impl CounterKind {
         ("chorus", CounterKind::Chorus),
         ("blight", CounterKind::Blight),
         ("bait", CounterKind::Bait),
+        ("incarnation", CounterKind::Incarnation),
         ("decayed", CounterKind::Decayed),
     ];
 
@@ -4110,6 +4112,9 @@ pub enum Num {
     Count(u8),
     /// "that much": the triggering event's amount (damage dealt).
     ThatMuch,
+    /// "twice that many": the triggering event's amount times this ("mill
+    /// twice that many cards", Angel of Suffering).
+    ThatMuchTimes(u32),
 }
 
 impl Num {
@@ -4127,7 +4132,7 @@ impl Num {
             Num::XPlus(n) => x.saturating_add(n),
             Num::XTimes(n) => x.saturating_mul(n),
             Num::NMinusX(n) => n.saturating_sub(x),
-            Num::Count(_) | Num::ThatMuch => 0,
+            Num::Count(_) | Num::ThatMuch | Num::ThatMuchTimes(_) => 0,
         }
     }
 
@@ -4137,7 +4142,7 @@ impl Num {
             Num::N(n) => n,
             Num::X | Num::Count(_) | Num::ThatMuch => 3,
             Num::XPlus(n) => 3 + n,
-            Num::XTimes(n) => 3 * n,
+            Num::XTimes(n) | Num::ThatMuchTimes(n) => 3 * n,
             Num::NMinusX(n) => n.saturating_sub(3),
         }
     }
@@ -6664,6 +6669,11 @@ pub enum Affects {
     Except(ObjFilter),
 }
 
+/// `Replacement::Redirect`'s `next` for "the next time ... would deal
+/// damage ..., that damage is dealt to ... instead" (Opal-Eye, Konda's
+/// Yojimbo): all of one damage event, then the effect is used up.
+pub const REDIRECT_NEXT_TIME: u32 = u32::MAX;
+
 /// Where a redirection effect sends the damage (CR 614.9).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum RedirectTo {
@@ -6945,6 +6955,14 @@ pub struct ReplacementAbility {
     /// damage ...", CR 702.179f).
     #[serde(default)]
     pub condition: Option<u16>,
+    /// "Prevent that damage and <do something> that many" (Gloom Surgeon,
+    /// Protean Hydra): `then` is part of the replacement itself, so it
+    /// happens even where the damage can't be prevented, and its "that
+    /// many" is the damage the event would have dealt, not what was
+    /// prevented (CR 615.12; "the damage prevented this way", CR 615.5,
+    /// is the other wording).
+    #[serde(default)]
+    pub joined: bool,
 }
 
 impl ReplacementAbility {
@@ -7323,6 +7341,18 @@ pub enum TriggerSpec {
     /// of that kind put on the source take their number from below `n` to
     /// `n` or more.
     NthCounterPut { kind: CounterKind, n: u32 },
+    /// "Whenever a +1/+1 counter is removed from this creature" (Protean
+    /// Hydra): once for each counter of that kind removed from a matching
+    /// permanent (`CounterKind::Any`: of any kind), however they go (an
+    /// effect, a cost, damage to a planeswalker, CR 704.5q). With
+    /// `one_or_more`, "Whenever one or more loyalty counters are removed
+    /// from Chandra" (Chandra, Fire Artisan): once per removal, their
+    /// number the trigger's amount.
+    CountersRemoved {
+        what: TriggerObj,
+        kind: CounterKind,
+        one_or_more: bool,
+    },
     /// The "one or more" form of a per-object trigger (CR 603.2c): "Whenever
     /// one or more creature cards are put into your graveyard from
     /// anywhere", "Whenever one or more creatures you control become
@@ -7677,6 +7707,7 @@ impl TriggerSpec {
             | TriggerSpec::SacrificesBatch(_) => WATCH_SACRIFICE,
             TriggerSpec::CountersPut { .. }
             | TriggerSpec::NthCounterPut { .. }
+            | TriggerSpec::CountersRemoved { .. }
             | TriggerSpec::YouPutCounters { .. }
             | TriggerSpec::Chapter(_) => WATCH_COUNTERS,
             TriggerSpec::ScriesOrSurveils
@@ -12223,6 +12254,7 @@ impl Builder {
                 replacement: Replacement::EnterReadAhead,
                 then: Vec::new(),
                 condition: None,
+                joined: false,
             }));
         self
     }

@@ -1,0 +1,9 @@
+card "Arrow Storm" {
+  oracle_id a0ce2f5a-9c0b-4801-9105-72f84d8a4a1f
+  cost {3}{R}{R}
+  type Sorcery
+  spell {
+  deal 4 damage to any target
+  label "Raid" if attacked this turn, instead deal 5 damage to that target 1 and the damage can't be prevented
+  }
+}

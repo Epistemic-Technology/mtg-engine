@@ -1,0 +1,10 @@
+card "Angel of Suffering" {
+  oracle_id 92380c57-0a92-48eb-b562-2be149b5792a
+  cost {3}{B}{B}
+  type Creature — Nightmare Angel
+  pt 5/3
+  keywords flying
+  replace damage to you: prevent and {
+    mill 2 times that much cards
+  }
+}

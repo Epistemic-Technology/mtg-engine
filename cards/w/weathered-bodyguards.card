@@ -1,0 +1,8 @@
+card "Weathered Bodyguards" {
+  oracle_id 86d0ba9d-6972-4cbc-871d-3fb413565c45
+  cost {5}{W}
+  type Creature — Human Soldier
+  pt 2/5
+  replace combat damage from unblocked creature to you while this is untapped: redirect to this
+  morph {3}{W}
+}

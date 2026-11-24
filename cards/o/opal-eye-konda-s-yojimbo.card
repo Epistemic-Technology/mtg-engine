@@ -1,0 +1,10 @@
+card "Opal-Eye, Konda's Yojimbo" {
+  oracle_id e4acac65-112b-48fc-bea3-44747c1389a3
+  cost {1}{W}{W}
+  type Legendary Creature — Fox Samurai
+  pt 1/4
+  keywords defender
+  bushido 1
+  activated {T}: this turn, replace damage from chosen source: redirect next time to this
+  activated {1}{W}: prevent next 1 damage to this this turn
+}

@@ -1,0 +1,8 @@
+card "Urza's Rage" {
+  oracle_id 363f8c66-fe0c-44b9-987d-1d160e3f9c54
+  cost {2}{R}
+  type Instant
+  kicker {8}{R}
+  this spell can't be countered
+  spell: deal 3 damage to any target; if kicked, instead deal 10 damage to that target 1 and the damage can't be prevented
+}

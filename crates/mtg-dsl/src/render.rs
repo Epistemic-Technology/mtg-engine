@@ -95,6 +95,7 @@ fn count_words(n: Num, article: &str) -> String {
         // "the top X plus one cards" (Epiphany at the Drownyard).
         Num::XPlus(n) => format!("X plus {}", number_word(n)),
         Num::XTimes(n) => times_x(n),
+        Num::ThatMuchTimes(n) => times_x(n).replacen('X', "that many", 1),
         Num::NMinusX(n) => format!("{} minus X", number_word(n)),
         Num::N(1) => article.to_string(),
         Num::N(n) => NUMBER_WORDS
@@ -109,6 +110,7 @@ fn digits(n: Num) -> String {
         Num::X | Num::Count(_) => "X".to_string(),
         Num::XPlus(n) => format!("X plus {n}"),
         Num::XTimes(n) => times_x(n),
+        Num::ThatMuchTimes(n) => times_x(n).replacen('X', "that much", 1),
         Num::NMinusX(n) => format!("{n} minus X"),
         Num::N(n) => n.to_string(),
     }
@@ -1458,6 +1460,10 @@ struct Ctx<'a> {
     /// then discard a card"): a reflexive trigger after it is "When you
     /// discard a card this way".
     discarded_one: bool,
+    /// Counters were just removed from the source: a reflexive trigger
+    /// after it is "When one or more counters are removed from this
+    /// creature this way" (Magma Pummeler).
+    removed_from_source: bool,
     /// The sentence ends "Round down each time." (Pox Plague) or "Round up
     /// each time." (Fraying Omnipotence), so its halves don't say
     /// "rounded down" each.
@@ -1552,6 +1558,7 @@ impl<'a> Ctx<'a> {
             those_tokens: None,
             last_token_tapped: false,
             discarded_one: false,
+            removed_from_source: false,
             round_each: false,
             attached_mentioned: false,
             attached_by_cond: false,
@@ -6329,6 +6336,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let whose = if who.is_some() { "their" } else { "your" };
             let what = if one {
                 format!("the top card of {whose} library")
+            } else if *count == Num::ThatMuch {
+                // "exile that many cards from the top of your library"
+                // (Gloom Surgeon).
+                format!("that many cards from the top of {whose} library")
             } else {
                 format!(
                     "the top {} cards of {whose} library",
@@ -7730,6 +7741,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::RemoveCounters { kind, count, to } => {
             let c = counters(*count, *kind);
+            // "remove that many +1/+1 counters from it" (a prevention's
+            // follow-up, Magma Pummeler), not "you may remove two oil
+            // counters from it. When you do, ...".
+            ctx.removed_from_source = *to == Recipient::Source && *count == Num::ThatMuch;
             let o = ctx.obj(*to);
             Clause::imperative(format!("remove {c} from {o}"))
         }
@@ -10506,9 +10521,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "Draw a card, then discard a card. When you discard a card
             // this way, ...".
             let when = if ctx.discarded_one {
-                "when you discard a card this way"
+                "when you discard a card this way".to_string()
+            } else if ctx.removed_from_source {
+                format!(
+                    "when one or more counters are removed from {} this way",
+                    this_ref(ctx.card)
+                )
             } else {
-                "when you do"
+                "when you do".to_string()
             };
             Clause::imperative(format!("{when}, {}", body.trim_end_matches('.')))
         }
@@ -13290,6 +13310,29 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             counter_name(*kind),
             trigger_subject(obj, ctx)
         ),
+        Trigger::CountersRemoved {
+            obj,
+            kind,
+            one_or_more,
+        } => {
+            let kind = if *kind == CounterKind::Any {
+                "counter".to_string()
+            } else {
+                format!("{} counter", counter_name(*kind))
+            };
+            if *one_or_more {
+                format!(
+                    "whenever one or more {kind}s are removed from {}",
+                    trigger_subject(obj, ctx)
+                )
+            } else {
+                format!(
+                    "whenever {} {kind} is removed from {}",
+                    article(&kind),
+                    trigger_subject(obj, ctx)
+                )
+            }
+        }
         Trigger::NthCounterPut { kind, n } => format!(
             "whenever the {} {} counter is put on {}",
             nth_word(*n),
@@ -13692,6 +13735,7 @@ fn affects_to(a: &Affects, ctx: &mut Ctx) -> String {
         Affects::Players(_) => "a player".to_string(),
         Affects::Objects(f) => filter_phrase(f, ctx.card, true),
         Affects::YouAnd(f) => format!("you and {}", filter_phrase(f, ctx.card, true)),
+        Affects::YouAndOr(f) => format!("you and/or {}", filter_phrase(f, ctx.card, true)),
         Affects::OpponentsAnd(f) => format!("an opponent or {}", filter_a(f, ctx.card)),
         Affects::Target(i) => ctx.obj(Recipient::Target(*i)),
         Affects::ThatTarget(i) => ctx.obj(Recipient::ThatTarget(*i)),
@@ -13845,7 +13889,7 @@ fn prevent_all_text(r: &Replaces, ctx: &mut Ctx, this_turn: bool) -> String {
                     let by = damage_source(f, ctx);
                     format!("Prevent all {kind} that would be dealt{to}{turn} by {by}.")
                 }
-                (Some(f), DamageWording::Dealt) => {
+                (Some(f), DamageWording::Dealt | DamageWording::WouldBeDealt) => {
                     let to = to_text(ctx);
                     let by = damage_source(f, ctx);
                     format!("Prevent all {kind} that would be dealt{to} by {by}{turn}.")
@@ -13991,7 +14035,27 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 dest,
                 mtg_core::card::RedirectTo::ChosenCreatureOrPlaneswalker
             );
+            let next_time = *next == Some(mtg_core::card::REDIRECT_NEXT_TIME);
             let mut s = match (next, from) {
+                // "The next time a source of your choice would deal damage
+                // this turn, that damage is dealt to Opal-Eye instead."
+                (Some(_), _) if next_time => {
+                    let by = from
+                        .as_ref()
+                        .map_or_else(|| "a source".to_string(), |f| damage_source(f, ctx));
+                    let to = match to.as_str() {
+                        "a permanent or player" => String::new(),
+                        t => format!(" to {t}"),
+                    };
+                    format!("The next time {by} would deal {kind}{to}{turn}, that damage")
+                }
+                // "The next 2 damage that a source of your choice would
+                // deal to you and/or permanents you control this turn is
+                // dealt to any target instead." (Harm's Way).
+                (Some(n), Some(f)) if *wording == DamageWording::WouldDeal => {
+                    let by = damage_source(f, ctx);
+                    format!("The next {n} {kind} that {by} would deal to {to}{turn}")
+                }
                 (Some(n), _) => format!("The next {n} {kind} that would be dealt to {to}{turn}"),
                 // "All damage that would be dealt this turn to you and
                 // permanents you control is dealt to ..." (Gideon's
@@ -14015,6 +14079,17 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                     }
                 }
             };
+            // "As long as this creature is untapped, all combat damage that
+            // would be dealt to you by unblocked creatures is dealt to this
+            // creature instead." (Weathered Bodyguards).
+            if let Some(c) = &r.cond {
+                let text = static_cond_text(c, ctx.card);
+                let text = match text.strip_prefix("it's ") {
+                    Some(rest) => format!("{} is {rest}", this_ref(ctx.card)),
+                    None => text,
+                };
+                s = format!("As long as {text}, {}", lowercase_first(&s));
+            }
             let dest = match dest {
                 mtg_core::card::RedirectTo::This => {
                     ctx.source_mentioned = true;
@@ -14189,6 +14264,30 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 other => affects_to(other, ctx),
             };
             let head = match from {
+                // "If a source would deal damage to you, prevent that
+                // damage and ..." (Nine Lives).
+                None if matches!(
+                    r.event,
+                    Replaces::Damage {
+                        wording: DamageWording::WouldDeal,
+                        ..
+                    }
+                ) =>
+                {
+                    format!("If a source would deal {kind} to {to}")
+                }
+                // "If this creature would be dealt damage, prevent that
+                // damage and ..." (Unbreathing Horde).
+                None if matches!(
+                    r.event,
+                    Replaces::Damage {
+                        wording: DamageWording::WouldBeDealt,
+                        ..
+                    }
+                ) =>
+                {
+                    format!("If {to} would be dealt {kind}")
+                }
                 None => format!("If {kind} would be dealt to {to}"),
                 Some(Affects::Objects(f)) if f.types.is_empty() && f.any_types.is_empty() => {
                     let p = filter_a(f, ctx.card);

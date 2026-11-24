@@ -1,0 +1,6 @@
+card "Urza's Armor" {
+  oracle_id e5fa232a-c8f2-4532-88bf-60d1223181b0
+  cost {6}
+  type Artifact
+  replace damage to you: prevent next 1
+}

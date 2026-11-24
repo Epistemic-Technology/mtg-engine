@@ -820,6 +820,7 @@ impl GameState {
         let i = match n {
             Num::Count(i) => i as usize,
             Num::ThatMuch => return ctx.trigger_amount,
+            Num::ThatMuchTimes(n) => return ctx.trigger_amount.saturating_mul(n),
             other => return other.eval(ctx.x),
         };
         let def = ctx.counts.or_else(|| {
@@ -9396,7 +9397,7 @@ impl GameState {
 
     /// Who or what a `Recipient` denotes while `ctx`'s effects resolve.
     #[allow(clippy::too_many_lines)] // one arm per recipient kind
-    fn recipients(&mut self, ctx: &EffectCtx, r: Recipient) -> SmallVec<[Target; 2]> {
+    pub(super) fn recipients(&mut self, ctx: &EffectCtx, r: Recipient) -> SmallVec<[Target; 2]> {
         let mut out = SmallVec::new();
         match r {
             Recipient::Target(i) => {
@@ -13159,7 +13160,17 @@ impl GameState {
                         }
                     }
                 } else {
-                    for e in if holds { alt } else { base } {
+                    let list = if holds { alt } else { base };
+                    // "If this spell was kicked, instead it deals 10 damage
+                    // to that permanent or player and the damage can't be
+                    // prevented." (Urza's Rage): the damage the list deals
+                    // before the sentence is covered too.
+                    if list.contains(&Effect::DamageUnpreventable)
+                        && let Some(log) = &mut self.this_way
+                    {
+                        log.unpreventable = true;
+                    }
+                    for e in list {
                         self.apply_effect(ctx, e);
                     }
                 }
@@ -16820,6 +16831,7 @@ impl GameState {
                 replacement: Replacement::Regenerate,
                 then: Vec::new(),
                 condition: None,
+                joined: false,
             },
             target: Some(Target::Object(id)),
             remaining: 1,

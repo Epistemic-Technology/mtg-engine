@@ -554,6 +554,7 @@ impl Fmt {
             Affects::Objects(f) if f.article => format!("a {}", filter(f)),
             Affects::Objects(f) => filter(f),
             Affects::YouAnd(f) => format!("you and {}", filter(f)),
+            Affects::YouAndOr(f) => format!("you andor {}", filter(f)),
             Affects::OpponentsAnd(f) => format!("opponent and {}", filter(f)),
             Affects::Target(i) => self.recipient(Recipient::Target(*i), targets),
             Affects::ThatTarget(i) => self.recipient(Recipient::ThatTarget(*i), targets),
@@ -600,6 +601,18 @@ impl Fmt {
                             ""
                         };
                         let _ = write!(s, "{bare} {} would deal", self.affects(f, targets));
+                        if *to != Affects::Any {
+                            let _ = write!(s, " to {}", self.affects(to, targets));
+                        }
+                        s.push_str(turn);
+                    }
+                    (None, DamageWording::WouldBeDealt) => {
+                        let _ = write!(s, " would be dealt to {}", self.affects(to, targets));
+                        s.push_str(turn);
+                    }
+                    // `damage source would deal to you` (Nine Lives).
+                    (None, DamageWording::WouldDeal) => {
+                        s.push_str(" source would deal");
                         if *to != Affects::Any {
                             let _ = write!(s, " to {}", self.affects(to, targets));
                         }
@@ -3516,7 +3529,11 @@ impl Fmt {
                 // event's.
                 (_, Outcome::Redirect { to, next }) => {
                     let event = self.replaces(&rep.event, t);
-                    let next = next.map_or(String::new(), |n| format!("next {n} "));
+                    let next = match next {
+                        None => String::new(),
+                        Some(mtg_core::card::REDIRECT_NEXT_TIME) => "next time ".to_string(),
+                        Some(n) => format!("next {n} "),
+                    };
                     let to = match to {
                         mtg_core::card::RedirectTo::This => "this".to_string(),
                         mtg_core::card::RedirectTo::You => "you".to_string(),
@@ -3631,6 +3648,7 @@ fn num(n: Num) -> String {
         Num::X => "X".to_string(),
         Num::XPlus(n) => format!("X plus {n}"),
         Num::XTimes(n) => format!("{n} times X"),
+        Num::ThatMuchTimes(n) => format!("{n} times that much"),
         Num::NMinusX(n) => format!("{n} minus X"),
         Num::ThatMuch => "that much".to_string(),
         Num::Count(i) => COUNTS.with(|c| {
@@ -4050,7 +4068,11 @@ fn outcome(o: &Outcome) -> String {
         Outcome::PreventNextTime => "prevent next time".to_string(),
         Outcome::DestroyNextTime => "destroy next time".to_string(),
         Outcome::Redirect { to, next } => {
-            let next = next.map_or(String::new(), |n| format!("next {n} "));
+            let next = match next {
+                None => String::new(),
+                Some(mtg_core::card::REDIRECT_NEXT_TIME) => "next time ".to_string(),
+                Some(n) => format!("next {n} "),
+            };
             match to {
                 mtg_core::card::RedirectTo::This => format!("redirect {next}to this"),
                 mtg_core::card::RedirectTo::You => format!("redirect {next}to you"),
@@ -5307,6 +5329,25 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             kind.name(),
             trigger_obj(obj)
         ),
+        Trigger::CountersRemoved {
+            obj,
+            kind,
+            one_or_more,
+        } => {
+            let kind = if *kind == CounterKind::Any {
+                String::new()
+            } else {
+                format!("{} ", kind.name())
+            };
+            if *one_or_more {
+                format!(
+                    "whenever one or more {kind}counters removed from {}",
+                    trigger_obj(obj)
+                )
+            } else {
+                format!("whenever {kind}counter removed from {}", trigger_obj(obj))
+            }
+        }
         Trigger::NthCounterPut { kind, n } => {
             format!("whenever nth {n} {} counter put on this", kind.name())
         }

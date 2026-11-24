@@ -3416,6 +3416,9 @@ pub enum DamageWording {
     /// `damage this turn to A [from S]`: "that would be dealt this turn to
     /// A [by S]" (Divine Light).
     TurnFirst,
+    /// `damage would be dealt to A` (a static replacement): "If A would be
+    /// dealt damage, ..." (Unbreathing Horde).
+    WouldBeDealt,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -3431,6 +3434,9 @@ pub enum Affects {
     Players(Who),
     Objects(Filter),
     YouAnd(Filter),
+    /// `you andor permanent you control`: the same as `you and`, printed
+    /// "you and/or permanents you control" (Harm's Way).
+    YouAndOr(Filter),
     /// `opponent and permanent an opponent controls`: "an opponent or a
     /// permanent an opponent controls".
     OpponentsAnd(Filter),
@@ -3632,6 +3638,16 @@ pub enum Trigger {
     NthCounterPut {
         kind: CounterKind,
         n: u32,
+    },
+    /// `whenever +1/+1 counter removed from this`: "Whenever a +1/+1
+    /// counter is removed from this creature" (once per counter; `counter
+    /// removed from this` for any kind); `whenever one or more loyalty
+    /// counters removed from this`: once per removal, `that much` their
+    /// number (Chandra, Fire Artisan).
+    CountersRemoved {
+        obj: TriggerObj,
+        kind: CounterKind,
+        one_or_more: bool,
     },
     /// `whenever you put one or more +1/+1 counters on creature you
     /// control`: "Whenever you put one or more +1/+1 counters on a creature

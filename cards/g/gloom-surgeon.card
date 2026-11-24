@@ -1,0 +1,9 @@
+card "Gloom Surgeon" {
+  oracle_id 48b8ab2d-9f3f-42b2-9c5d-7497bceae43e
+  cost {1}{B}
+  type Creature — Spirit
+  pt 2/1
+  replace combat damage to this: prevent and {
+    exile top that much cards
+  }
+}

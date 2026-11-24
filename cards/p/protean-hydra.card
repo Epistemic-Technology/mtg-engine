@@ -1,0 +1,11 @@
+card "Protean Hydra" {
+  oracle_id 6e32b958-70d3-4f3d-b10e-d6c8cb27dd93
+  cost {X}{G}
+  type Creature — Hydra
+  pt 0/0
+  enters with X +1/+1 counters
+  replace damage to this: prevent and {
+    remove that much +1/+1 counters from this
+  }
+  triggered whenever +1/+1 counter removed from this: delayed this: put 2 +1/+1 counters on this at beginning of the next end step
+}
