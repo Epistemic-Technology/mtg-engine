@@ -530,6 +530,14 @@ impl GameState {
         })
     }
 
+    /// A lone attacker that can't attack alone (CR 506.5): the declaration
+    /// breaks a restriction, so it isn't offered.
+    pub(super) fn attacks_alone_illegally(&self, set: &[ObjId]) -> bool {
+        matches!(set, [only] if self
+            .characteristics(*only)
+            .is_some_and(|c| c.has(Keyword::CantAttackAlone)))
+    }
+
     /// Whether `p` controls a land with the basic land type of `c`.
     fn controls_basic_type(&self, p: PlayerId, c: crate::mana::Color) -> bool {
         self.permanents_of(p).any(|id| {

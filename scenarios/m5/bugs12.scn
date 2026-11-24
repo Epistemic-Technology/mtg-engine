@@ -34,3 +34,19 @@ scenario "Giant's Amulet: pay {3}{U} as it enters for an equipped 4/4 Giant Wiza
   assert toughness "Giant Wizard" 5
   assert has "Giant Wizard" hexproof
 }
+
+scenario "Loyal Pegasus: attacking alone isn't offered" {
+  battlefield A: "Loyal Pegasus"
+  start turn 1 A precombat_main
+  illegal turn 1 A: attack "Loyal Pegasus"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Loyal Pegasus: it attacks with another creature" {
+  battlefield A: "Loyal Pegasus", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Loyal Pegasus", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}

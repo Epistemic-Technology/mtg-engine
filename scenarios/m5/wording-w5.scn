@@ -209,16 +209,16 @@ scenario "Faerie Fencing: with a Faerie, an additional -3/-3" {
   assert toughness "Craw Wurm" 1
 }
 
-scenario "Toby, Beastie Befriender: the Beast can't attack alone" {
+scenario "Toby, Beastie Befriender: the Beast attacks along with Toby" {
   battlefield A: 3 "Plains"
   hand A: "Toby, Beastie Befriender"
   start turn 1 A precombat_main
   turn 1 A: cast "Toby, Beastie Befriender"
   run_to turn 1 postcombat_main
   assert power "Beast" 4
-  turn 3 A: attack "Beast"
+  turn 3 A: attack "Beast", "Toby, Beastie Befriender"
   run_to turn 3 postcombat_main
-  assert life B 20
+  assert life B 15
 }
 
 scenario "Toby, Beastie Befriender: the Beast attacks with Toby" {

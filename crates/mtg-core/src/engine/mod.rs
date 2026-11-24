@@ -1582,7 +1582,7 @@ impl GameState {
                     let mut options: Vec<Choice> = subsets(&eligible)
                         .into_iter()
                         .filter(|set| must.iter().all(|m| set.contains(m)))
-                        .filter(|set| self.set_legal(set, false))
+                        .filter(|set| self.set_legal(set, false) && !self.attacks_alone_illegally(set))
                         .filter(|set| self.attack_set_affordable(set))
                         .map(Choice::Attackers)
                         .collect();
@@ -1591,7 +1591,7 @@ impl GameState {
                     if options.is_empty() {
                         options = subsets(&eligible)
                             .into_iter()
-                            .filter(|set| self.set_legal(set, false))
+                            .filter(|set| self.set_legal(set, false) && !self.attacks_alone_illegally(set))
                             .filter(|set| self.attack_set_affordable(set))
                             .map(Choice::Attackers)
                             .collect();
