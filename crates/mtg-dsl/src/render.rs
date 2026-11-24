@@ -11060,7 +11060,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                         digits(*n)
                     )
                 }
-                _ => tail.to_string(),
+                _ => tail.clone(),
             };
             Clause::imperative(format!(
                 "you may {} {what}{}{tail}",
@@ -14741,7 +14741,7 @@ fn grave_rider_text(f: &Filter, r: &mtg_core::card::GraveRider, card: &Card) -> 
 /// `Ability::CardGrant`'s text: "Each Sliver card in each player's hand
 /// has slivercycling {3}.", "During your turn, each Lesson card in your
 /// graveyard has flashback {1}."
-#[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
 fn card_grant_text(
     card: &Card,
     filter: &Filter,

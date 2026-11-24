@@ -7022,6 +7022,7 @@ impl P {
 
     /// After `cast free`: `target ...` (a card), or `[<filter>] spell from
     /// hand [with mana value up to <n>]`; then `exile instead`.
+    #[allow(clippy::too_many_lines)] // one branch per way of naming the card
     fn cast_free(&mut self, paid: bool) -> R<Effect> {
         use mtg_core::card::CastFreeFrom;
         let mut more = mtg_core::card::CastFreeMore {
