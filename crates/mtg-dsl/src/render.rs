@@ -4237,8 +4237,7 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
         let shared = |g: &Filter| {
             let mut alt = g.or.as_deref();
             while let Some(a) = alt {
-                if a.mana_value != g.mana_value || a.status.mana_value_x != g.status.mana_value_x
-                {
+                if a.mana_value != g.mana_value || a.status.mana_value_x != g.status.mana_value_x {
                     return false;
                 }
                 alt = a.or.as_deref();

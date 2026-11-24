@@ -4991,6 +4991,36 @@ fn cmp_suffix(c: mtg_core::card::Cmp) -> &'static str {
 
 /// `target card from a graveyard`, `target instant card from your
 /// graveyard`.
+/// The mana value every alternative of `g` shares, taken out of them and
+/// printed after the card noun (" with mana value 5 or less").
+fn take_shared_mana_value(g: &mut Filter) -> Option<String> {
+    let (cmp, n) = g.mana_value?;
+    if g.or.is_none() || g.each || g.status.spent_colors {
+        return None;
+    }
+    let mut alt = g.or.as_deref();
+    while let Some(a) = alt {
+        if a.mana_value != g.mana_value || a.status.mana_value_x != g.status.mana_value_x {
+            return None;
+        }
+        alt = a.or.as_deref();
+    }
+    let n = if g.status.mana_value_x {
+        "X".to_string()
+    } else {
+        n.to_string()
+    };
+    g.mana_value = None;
+    g.status.mana_value_x = false;
+    let mut alt = g.or.as_deref_mut();
+    while let Some(a) = alt {
+        a.mana_value = None;
+        a.status.mana_value_x = false;
+        alt = a.or.as_deref_mut();
+    }
+    Some(format!(" with mana value {n}{}", cmp_suffix(cmp)))
+}
+
 pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     // `... from a graveyard put there this turn`: after the zone, as it
     // prints.
@@ -5074,32 +5104,9 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     // value for every alternative (the parser gives it to each).
     if f.same.is_none()
         && mv.is_empty()
-        && g.or.is_some()
-        && !g.each
-        && !g.status.spent_colors
-        && let Some((cmp, n)) = g.mana_value
-        && {
-            let mut alt = g.or.as_deref();
-            let mut same = true;
-            while let Some(a) = alt {
-                same &= a.mana_value == g.mana_value
-                    && a.status.mana_value_x == g.status.mana_value_x;
-                alt = a.or.as_deref();
-            }
-            same
-        }
+        && let Some(shared) = take_shared_mana_value(&mut g)
     {
-        let x = g.status.mana_value_x;
-        let n = if x { "X".to_string() } else { n.to_string() };
-        g.mana_value = None;
-        g.status.mana_value_x = false;
-        let mut alt = g.or.as_deref_mut();
-        while let Some(a) = alt {
-            a.mana_value = None;
-            a.status.mana_value_x = false;
-            alt = a.or.as_deref_mut();
-        }
-        mv = format!(" with mana value {n}{}", cmp_suffix(cmp));
+        mv = shared;
     }
     // "creature card with power 2 or less".
     if f.same.is_none()
@@ -7574,7 +7581,10 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::ActivatedThisTurn(n) => format!("activated {n} times this turn"),
         StaticCond::CardsInHand { n, at_most, your } => {
             let your = if *your { " your" } else { "" };
-            format!("hand {n} or {}{your}", if *at_most { "less" } else { "more" })
+            format!(
+                "hand {n} or {}{your}",
+                if *at_most { "less" } else { "more" }
+            )
         }
         StaticCond::HandFewerThan(n) => format!("hand fewer than {n}"),
         StaticCond::NoCardInHand(f) => format!("hand has no {} card", filter(f)),
