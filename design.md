@@ -2970,3 +2970,34 @@ what was left of the period: one more narrow agent (conditions on a
 spell's X, "proliferate X times"; 8 cards) and a fix for two copies of
 a granted triggered ability, which triggered once (two Snake Umbras):
 Standard 4,143, gate 18,362, 12,247 scenarios, fuzz clean.
+
+Status 2026-11-23, after a usage reset: two refactorings, then the
+eleventh wave. A review of the code named the cost of ten waves of
+narrow additions: each feature written in six places, families of
+near-duplicate variants, twelve hand-rolled ways to offer a cast, and
+caches invalidated by hand. Two no-behaviour-change agents took the
+first steps. One gave every way of casting a single cost function for
+offer and payment and a single way to begin a cast
+(`engine/casting/ways.rs`, `engine/cast_way.rs`), finding about ten
+casts that were offered and could not be paid. The other replaced the
+per-event "this turn" conditions with one tally (`StaticCondition` 133
+to 96 variants, `TurnLog` 25 fields to 3), with no card file changed.
+The per-wave fuzz plays ten deck pairs, about 3% of the corpus, which
+is why every wave met old faults; a sweep of 400 pairs on the debug
+build found faults in 23, all fixed (stale caches, state-based checks
+not marked, mid-event questions with no snapshot), and random decks no
+longer draw the engine's internal definitions. The sweep is now part of
+every wave's verification. Then fourteen narrow Opus agents, one
+feature each with its cards named (about 4.5M tokens; 5.4M with the
+refactorings): the template author (133 cards, and its regexes compiled
+once: a three-format run in under a minute, from twenty), rule statics
+(33), redirection and prevention (29), piles and named choices (22),
+search variants (20), player groups (20), legend wording (16), copy
+exceptions (16), hideaway and companion (14), battles (11), ability
+grants (9), zone grants (9), face-down exile (8), "if you cast it"
+(7). Two branches built overlapping forms once (hiding an exiled card)
+and one was sent back to unify them. Coverage: 95.6% of Pauper, 81.8%
+of Standard (4,224 of 5,164), 70.3% of Modern; gate 18,707 match;
+12,852 scenarios pass in release and debug builds; fuzz and sweep
+clean; 3,926 games/s (3,817 for the pre-first-wave binary in the same
+run; 4,250 before this period: due another profiling pass).
