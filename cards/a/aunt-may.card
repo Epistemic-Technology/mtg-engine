@@ -1,0 +1,7 @@
+card "Aunt May" {
+  oracle_id bdb769b5-c861-4ec1-ad6b-e2a56ca05fd1
+  cost {W}
+  type Legendary Creature — Human Citizen
+  pt 0/2
+  triggered whenever other creature you control enters: you gain 1 life; if it is Spider, put 1 +1/+1 counter on it
+}

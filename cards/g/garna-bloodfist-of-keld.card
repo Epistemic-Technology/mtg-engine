@@ -1,0 +1,7 @@
+card "Garna, Bloodfist of Keld" {
+  oracle_id 3fb83218-e18d-405d-91c8-46b5e4e672a9
+  cost {1}{B}{R}{R}
+  type Legendary Creature — Human Berserker
+  pt 4/3
+  triggered whenever other creature you control dies: draw 1 card if it was attacking; otherwise, deal 1 damage to each opponent
+}

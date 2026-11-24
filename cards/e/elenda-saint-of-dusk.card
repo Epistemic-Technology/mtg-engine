@@ -1,0 +1,10 @@
+card "Elenda, Saint of Dusk" {
+  oracle_id bfd614d5-4c7f-416b-9cb2-bb167c0893a0
+  cost {2}{W}{B}
+  type Legendary Creature — Vampire Knight
+  pt 4/4
+  keywords lifelink
+  hexproof from instant
+  static as long as life above starting, this: +1/+1, has menace
+  static this: additional +5/+5 as long as life 10 above starting
+}

@@ -10711,8 +10711,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             ))
         }
         Effect::IfThisWay(cond, inner) => {
+            let player = cond.verb == mtg_core::card::ThisWay::DamagedPlayer;
             let cond = this_way_text(cond, ctx.card);
-            let body = sentences(inner, ctx);
+            let mut body = sentences(inner, ctx);
+            // "If a player is dealt damage this way, they discard a card."
+            // (Sonic Shrieker): the target, a player now.
+            if player && let Some(rest) = body.strip_prefix("It ") {
+                let (verb, tail) = rest.split_once(' ').unwrap_or((rest, ""));
+                let verb = verb.strip_suffix('s').unwrap_or(verb);
+                body = format!("They {verb} {tail}");
+            }
             let body = if starts_with_name(&body, ctx.card) {
                 body
             } else {
@@ -12220,6 +12228,33 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             Clause::imperative(format!("if {cond}, {}", body.trim_end_matches('.')))
         }
+        // "If it's a Spider, ...", "If that land is a Mountain, ...",
+        // "draw a card if it was attacking": the triggering object.
+        Effect::IfTarget(n, f, inner, check) if *n == crate::ast::IT_TRIGGER => {
+            use crate::ast::TargetTense;
+            let body = sentences(inner, ctx);
+            let body = if starts_with_name(&body, ctx.card) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
+            let body = body.trim_end_matches('.');
+            let was = matches!(check.tense, TargetTense::Was | TargetTense::ThatWas);
+            let subject = check.noun.map_or("it".to_string(), |w| format!("that {w}"));
+            let verb = match (was, check.negated, check.noun.is_some()) {
+                (true, false, _) => " was",
+                (true, true, _) => " wasn't",
+                (false, false, true) => " is",
+                (false, false, false) => "'s",
+                (false, true, _) => " isn't",
+            };
+            let pred = status_only(f).map_or_else(|| target_predicate(f, ctx.card), str::to_string);
+            let cond = format!("{subject}{verb} {pred}");
+            if check.after {
+                return Clause::imperative(format!("{body} if {cond}"));
+            }
+            Clause::imperative(format!("if {cond}, {body}"))
+        }
         Effect::IfTarget(n, f, inner, check) => {
             use crate::ast::TargetTense;
             let noun = ctx.target_noun[*n].clone();
@@ -12239,8 +12274,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             if check.tense == TargetTense::Is && !check.after {
                 ctx.it_target = Some(*n);
             }
-            let body = sentences(inner, ctx);
+            let mut body = sentences(inner, ctx);
             ctx.it_target = it_before;
+            // "If you controlled it, return it to the battlefield tapped."
+            // (Unyielding Gatekeeper): under your control goes unsaid.
+            if *f == Filter::controlled_by_you() {
+                body = body.replacen(" under your control", "", 1);
+            }
             let mut body = if starts_with_name(&body, ctx.card) {
                 body
             } else {
@@ -12511,6 +12551,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
                 (TargetTense::Is, None) => format!("it's {pred}"),
                 (TargetTense::ThatIs, None) => format!("that {noun} is {pred}"),
+            };
+            // "If it wasn't attacking", "If that creature wasn't dealt
+            // damage this turn".
+            let cond = if check.negated {
+                let neg = cond
+                    .replacen(" was ", " wasn't ", 1)
+                    .replacen(" is ", " isn't ", 1)
+                    .replacen("'s ", " isn't ", 1);
+                if damaged_only && check.tense == TargetTense::ThatWas {
+                    format!("that {noun} wasn't dealt damage this turn")
+                } else {
+                    neg
+                }
+            } else {
+                cond
             };
             if check.after {
                 ctx.target_mentioned[*n] = true;
@@ -13351,8 +13406,14 @@ fn dig_alt_clause(e: &Effect, a: &crate::ast::DigAlt, ctx: &mut Ctx) -> Clause {
 
 fn this_way_text(c: &crate::ast::ThisWayCond, card: &Card) -> String {
     use crate::ast::ThisWayWording;
-    let verb = crate::ast::this_way_word(c.verb);
+    // "If a Dragon is dealt damage this way", "If a player is dealt
+    // damage this way".
+    let verb = match c.verb {
+        mtg_core::card::ThisWay::Damaged | mtg_core::card::ThisWay::DamagedPlayer => "dealt damage",
+        v => crate::ast::this_way_word(v),
+    };
     let what = match (&c.filter, c.card) {
+        (None, _) if c.verb == mtg_core::card::ThisWay::DamagedPlayer => "a player".to_string(),
         (None, _) => "a card".to_string(),
         (Some(f), true) => with_article(&cards_phrase(f, card, false)),
         (Some(f), false) => each_with_article(f, card),
@@ -13374,6 +13435,9 @@ fn this_way_text(c: &crate::ast::ThisWayCond, card: &Card) -> String {
                 (Some(f), false) => filter_phrase(f, card, false),
             };
             format!("at least one {what} was {verb} this way")
+        }
+        ThisWayWording::You if c.verb == mtg_core::card::ThisWay::PutInHand && c.negated => {
+            "you put no cards into your hand this way".to_string()
         }
         ThisWayWording::You if c.verb == mtg_core::card::ThisWay::PutInHand => {
             format!("you put {what} into your hand this way")
@@ -16662,6 +16726,13 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
         } => {
             format!("{} {}", v("gets", "get"), pt_mod(*power, *toughness))
         }
+        Mod::ModifyPtAdditional { power, toughness } => {
+            format!(
+                "{} an additional {}",
+                v("gets", "get"),
+                pt_mod(*power, *toughness)
+            )
+        }
         Mod::SwitchPt => format!("{} its power and toughness switched", v("has", "have")),
         Mod::CdaColors(cs) => {
             if cs.len() == 5 {
@@ -17754,6 +17825,12 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         .replacen("you control", "your team controls", 1),
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "it's your turn".to_string(),
         StaticCond::NotYourTurn => "it's not your turn".to_string(),
+        StaticCond::NotTheirTurn => "it's not their turn".to_string(),
+        StaticCond::AttackerIs { filter, you } => format!(
+            "{} is attacking{}",
+            with_article(&filter_phrase(filter, card, false)),
+            if *you { " you" } else { "" }
+        ),
         StaticCond::CastDuringMain => "you cast this spell during your main phase".to_string(),
         StaticCond::ControlledAsCast(f) => format!(
             "you controlled {} as you cast this spell",
@@ -19408,6 +19485,26 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     } else {
                         ", if it had a counter on it"
                     });
+                }
+                Some(crate::ast::TrigCond::Outstats) => {
+                    let this = this_ref(card);
+                    let _ = write!(
+                        out,
+                        ", if its power is greater than {this}'s power or its toughness is greater than {this}'s toughness"
+                    );
+                }
+                Some(crate::ast::TrigCond::ItsStat {
+                    stat,
+                    cmp,
+                    less_than,
+                    n,
+                }) => {
+                    let word = crate::format::its_stat_word(*stat);
+                    let _ = if *less_than {
+                        write!(out, ", if its {word} was less than {}", n + 1)
+                    } else {
+                        write!(out, ", if its {word} was {n}{}", cmp_words(*cmp))
+                    };
                 }
                 Some(crate::ast::TrigCond::Core(c)) => {
                     out.push_str(", ");
@@ -21382,6 +21479,17 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             Ability::AuraStays => true,
             Ability::XManaColor(_) => {
                 i > 0 && matches!(card.abilities[i - 1], Ability::Activated { .. })
+            }
+            // "... Elenda gets +1/+1 and has menace. Elenda gets an
+            // additional +5/+5 as long as ...": a bonus on top of the
+            // static ability before it.
+            Ability::Static { mods, .. } => {
+                i > 0
+                    && matches!(
+                        mods.first(),
+                        Some(crate::ast::Mod::ModifyPtAdditional { .. })
+                    )
+                    && matches!(card.abilities[i - 1], Ability::Static { .. })
             }
             // "This creature enters with ... counters on it. If X is 2 or
             // less, it enters tapped."

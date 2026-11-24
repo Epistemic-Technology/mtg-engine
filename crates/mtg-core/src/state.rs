@@ -1601,6 +1601,8 @@ pub struct ThisWayLog {
     /// The permanents dealt damage, in order ("a creature dealt damage
     /// this way").
     pub damaged: Vec<ObjId>,
+    /// The players dealt damage ("If a player is dealt damage this way").
+    pub damaged_players: Vec<PlayerId>,
     /// The objects the most recent group recipient denoted ("Untap
     /// them", `Recipient::ThoseObjects`).
     pub group: Vec<ObjId>,
@@ -1686,6 +1688,8 @@ impl Moved {
             // resolution's revealed cards (`CountExpr::ThisWay`).
             ThisWay::Revealed => self.from == Zone::Hand && self.to == Zone::Hand,
             ThisWay::PutInGraveyard => self.to == Zone::Graveyard && self.from != Zone::Graveyard,
+            // Not zone changes (`ThisWayLog::damaged`, `damaged_players`).
+            ThisWay::Damaged | ThisWay::DamagedPlayer => false,
         }
     }
 }
@@ -4476,6 +4480,21 @@ impl GameState {
             return trigger_obj
                 .is_some_and(|t| self.spent_on(t).count(*kind) >= u32::from(*at_least));
         }
+        // "if its toughness was less than 1": the triggering object, as it
+        // last existed once it has left (CR 603.10a).
+        if let crate::card::StaticCondition::TriggerIs(f) = cond {
+            return trigger_obj.is_some_and(|t| {
+                let controller = self
+                    .objects
+                    .get(t)
+                    .map(|o| o.controller)
+                    .or_else(|| self.lki.get(&t).map(|l| l.object.controller));
+                controller.is_some_and(|c| {
+                    self.characteristics_or_lki(t)
+                        .is_some_and(|ch| f.matches(t, c, &ch, Some(source), Some(you)))
+                })
+            });
+        }
         if *cond == crate::card::StaticCondition::ThatKicked {
             return trigger_obj
                 .is_some_and(|t| self.objects.get(t).is_some_and(|o| o.cast.kicked()));
@@ -4551,6 +4570,7 @@ impl GameState {
                     }
                 })
             }
+            C::NotTheirTurn => that.is_some_and(|p| self.active_player != p),
             C::PlayerMoreHand(who) => self.hand_player_any(*who, you, source, that, |p| {
                 self.player(p).hand.len() > self.player(you).hand.len()
             }),
@@ -4692,6 +4712,21 @@ impl GameState {
             C::YourTurn => self.active_player == you,
             C::SourceAttackedBattle => self.battle_attackers_this_turn.contains(&source),
             C::NotYourTurn => self.active_player != you,
+            // Judged by `condition_about`, which knows "they".
+            C::Attacking {
+                filter,
+                you: at_you,
+            } => self.combat.as_ref().is_some_and(|c| {
+                c.attackers.iter().any(|a| {
+                    (!*at_you || a.attacking == Target::Player(you))
+                        && self.objects.get(a.id).is_some_and(|o| {
+                            o.zone == Zone::Battlefield
+                                && self.characteristics(a.id).is_some_and(|ch| {
+                                    filter.matches(a.id, o.controller, &ch, Some(source), Some(you))
+                                })
+                        })
+                })
+            }),
             C::YourMainPhase => self.active_player == you && self.step.is_main(),
             C::YourCombatPhase => {
                 self.active_player == you && self.step.phase() == crate::turn::Phase::Combat
@@ -4756,7 +4791,14 @@ impl GameState {
             } => self.spent_on(source).count(*kind) >= u32::from(*at_least),
             // Judged by `condition_for`, which knows the triggering spell;
             // the vote is the resolution's (`IfCondition` reads it).
-            C::ManaSpent { that: true, .. } | C::ThatKicked | C::MoreVotes { .. } => false,
+            // `NotTheirTurn` is judged by `condition_about` (it knows
+            // "they"), `TriggerIs` by `condition_for` (the triggering
+            // object).
+            C::ManaSpent { that: true, .. }
+            | C::ThatKicked
+            | C::MoreVotes { .. }
+            | C::NotTheirTurn
+            | C::TriggerIs(_) => false,
             C::NoManaSpent => self.spent_on(source).count(crate::card::SpentKind::Total) == 0,
             C::XIs { n, at_least } => {
                 let x = self.x_of(source);

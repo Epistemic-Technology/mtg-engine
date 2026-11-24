@@ -1,0 +1,6 @@
+card "Prophesied End" {
+  oracle_id 45f4d057-5134-40a2-9590-ddba73a65582
+  cost {1}{W}
+  type Instant
+  spell: destroy target creature; if target 1 wasnt attacking, its controller draws 1 card
+}

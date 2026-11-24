@@ -1,0 +1,61 @@
+# A trigger's intervening "if" about the triggering object (CR 603.4,
+# 603.10a): "if its toughness was less than 1" as it last existed, and
+# "if its power is greater than this creature's power or its toughness is
+# greater than this creature's toughness".
+
+scenario "Massacre Girl: a creature dying with toughness 0 draws a card" {
+  battlefield A: "Massacre Girl, Known Killer", "Swamp"
+  hand A: "Disfigure"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Disfigure" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "Massacre Girl: a creature destroyed by damage draws nothing" {
+  battlefield A: "Massacre Girl, Known Killer", "Mountain"
+  hand A: "Lightning Bolt"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert hand A count 0
+}
+
+scenario "Massacre Girl: wither damage kills with -1/-1 counters and draws" {
+  battlefield A: "Massacre Girl, Known Killer"
+  battlefield B: "Grizzly Bears", "Zodiac Rat"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Massacre Girl, Known Killer"
+  turn 1 B: block "Massacre Girl, Known Killer" with "Grizzly Bears"
+  turn 1 B: block "Massacre Girl, Known Killer" with "Zodiac Rat"
+  turn 1 combat_damage A: assign "Massacre Girl, Known Killer" to "Grizzly Bears" 2, "Zodiac Rat" 2
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Zodiac Rat"
+  assert counters "Massacre Girl, Known Killer" -1/-1 0
+  assert hand A count 2
+}
+
+scenario "Sharp-Eyed Rookie: a bigger creature entering gives a counter and a Clue" {
+  battlefield A: "Sharp-Eyed Rookie", 5 "Forest"
+  hand A: "Centaur Courser"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Centaur Courser"
+  run_to turn 1 postcombat_main
+  assert counters "Sharp-Eyed Rookie" +1/+1 1
+  assert battlefield A contains "Clue"
+}
+
+scenario "Sharp-Eyed Rookie: a creature no bigger does nothing" {
+  battlefield A: "Sharp-Eyed Rookie", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Sharp-Eyed Rookie" +1/+1 0
+  assert battlefield A lacks "Clue"
+}

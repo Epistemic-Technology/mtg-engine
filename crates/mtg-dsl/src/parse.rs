@@ -4189,6 +4189,20 @@ impl P {
                         Some(crate::ast::TrigCond::HadCounter { one_or_more: false })
                     } else if self.eat_words(&["it", "had", "one", "or", "more", "counters"]) {
                         Some(crate::ast::TrigCond::HadCounter { one_or_more: true })
+                    } else if self.eat_words(&[
+                        "its",
+                        "power",
+                        "or",
+                        "toughness",
+                        "greater",
+                        "than",
+                        "this",
+                    ]) {
+                        Some(crate::ast::TrigCond::Outstats)
+                    } else if self.at_word("its")
+                        && let Some(c) = self.its_stat()?
+                    {
+                        Some(c)
                     } else if let Ok(c) = self.condition() {
                         Some(crate::ast::TrigCond::Core(c))
                     } else {
@@ -5469,6 +5483,14 @@ impl P {
         }
         if self.eat_words(&["not", "your", "turn"]) {
             return Ok(StaticCond::NotYourTurn);
+        }
+        if self.eat_words(&["not", "their", "turn"]) {
+            return Ok(StaticCond::NotTheirTurn);
+        }
+        if self.eat_word("attacker") {
+            let filter = self.filter()?;
+            let you = self.eat_words(&["at", "you"]);
+            return Ok(StaticCond::AttackerIs { filter, you });
         }
         if self.eat_words(&["cast", "during", "main", "phase"]) {
             return Ok(StaticCond::CastDuringMain);
@@ -6887,12 +6909,23 @@ impl P {
                 } else {
                     crate::ast::TargetTense::Is
                 },
-                also: false,
                 after: true,
-                not: None,
+                ..crate::ast::TargetCheck::default()
             };
             return Ok(Sentence::new(vec![Effect::IfTarget(
                 n - 1,
+                filter,
+                vec![s],
+                check,
+            )]));
+        }
+        // `<sentence> if it was attacking`: "draw a card if it was
+        // attacking" about the triggering object.
+        if self.it_check_ahead().is_some() {
+            let (filter, mut check) = self.it_check()?;
+            check.after = true;
+            return Ok(Sentence::new(vec![Effect::IfTarget(
+                crate::ast::IT_TRIGGER,
                 filter,
                 vec![s],
                 check,
@@ -7534,6 +7567,7 @@ impl P {
 
     /// `if target 1 was Human, ...`: "If that creature was a Human, ...",
     /// judged on the target's last state.
+    #[allow(clippy::too_many_lines)] // one branch per tense
     fn if_target(&mut self) -> R<Effect> {
         self.pos += 1;
         let full = self.eat_words(&["the", "full"]);
@@ -7588,8 +7622,8 @@ impl P {
                 let check = crate::ast::TargetCheck {
                     tense,
                     also: true,
-                    after: false,
                     not,
+                    ..crate::ast::TargetCheck::default()
                 };
                 return Ok(Effect::IfTarget(n - 1, filter, vec![s], check));
             }
@@ -7603,9 +7637,8 @@ impl P {
                 Err(s) => {
                     let check = crate::ast::TargetCheck {
                         tense,
-                        also: false,
-                        after: false,
                         not,
+                        ..crate::ast::TargetCheck::default()
                     };
                     Ok(Effect::IfTarget(n - 1, filter, vec![s], check))
                 }
@@ -7614,14 +7647,21 @@ impl P {
         if full {
             return self.fail("`if the full target N` takes `is`");
         }
-        let tense = if that {
-            self.expect_words(&["was"])?;
-            crate::ast::TargetTense::ThatWas
-        } else if self.eat_word("had") {
-            crate::ast::TargetTense::Had
+        // `if target 1 wasnt attacking, ...`: "If it wasn't attacking"
+        // (negated).
+        let (tense, negated) = if !that && self.eat_word("had") {
+            (crate::ast::TargetTense::Had, false)
         } else {
-            self.expect_words(&["was"])?;
-            crate::ast::TargetTense::Was
+            let negated = self.eat_word("wasnt");
+            if !negated {
+                self.expect_words(&["was"])?;
+            }
+            let tense = if that {
+                crate::ast::TargetTense::ThatWas
+            } else {
+                crate::ast::TargetTense::Was
+            };
+            (tense, negated)
         };
         let f = self.filter()?;
         Self::no_host_check(&f).or_else(|m| self.fail(m))?;
@@ -7635,9 +7675,114 @@ impl P {
             vec![s],
             crate::ast::TargetCheck {
                 tense,
-                also: false,
-                after: false,
-                not: None,
+                negated,
+                ..crate::ast::TargetCheck::default()
+            },
+        ))
+    }
+
+    /// `its toughness was less than 1`, `its power was 4 or greater`, `its
+    /// mana value was 2 or less` after a trigger's `if` (`None` if `its`
+    /// starts something else).
+    fn its_stat(&mut self) -> R<Option<crate::ast::TrigCond>> {
+        use crate::ast::ItStat;
+        use mtg_core::card::Cmp;
+        let at = self.pos;
+        self.pos += 1;
+        let stat = if self.eat_word("power") {
+            ItStat::Power
+        } else if self.eat_word("toughness") {
+            ItStat::Toughness
+        } else if self.eat_words(&["mana", "value"]) {
+            ItStat::ManaValue
+        } else {
+            self.pos = at;
+            return Ok(None);
+        };
+        if !self.eat_word("was") {
+            self.pos = at;
+            return Ok(None);
+        }
+        if self.eat_words(&["less", "than"]) {
+            let n = i16::try_from(self.number()?).unwrap_or(i16::MAX);
+            return Ok(Some(crate::ast::TrigCond::ItsStat {
+                stat,
+                cmp: Cmp::AtMost,
+                less_than: true,
+                n: n - 1,
+            }));
+        }
+        let n = i16::try_from(self.number()?).unwrap_or(i16::MAX);
+        self.expect_word("or")?;
+        let cmp = if self.eat_word("less") {
+            Cmp::AtMost
+        } else {
+            self.expect_word("greater")?;
+            Cmp::AtLeast
+        };
+        Ok(Some(crate::ast::TrigCond::ItsStat {
+            stat,
+            cmp,
+            less_than: false,
+            n,
+        }))
+    }
+
+    /// Whether `if it is ...`, `if it wasnt ...` or `if that land is ...`
+    /// starts here about the triggering object: in a triggered ability
+    /// with one, before any target and outside a reveal. The number of
+    /// words before the filter, the noun after "that", and the verb.
+    fn it_check_ahead(&self) -> Option<(usize, Option<&'static str>, String)> {
+        const NOUNS: [&str; 6] = ["creature", "land", "spell", "permanent", "artifact", "card"];
+        if !self.in_trigger || self.no_trigger_obj || self.revealed || self.it_source {
+            return None;
+        }
+        if !self.at_word("if") {
+            return None;
+        }
+        let (words, noun) = match self.word_at(1).as_deref() {
+            Some("it") => (2, None),
+            Some("that") => {
+                let w = self.word_at(2)?;
+                (3, Some(*NOUNS.iter().find(|n| **n == w)?))
+            }
+            _ => return None,
+        };
+        // After a target, "it" is that target; "that spell" in a cast
+        // trigger is still the spell ("earthbend 1. If that spell is a
+        // Lesson, ...", Toph, Hardheaded Teacher).
+        if self.last_object_target().is_some() && noun != Some("spell") {
+            return None;
+        }
+        let verb = self.word_at(words)?;
+        matches!(verb.as_str(), "is" | "isnt" | "was" | "wasnt").then_some((words + 1, noun, verb))
+    }
+
+    /// `if it is Spider` ("If it's a Spider"), `if that land is Mountain`
+    /// ("If that land is a Mountain"), `if it wasnt attacking`: the
+    /// triggering object (`IT_TRIGGER`), as it is or as it last existed.
+    fn it_check(&mut self) -> R<(Filter, crate::ast::TargetCheck)> {
+        let Some((words, noun, verb)) = self.it_check_ahead() else {
+            return self.fail("expected `if it is ...` about the triggering object");
+        };
+        self.pos += words;
+        let negated = matches!(verb.as_str(), "isnt" | "wasnt");
+        let was = matches!(verb.as_str(), "was" | "wasnt");
+        let filter = self.filter()?;
+        Self::no_host_check(&filter).or_else(|m| self.fail(m))?;
+        let tense = match (was, noun.is_some()) {
+            (false, false) => crate::ast::TargetTense::Is,
+            (false, true) => crate::ast::TargetTense::ThatIs,
+            (true, false) => crate::ast::TargetTense::Was,
+            (true, true) => crate::ast::TargetTense::ThatWas,
+        };
+        Ok((
+            filter,
+            crate::ast::TargetCheck {
+                tense,
+                negated,
+                noun,
+                ..crate::ast::TargetCheck::default()
             },
         ))
     }
@@ -7695,6 +7840,17 @@ impl P {
                 wording: ThisWayWording::The(noun),
             });
         }
+        // `you put no cards into hand this way`: "If you put no cards into
+        // your hand this way" (nothing was put there).
+        if self.eat_words(&["you", "put", "no", "cards", "into", "hand", "this", "way"]) {
+            return Ok(ThisWayCond {
+                verb: mtg_core::card::ThisWay::PutInHand,
+                filter: None,
+                card: true,
+                negated: true,
+                wording: ThisWayWording::You,
+            });
+        }
         if self.eat_word("you") {
             let verb = if self.eat_word("put") {
                 mtg_core::card::ThisWay::PutInHand
@@ -7716,6 +7872,16 @@ impl P {
                 card,
                 negated: false,
                 wording: ThisWayWording::You,
+            });
+        }
+        // `player is damaged this way`: "a player is dealt damage this way".
+        if self.eat_words(&["player", "is", "damaged", "this", "way"]) {
+            return Ok(ThisWayCond {
+                verb: mtg_core::card::ThisWay::DamagedPlayer,
+                filter: None,
+                card: false,
+                negated: false,
+                wording: ThisWayWording::Is,
             });
         }
         let at_least_one = self.eat_words(&["at", "least", "one"]);
@@ -8300,6 +8466,19 @@ impl P {
             || self.at_words(&["if", "the", "full", "target"])
         {
             return self.if_target();
+        }
+        if self.it_check_ahead().is_some() {
+            let (filter, check) = self.it_check()?;
+            self.expect(&Tok::Comma)?;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfTarget(
+                crate::ast::IT_TRIGGER,
+                filter,
+                vec![s],
+                check,
+            ));
         }
         // `if you dont, ...` / `if you cant, ...` after an action.
         if (self.at_words(&["if", "you", "dont"]) || self.at_words(&["if", "you", "cant"]))
@@ -19663,6 +19842,17 @@ impl P {
 
     #[allow(clippy::too_many_lines)]
     fn modification(&mut self) -> R<Mod> {
+        if self.at_word("additional")
+            && let Some(Tok::Pt {
+                power,
+                toughness,
+                signed: true,
+            }) = self.peek_at(1)
+        {
+            let (power, toughness) = (*power, *toughness);
+            self.pos += 2;
+            return Ok(Mod::ModifyPtAdditional { power, toughness });
+        }
         if let Some(Tok::Pt {
             power,
             toughness,

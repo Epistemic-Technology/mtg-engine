@@ -1795,6 +1795,11 @@ impl GameState {
                 {
                     return;
                 }
+                if let Some(log) = &mut self.this_way
+                    && !log.damaged_players.contains(&p)
+                {
+                    log.damaged_players.push(p);
+                }
                 self.log_event(TurnEvent::Damaged, p, 1);
                 self.log_event(TurnEvent::DamageTaken, p, amount);
                 if !combat {

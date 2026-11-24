@@ -1,0 +1,7 @@
+card "Scytheclaw Raptor" {
+  oracle_id 8c653a0d-e35a-4596-bed6-b5156192955b
+  cost {2}{R}
+  type Creature — Dinosaur
+  pt 4/3
+  triggered whenever a player casts spell if not their turn: deal 4 damage to they
+}

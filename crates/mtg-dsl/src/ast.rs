@@ -72,7 +72,19 @@ pub struct TargetCheck {
     /// target 1 is not creature` ("If it's not a creature"): the check is
     /// the filter with those types negated (`noncreature`). Wording only.
     pub not: Option<NotWording>,
+    /// `if target 1 wasnt attacking` ("If it wasn't attacking"), `if that
+    /// target 1 wasnt damaged` ("If that creature wasn't dealt damage this
+    /// turn"): the sentence happens if the target doesn't match.
+    pub negated: bool,
+    /// `if that land is Mountain` about the triggering object
+    /// (`IT_TRIGGER`): the noun printed after "that".
+    pub noun: Option<&'static str>,
 }
+
+/// `Effect::IfTarget`'s index for a check of the triggering object, not a
+/// target: `if it is Spider, ...` ("If it's a Spider, ..."), `if that land
+/// is Mountain, ...`, `draw 1 card if it was attacking`.
+pub const IT_TRIGGER: usize = usize::MAX;
 
 /// How a negated target check prints its "not".
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
@@ -2335,6 +2347,29 @@ pub enum TrigCond {
     HadCounter {
         one_or_more: bool,
     },
+    /// `if its power or toughness greater than this`: the core `Evolves`
+    /// printed "if its power is greater than this creature's power or its
+    /// toughness is greater than this creature's toughness" (Sharp-Eyed
+    /// Rookie).
+    Outstats,
+    /// `if its toughness was less than 1` (also `power`, `mana value`; `N
+    /// or less`, `N or greater`): the triggering object as it last existed
+    /// (`StaticCondition::TriggerIs`, Massacre Girl, Known Killer).
+    ItsStat {
+        stat: ItStat,
+        cmp: mtg_core::card::Cmp,
+        /// `less than N`: printed so, the check "N-1 or less".
+        less_than: bool,
+        n: i16,
+    },
+}
+
+/// What `TrigCond::ItsStat` compares.
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum ItStat {
+    Power,
+    Toughness,
+    ManaValue,
 }
 
 /// Keyword abilities with a parameter (CR 702).
@@ -2964,6 +2999,15 @@ pub enum StaticCond {
     /// `not your turn`: "it's not your turn"; `static during turns other
     /// than yours, ...` prints "During turns other than yours, ...".
     NotYourTurn,
+    /// `not their turn`: "it's not their turn", the player the ability
+    /// triggered for (Scytheclaw Raptor).
+    NotTheirTurn,
+    /// `attacker Rat`: "a Rat is attacking"; `attacker creature at you`:
+    /// "a creature is attacking you".
+    AttackerIs {
+        filter: Filter,
+        you: bool,
+    },
     /// `cast during main phase`: "you cast this spell during your main
     /// phase" (judged as it was cast).
     CastDuringMain,
@@ -4526,6 +4570,12 @@ pub enum Mod {
         toughness: PtValue,
     },
     ModifyPt {
+        power: i32,
+        toughness: i32,
+    },
+    /// `additional +5/+5`: "gets an additional +5/+5" (Elenda, Saint of
+    /// Dusk), the same modification.
+    ModifyPtAdditional {
         power: i32,
         toughness: i32,
     },
@@ -6858,6 +6908,7 @@ pub fn this_way_word(v: mtg_core::card::ThisWay) -> &'static str {
         ThisWay::Shuffled => "shuffled",
         ThisWay::Revealed => "revealed",
         ThisWay::PutInGraveyard => "graveyarded",
+        ThisWay::Damaged | ThisWay::DamagedPlayer => "damaged",
     }
 }
 
@@ -6874,6 +6925,7 @@ pub fn this_way_verb(w: &str) -> Option<mtg_core::card::ThisWay> {
         ThisWay::Shuffled,
         ThisWay::Revealed,
         ThisWay::PutInGraveyard,
+        ThisWay::Damaged,
     ]
     .into_iter()
     .find(|v| this_way_word(*v) == w)

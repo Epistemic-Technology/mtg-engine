@@ -649,6 +649,11 @@ impl Decompiler<'_> {
             },
             StaticCondition::YourTurn => StaticCond::YourTurn,
             StaticCondition::NotYourTurn => StaticCond::NotYourTurn,
+            StaticCondition::NotTheirTurn => StaticCond::NotTheirTurn,
+            StaticCondition::Attacking { filter, you } => StaticCond::AttackerIs {
+                filter: self.filter(filter),
+                you: *you,
+            },
             StaticCondition::AsCast(inner) => match &**inner {
                 StaticCondition::YouControl { filter, .. } => {
                     StaticCond::ControlledAsCast(self.filter(filter))
@@ -726,6 +731,9 @@ impl Decompiler<'_> {
             StaticCondition::SourceAttackedBattle => StaticCond::AttackedBattleThisTurn,
             StaticCondition::AttackedLastTurn => StaticCond::AttackedLastTurn,
             StaticCondition::ProwlDamage(_) => unreachable!("only prowl's alternative cost"),
+            StaticCondition::TriggerIs(_) => {
+                unreachable!("only a trigger's condition (`TrigCond::ItsStat`)")
+            }
             StaticCondition::Escaped => StaticCond::Escaped,
             StaticCondition::Kicked => StaticCond::Kicked,
             StaticCondition::Bargained => StaticCond::Bargained,
@@ -1777,11 +1785,23 @@ impl Decompiler<'_> {
                 inner: self.sentences(inner),
             },
             CoreEffect::Instead { .. } => unreachable!("a sentence pair, in `sentences`"),
-            CoreEffect::IfTarget { n, filter, then } => Effect::IfTarget(
-                usize::from(*n),
+            CoreEffect::IfTarget {
+                n,
+                filter,
+                then,
+                negated,
+            } => Effect::IfTarget(
+                if *n == mtg_core::card::IF_TRIGGER_OBJ {
+                    crate::ast::IT_TRIGGER
+                } else {
+                    usize::from(*n)
+                },
                 self.filter(filter),
                 self.sentences(then),
-                crate::ast::TargetCheck::default(),
+                crate::ast::TargetCheck {
+                    negated: *negated,
+                    ..crate::ast::TargetCheck::default()
+                },
             ),
             CoreEffect::IfCondition(i, inner) => Effect::IfCondition(
                 self.static_cond(self.pool.condition(*i)),

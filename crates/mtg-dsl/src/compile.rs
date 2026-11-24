@@ -2340,6 +2340,11 @@ impl Compiler<'_> {
             }
             StaticCond::YourTurn | StaticCond::DuringYourTurn => StaticCondition::YourTurn,
             StaticCond::NotYourTurn => StaticCondition::NotYourTurn,
+            StaticCond::NotTheirTurn => StaticCondition::NotTheirTurn,
+            StaticCond::AttackerIs { filter, you } => StaticCondition::Attacking {
+                filter: self.filter(filter),
+                you: *you,
+            },
             StaticCond::CastDuringMain | StaticCond::ControlledAsCast(_) => {
                 let inner = match c {
                     StaticCond::ControlledAsCast(f) => StaticCondition::YouControl {
@@ -4529,12 +4534,17 @@ impl Compiler<'_> {
                     effects,
                 });
             }
-            Effect::IfTarget(n, f, inner, _) => {
+            Effect::IfTarget(n, f, inner, check) => {
                 let then = self.sentences(inner)?;
                 out.push(CoreEffect::IfTarget {
-                    n: u8::try_from(*n).unwrap_or(u8::MAX),
+                    n: if *n == crate::ast::IT_TRIGGER {
+                        mtg_core::card::IF_TRIGGER_OBJ
+                    } else {
+                        u8::try_from(*n).unwrap_or(u8::MAX)
+                    },
                     filter: Box::new(self.filter(f)),
                     then,
+                    negated: check.negated,
                 });
             }
             Effect::KeepMana(inner) => {
@@ -6083,10 +6093,12 @@ impl Compiler<'_> {
                 power: *power,
                 toughness: *toughness,
             },
-            Mod::ModifyPt { power, toughness } => Modification::ModifyPt {
-                power: *power,
-                toughness: *toughness,
-            },
+            Mod::ModifyPt { power, toughness } | Mod::ModifyPtAdditional { power, toughness } => {
+                Modification::ModifyPt {
+                    power: *power,
+                    toughness: *toughness,
+                }
+            }
             Mod::SwitchPt => Modification::SwitchPt,
             Mod::CdaColors(c) => Modification::CdaColors(ColorSet::of(c.iter().copied())),
             Mod::ChosenColor => Modification::ChosenColor,
@@ -6156,6 +6168,7 @@ impl Compiler<'_> {
                     ..ObjFilter::default()
                 }),
                 then: grants,
+                negated: false,
             });
         }
         Ok(AbilityDef::Triggered(TriggeredAbility {
@@ -6414,6 +6427,24 @@ impl Compiler<'_> {
                     Some(crate::ast::TrigCond::Core(c)) => Some(*c),
                     Some(crate::ast::TrigCond::HadCounter { .. }) => {
                         Some(mtg_core::card::Condition::TriggerHadCounters)
+                    }
+                    Some(crate::ast::TrigCond::Outstats) => {
+                        Some(mtg_core::card::Condition::Evolves)
+                    }
+                    Some(crate::ast::TrigCond::ItsStat { stat, cmp, n, .. }) => {
+                        let mut f = ObjFilter::default();
+                        match stat {
+                            crate::ast::ItStat::Power => f.power = Some((*cmp, *n)),
+                            crate::ast::ItStat::Toughness => f.toughness = Some((*cmp, *n)),
+                            crate::ast::ItStat::ManaValue => {
+                                f.mana_value =
+                                    Some((*cmp, u8::try_from((*n).max(0)).unwrap_or(u8::MAX)));
+                            }
+                        }
+                        Some(mtg_core::card::Condition::Static(
+                            self.pool
+                                .intern_condition(mtg_core::card::StaticCondition::TriggerIs(f)),
+                        ))
                     }
                     Some(crate::ast::TrigCond::Static(c)) => {
                         let c = self.static_cond(c);

@@ -3516,6 +3516,24 @@ impl Fmt {
                 if *opponent { "opponent" } else { "player" },
                 self.line(inner, t)
             ),
+            // The triggering object: `if it is Spider, ...`, `if that land
+            // is Mountain, ...`, `draw 1 card if it was attacking`.
+            Effect::IfTarget(n, f, inner, check) if *n == crate::ast::IT_TRIGGER => {
+                use crate::ast::TargetTense;
+                let subject = check.noun.map_or("it".to_string(), |w| format!("that {w}"));
+                let was = matches!(check.tense, TargetTense::Was | TargetTense::ThatWas);
+                let verb = match (was, check.negated) {
+                    (true, false) => "was",
+                    (true, true) => "wasnt",
+                    (false, false) => "is",
+                    (false, true) => "isnt",
+                };
+                if check.after {
+                    format!("{} if {subject} {verb} {}", self.line(inner, t), filter(f))
+                } else {
+                    format!("if {subject} {verb} {}, {}", filter(f), self.line(inner, t))
+                }
+            }
             Effect::IfTarget(_, f, inner, check)
                 if check.tense == crate::ast::TargetTense::Is
                     && !check.after
@@ -3571,6 +3589,8 @@ impl Fmt {
             Effect::IfTarget(n, f, inner, check) => {
                 use crate::ast::TargetTense;
                 let (that, verb) = match check.tense {
+                    TargetTense::Was if check.negated => ("", "wasnt"),
+                    TargetTense::ThatWas if check.negated => ("that ", "wasnt"),
                     TargetTense::Was => ("", "was"),
                     TargetTense::Had => ("", "had"),
                     TargetTense::Is => ("", "is"),
@@ -4298,12 +4318,16 @@ fn this_way_cond(c: &crate::ast::ThisWayCond) -> String {
     let what = match (&c.filter, c.card) {
         (Some(f), true) => format!("{} card", filter(f)),
         (Some(f), false) => filter(f),
+        (None, _) if c.verb == mtg_core::card::ThisWay::DamagedPlayer => "player".to_string(),
         (None, _) => "card".to_string(),
     };
     match &c.wording {
         ThisWayWording::Was => format!("{what} was {verb} this way"),
         ThisWayWording::AtLeastOne => format!("at least one {what} was {verb} this way"),
         ThisWayWording::Is => format!("{what} is {verb} this way"),
+        ThisWayWording::You if c.verb == mtg_core::card::ThisWay::PutInHand && c.negated => {
+            "you put no cards into hand this way".to_string()
+        }
         ThisWayWording::You if c.verb == mtg_core::card::ThisWay::PutInHand => {
             format!("you put {what} into hand this way")
         }
@@ -6622,6 +6646,9 @@ fn modification(m: &Mod) -> String {
         } => format!("base {p}/{t}"),
         Mod::SetPt { .. } => "base mv".to_string(),
         Mod::ModifyPt { power, toughness } => format!("{power:+}/{toughness:+}"),
+        Mod::ModifyPtAdditional { power, toughness } => {
+            format!("additional {power:+}/{toughness:+}")
+        }
         Mod::ModifyPtPer {
             power,
             toughness,
@@ -6833,6 +6860,14 @@ fn static_cond(c: &StaticCond) -> String {
         } => format!("you control {at_least} {}", filter(fl)),
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "your turn".to_string(),
         StaticCond::NotYourTurn => "not your turn".to_string(),
+        StaticCond::NotTheirTurn => "not their turn".to_string(),
+        StaticCond::AttackerIs { filter: f, you } => {
+            format!(
+                "attacker {}{}",
+                filter(f),
+                if *you { " at you" } else { "" }
+            )
+        }
         StaticCond::CastDuringMain => "cast during main phase".to_string(),
         StaticCond::ControlledAsCast(f) => format!("controlled {} as cast", filter(f)),
         StaticCond::Attacking => "attacking".to_string(),
@@ -7738,6 +7773,27 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                         " if it had one or more counters"
                     } else {
                         " if it had counter"
+                    });
+                    None
+                }
+                Some(crate::ast::TrigCond::Outstats) => {
+                    head.push_str(" if its power or toughness greater than this");
+                    None
+                }
+                Some(crate::ast::TrigCond::ItsStat {
+                    stat,
+                    cmp,
+                    less_than,
+                    n,
+                }) => {
+                    let _ = write!(head, " if its {} was {}", its_stat_word(*stat), {
+                        if *less_than {
+                            format!("less than {}", n + 1)
+                        } else if *cmp == mtg_core::card::Cmp::AtLeast {
+                            format!("{n} or greater")
+                        } else {
+                            format!("{n} or less")
+                        }
                     });
                     None
                 }
@@ -9131,5 +9187,14 @@ fn spell_from(from: mtg_core::card::SpellFrom) -> &'static str {
         SpellFrom::Graveyard => " from graveyard",
         SpellFrom::Exile => " from exile",
         SpellFrom::NotHand => " from other than hand",
+    }
+}
+
+/// The word `TrigCond::ItsStat` writes and prints for its stat.
+pub(crate) fn its_stat_word(s: crate::ast::ItStat) -> &'static str {
+    match s {
+        crate::ast::ItStat::Power => "power",
+        crate::ast::ItStat::Toughness => "toughness",
+        crate::ast::ItStat::ManaValue => "mana value",
     }
 }

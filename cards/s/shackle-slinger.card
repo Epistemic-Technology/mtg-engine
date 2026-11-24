@@ -1,0 +1,7 @@
+card "Shackle Slinger" {
+  oracle_id 59e8747a-3e3f-48d2-aaee-af94ecee378b
+  cost {2}{U}
+  type Creature — Human Soldier
+  pt 3/2
+  triggered whenever you cast your second spell each turn: choose target creature an opponent controls; if target 1 is tapped, put 1 stun counter on target 1; otherwise, tap target 1
+}

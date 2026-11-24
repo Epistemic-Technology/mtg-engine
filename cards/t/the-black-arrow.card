@@ -1,0 +1,9 @@
+card "The Black Arrow" {
+  oracle_id cb2803ee-825b-420e-b404-c7c44f15ec15
+  cost {3}
+  type Legendary Artifact — Equipment
+  keywords flash
+  triggered when this enters: deal 1 damage to any target; if Dragon is damaged this way, destroy target 1
+  static equipped creature: +1/+1, has reach
+  equip {1}
+}

@@ -1,0 +1,43 @@
+# "If a Rat is attacking" (`attacker Rat`) and "if a creature is attacking
+# you" (`attacker creature at you`): any attacking creature that matches,
+# judged as the effect happens or as the spell's cost is determined.
+
+scenario "Charging Hooligan: with a Rat attacking it gains trample" {
+  battlefield A: "Charging Hooligan", "Zodiac Rat"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Charging Hooligan", "Zodiac Rat"
+  run_to turn 1 declare_blockers
+  assert power "Charging Hooligan" 5
+  assert has "Charging Hooligan" trample
+}
+
+scenario "Charging Hooligan: attacking alone it gets +1/+0 and no trample" {
+  battlefield A: "Charging Hooligan", "Zodiac Rat"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Charging Hooligan"
+  run_to turn 1 declare_blockers
+  assert power "Charging Hooligan" 4
+  assert has not "Charging Hooligan" trample
+}
+
+scenario "Swat Away: costs {2} less while a creature is attacking you" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Island", "Island"
+  hand B: "Swat Away"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hill Giant"
+  turn 1 declare_attackers B: cast "Swat Away" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert library A contains "Hill Giant"
+  assert life B 20
+}
+
+scenario "Swat Away: full cost with no creature attacking you" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Island", "Island"
+  hand B: "Swat Away"
+  start turn 1 A precombat_main
+  illegal turn 1 B: cast "Swat Away" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+}

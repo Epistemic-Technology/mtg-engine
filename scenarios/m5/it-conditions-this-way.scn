@@ -1,0 +1,74 @@
+# "If a Dragon is dealt damage this way", "If a player is dealt damage
+# this way" (CR 608.2c): what the resolution's damage was dealt to, not
+# just what it targeted. "If you put no cards into your hand this way".
+
+scenario "The Black Arrow: a Dragon dealt damage is destroyed" {
+  battlefield A: 3 "Plains"
+  hand A: "The Black Arrow"
+  battlefield B: "Shivan Dragon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Black Arrow"
+  turn 1 A: trigger "The Black Arrow" targeting "Shivan Dragon"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Shivan Dragon"
+}
+
+scenario "The Black Arrow: another creature takes 1 damage only" {
+  battlefield A: 3 "Plains"
+  hand A: "The Black Arrow"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Black Arrow"
+  turn 1 A: trigger "The Black Arrow" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 1
+}
+
+scenario "Sonic Shrieker: a player dealt damage discards a card" {
+  battlefield A: 2 "Swamp", "Mountain", "Plains", "Plains"
+  hand A: "Sonic Shrieker"
+  hand B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sonic Shrieker"
+  turn 1 A: trigger "Sonic Shrieker" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Sonic Shrieker: a creature dealt damage: no one discards" {
+  battlefield A: 2 "Swamp", "Mountain", "Plains", "Plains"
+  hand A: "Sonic Shrieker"
+  hand B: "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sonic Shrieker"
+  turn 1 A: trigger "Sonic Shrieker" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert hand B count 1
+}
+
+scenario "Nashi: no card put into the hand gives a +1/+1 counter" {
+  battlefield A: "Nashi, Searcher in the Dark"
+  library A: "Forest", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Nashi, Searcher in the Dark"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Island"
+  assert counters "Nashi, Searcher in the Dark" +1/+1 1
+}
+
+scenario "Nashi: a legendary card put into the hand gives no counter" {
+  battlefield A: "Nashi, Searcher in the Dark"
+  library A: "Baird, Steward of Argive", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Nashi, Searcher in the Dark"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Baird, Steward of Argive"
+  assert graveyard A contains "Island"
+  assert counters "Nashi, Searcher in the Dark" +1/+1 0
+}

@@ -2425,6 +2425,32 @@ impl GameState {
         // ability's controller exiled it, whoever owns it; "if you
         // discarded" is about the cards you owned.
         let by_you = cond.by_you && cond.verb != crate::card::ThisWay::Exiled;
+        // "If a Dragon is dealt damage this way, destroy it.", "If a player
+        // is dealt damage this way, they discard a card.": not zone
+        // changes; a permanent as it is or last existed (CR 608.2h).
+        match cond.verb {
+            crate::card::ThisWay::DamagedPlayer => {
+                return log.damaged_players.is_empty() == cond.negated;
+            }
+            crate::card::ThisWay::Damaged => {
+                let any = log.damaged.iter().any(|id| {
+                    cond.filter.as_ref().is_none_or(|f| {
+                        let controller = self
+                            .objects
+                            .get(*id)
+                            .map(|o| o.controller)
+                            .or_else(|| self.lki.get(id).map(|l| l.object.controller));
+                        controller.is_some_and(|c| {
+                            self.characteristics_or_lki(*id).is_some_and(|ch| {
+                                f.matches(*id, c, &ch, Some(ctx.source), Some(ctx.controller))
+                            })
+                        })
+                    })
+                });
+                return any != cond.negated;
+            }
+            _ => {}
+        }
         if nothing {
             return !log
                 .moved
@@ -14302,16 +14328,21 @@ impl GameState {
                     }
                 }
             }
-            Effect::IfTarget { n, filter, then } => {
+            Effect::IfTarget {
+                n,
+                filter,
+                then,
+                negated,
+            } => {
                 // `ctx.did` for an "Otherwise" after it ("If it's
                 // suspected, exile it. Otherwise, suspect it.").
-                if self.nth_target_matches(ctx, *n, filter) {
+                if self.nth_target_matches(ctx, *n, filter) == *negated {
+                    ctx.did = false;
+                } else {
                     ctx.did = true;
                     for e in then {
                         self.apply_effect(ctx, e);
                     }
-                } else {
-                    ctx.did = false;
                 }
             }
             Effect::Instead { cond, base, alt } => {
@@ -18133,8 +18164,17 @@ impl GameState {
         } else {
             filter
         };
-        let Some(Target::Object(id)) = ctx.targets.get(usize::from(n)).copied() else {
-            return false;
+        // "If it's a Spider, ...": the triggering object (CR 608.2h).
+        let id = if n == crate::card::IF_TRIGGER_OBJ {
+            let Some(id) = ctx.trigger_obj else {
+                return false;
+            };
+            id
+        } else {
+            let Some(Target::Object(id)) = ctx.targets.get(usize::from(n)).copied() else {
+                return false;
+            };
+            id
         };
         // "If an opponent protects it" (CR 310.8): a battle still on the
         // battlefield, its protector judged from the effect's controller.
