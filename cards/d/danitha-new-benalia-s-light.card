@@ -1,0 +1,8 @@
+card "Danitha, New Benalia's Light" {
+  oracle_id 971b30a8-4ab4-4e96-9d50-597da4d52994
+  cost {1}{G}{W}
+  type Legendary Creature — Human Knight
+  pt 2/2
+  keywords vigilance, trample, lifelink
+  static Aura or Equipment card in your graveyard: has cast once
+}

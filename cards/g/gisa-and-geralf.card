@@ -1,0 +1,8 @@
+card "Gisa and Geralf" {
+  oracle_id 20e94d0f-6887-45f8-a137-877011d786c6
+  cost {2}{U}{B}
+  type Legendary Creature — Human Wizard
+  pt 4/4
+  triggered when this enters: mill 4 cards
+  static Zombie creature card in your graveyard: has cast once
+}

@@ -1403,13 +1403,20 @@ impl Fmt {
                 from_exile,
                 remains,
                 owner,
+                exiled,
                 rider,
             } => {
                 let mut s = format!(
                     "{}may {} {}{} {}",
                     if *owner { "owner " } else { "" },
                     if *cast { "cast" } else { "play" },
-                    if *it { "it" } else { "that card" },
+                    if *it {
+                        "it"
+                    } else if *exiled {
+                        "exiled card"
+                    } else {
+                        "that card"
+                    },
                     if *from_exile { " from exile" } else { "" },
                     match until {
                         _ if *remains => "remains",
@@ -2643,14 +2650,35 @@ impl Fmt {
                 max,
                 exile,
                 play,
+                more,
+                exile_words,
+                among,
             } => {
-                let mut s = if *play { "play free " } else { "cast free " }.to_string();
+                let mut s = if *play {
+                    "play free "
+                } else if more.paid {
+                    "cast now "
+                } else {
+                    "cast free "
+                }
+                .to_string();
                 if let Some(r) = what {
                     let o = self.recipient(*r, t);
                     // `cast free card exiled with this`: one of them.
                     let o = match r {
                         Recipient::ExiledWith(_) => {
-                            o.strip_prefix("each ").unwrap_or(&o).to_string()
+                            let o = o.strip_prefix("each ").unwrap_or(&o).to_string();
+                            // `Ally spell from among owned cards exiled
+                            // with this`.
+                            if *among {
+                                let o = o.strip_suffix("card exiled with this").unwrap_or(&o);
+                                format!(
+                                    "{o}spell from among {}cards exiled with this",
+                                    if more.owned { "owned " } else { "" }
+                                )
+                            } else {
+                                o
+                            }
                         }
                         _ => o,
                     };
@@ -2668,13 +2696,28 @@ impl Fmt {
                         s.push_str(&filter(f));
                         s.push(' ');
                     }
-                    s.push_str("spell from hand");
+                    s.push_str(match more.from {
+                        mtg_core::card::CastFreeFrom::Hand => "spell from hand",
+                        mtg_core::card::CastFreeFrom::Graveyard => "spell from graveyard",
+                        mtg_core::card::CastFreeFrom::OpponentGraveyards => {
+                            "spell from graveyard of each opponent"
+                        }
+                    });
                     if let Some(n) = max {
                         let _ = write!(s, " with mana value up to {}", num(*n));
                     }
                 }
-                if *exile {
-                    s.push_str(" exile instead");
+                if more.spend == mtg_core::card::SpendAs::AnyType {
+                    s.push_str(" any type");
+                }
+                if *exile && more.exile_instants {
+                    s.push_str(" exile instant or sorcery instead");
+                } else if *exile {
+                    s.push_str(match exile_words {
+                        crate::ast::CastExileWords::Your => " exile instead",
+                        crate::ast::CastExileWords::A => " exile instead a",
+                        crate::ast::CastExileWords::ThisWay => " exile instead this way",
+                    });
                 }
                 s
             }
@@ -9700,6 +9743,12 @@ fn grave_rider(r: &mtg_core::card::GraveRider) -> String {
     }
     if r.finality {
         s.push_str(" finality");
+    }
+    if r.once {
+        s.push_str(" once");
+    }
+    if r.exile {
+        s.push_str(" exile instead");
     }
     s
 }

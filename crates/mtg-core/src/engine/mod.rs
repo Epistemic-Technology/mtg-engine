@@ -853,6 +853,13 @@ impl GameState {
                                 },
                             );
                         }
+                        // The effect's rider went with the cast
+                        // (`begin_way` kept it for the payment).
+                        if let Some(e) = self.exile_casts.as_mut()
+                            && !e.effect_riders.is_empty()
+                        {
+                            e.effect_riders.retain(|r| r.1 != card);
+                        }
                         continue;
                     }
                     if self.sba_loop() {

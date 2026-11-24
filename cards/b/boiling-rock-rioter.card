@@ -1,0 +1,9 @@
+card "Boiling Rock Rioter" {
+  oracle_id 5193172c-9024-409e-bd9e-0387971d65fe
+  cost {2}{B}
+  type Creature — Human Rogue Ally
+  pt 3/3
+  firebending 1
+  activated tap 1 untapped Ally you control: exile target card from a graveyard
+  triggered whenever this attacks: cast now Ally spell from among owned cards exiled with this
+}

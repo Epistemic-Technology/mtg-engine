@@ -5539,7 +5539,15 @@ impl GameState {
             || o.alt == AltCast::FreeExile
             || self.exile_casts.as_ref().is_some_and(|e| {
                 e.riders && e.rider_spells.iter().any(|(s, r)| *s == spell && r.exile)
-            }) {
+            })
+            // "If a spell cast this way would be put into your graveyard,
+            // exile it instead." (Kess, Dissident Mage).
+            || !self.grave_cast_spells.is_empty()
+                && self
+                    .grave_cast_spells
+                    .iter()
+                    .any(|(s, r)| *s == spell && r.exile)
+        {
             Zone::Exile
         } else {
             Zone::Graveyard
@@ -11782,8 +11790,11 @@ impl GameState {
 
     /// CR 608.2g: "you may cast <a card> without paying its mana cost" as
     /// the effect resolves: the card `what` names, or one from the
-    /// controller's hand matching `filter` with mana value at most
-    /// `max_mv`, cast as the resolution finishes.
+    /// controller's hand (or graveyard, or each opponent's graveyard,
+    /// `more.from`) matching `filter` with mana value at most `max_mv`,
+    /// cast as the resolution finishes. With `more.paid`, its costs are
+    /// paid as usual (offered only if they can be), with `more`'s rider.
+    #[allow(clippy::too_many_lines)] // one branch per way of naming the card
     fn cast_free(
         &mut self,
         ctx: &mut EffectCtx,
@@ -11791,20 +11802,40 @@ impl GameState {
         filter: Option<&crate::card::ObjFilter>,
         max_mv: Option<crate::card::Num>,
         exile: bool,
+        more: crate::card::CastFreeMore,
     ) {
+        use crate::card::CastFreeFrom;
         let p = ctx.controller;
-        let alt = if exile {
-            AltCast::FreeExile
-        } else {
-            AltCast::Free
+        let alt = match (more.paid, exile) {
+            (true, _) => AltCast::None,
+            (false, true) => AltCast::FreeExile,
+            (false, false) => AltCast::Free,
         };
         let cap = max_mv.map(|n| self.eval_num(n, ctx));
         let source = ctx.source;
+        // A paid cast's rider ("mana of any type can be spent", "exile it
+        // instead"), registered for the cards it may cast before they are
+        // judged, so the payment check sees it (`permission_rider`).
+        let rider_for = |st: &Self, id: ObjId| -> crate::card::CastRider {
+            let instant = st.objects.get(id).is_some_and(|o| {
+                let t = st.pool.get(o.def).types;
+                t.contains(crate::card::CardType::Instant)
+                    || t.contains(crate::card::CardType::Sorcery)
+            });
+            crate::card::CastRider {
+                spend: more.spend,
+                exile: exile && (!more.exile_instants || instant),
+                ..crate::card::CastRider::default()
+            }
+        };
+        let riding = more.paid;
         let fits = |st: &Self, id: ObjId| -> bool {
             let Some(o) = st.objects.get(id) else {
                 return false;
             };
-            if !matches!(o.zone, Zone::Hand | Zone::Graveyard | Zone::Exile) {
+            if !matches!(o.zone, Zone::Hand | Zone::Graveyard | Zone::Exile)
+                || more.owned && o.owner != p
+            {
                 return false;
             }
             let def = st.pool.get(o.def);
@@ -11825,67 +11856,93 @@ impl GameState {
             }
             st.exile_castable(p, id, alt)
         };
-        // "You may cast a card exiled with this": one of them, chosen.
-        if let Some(r @ Recipient::ExiledWith(_)) = what {
-            let castable: Vec<ObjId> = self
+        // The cards it may cast: those `what` names, or the zone's.
+        let named = what.is_some();
+        let mut cards: Vec<ObjId> = match what {
+            Some(r) => self
                 .recipients(ctx, r)
                 .into_iter()
                 .filter_map(|t| match t {
-                    Target::Object(id) if fits(self, id) => Some(id),
-                    _ => None,
+                    Target::Object(id) => Some(id),
+                    Target::Player(_) => None,
                 })
+                .collect(),
+            None => match more.from {
+                CastFreeFrom::Hand => self.player(p).hand.clone(),
+                CastFreeFrom::Graveyard => self.player(p).graveyard.clone(),
+                CastFreeFrom::OpponentGraveyards => Vec::new(),
+            },
+        };
+        // "a spell from each opponent's graveyard": one from each, chosen
+        // in turn.
+        let groups: Vec<Vec<ObjId>> =
+            if what.is_none() && more.from == CastFreeFrom::OpponentGraveyards {
+                self.players_in_game()
+                    .filter(|o| *o != p)
+                    .map(|o| self.player(o).graveyard.clone())
+                    .collect()
+            } else {
+                vec![std::mem::take(&mut cards)]
+            };
+        if riding {
+            let riders: Vec<(PlayerId, ObjId, crate::card::CastRider)> = groups
+                .iter()
+                .flatten()
+                .map(|id| (p, *id, rider_for(self, *id)))
                 .collect();
+            let e = self.exile_casts.get_or_insert_with(Box::default);
+            e.riders = true;
+            e.effect_riders.extend(riders);
+        }
+        let mut chosen: Vec<ObjId> = Vec::new();
+        for group in groups {
+            let castable: Vec<ObjId> = group.into_iter().filter(|id| fits(self, *id)).collect();
             if castable.is_empty() {
-                return;
+                continue;
             }
+            // A target: "you may cast it" (each target in turn).
+            if named && !matches!(what, Some(Recipient::ExiledWith(_))) {
+                for id in castable {
+                    if self.offer_exile_cast_by(id, alt, p) {
+                        chosen.push(id);
+                    }
+                }
+                continue;
+            }
+            // "a card exiled with this", "a spell from your hand": one of
+            // them, chosen, or none. A card the resolution moved (milled by
+            // Jetsam) is shown as the object it was before.
+            let shown = |st: &Self, id: ObjId| -> ObjId {
+                st.this_way
+                    .as_ref()
+                    .and_then(|log| log.moved.iter().find(|m| m.new == id).map(|m| m.old))
+                    .unwrap_or(id)
+            };
             let mut options: Vec<Choice> = castable
                 .iter()
-                .map(|id| Choice::Target(Target::Object(*id)))
+                .map(|id| match self.objects[*id].zone {
+                    Zone::Hand => Choice::Discard {
+                        card: *id,
+                        def: self.objects[*id].def,
+                    },
+                    _ => Choice::Target(Target::Object(shown(self, *id))),
+                })
                 .collect();
             options.push(Choice::Done);
             let k = self.choose_mid(p, DecisionKind::ChooseCard, options);
             if let Some(&card) = castable.get(k) {
+                chosen.push(card);
                 self.exile_casts
                     .get_or_insert_with(Box::default)
                     .pending
                     .push((p, card, alt));
             }
-            return;
         }
-        if let Some(r) = what {
-            for t in self.recipients(ctx, r) {
-                if let Target::Object(id) = t
-                    && fits(self, id)
-                {
-                    self.offer_exile_cast_by(id, alt, p);
-                }
-            }
-            return;
-        }
-        let castable: Vec<ObjId> = self
-            .player(p)
-            .hand
-            .iter()
-            .copied()
-            .filter(|id| fits(self, *id))
-            .collect();
-        if castable.is_empty() {
-            return;
-        }
-        let mut options: Vec<Choice> = castable
-            .iter()
-            .map(|id| Choice::Discard {
-                card: *id,
-                def: self.objects[*id].def,
-            })
-            .collect();
-        options.push(Choice::Done);
-        let k = self.choose_mid(p, DecisionKind::ChooseCard, options);
-        if let Some(&card) = castable.get(k) {
-            self.exile_casts
-                .get_or_insert_with(Box::default)
-                .pending
-                .push((p, card, alt));
+        if riding && let Some(e) = self.exile_casts.as_mut() {
+            // Only the cards that will be cast keep theirs.
+            let pending = &e.pending;
+            e.effect_riders
+                .retain(|r| pending.iter().any(|q| q.0 == r.0 && q.1 == r.1));
         }
     }
 
@@ -16659,11 +16716,12 @@ impl GameState {
                 max_mv,
                 exile,
                 play,
+                more,
             } => {
                 if *play && self.play_free_land(ctx, *what) {
                     return;
                 }
-                self.cast_free(ctx, *what, filter.as_ref(), *max_mv, *exile);
+                self.cast_free(ctx, *what, filter.as_ref(), *max_mv, *exile, *more);
             }
             Effect::Hideaway { count } => self.hideaway(ctx, *count),
             Effect::RevealPutCreature { count, counters } => {

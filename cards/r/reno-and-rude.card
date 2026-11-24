@@ -1,0 +1,8 @@
+card "Reno and Rude" {
+  oracle_id f749a6d6-2c55-439f-bb02-e95fa54c2ef3
+  cost {1}{B}
+  type Legendary Creature — Human Assassin
+  pt 2/1
+  keywords menace
+  triggered whenever this deals combat damage to a player: exile top 1 card of that player; then you may you sacrifice 1 other creature or artifact; if you do, may play exiled card this turn any type it
+}

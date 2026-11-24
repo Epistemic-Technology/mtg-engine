@@ -1,0 +1,8 @@
+card "Wrexial, the Risen Deep" {
+  oracle_id fd36cc16-d3d9-4c9d-9d28-bbe7e5459d75
+  cost {3}{U}{U}{B}
+  type Legendary Creature — Kraken
+  pt 5/8
+  keywords islandwalk, swampwalk
+  triggered whenever this deals combat damage to a player: cast free target instant or sorcery card from that player's graveyard exile instead a
+}

@@ -286,6 +286,12 @@ impl GameState {
         } else {
             None
         };
+        // "Once during each of your turns": that permission is used.
+        if let Some(r) = &rider
+            && let Some(key) = self.grave_once_source(player, way.card, r)
+        {
+            self.activated_once.push(key);
+        }
         let spell = self.begin_way(player, way);
         if let Some(r) = rider {
             let objects = &self.objects;

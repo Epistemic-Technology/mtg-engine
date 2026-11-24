@@ -1,0 +1,8 @@
+card "Bilbo, Thief in the Night" {
+  oracle_id 72a9a85d-7cfc-4b3c-82db-9d35be6c0982
+  cost {1}{U}
+  type Legendary Creature — Halfling Rogue
+  pt 2/2
+  spells you cast from other than hand cost {1} less
+  triggered whenever this attacks: cast now artifact or instant or sorcery spell from graveyard exile instant or sorcery instead
+}
