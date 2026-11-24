@@ -1,0 +1,8 @@
+card "Cabal Therapist" {
+  oracle_id 9b7870df-6bca-499f-bc6e-e57f2ddfe640
+  cost {B}
+  type Creature — Horror
+  pt 1/1
+  keywords menace
+  triggered at beginning of your first main: you may sacrifice 1 creature chosen; when you do, choose nonland card name then target player reveals hand and discards all with that name card
+}

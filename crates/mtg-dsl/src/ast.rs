@@ -1492,6 +1492,10 @@ pub enum OfChosen {
     /// `of chosen quality`: "with mana value of the chosen quality" (odd
     /// or even, chosen earlier).
     ChosenQuality,
+    /// `with that name`: "with that name" (after "Choose a card name.").
+    ThatName,
+    /// `with chosen name`: "with the chosen name".
+    ChosenName,
 }
 
 impl OfChosen {
@@ -1582,6 +1586,15 @@ impl Target {
     }
 }
 
+/// What the searched player does for each card exiled from their hand
+/// (`Effect::ExileChosenName`).
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub enum PerHand {
+    Draw,
+    /// The token's description, as `create` names it.
+    Create(String),
+}
+
 /// What a player chooses: `color [except blue]`, `creature type [except
 /// Wall]`, `land type` (all five basic land types) or `Plains or Island`.
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -1609,6 +1622,9 @@ pub enum ChoiceKind {
         nonland: bool,
         look: bool,
     },
+    /// `creature card name`, `card name except basic land`: "a creature
+    /// card name", "a card name other than a basic land card name".
+    CardNameOf(mtg_core::card::NameKind),
     /// `odd or even`: "odd or even" (Zero is even.), for `of chosen
     /// quality`.
     Parity,
@@ -1944,6 +1960,10 @@ pub enum Ability {
         class: mtg_core::card::AbilityClass,
         activator: Option<mtg_core::card::RulePlayers>,
     },
+    /// `ban casting noncreature spell with mana value equal chosen
+    /// number`: "Noncreature spells with mana value equal to the chosen
+    /// number can't be cast." (`PlayerStaticKind::CantCast`).
+    CantBeCast(Filter),
     /// `opening hand`: "If this card is in your opening hand, you may begin
     /// the game with it on the battlefield." (CR 103.6a).
     OpeningHand,
@@ -4780,6 +4800,24 @@ pub enum Effect {
     ExileChosenName {
         who: Recipient,
         limit: mtg_core::card::NameSearch,
+        /// `then draws for each from hand`, `then creates "2/2 black
+        /// Zombie creature" for each from hand`: "That player shuffles,
+        /// then draws a card for each card exiled from their hand this
+        /// way."
+        per_hand: Option<PerHand>,
+    },
+    /// `ban chosen name until your next turn [opponents|your opponents]
+    /// [and lands] [late]`: "Until your next turn, your opponents can't
+    /// cast spells with the chosen name." (`late`: "Opponents can't cast
+    /// spells with the chosen name until your next turn."), "Until your
+    /// next turn, spells with the chosen name can't be cast and lands with
+    /// the chosen name can't be played." (`and lands`).
+    BanChosenName {
+        /// `None`: every player; `Some(true)`: "your opponents";
+        /// `Some(false)`: "opponents".
+        opponents: Option<bool>,
+        lands: bool,
+        late: bool,
     },
     /// `turn face up target face-down creature opponent controls` (CR
     /// 708.8): "Turn target face-down creature an opponent controls face
@@ -4812,9 +4850,13 @@ pub enum Effect {
     ExileOnLeave {
         what: Recipient,
     },
-    /// `detain target creature an opponent controls` (CR 701.35).
+    /// `detain target creature an opponent controls` (CR 701.35); `detain
+    /// spelled target nonland permanent`: "Choose target nonland
+    /// permanent. Until your next turn, it can't attack or block, and its
+    /// activated abilities can't be activated." (Academic Probation).
     Detain {
         what: Recipient,
+        spelled: bool,
     },
     Untap {
         to: Vec<Recipient>,
@@ -5937,6 +5979,11 @@ pub enum Effect {
         opponent_chooses: bool,
         /// `the piles`: "one of the piles" rather than "of those piles".
         the_piles: bool,
+        /// `one to hand rest bottom` (Truth or Tale), `piles exiled ...
+        /// onto battlefield` (Boneyard Parley), `piles exile 3 twice`
+        /// (Hostile Negotiations), `piles exile 5 ... play free` (Brilliant
+        /// Ultimatum).
+        form: mtg_core::card::PileForm,
     },
     /// `split top 3 into hand, top, bottom` ("Look at the top three cards
     /// of your library. Put one of those cards into your hand, one on top
@@ -6382,7 +6429,14 @@ pub enum Effect {
         /// With no filter: "all the cards in your hand" rather than "your
         /// hand".
         all_cards: bool,
+        /// `discards 1 with that name card`: "discards a card with that
+        /// name" (one of them).
+        one: bool,
     },
+    /// `if they can't, you draw 1 card` (after `that player discards 1
+    /// with that name card`): "If they can't, you draw a card."
+    /// (`Effect::ForEachCouldnt` for one player).
+    IfTheyCant(Vec<Sentence>),
 }
 
 /// `<filter> was exiled this way`, `you discarded card this way`, `the

@@ -1,0 +1,6 @@
+card "The Stone Brain" {
+  oracle_id b28dcb41-5e47-4719-892f-da009a5d50b4
+  cost {2}
+  type Legendary Artifact
+  activated {2}, {T}, exile this, sorcery: choose card name; exile up to 4 with chosen name from zones of target opponent then draws for each from hand
+}

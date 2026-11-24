@@ -357,7 +357,8 @@ impl Decompiler<'_> {
             damaged_short: false,
             each: false,
             status: f.status,
-            chosen: f.chosen.then_some(crate::ast::OfChosen::ChosenType),
+            chosen: (f.chosen && f.status.equal_chosen.is_none())
+                .then_some(crate::ast::OfChosen::ChosenType),
             same: f.same.map(|r| {
                 use crate::ast::SameRef;
                 use mtg_core::card::{SameOf, SameWhat};
@@ -1118,9 +1119,24 @@ impl Decompiler<'_> {
             CoreEffect::Tap { to } => Effect::Tap { to: vec![r(*to)] },
             CoreEffect::TapOrUntap { to } => Effect::TapOrUntap { to: r(*to) },
             CoreEffect::ExileSameName { what } => Effect::ExileSameName { what: r(*what) },
-            CoreEffect::ExileChosenName { who, limit } => Effect::ExileChosenName {
+            CoreEffect::ExileChosenName {
+                who,
+                limit,
+                per_hand,
+            } => Effect::ExileChosenName {
                 who: r(*who),
                 limit: *limit,
+                per_hand: per_hand.map(|p| match p {
+                    mtg_core::card::PerHandExiled::Draw => crate::ast::PerHand::Draw,
+                    mtg_core::card::PerHandExiled::Create(t) => {
+                        crate::ast::PerHand::Create(self.pool.get(t).name.clone())
+                    }
+                }),
+            },
+            CoreEffect::BanChosenName { opponents, lands } => Effect::BanChosenName {
+                opponents: opponents.then_some(true),
+                lands: *lands,
+                late: false,
             },
             CoreEffect::NextSpellLess(n) => Effect::NextSpellLess(*n),
             CoreEffect::NextSpellFree(f) => Effect::NextSpellFree(self.filter(f)),
@@ -1136,7 +1152,10 @@ impl Decompiler<'_> {
             CoreEffect::UntilYourNextTurn { to, parts }
                 if parts.as_slice() == [Modification::AddKeywords(KeywordSet::DETAINED)] =>
             {
-                Effect::Detain { what: r(*to) }
+                Effect::Detain {
+                    what: r(*to),
+                    spelled: false,
+                }
             }
             CoreEffect::Untap { to } => Effect::Untap { to: vec![r(*to)] },
             CoreEffect::RemoveFromCombat { what } => Effect::RemoveFromCombat { what: r(*what) },
@@ -1953,6 +1972,7 @@ impl Decompiler<'_> {
                 face_down,
                 separator,
                 opponent_chooses,
+                form,
             } => Effect::Piles {
                 count: *count,
                 reveal: *reveal,
@@ -1960,6 +1980,7 @@ impl Decompiler<'_> {
                 separator: separator.map(r),
                 opponent_chooses: *opponent_chooses,
                 the_piles: false,
+                form: *form,
             },
             CoreEffect::DigSplit {
                 count,
@@ -2259,10 +2280,11 @@ impl Decompiler<'_> {
                 count: *count,
                 filter: self.filter(filter),
             },
-            CoreEffect::DiscardAll { who, filter } => Effect::DiscardAll {
+            CoreEffect::DiscardAll { who, filter, one } => Effect::DiscardAll {
                 who: Some(r(*who)),
                 filter: filter.as_ref().map(|f| self.filter(f)),
                 all_cards: false,
+                one: *one,
             },
         }
     }
@@ -2823,6 +2845,10 @@ impl Decompiler<'_> {
                 activator: *activator,
             },
             AbilityDef::PlayerStatic {
+                kind: mtg_core::card::PlayerStaticKind::CantCast { spells },
+                ..
+            } => Ability::CantBeCast(self.filter(self.pool.filter(*spells))),
+            AbilityDef::PlayerStatic {
                 kind:
                     mtg_core::card::PlayerStaticKind::CantAttackYou {
                         attackers,
@@ -3250,6 +3276,7 @@ impl Decompiler<'_> {
                 ChoiceKind::Named((1..=n).map(|i| format!("Option {i}")).collect())
             }
             CoreChoiceKind::CardName { nonland, look } => ChoiceKind::CardName { nonland, look },
+            CoreChoiceKind::CardNameOf(k) => ChoiceKind::CardNameOf(k),
             CoreChoiceKind::Parity => ChoiceKind::Parity,
             CoreChoiceKind::CreatureTypeIn { types, len } => ChoiceKind::CreatureTypeIn(
                 types[..usize::from(len)]

@@ -1239,6 +1239,18 @@ pub struct RuleEffect {
     pub duration: Duration,
 }
 
+/// A chosen-name ban from a resolved spell (CR 614.17, 201.3), until
+/// `until`'s next turn begins: spells with `name` can't be cast (by
+/// `until`'s opponents only, with `opponents`), and with `lands`, lands
+/// with that name can't be played.
+#[derive(Copy, Clone, Debug)]
+pub struct NameRule {
+    pub name: crate::card::CardRef,
+    pub until: PlayerId,
+    pub opponents: bool,
+    pub lands: bool,
+}
+
 /// A "can't" effect on one player from a resolved spell (CR 614.17),
 /// until end of turn: "Target player can't play lands this turn."
 #[derive(Copy, Clone, Debug)]
@@ -2252,6 +2264,10 @@ pub struct GameState {
     pub rules: Vec<RuleEffect>,
     /// "Target player can't play lands this turn": until end of turn.
     pub player_rules: Vec<PlayerRuleEffect>,
+    /// "Until your next turn, your opponents can't cast spells with the
+    /// chosen name." (`Effect::BanChosenName`): until that player's next
+    /// turn begins (CR 611.2b).
+    pub name_rules: Vec<NameRule>,
     /// "Target creature can't be the target of spells or abilities your
     /// opponents control this turn" (`Effect::CantBeTargeted`): the
     /// permanent, the effect's controller, and what can't target it;
@@ -3374,12 +3390,77 @@ impl GameState {
 
     /// Whether a spell with `def`'s name can't be cast (CR 201.3: "The
     /// chosen card name can't be cast.").
-    pub fn name_cant_be_cast(&self, def: crate::card::CardRef) -> bool {
-        self.player_static_sources > 0 && {
-            let name = &self.pool.get(def).name;
-            self.name_bans()
-                .any(|(ban, d)| ban == crate::card::NameBan::Cast && self.pool.get(d).name == *name)
+    /// With `p` the caster: a resolved "until your next turn" ban
+    /// (`GameState::name_rules`) too.
+    pub fn name_cant_be_cast(&self, def: crate::card::CardRef, p: PlayerId) -> bool {
+        let name = &self.pool.get(def).name;
+        (self.player_static_sources > 0
+            && self.name_bans().any(|(ban, d)| {
+                ban == crate::card::NameBan::Cast && self.pool.get(d).name == *name
+            }))
+            || self
+                .name_rules
+                .iter()
+                .any(|r| (!r.opponents || r.until != p) && self.pool.get(r.name).name == *name)
+    }
+
+    /// Whether a land with `def`'s name can't be played: "lands with the
+    /// chosen name can't be played" (Conjurer's Ban, `NameRule::lands`).
+    pub fn name_cant_be_played(&self, def: crate::card::CardRef, p: PlayerId) -> bool {
+        let name = &self.pool.get(def).name;
+        self.name_rules.iter().any(|r| {
+            r.lands && (!r.opponents || r.until != p) && self.pool.get(r.name).name == *name
+        })
+    }
+
+    /// Whether a spell `def` (a card or a face of one) can't be cast:
+    /// "Noncreature spells with mana value equal
+    /// to the chosen number can't be cast." (`PlayerStaticKind::CantCast`,
+    /// CR 601.2), judged from `def`'s printed characteristics.
+    pub fn spell_cant_be_cast(&self, def: crate::card::CardRef) -> bool {
+        self.player_static_sources > 0
+            && self.player_statics_of().any(|(_, kind, src)| {
+                let crate::card::PlayerStaticKind::CantCast { spells } = kind else {
+                    return false;
+                };
+                let f = self.with_source_chosen_filter(self.pool.filter(spells), src);
+                let d = self.pool.get(def);
+                let c = self.printed(def);
+                // The mana value from the printed cost (X is 0 off the
+                // stack, CR 202.3e); the filter's other alternatives whole.
+                let side = |g: &crate::card::ObjFilter| {
+                    g.matches_characteristics(&c)
+                        && g.mana_value.is_none_or(|(cmp, n)| {
+                            cmp.holds(d.mana_cost.mana_value(), u32::from(n))
+                        })
+                };
+                let mut alt = Some(&*f);
+                let mut any = false;
+                while let Some(g) = alt {
+                    let mut one = g.clone();
+                    one.or = None;
+                    if side(&one) {
+                        any = true;
+                        break;
+                    }
+                    alt = g.or.as_deref();
+                }
+                any
+            })
+    }
+
+    /// `f` with the choice `src` made as it entered filled in ("the chosen
+    /// number"); other filters as they are.
+    fn with_source_chosen_filter<'f>(
+        &self,
+        f: &'f crate::card::ObjFilter,
+        src: ObjId,
+    ) -> std::borrow::Cow<'f, crate::card::ObjFilter> {
+        if !f.chosen {
+            return std::borrow::Cow::Borrowed(f);
         }
+        let chosen = self.objects.get(src).map(|o| o.chosen).unwrap_or_default();
+        std::borrow::Cow::Owned(f.with_chosen(chosen))
     }
 
     /// Whether an activated ability (`mana`: a mana ability) of `source`

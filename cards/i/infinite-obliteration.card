@@ -1,0 +1,6 @@
+card "Infinite Obliteration" {
+  oracle_id 3bea62dc-14cd-4cbc-b55d-3791c444bdc7
+  cost {1}{B}{B}
+  type Sorcery
+  spell: choose creature card name; exile any number with chosen name from zones of target opponent
+}

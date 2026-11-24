@@ -1,0 +1,9 @@
+card "Academic Probation" {
+  oracle_id 400b2e17-ee48-4e22-a8a6-a607c215d1a2
+  cost {1}{W}
+  type Sorcery — Lesson
+  choose one {
+    mode: choose nonland card name; ban chosen name until your next turn opponents late
+    mode: detain spelled target nonland permanent
+  }
+}

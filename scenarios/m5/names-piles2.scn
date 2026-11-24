@@ -1,0 +1,478 @@
+# What the first piles and card-name work left: a number chosen as a
+# permanent enters and read by a filter ("equal to the chosen number"), a
+# chosen name banned until your next turn (CR 201.3, 611.2b), searches
+# that make the searched player draw or create tokens for the cards
+# exiled from their hand, more kinds of card name, and discards of the
+# chosen name.
+
+# Talion: "with mana value, power, or toughness equal to the chosen
+# number" (`choose "N"` as it enters).
+
+scenario "Talion, the Kindly Lord: an opponent's spell of the chosen mana value" {
+  battlefield A: 2 "Island", 2 "Swamp"
+  battlefield B: "Mountain"
+  hand A: "Talion, the Kindly Lord"
+  hand B: "Lightning Bolt"
+  library A: "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Talion, the Kindly Lord"
+  turn 1 A: choose "1"
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert life A 17
+  assert hand A count 1
+}
+
+scenario "Talion, the Kindly Lord: a creature spell of the chosen power" {
+  battlefield A: 2 "Island", 2 "Swamp"
+  battlefield B: 4 "Mountain"
+  hand A: "Talion, the Kindly Lord"
+  hand B: "Hill Giant"
+  library A: "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Talion, the Kindly Lord"
+  turn 1 A: choose "3"
+  turn 2 B: cast "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert hand A count 1
+}
+
+scenario "Talion, the Kindly Lord: another number, and its controller's own spells, don't trigger it" {
+  battlefield A: 2 "Island", 2 "Swamp", "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Talion, the Kindly Lord", "Lightning Bolt"
+  hand B: "Lightning Bolt"
+  library A: "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Talion, the Kindly Lord"
+  turn 1 A: choose "2"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert life A 17
+  assert hand A count 0
+}
+
+# Sanctum Prelate: "Choose a number." (any; `choose "N"`).
+
+scenario "Sanctum Prelate: noncreature spells of the chosen mana value can't be cast, by anyone" {
+  battlefield A: 3 "Plains", "Mountain", "Forest"
+  battlefield B: "Mountain"
+  hand A: "Sanctum Prelate", "Lightning Bolt", "Llanowar Elves"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sanctum Prelate"
+  turn 1 A: choose "1"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: cast "Llanowar Elves"
+  illegal turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Llanowar Elves"
+  assert hand A contains "Lightning Bolt"
+  assert life A 20
+}
+
+scenario "Sanctum Prelate: other mana values are cast" {
+  battlefield A: 3 "Plains", "Mountain"
+  hand A: "Sanctum Prelate", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sanctum Prelate"
+  turn 1 A: choose "2"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+# A chosen name banned until your next turn.
+
+scenario "Conjurer's Ban: the chosen land can't be played until its caster's next turn" {
+  battlefield A: "Plains", "Swamp"
+  hand A: "Conjurer's Ban"
+  hand B: "Forest", "Mountain"
+  library A: "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Conjurer's Ban"
+  turn 1 A: choose "Forest"
+  illegal turn 2 B: play "Forest"
+  turn 2 B: play "Mountain"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+  assert hand B contains "Forest"
+  assert battlefield B contains "Mountain"
+}
+
+scenario "Conjurer's Ban: a spell with the chosen name, banned for its caster too, until their next turn" {
+  battlefield A: "Plains", "Swamp", "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Conjurer's Ban", "Lightning Bolt"
+  hand B: "Lightning Bolt"
+  library A: "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Conjurer's Ban"
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Lightning Bolt" targeting player B
+  illegal turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 3 B: cast "Lightning Bolt" targeting player A
+  run_to turn 3 postcombat_main
+  assert life A 17
+}
+
+scenario "Failure // Comply: Comply from the graveyard bans the name for the opponents only" {
+  battlefield A: "Plains", "Mountain"
+  battlefield B: "Mountain"
+  graveyard A: "Failure // Comply"
+  hand A: "Lightning Bolt"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Failure // Comply" from graveyard
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  illegal turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert life A 20
+  assert exile A contains "Failure // Comply"
+}
+
+scenario "Failure // Comply: Failure returns a spell to its owner's hand" {
+  battlefield A: 2 "Island"
+  battlefield B: 4 "Mountain"
+  hand A: "Failure // Comply"
+  hand B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Hill Giant"
+  turn 2 A: cast "Failure" targeting "Hill Giant" in response to "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert graveyard A contains "Failure // Comply"
+}
+
+scenario "Academic Probation: the opponents can't cast the chosen nonland name" {
+  battlefield A: "Plains", "Plains", "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Academic Probation", "Lightning Bolt"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Academic Probation" mode 1
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  illegal turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert life B 17
+}
+
+scenario "Academic Probation: the chosen permanent can't attack until your next turn" {
+  battlefield A: "Plains", "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Academic Probation"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Academic Probation" mode 2 targeting "Grizzly Bears"
+  illegal turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 end
+  assert life A 20
+}
+
+# The searched player draws, or creates tokens, for the cards exiled
+# from their hand.
+
+scenario "Unmoored Ego: the opponent draws a card for each card exiled from their hand" {
+  battlefield A: "Island", "Swamp", "Swamp"
+  hand A: "Unmoored Ego"
+  hand B: "Shock", "Shock", "Forest"
+  graveyard B: "Shock"
+  library B: "Shock", "Island", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Unmoored Ego" targeting player B
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert exile B contains 4 "Shock"
+  assert hand B count 3
+  assert hand B contains "Forest"
+  assert library B count 1
+}
+
+scenario "The Stone Brain: exiled to activate, at sorcery speed" {
+  battlefield A: "The Stone Brain", 2 "Island"
+  hand B: "Shock", "Forest"
+  library B: "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "The Stone Brain" targeting player B
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert exile A contains "The Stone Brain"
+  assert exile B contains "Shock"
+  assert hand B count 2
+}
+
+scenario "The Stone Brain: not with a spell on the stack" {
+  battlefield A: "The Stone Brain", 2 "Island"
+  start turn 1 A postcombat_main
+  illegal turn 1 A: activate "The Stone Brain" targeting player B
+  run_to turn 1 end
+}
+
+scenario "Necromentia: a Zombie for each card exiled from the hand" {
+  battlefield A: 3 "Swamp"
+  hand A: "Necromentia"
+  hand B: "Shock", "Shock", "Forest"
+  library B: "Shock", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Necromentia" targeting player B
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert exile B contains 3 "Shock"
+  assert battlefield B count 2
+  assert battlefield B contains "Zombie"
+  assert battlefield A lacks "Zombie"
+}
+
+scenario "Necromentia: not a basic land's name" {
+  battlefield A: 3 "Swamp"
+  hand A: "Necromentia"
+  hand B: "Forest", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Necromentia" targeting player B
+  illegal turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Infinite Obliteration: a creature card name, every copy" {
+  battlefield A: 3 "Swamp"
+  hand A: "Infinite Obliteration"
+  hand B: "Grizzly Bears", "Shock"
+  graveyard B: "Grizzly Bears"
+  library B: "Grizzly Bears", "Island", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Infinite Obliteration" targeting player B
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains 3 "Grizzly Bears"
+  assert hand B contains "Shock"
+  assert library B contains "Hill Giant"
+}
+
+scenario "Infinite Obliteration: not a noncreature name" {
+  battlefield A: 3 "Swamp"
+  hand A: "Infinite Obliteration"
+  hand B: "Grizzly Bears", "Shock", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Infinite Obliteration" targeting player B
+  illegal turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Shock"
+}
+
+# Discards of the chosen name.
+
+scenario "Brain Pry: one card with the chosen name is discarded" {
+  battlefield A: 2 "Swamp"
+  hand A: "Brain Pry"
+  hand B: "Shock", "Shock", "Lightning Bolt"
+  library A: "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brain Pry" targeting player B
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert graveyard B count 1
+  assert hand B contains 1 "Shock"
+  assert hand A count 0
+}
+
+scenario "Brain Pry: none with that name, and its caster draws" {
+  battlefield A: 2 "Swamp"
+  hand A: "Brain Pry"
+  hand B: "Lightning Bolt"
+  graveyard B: "Shock"
+  library A: "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brain Pry" targeting player B
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert hand A contains "Plains"
+}
+
+scenario "Cabal Therapist: sacrifice a creature, and every card with the chosen name is discarded" {
+  battlefield A: "Cabal Therapist", "Grizzly Bears"
+  hand B: "Shock", "Shock", "Lightning Bolt"
+  start turn 1 A
+  turn 1 A: accept "Cabal Therapist"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: trigger "Cabal Therapist" targeting player B
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B count 2
+  assert hand B contains "Lightning Bolt"
+}
+
+scenario "Cabal Therapist: no sacrifice, no discard" {
+  battlefield A: "Cabal Therapist", "Grizzly Bears"
+  hand B: "Shock", "Lightning Bolt"
+  start turn 1 A
+  turn 1 A: decline "Cabal Therapist"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert hand B count 2
+}
+
+# Piles with other sources and destinations (CR 700.3). The separator
+# puts cards in the first pile with `choose "X"` and ends it with `choose
+# done`; the chooser takes `choose "1"` or `"2"`.
+
+scenario "Truth or Tale: a card from the opponent's chosen pile, the rest on the bottom" {
+  battlefield A: 2 "Island"
+  hand A: "Truth or Tale"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Truth or Tale"
+  turn 1 A: choose "Shock"
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 A: choose done
+  turn 1 B: choose "1"
+  turn 1 A: choose "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Lightning Bolt"
+  assert hand A count 1
+  assert library A count 5
+  assert graveyard A count 1
+}
+
+scenario "Truth or Tale: an empty pile chosen gives no card" {
+  battlefield A: 2 "Island"
+  hand A: "Truth or Tale"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Truth or Tale"
+  turn 1 A: choose done
+  turn 1 B: choose "1"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A count 6
+}
+
+scenario "Boneyard Parley: the pile of its caster's choice onto the battlefield, the rest to their owners' graveyards" {
+  battlefield A: 4 "Swamp", 3 "Plains"
+  hand A: "Boneyard Parley"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  graveyard B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Boneyard Parley" targeting "Grizzly Bears", "Hill Giant", "Serra Angel"
+  turn 1 B: choose "Serra Angel"
+  turn 1 B: choose done
+  turn 1 A: choose "1"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard B count 0
+}
+
+scenario "Boneyard Parley: the other pile, and the opponent's card goes home" {
+  battlefield A: 4 "Swamp", 3 "Plains"
+  hand A: "Boneyard Parley"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  graveyard B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Boneyard Parley" targeting "Grizzly Bears", "Hill Giant", "Serra Angel"
+  turn 1 B: choose "Serra Angel"
+  turn 1 B: choose done
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert graveyard B contains "Serra Angel"
+  assert exile A count 0
+}
+
+scenario "Hostile Negotiations: two piles of three, the opponent chooses one for the hand" {
+  battlefield A: 4 "Swamp"
+  hand A: "Hostile Negotiations"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hostile Negotiations"
+  turn 1 A: choose "1"
+  turn 1 B: choose "2"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Murder"
+  assert hand A contains "Divination"
+  assert hand A contains "Plains"
+  assert hand A count 3
+  assert graveyard A contains "Shock"
+  assert graveyard A contains "Giant Growth"
+  assert library A count 1
+  assert exile A count 0
+  assert life A 17
+}
+
+scenario "Brilliant Ultimatum: lands and spells from the chosen pile, free" {
+  battlefield A: 2 "Plains", 3 "Island", 2 "Swamp"
+  hand A: "Brilliant Ultimatum"
+  library A: "Grizzly Bears", "Divination", "Forest", "Hill Giant", "Shock", "Island", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brilliant Ultimatum"
+  turn 1 B: choose "Grizzly Bears"
+  turn 1 B: choose "Divination"
+  turn 1 B: choose "Forest"
+  turn 1 B: choose done
+  turn 1 A: choose "1"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Forest"
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+  assert exile A contains "Hill Giant"
+  assert exile A contains "Shock"
+}
+
+scenario "Brilliant Ultimatum: an empty pile chosen, and the other pile stays in exile" {
+  battlefield A: 2 "Plains", 3 "Island", 2 "Swamp"
+  hand A: "Brilliant Ultimatum"
+  library A: "Grizzly Bears", "Divination", "Forest", "Hill Giant", "Shock", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brilliant Ultimatum"
+  turn 1 B: choose done
+  turn 1 A: choose "1"
+  run_to turn 1 postcombat_main
+  assert exile A count 5
+  assert battlefield A lacks "Grizzly Bears"
+  assert hand A count 0
+}
+
+scenario "Thought Hemorrhage: 3 damage for each revealed card with the chosen name, then every copy exiled" {
+  battlefield A: 2 "Swamp", 2 "Mountain"
+  hand A: "Thought Hemorrhage"
+  hand B: "Shock", "Shock", "Lightning Bolt"
+  graveyard B: "Shock"
+  library B: "Shock", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Thought Hemorrhage" targeting player B
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert exile B contains 4 "Shock"
+  assert hand B contains "Lightning Bolt"
+  assert life A 20
+}
+
+scenario "Thought Hemorrhage: none in hand, no damage, still exiled from the other zones" {
+  battlefield A: 2 "Swamp", 2 "Mountain"
+  hand A: "Thought Hemorrhage"
+  hand B: "Lightning Bolt"
+  graveyard B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Thought Hemorrhage" targeting player B
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert exile B contains "Shock"
+}

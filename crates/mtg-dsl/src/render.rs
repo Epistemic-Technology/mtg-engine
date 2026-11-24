@@ -1192,6 +1192,19 @@ fn spells_subject(f: &Filter, card: &Card) -> String {
     capitalize(&format!("{} spells", noun.trim()))
 }
 
+/// " with mana value equal to the chosen number" (`StatusQuals::equal_chosen`).
+fn equal_chosen_phrase(e: Option<mtg_core::card::EqualChosen>) -> &'static str {
+    match e {
+        Some(mtg_core::card::EqualChosen::ManaValue) => {
+            " with mana value equal to the chosen number"
+        }
+        Some(mtg_core::card::EqualChosen::ManaValuePowerToughness) => {
+            " with mana value, power, or toughness equal to the chosen number"
+        }
+        None => "",
+    }
+}
+
 /// "red or green", "artifact, creature, or land".
 fn or_list(items: &[String]) -> String {
     match items {
@@ -3460,6 +3473,8 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if let Some(b) = f.status.bound {
         let _ = write!(s, " with {}", bound_phrase(b, card));
     }
+    // "with mana value, power, or toughness equal to the chosen number".
+    s.push_str(equal_chosen_phrase(f.status.equal_chosen));
     if let Some((cmp, n)) = f.status.pt_total {
         let _ = write!(s, " with total power and toughness {n}{}", cmp_words(cmp));
     }
@@ -3655,6 +3670,8 @@ fn of_chosen(c: OfChosen) -> &'static str {
         OfChosen::ColorOfChoice => " of the color of your choice",
         OfChosen::CreatureTypeOfChoice => " of the creature type of your choice",
         OfChosen::ChosenQuality => " with mana value of the chosen quality",
+        OfChosen::ThatName => " with that name",
+        OfChosen::ChosenName => " with the chosen name",
     }
 }
 
@@ -3883,6 +3900,11 @@ fn choice_noun(k: &ChoiceKind) -> String {
         ChoiceKind::LandType(lands) if lands.len() == 5 => "a basic land type".to_string(),
         ChoiceKind::Named(names) => or_list(names),
         ChoiceKind::Parity => "odd or even".to_string(),
+        // "As this creature enters, choose a number." (Sanctum Prelate).
+        ChoiceKind::Number {
+            min: 0,
+            max: u8::MAX,
+        } => "a number".to_string(),
         ChoiceKind::Number { min, max } => format!("a number between {min} and {max}"),
         ChoiceKind::CreatureTypeIn(types) => or_list(types),
         ChoiceKind::CardName {
@@ -3900,6 +3922,12 @@ fn choice_noun(k: &ChoiceKind) -> String {
             look: true,
         } => {
             format!("any {}card name", if *nonland { "nonland " } else { "" })
+        }
+        ChoiceKind::CardNameOf(mtg_core::card::NameKind::Creature) => {
+            "a creature card name".to_string()
+        }
+        ChoiceKind::CardNameOf(mtg_core::card::NameKind::NotBasicLand) => {
+            "a card name other than a basic land card name".to_string()
         }
         ChoiceKind::LandType(lands) => or_list(
             &lands
@@ -7223,8 +7251,43 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             separator,
             opponent_chooses: _,
             the_piles,
+            form,
         } => {
-            let n = count_words(*count, "one");
+            use mtg_core::card::PileForm;
+            // `piles exiled` counts nothing (the cards the resolution exiled).
+            let n = if *count == Num::N(0) {
+                String::new()
+            } else {
+                count_words(*count, "one")
+            };
+            match form {
+                PileForm::HandGraveyard => {}
+                // Truth or Tale.
+                PileForm::OneToHandRestBottom => {
+                    return Clause::imperative(format!(
+                        "{} the top {n} cards of your library and separate them into two piles. An opponent chooses one of those piles. Put a card from the chosen pile into your hand, then put all other cards revealed this way on the bottom of your library in any order",
+                        if *reveal { "reveal" } else { "look at" },
+                    ));
+                }
+                // Boneyard Parley, after the exile.
+                PileForm::ExiledToBattlefield => {
+                    return Clause::imperative(
+                        "an opponent separates those cards into two piles. Put all cards from the pile of your choice onto the battlefield under your control and the rest into their owners' graveyards".to_string(),
+                    );
+                }
+                // Hostile Negotiations.
+                PileForm::TwoFaceDown => {
+                    return Clause::imperative(format!(
+                        "exile the top {n} cards of your library in a face-down pile, then exile the top {n} cards of your library in another face-down pile. Look at the cards in each pile, then turn a pile of your choice face up. An opponent chooses one of those piles. Put that pile into your hand and the other into your graveyard"
+                    ));
+                }
+                // Brilliant Ultimatum.
+                PileForm::PlayFree => {
+                    return Clause::imperative(format!(
+                        "exile the top {n} cards of your library. An opponent separates those cards into two piles. You may play lands and cast spells from one of those piles. If you cast a spell this way, you cast it without paying its mana cost"
+                    ));
+                }
+            }
             let into = if *face_down {
                 "a face-down pile and a face-up pile"
             } else {
@@ -8550,7 +8613,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         // "Search target opponent's graveyard, hand, and library for up to
         // four cards with that name and exile them. Then that player
         // shuffles."
-        Effect::ExileChosenName { who, limit } => {
+        Effect::ExileChosenName {
+            who,
+            limit,
+            per_hand,
+        } => {
             let s = ctx.subj(*who);
             let how = match limit {
                 mtg_core::card::NameSearch::All => "all".to_string(),
@@ -8559,10 +8626,44 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     format!("up to {}", number_word(u32::from(*n)))
                 }
             };
+            // "That player shuffles, then draws a card for each card
+            // exiled from their hand this way."
+            let then = match per_hand {
+                None => "Then that player shuffles".to_string(),
+                Some(crate::ast::PerHand::Draw) => "That player shuffles, then draws a card for each card exiled from their hand this way".to_string(),
+                Some(crate::ast::PerHand::Create(token)) => format!(
+                    "That player shuffles, then creates {} for each card exiled from their hand this way",
+                    token_description(token, Num::N(1), false, false, ctx)
+                ),
+            };
             Clause::imperative(format!(
-                "search {} graveyard, hand, and library for {how} cards with that name and exile them. Then that player shuffles",
+                "search {} graveyard, hand, and library for {how} cards with that name and exile them. {then}",
                 possessive(&s)
             ))
+        }
+        // "Until your next turn, your opponents can't cast spells with the
+        // chosen name."
+        Effect::BanChosenName {
+            opponents,
+            lands,
+            late,
+        } => {
+            let who = match opponents {
+                None => "",
+                Some(true) => "your opponents",
+                Some(false) => "opponents",
+            };
+            let ban = match (opponents, lands) {
+                (None, false) => "spells with the chosen name can't be cast".to_string(),
+                (None, true) => "spells with the chosen name can't be cast and lands with the chosen name can't be played".to_string(),
+                (Some(_), false) => format!("{who} can't cast spells with the chosen name"),
+                (Some(_), true) => format!("{who} can't cast spells or play lands with the chosen name"),
+            };
+            Clause::imperative(if *late {
+                format!("{ban} until your next turn")
+            } else {
+                format!("until your next turn, {ban}")
+            })
         }
         Effect::FaceDownSpellsLess(n) => Clause::imperative(format!(
             "face-down spells you cast this turn cost {{{n}}} less to cast"
@@ -8608,9 +8709,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 "if {o} would leave the battlefield, exile {it} instead of putting {it} anywhere else"
             ))
         }
-        Effect::Detain { what } => {
+        Effect::Detain { what, spelled } => {
             let o = ctx.obj(*what);
-            Clause::imperative(format!("detain {o}"))
+            Clause::imperative(if *spelled {
+                format!(
+                    "choose {o}. Until your next turn, it can't attack or block, and its activated abilities can't be activated"
+                )
+            } else {
+                format!("detain {o}")
+            })
         }
         Effect::Tap { to } => {
             let o = ctx.obj_list_tap(to);
@@ -10149,6 +10256,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             who,
             filter,
             all_cards,
+            one,
         } => {
             let whose = if who.is_none_or(|w| w == Recipient::You) {
                 "your"
@@ -10156,6 +10264,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 "their"
             };
             let what = match (filter, all_cards) {
+                // "discards a card with that name".
+                (Some(f), _) if *one => with_article(&cards_phrase(f, ctx.card, false)),
                 (Some(f), _) => format!("all {}", cards_phrase(f, ctx.card, true)),
                 (None, true) => format!("all the cards in {whose} hand"),
                 (None, false) => format!("{whose} hand"),
@@ -10887,7 +10997,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ChoiceKind::Parity => "odd or even".to_string(),
                 ChoiceKind::Number { .. } => "the number of your choice".to_string(),
                 ChoiceKind::CreatureTypeIn(types) => or_list(types),
-                ChoiceKind::CardName { .. } => "the card name of your choice".to_string(),
+                ChoiceKind::CardName { .. } | ChoiceKind::CardNameOf(_) => {
+                    "the card name of your choice".to_string()
+                }
                 // Imagecrafter: "Choose a creature type other than Wall.
                 // Target creature becomes that type until end of turn."
                 ChoiceKind::CreatureType { except: Some(t) } => {
@@ -11763,6 +11875,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     filter_a(filter, ctx.card)
                 ),
             )
+        }
+        Effect::IfTheyCant(inner) => {
+            let body = sentences(inner, ctx);
+            Clause::imperative(format!(
+                "if they can't, {}",
+                lowercase_first(body.trim_end_matches('.'))
+            ))
         }
         Effect::ForEachCouldnt { opponent, inner } => {
             let body = sentences(inner, ctx);
@@ -13888,19 +14007,23 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             };
             let mut base = filter.clone();
             let targeting = base.targeting.take();
+            // "a spell with mana value, power, or toughness equal to the
+            // chosen number" (Talion): after the noun.
+            let eq = equal_chosen_phrase(base.status.equal_chosen.take());
             // Heroic: "a spell that targets this creature".
-            let that = targeting.map_or(String::new(), |t| {
-                format!(
-                    " that targets {}",
-                    crate::format::targeting(&t, |g| {
-                        if g.relation == Relation::This {
-                            this_ref(ctx.card)
-                        } else {
-                            filter_phrase(g, ctx.card, false)
-                        }
-                    })
-                )
-            });
+            let that = eq.to_string()
+                + &targeting.map_or(String::new(), |t| {
+                    format!(
+                        " that targets {}",
+                        crate::format::targeting(&t, |g| {
+                            if g.relation == Relation::This {
+                                this_ref(ctx.card)
+                            } else {
+                                filter_phrase(g, ctx.card, false)
+                            }
+                        })
+                    )
+                });
             if base == Filter::default() {
                 return format!("whenever {who} a spell{that}");
             }
@@ -19605,6 +19728,17 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 ""
             }
         ),
+        // "Noncreature spells with mana value equal to the chosen number
+        // can't be cast." (CR 601.2).
+        Ability::CantBeCast(filter) => {
+            let mut g = filter.clone();
+            let eq = g.status.equal_chosen.take();
+            format!(
+                "{}{} can't be cast.",
+                spells_subject(&g, card),
+                equal_chosen_phrase(eq)
+            )
+        }
         // "Activated abilities of artifacts you control cost {1} less to
         // activate."
         Ability::ActivationCost {
@@ -19664,6 +19798,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             use mtg_core::card::PlayerStaticKind as K;
             let s = match kind {
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
+                K::CantCast { .. } => unreachable!("Ability::CantBeCast"),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
                 K::EnchantedUntargetable(ban) => format!(
