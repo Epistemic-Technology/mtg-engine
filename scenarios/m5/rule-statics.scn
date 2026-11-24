@@ -388,3 +388,32 @@ scenario "Karlov Watchdog: three attackers get +1/+1" {
   run_to turn 1 postcombat_main
   assert life B 9
 }
+
+scenario "Unable to Scream: the enchanted face-down creature can't be turned face up" {
+  battlefield A: "Island"
+  battlefield B: 6 "Mountain"
+  hand A: "Unable to Scream"
+  hand B: "Atarka Efreet"
+  start turn 2 B
+  turn 2 B: cast "Atarka Efreet" face_down
+  turn 3 A: cast "Unable to Scream" targeting "face-down creature"
+  illegal turn 4 B: unmorph "Atarka Efreet"
+  run_to turn 4 postcombat_main
+  assert power "face-down creature" 0
+  assert toughness "face-down creature" 2
+  assert is "face-down creature" artifact
+}
+
+scenario "Unable to Scream: a face-up creature loses its abilities and is a 0/2 Toy artifact" {
+  battlefield A: "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Unable to Scream"
+  turn 1 A: cast "Unable to Scream" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert power "Serra Angel" 0
+  assert toughness "Serra Angel" 2
+  assert has not "Serra Angel" flying
+  assert is "Serra Angel" Toy
+  assert is "Serra Angel" artifact
+  assert is "Serra Angel" creature
+}
