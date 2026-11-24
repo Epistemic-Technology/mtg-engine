@@ -2251,7 +2251,12 @@ impl Fmt {
                 format!("change target of {}", self.recipient(*what, t))
             }
             Effect::NewTargets { what } => {
-                format!("choose new targets for {}", self.recipient(*what, t))
+                // A cast trigger's spell, as written (`that spell`).
+                if *what == Recipient::TriggeringObject {
+                    "choose new targets for that spell".to_string()
+                } else {
+                    format!("choose new targets for {}", self.recipient(*what, t))
+                }
             }
             Effect::CounterUnlessPays { to, mana, x, dest } => format!(
                 "counter {} unless its controller pays {mana}{}{}",
