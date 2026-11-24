@@ -1,0 +1,7 @@
+card "Random Encounter" {
+  oracle_id 324493fc-a205-4177-aa94-cf4672844c81
+  cost {4}{R}{R}
+  type Sorcery
+  spell: shuffle library then mill 4 cards; put all creature card from among milled this way cards onto battlefield chosen; they gain haste indefinitely; delayed them: at beginning of the next end step, return those creatures to owner's hand
+  flashback {6}{R}{R}
+}

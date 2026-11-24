@@ -11422,7 +11422,22 @@ impl P {
                         // counter chosen`.
                         let tapped = self.eat_word("tapped");
                         let counter = self.one_counter()?;
-                        (ChooseAct::GraveyardToBattlefield { tapped, counter }, f)
+                        // `with total mana value 4 or less` (Lively Dirge).
+                        let total_mv = if self.eat_words(&["with", "total", "mana", "value"]) {
+                            let n = self.number()?;
+                            self.expect_words(&["or", "less"])?;
+                            Some(u8::try_from(n).unwrap_or(u8::MAX))
+                        } else {
+                            None
+                        };
+                        (
+                            ChooseAct::GraveyardToBattlefield {
+                                tapped,
+                                counter,
+                                total_mv,
+                            },
+                            f,
+                        )
                     } else if self.eat_words(&["put", "into"]) {
                         // `return 1 creature card put into your graveyard
                         // this way to battlefield under your control chosen`.
@@ -11589,6 +11604,16 @@ impl P {
             self.expect_word("chosen")?;
             act
         };
+        // "Put each creature card milled this way onto the battlefield.
+        // They gain haste.": the cards put, as a group (CR 608.2c).
+        if matches!(
+            act,
+            ChooseAct::MilledToBattlefield
+                | ChooseAct::HandToBattlefield { .. }
+                | ChooseAct::ThisWayToBattlefield { .. }
+        ) {
+            self.group_named = true;
+        }
         Ok(Effect::ChooseAct {
             act,
             count,
@@ -12661,8 +12686,12 @@ impl P {
                 library: false,
                 have: false,
             }),
+            // `shuffle library then mill 4 cards`: "Shuffle your library,
+            // then mill four cards."
             "shuffle"
-                if self.at_word("library") && !matches!(self.peek_at(1), Some(Tok::Word(_))) =>
+                if self.at_word("library")
+                    && (!matches!(self.peek_at(1), Some(Tok::Word(_)))
+                        || self.word_at(1).as_deref() == Some("then")) =>
             {
                 self.pos += 1;
                 Ok(Effect::Shuffle {
@@ -13265,6 +13294,15 @@ impl P {
                     self.expect_word("card")?;
                     Some(f)
                 };
+                // `with total mana value 6 or less` (Michelangelo's
+                // Technique).
+                let total_mv = if self.eat_words(&["with", "total", "mana", "value"]) {
+                    let n = self.num()?;
+                    self.expect_words(&["or", "less"])?;
+                    Some(n)
+                } else {
+                    None
+                };
                 let also = if filter.is_some() && self.eat_word("and") {
                     let f = self.filter()?;
                     self.expect_word("card")?;
@@ -13373,6 +13411,7 @@ impl P {
                     revealing,
                     take,
                     take_num,
+                    total_mv,
                     also,
                     random,
                     top,
@@ -16059,6 +16098,11 @@ impl P {
                     creature,
                 ));
             }
+        }
+        // "return those creatures to their owner's hand" inside a delayed
+        // trigger about a group (`delayed them:`): each in turn.
+        if self.in_delayed && self.group_named && self.eat_words(&["those", "creatures"]) {
+            return Ok(Recipient::SameCreatures);
         }
         // `them`, `those creatures`: the objects a group named earlier in
         // the ability denoted (CR 608.2c). Inside a delayed trigger about

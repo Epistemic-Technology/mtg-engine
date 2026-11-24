@@ -2445,6 +2445,7 @@ impl Decompiler<'_> {
                 rest_graveyard,
                 take,
                 take_num,
+                total_mv,
                 also,
                 random,
                 top,
@@ -2455,6 +2456,7 @@ impl Decompiler<'_> {
                 until,
             } => Effect::Dig {
                 take_num: *take_num,
+                total_mv: *total_mv,
                 until: *until,
                 shuffle: *shuffle,
                 at_random: *at_random,

@@ -2063,7 +2063,20 @@ impl GameState {
         let p = ctx.controller;
         let mut done = 0;
         let mut picked: Vec<(PlayerId, ObjId)> = Vec::new();
+        // "with total mana value 4 or less": what is left of the bound.
+        let mut budget = match act {
+            ChooseAct::GraveyardToBattlefield {
+                total_mv: Some(t), ..
+            } => Some(u32::from(t)),
+            _ => None,
+        };
         while done < n && !cands.is_empty() {
+            if let Some(b) = budget {
+                cands.retain(|id| self.pool.get(self.objects[*id].def).mana_cost.mana_value() <= b);
+                if cands.is_empty() {
+                    break;
+                }
+            }
             let id = if matches!(
                 act,
                 ChooseAct::ReturnRandomFromGraveyard | ChooseAct::ExileRandomFromGraveyard
@@ -2093,6 +2106,9 @@ impl GameState {
                 }
             };
             cands.retain(|c| *c != id);
+            if let Some(b) = budget.as_mut() {
+                *b = b.saturating_sub(self.pool.get(self.objects[id].def).mana_cost.mana_value());
+            }
             match act {
                 ChooseAct::Choose | ChooseAct::ExiledWith => {
                     ctx.created = Some(id);
@@ -2185,7 +2201,9 @@ impl GameState {
                 | ChooseAct::HandToBattlefield { .. }
                 | ChooseAct::ThisWayToBattlefield { .. } => {
                     let (tapped, counter) = match act {
-                        ChooseAct::GraveyardToBattlefield { tapped, counter }
+                        ChooseAct::GraveyardToBattlefield {
+                            tapped, counter, ..
+                        }
                         | ChooseAct::HandToBattlefield {
                             tapped, counter, ..
                         } => (tapped, counter),
@@ -2229,7 +2247,9 @@ impl GameState {
         }
         if matches!(
             act,
-            ChooseAct::HandToBattlefield { .. } | ChooseAct::ThisWayToBattlefield { .. }
+            ChooseAct::HandToBattlefield { .. }
+                | ChooseAct::ThisWayToBattlefield { .. }
+                | ChooseAct::MilledToBattlefield
         ) && let Some(log) = self.this_way.as_mut()
         {
             log.group = picked.iter().map(|(_, id)| *id).collect();
@@ -17841,6 +17861,7 @@ impl GameState {
                 rest_graveyard,
                 take,
                 take_num,
+                total_mv,
                 also,
                 random,
                 top: back_on_top,
@@ -17862,18 +17883,33 @@ impl GameState {
                 // value X or less" (Genesis Wave): the spell's X, filled in
                 // too (unfilled, the mana value wouldn't restrict).
                 let x = if counted { n } else { ctx.x as usize };
-                let fill_x = |f: Option<&crate::card::ObjFilter>| {
-                    f.filter(|f| f.status.mana_value_x).map(|f| {
-                        let mut g = f.clone();
-                        g.status.mana_value_x = false;
-                        g.mana_value = g
-                            .mana_value
-                            .map(|(cmp, _)| (cmp, u8::try_from(x).unwrap_or(u8::MAX)));
-                        g
-                    })
+                // "with mana value less than or equal to the number of lands
+                // you control" (Loot, Exuberant Explorer): the count as the
+                // dig happens.
+                let bound_of = |f: &Option<crate::card::ObjFilter>| {
+                    f.as_ref()
+                        .and_then(|f| f.status.bound)
+                        .map(|b| self.eval_num(b.n, ctx))
                 };
-                let filled = fill_x(filter.as_ref()).map(Some);
-                let filled_also = fill_x(also.as_ref()).map(Some);
+                let (bound, bound_also) = (bound_of(filter), bound_of(also));
+                let fill_x = |f: Option<&crate::card::ObjFilter>, bound: Option<u32>| {
+                    f.filter(|f| f.status.mana_value_x || bound.is_some())
+                        .map(|f| {
+                            let mut g = f.clone();
+                            if g.status.mana_value_x {
+                                g.status.mana_value_x = false;
+                                g.mana_value = g
+                                    .mana_value
+                                    .map(|(cmp, _)| (cmp, u8::try_from(x).unwrap_or(u8::MAX)));
+                            }
+                            if let Some(v) = bound {
+                                GameState::fill_bound(&mut g, v);
+                            }
+                            g
+                        })
+                };
+                let filled = fill_x(filter.as_ref(), bound).map(Some);
+                let filled_also = fill_x(also.as_ref(), bound_also).map(Some);
                 let filter = filled.as_ref().unwrap_or(filter);
                 let also = filled_also.as_ref().unwrap_or(also);
                 let matches = |s: &Self, f: Option<&crate::card::ObjFilter>, id: ObjId| {
@@ -17923,11 +17959,21 @@ impl GameState {
                             .map(|f| (f, *optional))
                             .chain(also.as_ref().map(|f| (Some(f), true)))
                             .collect();
+                    // "with total mana value 6 or less": only a card that
+                    // keeps the total within the bound.
+                    let bound = total_mv.map(|t| self.eval_num(t, ctx));
+                    let mv =
+                        |s: &Self, id: ObjId| s.pool.get(s.objects[id].def).mana_cost.mana_value();
                     for (f, may) in picks {
+                        let used: u32 = taken.iter().map(|id| mv(self, *id)).sum();
                         let mut options: Vec<Choice> = top
                             .iter()
                             .copied()
-                            .filter(|id| !taken.contains(id) && matches(self, f, *id))
+                            .filter(|id| {
+                                !taken.contains(id)
+                                    && matches(self, f, *id)
+                                    && bound.is_none_or(|b| used + mv(self, *id) <= b)
+                            })
                             .map(|id| Choice::Target(Target::Object(id)))
                             .collect();
                         if options.is_empty() {

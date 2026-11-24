@@ -437,6 +437,7 @@ impl Fmt {
             Recipient::GranterIt => "granter as it".to_string(),
             Recipient::GranterController => "controller of granter".to_string(),
             Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
+            Recipient::SameCreatures => "those creatures".to_string(),
             Recipient::EachExiledThisWay(_, _, false) => "each card exiled this way".to_string(),
             Recipient::EachExiledThisWay(_, _, true) => {
                 "each creature card exiled this way".to_string()
@@ -1665,6 +1666,7 @@ impl Fmt {
                 revealing,
                 take,
                 take_num,
+                total_mv,
                 also,
                 random,
                 then,
@@ -1707,6 +1709,9 @@ impl Fmt {
                         let _ = write!(s, " {} card", filter(f));
                     }
                     None => s.push_str(" card"),
+                }
+                if let Some(t) = total_mv {
+                    let _ = write!(s, " with total mana value {} or less", num(*t));
                 }
                 if let Some(a) = also {
                     let _ = write!(s, " and {} card", filter(a));
@@ -3986,12 +3991,19 @@ impl Fmt {
                     ChooseAct::DiscardedToBattlefield => format!(
                         "put {n} {f} {cs} discarded this way onto battlefield tapped chosen"
                     ),
-                    ChooseAct::GraveyardToBattlefield { tapped, counter: c } => format!(
-                        "return {n} {f} {cs} from your graveyard to battlefield{}{} chosen",
+                    ChooseAct::GraveyardToBattlefield {
+                        tapped,
+                        counter: c,
+                        total_mv,
+                    } => format!(
+                        "return {n} {f} {cs} from your graveyard to battlefield{}{}{} chosen",
                         if *tapped { " tapped" } else { "" },
                         c.map_or_else(String::new, |k| format!(
                             " with 1 {}",
                             counter(k, Num::N(1))
+                        )),
+                        total_mv.map_or_else(String::new, |t| format!(
+                            " with total mana value {t} or less"
                         ))
                     ),
                     ChooseAct::HandToBattlefield {

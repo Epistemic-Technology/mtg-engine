@@ -5040,6 +5040,12 @@ pub enum Recipient {
     /// (`SameTokens`), printed "them" ("Exile them at the beginning of the
     /// next end step").
     SameThem,
+    /// `those creatures` inside a delayed trigger about a group the
+    /// resolution put onto the battlefield (`delayed them:`): each in turn
+    /// (the core `SameObject`), printed "those creatures" ("At the
+    /// beginning of the next end step, return those creatures to their
+    /// owner's hand.", Random Encounter).
+    SameCreatures,
     /// `them` after creating tokens: `those tokens` printed "them" ("Put
     /// X +1/+1 counters on each of them").
     CreatedThem,
@@ -6642,6 +6648,11 @@ pub enum Effect {
         /// `take X card`: exactly that many, a number expression ("Put X
         /// cards from among them into your hand", Stargaze); `take` unused.
         take_num: Option<Num>,
+        /// `take 2 creature card with total mana value 6 or less`: the
+        /// cards taken have printed mana values adding up to at most this
+        /// ("Put up to two creature cards with total mana value 6 or less
+        /// from among them onto the battlefield and the rest ...").
+        total_mv: Option<Num>,
         /// `take creature card and land card`: "a creature card and/or a
         /// land card".
         also: Option<Filter>,

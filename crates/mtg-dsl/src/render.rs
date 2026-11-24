@@ -2466,6 +2466,7 @@ impl<'a> Ctx<'a> {
                 )
             }
             Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
+            Recipient::SameCreatures => "those creatures".to_string(),
             Recipient::EachExiledThisWay(_, _, false) => "each card exiled this way".to_string(),
             Recipient::EachExiledThisWay(_, _, true) => {
                 "each creature card exiled this way".to_string()
@@ -3001,6 +3002,7 @@ impl<'a> Ctx<'a> {
                 | Recipient::SameCards
                 | Recipient::SameExiledCards
                 | Recipient::SameThem
+                | Recipient::SameCreatures
                 | Recipient::Those(_)
         )
     }
@@ -7845,6 +7847,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Shuffle {
             who, have: true, ..
         } => Clause::imperative(format!("have {} shuffle", ctx.obj(*who))),
+        // "Shuffle your library, then mill four cards." (Random
+        // Encounter).
+        Effect::Shuffle {
+            who: Recipient::You,
+            library: true,
+            ..
+        } => Clause::imperative("shuffle your library".to_string()),
         Effect::Shuffle { who, library, .. } => {
             let subject = ctx.subj(*who);
             let v = ctx.verb(*who, "shuffles", "shuffle");
@@ -8498,6 +8507,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             revealing,
             take,
             take_num,
+            total_mv,
             also,
             random,
             then,
@@ -8631,6 +8641,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                         Some((a, b)) => format!("{} cards{b}", a.replace(" or ", " and/or ")),
                         None => plural,
                     };
+                    // "with total mana value 6 or less".
+                    let kind = match total_mv {
+                        Some(t) => format!("{kind} with total mana value {} or less", digits(*t)),
+                        None => kind,
+                    };
                     if *take == crate::ast::ANY_NUMBER {
                         format!("any number of {kind}")
                     } else {
@@ -8689,6 +8704,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 } else {
                     "onto the battlefield"
                 };
+                // "You may reveal a creature card ... from among them and
+                // put it onto the battlefield. Put the rest ..." (Loot,
+                // Exuberant Explorer).
+                if *revealing && *optional && !*shuffle && !*then {
+                    return Clause::imperative(format!(
+                        "{head}. You may reveal {w} from among them and put {it} {field}. Put {}",
+                        rest("the rest")
+                    ));
+                }
                 // "Put any number of land cards from among them onto the
                 // battlefield tapped, then shuffle." (`reword`: "You may put
                 // ... . Then shuffle.").
@@ -8717,8 +8741,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
                 // not optional); "Put a random creature card ... onto the
                 // battlefield. Put the rest ...".
+                // "... with total mana value 6 or less from among them onto
+                // the battlefield and the rest ..." (one sentence).
                 let join = if *shuffle {
                     if *reword { ". Put" } else { " and" }
+                } else if total_mv.is_some() {
+                    " and"
                 } else if *optional || *at_random {
                     ". Put"
                 } else {
@@ -9508,6 +9536,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     Recipient::Targets(..)
                         | Recipient::ThoseTargets(..)
                         | Recipient::ChosenTargets(..)
+                        | Recipient::SameCreatures
                 );
             // "Return target creature card and all other cards with the
             // same name as that card from your graveyard to your hand."
@@ -11547,6 +11576,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             if *act == ChooseAct::Sacrifice {
                 ctx.source_mentioned = false;
             }
+            // "Put each creature card milled this way onto the
+            // battlefield." (Random Encounter).
+            if *act == ChooseAct::MilledToBattlefield
+                && *this_way
+                && *count == Num::N(crate::ast::ANY_NUMBER)
+                && !*up_to
+            {
+                return Clause::imperative(format!(
+                    "put each {} milled this way onto the battlefield",
+                    cards_phrase(filter, ctx.card, false)
+                ));
+            }
             let one = *count == Num::N(1) && !*up_to;
             let n = if *count == Num::N(crate::ast::ANY_NUMBER) && !*up_to {
                 "all".to_string()
@@ -11743,9 +11784,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     "put {} discarded this way onto the battlefield tapped under your control",
                     cards()
                 ),
-                ChooseAct::GraveyardToBattlefield { tapped, counter } => format!(
-                    "return {} from your graveyard to the battlefield{}{}",
+                ChooseAct::GraveyardToBattlefield {
+                    tapped,
+                    counter,
+                    total_mv,
+                } => format!(
+                    "return {}{} from your graveyard to the battlefield{}{}",
                     cards(),
+                    total_mv.map_or_else(String::new, |t| format!(
+                        " with total mana value {t} or less"
+                    )),
                     if *tapped { " tapped" } else { "" },
                     with_one_counter(*counter, one)
                 ),

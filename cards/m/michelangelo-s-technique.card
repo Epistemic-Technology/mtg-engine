@@ -1,0 +1,7 @@
+card "Michelangelo's Technique" {
+  oracle_id 42f12942-9ac1-497e-a8b7-9f66a5afd0ae
+  cost {4}{G}
+  type Sorcery
+  sneak {3}{G}
+  spell: dig 8 take 2 creature card with total mana value 6 or less may onto battlefield rest bottom random
+}

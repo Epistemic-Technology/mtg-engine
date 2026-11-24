@@ -1,6 +1,11 @@
 # Look, reveal and mill forms (CR 701.13, 701.20, 608.2c): a dig whose take
 # is a number expression (Stargaze), an impulse whose count a later
-# sentence changes (Burning Curiosity).
+# sentence changes (Burning Curiosity), cards taken or returned with a total
+# mana value bound (Michelangelo's Technique, Lively Dirge), a revealed card
+# put onto the battlefield under a filter compared with a count (Loot,
+# Exuberant Explorer), each creature card milled this way put onto the
+# battlefield and returned at the next end step (Random Encounter), and
+# "reveal that many cards" (Ojer Kaslem).
 
 scenario "dig take X: Stargaze for X=2 looks at four, takes two, mills two, loses 2 life" {
   battlefield A: 4 "Swamp"
@@ -52,4 +57,98 @@ scenario "impulse instead: Burning Curiosity blighted exiles three, playable nex
   turn 3 A: cast "Shock" targeting player B
   run_to turn 3 end
   assert life B 18
+}
+
+scenario "dig total: Michelangelo's Technique takes two creatures within total mana value 6" {
+  battlefield A: 5 "Forest"
+  hand A: "Michelangelo's Technique"
+  library A: "Hill Giant", "Serra Angel", "Grizzly Bears", "Wind Drake", "Forest", "Forest", "Forest", "Forest", "Plains"
+  turn 1 A: cast "Michelangelo's Technique"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A lacks "Serra Angel"
+  assert library A count 7
+}
+
+# After Serra Angel (5), Grizzly Bears (2) would make 7: it isn't offered
+# (offered, the unscripted pick would take it).
+scenario "dig total: Michelangelo's Technique after a 5 has room for nothing over 1" {
+  battlefield A: 5 "Forest"
+  hand A: "Michelangelo's Technique"
+  library A: "Serra Angel", "Grizzly Bears", "Wind Drake", "Forest", "Forest", "Forest", "Forest", "Plains", "Plains"
+  turn 1 A: cast "Michelangelo's Technique"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 1 end
+  assert battlefield A contains "Serra Angel"
+  assert battlefield A lacks "Grizzly Bears"
+  assert library A count 8
+}
+
+scenario "return total: Lively Dirge returns creature cards within total mana value 4" {
+  battlefield A: 4 "Swamp"
+  hand A: "Lively Dirge"
+  graveyard A: "Hill Giant", "Grizzly Bears", "Wind Drake"
+  turn 1 A: cast "Lively Dirge" mode 2
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Wind Drake"
+}
+
+scenario "return total: Lively Dirge can return a single 4" {
+  battlefield A: 4 "Swamp"
+  hand A: "Lively Dirge"
+  graveyard A: "Hill Giant", "Grizzly Bears"
+  turn 1 A: cast "Lively Dirge" mode 2
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+# Ghalta (8) is over the six lands: not offered, so the unscripted pick
+# is Serra Angel.
+scenario "dig count filter: Loot reveals a creature with mana value at most its lands" {
+  battlefield A: "Loot, Exuberant Explorer", 6 "Forest"
+  library A: "Ghalta, Stampede Tyrant", "Serra Angel", "Plains", "Plains", "Plains", "Plains", "Plains"
+  turn 1 A: activate "Loot, Exuberant Explorer"
+  run_to turn 1 end
+  assert battlefield A contains "Serra Angel"
+  assert battlefield A lacks "Ghalta, Stampede Tyrant"
+  assert library A count 6
+}
+
+scenario "milled this way to battlefield: Random Encounter puts the creatures in with haste, back to hand at end step" {
+  battlefield A: 6 "Mountain"
+  hand A: "Random Encounter"
+  library A: "Grizzly Bears", "Hill Giant", "Forest", "Plains"
+  turn 1 A: cast "Random Encounter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert has "Hill Giant" haste
+  assert graveyard A contains "Forest"
+  run_to turn 2 upkeep
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert battlefield A lacks "Hill Giant"
+}
+
+scenario "reveal that many: Ojer Kaslem puts a creature and a land from the cards revealed" {
+  battlefield A: "Ojer Kaslem, Deepest Growth"
+  library A: "Mountain", "Hill Giant", "Grizzly Bears", "Forest", "Plains", "Island", "Swamp", "Mountain"
+  start turn 3 A
+  turn 3 A: attack "Ojer Kaslem, Deepest Growth"
+  turn 3 combat_damage A: choose "Grizzly Bears"
+  turn 3 combat_damage A: choose "Plains"
+  run_to turn 3 postcombat_main
+  assert life B 14
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Plains"
+  assert battlefield A lacks "Hill Giant"
+  assert library A count 5
 }

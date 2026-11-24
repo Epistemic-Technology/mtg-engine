@@ -3363,6 +3363,7 @@ impl Compiler<'_> {
             | Recipient::SameTokens
             | Recipient::SameCards
             | Recipient::SameExiledCards
+            | Recipient::SameCreatures
             | Recipient::SameThem => CoreRecipient::SameObject,
             Recipient::CreatedTokens | Recipient::CreatedThem | Recipient::CreatedThose => {
                 CoreRecipient::CreatedTokens
@@ -5771,6 +5772,7 @@ impl Compiler<'_> {
                 rest_graveyard,
                 take,
                 take_num,
+                total_mv,
                 also,
                 random,
                 top,
@@ -5790,6 +5792,7 @@ impl Compiler<'_> {
                     rest_graveyard: *rest_graveyard,
                     take: *take,
                     take_num: *take_num,
+                    total_mv: *total_mv,
                     also: also.as_ref().map(|f| self.filter(f)),
                     random: *random,
                     top: *top,

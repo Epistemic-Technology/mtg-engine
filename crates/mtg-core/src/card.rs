@@ -6016,6 +6016,11 @@ pub enum Effect {
         /// take as a number expression, in place of `take`.
         #[serde(default)]
         take_num: Option<Num>,
+        /// "Put up to two creature cards with total mana value 6 or less
+        /// from among them": the printed mana values of the cards taken add
+        /// up to at most this (X the spell's).
+        #[serde(default)]
+        total_mv: Option<Num>,
         also: Option<ObjFilter>,
         random: bool,
         top: bool,
@@ -7193,6 +7198,11 @@ pub enum ChooseAct {
         tapped: bool,
         #[serde(default)]
         counter: Option<CounterKind>,
+        /// "up to two creature cards with total mana value 4 or less"
+        /// (Lively Dirge): the chosen cards' printed mana values add up to
+        /// at most this.
+        #[serde(default)]
+        total_mv: Option<u8>,
     },
     /// "put any number of creature cards from your hand onto the
     /// battlefield", "put a land card from your hand or graveyard onto the
