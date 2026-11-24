@@ -3056,7 +3056,7 @@ impl GameState {
     }
 
     /// The sources that may pay for the spell `spell` being cast.
-    fn spell_sources(&self, spell: ObjId) -> Sources {
+    pub(super) fn spell_sources(&self, spell: ObjId) -> Sources {
         let o = &self.objects[spell];
         let mut s = self.mana_sources(o.controller);
         if self.restricted_mana_possible()
@@ -3827,7 +3827,7 @@ impl GameState {
                 return false;
             };
             let rest = without(sources, &picks);
-            return self.payable(p, &rest, &ps.mana_pool, &req, ps.life, None);
+            return self.payable_tapping(p, &rest, &req, None, &picks);
         }
         self.payable(p, sources, &ps.mana_pool, &req, ps.life, None)
     }
@@ -3860,7 +3860,16 @@ impl GameState {
             }
             picks.push(c);
         }
-        let makes_mana = |c: &ObjId| sources.iter().any(|(s, _)| s == c);
+        // A plain mana source, or one with a mana ability payment may
+        // activate (Boros Garrison's "{T}: Add {R}{W}").
+        let makes_mana = |c: &ObjId| {
+            sources.iter().any(|(s, _)| s == c)
+                || (self.ability_mana_possible()
+                    && self
+                        .objects
+                        .get(*c)
+                        .is_some_and(|o| self.flags_of(o).has_mana_ability()))
+        };
         // Stable: the permanents' order otherwise.
         cands.sort_by_key(makes_mana);
         for c in cands {
@@ -3923,20 +3932,12 @@ impl GameState {
         let p = self.objects[spell].controller;
         let sources = self.spell_sources(spell);
         let req = self.spell_requirements(spell, self.x_of(spell));
-        let ps = self.player(p);
         self.sacrifice_candidates(p, f, spell)
             .into_iter()
             .filter(|c| {
                 self.tap_picks(p, f, spell, false, add.chosen_count(), Some(*c), &sources)
                     .is_some_and(|picks| {
-                        self.payable(
-                            p,
-                            &without(&sources, &picks),
-                            &ps.mana_pool,
-                            &req,
-                            ps.life,
-                            None,
-                        )
+                        self.payable_tapping(p, &without(&sources, &picks), &req, None, &picks)
                     })
             })
             .collect()
@@ -5057,7 +5058,6 @@ impl GameState {
         };
         let n = ab.cost.chosen_count();
         let req = self.activation_mana(source, ab);
-        let ps = self.player(p);
         let mut cands = self.sacrifice_candidates(p, f, source);
         if ab.cost.tap {
             cands.retain(|c| *c != source);
@@ -5078,13 +5078,12 @@ impl GameState {
                             || !picks
                                 .iter()
                                 .any(|x| *x != source && sources.iter().any(|(s, _)| s == x))
-                            || self.payable(
+                            || self.payable_tapping(
                                 p,
                                 &without(sources, &picks),
-                                &ps.mana_pool,
                                 &req,
-                                ps.life,
                                 Some(source),
+                                &picks,
                             )
                     })
             })
@@ -6774,6 +6773,29 @@ impl GameState {
             || (self.ability_mana_possible()
                 && self
                     .ability_plan(p, sources, pool, req, life, exclude)
+                    .is_some())
+    }
+
+    /// `payable` once the permanents `gone` are tapped for a cost: `sources`
+    /// already lack them, and the mana abilities they would tap to
+    /// activate can't pay either (`ability_plan_tapping`).
+    pub(super) fn payable_tapping(
+        &self,
+        p: PlayerId,
+        sources: &[(ObjId, Mana)],
+        req: &ManaRequirement,
+        exclude: Option<ObjId>,
+        gone: &[ObjId],
+    ) -> bool {
+        let ps = self.player(p);
+        let (pool, life) = (&ps.mana_pool, ps.life);
+        if req.snow > 0 {
+            return self.snow_payment(sources, pool, req, life).is_some();
+        }
+        payment_plan_from(sources, pool, req, life).is_some()
+            || (self.ability_mana_possible()
+                && self
+                    .ability_plan_tapping(p, sources, pool, req, life, exclude, gone)
                     .is_some())
     }
 

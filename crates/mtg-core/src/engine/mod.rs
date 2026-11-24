@@ -1076,10 +1076,18 @@ impl GameState {
                         self.flow = Flow::Priority;
                         continue;
                     };
+                    let mut options = self.linked_cost_options(spell);
+                    // The offer counted "this spell costs {2} less if
+                    // evidence was collected" (Bite Down on Crime) as it
+                    // would be paid: declining is offered only when the
+                    // full cost can still be paid (CR 601.2f).
+                    if options.len() > 1 && !self.unpaid_optional_payable(spell) {
+                        options.retain(|c| *c == Choice::Accept);
+                    }
                     return StepResult::Decision(Decision {
                         player: obj.controller,
                         kind: DecisionKind::OptionalCost { spell },
-                        options: self.linked_cost_options(spell),
+                        options,
                     });
                 }
                 Flow::ChoosingConspire { spell } => {
@@ -2562,6 +2570,15 @@ impl GameState {
 
     /// Accept or decline an optional cost, or only the answer the chosen
     /// modes require (`linked_cost_answer`).
+    /// Whether `spell` could still be paid for with its optional
+    /// additional cost declined.
+    fn unpaid_optional_payable(&self, spell: ObjId) -> bool {
+        let p = self.objects[spell].controller;
+        let sources = self.spell_sources(spell);
+        let req = self.spell_requirements(spell, 0);
+        self.payable_tapping(p, &sources, &req, None, &[])
+    }
+
     fn linked_cost_options(&self, spell: ObjId) -> Vec<Choice> {
         match self.linked_cost_answer(spell) {
             Some(true) => vec![Choice::Accept],

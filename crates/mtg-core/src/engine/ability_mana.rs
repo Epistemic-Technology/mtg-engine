@@ -721,16 +721,39 @@ impl GameState {
         life: i32,
         exclude: Option<ObjId>,
     ) -> Option<AbilityPlan> {
+        self.ability_plan_tapping(p, sources, pool, req, life, exclude, &[])
+    }
+
+    /// `ability_plan` once the permanents `gone` are tapped for a cost
+    /// (CR 601.2h: "tap four untapped artifacts, creatures, and/or
+    /// lands"): their {T} mana abilities can't pay the rest.
+    #[allow(clippy::too_many_arguments)]
+    pub(super) fn ability_plan_tapping(
+        &self,
+        p: PlayerId,
+        sources: &[(ObjId, Mana)],
+        pool: &ManaPool,
+        req: &ManaRequirement,
+        life: i32,
+        exclude: Option<ObjId>,
+        gone: &[ObjId],
+    ) -> Option<AbilityPlan> {
         // `{S}` (CR 107.4h) is paid only by tapping snow sources, in the
         // plain plan (`snow_payment`).
         if req.snow > 0 {
             return None;
         }
-        let abilities = self.ability_mana(p, exclude);
+        let mut abilities = self.ability_mana(p, exclude);
+        if !gone.is_empty() {
+            abilities.retain(|a| !(a.tap && gone.contains(&a.id)));
+        }
         if abilities.is_empty() {
             return None;
         }
-        let base = self.mana_sources(p);
+        let mut base = self.mana_sources(p);
+        if !gone.is_empty() {
+            base.retain(|(id, _)| !gone.contains(id));
+        }
         // Restricted mana in the pool isn't offered here: an ability's own
         // cost might be paid with it, which its restriction may not allow
         // (CR 106.6).
