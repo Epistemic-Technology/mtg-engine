@@ -2006,6 +2006,34 @@ impl Fmt {
             Effect::NextSpellLess(n) => format!("next spell costs {{{n}}} less"),
             Effect::NextSpellFree(f) => format!("next {} spell free", filter(f)),
             Effect::NextSpellUncounterable => "next spell can't be countered".to_string(),
+            Effect::SpellGains { keywords: ks, .. } => format!(
+                "that spell gains {}",
+                ks.iter()
+                    .map(|k| keyword_name(*k))
+                    .collect::<Vec<_>>()
+                    .join(" and ")
+            ),
+            Effect::SpellsThisTurn {
+                filter: f,
+                less,
+                affinity,
+                next,
+            } => {
+                let subject = if *f == Filter::default() {
+                    String::new()
+                } else {
+                    format!(" {}", filter(f))
+                };
+                if *next {
+                    let a = affinity.as_ref().map(filter).unwrap_or_default();
+                    format!("next{subject} spell has affinity for {a}")
+                } else {
+                    match less {
+                        Num::N(n) => format!("spells{subject} cost {{{n}}} less this turn"),
+                        n => format!("spells{subject} cost {{X}} less this turn {}", num(*n)),
+                    }
+                }
+            }
             Effect::ExtraLandPlays(1) => "play additional land this turn".to_string(),
             Effect::ExtraLandPlays(n) => format!("play {n} additional land this turn"),
             Effect::FaceDownSpellsLess(n) => {
@@ -5114,15 +5142,32 @@ fn spell_target(f: &Filter) -> String {
         s.push_str(" you control");
     }
     if let Some(t) = t {
-        s.push_str(" that targets ");
-        s.push_str(&targeting(&t, filter));
+        s.push_str(&targeting_suffix(&t, filter));
     }
     s
+}
+
+/// " that targets you or a creature you control", " with a single target",
+/// " that targets only a single creature you control" (with a leading
+/// space; DSL text and Oracle text alike).
+pub fn targeting_suffix(t: &crate::ast::Targeting, phrase: impl Fn(&Filter) -> String) -> String {
+    if t.single && !t.you && !t.player && !t.opponent && t.filter.is_none() {
+        return " with a single target".to_string();
+    }
+    if t.single
+        && let Some(f) = &t.filter
+    {
+        return format!(" that targets only a single {}", phrase(f));
+    }
+    format!(" that targets {}", targeting(t, phrase))
 }
 
 /// "you or a creature you control", "a player", "a creature".
 pub fn targeting(t: &crate::ast::Targeting, phrase: impl Fn(&Filter) -> String) -> String {
     let mut parts = Vec::new();
+    if t.opponent {
+        parts.push("an opponent".to_string());
+    }
     if t.you {
         parts.push("you".to_string());
     }
@@ -5802,6 +5847,24 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::CastsFiltered { whose, filter: f } => {
             let mut g = f.clone();
             let t = g.targeting.take();
+            // `spell with X cost`, `spell that has adventure`: after the noun.
+            let x_cost = std::mem::take(&mut g.status.x_in_cost);
+            let adventure = std::mem::take(&mut g.status.adventure);
+            // `Equipment spell or spell that targets creature you control`.
+            let alt = if g.or.as_ref().is_some_and(|a| a.targeting.is_some()) {
+                g.alt_article = false;
+                g.or.take()
+            } else {
+                None
+            };
+            let alt = alt.map_or(String::new(), |a| {
+                format!(
+                    " or spell{}",
+                    a.targeting
+                        .as_deref()
+                        .map_or(String::new(), |t| targeting_suffix(t, filter))
+                )
+            });
             let base = filter(&g);
             let mut s = format!(
                 "whenever {} {} spell",
@@ -5812,10 +5875,16 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 },
                 if base.is_empty() { "a" } else { &base }
             );
-            if let Some(t) = t {
-                s.push_str(" that targets ");
-                s.push_str(&targeting(&t, filter));
+            if x_cost {
+                s.push_str(" with X cost");
             }
+            if adventure {
+                s.push_str(" that has adventure");
+            }
+            if let Some(t) = t {
+                s.push_str(&targeting_suffix(&t, filter));
+            }
+            s.push_str(&alt);
             s
         }
         Trigger::Cycles {
@@ -7772,6 +7841,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             affinity,
             uncounterable,
             spend,
+            control,
+            conspire,
+            casualty,
         } => {
             let subject = if *f == Filter::default() {
                 String::new()
@@ -7810,9 +7882,16 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             if let Some(a) = affinity {
                 items.push(format!("affinity for {}", filter(a)));
             }
+            if *conspire {
+                items.push("conspire".to_string());
+            }
+            if *casualty > 0 {
+                items.push(format!("casualty {casualty}"));
+            }
+            let whose = if *control { "you control" } else { "you cast" };
             let _ = writeln!(
                 out,
-                "{indent}spells{subject} you cast{from} have {}",
+                "{indent}spells{subject} {whose}{from} have {}",
                 items.join(" and ")
             );
         }

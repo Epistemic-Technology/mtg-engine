@@ -1748,7 +1748,15 @@ impl GameState {
         if amount == 0 {
             return;
         }
-        let src = self.characteristics_or_lki(source);
+        let mut src = self.characteristics_or_lki(source);
+        // A resolving spell's keywords from a static ability ("Instant and
+        // sorcery spells you control have lifelink") or an effect ("That
+        // spell gains deathtouch and lifelink").
+        if (self.cost_change_sources > 0 || !self.spell_gains.is_empty())
+            && let Some(c) = src.as_mut()
+        {
+            c.keywords = c.keywords.union(self.stack_spell_keywords(source));
+        }
         let lifelink = src.as_ref().is_some_and(|c| c.has(Keyword::Lifelink));
         let deathtouch = src.as_ref().is_some_and(|c| c.has(Keyword::Deathtouch));
         let infect = src.as_ref().is_some_and(|c| c.has(Keyword::Infect));
@@ -2015,6 +2023,8 @@ impl GameState {
         let id = self.new_object(def, controller, Zone::Command);
         self.objects[id].kind = ObjKind::Emblem;
         self.emblems.push(id);
+        // An emblem never leaves the command zone (CR 114.1).
+        self.cost_change_sources += u32::from(self.pool.get(def).flags().has_cost_change());
         self.cbump();
         self.emit(Event::EmblemCreated {
             obj: id,

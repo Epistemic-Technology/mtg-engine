@@ -1404,6 +1404,15 @@ pub struct StatusQuals {
     /// was chosen for a player, then nothing shares.
     #[serde(default)]
     pub shares_chosen: Option<bool>,
+    /// "a spell with {X} in its mana cost" (CR 107.3): the card's mana
+    /// cost has an {X}. Judged on the card (`GameState::card_quals_ok`).
+    #[serde(default)]
+    pub x_in_cost: bool,
+    /// "that has an Adventure" (CR 715.2a):
+    /// the card or permanent has an Adventure, used or not; an Adventure
+    /// spell on the stack doesn't (its ruling). Judged on the card.
+    #[serde(default)]
+    pub adventure: bool,
 }
 
 /// What a chosen number is compared with (`StatusQuals::equal_chosen`).
@@ -1475,6 +1484,8 @@ impl StatusQuals {
             || self.bound.is_some()
             || self.commander.is_some()
             || self.protector.is_some()
+            || self.x_in_cost
+            || self.adventure
     }
 }
 
@@ -1551,6 +1562,7 @@ pub enum SameWhat {
 /// What a spell must target ("that targets a creature", "that targets you
 /// or a permanent you control").
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+#[allow(clippy::struct_excessive_bools)] // each is one printed qualifier
 pub struct SpellTargets {
     /// "you" (the player judging).
     pub you: bool,
@@ -1558,6 +1570,16 @@ pub struct SpellTargets {
     pub player: bool,
     /// "a creature", "a permanent you control".
     pub filter: Option<ObjFilter>,
+    /// "an opponent" (of the player judging).
+    #[serde(default)]
+    pub opponent: bool,
+    /// "with a single target" (nothing else set), "that targets only a
+    /// single creature you control": the spell has one target, or every
+    /// one of its targets is the same object or player (CR 115.3: one
+    /// object may be chosen for each instance of "target"), and that
+    /// matches.
+    #[serde(default)]
+    pub single: bool,
 }
 
 /// A comparison in a filter.
@@ -4900,6 +4922,26 @@ pub enum Effect {
     /// "The next spell you cast this turn can't be countered" (CR 101.2):
     /// the controller's next spell this turn is uncounterable.
     NextSpellUncounterable,
+    /// "That spell gains deathtouch and lifelink" (CR 611.2a): each
+    /// recipient spell has these keywords for as long as it is on the
+    /// stack (`GameState::spell_gains`).
+    SpellGains {
+        what: Recipient,
+        keywords: KeywordSet,
+    },
+    /// "Artifact spells you cast this turn cost {1} less to cast", "Spells
+    /// you cast this turn that are black and/or red cost {X} less to cast,
+    /// where X is the amount of life you lost this turn" (X fixed as it
+    /// resolves), "The next noncreature spell you cast this turn has
+    /// affinity for artifacts" (`next`: the first matching spell the
+    /// controller casts uses it up). CR 601.2f, 611.2a;
+    /// `state::TurnSpellChange`.
+    SpellsThisTurn {
+        spells: ObjFilter,
+        less: Num,
+        grant: Option<Box<SpellGrant>>,
+        next: bool,
+    },
     /// "You may play an additional land this turn." (CR 305.2): the
     /// controller may play `n` more lands this turn ("up to two additional
     /// lands").
@@ -9165,10 +9207,12 @@ impl SpellFrom {
 /// 702.40 storm, 702.41 affinity): "Instant and sorcery spells you cast
 /// have storm", "... from your hand have cascade", "Spells you cast have
 /// affinity for artifacts".
-#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
 #[allow(clippy::struct_excessive_bools)] // independent grants
 pub struct SpellGrant {
-    /// Convoke, improvise, delve, cascade.
+    /// Convoke, improvise, delve, cascade; lifelink, deathtouch, wither
+    /// and split second the spell has on the stack ("Instant and sorcery
+    /// spells you control have lifelink", CR 702.15, 702.61).
     pub keywords: KeywordSet,
     pub storm: bool,
     /// Affinity for these: {1} less for each such permanent the caster
@@ -9187,6 +9231,13 @@ pub struct SpellGrant {
     /// were mana of any color.").
     #[serde(default)]
     pub spend_abilities: bool,
+    /// "Each noncreature spell you cast has conspire." (CR 702.78).
+    #[serde(default)]
+    pub conspire: bool,
+    /// "Each instant and sorcery spell you cast has casualty 1." (CR
+    /// 702.153): N, 0 for none.
+    #[serde(default)]
+    pub casualty: u8,
 }
 
 /// "This spell costs {1} less to cast for each artifact you control"

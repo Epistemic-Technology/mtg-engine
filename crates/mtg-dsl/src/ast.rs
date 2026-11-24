@@ -1050,10 +1050,17 @@ pub enum SacCost {
 
 /// What a spell targets ("that targets you or a creature").
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)] // each is one printed qualifier
 pub struct Targeting {
     pub you: bool,
     pub player: bool,
     pub filter: Option<Filter>,
+    /// `that targets an opponent [or ...]`: "an opponent".
+    pub opponent: bool,
+    /// `with single target`: "with a single target" (nothing else set);
+    /// `that targets only single creature you control`: "that targets
+    /// only a single creature you control".
+    pub single: bool,
 }
 
 /// The subtype name standing for every creature type in a `becomes`
@@ -1895,6 +1902,14 @@ pub enum Ability {
         /// mana of any color." (spells and activated abilities alike; the
         /// third field).
         spend: Option<(mtg_core::card::SpendAs, bool, bool)>,
+        /// `spells instant or sorcery you control have lifelink`: written
+        /// and printed "you control" rather than "you cast" (the spells on
+        /// the stack: lifelink, deathtouch, wither, split second).
+        control: bool,
+        /// `... have conspire` (CR 702.78).
+        conspire: bool,
+        /// `... have casualty 1` (CR 702.153); 0 for none.
+        casualty: u8,
     },
     /// `this spell costs {1} less count each artifact you control`: "This
     /// spell costs {1} less to cast for each artifact you control."
@@ -4817,6 +4832,27 @@ pub enum Effect {
     /// `next spell can't be countered`: "the next spell you cast this turn
     /// can't be countered".
     NextSpellUncounterable,
+    /// `that spell gains deathtouch and lifelink`: "That spell gains
+    /// deathtouch and lifelink." (the triggering spell, while it is on the
+    /// stack).
+    SpellGains {
+        what: Recipient,
+        keywords: Vec<Keyword>,
+    },
+    /// `spells artifact cost {1} less this turn`: "Artifact spells you
+    /// cast this turn cost {1} less to cast."; `spells black or red cost
+    /// {X} less this turn count where life you lost this turn`: "Spells
+    /// you cast this turn that are black and/or red cost {X} less to cast,
+    /// where X is the amount of life you lost this turn" (X fixed as it
+    /// resolves); `next noncreature spell has affinity for artifact`
+    /// (`next`): "the next noncreature spell you cast this turn has
+    /// affinity for artifacts".
+    SpellsThisTurn {
+        filter: Filter,
+        less: Num,
+        affinity: Option<Filter>,
+        next: bool,
+    },
     /// `play additional land this turn`, `play 2 additional land this
     /// turn`: "You may play an additional land this turn.", "You may play
     /// up to two additional lands this turn." (CR 305.2).

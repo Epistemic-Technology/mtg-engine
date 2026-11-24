@@ -1,0 +1,7 @@
+card "Samut, Tyrant of Naktamun" {
+  oracle_id a275f7ac-7dae-4422-875a-f34f24b6f28a
+  cost {1}{U}
+  type Legendary Creature — Human Wizard
+  pt 2/1
+  spells instant or sorcery you control have split second
+}

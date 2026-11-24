@@ -1,0 +1,8 @@
+card "Rowan, Scion of War" {
+  oracle_id 333c15c6-c8fd-4cdd-89d2-06b921edeb8b
+  cost {1}{B}{R}
+  type Legendary Creature — Human Wizard
+  pt 4/2
+  keywords menace
+  activated {T}, sorcery: spells black or red cost {X} less this turn count where life you lost this turn
+}

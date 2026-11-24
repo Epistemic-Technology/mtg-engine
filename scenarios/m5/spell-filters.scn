@@ -1,0 +1,109 @@
+# What a cast trigger asks of the spell (CR 601.2c, 603.2): "a spell with
+# {X} in its mana cost" (CR 107.3), "with a single target", "that targets
+# only a single creature you control", "that targets an opponent or a
+# creature an opponent controls", "an Equipment spell or a spell that
+# targets a creature you control".
+
+scenario "X in its mana cost: Matterbending Mage can't be blocked after an X spell" {
+  battlefield A: "Matterbending Mage", 2 "Forest"
+  battlefield B: "Wind Drake"
+  hand A: "Stream of Life"
+  turn 1 A: cast "Stream of Life" x 1 targeting player A
+  turn 1 A: attack "Matterbending Mage"
+  illegal turn 1 declare_blockers B: block "Matterbending Mage" with "Wind Drake"
+  run_to turn 1 end
+  assert life B 18
+  assert life A 21
+}
+
+scenario "X in its mana cost: a spell without X doesn't trigger it" {
+  battlefield A: "Matterbending Mage", "Mountain"
+  battlefield B: "Wind Drake"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: attack "Matterbending Mage"
+  turn 1 declare_blockers B: block "Matterbending Mage" with "Wind Drake"
+  run_to turn 1 end
+  assert life B 18
+  assert graveyard B contains "Wind Drake"
+}
+
+scenario "targets an opponent: Danitha grows from a spell aimed at the opponent" {
+  battlefield A: "Danitha, Spear of Agony", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Danitha, Spear of Agony" +1/+1 1
+}
+
+scenario "targets a creature an opponent controls: Danitha grows" {
+  battlefield A: "Danitha, Spear of Agony", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Danitha, Spear of Agony" +1/+1 1
+}
+
+scenario "targets an opponent: a spell aimed at yourself or your creature doesn't" {
+  battlefield A: "Danitha, Spear of Agony", 2 "Mountain", "Hill Giant"
+  hand A: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Danitha, Spear of Agony" +1/+1 0
+}
+
+scenario "an Equipment spell: Danitha, Sword of Hope draws" {
+  battlefield A: "Danitha, Sword of Hope", "Plains"
+  hand A: "Bonesplitter"
+  turn 1 A: cast "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "a spell that targets a creature you control: Danitha draws, once each turn" {
+  battlefield A: "Danitha, Sword of Hope", 2 "Forest", "Grizzly Bears"
+  hand A: "Giant Growth", "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert power "Grizzly Bears" 8
+}
+
+scenario "a spell that targets an opponent's creature: Danitha doesn't draw" {
+  battlefield A: "Danitha, Sword of Hope", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "targets only a single creature you control: Leyline of Resonance copies it" {
+  battlefield A: "Leyline of Resonance", "Forest", "Grizzly Bears"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 8
+}
+
+scenario "targets only a single creature you control: not an opponent's creature" {
+  battlefield A: "Leyline of Resonance", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 6
+}
+
+scenario "targets only a single creature you control: not a spell that targets a player" {
+  battlefield A: "Leyline of Resonance", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

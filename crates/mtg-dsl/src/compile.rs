@@ -1960,6 +1960,8 @@ impl Compiler<'_> {
                     you: t.you,
                     player: t.player,
                     filter: t.filter.as_ref().map(|g| self.filter(g)),
+                    opponent: t.opponent,
+                    single: t.single,
                 })
             }),
         }
@@ -3709,6 +3711,30 @@ impl Compiler<'_> {
                 out.push(CoreEffect::NextSpellFree(f));
             }
             Effect::NextSpellUncounterable => out.push(CoreEffect::NextSpellUncounterable),
+            Effect::SpellGains { what, keywords } => out.push(CoreEffect::SpellGains {
+                what: r(*what),
+                keywords: KeywordSet::of(keywords.iter().copied()),
+            }),
+            Effect::SpellsThisTurn {
+                filter,
+                less,
+                affinity,
+                next,
+            } => {
+                let spells = self.filter(filter);
+                let grant = affinity.as_ref().map(|f| {
+                    Box::new(mtg_core::card::SpellGrant {
+                        affinity: Some(self.filter(f)),
+                        ..Default::default()
+                    })
+                });
+                out.push(CoreEffect::SpellsThisTurn {
+                    spells,
+                    less: *less,
+                    grant,
+                    next: *next,
+                });
+            }
             Effect::ExtraLandPlays(n) => out.push(CoreEffect::ExtraLandPlays(*n)),
             Effect::FaceDownSpellsLess(n) => out.push(CoreEffect::FaceDownSpellsLess(*n)),
             Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),
@@ -6578,6 +6604,8 @@ impl Compiler<'_> {
                             uncounterable: false,
                             spend: mtg_core::card::SpendAs::Normal,
                             spend_abilities: false,
+                            conspire: false,
+                            casualty: 0,
                         })
                     }),
                     per: *per,
@@ -6594,6 +6622,9 @@ impl Compiler<'_> {
                 affinity,
                 uncounterable,
                 spend,
+                control: _,
+                conspire,
+                casualty,
             } => AbilityDef::CostChange(mtg_core::card::CostChange {
                 spells: self.filter(filter),
                 whose: *whose,
@@ -6606,6 +6637,8 @@ impl Compiler<'_> {
                     uncounterable: *uncounterable,
                     spend: spend.map_or(mtg_core::card::SpendAs::Normal, |s| s.0),
                     spend_abilities: spend.is_some_and(|s| s.2),
+                    conspire: *conspire,
+                    casualty: *casualty,
                 })),
                 per: None,
                 first: false,

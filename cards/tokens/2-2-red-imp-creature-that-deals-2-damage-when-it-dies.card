@@ -1,0 +1,7 @@
+token "2/2 red Imp creature that deals 2 damage when it dies" {
+  name "Imp"
+  type Creature — Imp
+  pt 2/2
+  color red
+  triggered when this dies: deal 2 damage to each opponent
+}

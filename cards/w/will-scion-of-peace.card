@@ -1,0 +1,8 @@
+card "Will, Scion of Peace" {
+  oracle_id 4ecb8653-db8c-468a-853d-420ff62a7a8a
+  cost {1}{W}{U}
+  type Legendary Creature — Human Wizard
+  pt 2/4
+  keywords vigilance
+  activated {T}, sorcery: spells white or blue cost {X} less this turn count where life you gained this turn
+}

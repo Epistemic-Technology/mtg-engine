@@ -1,0 +1,7 @@
+card "Leyline of Resonance" {
+  oracle_id f69574dd-097f-4908-9cab-344b0eb39c62
+  cost {2}{R}{R}
+  type Enchantment
+  opening hand
+  triggered whenever you cast instant or sorcery spell that targets only a single creature you control: copy that spell new targets
+}

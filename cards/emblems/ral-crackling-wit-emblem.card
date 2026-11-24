@@ -1,0 +1,3 @@
+emblem "Ral, Crackling Wit emblem" {
+  spells instant or sorcery you cast have storm
+}

@@ -198,6 +198,7 @@ impl GameState {
             || def.cond_cost.is_some()
             || !changers.is_empty()
             || self.next_spell_less[b.p.index().min(3)] > 0
+            || !self.turn_spell_changes.is_empty()
         {
             adjust_generic(&mut req, self.cost_delta(b.p, def, b.id, changers));
         }

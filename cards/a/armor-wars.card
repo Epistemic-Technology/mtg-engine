@@ -1,0 +1,8 @@
+card "Armor Wars" {
+  oracle_id 1ad83cac-2c85-477b-ab00-1369f9683db5
+  cost {2}{U}{R}
+  type Enchantment — Saga
+  triggered chapter 1: you may draw count each artifact you control cards; if you do, each opponent draws 1 card
+  triggered chapter 2: spells artifact cost {1} less this turn
+  triggered chapter 3: deal count where greatest mana value among artifact you control damage to target opponent
+}

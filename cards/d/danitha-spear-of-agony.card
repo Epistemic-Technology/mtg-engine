@@ -1,0 +1,8 @@
+card "Danitha, Spear of Agony" {
+  oracle_id 4b5c7f11-75f2-4bad-86cd-f0232861f569
+  cost {2}{B}
+  type Legendary Creature — Human Knight
+  pt 2/2
+  keywords first strike
+  triggered whenever you cast a spell that targets an opponent or creature an opponent controls: put 1 +1/+1 counters on this
+}

@@ -1,0 +1,8 @@
+card "Matterbending Mage" {
+  oracle_id 94688e25-28cb-45aa-95ea-0d6f547cae57
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this enters: return up to 1 another target creature to hand
+  triggered whenever you cast a spell with X cost: this can't be blocked this turn
+}

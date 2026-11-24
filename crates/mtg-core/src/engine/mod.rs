@@ -540,6 +540,8 @@ impl GameState {
             next_spell_less: [0; 4],
             next_spell_free: Vec::new(),
             next_uncounterable: 0,
+            spell_gains: Vec::new(),
+            turn_spell_changes: Vec::new(),
             mana_spent_this_turn: [0; 4],
             mana_spent_before_cast: [0; 4],
             block_demands: Vec::new(),
@@ -1010,7 +1012,7 @@ impl GameState {
                         continue;
                     };
                     let player = obj.controller;
-                    let n = self.pool.get(obj.def).casualty;
+                    let n = self.spell_casualty(spell);
                     let mut options: Vec<Choice> = self
                         .casualty_candidates(player, n)
                         .into_iter()
@@ -2732,7 +2734,7 @@ impl GameState {
     fn after_bargain(&self, spell: ObjId) -> Flow {
         // CR 702.153a: casualty, with a creature to sacrifice.
         let o = &self.objects[spell];
-        let n = self.pool.get(o.def).casualty;
+        let n = self.spell_casualty(spell);
         if n > 0 && !self.casualty_candidates(o.controller, n).is_empty() {
             return Flow::ChoosingCasualty { spell };
         }
@@ -2768,8 +2770,7 @@ impl GameState {
 
     fn after_optional_cost(&self, spell: ObjId) -> Flow {
         // CR 702.78a: conspire, with two creatures to tap.
-        let o = &self.objects[spell];
-        if self.pool.get(o.def).conspire && self.conspirators(spell).len() >= 2 {
+        if self.spell_conspire(spell) && self.conspirators(spell).len() >= 2 {
             return Flow::ChoosingConspire { spell };
         }
         self.after_conspire(spell)
@@ -3709,6 +3710,8 @@ impl GameState {
             self.next_spell_less = [0; 4];
             self.next_spell_free.clear();
             self.next_uncounterable = 0;
+            self.spell_gains.clear();
+            self.turn_spell_changes.clear();
             // "As long as you've drawn two or more cards this turn" and
             // the other this-turn statics start over (CR 611.3a).
             if self.turn_static_sources > 0 {
