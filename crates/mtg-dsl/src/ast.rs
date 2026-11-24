@@ -1056,6 +1056,11 @@ pub struct Filter {
     /// each opponent, tap up to one target creature that player
     /// controls"): the game has one opponent.
     pub per_opponent: bool,
+    /// Written `that player controls` and printed so in a `for each
+    /// player,` sentence ("for each player, destroy up to one target
+    /// creature that player controls"): targets controlled by different
+    /// players, one for each player (the game has two).
+    pub per_player: bool,
     /// `who` is `Opponents`, written and printed "defending player
     /// controls" (two players: the attacker's opponent).
     pub defending: bool,
@@ -3224,6 +3229,9 @@ pub struct Sentence {
     /// game has one opponent, so it happens once (its targets are written
     /// `that opponent controls`).
     pub per_opponent: bool,
+    /// `for each player, ...`: printed "For each player, ..."; its targets
+    /// written `that player controls` are one for each player.
+    pub per_player: bool,
     /// How each clause after the first joins the sentence
     /// (`joins.len() == effects.len() - 1`).
     pub joins: Vec<Join>,
@@ -3304,6 +3312,7 @@ impl Sentence {
             lasting: None,
             then_first: false,
             per_opponent: false,
+            per_player: false,
             joins,
         }
     }

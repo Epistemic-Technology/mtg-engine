@@ -2557,7 +2557,11 @@ don't share a creature type with the chosen creature they control") is
 judged against the permanent chosen for the object's controller. `each
 player sacrifices all unchosen nonland permanent they control` ("Then each
 player sacrifices all other nonland permanents they control"): each their
-own. `<who> exiles 1 creature they control` ("Target opponent
+own. What was chosen is also `those creatures` after it: `each opponent
+chooses creature they control; you gain control of those creatures
+indefinitely` ("Each opponent chooses a creature they control. You gain
+control of those creatures."; `you gain control of ... indefinitely` names
+"you", for good). `<who> exiles 1 creature they control` ("Target opponent
 exiles a creature they control", their choice; `... they control and
 their graveyard` then exiles their graveyard: "Target opponent exiles a
 creature they control and their graveyard"), `<who> reveals hand
@@ -4018,6 +4022,7 @@ Forms that change only how Oracle words what an existing form does:
 | `the chosen target 1` | "the chosen creature", after "choose target creature" |
 | `choose any number of target creature; put 1 +1/+1 counter on target 1` | "Choose any number of target creatures. Put a +1/+1 counter on each of them." (Nature's Panoply): the group named first, then acted on |
 | `for each opponent, tap up to 1 target creature that opponent controls` | "For each opponent, tap up to one target creature that player controls." The game has two players, so it happens once, with one target an opponent controls (or none); `that opponent controls` is allowed only in such a sentence, and "those creatures" names its targets plainly ("Put a stun counter on each of those creatures."). |
+| `for each player, destroy up to 1 target creature that player controls` | "For each player, destroy up to one target creature that player controls." One target for each player: with two players, up to two targets controlled by different players (CR 115.1); `that player controls` in such a sentence means this, and only `up to 1 target` is allowed. A sentence `for each player, [you] choose ...` is a choice instead (see `each player chooses`). |
 | `choose up to 1 target creature`, `choose up to 1 another target creature` | "Choose up to one target creature.", "Choose up to one other target creature." (no effect of its own; the later sentences name it: `that target 1 can't be blocked and has base power and toughness 1/1`, "That creature can't be blocked this turn and has base power and toughness 1/1 until end of turn."; with none chosen they do nothing). `if target 1 is suspected, exile target 1; otherwise, suspect target 1` prints "If it's suspected, exile it. Otherwise, suspect it.": an `otherwise` may follow a target check. |
 | `choose target creature you control and target creature you don't control` | "Choose target creature you control and target creature you don't control." (two targets named at once; no effect of its own) |
 | `the full target 1`, `the chosen full target 1` | "the creature you control", "the chosen creature you control": the target named by its whole filter |

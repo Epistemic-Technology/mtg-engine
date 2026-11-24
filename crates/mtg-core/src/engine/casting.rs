@@ -1755,6 +1755,7 @@ impl GameState {
         ctx.did = !chosen.is_empty();
         ctx.created = chosen.last().map(|(_, id)| *id);
         if let Some(log) = self.this_way.as_mut() {
+            log.group = chosen.iter().map(|(_, id)| *id).collect();
             log.chosen = chosen;
             log.unchosen = unchosen;
         }
@@ -12290,8 +12291,10 @@ impl GameState {
                         unchosen.extend(cands.into_iter().filter(|c| *c != id));
                     }
                 }
-                // "Destroy the rest." (Divine Reckoning).
+                // "Destroy the rest." (Divine Reckoning); "You gain control
+                // of those creatures." (Riches).
                 if let Some(log) = self.this_way.as_mut() {
+                    log.group = chosen.iter().map(|(_, id)| *id).collect();
                     log.chosen = chosen;
                     log.unchosen = unchosen;
                 }

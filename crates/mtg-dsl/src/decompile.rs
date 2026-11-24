@@ -343,6 +343,7 @@ impl Decompiler<'_> {
             your_opponents: false,
             they_control: false,
             per_opponent: false,
+            per_player: false,
             defending: false,
             any_types: types(f.any_types),
             power: f.power,

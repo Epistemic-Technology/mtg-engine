@@ -2393,6 +2393,15 @@ impl<'a> Ctx<'a> {
                 .iter()
                 .all(|i| self.targets[*i] == self.targets[fresh[0]])
         {
+            // "for each player, destroy up to one target creature that
+            // player controls": one for each player.
+            if matches!(self.targets[fresh[0]].base(), Target::Filter(f) if f.per_player) {
+                let first = self.target_first(fresh[0]);
+                for i in &fresh {
+                    self.target_mentioned[*i] = true;
+                }
+                return first;
+            }
             for i in &fresh {
                 self.target_mentioned[*i] = true;
             }
@@ -3600,6 +3609,7 @@ fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             " that {} a creature type",
             if plural_form { "share" } else { "shares" }
         ),
+        Some(SameRef::DifferentControllers) if f.per_player => " that player controls".to_string(),
         Some(SameRef::DifferentControllers) => " controlled by different players".to_string(),
         Some(SameRef::SameController) => " controlled by the same player".to_string(),
         Some(SameRef::SameOpponent) => " controlled by the same opponent".to_string(),
@@ -12371,6 +12381,9 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
     }
     if s.per_opponent {
         out.push_str("for each opponent, ");
+    }
+    if s.per_player {
+        out.push_str("for each player, ");
     }
     if s.eot_first {
         match &lasting {

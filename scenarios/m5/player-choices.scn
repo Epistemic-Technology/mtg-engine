@@ -228,3 +228,50 @@ scenario "Fall of the First Civilization: chapter III keeps three nonland perman
   assert battlefield B contains "Serra Angel"
   assert battlefield B contains "Forest"
 }
+
+# "For each player, destroy up to one target creature that player
+# controls": one target for each player, so (two players) up to two
+# targets controlled by different players.
+
+scenario "Demonic Junker: one target for each player; a creature of yours destroyed gives counters" {
+  battlefield A: 7 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Demonic Junker"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Demonic Junker"
+  turn 3 A: trigger "Demonic Junker" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Serra Angel"
+  assert counters "Demonic Junker" +1/+1 2
+}
+
+scenario "Demonic Junker: only an opponent's creature destroyed, no counters" {
+  battlefield A: 7 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Demonic Junker"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Demonic Junker"
+  turn 3 A: trigger "Demonic Junker" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert counters "Demonic Junker" +1/+1 0
+}
+
+# "Each opponent chooses a creature they control. You gain control of
+# those creatures.": the chosen permanents are "those".
+
+scenario "Riches: the opponent chooses which creature you gain control of" {
+  battlefield A: 7 "Island"
+  battlefield B: "Hill Giant", "Serra Angel"
+  graveyard A: "Rags // Riches"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Rags // Riches" from graveyard
+  turn 3 B: choose "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield B contains "Serra Angel"
+  assert exile A contains "Rags // Riches"
+}

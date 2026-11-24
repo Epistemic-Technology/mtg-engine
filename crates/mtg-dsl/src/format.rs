@@ -366,6 +366,9 @@ impl Fmt {
                     *m = true;
                 }
                 match first.strip_prefix("up to 1 ") {
+                    // "for each player, ... up to 1 target creature that
+                    // player controls": one per player.
+                    Some(_) if first.ends_with(" that player controls") => first,
                     Some(rest) => format!("up to {n} {rest}"),
                     None if first.starts_with("target ") => format!("{n} {first}"),
                     None => first,
@@ -774,6 +777,9 @@ impl Fmt {
         }
         if s.per_opponent {
             out.push_str("for each opponent, ");
+        }
+        if s.per_player {
+            out.push_str("for each player, ");
         }
         if s.eot_first {
             out.push_str(match s.lasting {
@@ -1813,6 +1819,13 @@ impl Fmt {
             Effect::ExchangeLife { with } => {
                 format!("exchange life totals with {}", self.recipient(*with, t))
             }
+            Effect::GiveControl {
+                of,
+                to: Recipient::You,
+            } => format!(
+                "you gain control of {} indefinitely",
+                self.recipient(*of, t)
+            ),
             Effect::GiveControl { of, to } => format!(
                 "{} gains control of {}",
                 self.recipient(*to, t),
@@ -4675,7 +4688,9 @@ fn filter_one(f: &Filter) -> String {
     if let Some(c) = f.chosen {
         words.push(of_chosen(c).to_string());
     }
-    if !f.named_first
+    if f.per_player {
+        words.push("that player controls".to_string());
+    } else if !f.named_first
         && let Some(r) = f.same
     {
         words.push(same_ref(r));

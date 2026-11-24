@@ -1,0 +1,9 @@
+card "Demonic Junker" {
+  oracle_id 88075828-a76e-412d-b738-182f50e3a133
+  cost {6}{B}
+  type Artifact — Vehicle
+  pt 4/3
+  affinity for artifact
+  triggered when this enters: for each player, destroy up to 1 target creature that player controls; if creature you control was destroyed this way, put 2 +1/+1 counters on this vehicle
+  crew 2
+}
