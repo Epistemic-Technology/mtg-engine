@@ -6592,10 +6592,6 @@ impl Builder<'_> {
         inner.line(text).ok()?;
         let made: Vec<String> = inner.statements.into_iter().skip(1).collect();
         match made.as_slice() {
-            // A granted static ability isn't applied by the engine (Giant's
-            // Amulet: "has \"This creature has hexproof as long as it's
-            // untapped.\"" gave no hexproof).
-            [one] if one.starts_with("static ") => None,
             [one] if !one.contains('\n') => Some(one.trim().to_string()),
             _ => None,
         }

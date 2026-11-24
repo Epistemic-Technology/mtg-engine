@@ -5738,6 +5738,18 @@ impl Compiler<'_> {
         if let Mod::AddAbility(a) = m {
             let def = self.ability(a)?;
             self.check_granter(&def)?;
+            // A granted static ability exists from layer 6 on (the grant's
+            // layer): what it does in an earlier layer is never applied.
+            if let AbilityDef::Static(sa) = &def
+                && sa
+                    .parts
+                    .iter()
+                    .any(|p| p.layer() < mtg_core::card::Layer::L6Ability)
+            {
+                return self.err(
+                    "a granted static ability can only change abilities, power, and toughness",
+                );
+            }
             return Ok(Modification::AddAbility(self.pool.register_ability(def)));
         }
         let out = self.modification(m);
@@ -5834,6 +5846,7 @@ impl Compiler<'_> {
                 count: self.count_expr(count),
                 sets: *sets,
                 plus_toughness: *plus_toughness,
+                granted: false,
             },
         }
     }
@@ -6099,6 +6112,22 @@ impl Compiler<'_> {
                     what: self.filter(f),
                     effects,
                 }
+            }
+            // "Whenever a creature is put into a graveyard" means from
+            // anywhere, a card from a hand or library too; it compiles to a
+            // dies trigger, right only for what can be only on the
+            // battlefield ("enchanted artifact").
+            Ability::Triggered {
+                trigger:
+                    Trigger::PutInGraveyard {
+                        obj: TriggerObj::Filter(f) | TriggerObj::ThisOr(f),
+                        from_battlefield: false,
+                    },
+                ..
+            } if !f.enchanted => {
+                return self.err(
+                    "`is put into a graveyard` without `from the battlefield` would mean from anywhere; only `enchanted ...` may omit it",
+                );
             }
             Ability::Triggered {
                 trigger,

@@ -2738,6 +2738,7 @@ impl Decompiler<'_> {
                 count,
                 sets,
                 plus_toughness,
+                ..
             } => Mod::CdaPt {
                 count: self.cda_count(count),
                 sets: *sets,

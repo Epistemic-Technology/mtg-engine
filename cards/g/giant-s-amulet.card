@@ -1,0 +1,8 @@
+card "Giant's Amulet" {
+  oracle_id 016a6ec3-f4f6-4b47-9931-e0b14a25bd5e
+  cost {U}
+  type Artifact — Equipment
+  triggered when this enters: you may pay {3}{U}; if you do, create 1 "4/4 blue Giant Wizard creature" then attach to that token
+  static equipped: +0/+1, has ability { static this: has hexproof as long as this is untapped }
+  equip {2}
+}

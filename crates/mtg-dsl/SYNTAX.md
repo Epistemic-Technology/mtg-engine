@@ -1978,6 +1978,10 @@ or artifacts (`static artifact you control: has ability { activated {2},
 sacrifice this: ... }`: "Sacrifice this artifact"). A granted loyalty
 ability brackets its cost (`static planeswalker you control: has ability
 { loyalty -4: ... }`: "Planeswalkers you control have \"[−4]: ...\"").
+A granted static ability applies after the grant, in layer 6 and later
+(`static equipped: +0/+1, has ability { static this: has hexproof as
+long as this is untapped }`, Giant's Amulet); one that would change
+types, colors, or control (layers 1 to 5) is a compile error.
 In a quoted ability an Aura or Equipment grants what it is attached to
 (`static enchanted:` or `static equipped:`), `granter` is that Aura or
 Equipment, printed by its name: the cost `sacrifice granter` ("{T},
@@ -4222,4 +4226,4 @@ Forms that change only how Oracle words what an existing form does:
 | `put those counters on up to 1 target creature` | In a triggered ability: "put those counters on up to one target creature", the triggering object's counters (`put its counters on` names the source's, except `on this`) |
 | `count where greatest power Giant you control` | "the greatest power among Giants you control" (a creature type alone after `greatest power`) |
 | `copy it and new targets` | "copy it and you may choose new targets for the copy" (`copy it new targets` prints "copy it. You may choose new targets for the copy.") |
-| `whenever other creature or artifact you control is put into a graveyard from the battlefield`, `when enchanted artifact is put into a graveyard` | The dies trigger worded so for a filter that includes creatures ("dies" otherwise), and the older wording without "from the battlefield" |
+| `whenever other creature or artifact you control is put into a graveyard from the battlefield`, `when enchanted artifact is put into a graveyard` | The dies trigger worded so for a filter that includes creatures ("dies" otherwise), and the older wording without "from the battlefield" (only for `enchanted ...`, which can only be on the battlefield; for another filter it would mean from anywhere and is a compile error) |

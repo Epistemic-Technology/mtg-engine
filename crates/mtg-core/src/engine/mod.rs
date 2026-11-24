@@ -1458,15 +1458,16 @@ impl GameState {
                             _ => true,
                         });
                     }
-                    // A cost that depends on the first target: only targets
-                    // the caster can pay for (CR 601.2f comes after 601.2c,
-                    // but an unpayable choice would be illegal to finish).
-                    let cost_checked =
-                        next_target == 0 && !is_ability && self.pool.get(def).target_cost.is_some();
+                    // A cost that depends on the targets: only targets the
+                    // caster can still pay for (CR 601.2f comes after
+                    // 601.2c, but an unpayable choice would be illegal to
+                    // finish).
+                    let cost_checked = !is_ability && self.pool.get(def).target_cost.is_some();
+                    let later = &specs[(next_target + 1).min(specs.len())..];
                     if cost_checked {
                         options.retain(|c| {
                             let Choice::Target(t) = c else { return true };
-                            self.target_payable(spell, *t)
+                            self.target_payable(spell, *t, later)
                         });
                     }
                     // An ability whose cost depends on its first target
@@ -1496,7 +1497,8 @@ impl GameState {
                         );
                     // Declining that first target ("up to two target ...")
                     // leaves the cost unchanged: only if that is payable.
-                    let decline_ok = !cost_checked || self.target_payable(spell, Target::none());
+                    let decline_ok =
+                        !cost_checked || self.target_payable(spell, Target::none(), later);
                     if optional && !forced && decline_ok {
                         if options.is_empty() {
                             // Nothing to choose: declined, and the later
@@ -1607,7 +1609,9 @@ impl GameState {
                     let mut options: Vec<Choice> = subsets(&eligible)
                         .into_iter()
                         .filter(|set| must.iter().all(|m| set.contains(m)))
-                        .filter(|set| self.set_legal(set, false))
+                        .filter(|set| {
+                            self.set_legal(set, false) && !self.attacks_alone_illegally(set)
+                        })
                         .filter(|set| self.attack_set_affordable(set))
                         .map(Choice::Attackers)
                         .collect();
@@ -1616,7 +1620,9 @@ impl GameState {
                     if options.is_empty() {
                         options = subsets(&eligible)
                             .into_iter()
-                            .filter(|set| self.set_legal(set, false))
+                            .filter(|set| {
+                                self.set_legal(set, false) && !self.attacks_alone_illegally(set)
+                            })
                             .filter(|set| self.attack_set_affordable(set))
                             .map(Choice::Attackers)
                             .collect();

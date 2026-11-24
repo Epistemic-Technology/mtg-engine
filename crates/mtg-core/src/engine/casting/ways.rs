@@ -203,8 +203,10 @@ impl GameState {
         }
         if let Some(tc) = &def.target_cost {
             if b.stack {
-                if let Some(t) = self.objects[b.id].targets.first()
-                    && self.target_fits(&tc.1, *t, b.p, b.id)
+                if self.objects[b.id]
+                    .targets
+                    .iter()
+                    .any(|t| self.target_fits(&tc.1, *t, b.p, b.id))
                 {
                     adjust_generic(&mut req, tc.0);
                 }
@@ -334,20 +336,23 @@ impl GameState {
     /// before targets are chosen: cheaper if a fitting target exists
     /// (targets are then held to what's payable, `target_payable`); dearer
     /// only if every legal target fits (Vanish into Eternity with only
-    /// creatures to target costs {3} more).
+    /// creatures to target costs {3} more). "If it targets" is any of the
+    /// spell's targets (Titanic Brawl's creature you control is its first,
+    /// Thing Swing's Hero too, but either may be the one).
     fn offer_target_cost(&self, b: &CostBasis, tc: &(i32, crate::card::ObjFilter)) -> bool {
-        let Some(spec) = b.def.cast_targets().first() else {
-            return false;
-        };
-        let targets = self.legal_targets(b.p, *spec, Some(b.id));
+        let fits = |t: &crate::state::Target| self.target_fits(&tc.1, *t, b.p, b.id);
+        let specs = b.def.cast_targets();
         if tc.0 < 0 {
-            targets
+            specs
                 .iter()
-                .any(|t| self.target_fits(&tc.1, *t, b.p, b.id))
+                .any(|s| self.legal_targets(b.p, *s, Some(b.id)).iter().any(fits))
         } else {
-            targets
-                .iter()
-                .all(|t| self.target_fits(&tc.1, *t, b.p, b.id))
+            specs.iter().any(|s| {
+                !matches!(s, crate::card::TargetSpec::UpTo(_)) && {
+                    let targets = self.legal_targets(b.p, *s, Some(b.id));
+                    !targets.is_empty() && targets.iter().all(fits)
+                }
+            })
         }
     }
 

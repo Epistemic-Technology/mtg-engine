@@ -133,6 +133,10 @@ impl Work<'_> {
                 let c = &self.chars[self.index[id]];
                 affectable
                     && filter.matches(*id, self.controller_of(*id), c, source, controller)
+                    // "Commander creatures you own" (Flaming Fist): the
+                    // effect's controller owns it.
+                    && (!filter.status.you_own
+                        || controller.is_some_and(|p| self.state.objects[*id].owner == p))
                     && self.status_ok_working(&rest, *id, c)
                     && (!attached || self.attached_ok(filter, *id))
             })
@@ -337,16 +341,45 @@ fn pass(
             }
         }
         gather_statics(&work, &mut live, layer);
+        // A static ability granted in layer 6 ("has 'This creature has
+        // hexproof as long as it's untapped'", Giant's Amulet) exists once
+        // the grant has applied; its own layer-6 effect applies after the
+        // grant in the same layer (CR 613.8a: it depends on the grant).
+        // A later round applies only the effects it newly gathered.
+        let mut from = 0;
+        while apply_layer(&mut work, &mut live, from, layer) && layer == Layer::L6Ability {
+            from = live.len();
+            gather_statics(&work, &mut live, layer);
+            if from == live.len() {
+                break;
+            }
+        }
+        apply_counters(&mut work, layer);
+    }
+
+    let again = work.needs_settled.get() && work.settled.is_none();
+    (
+        Derived::Battlefield(crate::state::CharMap::new(work.ids, work.chars)),
+        again,
+    )
+}
+
+/// Applies the live effects from index `from` on that have a part in
+/// `layer`, in dependency and timestamp order. Returns whether one of them
+/// granted a static ability with a layer-6 part.
+fn apply_layer(work: &mut Work<'_>, live: &mut [Live], from: usize, layer: Layer) -> bool {
+    let mut granted_static = false;
+    {
         // Effects with a part in this layer.
         let mut here: Vec<usize> = live
             .iter()
             .enumerate()
+            .skip(from)
             .filter(|(_, l)| !l.dead && l.parts.iter().any(|p| p.layer() == layer))
             .map(|(i, _)| i)
             .collect();
         if here.is_empty() {
-            apply_counters(&mut work, layer);
-            continue;
+            return false;
         }
         // Lock affected sets of effects starting now (CR 613.6).
         for &i in &here {
@@ -361,7 +394,7 @@ fn pass(
             }
         }
         here.sort_by_key(|i| live[*i].timestamp);
-        let (order, waited) = dependency_order(&work, &live, &here, layer);
+        let (order, waited) = dependency_order(work, live, &here, layer);
         for i in order {
             // CR 613.6, 613.8: an effect that waited for one it depends on
             // finds what it applies to once that one has applied ("Vehicle
@@ -394,11 +427,11 @@ fn pass(
                 // "has all activated abilities of ...": the abilities those
                 // objects have now, each granted (CR 613.1f).
                 if let Modification::AddActivatedOf(from) = part {
-                    let granted = activated_of(&work, l.source, l.controller, from);
+                    let granted = activated_of(work, l.source, l.controller, from);
                     for t in &targets {
                         if let Some(&wi) = work.index.get(t) {
                             for a in &granted {
-                                apply(&mut work, wi, &Modification::AddAbility(*a));
+                                apply(work, wi, &Modification::AddAbility(*a));
                             }
                         }
                     }
@@ -411,7 +444,7 @@ fn pass(
                         toughness,
                         count,
                     } => {
-                        let n = per_count(&work, l.source, l.controller, count);
+                        let n = per_count(work, l.source, l.controller, count);
                         Modification::ModifyPt {
                             power: power.saturating_mul(n),
                             toughness: toughness.saturating_mul(n),
@@ -419,21 +452,21 @@ fn pass(
                     }
                     other => other.clone(),
                 };
+                if let Modification::AddAbility(a) = part
+                    && let AbilityDef::Static(sa) = work.state.pool.ability(a)
+                    && sa.parts.iter().any(|p| p.layer() == Layer::L6Ability)
+                {
+                    granted_static = true;
+                }
                 for t in &targets {
                     if let Some(&wi) = work.index.get(t) {
-                        apply(&mut work, wi, &part);
+                        apply(work, wi, &part);
                     }
                 }
             }
         }
-        apply_counters(&mut work, layer);
     }
-
-    let again = work.needs_settled.get() && work.settled.is_none();
-    (
-        Derived::Battlefield(crate::state::CharMap::new(work.ids, work.chars)),
-        again,
-    )
+    granted_static
 }
 
 /// Whether a filter looks at power or toughness.
@@ -1002,9 +1035,24 @@ fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
             if live.iter().any(|l| l.origin == origin) {
                 continue;
             }
+            // CR 604.3a: a "power is equal to ..." the object has only by a
+            // grant isn't a characteristic-defining ability: it sets base
+            // power in layer 7b, timestamped as the later of the object and
+            // the grant (CR 613.7a).
+            let granted_cda = sa
+                .parts
+                .iter()
+                .any(|p| matches!(p, Modification::CdaPt { .. }))
+                && !work
+                    .state
+                    .base_characteristics(obj)
+                    .abilities
+                    .contains(&ability);
             // CR 613.2: characteristic-defining abilities apply before
             // other effects in their layer.
-            let timestamp = if sa.parts.iter().all(Modification::is_cda) {
+            let timestamp = if granted_cda {
+                grant_timestamp(live, ability, *id, obj.timestamp)
+            } else if sa.parts.iter().all(Modification::is_cda) {
                 0
             } else {
                 obj.timestamp
@@ -1031,39 +1079,69 @@ fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
                 }),
                 // "the chosen color" is the source's (CR 607.2a); with none
                 // chosen, that part does nothing.
-                parts: sa
-                    .parts
-                    .iter()
-                    .filter_map(|p| match p {
-                        Modification::ChosenColor => obj
-                            .chosen
-                            .color()
-                            .map(|c| Modification::SetColors(crate::mana::ColorSet::of([c]))),
-                        Modification::ProtectionFromChosen => obj.chosen.color().map(|c| {
-                            Modification::AddKeywords(crate::card::KeywordSet::of([
-                                crate::card::Keyword::protection_from(c),
-                            ]))
-                        }),
-                        // "Enchanted land is the chosen type."
-                        Modification::ChosenLandType => match obj.chosen {
-                            crate::state::Chosen::Subtype(s) => {
-                                s.basic_color().map(Modification::SetLandType)
-                            }
-                            _ => None,
-                        },
-                        // "is the chosen type in addition to its other types".
-                        Modification::AddChosenType => match obj.chosen {
-                            crate::state::Chosen::Subtype(s) => Some(Modification::AddSubtype(s)),
-                            _ => None,
-                        },
-                        p => Some(p.clone()),
-                    })
-                    .collect(),
+                parts: live_parts(obj.chosen, &sa.parts, granted_cda),
                 started: false,
                 dead: false,
             });
         }
     }
+}
+
+/// A static ability's parts as they apply: "the chosen color" or type is
+/// the source's `chosen`; with none chosen, that part does nothing. A
+/// granted "power is equal to ..." applies in layer 7b (`granted_cda`).
+fn live_parts(
+    chosen: crate::state::Chosen,
+    parts: &[Modification],
+    granted_cda: bool,
+) -> SmallVec<[Modification; 2]> {
+    parts
+        .iter()
+        .filter_map(|p| match p {
+            Modification::ChosenColor => chosen
+                .color()
+                .map(|c| Modification::SetColors(crate::mana::ColorSet::of([c]))),
+            Modification::ProtectionFromChosen => chosen.color().map(|c| {
+                Modification::AddKeywords(crate::card::KeywordSet::of([
+                    crate::card::Keyword::protection_from(c),
+                ]))
+            }),
+            // "Enchanted land is the chosen type."
+            Modification::ChosenLandType => match chosen {
+                crate::state::Chosen::Subtype(s) => s.basic_color().map(Modification::SetLandType),
+                _ => None,
+            },
+            // "is the chosen type in addition to its other types".
+            Modification::AddChosenType => match chosen {
+                crate::state::Chosen::Subtype(s) => Some(Modification::AddSubtype(s)),
+                _ => None,
+            },
+            Modification::CdaPt {
+                count,
+                sets,
+                plus_toughness,
+                ..
+            } if granted_cda => Some(Modification::CdaPt {
+                count: count.clone(),
+                sets: *sets,
+                plus_toughness: *plus_toughness,
+                granted: true,
+            }),
+            p => Some(p.clone()),
+        })
+        .collect()
+}
+
+/// CR 613.7a: a granted static ability's effect is timestamped as the later
+/// of its object (`own`) and the effect that granted it to `id`.
+fn grant_timestamp(live: &[Live], ability: AbilityId, id: ObjId, own: Timestamp) -> Timestamp {
+    live.iter()
+        .filter(|l| {
+            l.parts.contains(&Modification::AddAbility(ability))
+                && l.affected.as_ref().is_some_and(|a| a.contains(&id))
+        })
+        .map(|l| l.timestamp)
+        .fold(own, std::cmp::max)
 }
 
 /// CR 613.8: order `here` (already in timestamp order) so that an effect
@@ -1212,6 +1290,7 @@ fn apply(work: &mut Work<'_>, wi: usize, part: &Modification) {
         count,
         sets,
         plus_toughness,
+        ..
     } = part
     {
         // CR 604.3: evaluated against the characteristics as they are

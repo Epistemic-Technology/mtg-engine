@@ -499,7 +499,7 @@ scenario "Sightless Brawler bestowed: +3/+2, and it can't attack alone" {
   hand A: "Sightless Brawler"
   start turn 1 A precombat_main
   turn 1 A: cast "Sightless Brawler" bestowed targeting "Grizzly Bears"
-  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 A: attack "Grizzly Bears"
   run_to turn 1 postcombat_main
   assert power "Grizzly Bears" 5
   assert life B 20

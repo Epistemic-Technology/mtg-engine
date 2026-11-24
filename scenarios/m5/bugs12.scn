@@ -1,0 +1,151 @@
+# The twelfth wave's bug fixes (KNOWN-ISSUES.md sections 1 and 2).
+
+scenario "Giant's Amulet: the granted static gives hexproof while untapped" {
+  battlefield A: "Grizzly Bears", "Giant's Amulet" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  assert has "Grizzly Bears" hexproof
+  assert toughness "Grizzly Bears" 3
+  illegal turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Giant's Amulet: a tapped creature loses hexproof" {
+  battlefield A: "Grizzly Bears" tapped, "Giant's Amulet" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  assert has not "Grizzly Bears" hexproof
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Giant's Amulet: pay {3}{U} as it enters for an equipped 4/4 Giant Wizard" {
+  battlefield A: 5 "Island"
+  hand A: "Giant's Amulet"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant's Amulet"
+  run_to turn 1 begin_combat
+  assert attached "Giant's Amulet" to "Giant Wizard"
+  assert power "Giant Wizard" 4
+  assert toughness "Giant Wizard" 5
+  assert has "Giant Wizard" hexproof
+}
+
+scenario "Loyal Pegasus: attacking alone isn't offered" {
+  battlefield A: "Loyal Pegasus"
+  start turn 1 A precombat_main
+  illegal turn 1 A: attack "Loyal Pegasus"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Loyal Pegasus: it attacks with another creature" {
+  battlefield A: "Loyal Pegasus", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Loyal Pegasus", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Ms. Marvel: Embiggen Fist sets base power after an earlier base-power effect (layer 7b)" {
+  battlefield A: "Ms. Marvel, Kamala Khan", "Forest"
+  battlefield B: "Forest", "Island"
+  hand A: "Giant Growth"
+  hand B: "Square Up"
+  start turn 1 A upkeep
+  turn 1 upkeep B: cast "Square Up" targeting "Ms. Marvel, Kamala Khan"
+  turn 1 A: cast "Giant Growth" targeting "Ms. Marvel, Kamala Khan"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert power "Ms. Marvel, Kamala Khan" 4
+  assert toughness "Ms. Marvel, Kamala Khan" 7
+}
+
+scenario "Briarhorn: evoked with flash during combat, +3/+3 to a blocker" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Grizzly Bears", "Forest", "Forest"
+  hand B: "Briarhorn"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hill Giant"
+  turn 1 declare_blockers B: block "Hill Giant" with "Grizzly Bears"
+  turn 1 declare_blockers B: cast "Briarhorn" evoked
+  turn 1 declare_blockers B: trigger "Briarhorn" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Briarhorn"
+  assert graveyard A contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Mulldrifter: evoke without flash still waits for sorcery timing" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Island", "Island", "Island"
+  hand B: "Mulldrifter"
+  start turn 1 A precombat_main
+  illegal turn 1 precombat_main B: cast "Mulldrifter" evoked
+  run_to turn 1 postcombat_main
+  assert hand B contains "Mulldrifter"
+}
+
+# CR 508.4c: a creature put onto the battlefield attacking isn't affected by
+# restrictions on declaring attackers, "can't attack you" among them.
+scenario "Sandwurm Convergence: a flying token put onto the battlefield attacking still attacks" {
+  battlefield A: "Geist of Saint Traft"
+  battlefield B: "Sandwurm Convergence"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Geist of Saint Traft"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+scenario "Martial Coup: X 5 destroys all creatures but the Soldiers it made" {
+  battlefield A: 7 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Soldier"
+  hand A: "Martial Coup"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Martial Coup" x 5
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 5 "Soldier"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B lacks "Soldier"
+}
+
+scenario "Martial Coup: X 4 only makes Soldiers" {
+  battlefield A: 6 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Martial Coup"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Martial Coup" x 4
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Soldier"
+  assert battlefield B contains "Hill Giant"
+}
+
+# The creatures tapped for a cost are chosen so the mana can still be paid:
+# Birds of Paradise, first on the battlefield, is kept for {U}.
+scenario "Shared Discovery: tap four Elves and pay {U} with Birds of Paradise" {
+  battlefield A: "Birds of Paradise", 4 "Llanowar Elves"
+  hand A: "Shared Discovery"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shared Discovery"
+  run_to turn 2 postcombat_main
+  assert hand A count 3
+  assert tapped "Birds of Paradise"
+}
+
+# A bare token name takes the first token of that name: "Spirit" is the
+# 0/0 white Spirit, which dies at once. The full token name sets up the one
+# meant.
+scenario "Shacklegeist: a Spirit token counts for its tap cost" {
+  battlefield A: "Shacklegeist", "1/1 white Spirit creature with flying"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Shacklegeist" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert tapped "Spirit"
+}

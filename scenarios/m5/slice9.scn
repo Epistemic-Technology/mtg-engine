@@ -63,7 +63,7 @@ scenario "protection from artifacts: artifact creatures can't block" {
 
 scenario "can't attack alone: Mogg Flunkies stays home by itself" {
   battlefield A: "Mogg Flunkies"
-  turn 1 A: attack "Mogg Flunkies"
+  illegal turn 1 A: attack "Mogg Flunkies"
   run_to turn 1 end
   assert life B 20
 }

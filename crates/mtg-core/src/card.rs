@@ -1974,11 +1974,16 @@ pub enum Modification {
     /// (CR 604.3, layer 7a): what `sets` names is the count (toughness the
     /// count plus `plus_toughness`); the other keeps its printed value. The
     /// count is judged from the source's controller as the layer applies
-    /// (`CountExpr`, as for `ModifyPtPer`).
+    /// (`CountExpr`, as for `ModifyPtPer`). `granted`: the ability is on
+    /// the object only by a grant ("this gains '... base power is equal to
+    /// ...'", Ms. Marvel), so it isn't a characteristic-defining ability
+    /// (CR 604.3a) and sets base power in layer 7b by timestamp; set as the
+    /// layers gather it, never by a card definition.
     CdaPt {
         count: CountExpr,
         sets: CdaSets,
         plus_toughness: i32,
+        granted: bool,
     },
 }
 
@@ -2028,8 +2033,10 @@ impl Modification {
             | Modification::AddActivatedOf(_)
             | Modification::RemoveKeywords(_)
             | Modification::RemoveAllAbilities => Layer::L6Ability,
-            Modification::CdaPt { .. } => Layer::L7aCda,
-            Modification::SetPt { .. } => Layer::L7bSetPt,
+            Modification::CdaPt { granted: false, .. } => Layer::L7aCda,
+            Modification::SetPt { .. } | Modification::CdaPt { granted: true, .. } => {
+                Layer::L7bSetPt
+            }
             Modification::ModifyPt { .. } | Modification::ModifyPtPer { .. } => Layer::L7cModifyPt,
             Modification::SwitchPt => Layer::L7dSwitchPt,
         }
@@ -2040,7 +2047,7 @@ impl Modification {
     pub const fn is_cda(&self) -> bool {
         matches!(
             self,
-            Modification::CdaColors(_) | Modification::CdaPt { .. }
+            Modification::CdaColors(_) | Modification::CdaPt { granted: false, .. }
         )
     }
 }
@@ -10504,10 +10511,35 @@ impl DefFlags {
                             Modification::AddActivatedOf(f) if matches!(**f, CountExpr::LibraryTop))))
             }),
         );
+        // Two "enters" replacements of its own whose order matters: its
+        // controller chooses the order as it enters (CR 616.1), with no
+        // other replacement in play (`replace::commute` skips the rest).
+        let enters: Vec<&Replacement> = abilities
+            .iter()
+            .filter_map(|a| match a {
+                AbilityDef::Replacement(r) if matches!(r.replaces, Replaces::Enters) => {
+                    Some(&r.replacement)
+                }
+                _ => None,
+            })
+            .collect();
+        let orders_own_enters = enters.len() >= 2
+            && enters.iter().any(|r| {
+                !matches!(
+                    r,
+                    Replacement::EnterTapped
+                        | Replacement::EnterTappedUnless(_)
+                        | Replacement::EnterPrepared
+                        | Replacement::EnterWithCounters { .. }
+                        | Replacement::EnterWithCountersIf { .. }
+                        | Replacement::EnterWithCountersMay { .. }
+                )
+            });
         // Cipher asks whether to encode as the spell resolves (CR 702.99a).
         flags.set(
             DefFlags::MID_CHOICE,
-            keywords.contains(Keyword::Cipher)
+            orders_own_enters
+                || keywords.contains(Keyword::Cipher)
                 || abilities.iter().any(|a| {
                     matches!(
                         a,
