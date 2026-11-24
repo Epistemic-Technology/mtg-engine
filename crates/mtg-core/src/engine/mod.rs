@@ -283,6 +283,7 @@ impl Engine {
                 state.turn_static_sources += u32::from(def.flags().has_turn_static());
                 state.attack_rule_sources += u32::from(def.flags().has_attack_rule());
                 state.grant_sources += u32::from(def.flags().grants_abilities());
+                state.trigger_grant_sources += u32::from(def.flags().grants_triggers());
                 state.spent_watchers += u32::from(def.flags().watches_spent());
                 state.valiant_watchers += u32::from(def.flags().has_valiant());
                 state.state_trigger_sources += u32::from(def.flags().has_state_trigger());
@@ -624,6 +625,7 @@ impl GameState {
             banding_sources: 0,
             attack_rule_sources: 0,
             grant_sources: 0,
+            trigger_grant_sources: 0,
             eot_grants: 0,
             lasting_grants: 0,
             lasting: None,

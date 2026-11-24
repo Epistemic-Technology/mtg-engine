@@ -789,7 +789,7 @@ impl GameState {
             || !self.delayed_triggers.is_empty()
             || self.suspended_count > 0
             || self.graveyard_trigger_cards > 0
-            || self.grants_exist()
+            || self.trigger_grants_exist()
             || self.emblem_triggers()
         {
             return true;
@@ -810,7 +810,7 @@ impl GameState {
         // cycle this card" trigger.
         matches!(event, Event::ZoneChange { def, .. } | Event::Cycled { def, .. }
             if self.pool.get(*def).has_triggers()
-                || self.pool.get(*def).flags().grants_abilities())
+                || self.pool.get(*def).flags().grants_triggers())
             || matches!(event, Event::Cast { def, .. } if self.pool.get(*def).may_watch(event))
     }
 
@@ -826,7 +826,7 @@ impl GameState {
         );
         // Worked out once, not per object.
         let bit = event.watch_bit();
-        let grants = self.grants_exist();
+        let grants = self.trigger_grants_exist();
         // Room for a few watchers before the list regrows (a collected
         // filter starts at four and regrew on busy boards).
         let mut out: Vec<Watcher> = Vec::with_capacity(8);
@@ -840,7 +840,7 @@ impl GameState {
                                 .pool
                                 .get(l.characteristics.def)
                                 .flags()
-                                .grants_abilities()
+                                .grants_triggers()
                     })
                     .map(|l| Watcher {
                         source: l.id,
@@ -881,7 +881,7 @@ impl GameState {
             && let Some(l) = self.lki.get(old)
             && (grants
                 || self.may_watch_bit(l.object.def, l.object.except, bit)
-                || self.pool.get(l.object.def).flags().grants_abilities())
+                || self.pool.get(l.object.def).flags().grants_triggers())
         {
             out.push(Watcher {
                 source: *old,

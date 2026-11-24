@@ -2319,6 +2319,9 @@ pub struct GameState {
     /// plus grants made this turn by effects: while nonzero, any permanent
     /// may have activated or triggered abilities its definition lacks.
     pub grant_sources: u32,
+    /// Of `grant_sources`, those whose grant could be a triggered ability
+    /// (`DefFlags::grants_triggers`): trigger detection reads them.
+    pub trigger_grant_sources: u32,
     pub eot_grants: u32,
     /// Grants made with a duration longer than the turn ("until your next
     /// turn", "for as long as ..."): `eot_grants` starts each turn here.
@@ -2763,7 +2766,7 @@ impl GameState {
             && (self.trigger_sources > 0
                 || self.graveyard_trigger_cards > 0
                 || self.lookback.is_some()
-                || self.grant_sources > 0
+                || self.trigger_grant_sources > 0
                 || self.eot_grants > 0)
             || ((!self.delayed_triggers.is_empty() || self.suspended_count > 0)
                 && matches!(event, Event::StepBegin { .. }))

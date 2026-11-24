@@ -2958,6 +2958,12 @@ impl GameState {
         self.grant_sources > 0 || self.eot_grants > 0
     }
 
+    /// `grants_exist` for trigger detection: only grants that could give
+    /// a triggered ability (`DefFlags::grants_triggers`).
+    pub(super) fn trigger_grants_exist(&self) -> bool {
+        self.trigger_grant_sources > 0 || self.eot_grants > 0
+    }
+
     /// Convoke and improvise (CR 702.51, 702.126): untapped creatures (each
     /// paying one mana of its color, or generic) and untapped artifacts
     /// (generic) that may be tapped to help cast `def`; after mana
