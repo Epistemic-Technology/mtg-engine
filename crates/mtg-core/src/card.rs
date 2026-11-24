@@ -2855,6 +2855,10 @@ pub enum Lasting {
     /// "until end of combat", "this combat" (CR 500.5a, 511.2): ends as
     /// the combat phase ends (or with the turn, if it has no combat).
     EndOfCombat,
+    /// "until the end of your next turn": only a delayed trigger takes it
+    /// ("Until the end of your next turn, whenever you cast a spell, ...",
+    /// `crate::state::DelayedUntil::EndOfYourNextTurn`).
+    EndOfYourNextTurn,
 }
 
 /// How long cards exiled by an impulse effect stay playable.

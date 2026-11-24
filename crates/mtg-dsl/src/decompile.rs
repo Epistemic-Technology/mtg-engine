@@ -2008,6 +2008,7 @@ impl Decompiler<'_> {
                     this_turn: *this_turn,
                     it: false,
                     closed: false,
+                    own_targets: None,
                 }
             }
             CoreEffect::CreateReplacement(rep) => Effect::CreateReplacement(self.replacement(rep)),

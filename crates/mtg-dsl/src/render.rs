@@ -14155,7 +14155,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 return Clause::imperative(format!("{body}{tail}"));
             }
             if *trigger_first {
-                Clause::imperative(format!("{t}, {}{tail}", lowercase_first(&body)))
+                // "..., Season of the Bold deals 2 damage ...": a name
+                // keeps its capital.
+                let name = ctx.source_name();
+                let body = if body.starts_with(&name) && name.starts_with(char::is_uppercase) {
+                    body
+                } else {
+                    lowercase_first(&body)
+                };
+                Clause::imperative(format!("{t}, {body}{tail}"))
             } else {
                 Clause::imperative(format!("{} {t}{tail}", lowercase_first(&body)))
             }
@@ -15194,6 +15202,7 @@ fn lasting_text(l: mtg_core::card::Lasting, ctx: &Ctx) -> String {
         // No duration: "That token gains haste."
         Lasting::Forever => String::new(),
         Lasting::EndOfCombat => "until end of combat".to_string(),
+        Lasting::EndOfYourNextTurn => "until the end of your next turn".to_string(),
     }
 }
 
@@ -15342,9 +15351,9 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::When(_) => unreachable!("unwrapped above"),
         // "When you next cast an instant or sorcery spell" (the delayed
         // trigger adds "this turn").
-        Trigger::Next(inner) => {
-            trigger_text(inner, ctx, next).replacen("whenever you cast", "when you next cast", 1)
-        }
+        Trigger::Next(inner) => trigger_text(inner, ctx, next)
+            .replacen("whenever you cast", "when you next cast", 1)
+            .replacen("whenever you attack", "when you next attack", 1),
         // CR 603.2c.
         Trigger::Batch(inner) => match &**inner {
             Trigger::PutIntoGraveyard(f) => format!(

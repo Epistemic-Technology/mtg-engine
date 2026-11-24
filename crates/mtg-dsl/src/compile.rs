@@ -168,6 +168,7 @@ pub fn add_card(
             scavenge: None,
             station: None,
             delayed_targets: Vec::new(),
+            own_targets: None,
             sunburst: None,
             extort: None,
             they_twins: Vec::new(),
@@ -215,6 +216,7 @@ pub fn add_card(
                 scavenge: None,
                 station: None,
                 delayed_targets: Vec::new(),
+                own_targets: None,
                 sunburst: None,
                 extort: None,
                 they_twins: Vec::new(),
@@ -251,6 +253,7 @@ pub fn add_card(
         scavenge: None,
         station: None,
         delayed_targets: Vec::new(),
+        own_targets: None,
         sunburst: None,
         extort: None,
         they_twins: Vec::new(),
@@ -352,6 +355,7 @@ fn add_stages(
             scavenge: None,
             station: None,
             delayed_targets: Vec::new(),
+            own_targets: None,
             extort: None,
             they_twins: Vec::new(),
             rampage: None,
@@ -468,6 +472,10 @@ struct Compiler<'a> {
     /// A delayed ability's own targets (`you earthbend 4`), gathered as its
     /// effects compile.
     delayed_targets: Vec<TargetSpec>,
+    /// The ability's targets that a delayed ability in its effects declares
+    /// (`ast::Effect::Delayed::own_targets`): their first index, and their
+    /// specs, which that delayed ability takes.
+    own_targets: Option<(usize, Vec<TargetSpec>)>,
     /// Sunburst's count (colors of mana spent), in `counts`.
     sunburst: Option<u8>,
     /// Extort's count (the life lost this way), once added to the counts.
@@ -2116,7 +2124,7 @@ impl Compiler<'_> {
         let mut out = Vec::new();
         for m in modes {
             out.push(CoreMode {
-                targets: self.targets(&m.targets),
+                targets: self.targets(&m.targets, &m.effects),
                 effects: self.sentences(&m.effects)?,
                 text: render::mode_text(self.card, m, self.lookup)
                     .trim_end_matches('.')
@@ -3171,7 +3179,33 @@ impl Compiler<'_> {
 
     /// An ability's targets; its effects, compiled next, refer to a
     /// variable group as all its targets.
-    fn targets(&mut self, ts: &[Target]) -> Vec<TargetSpec> {
+    fn targets(&mut self, ts: &[Target], effects: &[Sentence]) -> Vec<TargetSpec> {
+        // "Whenever you attack this turn, target creature you control gets
+        // +1/+1": a delayed ability's own targets, the ability's last, are
+        // chosen as it triggers (CR 603.7).
+        let own = effects
+            .iter()
+            .flat_map(|s| &s.effects)
+            .find_map(|e| match e {
+                Effect::Delayed {
+                    own_targets: Some((start, n)),
+                    ..
+                } if start + n == ts.len() => Some(*start),
+                _ => None,
+            });
+        if let Some(start) = own {
+            let outer = self.targets(&ts[..start], &[]);
+            let saved = self.tmap;
+            let specs = ts[start..].iter().map(|t| self.target(t)).collect();
+            self.tmap = saved;
+            self.own_targets = Some((start, specs));
+            return outer;
+        }
+        // (A reflexive ability's targets, `effects` empty, leave the
+        // enclosing ability's.)
+        if !effects.is_empty() {
+            self.own_targets = None;
+        }
         self.many = ts.iter().position(|t| matches!(t, Target::Many { .. }));
         // "Tap one or two target untapped creatures you control. They each
         // deal damage ... to target creature an opponent controls.": the
@@ -3494,6 +3528,21 @@ impl Compiler<'_> {
                 let cond = self.instead_cond(cond);
                 out.push(CoreEffect::Instead { cond, base, alt });
                 continue;
+            }
+            // "Until the end of your next turn, whenever ...": a delayed
+            // trigger's duration only (no continuous effect has it).
+            if s.lasting == Some(mtg_core::card::Lasting::EndOfYourNextTurn)
+                && !matches!(
+                    s.effects.as_slice(),
+                    [Effect::Delayed {
+                        this_turn: true,
+                        ..
+                    }]
+                )
+            {
+                return self.err(
+                    "`until the end of your next turn,` takes only a `whenever` delayed trigger",
+                );
             }
             let start = out.len();
             for e in &s.effects {
@@ -5028,7 +5077,7 @@ impl Compiler<'_> {
                     return self
                         .err("`granter` only in a quoted ability of `static enchanted: ...`");
                 }
-                let targets = self.targets(targets);
+                let targets = self.targets(targets, &[]);
                 let id = self
                     .pool
                     .register_ability(AbilityDef::Triggered(TriggeredAbility {
@@ -5166,6 +5215,7 @@ impl Compiler<'_> {
                 trigger,
                 effects,
                 this_turn,
+                own_targets,
                 ..
             } => {
                 // CR 603.7c: a delayed trigger triggers only once unless it
@@ -5206,6 +5256,18 @@ impl Compiler<'_> {
                 self.tmap.put_creature = false;
                 self.tmap.spell = false;
                 let outer_targets = std::mem::take(&mut self.delayed_targets);
+                // Its own targets, numbered from 0 among its own.
+                if let Some((start, _)) = own_targets {
+                    let own = self.own_targets.take().filter(|(at, _)| at == start);
+                    let Some((at, specs)) = own else {
+                        return self.err(
+                            "a delayed trigger's own targets must be the ability's last targets",
+                        );
+                    };
+                    self.delayed_targets = specs;
+                    self.tmap.shift = at;
+                    self.tmap.group = None;
+                }
                 let effects = self.sentences(effects);
                 self.tmap = outer;
                 let own_targets = std::mem::replace(&mut self.delayed_targets, outer_targets);
@@ -6741,7 +6803,7 @@ impl Compiler<'_> {
             Ability::Enchant(t) => AbilityDef::Enchant(self.target(t)),
             Ability::Spell { targets, effects } => AbilityDef::Spell {
                 targets: {
-                    let ts = self.targets(targets);
+                    let ts = self.targets(targets, effects);
                     self.tmap.spell = true;
                     self.tmap.kicked = self.card.kicked_drops;
                     ts
@@ -6807,7 +6869,7 @@ impl Compiler<'_> {
             } => AbilityDef::Activated(ActivatedAbility {
                 cost: self.cost(cost),
                 targets: {
-                    let ts = self.targets(targets);
+                    let ts = self.targets(targets, effects);
                     // No triggering object: "That creature gains haste"
                     // after a put from the hand is that creature (Meek
                     // Attack).
@@ -6967,7 +7029,7 @@ impl Compiler<'_> {
                     }
                 },
                 targets: {
-                    let ts = self.targets(targets);
+                    let ts = self.targets(targets, effects);
                     let enters_this = |t: &Trigger| matches!(t, Trigger::Enters(TriggerObj::This));
                     self.tmap.they_target = !ts.is_empty()
                         && (enters_this(trigger)
@@ -9083,6 +9145,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         this_turn: false,
                         it: false,
                         closed: false,
+                        own_targets: None,
                     },
                 ],
                 label: None,

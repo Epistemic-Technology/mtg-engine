@@ -501,7 +501,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever you roll dice`, `whenever you win a coin flip` | "Whenever you roll one or more dice" (once per roll, CR 706), "Whenever you win a coin flip" (CR 705.2) |
 | `whenever creature you control attacks alone` | attacks alone (CR 506.5) |
 | `whenever creature you control attacks a player alone` | "Whenever a creature you control attacks a player alone" (CR 506.5): the only attacker declared, attacking a player rather than a planeswalker or battle; the creature is `that creature`, the player attacked `that player` |
-| `whenever one or more of your opponents are attacked`, `whenever one or more creatures attack you`, `whenever one or more creatures attack one of your opponents` | once per declaration of attackers (CR 508.1m) in which a creature, anyone's, attacks a matching player (not a planeswalker or battle); the last once for each opponent attacked. The player attacked is `that player`. "Those creatures" (the attackers) is not expressible yet |
+| `whenever one or more of your opponents are attacked`, `whenever one or more creatures attack you`, `whenever one or more creatures attack one of your opponents` | once per declaration of attackers (CR 508.1m) in which a creature, anyone's, attacks a matching player (not a planeswalker or battle); the last once for each opponent attacked. The player attacked is `that player`. `those creatures` is the creatures attacking that player (or, without "one of", any matching player) as the ability resolves: `triggered whenever one or more creatures attack you: those creatures gets -1/-0` ("Whenever one or more creatures attack you, those creatures get -1/-0 until end of turn.", Sabotage Strategist); in a delayed trigger too |
 | `whenever this attacks for the first time each turn` | the attacking creature hadn't attacked yet this turn (with additional combat phases, CR 500.8) |
 | `whenever you attack`, `whenever you attack with 3 or more creatures`, `label "Battalion" triggered whenever this and at least 2 other creatures attack` | once as the controller declares attackers (CR 508.1m), if at least that many attack (battalion: this creature among them); "Whenever this creature and at least two other creatures attack"; `whenever one or more creatures you control attack` is the same trigger in the older wording |
 | `whenever a player attacks with 3 or more creatures`, `whenever an opponent attacks with 2 or more creatures` | "Whenever a player attacks with three or more creatures": once per declaration of attackers by such a player (CR 508.1m) if at least that many attack; the attacking player is `that player`. `whenever 2 or more creatures your opponents control attack` is the opponent's form in the older wording ("Whenever two or more creatures your opponents control attack"), the same trigger |
@@ -3771,13 +3771,33 @@ nontoken creature you control dies this turn, create ...". Led by
 first: `until end of turn, delayed this: whenever creature you control
 deals combat damage to a player, investigate` ("Until end of turn,
 whenever a creature you control deals combat damage to a player,
-investigate."). In a delayed trigger about a target, `that creature` is that target, as the trigger's subject (`delayed target 1: whenever that creature deals combat damage this turn, ...`) or in `dealt damage by that creature this turn` (`delayed target 1: whenever creature dealt damage by that creature this turn dies this turn, its controller loses 2 life`: "Whenever a creature dealt damage by that creature dies this turn, its controller loses 2 life."); `this` there is the same object. A delayed trigger printed "Whenever" with neither is a
+investigate."). Led by `until your next turn,` it lasts until its
+controller's next turn begins, past this turn's cleanup step
+(`until your next turn, delayed this: whenever one or more creatures
+attack one of your opponents, those creatures gets +2/+2 and those
+creatures gain trample`: "Until your next turn, whenever one or more
+creatures attack one of your opponents, those creatures get +2/+2 and
+gain trample until end of turn.", Garruk, Curse Breaker), and led by
+`until the end of your next turn,` until the cleanup step of its
+controller's next turn (`until the end of your next turn, delayed this:
+whenever you cast a spell, this deals 2 damage to up to 1 target
+creature`, Season of the Bold; that lead takes only such a delayed
+trigger). A target first named in a delayed trigger's own text is the
+delayed ability's, chosen each time it triggers (CR 603.7), not the
+target of the ability that creates it ("Whenever you attack this turn,
+target creature you control gets +1/+1 until end of turn for each
+Plains you control.", Roads Go Ever, Ever On); such targets must be the
+creating ability's last. In a delayed trigger about a target, `that creature` is that target, as the trigger's subject (`delayed target 1: whenever that creature deals combat damage this turn, ...`) or in `dealt damage by that creature this turn` (`delayed target 1: whenever creature dealt damage by that creature this turn dies this turn, its controller loses 2 life`: "Whenever a creature dealt damage by that creature dies this turn, its controller loses 2 life."); `this` there is the same object. A delayed trigger printed "Whenever" with neither is a
 compile error (it would trigger only once, CR 603.7c). `delayed
 this: when next you cast instant or sorcery spell this turn, copy that
 spell new targets` ("When you next cast an instant or sorcery spell this
 turn, copy that spell. ...", CR 603.7c) triggers only the first time,
 then ends; any cast trigger may follow `when next` (`when next you cast
-instant or sorcery with mana value 4 or less spell`).
+instant or sorcery with mana value 4 or less spell`), and so may `you
+attack`: `delayed this: when next you attack this turn, untap each
+creature you control` ("When you next attack this turn, untap each
+creature you control.", All-Out Assault) triggers the next time its
+controller declares attackers.
 
 Who and what (`<who>`, `<what>`): `you`, `each opponent` (`each of your
 opponents` is the same players, printed "Each of your opponents"), `each player`,

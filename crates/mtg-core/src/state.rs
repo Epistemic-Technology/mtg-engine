@@ -118,6 +118,24 @@ pub struct DelayedTrigger {
     /// The turn it was created in: "At the beginning of the end step on
     /// your next turn" (`TriggerSpec::OnNextTurn`) waits for a later turn.
     pub turn: u32,
+    /// How long a `this_turn` one lasts past this turn's cleanup step.
+    pub until: DelayedUntil,
+}
+
+/// How long a delayed trigger that triggers on every matching event lasts
+/// (CR 603.7c, 611.2b).
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum DelayedUntil {
+    /// "... this turn", "Until end of turn, whenever ...": the cleanup
+    /// step ends it.
+    #[default]
+    ThisTurn,
+    /// "Until your next turn, whenever ...": ends as its controller's next
+    /// turn begins.
+    YourNextTurn,
+    /// "Until the end of your next turn, whenever ...": ends with the
+    /// cleanup step of its controller's next turn.
+    EndOfYourNextTurn,
 }
 
 /// Something a spell or ability can target or an effect can act on.

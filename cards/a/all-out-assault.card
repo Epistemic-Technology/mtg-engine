@@ -1,0 +1,7 @@
+card "All-Out Assault" {
+  oracle_id de8c0e2d-3207-4bc6-83ef-91e33b26a981
+  cost {2}{R}{W}{B}
+  type Enchantment
+  static creature you control: +1/+1, has deathtouch
+  triggered when this enters: if your main phase, additional combat phase after this phase then main phase; delayed this: when next you attack this turn, untap each creature you control
+}

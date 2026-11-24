@@ -4454,6 +4454,9 @@ impl P {
                 } else {
                     None
                 };
+                // "Whenever one or more creatures attack you, those
+                // creatures get -1/-0": the attackers are the group.
+                self.group_named = matches!(trigger, Trigger::PlayersAttacked { .. });
                 let effects = self.effects_body()?;
                 Ok(Ability::Triggered {
                     limit,
@@ -6842,6 +6845,15 @@ impl P {
             // "Until end of combat, <clauses>" (CR 500.5a).
             lasting = Some(mtg_core::card::Lasting::EndOfCombat);
             true
+        } else if self.at_words(&["until", "the", "end", "of", "your", "next", "turn"])
+            && self.peek_at(7) == Some(&Tok::Comma)
+            && self.word_at(8).as_deref() == Some("delayed")
+        {
+            // "Until the end of your next turn, whenever you cast a spell,
+            // ..." (a delayed trigger only, CR 603.7c).
+            self.pos += 7;
+            lasting = Some(mtg_core::card::Lasting::EndOfYourNextTurn);
+            true
         } else {
             self.eat_words(&["until", "end", "of", "turn"])
         };
@@ -6910,9 +6922,17 @@ impl P {
             lasting = self.lasting_suffix();
         }
         // "Until end of turn, whenever ..., <effects>": a delayed trigger
-        // that lasts the turn (CR 603.7c), as `whenever ... this turn`.
+        // that lasts the turn (CR 603.7c), as `whenever ... this turn`;
+        // "Until your next turn, whenever ..." and "Until the end of your
+        // next turn, whenever ..." last longer (the sentence's duration).
         if eot_first
-            && lasting.is_none()
+            && matches!(
+                lasting,
+                None | Some(
+                    mtg_core::card::Lasting::YourNextTurn
+                        | mtg_core::card::Lasting::EndOfYourNextTurn
+                )
+            )
             && let Some(Effect::Delayed {
                 this_turn,
                 trigger_first: true,
@@ -14403,7 +14423,15 @@ impl P {
                     // "its controller": the triggering object's.
                     let was_dies = self.delayed_dies;
                     self.delayed_dies |= turn_long;
+                    // "... whenever one or more creatures attack one of
+                    // your opponents, those creatures get +2/+2": the
+                    // attackers are the delayed ability's group.
+                    let was_group = std::mem::replace(
+                        &mut self.group_named,
+                        matches!(t, Trigger::PlayersAttacked { .. }),
+                    );
                     let e = self.sentences_inline();
+                    self.group_named = was_group;
                     self.delayed_dies = was_dies;
                     (t, e?, true)
                 } else if closed {
@@ -14442,6 +14470,8 @@ impl P {
                     this_turn: this_turn.is_some() || turn_long,
                     it,
                     closed,
+                    own_targets: (self.targets.len() > targets_before)
+                        .then(|| (targets_before, self.targets.len() - targets_before)),
                 })
             }
             "prevent" => {
@@ -18843,15 +18873,25 @@ impl P {
         }
         // `when next you cast instant or sorcery spell`: "When you next
         // cast an instant or sorcery spell" (a delayed trigger, once).
-        if !whenever && self.at_words(&["next", "you", "cast"]) {
+        // `when next you attack`: "When you next attack this turn" (All-Out
+        // Assault).
+        if !whenever
+            && (self.at_words(&["next", "you", "cast"])
+                || self.at_words(&["next", "you", "attack"]))
+        {
             // Read the rest as `whenever you cast ...`.
             self.toks[self.pos].tok = Tok::Word("whenever".to_string());
             let inner = self.trigger_one()?;
             if !matches!(
                 inner,
-                Trigger::CastsSpell { .. } | Trigger::CastsFiltered { .. }
+                Trigger::CastsSpell { .. }
+                    | Trigger::CastsFiltered { .. }
+                    | Trigger::AttacksWith {
+                        this: false,
+                        min: 1
+                    }
             ) {
-                return self.fail("`when next` takes a `you cast` trigger");
+                return self.fail("`when next` takes a `you cast` or `you attack` trigger");
             }
             return Ok(Trigger::Next(Box::new(inner)));
         }

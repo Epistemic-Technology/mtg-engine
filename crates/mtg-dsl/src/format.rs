@@ -882,6 +882,9 @@ impl Fmt {
             out.push_str(match s.lasting {
                 Some(mtg_core::card::Lasting::YourNextTurn) => "until your next turn, ",
                 Some(mtg_core::card::Lasting::EndOfCombat) => "until end of combat, ",
+                Some(mtg_core::card::Lasting::EndOfYourNextTurn) => {
+                    "until the end of your next turn, "
+                }
                 _ => "until end of turn, ",
             });
         }
@@ -935,6 +938,7 @@ impl Fmt {
                 mtg_core::card::Lasting::UntilCastFromExile => " until this is cast from exile",
                 mtg_core::card::Lasting::Forever => " indefinitely",
                 mtg_core::card::Lasting::EndOfCombat => " until end of combat",
+                mtg_core::card::Lasting::EndOfYourNextTurn => " until the end of your next turn",
             });
         }
         out
@@ -4255,6 +4259,7 @@ impl Fmt {
                 this_turn,
                 it,
                 closed,
+                ..
             } => {
                 let about = self.recipient(*about, t);
                 let body = self.line(effects, t);

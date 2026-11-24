@@ -10579,6 +10579,7 @@ impl GameState {
             this_turn: false,
             forever: false,
             turn: self.turn_number,
+            until: crate::state::DelayedUntil::ThisTurn,
         });
     }
 
@@ -10613,6 +10614,7 @@ impl GameState {
             this_turn: false,
             forever: true,
             turn: self.turn_number,
+            until: crate::state::DelayedUntil::ThisTurn,
         });
     }
 
@@ -12548,6 +12550,9 @@ impl GameState {
                 self.combat_durations += 1;
                 Duration::UntilEndOfCombat
             }
+            // Only a delayed trigger takes it (the compiler refuses any
+            // other effect), which reads `self.lasting` itself.
+            crate::card::Lasting::EndOfYourNextTurn => return duration,
         };
         if d.linked() {
             self.linked_durations += 1;
@@ -16096,6 +16101,7 @@ impl GameState {
                         this_turn: false,
                         forever: false,
                         turn: self.turn_number,
+                        until: crate::state::DelayedUntil::ThisTurn,
                     });
                 }
             }
@@ -16110,6 +16116,17 @@ impl GameState {
                     .map(|o| o.def)
                     .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
                     .expect("a resolving spell or its last known information exists");
+                // "Until your next turn, whenever ...", "Until the end of
+                // your next turn, whenever ..." (CR 603.7c, 611.2b).
+                let until = match self.lasting {
+                    Some(crate::card::Lasting::YourNextTurn) if *this_turn => {
+                        crate::state::DelayedUntil::YourNextTurn
+                    }
+                    Some(crate::card::Lasting::EndOfYourNextTurn) if *this_turn => {
+                        crate::state::DelayedUntil::EndOfYourNextTurn
+                    }
+                    _ => crate::state::DelayedUntil::ThisTurn,
+                };
                 // "If you do, at the beginning of the next end step, create
                 // a token that's a copy of that artifact" (a sacrificed
                 // one): the trigger is about the permanent as it last
@@ -16156,6 +16173,7 @@ impl GameState {
                                 this_turn: *this_turn,
                                 forever: false,
                                 turn: self.turn_number,
+                                until,
                             });
                             continue;
                         }
@@ -16182,6 +16200,7 @@ impl GameState {
                         this_turn: *this_turn,
                         forever: false,
                         turn: self.turn_number,
+                        until,
                     });
                     self.emit(Event::DelayedTriggerCreated {
                         source: ctx.source,

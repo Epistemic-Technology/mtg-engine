@@ -657,6 +657,7 @@ impl GameState {
                 this_turn: false,
                 forever: false,
                 turn: self.turn_number,
+                until: crate::state::DelayedUntil::ThisTurn,
             });
         }
         if old.zone == Zone::Battlefield {

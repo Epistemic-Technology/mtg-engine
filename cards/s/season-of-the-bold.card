@@ -1,0 +1,10 @@
+card "Season of the Bold" {
+  oracle_id 5fe29c25-a7ad-4c79-a5a5-da1bbc832141
+  cost {3}{R}{R}
+  type Sorcery
+  pawprint 5 {
+    mode 1: create 1 tapped "Treasure"
+    mode 2: impulse 2 next turn first it
+    mode 3: until the end of your next turn, delayed this: whenever you cast a spell, this deals 2 damage to up to 1 target creature
+  }
+}

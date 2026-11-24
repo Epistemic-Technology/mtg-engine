@@ -2589,6 +2589,13 @@ impl GameState {
             counts: self.pool.counts_owner(sa.ability),
         };
         let outer = self.begin_this_way(id);
+        // "Whenever one or more creatures attack you, those creatures get
+        // -1/-0": the attackers at that player are the ability's group.
+        if let AbilityDef::Triggered(t) = self.pool.ability(sa.ability)
+            && let TriggerSpec::PlayersAttacked { whose, each } = t.trigger
+        {
+            self.note_attackers(obj.controller, whose, each, sa.trigger_player);
+        }
         // "Do this only once each turn.": its "you may" asks only until it
         // is done (`Effect::YouMay`).
         let doing = if limit == crate::card::TurnLimit::Do {
@@ -2630,6 +2637,38 @@ impl GameState {
         if self.objects.contains_key(id) {
             self.remove_from_game(id);
         }
+    }
+
+    /// "Those creatures" in a `TriggerSpec::PlayersAttacked` ability (CR
+    /// 508.1m): the creatures attacking the player attacked (with `each`)
+    /// or any matching player, as the ability resolves, are the group its
+    /// effects name (`Recipient::ThoseObjects`).
+    #[cold]
+    fn note_attackers(
+        &mut self,
+        controller: PlayerId,
+        whose: Who,
+        each: bool,
+        attacked: Option<PlayerId>,
+    ) {
+        let (Some(log), Some(c)) = (&mut self.this_way, &self.combat) else {
+            return;
+        };
+        log.group.clear();
+        log.group.extend(
+            c.attackers
+                .iter()
+                .filter(|a| match a.attacking {
+                    Target::Player(q) if each => Some(q) == attacked,
+                    Target::Player(q) => match whose {
+                        Who::Any => true,
+                        Who::You => q == controller,
+                        Who::Opponents => q != controller,
+                    },
+                    Target::Object(_) => false,
+                })
+                .map(|a| a.id),
+        );
     }
 
     /// An ability's intervening "if", evaluated against the current state.

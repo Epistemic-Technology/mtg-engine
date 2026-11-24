@@ -6335,6 +6335,12 @@ pub enum Effect {
         /// are the spell's, not the delayed trigger's (wording only: both
         /// print the same).
         closed: bool,
+        /// The targets its own text declares ("Whenever you attack this
+        /// turn, target creature you control gets +1/+1"): the first's
+        /// index among the ability's targets and their number. The delayed
+        /// ability chooses them as it triggers (CR 603.7), not the ability
+        /// that creates it; they must be the ability's last targets.
+        own_targets: Option<(usize, usize)>,
     },
     /// A replacement or prevention effect that lasts until end of turn.
     CreateReplacement(Replacement),
