@@ -1,0 +1,7 @@
+card "Earth's Mightiest Heroes" {
+  oracle_id 2b87bcac-ec64-4012-9e75-f459d3640eb3
+  cost {4}{G}{G}
+  type Sorcery
+  teamwork 5
+  spell: dig 8 reveal take creature card may onto battlefield rest graveyard instead take any if teamwork
+}

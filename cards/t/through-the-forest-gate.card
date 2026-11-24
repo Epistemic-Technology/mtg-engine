@@ -1,0 +1,6 @@
+card "Through the Forest Gate" {
+  oracle_id acfe54b3-10e3-4fdb-b874-d39fde96c40a
+  cost {6}{G}{G}
+  type Sorcery
+  spell: dig 20 then take any land card may onto battlefield tapped rest shuffle; you gain 8 life
+}

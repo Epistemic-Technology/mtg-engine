@@ -902,6 +902,7 @@ impl Decompiler<'_> {
         }
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per sentence pair
     fn sentences(&self, effects: &[CoreEffect]) -> Vec<Sentence> {
         let mut out = Vec::new();
         let mut sized = None;
@@ -914,8 +915,7 @@ impl Decompiler<'_> {
                 continue;
             }
             if let CoreEffect::Instead { cond, base, alt } = e {
-                out.extend(self.sentences(base));
-                let cond = match cond {
+                let cond_ast = match cond {
                     mtg_core::card::EffectCond::Kicked => crate::ast::InsteadCond::Kicked,
                     mtg_core::card::EffectCond::Static(i) => {
                         crate::ast::InsteadCond::Static(self.static_cond(self.pool.condition(*i)))
@@ -931,8 +931,49 @@ impl Decompiler<'_> {
                         crate::ast::InsteadCond::ThisWay(self.this_way_cond(c))
                     }
                 };
+                // A dig changed by a later sentence (`instead ... if`).
+                if let (
+                    [b @ CoreEffect::Dig { .. }],
+                    [
+                        CoreEffect::Dig {
+                            count,
+                            take,
+                            all,
+                            onto,
+                            ..
+                        },
+                    ],
+                ) = (base.as_slice(), alt.as_slice())
+                {
+                    let mut d = self.effect(b);
+                    if let (
+                        Effect::Dig { alt: slot, .. },
+                        CoreEffect::Dig {
+                            count: bc,
+                            take: bt,
+                            all: ba,
+                            onto: bo,
+                            ..
+                        },
+                    ) = (&mut d, b)
+                    {
+                        *slot = Some(Box::new(crate::ast::DigAlt {
+                            cond: cond_ast,
+                            wording: crate::ast::InsteadWording::Trail,
+                            count: (count != bc).then_some(*count),
+                            take: (take != bt).then_some(*take),
+                            all: *all && !*ba,
+                            onto: if onto == bo { None } else { *onto },
+                            end: false,
+                            rest: false,
+                        }));
+                    }
+                    out.push(Sentence::new(vec![d]));
+                    continue;
+                }
+                out.extend(self.sentences(base));
                 out.push(Sentence::new(vec![Effect::Instead {
-                    cond,
+                    cond: cond_ast,
                     wording: crate::ast::InsteadWording::Trail,
                     label: None,
                     effects: self.sentences(alt),
@@ -2218,7 +2259,19 @@ impl Decompiler<'_> {
                 random,
                 top,
                 onto,
+                shuffle,
+                at_random,
+                split,
+                until,
             } => Effect::Dig {
+                until: *until,
+                shuffle: *shuffle,
+                at_random: *at_random,
+                split: split
+                    .as_ref()
+                    .map(|f| (self.filter(f), crate::ast::Filter::default())),
+                among: false,
+                alt: None,
                 count: *count,
                 filter: filter.as_ref().map(|f| self.filter(f)),
                 optional: *optional,
@@ -2334,6 +2387,7 @@ impl Decompiler<'_> {
                 among_those: false,
                 this_way: false,
                 returns: false,
+                by: None,
             },
             CoreEffect::OneOf(options) => {
                 // "gains your choice of lifelink or indestructible".

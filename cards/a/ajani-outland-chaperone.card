@@ -1,0 +1,9 @@
+card "Ajani, Outland Chaperone" {
+  oracle_id 3ba809ce-3556-415c-9fcc-291cb10a43cd
+  cost {1}{W}{W}
+  type Legendary Planeswalker — Ajani
+  loyalty 3
+  loyalty +1: create 1 "1/1 green and white Kithkin creature"
+  loyalty -2: deal 4 damage to target tapped creature
+  loyalty -8: dig count where life take any nonland permanent with mana value 3 or less card may onto battlefield rest shuffle reword
+}

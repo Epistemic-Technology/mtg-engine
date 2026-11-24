@@ -867,6 +867,20 @@ impl Fmt {
                     out.push_str(" all creature types");
                     continue;
                 }
+                // "Creatures target player controls get +1/+1 and gain
+                // haste": likewise for a grant after the group's pump.
+                if let Effect::Pump { to, .. } = &s.effects[i - 1] {
+                    let text = self.effect(e, targets);
+                    let subject = format!("{} gain ", self.recipient(*to, targets));
+                    match text.strip_prefix(&subject) {
+                        Some(rest) if subject.starts_with("all ") => {
+                            out.push_str("gain ");
+                            out.push_str(rest);
+                        }
+                        _ => out.push_str(&text),
+                    }
+                    continue;
+                }
             }
             out.push_str(&self.effect(e, targets));
         }
@@ -1569,8 +1583,17 @@ impl Fmt {
                 short,
                 reword,
                 rest_revealed,
+                shuffle,
+                at_random,
+                split,
+                among,
+                alt,
+                until,
             } => {
                 let mut s = format!("dig {}", num(*count));
+                if *until {
+                    s.push_str(" until");
+                }
                 if *then {
                     s.push_str(" then");
                 }
@@ -1595,6 +1618,9 @@ impl Fmt {
                 if let Some(a) = also {
                     let _ = write!(s, " and {} card", filter(a));
                 }
+                if *at_random {
+                    s.push_str(" at random");
+                }
                 if *optional {
                     s.push_str(" may");
                 }
@@ -1613,7 +1639,12 @@ impl Fmt {
                         s.push_str(" tapped");
                     }
                 }
-                s.push_str(if *rest_graveyard {
+                if let Some((a, b)) = split {
+                    let _ = write!(s, " split {} card {} card", filter(a), filter(b));
+                }
+                s.push_str(if *shuffle {
+                    " rest shuffle"
+                } else if *rest_graveyard {
                     " rest graveyard"
                 } else {
                     " rest bottom"
@@ -1629,6 +1660,51 @@ impl Fmt {
                 }
                 if *rest_revealed {
                     s.push_str(" revealed");
+                }
+                if *among {
+                    s.push_str(" among");
+                }
+                if let Some(a) = alt {
+                    s.push_str(" instead");
+                    match a.wording {
+                        crate::ast::InsteadWording::Lead => s.push_str(" lead"),
+                        crate::ast::InsteadWording::After => s.push_str(" after"),
+                        _ => {}
+                    }
+                    if a.end {
+                        s.push_str(" end");
+                    }
+                    if a.rest {
+                        s.push_str(" rest");
+                    }
+                    if let Some(c) = a.count {
+                        let _ = write!(s, " count {}", num(c));
+                    }
+                    if a.all {
+                        s.push_str(" take all");
+                    } else if a.take == Some(crate::ast::ANY_NUMBER) {
+                        s.push_str(" take any");
+                    } else if let Some(k) = a.take {
+                        let _ = write!(s, " take {k}");
+                    }
+                    if let Some(tapped) = a.onto {
+                        s.push_str(" otherwise onto battlefield");
+                        if tapped {
+                            s.push_str(" tapped");
+                        }
+                    }
+                    let cond = match &a.cond {
+                        crate::ast::InsteadCond::Kicked => "kicked".to_string(),
+                        crate::ast::InsteadCond::Static(c) => static_cond(c),
+                        crate::ast::InsteadCond::Target { n, that, filter: f } => format!(
+                            "{}target {} is {}",
+                            if *that { "that " } else { "" },
+                            n + 1,
+                            filter(f)
+                        ),
+                        crate::ast::InsteadCond::ThisWay(c) => this_way_cond(c),
+                    };
+                    let _ = write!(s, " if {cond}");
                 }
                 s
             }
@@ -3543,9 +3619,19 @@ impl Fmt {
                 among_those,
                 this_way,
                 returns,
+                by,
             } => {
                 use mtg_core::card::ChooseAct;
-                let n = if *count == Num::N(crate::ast::ANY_NUMBER) {
+                if let Some(w) = by {
+                    return format!(
+                        "{} puts all {} card from among milled this way cards into hand chosen",
+                        self.recipient(*w, t),
+                        filter(f)
+                    );
+                }
+                let n = if *count == Num::N(crate::ast::ANY_NUMBER) && !*up_to {
+                    "all".to_string()
+                } else if *count == Num::N(crate::ast::ANY_NUMBER) {
                     "any number".to_string()
                 } else {
                     format!("{}{}", if *up_to { "up to " } else { "" }, num(*count))
@@ -3645,7 +3731,9 @@ impl Fmt {
                     ChooseAct::MilledToHand if *returns => {
                         format!("return {n} {f} {cs} from among them to hand chosen")
                     }
-                    ChooseAct::MilledToHand | ChooseAct::MilledToBattlefield => format!(
+                    ChooseAct::MilledToHand
+                    | ChooseAct::MilledToBattlefield
+                    | ChooseAct::MilledToTop => format!(
                         "put {n} {f} {cs} from among {} {} chosen",
                         if *among_them {
                             "them"
@@ -3656,11 +3744,14 @@ impl Fmt {
                         } else {
                             "milled cards"
                         },
-                        if *act == ChooseAct::MilledToHand {
-                            "into hand"
-                        } else {
-                            "onto battlefield"
+                        match act {
+                            ChooseAct::MilledToHand => "into hand",
+                            ChooseAct::MilledToTop => "on top of library",
+                            _ => "onto battlefield",
                         }
+                    ),
+                    ChooseAct::DiscardedToBattlefield => format!(
+                        "put {n} {f} {cs} discarded this way onto battlefield tapped chosen"
                     ),
                     ChooseAct::GraveyardToBattlefield { tapped } => format!(
                         "return {n} {f} {cs} from your graveyard to battlefield{} chosen",

@@ -1,0 +1,6 @@
+card "Zimone's Experiment" {
+  oracle_id 5faa9e54-1cc4-48c0-bbfa-a495087c36d6
+  cost {3}{G}
+  type Sorcery
+  spell: dig 5 take 2 creature or land card may split land card creature card rest bottom random
+}

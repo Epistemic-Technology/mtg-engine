@@ -9370,6 +9370,28 @@ impl P {
                     wording: LibraryWording::By(subject),
                 })
             }
+            // "Target player mills five cards, then puts each Goblin card
+            // milled this way into their hand." (every one, so no one
+            // chooses).
+            "puts"
+                if self.at_word("all")
+                    && (1..12).any(|k| self.word_at(k).as_deref() == Some("chosen")) =>
+            {
+                self.pos -= 1;
+                let mut e = self.chosen_act()?;
+                if let Effect::ChooseAct {
+                    act: mtg_core::card::ChooseAct::MilledToHand,
+                    this_way: true,
+                    by,
+                    ..
+                } = &mut e
+                {
+                    *by = Some(subject);
+                    Ok(e)
+                } else {
+                    self.fail("`<player> puts all ...` is `... from among milled this way cards into hand chosen`")
+                }
+            }
             // "Each player puts a creature card from their graveyard onto
             // the battlefield."
             "puts"
@@ -10435,6 +10457,10 @@ impl P {
         // cards".
         let (up_to, count) = if self.eat_words(&["any", "number"]) {
             (true, Num::N(crate::ast::ANY_NUMBER))
+        } else if self.eat_word("all") {
+            // `put all Elf card from among them into hand chosen`: every
+            // one, none chosen.
+            (false, Num::N(crate::ast::ANY_NUMBER))
         } else {
             (self.eat_words(&["up", "to"]), self.num()?)
         };
@@ -10620,6 +10646,21 @@ impl P {
                 f.who = Some(mtg_core::card::Who::Opponents);
                 (ChooseAct::ExileToGraveyard, f)
             }
+            // `put up to 1 land card discarded this way onto battlefield
+            // tapped chosen`.
+            "put"
+                if {
+                    let at = self.pos;
+                    let d = card_filter(self).is_ok()
+                        && self.at_words(&["discarded", "this", "way", "onto"]);
+                    self.pos = at;
+                    d
+                } =>
+            {
+                let f = card_filter(self)?;
+                self.expect_words(&["discarded", "this", "way", "onto", "battlefield", "tapped"])?;
+                (ChooseAct::DiscardedToBattlefield, f)
+            }
             _ => {
                 let f = card_filter(self)?;
                 self.expect_words(&["from", "among"])?;
@@ -10636,6 +10677,10 @@ impl P {
                 // chosen`.
                 if self.eat_words(&["onto", "battlefield"]) {
                     (ChooseAct::MilledToBattlefield, f)
+                } else if self.eat_words(&["on", "top", "of", "library"]) {
+                    // `put 1 creature or land card from among milled cards
+                    // on top of library chosen`.
+                    (ChooseAct::MilledToTop, f)
                 } else {
                     self.expect_words(&["into", "hand"])?;
                     (ChooseAct::MilledToHand, f)
@@ -10657,6 +10702,7 @@ impl P {
             among_those,
             this_way,
             returns,
+            by: None,
         })
     }
 
@@ -12109,6 +12155,7 @@ impl P {
             }
             "dig" => {
                 let count = self.num()?;
+                let until = self.eat_word("until");
                 let then = self.eat_word("then");
                 let reveal_top = self.eat_word("reveal");
                 self.expect_word("take")?;
@@ -12137,6 +12184,8 @@ impl P {
                 } else {
                     None
                 };
+                // `take creature card at random`: "a random creature card".
+                let at_random = self.eat_words(&["at", "random"]);
                 let optional = self.eat_word("may");
                 let revealing = self.eat_word("revealing");
                 let that_card = revealing && self.eat_words(&["that", "card"]);
@@ -12149,17 +12198,83 @@ impl P {
                 } else {
                     None
                 };
+                // `split land card creature card`: the land cards taken
+                // onto the battlefield tapped, the creature cards into the
+                // hand.
+                let split = if self.eat_word("split") {
+                    let field = self.filter()?;
+                    self.expect_word("card")?;
+                    let hand = self.filter()?;
+                    self.expect_word("card")?;
+                    Some((field, hand))
+                } else {
+                    None
+                };
                 self.expect_word("rest")?;
-                let rest_graveyard = if self.eat_word("graveyard") {
+                let shuffle = self.eat_word("shuffle");
+                let rest_graveyard = if shuffle {
+                    false
+                } else if self.eat_word("graveyard") {
                     true
                 } else {
                     self.expect_word("bottom")?;
                     false
                 };
-                let random = !rest_graveyard && self.eat_word("random");
+                let random = !rest_graveyard && !shuffle && self.eat_word("random");
                 let reword = self.eat_word("reword");
                 let short = self.eat_word("short");
                 let rest_revealed = self.eat_word("revealed");
+                let among = all && self.eat_word("among");
+                let alt = if self.eat_word("instead") {
+                    use crate::ast::InsteadWording;
+                    let wording = if self.eat_word("lead") {
+                        InsteadWording::Lead
+                    } else if self.eat_word("after") {
+                        InsteadWording::After
+                    } else {
+                        InsteadWording::Trail
+                    };
+                    let end = self.eat_word("end");
+                    let rest = self.eat_word("rest");
+                    let count = if self.eat_word("count") {
+                        Some(self.num()?)
+                    } else {
+                        None
+                    };
+                    let (take, all) = if self.eat_word("take") {
+                        if self.eat_word("all") {
+                            (None, true)
+                        } else if self.eat_word("any") {
+                            (Some(crate::ast::ANY_NUMBER), false)
+                        } else {
+                            (Some(self.number()?), false)
+                        }
+                    } else {
+                        (None, false)
+                    };
+                    let onto = if self.eat_words(&["otherwise", "onto", "battlefield"]) {
+                        Some(self.eat_word("tapped"))
+                    } else {
+                        None
+                    };
+                    if count.is_none() && take.is_none() && !all && onto.is_none() {
+                        return self.fail("a dig's `instead` changes `count`, `take`, or `onto`");
+                    }
+                    self.expect_word("if")?;
+                    let cond = self.instead_cond()?;
+                    Some(Box::new(crate::ast::DigAlt {
+                        cond,
+                        wording,
+                        count,
+                        take,
+                        all,
+                        onto,
+                        end,
+                        rest,
+                    }))
+                } else {
+                    None
+                };
                 Ok(Effect::Dig {
                     count,
                     filter,
@@ -12178,6 +12293,12 @@ impl P {
                     then,
                     reword,
                     rest_revealed,
+                    shuffle,
+                    at_random,
+                    split,
+                    among,
+                    alt,
+                    until,
                 })
             }
             "look" if self.at_words(&["at", "top", "card"]) => {

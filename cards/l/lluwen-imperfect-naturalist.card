@@ -1,0 +1,8 @@
+card "Lluwen, Imperfect Naturalist" {
+  oracle_id 81ff5764-72ce-4b9a-a14f-07413700d935
+  cost {B/G}{B/G}
+  type Legendary Creature — Elf Druid
+  pt 1/3
+  triggered when this enters: mill 4 cards then you may put 1 creature or land card from among milled cards on top of library chosen
+  activated {2}{B/G}{B/G}{B/G}, {T}, discard a land card: create count each graveyard land "1/1 black and green Worm creature"
+}

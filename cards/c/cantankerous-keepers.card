@@ -1,0 +1,8 @@
+card "Cantankerous Keepers" {
+  oracle_id 77c97dad-17cc-4a28-a48b-907c044d9034
+  cost {5}{G}
+  type Creature — Elf Soldier
+  pt 4/3
+  affinity for Elf
+  triggered when this enters: mill 4 cards then put all Elf card from among them into hand chosen
+}

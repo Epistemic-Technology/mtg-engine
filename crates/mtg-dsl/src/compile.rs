@@ -3152,6 +3152,22 @@ impl Compiler<'_> {
         }
     }
 
+    /// What an `instead` sentence checks, as it resolves.
+    fn instead_cond(&mut self, cond: &InsteadCond) -> EffectCond {
+        match cond {
+            InsteadCond::Kicked => EffectCond::Kicked,
+            InsteadCond::Static(c) => {
+                let c = self.static_cond(c);
+                EffectCond::Static(self.pool.intern_condition(c))
+            }
+            InsteadCond::Target { n, filter, .. } => EffectCond::Target {
+                n: u8::try_from(*n).unwrap_or(u8::MAX),
+                filter: Box::new(self.filter(filter)),
+            },
+            InsteadCond::ThisWay(c) => EffectCond::ThisWay(self.this_way_cond(c)),
+        }
+    }
+
     fn sentences(&mut self, ss: &[Sentence]) -> Result<Vec<CoreEffect>, CompileError> {
         let mut out = Vec::new();
         // Where the previous sentence's effects start, and that sentence.
@@ -3203,18 +3219,7 @@ impl Compiler<'_> {
                     }
                     alt = vec![modified];
                 }
-                let cond = match cond {
-                    InsteadCond::Kicked => EffectCond::Kicked,
-                    InsteadCond::Static(c) => {
-                        let c = self.static_cond(c);
-                        EffectCond::Static(self.pool.intern_condition(c))
-                    }
-                    InsteadCond::Target { n, filter, .. } => EffectCond::Target {
-                        n: u8::try_from(*n).unwrap_or(u8::MAX),
-                        filter: Box::new(self.filter(filter)),
-                    },
-                    InsteadCond::ThisWay(c) => EffectCond::ThisWay(self.this_way_cond(c)),
-                };
+                let cond = self.instead_cond(cond);
                 out.push(CoreEffect::Instead { cond, base, alt });
                 continue;
             }
@@ -5248,19 +5253,62 @@ impl Compiler<'_> {
                 random,
                 top,
                 onto,
+                shuffle,
+                at_random,
+                split,
+                alt,
+                until,
                 ..
-            } => out.push(CoreEffect::Dig {
-                count: *count,
-                filter: filter.as_ref().map(|f| self.filter(f)),
-                optional: *optional,
-                all: *all,
-                rest_graveyard: *rest_graveyard,
-                take: *take,
-                also: also.as_ref().map(|f| self.filter(f)),
-                random: *random,
-                top: *top,
-                onto: *onto,
-            }),
+            } => {
+                let base = CoreEffect::Dig {
+                    count: *count,
+                    filter: filter.as_ref().map(|f| self.filter(f)),
+                    optional: *optional,
+                    all: *all,
+                    rest_graveyard: *rest_graveyard,
+                    take: *take,
+                    also: also.as_ref().map(|f| self.filter(f)),
+                    random: *random,
+                    top: *top,
+                    onto: *onto,
+                    shuffle: *shuffle,
+                    at_random: *at_random,
+                    split: split.as_ref().map(|(f, _)| self.filter(f)),
+                    until: *until,
+                };
+                // CR 608.2c: "If this spell was kicked, put two of those
+                // cards into your hand instead.": the same dig, changed.
+                if let Some(a) = alt {
+                    let mut changed = base.clone();
+                    if let CoreEffect::Dig {
+                        count,
+                        take,
+                        all,
+                        onto,
+                        ..
+                    } = &mut changed
+                    {
+                        if let Some(c) = a.count {
+                            *count = c;
+                        }
+                        if let Some(k) = a.take {
+                            *take = k;
+                        }
+                        *all |= a.all;
+                        if a.onto.is_some() {
+                            *onto = a.onto;
+                        }
+                    }
+                    let cond = self.instead_cond(&a.cond);
+                    out.push(CoreEffect::Instead {
+                        cond,
+                        base: vec![base],
+                        alt: vec![changed],
+                    });
+                } else {
+                    out.push(base);
+                }
+            }
             Effect::Modes(modes) => {
                 let modes = self.modes(modes, false, false)?;
                 out.push(CoreEffect::Modes(modes));
