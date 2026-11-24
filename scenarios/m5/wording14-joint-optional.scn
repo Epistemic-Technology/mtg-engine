@@ -1,0 +1,41 @@
+# "When this creature dies, you may exile it and collect evidence 4. If
+# you do, return this card to the battlefield tapped." (Lamplight Phoenix):
+# the exile and the evidence are one optional action, done in full or not
+# at all; the Phoenix itself can't be exiled to pay for the evidence (its
+# ruling), and "if you do" needs both.
+
+scenario "Lamplight Phoenix: evidence collected, the Phoenix returns tapped" {
+  battlefield A: "Lamplight Phoenix"
+  graveyard A: "Grizzly Bears", "Shock", "Giant Growth", "Wind Drake"
+  hand B: "Lightning Bolt"
+  battlefield B: "Mountain"
+  turn 1 B: cast "Lightning Bolt" targeting "Lamplight Phoenix"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Lamplight Phoenix"
+  assert tapped "Lamplight Phoenix"
+  assert exile A contains "Wind Drake"
+  assert exile A contains "Grizzly Bears"
+  assert graveyard A contains "Shock"
+}
+
+scenario "Lamplight Phoenix: too little evidence, nothing is exiled" {
+  battlefield A: "Lamplight Phoenix"
+  graveyard A: "Grizzly Bears", "Shock"
+  hand B: "Lightning Bolt"
+  battlefield B: "Mountain"
+  turn 1 B: cast "Lightning Bolt" targeting "Lamplight Phoenix"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Lamplight Phoenix"
+  assert graveyard A contains "Shock"
+}
+
+scenario "Lamplight Phoenix: the Phoenix's own mana value doesn't count" {
+  battlefield A: "Lamplight Phoenix"
+  graveyard A: "Grizzly Bears"
+  hand B: "Lightning Bolt"
+  battlefield B: "Mountain"
+  turn 1 B: cast "Lightning Bolt" targeting "Lamplight Phoenix"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Lamplight Phoenix"
+  assert graveyard A contains "Grizzly Bears"
+}

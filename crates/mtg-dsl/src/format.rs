@@ -5063,6 +5063,37 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
         g.each = false;
         mv = format!("{each} with mana value {n}{}", cmp_suffix(cmp));
     }
+    // `creature or Spacecraft card with mana value 5 or less`: one mana
+    // value for every alternative (the parser gives it to each).
+    if f.same.is_none()
+        && mv.is_empty()
+        && g.or.is_some()
+        && !g.each
+        && !g.status.spent_colors
+        && let Some((cmp, n)) = g.mana_value
+        && {
+            let mut alt = g.or.as_deref();
+            let mut same = true;
+            while let Some(a) = alt {
+                same &= a.mana_value == g.mana_value
+                    && a.status.mana_value_x == g.status.mana_value_x;
+                alt = a.or.as_deref();
+            }
+            same
+        }
+    {
+        let x = g.status.mana_value_x;
+        let n = if x { "X".to_string() } else { n.to_string() };
+        g.mana_value = None;
+        g.status.mana_value_x = false;
+        let mut alt = g.or.as_deref_mut();
+        while let Some(a) = alt {
+            a.mana_value = None;
+            a.status.mana_value_x = false;
+            alt = a.or.as_deref_mut();
+        }
+        mv = format!(" with mana value {n}{}", cmp_suffix(cmp));
+    }
     // "creature card with power 2 or less".
     if f.same.is_none()
         && f.or.is_none()

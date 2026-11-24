@@ -17093,6 +17093,17 @@ impl P {
                 if g.same == Some(SameRef::ManaValueAtMostPower) {
                     f.same = g.same;
                 }
+                // "creature or Spacecraft card with mana value 5 or less"
+                // (Scrounge for Eternity): one mana value for every
+                // alternative.
+                let mut alt = f.or.as_deref_mut();
+                while let Some(a) = alt {
+                    if a.mana_value.is_none() {
+                        a.mana_value = g.mana_value;
+                        a.status.mana_value_x = g.status.mana_value_x;
+                    }
+                    alt = a.or.as_deref_mut();
+                }
             }
             if !self.at_word("from") {
                 return self.unexpected("`from` after the card's mana value");

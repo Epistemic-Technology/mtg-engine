@@ -1713,7 +1713,12 @@ graveyard; with too little there, nothing is exiled and `if you do` after
 ...` prints "{T}, Collect evidence 3: ..."). The engine picks the cards:
 the greatest mana values first, then it drops the smallest picks the total
 doesn't need, sparing what the spell or ability targets. Trigger `whenever
-you collect evidence`.
+you collect evidence`. `you may exile this and collect evidence 4; if you
+do, return this card to battlefield tapped` (Lamplight Phoenix's dies
+trigger: "you may exile it and collect evidence 4. If you do, return this
+card to the battlefield tapped.") is one action: with too little evidence
+apart from the card being exiled (or that card gone), it isn't offered and
+nothing is exiled; `return this card` then finds the card just exiled.
 
 Forage (CR 701.61): `forage` is an effect ("exile three cards from your
 graveyard or sacrifice a Food": with both possible the controller chooses,
@@ -2095,7 +2100,7 @@ creature this turn would die, exile it instead."), and
 107.3; X is chosen before targets, CR 601.2b, so only an X some object
 fits is offered, a spell on the stack too: `counter target with mana
 value X spell`, "Counter target spell with mana value X"; on a card, the mana value prints after the noun: `target
-creature card with mana value X or less from your graveyard`; several targets print "creature cards with mana value 2 or less", and `card each with mana value 3 or less` "creature cards each with mana value 3 or less"), `with +1/+1
+creature card with mana value X or less from your graveyard`; several targets print "creature cards with mana value 2 or less", and `card each with mana value 3 or less` "creature cards each with mana value 3 or less"; after alternatives, `target creature or Spacecraft card with mana value 5 or less from your graveyard` bounds each of them), `with +1/+1
 counter` / `with counter` ("creature you control with a +1/+1 counter on
 it", "with a counter on it", CR 122.1; plural "with +1/+1 counters on
 them"; printed after the controller; any kind: `permanent you control with

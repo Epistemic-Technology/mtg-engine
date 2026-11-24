@@ -4183,6 +4183,38 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     // "creature card with mana value 3 or less": the mana value after the
     // noun.
     let mut mv = String::new();
+    // "creature or Spacecraft card with mana value 5 or less": one mana
+    // value shared by every alternative, after the noun.
+    if g.or.is_some() && g.mana_value.is_some() && !g.status.spent_colors {
+        let shared = |g: &Filter| {
+            let mut alt = g.or.as_deref();
+            while let Some(a) = alt {
+                if a.mana_value != g.mana_value || a.status.mana_value_x != g.status.mana_value_x
+                {
+                    return false;
+                }
+                alt = a.or.as_deref();
+            }
+            true
+        };
+        if shared(&g) {
+            let (cmp, n) = g.mana_value.expect("checked");
+            mv = if g.status.mana_value_x {
+                format!(" with mana value X{}", cmp_words(cmp))
+            } else {
+                format!(" with mana value {n}{}", cmp_words(cmp))
+            };
+            let x = g.status.mana_value_x;
+            g.mana_value = None;
+            g.status.mana_value_x = false;
+            let mut alt = g.or.as_deref_mut();
+            while let Some(a) = alt {
+                a.mana_value = None;
+                a.status.mana_value_x &= !x;
+                alt = a.or.as_deref_mut();
+            }
+        }
+    }
     if g.or.is_none()
         && let Some((cmp, n)) = g.mana_value.take()
     {
@@ -9564,6 +9596,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     from_yours(*i)
                 }
                 Recipient::Targets(first, count) => (*first..*first + *count).all(from_yours),
+                // "you may exile it and collect evidence 4. If you do,
+                // return this card to the battlefield tapped." (Lamplight
+                // Phoenix): its own card, its owner's.
+                Recipient::SourceCard => true,
                 // "Whenever a creature is put into your graveyard from the
                 // battlefield, ... return that card to the battlefield"
                 // (Angelic Renewal): the card is yours.
