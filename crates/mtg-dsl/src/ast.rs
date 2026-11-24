@@ -4170,6 +4170,14 @@ pub enum Effect {
     ExileSameName {
         what: Recipient,
     },
+    /// `exile up to 4 with chosen name from zones of target opponent`
+    /// (`any number`, `all`): "Search target opponent's graveyard, hand,
+    /// and library for up to four cards with that name and exile them.
+    /// Then that player shuffles." after `choose card name`.
+    ExileChosenName {
+        who: Recipient,
+        limit: mtg_core::card::NameSearch,
+    },
     /// `turn face up target face-down creature opponent controls` (CR
     /// 708.8): "Turn target face-down creature an opponent controls face
     /// up."

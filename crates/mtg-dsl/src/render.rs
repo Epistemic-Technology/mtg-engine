@@ -7686,6 +7686,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 "search its controller's graveyard, hand, and library for all cards with the same name as {o} and exile them. Then that player shuffles"
             ))
         }
+        // "Search target opponent's graveyard, hand, and library for up to
+        // four cards with that name and exile them. Then that player
+        // shuffles."
+        Effect::ExileChosenName { who, limit } => {
+            let s = ctx.subj(*who);
+            let how = match limit {
+                mtg_core::card::NameSearch::All => "all".to_string(),
+                mtg_core::card::NameSearch::AnyNumber => "any number of".to_string(),
+                mtg_core::card::NameSearch::UpTo(n) => {
+                    format!("up to {}", number_word(u32::from(*n)))
+                }
+            };
+            Clause::imperative(format!(
+                "search {} graveyard, hand, and library for {how} cards with that name and exile them. Then that player shuffles",
+                possessive(&s)
+            ))
+        }
         Effect::FaceDownSpellsLess(n) => Clause::imperative(format!(
             "face-down spells you cast this turn cost {{{n}}} less to cast"
         )),

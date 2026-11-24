@@ -1,0 +1,6 @@
+card "Memoricide" {
+  oracle_id deeb942b-cf50-43f7-90a9-bdce4e42123a
+  cost {3}{B}
+  type Sorcery
+  spell: choose nonland card name; exile any number with chosen name from zones of target player
+}

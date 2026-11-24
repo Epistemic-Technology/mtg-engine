@@ -11532,6 +11532,37 @@ impl GameState {
                     self.shuffle_library(owner_ctl);
                 }
             }
+            // CR 701.19b: the searcher may fail to find cards; the engine
+            // finds as many as it may, the hand's first.
+            Effect::ExileChosenName { who, limit } => {
+                let Some(def) = self.resolution_chosen(ctx).card_ref() else {
+                    return;
+                };
+                let name = self.pool.get(def).name.clone();
+                let cap = match limit {
+                    crate::card::NameSearch::UpTo(n) => usize::from(*n),
+                    _ => usize::MAX,
+                };
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    let ps = self.player(p);
+                    let cards: Vec<ObjId> = ps
+                        .hand
+                        .iter()
+                        .chain(ps.library.iter())
+                        .chain(ps.graveyard.iter())
+                        .copied()
+                        .filter(|c| self.pool.get(self.objects[*c].def).name == name)
+                        .take(cap)
+                        .collect();
+                    for c in cards {
+                        self.move_object(c, Zone::Exile, true);
+                    }
+                    self.shuffle_library(p);
+                }
+            }
             Effect::TapOrUntap { to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {

@@ -1079,6 +1079,10 @@ impl Decompiler<'_> {
             CoreEffect::Tap { to } => Effect::Tap { to: vec![r(*to)] },
             CoreEffect::TapOrUntap { to } => Effect::TapOrUntap { to: r(*to) },
             CoreEffect::ExileSameName { what } => Effect::ExileSameName { what: r(*what) },
+            CoreEffect::ExileChosenName { who, limit } => Effect::ExileChosenName {
+                who: r(*who),
+                limit: *limit,
+            },
             CoreEffect::NextSpellLess(n) => Effect::NextSpellLess(*n),
             CoreEffect::NextSpellFree(f) => Effect::NextSpellFree(self.filter(f)),
             CoreEffect::NextSpellUncounterable => Effect::NextSpellUncounterable,

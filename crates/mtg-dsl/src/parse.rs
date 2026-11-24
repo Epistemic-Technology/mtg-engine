@@ -8932,6 +8932,8 @@ impl P {
             match self.word_at(k).as_deref() {
                 // `the chosen target 1` names a target.
                 Some("chosen") if self.word_at(k - 1).as_deref() == Some("the") => {}
+                // `exile up to 4 with chosen name from zones of ...`.
+                Some("chosen") if self.word_at(k + 1).as_deref() == Some("name") => {}
                 Some("chosen") => {
                     return verb != "return" || hand || self.word_at(1).as_deref() == Some("up");
                 }
@@ -9470,6 +9472,37 @@ impl P {
         Ok((combats, main))
     }
 
+    /// Whether `exile <limit> with chosen name` follows.
+    fn chosen_name_ahead(&self) -> bool {
+        let skip = match self.word_at(0).as_deref() {
+            Some("all") => 1,
+            Some("any") => 2,
+            Some("up") => 3,
+            _ => return false,
+        };
+        (0..3).all(|i| {
+            self.word_at(skip + i).as_deref() == Some(["with", "chosen", "name"][i])
+        })
+    }
+
+    /// `exile up to 4 with chosen name from zones of <who>`
+    /// (`Effect::ExileChosenName`).
+    #[inline(never)]
+    fn exile_chosen_name(&mut self) -> R<Effect> {
+        use mtg_core::card::NameSearch;
+        let limit = if self.eat_word("all") {
+            NameSearch::All
+        } else if self.eat_words(&["any", "number"]) {
+            NameSearch::AnyNumber
+        } else {
+            self.expect_words(&["up", "to"])?;
+            NameSearch::UpTo(u8::try_from(self.number()?).unwrap_or(u8::MAX))
+        };
+        self.expect_words(&["with", "chosen", "name", "from", "zones", "of"])?;
+        let who = self.recipient()?;
+        Ok(Effect::ExileChosenName { who, limit })
+    }
+
     /// `exile same name as target 1 from its controller zones`, out of
     /// `verb_first` (whose frame is large in a debug build).
     #[inline(never)]
@@ -9492,7 +9525,9 @@ impl P {
                 if matches!(
                     self.word_at(0).as_deref(),
                     Some("color" | "creature" | "land")
-                ) || self.at_words(&["odd", "or", "even"]) =>
+                ) || self.at_words(&["odd", "or", "even"])
+                    || self.at_words(&["card", "name"])
+                    || self.at_words(&["nonland", "card", "name"]) =>
             {
                 Ok(Effect::Choose(self.choice_kind(false)?))
             }
@@ -10095,6 +10130,12 @@ impl P {
                 // them. Then that player shuffles."
                 if self.at_words(&["same", "name", "as"]) {
                     return self.exile_same_name();
+                }
+                // `exile up to 4 with chosen name from zones of target
+                // opponent`, `exile all with chosen name ...`, `exile any
+                // number with chosen name ...`.
+                if self.chosen_name_ahead() {
+                    return self.exile_chosen_name();
                 }
                 // `exile until nonland card`.
                 if self.eat_word("until") {

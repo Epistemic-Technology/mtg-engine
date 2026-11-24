@@ -1,0 +1,121 @@
+# Choices a spell asks for as it resolves: "Choose a card name." then a
+# search for cards with that name (CR 201.3, 701.19b), piles (CR 700.3),
+# "choose a number", a chosen type from a listed set, and a named option
+# that labels a permission.
+
+scenario "Ancient Vendetta: up to four cards with the chosen name, from the hand and library first" {
+  battlefield A: 4 "Swamp"
+  hand A: "Ancient Vendetta"
+  hand B: "Lightning Bolt", "Lightning Bolt", "Shock"
+  graveyard B: "Lightning Bolt", "Lightning Bolt"
+  library B: "Lightning Bolt", "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ancient Vendetta" targeting player B
+  turn 1 A: choose "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert hand B lacks "Lightning Bolt"
+  assert hand B contains "Shock"
+  assert library B lacks "Lightning Bolt"
+  assert graveyard B contains 1 "Lightning Bolt"
+  assert exile B contains 4 "Lightning Bolt"
+  assert graveyard A contains "Ancient Vendetta"
+}
+
+scenario "Ancient Vendetta: an opponent only" {
+  battlefield A: 4 "Swamp"
+  hand A: "Ancient Vendetta"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Ancient Vendetta" targeting player A
+  run_to turn 1 postcombat_main
+}
+
+scenario "Memoricide: a land name isn't offered" {
+  battlefield A: 4 "Swamp"
+  hand A: "Memoricide"
+  hand B: "Forest", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Memoricide" targeting player B
+  illegal turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Forest"
+}
+
+scenario "Memoricide: every card with the nonland name, any zone" {
+  battlefield A: 4 "Swamp"
+  hand A: "Memoricide"
+  hand B: "Shock", "Forest"
+  graveyard B: "Shock", "Shock"
+  library B: "Shock", "Shock", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Memoricide" targeting player B
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert exile B contains 5 "Shock"
+  assert hand B contains "Forest"
+  assert library B contains "Island"
+}
+
+scenario "Cranial Extraction: may name the caster's own cards" {
+  battlefield A: 4 "Swamp"
+  hand A: "Cranial Extraction", "Shock"
+  library A: "Shock", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cranial Extraction" targeting player A
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert exile A contains 2 "Shock"
+  assert library A count 1
+}
+
+scenario "Glacierwood Siege: Sultai lets its controller play lands from the graveyard" {
+  battlefield A: "Forest", "Island", "Island"
+  hand A: "Glacierwood Siege"
+  graveyard A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Glacierwood Siege"
+  turn 1 A: choose "2"
+  turn 1 A: wait
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 0
+  assert battlefield A contains 2 "Forest"
+}
+
+scenario "Glacierwood Siege: Temur gives no graveyard land play" {
+  battlefield A: "Forest", "Island", "Island"
+  hand A: "Glacierwood Siege"
+  graveyard A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Glacierwood Siege"
+  turn 1 A: choose "1"
+  illegal turn 1 postcombat_main A: play "Forest"
+  run_to turn 1 end
+  assert graveyard A contains "Forest"
+}
+
+scenario "Glacierwood Siege: Temur mills four on an instant" {
+  battlefield A: "Forest", "Island", "Island", "Mountain"
+  hand A: "Glacierwood Siege", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Glacierwood Siege"
+  turn 1 A: choose "1"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: trigger "Glacierwood Siege" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard B count 4
+}
+
+scenario "Slaughter Games: an opponent's cards of the chosen name" {
+  battlefield A: "Swamp", "Swamp", "Mountain", "Mountain"
+  hand A: "Slaughter Games"
+  hand B: "Shock", "Lightning Bolt"
+  library B: "Shock", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Slaughter Games" targeting player B
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert exile B contains 2 "Shock"
+  assert hand B contains "Lightning Bolt"
+}

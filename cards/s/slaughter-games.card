@@ -1,0 +1,7 @@
+card "Slaughter Games" {
+  oracle_id c38c7899-b774-489b-9eb7-084522635a3f
+  cost {2}{B}{R}
+  type Sorcery
+  this spell can't be countered
+  spell: choose nonland card name; exile any number with chosen name from zones of target opponent
+}

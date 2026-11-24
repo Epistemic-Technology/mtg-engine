@@ -4566,6 +4566,18 @@ pub enum Effect {
     ExileSameName {
         what: Recipient,
     },
+    /// "Choose a card name. Search target opponent's graveyard, hand, and
+    /// library for up to four cards with that name and exile them. Then
+    /// that player shuffles." (Ancient Vendetta, Memoricide, Cranial
+    /// Extraction): the name chosen earlier in the resolution
+    /// (`Effect::Choose` of a `ChoiceKind::CardName`), in `who`'s zones.
+    /// The engine finds every card it may (CR 701.19b lets a searcher fail
+    /// to find them), up to `limit`: from the hand first, then the
+    /// library, then the graveyard. Then that library is shuffled.
+    ExileChosenName {
+        who: Recipient,
+        limit: NameSearch,
+    },
     Untap {
         to: Recipient,
     },
@@ -6090,6 +6102,17 @@ pub enum ChoiceKind {
     /// game (any zone, either player's), since naming another card has no
     /// effect on play.
     CardName { nonland: bool },
+}
+
+/// How many cards with the chosen name `Effect::ExileChosenName` finds.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum NameSearch {
+    /// "all cards with that name".
+    All,
+    /// "any number of cards with that name" (the engine finds them all).
+    AnyNumber,
+    /// "up to four cards with that name".
+    UpTo(u8),
 }
 
 /// What a chosen-name ban forbids (`PlayerStaticKind::ChosenName`).

@@ -1717,6 +1717,15 @@ impl Fmt {
                 "exile same name as {} from its controller zones",
                 self.recipient(*what, t)
             ),
+            Effect::ExileChosenName { who, limit } => format!(
+                "exile {} with chosen name from zones of {}",
+                match limit {
+                    mtg_core::card::NameSearch::All => "all".to_string(),
+                    mtg_core::card::NameSearch::AnyNumber => "any number".to_string(),
+                    mtg_core::card::NameSearch::UpTo(n) => format!("up to {n}"),
+                },
+                self.recipient(*who, t)
+            ),
             Effect::NextSpellLess(n) => format!("next spell costs {{{n}}} less"),
             Effect::NextSpellFree(f) => format!("next {} spell free", filter(f)),
             Effect::NextSpellUncounterable => "next spell can't be countered".to_string(),

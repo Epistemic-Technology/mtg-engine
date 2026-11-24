@@ -2055,6 +2055,17 @@ impl Compiler<'_> {
             AbilityDef::Replacement(r) if r.condition.is_none() => {
                 r.condition = Some(self.pool.intern_condition(c));
             }
+            // "• Sultai — You may play lands from your graveyard." (a
+            // player-level static, judged for its source, CR 611.3a).
+            AbilityDef::PlayerStatic { condition, .. } => {
+                let both = match condition.take() {
+                    Some(j) => {
+                        StaticCondition::And(Box::new(c), Box::new(self.pool.condition(j).clone()))
+                    }
+                    None => c,
+                };
+                *condition = Some(self.pool.intern_condition(both));
+            }
             _ => {
                 return self.err(format!(
                     "{what} applies to a static, activated, triggered, or cost ability"
@@ -3548,6 +3559,12 @@ impl Compiler<'_> {
             Effect::TapOrUntap { to } => out.push(CoreEffect::TapOrUntap { to: r(*to) }),
             Effect::ExileSameName { what } => {
                 out.push(CoreEffect::ExileSameName { what: r(*what) });
+            }
+            Effect::ExileChosenName { who, limit } => {
+                out.push(CoreEffect::ExileChosenName {
+                    who: r(*who),
+                    limit: *limit,
+                });
             }
             Effect::NextSpellLess(n) => out.push(CoreEffect::NextSpellLess(*n)),
             Effect::NextSpellFree(f) => {

@@ -1,0 +1,6 @@
+card "Cranial Extraction" {
+  oracle_id 33528049-6ef7-4ace-89e1-b83993492193
+  cost {3}{B}
+  type Sorcery — Arcane
+  spell: choose nonland card name; exile all with chosen name from zones of target player
+}
