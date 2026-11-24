@@ -1,0 +1,264 @@
+# Trigger events and delayed-trigger durations (thirteenth wave).
+
+scenario "Along the Crooked Way: a creature card leaving your graveyard amasses Goblins 1" {
+  battlefield A: 3 "Swamp"
+  hand A: "Along the Crooked Way"
+  graveyard A: "Grizzly Bears", "Forest"
+  turn 1 A: cast "Along the Crooked Way"
+  turn 1 A: trigger "Along the Crooked Way" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains "Goblin Army"
+  assert counters "Goblin Army" +1/+1 1
+}
+
+scenario "Along the Crooked Way: an opponent's creature card leaving their graveyard doesn't count" {
+  battlefield A: "Along the Crooked Way"
+  battlefield B: 4 "Swamp"
+  hand B: "Gravedigger"
+  graveyard B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Gravedigger"
+  turn 2 B: trigger "Gravedigger" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert battlefield A lacks "Goblin Army"
+}
+
+scenario "King T'Challa: any player's second card drawn in a turn draws you a card" {
+  battlefield A: "King T'Challa"
+  battlefield B: 3 "Island"
+  hand B: "Divination"
+  library A: 5 "Island"
+  library B: 5 "Island"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Divination"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+  assert hand B count 2
+}
+
+scenario "King T'Challa: the first draw of a turn alone doesn't trigger" {
+  battlefield A: "King T'Challa"
+  library A: 5 "Island"
+  library B: 5 "Island"
+  start turn 2 B upkeep
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+  assert hand B count 1
+}
+
+scenario "Spinneret and Spiderling: attacking with two Spiders puts a counter on it" {
+  battlefield A: "Spinneret and Spiderling", "Swift Spinner"
+  turn 1 A: attack "Spinneret and Spiderling", "Swift Spinner"
+  run_to turn 1 postcombat_main
+  assert counters "Spinneret and Spiderling" +1/+1 1
+  assert life B 16
+}
+
+scenario "Spinneret and Spiderling: one Spider attacking isn't enough" {
+  battlefield A: "Spinneret and Spiderling", "Swift Spinner"
+  turn 1 A: attack "Spinneret and Spiderling"
+  run_to turn 1 postcombat_main
+  assert counters "Spinneret and Spiderling" +1/+1 0
+  assert life B 19
+}
+
+scenario "Spinneret and Spiderling: dealing 4 or more damage exiles the top card to play" {
+  battlefield A: "Spinneret and Spiderling" with 3 +1/+1, 2 "Mountain"
+  library A: "Shock", 5 "Island"
+  turn 1 A: attack "Spinneret and Spiderling"
+  turn 1 postcombat_main A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 14
+  assert graveyard A contains "Shock"
+}
+
+scenario "Spinneret and Spiderling: 3 damage doesn't trigger" {
+  battlefield A: "Spinneret and Spiderling" with 2 +1/+1
+  library A: "Shock", 5 "Island"
+  turn 1 A: attack "Spinneret and Spiderling"
+  run_to turn 1 end
+  assert life B 17
+  assert library A count 6
+}
+
+scenario "Desperate Measures: draw two when it dies under your control" {
+  battlefield A: "Grizzly Bears", "Swamp", "Mountain"
+  hand A: "Desperate Measures", "Shock"
+  library A: 5 "Island"
+  turn 1 A: cast "Desperate Measures" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 2
+}
+
+scenario "Desperate Measures: an opponent's creature dying under its controller's control draws nothing" {
+  battlefield A: "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Desperate Measures"
+  library A: 5 "Island"
+  turn 1 A: cast "Desperate Measures" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 4
+  assert hand A count 0
+}
+
+scenario "Desperate Measures: -1 toughness kills a 1-toughness creature you control" {
+  battlefield A: "Swamp", "Llanowar Elves"
+  hand A: "Desperate Measures"
+  library A: 5 "Island"
+  turn 1 A: cast "Desperate Measures" targeting "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Llanowar Elves"
+  assert hand A count 2
+}
+
+scenario "Hollowmurk Siege: Sultai draws on the first counter put on a creature you control each turn" {
+  battlefield A: 4 "Forest", "Swamp"
+  hand A: "Hollowmurk Siege", 2 "Sunshower Druid"
+  library A: 5 "Island"
+  turn 1 A: cast "Hollowmurk Siege"
+  turn 1 A: choose "1"
+  turn 1 A: cast "Sunshower Druid"
+  turn 1 A: trigger "Sunshower Druid" targeting "Sunshower Druid"
+  turn 1 A: cast "Sunshower Druid"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Hollowmurk Siege: a -1/-1 counter is a counter too" {
+  battlefield A: "Swamp", "Forest", 3 "Plains"
+  hand A: "Hollowmurk Siege", "Bloodied Ghost"
+  library A: 5 "Island"
+  turn 1 A: cast "Hollowmurk Siege"
+  turn 1 A: choose "1"
+  turn 1 A: cast "Bloodied Ghost"
+  run_to turn 1 postcombat_main
+  assert counters "Bloodied Ghost" -1/-1 1
+  assert hand A count 1
+}
+
+scenario "Hollowmurk Siege: Abzan puts a counter on an attacker and gives it menace" {
+  battlefield A: "Swamp", "Forest", "Grizzly Bears"
+  hand A: "Hollowmurk Siege"
+  turn 1 A: cast "Hollowmurk Siege"
+  turn 1 A: choose "2"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Hollowmurk Siege" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert life B 17
+}
+
+scenario "Mazemind Tome: the fourth page counter exiles it and gains 4 life" {
+  battlefield A: "Mazemind Tome" with 3 page, 2 "Island"
+  library A: 5 "Island"
+  turn 1 A: activate "Mazemind Tome" ability 2
+  run_to turn 1 postcombat_main
+  assert exile A contains "Mazemind Tome"
+  assert life A 24
+  assert hand A count 1
+}
+
+scenario "Mazemind Tome: three page counters do nothing" {
+  battlefield A: "Mazemind Tome" with 2 page, 2 "Island"
+  library A: 5 "Island"
+  turn 1 A: activate "Mazemind Tome" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mazemind Tome"
+  assert life A 20
+}
+
+scenario "Long River Lurker: the unblockable creature blinks after combat damage" {
+  battlefield A: "Grizzly Bears", 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Long River Lurker"
+  turn 1 A: cast "Long River Lurker"
+  turn 1 A: trigger "Long River Lurker" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Grizzly Bears"
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Party Dude: at level 3, an opponent being attacked pumps an attacker by the cards in hand" {
+  battlefield A: "Party Dude", "Grizzly Bears", 5 "Forest", 2 "Mountain"
+  hand A: 3 "Island"
+  turn 1 A: activate "Party Dude"
+  turn 1 A: wait
+  turn 1 A: activate "Party Dude"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Party Dude" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Party Dude: at level 1 no attack trigger" {
+  battlefield A: "Party Dude", "Grizzly Bears"
+  hand A: 3 "Island"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Party Dude: an opponent attacking you isn't an opponent being attacked" {
+  battlefield A: "Party Dude", 5 "Forest", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: 3 "Island"
+  turn 1 A: activate "Party Dude"
+  turn 1 A: wait
+  turn 1 A: activate "Party Dude"
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Jiang Yanggu, Alone: a creature attacking a player alone loots and grows by the cards discarded this turn" {
+  battlefield A: "Jiang Yanggu, Alone"
+  hand A: "Island"
+  library A: 5 "Forest"
+  turn 1 A: attack "Jiang Yanggu, Alone"
+  turn 1 declare_attackers A: discard "Island"
+  run_to turn 1 postcombat_main
+  assert counters "Jiang Yanggu, Alone" +1/+1 1
+  assert graveyard A contains "Island"
+  assert hand A count 1
+  assert life B 15
+}
+
+scenario "Jiang Yanggu, Alone: two attackers, no trigger" {
+  battlefield A: "Jiang Yanggu, Alone", "Grizzly Bears"
+  hand A: "Island"
+  library A: 5 "Forest"
+  turn 1 A: attack "Jiang Yanggu, Alone", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Jiang Yanggu, Alone" +1/+1 0
+  assert hand A count 1
+  assert life B 14
+}
+
+scenario "Full Throttle: two more combats, and attackers untap at the beginning of each combat" {
+  battlefield A: "Grizzly Bears", 4 "Mountain", 2 "Forest"
+  hand A: "Full Throttle"
+  turn 1 A: cast "Full Throttle"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  turn 1 declare_attackers combat 2 A: attack "Grizzly Bears"
+  turn 1 declare_attackers combat 3 A: attack "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 14
+}
+
+scenario "Full Throttle: without it a creature that attacked stays tapped for the next combat" {
+  battlefield A: "Grizzly Bears", 4 "Mountain", 2 "Forest"
+  hand A: "Relentless Assault"
+  turn 1 A: cast "Relentless Assault"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 18
+  assert tapped "Grizzly Bears"
+}

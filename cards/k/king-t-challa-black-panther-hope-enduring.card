@@ -1,0 +1,19 @@
+card "King T'Challa // Black Panther, Hope Enduring" {
+  oracle_id fe00278d-4385-4e3f-919c-12a794fd86f5
+  layout modal_dfc
+  cost {1}{W}{U}
+  type Legendary Creature — Human Noble Hero
+  pt 3/2
+  keyword flash
+  triggered whenever a player draws their second card each turn: you draw 1 card
+  activated {4}{W}{U}, sorcery: transform this
+  face "Black Panther, Hope Enduring" {
+    cost {4}{W}{U}
+    type Legendary Creature — Human Warrior Hero
+    pt 3/3
+    keyword flash
+    keyword double strike
+    replace damage to this: prevent
+    triggered whenever this deals combat damage to a player: draw 1 card
+  }
+}

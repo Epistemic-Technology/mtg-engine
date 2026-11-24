@@ -12422,7 +12422,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else if *this_turn && !crate::format::about_that_creature(trigger) {
                 // "Until end of turn, whenever ...": the duration is
                 // printed first instead.
-                let t = trigger_text(trigger, ctx, true);
+                // "At the beginning of each combat this turn" (a step
+                // trigger that repeats until the turn ends): "each".
+                let next = !matches!(trigger, Trigger::BeginningOfStep { .. });
+                let t = trigger_text(trigger, ctx, next);
                 // About a target: the trigger's own object is "that
                 // creature" ("Whenever a creature dealt damage by that
                 // creature dies this turn", Touch of Moonglove).
@@ -13399,6 +13402,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                     format!("{} card", card_filter_phrase(f, ctx.card))
                 })
             ),
+            Trigger::CountersPut {
+                obj,
+                kind: CounterKind::Any,
+            } => format!("whenever a counter is put on {}", trigger_subject(obj, ctx)),
             Trigger::YouPutCounters { obj, kind } => format!(
                 "whenever you put {} on {}",
                 with_article(&format!(
@@ -13580,11 +13587,23 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             "whenever you sacrifice one or more {}",
             filter_phrase(f, ctx.card, true)
         ),
-        Trigger::AttacksWithFilter { filter: f, player } => format!(
-            "whenever you attack{} with one or more {}",
+        Trigger::AttacksWithFilter {
+            filter: f,
+            player,
+            min,
+        } => format!(
+            "whenever you attack{} with {} {}",
             if *player { " a player" } else { "" },
+            if *min > 1 {
+                format!("{} or more", number_word(u32::from(*min)))
+            } else {
+                "one or more".to_string()
+            },
             controller_first(f, filter_phrase(f, ctx.card, true))
         ),
+        Trigger::PlayersAttacked { whose, each } => {
+            crate::format::players_attacked_words(*whose, *each).to_string()
+        }
         Trigger::GainsOrLosesLife { your_turn } => format!(
             "whenever you gain or lose life{}",
             if *your_turn { " during your turn" } else { "" }
@@ -13857,6 +13876,12 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::AttacksAlone(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_))) => {
             format!("whenever {} attacks alone", trigger_subject(o, ctx))
         }
+        Trigger::AttacksPlayerAlone(o) => {
+            format!(
+                "whenever {} attacks a player alone",
+                trigger_subject(o, ctx)
+            )
+        }
         Trigger::BecomesBlocked(TriggerObj::This) => {
             format!("whenever {} becomes blocked", this(ctx))
         }
@@ -14069,6 +14094,13 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::BecomesUntapped(o) => {
             format!("whenever {} becomes untapped", trigger_subject(o, ctx))
         }
+        Trigger::CountersPut {
+            obj,
+            kind: CounterKind::Any,
+        } => format!(
+            "whenever one or more counters are put on {}",
+            trigger_subject(obj, ctx)
+        ),
         Trigger::CountersPut { obj, kind } => format!(
             "whenever one or more {} counters are put on {}",
             counter_name(*kind),
@@ -14115,6 +14147,13 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 trigger_subject(o, ctx)
             )
         }
+        Trigger::DealsDamageAtLeast(o, n) => {
+            format!(
+                "whenever {} deals {n} or more damage",
+                trigger_subject(o, ctx)
+            )
+        }
+        Trigger::DiesUnderYourControl => crate::format::this_turn_trigger(t).to_string(),
         Trigger::DealtCombatDamage(o) => {
             format!(
                 "whenever {} is dealt combat damage",

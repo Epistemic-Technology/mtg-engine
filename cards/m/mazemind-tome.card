@@ -1,0 +1,8 @@
+card "Mazemind Tome" {
+  oracle_id 800fb917-8898-4eba-9f94-aec6e9d75236
+  cost {2}
+  type Artifact — Book
+  activated {T}, put 1 page counter on this: scry 1
+  activated {2}, {T}, put 1 page counter on this: draw 1 card
+  triggered when there are 4 or more page counters on this: exile it; if you do, you gain 4 life
+}

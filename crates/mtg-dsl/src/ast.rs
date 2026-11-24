@@ -3761,6 +3761,8 @@ pub enum Trigger {
     Attacks(TriggerObj),
     /// "Whenever a creature you control attacks alone".
     AttacksAlone(TriggerObj),
+    /// `whenever creature you control attacks a player alone`.
+    AttacksPlayerAlone(TriggerObj),
     /// `whenever you attack` (`min` 1), `whenever you attack with 3 or
     /// more creatures`, `whenever this and at least 2 other creatures
     /// attack` (battalion: `this`, `min` 3).
@@ -3956,6 +3958,12 @@ pub enum Trigger {
     DiscardsThis,
     /// `whenever this is dealt 3 or more damage`.
     DealtDamageAtLeast(TriggerObj, u32),
+    /// `whenever this deals 4 or more damage`: one damage event of at
+    /// least that much.
+    DealsDamageAtLeast(TriggerObj, u32),
+    /// `when that creature dies under your control this turn` (a delayed
+    /// trigger about an object).
+    DiesUnderYourControl,
     /// `whenever this is dealt combat damage`.
     DealtCombatDamage(TriggerObj),
     /// `whenever this deals damage to creature`, `... to player`, `... to
@@ -4134,6 +4142,16 @@ pub enum Trigger {
     AttacksWithFilter {
         filter: Filter,
         player: bool,
+        /// `whenever you attack with 2 or more Spider` (0 for "one or
+        /// more").
+        min: u8,
+    },
+    /// `whenever one or more creatures attack you`, `whenever one or more
+    /// of your opponents are attacked`, `whenever one or more creatures
+    /// attack one of your opponents` (`each`).
+    PlayersAttacked {
+        whose: Who,
+        each: bool,
     },
     /// `whenever you gain or lose life`, `... during your turn`.
     GainsOrLosesLife {

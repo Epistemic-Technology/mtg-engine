@@ -1,0 +1,10 @@
+card "Party Dude" {
+  oracle_id 8df7a58c-053f-4ead-a778-2747718e5f10
+  cost {G}
+  type Enchantment — Class
+  triggered when this enters: each player creates 1 "Food"
+  level 2 {1}{G}
+  triggered whenever artifact an opponent controls is put into a graveyard from the battlefield: draw 1 card
+  level 3 {4}{G}
+  triggered whenever one or more of your opponents are attacked: up to 1 target attacking creature gets +1/+1 count where hand
+}

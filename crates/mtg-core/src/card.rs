@@ -7547,6 +7547,11 @@ pub enum TriggerSpec {
     /// "Whenever a creature you control attacks alone" (exalted, CR
     /// 506.5).
     AttacksAlone(TriggerObj),
+    /// "Whenever a creature you control attacks a player alone" (CR
+    /// 506.5): it is the only creature declared as an attacker, and it
+    /// attacks a player (not a planeswalker or battle); that player is the
+    /// triggering player.
+    AttacksPlayerAlone(TriggerObj),
     /// "Whenever this creature becomes blocked" (once per combat).
     BecomesBlocked(TriggerObj),
     /// "Whenever you attack" (`min` 1), "Whenever you attack with three or
@@ -7708,6 +7713,16 @@ pub enum TriggerSpec {
     DealtDamageAtLeast(TriggerObj, u32),
     /// "Whenever this creature is dealt combat damage" (CR 510.2).
     DealtCombatDamage(TriggerObj),
+    /// "Whenever Spinneret and Spiderling deals 4 or more damage": one
+    /// damage event of at least that much from a matching source, to any
+    /// one recipient (damage to different recipients doesn't add up). The
+    /// recipient, a permanent or a player, is the triggering object or
+    /// player.
+    DealsDamageAtLeast(TriggerObj, u32),
+    /// "When it dies under your control this turn" (a delayed trigger,
+    /// CR 603.7c): the object it is about dies while its controller, as it
+    /// last existed, is the delayed trigger's controller.
+    DiesUnderYourControl,
     /// "Whenever this creature deals damage to a creature / an opponent /
     /// a player": the damaged creature (or player) is the triggering
     /// object (player); `combat` only for combat damage.
@@ -7909,8 +7924,22 @@ pub enum TriggerSpec {
     /// creature attacks; with `player`, "Whenever you attack a player with
     /// one or more creatures with power 4 or greater", once for each
     /// player a matching creature attacks (that player is the triggering
-    /// player).
-    AttacksWithFilter { filter: ObjFilter, player: bool },
+    /// player). `min` (0 or 1 for "one or more"): "Whenever you attack
+    /// with two or more Spiders", at least that many matching attackers.
+    AttacksWithFilter {
+        filter: ObjFilter,
+        player: bool,
+        #[serde(default)]
+        min: u8,
+    },
+    /// "Whenever one or more creatures attack you" (`whose` You),
+    /// "Whenever one or more of your opponents are attacked" (`whose`
+    /// Opponents), "... attack one of your opponents" (`each`): once per
+    /// declaration of attackers (CR 508.1m) in which a creature attacks a
+    /// matching player, whoever attacks; with `each`, once for each such
+    /// player attacked. The player attacked (the first, without `each`) is
+    /// the triggering player.
+    PlayersAttacked { whose: Who, each: bool },
     /// "Whenever you gain or lose life" (CR 119.3, 119.9), `your_turn`:
     /// "... during your turn".
     GainsOrLosesLife { your_turn: bool },
@@ -8126,6 +8155,7 @@ impl TriggerSpec {
         match self {
             TriggerSpec::Enters(_)
             | TriggerSpec::Dies(_)
+            | TriggerSpec::DiesUnderYourControl
             | TriggerSpec::Leaves(_)
             | TriggerSpec::LeavesWithoutDying(_)
             | TriggerSpec::ReturnedToHand(_)
@@ -8146,9 +8176,11 @@ impl TriggerSpec {
             | TriggerSpec::AttacksFirstTime(_)
             | TriggerSpec::AttacksBattle(_)
             | TriggerSpec::AttacksAlone(_)
+            | TriggerSpec::AttacksPlayerAlone(_)
             | TriggerSpec::AttacksWith { .. }
             | TriggerSpec::PlayerAttacksWith { .. }
-            | TriggerSpec::AttacksWithFilter { .. } => WATCH_ATTACK,
+            | TriggerSpec::AttacksWithFilter { .. }
+            | TriggerSpec::PlayersAttacked { .. } => WATCH_ATTACK,
             TriggerSpec::Blocks(_)
             | TriggerSpec::BecomesBlocked(_)
             | TriggerSpec::BlocksOrBlocked(_)
@@ -8163,6 +8195,7 @@ impl TriggerSpec {
             | TriggerSpec::DealsCombatDamageToPlayerOrPlaneswalker(_)
             | TriggerSpec::DealtDamage(_)
             | TriggerSpec::DealtDamageAtLeast(..)
+            | TriggerSpec::DealsDamageAtLeast(..)
             | TriggerSpec::DealtCombatDamage(_)
             | TriggerSpec::DealsDamage { .. }
             | TriggerSpec::DealsDamageTo { .. } => WATCH_DAMAGE,

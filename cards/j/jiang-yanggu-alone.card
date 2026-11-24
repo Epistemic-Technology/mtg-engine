@@ -1,0 +1,8 @@
+card "Jiang Yanggu, Alone" {
+  oracle_id fa8b3557-b35a-4a68-ab85-cf09683f3bc5
+  cost {4}{R}
+  type Legendary Creature — Human Berserker
+  pt 4/4
+  keyword menace
+  triggered whenever creature you control attacks a player alone: discard 1 card then draw 1 card; then put count each discarded this turn +1/+1 counters on that creature
+}
