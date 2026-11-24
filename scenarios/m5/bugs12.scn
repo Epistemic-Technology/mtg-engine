@@ -89,3 +89,14 @@ scenario "Mulldrifter: evoke without flash still waits for sorcery timing" {
   run_to turn 1 postcombat_main
   assert hand B contains "Mulldrifter"
 }
+
+# CR 508.4c: a creature put onto the battlefield attacking isn't affected by
+# restrictions on declaring attackers, "can't attack you" among them.
+scenario "Sandwurm Convergence: a flying token put onto the battlefield attacking still attacks" {
+  battlefield A: "Geist of Saint Traft"
+  battlefield B: "Sandwurm Convergence"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Geist of Saint Traft"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
