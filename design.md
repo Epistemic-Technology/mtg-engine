@@ -3001,3 +3001,37 @@ of Standard (4,224 of 5,164), 70.3% of Modern; gate 18,707 match;
 12,852 scenarios pass in release and debug builds; fuzz and sweep
 clean; 3,926 games/s (3,817 for the pre-first-wave binary in the same
 run; 4,250 before this period: due another profiling pass).
+
+Status 2026-11-24, the twelfth wave: seventeen Opus agents from a
+verified main (about 5.5M tokens). Fourteen built one feature each
+from what the eleventh wave's branches had left, with their cards
+named: the template author (55 cards), wording near-misses (21), hand
+conditions (17), copies of cards that aren't permanents (16), piles
+and card names (16), search leftovers (15), bans and cost changes on
+activated abilities (14), prevention follow-ups (14), the top of the
+library as state (14), any-mana riders on play permissions (11),
+grants outside the battlefield (11), per-player choices (11),
+Equipment follow-ups (8), face-down exile (7), compleated (2). A
+bug-fix agent took the open faults in accepted cards (a granted static
+not applied, "can't attack alone" offered, evoke timing, a mana-source
+choice that made payable casts unpayable, and others; two entries
+turned out to be the rules). A profiling agent measured the previous
+period merge by merge and took back 8.2% of a mirror game's
+instructions and 36% of a random-deck game's: one linked exile had
+made every action snapshot the whole state. Seven of the last eight
+merges conflicted, each in a few lines; two branches took the same
+`DefFlags` bit, of which one is now free. The sweep after the merges
+failed in 12 of 400 pairs, from five faults: two were the wave's own
+(the perf branch's battlefield view against the library-top cache key;
+a granted static that reads tapped state), three were old and met by
+new decks (an attack tax payable only with the attacker's own mana,
+harmonize's tapped creature counted as mana, a destruction replaced by
+umbra armor not counted as an action). After the fixes the release and
+debug fuzz are clean and the sweep is clean in 399 pairs; the last is
+one 94-turn game that the debug build does not finish in five minutes
+and the release build plays in a second (which debug check is slow is
+not found). Coverage: 95.8% of Pauper, 82.6% of Standard (4,267 of
+5,164), 71.3% of Modern (16,197 of 22,718); 19,327 card files, gate
+18,938 match; 13,339 scenarios pass in release and debug builds; 4,159
+games/s on the mono-red mirror (3,921 at the wave's start, 4,265 at
+the earlier peak), random decks 613 a core from 529.
