@@ -5651,7 +5651,18 @@ impl GameState {
                 }
                 let mut req = self.activation_mana(id, ab, p);
                 // A cost that depends on the target: the cheapest target.
-                if self.target_reduces(ab) {
+                // `pool.equip_discounts` holds for the whole corpus; a
+                // discount for the target applies only to an equip ability
+                // or an Equipment's (`reduce_for_target`), so the others
+                // skip listing the targets.
+                if self.target_reduces(ab)
+                    && (ab.is_equip()
+                        || c.has_subtype(crate::card::Subtype::EQUIPMENT)
+                        || ab
+                            .reduction
+                            .as_ref()
+                            .is_some_and(|r| r.target.is_some() || r.per_target.is_some()))
+                {
                     req = self.cheapest_target_mana(p, id, ab, req);
                 }
                 // CR 701.67a: artifacts and creatures help pay a waterbend
