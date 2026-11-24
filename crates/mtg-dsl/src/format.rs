@@ -8203,6 +8203,8 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     };
                     format!("{} card or {} card", filter(&base), filter(alt))
                 }
+                // "you may play cards from your graveyard": any card.
+                _ if *f == Filter::default() => "card".to_string(),
                 _ => format!("{} card", filter(f)),
             };
             let place = match (players, zone) {
