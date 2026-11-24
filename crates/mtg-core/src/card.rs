@@ -2666,11 +2666,14 @@ pub enum TurnEvent {
     /// (CR 601.2a).
     Cast,
     CastFromHand,
+    /// Damage dealt to the player (CR 120.3), after prevention, in damage
+    /// ("an opponent was dealt 7 or more damage this turn").
+    DamageTaken,
 }
 
 impl TurnEvent {
     /// The number of kinds: the turn log's rows.
-    pub const COUNT: usize = 33;
+    pub const COUNT: usize = 34;
 
     /// Whether a static ability reading this kind must be refreshed as it
     /// is counted (`CardDef::history_static`), the kinds counted without a
@@ -2683,6 +2686,7 @@ impl TurnEvent {
             | TurnEvent::LifeLost
             | TurnEvent::Damaged
             | TurnEvent::NoncombatDamaged
+            | TurnEvent::DamageTaken
             | TurnEvent::NonlandLeft
             | TurnEvent::Warped
             | TurnEvent::CardToGraveyard
@@ -2909,6 +2913,11 @@ pub enum StaticCondition {
         n: u32,
         at_most: bool,
     },
+    /// "each player has no cards in hand" (Howltooth Hollow).
+    EachHandEmpty,
+    /// "a library has twenty or fewer cards in it" (Shelldock Isle): any
+    /// player's.
+    LibraryAtMost(u32),
     /// "If this ability has been activated four or more times this turn"
     /// (Initiates of the Ebon Hand): the source's counted abilities
     /// (`ActivatedAbility::counted`) activated at least N times this turn
@@ -5041,6 +5050,19 @@ pub enum Effect {
         filter: Option<ObjFilter>,
         max_mv: Option<Num>,
         exile: bool,
+        /// "you may play the exiled card without paying its mana cost"
+        /// (hideaway, CR 702.75): a land among the cards may be played
+        /// (CR 305.1: on the controller's own turn, with a land play
+        /// left; timing is otherwise ignored).
+        #[serde(default)]
+        play: bool,
+    },
+    /// Hideaway N (CR 702.75a): "look at the top N cards of your library,
+    /// exile one face down, then put the rest on the bottom in a random
+    /// order." The exiled card is linked to the source
+    /// (`LinkedExile::face_down`, CR 607.2a) for its "the exiled card".
+    Hideaway {
+        count: u32,
     },
     /// "Reveal the top ten cards of your library. Put a creature card from
     /// among them onto the battlefield with three +1/+1 counters on it.
@@ -5887,6 +5909,7 @@ impl Effect {
                 | Effect::PunishEach { .. }
                 | Effect::DrawCastOne { .. }
                 | Effect::CastFree { .. }
+                | Effect::Hideaway { .. }
                 | Effect::RevealPutCreature { .. }
                 // Which creature (tied for least toughness, or token) and
                 // whether to take the counters.

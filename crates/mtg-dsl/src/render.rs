@@ -7296,7 +7296,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj_written(*to);
             Clause::imperative(format!("remove all counters from {o}"))
         }
-        Effect::ReturnToHand { what, owner_hand } => {
+        Effect::ReturnToHand {
+            what, put: true, ..
+        } => Clause::imperative(format!(
+            "put {} into its owner's hand",
+            what.iter()
+                .map(|w| ctx.obj(*w))
+                .collect::<Vec<_>>()
+                .join(" and ")
+        )),
+        Effect::ReturnToHand {
+            what, owner_hand, ..
+        } => {
             let yours = what.iter().all(|w| {
                 matches!(
                     w,
@@ -8427,6 +8438,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             filter,
             max,
             exile,
+            play,
         } => {
             // CR 608.2g: "You may cast a noncreature spell from your hand
             // without paying its mana cost."
@@ -8480,7 +8492,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ""
             };
             Clause::imperative(format!(
-                "you may cast {what} without paying its mana cost{tail}"
+                "you may {} {what} without paying its mana cost{tail}",
+                if *play { "play" } else { "cast" }
             ))
         }
         // "It's an enchantment." / "They're an artifact." (the Enduring
@@ -15192,6 +15205,14 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::AttackedLastTurn => "it attacked during your last turn".to_string(),
         StaticCond::CreatureDiedThisTurn => "a creature died this turn".to_string(),
         StaticCond::OpponentDamagedThisTurn => "an opponent was dealt damage this turn".to_string(),
+        StaticCond::OpponentDamageThisTurn(n) => {
+            format!("an opponent was dealt {n} or more damage this turn")
+        }
+        StaticCond::EachHandEmpty => "each player has no cards in hand".to_string(),
+        StaticCond::LibraryAtMost(n) => format!(
+            "a library has {} or fewer cards in it",
+            count_words(Num::N(*n), "one")
+        ),
         StaticCond::OpponentLostLifeThisTurn => "an opponent lost life this turn".to_string(),
         StaticCond::PermanentLeftThisTurn => {
             "a permanent left the battlefield under your control this turn".to_string()
@@ -17310,6 +17331,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Daybound => "Daybound".to_string(),
             crate::ast::Mechanic::Nightbound => "Nightbound".to_string(),
             crate::ast::Mechanic::Fabricate(n) => format!("Fabricate {n}"),
+            crate::ast::Mechanic::Hideaway(n) => format!("Hideaway {n}"),
             crate::ast::Mechanic::Evolve => "Evolve".to_string(),
             crate::ast::Mechanic::Increment => "Increment".to_string(),
             crate::ast::Mechanic::Renown(n) => format!("Renown {n}"),
@@ -17430,6 +17452,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         Ability::DeckAnyNumber => {
             format!("A deck can have any number of cards named {}.", card.name)
         }
+        Ability::Companion(text) => format!("Companion \u{2014} {text}"),
         Ability::Uncounterable => "This spell can't be countered.".to_string(),
         Ability::EquipDiscount(n) => format!(
             "Equip abilities you activate that target {} cost {{{n}}} less to activate.",

@@ -1864,6 +1864,11 @@ pub enum Ability {
     /// `deck any number`: "A deck can have any number of cards named ~."
     /// (CR 100.2a). A deck-building rule with no meaning in a game.
     DeckAnyNumber,
+    /// `companion "Each nonland card in your starting deck has a different
+    /// name."`: "Companion — ..." (CR 702.139a). A deck-building condition
+    /// for a card kept outside the game; here the card is simply a card
+    /// in the deck, so the line has no meaning in a game.
+    Companion(String),
     /// `this spell can't be countered`: "This spell can't be countered."
     Uncounterable,
     /// An ability word (CR 207.2c) printed before the ability: "Landfall —
@@ -2232,6 +2237,10 @@ pub enum Mechanic {
     /// `fabricate 1` (CR 702.123): when this enters, N +1/+1 counters on
     /// it or N 1/1 Servos.
     Fabricate(u32),
+    /// `hideaway 4` (CR 702.75): when this enters, look at the top N
+    /// cards of your library, exile one face down (linked to this), and
+    /// put the rest on the bottom in a random order.
+    Hideaway(u32),
     /// `evolve` (CR 702.100).
     Evolve,
     /// `increment` (CR 702.191): whenever you cast a spell, if the mana
@@ -2533,6 +2542,13 @@ pub enum StaticCond {
     /// `opponent damaged this turn`: "an opponent was dealt damage this
     /// turn".
     OpponentDamagedThisTurn,
+    /// `opponent was dealt 7 damage this turn`: "an opponent was dealt 7
+    /// or more damage this turn" (`TurnEvent::DamageTaken`).
+    OpponentDamageThisTurn(u32),
+    /// `no cards in any hand`: "each player has no cards in hand".
+    EachHandEmpty,
+    /// `library 20 or less`: "a library has twenty or fewer cards in it".
+    LibraryAtMost(u32),
     /// `opponent lost life this turn`: "an opponent lost life this turn".
     OpponentLostLifeThisTurn,
     /// `permanent left this turn` (revolt): "a permanent left the
@@ -4076,6 +4092,9 @@ pub enum Effect {
         /// `to owner's hand`: a group returned "to their owner's hand"
         /// (Oracle's singular, River's Rebuke); wording only.
         owner_hand: bool,
+        /// `put exiled card into hand`: "put the exiled card into its
+        /// owner's hand" (Watcher for Tomorrow); wording only.
+        put: bool,
     },
     /// `return that card to battlefield tapped under your control`;
     /// `return this to battlefield attached to triggering object`: "...
@@ -4401,6 +4420,9 @@ pub enum Effect {
         filter: Option<Filter>,
         max: Option<Num>,
         exile: bool,
+        /// `play free exiled card`: "you may play the exiled card without
+        /// paying its mana cost" (a land may be played).
+        play: bool,
     },
     /// `it is now enchantment`: "It's an enchantment." (the Enduring
     /// cycle's returned permanent; "They're an artifact." with `pronoun

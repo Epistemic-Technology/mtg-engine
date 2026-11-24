@@ -77,7 +77,10 @@ impl GameState {
     /// revealed from a hand stays known until it moves.
     pub fn visible_to(&self, viewer: PlayerId, obj: ObjId) -> bool {
         self.objects.get(obj).is_some_and(|o| {
-            o.zone.is_public()
+            (o.zone.is_public()
+                && !(o.zone == Zone::Exile
+                    && !self.linked_exiles.is_empty()
+                    && self.hidden_in_exile(viewer, obj)))
                 || (o.zone == Zone::Hand && (o.owner == viewer || Self::seen_by(o, viewer)))
         })
     }
@@ -178,6 +181,23 @@ impl GameState {
         }
     }
 
+    /// Whether `id` is a card hideaway exiled face down that `viewer` may
+    /// not look at (CR 702.75a, 406.3): only the source's controller may
+    /// (its last controller once it has left; its owner without either).
+    fn hidden_in_exile(&self, viewer: PlayerId, id: ObjId) -> bool {
+        self.linked_exiles.iter().any(|l| {
+            l.card == id && l.face_down && {
+                let looker = self
+                    .objects
+                    .get(l.source)
+                    .map(|s| s.controller)
+                    .or_else(|| self.lki.get(&l.source).map(|k| k.object.controller))
+                    .unwrap_or(self.objects[id].owner);
+                looker != viewer
+            }
+        })
+    }
+
     fn object_view(&self, id: ObjId, viewer: PlayerId) -> ObjectView {
         let o = &self.objects[id];
         let c = self.characteristics(id).expect("object exists");
@@ -243,7 +263,14 @@ impl GameState {
                     exile: p
                         .exile
                         .iter()
-                        .map(|o| self.object_view(*o, viewer))
+                        .map(|o| {
+                            let mut v = self.object_view(*o, viewer);
+                            if self.hidden_in_exile(viewer, *o) {
+                                v.name = "face-down card".to_string();
+                                v.def = self.pool.face_down(false);
+                            }
+                            v
+                        })
                         .collect(),
                     mana_pool: p.mana_pool,
                     restricted_mana: self.restricted_pool_of(id),
@@ -579,6 +606,41 @@ mod tests {
         assert!(e.state().visible_to(PlayerId(0), own));
         assert!(!e.state().visible_to(PlayerId(0), theirs));
         assert!(!e.state().visible_to(PlayerId(1), own));
+    }
+
+    /// A card hideaway exiled face down (CR 702.75a) shows as a face-down
+    /// card to everyone but the player who controls its source.
+    #[test]
+    fn hideaway_card_is_hidden_from_opponents() {
+        let pool = Arc::new(test_pool());
+        let forest = pool.lookup("Forest").unwrap();
+        let cfg = GameConfig {
+            decks: vec![vec![forest; 20], vec![forest; 20]],
+            starting_life: 20,
+            seed: 1,
+            logging: false,
+        };
+        let e = Engine::new(pool, &cfg);
+        let mut s = e.state().clone();
+        let me = PlayerId(0);
+        let card = s.player_mut(me).library.pop().unwrap();
+        s.objects[card].zone = Zone::Exile;
+        s.player_mut(me).exile.push(card);
+        let source = s.player(me).hand[0];
+        s.linked_exiles.push(crate::state::LinkedExile {
+            source,
+            card,
+            until: false,
+            to_hand: false,
+            face_down: true,
+        });
+        assert_eq!(s.observe(me).players[0].exile[0].name, "Forest");
+        assert_eq!(
+            s.observe(PlayerId(1)).players[0].exile[0].name,
+            "face-down card"
+        );
+        assert!(s.visible_to(me, card));
+        assert!(!s.visible_to(PlayerId(1), card));
     }
 
     /// A search mustn't know the real game's next die roll or coin flip:

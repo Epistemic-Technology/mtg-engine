@@ -1,0 +1,8 @@
+card "Howltooth Hollow" {
+  oracle_id 463fc699-f4fc-4112-a6b3-6dcb642203e6
+  type Land
+  hideaway 4
+  enters tapped
+  mana {B}
+  activated {B}, {T}: play free exiled card if no cards in any hand
+}

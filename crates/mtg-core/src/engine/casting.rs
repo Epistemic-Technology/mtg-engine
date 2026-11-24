@@ -3794,6 +3794,7 @@ impl GameState {
                         card: new,
                         until: false,
                         to_hand: false,
+                        face_down: false,
                     });
                 }
             }
@@ -10173,6 +10174,104 @@ impl GameState {
         }
     }
 
+    /// "You may play the exiled card without paying its mana cost" for a
+    /// land (hideaway, CR 702.75): played as the ability resolves, on the
+    /// controller's own turn with a land play left (CR 305.1, 305.2;
+    /// timing otherwise ignored). Whether the cards were lands, so a
+    /// spell goes on to `cast_free`.
+    fn play_free_land(&mut self, ctx: &mut EffectCtx, what: Option<Recipient>) -> bool {
+        let Some(r) = what else {
+            return false;
+        };
+        let p = ctx.controller;
+        let lands: Vec<ObjId> = self
+            .recipients(ctx, r)
+            .into_iter()
+            .filter_map(|t| match t {
+                Target::Object(id)
+                    if self.objects.get(id).is_some_and(|o| {
+                        o.zone == Zone::Exile && self.pool.get(o.def).is_land()
+                    }) =>
+                {
+                    Some(id)
+                }
+                _ => None,
+            })
+            .collect();
+        if lands.is_empty() {
+            return false;
+        }
+        for card in lands {
+            if self.active_player != p || !self.may_play_another_land(p) {
+                continue;
+            }
+            let k = self.choose_mid(
+                p,
+                DecisionKind::CastFromExile { card },
+                vec![Choice::Accept, Choice::Decline],
+            );
+            if k == 0 {
+                let new = self.put_onto_battlefield(card, p);
+                self.player_mut(p).lands_played_this_turn += 1;
+                self.emit(Event::LandPlayed {
+                    player: p,
+                    land: new,
+                });
+                ctx.did = true;
+            }
+        }
+        true
+    }
+
+    /// Hideaway N (CR 702.75a): look at the top N cards of the
+    /// controller's library, exile one of them face down (linked to the
+    /// source, CR 607.2a), and put the rest on the bottom in a random
+    /// order.
+    fn hideaway(&mut self, ctx: &mut EffectCtx, count: u32) {
+        let p = ctx.controller;
+        let mut top: Vec<ObjId> = self
+            .player(p)
+            .library
+            .iter()
+            .rev()
+            .take(count as usize)
+            .copied()
+            .collect();
+        if top.is_empty() {
+            return;
+        }
+        let bits = 1u8 << p.index().min(7);
+        for id in &top {
+            self.objects[*id].revealed |= bits;
+        }
+        let k = if top.len() == 1 {
+            0
+        } else {
+            let options: Vec<Choice> = top
+                .iter()
+                .map(|id| Choice::Target(Target::Object(*id)))
+                .collect();
+            self.choose_mid(p, DecisionKind::ChooseCard, options)
+        };
+        let card = top.remove(k);
+        let new = self.move_object(card, Zone::Exile, false);
+        if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
+            self.link_exile(ctx.source, new, false);
+            if let Some(l) = self
+                .linked_exiles
+                .iter_mut()
+                .find(|l| l.source == ctx.source && l.card == new)
+            {
+                l.face_down = true;
+            }
+            ctx.did = true;
+        }
+        rand::seq::SliceRandom::shuffle(top.as_mut_slice(), &mut self.rng);
+        for id in top {
+            self.move_object(id, Zone::Library, false);
+        }
+    }
+
     /// Mad Wizard's Lair: "Draw three cards and reveal them. You may cast
     /// one of them without paying its mana cost."
     fn draw_cast_one(&mut self, ctx: &mut EffectCtx, count: u32) {
@@ -14025,7 +14124,14 @@ impl GameState {
                 filter,
                 max_mv,
                 exile,
-            } => self.cast_free(ctx, *what, filter.as_ref(), *max_mv, *exile),
+                play,
+            } => {
+                if *play && self.play_free_land(ctx, *what) {
+                    return;
+                }
+                self.cast_free(ctx, *what, filter.as_ref(), *max_mv, *exile);
+            }
+            Effect::Hideaway { count } => self.hideaway(ctx, *count),
             Effect::RevealPutCreature { count, counters } => {
                 self.reveal_put_creature(ctx, *count, *counters);
             }
