@@ -1,0 +1,6 @@
+card "Mind into Matter" {
+  oracle_id 9f9e4be0-814a-4cab-948b-114769035a4a
+  cost {X}{G}{U}
+  type Sorcery
+  spell: draw X cards; then you may put 1 permanent card with mana value X or less from hand onto battlefield tapped chosen
+}

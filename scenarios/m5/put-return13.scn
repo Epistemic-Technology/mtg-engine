@@ -586,3 +586,72 @@ scenario "Bonny Pall, Clearcutter: Beau counts lands; attacking puts a land from
   assert battlefield A contains "Plains"
   assert power "Beau" 7
 }
+
+# "Draw X cards. Then you may put a permanent card with mana value X or
+# less from your hand onto the battlefield tapped."
+scenario "Mind into Matter: X 2 puts a mana value 2 card tapped, not a 4" {
+  battlefield A: 2 "Forest", 2 "Island"
+  hand A: "Mind into Matter", "Hill Giant", "Grizzly Bears"
+  library A: "Plains", "Swamp", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mind into Matter" x 2
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Plains"
+  assert hand A contains "Swamp"
+}
+
+# Chapter II: "You may put a Hero creature card with mana value 3 or less
+# from your hand onto the battlefield. If you don't, draw a card."
+scenario "Origin of the Avengers: chapter II puts a Hero from hand" {
+  battlefield A: "Origin of the Avengers" with 1 lore
+  hand A: "Amateur Hero", "Grizzly Bears"
+  library A: "Plains", "Swamp", "Island"
+  start turn 2 A untap
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Amateur Hero"
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 2
+}
+
+scenario "Origin of the Avengers: chapter II with no Hero draws a card" {
+  battlefield A: "Origin of the Avengers" with 1 lore
+  hand A: "Grizzly Bears"
+  library A: "Plains", "Swamp", "Island"
+  start turn 2 A untap
+  run_to turn 2 postcombat_main
+  assert battlefield A lacks "Grizzly Bears"
+  assert hand A count 3
+}
+
+scenario "Mind into Matter: X 1 can't put a mana value 4 card" {
+  battlefield A: "Forest", 2 "Island"
+  hand A: "Mind into Matter", "Hill Giant"
+  library A: "Grizzly Bears", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mind into Matter" x 1
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A lacks "Hill Giant"
+}
+
+# "put up to one target creature card from that player's graveyard onto the
+# battlefield under your control. It enters tapped and attacking that
+# player." (after first-strike damage, so it deals regular damage too).
+scenario "Shark Shredder, Killer Clone: the opponent's creature joins the attack" {
+  battlefield A: "Shark Shredder, Killer Clone"
+  graveyard B: "Hill Giant"
+  graveyard A: "Serra Angel"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Shark Shredder, Killer Clone"
+  turn 2 first_strike_damage A: trigger "Shark Shredder, Killer Clone" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert tapped "Hill Giant"
+  assert life B 13
+  assert graveyard A contains "Serra Angel"
+}

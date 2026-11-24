@@ -1880,16 +1880,17 @@ impl Fmt {
                 if_creature,
                 transformed,
                 front_up,
+                enters_attacking,
             } => {
                 let mut s = if *put {
                     format!("put {} onto battlefield", self.recipient(*what, t))
                 } else {
                     format!("return {} to battlefield", self.recipient(*what, t))
                 };
-                if *tapped {
+                if *tapped && !*enters_attacking {
                     s.push_str(" tapped");
                 }
-                if *attacking {
+                if *attacking && !*enters_attacking {
                     s.push_str(" and attacking");
                 }
                 if *transformed {
@@ -1917,6 +1918,9 @@ impl Fmt {
                 }
                 if let Some(a) = attached {
                     let _ = write!(s, " attached to {}", self.recipient(*a, t));
+                }
+                if *enters_attacking {
+                    s.push_str("; it enters tapped and attacking that player");
                 }
                 s
             }

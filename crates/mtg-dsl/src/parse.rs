@@ -10294,11 +10294,24 @@ impl P {
             (self.eat_words(&["up", "to"]), self.num()?)
         };
         let card_filter = |p: &mut Self| -> R<Filter> {
-            let f = if p.at_word("card") || p.at_word("cards") {
+            let mut f = if p.at_word("card") || p.at_word("cards") {
                 Filter::default()
             } else {
                 p.filter()?
             };
+            // "a permanent card with mana value X or less from your hand":
+            // the mana value after the noun.
+            if f.mana_value.is_none()
+                && (p.at_words(&["card", "with", "mana", "value"])
+                    || p.at_words(&["cards", "with", "mana", "value"]))
+            {
+                p.pos += 1;
+                let g = p.filter()?;
+                f.mana_value = g.mana_value;
+                f.status.mana_value_x = g.status.mana_value_x;
+                f.status.bound = g.status.bound;
+                return Ok(f);
+            }
             p.cards_word()?;
             Ok(f)
         };
@@ -10863,6 +10876,27 @@ impl P {
         } else {
             None
         };
+        // "... under your control. It enters tapped and attacking that
+        // player." (Shark Shredder).
+        let enters_attacking = !tapped && self.peek() == Some(&Tok::Semi) && {
+            self.pos += 1;
+            let ok = self.at_words(&[
+                "it",
+                "enters",
+                "tapped",
+                "and",
+                "attacking",
+                "that",
+                "player",
+            ]);
+            self.pos -= 1;
+            ok
+        };
+        if enters_attacking {
+            self.pos += 8;
+            tapped = true;
+            attacking = true;
+        }
         let attached = if self.eat_words(&["attached", "to", "chosen"]) {
             // `attached to chosen creature you control`: "attached to a
             // creature you control", chosen as it returns (One Last Job).
@@ -10897,6 +10931,7 @@ impl P {
             if_creature,
             transformed,
             front_up,
+            enters_attacking,
         })
     }
 
@@ -11468,7 +11503,7 @@ impl P {
                         // A long target filter ("target creature card with
                         // mana value 4 or less from a graveyard"), within the
                         // sentence.
-                        self.word_at(0).as_deref() == Some("target")
+                        matches!(self.word_at(0).as_deref(), Some("target" | "up"))
                             && !(0..*k).any(|j| {
                                 matches!(self.peek_at(j), None | Some(Tok::Semi | Tok::Newline))
                             })

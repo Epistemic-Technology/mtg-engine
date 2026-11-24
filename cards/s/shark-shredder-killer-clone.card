@@ -1,0 +1,9 @@
+card "Shark Shredder, Killer Clone" {
+  oracle_id dabd0867-ee3f-40cb-8314-b4a3966f8b24
+  cost {2}{B}{B}
+  type Legendary Creature — Shark Octopus Ninja
+  pt 4/4
+  sneak {3}{B}{B}
+  keywords first strike
+  triggered whenever this deals combat damage to a player: put up to 1 target creature card from that player's graveyard onto battlefield under your control; it enters tapped and attacking that player
+}

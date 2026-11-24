@@ -4790,6 +4790,10 @@ pub enum Effect {
         /// put onto the battlefield is front face up unless told
         /// otherwise, CR 712.14).
         front_up: bool,
+        /// `...; it enters tapped and attacking that player`: "It enters
+        /// tapped and attacking that player." as a sentence of its own
+        /// (Shark Shredder; with `tapped` and `attacking`, wording only).
+        enters_attacking: bool,
     },
     Regenerate {
         to: Recipient,

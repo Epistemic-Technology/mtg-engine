@@ -3754,7 +3754,10 @@ do` then sees:
   and/or graveyard", Worldsoul's Rage), `tapped` and `with 1 finality
   counter` after `onto battlefield` as above (Kastral, the Windcrested):
   each card the controller chooses enters under their control, one at a
-  time; `them` after it is the cards put (`they gain haste`)
+  time; `them` after it is the cards put (`they gain haste`); a mana value
+  after the noun, `put 1 permanent card with mana value X or less from
+  hand onto battlefield tapped chosen` ("a permanent card with mana value
+  X or less from your hand", Mind into Matter; X is the spell's)
 - `return 1 creature card put into your graveyard this way to battlefield
   under your control chosen` ("return a creature card put into your
   graveyard this way to the battlefield under your control", Starfall
@@ -3784,6 +3787,11 @@ do` then sees:
   tapped` in an ability that works from the graveyard ("Return this card
   and target land card from your graveyard to the battlefield tapped.",
   Sandman, Shifting Scoundrel): the source, then the target
+- `put up to 1 target creature card from that player's graveyard onto
+  battlefield under your control; it enters tapped and attacking that
+  player` ("... under your control. It enters tapped and attacking that
+  player.", Shark Shredder): the same as `... under your control tapped
+  and attacking`, printed as a sentence of its own
 - `reveal until creature card; put that card onto battlefield tapped and
   attacking and the rest on bottom of library random` ("Put that card onto
   the battlefield tapped and attacking and the rest ...", CR 508.4; Raph &

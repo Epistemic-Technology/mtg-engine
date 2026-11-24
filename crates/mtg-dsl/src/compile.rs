@@ -3601,6 +3601,7 @@ impl Compiler<'_> {
                 if_creature,
                 transformed,
                 front_up: _,
+                enters_attacking: _,
             } => {
                 // "Return this card and target land card ...": the source,
                 // then the target.
@@ -8388,6 +8389,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         if_creature: false,
                         transformed: false,
                         front_up: false,
+                        enters_attacking: false,
                     },
                     E::Grant {
                         keywords: vec![mtg_core::card::Keyword::Haste],

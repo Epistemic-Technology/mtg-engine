@@ -1101,6 +1101,7 @@ impl Decompiler<'_> {
                 if_creature: *if_creature,
                 transformed: *transformed,
                 front_up: false,
+                enters_attacking: false,
             },
             CoreEffect::Regenerate { to } => Effect::Regenerate { to: r(*to) },
             CoreEffect::Exile { what } | CoreEffect::ExileLinked { what, until: false } => {

@@ -8492,6 +8492,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             if_creature,
             transformed,
             front_up,
+            enters_attacking,
         } => {
             let what_ref = what;
             // `that card` prints "that card", `it` (inside a delayed
@@ -8573,6 +8574,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
             }
             let tapped = match (*tapped, *attacking, *transformed) {
+                // "It enters tapped and attacking that player." follows.
+                (true, true, _) if *enters_attacking => "",
                 (true, true, _) => " tapped and attacking",
                 // CR 712.14a: "return it to the battlefield tapped and
                 // transformed under its owner's control".
@@ -8691,6 +8694,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             if let Some(a) = attached {
                 let _ = write!(text, " attached to {}", ctx.obj(*a));
+            }
+            if *enters_attacking {
+                text.push_str(". It enters tapped and attacking that player");
             }
             Clause::imperative(text)
         }
