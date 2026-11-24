@@ -369,7 +369,7 @@ impl GameState {
         // (the player's order, CR 616.1, is fixed here).
         found.sort_by_key(|(_, r, _, _)| match r {
             Replacement::TokensInstead { .. } => 0,
-            Replacement::Double => 2,
+            Replacement::Double | Replacement::Triple => 2,
             _ => 1,
         });
         for (by, r, creature, artifact) in found {
@@ -382,10 +382,11 @@ impl GameState {
                 continue;
             }
             match r {
-                Replacement::Double => {
+                Replacement::Double | Replacement::Triple => {
+                    let by = if r == Replacement::Triple { 3 } else { 2 };
                     for (d, k) in &mut out {
                         if covers(self, *d, creature, artifact) {
-                            *k = k.saturating_mul(2);
+                            *k = k.saturating_mul(by);
                         }
                     }
                 }

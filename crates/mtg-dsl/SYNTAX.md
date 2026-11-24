@@ -320,7 +320,14 @@ like the card; either half may still be cast alone.
 | `hand size none`, `hand size +1`, `hand size opponents -1`, `hand size 8` | "You have no maximum hand size.", "Your maximum hand size is increased by one.", "Each opponent's maximum hand size is reduced by one.", "Your maximum hand size is eight." (CR 402.2). The count `difference 10 hand` ("draw cards equal to the difference", after the condition `hand fewer than 10`: "if you have fewer than ten cards in hand") is ten minus the count, at least 0. |
 | `except { ... }` | What this card's copy effects add (CR 707.9b): `not legendary` ("it isn't legendary"; "the copy isn't legendary" for a spell copy; `its not legendary`: "it's not legendary"), `types Artifact` and `subtypes Illusion` ("it's an artifact in addition to its other types", "it's a Vehicle artifact ..." together), `keywords haste`, `pt 1/1` and `colors red` ("it's a 1/1 red Balloon creature in addition to its other colors and types": base power and toughness, and colors added), and ability lines ("it has haste and \"At the beginning of the end step, sacrifice this token.\"": on an instant or sorcery, `this` in them is the token); `legendary` ("it's legendary": the legend rule then applies to it); `exactly` with `pt`, `colors`, and `subtypes` ("it's a 1/1 green Frog", "a 4/4 black Zombie", no "in addition": its colors and creature types are these instead, its card types stay); `pt 1/1` alone ("it's 1/1"); `the token` (wording: "except the token isn't legendary"); `and is` (wording: "it isn't legendary and is a Mutant in addition to its other types", not "and it's"); a card with a
 `pronoun` becoming a copy itself prints it ("Oko becomes a copy of ...,
-except he has hexproof"). The template author writes the block from the
+except he has hexproof"; "his other types"); `named this` ("except his name
+is Absorbing Man", first: the copy keeps the name of the card whose copy
+effect made it, CR 707.9b, for the legend rule and wherever a name is
+shown; "named" filters still compare the copied card), and with types or
+subtypes `legendary` joins them ("he's a legendary 4/4 Human Villain
+creature in addition to his other types"); `noun creature` (wording: a
+spell's token copies' abilities say "sacrifice this creature", Face
+Yourself, not "this token"). The template author writes the block from the
 sentence ("Create a token that's a copy of target creature, except it's an
 artifact in addition to its other types."). They are part of the copy's copiable values; the legend rule reads its supertypes. A token copy of a creature that has left the battlefield ("When this creature dies, if it's not a token, create a token that's a copy of it"; `if this is nontoken`; `if this isnt token` prints "if it isn't a token") is made as it last existed. |
 
@@ -1291,7 +1298,7 @@ control: double` prints "If one or more tokens would be created under your
 control, twice that many of those tokens are created instead." (`... by
 an effect: double` is the older "If an effect would create one or more
 tokens under your control, it creates twice that many of those tokens
-instead."); `replace creature tokens created under your control: plus
+instead."; `triple` prints "three times that many", Ojer Taq); `replace creature tokens created under your control: plus
 "1/1 white Soldier creature"` prints "If one or more creature tokens would
 be created under your control, those tokens plus a 1/1 white Soldier
 creature token are created instead." (`plus that many "..."`: "plus that
@@ -2069,7 +2076,17 @@ black, enchanted: ...` is "As long as enchanted creature is black, it
 `loses all abilities, set color blue, set subtype Frog, set type
 creature, base 1/1` prints "loses all abilities and is a blue Frog
 creature with base power and toughness 1/1" (Frogify): `set type` replaces
-all its card types, land included, keeping its supertypes (layer 4);
+all its card types, land included, keeping its supertypes (layer 4), and
+it loses the subtypes of the types it lost (CR 205.3d: no creature types
+unless it is still a creature, no basic land types unless still a land);
+`set colorless` is "colorless" ("loses all abilities, set colorless, set
+subtype Noggle, base 1/1": "... is a colorless Noggle with base power and
+toughness 1/1", Noggle the Mind); `set colorless, set type land, has
+ability { activated {T}: add {C} }, loses all abilities` prints "is a
+colorless land with \"{T}: Add {C}\" and loses all other card types and
+abilities" (Imprisoned in the Moon; `set subtype Food, set type artifact`
+in the middle, "a colorless Food artifact with \"...\"", Sugar Coat: an
+"Enchant creature or Food" Aura says "Enchanted permanent");
 colors, a creature type, and card types set together are one noun
 phrase, with the base P/T after it. `add subtype every` is "is every
 creature type" and `add subtype all` "is all creature types" (layer 4,
@@ -2631,7 +2648,14 @@ nontoken creature you control, create a token that's a copy of that
 creature"; `create 2 token copies of it` prints "create two tokens that
 are copies of it", `create x token copies of x target permanent` "For
 each of X target permanents, create X tokens that are copies of that
-permanent."; `those copies gain haste` then prints "Those tokens gain
+permanent."; after a copy of a target, `if kicked, create 5 token copies of
+that target 1 instead` prints "If this spell was kicked, create five of
+those tokens instead." (Rite of Replication); `target player creates token
+copy of target creature you control` "Target player creates a token
+that's a copy of ..." (Echocasting Symposium: that player creates and
+controls it); `create token copy of each creature target player controls`
+"For each creature target player controls, create a token that's a copy
+of that creature"; `those copies gain haste` then prints "Those tokens gain
 haste until end of turn." where `those tokens` prints "They"), `copy <what> [times
 <num>] [new targets] [with exceptions]` (CR 707.10: `copy target instant
 or sorcery spell you control new targets` prints "Copy target instant or

@@ -1756,6 +1756,7 @@ impl Compiler<'_> {
                     .fold(mtg_core::mana::ColorSet::default(), |s, c| s.with(*c)),
                 legendary: x.legendary,
                 exactly: x.exactly,
+                own_name: x.own_name,
             });
         }
         if haunted.is_some() || haunt_spell.is_some() {
@@ -3791,6 +3792,7 @@ impl Compiler<'_> {
                 count,
                 tapped,
                 attacking,
+                who,
                 ..
             } => {
                 out.push(CoreEffect::CreateTokenCopy {
@@ -3798,6 +3800,7 @@ impl Compiler<'_> {
                     except: *except,
                     count: *count,
                     tapped: *tapped,
+                    who: who.map(r),
                 });
                 // CR 508.4: "a tapped and attacking token that's a copy".
                 if *attacking {

@@ -464,7 +464,6 @@ impl GameState {
             }
             let mut by_name: HashMap<&str, Vec<ObjId>> = HashMap::new();
             for id in self.permanents_of(p) {
-                let def = self.pool.get(self.objects[id].def);
                 // "Except it isn't legendary" (CR 707.9b): a copy
                 // exception can take the supertype away, or add it.
                 if self.legend_of(&self.objects[id])
@@ -473,7 +472,12 @@ impl GameState {
                             c.supertypes.contains(crate::card::Supertype::Legendary)
                         }))
                 {
-                    by_name.entry(def.name.as_str()).or_default().push(id);
+                    // "except his name is Chameleon, Master of Disguise":
+                    // the copy's own name (CR 707.9b).
+                    by_name
+                        .entry(self.obj_name(&self.objects[id]))
+                        .or_default()
+                        .push(id);
                 }
             }
             let mut groups: Vec<Vec<ObjId>> =

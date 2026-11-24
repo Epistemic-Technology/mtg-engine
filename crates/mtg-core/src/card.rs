@@ -5353,6 +5353,11 @@ pub enum Effect {
         /// `CreatedAttack` (CR 508.4).
         #[serde(default)]
         tapped: bool,
+        /// "Target player creates a token that's a copy of ..."
+        /// (Echocasting Symposium): that player creates and controls it;
+        /// `None` is the effect's controller.
+        #[serde(default)]
+        who: Option<Recipient>,
     },
     /// "Each opponent gets a poison counter" (CR 122.1f).
     AddPoison {
@@ -7328,6 +7333,9 @@ pub enum Replacement {
     PreventNext(Num),
     /// Double the damage or life.
     Double,
+    /// "three times that many of those tokens are created instead" (Ojer
+    /// Taq, CR 614.1a): token creation only.
+    Triple,
     /// That many plus one counters; that much life plus 1.
     PlusOne,
     /// "those tokens plus a 1/1 green Frog creature token are created
@@ -9269,6 +9277,10 @@ pub struct CopyExcept {
     /// types (CR 707.9b, 205.1b); its card types stay.
     #[serde(default)]
     pub exactly: bool,
+    /// "except his name is Absorbing Man" (CR 707.9b): the copy keeps the
+    /// name of the card whose copy effect this is.
+    #[serde(default)]
+    pub own_name: bool,
 }
 
 /// How an "enters as a copy" ability copies (`AbilityDef::EntersAsCopy`).

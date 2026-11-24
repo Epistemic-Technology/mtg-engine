@@ -251,6 +251,8 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             exactly: x.exactly,
             the_token: false,
             and_is: false,
+            own_name: x.own_name,
+            creature_noun: false,
         }),
         mismatch: None,
         line: 0,
@@ -1200,6 +1202,7 @@ impl Decompiler<'_> {
                 except,
                 count,
                 tapped,
+                who,
             } => Effect::CreateTokenCopy {
                 of: r(*of),
                 except: *except,
@@ -1207,6 +1210,7 @@ impl Decompiler<'_> {
                 tapped: *tapped,
                 attacking: false,
                 trailing: false,
+                who: who.map(r),
             },
             CoreEffect::CastCopy { what, free } => Effect::CastCopy {
                 what: r(*what),

@@ -1778,7 +1778,20 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
                 c.subtypes.retain(|s| !s.is_creature_type());
             }
         }
-        Modification::SetTypes(t) => c.types = *t,
+        // CR 205.1a, 205.3d: an object losing a card type loses the
+        // subtypes that go with it ("is a colorless land ... and loses all
+        // other card types": a creature loses its creature types, a land
+        // made an artifact its land types).
+        Modification::SetTypes(t) => {
+            use crate::card::CardType;
+            c.types = *t;
+            if !t.contains(CardType::Creature) && !t.contains(CardType::Kindred) {
+                c.subtypes.retain(|s| !s.is_creature_type());
+            }
+            if !t.contains(CardType::Land) {
+                c.subtypes.retain(|s| s.basic_color().is_none());
+            }
+        }
         Modification::AddSupertype(s) => c.supertypes = c.supertypes.with(*s),
         Modification::AddLandType(color) => {
             let s = Subtype::basic(*color);

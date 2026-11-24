@@ -1,0 +1,228 @@
+# Copy and type-changing forms: "is a colorless land with ... and loses
+# all other card types and abilities" (CR 205.1a, 205.3d, 613.1d-f), copy
+# exceptions that keep the copier's own name (CR 707.9b), "create five of
+# those tokens instead", "target player creates a token that's a copy",
+# "three times that many of those tokens" (CR 614.1a), token copies of a
+# target player's creatures, and becoming copies of a target.
+
+scenario "imprisoned in the moon: a creature becomes a colorless land with no other types or abilities" {
+  battlefield A: 3 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Imprisoned in the Moon"
+  turn 1 A: cast "Imprisoned in the Moon" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert is "Serra Angel" land
+  assert is not "Serra Angel" creature
+  assert is not "Serra Angel" Angel
+  assert is not "Serra Angel" white
+  assert has not "Serra Angel" flying
+  assert has not "Serra Angel" vigilance
+}
+
+scenario "imprisoned in the moon: the land taps for colorless mana" {
+  battlefield A: "Grizzly Bears", "Imprisoned in the Moon" on "Grizzly Bears"
+  hand A: "Bonesplitter"
+  turn 1 A: cast "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bonesplitter"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "sugar coat: a creature becomes a colorless Food artifact that gains 3 life" {
+  battlefield A: 5 "Island"
+  battlefield B: "Grizzly Bears", 2 "Forest"
+  hand A: "Sugar Coat"
+  turn 1 A: cast "Sugar Coat" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert is "Grizzly Bears" Food
+  assert is "Grizzly Bears" artifact
+  assert is not "Grizzly Bears" creature
+  assert is not "Grizzly Bears" Bear
+  assert is not "Grizzly Bears" green
+  turn 2 B: activate "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 23
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "noggle the mind: a colorless 1/1 Noggle with no abilities" {
+  battlefield A: 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Noggle the Mind"
+  turn 1 A: cast "Noggle the Mind" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert power "Serra Angel" 1
+  assert toughness "Serra Angel" 1
+  assert is "Serra Angel" Noggle
+  assert is not "Serra Angel" Angel
+  assert is not "Serra Angel" white
+  assert is "Serra Angel" creature
+  assert has not "Serra Angel" flying
+}
+
+scenario "rite of replication: unkicked, one token copy" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Rite of Replication"
+  turn 1 A: cast "Rite of Replication" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Hill Giant"
+  assert battlefield B contains 1 "Hill Giant"
+}
+
+scenario "rite of replication: kicked, five of those tokens instead" {
+  battlefield A: 9 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Rite of Replication"
+  turn 1 A: cast "Rite of Replication" kicked targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 5 "Hill Giant"
+  assert battlefield B contains 1 "Hill Giant"
+}
+
+scenario "face yourself: a hasty copy of each creature the target player controls, sacrificed at the end step" {
+  battlefield A: 7 "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears", "Darksteel Relic"
+  hand A: "Face Yourself"
+  turn 1 A: cast "Face Yourself" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A lacks "Darksteel Relic"
+  assert has A "Hill Giant" haste
+  run_to turn 2 upkeep
+  assert battlefield A lacks "Hill Giant"
+  assert battlefield A lacks "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "face yourself: kept while you control a planeswalker" {
+  battlefield A: 7 "Mountain", "Jace Beleren"
+  battlefield B: "Hill Giant"
+  hand A: "Face Yourself"
+  turn 1 A: cast "Face Yourself" targeting player B
+  run_to turn 2 upkeep
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "chameleon: a copy keeps the name Chameleon, so the legend rule leaves both" {
+  battlefield A: 4 "Island", "Isamaru, Hound of Konda"
+  hand A: "Chameleon, Master of Disguise"
+  turn 1 A: cast "Chameleon, Master of Disguise"
+  turn 1 A: copy "Isamaru, Hound of Konda"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Isamaru, Hound of Konda"
+  assert battlefield A contains "Chameleon, Master of Disguise"
+  assert power "Chameleon, Master of Disguise" 2
+  assert toughness "Chameleon, Master of Disguise" 2
+  assert is "Chameleon, Master of Disguise" Dog
+  assert is "Chameleon, Master of Disguise" legendary
+}
+
+scenario "chameleon: only a creature you control can be copied" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Chameleon, Master of Disguise"
+  turn 1 A: cast "Chameleon, Master of Disguise"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Chameleon, Master of Disguise"
+  assert power "Chameleon, Master of Disguise" 2
+  assert toughness "Chameleon, Master of Disguise" 3
+}
+
+scenario "absorbing man: a copy of an artifact that is still a legendary 4/4 Human Villain named Absorbing Man" {
+  battlefield A: "Absorbing Man", "Darksteel Relic"
+  start turn 1 A upkeep
+  turn 1 precombat_main A: trigger "Absorbing Man" targeting "Darksteel Relic"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Absorbing Man"
+  assert battlefield A contains "Darksteel Relic"
+  assert is "Absorbing Man" artifact
+  assert is "Absorbing Man" creature
+  assert is "Absorbing Man" legendary
+  assert is "Absorbing Man" Villain
+  assert power "Absorbing Man" 4
+  assert has "Absorbing Man" vigilance
+  assert has "Absorbing Man" indestructible
+  run_to turn 2 postcombat_main
+  assert has "Absorbing Man" indestructible
+  run_to turn 3 upkeep
+  assert has not "Absorbing Man" indestructible
+  assert is not "Absorbing Man" artifact
+}
+
+scenario "absorbing man: an Aura can't be targeted" {
+  battlefield A: "Absorbing Man", "Forest", "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  start turn 1 A upkeep
+  illegal turn 1 precombat_main A: trigger "Absorbing Man" targeting "Holy Strength"
+  run_to turn 1 begin_combat
+  assert is not "Absorbing Man" enchantment
+}
+
+scenario "naga fleshcrafter renew: a counter, then each other creature you control becomes a copy until end of turn" {
+  battlefield A: 3 "Island", "Grizzly Bears", "Hill Giant", "Serra Angel"
+  graveyard A: "Naga Fleshcrafter"
+  turn 1 A: activate "Naga Fleshcrafter" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Naga Fleshcrafter"
+  assert battlefield A contains 3 "Grizzly Bears"
+  assert counters oldest A "Grizzly Bears" +1/+1 1
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Serra Angel"
+}
+
+scenario "naga fleshcrafter renew: a legendary creature can't be the target" {
+  battlefield A: 3 "Island", "Isamaru, Hound of Konda"
+  graveyard A: "Naga Fleshcrafter"
+  illegal turn 1 A: activate "Naga Fleshcrafter" targeting "Isamaru, Hound of Konda"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Naga Fleshcrafter"
+}
+
+scenario "ojer taq: three times that many creature tokens, other tokens unchanged" {
+  battlefield A: "Ojer Taq, Deepest Foundation", 4 "Plains"
+  hand A: "Raise the Alarm"
+  turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 6 "Soldier"
+}
+
+scenario "ojer taq: an opponent's tokens are not tripled" {
+  battlefield B: "Ojer Taq, Deepest Foundation"
+  battlefield A: 2 "Plains"
+  hand A: "Raise the Alarm"
+  turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Soldier"
+}
+
+scenario "ojer taq: dies and returns tapped as Temple of Civilization" {
+  battlefield A: "Ojer Taq, Deepest Foundation"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  turn 1 B: cast "Murder" targeting "Ojer Taq, Deepest Foundation"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Temple of Civilization"
+  assert tapped "Temple of Civilization"
+  assert is "Temple of Civilization" land
+}
+
+scenario "echocasting symposium: the target player creates the copy" {
+  battlefield A: 6 "Island", "Serra Angel"
+  hand A: "Echocasting Symposium"
+  turn 1 A: cast "Echocasting Symposium" targeting player B, "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Serra Angel"
+  assert battlefield B contains 1 "Serra Angel"
+}
+
+scenario "echocasting symposium: only a creature you control can be copied" {
+  battlefield A: 6 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Echocasting Symposium"
+  illegal turn 1 A: cast "Echocasting Symposium" targeting player A, "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Echocasting Symposium"
+}

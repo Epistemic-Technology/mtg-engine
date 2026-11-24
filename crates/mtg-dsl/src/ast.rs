@@ -762,6 +762,11 @@ pub struct Except {
     /// to its other types" (The Cloning of Shredder), not "and it's"
     /// (wording only).
     pub and_is: bool,
+    /// `named this`: "except its name is <this card's name>" (CR 707.9b).
+    pub own_name: bool,
+    /// `noun creature`: a spell's token copies' abilities call the token
+    /// "this creature" (Face Yourself), not "this token". Wording only.
+    pub creature_noun: bool,
 }
 
 /// What takes an activated ability's cost down (`reduced {1} each Town you
@@ -4988,6 +4993,9 @@ pub enum Effect {
         /// wording "create a token that's a copy of ... and that's tapped
         /// and attacking". Wording only.
         trailing: bool,
+        /// `target player creates token copy of ...`: "Target player
+        /// creates a token that's a copy of ..." (that player's token).
+        who: Option<Recipient>,
     },
     /// `copy target instant or sorcery spell you control [times N] [new
     /// targets] [with exceptions]` (CR 707.10): "Copy target instant or

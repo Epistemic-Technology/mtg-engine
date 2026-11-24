@@ -1505,6 +1505,18 @@ impl P {
                             except.not_legendary = true;
                             self.end_stmt()?;
                         }
+                        // "... sacrifice this creature" in a spell's copy.
+                        Some("noun") if self.word_at(1).as_deref() == Some("creature") => {
+                            self.pos += 2;
+                            except.creature_noun = true;
+                            self.end_stmt()?;
+                        }
+                        // "except his name is Absorbing Man".
+                        Some("named") if self.word_at(1).as_deref() == Some("this") => {
+                            self.pos += 2;
+                            except.own_name = true;
+                            self.end_stmt()?;
+                        }
                         // "it's legendary".
                         Some("legendary") => {
                             self.pos += 1;
@@ -10171,6 +10183,25 @@ impl P {
                         attached,
                         sized,
                     }),
+                    // "Target player creates a token that's a copy of
+                    // target creature you control" (Echocasting Symposium).
+                    Effect::CreateTokenCopy {
+                        of,
+                        except,
+                        count,
+                        tapped,
+                        attacking,
+                        trailing,
+                        ..
+                    } if !attacking => Ok(Effect::CreateTokenCopy {
+                        of,
+                        except,
+                        count,
+                        tapped,
+                        attacking,
+                        trailing,
+                        who: Some(subject),
+                    }),
                     _ => self.fail("expected a token after `create`"),
                 }
             }
@@ -12769,6 +12800,7 @@ impl P {
                         tapped: skip > 0 || trailing,
                         attacking: attack || trailing,
                         trailing,
+                        who: None,
                     });
                 }
                 // `create 2 token copies of this`, `create x token copies
@@ -12793,6 +12825,7 @@ impl P {
                         tapped: skip > 0 || trailing,
                         attacking: attack || trailing,
                         trailing,
+                        who: None,
                     });
                 }
                 let count = self.num()?;
@@ -18945,6 +18978,7 @@ impl P {
                 }
             }
             "double" => Outcome::Double,
+            "triple" => Outcome::Triple,
             // "reveal it and shuffle it into its owner's library instead".
             "shuffle" => {
                 self.eat_words(&["into", "library"]);
@@ -19259,6 +19293,8 @@ impl P {
                         })
                     }
                     "color" if set && self.eat_word("chosen") => Ok(Mod::ChosenColor),
+                    // `set colorless`: "is a colorless land" (layer 5).
+                    "colorless" if set => Ok(Mod::SetColors(Vec::new())),
                     "color" | "colors" => {
                         let colors = self.color_list()?;
                         Ok(if set {
