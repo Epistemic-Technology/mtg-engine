@@ -2190,6 +2190,9 @@ pub enum Ability {
     /// `opening hand`: "If this card is in your opening hand, you may begin
     /// the game with it on the battlefield." (CR 103.6a).
     OpeningHand,
+    /// `plotting costs {2} less`: "Plotting cards from your hand costs {2}
+    /// less." (CR 702.170a).
+    PlotLess(u32),
     /// `opening hand reveal first upkeep: ...`: "You may reveal this card
     /// from your opening hand. If you do, at the beginning of the first
     /// upkeep, ..." (the Chancellors); `your first upkeep` ("at the

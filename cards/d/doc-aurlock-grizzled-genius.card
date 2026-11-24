@@ -1,0 +1,8 @@
+card "Doc Aurlock, Grizzled Genius" {
+  oracle_id 3ca32660-bf5f-4398-bef6-a0ec8bc767cf
+  cost {G}{U}
+  type Legendary Creature — Bear Druid
+  pt 2/3
+  spells you cast from graveyards or exile cost {2} less
+  plotting costs {2} less
+}

@@ -2649,6 +2649,14 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::OpeningHand)
             }
+            // `plotting costs {2} less` (CR 702.170a).
+            "plotting" if self.at_words(&["plotting", "costs"]) => {
+                self.pos += 2;
+                let n = self.mana_cost()?.mana_value();
+                self.expect_word("less")?;
+                self.end_stmt()?;
+                Ok(Ability::PlotLess(n))
+            }
             // CR 603.2d: `trigger again Ninja creature you control`,
             // `trigger again entering permanent you control`.
             "trigger"

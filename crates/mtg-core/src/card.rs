@@ -10312,6 +10312,10 @@ pub enum AbilityDef {
     /// "If this card is in your opening hand, you may begin the game with
     /// it on the battlefield." (CR 103.6a; the Leylines).
     OpeningHand,
+    /// "Plotting cards from your hand costs {2} less." (Doc Aurlock, CR
+    /// 702.170a): the controller's plot costs have this much less generic
+    /// mana.
+    PlotLess(u32),
     /// "You may reveal this card from your opening hand. If you do, at
     /// the beginning of the first upkeep, ..." (the Chancellors; CR
     /// 103.6a's moment): revealed, the card creates the delayed
@@ -10474,6 +10478,7 @@ impl AbilityDef {
             | AbilityDef::HexproofFrom(_)
             | AbilityDef::PlayerStatic { .. }
             | AbilityDef::OpeningHand
+            | AbilityDef::PlotLess(_)
             | AbilityDef::OpeningHandReveal(_)
             | AbilityDef::TriggerAgain { .. }
             | AbilityDef::Static(_)
@@ -10516,6 +10521,7 @@ impl AbilityDef {
             | AbilityDef::HexproofFrom(_)
             | AbilityDef::PlayerStatic { .. }
             | AbilityDef::OpeningHand
+            | AbilityDef::PlotLess(_)
             | AbilityDef::OpeningHandReveal(_)
             | AbilityDef::TriggerAgain { .. }
             | AbilityDef::Static(_)
@@ -11991,6 +11997,8 @@ pub struct CardPool {
     /// (`SpellGrant::alt`): until one is added, no cast offer looks for
     /// one.
     pub alt_grants: bool,
+    /// Whether some card makes plotting cheaper (`AbilityDef::PlotLess`).
+    pub plot_discounts: bool,
     /// Whether some card gives spells on the stack a keyword that acts
     /// there ("Instant and sorcery spells you control have lifelink",
     /// "... split second"; `SpellGrant::keywords`).
@@ -12103,6 +12111,7 @@ impl CardPool {
             card_grants: false,
             spend_grants: false,
             alt_grants: false,
+            plot_discounts: false,
             stack_grants: false,
             powerup_again: false,
             prowess: AbilityId(0),
@@ -12893,6 +12902,10 @@ impl CardPool {
             matches!(a, AbilityDef::CostChange(cc)
                 if cc.grant.as_ref().is_some_and(|g| g.spend != SpendAs::Normal))
         });
+        self.plot_discounts |= def
+            .abilities
+            .iter()
+            .any(|a| matches!(a, AbilityDef::PlotLess(_)));
         self.alt_grants |= def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::CostChange(cc)
                 if cc.grant.as_ref().is_some_and(|g| g.alt.is_some()))

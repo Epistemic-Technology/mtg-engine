@@ -9232,6 +9232,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         Ability::OpeningHand => {
             let _ = writeln!(out, "{indent}opening hand");
         }
+        Ability::PlotLess(n) => {
+            let _ = writeln!(out, "{indent}plotting costs {{{n}}} less");
+        }
         Ability::OpeningHandReveal {
             step,
             whose,

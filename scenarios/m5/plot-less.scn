@@ -1,0 +1,46 @@
+# "Plotting cards from your hand costs {2} less." and "Spells you cast
+# from your graveyard or from exile cost {2} less to cast." (Doc Aurlock,
+# Grizzled Genius; CR 702.170a, 601.2f): generic mana only.
+
+scenario "Doc Aurlock: plotting for {1}{U} rather than {3}{U}" {
+  battlefield A: "Doc Aurlock, Grizzled Genius", 2 "Island"
+  hand A: "Djinn of Fool's Fall"
+  turn 1 A: plot "Djinn of Fool's Fall"
+  run_to turn 1 end
+  assert exile A contains "Djinn of Fool's Fall"
+  assert tapped newest "Island"
+  assert tapped oldest "Island"
+}
+
+scenario "Doc Aurlock: plotting still needs the colored mana" {
+  battlefield A: "Doc Aurlock, Grizzled Genius", 3 "Mountain"
+  hand A: "Djinn of Fool's Fall"
+  illegal turn 1 A: plot "Djinn of Fool's Fall"
+  run_to turn 1 end
+  assert hand A contains "Djinn of Fool's Fall"
+}
+
+scenario "without Doc Aurlock, {3}{U} to plot" {
+  battlefield A: 2 "Island"
+  hand A: "Djinn of Fool's Fall"
+  illegal turn 1 A: plot "Djinn of Fool's Fall"
+  run_to turn 1 end
+  assert hand A contains "Djinn of Fool's Fall"
+}
+
+scenario "Doc Aurlock: flashback costs {2} less" {
+  battlefield A: "Doc Aurlock, Grizzled Genius", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Abandon the Post"
+  turn 1 A: cast "Abandon the Post" from graveyard targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert exile A contains "Abandon the Post"
+}
+
+scenario "Doc Aurlock: a spell from the hand costs full" {
+  battlefield A: "Doc Aurlock, Grizzled Genius", 3 "Island"
+  hand A: "Djinn of Fool's Fall"
+  illegal turn 1 A: cast "Djinn of Fool's Fall"
+  run_to turn 1 end
+  assert hand A contains "Djinn of Fool's Fall"
+}

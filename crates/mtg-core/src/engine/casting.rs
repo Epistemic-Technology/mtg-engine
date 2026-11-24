@@ -3269,13 +3269,36 @@ impl GameState {
                 p,
                 sources,
                 &ps.mana_pool,
-                &cost.requirements(0),
+                &self.plot_requirements(p, cost),
                 ps.life,
                 None,
             )
         {
             options.push(Choice::Plot(id));
         }
+    }
+
+    /// What plotting for `cost` costs `p` (CR 702.170a): less generic mana
+    /// by the permanents they control that make plotting cheaper ("Plotting
+    /// cards from your hand costs {2} less.").
+    pub(super) fn plot_requirements(
+        &self,
+        p: PlayerId,
+        cost: &crate::mana::ManaCost,
+    ) -> ManaRequirement {
+        let mut req = cost.requirements(0);
+        if self.pool.plot_discounts {
+            let less: u32 = self
+                .permanents_of(p)
+                .flat_map(|id| self.pool.get(self.objects[id].def).ability_ids.iter())
+                .map(|a| match self.pool.ability(*a) {
+                    AbilityDef::PlotLess(n) => *n,
+                    _ => 0,
+                })
+                .sum();
+            adjust_generic(&mut req, -i32::try_from(less).unwrap_or(i32::MAX));
+        }
+        req
     }
 
     /// Collect evidence `n` (CR 701.59a): exile cards from `p`'s graveyard

@@ -2208,7 +2208,8 @@ impl GameState {
                 // priority.
                 let def = self.pool.get(self.objects[id].def);
                 if let Some(cost) = def.plot.as_deref().cloned() {
-                    self.pay(player, &cost.requirements(0));
+                    let req = self.plot_requirements(player, &cost);
+                    self.pay(player, &req);
                     self.plot(id);
                 }
                 self.give_priority(player);

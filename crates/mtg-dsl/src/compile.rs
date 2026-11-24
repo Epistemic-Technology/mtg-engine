@@ -7343,6 +7343,7 @@ impl Compiler<'_> {
             Ability::Landwalk(f) => AbilityDef::Landwalk(self.filter(f)),
             Ability::HexproofFrom(f) => AbilityDef::HexproofFrom(self.filter(f)),
             Ability::OpeningHand => AbilityDef::OpeningHand,
+            Ability::PlotLess(n) => AbilityDef::PlotLess(*n),
             // The delayed trigger the revealed card leaves (CR 603.7).
             Ability::OpeningHandReveal {
                 step,

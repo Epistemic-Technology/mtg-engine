@@ -21557,7 +21557,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             } else {
                 generic.unsigned_abs().to_string()
             };
-            let from = spell_from_text(*from);
+            // "Spells you cast from your graveyard or from exile cost {2}
+            // less to cast." (Doc Aurlock).
+            let from =
+                if *from == mtg_core::card::SpellFrom::GraveyardOrExile && whose == " you cast" {
+                    " from your graveyard or from exile"
+                } else {
+                    spell_from_text(*from)
+                };
             let body = format!(
                 "{} {whose}{from}{mv} cost {{{amount}}} {more} to cast{per_text}.",
                 cost_spells_subject(&f, card),
@@ -22534,6 +22541,8 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         // "If Quicksilver, Brash Blur is in your opening hand, you may
         // begin the game with him on the battlefield.": a legend's full
         // name (the card in a hand), its pronoun.
+        // "Plotting cards from your hand costs {2} less." (CR 702.170a).
+        Ability::PlotLess(n) => format!("Plotting cards from your hand costs {{{n}}} less."),
         Ability::OpeningHand => format!(
             "If {} is in your opening hand, you may begin the game with {} on the battlefield.",
             if card.supertypes.contains(&Supertype::Legendary) {

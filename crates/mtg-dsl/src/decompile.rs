@@ -3149,6 +3149,7 @@ impl Decompiler<'_> {
             AbilityDef::Landwalk(f) => Ability::Landwalk(self.filter(f)),
             AbilityDef::HexproofFrom(f) => Ability::HexproofFrom(self.filter(f)),
             AbilityDef::OpeningHand => Ability::OpeningHand,
+            AbilityDef::PlotLess(n) => Ability::PlotLess(*n),
             AbilityDef::OpeningHandReveal(id) => match self.ability(self.pool.ability(*id)) {
                 Ability::Triggered {
                     trigger: crate::ast::Trigger::BeginningOfStep { step, whose },
