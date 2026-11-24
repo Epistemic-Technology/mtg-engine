@@ -2850,6 +2850,7 @@ impl Compiler<'_> {
                 min,
                 max,
                 total,
+                different,
             } => {
                 let spec = self.target(target);
                 self.pool.intern_many(mtg_core::card::ManyTargets {
@@ -2857,6 +2858,7 @@ impl Compiler<'_> {
                     min: *min,
                     max: *max,
                     total_mv: *total,
+                    different_names: *different,
                 })
             }
         }
@@ -3944,6 +3946,7 @@ impl Compiler<'_> {
                 graveyard,
                 name,
                 or_card,
+                more: None,
                 ..
             } if (*graveyard || name.is_some())
                 && (*count != Num::N(1)
@@ -3960,6 +3963,15 @@ impl Compiler<'_> {
                 );
             }
             Effect::Search {
+                count,
+                up_to,
+                more: Some(m),
+                ..
+            } if !m.slots.is_empty() && (*count != Num::N(1) || *up_to) => {
+                return self
+                    .err("a search for several differently-filtered cards finds one of each");
+            }
+            Effect::Search {
                 filter,
                 count,
                 to,
@@ -3968,17 +3980,34 @@ impl Compiler<'_> {
                 may,
                 graveyard,
                 name,
+                more,
                 ..
-            } => out.push(CoreEffect::Search {
-                filter: self.filter(filter),
-                count: *count,
-                to: *to,
-                who: who.map_or(CoreRecipient::You, r),
-                may: *may,
-                reveal: *reveal,
-                graveyard: *graveyard,
-                name: name.as_deref().map(Box::from),
-            }),
+            } => {
+                let more = more.as_ref().map(|m| {
+                    Box::new(mtg_core::card::SearchMore {
+                        slots: m
+                            .slots
+                            .iter()
+                            .map(|(f, n)| (self.filter(f), n.as_deref().map(Box::from)))
+                            .collect(),
+                        hand: m.zones != crate::ast::SearchZones::Library,
+                        all: m.zones == crate::ast::SearchZones::HandAnd,
+                        different_names: m.different_names,
+                        split: m.split.as_ref().map(|(f, to)| (self.filter(f), *to)),
+                    })
+                });
+                out.push(CoreEffect::Search {
+                    filter: self.filter(filter),
+                    count: *count,
+                    to: *to,
+                    who: who.map_or(CoreRecipient::You, r),
+                    may: *may,
+                    reveal: *reveal,
+                    graveyard: *graveyard,
+                    name: name.as_deref().map(Box::from),
+                    more: more.filter(|m| **m != mtg_core::card::SearchMore::default()),
+                });
+            }
             Effect::Investigate(_) | Effect::Investigates(_) | Effect::InvestigateCount { .. } => {
                 let Some(token) = self.pool.lookup("Clue") else {
                     return self.err("unknown token \"Clue\" (cards/tokens/clue.card)");
@@ -6466,6 +6495,7 @@ impl Compiler<'_> {
                             may: false,
                             old: false,
                             those: false,
+                            more: None,
                         }])],
                         equip: false,
                         cycling: false,

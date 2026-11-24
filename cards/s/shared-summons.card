@@ -1,0 +1,6 @@
+card "Shared Summons" {
+  oracle_id c2c9dbd0-2062-4ee1-b32e-8eeacd95589c
+  cost {3}{G}{G}
+  type Instant
+  spell: search up to 2 creature card with different names reveal to hand
+}

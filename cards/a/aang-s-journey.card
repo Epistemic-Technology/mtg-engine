@@ -1,0 +1,10 @@
+card "Aang's Journey" {
+  oracle_id ddf461b9-a205-4dc7-a9c3-c047b1ff709f
+  cost {2}
+  type Sorcery — Lesson
+  kicker {2}
+  spell {
+    search basic land card reveal to hand short; if kicked, instead search basic land card and Shrine card reveal to hand
+    you gain 2 life
+  }
+}

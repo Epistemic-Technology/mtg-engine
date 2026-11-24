@@ -1,0 +1,7 @@
+card "Analyze the Pollen" {
+  oracle_id ec7d550b-9e13-4249-89c7-6ad43f71ea11
+  cost {G}
+  type Sorcery
+  additional cost may collect evidence 8
+  spell: search basic land card reveal to hand short; if evidence collected, instead search creature or land card reveal to hand sentence
+}

@@ -1380,6 +1380,31 @@ impl GameState {
                             _ => true,
                         });
                     }
+                    // "up to six target creature cards with different
+                    // names" (CR 201.2): only a card named unlike those
+                    // already chosen for the group.
+                    if let TargetSpec::Many(i) = spec
+                        && self.pool.many(i).different_names
+                    {
+                        let names: Vec<&str> = self.objects[spell]
+                            .targets
+                            .iter()
+                            .skip(next_target)
+                            .filter_map(|t| match t {
+                                Target::Object(id) => self.objects.get(*id),
+                                Target::Player(_) => None,
+                            })
+                            .map(|o| self.pool.get(o.def).name.as_str())
+                            .collect();
+                        options.retain(|c| match c {
+                            Choice::Target(Target::Object(id)) => {
+                                self.objects.get(*id).is_none_or(|o| {
+                                    !names.contains(&self.pool.get(o.def).name.as_str())
+                                })
+                            }
+                            _ => true,
+                        });
+                    }
                     // "up to three target creature cards with total mana
                     // value 3 or less" (CR 601.2c): only a card that keeps
                     // the group's total within the bound.

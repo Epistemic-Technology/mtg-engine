@@ -3261,6 +3261,7 @@ impl P {
                         name: None,
                         old: false,
                         those: false,
+                        more: None,
                     }])],
                     equip: false,
                     cycling: true,
@@ -6752,6 +6753,33 @@ impl P {
         Ok((Some(f), card))
     }
 
+    /// A search's destination after `to`.
+    fn search_to(&mut self) -> R<mtg_core::card::SearchTo> {
+        use mtg_core::card::SearchTo;
+        Ok(if self.eat_words(&["hand", "or", "graveyard"]) {
+            SearchTo::HandOrGraveyard
+        } else if self.eat_words(&["hand", "and", "graveyard"]) {
+            SearchTo::HandAndGraveyard
+        } else if self.eat_word("hand") {
+            SearchTo::Hand
+        } else if self.eat_word("battlefield") {
+            let tapped = self.eat_word("tapped");
+            if tapped && self.eat_words(&["and", "hand"]) {
+                SearchTo::BattlefieldAndHand
+            } else {
+                SearchTo::Battlefield { tapped }
+            }
+        } else if self.eat_word("top") {
+            SearchTo::TopOfLibrary
+        } else if self.eat_word("graveyard") {
+            SearchTo::Graveyard
+        } else if self.eat_word("exile") {
+            SearchTo::Exile
+        } else {
+            return self.unexpected("`hand`, `battlefield`, `graveyard`, or `top`");
+        })
+    }
+
     /// After `if <condition>,`: `instead <sentence>` or `<sentence>
     /// instead` (CR 608.2c), or else the plain sentence (`Err`).
     fn instead_body(&mut self, cond: InsteadCond) -> R<Result<Effect, Sentence>> {
@@ -6759,9 +6787,13 @@ impl P {
         let saved = self.subject.take();
         let s = self.sentence()?;
         self.subject = saved;
+        // `search up to 3 ... instead of 2`: "search your library for up
+        // to three basic Forest cards instead of two" is the trailing form.
+        let instead_of = matches!(s.effects.last(), Some(Effect::Search { more: Some(m), .. })
+            if matches!(m.wording, crate::ast::SearchWording::InsteadOf(_)));
         let wording = if lead {
             InsteadWording::Lead
-        } else if self.eat_word("instead") {
+        } else if instead_of || self.eat_word("instead") {
             InsteadWording::Trail
         } else {
             return Ok(Err(s));
@@ -8190,6 +8222,7 @@ impl P {
                         name,
                         old,
                         those,
+                        more,
                         ..
                     } => Ok(Effect::Search {
                         filter,
@@ -8205,6 +8238,7 @@ impl P {
                         name,
                         old,
                         those,
+                        more,
                     }),
                     _ => self.fail("expected a search"),
                 }
@@ -10701,7 +10735,30 @@ impl P {
                 what: self.recipient()?,
             }),
             "search" | "searches" => {
-                let graveyard = self.eat_words(&["library", "or", "graveyard"]);
+                let mut more = crate::ast::SearchMore::default();
+                // `search graveyard, hand, or library ...`: "your
+                // graveyard, hand, and/or library" (`graveyard, hand or
+                // library` without the serial comma); `graveyard, hand,
+                // and library`: all three.
+                if self.at_word("graveyard")
+                    && self.peek_at(1) == Some(&Tok::Comma)
+                    && self.word_at(2).as_deref() == Some("hand")
+                {
+                    self.pos += 3;
+                    let comma = self.peek() == Some(&Tok::Comma);
+                    if comma {
+                        self.pos += 1;
+                    }
+                    more.zones = if self.eat_words(&["or", "library"]) {
+                        crate::ast::SearchZones::HandOr { comma }
+                    } else if comma && self.eat_words(&["and", "library"]) {
+                        crate::ast::SearchZones::HandAnd
+                    } else {
+                        return self.unexpected("`or library` or `, and library`");
+                    };
+                }
+                let graveyard = more.zones != crate::ast::SearchZones::Library
+                    || self.eat_words(&["library", "or", "graveyard"]);
                 let up_to = self.eat_words(&["up", "to"]);
                 // `search up to X ...`, `search up to count where ...`,
                 // `search up to that much ...`: "for up to X basic land
@@ -10785,28 +10842,42 @@ impl P {
                     }
                     filter.or = Some(Box::new(alt));
                 }
+                // `and green card and blue card`, `and card named "Thinking
+                // Cap"`: one card more for each.
+                while self.eat_word("and") {
+                    let f = if self.eat_word("card") {
+                        Filter::default()
+                    } else {
+                        let f = self.filter()?;
+                        if !self.eat_word("card") {
+                            return self.unexpected("`card`");
+                        }
+                        f
+                    };
+                    let mut n = None;
+                    if self.at_word("named")
+                        && let Some(Tok::Str(s)) = self.peek_at(1)
+                    {
+                        n = Some(s.clone());
+                        self.pos += 2;
+                    }
+                    more.slots.push((f, n));
+                }
+                // "with different names" (CR 201.2).
+                more.different_names = self.eat_words(&["with", "different", "names"]);
                 let reveal = self.eat_word("reveal");
                 self.expect_word("to")?;
-                let to = if self.eat_words(&["hand", "or", "graveyard"]) {
-                    mtg_core::card::SearchTo::HandOrGraveyard
-                } else if self.eat_word("hand") {
-                    mtg_core::card::SearchTo::Hand
-                } else if self.eat_word("battlefield") {
-                    let tapped = self.eat_word("tapped");
-                    if tapped && self.eat_words(&["and", "hand"]) {
-                        mtg_core::card::SearchTo::BattlefieldAndHand
-                    } else {
-                        mtg_core::card::SearchTo::Battlefield { tapped }
-                    }
-                } else if self.eat_word("top") {
-                    mtg_core::card::SearchTo::TopOfLibrary
-                } else if self.eat_word("graveyard") {
-                    mtg_core::card::SearchTo::Graveyard
-                } else if self.eat_word("exile") {
-                    mtg_core::card::SearchTo::Exile
-                } else {
-                    return self.unexpected("`hand`, `battlefield`, `graveyard`, or `top`");
-                };
+                let mut to = self.search_to()?;
+                // `to battlefield tapped if land else hand`: "Put it onto
+                // the battlefield tapped if it's a land card. Otherwise, put
+                // it into your hand."
+                if self.eat_word("if") {
+                    let f = self.filter()?;
+                    self.expect_word("else")?;
+                    let other = self.search_to()?;
+                    more.split = Some((f, to));
+                    to = other;
+                }
                 let that_card = self.eat_words(&["that", "card"]);
                 // A final `then`: the older wording (not `then <clause>`).
                 let old = self.at_word("then") && !matches!(self.peek_at(1), Some(Tok::Word(_)));
@@ -10814,6 +10885,20 @@ impl P {
                     self.pos += 1;
                 }
                 let those = self.eat_word("those");
+                more.wording = if self.eat_word("short") {
+                    crate::ast::SearchWording::Short
+                } else if self.eat_word("sentence") {
+                    crate::ast::SearchWording::Sentence
+                } else if self.eat_words(&["of", "them"]) {
+                    crate::ast::SearchWording::OfThem
+                } else if self.eat_word("rest") {
+                    crate::ast::SearchWording::Rest
+                } else if self.eat_words(&["instead", "of"]) {
+                    crate::ast::SearchWording::InsteadOf(self.number()?)
+                } else {
+                    crate::ast::SearchWording::Plain
+                };
+                let more = (more != crate::ast::SearchMore::default()).then(|| Box::new(more));
                 Ok(Effect::Search {
                     filter,
                     count,
@@ -10828,6 +10913,7 @@ impl P {
                     name,
                     old,
                     those,
+                    more,
                 })
             }
             "add" => {
@@ -12254,12 +12340,14 @@ impl P {
             }
         };
         let total = self.total_mana_value()?;
+        let different = self.eat_words(&["with", "different", "names"]);
         let i = self.targets.len();
         self.targets.push(Target::Many {
             target: Box::new(target),
             min,
             max,
             total,
+            different,
         });
         Ok(Recipient::Target(i))
     }
@@ -12325,13 +12413,21 @@ impl P {
             }
             // "up to three target creature cards with total mana value 3
             // or less": one variable group (CR 601.2c).
-            if up_to && let Some(total) = self.total_mana_value()? {
+            // "up to six target creature cards with different names".
+            let total = if up_to {
+                self.total_mana_value()?
+            } else {
+                None
+            };
+            let different = up_to && self.eat_words(&["with", "different", "names"]);
+            if total.is_some() || different {
                 let i = self.targets.len();
                 self.targets.push(Target::Many {
                     target: Box::new(spec),
                     min: Num::N(0),
                     max: Some(Num::N(count)),
-                    total: Some(total),
+                    total,
+                    different,
                 });
                 return Ok(vec![Recipient::Target(i)]);
             }

@@ -1175,6 +1175,65 @@ pub enum OrCard {
     Article,
 }
 
+/// The rarer parts of a search (`Effect::Search::more`).
+#[derive(Clone, Eq, PartialEq, Debug, Default)]
+pub struct SearchMore {
+    /// `search black card and green card and blue card ...`, `card named
+    /// "X" and card named "Y"`: one card more for each, by its own filter
+    /// and name ("a black card, a green card, and a blue card"; named
+    /// cards join with "and/or").
+    pub slots: Vec<(Filter, Option<String>)>,
+    /// Which zones are searched beyond the library.
+    pub zones: SearchZones,
+    /// `with different names` (CR 201.2).
+    pub different_names: bool,
+    /// `to battlefield if land else hand`: "Put it onto the battlefield
+    /// tapped if it's a land card. Otherwise, put it into your hand."
+    pub split: Option<(Filter, mtg_core::card::SearchTo)>,
+    pub wording: SearchWording,
+}
+
+/// The zones a search names beyond the library.
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum SearchZones {
+    /// The library (or `library or graveyard`, `Effect::Search::graveyard`).
+    #[default]
+    Library,
+    /// `graveyard, hand, or library`: "your graveyard, hand, and/or
+    /// library" (`graveyard, hand or library`: without the serial comma);
+    /// the library is shuffled if it was searched.
+    HandOr { comma: bool },
+    /// `graveyard, hand, and library`: "your graveyard, hand, and library
+    /// ..., then shuffle".
+    HandAnd,
+}
+
+/// How a search's destination prints (wording only).
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum SearchWording {
+    #[default]
+    Plain,
+    /// `short`: only "Search your library for a basic land card." The
+    /// `instead` search after it prints the destination for both (Analyze
+    /// the Pollen).
+    Short,
+    /// `sentence`: the destination as a sentence of its own, "Reveal that
+    /// card, put it into your hand, then shuffle." (after an `instead`
+    /// search; a search for several differently-filtered cards always
+    /// prints so).
+    Sentence,
+    /// `of them`: "... and reveal them. Put one of them onto the
+    /// battlefield tapped and the other into your hand, then shuffle."
+    OfThem,
+    /// `rest`: "..., reveal those cards, and put one onto the battlefield
+    /// tapped and the rest into your hand. Then shuffle."
+    Rest,
+    /// `instead of 2`: in a trailing `instead` sentence, "search your
+    /// library for up to three basic Forest cards instead of two" (the
+    /// rest as the search before).
+    InsteadOf(u32),
+}
+
 /// A filter's combat relation to the source, as printed.
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum CombatRef {
@@ -1344,6 +1403,9 @@ pub enum Target {
         /// `... with total mana value 3 or less`: "up to three target
         /// creature cards with total mana value 3 or less" (CR 601.2c).
         total: Option<Num>,
+        /// `... with different names`: "up to six target creature cards
+        /// with different names" (CR 201.2).
+        different: bool,
     },
 }
 
@@ -4622,6 +4684,9 @@ pub enum Effect {
         /// battlefield tapped" ("Reveal those cards, put them into your
         /// hand") (wording only).
         those: bool,
+        /// Several differently-filtered cards, more zones, `with different
+        /// names`, a destination by the found card, and more wordings.
+        more: Option<Box<SearchMore>>,
     },
     /// `add {B}{B}`, `add any`: "Add {B}{B}.", "Add one mana of any
     /// color." (CR 106.4).

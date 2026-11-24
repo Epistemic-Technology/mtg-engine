@@ -1,0 +1,6 @@
+card "Behold the Sinister Six!" {
+  oracle_id 6fa27f8a-bade-460f-853a-abc1c05c946a
+  cost {6}{B}
+  type Sorcery
+  spell: return up to 6 target creature card from your graveyard with different names to battlefield
+}

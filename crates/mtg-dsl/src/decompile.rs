@@ -455,6 +455,7 @@ impl Decompiler<'_> {
                     min: m.min,
                     max: m.max,
                     total: m.total_mv,
+                    different: m.different_names,
                 }
             }
             other => Target::Spec(other),
@@ -1349,6 +1350,7 @@ impl Decompiler<'_> {
                 reveal,
                 graveyard,
                 name,
+                more,
             } => Effect::Search {
                 graveyard: *graveyard,
                 name: name.as_deref().map(str::to_string),
@@ -1363,6 +1365,23 @@ impl Decompiler<'_> {
                 may: *may,
                 old: false,
                 those: false,
+                more: more.as_ref().map(|m| {
+                    Box::new(crate::ast::SearchMore {
+                        slots: m
+                            .slots
+                            .iter()
+                            .map(|(f, n)| (self.filter(f), n.as_deref().map(str::to_string)))
+                            .collect(),
+                        zones: match (m.hand, m.all) {
+                            (false, _) => crate::ast::SearchZones::Library,
+                            (true, false) => crate::ast::SearchZones::HandOr { comma: true },
+                            (true, true) => crate::ast::SearchZones::HandAnd,
+                        },
+                        different_names: m.different_names,
+                        split: m.split.as_ref().map(|(f, to)| (self.filter(f), *to)),
+                        wording: crate::ast::SearchWording::Plain,
+                    })
+                }),
             },
             CoreEffect::Surveil { count } => Effect::Surveil(*count),
             CoreEffect::Discard { count, who } => Effect::Discard {
