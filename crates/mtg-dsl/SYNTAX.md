@@ -495,7 +495,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `when enchanted creature becomes targeted by spell`, `whenever creature you control becomes targeted by spell`, `whenever permanent you control becomes targeted by opponent`, `... by opponent spell` | "When enchanted creature becomes the target of a spell" (a spell only, not an ability), "Whenever a permanent you control becomes the target of a spell or ability an opponent controls": any trigger subject; the targeted permanent is `that creature`, the spell's or ability's controller `that player` |
 | `whenever you cast with mana value 4 or greater spell` | "Whenever you cast a spell with mana value 4 or greater" (a filter's "with" qualities print after "spell"; likewise `counter target with mana value 4 or less spell`) |
 | `whenever you cast your first instant or sorcery spell each turn` | the first of the caster's instant and sorcery spells this turn (other spells cast before it don't count) |
-| `whenever you cast your first spell each turn`, `... your second spell each turn`, `... a spell other than your first spell each turn`, `... your first spell during each opponent's turn`, `whenever an opponent casts their second spell each turn`, `whenever you cast a spell during an opponent's turn`, `whenever an opponent casts their first noncreature spell each turn`, `whenever you cast a spell from exile`, `whenever you cast your third spell each turn` | the spell's place among those its caster cast this turn (or only that it was cast on another player's turn; the first noncreature one among their noncreature spells; or that it was cast from exile) |
+| `whenever you cast your first spell each turn`, `... your second spell each turn`, `... a spell other than your first spell each turn`, `... your first spell during each opponent's turn`, `whenever an opponent casts their second spell each turn`, `whenever you cast a spell during an opponent's turn`, `whenever an opponent casts their first noncreature spell each turn`, `whenever you cast a spell from exile`, `whenever a player casts a spell from a graveyard`, `whenever you cast your third spell each turn` | the spell's place among those its caster cast this turn (or only that it was cast on another player's turn; the first noncreature one among their noncreature spells; or that it was cast from exile, or from any graveyard) |
 | `when you cycle this` | "When you cycle this card" (CR 702.29d): triggers from the card itself as its cycling ability is activated, so it resolves before the draw; the card is "it" ("it deals 6 damage to any target") |
 | `whenever you cycle a card`, `whenever you cycle another card`, `whenever you cycle or discard a card` | cycling a card (CR 702.29); `or discard` triggers once per card discarded, cycling included |
 | `whenever this or Ally you control enters`, `whenever this or creature you control with power 4 or greater dies` | "Whenever this creature or another Ally you control enters"; the filter includes the source, and Oracle names the source again ("this creature") |
@@ -513,6 +513,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever creature is put into your graveyard from battlefield` | "Whenever a creature is put into your graveyard from the battlefield": a matching permanent the controller owns dies, whoever controlled it, judged as it last existed on the battlefield; it is the triggering object |
 | `whenever land card is put into your graveyard from anywhere` | "Whenever a land card is put into your graveyard from anywhere": a card the controller owns, matching as it is in the graveyard (milled, discarded, dying, ...) |
 | `whenever creature enters from your graveyard` | "Whenever a creature enters from your graveyard": a permanent the controller owns entering from their graveyard is "it" |
+| `when this enters from graveyard`, `whenever this or permanent enters from graveyard`, `whenever this or creature enters from your graveyard`, `whenever permanent you control enters from exile` | "When this creature enters from a graveyard" (any player's), "Whenever this creature or another permanent enters from a graveyard", "... enters from your graveyard" (one its controller owns), "Whenever a permanent you control enters from exile": a matching permanent put onto the battlefield from that zone (CR 400.7: returned by undying or persist, reanimated, flickered); one cast from there enters from the stack and doesn't count. It is the triggering object |
 | `whenever you expend 4` | "Whenever you expend 4" (CR 700.14): as the controller spends their fourth total mana to cast spells this turn, judged as the spell that spent it becomes cast (the mana counted as its cost's mana symbols) |
 | `whenever andor other Villain or artifact you control enters` | "Whenever another Villain and/or artifact you control enters": `andor` before a filter with an alternative prints "and/or" in a trigger's subject, and between plural alternatives anywhere (`up to 2 target andor Mount or Vehicle`: "up to two target Mounts and/or Vehicles"; wording only); `andlist` likewise joins a singular list with "and" (`each andlist Pest or Bat or Spider you control`: "each Pest, Bat, and Spider you control"), and plural types (`andlist artifact or creature you control`: "artifacts and creatures you control"). In a count, `andor thatare creature or Vehicle you control` prints "permanents you control that are creatures and/or Vehicles" (Collision Course; wording only) |
 
@@ -622,7 +623,20 @@ your hand", kept by the permanent the spell becomes), `cast from
 graveyard` ("this spell was cast from a graveyard"; CR 601.2a), `you cast
 it` ("When this creature enters, if you cast it, ...": cast from any zone,
 remembered by the permanent its spell became; not when put onto the
-battlefield otherwise), `gained
+battlefield otherwise; in a trigger with a triggering object, "it" is that
+object: `whenever creature you control enters if you cast it`, The Sibsig
+Ceremony; `cast from hand` and `cast from graveyard` likewise), `that
+creature entered from graveyard or you cast it from graveyard` ("if that
+creature entered from a graveyard or you cast it from a graveyard": the
+triggering permanent was put onto the battlefield from a graveyard, or
+was a spell cast from one; `they entered or were cast from graveyard`
+prints "they entered or were cast from a graveyard", `one or more of them
+entered from exile or was cast from exile` "one or more of them entered
+from exile or was cast from exile"; `exile` for exile. In a batched
+trigger, "one or more ... enter", each permanent is judged as it enters,
+and the first that qualifies is the triggering object, `one of them`
+("create a token that's a copy of one of them", Twilight Diviner: the
+engine picks it), `gained
 life this turn`, `gained or lost life this turn`, `lost life this turn`
 ("you've lost life this turn"), `gained and lost life this turn` ("you
 gained and lost life this turn": both), `descended this turn`

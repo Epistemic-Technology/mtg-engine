@@ -710,6 +710,10 @@ impl Decompiler<'_> {
             StaticCondition::NotYourMainPhase => StaticCond::NotYourMainPhase,
             StaticCondition::NotCastFrom(_) => StaticCond::NotCastFromHand,
             StaticCondition::WasCast => StaticCond::WasCast,
+            StaticCondition::CameFrom { zone, wording } => StaticCond::CameFrom {
+                zone: *zone,
+                wording: *wording,
+            },
             StaticCondition::TotalToughness(n) => StaticCond::TotalToughness(*n),
             StaticCondition::SneakPaid(p) => StaticCond::SneakPaid(*p),
             StaticCondition::ProwlPaid => StaticCond::ProwlPaid,
@@ -2304,6 +2308,11 @@ impl Decompiler<'_> {
                 Trigger::PutIntoGraveyardFromBattlefield(self.filter(f))
             }
             TriggerSpec::EntersFromGraveyard(f) => Trigger::EntersFromGraveyard(self.filter(f)),
+            TriggerSpec::EntersFrom { what, zone, yours } => Trigger::EntersFrom {
+                obj: self.trigger_obj(what),
+                zone: *zone,
+                yours: *yours,
+            },
             TriggerSpec::Expends(n) => Trigger::Expends(*n),
             TriggerSpec::CollectsEvidence { .. } => Trigger::CollectsEvidence,
             TriggerSpec::Forages { .. } => Trigger::Forages,

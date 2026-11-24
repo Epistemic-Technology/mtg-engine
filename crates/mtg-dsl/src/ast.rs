@@ -2881,6 +2881,15 @@ pub enum StaticCond {
     NotCastFromHand,
     /// `you cast it`: "you cast it" (from any zone).
     WasCast,
+    /// `that creature entered from graveyard or you cast it from
+    /// graveyard` (0), `they entered or were cast from graveyard` (1),
+    /// `one or more of them entered from exile or was cast from exile`
+    /// (2): the triggering object was put onto the battlefield from the
+    /// zone or cast from it.
+    CameFrom {
+        zone: mtg_core::state::Zone,
+        wording: u8,
+    },
     /// `put any counter this turn`: "you put a counter on a creature this
     /// turn" (any kind).
     PutAnyCounterThisTurn,
@@ -3576,6 +3585,14 @@ pub enum Trigger {
     PutIntoGraveyardFromBattlefield(Filter),
     /// `whenever creature enters from your graveyard`.
     EntersFromGraveyard(Filter),
+    /// `when this enters from graveyard`, `whenever this or permanent
+    /// enters from graveyard`, `whenever this or creature enters from your
+    /// graveyard`, `whenever permanent you control enters from exile`.
+    EntersFrom {
+        obj: TriggerObj,
+        zone: mtg_core::state::Zone,
+        yours: bool,
+    },
     /// `whenever you expend 4` (CR 700.14).
     Expends(u8),
     /// `whenever you collect evidence` (CR 701.59).
@@ -3881,6 +3898,11 @@ pub enum Recipient {
     /// The triggering object written `the creature` in a triggered
     /// ability: "If the player does, untap the creature." (Paralyze).
     TheTriggeringObject,
+    /// `one of them` in a batched trigger ("Whenever one or more other
+    /// creatures you control enter, ..., create a token that's a copy of
+    /// one of them"): the triggering object, the first of the batch that
+    /// made it trigger (the engine picks it for the player).
+    TriggeringOneOfThem,
     TriggeringPlayer,
     DefendingPlayer,
     /// `that defending player`: the defending player, printed "defending

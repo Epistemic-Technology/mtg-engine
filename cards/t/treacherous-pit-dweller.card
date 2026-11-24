@@ -1,0 +1,8 @@
+card "Treacherous Pit-Dweller" {
+  oracle_id 899387c5-6781-485b-b8bc-aa89d3b97413
+  cost {B}{B}
+  type Creature — Demon
+  pt 4/3
+  triggered when this enters from graveyard: target opponent gains control of it
+  keyword undying
+}

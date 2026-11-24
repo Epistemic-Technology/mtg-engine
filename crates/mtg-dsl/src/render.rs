@@ -1863,6 +1863,7 @@ impl<'a> Ctx<'a> {
                 "that creature".to_string()
             }
             Recipient::TheTriggeringObject => "the creature".to_string(),
+            Recipient::TriggeringOneOfThem => "one of them".to_string(),
             Recipient::SameToken | Recipient::CreatedThatToken => "that token".to_string(),
             Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
             Recipient::TriggeringCard | Recipient::SameCard => "that card".to_string(),
@@ -12074,6 +12075,21 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             "whenever {} enters from your graveyard",
             filter_a(f, ctx.card)
         ),
+        // "When this creature enters from a graveyard" (Treacherous
+        // Pit-Dweller), "Whenever this creature or another permanent
+        // enters from a graveyard" (River Kelpie), "whenever a permanent
+        // you control enters from exile" (Fire Lord Zuko).
+        Trigger::EntersFrom { obj, zone, yours } => {
+            let z = match (zone, yours) {
+                (mtg_core::state::Zone::Exile, _) => "exile",
+                (_, true) => "your graveyard",
+                _ => "a graveyard",
+            };
+            match obj {
+                TriggerObj::This => format!("when {} enters from {z}", this(ctx)),
+                o => format!("whenever {} enters from {z}", trigger_subject(o, ctx)),
+            }
+        }
         Trigger::PutIntoGraveyardFromBattlefield(f) => format!(
             "whenever {} is put into your graveyard from the battlefield",
             filter_a(f, ctx.card)
@@ -15339,6 +15355,20 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             }
         ),
         StaticCond::WasCast => "you cast it".to_string(),
+        // "if that creature entered from a graveyard or you cast it from a
+        // graveyard" (Breathless Knight).
+        StaticCond::CameFrom { zone, wording } => {
+            let z = if *zone == mtg_core::state::Zone::Exile {
+                "exile"
+            } else {
+                "a graveyard"
+            };
+            match wording {
+                0 => format!("that creature entered from {z} or you cast it from {z}"),
+                1 => format!("they entered or were cast from {z}"),
+                _ => format!("one or more of them entered from {z} or was cast from {z}"),
+            }
+        }
         StaticCond::PutAnyCounterThisTurn => {
             "you put a counter on a creature this turn".to_string()
         }

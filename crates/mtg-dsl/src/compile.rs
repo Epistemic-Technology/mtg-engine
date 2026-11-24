@@ -2485,6 +2485,10 @@ impl Compiler<'_> {
                 StaticCondition::NotCastFrom(mtg_core::state::Zone::Hand)
             }
             StaticCond::WasCast => StaticCondition::WasCast,
+            StaticCond::CameFrom { zone, wording } => StaticCondition::CameFrom {
+                zone: *zone,
+                wording: *wording,
+            },
             StaticCond::PutAnyCounterThisTurn => {
                 StaticCondition::happened(TurnEvent::CountersOnCreatureBy, TurnWho::You)
             }
@@ -3011,7 +3015,8 @@ impl Compiler<'_> {
             Recipient::TriggeringObject if tmap.put_creature => CoreRecipient::CreatedObject,
             Recipient::TriggeringObject
             | Recipient::TriggeringIt
-            | Recipient::TheTriggeringObject => CoreRecipient::TriggeringObject,
+            | Recipient::TheTriggeringObject
+            | Recipient::TriggeringOneOfThem => CoreRecipient::TriggeringObject,
             Recipient::TriggeringThey if tmap.they_target => CoreRecipient::ControllerOf(ti(0)),
             Recipient::TriggeringPlayer | Recipient::TriggeringThey => {
                 CoreRecipient::TriggeringPlayer
@@ -5226,6 +5231,11 @@ impl Compiler<'_> {
                 TriggerSpec::PutIntoGraveyardFromBattlefield(self.filter(f))
             }
             Trigger::EntersFromGraveyard(f) => TriggerSpec::EntersFromGraveyard(self.filter(f)),
+            Trigger::EntersFrom { obj, zone, yours } => TriggerSpec::EntersFrom {
+                what: self.trigger_obj(obj),
+                zone: *zone,
+                yours: *yours,
+            },
             Trigger::Expends(n) => TriggerSpec::Expends(*n),
             Trigger::CollectsEvidence => TriggerSpec::CollectsEvidence { whose: Who::You },
             Trigger::Forages => TriggerSpec::Forages { whose: Who::You },
