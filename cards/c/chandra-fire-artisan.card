@@ -1,0 +1,10 @@
+card "Chandra, Fire Artisan" {
+  oracle_id 2867d539-6a63-4fae-aae2-a7fdd4dd9f28
+  cost {2}{R}{R}
+  type Legendary Planeswalker — Chandra
+  loyalty 4
+  pronoun she
+  triggered whenever one or more loyalty counters removed from this: this deals that much damage to target opponent or planeswalker
+  loyalty +1: impulse 1 this turn it
+  loyalty -7: impulse 7 this turn it
+}

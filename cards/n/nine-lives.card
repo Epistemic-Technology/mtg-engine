@@ -1,0 +1,11 @@
+card "Nine Lives" {
+  oracle_id 236e1f57-7ef5-455a-82a6-8ff6b85d8849
+  cost {1}{W}{W}
+  type Enchantment
+  keywords hexproof
+  replace damage source would deal to you: prevent and {
+    put 1 incarnation counters on this
+  }
+  triggered when there are 9 or more incarnation counters on this: exile it
+  triggered when this leaves the battlefield: you lose game
+}

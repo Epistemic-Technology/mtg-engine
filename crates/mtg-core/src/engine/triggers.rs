@@ -45,7 +45,7 @@ impl GameState {
         let watchers = self.watchers(event);
         let event_amount = match event {
             Event::Damage { amount, .. } => *amount,
-            Event::CountersAdded { n, .. } => *n,
+            Event::CountersAdded { n, .. } | Event::CountersRemoved { n, .. } => *n,
             // "you gain that much life" after a player loses or gains life.
             Event::LifeChange { delta, .. } => delta.unsigned_abs(),
             _ => 0,
@@ -1414,6 +1414,18 @@ impl GameState {
                 let p = on_battlefield(what, *obj)?;
                 Some((Some(*obj), Some(p)))
             }
+            // "Whenever a +1/+1 counter is removed from this creature":
+            // once for each counter (`chapter_copies`).
+            (
+                TriggerSpec::CountersRemoved { what, kind, .. },
+                Event::CountersRemoved { obj, kind: k, .. },
+            ) => {
+                if *kind != crate::card::CounterKind::Any && k != kind {
+                    return None;
+                }
+                let p = on_battlefield(what, *obj)?;
+                Some((Some(*obj), Some(p)))
+            }
             // "When the fourth plan counter is put on this enchantment".
             (
                 TriggerSpec::NthCounterPut { kind, n: nth },
@@ -2766,6 +2778,12 @@ fn chapter_copies(trigger: &TriggerSpec, event: &Event) -> usize {
         (TriggerSpec::Chapter(mask), Event::CountersAdded { n, before, .. }) => {
             chapters_crossed(*mask, *before, *n).count_ones() as usize
         }
+        (
+            TriggerSpec::CountersRemoved {
+                one_or_more: false, ..
+            },
+            Event::CountersRemoved { n, .. },
+        ) => *n as usize,
         _ => 1,
     }
 }

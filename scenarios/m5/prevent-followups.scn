@@ -1,0 +1,442 @@
+# Prevention and redirection follow-ups: "If damage would be dealt to this
+# creature, prevent that damage and <do something> that many" (the
+# follow-up is part of the replacement: it happens even if the damage
+# can't be prevented, CR 615.12, and "that many" is the damage), "twice
+# that many", "If a source would deal damage to you", "If this creature
+# would be dealt damage", a reflexive trigger after counters removed this
+# way (Magma Pummeler), "Whenever a +1/+1 counter is removed from this
+# creature" (once per counter, also CR 704.5q), "The next 2 damage that a
+# source of your choice would deal to you and/or permanents you control
+# this turn is dealt to any target instead.", "The next time a source of
+# your choice would deal damage this turn, that damage is dealt to ~
+# instead.", and "As long as this creature is untapped, all combat damage
+# ... is dealt to this creature instead."
+
+# ---- Gloom Surgeon ----
+
+scenario "Gloom Surgeon: combat damage to it is prevented and exiles that many cards" {
+  battlefield A: "Gloom Surgeon"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Gloom Surgeon"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Gloom Surgeon"
+  assert damage "Gloom Surgeon" 0
+  assert exile A contains 3 "Plains"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Gloom Surgeon: noncombat damage is dealt" {
+  battlefield A: "Gloom Surgeon"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting "Gloom Surgeon"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Gloom Surgeon"
+  assert exile A lacks "Plains"
+}
+
+# ---- Angel of Suffering ----
+
+scenario "Angel of Suffering: damage to you is prevented and you mill twice that many" {
+  battlefield A: "Angel of Suffering"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert graveyard A contains 6 "Plains"
+}
+
+scenario "Angel of Suffering: damage that can't be prevented still mills twice that many" {
+  battlefield A: "Angel of Suffering"
+  battlefield B: 6 "Mountain"
+  hand B: "Banefire"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Banefire" x 5 targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 15
+  assert graveyard A contains 10 "Plains"
+}
+
+scenario "Angel of Suffering: damage to the Angel itself is dealt" {
+  battlefield A: "Angel of Suffering"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Angel of Suffering"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Angel of Suffering"
+  assert graveyard A lacks "Plains"
+}
+
+# ---- Nine Lives ----
+
+scenario "Nine Lives: damage to you is prevented and it gets an incarnation counter" {
+  battlefield A: "Nine Lives"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert counters "Nine Lives" incarnation 1
+}
+
+scenario "Nine Lives: one counter for each source dealing damage at once" {
+  battlefield A: "Nine Lives"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert counters "Nine Lives" incarnation 2
+}
+
+scenario "Nine Lives: the ninth counter exiles it and you lose the game" {
+  battlefield A: "Nine Lives" with 8 incarnation
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting player A
+  run_to turn 1 postcombat_main
+  assert exile A contains "Nine Lives"
+  assert winner B
+}
+
+scenario "Nine Lives: damage to your creatures is dealt" {
+  battlefield A: "Nine Lives", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Nine Lives" incarnation 0
+}
+
+# ---- Unbreathing Horde ----
+
+scenario "Unbreathing Horde: a counter for each other Zombie and each Zombie card in your graveyard" {
+  battlefield A: 3 "Swamp", "Walking Corpse"
+  graveyard A: "Walking Corpse", "Gravedigger", "Grizzly Bears"
+  hand A: "Unbreathing Horde"
+  turn 1 A: cast "Unbreathing Horde"
+  run_to turn 1 postcombat_main
+  assert counters "Unbreathing Horde" +1/+1 3
+}
+
+scenario "Unbreathing Horde: damage is prevented and removes one counter" {
+  battlefield A: "Unbreathing Horde" with 3 +1/+1
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Unbreathing Horde"
+  run_to turn 1 postcombat_main
+  assert damage "Unbreathing Horde" 0
+  assert counters "Unbreathing Horde" +1/+1 2
+}
+
+# ---- Protean Hydra ----
+
+scenario "Protean Hydra: damage removes that many counters, and two come back for each" {
+  battlefield A: "Protean Hydra" with 3 +1/+1
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting "Protean Hydra"
+  run_to turn 1 postcombat_main
+  assert damage "Protean Hydra" 0
+  assert counters "Protean Hydra" +1/+1 1
+  run_to turn 2 upkeep
+  assert counters "Protean Hydra" +1/+1 5
+}
+
+scenario "Protean Hydra: more damage than counters, it dies" {
+  battlefield A: "Protean Hydra" with 2 +1/+1
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Protean Hydra"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Protean Hydra"
+}
+
+scenario "Protean Hydra: damage that can't be prevented still removes that many counters" {
+  battlefield A: "Protean Hydra" with 11 +1/+1
+  battlefield B: 6 "Mountain"
+  hand B: "Banefire"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Banefire" x 5 targeting "Protean Hydra"
+  run_to turn 2 postcombat_main
+  assert damage "Protean Hydra" 5
+  assert counters "Protean Hydra" +1/+1 6
+}
+
+scenario "Protean Hydra: a -1/-1 counter annihilating a +1/+1 counter triggers it" {
+  battlefield A: "Protean Hydra" with 3 +1/+1
+  battlefield B: "Swamp"
+  hand B: "Scar"
+  turn 1 B: cast "Scar" targeting "Protean Hydra"
+  run_to turn 1 postcombat_main
+  assert counters "Protean Hydra" +1/+1 2
+  assert counters "Protean Hydra" -1/-1 0
+  run_to turn 2 upkeep
+  assert counters "Protean Hydra" +1/+1 4
+}
+
+# ---- Magma Pummeler ----
+
+scenario "Magma Pummeler: damage removes that many counters and it deals that much damage" {
+  battlefield A: "Magma Pummeler" with 3 +1/+1
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Magma Pummeler"
+  turn 2 A: trigger "Magma Pummeler" targeting player B
+  run_to turn 2 postcombat_main
+  assert damage "Magma Pummeler" 0
+  assert counters "Magma Pummeler" +1/+1 1
+  assert life B 18
+}
+
+scenario "Magma Pummeler: more damage than counters, it dies and still deals all of it" {
+  battlefield A: "Magma Pummeler" with 2 +1/+1
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Magma Pummeler"
+  turn 2 A: trigger "Magma Pummeler" targeting player B
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Magma Pummeler"
+  assert life B 17
+}
+
+# ---- Harm's Way ----
+
+scenario "Harm's Way: the next 2 damage from the chosen source to you is dealt to any target" {
+  battlefield A: "Plains"
+  battlefield B: "Mountain", "Grizzly Bears"
+  hand A: "Harm's Way"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  turn 1 A: cast "Harm's Way" targeting "Grizzly Bears" in response to "Lightning Bolt"
+  turn 1 A: choose "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life A 19
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Harm's Way: damage to a permanent you control is redirected too" {
+  battlefield A: "Plains", "Hill Giant"
+  battlefield B: "Mountain"
+  hand A: "Harm's Way"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Hill Giant"
+  turn 1 A: cast "Harm's Way" targeting player B in response to "Lightning Bolt"
+  turn 1 A: choose "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 1
+  assert life B 18
+}
+
+scenario "Harm's Way: another source's damage isn't redirected" {
+  battlefield A: "Plains"
+  battlefield B: 2 "Mountain"
+  hand A: "Harm's Way"
+  hand B: "Lightning Bolt", "Shock"
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  turn 1 A: cast "Harm's Way" targeting player B in response to "Lightning Bolt"
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 B: cast "Shock" targeting player A in response to "Harm's Way"
+  run_to turn 1 postcombat_main
+  assert life A 17
+  assert life B 18
+}
+
+# ---- Opal-Eye, Konda's Yojimbo ----
+
+scenario "Opal-Eye: the chosen source's next damage is dealt to Opal-Eye" {
+  battlefield A: "Opal-Eye, Konda's Yojimbo", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 2 A: activate "Opal-Eye, Konda's Yojimbo" ability 1
+  turn 2 A: choose "Shock"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Opal-Eye, Konda's Yojimbo" 2
+}
+
+scenario "Opal-Eye: only the next time the source deals damage" {
+  battlefield A: "Opal-Eye, Konda's Yojimbo"
+  battlefield B: "Boros Swiftblade"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Boros Swiftblade"
+  turn 2 declare_blockers A: activate "Opal-Eye, Konda's Yojimbo" ability 1
+  turn 2 declare_blockers A: choose "Boros Swiftblade"
+  run_to turn 2 postcombat_main
+  assert damage "Opal-Eye, Konda's Yojimbo" 1
+  assert life A 19
+}
+
+scenario "Opal-Eye: prevent the next 1 damage to it" {
+  battlefield A: "Opal-Eye, Konda's Yojimbo", 2 "Plains"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Opal-Eye, Konda's Yojimbo"
+  turn 2 A: activate "Opal-Eye, Konda's Yojimbo" ability 2
+  run_to turn 2 postcombat_main
+  assert damage "Opal-Eye, Konda's Yojimbo" 1
+}
+
+# ---- Weathered Bodyguards ----
+
+scenario "Weathered Bodyguards: an unblocked creature's combat damage is dealt to it" {
+  battlefield A: "Weathered Bodyguards"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert damage "Weathered Bodyguards" 3
+}
+
+scenario "Weathered Bodyguards: tapped, the damage is dealt to you" {
+  battlefield A: "Weathered Bodyguards" tapped
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert damage "Weathered Bodyguards" 0
+}
+
+scenario "Weathered Bodyguards: a spell's damage to you isn't redirected" {
+  battlefield A: "Weathered Bodyguards"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert damage "Weathered Bodyguards" 0
+}
+
+# ---- The Mindskinner, Ugin's Conjurant (now joined) ----
+
+scenario "The Mindskinner: damage that can't be prevented still mills that many" {
+  battlefield A: "The Mindskinner", 6 "Mountain"
+  hand A: "Banefire"
+  turn 1 A: cast "Banefire" x 5 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert graveyard B contains 5 "Plains"
+}
+
+# ---- Chandra, Fire Artisan ----
+
+scenario "Chandra, Fire Artisan: damage to her deals that much damage to an opponent" {
+  battlefield A: "Chandra, Fire Artisan"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Chandra, Fire Artisan"
+  turn 2 A: trigger "Chandra, Fire Artisan" targeting player B
+  run_to turn 2 postcombat_main
+  assert counters "Chandra, Fire Artisan" loyalty 2
+  assert life B 18
+}
+
+scenario "Chandra, Fire Artisan: +1 exiles the top card, playable this turn, and doesn't trigger" {
+  battlefield A: "Chandra, Fire Artisan"
+  library A: "Mountain", "Island"
+  turn 1 A: activate "Chandra, Fire Artisan" ability 1
+  turn 1 A: play "Mountain"
+  run_to turn 1 postcombat_main
+  assert counters "Chandra, Fire Artisan" loyalty 5
+  assert battlefield A contains "Mountain"
+  assert life B 20
+}
+
+scenario "Chandra, Fire Artisan: -7 removes seven counters, so she deals 7 damage" {
+  battlefield A: "Chandra, Fire Artisan" with 7 loyalty
+  turn 1 A: activate "Chandra, Fire Artisan" ability 2
+  turn 1 A: trigger "Chandra, Fire Artisan" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 13
+  assert exile A contains 7 "Plains"
+}
+
+# ---- Urza's Armor ----
+
+scenario "Urza's Armor: prevents 1 of each source's damage to you" {
+  battlefield A: "Urza's Armor"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 17
+}
+
+scenario "Urza's Armor: damage to your creatures isn't prevented" {
+  battlefield A: "Urza's Armor", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+# ---- "instead ... and the damage can't be prevented" ----
+
+scenario "Urza's Rage: kicked, 10 damage that can't be prevented" {
+  battlefield A: 12 "Mountain"
+  battlefield B: "Plains"
+  hand A: "Urza's Rage"
+  hand B: "Mending Hands"
+  turn 1 A: cast "Urza's Rage" kicked targeting player B
+  turn 1 B: cast "Mending Hands" targeting player B in response to "Urza's Rage"
+  run_to turn 1 postcombat_main
+  assert life B 10
+}
+
+scenario "Urza's Rage: unkicked, 3 damage that can be prevented" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Plains"
+  hand A: "Urza's Rage"
+  hand B: "Mending Hands"
+  turn 1 A: cast "Urza's Rage" targeting player B
+  turn 1 B: cast "Mending Hands" targeting player B in response to "Urza's Rage"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Urza's Rage: it can't be countered" {
+  battlefield A: 3 "Mountain"
+  battlefield B: 2 "Island"
+  hand A: "Urza's Rage"
+  hand B: "Counterspell"
+  turn 1 A: cast "Urza's Rage" targeting player B
+  turn 1 B: cast "Counterspell" targeting "Urza's Rage" in response to "Urza's Rage"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Arrow Storm: raid, 5 damage that can't be prevented" {
+  battlefield A: 5 "Mountain", "Grizzly Bears"
+  battlefield B: "Plains"
+  hand A: "Arrow Storm"
+  hand B: "Mending Hands"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Arrow Storm" targeting player B
+  turn 1 postcombat_main B: cast "Mending Hands" targeting player B in response to "Arrow Storm"
+  run_to turn 1 end
+  assert life B 13
+}
+
+scenario "Arrow Storm: without attacking, 4 damage that can be prevented" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Plains"
+  hand A: "Arrow Storm"
+  hand B: "Mending Hands"
+  turn 1 A: cast "Arrow Storm" targeting player B
+  turn 1 B: cast "Mending Hands" targeting player B in response to "Arrow Storm"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

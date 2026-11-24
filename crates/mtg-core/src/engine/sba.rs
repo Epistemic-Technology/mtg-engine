@@ -332,6 +332,11 @@ impl GameState {
                 o.remove_counters(CounterKind::PlusOnePlusOne, n);
                 o.remove_counters(CounterKind::MinusOneMinusOne, n);
                 self.cbump();
+                // "Whenever a +1/+1 counter is removed from this creature"
+                // sees these too.
+                for kind in [CounterKind::PlusOnePlusOne, CounterKind::MinusOneMinusOne] {
+                    self.emit(Event::CountersRemoved { obj: id, kind, n });
+                }
                 acted = true;
             }
             for id in to_graveyard {

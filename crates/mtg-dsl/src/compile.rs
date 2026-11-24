@@ -1680,6 +1680,7 @@ impl Compiler<'_> {
                     },
                     then: Vec::new(),
                     condition: None,
+                    joined: false,
                 }));
             }
             // "... and with first strike": abilities the permanent has as
@@ -1703,6 +1704,7 @@ impl Compiler<'_> {
                     },
                     then: Vec::new(),
                     condition: None,
+                    joined: false,
                 }));
             }
             // "... and a trample counter": a second replacement.
@@ -1717,6 +1719,7 @@ impl Compiler<'_> {
                     },
                     then: Vec::new(),
                     condition: None,
+                    joined: false,
                 }));
             }
             if let Ability::Mechanic(Mechanic::KickedWith(_, _, ks)) = a
@@ -4676,6 +4679,7 @@ impl Compiler<'_> {
                 let of_choice = |a: &Affects| match a {
                     Affects::Objects(f)
                     | Affects::YouAnd(f)
+                    | Affects::YouAndOr(f)
                     | Affects::OpponentsAnd(f)
                     | Affects::OtherThanTarget(f, _)
                     | Affects::Chosen(f) => f.chosen.and_then(crate::ast::OfChosen::implied),
@@ -5410,6 +5414,15 @@ impl Compiler<'_> {
                 kind: *kind,
             },
             Trigger::NthCounterPut { kind, n } => TriggerSpec::NthCounterPut { kind: *kind, n: *n },
+            Trigger::CountersRemoved {
+                obj,
+                kind,
+                one_or_more,
+            } => TriggerSpec::CountersRemoved {
+                what: self.trigger_obj(obj),
+                kind: *kind,
+                one_or_more: *one_or_more,
+            },
             Trigger::YouPutCounters { obj, kind } => TriggerSpec::YouPutCounters {
                 what: self.trigger_obj(obj),
                 kind: *kind,
@@ -5540,7 +5553,7 @@ impl Compiler<'_> {
             Affects::You => CoreAffects::You,
             Affects::Players(w) => CoreAffects::Players(*w),
             Affects::Objects(f) => CoreAffects::Objects(self.filter(f)),
-            Affects::YouAnd(f) => CoreAffects::YouAnd(self.filter(f)),
+            Affects::YouAnd(f) | Affects::YouAndOr(f) => CoreAffects::YouAnd(self.filter(f)),
             Affects::OpponentsAnd(f) => CoreAffects::OpponentsAnd(self.filter(f)),
             // A variable group: its targets to the end of the list.
             Affects::Target(i) if Some(*i) == self.many => CoreAffects::Targets(
@@ -5640,6 +5653,7 @@ impl Compiler<'_> {
             replacement,
             then: self.sentences(&r.then)?,
             condition: None,
+            joined: r.wording == crate::ast::ThenWording::Joined,
         })
     }
 
@@ -6217,6 +6231,7 @@ impl Compiler<'_> {
                     },
                     then: Vec::new(),
                     condition: None,
+                    joined: false,
                 })
             }
             // "enters tapped if it's not your turn" is "unless it's your
@@ -6229,6 +6244,7 @@ impl Compiler<'_> {
                     replacement: mtg_core::card::Replacement::EnterTappedUnless(i),
                     then: Vec::new(),
                     condition: None,
+                    joined: false,
                 })
             }
             Ability::EntersTappedUnlessReveal { filter, or } => {
@@ -6246,6 +6262,7 @@ impl Compiler<'_> {
                     },
                     then: Vec::new(),
                     condition: None,
+                    joined: false,
                 })
             }
             // "If X is 2 or less, it enters tapped": unless it isn't.
@@ -6257,6 +6274,7 @@ impl Compiler<'_> {
                     replacement: mtg_core::card::Replacement::EnterTappedUnless(i),
                     then: Vec::new(),
                     condition: None,
+                    joined: false,
                 })
             }
             Ability::EntersTappedUnless(c) => {
@@ -6267,6 +6285,7 @@ impl Compiler<'_> {
                     replacement: mtg_core::card::Replacement::EnterTappedUnless(i),
                     then: Vec::new(),
                     condition: None,
+                    joined: false,
                 })
             }
             Ability::AttackUnless {
@@ -6521,6 +6540,7 @@ impl Compiler<'_> {
                         },
                         then: Vec::new(),
                         condition: None,
+                        joined: false,
                     })
                 }
                 Mechanic::Bloodthirst(n)
@@ -6540,6 +6560,7 @@ impl Compiler<'_> {
                         },
                         then: Vec::new(),
                         condition: None,
+                        joined: false,
                     })
                 }
                 Mechanic::Buyback(_)
@@ -6719,6 +6740,7 @@ impl Compiler<'_> {
                         },
                         then: Vec::new(),
                         condition: None,
+                        joined: false,
                     })
                 }
                 Mechanic::Unleash | Mechanic::Riot => AbilityDef::Replacement(ReplacementAbility {
@@ -6730,6 +6752,7 @@ impl Compiler<'_> {
                     },
                     then: Vec::new(),
                     condition: None,
+                    joined: false,
                 }),
                 // CR 702.184a: "Tap another untapped creature you control:
                 // Put a number of charge counters on this permanent equal
@@ -6805,6 +6828,7 @@ impl Compiler<'_> {
                         },
                         then: Vec::new(),
                         condition: None,
+                        joined: false,
                     })
                 }
                 Mechanic::Station => {

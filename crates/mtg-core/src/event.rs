@@ -438,7 +438,7 @@ impl Event {
             | Event::Foraged { .. }
             | Event::ControlChanged { .. } => WATCH_DESIG,
             Event::Sacrificed { .. } => WATCH_SACRIFICE,
-            Event::CountersAdded { .. } => WATCH_COUNTERS,
+            Event::CountersAdded { .. } | Event::CountersRemoved { .. } => WATCH_COUNTERS,
             Event::Scried { .. }
             | Event::Explored { .. }
             | Event::Crewed { .. }

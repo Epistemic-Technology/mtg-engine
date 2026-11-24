@@ -2368,6 +2368,15 @@ impl Decompiler<'_> {
                 kind: *kind,
             },
             TriggerSpec::NthCounterPut { kind, n } => Trigger::NthCounterPut { kind: *kind, n: *n },
+            TriggerSpec::CountersRemoved {
+                what,
+                kind,
+                one_or_more,
+            } => Trigger::CountersRemoved {
+                obj: self.trigger_obj(what),
+                kind: *kind,
+                one_or_more: *one_or_more,
+            },
             TriggerSpec::YouPutCounters { what, kind } => Trigger::YouPutCounters {
                 obj: self.trigger_obj(what),
                 kind: *kind,
@@ -2624,7 +2633,11 @@ impl Decompiler<'_> {
                 }
                 _ => None,
             },
-            wording: crate::ast::ThenWording::Sentence,
+            wording: if r.joined {
+                crate::ast::ThenWording::Joined
+            } else {
+                crate::ast::ThenWording::Sentence
+            },
             cond: None,
         }
     }

@@ -3953,7 +3953,11 @@ impl P {
                             to: mtg_core::card::DamageTo::Any,
                             ..
                         }
-                    );
+                    )
+                    // "When there are nine or more incarnation counters on
+                    // this enchantment, exile it." (Nine Lives): a state
+                    // trigger has no triggering object; "it" is the source.
+                    || matches!(&trigger, Trigger::State(_));
                 self.no_trigger_obj = no_trigger_object(&trigger);
                 // Also a cast trigger: the triggering object is a spell,
                 // which "that creature" doesn't name.
@@ -11030,7 +11034,9 @@ impl P {
                 if self.at_word("top")
                     && (matches!(self.peek_at(1), Some(Tok::Num(_)))
                         || self.word_at(1).as_deref() == Some("count")
-                        || self.word_at(1).as_deref() == Some("X"))
+                        || self.word_at(1).as_deref() == Some("X")
+                        || (self.word_at(1).as_deref() == Some("that")
+                            && self.word_at(2).as_deref() == Some("much")))
                 {
                     self.pos += 1;
                     let count = self.num()?;
@@ -12546,6 +12552,19 @@ impl P {
             return self.push_count(crate::ast::Count { expr, style });
         }
         match self.peek() {
+            // `2 times that much`: "twice that many" (Angel of Suffering).
+            Some(Tok::Num(n))
+                if self.word_at(1).as_deref() == Some("times")
+                    && self.word_at(2).as_deref() == Some("that")
+                    && self.word_at(3).as_deref() == Some("much") =>
+            {
+                let n = *n;
+                if self.in_trigger && !self.in_delayed && self.no_trigger_amount {
+                    return self.fail("`that much`: this trigger's event has no amount");
+                }
+                self.pos += 4;
+                Ok(Num::ThatMuchTimes(n))
+            }
             // `2 times X`: "twice X".
             Some(Tok::Num(n))
                 if self.word_at(1).as_deref() == Some("times")
@@ -12639,6 +12658,7 @@ impl P {
             Num::X
             | Num::XPlus(_)
             | Num::XTimes(_)
+            | Num::ThatMuchTimes(_)
             | Num::NMinusX(_)
             | Num::Count(_)
             | Num::ThatMuch => self.fail("X is not allowed here"),
@@ -15797,6 +15817,10 @@ impl P {
             self.pos += 2;
             return Ok(Affects::YouAnd(self.filter()?));
         }
+        if self.at_words(&["you", "andor"]) {
+            self.pos += 2;
+            return Ok(Affects::YouAndOr(self.filter()?));
+        }
         if self.at_words(&["opponent", "and"]) {
             self.pos += 2;
             return Ok(Affects::OpponentsAnd(self.filter()?));
@@ -16070,7 +16094,9 @@ impl P {
         }
         // "When you control no Islands", "When you control a Dwarf": a
         // state trigger (CR 603.8).
-        if !whenever && self.at_words(&["you", "control"]) {
+        // "When there are nine or more incarnation counters on this
+        // enchantment" (Nine Lives).
+        if !whenever && (self.at_words(&["you", "control"]) || self.at_words(&["there", "are"])) {
             return Ok(Trigger::State(self.static_cond()?));
         }
         if self.eat_words(&["you", "gain", "or", "lose", "life"]) {
@@ -16406,6 +16432,44 @@ impl P {
         if self.eat_words(&["you", "expend"]) {
             let n = self.number()?;
             return Ok(Trigger::Expends(u8::try_from(n).unwrap_or(u8::MAX)));
+        }
+        // "a +1/+1 counter is removed from this creature" (Protean Hydra);
+        // `counter removed from this` for any kind; `one or more loyalty
+        // counters removed from this` (Chandra, Fire Artisan).
+        let removed_at = |p: &Self, k: usize| {
+            matches!(p.word_at(k).as_deref(), Some("counter" | "counters"))
+                && p.word_at(k + 1).as_deref() == Some("removed")
+        };
+        let one_or_more =
+            self.at_words(&["one", "or", "more"]) && (removed_at(self, 3) || removed_at(self, 4));
+        if one_or_more
+            || self.at_words(&["counter", "removed", "from"])
+            || (matches!(self.peek(), Some(Tok::Pt { .. })) && removed_at(self, 1))
+            || (self.word_at(1).as_deref() == Some("counter") && removed_at(self, 1))
+        {
+            if one_or_more {
+                self.pos += 3;
+            }
+            let kind = if self.eat_word("counter") || self.eat_word("counters") {
+                CounterKind::Any
+            } else {
+                let k = self.counter_kind()?;
+                if !self.eat_word("counter") {
+                    self.eat_word("counters");
+                }
+                k
+            };
+            self.expect_words(&["removed", "from"])?;
+            let obj = if self.eat_word("this") {
+                TriggerObj::This
+            } else {
+                TriggerObj::Filter(self.filter()?)
+            };
+            return Ok(Trigger::CountersRemoved {
+                obj,
+                kind,
+                one_or_more,
+            });
         }
         // "the fourth plan counter is put on this enchantment".
         if self.eat_word("nth") {
@@ -17972,7 +18036,20 @@ impl P {
         let ends = |p: &Self| p.at_words(&["this", "turn"]) || p.at_end_of_event();
         let mut from = None;
         let mut wording = DamageWording::Dealt;
-        if !self.at_word("to") && !self.at_word("from") && !ends(self) {
+        // `damage source would deal to you`: any source, printed "If a
+        // source would deal damage to you, ..." (Nine Lives).
+        if self.eat_words(&["source", "would", "deal"]) {
+            wording = DamageWording::WouldDeal;
+        } else if self.eat_words(&["would", "be", "dealt", "to"]) {
+            // `damage would be dealt to this`: "If this creature would be
+            // dealt damage, ..." (Unbreathing Horde).
+            return Ok(Replaces::Damage {
+                from: None,
+                to: self.affects()?,
+                combat,
+                wording: DamageWording::WouldBeDealt,
+            });
+        } else if !self.at_word("to") && !self.at_word("from") && !ends(self) {
             let bare = self.eat_word("bare");
             from = Some(self.source()?);
             self.expect_words(&["would", "deal"])?;
@@ -18019,7 +18096,11 @@ impl P {
         }
         if matches!(
             a,
-            Affects::Any | Affects::You | Affects::Players(_) | Affects::YouAnd(_)
+            Affects::Any
+                | Affects::You
+                | Affects::Players(_)
+                | Affects::YouAnd(_)
+                | Affects::YouAndOr(_)
         ) {
             return self.fail("a damage source is an object, not a player".to_string());
         }
@@ -18102,7 +18183,9 @@ impl P {
                 Outcome::UmbraArmor
             }
             "redirect" => {
-                let next = if self.eat_word("next") {
+                let next = if self.eat_words(&["next", "time"]) {
+                    Some(mtg_core::card::REDIRECT_NEXT_TIME)
+                } else if self.eat_word("next") {
                     Some(self.number()?)
                 } else {
                     None

@@ -1,0 +1,10 @@
+card "Unbreathing Horde" {
+  oracle_id e6cd9203-e4d3-4d9f-b59f-4e454fc5a477
+  cost {2}{B}
+  type Creature — Zombie
+  pt 0/0
+  enters with count each other Zombie you control plus graveyard Zombie +1/+1 counters
+  replace damage would be dealt to this: prevent and {
+    remove 1 +1/+1 counters from this
+  }
+}

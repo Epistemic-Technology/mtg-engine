@@ -1138,6 +1138,12 @@ impl GameState {
                     None => Outcome::Event(ev),
                     Some(d) => {
                         let moved = match (next, c.key) {
+                            // "The next time ...": all of this event, and
+                            // the effect is used up.
+                            (Some(crate::card::REDIRECT_NEXT_TIME), Key::Stored(i)) => {
+                                self.replacements[i].remaining = 0;
+                                amount
+                            }
                             (Some(_), Key::Stored(i)) => {
                                 let m = amount.min(self.replacements[i].remaining);
                                 self.replacements[i].remaining -= m;
@@ -1945,7 +1951,10 @@ impl GameState {
             // damage prevented this way": what the event lost (a shield
             // prevents only part, CR 615.7; unpreventable damage, none,
             // CR 615.12).
+            // "Prevent that damage and <do something> that many": the
+            // damage the event would have dealt, prevented or not.
             let that_much = match (c.ability.replacement, &outcome) {
+                _ if c.ability.joined => that_much,
                 (
                     Replacement::Prevent
                     | Replacement::PreventNext(_)
@@ -1991,6 +2000,24 @@ impl GameState {
                 counts: None,
             };
             for effect in &c.ability.then {
+                // "... remove that many +1/+1 counters from it. When one or
+                // more counters are removed from this creature this way,
+                // it deals that much damage to any target." (Magma
+                // Pummeler): the reflexive ability triggers only if a counter
+                // was removed, and "that much" stays the damage (its
+                // ruling: more damage than counters still deals all of it).
+                if let crate::card::Effect::RemoveCounters { kind, to, .. } = effect
+                    && let Some(id) = self.recipients(&ctx, *to).first().and_then(|t| match t {
+                        Target::Object(id) => Some(*id),
+                        Target::Player(_) => None,
+                    })
+                {
+                    let before = self.objects.get(id).map_or(0, |o| o.counters(*kind));
+                    self.apply_effect(&mut ctx, effect);
+                    let after = self.objects.get(id).map_or(0, |o| o.counters(*kind));
+                    ctx.did = after < before;
+                    continue;
+                }
                 self.apply_effect(&mut ctx, effect);
             }
         }

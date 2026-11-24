@@ -1,0 +1,6 @@
+card "Harm's Way" {
+  oracle_id 4c34a882-3786-4d3c-9ca4-04fa85d5e51b
+  cost {W}
+  type Instant
+  spell: this turn, replace damage chosen source would deal to you andor permanent you control: redirect next 2 to any target
+}
