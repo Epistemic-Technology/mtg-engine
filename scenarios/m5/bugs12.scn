@@ -64,3 +64,28 @@ scenario "Ms. Marvel: Embiggen Fist sets base power after an earlier base-power 
   assert power "Ms. Marvel, Kamala Khan" 4
   assert toughness "Ms. Marvel, Kamala Khan" 7
 }
+
+scenario "Briarhorn: evoked with flash during combat, +3/+3 to a blocker" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Grizzly Bears", "Forest", "Forest"
+  hand B: "Briarhorn"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hill Giant"
+  turn 1 declare_blockers B: block "Hill Giant" with "Grizzly Bears"
+  turn 1 declare_blockers B: cast "Briarhorn" evoked
+  turn 1 declare_blockers B: trigger "Briarhorn" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Briarhorn"
+  assert graveyard A contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Mulldrifter: evoke without flash still waits for sorcery timing" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Island", "Island", "Island"
+  hand B: "Mulldrifter"
+  start turn 1 A precombat_main
+  illegal turn 1 precombat_main B: cast "Mulldrifter" evoked
+  run_to turn 1 postcombat_main
+  assert hand B contains "Mulldrifter"
+}

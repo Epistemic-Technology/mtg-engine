@@ -150,9 +150,10 @@ impl GameState {
             if !def.other_casts {
                 continue;
             }
-            // CR 702.74a: cast for the evoke cost instead.
+            // CR 702.74a: cast for the evoke cost instead, with the card's
+            // usual timing (flash: Briarhorn).
             if def.evoke.is_some()
-                && sorcery_timing
+                && (sorcery_timing || self.has_flash(p, def, *id))
                 && self.basis_payable(
                     &CostBasis {
                         evoked: true,
