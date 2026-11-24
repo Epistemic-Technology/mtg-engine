@@ -15537,6 +15537,25 @@ impl P {
             && (self.word_at(3).as_deref() == Some("target")
                 || self.word_at(3).as_deref() == Some("another")
                     && self.word_at(4).as_deref() == Some("target"));
+        // `up to 1 any other target` (how `up to 2 another target any`
+        // formats one at a time): "up to one other target".
+        if self.at_words(&["up", "to"])
+            && matches!(self.peek_at(2), Some(Tok::Num(_)))
+            && self.word_at(3).as_deref() == Some("any")
+            && self.word_at(4).as_deref() == Some("other")
+            && self.word_at(5).as_deref() == Some("target")
+        {
+            self.pos += 2;
+            let n = self.number()?;
+            self.pos += 3;
+            let spec = Target::UpTo(Box::new(Target::Spec(TargetSpec::AnyOther)));
+            let mut out = Vec::new();
+            for _ in 0..n {
+                out.push(Recipient::Target(self.targets.len()));
+                self.targets.push(spec.clone());
+            }
+            return Ok(out);
+        }
         if up_to {
             self.pos += 2;
         }
