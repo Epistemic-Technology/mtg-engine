@@ -99,7 +99,6 @@ impl GameState {
             deathtouch_damage: false,
             controlled_since_turn_start: false,
             marks: 0,
-            skip_untap: false,
             chosen: Chosen::None,
             alt: AltCast::None,
             timestamp,
@@ -470,7 +469,6 @@ impl GameState {
             } else {
                 0
             },
-            skip_untap: false,
             chosen,
             // CR 702.62a: a creature cast by suspend has haste.
             alt: if old.zone == Zone::Stack

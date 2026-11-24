@@ -10340,103 +10340,103 @@ impl RoomDoors {
 /// Precomputed facts about a definition (see `CardDef::has_triggers` and
 /// friends).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
-pub struct DefFlags(u32);
+pub struct DefFlags(u64);
 
 impl DefFlags {
-    const TRIGGERS: u32 = 1;
-    const REPLACEMENTS: u32 = 2;
-    const MODIFIES_ENTERING: u32 = 4;
-    const ACTIVATED: u32 = 8;
-    const CONTROL_STATIC: u32 = 16;
-    const EQUIPMENT: u32 = 32;
-    const MID_CHOICE: u32 = 64;
+    const TRIGGERS: u64 = 1;
+    const REPLACEMENTS: u64 = 2;
+    const MODIFIES_ENTERING: u64 = 4;
+    const ACTIVATED: u64 = 8;
+    const CONTROL_STATIC: u64 = 16;
+    const EQUIPMENT: u64 = 32;
+    const MID_CHOICE: u64 = 64;
     /// A characteristic-defining ability that reads a life total (Ajani's
     /// Avatar): life changes must then invalidate the characteristics cache.
-    const LIFE_CDA: u32 = 128;
-    const CDA: u32 = 256;
+    const LIFE_CDA: u64 = 128;
+    const CDA: u64 = 256;
     /// A static ability that changes what spells cost (CR 601.2f).
-    const COST_CHANGE: u32 = 512;
+    const COST_CHANGE: u64 = 512;
     /// "Can't attack unless ..." (`AbilityDef::AttackUnless`).
-    const ATTACK_RULE: u32 = 1024;
+    const ATTACK_RULE: u64 = 1024;
     /// A static ability that grants an ability ("Enchanted creature has
     /// '{T}: ...'"), so other objects may have abilities their definitions
     /// lack.
-    const GRANTS: u32 = 2048;
+    const GRANTS: u64 = 2048;
     /// A static ability whose condition looks at tapped permanents ("as
     /// long as you control no untapped lands"): tapping must then
     /// invalidate the characteristics cache.
-    const TAP_STATIC: u32 = 4096;
+    const TAP_STATIC: u64 = 4096;
     /// "As this enters, choose ..." (`AbilityDef::AsEntersChoose`): a
     /// question as the permanent enters, however it does.
-    const ENTERS_CHOICE: u32 = 8192;
+    const ENTERS_CHOICE: u64 = 8192;
     /// A mana ability whose mana is restricted (`AbilityDef::RestrictedMana`):
     /// payment then looks for such sources.
-    const RESTRICTED_MANA: u32 = 16384;
+    const RESTRICTED_MANA: u64 = 16384;
     /// A static ability that reads this turn's history or step
     /// (`CardDef::hand_static`, `step_static`): casts and step changes then
     /// look for such permanents.
-    const TURN_STATIC: u32 = 32768;
+    const TURN_STATIC: u64 = 32768;
     /// An activated mana ability (CR 605.1a) that payment may activate
     /// (`AbilityDef::Activated` adding mana, not `TapForMana`): payment
     /// then looks for such abilities when plain sources fall short.
-    const MANA_ABILITY: u32 = 65536;
+    const MANA_ABILITY: u64 = 65536;
     /// A condition on the mana spent to cast the spell that triggered an
     /// ability (`StaticCondition::ManaSpent` with `that`): casts then
     /// record what was spent.
-    const SPENT_WATCH: u32 = 131_072;
+    const SPENT_WATCH: u64 = 131_072;
     /// Valiant (`TriggerSpec::TargetedByYouFirstTime`): targeting then
     /// records which permanents their controllers targeted this turn.
-    const VALIANT: u32 = 262_144;
+    const VALIANT: u64 = 262_144;
     /// A triggered mana ability (`AbilityDef::ManaTrigger`, CR 605.1b):
     /// tapping for mana and payment then look for such sources.
-    const MANA_TRIGGER: u32 = 524_288;
+    const MANA_TRIGGER: u64 = 524_288;
     /// A state trigger (`TriggerSpec::State`, CR 603.8): priority then
     /// checks its condition.
-    const STATE_TRIGGER: u32 = 1_048_576;
+    const STATE_TRIGGER: u64 = 1_048_576;
     /// A triggered ability that works from the graveyard
     /// (`TriggeredAbility::from_graveyard`): cards with one are counted
     /// while there (`GameState::graveyard_trigger_cards`).
-    const GRAVEYARD_TRIGGER: u32 = 2_097_152;
+    const GRAVEYARD_TRIGGER: u64 = 2_097_152;
     /// Ascend, start your engines!, or becoming day as it enters
     /// (`CardDef::marks`): state-based actions and entering then look.
-    const MARKS: u32 = 4_194_304;
+    const MARKS: u64 = 4_194_304;
     /// Banding (CR 702.22): combat then looks for bands.
-    const BANDING: u32 = 8_388_608;
+    const BANDING: u64 = 8_388_608;
     /// A Room (`CardDef::doors`): priority then offers its locked doors.
-    const ROOM: u32 = 16_777_216;
+    const ROOM: u64 = 16_777_216;
     /// A Saga with chapter abilities (`CardDef::final_chapter`, CR 714):
     /// the precombat main phase and state-based actions then look.
-    const SAGA: u32 = 33_554_432;
+    const SAGA: u64 = 33_554_432;
     /// A player-level static ability (`AbilityDef::PlayerStatic`): land
     /// plays, player targeting, and casting then look for such sources.
-    const PLAYER_STATIC: u32 = 67_108_864;
+    const PLAYER_STATIC: u64 = 67_108_864;
     /// Playing from or revealing the top of a library
     /// (`AbilityDef::PlayFromTop`, `TopRevealed`): priority then looks
     /// at the top card.
-    const TOP_PLAY: u32 = 134_217_728;
+    const TOP_PLAY: u64 = 134_217_728;
     /// An activated ability another player may activate ("Any player may
     /// activate this ability."): priority then looks at other players'
     /// permanents.
-    const FOREIGN_ACTIVATED: u32 = 268_435_456;
+    const FOREIGN_ACTIVATED: u64 = 268_435_456;
     /// Of `GRANTS`, a grant that could give a triggered ability: a granted
     /// ability that isn't an activated or plain mana ability, or a
     /// keyword that is a triggered ability (`CardPool::grants_triggers`).
     /// Trigger detection looks past definitions only while such a grant
     /// exists ("Enchanted land has '{T}, Pay 1 life: Draw a card.'" does
     /// not make every permanent a watcher).
-    const TRIGGER_GRANTS: u32 = 536_870_912;
+    const TRIGGER_GRANTS: u64 = 536_870_912;
     /// A static ability whose condition or granted abilities read the top
     /// card of a library (`StaticCondition::TopCard`, `CountExpr::LibraryTop`):
     /// the characteristics cache then keys on the top cards.
-    const TOP_STATIC: u32 = 1_073_741_824;
+    const TOP_STATIC: u64 = 1_073_741_824;
     /// `MODIFIES_ENTERING`, for callers outside this module.
-    pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
+    pub const MODIFIES_ENTERING_FLAG: u64 = DefFlags::MODIFIES_ENTERING;
 
-    pub const fn has(self, f: u32) -> bool {
+    pub const fn has(self, f: u64) -> bool {
         self.0 & f != 0
     }
 
-    fn set(&mut self, f: u32, on: bool) {
+    fn set(&mut self, f: u64, on: bool) {
         if on {
             self.0 |= f;
         }

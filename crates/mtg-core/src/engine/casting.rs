@@ -5876,7 +5876,6 @@ impl GameState {
             deathtouch_damage: false,
             controlled_since_turn_start: false,
             marks: 0,
-            skip_untap: false,
             chosen: Chosen::None,
             alt: crate::state::AltCast::None,
             timestamp,
@@ -7706,7 +7705,7 @@ impl GameState {
         if cost.exert
             && let Some(o) = self.objects.get_mut(this)
         {
-            o.skip_untap = true;
+            o.marks |= crate::state::OBJ_SKIP_UNTAP;
         }
         if cost.discard_hand {
             let hand: Vec<ObjId> = self.player(p).hand.clone();
@@ -12767,7 +12766,7 @@ impl GameState {
             Effect::SkipNextUntap { to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
-                        self.objects[id].skip_untap = true;
+                        self.objects[id].marks |= crate::state::OBJ_SKIP_UNTAP;
                     }
                 }
             }

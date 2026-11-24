@@ -3008,7 +3008,7 @@ impl GameState {
         self.permanents_of(active).find(|id| {
             let o = &self.objects[*id];
             o.tapped
-                && !o.skip_untap
+                && o.marks & crate::state::OBJ_SKIP_UNTAP == 0
                 && !asked.contains(id)
                 && self.characteristics(*id).is_some_and(|c| {
                     c.has(Keyword::MayNotUntap)
@@ -3053,7 +3053,9 @@ impl GameState {
             }
             let o = &mut self.objects[id];
             o.controlled_since_turn_start = true;
-            if std::mem::take(&mut o.skip_untap) || doesnt_untap {
+            let skip = o.marks & crate::state::OBJ_SKIP_UNTAP != 0;
+            o.marks &= !crate::state::OBJ_SKIP_UNTAP;
+            if skip || doesnt_untap {
                 continue;
             }
             self.untap(id);

@@ -2279,7 +2279,6 @@ impl GameState {
             deathtouch_damage: false,
             controlled_since_turn_start: false,
             marks: 0,
-            skip_untap: false,
             chosen: Chosen::None,
             alt: crate::state::AltCast::None,
             timestamp,

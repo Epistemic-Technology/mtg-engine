@@ -146,26 +146,28 @@ impl Target {
 }
 
 /// `GameObject::marks` bits.
-pub const OBJ_RENOWNED: u8 = 1;
-pub const OBJ_MONSTROUS: u8 = 2;
-pub const OBJ_RIOT_HASTE: u8 = 4;
+/// Does not untap during its controller's next untap step (bit 8).
+pub const OBJ_SKIP_UNTAP: u16 = 256;
+pub const OBJ_RENOWNED: u16 = 1;
+pub const OBJ_MONSTROUS: u16 = 2;
+pub const OBJ_RIOT_HASTE: u16 = 4;
 /// The prepared designation (CR 722.3a).
-pub const OBJ_PREPARED: u8 = 8;
+pub const OBJ_PREPARED: u16 = 8;
 /// Suspected (CR 701.60): it has menace and "can't block" for as long as
 /// it is suspected.
-pub const OBJ_SUSPECTED: u8 = 16;
+pub const OBJ_SUSPECTED: u16 = 16;
 /// Came onto the battlefield since its echo was last dealt with (CR
 /// 702.30a): set as it enters, cleared by its echo trigger.
-pub const OBJ_ECHO_DUE: u8 = 32;
+pub const OBJ_ECHO_DUE: u16 = 32;
 /// "If it would leave the battlefield, exile it instead of putting it
 /// anywhere else" (unearth, CR 702.84a; Whip of Erebos): set by
 /// `Effect::ExileOnLeave`, for this object only (CR 400.7).
-pub const OBJ_EXILE_ON_LEAVE: u8 = 64;
+pub const OBJ_EXILE_ON_LEAVE: u16 = 64;
 /// Exiled face down (CR 406.3): only the players in `revealed` (those an
 /// effect lets look at it) know the card; to the others it has no
 /// characteristics they can see. A zone change makes a new object (CR
 /// 400.7), face up.
-pub const OBJ_FACE_DOWN_EXILE: u8 = 128;
+pub const OBJ_FACE_DOWN_EXILE: u16 = 128;
 
 impl GameObject {
     pub const fn renowned(&self) -> bool {
@@ -228,12 +230,9 @@ pub struct GameObject {
     pub controlled_since_turn_start: bool,
     /// Per-object marks (`OBJ_RENOWNED`, `OBJ_MONSTROUS`, `OBJ_RIOT_HASTE`,
     /// `OBJ_PREPARED`, `OBJ_SUSPECTED`, `OBJ_ECHO_DUE`): renowned (CR 702.112b), monstrous (CR 701.37b),
-    /// riot's haste (CR 702.136a), and prepared (CR 722.3a). One byte, so
+    /// riot's haste (CR 702.136a), and prepared (CR 722.3a). Two bytes, so
     /// `GameObject` stays small.
-    pub marks: u8,
-    /// Skips its controller's next untap step ("doesn't untap during its
-    /// controller's next untap step").
-    pub skip_untap: bool,
+    pub marks: u16,
     /// What its controller chose as it entered ("As this land enters,
     /// choose a color", CR 614.12), for the abilities that refer to it
     /// (CR 607.2a). A new object has none (CR 400.7).
