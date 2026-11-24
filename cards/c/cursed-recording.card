@@ -1,0 +1,7 @@
+card "Cursed Recording" {
+  oracle_id 9adc3750-0ddb-4f2c-a0e7-131e59d4cba5
+  cost {2}{R}{R}
+  type Artifact
+  triggered whenever you cast an instant or sorcery spell: put 1 time counters on this; then if there are 7 or more time counters on this, remove count where time counters on this time counters from this and deal 20 damage to you
+  activated {T}: delayed this: when next you cast instant or sorcery spell this turn, copy that spell new targets
+}

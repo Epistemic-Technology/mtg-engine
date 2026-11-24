@@ -1,0 +1,8 @@
+card "Overlord of the Balemurk" {
+  oracle_id 652e87af-7cf0-407f-9fb7-1a630fb8dd47
+  cost {3}{B}{B}
+  type Enchantment Creature — Avatar Horror
+  pt 5/5
+  impending 5 {1}{B}
+  triggered whenever this enters or attacks: mill 4 cards then you may return 1 non-Avatar creature or a planeswalker card from your graveyard to hand chosen
+}

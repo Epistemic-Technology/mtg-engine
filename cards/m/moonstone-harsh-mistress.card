@@ -1,0 +1,8 @@
+card "Moonstone, Harsh Mistress" {
+  oracle_id aeeb50f2-8e02-4d40-a1dd-28b1c5c85c7e
+  cost {3}{B}
+  type Legendary Creature — Human Doctor Villain
+  pt 2/4
+  keywords flying
+  triggered whenever you discard a card: you may exile triggering card; if you do, may play that card next turn first
+}

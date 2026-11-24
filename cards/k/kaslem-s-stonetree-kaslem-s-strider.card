@@ -1,0 +1,13 @@
+card "Kaslem's Stonetree // Kaslem's Strider" {
+  oracle_id 1ac3e4bc-1678-4280-a071-3dbc8ef4a2bf
+  layout transform
+  cost {2}{G}
+  type Artifact
+  triggered when this enters: dig 6 take land card may onto battlefield tapped rest bottom random short
+  craft with Cave {5}{G}
+  face "Kaslem's Strider" {
+    type Artifact Creature — Golem
+    pt 5/5
+    color green
+  }
+}

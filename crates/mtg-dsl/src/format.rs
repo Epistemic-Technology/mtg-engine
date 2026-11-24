@@ -108,7 +108,9 @@ fn format_inner(card: &Card) -> String {
         let _ = writeln!(out, "  alternative cost {text}{late}");
     }
     if let Some(c) = &card.flash_if {
-        let how = if card.flash_if_may {
+        let how = if card.flash_if_may && card.flash_if_named {
+            "first if"
+        } else if card.flash_if_may {
             "if"
         } else if card.flash_if_named {
             "named as long as"
@@ -4011,7 +4013,8 @@ impl Fmt {
                     ChooseAct::Destroy => format!("destroy {n} {f} chosen"),
                     ChooseAct::AttachToCreated => format!("attach {n} {f} to it chosen"),
                     ChooseAct::AttachToTarget(i) => {
-                        format!("attach {n} {f} to target {} chosen", i + 1)
+                        let host = self.recipient(Recipient::Target(usize::from(*i)), t);
+                        format!("attach {n} {f} to {host} chosen")
                     }
                 }
             }
@@ -4144,10 +4147,23 @@ impl Fmt {
                 }
             }
             Effect::UnlessSacrifices {
+                filter: f,
+                discard_first: true,
+                effect,
+                ..
+            } => {
+                let inner = self.effect(effect, t);
+                format!(
+                    "{inner} unless they discard 1 card else sacrifice {}",
+                    filter(f)
+                )
+            }
+            Effect::UnlessSacrifices {
                 payer,
                 filter: f,
                 or_discard,
                 effect,
+                ..
             } => {
                 let inner = self.effect(effect, t);
                 format!(
@@ -6096,7 +6112,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                     format!("{} ", filter(f))
                 }
             ),
-            Trigger::YouPutCounters { obj, kind } => format!(
+            Trigger::YouPutCounters { obj, kind, .. } => format!(
                 "whenever you put a {}counter on {}",
                 kind.map_or(String::new(), |k| format!("{} ", k.name())),
                 trigger_obj(obj)
@@ -6181,7 +6197,11 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             this: false,
             min: 1,
         } => "whenever you attack".to_string(),
-        Trigger::OneOrMoreAttack(f) => format!("whenever one or more {} attack", filter(f)),
+        Trigger::OneOrMoreAttack(f, player) => format!(
+            "whenever one or more {} attack{}",
+            filter(f),
+            if *player { " a player" } else { "" }
+        ),
         Trigger::CreaturesYouControlAttack => {
             "whenever one or more creatures you control attack".to_string()
         }
@@ -6386,9 +6406,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::NthCounterPut { kind, n } => {
             format!("whenever nth {n} {} counter put on this", kind.name())
         }
-        Trigger::YouPutCounters { obj, kind } => format!(
-            "whenever you put one or more {}counters on {}",
+        Trigger::YouPutCounters { obj, kind, many } => format!(
+            "whenever you put one or more {}counters on {}{}",
             kind.map_or(String::new(), |k| format!("{} ", k.name())),
+            if *many { "one or more " } else { "" },
             trigger_obj(obj)
         ),
         Trigger::DealtDamage(o) => format!("whenever {} is dealt damage", trigger_obj(o)),
@@ -6905,6 +6926,9 @@ fn cost_text(c: &Cost) -> String {
     match c.reduce.as_deref() {
         Some((by, crate::ast::ReduceBy::Each(e))) => {
             parts.push(format!("reduced {by} each {}", count_expr_text(e)));
+        }
+        Some((by, crate::ast::ReduceBy::Where(e))) => {
+            parts.push(format!("reduced {by} where {}", count_expr_text(e)));
         }
         Some((by, crate::ast::ReduceBy::Targets(fl))) => {
             parts.push(format!("reduced {by} if targets {}", filter(fl)));

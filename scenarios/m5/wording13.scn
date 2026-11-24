@@ -1,0 +1,802 @@
+# Renderer near-misses (wording13): forms whose meaning the engine already
+# had, now printed with the Oracle wording, and the cards they let in.
+
+# "When this creature dies, if it had one or more counters on it, create a
+# 0/0 green and blue Fractal creature token, then put this creature's
+# counters on that token."
+scenario "Ambitious Augmenter: dies with counters, the Fractal gets them" {
+  battlefield A: "Ambitious Augmenter" with 2 +1/+1, "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Ambitious Augmenter"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ambitious Augmenter"
+  assert counters "Fractal" +1/+1 2
+  assert power "Fractal" 2
+}
+
+scenario "Ambitious Augmenter: dies without counters, no Fractal" {
+  battlefield A: "Ambitious Augmenter", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Ambitious Augmenter"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ambitious Augmenter"
+  assert battlefield A lacks "Fractal"
+}
+
+# "Whenever one or more Merfolk you control attack a player, draw a card."
+scenario "Attuma: Merfolk attacking a player draw a card, once" {
+  battlefield A: "Attuma, Atlantean Warlord", "Merfolk Looter"
+  start turn 2 A precombat_main
+  assert power "Merfolk Looter" 2
+  assert power "Attuma, Atlantean Warlord" 3
+  turn 2 A: attack "Attuma, Atlantean Warlord", "Merfolk Looter"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+  assert life B 15
+}
+
+scenario "Attuma: a non-Merfolk attacking draws nothing" {
+  battlefield A: "Attuma, Atlantean Warlord", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+  assert life B 18
+}
+
+# "At the beginning of combat on your turn, you may attach any number of
+# Equipment you control to target creature you control."
+scenario "Beatrix: Equipment attached to the target at the beginning of combat" {
+  battlefield A: "Beatrix, Loyal General", "Grizzly Bears", "Bonesplitter", "Leonin Scimitar"
+  start turn 2 A precombat_main
+  turn 2 begin_combat A: trigger "Beatrix, Loyal General" targeting "Grizzly Bears"
+  run_to turn 2 declare_attackers
+  assert attached "Bonesplitter" to "Grizzly Bears"
+  assert attached "Leonin Scimitar" to "Grizzly Bears"
+  assert power "Grizzly Bears" 5
+}
+
+scenario "Beatrix: declined, nothing moves" {
+  battlefield A: "Beatrix, Loyal General", "Grizzly Bears", "Bonesplitter" on "Beatrix, Loyal General"
+  start turn 2 A precombat_main
+  turn 2 begin_combat A: trigger "Beatrix, Loyal General" targeting "Grizzly Bears"
+  turn 2 begin_combat A: decline "Beatrix, Loyal General"
+  run_to turn 2 declare_attackers
+  assert attached "Bonesplitter" to "Beatrix, Loyal General"
+  assert power "Grizzly Bears" 2
+}
+
+# "Then if there are seven or more time counters on it, remove those
+# counters and it deals 20 damage to you."
+scenario "Cursed Recording: the seventh time counter costs 20 life" {
+  life A 30
+  battlefield A: "Cursed Recording" with 6 time, "Island"
+  hand A: "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert life A 10
+  assert counters "Cursed Recording" time 0
+}
+
+scenario "Cursed Recording: the sixth time counter does nothing more" {
+  life A 30
+  battlefield A: "Cursed Recording" with 5 time, "Island"
+  hand A: "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert life A 30
+  assert counters "Cursed Recording" time 6
+}
+
+scenario "Cursed Recording: {T} copies the next instant this turn" {
+  battlefield A: "Cursed Recording", 2 "Mountain"
+  hand A: "Shock", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Cursed Recording"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert counters "Cursed Recording" time 2
+}
+
+# "each creature target opponent controls loses all abilities, becomes a
+# Coward in addition to its other types, and has base power and toughness
+# 1/1" (indefinitely).
+scenario "Curious Colossus: the opponent's creatures become 1/1 Cowards for good" {
+  battlefield A: 7 "Plains"
+  battlefield B: "Serra Angel", "Hill Giant"
+  hand A: "Curious Colossus"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Curious Colossus"
+  run_to turn 2 precombat_main
+  assert power "Serra Angel" 1
+  assert toughness "Hill Giant" 1
+  assert has not "Serra Angel" flying
+  assert is "Serra Angel" Coward
+  assert is "Serra Angel" Angel
+  assert power "Curious Colossus" 7
+}
+
+# "put X +1/+1 counters on target creature you control, where X is that
+# spell's mana value"; landfall Bear.
+scenario "Dancing from Dark to Dawn: counters equal to the creature spell's mana value" {
+  battlefield A: "Dancing from Dark to Dawn", "Grizzly Bears", 4 "Mountain"
+  hand A: "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hill Giant"
+  turn 1 A: trigger "Dancing from Dark to Dawn" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 4
+  assert battlefield A contains "Bear"
+}
+
+# "Each player mills X cards. For each creature card put into a graveyard
+# this way, you create a tapped 2/2 black Zombie creature token."
+scenario "Dread Summons: a tapped Zombie for each creature card milled by anyone" {
+  battlefield A: 4 "Swamp"
+  library A: "Grizzly Bears", "Forest", "Island"
+  library B: "Hill Giant", "Serra Angel", "Island"
+  hand A: "Dread Summons"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dread Summons" x 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Zombie"
+  assert tapped oldest "Zombie"
+  assert library A count 1
+  assert library B count 1
+}
+
+# "If a source you control would deal damage to an opponent or a permanent
+# an opponent controls, it deals that much damage plus an amount of damage
+# equal to the number of fire counters on this enchantment instead."
+scenario "Fated Firepower: an attacker deals two more to the opponent" {
+  battlefield A: "Fated Firepower" with 2 fire, "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 16
+}
+
+scenario "Fated Firepower: enters with X fire counters; damage to your own creature is not raised" {
+  battlefield A: 5 "Mountain", "Hill Giant", "Raging Goblin"
+  hand A: "Fated Firepower"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fated Firepower" x 2
+  run_to turn 1 postcombat_main
+  assert counters "Fated Firepower" fire 2
+}
+
+# "copy the next spell you cast this turn when you cast it. You may choose
+# new targets for the copy."
+scenario "Flamehold Grappler: the next spell is copied, the one after isn't" {
+  battlefield A: "Island", "Mountain", "Plains", 2 "Mountain"
+  hand A: "Flamehold Grappler", "Shock", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Flamehold Grappler"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+# "Then put all cards revealed this way that weren't put onto the
+# battlefield into your graveyard."
+scenario "Genesis Wave: permanents with mana value X or less come in, the rest go to the graveyard" {
+  battlefield A: 6 "Forest"
+  library A: "Grizzly Bears", "Hill Giant", "Island", "Shock", "Plains"
+  hand A: "Genesis Wave"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Genesis Wave" x 3
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Island"
+  assert graveyard A contains "Hill Giant"
+  assert library A count 2
+}
+
+# "Put the rest on the bottom in a random order."
+scenario "Kaslem's Stonetree: a land from the top six onto the battlefield tapped" {
+  battlefield A: 3 "Forest"
+  library A: "Grizzly Bears", "Island", "Shock", "Opt", "Hill Giant", "Serra Angel", "Plains"
+  hand A: "Kaslem's Stonetree"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kaslem's Stonetree"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Island"
+  assert tapped "Island"
+  assert library A count 6
+}
+
+# "Whenever you put one or more +1/+1 counters on one or more other Heroes
+# you control, you may create a 0/4 colorless Wall creature token with
+# defender.": once for counters put together.
+scenario "Invisible Woman: counters on two other Heroes at once make one Wall" {
+  battlefield A: "Invisible Woman, Sue Storm", "Amateur Hero", "Hero in Training", 4 "Plains"
+  hand A: "Now for Wrath, Now for Ruin!"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Now for Wrath, Now for Ruin!"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Wall"
+  assert has "Wall" defender
+}
+
+scenario "Invisible Woman: counters on a non-Hero make no Wall" {
+  battlefield A: "Invisible Woman, Sue Storm", "Grizzly Bears", "Forest"
+  hand A: "Stony Strength"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Stony Strength" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Wall"
+}
+
+# "At the beginning of your draw step, if you control an enchanted
+# creature, you lose 1 life and you draw an additional card."
+scenario "Lord Skitter's Blessing: with an enchanted creature, an extra card for 1 life" {
+  battlefield A: "Grizzly Bears", 2 "Swamp"
+  hand A: "Lord Skitter's Blessing"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lord Skitter's Blessing"
+  run_to turn 3 precombat_main
+  assert attached "Wicked" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert hand A count 2
+  assert life A 19
+}
+
+scenario "Lord Skitter's Blessing: no enchanted creature, nothing extra" {
+  battlefield A: "Lord Skitter's Blessing", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 3 precombat_main
+  assert hand A count 1
+  assert life A 20
+}
+
+# "Sacrifice any number of artifacts, enchantments, and/or tokens. Return
+# that many creature cards from your graveyard to the battlefield."
+scenario "Lich-Knights' Conquest: two sacrificed, two creature cards return" {
+  battlefield A: "Bonesplitter", "Glorious Anthem", 5 "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  hand A: "Lich-Knights' Conquest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lich-Knights' Conquest"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Bonesplitter"
+  assert graveyard A contains "Glorious Anthem"
+  assert graveyard A count 4
+  assert battlefield A contains 0 "Bonesplitter"
+}
+
+# "Exile the top X cards of your library, where X is one plus the mana
+# value of the sacrificed artifact. You may play those cards this turn."
+scenario "Memorial Vault: one plus the sacrificed artifact's mana value" {
+  battlefield A: "Memorial Vault", "Bonesplitter"
+  library A: "Mountain", "Shock", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Memorial Vault"
+  turn 1 A: wait
+  turn 1 A: play "Mountain"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mountain"
+  assert exile A contains "Shock"
+  assert library A count 1
+}
+
+# "you may sacrifice an artifact. If you do, copy that spell and you may
+# choose new targets for the copy."
+scenario "Mica: an artifact sacrificed copies the spell" {
+  battlefield A: "Mica, Reader of Ruins", "Bonesplitter", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert graveyard A contains "Bonesplitter"
+}
+
+scenario "Mica: no artifact, no copy" {
+  battlefield A: "Mica, Reader of Ruins", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+# "Whenever you discard a card, you may exile that card from your
+# graveyard. If you do, until the end of your next turn, you may play that
+# card."
+scenario "Moonstone: a discarded land is exiled and played" {
+  battlefield A: "Moonstone, Harsh Mistress", "Merfolk Looter"
+  hand A: "Mountain"
+  library A: "Island", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Merfolk Looter"
+  turn 2 A: wait
+  turn 2 A: play "Mountain"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Mountain"
+  assert hand A contains "Island"
+}
+
+# "As this land enters, choose a basic land type. Then you may pay 2
+# life. If you don't, it enters tapped."
+scenario "Multiversal Passage: paid, untapped, of the chosen type" {
+  hand A: "Multiversal Passage"
+  start turn 1 A precombat_main
+  turn 1 A: play "Multiversal Passage"
+  turn 1 A: choose Island
+  turn 1 A: accept "Multiversal Passage"
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert untapped "Multiversal Passage"
+  assert is "Multiversal Passage" island
+}
+
+scenario "Multiversal Passage: not paid, tapped" {
+  hand A: "Multiversal Passage"
+  start turn 1 A precombat_main
+  turn 1 A: play "Multiversal Passage"
+  turn 1 A: choose Swamp
+  turn 1 A: decline "Multiversal Passage"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert tapped "Multiversal Passage"
+  assert is "Multiversal Passage" swamp
+}
+
+# "If a creature you control that entered this turn would deal damage, it
+# deals twice that much damage instead."
+scenario "Neriv: a creature that entered this turn deals double, an older one doesn't" {
+  battlefield A: "Neriv, Heart of the Storm", "Grizzly Bears", "Mountain"
+  hand A: "Raging Goblin"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Raging Goblin"
+  turn 2 A: attack "Raging Goblin", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 16
+}
+
+# "distribute two +1/+1 counters among one or two target creatures. Then
+# if there are six or more card types among cards in your graveyard,
+# double the number of +1/+1 counters on those creatures."
+scenario "Omnivorous Flytrap: six card types double the counters on both targets" {
+  battlefield A: "Omnivorous Flytrap", "Grizzly Bears"
+  graveyard A: "Forest", "Hill Giant", "Shock", "Divination", "Bonesplitter", "Glorious Anthem"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Omnivorous Flytrap"
+  turn 2 declare_attackers A: trigger "Omnivorous Flytrap" targeting "Grizzly Bears", "Omnivorous Flytrap" dividing 1, 1
+  run_to turn 2 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert counters "Omnivorous Flytrap" +1/+1 2
+}
+
+scenario "Omnivorous Flytrap: four card types, no doubling" {
+  battlefield A: "Omnivorous Flytrap", "Grizzly Bears"
+  graveyard A: "Forest", "Hill Giant", "Shock", "Divination"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Omnivorous Flytrap"
+  turn 2 declare_attackers A: trigger "Omnivorous Flytrap" targeting "Grizzly Bears", "Omnivorous Flytrap" dividing 1, 1
+  run_to turn 2 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Omnivorous Flytrap" +1/+1 1
+}
+
+# "When this artifact enters, look at the top four cards of your library.
+# Put two of them into your hand and the rest into your graveyard. You lose
+# 2 life."; "Each opponent loses 3 life unless they discard a card or
+# sacrifice a creature."
+scenario "Polygraph Orb: two cards to hand, two to the graveyard, 2 life" {
+  battlefield A: 5 "Swamp"
+  library A: "Grizzly Bears", "Hill Giant", "Shock", "Opt", "Island"
+  hand A: "Polygraph Orb"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Polygraph Orb"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A count 2
+  assert life A 18
+}
+
+scenario "Polygraph Orb: an opponent with nothing to give loses 3" {
+  battlefield A: "Polygraph Orb", 2 "Swamp"
+  graveyard A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Polygraph Orb"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert exile A contains "Hill Giant"
+}
+
+scenario "Polygraph Orb: an opponent may discard instead" {
+  battlefield A: "Polygraph Orb", 2 "Swamp"
+  graveyard A: "Hill Giant"
+  hand B: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Polygraph Orb"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Forest"
+}
+
+# "If Quicksilver, Brash Blur is in your opening hand, you may begin the
+# game with him on the battlefield."
+scenario "Quicksilver: begins the game on the battlefield; power-up" {
+  opening hand
+  hand A: "Quicksilver, Brash Blur"
+  turn 1 A: accept "Quicksilver, Brash Blur"
+  battlefield A: 5 "Mountain"
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Quicksilver, Brash Blur"
+  turn 1 A: activate "Quicksilver, Brash Blur"
+  run_to turn 1 postcombat_main
+  assert counters "Quicksilver, Brash Blur" +1/+1 1
+  assert has "Quicksilver, Brash Blur" double_strike
+}
+
+# "return up to one target creature card with mana value X or less from
+# your graveyard to the battlefield, where X is the amount of life you
+# gained this turn."
+scenario "Moseo: Infusion returns a creature card up to the life gained" {
+  battlefield A: "Moseo, Vein's New Dean", 2 "Plains"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Revitalize"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Revitalize"
+  turn 2 end A: trigger "Moseo, Vein's New Dean" targeting "Grizzly Bears"
+  run_to turn 3 upkeep
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Moseo: three life gained is too little for a four-drop" {
+  battlefield A: "Moseo, Vein's New Dean", 2 "Plains"
+  graveyard A: "Hill Giant"
+  hand A: "Revitalize"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Revitalize"
+  run_to turn 3 upkeep
+  assert graveyard A contains "Hill Giant"
+}
+
+# "mill four cards, then you may return a non-Avatar creature card or a
+# planeswalker card from your graveyard to your hand."
+scenario "Overlord of the Balemurk: a planeswalker card back, not an Avatar" {
+  battlefield A: 5 "Swamp"
+  library A: "Overlord of the Mistmoors", "Jace Beleren", "Forest", "Island", "Plains"
+  hand A: "Overlord of the Balemurk"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Overlord of the Balemurk"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Jace Beleren"
+  assert graveyard A contains "Overlord of the Mistmoors"
+  assert library A count 1
+}
+
+scenario "Overlord of the Balemurk: an Avatar alone isn't returned" {
+  battlefield A: 5 "Swamp"
+  library A: "Overlord of the Mistmoors", "Forest", "Island", "Plains", "Plains"
+  hand A: "Overlord of the Balemurk"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Overlord of the Balemurk"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert graveyard A contains "Overlord of the Mistmoors"
+}
+
+# "creatures you control get +2/+2 and gain menace and \"Whenever this
+# creature attacks, you gain 1 life.\""
+scenario "Root Manipulation: +2/+2, menace, and life on attack" {
+  battlefield A: "Grizzly Bears", 3 "Swamp", 2 "Forest"
+  hand A: "Root Manipulation"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Root Manipulation"
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert has "Grizzly Bears" menace
+  assert life A 21
+  assert life B 16
+  run_to turn 3 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+# "If there are three or more Lesson cards in your graveyard, you may cast
+# this spell as though it had flash. This spell costs {1} less to cast for
+# each noncreature, nonland card in your graveyard."
+scenario "Serpent of the Pass: three Lessons, flash and {3} less" {
+  battlefield A: 2 "Island", 2 "Plains"
+  graveyard A: "Aang's Journey", "Academic Probation", "Abandon Attachments"
+  hand A: "Serpent of the Pass"
+  start turn 2 B precombat_main
+  turn 2 precombat_main A: cast "Serpent of the Pass"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Serpent of the Pass"
+}
+
+scenario "Serpent of the Pass: two Lessons, no flash" {
+  battlefield A: 3 "Island", 2 "Plains"
+  graveyard A: "Aang's Journey", "Academic Probation"
+  hand A: "Serpent of the Pass"
+  start turn 2 B precombat_main
+  illegal turn 2 precombat_main A: cast "Serpent of the Pass"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Serpent of the Pass"
+}
+
+# "This creature enters with a +1/+1 counter on it plus an additional +1/+1
+# counter on it for each other creature you control."
+scenario "Sheriff of Safe Passage: one counter plus one for each other creature" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 3 "Plains"
+  hand A: "Sheriff of Safe Passage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sheriff of Safe Passage"
+  run_to turn 1 postcombat_main
+  assert counters "Sheriff of Safe Passage" +1/+1 3
+}
+
+scenario "Sheriff of Safe Passage: alone, one counter" {
+  battlefield A: 3 "Plains"
+  hand A: "Sheriff of Safe Passage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sheriff of Safe Passage"
+  run_to turn 1 postcombat_main
+  assert counters "Sheriff of Safe Passage" +1/+1 1
+}
+
+# "create X tapped Treasure tokens, where X is the number of artifacts your
+# opponents control"; "Whenever you cast a spell, if mana from a Treasure
+# was spent to cast it, you draw a card and lose 1 life."
+scenario "Smaug: a tapped Treasure for each opponent's artifact" {
+  battlefield A: 3 "Swamp", 2 "Mountain"
+  battlefield B: "Bonesplitter", "Leonin Scimitar"
+  hand A: "Smaug, Wicked Worm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Smaug, Wicked Worm"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Treasure"
+  assert tapped oldest "Treasure"
+}
+
+scenario "Smaug: a spell paid with Treasure mana draws a card" {
+  battlefield A: "Smaug, Wicked Worm", "Treasure"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life A 19
+}
+
+scenario "Smaug: a spell paid with a land draws nothing" {
+  battlefield A: "Smaug, Wicked Worm", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert life A 20
+}
+
+# "This ability costs {X} less to activate, where X is the number of
+# differently named lands you control."
+scenario "Survey Mechan: five differently named lands make it cost {5}" {
+  battlefield A: "Survey Mechan", "Plains", "Island", "Swamp", "Mountain", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Survey Mechan" targeting player B, player A
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+  assert hand A count 3
+}
+
+scenario "Survey Mechan: five Plains count once" {
+  battlefield A: "Survey Mechan", 5 "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Survey Mechan" targeting player B, player A
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+# "this land becomes a 2/1 blue and red Elemental creature with \"During
+# your turn, this creature has first strike.\" It's still a land."
+scenario "Restless Spire: animated with first strike during its controller's turn" {
+  battlefield A: "Restless Spire", "Island", "Mountain"
+  library A: "Plains", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Restless Spire" ability 2
+  turn 2 A: attack "Restless Spire"
+  run_to turn 2 declare_blockers
+  assert power "Restless Spire" 2
+  assert is "Restless Spire" creature
+  assert is "Restless Spire" land
+  assert is "Restless Spire" elemental
+  assert has "Restless Spire" first_strike
+  run_to turn 2 postcombat_main
+  assert life B 18
+  run_to turn 3 upkeep
+  assert is not "Restless Spire" creature
+}
+
+# "Drakuseth deals 4 damage to any target and 3 damage to each of up to
+# two other targets."
+scenario "Drakuseth: 4 to one target, 3 to each of two others" {
+  battlefield A: "Drakuseth, Maw of Flames"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Drakuseth, Maw of Flames"
+  turn 2 declare_attackers A: trigger "Drakuseth, Maw of Flames" targeting player B, "Grizzly Bears", "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert life B 9
+}
+
+scenario "Drakuseth: the other targets can't repeat the first" {
+  battlefield A: "Drakuseth, Maw of Flames"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Drakuseth, Maw of Flames"
+  illegal turn 2 declare_attackers A: trigger "Drakuseth, Maw of Flames" targeting "Hill Giant", "Hill Giant"
+  run_to turn 2 postcombat_main
+}
+
+# "put a +1/+1 counter on him. When you do, he deals damage equal to the
+# number of +1/+1 counters on him to any other target."
+scenario "Red Hulk: dealt damage, a counter, then damage equal to his counters" {
+  battlefield A: "Red Hulk" with 1 +1/+1, "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Red Hulk"
+  turn 1 A: trigger "Red Hulk" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Red Hulk" +1/+1 2
+  assert life B 18
+}
+
+# "If there are eight or more permanent cards in your graveyard as you cast
+# this spell, choose one or more instead."
+scenario "Wail of the Forgotten: descended, two modes" {
+  battlefield A: "Island", "Swamp"
+  battlefield B: "Grizzly Bears"
+  graveyard A: 8 "Forest"
+  hand A: "Wail of the Forgotten"
+  hand B: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wail of the Forgotten" mode 3 targeting "Grizzly Bears", player B
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert graveyard B contains "Island"
+}
+
+scenario "Wail of the Forgotten: seven permanent cards, one mode only" {
+  battlefield A: "Island", "Swamp"
+  battlefield B: "Grizzly Bears"
+  graveyard A: 7 "Forest"
+  hand A: "Wail of the Forgotten"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Wail of the Forgotten" mode 3 targeting "Grizzly Bears", player B
+  run_to turn 1 postcombat_main
+}
+
+# "Whenever another creature you control or a land you control is put into
+# a graveyard from the battlefield, put a +1/+1 counter on target creature
+# you control."
+scenario "Long Feng: a creature and a land of yours going to the graveyard" {
+  battlefield A: "Long Feng, Grand Secretariat", "Grizzly Bears", "Evolving Wilds", "Mountain"
+  hand A: "Shock"
+  library A: "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Evolving Wilds"
+  run_to turn 1 postcombat_main
+  assert counters "Long Feng, Grand Secretariat" +1/+1 2
+}
+
+scenario "Long Feng: an opponent's creature dying does nothing" {
+  battlefield A: "Long Feng, Grand Secretariat", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Long Feng, Grand Secretariat" +1/+1 0
+}
+
+# "Shantotto gets +X/+0 until end of turn, where X is the amount of mana
+# spent to cast that spell. If X is 4 or more, draw a card."
+scenario "Shantotto: four mana spent, +4/+0 and a card" {
+  battlefield A: "Shantotto, Tactician Magician", 4 "Mountain"
+  hand A: "Blaze"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blaze" x 3 targeting player B
+  run_to turn 1 begin_combat
+  assert power "Shantotto, Tactician Magician" 4
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Shantotto: three mana spent, no card" {
+  battlefield A: "Shantotto, Tactician Magician", 3 "Island"
+  hand A: "Divination"
+  library A: "Plains", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divination"
+  run_to turn 1 begin_combat
+  assert power "Shantotto, Tactician Magician" 3
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}
+
+# "Then discard two cards unless you discard an instant or sorcery card or
+# a creature card with flying."
+scenario "Steamcore Scholar: an instant discarded alone" {
+  battlefield A: 3 "Island"
+  hand A: "Steamcore Scholar"
+  library A: "Shock", "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Steamcore Scholar"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Shock"
+  assert hand A count 1
+}
+
+scenario "Steamcore Scholar: no instant, sorcery, or flier, two cards go" {
+  battlefield A: 3 "Island"
+  hand A: "Steamcore Scholar"
+  library A: "Grizzly Bears", "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Steamcore Scholar"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert graveyard A count 2
+}
+
+# "create a tapped colorless land token named Everywhere that is every
+# basic land type"
+scenario "Overlord of the Hauntwoods: a tapped Everywhere of every basic land type" {
+  battlefield A: 5 "Forest"
+  hand A: "Overlord of the Hauntwoods"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Overlord of the Hauntwoods"
+  run_to turn 1 postcombat_main
+  assert tapped "Everywhere"
+  assert is "Everywhere" island
+  assert is "Everywhere" swamp
+  assert is "Everywhere" colorless
+  run_to turn 3 precombat_main
+  assert untapped "Everywhere"
+}
+
+# "distribute two +1/+1 counters among one or two other target Vehicles
+# and/or creatures you control"
+scenario "Cloudspire Skycycle: two counters split between a creature and a Vehicle" {
+  battlefield A: "Grizzly Bears", "Cloudspire Skycycle", "Mountain", 3 "Plains"
+  hand A: "Cloudspire Skycycle"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cloudspire Skycycle"
+  turn 1 A: trigger "Cloudspire Skycycle" targeting "Grizzly Bears", oldest "Cloudspire Skycycle" dividing 1, 1
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters oldest "Cloudspire Skycycle" +1/+1 1
+  assert counters newest "Cloudspire Skycycle" +1/+1 0
+}
+
+scenario "Cloudspire Skycycle: not itself" {
+  battlefield A: "Mountain", 3 "Plains"
+  hand A: "Cloudspire Skycycle"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cloudspire Skycycle"
+  run_to turn 1 postcombat_main
+  assert counters "Cloudspire Skycycle" +1/+1 0
+}

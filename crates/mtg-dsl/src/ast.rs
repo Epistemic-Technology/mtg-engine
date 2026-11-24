@@ -295,7 +295,9 @@ pub struct Card {
     /// spell as though it had flash if you control a Human."
     /// `flash named as long as you control Desert`: "Colossal Rattlewurm
     /// has flash as long as you control a Desert." (the card's name, not
-    /// "This spell"); wording only.
+    /// "This spell"); wording only. With `flash_if_may` (`flash first if
+    /// ...`): the condition first, "If ..., you may cast this spell as
+    /// though it had flash." (Serpent of the Pass).
     pub flash_if_named: bool,
     pub flash_if_may: bool,
     /// `flash with cleanup sacrifice`: "You may cast this spell as though
@@ -865,6 +867,10 @@ pub struct Except {
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum ReduceBy {
     Each(CountExpr),
+    /// `reduced {1} where differently named land you control`: the same
+    /// reduction for each, printed "This ability costs {X} less to
+    /// activate, where X is the number of ..." (Survey Mechan).
+    Where(CountExpr),
     If(StaticCond),
     /// `reduced {1} if targets creature with power 3 or less`: "This
     /// ability costs {1} less to activate if it targets a creature with
@@ -4237,8 +4243,10 @@ pub enum Trigger {
     /// creatures` (one opponent), the same trigger.
     OpponentCreaturesAttack(u8),
     /// `whenever one or more suspected creature you control attack`: the
-    /// older wording of `whenever you attack with one or more ...`.
-    OneOrMoreAttack(Filter),
+    /// older wording of `whenever you attack with one or more ...`;
+    /// `... attack a player` (`true`: "Whenever one or more Merfolk you
+    /// control attack a player", Attuma).
+    OneOrMoreAttack(Filter, bool),
     /// `whenever this attacks and isn't blocked`.
     AttacksUnblocked(TriggerObj),
     /// `whenever this attacks for the first time each turn`.
@@ -4378,6 +4386,9 @@ pub enum Trigger {
     YouPutCounters {
         obj: TriggerObj,
         kind: Option<CounterKind>,
+        /// `... on one or more other Hero you control`: "on one or more
+        /// other Heroes you control" (Invisible Woman; wording only).
+        many: bool,
     },
     /// `whenever Aura becomes attached to this`: "Whenever an Aura becomes
     /// attached to this creature".
@@ -6262,6 +6273,9 @@ pub enum Effect {
         payer: Recipient,
         filter: Filter,
         or_discard: bool,
+        /// `unless they discard 1 card else sacrifice creature`: "unless
+        /// they discard a card or sacrifice a creature" (wording only).
+        discard_first: bool,
         effect: Box<Effect>,
     },
     /// `each opponent may discard 1 card or sacrifice permanent`: "Each

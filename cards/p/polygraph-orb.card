@@ -1,0 +1,7 @@
+card "Polygraph Orb" {
+  oracle_id bb039957-9e88-48cf-b41c-38d42eb87251
+  cost {4}{B}
+  type Artifact
+  triggered when this enters: dig 4 take 2 card rest graveyard reword; you lose 2 life
+  activated {2}, {T}, collect evidence 3: each opponent loses 3 life unless they discard 1 card else sacrifice creature
+}

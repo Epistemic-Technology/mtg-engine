@@ -5162,6 +5162,24 @@ fn token_description_plain(
             plural(count, "token")
         );
     }
+    // "a tapped colorless land token named Everywhere that is every basic
+    // land type" (Overlord of the Hauntwoods).
+    if token.types == [CardType::Land]
+        && token.pt.is_none()
+        && token.abilities.is_empty()
+        && token.keywords.is_empty()
+        && token.subtypes.len() == 5
+        && ["Plains", "Island", "Swamp", "Mountain", "Forest"]
+            .iter()
+            .all(|b| token.subtypes.iter().any(|s| s == b))
+    {
+        let shown = token.display_name.as_deref().unwrap_or(&token.name);
+        return format!(
+            "{} {tap}colorless land {} named {shown} that is every basic land type",
+            count_words(count, "a"),
+            plural(count, "token")
+        );
+    }
     let mut words: Vec<String> = Vec::new();
     if tapped {
         words.push("tapped".to_string());
@@ -5758,6 +5776,22 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             } else {
                 n.to_string()
             };
+            // "one plus the mana value of the sacrificed artifact"
+            // (Memorial Vault).
+            if *word
+                && let CountExpr::MovedStat {
+                    verb,
+                    stat,
+                    noun,
+                    that: false,
+                } = &**inner
+            {
+                return format!(
+                    "{n} plus the {} of the {} {noun}",
+                    stat_word(*stat),
+                    crate::ast::this_way_word(*verb)
+                );
+            }
             return format!("{n} plus {}", count_phrase(inner, card, each));
         }
         // "draw cards equal to the difference" (after "if you have fewer
@@ -5807,6 +5841,21 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         } => (
             format!("{} revealed this way", cards_phrase(f, card, false)),
             format!("{} revealed this way", cards_phrase(f, card, true)),
+        ),
+        // "For each creature card put into a graveyard this way" (Dread
+        // Summons: every player's mill).
+        CountExpr::ThisWay {
+            verb: mtg_core::card::ThisWay::PutInGraveyard,
+            filter: Some(f),
+        } => (
+            format!(
+                "{} put into a graveyard this way",
+                cards_phrase(f, card, false)
+            ),
+            format!(
+                "{} put into a graveyard this way",
+                cards_phrase(f, card, true)
+            ),
         ),
         CountExpr::ThisWay { verb, filter } => {
             // "the number of cards shuffled into your library this way".
@@ -6063,9 +6112,11 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         CountExpr::TriggerCounters(mtg_core::card::CounterKind::Any) => {
             ("counter on it".to_string(), "counters on it".to_string())
         }
+        // "the number of +1/+1 counters on him" (Red Hulk, a trigger about
+        // the character itself).
         CountExpr::TriggerCounters(kind) => (
-            format!("{} counter on it", counter_name(*kind)),
-            format!("{} counters on it", counter_name(*kind)),
+            format!("{} counter on {}", counter_name(*kind), it_obj(card)),
+            format!("{} counters on {}", counter_name(*kind), it_obj(card)),
         ),
         // "for each of those creatures".
         CountExpr::Those(t) => {
@@ -6077,8 +6128,9 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             };
         }
         CountExpr::SourceCounters { kind, it } => {
+            // "the number of +1/+1 counters on him" (Red Hulk).
             let on = if *it {
-                "it".to_string()
+                it_obj(card).to_string()
             } else {
                 this_ref(card)
             };
@@ -7715,6 +7767,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             kind,
             count,
         } => match (kind, count) {
+            // `put its counters on that token` after a create: "then put
+            // this creature's counters on that token" (Ambitious
+            // Augmenter).
+            (None, None) if *from == Recipient::Source && *to == Recipient::CreatedObject => {
+                let src = ctx.source_name();
+                Clause::imperative(format!("put {} counters on that token", possessive(&src)))
+            }
             (None, None)
                 if matches!(
                     from,
@@ -8493,6 +8552,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     DIG_SHUFFLE.to_string()
                 } else if *rest_graveyard {
                     format!("{word} into your graveyard")
+                } else if *random && *short && onto.is_some() {
+                    // "Put the rest on the bottom in a random order."
+                    // (Kaslem's Stonetree).
+                    format!("{word} on the bottom in a random order")
                 } else if *random {
                     format!("{word} on the bottom of your library in a random order")
                 } else if two {
@@ -8605,6 +8668,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 };
                 // "Put a land card from among them onto the battlefield
                 // and the rest into your graveyard." (one sentence when
+                // `reword` with `rest graveyard`: "Then put all cards
+                // revealed this way that weren't put onto the battlefield
+                // into your graveyard." (Genesis Wave).
+                if *reword && *rest_graveyard && *reveal_top && !*shuffle && !*then {
+                    return Clause::imperative(format!(
+                        "{head}. {put} {w} from among them {field}. Then put all cards revealed this way that weren't put onto the battlefield into your graveyard"
+                    ));
+                }
                 // not optional); "Put a random creature card ... onto the
                 // battlefield. Put the rest ...".
                 let join = if *shuffle {
@@ -9205,7 +9276,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     ..
                 })
             ) && *count == Num::N(1)
-                && *who == Some(Recipient::TriggeringPlayer);
+                && (*who == Some(Recipient::TriggeringPlayer)
+                    // "you lose 1 life and you draw an additional card" in
+                    // your own draw step (Lord Skitter's Blessing).
+                    || (*who == Some(Recipient::You)
+                        && matches!(
+                            ctx.trigger,
+                            Some(Trigger::BeginningOfStep {
+                                whose: Who::You,
+                                ..
+                            })
+                        )));
             let what = if additional {
                 "an additional card".to_string()
             } else {
@@ -9275,6 +9356,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let each = ctx.each_of(*to);
             let o = ctx.obj(*to);
             Clause::imperative(format!("put {} on {each}{o}", list(&c)))
+        }
+        // `remove count where time counters on this time counters from
+        // this` after "Then if there are seven or more time counters on
+        // it": "remove those counters" (Cursed Recording).
+        Effect::RemoveCounters {
+            kind,
+            count: Num::Count(i),
+            to: Recipient::Source,
+        } if matches!(
+            ctx.card.counts.get(usize::from(*i)).map(|c| &c.expr),
+            Some(crate::ast::CountExpr::SourceCounters { kind: k, .. }) if k == kind
+        ) =>
+        {
+            Clause::imperative("remove those counters".to_string())
         }
         Effect::RemoveCounters { kind, count, to } => {
             let c = counters(*count, *kind);
@@ -9661,12 +9756,35 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             if *enters_attacking {
                 text.push_str(". It enters tapped and attacking that player");
             }
+            // "return up to one target creature card with mana value X or
+            // less from your graveyard to the battlefield, where X is ..."
+            // (Moseo): the target's X explained at the end.
+            if let Some(i) = text.find(", where X is ")
+                && let Some(j) = text[i..].find(" from your graveyard to the battlefield")
+            {
+                let where_x = text[i..i + j].to_string();
+                text = format!("{}{}{where_x}", &text[..i], &text[i + j..]);
+            }
             Clause::imperative(text)
         }
         Effect::Regenerate { to } => {
             // "Regenerate all Werewolf creatures you control" (`all`).
             let o = ctx.obj_flagged_all(*to);
             Clause::imperative(format!("regenerate {o}"))
+        }
+        // "Whenever you discard a card, you may exile that card from your
+        // graveyard." (Moonstone, Harsh Mistress).
+        Effect::Exile { what }
+            if what.as_slice() == [Recipient::TriggeringCard]
+                && matches!(
+                    ctx.trigger,
+                    Some(Trigger::Discards {
+                        whose: Who::You,
+                        ..
+                    })
+                ) =>
+        {
+            Clause::imperative("exile that card from your graveyard".to_string())
         }
         Effect::Exile { what } => {
             let o = if what.len() == 1 {
@@ -11395,6 +11513,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 "all".to_string()
             } else if *count == Num::N(crate::ast::ANY_NUMBER) {
                 "any number of".to_string()
+            } else if let Num::Count(i) = count
+                && ctx
+                    .card
+                    .counts
+                    .get(usize::from(*i))
+                    .is_some_and(|c| c.style == crate::ast::CountStyle::ThatMany)
+            {
+                // "Return that many creature cards from your graveyard to
+                // the battlefield." (Lich-Knights' Conquest).
+                "that many".to_string()
             } else if *up_to {
                 format!("up to {}", count_words(*count, "one"))
             } else {
@@ -11415,6 +11543,22 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
             };
             let cards = || {
+                // "a non-Avatar creature card or a planeswalker card"
+                // (Overlord of the Balemurk): the alternative with its own
+                // article.
+                if one
+                    && filter.alt_article
+                    && let Some(alt) = &filter.or
+                {
+                    let mut main = filter.clone();
+                    main.or = None;
+                    main.alt_article = false;
+                    return format!(
+                        "{} or {}",
+                        with_article(&cards_phrase(&main, ctx.card, false)),
+                        with_article(&cards_phrase(alt, ctx.card, false))
+                    );
+                }
                 if one {
                     with_article(&cards_phrase(filter, ctx.card, false))
                 } else {
@@ -11670,7 +11814,22 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::DiscardUnless { who, count, filter } => {
             let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
-            let alt = with_article(&cards_phrase(filter, ctx.card, false));
+            // "unless you discard an instant or sorcery card or a creature
+            // card with flying" (Steamcore Scholar): the alternative with
+            // its own article.
+            let alt = match &filter.or {
+                Some(other) if filter.alt_article => {
+                    let mut main = filter.clone();
+                    main.or = None;
+                    main.alt_article = false;
+                    format!(
+                        "{} or {}",
+                        with_article(&cards_phrase(&main, ctx.card, false)),
+                        with_article(&cards_phrase(other, ctx.card, false))
+                    )
+                }
+                _ => with_article(&cards_phrase(filter, ctx.card, false)),
+            };
             match who {
                 None => Clause::imperative(format!("discard {what} unless you discard {alt}")),
                 Some(w) => {
@@ -12060,6 +12219,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let what = kind.map_or("each kind of counter".to_string(), |k| {
                 format!("{} counters", counter_name(k))
             });
+            // `that target 1` after "one or two target creatures": "on those
+            // creatures" (Omnivorous Flytrap).
+            if let Recipient::ThatTarget(i) = to
+                && ctx.target_mentioned[*i]
+                && ctx.is_many(Recipient::Target(*i))
+            {
+                let noun = pluralize(&ctx.target_noun[*i].clone());
+                return Clause::imperative(format!("double the number of {what} on those {noun}"));
+            }
             let o = ctx.obj(*to);
             // "on each of those creatures" (Biogenic Upgrade).
             let o = if o.starts_with("those ") {
@@ -12301,6 +12469,27 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     "{} all abilities and {} base power and toughness {p}/{q}",
                     ctx.verb(*to, "loses", "lose"),
                     ctx.verb(*to, "has", "have")
+                );
+                let clause = Clause::with_subject(*to, s, text);
+                return if *indefinite {
+                    clause
+                } else {
+                    clause.until_eot()
+                };
+            }
+            // "each creature target opponent controls loses all abilities,
+            // becomes a Coward in addition to its other types, and has base
+            // power and toughness 1/1" (Curious Colossus): one at a time.
+            if let (Some((p, q)), true, true, true) = (pt, base, *loses_abilities, *in_addition)
+                && types.is_empty()
+                && !subtypes.is_empty()
+                && colors.is_empty()
+                && keywords.is_empty()
+                && ctx.verb(*to, "becomes", "become") == "becomes"
+            {
+                let noun = with_article(&subtypes.join(" "));
+                let text = format!(
+                    "loses all abilities, becomes {noun} in addition to its other types, and has base power and toughness {p}/{q}"
                 );
                 let clause = Clause::with_subject(*to, s, text);
                 return if *indefinite {
@@ -12757,11 +12946,25 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         // "unless they sacrifice a nonland permanent of their choice or
         // discard a card", "unless that player sacrifices a creature of
         // their choice".
+        // "Each opponent loses 3 life unless they discard a card or
+        // sacrifice a creature." (Polygraph Orb).
+        Effect::UnlessSacrifices {
+            filter,
+            discard_first: true,
+            effect,
+            ..
+        } => {
+            let mut c = clause(effect, ctx);
+            let what = filter_a(filter, ctx.card);
+            let _ = write!(c.tail, " unless they discard a card or sacrifice {what}");
+            c
+        }
         Effect::UnlessSacrifices {
             payer,
             filter,
             or_discard,
             effect,
+            ..
         } => {
             let mut c = clause(effect, ctx);
             let what = filter_a(filter, ctx.card);
@@ -12854,6 +13057,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "If this spell was kicked, those creatures also gain trample".
             let cond = if kicked {
                 format!("this {} was kicked", kicked_noun(ctx.card))
+            } else if let StaticCond::ManaSpent {
+                kind: mtg_core::card::SpentKind::Total,
+                at_least,
+                that: true,
+            } = c
+                && ctx.card.counts.iter().any(|k| {
+                    k.style == crate::ast::CountStyle::Where
+                        && k.expr == crate::ast::CountExpr::ManaSpent { that: true }
+                })
+            {
+                // "..., where X is the amount of mana spent to cast that
+                // spell. If X is 4 or more, draw a card." (Shantotto): the
+                // X named before.
+                format!("X is {at_least} or more")
             } else if matches!(c, StaticCond::Suspected(_))
                 && !is_spell(ctx.card)
                 && !ctx.source_mentioned
@@ -12881,6 +13098,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     Some(rest) => format!("{who} is {rest}"),
                     None => format!("{who}{}", &t["it".len()..]),
                 }
+            } else if matches!(c, StaticCond::SourceCountersThere { .. })
+                && ctx.source_mentioned
+                && !is_spell(ctx.card)
+            {
+                // "put a time counter on this artifact. Then if there are
+                // seven or more time counters on it" (Cursed Recording).
+                static_cond_text(c, ctx.card).replacen(
+                    &format!("on this {}", self_noun(ctx.card)),
+                    "on it",
+                    1,
+                )
             } else if (matches!(c, StaticCond::SourceCounters { at_least: true, n, .. } if *n > 1)
                 || matches!(c, StaticCond::SourceCounterParity(_)))
                 && ctx.source_mentioned
@@ -13905,6 +14133,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 .delayed_tail
                 .take()
                 .map_or_else(String::new, |s| format!(". {s}"));
+            // "copy the next spell you cast this turn when you cast it"
+            // (Flamehold Grappler): the effect first, the spell named in it.
+            if !*trigger_first
+                && matches!(trigger, Trigger::Next(_))
+                && let Some(what) = t
+                    .strip_prefix("when you next cast ")
+                    .and_then(|r| r.strip_suffix(" this turn"))
+                && body.contains("that spell")
+            {
+                let noun = what
+                    .strip_prefix("an ")
+                    .or_else(|| what.strip_prefix("a "))
+                    .unwrap_or(what);
+                let body = lowercase_first(&body).replacen(
+                    "that spell",
+                    &format!("the next {noun} you cast this turn when you cast it"),
+                    1,
+                );
+                return Clause::imperative(format!("{body}{tail}"));
+            }
             if *trigger_first {
                 Clause::imperative(format!("{t}, {}{tail}", lowercase_first(&body)))
             } else {
@@ -14859,6 +15107,13 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
         {
             // "gains deathtouch and \"When this creature dies, ...\"".
             &c.text["gains ".len()..]
+        } else if same_subject
+            && c.text.starts_with("gain \"")
+            && clauses[i - 1].text.starts_with("gain ")
+        {
+            // "creatures you control get +2/+2 and gain menace and
+            // \"Whenever this creature attacks, ...\"" (Root Manipulation).
+            &c.text["gain ".len()..]
         } else {
             &c.text
         };
@@ -15133,7 +15388,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 obj,
                 kind: CounterKind::Any,
             } => format!("whenever a counter is put on {}", trigger_subject(obj, ctx)),
-            Trigger::YouPutCounters { obj, kind } => format!(
+            Trigger::YouPutCounters { obj, kind, .. } => format!(
                 "whenever you put {} on {}",
                 with_article(&format!(
                     "{}counter",
@@ -15554,9 +15809,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             this: false,
             min: 1,
         } => "whenever you attack".to_string(),
-        Trigger::OneOrMoreAttack(f) => format!(
-            "whenever one or more {} attack",
-            controller_first(f, filter_phrase(f, ctx.card, true))
+        Trigger::OneOrMoreAttack(f, player) => format!(
+            "whenever one or more {} attack{}",
+            controller_first(f, filter_phrase(f, ctx.card, true)),
+            if *player { " a player" } else { "" }
         ),
         Trigger::CreaturesYouControlAttack => {
             "whenever one or more creatures you control attack".to_string()
@@ -15880,7 +16136,17 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             counter_name(*kind),
             trigger_subject(&TriggerObj::This, ctx)
         ),
-        Trigger::YouPutCounters { obj, kind } => format!(
+        // "on one or more other Heroes you control" (Invisible Woman).
+        Trigger::YouPutCounters {
+            obj: TriggerObj::Filter(f),
+            kind,
+            many: true,
+        } => format!(
+            "whenever you put one or more {}counters on one or more {}",
+            kind.map_or(String::new(), |k| format!("{} ", counter_name(k))),
+            controller_first(f, filter_phrase(f, ctx.card, true))
+        ),
+        Trigger::YouPutCounters { obj, kind, .. } => format!(
             "whenever you put one or more {}counters on {}",
             kind.map_or(String::new(), |k| format!("{} ", counter_name(k))),
             trigger_subject(obj, ctx)
@@ -16203,6 +16469,26 @@ fn trigger_subject(o: &TriggerObj, ctx: &mut Ctx) -> String {
 /// or greater" (elsewhere "a creature with power 4 or greater you
 /// control").
 fn trigger_filter_a(f: &Filter, card: &Card) -> String {
+    // "another creature you control or a land you control" (Long Feng):
+    // each alternative with its own article names its controller too.
+    if f.relation == Relation::Other
+        && f.who == Some(Who::You)
+        && f.or
+            .as_ref()
+            .is_some_and(|a| a.who == Some(Who::You) && a.relation == Relation::Any)
+        && let Some(alt) = &f.or
+    {
+        let base = Filter {
+            or: None,
+            alt_article: false,
+            ..f.clone()
+        };
+        return format!(
+            "{} or {}",
+            with_article(&filter_phrase(&base, card, false)),
+            with_article(&filter_phrase(alt, card, false))
+        );
+    }
     let s = controller_first(f, filter_a(f, card));
     if f.and_or {
         return s.replacen(" or ", " and/or ", 1);
@@ -16738,6 +17024,22 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             }
             other => format!("Double all damage {} would deal.", affects_to(other, ctx)),
         },
+        // `replace damage bare creature you control that entered this turn
+        // would deal: double`: "If a creature you control that entered this
+        // turn would deal damage, it deals twice that much damage instead."
+        // (Neriv, Heart of the Storm).
+        (
+            Replaces::Damage {
+                from: Some(Affects::Objects(g)),
+                to: Affects::Any,
+                combat: None,
+                wording: DamageWording::WouldDealBare,
+            },
+            Outcome::Double,
+        ) => format!(
+            "If {} would deal damage, it deals twice that much damage instead.",
+            filter_a(g, ctx.card)
+        ),
         (
             Replaces::Damage {
                 from, to, combat, ..
@@ -16810,6 +17112,26 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             // "..., instead it deals that much damage plus X, where X is
             // Hawkeye's power." (Hawkeye, Young Avenger).
             match outcome {
+                // `plus count equal fire counters on this`: "it deals that
+                // much damage plus an amount of damage equal to the number
+                // of fire counters on this enchantment instead." (Fated
+                // Firepower).
+                Outcome::PlusCount(Num::Count(i))
+                    if ctx
+                        .card
+                        .counts
+                        .get(usize::from(*i))
+                        .is_some_and(|c| c.style == crate::ast::CountStyle::Equal) =>
+                {
+                    let c = &ctx.card.counts[usize::from(*i)];
+                    let what = count_phrase(&c.expr, ctx.card, false);
+                    text.replace(
+                        " it deals that much damage plus X instead.",
+                        &format!(
+                            " it deals that much damage plus an amount of damage equal to {what} instead."
+                        ),
+                    )
+                }
                 Outcome::PlusCount(Num::Count(i)) => {
                     let what = ctx.card.counts.get(usize::from(*i)).map_or_else(
                         || "X".to_string(),
@@ -17304,7 +17626,23 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
         ) if ctx.card.counts.get(usize::from(*i)).is_some() => {
             let count = &ctx.card.counts[usize::from(*i)];
             let this = capitalize(&this_ref(ctx.card));
-            if count.style == crate::ast::CountStyle::Each {
+            if count.style == crate::ast::CountStyle::Each
+                && let crate::ast::CountExpr::Plus { n, inner, .. } = &count.expr
+            {
+                // `enters with count each plus 1 other creature you control
+                // +1/+1 counters`: "This creature enters with a +1/+1
+                // counter on it plus an additional +1/+1 counter on it for
+                // each other creature you control." (Sheriff of Safe
+                // Passage).
+                let it = it_obj(ctx.card);
+                let one = counters(Num::N(1), *kind);
+                format!(
+                    "{this} enters with {} on {it} plus an additional {} on {it} {}.",
+                    counters(Num::N(*n), *kind),
+                    one.strip_prefix("a ").unwrap_or(&one),
+                    count_phrase(inner, ctx.card, true)
+                )
+            } else if count.style == crate::ast::CountStyle::Each {
                 // "enters with two +1/+1 counters on it for each color of
                 // mana spent to cast it".
                 let (n, expr) = match &count.expr {
@@ -20110,6 +20448,10 @@ fn reduce_text(cost: &crate::ast::Cost, card: &Card) -> String {
         Some((by, crate::ast::ReduceBy::If(StaticCond::DuringYourTurn))) => {
             format!(" This ability costs {by} less to activate during your turn.")
         }
+        Some((_, crate::ast::ReduceBy::Where(e))) => format!(
+            " This ability costs {{X}} less to activate, where X is {}.",
+            count_phrase(e, card, false)
+        ),
         Some((by, crate::ast::ReduceBy::Targets(f))) => format!(
             " This ability costs {by} less to activate if it targets {}.",
             filter_a(f, card)
@@ -20460,7 +20802,16 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     if *cond == StaticCond::Kicked {
                         "this spell was kicked".to_string()
                     } else {
-                        static_cond_text(cond, card)
+                        // "Descend 8 — Choose one. If there are eight or
+                        // more permanent cards in your graveyard as you cast
+                        // this spell, choose one or more instead." (Wail of
+                        // the Forgotten): judged as it is cast.
+                        let t = static_cond_text(cond, card);
+                        if t.ends_with(" permanent cards in your graveyard") {
+                            format!("{t} as you cast this spell")
+                        } else {
+                            t
+                        }
                     },
                     if *may { "you may " } else { "" },
                     if *any_number {
@@ -20689,6 +21040,19 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                         ", if at least {} mana was spent to cast it",
                         count_words(Num::N(u32::from(*at_least)), "one")
                     );
+                }
+                // "Whenever you cast a spell, if mana from a Treasure was
+                // spent to cast it, ..." (Smaug, Wicked Worm).
+                Some(crate::ast::TrigCond::Static(
+                    c @ StaticCond::ManaSpent {
+                        kind: mtg_core::card::SpentKind::Treasure,
+                        that: true,
+                        ..
+                    },
+                )) => {
+                    let text = static_cond_text(c, card);
+                    out.push_str(", if ");
+                    out.push_str(&text.replacen(" to cast that spell", " to cast it", 1));
                 }
                 // "When Enduring Innocence dies, if it was a creature, ...":
                 // the permanent as it last existed (CR 603.10a).
@@ -22119,13 +22483,17 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             };
             format!("You may reveal this card from your opening hand. If you do, {body}")
         }
+        // "If Quicksilver, Brash Blur is in your opening hand, you may
+        // begin the game with him on the battlefield.": a legend's full
+        // name (the card in a hand), its pronoun.
         Ability::OpeningHand => format!(
-            "If {} is in your opening hand, you may begin the game with it on the battlefield.",
+            "If {} is in your opening hand, you may begin the game with {} on the battlefield.",
             if card.supertypes.contains(&Supertype::Legendary) {
-                short_name(card)
+                card.name.as_str()
             } else {
                 "this card"
-            }
+            },
+            it_obj(card)
         ),
         // CR 603.6a: Torpor Orb.
         Ability::TriggerAgain {
@@ -22561,7 +22929,12 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     }
     // Oracle prints kicker before keywords ("Kicker {2}{G}\nReach").
     if let Some(c) = &card.flash_if {
-        lines.push(if card.flash_if_may {
+        lines.push(if card.flash_if_may && card.flash_if_named {
+            format!(
+                "If {}, you may cast this spell as though it had flash.",
+                static_cond_text(c, card)
+            )
+        } else if card.flash_if_may {
             format!(
                 "You may cast this spell as though it had flash if {}.",
                 static_cond_text(c, card)
@@ -22724,6 +23097,24 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
                         &card.abilities[i - 1],
                         Ability::Replacement(r) if r.event == Replaces::Enters
                     )
+            }
+            // "As this land enters, choose a basic land type. Then you may
+            // pay 2 life. If you don't, it enters tapped." (Multiversal
+            // Passage): the payment after the choice is one line.
+            Ability::Replacement(r)
+                if r.event == Replaces::Enters
+                    && matches!(r.outcome, Outcome::EnterTappedUnlessPay(_))
+                    && i > 0
+                    && matches!(
+                        card.abilities[i - 1],
+                        Ability::AsEntersChoose { joined: false, .. }
+                    ) =>
+            {
+                let head = format!("As {} enters, you may", this_ref(card));
+                if let Some(rest) = text.strip_prefix(&head) {
+                    text = format!("Then you may{rest}");
+                }
+                true
             }
             _ => false,
         };

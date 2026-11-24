@@ -1,0 +1,10 @@
+card "Wail of the Forgotten" {
+  oracle_id 030b5408-f216-43e4-8593-f78d22821876
+  cost {U}{B}
+  type Sorcery
+  label "Descend 8" choose one or more if 8 permanent cards in your graveyard {
+    mode: return target nonland permanent to owner's hand
+    mode: target opponent discards 1 card
+    mode: dig 3 take card rest graveyard
+  }
+}

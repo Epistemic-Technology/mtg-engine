@@ -17852,13 +17852,17 @@ impl GameState {
                 // Only a counted dig names its own X; with a number, X is
                 // the spell's or ability's (CR 107.3).
                 let counted = matches!(count, crate::card::Num::Count(_));
+                // "Reveal the top X cards ... permanent cards with mana
+                // value X or less" (Genesis Wave): the spell's X, filled in
+                // too (unfilled, the mana value wouldn't restrict).
+                let x = if counted { n } else { ctx.x as usize };
                 let fill_x = |f: Option<&crate::card::ObjFilter>| {
-                    f.filter(|f| counted && f.status.mana_value_x).map(|f| {
+                    f.filter(|f| f.status.mana_value_x).map(|f| {
                         let mut g = f.clone();
                         g.status.mana_value_x = false;
                         g.mana_value = g
                             .mana_value
-                            .map(|(cmp, _)| (cmp, u8::try_from(n).unwrap_or(u8::MAX)));
+                            .map(|(cmp, _)| (cmp, u8::try_from(x).unwrap_or(u8::MAX)));
                         g
                     })
                 };

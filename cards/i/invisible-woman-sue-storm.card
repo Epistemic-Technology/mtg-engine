@@ -1,0 +1,8 @@
+card "Invisible Woman, Sue Storm" {
+  oracle_id e9d20b6d-fa4f-473b-9866-230fd92a1319
+  cost {4}{W}
+  type Legendary Creature — Human Hero
+  pt 2/5
+  keywords lifelink
+  triggered whenever you put one or more +1/+1 counters on one or more other Hero you control: you may create 1 "0/4 colorless Wall creature with defender"
+}

@@ -1,0 +1,8 @@
+card "Beatrix, Loyal General" {
+  oracle_id 2f24637d-8d8e-49de-b229-4cdb97595ed7
+  cost {4}{W}{W}
+  type Legendary Creature — Human Soldier
+  pt 4/4
+  keywords vigilance
+  triggered at beginning of your combat: you may attach any number Equipment you control to target creature you control chosen
+}

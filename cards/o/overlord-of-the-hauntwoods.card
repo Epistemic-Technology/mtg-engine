@@ -1,0 +1,8 @@
+card "Overlord of the Hauntwoods" {
+  oracle_id 4669e8c7-fc37-4b97-9cb7-8d29b43d9176
+  cost {3}{G}{G}
+  type Enchantment Creature — Avatar Horror
+  pt 6/5
+  impending 4 {1}{G}{G}
+  triggered whenever this enters or attacks: create 1 tapped "Everywhere"
+}

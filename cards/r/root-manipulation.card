@@ -1,0 +1,6 @@
+card "Root Manipulation" {
+  oracle_id d870948e-721a-46fd-86b6-ecd42e3aa9bd
+  cost {3}{B}{G}
+  type Sorcery
+  spell: until end of turn, creatures you control get +2/+2 and gain menace and gains ability { triggered whenever this attacks: you gain 1 life }
+}

@@ -1,0 +1,8 @@
+card "Attuma, Atlantean Warlord" {
+  oracle_id e3b70a85-4296-411f-a673-7992b0c8a9aa
+  cost {2}{U}{U}
+  type Legendary Creature — Merfolk Warrior Villain
+  pt 3/4
+  static other Merfolk you control: +1/+1
+  triggered whenever one or more Merfolk you control attack a player: draw 1 card
+}

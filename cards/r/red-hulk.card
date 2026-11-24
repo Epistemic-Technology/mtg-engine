@@ -1,0 +1,9 @@
+card "Red Hulk" {
+  oracle_id a14a838a-49f4-45e3-9ec0-3c803af45a68
+  cost {4}{R}{R}
+  type Legendary Creature — Gamma Berserker Villain
+  pt 6/7
+  pronoun he
+  keywords reach, trample
+  label "Enrage" triggered whenever this is dealt damage: put 1 +1/+1 counter on this; when you do, deal damage equal +1/+1 counters on it to any other target
+}

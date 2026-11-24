@@ -1439,6 +1439,16 @@ impl P {
                 card.flash_if_may = true;
                 self.end_stmt()
             }
+            // `flash first if <condition>`: "If there are three or more
+            // Lesson cards in your graveyard, you may cast this spell as
+            // though it had flash." (Serpent of the Pass; wording only).
+            "flash" if self.at_words(&["flash", "first", "if"]) => {
+                self.pos += 3;
+                card.flash_if = Some(self.static_cond()?);
+                card.flash_if_may = true;
+                card.flash_if_named = true;
+                self.end_stmt()
+            }
             "flash"
                 if self.at_words(&["flash", "as", "long", "as"])
                     || self.at_words(&["flash", "named", "as", "long", "as"]) =>
@@ -7363,6 +7373,31 @@ impl P {
                         })
                 })
         };
+        // `unless they discard 1 card else sacrifice creature`: "unless they
+        // discard a card or sacrifice a creature" (Polygraph Orb), the
+        // same choice as `... sacrifice creature else discard 1 card`.
+        if self.at_words(&["they", "discard"])
+            && matches!(self.peek_at(2), Some(Tok::Num(1)))
+            && self.word_at(3).as_deref() == Some("card")
+            && self.word_at(4).as_deref() == Some("else")
+            && self.word_at(5).as_deref() == Some("sacrifice")
+        {
+            let Some(payer) = self.subject else {
+                return self.fail("`unless they discard` needs a clause with a subject");
+            };
+            self.pos += 6;
+            let filter = self.filter()?;
+            if self.in_spell && filter.relation == Relation::Other {
+                return self.fail("`unless they ... sacrifice another` in a spell isn't supported");
+            }
+            return Ok(Effect::UnlessSacrifices {
+                payer,
+                filter,
+                or_discard: true,
+                discard_first: true,
+                effect: Box::new(e),
+            });
+        }
         if sacrifices(self) {
             let payer = if self.eat_words(&["they", "sacrifice"]) {
                 match self.subject {
@@ -7397,6 +7432,7 @@ impl P {
                 payer,
                 filter,
                 or_discard,
+                discard_first: false,
                 effect: Box::new(e),
             });
         }
@@ -8288,6 +8324,13 @@ impl P {
     fn this_way_what(&mut self) -> R<(Option<Filter>, bool)> {
         if self.eat_word("card") {
             return Ok((None, true));
+        }
+        // `you sacrificed permanent this way`: any permanent ("If you
+        // sacrificed a permanent this way", Deadly Brew); the filter would
+        // read `this` as the source.
+        if self.at_words(&["permanent", "this", "way"]) {
+            self.pos += 1;
+            return Ok((Some(Filter::default()), false));
         }
         let f = self.filter()?;
         let card = self.eat_word("card");
@@ -11290,12 +11333,23 @@ impl P {
                         by: None,
                     });
                 }
-                self.expect_words(&["to", "target"])?;
-                let Some(Tok::Num(n)) = self.next() else {
-                    return self.fail("expected a target number after `to target`");
-                };
-                let n = u8::try_from(n.saturating_sub(1)).unwrap_or(0);
-                (ChooseAct::AttachToTarget(n), f)
+                self.expect_word("to")?;
+                // `attach any number Equipment you control to target
+                // creature you control chosen`: the target declared here
+                // ("... to target creature you control", Beatrix).
+                if self.at_word("target") && !matches!(self.peek_at(1), Some(Tok::Num(_))) {
+                    let Recipient::Target(n) = self.recipient()? else {
+                        return self.fail("expected a single target after `attach ... to`");
+                    };
+                    (ChooseAct::AttachToTarget(u8::try_from(n).unwrap_or(0)), f)
+                } else {
+                    self.expect_word("target")?;
+                    let Some(Tok::Num(n)) = self.next() else {
+                        return self.fail("expected a target number after `to target`");
+                    };
+                    let n = u8::try_from(n.saturating_sub(1)).unwrap_or(0);
+                    (ChooseAct::AttachToTarget(n), f)
+                }
             }
             "exile" => {
                 let at = self.pos;
@@ -14356,6 +14410,12 @@ impl P {
                 } else {
                     let e = self.delayed_effects()?;
                     let t = self.trigger()?;
+                    // `copy that spell new targets when next you cast spell
+                    // this turn`: "copy the next spell you cast this turn
+                    // when you cast it" (Flamehold Grappler).
+                    if matches!(t, Trigger::Next(_)) {
+                        turn_long = self.eat_words(&["this", "turn"]);
+                    }
                     (t, e, false)
                 };
                 if closed {
@@ -14810,7 +14870,10 @@ impl P {
             let f = self.filter()?;
             // `nonland card revealed this way` (parley): cards in a library.
             // `creature card milled this way`: milled cards are cards.
-            if self.at_words(&["card", "revealed"]) || self.at_words(&["card", "milled"]) {
+            if self.at_words(&["card", "revealed"])
+                || self.at_words(&["card", "milled"])
+                || self.at_words(&["card", "graveyarded"])
+            {
                 self.pos += 1;
             }
             let Some(verb) = self.word_at(0).and_then(|w| crate::ast::this_way_verb(&w)) else {
@@ -15739,7 +15802,9 @@ impl P {
             || (matches!(self.peek(), Some(Tok::Num(_)))
                 && self.word_at(1).as_deref() == Some("to")
                 && matches!(self.peek_at(2), Some(Tok::Num(_)))
-                && target(3))
+                // "one or two other target Vehicles and/or creatures you
+                // control" (Cloudspire Skycycle): `1 to 2 another target`.
+                && (target(3) || (self.word_at(3).as_deref() == Some("another") && target(4))))
     }
 
     /// A variable target group (see `at_many`), declared as one target.
@@ -15818,6 +15883,25 @@ impl P {
             && (self.word_at(3).as_deref() == Some("target")
                 || self.word_at(3).as_deref() == Some("another")
                     && self.word_at(4).as_deref() == Some("target"));
+        // `up to 1 any other target` (how `up to 2 another target any`
+        // formats one at a time): "up to one other target".
+        if self.at_words(&["up", "to"])
+            && matches!(self.peek_at(2), Some(Tok::Num(_)))
+            && self.word_at(3).as_deref() == Some("any")
+            && self.word_at(4).as_deref() == Some("other")
+            && self.word_at(5).as_deref() == Some("target")
+        {
+            self.pos += 2;
+            let n = self.number()?;
+            self.pos += 3;
+            let spec = Target::UpTo(Box::new(Target::Spec(TargetSpec::AnyOther)));
+            let mut out = Vec::new();
+            for _ in 0..n {
+                out.push(Recipient::Target(self.targets.len()));
+                self.targets.push(spec.clone());
+            }
+            return Ok(out);
+        }
         if up_to {
             self.pos += 2;
         }
@@ -19049,6 +19133,7 @@ impl P {
             return Ok(Trigger::Each(Box::new(Trigger::YouPutCounters {
                 obj,
                 kind,
+                many: false,
             })));
         }
         if self.eat_words(&["you", "put", "one", "or", "more"]) {
@@ -19060,12 +19145,13 @@ impl P {
                 Some(k)
             };
             self.expect_word("on")?;
+            let many = self.eat_words(&["one", "or", "more"]);
             let obj = if self.eat_word("this") {
                 TriggerObj::This
             } else {
                 TriggerObj::Filter(self.filter()?)
             };
-            return Ok(Trigger::YouPutCounters { obj, kind });
+            return Ok(Trigger::YouPutCounters { obj, kind, many });
         }
         if self.eat_words(&[
             "a",
@@ -19252,7 +19338,8 @@ impl P {
             if let Ok(f) = self.filter()
                 && self.eat_word("attack")
             {
-                return Ok(Trigger::OneOrMoreAttack(f));
+                let player = self.eat_words(&["a", "player"]);
+                return Ok(Trigger::OneOrMoreAttack(f, player));
             }
             self.pos = before;
         }
@@ -20555,6 +20642,8 @@ impl P {
                             ))
                         } else if self.eat_word("each") {
                             crate::ast::ReduceBy::Each(self.count_expr()?)
+                        } else if self.eat_word("where") {
+                            crate::ast::ReduceBy::Where(self.count_expr()?)
                         } else if self.eat_words(&["during", "your", "turn"]) {
                             // "This ability costs {1} less to activate
                             // during your turn." (Hylda's Crown of Winter).
@@ -21520,7 +21609,7 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::CreaturesYouControlAttack
         | Trigger::OpponentCreaturesAttack(_)
         | Trigger::ThisToGraveyard
-        | Trigger::OneOrMoreAttack(_)
+        | Trigger::OneOrMoreAttack(..)
         | Trigger::GainsLife { .. }
         | Trigger::GainsLifeFirst { .. }
         | Trigger::LosesLife { .. }

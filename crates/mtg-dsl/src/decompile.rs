@@ -1947,6 +1947,7 @@ impl Decompiler<'_> {
                 payer: Self::recipient(*payer),
                 filter: self.filter(filter),
                 or_discard: *or_discard,
+                discard_first: false,
                 effect: Box::new(
                     effects
                         .first()
@@ -2760,6 +2761,7 @@ impl Decompiler<'_> {
             TriggerSpec::YouPutCounters { what, kind } => Trigger::YouPutCounters {
                 obj: self.trigger_obj(what),
                 kind: *kind,
+                many: false,
             },
             TriggerSpec::DealtDamage(o) => Trigger::DealtDamage(self.trigger_obj(o)),
             TriggerSpec::DealtDamageAtLeast(o, n) => {
@@ -2850,6 +2852,15 @@ impl Decompiler<'_> {
             },
             TriggerSpec::CastThis => Trigger::CastThis { or_cycle: false },
             TriggerSpec::Next(inner) => Trigger::Next(Box::new(self.trigger(inner))),
+            TriggerSpec::Batch(inner)
+                if let TriggerSpec::YouPutCounters { what, kind } = &**inner =>
+            {
+                Trigger::YouPutCounters {
+                    obj: self.trigger_obj(what),
+                    kind: *kind,
+                    many: true,
+                }
+            }
             TriggerSpec::Batch(inner) => Trigger::Batch(Box::new(self.trigger(inner))),
             TriggerSpec::Each(inner) => Trigger::Each(Box::new(self.trigger(inner))),
             TriggerSpec::OnNextTurn(inner) => Trigger::OnNextTurn(Box::new(self.trigger(inner))),

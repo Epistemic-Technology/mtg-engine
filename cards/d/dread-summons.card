@@ -1,0 +1,6 @@
+card "Dread Summons" {
+  oracle_id 642fa01d-025e-44dd-8360-5325e5a28282
+  cost {X}{B}{B}
+  type Sorcery
+  spell: each player mills X cards; you create count foreach creature card graveyarded this way tapped "2/2 black Zombie creature"
+}

@@ -1,0 +1,6 @@
+card "Memorial Vault" {
+  oracle_id 10dda10f-2549-47e5-9a8b-fb414cf38d3f
+  cost {3}{R}
+  type Artifact
+  activated {T}, sacrifice other artifact: impulse count where plus one mana value of the sacrificed artifact this turn
+}

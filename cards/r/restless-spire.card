@@ -1,0 +1,8 @@
+card "Restless Spire" {
+  oracle_id 0ca4e80e-c19c-4b74-b531-c5a4dc5a8ba9
+  type Land
+  enters tapped
+  activated {T}: add {U} or {R}
+  activated {U}{R}: until end of turn, this becomes 2/1 blue red Elemental creature with ability { static during your turn, this: has first strike }
+  triggered whenever this attacks: scry 1
+}

@@ -1,0 +1,10 @@
+card "Quicksilver, Brash Blur" {
+  oracle_id b76ce131-e51a-445e-8216-00df5904ab93
+  cost {R}
+  type Legendary Creature — Mutant Hero
+  pt 1/1
+  pronoun he
+  opening hand
+  keywords haste
+  power-up {4}{R}: put 1 +1/+1 counter and 1 double strike counter on this
+}
