@@ -1061,6 +1061,41 @@ impl GameState {
             CountExpr::LifeLostThisWay => {
                 return self.this_way.as_ref().map_or(0, |log| log.life_lost);
             }
+            CountExpr::Their(what) => {
+                let Some(p) = self.acting() else {
+                    return 0;
+                };
+                let ps = self.player(p);
+                match what {
+                    crate::card::PlayerCount::Hand => ps.hand.len(),
+                    crate::card::PlayerCount::Library => ps.library.len(),
+                    crate::card::PlayerCount::Life => {
+                        return u32::try_from(ps.life.max(0)).unwrap_or(0);
+                    }
+                }
+            }
+            CountExpr::PlayersDidntDiscard { n, filter } => {
+                let Some(log) = self.this_way.as_ref() else {
+                    return 0;
+                };
+                log.asked
+                    .iter()
+                    .filter(|p| {
+                        let did = log
+                            .moved
+                            .iter()
+                            .filter(|m| {
+                                m.owner == **p
+                                    && m.is(crate::card::ThisWay::Discarded)
+                                    && filter
+                                        .as_ref()
+                                        .is_none_or(|f| self.moved_matches(ctx, m, f))
+                            })
+                            .count();
+                        (did as u64) < u64::from(*n)
+                    })
+                    .count()
+            }
             CountExpr::BlockingIt { beyond } => {
                 let n = u32::try_from(self.blocking_it(ctx).len()).unwrap_or(u32::MAX);
                 return n.saturating_sub(*beyond);
@@ -2019,6 +2054,35 @@ impl GameState {
     }
 
     /// `p` discards `n` cards of their choice (CR 701.9), one at a time.
+    /// The player a per-player effect is acting on (`ThisWayLog::acting`).
+    pub(super) fn acting(&self) -> Option<PlayerId> {
+        self.this_way.as_ref().and_then(|l| l.acting)
+    }
+
+    pub(super) fn set_acting(&mut self, p: Option<PlayerId>) {
+        if let Some(l) = &mut self.this_way {
+            l.acting = p;
+        }
+    }
+
+    /// A per-player act begins: forget who the last one asked.
+    fn begin_asking(&mut self) {
+        if let Some(l) = &mut self.this_way {
+            l.asked.clear();
+            l.declined.clear();
+        }
+    }
+
+    /// `p` was asked by a per-player act, and didn't (or couldn't) do it.
+    fn note_asked(&mut self, p: PlayerId, declined: bool) {
+        if let Some(l) = &mut self.this_way {
+            l.asked.push(p);
+            if declined {
+                l.declined.push(p);
+            }
+        }
+    }
+
     fn discard_n(&mut self, p: PlayerId, n: u32) {
         for _ in 0..n {
             let options: Vec<Choice> = self
@@ -2194,6 +2258,15 @@ impl GameState {
                     // "If the sacrificed creature was suspected" (Agency
                     // Coroner): as it last existed (CR 701.60).
                     && one.status.suspected.is_none_or(|s| l.object.suspected() == s)
+                    // "a card with mana value 4 or greater", which
+                    // `matches` leaves to the caller: its card's mana cost.
+                    && (one.status.mana_value_x
+                        || one.mana_value.is_none_or(|(cmp, n)| {
+                            cmp.holds(
+                                self.pool.get(l.object.def).mana_cost.mana_value(),
+                                u32::from(n),
+                            )
+                        }))
                 {
                     return true;
                 }
@@ -5966,7 +6039,8 @@ impl GameState {
                 None
                 | Some(
                     crate::card::ThatPlayer::Target(_)
-                    | crate::card::ThatPlayer::TargetOrController { .. },
+                    | crate::card::ThatPlayer::TargetOrController { .. }
+                    | crate::card::ThatPlayer::Acting,
                 ) => true,
                 Some(crate::card::ThatPlayer::Triggering) => {
                     matches!(s, TargetSpec::UpTo(_))
@@ -9526,6 +9600,11 @@ impl GameState {
                 self.note_group(&out);
             }
             Recipient::EachPlayer => out.extend(self.players_in_game().map(Target::Player)),
+            Recipient::Declined => {
+                if let Some(l) = &self.this_way {
+                    out.extend(l.declined.iter().map(|p| Target::Player(*p)));
+                }
+            }
             Recipient::EachCreatureYouControl => {
                 out.extend(self.creatures_of(ctx.controller).map(Target::Object));
                 self.note_group(&out);
@@ -9887,6 +9966,7 @@ impl GameState {
         };
         match rel {
             ThatPlayer::Triggering => ctx.trigger_player.map(Some),
+            ThatPlayer::Acting => self.acting().map(Some),
             ThatPlayer::Target(n) => match target(n)? {
                 Target::Player(p) => Some(Some(p)),
                 Target::Object(_) => None,
@@ -10685,11 +10765,13 @@ impl GameState {
                 let mut lost = 0u32;
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
+                        self.set_acting(Some(p));
                         let n = self.eval_num(*amount, ctx);
                         lost = lost.saturating_add(n);
                         self.lose_life(p, n);
                     }
                 }
+                self.set_acting(None);
                 // "Target opponent loses 1 life for each attacking creature
                 // you control. You gain that much life."
                 ctx.trigger_amount = lost;
@@ -10724,11 +10806,13 @@ impl GameState {
             Effect::DrawCards { count, who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
+                        self.set_acting(Some(p));
                         for _ in 0..self.eval_num(*count, ctx) {
                             self.draw(p);
                         }
                     }
                 }
+                self.set_acting(None);
             }
             Effect::AddCounters { kind, count, to } => {
                 // CR 608.2h: the number is determined once, before any
@@ -10879,7 +10963,9 @@ impl GameState {
             Effect::Mill { count, who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
+                        self.set_acting(Some(p));
                         let n = self.eval_num(*count, ctx);
+                        self.set_acting(None);
                         // "Mill a card. You may play that card this turn.":
                         // the one card milled is "that card".
                         let before = self.player(p).graveyard.len();
@@ -11177,17 +11263,23 @@ impl GameState {
             }
             Effect::Discard { count, who } => {
                 ctx.couldnt = 0;
-                for t in self.recipients(ctx, *who) {
+                let players = self.recipients(ctx, *who);
+                self.begin_asking();
+                for t in players {
                     let Target::Player(p) = t else {
                         continue;
                     };
                     if self.player(p).hand.is_empty() {
                         ctx.did = false;
                     }
+                    self.set_acting(Some(p));
                     let n = self.eval_num(*count, ctx);
-                    if (self.player(p).hand.len() as u64) < u64::from(n) {
+                    self.set_acting(None);
+                    let couldnt = (self.player(p).hand.len() as u64) < u64::from(n);
+                    if couldnt {
                         ctx.couldnt += 1;
                     }
+                    self.note_asked(p, couldnt);
                     self.discard_n(p, n);
                 }
             }
@@ -11949,11 +12041,18 @@ impl GameState {
             | Effect::ExileChosen { who, filter, count } => {
                 let bounce = matches!(effect, Effect::ReturnChosen { .. });
                 let exile = matches!(effect, Effect::ExileChosen { .. });
-                for t in self.recipients(ctx, *who) {
+                let players = self.recipients(ctx, *who);
+                self.begin_asking();
+                for t in players {
                     let Target::Player(p) = t else {
                         continue;
                     };
-                    for _ in 0..self.eval_num(*count, ctx) {
+                    self.set_acting(Some(p));
+                    let n = self.eval_num(*count, ctx);
+                    self.set_acting(None);
+                    // "Each opponent who can't discards a card."
+                    let mut done = 0;
+                    for _ in 0..n {
                         let options: Vec<Choice> = self
                             .permanents_of(p)
                             .filter(|id| {
@@ -11983,8 +12082,10 @@ impl GameState {
                             } else {
                                 self.sacrifice(id);
                             }
+                            done += 1;
                         }
                     }
+                    self.note_asked(p, done < n);
                 }
             }
             Effect::ExileFromHand {
@@ -13061,7 +13162,9 @@ impl GameState {
                     .expect("a resolving spell or its last known information exists");
                 let you = ctx.controller;
                 let mut any = false;
-                for p in players {
+                // "Each player who doesn't loses 3 life."
+                let mut declined: SmallVec<[PlayerId; 4]> = SmallVec::new();
+                for &p in &players {
                     ctx.controller = p;
                     let possible = effects.iter().all(|e| match e {
                         Effect::Pay { mana, life } => {
@@ -13084,9 +13187,18 @@ impl GameState {
                         }
                     }
                     any |= did;
+                    if !did {
+                        declined.push(p);
+                    }
                 }
                 ctx.did = any;
                 ctx.controller = you;
+                if let Some(l) = &mut self.this_way {
+                    l.asked.clear();
+                    l.asked.extend(players);
+                    l.declined.clear();
+                    l.declined.extend(declined);
+                }
             }
             // "Any player may pay 5 life. If a player does, ...": from the
             // active player in turn order (CR 101.4), until one does.
@@ -13469,6 +13581,70 @@ impl GameState {
                             }
                         }
                     }
+                }
+            }
+            Effect::MayOr {
+                who,
+                sacrifice,
+                discard,
+            } => {
+                let def = self
+                    .objects
+                    .get(ctx.source)
+                    .map(|o| o.def)
+                    .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+                    .unwrap_or_default();
+                let players: SmallVec<[PlayerId; 2]> = self
+                    .recipients(ctx, *who)
+                    .into_iter()
+                    .filter_map(|t| match t {
+                        Target::Player(p) => Some(p),
+                        Target::Object(_) => None,
+                    })
+                    .collect();
+                self.begin_asking();
+                for p in players {
+                    // CR 608.2d: each player chooses as it resolves, in
+                    // turn order: `Mode(0)` sacrifices, `Mode(1)` discards,
+                    // `Mode(2)` does neither.
+                    let sacrificable: Vec<Choice> = sacrifice.as_ref().map_or_else(Vec::new, |f| {
+                        self.permanents_of(p)
+                            .filter(|id| {
+                                self.characteristics(*id).is_some_and(|c| {
+                                    f.matches(*id, p, &c, Some(ctx.source), Some(p))
+                                }) && self.status_ok(f, *id)
+                            })
+                            .map(Choice::Sacrifice)
+                            .collect()
+                    });
+                    let mut options = Vec::new();
+                    if !sacrificable.is_empty() {
+                        options.push(Choice::Mode(0));
+                    }
+                    if *discard && !self.player(p).hand.is_empty() {
+                        options.push(Choice::Mode(1));
+                    }
+                    options.push(Choice::Mode(2));
+                    let k = if options.len() == 1 {
+                        0
+                    } else {
+                        self.choose_mid(p, DecisionKind::ChooseOption { def }, options.clone())
+                    };
+                    let declined = match options[k] {
+                        Choice::Mode(0) => {
+                            let k = self.choose_mid(p, DecisionKind::Edict, sacrificable.clone());
+                            if let Choice::Sacrifice(id) = sacrificable[k] {
+                                self.sacrifice(id);
+                            }
+                            false
+                        }
+                        Choice::Mode(1) => {
+                            self.discard_n(p, 1);
+                            false
+                        }
+                        _ => true,
+                    };
+                    self.note_asked(p, declined);
                 }
             }
             // CR 702.55a: "exile it haunting target creature": the card,

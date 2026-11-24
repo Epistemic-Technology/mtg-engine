@@ -310,10 +310,18 @@ fn wrong_meaning_forms_of_the_sixth_correctness_wave_are_rejected() {
     // No triggering player in a spell.
     let e = spell_error("deal 2 damage to each creature that player controls");
     assert!(e.contains("that player controls"), "{e}");
-    // `they control` counts an opponent's permanents (each player's own
-    // only for "loses life", Stronghold Discipline).
-    let e = spell_error("each player draws count each creature they control cards");
+    // `they control` counts an opponent's permanents, except for the
+    // effects that act for each player in turn (life loss, draws, mills,
+    // discards, sacrifices: `ThatPlayer::Acting`).
+    let e = spell_error("each player gains count each creature they control life");
     assert!(e.contains("they control"), "{e}");
+    assert!(
+        load_card(
+            "Sorcery",
+            "spell: each player draws count each creature they control cards"
+        )
+        .is_ok()
+    );
     assert!(
         load_card(
             "Sorcery",

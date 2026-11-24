@@ -1,0 +1,359 @@
+# Effects over a set of players with per-player amounts: "half the
+# creatures they control", "half the cards in their hand", "half their
+# library", "half their life" (CR 107.1a), counted for each player as the
+# effect happens for them; "each opponent who didn't / can't" after a
+# per-player act; "For each opponent who didn't discard ... this way".
+
+scenario "Rush of Dread: half the creatures they control, rounded up" {
+  battlefield A: 4 "Swamp"
+  battlefield B: 3 "Grizzly Bears", "Forest"
+  battlefield A: "Hill Giant"
+  hand A: "Rush of Dread"
+  turn 1 A: cast "Rush of Dread" mode 1 targeting player B
+  run_to turn 1 end
+  assert graveyard B count 2
+  assert battlefield B contains "Grizzly Bears"
+  assert battlefield B contains "Forest"
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Rush of Dread: half the cards in their hand, rounded up, and half their life" {
+  battlefield A: 7 "Swamp"
+  hand A: "Rush of Dread"
+  hand B: "Island", "Forest", "Mountain"
+  life B 15
+  turn 1 A: cast "Rush of Dread" mode 6 targeting player B, player B
+  run_to turn 1 end
+  assert hand B count 1
+  assert life B 7
+}
+
+scenario "Singularity Rupture: each target player mills half their own library" {
+  battlefield A: 5 "Swamp", 2 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Singularity Rupture"
+  library A: 4 "Plains"
+  library B: 7 "Island"
+  turn 1 A: cast "Singularity Rupture" targeting player A, player B
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert library A count 2
+  assert library B count 4
+}
+
+scenario "Singularity Rupture: a player not chosen mills nothing" {
+  battlefield A: 5 "Swamp", 2 "Island"
+  hand A: "Singularity Rupture"
+  library A: 4 "Plains"
+  library B: 7 "Island"
+  turn 1 A: cast "Singularity Rupture" targeting player B
+  run_to turn 1 end
+  assert library A count 4
+  assert library B count 4
+}
+
+scenario "Zodiark: each player sacrifices half their non-God creatures, rounded down" {
+  battlefield A: 5 "Swamp", 3 "Grizzly Bears"
+  battlefield B: 5 "Hill Giant"
+  hand A: "Zodiark, Umbral God"
+  turn 1 A: cast "Zodiark, Umbral God"
+  run_to turn 1 end
+  assert graveyard A count 1
+  assert graveyard B count 2
+  assert battlefield A contains "Zodiark, Umbral God"
+  assert counters "Zodiark, Umbral God" +1/+1 3
+}
+
+scenario "Pox Plague: life, then hand, then permanents, each halved rounded down" {
+  battlefield A: 5 "Swamp"
+  battlefield B: 3 "Forest", "Grizzly Bears"
+  hand A: "Pox Plague", "Island", "Plains"
+  hand B: "Island", "Mountain", "Plains"
+  life B 15
+  turn 1 A: cast "Pox Plague"
+  run_to turn 1 end
+  assert life A 10
+  assert life B 8
+  assert hand A count 1
+  assert hand B count 2
+  assert battlefield A count 3
+  assert battlefield B count 2
+}
+
+scenario "Zoyowa: each opponent who didn't is dealt 3 damage" {
+  battlefield A: "Zoyowa Lava-Tongue", "Swamp", "Mountain", "Grizzly Bears"
+  hand A: "Shock"
+  hand B: "Island"
+  battlefield B: "Forest"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 end B: choose "3"
+  run_to turn 2 untap
+  assert life B 17
+  assert hand B contains "Island"
+  assert battlefield B contains "Forest"
+}
+
+scenario "Zoyowa: discarding a card stops the damage" {
+  battlefield A: "Zoyowa Lava-Tongue", "Swamp", "Mountain", "Grizzly Bears"
+  hand A: "Shock"
+  hand B: "Island"
+  battlefield B: "Forest"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 end B: choose "2"
+  run_to turn 2 untap
+  assert life B 20
+  assert graveyard B contains "Island"
+}
+
+scenario "Zoyowa: sacrificing a permanent stops the damage" {
+  battlefield A: "Zoyowa Lava-Tongue", "Swamp", "Mountain", "Grizzly Bears"
+  hand A: "Shock"
+  hand B: "Island"
+  battlefield B: "Forest"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 end B: choose "1"
+  run_to turn 2 untap
+  assert life B 20
+  assert graveyard B contains "Forest"
+  assert hand B contains "Island"
+}
+
+scenario "Zoyowa: without descending, nothing happens" {
+  battlefield A: "Zoyowa Lava-Tongue"
+  hand B: "Island"
+  run_to turn 2 untap
+  assert life B 20
+  assert hand B contains "Island"
+}
+
+scenario "Osseous Sticktwister: damage equal to its power to each opponent who didn't" {
+  battlefield A: "Osseous Sticktwister"
+  graveyard A: "Grizzly Bears", "Forest", "Shock", "Ornithopter"
+  battlefield B: "Forest"
+  hand B: "Island"
+  turn 1 end B: choose "3"
+  run_to turn 2 untap
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Osseous Sticktwister: a land can't be sacrificed to it" {
+  battlefield A: "Osseous Sticktwister"
+  graveyard A: "Grizzly Bears", "Forest", "Shock", "Ornithopter"
+  battlefield B: "Forest"
+  run_to turn 2 untap
+  assert life B 18
+  assert battlefield B contains "Forest"
+}
+
+scenario "The Death of Gwen Stacy: each player who doesn't discard loses 3 life" {
+  battlefield A: "The Death of Gwen Stacy" with 1 lore
+  hand A: "Plains"
+  hand B: "Island"
+  start turn 3 A upkeep
+  turn 3 precombat_main A: decline "The Death of Gwen Stacy"
+  turn 3 precombat_main B: accept "The Death of Gwen Stacy"
+  run_to turn 3 end
+  assert life A 17
+  assert life B 20
+  assert graveyard B contains "Island"
+}
+
+scenario "Entropic Battlecruiser: each opponent who can't discard loses 3 life" {
+  battlefield A: "Entropic Battlecruiser" with 8 charge
+  turn 1 A: attack "Entropic Battlecruiser"
+  run_to turn 1 end
+  assert life B 14
+}
+
+scenario "Entropic Battlecruiser: an opponent with a card discards it and loses 3 life to the station ability" {
+  battlefield A: "Entropic Battlecruiser" with 8 charge
+  hand B: "Island"
+  turn 1 A: attack "Entropic Battlecruiser"
+  run_to turn 1 end
+  assert graveyard B contains "Island"
+  assert life B 14
+}
+
+scenario "Momentum Breaker: an opponent who can't sacrifice discards a card" {
+  battlefield A: 2 "Swamp"
+  hand A: "Momentum Breaker"
+  hand B: "Island"
+  turn 1 A: cast "Momentum Breaker"
+  run_to turn 1 end
+  assert graveyard B contains "Island"
+}
+
+scenario "Momentum Breaker: an opponent who sacrifices keeps their hand" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Momentum Breaker"
+  hand B: "Island"
+  turn 1 A: cast "Momentum Breaker"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert hand B contains "Island"
+}
+
+scenario "Hollow Marauder: draw for each target opponent who didn't discard a card with mana value 4 or greater" {
+  battlefield A: 7 "Swamp"
+  hand A: "Hollow Marauder"
+  hand B: "Grizzly Bears"
+  library A: "Plains", "Island"
+  turn 1 A: cast "Hollow Marauder"
+  turn 1 A: trigger "Hollow Marauder" targeting player B
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "Hollow Marauder: no draw for an opponent who discarded mana value 4 or greater" {
+  battlefield A: 7 "Swamp"
+  hand A: "Hollow Marauder"
+  hand B: "Hill Giant"
+  library A: "Plains", "Island"
+  turn 1 A: cast "Hollow Marauder"
+  turn 1 A: trigger "Hollow Marauder" targeting player B
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert hand A count 0
+}
+
+scenario "Hollow Marauder: with no opponent targeted, nothing is drawn" {
+  battlefield A: 7 "Swamp"
+  hand A: "Hollow Marauder"
+  hand B: "Grizzly Bears"
+  library A: "Plains", "Island"
+  turn 1 A: cast "Hollow Marauder"
+  turn 1 A: trigger "Hollow Marauder" targeting none
+  run_to turn 1 end
+  assert hand B contains "Grizzly Bears"
+  assert hand A count 0
+}
+
+scenario "Garruk, Veiled Butcher: -3 draws for an opponent who didn't discard two nonland cards" {
+  battlefield A: "Garruk, Veiled Butcher"
+  hand B: "Grizzly Bears", "Forest", "Hill Giant"
+  library A: "Plains", "Island"
+  turn 1 A: activate "Garruk, Veiled Butcher" ability 3
+  turn 1 precombat_main B: discard "Grizzly Bears"
+  turn 1 precombat_main B: discard "Forest"
+  run_to turn 1 end
+  assert hand A count 1
+  assert hand B contains "Hill Giant"
+}
+
+scenario "Garruk, Veiled Butcher: -3 draws nothing after two nonland cards" {
+  battlefield A: "Garruk, Veiled Butcher"
+  hand B: "Grizzly Bears", "Hill Giant", "Forest"
+  library A: "Plains", "Island"
+  turn 1 A: activate "Garruk, Veiled Butcher" ability 3
+  turn 1 precombat_main B: discard "Grizzly Bears"
+  turn 1 precombat_main B: discard "Hill Giant"
+  run_to turn 1 end
+  assert hand A count 0
+  assert hand B contains "Forest"
+}
+
+scenario "Garruk, Veiled Butcher: -2 makes a Beast only if you sacrificed a creature" {
+  battlefield A: "Garruk, Veiled Butcher", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Garruk, Veiled Butcher" ability 2
+  run_to turn 1 end
+  assert battlefield A contains "Beast"
+  assert exile B contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Garruk, Veiled Butcher: -2 with no creature of yours, no Beast" {
+  battlefield A: "Garruk, Veiled Butcher"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Garruk, Veiled Butcher" ability 2
+  run_to turn 1 end
+  assert battlefield A lacks "Beast"
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Stronghold Discipline: each player counts the creatures they control" {
+  battlefield A: 4 "Swamp", "Grizzly Bears"
+  battlefield B: 3 "Hill Giant"
+  hand A: "Stronghold Discipline"
+  turn 1 A: cast "Stronghold Discipline"
+  run_to turn 1 end
+  assert life A 19
+  assert life B 17
+}
+
+scenario "Plaguecrafter: each player who can't sacrifice discards a card" {
+  battlefield A: 3 "Swamp"
+  hand A: "Plaguecrafter", "Island"
+  hand B: "Forest"
+  turn 1 A: cast "Plaguecrafter"
+  run_to turn 1 end
+  assert graveyard A contains "Plaguecrafter"
+  assert hand A contains "Island"
+  assert graveyard B contains "Forest"
+}
+
+scenario "Fraying Omnipotence: halves rounded up each time" {
+  battlefield A: 5 "Swamp"
+  battlefield B: 3 "Grizzly Bears"
+  hand A: "Fraying Omnipotence"
+  hand B: "Island", "Forest", "Mountain"
+  life B 15
+  turn 1 A: cast "Fraying Omnipotence"
+  run_to turn 1 end
+  assert life A 10
+  assert life B 7
+  assert hand B count 1
+  assert battlefield B count 1
+}
+
+scenario "Traumatize: target player mills half their library, rounded down" {
+  battlefield A: 3 "Swamp", 2 "Island"
+  hand A: "Traumatize"
+  library B: 7 "Island"
+  turn 1 A: cast "Traumatize" targeting player B
+  run_to turn 1 end
+  assert library B count 4
+}
+
+scenario "Rakdos the Defiler: you sacrifice half your non-Demon permanents, rounded up" {
+  battlefield A: "Rakdos the Defiler", 3 "Swamp"
+  turn 1 A: attack "Rakdos the Defiler"
+  run_to turn 1 end
+  assert battlefield A count 2
+  assert battlefield A contains "Rakdos the Defiler"
+  assert life B 13
+}
+
+scenario "Liliana, Waker of the Dead: each opponent who can't discard loses 3 life" {
+  battlefield A: "Liliana, Waker of the Dead"
+  hand A: "Island"
+  turn 1 A: activate "Liliana, Waker of the Dead" ability 1
+  run_to turn 1 end
+  assert graveyard A contains "Island"
+  assert life A 20
+  assert life B 17
+}
+
+scenario "Lord Xander: target opponent discards half their hand, rounded down" {
+  battlefield A: 3 "Swamp", 2 "Island", 2 "Mountain"
+  hand A: "Lord Xander, the Collector"
+  hand B: "Island", "Forest", "Mountain"
+  turn 1 A: cast "Lord Xander, the Collector"
+  turn 1 A: trigger "Lord Xander, the Collector" targeting player B
+  run_to turn 1 end
+  assert hand B count 2
+}
+
+scenario "Starseer Mentor: after losing life, the opponent sacrifices or loses 3" {
+  battlefield A: "Starseer Mentor", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player A
+  turn 1 end A: trigger "Starseer Mentor" targeting player B
+  turn 1 end B: choose "3"
+  run_to turn 2 untap
+  assert life B 17
+}

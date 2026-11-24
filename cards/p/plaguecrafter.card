@@ -1,0 +1,7 @@
+card "Plaguecrafter" {
+  oracle_id 2e3ee458-fa3f-4452-ab95-5a7fb5a0483b
+  cost {2}{B}
+  type Creature — Human Shaman
+  pt 3/2
+  triggered when this enters: each player sacrifices 1 creature or planeswalker; each player who can't discards 1 card
+}

@@ -1243,6 +1243,11 @@ pub enum ThatPlayer {
     /// controller controls"); `planeswalker` is only the wording. Judged
     /// for groups and counts like `Target`.
     TargetOrController { n: u8, planeswalker: bool },
+    /// The player a per-player effect is acting on ("Each player loses 1
+    /// life for each creature they control", "each player sacrifices half
+    /// the creatures they control"; `ThisWayLog::acting`). Judged for an
+    /// effect's counts; nothing matches outside such an effect.
+    Acting,
 }
 
 /// How an object a filter matches must be in combat with the source.
@@ -2239,6 +2244,29 @@ pub enum CountExpr {
     /// turn", "the amount of life you gained this turn", "for each
     /// opponent who lost life this turn"; `GameState::turn_count`).
     Happened(TurnCount),
+    /// A count of the player a per-player effect is acting on ("each
+    /// player discards half the cards in their hand", "any number of
+    /// target players each mill half their library"): that player's hand,
+    /// library, or life, judged as the effect happens for them
+    /// (`ThisWayLog::acting`); 0 outside such an effect.
+    Their(PlayerCount),
+    /// Players among those the resolution's last per-player act asked
+    /// (`ThisWayLog::asked`) who didn't discard `n` cards matching the
+    /// filter this way ("For each opponent who didn't discard two nonland
+    /// cards this way, you draw a card."), judged by the discarded cards
+    /// as they last existed.
+    PlayersDidntDiscard { n: u32, filter: Option<ObjFilter> },
+}
+
+/// What `CountExpr::Their` counts of a player.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum PlayerCount {
+    /// Cards in their hand.
+    Hand,
+    /// Cards in their library.
+    Library,
+    /// Their life total (0 if it is negative).
+    Life,
 }
 
 impl CountExpr {
@@ -2366,6 +2394,8 @@ impl CountExpr {
             | CountExpr::ThatSpellColors
             | CountExpr::SourceDamage
             | CountExpr::TargetColors(_)
+            | CountExpr::Their(_)
+            | CountExpr::PlayersDidntDiscard { .. }
             | CountExpr::DamageThisWay { .. } => false,
         }
     }
@@ -3881,6 +3911,11 @@ pub enum Recipient {
     /// controls chosen at random"), from the game's random number
     /// generator.
     RandomOf(u16),
+    /// The players who didn't or couldn't do what the resolution's last
+    /// per-player act asked ("Zoyowa deals 3 damage to each opponent who
+    /// didn't", "Each opponent who can't discards a card";
+    /// `ThisWayLog::declined`).
+    Declined,
     /// Each opponent who controls no permanent matching the pool's `n`th
     /// interned filter ("each opponent who doesn't control an Elf"),
     /// judged as the effect happens.
@@ -4785,6 +4820,17 @@ pub enum Effect {
         filter: ObjFilter,
         or_discard: bool,
         effects: Vec<Effect>,
+    },
+    /// "Each opponent may discard a card or sacrifice a permanent of their
+    /// choice.", "Each player may discard a card." (CR 608.2d): each
+    /// recipient player in turn may sacrifice one of their permanents
+    /// matching `sacrifice` or (with `discard`) discard a card; those who
+    /// do neither are `Recipient::Declined` for what follows ("...
+    /// deals 3 damage to each opponent who didn't").
+    MayOr {
+        who: Recipient,
+        sacrifice: Option<ObjFilter>,
+        discard: bool,
     },
     /// "Sacrifice it unless you discard a card at random", "... unless you
     /// return two Forests you control to their owner's hand": the
@@ -5798,6 +5844,7 @@ impl Effect {
                 | Effect::UnlessPays { .. }
                 | Effect::UnlessPaysCost { .. }
                 | Effect::UnlessSacrifices { .. }
+                | Effect::MayOr { .. }
                 | Effect::UnlessYou { .. }
                 | Effect::Scry { .. }
                 | Effect::Surveil { .. }

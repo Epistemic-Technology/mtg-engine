@@ -1,0 +1,6 @@
+card "Traumatize" {
+  oracle_id e2ea7d01-6564-4a7f-b935-49a5e3978dac
+  cost {3}{U}{U}
+  type Sorcery
+  spell: target player mills half down library
+}

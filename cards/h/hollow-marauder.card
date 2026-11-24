@@ -1,0 +1,9 @@
+card "Hollow Marauder" {
+  oracle_id 1a4075f3-6c18-4cbe-99e0-f403dd78a7b0
+  cost {6}{B}
+  type Creature — Specter Rogue
+  pt 4/2
+  this spell costs {1} less count each graveyard creature
+  keywords flying
+  triggered when this enters: any number of target opponents each discards 1 card; draw count foreach those opponents didn't discard 1 card with mana value 4 or greater cards
+}

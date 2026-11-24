@@ -7440,8 +7440,34 @@ impl P {
                     ..
                 }
             );
+        // "Each player sacrifices a creature for each creature they
+        // control", "any number of target players each draw a card for each
+        // creature they control": the player the effect is acting on
+        // (`ThatPlayer::Acting`), for the effects that act for each of
+        // their players in turn.
+        let acting = matches!(subject, Recipient::EachPlayer | Recipient::Targets(..))
+            && matches!(
+                e,
+                Effect::LoseLife { .. }
+                    | Effect::DrawCards { .. }
+                    | Effect::Mill { .. }
+                    | Effect::Discard { .. }
+                    | Effect::SacrificeChosen { .. }
+            );
+        if acting {
+            for c in &mut self.counts[counts..] {
+                if let crate::ast::CountExpr::Permanents(f) = &mut c.expr
+                    && f.they_control
+                    && f.that_player.is_none()
+                {
+                    f.who = None;
+                    f.that_player = Some(mtg_core::card::ThatPlayer::Acting);
+                }
+            }
+        }
         if matches!(subject, Recipient::EachPlayer | Recipient::You)
             && !own_count
+            && !acting
             && self.counts[counts..]
                 .iter()
                 .any(|c| matches!(&c.expr, crate::ast::CountExpr::Permanents(f) if f.they_control))
@@ -7729,6 +7755,39 @@ impl P {
                 let what = self.recipient()?;
                 Ok(Effect::SacrificeBy { who: subject, what })
             }
+            // "sacrifices half the creatures they control of their
+            // choice, rounded up".
+            "sacrifices" | "sacrifice" if self.half_ahead() => {
+                let at = self.pos;
+                let filter = {
+                    self.pos += 2;
+                    self.filter()?
+                };
+                if filter.who.is_some() || filter.that_player.is_some() {
+                    return self.fail(
+                        "`sacrifices half up <filter>`: the filter is of the permanents they control; leave out who controls them",
+                    );
+                }
+                let mut theirs = filter.clone();
+                if subject == Recipient::You {
+                    // "sacrifice half the non-Demon permanents you
+                    // control, rounded up" (Rakdos the Defiler).
+                    theirs.who = Some(Who::You);
+                } else {
+                    theirs.they_control = true;
+                    theirs.that_player = Some(mtg_core::card::ThatPlayer::Acting);
+                }
+                self.pos = at;
+                let count = self.half_count(crate::ast::CountExpr::Permanents(theirs))?;
+                self.filter()?;
+                Ok(Effect::SacrificeChosen {
+                    who: subject,
+                    count,
+                    filter,
+                    and: None,
+                    choice_first: false,
+                })
+            }
             "sacrifices" | "sacrifice" => {
                 let count = if self.eat_word("a") || self.eat_word("an") {
                     Num::N(1)
@@ -8000,6 +8059,17 @@ impl P {
                 }
             }
             "lose" | "loses" if self.eat_word("game") => Ok(Effect::LoseGame { who: subject }),
+            // "loses half their life, rounded down".
+            "lose" | "loses" if self.half_ahead() => {
+                let amount = self.half_count(crate::ast::CountExpr::Their(
+                    mtg_core::card::PlayerCount::Life,
+                ))?;
+                self.expect_word("life")?;
+                Ok(Effect::LoseLife {
+                    amount,
+                    who: subject,
+                })
+            }
             "lose" | "loses" if self.at_words(&["half", "life"]) => {
                 self.pos += 2;
                 Ok(Effect::LoseHalfLife { who: subject })
@@ -8016,6 +8086,17 @@ impl P {
                 let count = self.num()?;
                 self.cards_word()?;
                 Ok(Effect::DrawCards {
+                    count,
+                    who: (explicit || subject != Recipient::You).then_some(subject),
+                })
+            }
+            // "mills half their library, rounded down".
+            "mill" | "mills" if self.half_ahead() => {
+                let count = self.half_count(crate::ast::CountExpr::Their(
+                    mtg_core::card::PlayerCount::Library,
+                ))?;
+                self.expect_word("library")?;
+                Ok(Effect::Mill {
                     count,
                     who: (explicit || subject != Recipient::You).then_some(subject),
                 })
@@ -8083,6 +8164,17 @@ impl P {
                     filter,
                 })
             }
+            // "discards half the cards in their hand, rounded up".
+            "discard" | "discards" if self.half_ahead() => {
+                let count = self.half_count(crate::ast::CountExpr::Their(
+                    mtg_core::card::PlayerCount::Hand,
+                ))?;
+                self.expect_word("hand")?;
+                Ok(Effect::Discard {
+                    count,
+                    who: (explicit || subject != Recipient::You).then_some(subject),
+                })
+            }
             "discard" | "discards" => {
                 if let Some(e) = self.discard_all(Some(subject))? {
                     return Ok(e);
@@ -8147,6 +8239,41 @@ impl P {
                     who: subject,
                     count,
                     may: false,
+                })
+            }
+            // "Each opponent may discard a card or sacrifice a permanent of
+            // their choice."
+            "may"
+                if subject != Recipient::You
+                    && ((self.at_word("discard")
+                        && matches!(self.peek_at(1), Some(Tok::Num(1)))
+                        && self.word_at(3).as_deref() == Some("or")
+                        && self.word_at(4).as_deref() == Some("sacrifice"))
+                        || (self.at_word("sacrifice")
+                            && (2..8).any(|k| {
+                                self.word_at(k).as_deref() == Some("or")
+                                    && self.word_at(k + 1).as_deref() == Some("discard")
+                            }))) =>
+            {
+                let sacrifice_first = self.eat_word("sacrifice");
+                if !sacrifice_first {
+                    self.expect_word("discard")?;
+                    self.number()?;
+                    self.cards_word()?;
+                    self.expect_words(&["or", "sacrifice"])?;
+                }
+                let sacrifice = self.filter()?;
+                if sacrifice_first {
+                    self.expect_words(&["or", "discard"])?;
+                    if self.number()? != 1 {
+                        return self.fail("`may sacrifice ... or discard 1 card`: one card");
+                    }
+                    self.cards_word()?;
+                }
+                Ok(Effect::MayOr {
+                    who: subject,
+                    sacrifice,
+                    sacrifice_first,
                 })
             }
             // "That player may pay {4}", "that player may discard a card
@@ -10540,6 +10667,12 @@ impl P {
                 self.expect_word("echo")?;
                 Ok(Effect::ClearEcho)
             }
+            // "sacrifice half the non-Demon permanents you control,
+            // rounded up".
+            "sacrifice" if self.half_ahead() => {
+                self.pos -= 1;
+                self.subject_verb_inner(Recipient::You, false)
+            }
             "sacrifice" => {
                 let what = self.recipient()?;
                 Ok(Effect::Sacrifice { what })
@@ -11389,6 +11522,26 @@ impl P {
     }
 
     /// The card's count for `c`, shared with an equal one already parsed.
+    /// `half up`, `half down` next (`CountStyle::Half`).
+    fn half_ahead(&self) -> bool {
+        self.at_word("half") && matches!(self.word_at(1).as_deref(), Some("up" | "down"))
+    }
+
+    /// `half up`/`half down` of the acting player's count `inner`, as
+    /// written right after a per-player verb.
+    fn half_count(&mut self, inner: crate::ast::CountExpr) -> R<Num> {
+        let up = self.word_at(1).as_deref() == Some("up");
+        self.pos += 2;
+        self.push_count(crate::ast::Count {
+            expr: crate::ast::CountExpr::Divided {
+                by: 2,
+                up,
+                inner: Box::new(inner),
+            },
+            style: crate::ast::CountStyle::Half,
+        })
+    }
+
     fn push_count(&mut self, c: crate::ast::Count) -> R<Num> {
         let i = if let Some(i) = self.counts.iter().position(|x| *x == c) {
             i
@@ -11625,6 +11778,46 @@ impl P {
 
         if self.eat_words(&["opponents", "more", "cards", "in", "hand"]) {
             return Ok(CountExpr::OpponentsMoreCards);
+        }
+        // `their hand`, `their library`, `their life`: the acting
+        // player's.
+        if self.at_word("their")
+            && matches!(
+                self.word_at(1).as_deref(),
+                Some("hand" | "library" | "life")
+            )
+        {
+            use mtg_core::card::PlayerCount;
+            let what = match self.word_at(1).as_deref() {
+                Some("hand") => PlayerCount::Hand,
+                Some("library") => PlayerCount::Library,
+                _ => PlayerCount::Life,
+            };
+            self.pos += 2;
+            return Ok(CountExpr::Their(what));
+        }
+        // `opponents didn't discard 2 nonland card`, `those opponents
+        // didn't discard 1 card with mana value 4 or greater`.
+        if self.at_words(&["opponents", "didn't", "discard"])
+            || self.at_words(&["those", "opponents", "didn't", "discard"])
+        {
+            let those = self.eat_word("those");
+            self.pos += 3;
+            let n = self.number()?;
+            let filter = if self.at_word("card") || self.at_word("cards") {
+                self.pos += 1;
+                // `1 card with mana value 4 or greater`.
+                if self.at_word("with") {
+                    Some(self.filter()?)
+                } else {
+                    None
+                }
+            } else {
+                let f = self.filter()?;
+                self.cards_word()?;
+                Some(f)
+            };
+            return Ok(CountExpr::PlayersDidntDiscard { n, filter, those });
         }
         // `counters on this`, `counters on it`: every kind.
         if self.eat_words(&["counters", "on"]) {
@@ -12409,6 +12602,34 @@ impl P {
         // "A creature dealt damage this way can't be regenerated this turn."
         if self.eat_words(&["creature", "dealt", "damage", "this", "way"]) {
             return Ok(Recipient::DamagedThisWay);
+        }
+        // "each opponent who didn't", "each player who doesn't", "each
+        // opponent who can't": those who didn't do what the last
+        // per-player act asked.
+        if self.at_word("each")
+            && matches!(self.word_at(1).as_deref(), Some("opponent" | "player"))
+            && self.word_at(2).as_deref() == Some("who")
+            && matches!(
+                self.word_at(3).as_deref(),
+                Some("didn't" | "doesn't" | "can't")
+            )
+            && self.word_at(4).as_deref() != Some("control")
+        {
+            use crate::ast::DeclinedTense;
+            let player = self.word_at(1).as_deref() == Some("player");
+            let tense = match self.word_at(3).as_deref() {
+                Some("didn't") => DeclinedTense::Didnt,
+                Some("doesn't") => DeclinedTense::Doesnt,
+                _ => DeclinedTense::Cant,
+            };
+            self.pos += 4;
+            let tail =
+                tense == DeclinedTense::Didnt && self.eat_words(&["sacrifice", "or", "discard"]);
+            return Ok(Recipient::Declined(crate::ast::Declined {
+                player,
+                tense,
+                tail,
+            }));
         }
         // "each opponent who doesn't control an Elf".
         if self.eat_words(&["each", "opponent", "who", "doesn't", "control"]) {
@@ -13536,7 +13757,7 @@ impl P {
                         u8::try_from(n).unwrap_or(u8::MAX),
                     ));
                 }
-                "this" if self.word_at(1).as_deref() != Some("turn") => {
+                "this" if !matches!(self.word_at(1).as_deref(), Some("turn" | "way")) => {
                     f.relation = Relation::This;
                     self.pos += 1;
                 }

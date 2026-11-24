@@ -1,0 +1,7 @@
+card "Cut Your Losses" {
+  oracle_id 54530a84-8278-4c93-a2cb-f5c86619a053
+  cost {4}{U}{U}
+  type Sorcery
+  casualty 2
+  spell: target player mills half down library
+}

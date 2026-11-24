@@ -1,0 +1,6 @@
+card "Fraying Omnipotence" {
+  oracle_id 3b00068d-ad07-417c-bbb3-5f980615fb06
+  cost {3}{B}{B}
+  type Sorcery
+  spell: each player loses half up life, then discards half up hand, then sacrifices half up creature
+}

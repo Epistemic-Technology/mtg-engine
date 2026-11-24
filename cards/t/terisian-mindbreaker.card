@@ -1,0 +1,8 @@
+card "Terisian Mindbreaker" {
+  oracle_id d16fcb45-7fe7-4640-a325-badb64cadd62
+  cost {7}
+  type Artifact Creature — Juggernaut
+  pt 6/4
+  triggered whenever this attacks: defending player mills half up library
+  unearth {1}{U}{U}{U}
+}

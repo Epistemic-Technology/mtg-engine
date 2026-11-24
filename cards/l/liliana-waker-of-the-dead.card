@@ -1,0 +1,9 @@
+card "Liliana, Waker of the Dead" {
+  oracle_id e0df8e2a-96d2-4e4d-b065-aa2e162abbfe
+  cost {2}{B}{B}
+  type Legendary Planeswalker — Liliana
+  loyalty 4
+  loyalty +1: each player discards 1 card; each opponent who can't loses 3 life
+  loyalty -3: target creature gets -1/-1 count where graveyard
+  loyalty -7: emblem "Liliana, Waker of the Dead emblem"
+}

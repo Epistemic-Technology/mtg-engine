@@ -1,0 +1,10 @@
+card "Entropic Battlecruiser" {
+  oracle_id 90c5ea2b-d004-4219-b60c-d51bc1a5ee6b
+  cost {3}{B}
+  type Artifact — Spacecraft
+  pt 3/10
+  station
+  station 1: triggered whenever an opponent discards a card: they lose 3 life
+  station 8: flying, deathtouch
+  triggered whenever this attacks: each opponent discards 1 card; each opponent who can't loses 3 life
+}

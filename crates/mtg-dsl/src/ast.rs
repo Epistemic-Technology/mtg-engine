@@ -348,6 +348,12 @@ pub enum CountStyle {
     /// `deal damage equal <expr> to <what>`: "deals damage equal to ... to
     /// <what>", the amount before the recipient.
     EqualBefore,
+    /// `sacrifices half up creature`, `discards half up hand`, `mills half
+    /// down library`, `loses half down life`: "half the creatures they
+    /// control of their choice, rounded up", "half the cards in their
+    /// hand", "half their library", "half their life", written right after
+    /// a per-player verb (a `Divided` by 2 of the acting player's count).
+    Half,
 }
 
 /// How a count names the card revealed before (`CountExpr::CardManaValue`).
@@ -615,6 +621,20 @@ pub enum CountExpr {
     /// `opponents more cards in hand`: "for each opponent who has more
     /// cards in hand than you".
     OpponentsMoreCards,
+    /// `their hand`, `their library`, `their life`: the count of the
+    /// player a per-player effect is acting on ("each player discards half
+    /// the cards in their hand").
+    Their(mtg_core::card::PlayerCount),
+    /// `opponents didn't discard 2 nonland card`: "opponent who didn't
+    /// discard two nonland cards this way"; `those opponents didn't
+    /// discard 1 card with mana value 4 or greater`: "of those opponents
+    /// who didn't discard a card with mana value 4 or greater" (after a
+    /// discard by a group of target opponents).
+    PlayersDidntDiscard {
+        n: u32,
+        filter: Option<Filter>,
+        those: bool,
+    },
     /// `total power creature you control`: "the total power of creatures
     /// you control" (also `total toughness`, `total mana value`).
     Total(mtg_core::card::Stat, Filter),
@@ -3794,6 +3814,11 @@ pub enum Recipient {
     /// `each opponent who doesn't control Elf`: "each opponent who doesn't
     /// control an Elf" (the group's filter).
     OpponentsWithout(u16),
+    /// `each opponent who didn't`, `each player who doesn't`, `each
+    /// opponent who can't`: the players who didn't (or couldn't) do what
+    /// the last per-player act asked ("Zoyowa deals 3 damage to each
+    /// opponent who didn't", "Each opponent who can't loses 3 life.").
+    Declined(Declined),
     /// `creature dealt damage this way`: "a creature dealt damage this
     /// way" (each permanent the resolution has dealt damage to).
     DamagedThisWay,
@@ -4927,6 +4952,16 @@ pub enum Effect {
         or_discard: bool,
         effect: Box<Effect>,
     },
+    /// `each opponent may discard 1 card or sacrifice permanent`: "Each
+    /// opponent may discard a card or sacrifice a permanent of their
+    /// choice."; `... may sacrifice nonland permanent or discard 1 card`
+    /// (`sacrifice_first`). Those who do neither are `each opponent who
+    /// didn't` after it.
+    MayOr {
+        who: Recipient,
+        sacrifice: Filter,
+        sacrifice_first: bool,
+    },
     /// `<clause> unless you <clause>`: "sacrifice it unless you discard
     /// a card at random", "... unless you return two Forests you control
     /// to their owner's hand" (the controller may act to stop it).
@@ -5705,5 +5740,39 @@ pub fn exert_parts(effects: &[Sentence]) -> (&[Target], &[Sentence]) {
             _ => (&[], effects),
         },
         _ => (&[], effects),
+    }
+}
+
+/// How `Recipient::Declined` names its players.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+pub struct Declined {
+    /// "each player who ..." rather than "each opponent who ...".
+    pub player: bool,
+    pub tense: DeclinedTense,
+    /// `each opponent who didn't sacrifice or discard`: "...
+    /// who didn't sacrifice a permanent or discard a card this way".
+    pub tail: bool,
+}
+
+/// "didn't", "doesn't", or "can't".
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+pub enum DeclinedTense {
+    Didnt,
+    Doesnt,
+    Cant,
+}
+
+impl Declined {
+    /// The words after "who": "didn't", "doesn't", "can't", or "didn't
+    /// sacrifice a permanent or discard a card this way".
+    pub fn verb(self) -> &'static str {
+        match (self.tense, self.tail) {
+            (DeclinedTense::Didnt, true) => {
+                "didn't sacrifice a permanent or discard a card this way"
+            }
+            (DeclinedTense::Didnt, false) => "didn't",
+            (DeclinedTense::Doesnt, _) => "doesn't",
+            (DeclinedTense::Cant, _) => "can't",
+        }
     }
 }

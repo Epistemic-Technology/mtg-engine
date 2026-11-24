@@ -1500,6 +1500,17 @@ pub struct ThisWayLog {
     /// The Aura or Equipment that granted the resolving ability, for
     /// `Recipient::Granter` (`GameState::granters`).
     pub granter: Option<ObjId>,
+    /// The player a per-player effect is acting on as it happens for
+    /// each of its players, for counts of "they"/"their"
+    /// (`ThatPlayer::Acting`, `CountExpr::Their`).
+    pub acting: Option<PlayerId>,
+    /// The players the most recent per-player act (a discard, a counted
+    /// sacrifice, "may ... or ...") asked, for "for each opponent who
+    /// didn't discard ...".
+    pub asked: Vec<PlayerId>,
+    /// Of those, the players who didn't or couldn't do it ("each opponent
+    /// who didn't", "each opponent who can't"; `Recipient::Declined`).
+    pub declined: Vec<PlayerId>,
 }
 
 /// A copy effect that ends (`GameState::temp_copies`).
@@ -4912,7 +4923,7 @@ impl GameState {
                 Some(Target::Player(p)) => Some(*p),
                 _ => None,
             },
-            ThatPlayer::TargetOrController { .. } => None,
+            ThatPlayer::TargetOrController { .. } | ThatPlayer::Acting => None,
         };
         let Some(player) = player else {
             return true;

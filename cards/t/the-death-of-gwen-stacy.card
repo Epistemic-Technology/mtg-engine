@@ -1,0 +1,8 @@
+card "The Death of Gwen Stacy" {
+  oracle_id 2624b5c5-ba59-4e20-8e66-e463268366e4
+  cost {2}{B}
+  type Enchantment — Saga
+  triggered chapter 1: destroy target creature
+  triggered chapter 2: each player may discard 1 card; each player who doesn't loses 3 life
+  triggered chapter 3: exile graveyard of any number of target player
+}
