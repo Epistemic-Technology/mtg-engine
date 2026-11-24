@@ -3191,13 +3191,14 @@ impl GameState {
     /// cast more than one spell each turn." once they have cast one, or
     /// "Your opponents can't cast spells during your turn." (CR 101.2).
     pub fn cast_forbidden(&self, p: PlayerId) -> bool {
-        self.player_static_sources > 0
-            && (self.cant_cast_spells(p)
-                || self.tallied(crate::card::TurnEvent::Cast, p) >= 1
-                    && self.player_statics_of().any(|(who, kind, src)| {
-                        matches!(kind, crate::card::PlayerStaticKind::CastLimit(ps)
+        !self.player_rules.is_empty() && self.player_rule(p, PlayerRuleKind::CantCastSpells)
+            || self.player_static_sources > 0
+                && (self.cant_cast_spells(p)
+                    || self.tallied(crate::card::TurnEvent::Cast, p) >= 1
+                        && self.player_statics_of().any(|(who, kind, src)| {
+                            matches!(kind, crate::card::PlayerStaticKind::CastLimit(ps)
                             if self.rule_players_include(ps, who, src, p))
-                    }))
+                        }))
     }
 
     /// Whether the legend rule (CR 704.5j) doesn't apply to `p`'s
@@ -3408,7 +3409,8 @@ impl GameState {
                 who == p
                     && match kind {
                         crate::card::PlayerStaticKind::Shroud => true,
-                        crate::card::PlayerStaticKind::Hexproof => caster != p,
+                        crate::card::PlayerStaticKind::Hexproof
+                        | crate::card::PlayerStaticKind::ProtectionFromOpponents => caster != p,
                         _ => false,
                     }
             })
@@ -3457,6 +3459,17 @@ impl GameState {
             && self
                 .player_statics()
                 .any(|(who, kind)| who == p && kind == crate::card::PlayerStaticKind::KeepRedMana)
+    }
+
+    /// Whether player `p` has protection from player `q` ("You have
+    /// protection from each of your opponents.", CR 702.16j): from each
+    /// object `q` controls.
+    pub fn protected_from_player(&self, p: PlayerId, q: PlayerId) -> bool {
+        p != q
+            && self.player_static_sources > 0
+            && self.player_statics().any(|(who, kind)| {
+                who == p && kind == crate::card::PlayerStaticKind::ProtectionFromOpponents
+            })
     }
 
     /// The keywords player `p` has gained from effects (`PlayerGrant`).
@@ -3626,10 +3639,67 @@ impl GameState {
     /// can't cast spells during your turn." during that opponent's turn.
     pub fn cant_cast_spells(&self, p: PlayerId) -> bool {
         self.player_static_sources > 0
-            && self.active_player != p
-            && self.player_statics().any(|(who, kind)| {
-                who == self.active_player
-                    && kind == crate::card::PlayerStaticKind::OpponentsCantCastYourTurn
+            && self.player_statics_of().any(|(who, kind, src)| match kind {
+                crate::card::PlayerStaticKind::OpponentsCantCastYourTurn => {
+                    self.active_player != p && who == self.active_player
+                }
+                crate::card::PlayerStaticKind::Silence {
+                    players, during, ..
+                } => {
+                    self.silence_now(during, who) && self.rule_players_include(players, who, src, p)
+                }
+                _ => false,
+            })
+    }
+
+    /// Whether a `Silence` static of a source `who` controls applies now
+    /// ("During combat", "During your turn").
+    fn silence_now(&self, during: crate::card::SilenceWhen, who: PlayerId) -> bool {
+        match during {
+            crate::card::SilenceWhen::YourTurn => self.active_player == who,
+            // CR 506.1: the combat phase's steps.
+            crate::card::SilenceWhen::Combat => matches!(
+                self.step,
+                crate::turn::Step::BeginningOfCombat
+                    | crate::turn::Step::DeclareAttackers
+                    | crate::turn::Step::DeclareBlockers
+                    | crate::turn::Step::FirstStrikeDamage
+                    | crate::turn::Step::CombatDamage
+                    | crate::turn::Step::EndOfCombat
+            ),
+        }
+    }
+
+    /// Whether `p` can't activate an activated ability (`mana`: a mana
+    /// ability) of `source` now: "During combat, players can't ... activate
+    /// abilities that aren't mana abilities.", "During your turn, your
+    /// opponents can't ... activate abilities of artifacts, creatures, or
+    /// enchantments." (CR 101.2).
+    pub fn activation_silenced(&self, p: PlayerId, source: ObjId, mana: bool) -> bool {
+        self.player_static_sources > 0
+            && self.player_statics_of().any(|(who, kind, src)| match kind {
+                crate::card::PlayerStaticKind::Silence {
+                    players,
+                    during,
+                    activate,
+                } => {
+                    (match activate {
+                        crate::card::ActivateBan::None => false,
+                        crate::card::ActivateBan::NonMana => !mana,
+                        crate::card::ActivateBan::ArtifactsCreaturesEnchantments => {
+                            self.objects
+                                .get(source)
+                                .is_some_and(|o| o.zone == Zone::Battlefield)
+                                && self.characteristics(source).is_some_and(|c| {
+                                    c.types.contains(CardType::Creature)
+                                        || c.types.contains(CardType::Artifact)
+                                        || c.types.contains(CardType::Enchantment)
+                                })
+                        }
+                    }) && self.silence_now(during, who)
+                        && self.rule_players_include(players, who, src, p)
+                }
+                _ => false,
             })
     }
 

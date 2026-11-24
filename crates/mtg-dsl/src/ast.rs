@@ -1343,6 +1343,15 @@ pub struct Filter {
     /// chosen this way"), `except chosen this way` ("all creatures except
     /// creatures chosen this way").
     pub unchosen_wording: UnchosenWording,
+    /// `static you and other Hero you control: has hexproof`: "you and
+    /// other Heroes you control have hexproof" (Captain America,
+    /// Super-Soldier): the controller has the hexproof or shroud too
+    /// (`PlayerStaticKind::Hexproof`).
+    pub and_you: bool,
+    /// `static this and enchantment creature you control: has trample`:
+    /// "Yuna and enchantment creatures you control have trample": the
+    /// source too, as a second static ability.
+    pub and_this: bool,
     /// `andor Villain or artifact`: its alternatives joined "and/or" as a
     /// trigger's subject ("Whenever another Villain and/or artifact you
     /// control enters"); wording only.
@@ -3639,6 +3648,9 @@ pub enum StaticCond {
     PlayerMoreHand(mtg_core::card::HandPlayer),
     /// `library empty`: "your library has no cards in it".
     LibraryEmpty,
+    /// `no cards in library`: the same, printed "there are no cards in
+    /// your library" (Living Conundrum).
+    NoCardsInLibrary,
     /// `void`: "a nonland permanent left the battlefield this turn or a
     /// spell was warped this turn".
     Void,
@@ -4812,6 +4824,9 @@ pub enum Recipient {
     /// `each opponent who doesn't control Elf`: "each opponent who doesn't
     /// control an Elf" (the group's filter).
     OpponentsWithout(u16),
+    /// `each player who controls most creature`: "each player who controls
+    /// the most creatures" (ties included), judged as it happens.
+    MostControl(u16),
     /// `each opponent who didn't`, `each player who doesn't`, `each
     /// opponent who can't`: the players who didn't (or couldn't) do what
     /// the last per-player act asked ("Zoyowa deals 3 damage to each
@@ -4988,6 +5003,10 @@ pub enum Recipient {
     /// that share a creature type with it, "Enchanted creature and other
     /// creatures that share a creature type with it" (Crown of Vigor).
     AttachedAnd(u16),
+    /// `you and all permanent you control gain hexproof`: the controller
+    /// and the `g`th group as one subject, "You and permanents you control
+    /// gain hexproof until end of turn." (Dawn's Truce).
+    YouAnd(u16),
     /// `you and target opponent each draw 1 card`: you and the `n`th
     /// target as one subject, "You and target opponent each draw a card."
     /// (Sky Crier); the effect happens to each, you first.
@@ -6052,6 +6071,10 @@ pub enum Effect {
     PlayerMay {
         who: Recipient,
         inner: Vec<Sentence>,
+        /// `target opponent may have you create 2 "Lander"`: "Target
+        /// opponent may have you create two Lander tokens." The player
+        /// decides; the effect's controller acts.
+        have_you: bool,
     },
     /// `any player may pay 5 life`, `any opponent may sacrifice 1 creature
     /// chosen`, `any player may this deals 6 damage to you`: "Any player
@@ -7217,6 +7240,8 @@ pub enum DeclinedTense {
     Didnt,
     Doesnt,
     Cant,
+    /// "each player who does": those who did (`Recipient::Accepted`).
+    Does,
 }
 
 impl Declined {
@@ -7230,6 +7255,7 @@ impl Declined {
             (DeclinedTense::Didnt, false) => "didn't",
             (DeclinedTense::Doesnt, _) => "doesn't",
             (DeclinedTense::Cant, _) => "can't",
+            (DeclinedTense::Does, _) => "does",
         }
     }
 }

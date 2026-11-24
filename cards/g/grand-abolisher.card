@@ -1,0 +1,7 @@
+card "Grand Abolisher" {
+  oracle_id c749f23c-40c0-4159-b84c-a70cbb062c14
+  cost {W}{W}
+  type Creature — Human Cleric
+  pt 2/2
+  during your turn opponents can't cast spells or activate abilities of artifacts creatures enchantments
+}

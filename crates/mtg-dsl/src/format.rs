@@ -472,6 +472,10 @@ impl Fmt {
                 let group = self.recipient(Recipient::Group(i), targets);
                 format!("enchanted creature and {group}")
             }
+            Recipient::YouAnd(i) => {
+                let group = self.recipient(Recipient::Group(i), targets);
+                format!("you and {group}")
+            }
             Recipient::TargetAnd(t, i) => {
                 let first = self.recipient(Recipient::Target(t), targets);
                 let group = self.recipient(Recipient::Group(i), targets);
@@ -497,6 +501,10 @@ impl Fmt {
                     _ => d.verb(),
                 }
             ),
+            Recipient::MostControl(i) => match self.groups.get(usize::from(i)) {
+                Some(f) => format!("each player who controls most {}", filter(f)),
+                None => "each player".to_string(),
+            },
             Recipient::OpponentsWithout(i) => match self.groups.get(usize::from(i)) {
                 Some(f) => format!("each opponent who doesn't control {}", filter(f)),
                 None => "each opponent".to_string(),
@@ -3567,9 +3575,14 @@ impl Fmt {
                 if *color { "color" } else { "type" }
             ),
             Effect::YouMay(inner) => format!("you may {}", self.line(inner, t)),
-            Effect::PlayerMay { who, inner } => {
+            Effect::PlayerMay {
+                who,
+                inner,
+                have_you,
+            } => {
                 let who = self.recipient(*who, t);
-                format!("{who} may {}", self.line(inner, t))
+                let have = if *have_you { "have you " } else { "" };
+                format!("{who} may {have}{}", self.line(inner, t))
             }
             Effect::UnlessAnyPlayer { act, effect } => format!(
                 "{} unless any player may {}",
@@ -4241,6 +4254,10 @@ impl Fmt {
                 who,
                 kind: mtg_core::card::PlayerRuleKind::NoLegendRule,
             } => format!("{} ignore legend rule this turn", self.recipient(*who, t)),
+            Effect::PlayerRule {
+                kind: mtg_core::card::PlayerRuleKind::NoMaxHandSize,
+                ..
+            } => "you have no maximum hand size for rest of game".to_string(),
             Effect::PlayerRule { who, kind } => format!(
                 "{} can't {} this turn",
                 self.recipient(*who, t),
@@ -4792,6 +4809,7 @@ fn outcome(o: &Outcome) -> String {
         Outcome::IntoLibrary { top: false } => "library bottom".to_string(),
         Outcome::Instead(_) => "exile".to_string(),
         Outcome::DrawTwo => "draw two".to_string(),
+        Outcome::SkipDraw => "skip".to_string(),
         Outcome::WinGame => "win".to_string(),
         Outcome::EnterTappedUnless(_)
         | Outcome::EnterTappedUnlessReveal { .. }
@@ -4946,6 +4964,19 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     } else {
         format!("target {} card{named}{mv} from {whose}", filter(&g))
     }
+}
+
+/// A static ability's subject: `you and other Hero you control`, `this and
+/// enchantment creature you control`, or the filter.
+fn static_subject(f: &Filter) -> String {
+    let head = if f.and_you {
+        "you and "
+    } else if f.and_this {
+        "this and "
+    } else {
+        ""
+    };
+    format!("{head}{}", filter(f))
 }
 
 pub fn filter(f: &Filter) -> String {
@@ -7290,6 +7321,7 @@ fn static_cond(c: &StaticCond) -> String {
             format!("{} more cards in hand than you", hand_player(*w))
         }
         StaticCond::LibraryEmpty => "library empty".to_string(),
+        StaticCond::NoCardsInLibrary => "no cards in library".to_string(),
         StaticCond::OpponentHasMore(w) => match w {
             mtg_core::card::MoreWhat::Creatures => "opponent controls more creatures",
             mtg_core::card::MoreWhat::Life => "opponent has more life",
@@ -8177,7 +8209,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     let _ = writeln!(
                         out,
                         "{indent}static {}: {mods} during your turn{tail}",
-                        filter(fl)
+                        static_subject(fl)
                     );
                 }
                 Some(_) if *cond_first => mods.push_str(&tail),
@@ -8189,14 +8221,14 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     let _ = writeln!(
                         out,
                         "{indent}static during your turn, {}: {mods}",
-                        filter(fl)
+                        static_subject(fl)
                     );
                 }
                 Some(StaticCond::NotYourTurn) => {
                     let _ = writeln!(
                         out,
                         "{indent}static during turns other than yours, {}: {mods}",
-                        filter(fl)
+                        static_subject(fl)
                     );
                 }
                 Some(c) if *cond_first => {
@@ -8204,20 +8236,20 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                         out,
                         "{indent}static as long as {}, {}: {mods}",
                         static_cond(c),
-                        filter(fl)
+                        static_subject(fl)
                     );
                 }
                 Some(c) => {
                     let _ = writeln!(
                         out,
                         "{indent}static {}: {mods} {} {}{tail}",
-                        filter(fl),
+                        static_subject(fl),
                         if *cond_if { "if" } else { "as long as" },
                         static_cond(c)
                     );
                 }
                 None => {
-                    let _ = writeln!(out, "{indent}static {}: {mods}", filter(fl));
+                    let _ = writeln!(out, "{indent}static {}: {mods}", static_subject(fl));
                 }
             }
         }
@@ -9131,6 +9163,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 K::CantCast { .. } => unreachable!("Ability::CantBeCast"),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
+                K::ProtectionFromOpponents => "you have protection from opponents".to_string(),
                 K::EnchantedUntargetable(mtg_core::card::TargetBan::Opponents) => {
                     "enchanted can't be targeted by opponents".to_string()
                 }
@@ -9195,6 +9228,28 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     "opponents permanents can't be turned face up during your turn".to_string()
                 }
                 K::CantAttackYou { .. } => unreachable!("Ability::CantAttackYou"),
+                K::Silence {
+                    players,
+                    during,
+                    activate,
+                } => format!(
+                    "during {} {} can't cast spells{}",
+                    match during {
+                        mtg_core::card::SilenceWhen::Combat => "combat",
+                        mtg_core::card::SilenceWhen::YourTurn => "your turn",
+                    },
+                    match players {
+                        mtg_core::card::RulePlayers::Opponents => "opponents",
+                        _ => "players",
+                    },
+                    match activate {
+                        mtg_core::card::ActivateBan::None => "",
+                        mtg_core::card::ActivateBan::NonMana => " or activate nonmana abilities",
+                        mtg_core::card::ActivateBan::ArtifactsCreaturesEnchantments => {
+                            " or activate abilities of artifacts creatures enchantments"
+                        }
+                    }
+                ),
                 K::ExtraLands { n, each_player } => format!(
                     "additional land{}{}",
                     if *n == 1 {
@@ -9395,6 +9450,9 @@ pub fn player_rule_words(kind: mtg_core::card::PlayerRuleKind) -> &'static str {
         mtg_core::card::PlayerRuleKind::CantPlayLands => "play lands",
         mtg_core::card::PlayerRuleKind::CantCastCreatureSpells => "cast creature spells",
         mtg_core::card::PlayerRuleKind::CantGainLife => "gain life",
+        mtg_core::card::PlayerRuleKind::CantCastSpells => "cast spells",
+        // Worded apart (`you have no maximum hand size for rest of game`).
+        mtg_core::card::PlayerRuleKind::NoMaxHandSize => "have no maximum hand size",
         // Worded apart (`ignore legend rule this turn`).
         mtg_core::card::PlayerRuleKind::NoLegendRule => "ignore the legend rule",
     }

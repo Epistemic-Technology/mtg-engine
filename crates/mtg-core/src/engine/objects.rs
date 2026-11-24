@@ -1798,8 +1798,11 @@ impl GameState {
                 // CR 702.16d: protection from a color (a player's, "you
                 // gain protection from the color of your choice")
                 // prevents damage from sources of that color.
-                if !self.player_grants.is_empty()
-                    && self.player_protected_from(p, source)
+                if (!self.player_grants.is_empty() && self.player_protected_from(p, source)
+                    // "You have protection from each of your opponents."
+                    // (CR 702.16j).
+                    || self.player_static_sources > 0
+                        && controller.is_some_and(|q| self.protected_from_player(p, q)))
                     && !self.damage_unpreventable(combat)
                 {
                     return;

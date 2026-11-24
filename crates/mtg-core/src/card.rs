@@ -4491,6 +4491,16 @@ pub enum Recipient {
     /// didn't", "Each opponent who can't discards a card";
     /// `ThisWayLog::declined`).
     Declined,
+    /// Each player who controls the most permanents matching the pool's
+    /// `n`th interned filter, ties included ("Each player who controls the
+    /// most creatures investigates.", No Witnesses), judged as the effect
+    /// happens.
+    MostControl(u16),
+    /// The players the resolution's last per-player "may" asked who did
+    /// it ("Each player may shuffle their hand and graveyard into their
+    /// library. Each player who does draws seven cards."; the asked less
+    /// `ThisWayLog::declined`).
+    Accepted,
     /// Each opponent who controls no permanent matching the pool's `n`th
     /// interned filter ("each opponent who doesn't control an Elf"),
     /// judged as the effect happens.
@@ -4525,6 +4535,10 @@ pub enum Recipient {
     /// a creature type with it get +1/+1 until end of turn." (Crown of
     /// Vigor). Judged against the host as it is, or as it last existed.
     AttachedAndSharing(u16),
+    /// The controller and every battlefield object matching the pool's
+    /// `n`th interned filter: "You and permanents you control gain
+    /// hexproof until end of turn." (Dawn's Truce).
+    YouAndGroup(u16),
     /// The cards the source's linked ability exiled ("the exiled card",
     /// CR 607.2a: Journey to Nowhere's "When this enchantment leaves the
     /// battlefield, return the exiled card ..."), still in exile; see
@@ -5450,6 +5464,10 @@ pub enum Effect {
     PlayerMay {
         who: Recipient,
         effects: Vec<Effect>,
+        /// "Target opponent may have you create two Lander tokens.": the
+        /// player decides, and the effect's controller does these.
+        #[serde(default)]
+        have_you: bool,
     },
     /// "Any player may pay 5 life", "any opponent may sacrifice a creature
     /// of their choice" (CR 608.2d): starting with the active player and in
@@ -7267,6 +7285,10 @@ pub enum PlayerStaticKind {
     /// "You have shroud." (CR 702.18c): the controller can't be the target
     /// of spells or abilities.
     Shroud,
+    /// "You have protection from each of your opponents." (CR 702.16j,
+    /// 702.16b-e): the controller can't be targeted, enchanted, or dealt
+    /// damage by anything an opponent controls.
+    ProtectionFromOpponents,
     /// A ban on the name the source chose as it entered (`Chosen::Card`,
     /// CR 201.3), for every player: Meddling Mage, Pithing Needle.
     ChosenName(NameBan),
@@ -7356,6 +7378,40 @@ pub enum PlayerStaticKind {
     /// "Permanents your opponents control can't be turned face up during
     /// your turn."
     FaceUpBan(FaceUpBan),
+    /// "During combat, players can't cast spells or activate abilities
+    /// that aren't mana abilities." (Yuriko), "During your turn, your
+    /// opponents can't cast spells or activate abilities of artifacts,
+    /// creatures, or enchantments." (Grand Abolisher; CR 101.2): while
+    /// `during` holds, those `players` can't cast spells, nor activate the
+    /// abilities `activate` names.
+    Silence {
+        players: RulePlayers,
+        during: SilenceWhen,
+        activate: ActivateBan,
+    },
+}
+
+/// When a `PlayerStaticKind::Silence` applies.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum SilenceWhen {
+    /// "During combat" (CR 506.1: the combat phase).
+    Combat,
+    /// "During your turn": its controller's.
+    YourTurn,
+}
+
+/// Which activated abilities a `PlayerStaticKind::Silence` forbids.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum ActivateBan {
+    /// None: spells only.
+    None,
+    /// "abilities that aren't mana abilities" (CR 605.1a), of any source
+    /// in any zone.
+    NonMana,
+    /// "abilities of artifacts, creatures, or enchantments": of such
+    /// permanents on the battlefield, mana abilities included (Grand
+    /// Abolisher's rulings: not cycling from a hand).
+    ArtifactsCreaturesEnchantments,
 }
 
 /// Whose activated abilities a `PlayerStaticKind::ActivationCost` changes.
@@ -7661,6 +7717,12 @@ pub enum PlayerRuleKind {
     /// "The "legend rule" doesn't apply to permanents you control this
     /// turn." (CR 704.5j).
     NoLegendRule,
+    /// "Players can't cast spells this turn." (CR 101.2; Bilbo's Gambit).
+    CantCastSpells,
+    /// "You have no maximum hand size for the rest of the game." (CR
+    /// 402.2, 514.1): not until end of turn; the player's own maximum is
+    /// removed for good.
+    NoMaxHandSize,
 }
 
 /// Who or what a replacement or prevention effect's event may affect.
@@ -7908,6 +7970,10 @@ pub enum Replacement {
     DrawTwo,
     /// The player wins the game instead.
     WinGame,
+    /// "If you would draw a card while your library has no cards in it,
+    /// skip that draw instead." (Living Conundrum, CR 614.10): the draw
+    /// doesn't happen.
+    SkipDraw,
     /// Enters tapped.
     EnterTapped,
     /// "This creature enters prepared." (CR 722.3a).

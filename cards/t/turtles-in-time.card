@@ -1,0 +1,9 @@
+card "Turtles in Time" {
+  oracle_id 803971e6-67f3-4fda-aeb6-69ef8ea4b54e
+  cost {5}{U}{U}
+  type Sorcery
+  spell {
+    return all creature to their owners' hands; each player may shuffle hand and graveyard into library then each player who does draws 7 cards
+    exile this
+  }
+}

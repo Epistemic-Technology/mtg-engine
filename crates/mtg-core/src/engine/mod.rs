@@ -3314,6 +3314,10 @@ impl GameState {
     /// CR 402.2, 514.1: the hand size `p` discards down to, after static
     /// abilities that change it (`usize::MAX` for none).
     fn max_hand_size(&self, p: PlayerId) -> usize {
+        // "You have no maximum hand size for the rest of the game."
+        if self.player(p).max_hand_size == usize::MAX {
+            return usize::MAX;
+        }
         let mut n = i64::try_from(self.player(p).max_hand_size).unwrap_or(7);
         for id in &self.battlefield {
             let o = &self.objects[*id];
