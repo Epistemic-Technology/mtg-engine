@@ -1,0 +1,19 @@
+card "Hound Tamer // Untamed Pup" {
+  oracle_id e9208fc2-616d-4c32-bd66-76a8bf85a6b5
+  layout transform
+  cost {2}{G}
+  type Creature — Human Werewolf
+  pt 3/3
+  keywords trample
+  activated {3}{G}: put 1 +1/+1 counters on target creature
+  daybound
+  face "Untamed Pup" {
+    type Creature — Werewolf
+    pt 4/4
+    color green
+    keywords trample
+    static other Wolf or Werewolf you control: has trample
+    activated {3}{G}: put 1 +1/+1 counters on target creature
+    nightbound
+  }
+}

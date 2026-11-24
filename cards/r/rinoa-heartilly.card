@@ -1,0 +1,8 @@
+card "Rinoa Heartilly" {
+  oracle_id 8896c74b-d466-4c25-94cf-82b5e2b1fdef
+  cost {3}{G}{W}
+  type Legendary Creature — Human Rebel Warlock
+  pt 4/4
+  triggered when this enters: create 1 "Angelo, a legendary 1/1 green and white Dog creature"
+  label "Angelo Cannon" triggered whenever this attacks: another target creature you control gets +1/+1 count each creature you control
+}

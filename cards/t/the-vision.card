@@ -1,0 +1,12 @@
+card "The Vision" {
+  oracle_id 32aee76a-e738-4898-985a-801d1cce15ea
+  cost {4}
+  type Legendary Artifact Creature — Robot Hero
+  pt 2/5
+  keywords flying, vigilance
+  triggered whenever you cast a noncreature spell: choose one unchosen this turn {
+    mode "Solar Beam": this gains double strike
+    mode "Density Control": this gains indestructible
+    mode "Technopathy": draw 1 cards
+  }
+}

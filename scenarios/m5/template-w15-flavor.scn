@@ -1,0 +1,438 @@
+# Flavor words and mode names (CR 207.2d): "Fire Cross — Whenever ...",
+# "• Puff Piece — ...". The label has no rules meaning; the ability
+# under it works as it would without one.
+
+scenario "Daily Bugle Reporters: Puff Piece puts a counter on each of two creatures" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Daily Bugle Reporters"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Daily Bugle Reporters"
+  turn 1 A: trigger "Daily Bugle Reporters" mode 1 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Hill Giant" +1/+1 1
+  assert counters "Daily Bugle Reporters" +1/+1 0
+}
+
+scenario "Daily Bugle Reporters: Investigative Journalism returns a cheap creature card" {
+  battlefield A: 4 "Plains"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Daily Bugle Reporters"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Daily Bugle Reporters"
+  illegal turn 1 A: trigger "Daily Bugle Reporters" mode 2 targeting "Hill Giant"
+  turn 1 A: trigger "Daily Bugle Reporters" mode 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "The Vision: each mode once a turn" {
+  battlefield A: "The Vision", 2 "Island"
+  hand A: "Opt", "Opt"
+  library A: "Plains", "Plains", "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  turn 1 A: trigger "The Vision" mode 2
+  turn 1 A: wait
+  turn 1 A: cast "Opt"
+  turn 1 A: trigger "The Vision" mode 1
+  run_to turn 1 postcombat_main
+  assert has "The Vision" double_strike
+  assert has "The Vision" indestructible
+}
+
+scenario "Murdock's Crusade: one mode without teamwork" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Hill Giant", "Craw Wurm"
+  hand A: "Murdock's Crusade"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Murdock's Crusade" mode 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Murdock's Crusade: Street Justice exiles a creature with toughness 4 or greater" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Craw Wurm"
+  hand A: "Murdock's Crusade"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murdock's Crusade" mode 1 targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Craw Wurm"
+}
+
+scenario "Wraith, Vicious Vigilante: Fear Gas, it can't be blocked" {
+  battlefield A: "Wraith, Vicious Vigilante"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Wraith, Vicious Vigilante"
+  illegal turn 1 B: block "Wraith, Vicious Vigilante" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Heroes' Hangout: Patrol Night, two creatures get +1/+0 and first strike" {
+  battlefield A: "Mountain", "Grizzly Bears", "Raging Goblin"
+  hand A: "Heroes' Hangout"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Heroes' Hangout" mode 2 targeting "Grizzly Bears", "Raging Goblin"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" first_strike
+  assert power "Raging Goblin" 2
+  assert has "Raging Goblin" first_strike
+}
+
+scenario "Heroes' Hangout: Date Night, play one of the top two cards" {
+  battlefield A: 3 "Mountain"
+  hand A: "Heroes' Hangout"
+  library A: "Shock", "Lightning Bolt", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Heroes' Hangout" mode 1
+  turn 1 A: choose "Shock"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  illegal turn 1 postcombat_main A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert exile A contains "Lightning Bolt"
+}
+
+scenario "Shriek, Treblemaker: Sonic Blast, an opponent's creature dies" {
+  battlefield A: "Shriek, Treblemaker", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: decline "Shriek, Treblemaker"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 19
+}
+
+scenario "Shriek, Treblemaker: not for its controller's creature" {
+  battlefield A: "Shriek, Treblemaker", "Mountain", "Grizzly Bears"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: decline "Shriek, Treblemaker"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert life A 20
+  assert life B 20
+}
+
+scenario "Seifer Almasy: attacking alone gives double strike; Fire Cross casts a cheap instant from the graveyard, then exiles it" {
+  battlefield A: "Seifer Almasy"
+  graveyard A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Seifer Almasy"
+  turn 1 A: trigger "Seifer Almasy" targeting "Lightning Bolt"
+  turn 1 first_strike_damage A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 11
+  assert exile A contains "Lightning Bolt"
+}
+
+scenario "Guy in the Chair: Web Support, a counter on a Spider" {
+  battlefield A: "Guy in the Chair", 3 "Forest", "Giant Spider", "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Guy in the Chair" targeting "Grizzly Bears"
+  turn 1 A: activate "Guy in the Chair" targeting "Giant Spider"
+  run_to turn 1 postcombat_main
+  assert counters "Giant Spider" +1/+1 1
+}
+
+scenario "Spider-Man, To the Rescue: No One Dies!, tap him for indestructible" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Spider-Man, To the Rescue"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spider-Man, To the Rescue"
+  turn 1 A: accept "Spider-Man, To the Rescue"
+  turn 1 A: trigger "Spider-Man, To the Rescue" targeting "Grizzly Bears"
+  turn 1 postcombat_main B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert tapped "Spider-Man, To the Rescue"
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Shock"
+}
+
+scenario "Spider-Man, To the Rescue: declined, nothing happens" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  hand A: "Spider-Man, To the Rescue"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spider-Man, To the Rescue"
+  turn 1 A: decline "Spider-Man, To the Rescue"
+  run_to turn 1 postcombat_main
+  assert untapped "Spider-Man, To the Rescue"
+  assert has not "Grizzly Bears" indestructible
+}
+
+scenario "Rinoa Heartilly: Angelo, then Angelo Cannon for each creature" {
+  battlefield A: 3 "Forest", 2 "Plains", "Grizzly Bears"
+  hand A: "Rinoa Heartilly"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rinoa Heartilly"
+  run_to turn 3 precombat_main
+  turn 3 A: attack "Rinoa Heartilly"
+  turn 3 A: trigger "Rinoa Heartilly" targeting "Grizzly Bears"
+  run_to turn 3 combat_damage
+  assert battlefield A contains "Angelo"
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert power "Rinoa Heartilly" 4
+}
+
+scenario "Ghost, Spectral Saboteur: Intangibility, it can't be blocked" {
+  battlefield A: "Ghost, Spectral Saboteur"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Ghost, Spectral Saboteur"
+  illegal turn 1 B: block "Ghost, Spectral Saboteur" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Battle Menu: Attack makes a Knight" {
+  battlefield A: 2 "Plains"
+  hand A: "Battle Menu"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Battle Menu" mode 1
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Knight"
+}
+
+scenario "Battle Menu: Magic destroys only a creature with power 4 or greater" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Grizzly Bears", "Craw Wurm"
+  hand A: "Battle Menu"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Battle Menu" mode 3 targeting "Grizzly Bears"
+  turn 1 A: cast "Battle Menu" mode 3 targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Craw Wurm"
+}
+
+scenario "Battle Menu: Ability and Item" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  hand A: "Battle Menu", "Battle Menu"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Battle Menu" mode 2 targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Battle Menu" mode 4
+  run_to turn 1 postcombat_main
+  assert toughness "Grizzly Bears" 6
+  assert life A 24
+}
+
+scenario "Rydia, Summoner of Mist: Summon returns a Saga with mana value X with a finality counter" {
+  battlefield A: "Rydia, Summoner of Mist", 5 "Mountain"
+  graveyard A: "The Eldest Reborn", "History of Benalia"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Rydia, Summoner of Mist" x 3 targeting "The Eldest Reborn"
+  turn 1 A: activate "Rydia, Summoner of Mist" x 3 targeting "History of Benalia"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "History of Benalia"
+  assert counters "History of Benalia" finality 1
+  assert graveyard A contains "The Eldest Reborn"
+}
+
+scenario "Rydia, Summoner of Mist: Landfall rummage" {
+  battlefield A: "Rydia, Summoner of Mist"
+  hand A: "Mountain", "Shock"
+  library A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: play "Mountain"
+  turn 1 A: accept "Rydia, Summoner of Mist"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Shock"
+  assert hand A contains "Island"
+}
+
+scenario "Damage Control Crew: Impound exiles an artifact" {
+  battlefield A: 4 "Forest"
+  battlefield B: "Ornithopter"
+  hand A: "Damage Control Crew"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Damage Control Crew"
+  turn 1 A: trigger "Damage Control Crew" mode 2 targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Ornithopter"
+}
+
+scenario "Damage Control Crew: Repair returns a card with mana value 4 or greater" {
+  battlefield A: 4 "Forest"
+  graveyard A: "Craw Wurm", "Grizzly Bears"
+  hand A: "Damage Control Crew"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Damage Control Crew"
+  illegal turn 1 A: trigger "Damage Control Crew" mode 1 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Craw Wurm"
+}
+
+scenario "Scouting Hawk: Keen Sight finds a Plains when behind on lands" {
+  battlefield A: 3 "Plains"
+  battlefield B: 4 "Mountain"
+  hand A: "Scouting Hawk"
+  library A: "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Scouting Hawk"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Plains"
+  assert library A contains "Island"
+}
+
+scenario "Scouting Hawk: no search with as many lands" {
+  battlefield A: 3 "Plains"
+  battlefield B: 3 "Mountain"
+  hand A: "Scouting Hawk"
+  library A: "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Scouting Hawk"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Plains"
+  assert library A contains "Plains"
+}
+
+scenario "Winter Eladrin: Gust of Wind returns another creature" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Winter Eladrin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Winter Eladrin"
+  turn 1 A: trigger "Winter Eladrin" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert battlefield A contains "Winter Eladrin"
+}
+
+scenario "Your Temple Is Under Attack: Strike a Deal, both draw two" {
+  battlefield A: 3 "Plains"
+  hand A: "Your Temple Is Under Attack"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Your Temple Is Under Attack" mode 2 targeting player B
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert hand B count 2
+}
+
+scenario "Your Temple Is Under Attack: Pray for Protection" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  hand A: "Your Temple Is Under Attack"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Your Temple Is Under Attack" mode 1
+  run_to turn 1 postcombat_main
+  assert has A "Grizzly Bears" indestructible
+  assert has not B "Grizzly Bears" indestructible
+}
+
+scenario "Towering Viewpoint: Leap of Faith gives flying" {
+  battlefield A: "Towering Viewpoint", 3 "Plains", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Towering Viewpoint" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" flying
+}
+
+scenario "Kessig Naturalist: attacking adds mana that lasts the turn" {
+  battlefield A: "Kessig Naturalist // Lord of the Ulvenwald"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Kessig Naturalist"
+  turn 1 A: choose red
+  turn 1 postcombat_main A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 16
+}
+
+scenario "Lord of the Ulvenwald: other Wolves and Werewolves get +1/+1" {
+  battlefield A: "Kessig Naturalist // Lord of the Ulvenwald", "Ambush Wolf", "Grizzly Bears"
+  start turn 2 B
+  run_to turn 3 precombat_main
+  assert daynight night
+  assert battlefield A contains "Lord of the Ulvenwald"
+  assert power "Ambush Wolf" 5
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Elusive Tormentor: transform for {1} and a discard; Insidious Mist can't be blocked" {
+  battlefield A: "Elusive Tormentor // Insidious Mist", "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Elusive Tormentor" discarding "Shock"
+  turn 1 A: attack "Insidious Mist"
+  illegal turn 1 B: block "Insidious Mist" with "Grizzly Bears"
+  turn 1 A: decline "Insidious Mist"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Insidious Mist"
+  assert has "Insidious Mist" hexproof
+  assert life B 20
+}
+
+scenario "Insidious Mist: unblocked, pay {2}{B} to transform" {
+  battlefield A: "Elusive Tormentor // Insidious Mist", 4 "Swamp"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Elusive Tormentor" discarding "Shock"
+  turn 1 A: attack "Insidious Mist"
+  turn 1 A: accept "Insidious Mist"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Elusive Tormentor"
+  assert life B 16
+}
+
+scenario "Black Market Connections: two modes, each with its life" {
+  battlefield A: "Black Market Connections"
+  library A: "Plains", "Plains", "Plains"
+  start turn 2 A upkeep
+  turn 2 A: trigger "Black Market Connections" mode 3
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Treasure"
+  assert life A 17
+  assert hand A count 2
+}
+
+scenario "Black Market Connections: Hire a Mercenary, a 3/2 changeling" {
+  battlefield A: "Black Market Connections"
+  start turn 2 A upkeep
+  turn 2 A: trigger "Black Market Connections" mode 4
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Shapeshifter"
+  assert is "Shapeshifter" Elf
+  assert power "Shapeshifter" 3
+  assert life A 17
+}
+
+scenario "Angelic Chorus: gain life equal to the creature's toughness" {
+  battlefield A: "Angelic Chorus", 4 "Mountain"
+  battlefield B: "Plains"
+  hand A: "Hill Giant"
+  hand B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life A 23
+}
+
+scenario "Hound Tamer: a counter for {3}{G}" {
+  battlefield A: "Hound Tamer // Untamed Pup", 4 "Forest", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Hound Tamer" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "Untamed Pup: other Wolves and Werewolves have trample" {
+  battlefield A: "Hound Tamer // Untamed Pup", "Ambush Wolf", "Grizzly Bears"
+  start turn 2 B
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Untamed Pup"
+  assert has "Ambush Wolf" trample
+  assert has not "Grizzly Bears" trample
+}

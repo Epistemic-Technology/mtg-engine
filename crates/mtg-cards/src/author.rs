@@ -4816,6 +4816,7 @@ impl Templates {
                 spell_at: None,
                 spell_targets: 0,
                 cleave: None,
+                flavor: Vec::new(),
             }
             .quoted(cap(&c, 2));
             let who = recipient(&lowercase_first(cap(&c, 1)), targets);
@@ -6676,9 +6677,18 @@ struct Builder<'a> {
     /// Cleave (CR 702.148a): its cost, and the spell's paragraphs with the
     /// bracketed words removed.
     cleave: Option<(String, Vec<String>)>,
+    /// Flavor words (CR 207.2d) the card prints before an em dash ("Fire
+    /// Cross — Whenever ..."): labels with no rules meaning, kept as
+    /// `label "Fire Cross"` so the renderer prints them back.
+    flavor: Vec<String>,
 }
 
 impl Builder<'_> {
+    /// An ability word or one of the card's flavor words.
+    fn is_label(&self, word: &str) -> bool {
+        ABILITY_WORDS.contains(&word) || self.flavor.iter().any(|f| f == word)
+    }
+
     /// An ability quoted inside another's text, authored on its own: the
     /// one statement it makes.
     fn quoted(&self, text: &str) -> Option<String> {
@@ -6693,6 +6703,7 @@ impl Builder<'_> {
             spell_at: None,
             spell_targets: 0,
             cleave: None,
+            flavor: self.flavor.clone(),
         };
         // A keyword alone ("has \"Flying\"") is not an ability statement.
         inner.statements.push(String::new());
@@ -6809,11 +6820,21 @@ impl Builder<'_> {
         // "Landfall — <ability>": the label prefixes the one statement the
         // rest makes.
         if let Some((label, rest)) = line.split_once(" — ")
-            && ABILITY_WORDS.contains(&label)
+            && self.is_label(label)
         {
             let before = self.statements.len();
             let paragraphs = self.spell_paragraphs.len();
+            let keywords = self.keywords.len();
             self.line(rest)?;
+            // "Fear Gas — Wraith can't be blocked.": a keyword line under a
+            // label is the permanent's static ability.
+            if self.statements.len() == before
+                && self.keywords.len() == keywords + 1
+                && !self.is_spell
+            {
+                let kw = self.keywords.pop().unwrap_or_default();
+                self.statements.push(format!("static this: has {kw}"));
+            }
             if self.statements.len() != before + 1 || self.spell_paragraphs.len() != paragraphs {
                 return Err(Skip::Sentence(line.to_string()));
             }
@@ -9436,6 +9457,36 @@ impl Builder<'_> {
     }
 }
 
+/// Keyword abilities (CR 702) printed before an em dash like a flavor
+/// word, with rules meaning: never a bare label.
+const DASH_KEYWORDS: &[&str] = &["Exhaust", "Power-up", "Boast", "Solved", "Companion", "Forecast"];
+
+/// The card's flavor words and mode names (CR 207.2d, 700.2): Scryfall
+/// tags each as a keyword; the text prints it at the start of a line or a
+/// mode, before an em dash. A real keyword printed so ("Forecast —") is
+/// not one.
+fn flavor_words(s: &ScryCard) -> Vec<String> {
+    flavor_in(s, s.oracle_text.as_deref().unwrap_or(""))
+}
+
+/// The card's flavor words printed in `text` (one face's).
+fn flavor_in(s: &ScryCard, text: &str) -> Vec<String> {
+    s.keywords
+        .iter()
+        .filter(|k| {
+            !KEYWORDS.contains(&k.as_str())
+                && !TEMPLATED_TAGS.contains(&k.as_str())
+                && !DASH_KEYWORDS.contains(&k.as_str())
+                && text.lines().any(|l| {
+                    let l = l.strip_prefix("• ").unwrap_or(l);
+                    l.strip_prefix(k.as_str())
+                        .is_some_and(|r| r.starts_with(" \u{2014} "))
+                })
+        })
+        .cloned()
+        .collect()
+}
+
 /// Five or more modes: written by hand, where a scenario checks each mode
 /// (the lead dropped Sublime Epiphany and Casualties of War).
 fn few_modes(n: usize) -> Result<(), Skip> {
@@ -9466,6 +9517,11 @@ fn author_faces(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     for f in &faces {
         let mut rec = f.clone();
         rec.layout = "normal".to_string();
+        // A flavor word printed on the other face is not this face's.
+        let all = s.card_faces.iter().filter_map(|f| f.oracle_text.as_deref()).collect::<Vec<_>>().join("\n");
+        let elsewhere = flavor_in(s, &all);
+        let here = flavor_words(&rec);
+        rec.keywords.retain(|k| !elsewhere.contains(k) || here.contains(k));
         let a = author_card(&rec, corpus)?;
         // The block's lines between its braces, without the oracle_id.
         let body: Vec<String> = a
@@ -10282,6 +10338,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
             && !TEMPLATED_TAGS.contains(&k.as_str())
             && !typecycling
             && !ABILITY_WORDS.contains(&k.as_str())
+            && !flavor_words(s).contains(k)
             // A flavor word before equip ("Hagneia — Equip {3}") is tagged
             // as a keyword; the line is templated as a labeled equip.
             && !s
@@ -10378,6 +10435,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         spell_at: None,
         spell_targets: 0,
         cleave: None,
+        flavor: flavor_words(s),
     };
     // CR 711.2: a leveler's "LEVEL 1-4" and the P/T box under it, one line.
     let leveler = cached_regex(r"(?m)^(LEVEL \d+(?:-\d+|\+))\n(\d+/\d+)$").unwrap();
@@ -10419,7 +10477,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         // "Choose one. If this spell was cast using teamwork, choose both
         // instead." (CR 700.2), with an ability word before it.
         let (cond_label, cond_line) = match line.split_once(" — ") {
-            Some((word, h)) if ABILITY_WORDS.contains(&word) => (Some(word), h),
+            Some((word, h)) if b.is_label(word) => (Some(word), h),
             _ => (None, line),
         };
         if let Some(c) = choose_if.captures(cond_line) {
@@ -10500,7 +10558,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         if let Some((head, dsl_head)) = trigger_head {
             // "Landfall — Whenever a land you control enters, choose one —".
             let (label, head) = match head.split_once(" — ") {
-                Some((word, h)) if ABILITY_WORDS.contains(&word) => (Some(word), h),
+                Some((word, h)) if b.is_label(word) => (Some(word), h),
                 _ => (None, head),
             };
             let Some(trigger) = trigger_text(head) else {

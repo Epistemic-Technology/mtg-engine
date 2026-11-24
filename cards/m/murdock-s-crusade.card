@@ -1,0 +1,10 @@
+card "Murdock's Crusade" {
+  oracle_id 36330947-5ef9-4bff-b541-bfbddd9715a3
+  cost {1}{W}
+  type Sorcery
+  teamwork 4
+  choose one or both if teamwork {
+    mode "Street Justice": exile target creature with toughness 4 or greater
+    mode "Legal Justice": exile target enchantment with mana value 4 or greater
+  }
+}

@@ -1,0 +1,8 @@
+card "Towering Viewpoint" {
+  oracle_id 46c404c3-636a-4945-a61c-62f013a9c50f
+  cost {2}
+  type Artifact Creature — Wall
+  pt 0/4
+  keywords defender, reach
+  label "Leap of Faith" activated {3}: target creature gains flying
+}
