@@ -3403,7 +3403,12 @@ revealed and put into a hand (`reveal to hand`), like every card of a
 revealed hand, is known to every player until it moves (CR 701.20):
 `determinize` keeps it in place),
 `impulse 2 next turn first` ("Exile the top two cards of your library.
-Until the end of your next turn, you may play those cards."; impulse
+Until the end of your next turn, you may play those cards."; ending
+`instead count 3 if <condition>`, a later sentence changes the count when
+the condition holds as it resolves, CR 608.2c: `impulse 2 next turn first
+instead count 3 if additional cost paid` prints "... library. If this
+spell's additional cost was paid, exile the top three cards instead.
+Until the end ...", Burning Curiosity; impulse
 draw: the controller may play the exiled cards, paying their costs, with
 the usual timing permissions and a land only with a land play left, CR
 305.2, 601.3; `impulse 1 this turn` is "You may play that card this
@@ -3551,7 +3556,11 @@ your hand and the rest into your graveyard"; `take 2 instant or sorcery
 card may`: "up to two instant and/or sorcery cards", and without a
 filter `dig 4 take 2 card rest graveyard`: "Put two of those cards into
 your hand" (with one card left over, `dig 3 take 2 card rest graveyard`,
-"Put two of them into your hand and the other into your graveyard"); `take any creature card may revealing`: "You may reveal any
+"Put two of them into your hand and the other into your graveyard"); `take X card`: exactly X
+(a number expression, X the spell's), "Put X cards from among them into
+your hand", and a count `2 times X` prints "Look at twice X cards from the
+top of your library" (Stargaze: `dig 2 times X take X card rest
+graveyard`); `take any creature card may revealing`: "You may reveal any
 number of creature cards from among them and put the revealed cards into
 your hand"; `take creature card and land card may`: "a creature card
 and/or a land card" (one of each); `rest bottom random`: "in a random
@@ -3572,7 +3581,44 @@ random` "You may put a creature card from among them onto the
 battlefield. Put the rest ...", `dig 6 take 2 creature with mana value 3
 or less card may onto battlefield rest bottom` "Put up to two creature
 cards with mana value 3 or less from among them onto the battlefield. Put
-the rest ..." (`reword`: "You may put up to two ..."), `dig 5 reveal take
+the rest ..." (`reword`: "You may put up to two ..."); `with total mana
+value 6 or less` after the take's `card` bounds the sum of the printed
+mana values of the cards taken, each pick offering only a card that keeps
+it within the bound, and joins the rest with "and": `dig 8 take 2 creature
+card with total mana value 6 or less may onto battlefield rest bottom
+random` "Put up to two creature cards with total mana value 6 or less from
+among them onto the battlefield and the rest on the bottom of your library
+in a random order." (Michelangelo's Technique); `revealing` before `onto
+battlefield` prints "You may reveal a creature card ... from among them and
+put it onto the battlefield. Put the rest ..." (Loot, Exuberant Explorer:
+`take creature with mana value at most count equal land you control card
+may revealing onto battlefield`, the count as the dig happens); `field
+...` after `revealing` lets the card revealed go onto the battlefield
+under your control instead of into the hand, the controller choosing
+(`accept`/`decline` in scenarios): `field if your turn` "You may reveal a
+creature card with mana value 3 or less from among them. You may put it
+onto the battlefield if it's your turn. If you don't put it onto the
+battlefield, put it into your hand." (Whiskervale Forerunner; any
+condition, judged as it would be put), `field with mana value 2 or less
+haste` "... If that card has mana value 2 or less, you may put it onto the
+battlefield and it gains haste until end of turn. If you didn't put the
+revealed card onto the battlefield this way, put it into your hand."
+(Break Out); `then any land card onto battlefield tapped` after the take
+is a second one: after the first take, any number of the cards left
+matching it go onto the battlefield under your control, one at a time
+(`choose done` in scenarios ends it), before the rest go: `dig count that
+many attacking Bird you control take card may then any land card onto
+battlefield tapped rest graveyard` "look at that many cards from the top
+of your library. You may put one of them into your hand. Then put any
+number of land cards from among them onto the battlefield tapped and the
+rest into your graveyard." (Choco, Seeker of Paradise; a count printed
+"that many", or `that much`, prints "that many cards from the top of your
+library"); `exile plotted` after the take exiles the cards taken and they
+become plotted (CR 702.170), and `rest hand` puts the rest into the hand:
+`dig 3 take nonland card may exile plotted rest hand` "Look at the top
+three cards of your library. You may exile a nonland card from among them.
+If you do, it becomes plotted. Put the rest into your hand." (Make Your Own
+Luck), `dig 5 reveal take
 land card onto battlefield rest graveyard` "Put a land card from among
 them onto the battlefield and the rest into your graveyard"; `permanent
 with mana value 5 or less` is a permanent card there; after a counted
@@ -3649,7 +3695,13 @@ hand` ("Reveal the top three cards of your library. An opponent chooses
 one of them. Put that card into your graveyard and the rest into your
 hand.": the opponent chooses); `split top 3 of target player into top
 rest graveyard` ("Look at the top three cards of target player's library.
-Put one back and the rest into that player's graveyard."). Destinations:
+Put one back and the rest into that player's graveyard."); `alternate`
+after `reveal` has you and an opponent pick in turn, you first: `split top
+5 reveal alternate into hand, bottom, hand, bottom rest hand` "Reveal the
+top five cards of your library. Put one of them into your hand. Then
+choose an opponent. They put one on the bottom of your library. Then you
+put one into your hand. Then they put one on the bottom of your library.
+Put the other into your hand." (Memories Returning). Destinations:
 `hand`, `graveyard`, `top`, `bottom`, `exile`,
 `piles reveal 5 chosen by opponent` ("Reveal the top five cards of your
 library and separate them into two piles. An opponent chooses one of those
@@ -4294,14 +4346,27 @@ do` then sees:
   Mikey, Troublemakers)
 - `return 1 creature or land card from your graveyard to hand chosen`
   ("return a creature or land card from your graveyard to your hand"),
-  `return up to 2 creature card from your graveyard to hand chosen`
+  `return up to 2 creature card from your graveyard to hand chosen`;
+  `return up to 2 creature card from your graveyard to battlefield with
+  total mana value 4 or less chosen` ("Return up to two creature cards with
+  total mana value 4 or less from your graveyard to the battlefield.",
+  Lively Dirge): each card chosen keeps the sum of the printed mana values
+  within the bound
 - `return up to 2 land you control to hand chosen` ("return up to two
   lands you control to their owner's hand")
 - `put 1 permanent card from among milled cards into hand chosen` ("put a
   permanent card from among the milled cards into your hand"; `from among
   them`; `from among milled this way cards`: "from among the cards milled
   this way"): cards this resolution milled that are still in the
-  graveyard. `put all Elf card from among them into hand chosen`: "put
+  graveyard. `put all creature card from among milled this way cards onto
+  battlefield chosen` prints "Put each creature card milled this way onto
+  the battlefield." (Random Encounter); after it (and after `... from hand
+  onto battlefield chosen`), `they` is the cards put, as a group (`they gain
+  haste indefinitely`: "They gain haste."; `delayed them: at beginning of
+  the next end step, return those creatures to owner's hand`: one delayed
+  trigger about each, `those creatures` printing so, "At the beginning of
+  the next end step, return those creatures to their owner's hand.").
+  `put all Elf card from among them into hand chosen`: "put
   all Elf cards from among them into your hand", every one, none chosen
   (`all` takes any chosen act's every candidate); `put 1 creature or land
   card from among milled cards on top of library chosen`: "put a creature
@@ -4569,7 +4634,8 @@ mana value life`: "... put that card into your hand. You lose life equal
 to its mana value.", as it last existed once moved, CR 608.2h; in a
 triggered ability `mana value of it` is the triggering object's); `that player shuffles` is "Then that player
 shuffles." (CR 701.24), and `target player shuffles library` "Target player
-shuffles their library." (`shuffle library`: "shuffle your library"); `you may have that player
+shuffles their library." (`shuffle library`: "shuffle your library"; `shuffle library then mill 4
+cards`: "Shuffle your library, then mill four cards."); `you may have that player
 shuffle` is "You may have that player shuffle." (Portent: the controller
 decides, that player shuffles).
 

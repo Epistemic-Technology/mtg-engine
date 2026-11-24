@@ -437,6 +437,7 @@ impl Fmt {
             Recipient::GranterIt => "granter as it".to_string(),
             Recipient::GranterController => "controller of granter".to_string(),
             Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
+            Recipient::SameCreatures => "those creatures".to_string(),
             Recipient::EachExiledThisWay(_, _, false) => "each card exiled this way".to_string(),
             Recipient::EachExiledThisWay(_, _, true) => {
                 "each creature card exiled this way".to_string()
@@ -1210,6 +1211,7 @@ impl Fmt {
                 piles,
                 rest,
                 then,
+                alternate,
             } => {
                 let dest = |d: &mtg_core::card::SplitDest| {
                     use mtg_core::card::SplitDest;
@@ -1230,6 +1232,9 @@ impl Fmt {
                 }
                 if *opponent {
                     s.push_str(" opponent");
+                }
+                if *alternate {
+                    s.push_str(" alternate");
                 }
                 s.push_str(" into ");
                 s.push_str(&piles.iter().map(dest).collect::<Vec<_>>().join(", "));
@@ -1595,6 +1600,7 @@ impl Fmt {
                 look_those,
                 cond,
                 rider,
+                alt,
             } => {
                 let mut s = format!(
                     "impulse {} {}",
@@ -1638,6 +1644,14 @@ impl Fmt {
                     let _ = write!(s, " if {}", static_cond(c));
                 }
                 s.push_str(&rider_text(rider.as_ref()));
+                if let Some(a) = alt {
+                    let _ = write!(
+                        s,
+                        " instead count {} if {}",
+                        num(a.1),
+                        instead_cond_text(&a.0)
+                    );
+                }
                 s
             }
             Effect::ExileTop {
@@ -1670,6 +1684,8 @@ impl Fmt {
                 reveal_top,
                 revealing,
                 take,
+                take_num,
+                total_mv,
                 also,
                 random,
                 then,
@@ -1685,6 +1701,10 @@ impl Fmt {
                 among,
                 alt,
                 until,
+                field,
+                second,
+                exile_plot,
+                rest_hand,
             } => {
                 let mut s = format!("dig {}", num(*count));
                 if *until {
@@ -1700,7 +1720,9 @@ impl Fmt {
                 if *all {
                     s.push_str(" all");
                 }
-                if *take == crate::ast::ANY_NUMBER {
+                if let Some(n) = take_num {
+                    let _ = write!(s, " {}", num(*n));
+                } else if *take == crate::ast::ANY_NUMBER {
                     s.push_str(" any");
                 } else if *take != 1 {
                     let _ = write!(s, " {take}");
@@ -1710,6 +1732,9 @@ impl Fmt {
                         let _ = write!(s, " {} card", filter(f));
                     }
                     None => s.push_str(" card"),
+                }
+                if let Some(t) = total_mv {
+                    let _ = write!(s, " with total mana value {} or less", num(*t));
                 }
                 if let Some(a) = also {
                     let _ = write!(s, " and {} card", filter(a));
@@ -1726,12 +1751,33 @@ impl Fmt {
                 if *that_card {
                     s.push_str(" that card");
                 }
+                if let Some(fd) = field {
+                    s.push_str(" field");
+                    if let Some(c) = &fd.cond {
+                        let _ = write!(s, " if {}", static_cond(c));
+                    }
+                    if let Some(m) = fd.max_mv {
+                        let _ = write!(s, " with mana value {m} or less");
+                    }
+                    if fd.haste {
+                        s.push_str(" haste");
+                    }
+                }
                 if *top {
                     s.push_str(" top");
+                }
+                if *exile_plot {
+                    s.push_str(" exile plotted");
                 }
                 if let Some(tapped) = onto {
                     s.push_str(" onto battlefield");
                     if *tapped {
+                        s.push_str(" tapped");
+                    }
+                }
+                if let Some(sec) = second {
+                    let _ = write!(s, " then any {} card onto battlefield", filter(&sec.0));
+                    if sec.1 {
                         s.push_str(" tapped");
                     }
                 }
@@ -1742,6 +1788,8 @@ impl Fmt {
                     " rest shuffle"
                 } else if *rest_graveyard {
                     " rest graveyard"
+                } else if *rest_hand {
+                    " rest hand"
                 } else {
                     " rest bottom"
                 });
@@ -1789,18 +1837,7 @@ impl Fmt {
                             s.push_str(" tapped");
                         }
                     }
-                    let cond = match &a.cond {
-                        crate::ast::InsteadCond::Kicked => "kicked".to_string(),
-                        crate::ast::InsteadCond::Static(c) => static_cond(c),
-                        crate::ast::InsteadCond::Target { n, that, filter: f } => format!(
-                            "{}target {} is {}",
-                            if *that { "that " } else { "" },
-                            n + 1,
-                            filter(f)
-                        ),
-                        crate::ast::InsteadCond::ThisWay(c) => this_way_cond(c),
-                    };
-                    let _ = write!(s, " if {cond}");
+                    let _ = write!(s, " if {}", instead_cond_text(&a.cond));
                 }
                 s
             }
@@ -4057,12 +4094,19 @@ impl Fmt {
                     ChooseAct::DiscardedToBattlefield => format!(
                         "put {n} {f} {cs} discarded this way onto battlefield tapped chosen"
                     ),
-                    ChooseAct::GraveyardToBattlefield { tapped, counter: c } => format!(
-                        "return {n} {f} {cs} from your graveyard to battlefield{}{} chosen",
+                    ChooseAct::GraveyardToBattlefield {
+                        tapped,
+                        counter: c,
+                        total_mv,
+                    } => format!(
+                        "return {n} {f} {cs} from your graveyard to battlefield{}{}{} chosen",
                         if *tapped { " tapped" } else { "" },
                         c.map_or_else(String::new, |k| format!(
                             " with 1 {}",
                             counter(k, Num::N(1))
+                        )),
+                        total_mv.map_or_else(String::new, |t| format!(
+                            " with total mana value {t} or less"
                         ))
                     ),
                     ChooseAct::HandToBattlefield {
@@ -4473,6 +4517,21 @@ thread_local! {
 }
 
 /// A play permission's `Rider`, with its leading space; empty for none.
+/// A dig's or impulse's `instead ... if <cond>` condition.
+fn instead_cond_text(c: &crate::ast::InsteadCond) -> String {
+    match c {
+        crate::ast::InsteadCond::Kicked => "kicked".to_string(),
+        crate::ast::InsteadCond::Static(c) => static_cond(c),
+        crate::ast::InsteadCond::Target { n, that, filter: f } => format!(
+            "{}target {} is {}",
+            if *that { "that " } else { "" },
+            n + 1,
+            filter(f)
+        ),
+        crate::ast::InsteadCond::ThisWay(c) => this_way_cond(c),
+    }
+}
+
 fn rider_text(rider: Option<&crate::ast::Rider>) -> String {
     use crate::ast::SpendWording;
     use mtg_core::card::SpendAs;

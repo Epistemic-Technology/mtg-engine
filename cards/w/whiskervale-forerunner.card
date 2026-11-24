@@ -1,0 +1,7 @@
+card "Whiskervale Forerunner" {
+  oracle_id 861e427f-cbb4-4ed5-8356-747ac638ac34
+  cost {3}{W}
+  type Creature — Mouse Bard
+  pt 3/4
+  label "Valiant" triggered whenever this becomes targeted by you first time each turn: dig 5 take creature with mana value 3 or less card may revealing field if your turn rest bottom random
+}

@@ -2111,7 +2111,20 @@ impl GameState {
         let p = ctx.controller;
         let mut done = 0;
         let mut picked: Vec<(PlayerId, ObjId)> = Vec::new();
+        // "with total mana value 4 or less": what is left of the bound.
+        let mut budget = match act {
+            ChooseAct::GraveyardToBattlefield {
+                total_mv: Some(t), ..
+            } => Some(u32::from(t)),
+            _ => None,
+        };
         while done < n && !cands.is_empty() {
+            if let Some(b) = budget {
+                cands.retain(|id| self.pool.get(self.objects[*id].def).mana_cost.mana_value() <= b);
+                if cands.is_empty() {
+                    break;
+                }
+            }
             let id = if matches!(
                 act,
                 ChooseAct::ReturnRandomFromGraveyard | ChooseAct::ExileRandomFromGraveyard
@@ -2141,6 +2154,9 @@ impl GameState {
                 }
             };
             cands.retain(|c| *c != id);
+            if let Some(b) = budget.as_mut() {
+                *b = b.saturating_sub(self.pool.get(self.objects[id].def).mana_cost.mana_value());
+            }
             match act {
                 ChooseAct::Choose | ChooseAct::ExiledWith => {
                     ctx.created = Some(id);
@@ -2233,7 +2249,9 @@ impl GameState {
                 | ChooseAct::HandToBattlefield { .. }
                 | ChooseAct::ThisWayToBattlefield { .. } => {
                     let (tapped, counter) = match act {
-                        ChooseAct::GraveyardToBattlefield { tapped, counter }
+                        ChooseAct::GraveyardToBattlefield {
+                            tapped, counter, ..
+                        }
                         | ChooseAct::HandToBattlefield {
                             tapped, counter, ..
                         } => (tapped, counter),
@@ -2277,7 +2295,9 @@ impl GameState {
         }
         if matches!(
             act,
-            ChooseAct::HandToBattlefield { .. } | ChooseAct::ThisWayToBattlefield { .. }
+            ChooseAct::HandToBattlefield { .. }
+                | ChooseAct::ThisWayToBattlefield { .. }
+                | ChooseAct::MilledToBattlefield
         ) && let Some(log) = self.this_way.as_mut()
         {
             log.group = picked.iter().map(|(_, id)| *id).collect();
@@ -18047,6 +18067,8 @@ impl GameState {
                 all,
                 rest_graveyard,
                 take,
+                take_num,
+                total_mv,
                 also,
                 random,
                 top: back_on_top,
@@ -18055,6 +18077,10 @@ impl GameState {
                 at_random,
                 split,
                 until,
+                field,
+                second,
+                exile_plot,
+                rest_hand,
             } => {
                 let p = ctx.controller;
                 let n = self.eval_num(*count, ctx) as usize;
@@ -18068,18 +18094,33 @@ impl GameState {
                 // value X or less" (Genesis Wave): the spell's X, filled in
                 // too (unfilled, the mana value wouldn't restrict).
                 let x = if counted { n } else { ctx.x as usize };
-                let fill_x = |f: Option<&crate::card::ObjFilter>| {
-                    f.filter(|f| f.status.mana_value_x).map(|f| {
-                        let mut g = f.clone();
-                        g.status.mana_value_x = false;
-                        g.mana_value = g
-                            .mana_value
-                            .map(|(cmp, _)| (cmp, u8::try_from(x).unwrap_or(u8::MAX)));
-                        g
-                    })
+                // "with mana value less than or equal to the number of lands
+                // you control" (Loot, Exuberant Explorer): the count as the
+                // dig happens.
+                let bound_of = |f: &Option<crate::card::ObjFilter>| {
+                    f.as_ref()
+                        .and_then(|f| f.status.bound)
+                        .map(|b| self.eval_num(b.n, ctx))
                 };
-                let filled = fill_x(filter.as_ref()).map(Some);
-                let filled_also = fill_x(also.as_ref()).map(Some);
+                let (bound, bound_also) = (bound_of(filter), bound_of(also));
+                let fill_x = |f: Option<&crate::card::ObjFilter>, bound: Option<u32>| {
+                    f.filter(|f| f.status.mana_value_x || bound.is_some())
+                        .map(|f| {
+                            let mut g = f.clone();
+                            if g.status.mana_value_x {
+                                g.status.mana_value_x = false;
+                                g.mana_value = g
+                                    .mana_value
+                                    .map(|(cmp, _)| (cmp, u8::try_from(x).unwrap_or(u8::MAX)));
+                            }
+                            if let Some(v) = bound {
+                                GameState::fill_bound(&mut g, v);
+                            }
+                            g
+                        })
+                };
+                let filled = fill_x(filter.as_ref(), bound).map(Some);
+                let filled_also = fill_x(also.as_ref(), bound_also).map(Some);
                 let filter = filled.as_ref().unwrap_or(filter);
                 let also = filled_also.as_ref().unwrap_or(also);
                 let matches = |s: &Self, f: Option<&crate::card::ObjFilter>, id: ObjId| {
@@ -18121,16 +18162,31 @@ impl GameState {
                     // Up to `take` cards matching the filter, one at a time,
                     // then one matching `also` ("a creature card and/or a
                     // land card").
+                    // "Put X cards from among them" (Stargaze): the take as
+                    // a number, X the spell's.
+                    let any = take_num.is_none() && *take == u32::MAX;
+                    let take = take_num.map_or(*take as usize, |k| self.eval_num(k, ctx) as usize);
+                    // "Put any number of ...": none is a number too.
                     let picks: Vec<(Option<&crate::card::ObjFilter>, bool)> =
-                        std::iter::repeat_n(filter.as_ref(), (*take as usize).min(top.len()))
-                            .map(|f| (f, *optional))
+                        std::iter::repeat_n(filter.as_ref(), take.min(top.len()))
+                            .map(|f| (f, *optional || any))
                             .chain(also.as_ref().map(|f| (Some(f), true)))
                             .collect();
+                    // "with total mana value 6 or less": only a card that
+                    // keeps the total within the bound.
+                    let bound = total_mv.map(|t| self.eval_num(t, ctx));
+                    let mv =
+                        |s: &Self, id: ObjId| s.pool.get(s.objects[id].def).mana_cost.mana_value();
                     for (f, may) in picks {
+                        let used: u32 = taken.iter().map(|id| mv(self, *id)).sum();
                         let mut options: Vec<Choice> = top
                             .iter()
                             .copied()
-                            .filter(|id| !taken.contains(id) && matches(self, f, *id))
+                            .filter(|id| {
+                                !taken.contains(id)
+                                    && matches(self, f, *id)
+                                    && bound.is_none_or(|b| used + mv(self, *id) <= b)
+                            })
                             .map(|id| Choice::Target(Target::Object(id)))
                             .collect();
                         if options.is_empty() {
@@ -18192,9 +18248,101 @@ impl GameState {
                         );
                         ctx.created = Some(new);
                     }
+                } else if *exile_plot {
+                    // "You may exile a nonland card from among them. If you
+                    // do, it becomes plotted." (CR 702.170a).
+                    for id in &taken {
+                        let new = self.move_object(*id, Zone::Exile, false);
+                        if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
+                            self.mark_plotted(new);
+                            ctx.created = Some(new);
+                        }
+                    }
+                } else if let Some(fd) = field {
+                    // "You may put it onto the battlefield if it's your turn.
+                    // If you don't put it onto the battlefield, put it into
+                    // your hand." (CR 110.2a: under the controller's
+                    // control).
+                    for id in &taken {
+                        let mv = self.pool.get(self.objects[*id].def).mana_cost.mana_value();
+                        let ok = fd.max_mv.is_none_or(|m| mv <= u32::from(m))
+                            && fd.cond.is_none_or(|c| {
+                                let c = self.pool.condition(c).clone();
+                                self.condition_for(&c, p, ctx.source, ctx.trigger_obj)
+                            });
+                        let def = self.objects[*id].def;
+                        if ok
+                            && self.choose_mid(
+                                p,
+                                DecisionKind::YouMay { def },
+                                vec![Choice::Accept, Choice::Decline],
+                            ) == 0
+                        {
+                            let new = self.put_onto_battlefield_with(
+                                *id,
+                                p,
+                                super::replace::Enter::default(),
+                            );
+                            ctx.created = Some(new);
+                            if fd.haste
+                                && self
+                                    .objects
+                                    .get(new)
+                                    .is_some_and(|o| o.zone == Zone::Battlefield)
+                            {
+                                self.effect_until_end_of_turn(
+                                    ctx,
+                                    new,
+                                    smallvec::smallvec![Modification::AddKeywords(KeywordSet::of(
+                                        [Keyword::Haste]
+                                    ))],
+                                );
+                            }
+                        } else {
+                            self.move_object(*id, Zone::Hand, false);
+                        }
+                    }
                 } else if !*back_on_top {
                     for id in &taken {
                         self.move_object(*id, Zone::Hand, false);
+                    }
+                }
+                // "Then put any number of land cards from among them onto the
+                // battlefield tapped": one at a time, the controller choosing
+                // (CR 110.2a: under their control).
+                if let Some(sec) = second {
+                    loop {
+                        let mut options: Vec<Choice> = top
+                            .iter()
+                            .copied()
+                            .filter(|id| {
+                                !taken.contains(id)
+                                    && self
+                                        .objects
+                                        .get(*id)
+                                        .is_some_and(|o| o.zone == Zone::Library)
+                                    && matches(self, Some(&sec.0), *id)
+                            })
+                            .map(|id| Choice::Target(Target::Object(id)))
+                            .collect();
+                        if options.is_empty() {
+                            break;
+                        }
+                        options.push(Choice::Done);
+                        let k = self.choose_mid(p, DecisionKind::SearchLibrary, options.clone());
+                        let Choice::Target(Target::Object(id)) = options[k] else {
+                            break;
+                        };
+                        taken.push(id);
+                        let new = self.put_onto_battlefield_with(
+                            id,
+                            p,
+                            super::replace::Enter {
+                                tapped: sec.1,
+                                ..super::replace::Enter::default()
+                            },
+                        );
+                        ctx.created = Some(new);
                     }
                 }
                 // "Then shuffle." (CR 701.24): the rest stay; the library is
@@ -18219,6 +18367,8 @@ impl GameState {
                     }
                     if *rest_graveyard {
                         self.move_object(id, Zone::Graveyard, false);
+                    } else if *rest_hand {
+                        self.move_object(id, Zone::Hand, false);
                     } else {
                         self.move_object(id, Zone::Library, false);
                     }
@@ -18231,7 +18381,10 @@ impl GameState {
                 opponent,
                 piles,
                 rest,
-            } => self.dig_split(ctx, *count, *of, *reveal, *opponent, piles, *rest),
+                alternate,
+            } => self.dig_split(
+                ctx, *count, *of, *reveal, *opponent, piles, *rest, *alternate,
+            ),
             Effect::Piles {
                 count,
                 reveal,
@@ -18953,6 +19106,7 @@ impl GameState {
         opponent: bool,
         piles: &[crate::card::SplitDest],
         rest: Option<crate::card::SplitDest>,
+        alternate: bool,
     ) {
         use crate::card::SplitDest;
         let Some(Target::Player(owner)) = self.recipients(ctx, of).first().copied() else {
@@ -18972,6 +19126,10 @@ impl GameState {
         } else {
             ctx.controller
         };
+        // "Then choose an opponent. They put one on the bottom of your
+        // library." (Memories Returning): every other pick is theirs.
+        // (Two players: the opponent is the one chosen.)
+        let other = alternate.then(|| self.opponent(ctx.controller));
         let bits = 1u8 << ctx.controller.index().min(7);
         for id in &left {
             if reveal {
@@ -18997,10 +19155,14 @@ impl GameState {
             }
             SplitDest::Top => on_top.push(id),
         };
-        for d in piles {
+        for (i, d) in piles.iter().enumerate() {
             if left.is_empty() {
                 break;
             }
+            let chooser = match other {
+                Some(q) if i % 2 == 1 => q,
+                _ => chooser,
+            };
             let k = if left.len() == 1 {
                 0
             } else {

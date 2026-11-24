@@ -1088,6 +1088,21 @@ impl Decompiler<'_> {
                     out.push(Sentence::new(vec![d]));
                     continue;
                 }
+                // An impulse whose count a later sentence changes.
+                if let (
+                    [b @ CoreEffect::ExilePlayable { count: bc, .. }],
+                    [CoreEffect::ExilePlayable { count, .. }],
+                ) = (base.as_slice(), alt.as_slice())
+                {
+                    let mut d = self.effect(b);
+                    if let Effect::ExilePlayable { alt: slot, .. } = &mut d
+                        && count != bc
+                    {
+                        *slot = Some(Box::new((cond_ast, *count)));
+                    }
+                    out.push(Sentence::new(vec![d]));
+                    continue;
+                }
                 out.extend(self.sentences(base));
                 out.push(Sentence::new(vec![Effect::Instead {
                     cond: cond_ast,
@@ -2281,7 +2296,9 @@ impl Decompiler<'_> {
                 opponent,
                 piles,
                 rest,
+                alternate,
             } => Effect::DigSplit {
+                alternate: *alternate,
                 count: *count,
                 of: match r(*of) {
                     Recipient::You => None,
@@ -2455,6 +2472,7 @@ impl Decompiler<'_> {
                 look_those: false,
                 cond: cond.map(|c| self.static_cond(self.pool.condition(c))),
                 rider: ast_rider(*rider, false),
+                alt: None,
             },
             CoreEffect::Dig {
                 count,
@@ -2463,6 +2481,8 @@ impl Decompiler<'_> {
                 all,
                 rest_graveyard,
                 take,
+                take_num,
+                total_mv,
                 also,
                 random,
                 top,
@@ -2471,7 +2491,23 @@ impl Decompiler<'_> {
                 at_random,
                 split,
                 until,
+                field,
+                second,
+                exile_plot,
+                rest_hand,
             } => Effect::Dig {
+                exile_plot: *exile_plot,
+                rest_hand: *rest_hand,
+                second: second.as_ref().map(|s| Box::new((self.filter(&s.0), s.1))),
+                field: field.map(|fd| {
+                    Box::new(crate::ast::DigField {
+                        cond: fd.cond.map(|c| self.static_cond(self.pool.condition(c))),
+                        max_mv: fd.max_mv.map(u32::from),
+                        haste: fd.haste,
+                    })
+                }),
+                take_num: *take_num,
+                total_mv: *total_mv,
                 until: *until,
                 shuffle: *shuffle,
                 at_random: *at_random,
@@ -2486,7 +2522,7 @@ impl Decompiler<'_> {
                 all: *all,
                 rest_graveyard: *rest_graveyard,
                 reveal_top: false,
-                revealing: *optional && onto.is_none(),
+                revealing: (*optional && onto.is_none()) || field.is_some(),
                 take: *take,
                 also: also.as_ref().map(|f| self.filter(f)),
                 random: *random,

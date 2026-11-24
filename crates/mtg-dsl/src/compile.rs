@@ -3410,6 +3410,7 @@ impl Compiler<'_> {
             | Recipient::SameTokens
             | Recipient::SameCards
             | Recipient::SameExiledCards
+            | Recipient::SameCreatures
             | Recipient::SameThem => CoreRecipient::SameObject,
             Recipient::CreatedTokens | Recipient::CreatedThem | Recipient::CreatedThose => {
                 CoreRecipient::CreatedTokens
@@ -5594,6 +5595,7 @@ impl Compiler<'_> {
                 opponent,
                 piles,
                 rest,
+                alternate,
                 ..
             } => out.push(CoreEffect::DigSplit {
                 count: *count,
@@ -5602,6 +5604,7 @@ impl Compiler<'_> {
                 opponent: *opponent,
                 piles: piles.clone(),
                 rest: *rest,
+                alternate: *alternate,
             }),
             Effect::Shuffle { who, .. } => out.push(CoreEffect::ShuffleLibrary { who: r(*who) }),
             Effect::MoveCounters {
@@ -5808,13 +5811,14 @@ impl Compiler<'_> {
                 face_down,
                 cond,
                 rider,
+                alt,
                 ..
             } => {
                 let cond = cond.as_ref().map(|c| {
                     let c = self.static_cond(c);
                     self.pool.intern_condition(c)
                 });
-                out.push(CoreEffect::ExilePlayable {
+                let base = CoreEffect::ExilePlayable {
                     count: *count,
                     until: *until,
                     choose: *choose,
@@ -5822,7 +5826,24 @@ impl Compiler<'_> {
                     face_down: *face_down,
                     cond,
                     rider: core_rider(rider.as_ref()),
-                });
+                };
+                // CR 608.2c: "If this spell's additional cost was paid,
+                // exile the top three cards instead.": the same impulse,
+                // with the other count.
+                if let Some(a) = alt {
+                    let mut changed = base.clone();
+                    if let CoreEffect::ExilePlayable { count, .. } = &mut changed {
+                        *count = a.1;
+                    }
+                    let cond = self.instead_cond(&a.0);
+                    out.push(CoreEffect::Instead {
+                        cond,
+                        base: vec![base],
+                        alt: vec![changed],
+                    });
+                } else {
+                    out.push(base);
+                }
             }
             Effect::Dig {
                 count,
@@ -5831,6 +5852,8 @@ impl Compiler<'_> {
                 all,
                 rest_graveyard,
                 take,
+                take_num,
+                total_mv,
                 also,
                 random,
                 top,
@@ -5840,15 +5863,33 @@ impl Compiler<'_> {
                 split,
                 alt,
                 until,
+                field,
+                second,
+                exile_plot,
+                rest_hand,
                 ..
             } => {
+                let field = field.as_ref().map(|fd| mtg_core::card::DigField {
+                    cond: fd.cond.as_ref().map(|c| {
+                        let c = self.static_cond(c);
+                        self.pool.intern_condition(c)
+                    }),
+                    max_mv: fd.max_mv.map(|m| u8::try_from(m).unwrap_or(u8::MAX)),
+                    haste: fd.haste,
+                });
                 let base = CoreEffect::Dig {
+                    exile_plot: *exile_plot,
+                    rest_hand: *rest_hand,
+                    field,
+                    second: second.as_ref().map(|s| Box::new((self.filter(&s.0), s.1))),
                     count: *count,
                     filter: filter.as_ref().map(|f| self.filter(f)),
                     optional: *optional,
                     all: *all,
                     rest_graveyard: *rest_graveyard,
                     take: *take,
+                    take_num: *take_num,
+                    total_mv: *total_mv,
                     also: also.as_ref().map(|f| self.filter(f)),
                     random: *random,
                     top: *top,

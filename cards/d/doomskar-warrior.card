@@ -1,0 +1,9 @@
+card "Doomskar Warrior" {
+  oracle_id 7ac00312-8963-4fee-8561-1a54e533adbb
+  cost {2}{G}{G}
+  type Creature — Human Warrior
+  pt 4/3
+  backup 1
+  keyword trample
+  triggered whenever this deals combat damage to a player or battle: dig that much take creature or land card may revealing rest bottom random
+}

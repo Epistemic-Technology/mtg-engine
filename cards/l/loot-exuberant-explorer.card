@@ -1,0 +1,8 @@
+card "Loot, Exuberant Explorer" {
+  oracle_id f6476884-f73f-465f-8e7f-ea312a5b306d
+  cost {2}{G}
+  type Legendary Creature — Beast Noble
+  pt 1/4
+  additional land
+  activated {4}{G}{G}, {T}: dig 6 take creature with mana value at most count equal land you control card may revealing onto battlefield rest bottom random short
+}

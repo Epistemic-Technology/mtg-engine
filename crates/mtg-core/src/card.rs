@@ -2834,6 +2834,20 @@ pub enum CardDest {
     LibraryBottom,
 }
 
+/// `Effect::Dig::field`: when a card taken may be put onto the battlefield
+/// under the controller's control instead of into the hand, the
+/// controller choosing (Whiskervale Forerunner, Break Out).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct DigField {
+    /// "if it's your turn": a pooled condition (`CardPool::condition`),
+    /// judged as the card would be put.
+    pub cond: Option<u16>,
+    /// "If that card has mana value 2 or less": its printed mana value.
+    pub max_mv: Option<u8>,
+    /// "and it gains haste until end of turn".
+    pub haste: bool,
+}
+
 /// Where `Effect::DigSplit` puts one of the cards looked at: its owner's
 /// hand, graveyard, the top or bottom of its library, or exile.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -6133,6 +6147,15 @@ pub enum Effect {
         all: bool,
         rest_graveyard: bool,
         take: u32,
+        /// "Put X cards from among them into your hand" (Stargaze): the
+        /// take as a number expression, in place of `take`.
+        #[serde(default)]
+        take_num: Option<Num>,
+        /// "Put up to two creature cards with total mana value 6 or less
+        /// from among them": the printed mana values of the cards taken add
+        /// up to at most this (X the spell's).
+        #[serde(default)]
+        total_mv: Option<Num>,
         also: Option<ObjFilter>,
         random: bool,
         top: bool,
@@ -6150,6 +6173,25 @@ pub enum Effect {
         /// library), revealed.
         #[serde(default)]
         until: bool,
+        /// "You may put it onto the battlefield if it's your turn. If you
+        /// don't put it onto the battlefield, put it into your hand.": each
+        /// card taken may go onto the battlefield instead of the hand.
+        #[serde(default)]
+        field: Option<DigField>,
+        /// "Then put any number of land cards from among them onto the
+        /// battlefield tapped and the rest into your graveyard.": after the
+        /// take, any number of the cards left matching this go onto the
+        /// battlefield under the controller's control (tapped with `true`).
+        #[serde(default)]
+        second: Option<Box<(ObjFilter, bool)>>,
+        /// "You may exile a nonland card from among them. If you do, it
+        /// becomes plotted. Put the rest into your hand." (Make Your Own
+        /// Luck): the cards taken are exiled and plotted (CR 702.170), and
+        /// with `rest_hand` the rest go into the hand.
+        #[serde(default)]
+        exile_plot: bool,
+        #[serde(default)]
+        rest_hand: bool,
     },
     /// "Look at the top three cards of your library. Put one of those cards
     /// into your hand, one on top of your library, and one on the bottom of
@@ -6169,6 +6211,11 @@ pub enum Effect {
         opponent: bool,
         piles: Vec<SplitDest>,
         rest: Option<SplitDest>,
+        /// "Then choose an opponent. They put one on the bottom of your
+        /// library. Then you put one into your hand. ...": the controller
+        /// and a chosen opponent pick in turn, the controller first.
+        #[serde(default)]
+        alternate: bool,
     },
     /// "Reveal the top five cards of your library and separate them into
     /// two piles. An opponent chooses one of those piles. Put that pile
@@ -7328,6 +7375,11 @@ pub enum ChooseAct {
         tapped: bool,
         #[serde(default)]
         counter: Option<CounterKind>,
+        /// "up to two creature cards with total mana value 4 or less"
+        /// (Lively Dirge): the chosen cards' printed mana values add up to
+        /// at most this.
+        #[serde(default)]
+        total_mv: Option<u8>,
     },
     /// "put any number of creature cards from your hand onto the
     /// battlefield", "put a land card from your hand or graveyard onto the

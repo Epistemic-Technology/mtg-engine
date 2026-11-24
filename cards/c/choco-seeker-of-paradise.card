@@ -1,0 +1,8 @@
+card "Choco, Seeker of Paradise" {
+  oracle_id 7979bf83-5091-4e62-8885-ca1833a97306
+  cost {1}{G}{W}{U}
+  type Legendary Creature — Bird
+  pt 3/5
+  triggered whenever one or more Bird you control attack: dig count that many attacking Bird you control take card may then any land card onto battlefield tapped rest graveyard
+  label "Landfall" triggered whenever land you control enters: this gets +1/+0 until end of turn
+}

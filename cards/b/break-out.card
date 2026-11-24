@@ -1,0 +1,6 @@
+card "Break Out" {
+  oracle_id 99eaac39-28d4-4af7-984b-f75fd37902ed
+  cost {R}{G}
+  type Sorcery
+  spell: dig 6 take creature card may revealing field with mana value 2 or less haste rest bottom random
+}

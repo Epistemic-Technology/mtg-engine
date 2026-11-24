@@ -1,0 +1,7 @@
+card "Burning Curiosity" {
+  oracle_id 7f420633-901d-47f9-ae0f-0f5b0ea8359c
+  cost {2}{R}
+  type Sorcery
+  additional cost may blight 1
+  spell: impulse 2 next turn first instead count 3 if additional cost paid
+}

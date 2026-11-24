@@ -7978,6 +7978,7 @@ impl P {
         };
         let reveal = self.eat_word("reveal");
         let opponent = self.eat_word("opponent");
+        let alternate = !opponent && self.eat_word("alternate");
         self.expect_word("into")?;
         let mut piles = vec![self.split_dest()?];
         while self.peek() == Some(&Tok::Comma) {
@@ -7998,6 +7999,7 @@ impl P {
             piles,
             rest,
             then,
+            alternate,
         })
     }
 
@@ -10105,7 +10107,9 @@ impl P {
             }
             // "Target player shuffles their library."
             "shuffle" | "shuffles"
-                if self.at_word("library") && !matches!(self.peek_at(1), Some(Tok::Word(_))) =>
+                if self.at_word("library")
+                    && (!matches!(self.peek_at(1), Some(Tok::Word(_)))
+                        || self.word_at(1).as_deref() == Some("then")) =>
             {
                 self.pos += 1;
                 Ok(Effect::Shuffle {
@@ -11729,7 +11733,22 @@ impl P {
                         // counter chosen`.
                         let tapped = self.eat_word("tapped");
                         let counter = self.one_counter()?;
-                        (ChooseAct::GraveyardToBattlefield { tapped, counter }, f)
+                        // `with total mana value 4 or less` (Lively Dirge).
+                        let total_mv = if self.eat_words(&["with", "total", "mana", "value"]) {
+                            let n = self.number()?;
+                            self.expect_words(&["or", "less"])?;
+                            Some(u8::try_from(n).unwrap_or(u8::MAX))
+                        } else {
+                            None
+                        };
+                        (
+                            ChooseAct::GraveyardToBattlefield {
+                                tapped,
+                                counter,
+                                total_mv,
+                            },
+                            f,
+                        )
                     } else if self.eat_words(&["put", "into"]) {
                         // `return 1 creature card put into your graveyard
                         // this way to battlefield under your control chosen`.
@@ -11896,6 +11915,16 @@ impl P {
             self.expect_word("chosen")?;
             act
         };
+        // "Put each creature card milled this way onto the battlefield.
+        // They gain haste.": the cards put, as a group (CR 608.2c).
+        if matches!(
+            act,
+            ChooseAct::MilledToBattlefield
+                | ChooseAct::HandToBattlefield { .. }
+                | ChooseAct::ThisWayToBattlefield { .. }
+        ) {
+            self.group_named = true;
+        }
         Ok(Effect::ChooseAct {
             act,
             count,
@@ -12970,8 +12999,12 @@ impl P {
                 library: false,
                 have: false,
             }),
+            // `shuffle library then mill 4 cards`: "Shuffle your library,
+            // then mill four cards."
             "shuffle"
-                if self.at_word("library") && !matches!(self.peek_at(1), Some(Tok::Word(_))) =>
+                if self.at_word("library")
+                    && (!matches!(self.peek_at(1), Some(Tok::Word(_)))
+                        || self.word_at(1).as_deref() == Some("then")) =>
             {
                 self.pos += 1;
                 Ok(Effect::Shuffle {
@@ -13524,7 +13557,17 @@ impl P {
                     None
                 };
                 let rider = self.cast_rider()?;
+                // `instead count 3 if <cond>`: "If ..., exile the top three
+                // cards instead." (CR 608.2c).
+                let alt = if self.eat_words(&["instead", "count"]) {
+                    let n = self.num()?;
+                    self.expect_word("if")?;
+                    Some(Box::new((self.instead_cond()?, n)))
+                } else {
+                    None
+                };
                 Ok(Effect::ExilePlayable {
+                    alt,
                     count,
                     until,
                     first,
@@ -13561,6 +13604,15 @@ impl P {
                 let reveal_top = self.eat_word("reveal");
                 self.expect_word("take")?;
                 let all = self.eat_word("all");
+                // `take X card`: "Put X cards from among them" (Stargaze).
+                let take_num = if !all
+                    && self.word_at(0).is_some_and(|w| w.eq_ignore_ascii_case("x"))
+                    && self.word_at(1).as_deref() == Some("card")
+                {
+                    Some(self.num()?)
+                } else {
+                    None
+                };
                 let take = if matches!(self.peek(), Some(Tok::Num(_))) {
                     self.number()?
                 } else if self.eat_word("any") {
@@ -13578,6 +13630,15 @@ impl P {
                     self.expect_word("card")?;
                     Some(f)
                 };
+                // `with total mana value 6 or less` (Michelangelo's
+                // Technique).
+                let total_mv = if self.eat_words(&["with", "total", "mana", "value"]) {
+                    let n = self.num()?;
+                    self.expect_words(&["or", "less"])?;
+                    Some(n)
+                } else {
+                    None
+                };
                 let also = if filter.is_some() && self.eat_word("and") {
                     let f = self.filter()?;
                     self.expect_word("card")?;
@@ -13590,12 +13651,51 @@ impl P {
                 let optional = self.eat_word("may");
                 let revealing = self.eat_word("revealing");
                 let that_card = revealing && self.eat_words(&["that", "card"]);
+                // `field if your turn`, `field with mana value 2 or less
+                // haste`: onto the battlefield instead, the controller
+                // choosing.
+                let field = if revealing && self.eat_word("field") {
+                    let cond = if self.eat_word("if") {
+                        Some(self.static_cond()?)
+                    } else {
+                        None
+                    };
+                    let max_mv = if self.eat_words(&["with", "mana", "value"]) {
+                        let n = self.number()?;
+                        self.expect_words(&["or", "less"])?;
+                        Some(n)
+                    } else {
+                        None
+                    };
+                    let haste = self.eat_word("haste");
+                    if cond.is_none() && max_mv.is_none() {
+                        return self.fail("a dig's `field` needs `if <condition>` or a mana value");
+                    }
+                    Some(Box::new(crate::ast::DigField {
+                        cond,
+                        max_mv,
+                        haste,
+                    }))
+                } else {
+                    None
+                };
                 // `take card may top`: back on top of the library.
                 let top = self.eat_word("top");
+                // `exile plotted`: exiled, and it becomes plotted.
+                let exile_plot = self.eat_words(&["exile", "plotted"]);
                 // `onto battlefield [tapped]`: onto the battlefield instead
                 // of into the hand.
                 let onto = if self.eat_words(&["onto", "battlefield"]) {
                     Some(self.eat_word("tapped"))
+                } else {
+                    None
+                };
+                // `then any land card onto battlefield tapped`: a second
+                // take onto the battlefield (Choco, Seeker of Paradise).
+                let second = if self.eat_words(&["then", "any"]) {
+                    let f = self.filter()?;
+                    self.expect_words(&["card", "onto", "battlefield"])?;
+                    Some(Box::new((f, self.eat_word("tapped"))))
                 } else {
                     None
                 };
@@ -13613,10 +13713,14 @@ impl P {
                 };
                 self.expect_word("rest")?;
                 let shuffle = self.eat_word("shuffle");
+                let mut rest_hand = false;
                 let rest_graveyard = if shuffle {
                     false
                 } else if self.eat_word("graveyard") {
                     true
+                } else if exile_plot && self.eat_word("hand") {
+                    rest_hand = true;
+                    false
                 } else {
                     self.expect_word("bottom")?;
                     false
@@ -13685,6 +13789,8 @@ impl P {
                     reveal_top,
                     revealing,
                     take,
+                    take_num,
+                    total_mv,
                     also,
                     random,
                     top,
@@ -13700,6 +13806,10 @@ impl P {
                     among,
                     alt,
                     until,
+                    field,
+                    second,
+                    exile_plot,
+                    rest_hand,
                 })
             }
             "look" if self.at_words(&["at", "top", "card"]) => {
@@ -16443,6 +16553,11 @@ impl P {
                     creature,
                 ));
             }
+        }
+        // "return those creatures to their owner's hand" inside a delayed
+        // trigger about a group (`delayed them:`): each in turn.
+        if self.in_delayed && self.group_named && self.eat_words(&["those", "creatures"]) {
+            return Ok(Recipient::SameCreatures);
         }
         // `them`, `those creatures`: the objects a group named earlier in
         // the ability denoted (CR 608.2c). Inside a delayed trigger about

@@ -3954,6 +3954,20 @@ pub struct DigAlt {
     pub rest: bool,
 }
 
+/// A dig's `field ...` after `revealing`: the card revealed may go onto
+/// the battlefield instead of into the hand. `field if your turn`: "You may
+/// put it onto the battlefield if it's your turn. If you don't put it onto
+/// the battlefield, put it into your hand." `field with mana value 2 or
+/// less haste`: "If that card has mana value 2 or less, you may put it onto
+/// the battlefield and it gains haste until end of turn. If you didn't put
+/// the revealed card onto the battlefield this way, put it into your hand."
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct DigField {
+    pub cond: Option<StaticCond>,
+    pub max_mv: Option<u32>,
+    pub haste: bool,
+}
+
 /// Where "instead" and the condition print.
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum InsteadWording {
@@ -5179,6 +5193,12 @@ pub enum Recipient {
     /// (`SameTokens`), printed "them" ("Exile them at the beginning of the
     /// next end step").
     SameThem,
+    /// `those creatures` inside a delayed trigger about a group the
+    /// resolution put onto the battlefield (`delayed them:`): each in turn
+    /// (the core `SameObject`), printed "those creatures" ("At the
+    /// beginning of the next end step, return those creatures to their
+    /// owner's hand.", Random Encounter).
+    SameCreatures,
     /// `them` after creating tokens: `those tokens` printed "them" ("Put
     /// X +1/+1 counters on each of them").
     CreatedThem,
@@ -6803,6 +6823,14 @@ pub enum Effect {
         /// `ANY_NUMBER`); without a filter, exactly that many ("Put two of
         /// those cards into your hand").
         take: u32,
+        /// `take X card`: exactly that many, a number expression ("Put X
+        /// cards from among them into your hand", Stargaze); `take` unused.
+        take_num: Option<Num>,
+        /// `take 2 creature card with total mana value 6 or less`: the
+        /// cards taken have printed mana values adding up to at most this
+        /// ("Put up to two creature cards with total mana value 6 or less
+        /// from among them onto the battlefield and the rest ...").
+        total_mv: Option<Num>,
         /// `take creature card and land card`: "a creature card and/or a
         /// land card".
         also: Option<Filter>,
@@ -6854,6 +6882,20 @@ pub enum Effect {
         /// of your library until you reveal two land cards." (the count is
         /// of cards matching the filter).
         until: bool,
+        /// `revealing field ...`: the revealed card may go onto the
+        /// battlefield instead.
+        field: Option<Box<DigField>>,
+        /// `then any land card onto battlefield tapped`: after the take, any
+        /// number of the cards left matching this go onto the battlefield
+        /// (tapped with `true`) before the rest go ("Then put any number of
+        /// land cards from among them onto the battlefield tapped and the
+        /// rest into your graveyard.").
+        second: Option<Box<(Filter, bool)>>,
+        /// `take nonland card may exile plotted rest hand`: "You may exile a
+        /// nonland card from among them. If you do, it becomes plotted. Put
+        /// the rest into your hand." (`rest_hand`: the rest into the hand).
+        exile_plot: bool,
+        rest_hand: bool,
     },
     /// `look at top 3`: "look at the top three cards of your library, then
     /// put them back in any order"; `look at top 3 of target player`:
@@ -6909,6 +6951,10 @@ pub enum Effect {
         piles: Vec<mtg_core::card::SplitDest>,
         rest: Option<mtg_core::card::SplitDest>,
         then: bool,
+        /// `alternate`: you and a chosen opponent pick in turn ("Then
+        /// choose an opponent. They put one on the bottom of your library.
+        /// Then you put one into your hand. ...", Memories Returning).
+        alternate: bool,
     },
     /// `reveal top card` ("reveal the top card of your library"), `look at
     /// top card` ("look at the top card of your library"), `<who> reveals
@@ -7163,6 +7209,10 @@ pub enum Effect {
         /// `any type`: "..., and mana of any type can be spent to cast
         /// them".
         rider: Option<Rider>,
+        /// `instead count 3 if additional cost paid`: "If this spell's
+        /// additional cost was paid, exile the top three cards instead."
+        /// after the first sentence (CR 608.2c; Burning Curiosity).
+        alt: Option<Box<(InsteadCond, Num)>>,
     },
     /// `exile top 3 cards`: "Exile the top three cards of your library."
     /// (`exile top 1 card`: "the top card"); `each opponent exiles top 1

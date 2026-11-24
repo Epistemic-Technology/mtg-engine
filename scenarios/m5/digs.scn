@@ -1,0 +1,296 @@
+# Look, reveal and mill forms (CR 701.13, 701.20, 608.2c): a dig whose take
+# is a number expression (Stargaze), an impulse whose count a later
+# sentence changes (Burning Curiosity), cards taken or returned with a total
+# mana value bound (Michelangelo's Technique, Lively Dirge), a revealed card
+# put onto the battlefield under a filter compared with a count (Loot,
+# Exuberant Explorer), each creature card milled this way put onto the
+# battlefield and returned at the next end step (Random Encounter),
+# "reveal that many cards" (Ojer Kaslem), and a revealed card that may go
+# onto the battlefield instead of the hand (Whiskervale Forerunner, Break
+# Out), a second take onto the battlefield (Choco, Seeker of Paradise),
+# picks alternating with an opponent (Memories Returning), and a card
+# exiled and plotted from a dig (Make Your Own Luck).
+
+scenario "dig take X: Stargaze for X=2 looks at four, takes two, mills two, loses 2 life" {
+  battlefield A: 4 "Swamp"
+  hand A: "Stargaze"
+  library A: "Shock", "Grizzly Bears", "Hill Giant", "Plains", "Forest"
+  turn 1 A: cast "Stargaze" x 2
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Plains"
+  run_to turn 1 end
+  assert hand A count 2
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Plains"
+  assert graveyard A contains "Shock"
+  assert graveyard A contains "Hill Giant"
+  assert library A count 1
+  assert life A 18
+}
+
+scenario "dig take X: Stargaze with a short library takes them all" {
+  battlefield A: 5 "Swamp"
+  hand A: "Stargaze"
+  library A: "Shock", "Grizzly Bears"
+  turn 1 A: cast "Stargaze" x 3
+  run_to turn 1 end
+  assert hand A count 2
+  assert library A count 0
+  assert life A 17
+}
+
+scenario "impulse instead: Burning Curiosity without blight exiles two" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Burning Curiosity"
+  library A: "Shock", "Hill Giant", "Mountain", "Forest"
+  turn 1 A: cast "Burning Curiosity"
+  run_to turn 1 end
+  assert exile A count 2
+  assert library A count 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "impulse instead: Burning Curiosity blighted exiles three, playable next turn" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Burning Curiosity"
+  library A: "Shock", "Hill Giant", "Mountain", "Forest", "Plains", "Plains"
+  turn 1 A: cast "Burning Curiosity" kicked
+  run_to turn 3 precombat_main
+  assert exile A count 3
+  assert counters "Grizzly Bears" -1/-1 1
+  turn 3 A: cast "Shock" targeting player B
+  run_to turn 3 end
+  assert life B 18
+}
+
+scenario "dig total: Michelangelo's Technique takes two creatures within total mana value 6" {
+  battlefield A: 5 "Forest"
+  hand A: "Michelangelo's Technique"
+  library A: "Hill Giant", "Serra Angel", "Grizzly Bears", "Wind Drake", "Forest", "Forest", "Forest", "Forest", "Plains"
+  turn 1 A: cast "Michelangelo's Technique"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A lacks "Serra Angel"
+  assert library A count 7
+}
+
+# After Serra Angel (5), Grizzly Bears (2) would make 7: it isn't offered
+# (offered, the unscripted pick would take it).
+scenario "dig total: Michelangelo's Technique after a 5 has room for nothing over 1" {
+  battlefield A: 5 "Forest"
+  hand A: "Michelangelo's Technique"
+  library A: "Serra Angel", "Grizzly Bears", "Wind Drake", "Forest", "Forest", "Forest", "Forest", "Plains", "Plains"
+  turn 1 A: cast "Michelangelo's Technique"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 1 end
+  assert battlefield A contains "Serra Angel"
+  assert battlefield A lacks "Grizzly Bears"
+  assert library A count 8
+}
+
+scenario "return total: Lively Dirge returns creature cards within total mana value 4" {
+  battlefield A: 4 "Swamp"
+  hand A: "Lively Dirge"
+  graveyard A: "Hill Giant", "Grizzly Bears", "Wind Drake"
+  turn 1 A: cast "Lively Dirge" mode 2
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Wind Drake"
+}
+
+scenario "return total: Lively Dirge can return a single 4" {
+  battlefield A: 4 "Swamp"
+  hand A: "Lively Dirge"
+  graveyard A: "Hill Giant", "Grizzly Bears"
+  turn 1 A: cast "Lively Dirge" mode 2
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+# Ghalta (8) is over the six lands: not offered, so the unscripted pick
+# is Serra Angel.
+scenario "dig count filter: Loot reveals a creature with mana value at most its lands" {
+  battlefield A: "Loot, Exuberant Explorer", 6 "Forest"
+  library A: "Ghalta, Stampede Tyrant", "Serra Angel", "Plains", "Plains", "Plains", "Plains", "Plains"
+  turn 1 A: activate "Loot, Exuberant Explorer"
+  run_to turn 1 end
+  assert battlefield A contains "Serra Angel"
+  assert battlefield A lacks "Ghalta, Stampede Tyrant"
+  assert library A count 6
+}
+
+scenario "milled this way to battlefield: Random Encounter puts the creatures in with haste, back to hand at end step" {
+  battlefield A: 6 "Mountain"
+  hand A: "Random Encounter"
+  library A: "Grizzly Bears", "Hill Giant", "Forest", "Plains"
+  turn 1 A: cast "Random Encounter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert has "Hill Giant" haste
+  assert graveyard A contains "Forest"
+  run_to turn 2 upkeep
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert battlefield A lacks "Hill Giant"
+}
+
+scenario "reveal that many: Ojer Kaslem puts a creature and a land from the cards revealed" {
+  battlefield A: "Ojer Kaslem, Deepest Growth"
+  library A: "Mountain", "Hill Giant", "Grizzly Bears", "Forest", "Plains", "Island", "Swamp", "Mountain"
+  start turn 3 A
+  turn 3 A: attack "Ojer Kaslem, Deepest Growth"
+  turn 3 combat_damage A: choose "Grizzly Bears"
+  turn 3 combat_damage A: choose "Plains"
+  run_to turn 3 postcombat_main
+  assert life B 14
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Plains"
+  assert battlefield A lacks "Hill Giant"
+  assert library A count 5
+}
+
+scenario "dig field: Whiskervale Forerunner on your turn puts the creature onto the battlefield" {
+  battlefield A: "Whiskervale Forerunner", "Forest"
+  hand A: "Giant Growth"
+  library A: "Hill Giant", "Grizzly Bears", "Plains", "Plains", "Plains", "Plains"
+  turn 1 A: cast "Giant Growth" targeting "Whiskervale Forerunner"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: accept "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A lacks "Grizzly Bears"
+  assert library A count 5
+}
+
+scenario "dig field: Whiskervale Forerunner, declined, puts it into the hand" {
+  battlefield A: "Whiskervale Forerunner", "Forest"
+  hand A: "Giant Growth"
+  library A: "Grizzly Bears", "Plains", "Plains", "Plains", "Plains"
+  turn 1 A: cast "Giant Growth" targeting "Whiskervale Forerunner"
+  turn 1 A: decline "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "dig field: Whiskervale Forerunner on an opponent's turn puts it into the hand" {
+  battlefield A: "Whiskervale Forerunner", "Forest"
+  hand A: "Giant Growth"
+  library A: "Grizzly Bears", "Plains", "Plains", "Plains", "Plains"
+  start turn 2 B
+  turn 2 A: cast "Giant Growth" targeting "Whiskervale Forerunner"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "dig field: Break Out puts a 2-drop onto the battlefield with haste" {
+  battlefield A: "Mountain", "Forest"
+  hand A: "Break Out"
+  library A: "Hill Giant", "Grizzly Bears", "Plains", "Plains", "Plains", "Plains", "Plains"
+  turn 1 A: cast "Break Out"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: accept "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert has "Grizzly Bears" haste
+  assert library A count 6
+  run_to turn 2 upkeep
+  assert has not "Grizzly Bears" haste
+}
+
+scenario "dig field: Break Out puts a larger creature into the hand" {
+  battlefield A: "Mountain", "Forest"
+  hand A: "Break Out"
+  library A: "Hill Giant", "Grizzly Bears", "Plains", "Plains", "Plains", "Plains", "Plains"
+  turn 1 A: cast "Break Out"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert battlefield A lacks "Hill Giant"
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "dig second take: Choco looks at one card per attacking Bird, a card to hand, lands onto the battlefield" {
+  battlefield A: "Choco, Seeker of Paradise", 2 "Birds of Paradise"
+  library A: "Plains", "Grizzly Bears", "Forest", "Island", "Hill Giant"
+  start turn 3 A
+  turn 3 A: attack "Choco, Seeker of Paradise", "Birds of Paradise", "Birds of Paradise"
+  turn 3 declare_attackers A: choose "Grizzly Bears"
+  turn 3 declare_attackers A: choose "Forest"
+  turn 3 declare_attackers A: choose done
+  run_to turn 3 declare_blockers
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains "Forest"
+  assert tapped "Forest"
+  assert graveyard A contains "Island"
+  assert library A count 1
+  assert power "Choco, Seeker of Paradise" 4
+}
+
+scenario "dig split alternate: Memories Returning, you and an opponent pick in turn" {
+  battlefield A: 4 "Island"
+  hand A: "Memories Returning"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Wind Drake", "Shock", "Plains"
+  turn 1 A: cast "Memories Returning"
+  turn 1 A: choose "Serra Angel"
+  turn 1 B: choose "Grizzly Bears"
+  turn 1 A: choose "Hill Giant"
+  turn 1 B: choose "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert hand A contains "Serra Angel"
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Shock"
+  assert library A contains "Grizzly Bears"
+  assert library A contains "Wind Drake"
+  assert library A count 3
+}
+
+scenario "dig exile plotted: Make Your Own Luck plots a nonland card, the rest to hand" {
+  battlefield A: 4 "Forest", "Island"
+  hand A: "Make Your Own Luck"
+  library A: "Grizzly Bears", "Forest", "Shock", "Plains", "Plains"
+  turn 1 A: cast "Make Your Own Luck"
+  turn 1 A: choose "Grizzly Bears"
+  illegal turn 1 postcombat_main A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert exile A contains "Grizzly Bears"
+  assert hand A contains "Forest"
+  assert hand A contains "Shock"
+  assert hand A count 2
+  turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "dig exile plotted: Make Your Own Luck can't plot a land" {
+  battlefield A: 4 "Forest", "Island"
+  hand A: "Make Your Own Luck"
+  library A: "Forest", "Plains", "Island", "Plains"
+  turn 1 A: cast "Make Your Own Luck"
+  run_to turn 1 end
+  assert hand A count 3
+  assert exile A count 0
+}
+
+scenario "dig that many: Doomskar Warrior reveals a land from among that many" {
+  battlefield A: "Doomskar Warrior"
+  library A: "Plains", "Grizzly Bears", "Hill Giant", "Island", "Forest", "Serra Angel"
+  start turn 3 A
+  turn 3 A: attack "Doomskar Warrior"
+  turn 3 combat_damage A: choose "Forest"
+  run_to turn 3 postcombat_main
+  assert life B 16
+  assert hand A contains "Forest"
+  assert library A contains "Serra Angel"
+  assert library A count 4
+}
