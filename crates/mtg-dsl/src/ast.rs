@@ -5629,6 +5629,11 @@ pub enum Effect {
         opponent_chooses: bool,
         /// `the piles`: "one of the piles" rather than "of those piles".
         the_piles: bool,
+        /// `one to hand rest bottom` (Truth or Tale), `piles exiled ...
+        /// onto battlefield` (Boneyard Parley), `piles exile 3 twice`
+        /// (Hostile Negotiations), `piles exile 5 ... play free` (Brilliant
+        /// Ultimatum).
+        form: mtg_core::card::PileForm,
     },
     /// `split top 3 into hand, top, bottom` ("Look at the top three cards
     /// of your library. Put one of those cards into your hand, one on top

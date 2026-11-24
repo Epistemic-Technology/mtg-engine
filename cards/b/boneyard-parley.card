@@ -1,0 +1,6 @@
+card "Boneyard Parley" {
+  oracle_id a3d048c8-e8df-4b50-a422-fc94a69f44bb
+  cost {5}{B}{B}
+  type Sorcery
+  spell: exile up to 5 target creature card from graveyards; piles exiled separated by opponent onto battlefield
+}

@@ -1932,6 +1932,7 @@ impl Decompiler<'_> {
                 face_down,
                 separator,
                 opponent_chooses,
+                form,
             } => Effect::Piles {
                 count: *count,
                 reveal: *reveal,
@@ -1939,6 +1940,7 @@ impl Decompiler<'_> {
                 separator: separator.map(r),
                 opponent_chooses: *opponent_chooses,
                 the_piles: false,
+                form: *form,
             },
             CoreEffect::DigSplit {
                 count,

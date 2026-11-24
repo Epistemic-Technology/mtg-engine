@@ -2941,7 +2941,32 @@ up; a pile may be empty. Then the chooser takes `choose "1"` or `"2"`.
 The count `graveyarded this way` ("for each card put into your graveyard
 this way") counts the cards the resolution put into a graveyard,
 `count each graveyarded this way +1/+1 counters on it` (Intrude on the
-Mind);
+Mind). Other sources and destinations: `piles reveal 5 chosen by
+opponent one to hand rest bottom` ("... An opponent chooses one of those
+piles. Put a card from the chosen pile into your hand, then put all
+other cards revealed this way on the bottom of your library in any
+order.": the controller picks the card, then the order, a card at a
+time); `piles exiled separated by opponent onto battlefield` after an
+exile ("An opponent separates those cards into two piles. Put all cards
+from the pile of your choice onto the battlefield under your control and
+the rest into their owners' graveyards.": the cards the resolution
+exiled); `piles exile 3 twice chosen by opponent` ("Exile the top three
+cards of your library in a face-down pile, then exile the top three
+cards of your library in another face-down pile. Look at the cards in
+each pile, then turn a pile of your choice face up. An opponent chooses
+one of those piles. Put that pile into your hand and the other into your
+graveyard.": the controller turns a pile up with `choose "1"` or `"2"`
+before the opponent chooses); `piles exile 5 separated by opponent play
+free` ("Exile the top five cards of your library. An opponent separates
+those cards into two piles. You may play lands and cast spells from one
+of those piles. If you cast a spell this way, you cast it without paying
+its mana cost.": each card of the chosen pile is offered in turn, a
+spell cast as the effect finishes, CR 608.2g, a land played on its
+controller's turn with a land play left, CR 305.1; the rest stay in
+exile). `<who> reveals hand` also makes the hand's cards "revealed this
+way": `deal count each 3 with chosen name card revealed this way damage
+to that player` ("deals 3 damage to that player for each card with the
+chosen name revealed this way", Thought Hemorrhage);
 `return 1 land you control chosen` ("return a land you control to its
 owner's hand"), `switch pt of target
 creature` ("Switch target creature's power and toughness until end of

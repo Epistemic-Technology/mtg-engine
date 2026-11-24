@@ -977,12 +977,23 @@ impl Fmt {
                 separator,
                 opponent_chooses,
                 the_piles,
+                form,
             } => {
-                let mut s = format!(
-                    "piles {} {}",
-                    if *reveal { "reveal" } else { "look" },
-                    num(*count)
-                );
+                use mtg_core::card::PileForm;
+                let mut s = match form {
+                    PileForm::ExiledToBattlefield => "piles exiled".to_string(),
+                    PileForm::TwoFaceDown | PileForm::PlayFree => {
+                        format!("piles exile {}", num(*count))
+                    }
+                    _ => format!(
+                        "piles {} {}",
+                        if *reveal { "reveal" } else { "look" },
+                        num(*count)
+                    ),
+                };
+                if *form == PileForm::TwoFaceDown {
+                    s.push_str(" twice");
+                }
                 if *face_down {
                     s.push_str(" face-down");
                 }
@@ -998,6 +1009,12 @@ impl Fmt {
                 }
                 if *the_piles {
                     s.push_str(" the piles");
+                }
+                match form {
+                    PileForm::OneToHandRestBottom => s.push_str(" one to hand rest bottom"),
+                    PileForm::ExiledToBattlefield => s.push_str(" onto battlefield"),
+                    PileForm::PlayFree => s.push_str(" play free"),
+                    PileForm::HandGraveyard | PileForm::TwoFaceDown => {}
                 }
                 s
             }

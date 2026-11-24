@@ -1,0 +1,6 @@
+card "Truth or Tale" {
+  oracle_id 10674c2f-7920-4505-b8d5-e96f3da1cda3
+  cost {1}{U}
+  type Instant
+  spell: piles reveal 5 chosen by opponent one to hand rest bottom
+}

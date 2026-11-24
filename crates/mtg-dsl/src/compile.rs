@@ -4401,7 +4401,7 @@ impl Compiler<'_> {
                     filter: self.filter(filter),
                 });
             }
-            Effect::ForEachCouldnt { inner, .. } => {
+            Effect::ForEachCouldnt { inner, .. } | Effect::IfTheyCant(inner) => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::ForEachCouldnt(effects));
             }
@@ -4824,6 +4824,7 @@ impl Compiler<'_> {
                 face_down,
                 separator,
                 opponent_chooses,
+                form,
                 ..
             } => out.push(CoreEffect::Piles {
                 count: *count,
@@ -4831,6 +4832,7 @@ impl Compiler<'_> {
                 face_down: *face_down,
                 separator: separator.map(r),
                 opponent_chooses: *opponent_chooses,
+                form: *form,
             }),
             Effect::DigSplit {
                 count,
@@ -5195,10 +5197,6 @@ impl Compiler<'_> {
                     filter,
                     one: *one,
                 });
-            }
-            Effect::IfTheyCant(inner) => {
-                let effects = self.sentences(inner)?;
-                out.push(CoreEffect::ForEachCouldnt(effects));
             }
             Effect::AddPoison { count, who } => out.push(CoreEffect::AddPoison {
                 count: *count,

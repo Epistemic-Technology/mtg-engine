@@ -324,3 +324,155 @@ scenario "Cabal Therapist: no sacrifice, no discard" {
   assert battlefield A contains "Grizzly Bears"
   assert hand B count 2
 }
+
+# Piles with other sources and destinations (CR 700.3). The separator
+# puts cards in the first pile with `choose "X"` and ends it with `choose
+# done`; the chooser takes `choose "1"` or `"2"`.
+
+scenario "Truth or Tale: a card from the opponent's chosen pile, the rest on the bottom" {
+  battlefield A: 2 "Island"
+  hand A: "Truth or Tale"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Truth or Tale"
+  turn 1 A: choose "Shock"
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 A: choose done
+  turn 1 B: choose "1"
+  turn 1 A: choose "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Lightning Bolt"
+  assert hand A count 1
+  assert library A count 5
+  assert graveyard A count 1
+}
+
+scenario "Truth or Tale: an empty pile chosen gives no card" {
+  battlefield A: 2 "Island"
+  hand A: "Truth or Tale"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Truth or Tale"
+  turn 1 A: choose done
+  turn 1 B: choose "1"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A count 6
+}
+
+scenario "Boneyard Parley: the pile of its caster's choice onto the battlefield, the rest to their owners' graveyards" {
+  battlefield A: 4 "Swamp", 3 "Plains"
+  hand A: "Boneyard Parley"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  graveyard B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Boneyard Parley" targeting "Grizzly Bears", "Hill Giant", "Serra Angel"
+  turn 1 B: choose "Serra Angel"
+  turn 1 B: choose done
+  turn 1 A: choose "1"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard B count 0
+}
+
+scenario "Boneyard Parley: the other pile, and the opponent's card goes home" {
+  battlefield A: 4 "Swamp", 3 "Plains"
+  hand A: "Boneyard Parley"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  graveyard B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Boneyard Parley" targeting "Grizzly Bears", "Hill Giant", "Serra Angel"
+  turn 1 B: choose "Serra Angel"
+  turn 1 B: choose done
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert graveyard B contains "Serra Angel"
+  assert exile A count 0
+}
+
+scenario "Hostile Negotiations: two piles of three, the opponent chooses one for the hand" {
+  battlefield A: 4 "Swamp"
+  hand A: "Hostile Negotiations"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hostile Negotiations"
+  turn 1 A: choose "1"
+  turn 1 B: choose "2"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Murder"
+  assert hand A contains "Divination"
+  assert hand A contains "Plains"
+  assert hand A count 3
+  assert graveyard A contains "Shock"
+  assert graveyard A contains "Giant Growth"
+  assert library A count 1
+  assert exile A count 0
+  assert life A 17
+}
+
+scenario "Brilliant Ultimatum: lands and spells from the chosen pile, free" {
+  battlefield A: 2 "Plains", 3 "Island", 2 "Swamp"
+  hand A: "Brilliant Ultimatum"
+  library A: "Grizzly Bears", "Divination", "Forest", "Hill Giant", "Shock", "Island", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brilliant Ultimatum"
+  turn 1 B: choose "Grizzly Bears"
+  turn 1 B: choose "Divination"
+  turn 1 B: choose "Forest"
+  turn 1 B: choose done
+  turn 1 A: choose "1"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Forest"
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+  assert exile A contains "Hill Giant"
+  assert exile A contains "Shock"
+}
+
+scenario "Brilliant Ultimatum: an empty pile chosen, and the other pile stays in exile" {
+  battlefield A: 2 "Plains", 3 "Island", 2 "Swamp"
+  hand A: "Brilliant Ultimatum"
+  library A: "Grizzly Bears", "Divination", "Forest", "Hill Giant", "Shock", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brilliant Ultimatum"
+  turn 1 B: choose done
+  turn 1 A: choose "1"
+  run_to turn 1 postcombat_main
+  assert exile A count 5
+  assert battlefield A lacks "Grizzly Bears"
+  assert hand A count 0
+}
+
+scenario "Thought Hemorrhage: 3 damage for each revealed card with the chosen name, then every copy exiled" {
+  battlefield A: 2 "Swamp", 2 "Mountain"
+  hand A: "Thought Hemorrhage"
+  hand B: "Shock", "Shock", "Lightning Bolt"
+  graveyard B: "Shock"
+  library B: "Shock", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Thought Hemorrhage" targeting player B
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert exile B contains 4 "Shock"
+  assert hand B contains "Lightning Bolt"
+  assert life A 20
+}
+
+scenario "Thought Hemorrhage: none in hand, no damage, still exiled from the other zones" {
+  battlefield A: 2 "Swamp", 2 "Mountain"
+  hand A: "Thought Hemorrhage"
+  hand B: "Lightning Bolt"
+  graveyard B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Thought Hemorrhage" targeting player B
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert exile B contains "Shock"
+}

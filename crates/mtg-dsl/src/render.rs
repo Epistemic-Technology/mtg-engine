@@ -6900,8 +6900,38 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             separator,
             opponent_chooses: _,
             the_piles,
+            form,
         } => {
+            use mtg_core::card::PileForm;
             let n = count_words(*count, "one");
+            match form {
+                PileForm::HandGraveyard => {}
+                // Truth or Tale.
+                PileForm::OneToHandRestBottom => {
+                    return Clause::imperative(format!(
+                        "{} the top {n} cards of your library and separate them into two piles. An opponent chooses one of those piles. Put a card from the chosen pile into your hand, then put all other cards revealed this way on the bottom of your library in any order",
+                        if *reveal { "reveal" } else { "look at" },
+                    ));
+                }
+                // Boneyard Parley, after the exile.
+                PileForm::ExiledToBattlefield => {
+                    return Clause::imperative(
+                        "an opponent separates those cards into two piles. Put all cards from the pile of your choice onto the battlefield under your control and the rest into their owners' graveyards".to_string(),
+                    );
+                }
+                // Hostile Negotiations.
+                PileForm::TwoFaceDown => {
+                    return Clause::imperative(format!(
+                        "exile the top {n} cards of your library in a face-down pile, then exile the top {n} cards of your library in another face-down pile. Look at the cards in each pile, then turn a pile of your choice face up. An opponent chooses one of those piles. Put that pile into your hand and the other into your graveyard"
+                    ));
+                }
+                // Brilliant Ultimatum.
+                PileForm::PlayFree => {
+                    return Clause::imperative(format!(
+                        "exile the top {n} cards of your library. An opponent separates those cards into two piles. You may play lands and cast spells from one of those piles. If you cast a spell this way, you cast it without paying its mana cost"
+                    ));
+                }
+            }
             let into = if *face_down {
                 "a face-down pile and a face-up pile"
             } else {

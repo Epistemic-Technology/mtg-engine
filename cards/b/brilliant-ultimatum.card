@@ -1,0 +1,6 @@
+card "Brilliant Ultimatum" {
+  oracle_id a9d58cad-c1c2-4bd2-80f2-da9ce60801df
+  cost {W}{W}{U}{U}{U}{B}{B}
+  type Sorcery
+  spell: piles exile 5 separated by opponent play free
+}

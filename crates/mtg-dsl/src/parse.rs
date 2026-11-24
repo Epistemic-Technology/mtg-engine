@@ -940,6 +940,7 @@ impl P {
 
     /// `color [except blue]`, `creature type [except Wall]`, `land type`;
     /// with `of_choice`, each followed by `of choice` (before `except`).
+    #[allow(clippy::too_many_lines)] // one choice kind after another
     fn choice_kind(&mut self, of_choice: bool) -> R<ChoiceKind> {
         let suffix = |p: &mut Self| -> R<()> {
             if of_choice {
@@ -6866,8 +6867,23 @@ impl P {
     /// [chosen by opponent] [the piles]` (`Effect::Piles`).
     #[inline(never)]
     fn piles(&mut self) -> R<Effect> {
-        let reveal = self.word()? == "reveal";
-        let count = self.num()?;
+        use mtg_core::card::PileForm;
+        let verb = self.word()?;
+        let reveal = verb == "reveal";
+        // `piles exiled ...`: the cards the resolution exiled.
+        let count = if verb == "exiled" {
+            Num::N(0)
+        } else {
+            self.num()?
+        };
+        let mut form = match verb.as_str() {
+            "exiled" => PileForm::ExiledToBattlefield,
+            "exile" => PileForm::PlayFree,
+            _ => PileForm::HandGraveyard,
+        };
+        if verb == "exile" && self.eat_word("twice") {
+            form = PileForm::TwoFaceDown;
+        }
         let face_down = self.eat_word("face-down");
         let separator = if self.eat_words(&["separated", "by"]) {
             if self.eat_word("opponent") {
@@ -6883,6 +6899,35 @@ impl P {
             return self.fail("`piles`: an opponent either separates or chooses");
         }
         let the_piles = self.eat_words(&["the", "piles"]);
+        let tail = if self.eat_words(&["one", "to", "hand", "rest", "bottom"]) {
+            Some(PileForm::OneToHandRestBottom)
+        } else if self.eat_words(&["onto", "battlefield"]) {
+            Some(PileForm::ExiledToBattlefield)
+        } else if self.eat_words(&["play", "free"]) {
+            Some(PileForm::PlayFree)
+        } else {
+            None
+        };
+        // The form's words must agree with how the cards were taken.
+        let ok = matches!(
+            (form, tail),
+            (
+                PileForm::HandGraveyard,
+                None | Some(PileForm::OneToHandRestBottom)
+            ) | (
+                PileForm::ExiledToBattlefield,
+                Some(PileForm::ExiledToBattlefield)
+            ) | (PileForm::PlayFree, Some(PileForm::PlayFree))
+                | (PileForm::TwoFaceDown, None)
+        );
+        if !ok {
+            return self.fail(
+                "`piles`: `exiled ... onto battlefield`, `exile N ... play free`, `exile N twice`, or `look|reveal N [one to hand rest bottom]`",
+            );
+        }
+        if let Some(t) = tail {
+            form = t;
+        }
         Ok(Effect::Piles {
             count,
             reveal,
@@ -6890,6 +6935,7 @@ impl P {
             separator,
             opponent_chooses,
             the_piles,
+            form,
         })
     }
 
@@ -11362,7 +11408,12 @@ impl P {
                 self.pos += 1;
                 self.dig_split()
             }
-            "piles" if matches!(self.word_at(0).as_deref(), Some("look" | "reveal")) => {
+            "piles"
+                if matches!(
+                    self.word_at(0).as_deref(),
+                    Some("look" | "reveal" | "exile" | "exiled")
+                ) =>
+            {
                 self.piles()
             }
             "manifest" if self.eat_word("dread") => Ok(Effect::ManifestDread),

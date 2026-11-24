@@ -942,29 +942,32 @@ impl GameState {
             }
             // Parley: "For each nonland card revealed this way" (every
             // player's top card, `Effect::RevealTop`).
-            CountExpr::ThisWay(crate::card::ThisWay::Revealed, f) => ctx
-                .revealed
-                .iter()
-                .filter(|id| {
-                    // A revealed card the resolution moved since is found
-                    // as the card it became (Madcap Experiment).
-                    let id = if self.objects.contains_key(**id) {
-                        **id
-                    } else {
-                        match self.current_object(**id) {
-                            Some(n) => n,
-                            None => return false,
-                        }
-                    };
-                    let Some(o) = self.objects.get(id) else {
-                        return false;
-                    };
-                    f.as_ref().is_none_or(|f| {
-                        let c = self.base_characteristics(o);
-                        f.matches(id, o.owner, &c, Some(ctx.source), Some(ctx.controller))
+            CountExpr::ThisWay(crate::card::ThisWay::Revealed, f) => {
+                // "with the chosen name": the resolution's choice.
+                let f = f.as_ref().map(|f| self.chosen_filter(f, ctx));
+                ctx.revealed
+                    .iter()
+                    .filter(|id| {
+                        // A revealed card the resolution moved since is found
+                        // as the card it became (Madcap Experiment).
+                        let id = if self.objects.contains_key(**id) {
+                            **id
+                        } else {
+                            match self.current_object(**id) {
+                                Some(n) => n,
+                                None => return false,
+                            }
+                        };
+                        let Some(o) = self.objects.get(id) else {
+                            return false;
+                        };
+                        f.as_ref().is_none_or(|f| {
+                            let c = self.base_characteristics(o);
+                            f.matches(id, o.owner, &c, Some(ctx.source), Some(ctx.controller))
+                        })
                     })
-                })
-                .count(),
+                    .count()
+            }
             CountExpr::ThisWay(verb, f) => self.this_way.as_ref().map_or(0, |log| {
                 log.moved
                     .iter()
@@ -9164,6 +9167,7 @@ impl GameState {
 
     /// The player chooses a color, creature type, or basic land type (as
     /// a permanent enters, CR 614.12, or as an effect resolves, CR 608.2d).
+    #[allow(clippy::too_many_lines)] // one choice kind after another
     pub(super) fn choose_kind(
         &mut self,
         p: PlayerId,
@@ -12421,6 +12425,10 @@ impl GameState {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
                         self.reveal_hand(p);
+                        // "for each card with the chosen name revealed this
+                        // way" (Thought Hemorrhage).
+                        let hand = self.player(p).hand.clone();
+                        ctx.revealed.extend(hand);
                     }
                 }
             }
@@ -15695,7 +15703,9 @@ impl GameState {
                 face_down,
                 separator,
                 opponent_chooses,
+                form,
             } => self.piles(
+                *form,
                 ctx,
                 *count,
                 *reveal,
@@ -16459,9 +16469,11 @@ impl GameState {
     /// pile one at a time (`choose "X"`, then `choose done` in a scenario;
     /// the rest make the second pile), then the chooser picks a pile
     /// (`choose "1"` or `"2"`): it goes to the controller's hand, the
-    /// other to their graveyard.
+    /// other to their graveyard, or as `form` says (`PileForm`).
+    #[allow(clippy::too_many_arguments, clippy::too_many_lines)] // one pile form after another
     fn piles(
         &mut self,
+        form: crate::card::PileForm,
         ctx: &mut EffectCtx,
         count: crate::card::Num,
         reveal: bool,
@@ -16469,6 +16481,10 @@ impl GameState {
         separator: Option<crate::card::Recipient>,
         opponent_chooses: bool,
     ) {
+        use crate::card::PileForm;
+        let shown = |pairs: &[(ObjId, ObjId)], id: ObjId| {
+            pairs.iter().find(|(a, _)| *a == id).map_or(id, |(_, s)| *s)
+        };
         let me = ctx.controller;
         let separator = match separator {
             None => me,
@@ -16478,48 +16494,114 @@ impl GameState {
             },
         };
         let n = self.eval_num(count, ctx) as usize;
-        let cards: Vec<ObjId> = self
-            .player(me)
-            .library
-            .iter()
-            .rev()
-            .take(n)
-            .copied()
-            .collect();
-        // The separator looks at them (CR 700.3: a pile is known to the
-        // player who made it).
-        let bits = 1u8 << separator.index().min(7);
-        for id in &cards {
-            if reveal {
-                self.reveal_in_library(*id);
-            } else {
-                self.objects[*id].revealed |= bits;
-            }
-        }
-        let mut first: Vec<ObjId> = Vec::new();
-        let mut second = cards;
-        while !second.is_empty() {
-            let mut options: Vec<Choice> = second
+        let top = |st: &Self, n: usize| -> Vec<ObjId> {
+            st.player(me)
+                .library
                 .iter()
-                .map(|id| Choice::Target(Target::Object(*id)))
+                .rev()
+                .take(n)
+                .copied()
+                .collect()
+        };
+        // Each card the resolution moved is shown in a decision as the
+        // object it was before (it existed before the resolution began):
+        // (object, shown).
+        let mut shown_as: Vec<(ObjId, ObjId)> = Vec::new();
+        let mut cards: Vec<ObjId> = match form {
+            // "those cards": what the resolution exiled, still in exile.
+            PileForm::ExiledToBattlefield => {
+                shown_as = self.this_way.as_ref().map_or_else(Vec::new, |log| {
+                    log.moved
+                        .iter()
+                        .filter(|m| m.is(crate::card::ThisWay::Exiled))
+                        .map(|m| (m.new, m.old))
+                        .filter(|(id, _)| {
+                            self.objects.get(*id).is_some_and(|o| o.zone == Zone::Exile)
+                        })
+                        .collect()
+                });
+                shown_as.iter().map(|(id, _)| *id).collect()
+            }
+            PileForm::TwoFaceDown => top(self, n.saturating_mul(2)),
+            _ => top(self, n),
+        };
+        // "Exile the top five cards of your library" (the exiled cards are
+        // new objects, CR 400.7); the two face-down piles are exiled face
+        // down, their controller looking at them (CR 406.3).
+        if matches!(form, PileForm::TwoFaceDown | PileForm::PlayFree) {
+            let moved: Vec<(ObjId, ObjId)> = cards
+                .into_iter()
+                .map(|id| (self.move_object(id, Zone::Exile, false), id))
                 .collect();
-            options.push(Choice::Done);
-            let k = self.choose_mid(separator, DecisionKind::ChooseCard, options.clone());
-            match options[k] {
-                Choice::Target(Target::Object(id)) => {
-                    second.retain(|c| *c != id);
-                    first.push(id);
+            shown_as = moved
+                .into_iter()
+                .filter(|(id, _)| self.objects.get(*id).is_some_and(|o| o.zone == Zone::Exile))
+                .collect();
+            cards = shown_as.iter().map(|(id, _)| *id).collect();
+            if form == PileForm::TwoFaceDown {
+                for id in &cards {
+                    self.turn_face_down_in_exile(*id, crate::card::ExileFace::Look, me);
                 }
-                _ => break,
             }
         }
-        // "a face-down pile and a face-up pile": the second pile is
-        // revealed to every player.
-        if face_down && !reveal {
-            for id in &second {
-                self.reveal_in_library(*id);
+        let (first, second) = if form == PileForm::TwoFaceDown {
+            // The first three exiled are one pile, the next three the other;
+            // their controller turns a pile of their choice face up.
+            let second = cards.split_off(n.min(cards.len()));
+            let def = self.source_def(ctx);
+            let k = self.choose_mid(
+                me,
+                DecisionKind::ChooseOption { def },
+                vec![Choice::Mode(0), Choice::Mode(1)],
+            );
+            let up = if k == 0 { &cards } else { &second };
+            for id in up.clone() {
+                if let Some(o) = self.objects.get_mut(id) {
+                    o.marks &= !crate::state::OBJ_FACE_DOWN_EXILE;
+                }
+                self.reveal_in_library(id);
             }
-        }
+            (cards, second)
+        } else {
+            // The separator looks at them (CR 700.3: a pile is known to the
+            // player who made it).
+            // Cards exiled face up are seen by every player (CR 406.3).
+            let public =
+                reveal || matches!(form, PileForm::ExiledToBattlefield | PileForm::PlayFree);
+            let bits = 1u8 << separator.index().min(7);
+            for id in &cards {
+                if public {
+                    self.reveal_in_library(*id);
+                } else {
+                    self.objects[*id].revealed |= bits;
+                }
+            }
+            let mut first: Vec<ObjId> = Vec::new();
+            let mut second = cards;
+            while !second.is_empty() {
+                let mut options: Vec<Choice> = second
+                    .iter()
+                    .map(|id| Choice::Target(Target::Object(shown(&shown_as, *id))))
+                    .collect();
+                options.push(Choice::Done);
+                let k = self.choose_mid(separator, DecisionKind::ChooseCard, options);
+                match second.get(k).copied() {
+                    Some(id) => {
+                        second.retain(|c| *c != id);
+                        first.push(id);
+                    }
+                    None => break,
+                }
+            }
+            // "a face-down pile and a face-up pile": the second pile is
+            // revealed to every player.
+            if face_down && !reveal {
+                for id in &second {
+                    self.reveal_in_library(*id);
+                }
+            }
+            (first, second)
+        };
         let chooser = if opponent_chooses {
             self.opponent(me)
         } else {
@@ -16531,16 +16613,106 @@ impl GameState {
             DecisionKind::ChooseOption { def },
             vec![Choice::Mode(0), Choice::Mode(1)],
         );
-        let (hand, rest) = if k == 0 {
+        let (chosen, rest) = if k == 0 {
             (first, second)
         } else {
             (second, first)
         };
-        for id in hand {
-            self.move_object(id, Zone::Hand, false);
+        match form {
+            PileForm::HandGraveyard | PileForm::TwoFaceDown => {
+                for id in chosen {
+                    self.move_object(id, Zone::Hand, false);
+                }
+                for id in rest {
+                    self.move_object(id, Zone::Graveyard, false);
+                }
+            }
+            // "Put a card from the chosen pile into your hand, then put all
+            // other cards revealed this way on the bottom of your library
+            // in any order."
+            PileForm::OneToHandRestBottom => {
+                let mut others = rest;
+                if !chosen.is_empty() {
+                    let options: Vec<Choice> = chosen
+                        .iter()
+                        .map(|id| Choice::Target(Target::Object(*id)))
+                        .collect();
+                    let k = if chosen.len() == 1 {
+                        0
+                    } else {
+                        self.choose_mid(me, DecisionKind::ChooseCard, options)
+                    };
+                    let pick = chosen[k.min(chosen.len() - 1)];
+                    others.extend(chosen.iter().copied().filter(|id| *id != pick));
+                    self.move_object(pick, Zone::Hand, false);
+                }
+                self.put_on_bottom_in_order(me, others);
+            }
+            // "onto the battlefield under your control and the rest into
+            // their owners' graveyards".
+            PileForm::ExiledToBattlefield => {
+                for id in chosen {
+                    self.put_onto_battlefield(id, me);
+                }
+                for id in rest {
+                    self.move_object(id, Zone::Graveyard, false);
+                }
+            }
+            // "You may play lands and cast spells from one of those piles
+            // ... without paying its mana cost": cast as the effect
+            // finishes (CR 608.2g); a land on the controller's turn with a
+            // land play left (CR 305.1).
+            PileForm::PlayFree => {
+                for card in chosen {
+                    let Some(o) = self.objects.get(card) else {
+                        continue;
+                    };
+                    if o.zone != Zone::Exile {
+                        continue;
+                    }
+                    if self.pool.get(o.def).is_land() {
+                        if self.active_player != me || !self.may_play_another_land(me) {
+                            continue;
+                        }
+                        let k = self.choose_mid(
+                            me,
+                            DecisionKind::CastFromExile {
+                                card: shown(&shown_as, card),
+                            },
+                            vec![Choice::Accept, Choice::Decline],
+                        );
+                        if k == 0 {
+                            let new = self.put_onto_battlefield(card, me);
+                            self.player_mut(me).lands_played_this_turn += 1;
+                            self.emit(Event::LandPlayed {
+                                player: me,
+                                land: new,
+                            });
+                        }
+                    } else {
+                        let s = shown(&shown_as, card);
+                        self.offer_exile_cast_shown(card, AltCast::Free, me, s);
+                    }
+                }
+            }
         }
-        for id in rest {
-            self.move_object(id, Zone::Graveyard, false);
+    }
+
+    /// Put `cards` on the bottom of `p`'s library "in any order": `p`
+    /// picks each next card to go under the ones before.
+    fn put_on_bottom_in_order(&mut self, p: PlayerId, mut cards: Vec<ObjId>) {
+        while !cards.is_empty() {
+            let k = if cards.len() == 1 {
+                0
+            } else {
+                let options: Vec<Choice> = cards
+                    .iter()
+                    .map(|id| Choice::Target(Target::Object(*id)))
+                    .collect();
+                self.choose_mid(p, DecisionKind::ChooseCard, options)
+            };
+            let id = cards.remove(k.min(cards.len() - 1));
+            self.move_object(id, Zone::Library, false);
         }
     }
 

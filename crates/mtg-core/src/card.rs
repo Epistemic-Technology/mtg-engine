@@ -5421,6 +5421,9 @@ pub enum Effect {
         face_down: bool,
         separator: Option<Recipient>,
         opponent_chooses: bool,
+        /// Where the cards come from and where the piles go.
+        #[serde(default)]
+        form: PileForm,
     },
     /// "Exile the top two cards of your library. Until the end of your next
     /// turn, you may play those cards." (impulse draw): the controller may
@@ -6410,6 +6413,38 @@ pub enum NameSearch {
     AnyNumber,
     /// "up to four cards with that name".
     UpTo(u8),
+}
+
+/// Where `Effect::Piles` takes its cards from and puts its piles (CR
+/// 700.3).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum PileForm {
+    /// The top cards of the library; the chosen pile into the
+    /// controller's hand, the other into their graveyard.
+    #[default]
+    HandGraveyard,
+    /// "Put a card from the chosen pile into your hand, then put all other
+    /// cards revealed this way on the bottom of your library in any
+    /// order." (Truth or Tale).
+    OneToHandRestBottom,
+    /// "Exile up to five target creature cards from graveyards. An
+    /// opponent separates those cards into two piles. Put all cards from
+    /// the pile of your choice onto the battlefield under your control and
+    /// the rest into their owners' graveyards." (Boneyard Parley): the
+    /// cards the resolution exiled.
+    ExiledToBattlefield,
+    /// "Exile the top three cards of your library in a face-down pile,
+    /// then exile the top three cards of your library in another
+    /// face-down pile. Look at the cards in each pile, then turn a pile of
+    /// your choice face up. An opponent chooses one of those piles. Put
+    /// that pile into your hand and the other into your graveyard."
+    /// (Hostile Negotiations): two piles of `count` cards each.
+    TwoFaceDown,
+    /// "Exile the top five cards of your library. An opponent separates
+    /// those cards into two piles. You may play lands and cast spells from
+    /// one of those piles. If you cast a spell this way, you cast it
+    /// without paying its mana cost." (Brilliant Ultimatum).
+    PlayFree,
 }
 
 /// What the searched player does for each card `Effect::ExileChosenName`

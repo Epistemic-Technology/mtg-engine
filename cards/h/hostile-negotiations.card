@@ -1,0 +1,6 @@
+card "Hostile Negotiations" {
+  oracle_id c5cbd852-c42f-4592-a0bb-a8bffa2dd2f4
+  cost {3}{B}
+  type Instant
+  spell: piles exile 3 twice chosen by opponent; you lose 3 life
+}
