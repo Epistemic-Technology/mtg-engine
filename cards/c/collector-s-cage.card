@@ -1,0 +1,7 @@
+card "Collector's Cage" {
+  oracle_id 8f5b71fd-469f-4370-a806-9bfefbae03a2
+  cost {1}{W}
+  type Artifact
+  hideaway 5
+  activated {1}, {T}: put 1 +1/+1 counter on target creature you control; then if 3 different powers, play free exiled card
+}

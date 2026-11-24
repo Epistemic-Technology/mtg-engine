@@ -1,0 +1,7 @@
+card "Clive's Hideaway" {
+  oracle_id 283f743f-6e79-49de-b7ed-08e6ffb64cc6
+  type Land — Town
+  hideaway 4
+  mana {C}
+  activated {2}, {T}: play free exiled card if you control 4 legendary creature
+}

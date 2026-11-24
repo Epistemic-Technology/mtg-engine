@@ -327,6 +327,7 @@ pub fn add_dungeons(pool: &mut CardPool) {
                 reveal: true,
                 graveyard: false,
                 name: None,
+                more: None,
             }],
         ),
         room(

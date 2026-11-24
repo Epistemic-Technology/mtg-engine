@@ -1,0 +1,6 @@
+card "Gem of Becoming" {
+  oracle_id 6b1e4940-11ac-4d85-98f4-3f50d1060b96
+  cost {3}
+  type Artifact
+  activated {3}, {T}, sacrifice this: search Island card and Swamp card and Mountain card reveal to hand
+}

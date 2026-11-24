@@ -1,0 +1,226 @@
+# How another permanent or spell came to be: "if you cast it" about the
+# triggering creature (The Sibsig Ceremony), "if that creature entered from
+# a graveyard or you cast it from a graveyard" (Breathless Knight, Twilight
+# Diviner), "enters from a graveyard" and "enters from exile" triggers
+# (Treacherous Pit-Dweller, River Kelpie, Flayer of the Hatebound, Fire
+# Lord Zuko), and "a player casts a spell from a graveyard" (River Kelpie).
+
+scenario "Sibsig Ceremony: a creature you cast is destroyed for a Zombie Druid" {
+  battlefield A: "The Sibsig Ceremony", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains 1 "Zombie Druid"
+}
+
+scenario "Sibsig Ceremony: a creature put onto the battlefield isn't destroyed" {
+  battlefield A: "The Sibsig Ceremony", 4 "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Zombify"
+  turn 1 A: cast "Zombify" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A lacks "Zombie Druid"
+}
+
+scenario "Sibsig Ceremony: an opponent's creature spell doesn't trigger it" {
+  battlefield A: "The Sibsig Ceremony"
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert battlefield A lacks "Zombie Druid"
+}
+
+scenario "Breathless Knight: a creature returned from your graveyard gives it a counter" {
+  battlefield A: "Breathless Knight", 4 "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Zombify"
+  turn 1 A: cast "Zombify" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Breathless Knight" +1/+1 1
+}
+
+scenario "Breathless Knight: a creature cast from a graveyard gives it a counter" {
+  battlefield A: "Breathless Knight", "Zombie Cannibal", "Swamp"
+  graveyard A: "Gravecrawler"
+  turn 1 A: cast "Gravecrawler" from graveyard
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Gravecrawler"
+  assert counters "Breathless Knight" +1/+1 1
+}
+
+scenario "Breathless Knight: a creature cast from your hand gives none" {
+  battlefield A: "Breathless Knight", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Breathless Knight" +1/+1 0
+}
+
+scenario "Breathless Knight: returned from the graveyard itself, it gets a counter" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Breathless Knight"
+  hand A: "Zombify"
+  turn 1 A: cast "Zombify" targeting "Breathless Knight"
+  run_to turn 1 postcombat_main
+  assert counters "Breathless Knight" +1/+1 1
+  assert power "Breathless Knight" 3
+}
+
+scenario "Breathless Knight: a creature flickered through exile gives none" {
+  battlefield A: "Breathless Knight", "Grizzly Bears", "Plains"
+  hand A: "Cloudshift"
+  turn 1 A: cast "Cloudshift" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Breathless Knight" +1/+1 0
+}
+
+scenario "Twilight Diviner: a creature from your graveyard is copied, once each turn" {
+  battlefield A: "Twilight Diviner", 8 "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Zombify", "Zombify"
+  turn 1 A: cast "Zombify" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Zombify" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert battlefield A contains 1 "Hill Giant"
+}
+
+scenario "Twilight Diviner: a creature cast from your hand isn't copied" {
+  battlefield A: "Twilight Diviner", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+scenario "Twilight Diviner: a creature cast from a graveyard is copied" {
+  battlefield A: "Twilight Diviner", "Zombie Cannibal", "Swamp"
+  graveyard A: "Gravecrawler"
+  turn 1 A: cast "Gravecrawler" from graveyard
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Gravecrawler"
+}
+
+scenario "Treacherous Pit-Dweller: returned by undying, the opponent gains it" {
+  battlefield A: "Treacherous Pit-Dweller", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Treacherous Pit-Dweller"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Treacherous Pit-Dweller"
+  assert counters "Treacherous Pit-Dweller" +1/+1 1
+}
+
+scenario "Treacherous Pit-Dweller: cast from hand, you keep it" {
+  battlefield A: 2 "Swamp"
+  hand A: "Treacherous Pit-Dweller"
+  turn 1 A: cast "Treacherous Pit-Dweller"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treacherous Pit-Dweller"
+}
+
+scenario "River Kelpie: a permanent from a graveyard draws a card, any graveyard" {
+  battlefield A: "River Kelpie", 4 "Swamp"
+  graveyard B: "Grizzly Bears"
+  hand A: "Exhume"
+  library A: "Island", "Island", "Island"
+  turn 1 A: cast "Exhume"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "River Kelpie: a spell cast from a graveyard draws a card" {
+  battlefield A: "River Kelpie", 3 "Island"
+  graveyard A: "Think Twice"
+  library A: "Island", "Island", "Island"
+  turn 1 A: cast "Think Twice" from graveyard
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}
+
+scenario "River Kelpie: persist returns it and it draws for itself" {
+  battlefield A: "River Kelpie", "Mountain"
+  hand A: "Lightning Bolt"
+  library A: "Island", "Island", "Island"
+  turn 1 A: cast "Lightning Bolt" targeting "River Kelpie"
+  run_to turn 1 postcombat_main
+  assert counters "River Kelpie" -1/-1 1
+  assert hand A count 1
+}
+
+scenario "River Kelpie: a creature cast from hand draws nothing" {
+  battlefield A: "River Kelpie", 2 "Forest"
+  hand A: "Grizzly Bears"
+  library A: "Island", "Island", "Island"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Flayer of the Hatebound: returned by undying, it deals 5 damage" {
+  battlefield A: "Flayer of the Hatebound", "Mountain"
+  hand A: "Lightning Bolt"
+  life B 20
+  turn 1 A: cast "Lightning Bolt" targeting "Flayer of the Hatebound"
+  turn 1 A: trigger "Flayer of the Hatebound" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Flayer of the Hatebound: another creature from your graveyard deals its power" {
+  battlefield A: "Flayer of the Hatebound", 4 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "Zombify"
+  life B 20
+  turn 1 A: cast "Zombify" targeting "Hill Giant"
+  turn 1 A: trigger "Flayer of the Hatebound" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Flayer of the Hatebound: an opponent's creature from their graveyard doesn't" {
+  battlefield A: "Flayer of the Hatebound", 4 "Swamp"
+  graveyard B: "Hill Giant"
+  hand A: "Exhume"
+  life B 20
+  turn 1 A: cast "Exhume"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert life B 20
+}
+
+scenario "Fire Lord Zuko: a spell cast from exile puts counters on your creatures" {
+  battlefield A: "Fire Lord Zuko", "Elite Vanguard", 2 "Mountain", 2 "Forest"
+  hand A: "Reckless Impulse"
+  library A: "Grizzly Bears", "Mountain", "Island"
+  turn 1 A: cast "Reckless Impulse"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Fire Lord Zuko" +1/+1 1
+  assert counters "Elite Vanguard" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Fire Lord Zuko: a permanent entering from exile puts counters on your creatures" {
+  battlefield A: "Fire Lord Zuko", "Elite Vanguard", "Plains"
+  hand A: "Cloudshift"
+  turn 1 A: cast "Cloudshift" targeting "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert counters "Fire Lord Zuko" +1/+1 1
+  assert counters "Elite Vanguard" +1/+1 1
+}
+
+scenario "Fire Lord Zuko: a spell cast from hand puts none" {
+  battlefield A: "Fire Lord Zuko", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Fire Lord Zuko" +1/+1 0
+}

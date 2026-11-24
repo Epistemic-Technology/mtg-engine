@@ -603,6 +603,41 @@ mod tests {
         assert!(!e.state().visible_to(PlayerId(1), own));
     }
 
+    /// A card hideaway exiled face down (CR 702.75a) shows as a face-down
+    /// card to everyone but the player who controls its source.
+    #[test]
+    fn hideaway_card_is_hidden_from_opponents() {
+        let pool = Arc::new(test_pool());
+        let forest = pool.lookup("Forest").unwrap();
+        let cfg = GameConfig {
+            decks: vec![vec![forest; 20], vec![forest; 20]],
+            starting_life: 20,
+            seed: 1,
+            logging: false,
+        };
+        let e = Engine::new(pool, &cfg);
+        let mut s = e.state().clone();
+        let me = PlayerId(0);
+        let card = s.player_mut(me).library.pop().unwrap();
+        s.objects[card].zone = Zone::Exile;
+        s.player_mut(me).exile.push(card);
+        let source = s.player(me).hand[0];
+        s.linked_exiles.push(crate::state::LinkedExile {
+            source,
+            card,
+            until: false,
+            to_hand: false,
+            face_down: true,
+        });
+        assert_eq!(s.observe(me).players[0].exile[0].name, "Forest");
+        assert_eq!(
+            s.observe(PlayerId(1)).players[0].exile[0].name,
+            "face-down card"
+        );
+        assert!(s.visible_to(me, card));
+        assert!(!s.visible_to(PlayerId(1), card));
+    }
+
     /// A search mustn't know the real game's next die roll or coin flip:
     /// determinizing resamples the random number generator too.
     #[test]

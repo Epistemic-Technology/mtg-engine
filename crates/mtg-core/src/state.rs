@@ -624,6 +624,11 @@ impl CastInfo {
     const CAST_HAND: u32 = 0x0400;
     const CAST_GRAVEYARD: u32 = 0x0800;
     const CAST_ELSEWHERE: u32 = 0x1000;
+    /// Not cast: a permanent put onto the battlefield from a graveyard, or
+    /// from exile ("if it entered from a graveyard", CR 603.6a). Two of
+    /// `CAST_MASK`'s unused combinations, so no bit of their own.
+    const ENTERED_GRAVEYARD: u32 = Self::CAST_HAND | Self::CAST_GRAVEYARD;
+    const ENTERED_EXILE: u32 = Self::CAST_HAND | Self::CAST_ELSEWHERE;
 
     /// The zone the spell was cast from, `None` if it wasn't cast (a copy,
     /// a permanent put onto the battlefield); exile and the library read
@@ -635,6 +640,28 @@ impl CastInfo {
             Self::CAST_ELSEWHERE => Some(Zone::Exile),
             _ => None,
         }
+    }
+
+    /// The zone a permanent was put onto the battlefield from without
+    /// being cast: a graveyard or exile (`None` otherwise, and for one
+    /// that was cast; CR 400.7, a new object remembers only this).
+    pub const fn entered_from(self) -> Option<Zone> {
+        match self.0 & Self::CAST_MASK {
+            Self::ENTERED_GRAVEYARD => Some(Zone::Graveyard),
+            Self::ENTERED_EXILE => Some(Zone::Exile),
+            _ => None,
+        }
+    }
+
+    /// A permanent entering from `zone` without being cast: graveyard and
+    /// exile are remembered, other zones nothing.
+    pub fn set_entered_from(&mut self, zone: Zone) {
+        let bits = match zone {
+            Zone::Graveyard => Self::ENTERED_GRAVEYARD,
+            Zone::Exile => Self::ENTERED_EXILE,
+            _ => 0,
+        };
+        self.0 = (self.0 & !Self::CAST_MASK) | bits;
     }
 
     pub fn set_cast_from(&mut self, zone: Zone) {
@@ -3967,6 +3994,27 @@ impl GameState {
             return trigger_obj
                 .is_some_and(|t| self.objects.get(t).is_some_and(|o| o.cast.kicked()));
         }
+        // "Whenever a creature you control enters, if you cast it" (The
+        // Sibsig Ceremony): "it" is the triggering object, which is the
+        // source itself in "When this creature enters, if you cast it".
+        if let Some(t) = trigger_obj
+            && matches!(
+                cond,
+                crate::card::StaticCondition::WasCast
+                    | crate::card::StaticCondition::CastFrom(_)
+                    | crate::card::StaticCondition::CameFrom { .. }
+            )
+        {
+            return self.condition_now(cond, you, t);
+        }
+        // "if you cast them and there are three or more Dragon and/or
+        // Lesson cards in your graveyard": each part its own way.
+        if let crate::card::StaticCondition::And(a, b) = cond
+            && trigger_obj.is_some()
+        {
+            return self.condition_for(a, you, source, trigger_obj)
+                && self.condition_for(b, you, source, trigger_obj);
+        }
         // "Whenever a Forest you control enters, if you control at least
         // five other Forests" (Roiling Canopy, not a Forest itself):
         // "other" is other than the triggering Forest. Only where the
@@ -4238,6 +4286,12 @@ impl GameState {
                     .count()
                     >= *n as usize
             }
+            C::EachHandEmpty => self
+                .players_in_game()
+                .all(|p| self.player(p).hand.is_empty()),
+            C::LibraryAtMost(n) => self
+                .players_in_game()
+                .any(|p| self.player(p).library.len() <= *n as usize),
             C::CardsInHand { n, at_most } => {
                 let h = self.player(you).hand.len();
                 if *at_most {
@@ -4485,6 +4539,13 @@ impl GameState {
                 .get(source)
                 .or_else(|| self.lki.get(&source).map(|l| &l.object))
                 .is_some_and(|o| o.cast.cast_from().is_some()),
+            C::CameFrom { zone, .. } => self
+                .objects
+                .get(source)
+                .or_else(|| self.lki.get(&source).map(|l| &l.object))
+                .is_some_and(|o| {
+                    o.cast.cast_from() == Some(*zone) || o.cast.entered_from() == Some(*zone)
+                }),
             C::NotCastFrom(zone) => self
                 .objects
                 .get(source)

@@ -1365,6 +1365,12 @@ pub struct StatusQuals {
     /// matches.
     #[serde(default)]
     pub commander: Option<bool>,
+    /// "If an opponent protects it", "if you protect it": the battle's
+    /// protector (CR 310.8) relative to the effect's controller. Judged
+    /// only by a check of a target (`Effect::IfTarget`); elsewhere it
+    /// doesn't restrict.
+    #[serde(default)]
+    pub protector: Option<Who>,
 }
 
 /// A characteristic compared with an amount the source counts
@@ -1425,6 +1431,7 @@ impl StatusQuals {
             || self.nonattacking
             || self.bound.is_some()
             || self.commander.is_some()
+            || self.protector.is_some()
     }
 }
 
@@ -1910,6 +1917,15 @@ pub enum Modification {
     /// "has '{T}: Add {G}.'": an ability granted (layer 6), registered in
     /// the pool.
     AddAbility(AbilityId),
+    /// "has all activated abilities of all Elf cards in your graveyard"
+    /// (layer 6, CR 613.1f): the activated abilities, mana abilities
+    /// included, of the objects `from` counts, worked out as the effect
+    /// applies: a permanent's as it has them so far in the layer pass
+    /// (`Permanents`), a card's elsewhere as printed (`CardsInGraveyard`,
+    /// `CardsInAllGraveyards`, `ExiledWith`: "cards exiled with it").
+    /// Abilities that work only from a hand or a graveyard (cycling,
+    /// unearth) are left out; they could never be activated here.
+    AddActivatedOf(Box<CountExpr>),
     /// "loses flying" (layer 6).
     RemoveKeywords(KeywordSet),
     /// "loses all abilities" (layer 6).
@@ -1994,6 +2010,7 @@ impl Modification {
             Modification::AddKeywords(_)
             | Modification::ProtectionFromChosen
             | Modification::AddAbility(_)
+            | Modification::AddActivatedOf(_)
             | Modification::RemoveKeywords(_)
             | Modification::RemoveAllAbilities => Layer::L6Ability,
             Modification::CdaPt { .. } => Layer::L7aCda,
@@ -2587,8 +2604,42 @@ pub enum SearchTo {
     /// anything.
     Exile,
     /// "exile it face down, then shuffle" (Beseech the Mirror, CR 406.3):
-    /// the searcher may look at it; it is the resolution's card.
+    /// the searcher may look at it; it is the resolution's card, linked
+    /// to the resolving object ("the exiled card").
     ExileFaceDown,
+    /// "Put one into your hand and the other into your graveyard" (Fork
+    /// in the Road): the searcher chooses the one for the hand.
+    HandAndGraveyard,
+}
+
+/// The rarer parts of a search (`Effect::Search::more`).
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub struct SearchMore {
+    /// "a black card, a green card, and a blue card", "a card named
+    /// Magnifying Glass and/or a card named Thinking Cap": after the
+    /// search's own filter (and name) finds its card, one card more for
+    /// each of these, by its own filter and name (`|`-joined names, as
+    /// `Effect::Search::name`). Any of them may be left unfound (CR
+    /// 701.19b); a card found for one doesn't count for another.
+    #[serde(default)]
+    pub slots: Vec<(ObjFilter, Option<Box<str>>)>,
+    /// "search your graveyard, hand, and/or library": the hand's cards may
+    /// be found too (with `Effect::Search::graveyard`).
+    #[serde(default)]
+    pub hand: bool,
+    /// "search your graveyard, hand, and library ... then shuffle": every
+    /// zone is searched, so the library is shuffled whatever is found.
+    #[serde(default)]
+    pub all: bool,
+    /// "with different names" (CR 201.2): no two found cards share a name.
+    #[serde(default)]
+    pub different_names: bool,
+    /// "Put it onto the battlefield if its mana value is 2 or less.
+    /// Otherwise, put it into your hand." (Guidelight Pathmaker): a found
+    /// card matching this filter (its printed characteristics) goes here
+    /// instead of the search's `to`.
+    #[serde(default)]
+    pub split: Option<(ObjFilter, SearchTo)>,
 }
 
 /// A static ability (CR 604) that generates a continuous effect while its
@@ -2686,11 +2737,14 @@ pub enum TurnEvent {
     /// (CR 601.2a).
     Cast,
     CastFromHand,
+    /// Damage dealt to the player (CR 120.3), after prevention, in damage
+    /// ("an opponent was dealt 7 or more damage this turn").
+    DamageTaken,
 }
 
 impl TurnEvent {
     /// The number of kinds: the turn log's rows.
-    pub const COUNT: usize = 33;
+    pub const COUNT: usize = 34;
 
     /// Whether a static ability reading this kind must be refreshed as it
     /// is counted (`CardDef::history_static`), the kinds counted without a
@@ -2703,6 +2757,7 @@ impl TurnEvent {
             | TurnEvent::LifeLost
             | TurnEvent::Damaged
             | TurnEvent::NoncombatDamaged
+            | TurnEvent::DamageTaken
             | TurnEvent::NonlandLeft
             | TurnEvent::Warped
             | TurnEvent::CardToGraveyard
@@ -2929,6 +2984,11 @@ pub enum StaticCondition {
         n: u32,
         at_most: bool,
     },
+    /// "each player has no cards in hand" (Howltooth Hollow).
+    EachHandEmpty,
+    /// "a library has twenty or fewer cards in it" (Shelldock Isle): any
+    /// player's.
+    LibraryAtMost(u32),
     /// "If this ability has been activated four or more times this turn"
     /// (Initiates of the Ebon Hand): the source's counted abilities
     /// (`ActivatedAbility::counted`) activated at least N times this turn
@@ -3131,8 +3191,23 @@ pub enum StaticCondition {
     /// source was cast (CR 601.2a), from another zone than this one.
     NotCastFrom(crate::state::Zone),
     /// "if you cast it" (CR 601.2a): the source was cast, from any zone;
-    /// a permanent remembers it from its spell.
+    /// a permanent remembers it from its spell. In a triggered ability
+    /// with a triggering object, "it" is that object ("Whenever a creature
+    /// you control enters, if you cast it", `GameState::condition_for`);
+    /// so for `CastFrom`.
     WasCast,
+    /// "if that creature entered from a graveyard or you cast it from a
+    /// graveyard" (0), "if they entered or were cast from a graveyard"
+    /// (1), "if one or more of them entered from exile or was cast from
+    /// exile" (2): the triggering object (else the source) was put onto
+    /// the battlefield from `zone` or cast from it (CR 400.7: remembered
+    /// by the permanent, `CastInfo::entered_from`). The number is wording
+    /// only; in a batched trigger each object is judged as it enters, so
+    /// one that qualifies is enough.
+    CameFrom {
+        zone: crate::state::Zone,
+        wording: u8,
+    },
     /// "creatures you control have total toughness 10 or greater".
     TotalToughness(u32),
     /// "you gained life this turn", "an opponent lost life this turn",
@@ -3802,6 +3877,10 @@ pub struct ManyTargets {
     /// mana values add up to at most this (CR 601.2c).
     #[serde(default)]
     pub total_mv: Option<Num>,
+    /// "with different names" (CR 201.2): no two chosen objects share a
+    /// name.
+    #[serde(default)]
+    pub different_names: bool,
 }
 
 /// The spec the `i`th chosen target answers: a variable group's spec
@@ -4225,6 +4304,10 @@ pub enum Effect {
         /// card named X or Y" joins the names with `|`.
         #[serde(default)]
         name: Option<Box<str>>,
+        /// Several differently-filtered cards, more zones, "with
+        /// different names", a destination by the found card.
+        #[serde(default)]
+        more: Option<Box<SearchMore>>,
     },
     /// "Put target creature on top of its owner's library", "on the
     /// bottom", "second from the top", "Its owner puts it on their choice
@@ -5066,6 +5149,19 @@ pub enum Effect {
         filter: Option<ObjFilter>,
         max_mv: Option<Num>,
         exile: bool,
+        /// "you may play the exiled card without paying its mana cost"
+        /// (hideaway, CR 702.75): a land among the cards may be played
+        /// (CR 305.1: on the controller's own turn, with a land play
+        /// left; timing is otherwise ignored).
+        #[serde(default)]
+        play: bool,
+    },
+    /// Hideaway N (CR 702.75a): "look at the top N cards of your library,
+    /// exile one face down, then put the rest on the bottom in a random
+    /// order." The exiled card is linked to the source
+    /// (`LinkedExile::face_down`, CR 607.2a) for its "the exiled card".
+    Hideaway {
+        count: u32,
     },
     /// "Reveal the top ten cards of your library. Put a creature card from
     /// among them onto the battlefield with three +1/+1 counters on it.
@@ -5921,6 +6017,7 @@ impl Effect {
                 | Effect::PunishEach { .. }
                 | Effect::DrawCastOne { .. }
                 | Effect::CastFree { .. }
+                | Effect::Hideaway { .. }
                 | Effect::RevealPutCreature { .. }
                 // Which creature (tied for least toughness, or token) and
                 // whether to take the counters.
@@ -6950,6 +7047,18 @@ pub enum TriggerSpec {
     /// permanent that entered from its controller's graveyard (the
     /// source's controller's), the triggering object.
     EntersFromGraveyard(ObjFilter),
+    /// "When this creature enters from a graveyard", "Whenever this
+    /// creature or another permanent enters from a graveyard", "whenever a
+    /// permanent you control enters from exile": a matching permanent put
+    /// onto the battlefield from that zone (any player's graveyard; with
+    /// `yours`, its owner's, the source's controller's: "this creature or
+    /// another creature enters from your graveyard"), the triggering
+    /// object. A permanent spell cast from there enters from the stack.
+    EntersFrom {
+        what: TriggerObj,
+        zone: crate::state::Zone,
+        yours: bool,
+    },
     /// "Whenever one or more +1/+1 counters are put on this creature" (CR
     /// 122.1): once per instruction putting counters of that kind on it,
     /// however many.
@@ -7115,6 +7224,9 @@ pub enum SpellOrdinal {
     /// "a spell from exile": any spell cast from exile (checked by the
     /// trigger, not by `holds`).
     FromExile,
+    /// "a spell from a graveyard": any spell cast from a graveyard
+    /// (River Kelpie; checked by the trigger, not by `holds`).
+    FromGraveyard,
 }
 
 impl SpellOrdinal {
@@ -7130,7 +7242,7 @@ impl SpellOrdinal {
             SpellOrdinal::NotFirst => n >= 2,
             SpellOrdinal::FirstOnOpponentsTurn => n == 1 && !own_turn,
             SpellOrdinal::OnOpponentsTurn => !own_turn,
-            SpellOrdinal::FromExile => true,
+            SpellOrdinal::FromExile | SpellOrdinal::FromGraveyard => true,
         }
     }
 }
@@ -7151,7 +7263,8 @@ impl TriggerSpec {
         match self {
             TriggerSpec::Enters(_)
             | TriggerSpec::EntersBatch(_)
-            | TriggerSpec::EntersFromGraveyard(_) => true,
+            | TriggerSpec::EntersFromGraveyard(_)
+            | TriggerSpec::EntersFrom { .. } => true,
             TriggerSpec::Either(pair) => pair.0.is_enters() || pair.1.is_enters(),
             _ => false,
         }
@@ -7228,7 +7341,8 @@ impl TriggerSpec {
             | TriggerSpec::PutIntoGraveyard(_)
             | TriggerSpec::ThisToGraveyard
             | TriggerSpec::PutIntoGraveyardFromBattlefield(_)
-            | TriggerSpec::EntersFromGraveyard(_) => WATCH_ZONE_CHANGE,
+            | TriggerSpec::EntersFromGraveyard(_)
+            | TriggerSpec::EntersFrom { .. } => WATCH_ZONE_CHANGE,
             TriggerSpec::AttacksOrBlocks(_) => WATCH_ATTACK | WATCH_BLOCK,
             TriggerSpec::BeginningOfStep { .. } | TriggerSpec::AttachedControllersStep(_) => {
                 WATCH_STEP_BEGIN
@@ -9579,7 +9693,7 @@ impl DefFlags {
             // prowess") grants that ability too.
             abilities.iter().any(|a| {
                 matches!(a, AbilityDef::Static(s) if s.parts.iter().any(|m| match m {
-                    Modification::AddAbility(_) => true,
+                    Modification::AddAbility(_) | Modification::AddActivatedOf(_) => true,
                     Modification::AddKeywords(ks) => [
                         Keyword::Prowess,
                         Keyword::Exalted,
@@ -9978,6 +10092,11 @@ pub struct CardPool {
     /// Decayed's "When this creature attacks, sacrifice it at end of
     /// combat" (CR 702.147a).
     decayed: AbilityId,
+    /// The mana abilities basic land types give (CR 305.6), "{T}: Add
+    /// {W}" to "{T}: Add {G}" in `Color::ALL` order: not listed on a land,
+    /// but granted with the rest of its activated abilities
+    /// (`Modification::AddActivatedOf`).
+    basic_mana: [AbilityId; 5],
     builtins: [AbilityId; 15],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
@@ -10070,6 +10189,7 @@ impl CardPool {
             evoke: AbilityId(0),
             exploit: AbilityId(0),
             decayed: AbilityId(0),
+            basic_mana: [AbilityId(0); 5],
             builtins: [AbilityId(0); 15],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
@@ -10400,7 +10520,15 @@ impl CardPool {
                 pool.undying = id;
             }
         }
+        for (i, c) in crate::mana::Color::ALL.into_iter().enumerate() {
+            pool.basic_mana[i] = pool.register(AbilityDef::TapForMana(Mana::Colored(c)));
+        }
         pool
+    }
+
+    /// The mana ability a basic land type gives (CR 305.6).
+    pub fn basic_mana(&self, c: crate::mana::Color) -> AbilityId {
+        self.basic_mana[c as usize]
     }
 
     fn register(&mut self, a: AbilityDef) -> AbilityId {
@@ -10897,6 +11025,14 @@ impl CardPool {
             .into_iter()
             .map(|a| self.register(a))
             .collect();
+        // A printed ability's `Num::Count`s index its own card's counts,
+        // also when another object has it ("has all activated abilities
+        // of ...", `Modification::AddActivatedOf`).
+        if !def.counts.is_empty() {
+            for a in &def.ability_ids {
+                self.counts_owner[a.0 as usize] = Some(r);
+            }
+        }
         for i in 0..def.rooms.len() {
             def.rooms[i].id = self.register(def.rooms[i].ability.clone());
         }

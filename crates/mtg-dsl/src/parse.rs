@@ -2633,6 +2633,12 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::DeckAnyNumber)
             }
+            "companion" if matches!(self.peek_at(1), Some(Tok::Str(_))) => {
+                self.pos += 1;
+                let text = self.string()?;
+                self.end_stmt()?;
+                Ok(Ability::Companion(text))
+            }
             // An attack or block tax (CR 508.1d, 509.1d).
             "tax" => {
                 self.pos += 1;
@@ -2978,7 +2984,7 @@ impl P {
             "bushido" | "soulshift" | "afflict" | "toxic" | "crew" | "bloodthirst" | "backup"
             | "saddle" | "poisonous" | "frenzy" | "absorb" | "fabricate" | "renown"
             | "afterlife" | "casualty" | "teamwork" | "ripple" | "dredge" | "devour"
-            | "amplify" | "tribute"
+            | "amplify" | "tribute" | "hideaway"
                 if matches!(self.peek_at(1), Some(Tok::Num(_))) =>
             {
                 self.pos += 1;
@@ -2999,6 +3005,7 @@ impl P {
                     "frenzy" => Mechanic::Frenzy(n),
                     "absorb" => Mechanic::Absorb(n),
                     "fabricate" => Mechanic::Fabricate(n),
+                    "hideaway" => Mechanic::Hideaway(n),
                     "renown" => Mechanic::Renown(n),
                     "afterlife" => Mechanic::Afterlife(n),
                     "casualty" => Mechanic::Casualty(n),
@@ -3261,6 +3268,7 @@ impl P {
                         name: None,
                         old: false,
                         those: false,
+                        more: None,
                     }])],
                     equip: false,
                     cycling: true,
@@ -3627,6 +3635,10 @@ impl P {
                 self.self_trigger = matches!(
                     trigger,
                     Trigger::Enters(TriggerObj::This)
+                        | Trigger::EntersFrom {
+                            obj: TriggerObj::This,
+                            ..
+                        }
                         | Trigger::Attacks(TriggerObj::This)
                         | Trigger::TurnedFaceUp(TriggerObj::This)
                         | Trigger::CastsSpell { .. }
@@ -3637,6 +3649,10 @@ impl P {
                 self.no_trigger_player = matches!(
                     trigger,
                     Trigger::Enters(TriggerObj::This)
+                        | Trigger::EntersFrom {
+                            obj: TriggerObj::This,
+                            ..
+                        }
                         | Trigger::Dies(TriggerObj::This)
                         | Trigger::DiesOrExiled(TriggerObj::This)
                         | Trigger::Leaves(TriggerObj::This)
@@ -4602,6 +4618,29 @@ impl P {
         if self.eat_words(&["you", "cast", "it"]) {
             return Ok(StaticCond::WasCast);
         }
+        // "if that creature entered from a graveyard or you cast it from a
+        // graveyard", "if they entered or were cast from a graveyard", "if
+        // one or more of them entered from exile or was cast from exile".
+        if let Some(wording) = if self.eat_words(&["that", "creature", "entered", "from"]) {
+            Some(0)
+        } else if self.eat_words(&["they", "entered", "or", "were", "cast", "from"]) {
+            Some(1)
+        } else if self.eat_words(&["one", "or", "more", "of", "them", "entered", "from"]) {
+            Some(2)
+        } else {
+            None
+        } {
+            let zone = self.came_from_zone()?;
+            match wording {
+                0 => self.expect_words(&["or", "you", "cast", "it", "from"])?,
+                2 => self.expect_words(&["or", "was", "cast", "from"])?,
+                _ => {}
+            }
+            if wording != 1 && self.came_from_zone()? != zone {
+                return self.unexpected("the same zone twice");
+            }
+            return Ok(StaticCond::CameFrom { zone, wording });
+        }
         if self.eat_words(&["put", "any", "counter", "this", "turn"]) {
             return Ok(StaticCond::PutAnyCounterThisTurn);
         }
@@ -4872,6 +4911,11 @@ impl P {
             let n = self.number()?;
             self.expect_words(&["nonland", "entered", "this", "turn"])?;
             return Ok(StaticCond::NonlandEnteredThisTurn(n));
+        }
+        // `permanent to graveyard this turn`: "a permanent was put into a
+        // graveyard from the battlefield this turn" (any types).
+        if self.eat_words(&["permanent", "to", "graveyard", "this", "turn"]) {
+            return Ok(StaticCond::PutIntoGraveyardThisTurn(Vec::new()));
         }
         // `artifact or creature to graveyard this turn`.
         let type_at = |w: Option<String>| {
@@ -5154,6 +5198,23 @@ impl P {
         }
         if self.eat_words(&["opponent", "damaged", "this", "turn"]) {
             return Ok(StaticCond::OpponentDamagedThisTurn);
+        }
+        if self.at_words(&["opponent", "was", "dealt"])
+            && matches!(self.peek_at(3), Some(Tok::Num(_)))
+        {
+            self.pos += 3;
+            let n = self.number()?;
+            self.expect_words(&["damage", "this", "turn"])?;
+            return Ok(StaticCond::OpponentDamageThisTurn(n));
+        }
+        if self.eat_words(&["no", "cards", "in", "any", "hand"]) {
+            return Ok(StaticCond::EachHandEmpty);
+        }
+        if self.at_word("library") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            self.pos += 1;
+            let n = self.number()?;
+            self.expect_words(&["or", "less"])?;
+            return Ok(StaticCond::LibraryAtMost(n));
         }
         if self.at_words(&["opponent", "dealt", "noncombat"])
             || self.at_words(&["opponent", "was", "dealt", "noncombat"])
@@ -5792,22 +5853,6 @@ impl P {
     /// After `cast free`: `target ...` (a card), or `[<filter>] spell from
     /// hand [with mana value up to <n>]`; then `exile instead`.
     fn cast_free(&mut self) -> R<Effect> {
-        // `cast free exiled card with mana value up to 4`: the card this
-        // resolution exiled.
-        if self.eat_words(&["exiled", "card"]) {
-            let max = if self.eat_words(&["with", "mana", "value", "up", "to"]) {
-                Some(self.num()?)
-            } else {
-                None
-            };
-            return Ok(Effect::CastFree {
-                what: Some(Recipient::CreatedObject),
-                filter: None,
-                max,
-                exile: false,
-                exiled: true,
-            });
-        }
         // `cast free card exiled with this`: "you may cast a card exiled
         // with Krang & Shredder without paying its mana cost" (CR 607.2a).
         let exiled = (0..8).any(|k| {
@@ -5835,8 +5880,16 @@ impl P {
                 message: "too many groups".to_string(),
             })?;
             (Some(Recipient::ExiledWith(i)), None, None)
-        } else if self.at_word("target") {
-            (Some(self.recipient()?), None, None)
+        } else if self.at_word("target") || self.at_words(&["exiled", "card"]) {
+            let what = self.recipient()?;
+            // `cast free exiled card with mana value up to 4`: "if that
+            // spell's mana value is 4 or less" (Beseech the Mirror).
+            let max = if self.eat_words(&["with", "mana", "value", "up", "to"]) {
+                Some(self.num()?)
+            } else {
+                None
+            };
+            (Some(what), None, max)
         } else {
             let filter = if self.at_word("spell") {
                 None
@@ -5857,7 +5910,7 @@ impl P {
             filter,
             max,
             exile,
-            exiled: false,
+            play: false,
         })
     }
 
@@ -6769,6 +6822,35 @@ impl P {
         Ok((Some(f), card))
     }
 
+    /// A search's destination after `to`.
+    fn search_to(&mut self) -> R<mtg_core::card::SearchTo> {
+        use mtg_core::card::SearchTo;
+        Ok(if self.eat_words(&["hand", "or", "graveyard"]) {
+            SearchTo::HandOrGraveyard
+        } else if self.eat_words(&["hand", "and", "graveyard"]) {
+            SearchTo::HandAndGraveyard
+        } else if self.eat_word("hand") {
+            SearchTo::Hand
+        } else if self.eat_word("battlefield") {
+            let tapped = self.eat_word("tapped");
+            if tapped && self.eat_words(&["and", "hand"]) {
+                SearchTo::BattlefieldAndHand
+            } else {
+                SearchTo::Battlefield { tapped }
+            }
+        } else if self.eat_word("top") {
+            SearchTo::TopOfLibrary
+        } else if self.eat_word("graveyard") {
+            SearchTo::Graveyard
+        } else if self.eat_words(&["exile", "face", "down"]) {
+            SearchTo::ExileFaceDown
+        } else if self.eat_word("exile") {
+            SearchTo::Exile
+        } else {
+            return self.unexpected("`hand`, `battlefield`, `graveyard`, or `top`");
+        })
+    }
+
     /// After `if <condition>,`: `instead <sentence>` or `<sentence>
     /// instead` (CR 608.2c), or else the plain sentence (`Err`).
     fn instead_body(&mut self, cond: InsteadCond) -> R<Result<Effect, Sentence>> {
@@ -6776,9 +6858,13 @@ impl P {
         let saved = self.subject.take();
         let s = self.sentence()?;
         self.subject = saved;
+        // `search up to 3 ... instead of 2`: "search your library for up
+        // to three basic Forest cards instead of two" is the trailing form.
+        let instead_of = matches!(s.effects.last(), Some(Effect::Search { more: Some(m), .. })
+            if matches!(m.wording, crate::ast::SearchWording::InsteadOf(_)));
         let wording = if lead {
             InsteadWording::Lead
-        } else if self.eat_word("instead") {
+        } else if instead_of || self.eat_word("instead") {
             InsteadWording::Trail
         } else {
             return Ok(Err(s));
@@ -6919,6 +7005,42 @@ impl P {
         // "You may cast ... without paying its mana cost" (CR 608.2g).
         if self.eat_words(&["cast", "free"]) {
             return self.cast_free();
+        }
+        // "You may play the exiled card without paying its mana cost"
+        // (hideaway, CR 702.75a).
+        // "put the exiled card into its owner's hand" (CR 607.2a).
+        // "Put all cards exiled with this creature into their owners'
+        // hands." (`put all card exiled with this into hand`).
+        if self.at_words(&["put", "exiled", "card", "into", "hand"])
+            || self.at_words(&["put", "all", "card", "exiled", "with"])
+        {
+            self.pos += 1;
+            let what = vec![self.recipient()?];
+            self.expect_words(&["into", "hand"])?;
+            // "Put the exiled card into your hand if it wasn't cast this
+            // way." (Beseech the Mirror).
+            if what == [Recipient::ExiledCard] && self.eat_words(&["unless", "cast"]) {
+                return Ok(Effect::PutCard {
+                    what: crate::ast::CardWords::ExiledUnlessCast,
+                    to: mtg_core::card::CardDest::Hand,
+                    who: None,
+                    that_player: false,
+                    random: false,
+                    rest: None,
+                });
+            }
+            return Ok(Effect::ReturnToHand {
+                what,
+                owner_hand: false,
+                put: true,
+            });
+        }
+        if self.eat_words(&["play", "free"]) {
+            let mut e = self.cast_free()?;
+            if let Effect::CastFree { play, .. } = &mut e {
+                *play = true;
+            }
+            return Ok(e);
         }
         // Designations (CR 701.54, 725, 726, 701.49).
         if self.at_words(&["the", "ring", "tempts", "you"]) {
@@ -7193,6 +7315,30 @@ impl P {
             return Ok(Effect::IfTarget(
                 n,
                 Filter::controlled_by_you(),
+                vec![s],
+                crate::ast::TargetCheck {
+                    tense: crate::ast::TargetTense::Is,
+                    ..crate::ast::TargetCheck::default()
+                },
+            ));
+        }
+        // `if an opponent protects target 1, ...`, `if you protect target
+        // 1, ...`: "If an opponent protects it" (CR 310.8, Portent
+        // Tracker).
+        let opp = self.at_words(&["if", "an", "opponent", "protects", "target"]);
+        if opp || self.at_words(&["if", "you", "protect", "target"]) {
+            self.pos += if opp { 5 } else { 4 };
+            let n = self.number()? as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            self.expect(&Tok::Comma)?;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfTarget(
+                n - 1,
+                Filter::protected_by(if opp { Who::Opponents } else { Who::You }),
                 vec![s],
                 crate::ast::TargetCheck {
                     tense: crate::ast::TargetTense::Is,
@@ -8207,6 +8353,7 @@ impl P {
                         name,
                         old,
                         those,
+                        more,
                         ..
                     } => Ok(Effect::Search {
                         filter,
@@ -8222,6 +8369,7 @@ impl P {
                         name,
                         old,
                         those,
+                        more,
                     }),
                     _ => self.fail("expected a search"),
                 }
@@ -9738,30 +9886,6 @@ impl P {
                     count: None,
                 })
             }
-            // "Put all cards exiled with this creature into their owners'
-            // hands."
-            "put" if self.at_words(&["all", "card", "exiled", "with"]) => {
-                let what = vec![self.recipient()?];
-                self.expect_words(&["into", "hand"])?;
-                Ok(Effect::ReturnToHand {
-                    what,
-                    owner_hand: false,
-                    put: true,
-                })
-            }
-            // "Put the exiled card into your hand if it wasn't cast this
-            // way."
-            "put" if self.at_words(&["exiled", "card", "into", "hand", "unless", "cast"]) => {
-                self.pos += 6;
-                Ok(Effect::PutCard {
-                    what: crate::ast::CardWords::ExiledUnlessCast,
-                    to: mtg_core::card::CardDest::Hand,
-                    who: None,
-                    that_player: false,
-                    random: false,
-                    rest: None,
-                })
-            }
             // "put its counters on target creature you control".
             "put" if self.at_words(&["its", "counters", "on"]) => {
                 self.pos += 3;
@@ -10790,7 +10914,30 @@ impl P {
                 what: self.recipient()?,
             }),
             "search" | "searches" => {
-                let graveyard = self.eat_words(&["library", "or", "graveyard"]);
+                let mut more = crate::ast::SearchMore::default();
+                // `search graveyard, hand, or library ...`: "your
+                // graveyard, hand, and/or library" (`graveyard, hand or
+                // library` without the serial comma); `graveyard, hand,
+                // and library`: all three.
+                if self.at_word("graveyard")
+                    && self.peek_at(1) == Some(&Tok::Comma)
+                    && self.word_at(2).as_deref() == Some("hand")
+                {
+                    self.pos += 3;
+                    let comma = self.peek() == Some(&Tok::Comma);
+                    if comma {
+                        self.pos += 1;
+                    }
+                    more.zones = if self.eat_words(&["or", "library"]) {
+                        crate::ast::SearchZones::HandOr { comma }
+                    } else if comma && self.eat_words(&["and", "library"]) {
+                        crate::ast::SearchZones::HandAnd
+                    } else {
+                        return self.unexpected("`or library` or `, and library`");
+                    };
+                }
+                let graveyard = more.zones != crate::ast::SearchZones::Library
+                    || self.eat_words(&["library", "or", "graveyard"]);
                 let up_to = self.eat_words(&["up", "to"]);
                 // `search up to X ...`, `search up to count where ...`,
                 // `search up to that much ...`: "for up to X basic land
@@ -10874,30 +11021,42 @@ impl P {
                     }
                     filter.or = Some(Box::new(alt));
                 }
+                // `and green card and blue card`, `and card named "Thinking
+                // Cap"`: one card more for each.
+                while self.eat_word("and") {
+                    let f = if self.eat_word("card") {
+                        Filter::default()
+                    } else {
+                        let f = self.filter()?;
+                        if !self.eat_word("card") {
+                            return self.unexpected("`card`");
+                        }
+                        f
+                    };
+                    let mut n = None;
+                    if self.at_word("named")
+                        && let Some(Tok::Str(s)) = self.peek_at(1)
+                    {
+                        n = Some(s.clone());
+                        self.pos += 2;
+                    }
+                    more.slots.push((f, n));
+                }
+                // "with different names" (CR 201.2).
+                more.different_names = self.eat_words(&["with", "different", "names"]);
                 let reveal = self.eat_word("reveal");
                 self.expect_word("to")?;
-                let to = if self.eat_words(&["hand", "or", "graveyard"]) {
-                    mtg_core::card::SearchTo::HandOrGraveyard
-                } else if self.eat_word("hand") {
-                    mtg_core::card::SearchTo::Hand
-                } else if self.eat_word("battlefield") {
-                    let tapped = self.eat_word("tapped");
-                    if tapped && self.eat_words(&["and", "hand"]) {
-                        mtg_core::card::SearchTo::BattlefieldAndHand
-                    } else {
-                        mtg_core::card::SearchTo::Battlefield { tapped }
-                    }
-                } else if self.eat_word("top") {
-                    mtg_core::card::SearchTo::TopOfLibrary
-                } else if self.eat_word("graveyard") {
-                    mtg_core::card::SearchTo::Graveyard
-                } else if self.eat_words(&["exile", "face", "down"]) {
-                    mtg_core::card::SearchTo::ExileFaceDown
-                } else if self.eat_word("exile") {
-                    mtg_core::card::SearchTo::Exile
-                } else {
-                    return self.unexpected("`hand`, `battlefield`, `graveyard`, or `top`");
-                };
+                let mut to = self.search_to()?;
+                // `to battlefield tapped if land else hand`: "Put it onto
+                // the battlefield tapped if it's a land card. Otherwise, put
+                // it into your hand."
+                if self.eat_word("if") {
+                    let f = self.filter()?;
+                    self.expect_word("else")?;
+                    let other = self.search_to()?;
+                    more.split = Some((f, to));
+                    to = other;
+                }
                 let that_card = self.eat_words(&["that", "card"]);
                 // A final `then`: the older wording (not `then <clause>`).
                 let old = self.at_word("then") && !matches!(self.peek_at(1), Some(Tok::Word(_)));
@@ -10905,6 +11064,20 @@ impl P {
                     self.pos += 1;
                 }
                 let those = self.eat_word("those");
+                more.wording = if self.eat_word("short") {
+                    crate::ast::SearchWording::Short
+                } else if self.eat_word("sentence") {
+                    crate::ast::SearchWording::Sentence
+                } else if self.eat_words(&["of", "them"]) {
+                    crate::ast::SearchWording::OfThem
+                } else if self.eat_word("rest") {
+                    crate::ast::SearchWording::Rest
+                } else if self.eat_words(&["instead", "of"]) {
+                    crate::ast::SearchWording::InsteadOf(self.number()?)
+                } else {
+                    crate::ast::SearchWording::Plain
+                };
+                let more = (more != crate::ast::SearchMore::default()).then(|| Box::new(more));
                 Ok(Effect::Search {
                     filter,
                     count,
@@ -10919,6 +11092,7 @@ impl P {
                     name,
                     old,
                     those,
+                    more,
                 })
             }
             "add" => {
@@ -11338,6 +11512,17 @@ impl P {
             Ok(())
         } else {
             self.unexpected(&format!("`{}`", ws.join(" ")))
+        }
+    }
+
+    /// `graveyard` or `exile`: where a permanent came from.
+    fn came_from_zone(&mut self) -> R<mtg_core::state::Zone> {
+        if self.eat_word("graveyard") {
+            Ok(mtg_core::state::Zone::Graveyard)
+        } else if self.eat_word("exile") {
+            Ok(mtg_core::state::Zone::Exile)
+        } else {
+            self.unexpected("`graveyard` or `exile`")
         }
     }
 
@@ -12345,12 +12530,14 @@ impl P {
             }
         };
         let total = self.total_mana_value()?;
+        let different = self.eat_words(&["with", "different", "names"]);
         let i = self.targets.len();
         self.targets.push(Target::Many {
             target: Box::new(target),
             min,
             max,
             total,
+            different,
         });
         Ok(Recipient::Target(i))
     }
@@ -12416,13 +12603,21 @@ impl P {
             }
             // "up to three target creature cards with total mana value 3
             // or less": one variable group (CR 601.2c).
-            if up_to && let Some(total) = self.total_mana_value()? {
+            // "up to six target creature cards with different names".
+            let total = if up_to {
+                self.total_mana_value()?
+            } else {
+                None
+            };
+            let different = up_to && self.eat_words(&["with", "different", "names"]);
+            if total.is_some() || different {
                 let i = self.targets.len();
                 self.targets.push(Target::Many {
                     target: Box::new(spec),
                     min: Num::N(0),
                     max: Some(Num::N(count)),
-                    total: Some(total),
+                    total,
+                    different,
                 });
                 return Ok(vec![Recipient::Target(i)]);
             }
@@ -12668,6 +12863,9 @@ impl P {
         }
         if self.in_trigger && !self.in_delayed && self.eat_words(&["the", "creature"]) {
             return Ok(Recipient::TheTriggeringObject);
+        }
+        if self.in_trigger && !self.in_delayed && self.eat_words(&["one", "of", "them"]) {
+            return Ok(Recipient::TriggeringOneOfThem);
         }
         // "Exile them at the beginning of the next end step." (the
         // tokens a delayed trigger is about).
@@ -13273,7 +13471,9 @@ impl P {
         }
         // "card from a graveyard" / "instant card from your graveyard";
         // "card named ~ from your graveyard".
-        let mut f = if self.at_word("card") {
+        // "Copy target spell you control." (Slick Imitator): a spell of
+        // any kind with only its controller named.
+        let mut f = if self.at_word("card") || self.at_words(&["spell", "you", "control"]) {
             Filter::default()
         } else {
             self.filter()?
@@ -14653,6 +14853,9 @@ impl P {
         if self.eat_words(&["a", "spell", "from", "exile"]) {
             return Ok(Some(SpellOrdinal::FromExile));
         }
+        if self.eat_words(&["a", "spell", "from", "a", "graveyard"]) {
+            return Ok(Some(SpellOrdinal::FromGraveyard));
+        }
         if self.eat_words(&["a", "spell", "other", "than"]) {
             if !(self.eat_word("your") || self.eat_word("their")) {
                 return self.unexpected("`your` or `their`");
@@ -15456,6 +15659,16 @@ impl P {
             && self.eat_words(&["enters", "from", "your", "graveyard"])
         {
             return Ok(Trigger::EntersFromGraveyard(f.clone()));
+        }
+        // "this creature enters from a graveyard", "a permanent you
+        // control enters from exile".
+        if self.eat_words(&["enters", "from"]) {
+            let yours = self.eat_word("your");
+            let zone = self.came_from_zone()?;
+            if yours && zone != mtg_core::state::Zone::Graveyard {
+                return self.unexpected("`graveyard` after `your`");
+            }
+            return Ok(Trigger::EntersFrom { obj, zone, yours });
         }
         let first = self.trigger_verb(obj.clone(), whenever)?;
         // "this enters or dies", "this enters or attacks": one ability,
@@ -16854,6 +17067,46 @@ impl P {
             "has" | "have" if self.granted_mechanic_ahead() => Ok(Mod::AddAbility(Box::new(
                 self.granted_mechanic()?.expect("checked"),
             ))),
+            "has" | "have" if self.at_words(&["all", "activated", "abilities"]) => {
+                use crate::ast::{CountExpr, GroupWord};
+                self.pos += 3;
+                let while_here = self.eat_words(&["as", "long", "as", "on", "battlefield"]);
+                self.expect_word("of")?;
+                if self.eat_words(&["the", "exiled", "card"]) {
+                    return Ok(Mod::ActivatedOf {
+                        from: CountExpr::ExiledWith(None),
+                        word: GroupWord::The,
+                        while_here,
+                    });
+                }
+                let word = if self.at_word("all") && !self.at_words(&["all", "graveyards"]) {
+                    self.pos += 1;
+                    GroupWord::All
+                } else if self.at_word("each") && !self.at_words(&["each", "graveyard"]) {
+                    self.pos += 1;
+                    GroupWord::Each
+                } else {
+                    GroupWord::Bare
+                };
+                let from = self.count_expr()?;
+                if !matches!(
+                    from,
+                    CountExpr::Permanents(_)
+                        | CountExpr::CardsInGraveyard(_)
+                        | CountExpr::CardsInGraveyards { each: false, .. }
+                        | CountExpr::ExiledWith(_)
+                ) {
+                    return self.fail(
+                        "`has all activated abilities of` takes permanents, `graveyard`, \
+                         `all graveyards`, or `exiled with this`",
+                    );
+                }
+                Ok(Mod::ActivatedOf {
+                    from,
+                    word,
+                    while_here,
+                })
+            }
             "has" | "have" if self.eat_words(&["protection", "from", "chosen", "color"]) => {
                 Ok(Mod::ProtectionFromChosen)
             }

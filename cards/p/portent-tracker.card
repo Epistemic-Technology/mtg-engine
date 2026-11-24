@@ -1,0 +1,8 @@
+card "Portent Tracker" {
+  oracle_id ca49d6ad-97b1-4fd4-b1cf-fecd9cafee6d
+  cost {1}{G}
+  type Creature — Satyr Scout
+  pt 1/1
+  activated {T}: untap target land
+  activated {T}, sorcery: choose target battle; if an opponent protects target 1, remove 1 defense counter from target 1; otherwise, put 1 defense counter on target 1
+}

@@ -1163,6 +1163,18 @@ impl Filter {
             ..Filter::default()
         }
     }
+
+    /// A battle its protector is `who` of (CR 310.8): `if an opponent
+    /// protects target 1, ...`, `if you protect target 1, ...`.
+    pub fn protected_by(who: Who) -> Filter {
+        Filter {
+            status: mtg_core::card::StatusQuals {
+                protector: Some(who),
+                ..Default::default()
+            },
+            ..Filter::default()
+        }
+    }
 }
 
 /// How a search prints its filter's alternative.
@@ -1176,6 +1188,65 @@ pub enum OrCard {
     Bare,
     /// `card or a Gate card`: "a basic land card or a Gate card".
     Article,
+}
+
+/// The rarer parts of a search (`Effect::Search::more`).
+#[derive(Clone, Eq, PartialEq, Debug, Default)]
+pub struct SearchMore {
+    /// `search black card and green card and blue card ...`, `card named
+    /// "X" and card named "Y"`: one card more for each, by its own filter
+    /// and name ("a black card, a green card, and a blue card"; named
+    /// cards join with "and/or").
+    pub slots: Vec<(Filter, Option<String>)>,
+    /// Which zones are searched beyond the library.
+    pub zones: SearchZones,
+    /// `with different names` (CR 201.2).
+    pub different_names: bool,
+    /// `to battlefield if land else hand`: "Put it onto the battlefield
+    /// tapped if it's a land card. Otherwise, put it into your hand."
+    pub split: Option<(Filter, mtg_core::card::SearchTo)>,
+    pub wording: SearchWording,
+}
+
+/// The zones a search names beyond the library.
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum SearchZones {
+    /// The library (or `library or graveyard`, `Effect::Search::graveyard`).
+    #[default]
+    Library,
+    /// `graveyard, hand, or library`: "your graveyard, hand, and/or
+    /// library" (`graveyard, hand or library`: without the serial comma);
+    /// the library is shuffled if it was searched.
+    HandOr { comma: bool },
+    /// `graveyard, hand, and library`: "your graveyard, hand, and library
+    /// ..., then shuffle".
+    HandAnd,
+}
+
+/// How a search's destination prints (wording only).
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum SearchWording {
+    #[default]
+    Plain,
+    /// `short`: only "Search your library for a basic land card." The
+    /// `instead` search after it prints the destination for both (Analyze
+    /// the Pollen).
+    Short,
+    /// `sentence`: the destination as a sentence of its own, "Reveal that
+    /// card, put it into your hand, then shuffle." (after an `instead`
+    /// search; a search for several differently-filtered cards always
+    /// prints so).
+    Sentence,
+    /// `of them`: "... and reveal them. Put one of them onto the
+    /// battlefield tapped and the other into your hand, then shuffle."
+    OfThem,
+    /// `rest`: "..., reveal those cards, and put one onto the battlefield
+    /// tapped and the rest into your hand. Then shuffle."
+    Rest,
+    /// `instead of 2`: in a trailing `instead` sentence, "search your
+    /// library for up to three basic Forest cards instead of two" (the
+    /// rest as the search before).
+    InsteadOf(u32),
 }
 
 /// A filter's combat relation to the source, as printed.
@@ -1347,6 +1418,9 @@ pub enum Target {
         /// `... with total mana value 3 or less`: "up to three target
         /// creature cards with total mana value 3 or less" (CR 601.2c).
         total: Option<Num>,
+        /// `... with different names`: "up to six target creature cards
+        /// with different names" (CR 201.2).
+        different: bool,
     },
 }
 
@@ -1867,6 +1941,11 @@ pub enum Ability {
     /// `deck any number`: "A deck can have any number of cards named ~."
     /// (CR 100.2a). A deck-building rule with no meaning in a game.
     DeckAnyNumber,
+    /// `companion "Each nonland card in your starting deck has a different
+    /// name."`: "Companion — ..." (CR 702.139a). A deck-building condition
+    /// for a card kept outside the game; here the card is simply a card
+    /// in the deck, so the line has no meaning in a game.
+    Companion(String),
     /// `this spell can't be countered`: "This spell can't be countered."
     Uncounterable,
     /// An ability word (CR 207.2c) printed before the ability: "Landfall —
@@ -2235,6 +2314,10 @@ pub enum Mechanic {
     /// `fabricate 1` (CR 702.123): when this enters, N +1/+1 counters on
     /// it or N 1/1 Servos.
     Fabricate(u32),
+    /// `hideaway 4` (CR 702.75): when this enters, look at the top N
+    /// cards of your library, exile one face down (linked to this), and
+    /// put the rest on the bottom in a random order.
+    Hideaway(u32),
     /// `evolve` (CR 702.100).
     Evolve,
     /// `increment` (CR 702.191): whenever you cast a spell, if the mana
@@ -2536,6 +2619,13 @@ pub enum StaticCond {
     /// `opponent damaged this turn`: "an opponent was dealt damage this
     /// turn".
     OpponentDamagedThisTurn,
+    /// `opponent was dealt 7 damage this turn`: "an opponent was dealt 7
+    /// or more damage this turn" (`TurnEvent::DamageTaken`).
+    OpponentDamageThisTurn(u32),
+    /// `no cards in any hand`: "each player has no cards in hand".
+    EachHandEmpty,
+    /// `library 20 or less`: "a library has twenty or fewer cards in it".
+    LibraryAtMost(u32),
     /// `opponent lost life this turn`: "an opponent lost life this turn".
     OpponentLostLifeThisTurn,
     /// `permanent left this turn` (revolt): "a permanent left the
@@ -2872,6 +2962,15 @@ pub enum StaticCond {
     NotCastFromHand,
     /// `you cast it`: "you cast it" (from any zone).
     WasCast,
+    /// `that creature entered from graveyard or you cast it from
+    /// graveyard` (0), `they entered or were cast from graveyard` (1),
+    /// `one or more of them entered from exile or was cast from exile`
+    /// (2): the triggering object was put onto the battlefield from the
+    /// zone or cast from it.
+    CameFrom {
+        zone: mtg_core::state::Zone,
+        wording: u8,
+    },
     /// `put any counter this turn`: "you put a counter on a creature this
     /// turn" (any kind).
     PutAnyCounterThisTurn,
@@ -3567,6 +3666,14 @@ pub enum Trigger {
     PutIntoGraveyardFromBattlefield(Filter),
     /// `whenever creature enters from your graveyard`.
     EntersFromGraveyard(Filter),
+    /// `when this enters from graveyard`, `whenever this or permanent
+    /// enters from graveyard`, `whenever this or creature enters from your
+    /// graveyard`, `whenever permanent you control enters from exile`.
+    EntersFrom {
+        obj: TriggerObj,
+        zone: mtg_core::state::Zone,
+        yours: bool,
+    },
     /// `whenever you expend 4` (CR 700.14).
     Expends(u8),
     /// `whenever you collect evidence` (CR 701.59).
@@ -3651,6 +3758,21 @@ pub enum TriggerObj {
     ThisOr(Filter),
 }
 
+/// The word before a group in "has all activated abilities of ...":
+/// wording only.
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum GroupWord {
+    /// "of creatures you control ..." (Marvin).
+    #[default]
+    Bare,
+    /// "of all Elf cards in your graveyard".
+    All,
+    /// "of each other creature with a +1/+1 counter on it".
+    Each,
+    /// "of the exiled card" (one card exiled with this, Territory Forge).
+    The,
+}
+
 #[derive(Clone, Eq, PartialEq, Debug)]
 #[allow(clippy::large_enum_variant)]
 pub enum Mod {
@@ -3720,6 +3842,19 @@ pub enum Mod {
     ChosenColor,
     /// `has protection from chosen color`.
     ProtectionFromChosen,
+    /// `has all activated abilities of [all|each] <count>`: "has all
+    /// activated abilities of all Elf cards in your graveyard" (layer 6):
+    /// those of the objects the count counts (permanents, cards in a
+    /// graveyard or all graveyards, cards exiled with this). `the exiled
+    /// card` is `exiled with this` printed "the exiled card".
+    /// `has all activated abilities as long as on battlefield of ...`
+    /// prints "As long as this creature is on the battlefield, it has
+    /// ..." (Necrotic Ooze; wording only).
+    ActivatedOf {
+        from: CountExpr,
+        word: GroupWord,
+        while_here: bool,
+    },
     /// `cda pt <count> [+N]`, `cda power <count>`, `cda toughness
     /// <count>`: a characteristic-defining ability (CR 604.3).
     CdaPt {
@@ -3844,6 +3979,11 @@ pub enum Recipient {
     /// The triggering object written `the creature` in a triggered
     /// ability: "If the player does, untap the creature." (Paralyze).
     TheTriggeringObject,
+    /// `one of them` in a batched trigger ("Whenever one or more other
+    /// creatures you control enter, ..., create a token that's a copy of
+    /// one of them"): the triggering object, the first of the batch that
+    /// made it trigger (the engine picks it for the player).
+    TriggeringOneOfThem,
     TriggeringPlayer,
     DefendingPlayer,
     /// `that defending player`: the defending player, printed "defending
@@ -4079,9 +4219,10 @@ pub enum Effect {
         /// `to owner's hand`: a group returned "to their owner's hand"
         /// (Oracle's singular, River's Rebuke); wording only.
         owner_hand: bool,
-        /// `put all card exiled with this into hand`: "Put all cards
-        /// exiled with this creature into their owners' hands."; wording
-        /// only.
+        /// `put exiled card into hand`: "put the exiled card into its
+        /// owner's hand" (Watcher for Tomorrow); `put all card exiled with
+        /// this into hand`: "Put all cards exiled with this creature into
+        /// their owners' hands."; wording only.
         put: bool,
     },
     /// `return that card to battlefield tapped under your control`;
@@ -4408,10 +4549,9 @@ pub enum Effect {
         filter: Option<Filter>,
         max: Option<Num>,
         exile: bool,
-        /// `cast free exiled card [with mana value up to 4]`: the card the
-        /// resolution exiled ("you may cast the exiled card without paying
-        /// its mana cost if that spell's mana value is 4 or less").
-        exiled: bool,
+        /// `play free exiled card`: "you may play the exiled card without
+        /// paying its mana cost" (a land may be played).
+        play: bool,
     },
     /// `it is now enchantment`: "It's an enchantment." (the Enduring
     /// cycle's returned permanent; "They're an artifact." with `pronoun
@@ -4633,6 +4773,9 @@ pub enum Effect {
         /// battlefield tapped" ("Reveal those cards, put them into your
         /// hand") (wording only).
         those: bool,
+        /// Several differently-filtered cards, more zones, `with different
+        /// names`, a destination by the found card, and more wordings.
+        more: Option<Box<SearchMore>>,
     },
     /// `add {B}{B}`, `add any`: "Add {B}{B}.", "Add one mana of any
     /// color." (CR 106.4).

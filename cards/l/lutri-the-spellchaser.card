@@ -1,0 +1,9 @@
+card "Lutri, the Spellchaser" {
+  oracle_id 158a6225-a246-4fd6-aa57-0df8067b4383
+  cost {1}{U/R}{U/R}
+  type Legendary Creature — Elemental Otter
+  pt 3/2
+  companion "Each nonland card in your starting deck has a different name."
+  keywords flash
+  triggered when this enters if you cast it: copy target instant or sorcery spell you control new targets
+}

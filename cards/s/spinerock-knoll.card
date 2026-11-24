@@ -1,0 +1,8 @@
+card "Spinerock Knoll" {
+  oracle_id 690c7f8e-fea2-4920-afa7-02ff120701a1
+  type Land
+  hideaway 4
+  enters tapped
+  mana {R}
+  activated {R}, {T}: play free exiled card if opponent was dealt 7 damage this turn
+}

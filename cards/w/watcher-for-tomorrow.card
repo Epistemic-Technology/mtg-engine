@@ -1,0 +1,9 @@
+card "Watcher for Tomorrow" {
+  oracle_id 277aafa6-4270-4d24-a888-cf9e8e635d4b
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 2/1
+  hideaway 4
+  enters tapped
+  triggered when this leaves the battlefield: put exiled card into hand
+}

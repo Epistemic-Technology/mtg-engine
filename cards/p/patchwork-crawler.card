@@ -1,0 +1,8 @@
+card "Patchwork Crawler" {
+  oracle_id 74cbe86b-cc8c-4a5f-93c3-f4eaced50393
+  cost {1}{U}
+  type Creature — Zombie Horror
+  pt 1/2
+  activated {2}{U}: exile target creature card from your graveyard and put 1 +1/+1 counter on this
+  static this: has all activated abilities of all exiled with this creature card
+}

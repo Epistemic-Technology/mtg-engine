@@ -1,0 +1,266 @@
+# Hideaway N (CR 702.75): as the permanent enters, its controller looks at
+# the top N cards of their library, exiles one face down (linked to the
+# permanent, CR 607.2a), and puts the rest on the bottom in a random order.
+# "You may play the exiled card without paying its mana cost" casts it, or
+# plays a land on its controller's own turn with a land play left.
+
+scenario "Windbrisk Heights: hideaway, then a free cast after attacking with three" {
+  battlefield A: "Plains", "Grizzly Bears", "Hill Giant", "Craw Wurm"
+  hand A: "Windbrisk Heights"
+  library A: "Shock", "Serra Angel", "Forest", "Island", 6 "Plains"
+  turn 1 A: play "Windbrisk Heights"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 1 end
+  assert tapped "Windbrisk Heights"
+  assert exile A contains "Serra Angel"
+  assert exile A count 1
+  assert library A count 9
+  assert hand A lacks "Shock"
+  turn 3 A: attack "Grizzly Bears", "Hill Giant", "Craw Wurm"
+  turn 3 main2 A: activate "Windbrisk Heights"
+  run_to turn 3 end
+  assert battlefield A contains "Serra Angel"
+  assert exile A count 0
+  assert tapped "Plains"
+}
+
+scenario "Windbrisk Heights: two attackers aren't enough; the card stays exiled" {
+  battlefield A: "Plains", "Grizzly Bears", "Hill Giant"
+  hand A: "Windbrisk Heights"
+  library A: "Serra Angel", 9 "Plains"
+  turn 1 A: play "Windbrisk Heights"
+  turn 3 A: attack "Grizzly Bears", "Hill Giant"
+  turn 3 main2 A: activate "Windbrisk Heights"
+  run_to turn 3 end
+  assert battlefield A lacks "Serra Angel"
+  assert exile A contains "Serra Angel"
+  assert tapped "Windbrisk Heights"
+}
+
+scenario "Clive's Hideaway: a land is played only with a land play left" {
+  battlefield A: 4 "Plains", "Adun Oakenshield", "Ambassador Laquatus", "Akal Pakal, First Among Equals", "Agent 13, Sharon Carter"
+  hand A: "Clive's Hideaway"
+  library A: "Grizzly Bears", "Forest", "Hill Giant", "Island", 6 "Plains"
+  turn 1 A: play "Clive's Hideaway"
+  turn 1 A: choose "Forest"
+  turn 1 main2 A: activate "Clive's Hideaway"
+  run_to turn 1 end
+  assert exile A contains "Forest"
+  assert tapped "Clive's Hideaway"
+  turn 3 A: activate "Clive's Hideaway"
+  run_to turn 3 begin_combat
+  assert battlefield A contains "Forest"
+  assert exile A count 0
+}
+
+scenario "Clive's Hideaway: three legendary creatures aren't enough" {
+  battlefield A: 2 "Plains", "Adun Oakenshield", "Ambassador Laquatus", "Akal Pakal, First Among Equals"
+  hand A: "Clive's Hideaway"
+  library A: "Grizzly Bears", 9 "Plains"
+  turn 1 A: play "Clive's Hideaway"
+  turn 1 main2 A: activate "Clive's Hideaway"
+  run_to turn 1 end
+  assert exile A contains "Grizzly Bears"
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "Clive's Hideaway: four legendary creatures, a spell cast free" {
+  battlefield A: 2 "Plains", "Adun Oakenshield", "Ambassador Laquatus", "Akal Pakal, First Among Equals", "Agent 13, Sharon Carter"
+  hand A: "Clive's Hideaway"
+  library A: "Grizzly Bears", 9 "Plains"
+  turn 1 A: play "Clive's Hideaway"
+  turn 1 main2 A: activate "Clive's Hideaway"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Watcher for Tomorrow: the exiled card goes to the hand as it leaves" {
+  battlefield A: 2 "Island", "Mountain"
+  hand A: "Watcher for Tomorrow", "Shock"
+  library A: "Forest", "Hill Giant", "Island", "Plains", 6 "Plains"
+  turn 1 A: cast "Watcher for Tomorrow"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 begin_combat
+  assert tapped "Watcher for Tomorrow"
+  assert exile A contains "Hill Giant"
+  turn 1 main2 A: cast "Shock" targeting "Watcher for Tomorrow"
+  run_to turn 1 end
+  assert graveyard A contains "Watcher for Tomorrow"
+  assert hand A contains "Hill Giant"
+  assert exile A count 0
+}
+
+scenario "Spinerock Knoll: seven damage to an opponent this turn" {
+  battlefield A: 2 "Mountain", "Craw Wurm"
+  hand A: "Spinerock Knoll", "Shock"
+  library A: "Hill Giant", 9 "Plains"
+  turn 1 A: play "Spinerock Knoll"
+  turn 3 A: attack "Craw Wurm"
+  turn 3 main2 A: activate "Spinerock Knoll"
+  run_to turn 3 end
+  assert life B 14
+  assert exile A contains "Hill Giant"
+  turn 5 A: attack "Craw Wurm"
+  turn 5 main2 A: cast "Shock" targeting player B
+  turn 5 main2 A: wait
+  turn 5 main2 A: activate "Spinerock Knoll"
+  run_to turn 5 end
+  assert life B 6
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Mosswort Bridge: total power 8 isn't enough" {
+  battlefield A: "Forest", "Craw Wurm", "Grizzly Bears"
+  hand A: "Mosswort Bridge"
+  library A: "Hill Giant", 9 "Plains"
+  turn 1 A: play "Mosswort Bridge"
+  turn 3 A: activate "Mosswort Bridge"
+  run_to turn 3 end
+  assert exile A contains "Hill Giant"
+}
+
+scenario "Mosswort Bridge: total power 10" {
+  battlefield A: 2 "Forest", "Craw Wurm", "Grizzly Bears"
+  hand A: "Mosswort Bridge", "Giant Growth"
+  library A: "Hill Giant", 9 "Plains"
+  turn 1 A: play "Mosswort Bridge"
+  turn 3 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 3 A: wait
+  turn 3 A: activate "Mosswort Bridge"
+  run_to turn 3 end
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Shelldock Isle: a library with twenty or fewer cards" {
+  battlefield A: "Island"
+  hand A: "Shelldock Isle"
+  library A: "Grizzly Bears", 8 "Plains"
+  turn 1 A: play "Shelldock Isle"
+  turn 3 A: activate "Shelldock Isle"
+  run_to turn 3 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Shelldock Isle: libraries of more than twenty cards" {
+  battlefield A: "Island"
+  hand A: "Shelldock Isle"
+  library A: "Grizzly Bears", 30 "Plains"
+  library B: 30 "Plains"
+  turn 1 A: play "Shelldock Isle"
+  turn 3 A: activate "Shelldock Isle"
+  run_to turn 3 end
+  assert exile A contains "Grizzly Bears"
+}
+
+scenario "Howltooth Hollow: an opponent still has a card in hand" {
+  battlefield A: "Swamp"
+  hand A: "Howltooth Hollow"
+  library A: "Grizzly Bears", 9 "Plains"
+  turn 1 A: play "Howltooth Hollow"
+  turn 3 A: play "Plains"
+  turn 3 main2 A: activate "Howltooth Hollow"
+  run_to turn 3 end
+  assert hand A count 0
+  assert hand B count 1
+  assert exile A contains "Grizzly Bears"
+}
+
+scenario "Howltooth Hollow: no player has a card in hand" {
+  battlefield A: "Swamp"
+  hand A: "Howltooth Hollow"
+  library A: "Grizzly Bears", 9 "Plains"
+  turn 1 A: play "Howltooth Hollow"
+  turn 2 B: play "Plains"
+  turn 3 A: play "Plains"
+  turn 3 main2 A: activate "Howltooth Hollow"
+  run_to turn 3 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Fight Rigging: a counter, then a free cast with power 7" {
+  battlefield A: "Forest", 2 "Forest", "Craw Wurm"
+  hand A: "Fight Rigging"
+  library A: "Grizzly Bears", "Hill Giant", "Shock", "Island", "Plains", 6 "Plains"
+  turn 1 A: cast "Fight Rigging"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 end
+  assert counters "Craw Wurm" +1/+1 1
+  assert battlefield A contains "Hill Giant"
+  assert power "Craw Wurm" 7
+}
+
+scenario "Fight Rigging: power 6 isn't enough" {
+  battlefield A: 3 "Forest", "Hill Giant"
+  hand A: "Fight Rigging"
+  library A: "Grizzly Bears", 9 "Plains"
+  turn 1 A: cast "Fight Rigging"
+  run_to turn 1 end
+  assert counters "Hill Giant" +1/+1 1
+  assert exile A contains "Grizzly Bears"
+}
+
+scenario "Collector's Cage: three different powers" {
+  battlefield A: 3 "Plains", "Grizzly Bears", "Hill Giant", "Ornithopter"
+  hand A: "Collector's Cage"
+  library A: "Serra Angel", 9 "Plains"
+  turn 1 A: cast "Collector's Cage"
+  turn 1 main2 A: activate "Collector's Cage" targeting "Ornithopter"
+  run_to turn 1 end
+  assert counters "Ornithopter" +1/+1 1
+  assert battlefield A contains "Serra Angel"
+}
+
+scenario "Collector's Cage: two creatures of the same power" {
+  battlefield A: 3 "Plains", "Grizzly Bears", "Hill Giant", "Ornithopter"
+  hand A: "Collector's Cage"
+  library A: "Serra Angel", 9 "Plains"
+  turn 1 A: cast "Collector's Cage"
+  turn 1 main2 A: activate "Collector's Cage" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert exile A contains "Serra Angel"
+}
+
+scenario "Cemetery Tampering: mill, then twenty cards in the graveyard" {
+  battlefield A: 3 "Swamp"
+  hand A: "Cemetery Tampering"
+  graveyard A: 17 "Plains"
+  library A: "Grizzly Bears", 12 "Plains"
+  turn 1 A: cast "Cemetery Tampering"
+  run_to turn 3 draw
+  assert graveyard A count 20
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Rabble Rousing: Citizens for each attacker, ten creatures" {
+  battlefield A: 5 "Plains", 3 "Grizzly Bears", 2 "Hill Giant"
+  hand A: "Rabble Rousing"
+  library A: "Serra Angel", 9 "Plains"
+  turn 1 A: cast "Rabble Rousing"
+  turn 3 A: attack "Grizzly Bears", "Grizzly Bears", "Grizzly Bears", "Hill Giant", "Hill Giant"
+  run_to turn 3 declare_blockers
+  assert battlefield A contains 5 "Citizen"
+  assert battlefield A contains "Serra Angel"
+}
+
+scenario "Rabble Rousing: fewer than ten creatures" {
+  battlefield A: 5 "Plains", 2 "Grizzly Bears"
+  hand A: "Rabble Rousing"
+  library A: "Serra Angel", 9 "Plains"
+  turn 1 A: cast "Rabble Rousing"
+  turn 3 A: attack "Grizzly Bears", "Grizzly Bears"
+  run_to turn 3 declare_blockers
+  assert battlefield A contains 2 "Citizen"
+  assert exile A contains "Serra Angel"
+}
+
+scenario "Widespread Thieving: a Treasure, then five colors for the free cast" {
+  battlefield A: 2 "Plains", "Island", "Swamp", 5 "Mountain", "Forest"
+  hand A: "Widespread Thieving", "Boros Charm"
+  library A: "Serra Angel", 9 "Plains"
+  turn 1 A: cast "Widespread Thieving"
+  turn 3 A: cast "Boros Charm" mode 1 targeting player B
+  run_to turn 3 end
+  assert life B 16
+  assert battlefield A contains "Treasure"
+  assert battlefield A contains "Serra Angel"
+}

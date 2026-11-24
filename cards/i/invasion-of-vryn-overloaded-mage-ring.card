@@ -1,0 +1,13 @@
+card "Invasion of Vryn // Overloaded Mage-Ring" {
+  oracle_id 73c7fdb3-4742-4d08-8658-daa4435c49b1
+  layout transform
+  cost {3}{U}
+  type Battle — Siege
+  defense 4
+  triggered when this enters: draw 3 cards, then discard 1 card
+  face "Overloaded Mage-Ring" {
+    type Artifact
+    color blue
+    activated {1}, {T}, sacrifice this: copy target spell you control new targets
+  }
+}

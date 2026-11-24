@@ -1,0 +1,7 @@
+card "The Sibsig Ceremony" {
+  oracle_id bbdb731d-c533-48ef-b82a-cf1a8ba36208
+  cost {B}{B}{B}
+  type Legendary Enchantment
+  spells creature you cast cost {2} less
+  triggered whenever creature you control enters if you cast it: destroy that creature, then create 1 "2/2 black Zombie Druid creature"
+}

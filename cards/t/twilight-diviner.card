@@ -1,0 +1,8 @@
+card "Twilight Diviner" {
+  oracle_id 05d7222b-cc08-4f1f-8e35-6058599572ba
+  cost {2}{B}
+  type Creature — Elf Cleric
+  pt 3/3
+  triggered when this enters: surveil 2
+  triggered once each turn whenever one or more other creature you control enter if they entered or were cast from graveyard: create token copy of one of them
+}

@@ -66,6 +66,7 @@ fn happened(count: &TurnCount, cmp: mtg_core::card::Cmp, n: u32) -> StaticCond {
         (TurnEvent::LifeLost, TurnWho::You, ..) => StaticCond::LostLifeThisTurn { gained: false },
         (TurnEvent::LifeLost, ..) => StaticCond::OpponentLostLifeThisTurn,
         (TurnEvent::Damaged, ..) => StaticCond::OpponentDamagedThisTurn,
+        (TurnEvent::DamageTaken, _, _, n) => StaticCond::OpponentDamageThisTurn(n),
         (TurnEvent::NoncombatDamaged, ..) => {
             StaticCond::OpponentNoncombatDamagedThisTurn { was: false }
         }
@@ -455,6 +456,7 @@ impl Decompiler<'_> {
                     min: m.min,
                     max: m.max,
                     total: m.total_mv,
+                    different: m.different_names,
                 }
             }
             other => Target::Spec(other),
@@ -710,6 +712,10 @@ impl Decompiler<'_> {
             StaticCondition::NotYourMainPhase => StaticCond::NotYourMainPhase,
             StaticCondition::NotCastFrom(_) => StaticCond::NotCastFromHand,
             StaticCondition::WasCast => StaticCond::WasCast,
+            StaticCondition::CameFrom { zone, wording } => StaticCond::CameFrom {
+                zone: *zone,
+                wording: *wording,
+            },
             StaticCondition::TotalToughness(n) => StaticCond::TotalToughness(*n),
             StaticCondition::SneakPaid(p) => StaticCond::SneakPaid(*p),
             StaticCondition::ProwlPaid => StaticCond::ProwlPaid,
@@ -821,6 +827,8 @@ impl Decompiler<'_> {
                 at_most: *at_most,
             },
             StaticCondition::NoCardInHand(f) => StaticCond::NoCardInHand(self.filter(f)),
+            StaticCondition::EachHandEmpty => StaticCond::EachHandEmpty,
+            StaticCondition::LibraryAtMost(n) => StaticCond::LibraryAtMost(*n),
         }
     }
 
@@ -1350,6 +1358,7 @@ impl Decompiler<'_> {
                 reveal,
                 graveyard,
                 name,
+                more,
             } => Effect::Search {
                 graveyard: *graveyard,
                 name: name.as_deref().map(str::to_string),
@@ -1364,6 +1373,23 @@ impl Decompiler<'_> {
                 may: *may,
                 old: false,
                 those: false,
+                more: more.as_ref().map(|m| {
+                    Box::new(crate::ast::SearchMore {
+                        slots: m
+                            .slots
+                            .iter()
+                            .map(|(f, n)| (self.filter(f), n.as_deref().map(str::to_string)))
+                            .collect(),
+                        zones: match (m.hand, m.all) {
+                            (false, _) => crate::ast::SearchZones::Library,
+                            (true, false) => crate::ast::SearchZones::HandOr { comma: true },
+                            (true, true) => crate::ast::SearchZones::HandAnd,
+                        },
+                        different_names: m.different_names,
+                        split: m.split.as_ref().map(|(f, to)| (self.filter(f), *to)),
+                        wording: crate::ast::SearchWording::Plain,
+                    })
+                }),
             },
             CoreEffect::Surveil { count } => Effect::Surveil(*count),
             CoreEffect::Discard { count, who } => Effect::Discard {
@@ -1413,12 +1439,13 @@ impl Decompiler<'_> {
                 filter,
                 max_mv,
                 exile,
+                play,
             } => Effect::CastFree {
                 what: what.map(r),
                 filter: filter.as_ref().map(|f| self.filter(f)),
                 max: *max_mv,
                 exile: *exile,
-                exiled: false,
+                play: *play,
             },
             CoreEffect::Animate {
                 to,
@@ -1796,7 +1823,9 @@ impl Decompiler<'_> {
                 what: vec![r(*what)],
             },
             CoreEffect::Incubate { count, .. } => Effect::Incubate(*count),
-            CoreEffect::Fabricate { .. } | CoreEffect::BecomeRenowned => {
+            CoreEffect::Fabricate { .. }
+            | CoreEffect::Hideaway { .. }
+            | CoreEffect::BecomeRenowned => {
                 unreachable!("decompiled as a keyword line")
             }
             CoreEffect::ExileTop { who, count, face } => Effect::ExileTop {
@@ -2317,6 +2346,11 @@ impl Decompiler<'_> {
                 Trigger::PutIntoGraveyardFromBattlefield(self.filter(f))
             }
             TriggerSpec::EntersFromGraveyard(f) => Trigger::EntersFromGraveyard(self.filter(f)),
+            TriggerSpec::EntersFrom { what, zone, yours } => Trigger::EntersFrom {
+                obj: self.trigger_obj(what),
+                zone: *zone,
+                yours: *yours,
+            },
             TriggerSpec::Expends(n) => Trigger::Expends(*n),
             TriggerSpec::CollectsEvidence { .. } => Trigger::CollectsEvidence,
             TriggerSpec::Forages { .. } => Trigger::Forages,
@@ -2554,6 +2588,16 @@ impl Decompiler<'_> {
                 toughness: *toughness,
             },
             Modification::SwitchPt => Mod::SwitchPt,
+            Modification::AddActivatedOf(from) => Mod::ActivatedOf {
+                from: match &**from {
+                    mtg_core::card::CountExpr::ExiledWith(f) => {
+                        crate::ast::CountExpr::ExiledWith(f.as_ref().map(|f| self.filter(f)))
+                    }
+                    other => self.cda_count(other),
+                },
+                word: crate::ast::GroupWord::All,
+                while_here: false,
+            },
             Modification::CdaColors(c) => Mod::CdaColors(colors(*c)),
             Modification::CdaPt {
                 count,
@@ -2848,6 +2892,14 @@ impl Decompiler<'_> {
                     unreachable!("matched above")
                 };
                 Ability::Mechanic(crate::ast::Mechanic::Fabricate(*count))
+            }
+            AbilityDef::Triggered(t)
+                if matches!(t.effects.as_slice(), [CoreEffect::Hideaway { .. }]) =>
+            {
+                let [CoreEffect::Hideaway { count }] = t.effects.as_slice() else {
+                    unreachable!("matched above")
+                };
+                Ability::Mechanic(crate::ast::Mechanic::Hideaway(*count))
             }
             AbilityDef::Triggered(t)
                 if matches!(

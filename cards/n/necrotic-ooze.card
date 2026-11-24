@@ -1,0 +1,7 @@
+card "Necrotic Ooze" {
+  oracle_id 2fdeb920-2e48-4308-9517-743eec219c04
+  cost {2}{B}{B}
+  type Creature — Ooze
+  pt 4/3
+  static this: has all activated abilities as long as on battlefield of all all graveyards creature
+}

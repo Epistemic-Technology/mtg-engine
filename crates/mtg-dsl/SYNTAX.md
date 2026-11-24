@@ -203,6 +203,7 @@ like the card; either half may still be cast alone.
 | `protection from artifact`, `protection from Goblin`, `protection from multicolored`, `protection from everything`, `protection from creature your opponents control` | Protection from a quality other than a color (CR 702.16); colors are keywords. A controller in the quality is judged from the protected object's controller ("protection from creatures your opponents control": its own creatures still may block and target it). Consecutive protections print as one line, "Protection from Spirits and from Arcane" (the gate splits such a line into one protection each, CR 702.16g); in a list of granted keywords, "has protection from green and from blue". |
 | `landwalk snow Forest`, `landwalk snow land`, `landwalk legendary land`, `landwalk nonbasic land` | "Snow forestwalk", "Snow landwalk", "Legendary landwalk", "Nonbasic landwalk" (CR 702.14a): can't be blocked as long as the defending player controls a land the filter matches; "can block creatures with landwalk abilities as though they didn't have those abilities" stops it too. |
 | `fabricate 1`, `renown 1`, `evolve`, `unleash` | Fabricate (CR 702.123): when it enters, you may put N +1/+1 counters on it; if you don't (or it has left the battlefield), you create N "1/1 colorless Servo artifact creature" tokens. Renown (CR 702.112): when it deals combat damage to a player, if it isn't renowned, N +1/+1 counters and it becomes renowned (a designation that lasts until it leaves the battlefield). Evolve (CR 702.100): whenever a creature you control enters, if that creature has greater power or greater toughness (judged as it triggers and as it resolves, the entering creature by last known information if it has left), a +1/+1 counter on this. Unleash (CR 702.98): you may have it enter with a +1/+1 counter; it can't block as long as it has a +1/+1 counter. |
+| `hideaway 4`, `play free exiled card`, `cast free exiled card`, `put exiled card into hand` | Hideaway N (CR 702.75): "When this permanent enters, look at the top N cards of your library, exile one face down, then put the rest on the bottom in a random order." (the controller chooses, scenarios `choose "Hill Giant"`; the exiled card is linked to the permanent, CR 607.2a, and only its controller sees it: other players' views show a face-down card). Prints `Hideaway 4`. `play free exiled card` is "you may play the exiled card without paying its mana cost": a spell is cast as the ability resolves (timing ignored, CR 608.2g); a land is played, counting as the land play, only on the controller's own turn with a land play left (CR 305.1); `cast free exiled card` casts only. A trailing `if <condition>` prints "... if you control four or more legendary creatures" and is judged as the ability resolves. `put exiled card into hand` is "put the exiled card into its owner's hand" (Watcher for Tomorrow's leaves trigger). |
 | `storied` | Storied (CR 702.195): any time its controller controls three or more permanents that are artifacts, Sagas, and/or legendary, they get an enduring story for the rest of the game (checked with the state-based actions). Prints `Storied`. The static conditions `enduring story` ("you have an enduring story") and `no enduring story` ("you don't have an enduring story"; `static this: has doesn't untap if no enduring story` prints "... doesn't untap during your untap step unless you have an enduring story."). |
 | `increment` | Increment (CR 702.191): whenever you cast a spell, if this is a creature and the amount of mana spent to cast that spell (X included) is greater than its power or its toughness, a +1/+1 counter on it; judged as it triggers and as it resolves. Prints `Increment`. |
 | `afterlife 1`, `extort`, `mentor` | Afterlife (CR 702.135): when it dies, N "1/1 white and black Spirit creature with flying" tokens. Extort (CR 702.101): whenever you cast a spell, you may pay {W/B}; if you do, each opponent loses 1 life and you gain the life lost this way. Mentor (CR 702.134): whenever it attacks, a +1/+1 counter on target attacking creature `with lesser power` (a filter word: power less than the source's, as it is or last existed); `has mentor` grants it. |
@@ -282,6 +283,7 @@ like the card; either half may still be cast alone.
 | `bargain` | Bargain (CR 702.166): as the spell is cast, its controller may sacrifice an artifact, enchantment, or token. Printed first. `bargained` is a static condition: "If this spell was bargained, ..." (`if bargained, ...` in a spell, with `instead` like kicker; a target first named there is one only a bargained spell has, as for "if kicked", CR 601.2c: Brave the Wilds is cast unbargained with no target), "if it was bargained" (`if bargained` after a trigger), "This spell costs {2} less to cast if it's bargained." (`this spell costs {2} less if bargained`; a card in hand counts as bargained when its controller has something to sacrifice). |
 | `saddle 2` | Saddle N (CR 702.171): "Tap any number of other creatures you control with total power N or more: This Mount becomes saddled until end of turn. Saddle only as a sorcery." (chosen like crew). `triggered whenever this attacks while saddled: ...` ("Whenever this creature attacks while saddled, ..."); `saddled` is also a static condition ("it's saddled"). |
 | `deck any number` | "A deck can have any number of cards named ~." (CR 100.2a): a deck-building rule; nothing in a game. |
+| `companion "Each nonland card in your starting deck has a different name."` | "Companion — Each nonland card ..." (CR 702.139a), the text as written: a deck-building condition for a card chosen from outside the game. Here a companion is simply a card in the deck, so the line has no meaning in a game (no companion is chosen, and it is never put into the hand for {3}). |
 | `extra vote`, `extra vote may` | "While voting, you get an additional vote.", "While voting, you may vote an additional time." (CR 701.38d: the controller's extra votes are cast when they would vote; the optional one may be declined). |
 | `as turned face up put 4 +1/+1 counters`, `as enters or turned face up put count where other creature you control +1/+1 counters` | "As this creature is turned face up, put four +1/+1 counters on it.", "As this creature enters or is turned face up, put X +1/+1 counters on it, where X is the number of other creatures you control." CR 708.11: the counters are put on while it turns face up (by its cost or by an effect), before "turned face up" triggers look; with `enters or` it also enters with them (CR 614.1c, the count judged as it enters). |
 | `may look face-down`, `may look face-down opponents`, `may look top`, `may look top face-down` | "You may look at face-down creatures you don't control any time." ("... your opponents control ...", the same in a two-player game), "You may look at the top card of your library any time.", "You may look at the top card of your library and at face-down creatures you don't control any time." Information only (CR 401.2, 708.5): the controller's view shows those cards. |
@@ -495,7 +497,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `when enchanted creature becomes targeted by spell`, `whenever creature you control becomes targeted by spell`, `whenever permanent you control becomes targeted by opponent`, `... by opponent spell` | "When enchanted creature becomes the target of a spell" (a spell only, not an ability), "Whenever a permanent you control becomes the target of a spell or ability an opponent controls": any trigger subject; the targeted permanent is `that creature`, the spell's or ability's controller `that player` |
 | `whenever you cast with mana value 4 or greater spell` | "Whenever you cast a spell with mana value 4 or greater" (a filter's "with" qualities print after "spell"; likewise `counter target with mana value 4 or less spell`) |
 | `whenever you cast your first instant or sorcery spell each turn` | the first of the caster's instant and sorcery spells this turn (other spells cast before it don't count) |
-| `whenever you cast your first spell each turn`, `... your second spell each turn`, `... a spell other than your first spell each turn`, `... your first spell during each opponent's turn`, `whenever an opponent casts their second spell each turn`, `whenever you cast a spell during an opponent's turn`, `whenever an opponent casts their first noncreature spell each turn`, `whenever you cast a spell from exile`, `whenever you cast your third spell each turn` | the spell's place among those its caster cast this turn (or only that it was cast on another player's turn; the first noncreature one among their noncreature spells; or that it was cast from exile) |
+| `whenever you cast your first spell each turn`, `... your second spell each turn`, `... a spell other than your first spell each turn`, `... your first spell during each opponent's turn`, `whenever an opponent casts their second spell each turn`, `whenever you cast a spell during an opponent's turn`, `whenever an opponent casts their first noncreature spell each turn`, `whenever you cast a spell from exile`, `whenever a player casts a spell from a graveyard`, `whenever you cast your third spell each turn` | the spell's place among those its caster cast this turn (or only that it was cast on another player's turn; the first noncreature one among their noncreature spells; or that it was cast from exile, or from any graveyard) |
 | `when you cycle this` | "When you cycle this card" (CR 702.29d): triggers from the card itself as its cycling ability is activated, so it resolves before the draw; the card is "it" ("it deals 6 damage to any target") |
 | `whenever you cycle a card`, `whenever you cycle another card`, `whenever you cycle or discard a card` | cycling a card (CR 702.29); `or discard` triggers once per card discarded, cycling included |
 | `whenever this or Ally you control enters`, `whenever this or creature you control with power 4 or greater dies` | "Whenever this creature or another Ally you control enters"; the filter includes the source, and Oracle names the source again ("this creature") |
@@ -513,6 +515,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever creature is put into your graveyard from battlefield` | "Whenever a creature is put into your graveyard from the battlefield": a matching permanent the controller owns dies, whoever controlled it, judged as it last existed on the battlefield; it is the triggering object |
 | `whenever land card is put into your graveyard from anywhere` | "Whenever a land card is put into your graveyard from anywhere": a card the controller owns, matching as it is in the graveyard (milled, discarded, dying, ...) |
 | `whenever creature enters from your graveyard` | "Whenever a creature enters from your graveyard": a permanent the controller owns entering from their graveyard is "it" |
+| `when this enters from graveyard`, `whenever this or permanent enters from graveyard`, `whenever this or creature enters from your graveyard`, `whenever permanent you control enters from exile` | "When this creature enters from a graveyard" (any player's), "Whenever this creature or another permanent enters from a graveyard", "... enters from your graveyard" (one its controller owns), "Whenever a permanent you control enters from exile": a matching permanent put onto the battlefield from that zone (CR 400.7: returned by undying or persist, reanimated, flickered); one cast from there enters from the stack and doesn't count. It is the triggering object |
 | `whenever you expend 4` | "Whenever you expend 4" (CR 700.14): as the controller spends their fourth total mana to cast spells this turn, judged as the spell that spent it becomes cast (the mana counted as its cost's mana symbols) |
 | `whenever andor other Villain or artifact you control enters` | "Whenever another Villain and/or artifact you control enters": `andor` before a filter with an alternative prints "and/or" in a trigger's subject, and between plural alternatives anywhere (`up to 2 target andor Mount or Vehicle`: "up to two target Mounts and/or Vehicles"; wording only); `andlist` likewise joins a singular list with "and" (`each andlist Pest or Bat or Spider you control`: "each Pest, Bat, and Spider you control"), and plural types (`andlist artifact or creature you control`: "artifacts and creatures you control"). In a count, `andor thatare creature or Vehicle you control` prints "permanents you control that are creatures and/or Vehicles" (Collision Course; wording only) |
 
@@ -622,7 +625,20 @@ your hand", kept by the permanent the spell becomes), `cast from
 graveyard` ("this spell was cast from a graveyard"; CR 601.2a), `you cast
 it` ("When this creature enters, if you cast it, ...": cast from any zone,
 remembered by the permanent its spell became; not when put onto the
-battlefield otherwise), `gained
+battlefield otherwise; in a trigger with a triggering object, "it" is that
+object: `whenever creature you control enters if you cast it`, The Sibsig
+Ceremony; `cast from hand` and `cast from graveyard` likewise), `that
+creature entered from graveyard or you cast it from graveyard` ("if that
+creature entered from a graveyard or you cast it from a graveyard": the
+triggering permanent was put onto the battlefield from a graveyard, or
+was a spell cast from one; `they entered or were cast from graveyard`
+prints "they entered or were cast from a graveyard", `one or more of them
+entered from exile or was cast from exile` "one or more of them entered
+from exile or was cast from exile"; `exile` for exile. In a batched
+trigger, "one or more ... enter", each permanent is judged as it enters,
+and the first that qualifies is the triggering object, `one of them`
+("create a token that's a copy of one of them", Twilight Diviner: the
+engine picks it), `gained
 life this turn`, `gained or lost life this turn`, `lost life this turn`
 ("you've lost life this turn"), `gained and lost life this turn` ("you
 gained and lost life this turn": both), `descended this turn`
@@ -636,7 +652,10 @@ enter this turn` ("an opponent had two or more creatures enter the
 battlefield under their control this turn"), `counter put this turn` ("a +1/+1 counter was put on a permanent
 under your control this turn"), `opponent dealt noncombat damage this turn` ("an opponent has been dealt
 noncombat damage this turn"; `opponent was dealt ...`: "an opponent was
-dealt ..."), `resolution 2` ("this is the second time
+dealt ..."), `opponent was dealt 7 damage this turn` ("an opponent was dealt 7 or more
+damage this turn", any one opponent's total), `no cards in any hand` ("each
+player has no cards in hand"), `library 20 or less` ("a library has twenty
+or fewer cards in it": any player's), `resolution 2` ("this is the second time
 this ability has resolved this turn": the resolving ability's source has
 resolved it that many times this turn, this time included; `resolution 2
 again` prints "it's the second time", for "you gain 1 life if resolution
@@ -655,7 +674,9 @@ battlefield under your control this turn"), `2 nonland
 entered this turn` (celebration: "two or more nonland permanents entered
 the battlefield under your control this turn"), `artifact or creature to
 graveyard this turn` ("an artifact or creature was put into a graveyard
-from the battlefield this turn"; any card types joined by `or`),
+from the battlefield this turn"; any card types joined by `or`;
+`permanent to graveyard this turn`, "a permanent was put into a graveyard
+from the battlefield this turn", any permanent),
 `discarded this turn`, `opponent controls more creatures`, `opponent has more life`, `opponent
 has more cards in hand` ("an opponent controls more creatures than you",
 ...), `not cast this turn` ("you haven't cast a
@@ -982,7 +1003,15 @@ trample"). `if you controlled target 1, draw 1 card`: "If you controlled
 that permanent, draw a card.", its controller as it last existed (CR
 608.2h); the target's own noun prints ("If you controlled that
 artifact"), and `if you controlled that target 1, ...` prints "that
-permanent" whatever the target is (Kellan, Inquisitive Prodigy). `then if <cond>, <clause>` prints "Then if ...". `you lose 1 life
+permanent" whatever the target is (Kellan, Inquisitive Prodigy).
+`choose target battle; if an opponent protects target 1, remove 1
+defense counter from target 1; otherwise, put 1 defense counter on
+target 1`: "Choose target battle. If an opponent protects it, remove a
+defense counter from it. Otherwise, put a defense counter on it."
+(Portent Tracker); `if you protect target 1, ...` prints "If you protect
+it". The battle's protector (CR 310.8; a Siege's is its controller's
+opponent) is judged from the ability's controller as it resolves; a
+target no longer on the battlefield matches neither. `then if <cond>, <clause>` prints "Then if ...". `you lose 1 life
 unless opponent life 10 or less` prints "you lose 1 life unless an
 opponent has 10 or less life": the clause happens only if the condition
 doesn't hold as it resolves; `you lose 2 life unless you control Villain`
@@ -1765,7 +1794,28 @@ as the layer applies), `cda power count Rat you control` ("~'s power is
 equal to the number of Rats you control"; the toughness is printed, `pt
 */1`), `cda toughness domain` ("~'s toughness is equal to ..."; `cda noun power
 ...` names the card's noun instead, "This creature's power is equal to
-...", "This Vehicle's power", where Oracle does), and `has ability { <ability line> }`: a quoted ability
+...", "This Vehicle's power", where Oracle does), `has all activated
+abilities of [all|each] <count>` (layer 6, CR 613.1f: the activated
+abilities, mana abilities included, of the objects the count counts;
+`all` and `each` are wording: "of all Elf cards in your graveyard",
+"of each other creature with a +1/+1 counter on it", and without either
+"of creatures you control ..."). The count is permanents (`creature you
+control not named this`: "creatures you control that don't have the
+same name as this creature"; their abilities as they have them,
+granted ones included, CR 613.8a), `graveyard Elf` ("Elf cards in your
+graveyard"), `all graveyards creature`, or `exiled with this creature
+card` ("creature cards exiled with it"); cards in a graveyard or in
+exile give their printed abilities, a land card the mana ability of
+each of its basic land types (CR 305.6), and abilities that work only
+from a hand or a graveyard (cycling, unearth) are left out. `has all
+activated abilities of the exiled card` is `exiled with this` printed
+"the exiled card" (Territory Forge); either makes what the card's
+abilities exile linked to it (CR 607.2a). `has all activated abilities
+as long as on battlefield of ...` prints "As long as this creature is on
+the battlefield, it has all activated abilities of ..." (Necrotic Ooze).
+A granted ability's counts are its own card's ("-X/-X, where X is the
+number of Elves you control" read for the permanent that has it), and a
+permanent holds at most eight abilities in all; and `has ability { <ability line> }`: a quoted ability
 granted in layer 6 ("Enchanted creature has \"{T}: This creature deals 1
 damage to any target.\""), written as its own ability line (`activated
 {T}: deal 1 damage to any target`), where `this` is the object that has
@@ -2036,8 +2086,9 @@ CR 607.2a, or none). `exile instead` after either adds "If that spell would
 be put into your graveyard, exile it instead." (it is exiled as it
 resolves or is countered). `cast free exiled card with mana value up to 4`
 is "you may cast the exiled card without paying its mana cost if that
-spell's mana value is 4 or less" (the card the resolution exiled, after
-`search card to exile face down`), and `put exiled card into hand unless
+spell's mana value is 4 or less" (hideaway's `cast free exiled card` with
+a cap; `search card to exile face down` links its card to the spell, CR
+607.2a, so it is "the exiled card"), and `put exiled card into hand unless
 cast` "Put the exiled card into your hand if it wasn't cast this way."
 (unless its controller chose to cast it; Beseech the Mirror).
 
@@ -2326,6 +2377,8 @@ haste until end of turn." where `those tokens` prints "They"), `copy <what> [tim
 <num>] [new targets] [with exceptions]` (CR 707.10: `copy target instant
 or sorcery spell you control new targets` prints "Copy target instant or
 sorcery spell you control. You may choose new targets for the copy.";
+`copy target spell you control new targets`, any spell of yours, a
+permanent spell's copy becoming a token (Slick Imitator);
 `copy that spell` in a cast trigger, `copy it` for "it" there or in
 `when you cast this`, `copy this` "copy this spell"; `times 2` prints
 "twice", `times x` "X times" (the copied spell's X), `times count each
@@ -2486,6 +2539,52 @@ graveyard in a scenario); `reveal to hand that card`:
 card reveal to battlefield tapped and hand that card`: "reveal those
 cards, put one onto the battlefield tapped and the other into your
 hand" (the searcher chooses which; one found goes where they choose);
+several differently-filtered cards, one of each, joined with `and`:
+`search black card and green card and blue card to graveyard` ("Search
+your library for a black card, a green card, and a blue card. Put those
+cards into your graveyard, then shuffle."; with `reveal to hand`,
+"... Reveal those cards, put them into your hand, then shuffle."; two
+print "a basic land card and a Shrine card"): each card is found for
+one filter only, and any may be left unfound (`choose decline` in a
+scenario skips that one); named cards join with "and/or": `search card
+named "Alpine Watchdog" and card named "Igneous Cur" reveal to hand`
+("for a card named Alpine Watchdog and/or a card named Igneous Cur,
+reveal them, put them into your hand, then shuffle."); `with different
+names` after the cards (`search up to 2 basic land card or Town card
+with different names to battlefield tapped`: "... and/or Town cards with
+different names, put them ..."): no two found cards share a name (CR
+201.2); `search graveyard, hand, or library ...` ("Search your
+graveyard, hand, and/or library for ... and put them onto the
+battlefield. If you search your library this way, shuffle.";
+`graveyard, hand or library` prints "your graveyard, hand and/or
+library"; `graveyard, hand, and library` prints "your graveyard, hand,
+and library for ..., put it onto the battlefield, then shuffle." and
+always shuffles): the hand's and graveyard's cards may be found too; a
+destination by the found card, `to battlefield if with mana value 2 or
+less else hand` ("... and reveal it. Put it onto the battlefield if its
+mana value is 2 or less. Otherwise, put it into your hand. Then
+shuffle."; `to battlefield tapped if land else hand`: "Put it onto the
+battlefield tapped if it's a land card."; inside `you may`, "If you
+search your library this way, shuffle."), the card judged by its printed
+characteristics; `search up to 2 basic land card reveal to hand and
+graveyard` ("Search your library for up to two basic land cards and
+reveal them. Put one into your hand and the other into your graveyard.
+Then shuffle.": the searcher chooses the one for the hand). Older
+wordings, after the destination: `of them` ("... for up to two Forest
+cards and reveal them. Put one of them onto the battlefield tapped and
+the other into your hand, then shuffle."), `rest` ("..., reveal those
+cards, and put one onto the battlefield tapped and the rest into your
+hand. Then shuffle."), `short` before an `instead` search that ends
+`sentence` (`search basic land card reveal to hand short; if evidence
+collected, instead search creature or land card reveal to hand
+sentence`: "Search your library for a basic land card. If evidence was
+collected, instead search your library for a creature or land card.
+Reveal that card, put it into your hand, then shuffle."; each search
+has its own destination, printed once), and `instead of 2` closing a
+trailing `instead` sentence (`label "Spell mastery" if 2 instant or
+sorcery cards in your graveyard, search up to 3 basic Forest card reveal
+to battlefield tapped and hand instead of 2`: "... search your library
+for up to three basic Forest cards instead of two.");
 another player searches their own library with a subject: `its
 controller may search basic land card to battlefield tapped` ("Its
 controller may search their library for ..., put it onto the battlefield

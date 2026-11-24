@@ -1,0 +1,15 @@
+card "Invasion of Azgol // Ashen Reaper" {
+  oracle_id 1abcdddd-0022-4dfe-8c15-eb1fa86de614
+  layout transform
+  cost {B}{R}
+  type Battle — Siege
+  defense 4
+  triggered when this enters: target player sacrifices a creature or planeswalker and loses 1 life
+  face "Ashen Reaper" {
+    type Creature — Zombie Elemental
+    pt 2/1
+    color black red
+    keywords menace
+    triggered at beginning of your end step: put 1 +1/+1 counter on this if permanent to graveyard this turn
+  }
+}

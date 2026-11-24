@@ -10179,6 +10179,99 @@ impl GameState {
         }
     }
 
+    /// "You may play the exiled card without paying its mana cost" for a
+    /// land (hideaway, CR 702.75): played as the ability resolves, on the
+    /// controller's own turn with a land play left (CR 305.1, 305.2;
+    /// timing otherwise ignored). Whether the cards were lands, so a
+    /// spell goes on to `cast_free`.
+    fn play_free_land(&mut self, ctx: &mut EffectCtx, what: Option<Recipient>) -> bool {
+        let Some(r) = what else {
+            return false;
+        };
+        let p = ctx.controller;
+        let lands: Vec<ObjId> = self
+            .recipients(ctx, r)
+            .into_iter()
+            .filter_map(|t| match t {
+                Target::Object(id)
+                    if self.objects.get(id).is_some_and(|o| {
+                        o.zone == Zone::Exile && self.pool.get(o.def).is_land()
+                    }) =>
+                {
+                    Some(id)
+                }
+                _ => None,
+            })
+            .collect();
+        if lands.is_empty() {
+            return false;
+        }
+        for card in lands {
+            if self.active_player != p || !self.may_play_another_land(p) {
+                continue;
+            }
+            let k = self.choose_mid(
+                p,
+                DecisionKind::CastFromExile { card },
+                vec![Choice::Accept, Choice::Decline],
+            );
+            if k == 0 {
+                let new = self.put_onto_battlefield(card, p);
+                self.player_mut(p).lands_played_this_turn += 1;
+                self.emit(Event::LandPlayed {
+                    player: p,
+                    land: new,
+                });
+                ctx.did = true;
+            }
+        }
+        true
+    }
+
+    /// Hideaway N (CR 702.75a): look at the top N cards of the
+    /// controller's library, exile one of them face down (linked to the
+    /// source, CR 607.2a), and put the rest on the bottom in a random
+    /// order.
+    fn hideaway(&mut self, ctx: &mut EffectCtx, count: u32) {
+        let p = ctx.controller;
+        let mut top: Vec<ObjId> = self
+            .player(p)
+            .library
+            .iter()
+            .rev()
+            .take(count as usize)
+            .copied()
+            .collect();
+        if top.is_empty() {
+            return;
+        }
+        let bits = 1u8 << p.index().min(7);
+        for id in &top {
+            self.objects[*id].revealed |= bits;
+        }
+        let k = if top.len() == 1 {
+            0
+        } else {
+            let options: Vec<Choice> = top
+                .iter()
+                .map(|id| Choice::Target(Target::Object(*id)))
+                .collect();
+            self.choose_mid(p, DecisionKind::ChooseCard, options)
+        };
+        let card = top.remove(k);
+        let new = self.move_object(card, Zone::Exile, false);
+        if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
+            self.link_exile(ctx.source, new, false);
+            // CR 702.75a, 406.3: face down; its controller may look at it.
+            self.turn_face_down_in_exile(new, crate::card::ExileFace::Look, p);
+            ctx.did = true;
+        }
+        rand::seq::SliceRandom::shuffle(top.as_mut_slice(), &mut self.rng);
+        for id in top {
+            self.move_object(id, Zone::Library, false);
+        }
+    }
+
     /// Mad Wizard's Lair: "Draw three cards and reveal them. You may cast
     /// one of them without paying its mana cost."
     fn draw_cast_one(&mut self, ctx: &mut EffectCtx, count: u32) {
@@ -10240,49 +10333,79 @@ impl GameState {
         to: SearchTo,
         may: bool,
         reveal: bool,
-        (graveyard, name): (bool, Option<&str>),
+        (graveyard, name, more): (bool, Option<&str>, Option<&crate::card::SearchMore>),
     ) {
         let to = &to;
-        let filter = &*self.chosen_filter(filter, ctx);
-        let mut found = Vec::new();
+        let filter = self.chosen_filter(filter, ctx).into_owned();
+        let empty = crate::card::SearchMore::default();
+        let more = more.unwrap_or(&empty);
+        // The search's own card(s), then one card for each further slot
+        // ("a black card, a green card, and a blue card").
+        let mut slots: SmallVec<[(crate::card::ObjFilter, Option<&str>, u32); 2]> =
+            smallvec::smallvec![(filter, name, self.eval_num(count, ctx))];
+        for (f, n) in &more.slots {
+            slots.push((self.chosen_filter(f, ctx).into_owned(), n.as_deref(), 1));
+        }
+        let mut found: Vec<ObjId> = Vec::new();
         let mut declined = false;
-        for _ in 0..self.eval_num(count, ctx) {
-            // One option per distinct card (copies are alike) in each
-            // zone searched.
-            let mut seen = Vec::new();
-            let mut options = Vec::new();
-            let ps = self.player(p);
-            let graveyard_cards = if graveyard {
-                ps.graveyard.as_slice()
-            } else {
-                &[]
-            };
-            for id in ps.library.iter().rev().chain(graveyard_cards.iter().rev()) {
-                if found.contains(id) {
-                    continue;
-                }
-                let o = &self.objects[*id];
-                let c = self.base_characteristics(o);
-                if filter.matches(*id, p, &c, Some(ctx.source), Some(p))
-                    && self.status_ok(filter, *id)
-                    // "a card named Heart-Piercer Bow or Vial of
-                    // Dragonfire": the names joined by `|`.
-                    && name.is_none_or(|n| n.split('|').any(|n| self.pool.get(o.def).name == n))
-                    && !seen.contains(&(o.def, o.zone))
+        for (filter, name, n) in &slots {
+            for _ in 0..*n {
+                // One option per distinct card (copies are alike) in each
+                // zone searched.
+                let mut seen = Vec::new();
+                let mut options = Vec::new();
+                let ps = self.player(p);
+                let graveyard_cards = if graveyard {
+                    ps.graveyard.as_slice()
+                } else {
+                    &[]
+                };
+                // "search your graveyard, hand, and/or library".
+                let hand_cards = if more.hand { ps.hand.as_slice() } else { &[] };
+                for id in ps
+                    .library
+                    .iter()
+                    .rev()
+                    .chain(graveyard_cards.iter().rev())
+                    .chain(hand_cards.iter())
                 {
-                    seen.push((o.def, o.zone));
-                    options.push(Choice::Target(Target::Object(*id)));
+                    if found.contains(id) {
+                        continue;
+                    }
+                    let o = &self.objects[*id];
+                    let c = self.base_characteristics(o);
+                    let card_name = &self.pool.get(o.def).name;
+                    if filter.matches(*id, p, &c, Some(ctx.source), Some(p))
+                        && self.status_ok(filter, *id)
+                        // "a card named Heart-Piercer Bow or Vial of
+                        // Dragonfire": the names joined by `|`.
+                        && name.is_none_or(|n| n.split('|').any(|n| card_name == n))
+                        // "with different names" (CR 201.2).
+                        && !(more.different_names
+                            && found
+                                .iter()
+                                .any(|f| &self.pool.get(self.objects[*f].def).name == card_name))
+                        && !seen.contains(&(o.def, o.zone))
+                    {
+                        seen.push((o.def, o.zone));
+                        options.push(Choice::Target(Target::Object(*id)));
+                    }
+                }
+                if options.is_empty() {
+                    break;
+                }
+                options.push(Choice::Decline);
+                let k = self.choose_mid(p, DecisionKind::SearchLibrary, options.clone());
+                if let Choice::Target(Target::Object(id)) = options[k] {
+                    found.push(id);
+                } else {
+                    declined = true;
+                    break;
                 }
             }
-            if options.is_empty() {
-                break;
-            }
-            options.push(Choice::Decline);
-            let k = self.choose_mid(p, DecisionKind::SearchLibrary, options.clone());
-            if let Choice::Target(Target::Object(id)) = options[k] {
-                found.push(id);
-            } else {
-                declined = true;
+            // Declining the only slot ends the search; with several, the
+            // next slot's card may still be found.
+            if declined && slots.len() == 1 {
                 break;
             }
         }
@@ -10294,6 +10417,7 @@ impl GameState {
         // graveyard): searched if a card was found there, or if none was
         // found at all.
         let from_library = !graveyard
+            || more.all
             || found.is_empty()
             || found.iter().any(|id| {
                 self.objects
@@ -10305,7 +10429,11 @@ impl GameState {
         // battlefield tapped; the other goes to the hand (one found
         // goes where they choose).
         let mut to_field = None;
-        if *to == SearchTo::BattlefieldAndHand && !found.is_empty() {
+        if matches!(
+            to,
+            SearchTo::BattlefieldAndHand | SearchTo::HandAndGraveyard
+        ) && !found.is_empty()
+        {
             let mut options: Vec<Choice> = found
                 .iter()
                 .map(|id| Choice::Target(Target::Object(*id)))
@@ -10324,10 +10452,27 @@ impl GameState {
                     &SearchTo::Battlefield { tapped: true }
                 }
                 SearchTo::BattlefieldAndHand => &SearchTo::Hand,
-                other => other,
+                // Fork in the Road: the chosen one into the hand.
+                SearchTo::HandAndGraveyard if to_field == Some(id) => &SearchTo::Hand,
+                SearchTo::HandAndGraveyard => &SearchTo::Graveyard,
+                // Guidelight Pathmaker: "Put it onto the battlefield if its
+                // mana value is 2 or less. Otherwise, put it into your
+                // hand."
+                other => match &more.split {
+                    Some((f, alt))
+                        if {
+                            let o = &self.objects[id];
+                            let c = self.base_characteristics(o);
+                            f.matches(id, p, &c, Some(ctx.source), Some(p)) && self.status_ok(f, id)
+                        } =>
+                    {
+                        alt
+                    }
+                    _ => other,
+                },
             };
             match to {
-                SearchTo::Hand | SearchTo::BattlefieldAndHand => {
+                SearchTo::Hand | SearchTo::BattlefieldAndHand | SearchTo::HandAndGraveyard => {
                     let new = self.move_object(id, Zone::Hand, true);
                     if reveal {
                         self.reveal_in_hand(new);
@@ -10355,6 +10500,10 @@ impl GameState {
                 SearchTo::ExileFaceDown => {
                     let new = self.move_object(id, Zone::Exile, true);
                     self.turn_face_down_in_exile(new, crate::card::ExileFace::Look, p);
+                    // "the exiled card" (CR 607.2a): linked to the spell.
+                    if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
+                        self.link_exile(ctx.source, new, false);
+                    }
                     ctx.created = Some(new);
                 }
                 SearchTo::HandOrGraveyard => {
@@ -10994,6 +11143,7 @@ impl GameState {
                 reveal,
                 graveyard,
                 name,
+                more,
             } => {
                 // "Its controller may search their library": each searcher
                 // searches their own library.
@@ -11017,7 +11167,7 @@ impl GameState {
                         *to,
                         *may,
                         *reveal,
-                        (*graveyard, name.as_deref()),
+                        (*graveyard, name.as_deref(), more.as_deref()),
                     );
                 }
             }
@@ -14046,7 +14196,14 @@ impl GameState {
                 filter,
                 max_mv,
                 exile,
-            } => self.cast_free(ctx, *what, filter.as_ref(), *max_mv, *exile),
+                play,
+            } => {
+                if *play && self.play_free_land(ctx, *what) {
+                    return;
+                }
+                self.cast_free(ctx, *what, filter.as_ref(), *max_mv, *exile);
+            }
+            Effect::Hideaway { count } => self.hideaway(ctx, *count),
             Effect::RevealPutCreature { count, counters } => {
                 self.reveal_put_creature(ctx, *count, *counters);
             }
@@ -16133,6 +16290,7 @@ impl GameState {
                     q.spent_colors = false;
                     q.bound = None;
                     q.mana_value_x = false;
+                    q.protector = None;
                     q.any()
                 }
         }
@@ -16158,6 +16316,26 @@ impl GameState {
         let Some(Target::Object(id)) = ctx.targets.get(usize::from(n)).copied() else {
             return false;
         };
+        // "If an opponent protects it" (CR 310.8): a battle still on the
+        // battlefield, its protector judged from the effect's controller.
+        if let Some(who) = filter.status.protector {
+            let Some(p) = self
+                .objects
+                .get(id)
+                .filter(|o| o.zone == Zone::Battlefield)
+                .and_then(|_| self.protector(id))
+            else {
+                return false;
+            };
+            let ok = match who {
+                crate::card::Who::You => p == ctx.controller,
+                crate::card::Who::Opponents => p != ctx.controller,
+                crate::card::Who::Any => true,
+            };
+            if !ok {
+                return false;
+            }
+        }
         // A declined "up to one" target (`Target::none()`) or one that
         // left with no last known information matches nothing.
         let controller = match (self.lki.get(&id), self.objects.get(id)) {

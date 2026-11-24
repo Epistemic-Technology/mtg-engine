@@ -251,7 +251,11 @@ impl Fmt {
                     let up_to = matches!(targets[i], Target::UpTo(_));
                     // `1 to 2 target creature`, `any number of targets`.
                     if let Target::Many {
-                        min, max, total, ..
+                        min,
+                        max,
+                        total,
+                        different,
+                        ..
                     } = &targets[i]
                     {
                         let prefix = many_prefix(*min, *max);
@@ -265,9 +269,12 @@ impl Fmt {
                             groups: self.groups.clone(),
                         };
                         // `... with total mana value 3 or less`.
-                        let total = total.map_or(String::new(), |n| {
+                        let mut total = total.map_or(String::new(), |n| {
                             format!(" with total mana value {} or less", num(n))
                         });
+                        if *different {
+                            total.push_str(" with different names");
+                        }
                         return format!(
                             "{prefix} {}{total}",
                             f.recipient(Recipient::Target(i), &inner)
@@ -379,6 +386,7 @@ impl Fmt {
             Recipient::SourceCard => "this card".to_string(),
             Recipient::TriggeringObject | Recipient::SameThat => "that creature".to_string(),
             Recipient::TheTriggeringObject => "the creature".to_string(),
+            Recipient::TriggeringOneOfThem => "one of them".to_string(),
             Recipient::TriggeringCard => "triggering card".to_string(),
             Recipient::TriggeringController { that: true } => {
                 "controller of that creature".to_string()
@@ -1638,20 +1646,15 @@ impl Fmt {
                 format!("remove all counters from {}", self.recipient(*to, t))
             }
             Effect::ReturnToHand {
-                what,
-                owner_hand,
-                put,
-            } => {
-                if *put {
-                    format!("put {} into hand", self.recipients(what, t))
-                } else {
-                    format!(
-                        "return {} to {}",
-                        self.recipients(what, t),
-                        if *owner_hand { "owner's hand" } else { "hand" }
-                    )
-                }
-            }
+                what, put: true, ..
+            } => format!("put {} into hand", self.recipients(what, t)),
+            Effect::ReturnToHand {
+                what, owner_hand, ..
+            } => format!(
+                "return {} to {}",
+                self.recipients(what, t),
+                if *owner_hand { "owner's hand" } else { "hand" }
+            ),
             Effect::ReturnToBattlefield {
                 what,
                 counters,
@@ -2046,15 +2049,10 @@ impl Fmt {
                 filter: f,
                 max,
                 exile,
-                exiled,
+                play,
             } => {
-                let mut s = "cast free ".to_string();
-                if *exiled {
-                    s.push_str("exiled card");
-                    if let Some(n) = max {
-                        let _ = write!(s, " with mana value up to {}", num(*n));
-                    }
-                } else if let Some(r) = what {
+                let mut s = if *play { "play free " } else { "cast free " }.to_string();
+                if let Some(r) = what {
                     let o = self.recipient(*r, t);
                     // `cast free card exiled with this`: one of them.
                     let o = match r {
@@ -2064,6 +2062,10 @@ impl Fmt {
                         _ => o,
                     };
                     s.push_str(&o);
+                    // `cast free exiled card with mana value up to 4`.
+                    if let Some(n) = max {
+                        let _ = write!(s, " with mana value up to {}", num(*n));
+                    }
                 } else {
                     if let Some(f) = f {
                         s.push_str(&filter(f));
@@ -2386,6 +2388,7 @@ impl Fmt {
                 name,
                 old,
                 those,
+                more,
             } => {
                 let searcher = who.map(|w| self.recipient(w, t));
                 let mut t = String::new();
@@ -2397,8 +2400,21 @@ impl Fmt {
                     (false, true) => "searches ",
                     (false, false) => "search ",
                 });
-                if *graveyard {
-                    t.push_str("library or graveyard ");
+                let zones = more
+                    .as_ref()
+                    .map_or(crate::ast::SearchZones::Library, |m| m.zones);
+                match zones {
+                    crate::ast::SearchZones::HandOr { comma: true } => {
+                        t.push_str("graveyard, hand, or library ");
+                    }
+                    crate::ast::SearchZones::HandOr { comma: false } => {
+                        t.push_str("graveyard, hand or library ");
+                    }
+                    crate::ast::SearchZones::HandAnd => t.push_str("graveyard, hand, and library "),
+                    crate::ast::SearchZones::Library if *graveyard => {
+                        t.push_str("library or graveyard ");
+                    }
+                    crate::ast::SearchZones::Library => {}
                 }
                 if *up_to {
                     t.push_str("up to ");
@@ -2461,24 +2477,39 @@ impl Fmt {
                     };
                     let _ = write!(t, " or {art}{} card", filter(&a));
                 }
+                if let Some(m) = more {
+                    for (f, n) in &m.slots {
+                        if *f == Filter::default() {
+                            t.push_str(" and card");
+                        } else {
+                            let _ = write!(t, " and {} card", filter(f));
+                        }
+                        if let Some(n) = n {
+                            let _ = write!(t, " named \"{n}\"");
+                        }
+                    }
+                    if m.different_names {
+                        t.push_str(" with different names");
+                    }
+                }
                 if *reveal {
                     t.push_str(" reveal");
                 }
-                t.push_str(match to {
-                    mtg_core::card::SearchTo::Hand => " to hand",
-                    mtg_core::card::SearchTo::Battlefield { tapped: true } => {
-                        " to battlefield tapped"
+                // `to battlefield tapped if land else hand`.
+                match more.as_ref().and_then(|m| m.split.as_ref()) {
+                    Some((f, alt)) => {
+                        let _ = write!(
+                            t,
+                            " to {} if {} else {}",
+                            search_to(*alt),
+                            filter(f),
+                            search_to(*to)
+                        );
                     }
-                    mtg_core::card::SearchTo::Battlefield { tapped: false } => " to battlefield",
-                    mtg_core::card::SearchTo::TopOfLibrary => " to top",
-                    mtg_core::card::SearchTo::BattlefieldAndHand => {
-                        " to battlefield tapped and hand"
+                    None => {
+                        let _ = write!(t, " to {}", search_to(*to));
                     }
-                    mtg_core::card::SearchTo::Graveyard => " to graveyard",
-                    mtg_core::card::SearchTo::Exile => " to exile",
-                    mtg_core::card::SearchTo::ExileFaceDown => " to exile face down",
-                    mtg_core::card::SearchTo::HandOrGraveyard => " to hand or graveyard",
-                });
+                }
                 if *that_card {
                     t.push_str(" that card");
                 }
@@ -2487,6 +2518,16 @@ impl Fmt {
                 }
                 if *those {
                     t.push_str(" those");
+                }
+                match more.as_ref().map(|m| m.wording) {
+                    Some(crate::ast::SearchWording::Short) => t.push_str(" short"),
+                    Some(crate::ast::SearchWording::Sentence) => t.push_str(" sentence"),
+                    Some(crate::ast::SearchWording::OfThem) => t.push_str(" of them"),
+                    Some(crate::ast::SearchWording::Rest) => t.push_str(" rest"),
+                    Some(crate::ast::SearchWording::InsteadOf(n)) => {
+                        let _ = write!(t, " instead of {n}");
+                    }
+                    Some(crate::ast::SearchWording::Plain) | None => {}
                 }
                 t
             }
@@ -2843,6 +2884,23 @@ impl Fmt {
                     self.line(inner, t)
                 )
             }
+            Effect::IfTarget(n, f, inner, check)
+                if check.tense == crate::ast::TargetTense::Is
+                    && !check.after
+                    && let Some(who) = f.status.protector
+                    && *f == Filter::protected_by(who) =>
+            {
+                format!(
+                    "if {} target {}, {}",
+                    if who == Who::You {
+                        "you protect"
+                    } else {
+                        "an opponent protects"
+                    },
+                    n + 1,
+                    self.line(inner, t)
+                )
+            }
             Effect::IfTarget(n, f, inner, check) if check.after => format!(
                 "{} if {}target {} is {}",
                 self.line(inner, t),
@@ -3116,6 +3174,9 @@ impl Fmt {
                 let body = self.line(effects, t);
                 let text = match wording {
                     crate::ast::InsteadWording::Lead => format!("if {cond}, instead {body}"),
+                    crate::ast::InsteadWording::Trail if body.contains(" instead of ") => {
+                        format!("if {cond}, {body}")
+                    }
                     crate::ast::InsteadWording::Trail => format!("if {cond}, {body} instead"),
                     crate::ast::InsteadWording::After => format!("{body} instead if {cond}"),
                     crate::ast::InsteadWording::AfterBare => {
@@ -4587,6 +4648,10 @@ pub fn natural_when(t: &Trigger) -> bool {
     matches!(
         t,
         Trigger::Enters(TriggerObj::This)
+            | Trigger::EntersFrom {
+                obj: TriggerObj::This,
+                ..
+            }
             | Trigger::BecomesLevel(_)
             | Trigger::Dies(TriggerObj::This)
             | Trigger::DiesOrExiled(TriggerObj::This)
@@ -4665,6 +4730,7 @@ pub fn spell_ordinal(nth: mtg_core::card::SpellOrdinal, whose: Who) -> String {
             format!("{who} {their} first instant or sorcery spell each turn")
         }
         SpellOrdinal::FromExile => format!("{who} a spell from exile"),
+        SpellOrdinal::FromGraveyard => format!("{who} a spell from a graveyard"),
     }
 }
 
@@ -5101,6 +5167,15 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::EntersFromGraveyard(f) => {
             format!("whenever {} enters from your graveyard", filter(f))
         }
+        Trigger::EntersFrom { obj, zone, yours } => format!(
+            "whenever {} enters from {}",
+            trigger_obj(obj),
+            match (zone, yours) {
+                (mtg_core::state::Zone::Exile, _) => "exile",
+                (_, true) => "your graveyard",
+                _ => "graveyard",
+            }
+        ),
         Trigger::PutIntoGraveyardFromBattlefield(f) => format!(
             "whenever {} is put into your graveyard from battlefield",
             filter(f)
@@ -5554,6 +5629,30 @@ fn modification(m: &Mod) -> String {
         Mod::SwitchPt => "switch pt".to_string(),
         Mod::ChosenColor => "set color chosen".to_string(),
         Mod::ProtectionFromChosen => "has protection from chosen color".to_string(),
+        Mod::ActivatedOf {
+            from,
+            word,
+            while_here,
+        } => {
+            use crate::ast::GroupWord;
+            let here = if *while_here {
+                " as long as on battlefield"
+            } else {
+                ""
+            };
+            let word = match word {
+                GroupWord::The => {
+                    return format!("has all activated abilities{here} of the exiled card");
+                }
+                GroupWord::Bare => "",
+                GroupWord::All => "all ",
+                GroupWord::Each => "each ",
+            };
+            format!(
+                "has all activated abilities{here} of {word}{}",
+                count_expr_text(from)
+            )
+        }
         Mod::CdaColors(cs) => {
             if cs.len() == 5 {
                 "cda color all".to_string()
@@ -5806,6 +5905,9 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::AttackedLastTurn => "attacked last turn".to_string(),
         StaticCond::CreatureDiedThisTurn => "creature died this turn".to_string(),
         StaticCond::OpponentDamagedThisTurn => "opponent damaged this turn".to_string(),
+        StaticCond::OpponentDamageThisTurn(n) => format!("opponent was dealt {n} damage this turn"),
+        StaticCond::EachHandEmpty => "no cards in any hand".to_string(),
+        StaticCond::LibraryAtMost(n) => format!("library {n} or less"),
         StaticCond::OpponentLostLifeThisTurn => "opponent lost life this turn".to_string(),
         StaticCond::PermanentLeftThisTurn => "permanent left this turn".to_string(),
         StaticCond::Escaped => unreachable!("only in `escapes with`"),
@@ -5855,6 +5957,18 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::NotYourMainPhase => "not your main phase".to_string(),
         StaticCond::NotCastFromHand => "cast from anywhere other than hand".to_string(),
         StaticCond::WasCast => "you cast it".to_string(),
+        StaticCond::CameFrom { zone, wording } => {
+            let z = if *zone == mtg_core::state::Zone::Exile {
+                "exile"
+            } else {
+                "graveyard"
+            };
+            match wording {
+                0 => format!("that creature entered from {z} or you cast it from {z}"),
+                1 => format!("they entered or were cast from {z}"),
+                _ => format!("one or more of them entered from {z} or was cast from {z}"),
+            }
+        }
         StaticCond::PutAnyCounterThisTurn => "put any counter this turn".to_string(),
         StaticCond::AttackedWithAtLeast(f, n) => {
             format!("attacked with {n} {} this turn", filter(f))
@@ -6013,7 +6127,11 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::NonlandEnteredThisTurn(n) => format!("{n} nonland entered this turn"),
         StaticCond::PutIntoGraveyardThisTurn(t) => {
             let names: Vec<&str> = t.iter().map(|c| crate::render::type_noun(*c)).collect();
-            format!("{} to graveyard this turn", names.join(" or "))
+            if names.is_empty() {
+                "permanent to graveyard this turn".to_string()
+            } else {
+                format!("{} to graveyard this turn", names.join(" or "))
+            }
         }
         StaticCond::DiscardedThisTurn => "discarded this turn".to_string(),
         StaticCond::Night => "night".to_string(),
@@ -7031,6 +7149,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Daybound => "daybound".to_string(),
                 crate::ast::Mechanic::Nightbound => "nightbound".to_string(),
                 crate::ast::Mechanic::Fabricate(n) => format!("fabricate {n}"),
+                crate::ast::Mechanic::Hideaway(n) => format!("hideaway {n}"),
                 crate::ast::Mechanic::Evolve => "evolve".to_string(),
                 crate::ast::Mechanic::Increment => "increment".to_string(),
                 crate::ast::Mechanic::Renown(n) => format!("renown {n}"),
@@ -7120,6 +7239,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             };
             let word = if *negated { "if" } else { "unless" };
             let _ = writeln!(out, "{indent}can't {what} {word} {}", static_cond(cond));
+        }
+        Ability::Companion(text) => {
+            let _ = writeln!(out, "{indent}companion \"{text}\"");
         }
         Ability::DeckAnyNumber => {
             let _ = writeln!(out, "{indent}deck any number");
@@ -7635,5 +7757,22 @@ pub fn activated_keyword_word(k: mtg_core::card::ActivatedKeyword) -> &'static s
         mtg_core::card::ActivatedKeyword::Exhaust => "exhaust",
         mtg_core::card::ActivatedKeyword::PowerUp => "power-up",
         mtg_core::card::ActivatedKeyword::Ninjutsu => "ninjutsu",
+    }
+}
+
+/// A search's destination after `to`.
+fn search_to(to: mtg_core::card::SearchTo) -> &'static str {
+    use mtg_core::card::SearchTo;
+    match to {
+        SearchTo::Hand => "hand",
+        SearchTo::Battlefield { tapped: true } => "battlefield tapped",
+        SearchTo::Battlefield { tapped: false } => "battlefield",
+        SearchTo::TopOfLibrary => "top",
+        SearchTo::BattlefieldAndHand => "battlefield tapped and hand",
+        SearchTo::Graveyard => "graveyard",
+        SearchTo::Exile => "exile",
+        SearchTo::ExileFaceDown => "exile face down",
+        SearchTo::HandOrGraveyard => "hand or graveyard",
+        SearchTo::HandAndGraveyard => "hand and graveyard",
     }
 }

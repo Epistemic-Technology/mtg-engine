@@ -1,0 +1,8 @@
+card "Dark Impostor" {
+  oracle_id 96e25887-e556-423a-8a69-0cd148216f6a
+  cost {2}{B}
+  type Creature — Vampire Assassin
+  pt 2/2
+  activated {4}{B}{B}: exile target creature and put 1 +1/+1 counter on this
+  static this: has all activated abilities of all exiled with this creature card
+}

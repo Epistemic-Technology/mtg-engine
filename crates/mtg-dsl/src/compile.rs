@@ -1521,6 +1521,7 @@ impl Compiler<'_> {
                 unlabeled(a),
                 Ability::Keyword(_)
                     | Ability::DeckAnyNumber
+                    | Ability::Companion(_)
                     | Ability::Uncounterable
                     | Ability::EquipDiscount(_)
                     | Ability::AuraStays
@@ -2437,6 +2438,13 @@ impl Compiler<'_> {
                 at_most: *at_most,
             },
             StaticCond::NoCardInHand(f) => StaticCondition::NoCardInHand(self.filter(f)),
+            StaticCond::EachHandEmpty => StaticCondition::EachHandEmpty,
+            StaticCond::LibraryAtMost(n) => StaticCondition::LibraryAtMost(*n),
+            StaticCond::OpponentDamageThisTurn(n) => StaticCondition::Happened {
+                count: mtg_core::card::TurnCount::of(TurnEvent::DamageTaken, TurnWho::Opponent),
+                cmp: mtg_core::card::Cmp::AtLeast,
+                n: *n,
+            },
             StaticCond::GraveyardCards {
                 filter, at_least, ..
             } => StaticCondition::GraveyardCards {
@@ -2485,6 +2493,10 @@ impl Compiler<'_> {
                 StaticCondition::NotCastFrom(mtg_core::state::Zone::Hand)
             }
             StaticCond::WasCast => StaticCondition::WasCast,
+            StaticCond::CameFrom { zone, wording } => StaticCondition::CameFrom {
+                zone: *zone,
+                wording: *wording,
+            },
             StaticCond::PutAnyCounterThisTurn => {
                 StaticCondition::happened(TurnEvent::CountersOnCreatureBy, TurnWho::You)
             }
@@ -2850,6 +2862,7 @@ impl Compiler<'_> {
                 min,
                 max,
                 total,
+                different,
             } => {
                 let spec = self.target(target);
                 self.pool.intern_many(mtg_core::card::ManyTargets {
@@ -2857,6 +2870,7 @@ impl Compiler<'_> {
                     min: *min,
                     max: *max,
                     total_mv: *total,
+                    different_names: *different,
                 })
             }
         }
@@ -3011,7 +3025,8 @@ impl Compiler<'_> {
             Recipient::TriggeringObject if tmap.put_creature => CoreRecipient::CreatedObject,
             Recipient::TriggeringObject
             | Recipient::TriggeringIt
-            | Recipient::TheTriggeringObject => CoreRecipient::TriggeringObject,
+            | Recipient::TheTriggeringObject
+            | Recipient::TriggeringOneOfThem => CoreRecipient::TriggeringObject,
             Recipient::TriggeringThey if tmap.they_target => CoreRecipient::ControllerOf(ti(0)),
             Recipient::TriggeringPlayer | Recipient::TriggeringThey => {
                 CoreRecipient::TriggeringPlayer
@@ -3763,7 +3778,7 @@ impl Compiler<'_> {
                 filter,
                 max,
                 exile,
-                ..
+                play,
             } => {
                 let filter = filter.as_ref().map(|f| self.filter(f));
                 out.push(CoreEffect::CastFree {
@@ -3771,6 +3786,7 @@ impl Compiler<'_> {
                     filter,
                     max_mv: *max,
                     exile: *exile,
+                    play: *play,
                 });
             }
             Effect::IsNow { to, types } => out.push(CoreEffect::Animate {
@@ -3945,6 +3961,7 @@ impl Compiler<'_> {
                 graveyard,
                 name,
                 or_card,
+                more: None,
                 ..
             } if (*graveyard || name.is_some())
                 && (*count != Num::N(1)
@@ -3961,6 +3978,15 @@ impl Compiler<'_> {
                 );
             }
             Effect::Search {
+                count,
+                up_to,
+                more: Some(m),
+                ..
+            } if !m.slots.is_empty() && (*count != Num::N(1) || *up_to) => {
+                return self
+                    .err("a search for several differently-filtered cards finds one of each");
+            }
+            Effect::Search {
                 filter,
                 count,
                 to,
@@ -3969,17 +3995,34 @@ impl Compiler<'_> {
                 may,
                 graveyard,
                 name,
+                more,
                 ..
-            } => out.push(CoreEffect::Search {
-                filter: self.filter(filter),
-                count: *count,
-                to: *to,
-                who: who.map_or(CoreRecipient::You, r),
-                may: *may,
-                reveal: *reveal,
-                graveyard: *graveyard,
-                name: name.as_deref().map(Box::from),
-            }),
+            } => {
+                let more = more.as_ref().map(|m| {
+                    Box::new(mtg_core::card::SearchMore {
+                        slots: m
+                            .slots
+                            .iter()
+                            .map(|(f, n)| (self.filter(f), n.as_deref().map(Box::from)))
+                            .collect(),
+                        hand: m.zones != crate::ast::SearchZones::Library,
+                        all: m.zones == crate::ast::SearchZones::HandAnd,
+                        different_names: m.different_names,
+                        split: m.split.as_ref().map(|(f, to)| (self.filter(f), *to)),
+                    })
+                });
+                out.push(CoreEffect::Search {
+                    filter: self.filter(filter),
+                    count: *count,
+                    to: *to,
+                    who: who.map_or(CoreRecipient::You, r),
+                    may: *may,
+                    reveal: *reveal,
+                    graveyard: *graveyard,
+                    name: name.as_deref().map(Box::from),
+                    more: more.filter(|m| **m != mtg_core::card::SearchMore::default()),
+                });
+            }
             Effect::Investigate(_) | Effect::Investigates(_) | Effect::InvestigateCount { .. } => {
                 let Some(token) = self.pool.lookup("Clue") else {
                     return self.err("unknown token \"Clue\" (cards/tokens/clue.card)");
@@ -5239,6 +5282,11 @@ impl Compiler<'_> {
                 TriggerSpec::PutIntoGraveyardFromBattlefield(self.filter(f))
             }
             Trigger::EntersFromGraveyard(f) => TriggerSpec::EntersFromGraveyard(self.filter(f)),
+            Trigger::EntersFrom { obj, zone, yours } => TriggerSpec::EntersFrom {
+                what: self.trigger_obj(obj),
+                zone: *zone,
+                yours: *yours,
+            },
             Trigger::Expends(n) => TriggerSpec::Expends(*n),
             Trigger::CollectsEvidence => TriggerSpec::CollectsEvidence { whose: Who::You },
             Trigger::Forages => TriggerSpec::Forages { whose: Who::You },
@@ -5513,6 +5561,9 @@ impl Compiler<'_> {
             Mod::CdaColors(c) => Modification::CdaColors(ColorSet::of(c.iter().copied())),
             Mod::ChosenColor => Modification::ChosenColor,
             Mod::ProtectionFromChosen => Modification::ProtectionFromChosen,
+            Mod::ActivatedOf { from, .. } => {
+                Modification::AddActivatedOf(Box::new(self.count_expr(from)))
+            }
             Mod::CdaPt {
                 count,
                 sets,
@@ -5625,7 +5676,9 @@ impl Compiler<'_> {
             Ability::LevelBand { .. } => {
                 return self.err("a level symbol is not an ability definition");
             }
-            Ability::DeckAnyNumber => return self.err("a deck-building rule is not an ability"),
+            Ability::DeckAnyNumber | Ability::Companion(_) => {
+                return self.err("a deck-building rule is not an ability");
+            }
             Ability::BecomesChoice { .. } => {
                 return self.err("`becomes choice` is a card's ability, not a granted one");
             }
@@ -6383,6 +6436,18 @@ impl Compiler<'_> {
                         effects: vec![CoreEffect::Fabricate { count: *n, token }],
                     })
                 }
+                // CR 702.75a: "When this permanent enters, look at the top
+                // N cards of your library. Exile one of them face down and
+                // put the rest on the bottom of your library in a random
+                // order."
+                Mechanic::Hideaway(n) => AbilityDef::Triggered(TriggeredAbility {
+                    limit: mtg_core::card::TurnLimit::None,
+                    from_graveyard: false,
+                    trigger: TriggerSpec::Enters(CoreTriggerObj::This),
+                    condition: None,
+                    targets: Vec::new(),
+                    effects: vec![CoreEffect::Hideaway { count: *n }],
+                }),
                 // CR 702.112a: "When this creature deals combat damage to a
                 // player, if it isn't renowned, put N +1/+1 counters on it
                 // and it becomes renowned."
@@ -6479,6 +6544,7 @@ impl Compiler<'_> {
                             may: false,
                             old: false,
                             those: false,
+                            more: None,
                         }])],
                         equip: false,
                         cycling: false,
@@ -7914,6 +7980,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Daybound
         | Mechanic::Nightbound
         | Mechanic::Fabricate(_)
+        | Mechanic::Hideaway(_)
         | Mechanic::Renown(_)
         | Mechanic::Unleash
         | Mechanic::Haunt
@@ -7954,6 +8021,15 @@ fn link_exiles(def: &mut mtg_core::card::CardDef) {
     // card its abilities exile is linked to the permanent (the engine
     // records them as the abilities resolve).
     if def.oracle_text.contains("exiled with") {
+        def.links_exile = true;
+    }
+    // "This artifact has all activated abilities of the exiled card"
+    // (Territory Forge): what its abilities exile.
+    if def.abilities.iter().any(|a| {
+        matches!(a, AbilityDef::Static(s) if s.parts.iter().any(|m| matches!(m,
+            mtg_core::card::Modification::AddActivatedOf(f)
+                if matches!(**f, mtg_core::card::CountExpr::ExiledWith(_)))))
+    }) {
         def.links_exile = true;
     }
     let refers = def.abilities.iter().any(|a| {
