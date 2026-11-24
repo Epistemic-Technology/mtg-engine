@@ -6066,7 +6066,13 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             CountStyle::Equal if matches!(e, Effect::AddManaTimes { .. }) => {
                 // "Choose a color. Add an amount of mana of that color
                 // equal to ..." (Three Tree City).
-                if matches!(e, Effect::AddManaTimes { mana: Mana::Any, .. }) {
+                if matches!(
+                    e,
+                    Effect::AddManaTimes {
+                        mana: Mana::Any,
+                        ..
+                    }
+                ) {
                     c.text = c.text.replacen(
                         "add X mana of any one color",
                         "choose a color. Add an amount of mana of that color",
@@ -10615,12 +10621,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 syms.iter().map(|s| format!("X {s}")).collect()
             };
-            let joined = match syms.as_slice() {
-                [a, b] => format!("{a} or {b}"),
-                _ => {
-                    let (last, init) = syms.split_last().expect("two or more");
-                    format!("{}, or {last}", init.join(", "))
-                }
+            let joined = if let [a, b] = syms.as_slice() {
+                format!("{a} or {b}")
+            } else {
+                let (last, init) = syms.split_last().expect("two or more");
+                format!("{}, or {last}", init.join(", "))
             };
             Clause::imperative(format!("add {joined}"))
         }

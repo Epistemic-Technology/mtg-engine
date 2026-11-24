@@ -6912,8 +6912,12 @@ impl GameState {
         }
         // CR 605.3b: a mana ability doesn't use the stack.
         if ab.is_mana_ability() {
-            let before = (self.mana_trigger_sources > 0 && ab.cost.tap)
-                .then(|| (self.player(controller).mana_pool, self.restricted_pool.len()));
+            let before = (self.mana_trigger_sources > 0 && ab.cost.tap).then(|| {
+                (
+                    self.player(controller).mana_pool,
+                    self.restricted_pool.len(),
+                )
+            });
             self.resolve_top();
             // CR 605.4a: mana abilities it triggered by tapping its source
             // for mana resolve right after it.

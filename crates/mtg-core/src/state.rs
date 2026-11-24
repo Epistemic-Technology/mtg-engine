@@ -3338,9 +3338,9 @@ impl GameState {
     /// to `p` by a static ability of a permanent they control.
     pub fn keeps_red_mana(&self, p: PlayerId) -> bool {
         self.player_static_sources > 0
-                && self.player_statics().any(|(who, kind)| {
-                    who == p && kind == crate::card::PlayerStaticKind::KeepRedMana
-                })
+            && self
+                .player_statics()
+                .any(|(who, kind)| who == p && kind == crate::card::PlayerStaticKind::KeepRedMana)
     }
 
     /// The keywords player `p` has gained from effects (`PlayerGrant`).

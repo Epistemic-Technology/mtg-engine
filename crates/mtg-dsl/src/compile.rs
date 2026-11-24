@@ -3919,7 +3919,9 @@ impl Compiler<'_> {
                     CoreEffect::AddManaOneOfTimes { colors, count }
                 });
             }
-            Effect::AddManaColorsAmong(f) => out.push(CoreEffect::AddManaColorsAmong(self.filter(f))),
+            Effect::AddManaColorsAmong(f) => {
+                out.push(CoreEffect::AddManaColorsAmong(self.filter(f)));
+            }
             Effect::AddManaCommander { rider } => {
                 out.push(CoreEffect::AddManaCommander { rider: *rider });
             }

@@ -6061,7 +6061,10 @@ fn cost_text(c: &Cost) -> String {
                         "this"
                     };
                     if c.remove_any {
-                        parts.push(format!("remove any number {} from {from}", counter(k, Num::X)));
+                        parts.push(format!(
+                            "remove any number {} from {from}",
+                            counter(k, Num::X)
+                        ));
                     } else if c.remove_x {
                         parts.push(format!("remove X {} from {from}", counter(k, Num::X)));
                     } else {
@@ -7395,14 +7398,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 } else {
                     format!("loyalty {n:+}")
                 };
-                body(
-                    out,
-                    indent,
-                    &head,
-                    effects,
-                    targets,
-                    groups,
-                );
+                body(out, indent, &head, effects, targets, groups);
                 return;
             }
             let word = match cost.keyword {

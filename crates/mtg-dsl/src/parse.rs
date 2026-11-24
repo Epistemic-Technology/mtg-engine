@@ -2662,9 +2662,7 @@ impl P {
                 self.pos += 5;
                 self.player_static(mtg_core::card::PlayerStaticKind::CantLose)
             }
-            "you"
-                if self.at_words(&["you", "don't", "lose", "unspent", "red", "mana"]) =>
-            {
+            "you" if self.at_words(&["you", "don't", "lose", "unspent", "red", "mana"]) => {
                 self.pos += 6;
                 self.player_static(mtg_core::card::PlayerStaticKind::KeepRedMana)
             }
