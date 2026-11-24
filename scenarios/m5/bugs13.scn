@@ -68,3 +68,13 @@ scenario "Sorcerous Spyglass shows the hand to its controller only" {
   assert known A "Grizzly Bears"
   assert unknown B "Grizzly Bears"
 }
+
+# CR 506.5: with more than ten possible attackers they are declared one at
+# a time; a lone Loyal Pegasus isn't a declaration to stop at, so Done
+# isn't offered and another creature joins it (unscripted, the first).
+scenario "a lone creature that can't attack alone needs company when declared one at a time" {
+  battlefield A: "Loyal Pegasus", 10 "Grizzly Bears"
+  turn 1 A: attack "Loyal Pegasus"
+  run_to turn 1 end
+  assert life B 16
+}

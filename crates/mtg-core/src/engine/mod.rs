@@ -1591,7 +1591,12 @@ impl GameState {
                         } else {
                             must.iter().copied().map(Choice::AddAttacker).collect()
                         };
-                        if must.is_empty() {
+                        // CR 506.5: a lone creature that can't attack
+                        // alone isn't a declaration to stop at while
+                        // another could join it.
+                        if must.is_empty()
+                            && (options.is_empty() || !self.attacks_alone_illegally(&chosen))
+                        {
                             options.push(Choice::Done);
                         }
                         return StepResult::Decision(Decision {
