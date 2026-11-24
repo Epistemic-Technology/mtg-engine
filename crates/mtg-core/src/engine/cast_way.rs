@@ -136,6 +136,18 @@ impl GameState {
             }
             .face(self.pool.get(o.def).faces.get(usize::from(i)).copied());
         }
+        // "If you cast a spell this way, pay life equal to its mana value
+        // rather than pay its mana cost." (CR 118.9): only when no
+        // permission to play the top card lets it be cast for its mana cost.
+        if o.zone == Zone::Library {
+            let perms = self.top_permissions(player, id);
+            let alt = if !perms.is_empty() && perms.iter().all(|t| t.life) {
+                AltCast::PayLife
+            } else {
+                AltCast::None
+            };
+            return CastWay::new(id, alt);
+        }
         // CR 702.34a: a card cast from the graveyard is cast with
         // flashback.
         let gdef = self.pool.get(o.def);
@@ -221,10 +233,10 @@ impl GameState {
             // card be cast.
             Choice::Cast(id) if self.objects[id].zone == Zone::Library => {
                 let perms = self.top_permissions(player, id);
-                if !perms.iter().any(|(_, _, once)| !*once)
-                    && let Some((src, a, _)) = perms.first()
+                if !perms.iter().any(|t| !t.once)
+                    && let Some((src, a)) = perms.first().and_then(|t| t.src)
                 {
-                    self.activated_once.push((*src, *a));
+                    self.activated_once.push((src, a));
                 }
             }
             _ => {}

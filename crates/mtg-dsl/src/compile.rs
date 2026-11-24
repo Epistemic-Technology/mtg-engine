@@ -2310,6 +2310,7 @@ impl Compiler<'_> {
     fn static_cond(&mut self, c: &StaticCond) -> StaticCondition {
         match c {
             StaticCond::CardsInGraveyard(n) => StaticCondition::CardsInGraveyard(*n),
+            StaticCond::TopCard(f) => StaticCondition::TopCard(self.filter(f)),
             StaticCond::CardTypesInGraveyard(n) => StaticCondition::CardTypesInGraveyard(*n),
             StaticCond::YouControl { filter, at_least }
             | StaticCond::YouControlAtLeast {
@@ -2733,6 +2734,7 @@ impl Compiler<'_> {
         use mtg_core::card::CountExpr as C;
         match c {
             A::Permanents(f) => C::Permanents(self.filter(f)),
+            A::LibraryTop => C::LibraryTop,
             A::Domain => C::Domain,
             A::CardsInHand => C::CardsInHand,
             A::CardsInGraveyard(f) => C::CardsInGraveyard(f.as_ref().map(|f| self.filter(f))),
@@ -5127,6 +5129,20 @@ impl Compiler<'_> {
                     harmonize: *harmonize,
                 });
             }
+            Effect::TopPermission(t) => {
+                if t.more.cond.is_some() || t.more.flash {
+                    return self.err("a permission until end of turn takes no condition or flash");
+                }
+                let spells = t.spells.as_ref().map(|f| self.filter(f));
+                out.push(CoreEffect::TopPermission(Box::new(
+                    mtg_core::card::TopPlay {
+                        lands: t.lands,
+                        spells,
+                        look: t.more.look,
+                        life: t.more.life,
+                    },
+                )));
+            }
             Effect::GrantGraveyardCast(f) => {
                 let f = self.filter(f);
                 out.push(CoreEffect::GrantGraveyardCast(f));
@@ -7326,11 +7342,27 @@ impl Compiler<'_> {
                 lands,
                 spells,
                 once,
-            } => AbilityDef::PlayFromTop {
-                lands: *lands,
-                spells: spells.as_ref().map(|f| self.filter(f)),
-                once: *once,
-            },
+                more,
+            } => {
+                let condition = match &more.cond {
+                    Some(c) => {
+                        let c = self.static_cond(c);
+                        Some(self.pool.intern_condition(c))
+                    }
+                    None => None,
+                };
+                AbilityDef::PlayFromTop {
+                    lands: *lands,
+                    spells: spells.as_ref().map(|f| self.filter(f)),
+                    once: *once,
+                    more: mtg_core::card::TopPlayMore {
+                        look: more.look,
+                        condition,
+                        flash: more.flash,
+                        life: more.life,
+                    },
+                }
+            }
             Ability::PlayExiled {
                 lands,
                 spells,

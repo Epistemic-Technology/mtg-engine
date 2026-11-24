@@ -98,17 +98,28 @@ impl GameState {
                 continue;
             };
             for a in &c.abilities {
-                if let crate::card::AbilityDef::MayLook {
-                    top: t,
-                    face_down: f,
-                    ..
-                } = self.pool.ability(*a)
-                {
-                    top |= *t;
-                    face_down |= *f;
+                match self.pool.ability(*a) {
+                    crate::card::AbilityDef::MayLook {
+                        top: t,
+                        face_down: f,
+                        ..
+                    } => {
+                        top |= *t;
+                        face_down |= *f;
+                    }
+                    // "You may look at the top card of your library any
+                    // time, and you may play lands ...".
+                    crate::card::AbilityDef::PlayFromTop { more, .. } => top |= more.look,
+                    _ => {}
                 }
             }
         }
+        // "Until end of turn, you may look at the top card of your library
+        // any time" (`Effect::TopPermission`).
+        top |= self
+            .top_grants
+            .iter()
+            .any(|(who, g)| *who == viewer && g.look);
         (top, face_down)
     }
 

@@ -1,0 +1,8 @@
+card "Bolas's Citadel" {
+  oracle_id 2bd111bb-ce02-414c-b5b7-e0e037d8d96b
+  cost {3}{B}{B}{B}
+  type Legendary Artifact
+  may look top
+  play from top lands and spells pay life
+  activated {T}, sacrifice 10 nonland permanent: each opponent loses 10 life
+}

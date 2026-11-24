@@ -1,0 +1,8 @@
+card "Case of the Locked Hothouse" {
+  oracle_id 2380fd04-6d19-4f5a-8a9e-c17d9ae09fb6
+  cost {3}{G}
+  type Enchantment — Case
+  additional land
+  to solve you control 7 land
+  solved play from top look lands and spells creature or enchantment
+}

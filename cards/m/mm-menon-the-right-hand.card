@@ -1,0 +1,10 @@
+card "Mm'menon, the Right Hand" {
+  oracle_id de58fa4b-eeeb-4dc8-aab9-6521b15678cc
+  cost {3}{U}{U}
+  type Legendary Creature — Jellyfish Advisor
+  pt 3/4
+  keywords flying
+  may look top
+  play from top spells artifact
+  static artifact you control: has ability { activated {T}: add {U} only to cast spell not from hand }
+}

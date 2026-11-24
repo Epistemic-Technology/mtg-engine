@@ -1,0 +1,8 @@
+card "Gwenom, Remorseless" {
+  oracle_id c48cf135-b280-4e9f-a9d9-225104870741
+  cost {3}{B}{B}
+  type Legendary Creature — Symbiote Spider Hero
+  pt 4/4
+  keywords deathtouch, lifelink
+  triggered whenever this attacks: play from top this turn look cards pay life
+}
