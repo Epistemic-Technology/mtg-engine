@@ -2240,7 +2240,13 @@ impl GameState {
     }
 
     pub(super) fn destroy_with(&mut self, id: ObjId, regenerate: bool) {
-        if !self.objects.contains_key(id) {
+        // CR 702.12b: an indestructible permanent can't be destroyed, so
+        // there is no destruction for a regeneration shield or another
+        // replacement to replace (the shield stays unused).
+        if self
+            .characteristics(id)
+            .is_none_or(|c| c.has(Keyword::Indestructible))
+        {
             return;
         }
         // "That creature can't be regenerated this turn".

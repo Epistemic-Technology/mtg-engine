@@ -1,0 +1,18 @@
+# The thirteenth wave's fixes to cards already in.
+
+# CR 702.12b: an indestructible creature with lethal damage isn't
+# destroyed, so a regeneration shield on it isn't used: it stays untapped
+# with its damage. (A debug build caught the shield being spent by a
+# state-based check that had nothing to do.)
+scenario "an indestructible creature's regeneration shield is not used" {
+  battlefield A: "Drudge Skeletons", "Swamp", "Darksteel Plate" on "Drudge Skeletons"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Drudge Skeletons"
+  turn 2 declare_blockers A: activate "Drudge Skeletons"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Drudge Skeletons"
+  assert damage "Drudge Skeletons" 3
+  assert untapped "Drudge Skeletons"
+}
