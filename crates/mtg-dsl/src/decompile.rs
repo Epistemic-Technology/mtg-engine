@@ -421,6 +421,8 @@ impl Decompiler<'_> {
             other_than_this: false,
             not_granter: f.not_granter,
             name_unlike: f.name_unlike.as_ref().map(|g| Box::new(self.filter(g))),
+
+            basic_land_type: false,
             unchosen_wording: crate::ast::UnchosenWording::Other,
             and_or: false,
             and_list: false,

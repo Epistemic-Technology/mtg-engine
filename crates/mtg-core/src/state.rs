@@ -3948,6 +3948,13 @@ impl GameState {
         {
             return false;
         }
+        // "except for tokens you control".
+        if let Some(p) = f.except_tokens_of
+            && o.kind == ObjKind::Token
+            && o.controller == p
+        {
+            return false;
+        }
         // "that doesn't have the same name as a token you control".
         if let Some(g) = &f.name_unlike
             && !self.name_unlike_ok(g, id, o)
@@ -4123,8 +4130,9 @@ impl GameState {
                 return false;
             }
         }
-        // CR 903.3: the game has no commanders.
-        if q.commander.is_some() {
+        // CR 903.3: the game has no commanders; an unfilled "except for
+        // tokens you control" matches nothing.
+        if q.commander.is_some() || q.except_your_tokens {
             return false;
         }
         // CR 708.2: a face-down permanent.

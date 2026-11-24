@@ -12468,6 +12468,10 @@ impl P {
                         self.pos += 3;
                     }
                 }
+                // "a land card with a basic land type".
+                if self.eat_words(&["with", "basic", "land", "type"]) {
+                    filter.basic_land_type = true;
+                }
                 // "a creature card with mana value 6 or greater": the mana
                 // value after the noun.
                 if filter.mana_value.is_none() && self.at_words(&["with", "mana", "value"]) {
@@ -16028,6 +16032,21 @@ impl P {
                 {
                     f.status.shares_chosen = Some(true);
                     self.pos += 6;
+                }
+                // "a land card with a basic land type".
+                "with"
+                    if !f.basic_land_type && self.at_words(&["with", "basic", "land", "type"]) =>
+                {
+                    self.pos += 4;
+                    f.basic_land_type = true;
+                }
+                // "each creature except for tokens you control".
+                "except"
+                    if !f.status.except_your_tokens
+                        && self.at_words(&["except", "for", "tokens", "you", "control"]) =>
+                {
+                    self.pos += 5;
+                    f.status.except_your_tokens = true;
                 }
                 // "that doesn't have the same name as a token you control".
                 "that"

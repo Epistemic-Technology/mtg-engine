@@ -3569,6 +3569,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         None if f.they_control && f.that_player.is_none() => s.push_str(" they control"),
         Some(Who::You | Who::Any) | None => {}
     }
+    if f.status.except_your_tokens {
+        s.push_str(" except for tokens you control");
+    }
     match f.that_player {
         // "for each tapped artifact they control" after "target player".
         Some(_) if f.they_control => s.push_str(" they control"),
@@ -3940,6 +3943,11 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
         && let Some(b) = g.status.bound.take()
     {
         mv = format!(" with {}", bound_phrase(b, card));
+    }
+    // "a land card with a basic land type".
+    if g.or.is_none() && mv.is_empty() && g.basic_land_type {
+        g.basic_land_type = false;
+        mv = " with a basic land type".to_string();
     }
     // "a creature card with total power and toughness 5 or less".
     if g.or.is_none()

@@ -1801,6 +1801,22 @@ impl Compiler<'_> {
 
     #[allow(clippy::too_many_lines)] // one line per filter field
     fn filter(&mut self, f: &Filter) -> ObjFilter {
+        // "a land card with a basic land type" (CR 205.3i): one of the
+        // five.
+        if f.basic_land_type {
+            let mut g = f.clone();
+            g.basic_land_type = false;
+            let mut out: Option<ObjFilter> = None;
+            for t in ["Forest", "Mountain", "Swamp", "Island", "Plains"] {
+                let mut h = g.clone();
+                h.subtypes.push(t.to_string());
+                let mut one = self.filter(&h);
+                one.or = out.map(Box::new);
+                out = Some(one);
+            }
+            return out.expect("five types");
+        }
+
         // "an outlaw" (CR 700.12): one alternative per creature type.
         if let Some(i) = f.subtypes.iter().position(|s| s == crate::ast::OUTLAW) {
             let mut chain = f.or.clone();
@@ -1963,6 +1979,7 @@ impl Compiler<'_> {
             enchanted_player: f.enchanted_player,
             controlled_by: None,
             name_unlike: f.name_unlike.as_ref().map(|g| Box::new(self.filter(g))),
+            except_tokens_of: None,
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
             targeting: f.targeting.as_ref().map(|t| {
                 Box::new(mtg_core::card::SpellTargets {

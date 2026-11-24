@@ -10656,8 +10656,17 @@ impl GameState {
             && !f.status.mana_value_x
             && f.status.bound.is_none()
             && !f.enchanted_player
+            && !f.status.except_your_tokens
         {
             return std::borrow::Cow::Borrowed(f);
+        }
+        // "each creature except for tokens you control": the effect's
+        // controller's.
+        if f.status.except_your_tokens {
+            let mut g = f.clone();
+            g.status.except_your_tokens = false;
+            g.except_tokens_of = Some(ctx.controller);
+            return std::borrow::Cow::Owned(self.chosen_filter(&g, ctx).into_owned());
         }
         // "each creature enchanted player controls" (CR 303.4).
         let f = &if f.enchanted_player {

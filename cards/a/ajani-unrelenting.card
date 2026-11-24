@@ -1,0 +1,11 @@
+card "Ajani Unrelenting" {
+  oracle_id 71620e92-45a4-49cb-94d5-348013ecf886
+  cost {4}{R}{R}
+  type Legendary Planeswalker — Ajani
+  loyalty 5
+  short_name "Ajani"
+  triggered whenever you activate a loyalty ability: create 1 "Cadet"
+  loyalty +1: each creature you control gets +1/+0 and gains haste
+  loyalty -2: discard hand then draw count each creature you control cards
+  loyalty -3: this deals 4 damage to each single creature except for tokens you control
+}

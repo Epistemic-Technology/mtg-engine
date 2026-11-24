@@ -1821,6 +1821,13 @@ value at most count equal greatest mana value`, a spell's mana value on
 the stack), and `destroy target creature if target 1 is tapped` "if it's
 tapped". `with total power and toughness 5 or less` ("target creature
 with total power and toughness 5 or less", the sum of the two, Cut Down);
+`except for tokens you control` ("Ajani deals 4 damage to each creature
+except for tokens you control": `each single creature except for tokens
+you control`; not a token the effect's controller controls, filled in
+for an effect's groups, elsewhere matching nothing); `with basic land
+type` ("search your library for a land card with a basic land type":
+`search land card with basic land type reveal to hand`, a Plains, Island,
+Swamp, Mountain, or Forest, CR 205.3i);
 `that doesn't have same name as token you control` ("choose target
 nontoken creature you control that doesn't have the same name as a token
 you control", The Apprentice's Folly; `... as another permanent you

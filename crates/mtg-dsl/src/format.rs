@@ -5061,6 +5061,12 @@ fn filter_one(f: &Filter) -> String {
             num(b.n)
         ));
     }
+    if f.status.except_your_tokens {
+        words.push("except for tokens you control".to_string());
+    }
+    if f.basic_land_type {
+        words.push("with basic land type".to_string());
+    }
     // Likewise its own filter.
     if let Some(g) = &f.name_unlike {
         words.push(format!("that doesn't have same name as {}", filter(g)));

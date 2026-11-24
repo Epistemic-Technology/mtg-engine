@@ -1216,6 +1216,11 @@ pub struct Filter {
     /// `other than granter`: "an artifact other than Dire Blunderbuss",
     /// not the Equipment granting the quoted ability.
     pub not_granter: bool,
+    /// `with basic land type`: "a land card with a basic land type"
+    /// (Nervous Gardener): compiled as a Plains, Island, Swamp, Mountain,
+    /// or Forest.
+    pub basic_land_type: bool,
+
     /// `that doesn't have same name as token you control`: "that doesn't
     /// have the same name as a token you control" (`ObjFilter::name_unlike`).
     pub name_unlike: Option<Box<Filter>>,

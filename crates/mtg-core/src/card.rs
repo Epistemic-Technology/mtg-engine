@@ -1234,6 +1234,10 @@ pub struct ObjFilter {
     /// 708.2), so it shares none.
     #[serde(default)]
     pub name_unlike: Option<Box<ObjFilter>>,
+    /// Not a token this player controls: `StatusQuals::except_your_tokens`
+    /// filled in.
+    #[serde(default)]
+    pub except_tokens_of: Option<crate::ids::PlayerId>,
 }
 
 /// The player a filter's `that_player` means.
@@ -1430,6 +1434,12 @@ pub struct StatusQuals {
     /// game state: `any` leaves it out.
     #[serde(default)]
     pub not_chosen: bool,
+    /// "each creature except for tokens you control" (Ajani Unrelenting):
+    /// not a token the effect's controller controls. A placeholder the
+    /// engine fills in (`ObjFilter::except_tokens_of`) for an effect's
+    /// groups; unfilled, nothing matches.
+    #[serde(default)]
+    pub except_your_tokens: bool,
 }
 
 /// What a chosen number is compared with (`StatusQuals::equal_chosen`).
@@ -1503,6 +1513,7 @@ impl StatusQuals {
             || self.protector.is_some()
             || self.mana_value_range.is_some()
             || self.greatest.is_some()
+            || self.except_your_tokens
     }
 }
 
@@ -1964,6 +1975,7 @@ impl ObjFilter {
             || self.mana_value.is_some()
             || self.status.any()
             || self.name_unlike.is_some()
+            || self.except_tokens_of.is_some()
     }
 }
 

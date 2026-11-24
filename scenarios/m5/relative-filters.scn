@@ -358,6 +358,43 @@ scenario "The Apprentice's Folly copies only a creature no token you control sha
   assert battlefield A contains 1 "Hill Giant"
 }
 
+scenario "Ajani Unrelenting: damage to each creature except for tokens you control" {
+  battlefield A: "Ajani Unrelenting", "Cadet", "Grizzly Bears"
+  battlefield B: "Cadet", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Ajani Unrelenting" ability 3
+  run_to turn 2 postcombat_main
+  # The loyalty trigger's Cadet resolves first and is spared too.
+  assert battlefield A contains 2 "Cadet"
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield B lacks "Cadet"
+  assert graveyard B contains "Hill Giant"
+  assert counters "Ajani Unrelenting" loyalty 2
+}
+
+scenario "Nervous Gardener finds a land card with a basic land type" {
+  battlefield A: 4 "Forest"
+  hand A: "Nervous Gardener"
+  library A: "Mishra's Factory", "Hill Giant", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Nervous Gardener" face_down
+  turn 2 A: unmorph "Nervous Gardener"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Forest"
+  assert library A contains "Mishra's Factory"
+}
+
+scenario "Nervous Gardener: a land with no basic land type isn't found" {
+  battlefield A: 4 "Forest"
+  hand A: "Nervous Gardener"
+  library A: "Mishra's Factory", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Nervous Gardener" face_down
+  turn 2 A: unmorph "Nervous Gardener"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+}
+
 scenario "Anticausal Vestige: a permanent card with mana value up to the lands you control" {
   battlefield A: 4 "Island"
   hand A: "Anticausal Vestige", "Craw Wurm", "Hill Giant"
