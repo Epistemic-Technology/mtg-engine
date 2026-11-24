@@ -16402,6 +16402,15 @@ impl GameState {
                 }
                 ctx.targets.get(i).copied()
             }
+            // "Choose a creature or planeswalker you control." (Gideon's
+            // Sacrifice): with none, the effect does nothing.
+            Replacement::Redirect {
+                to: crate::card::RedirectTo::ChosenCreatureOrPlaneswalker,
+                ..
+            } => match self.choose_own_creature_or_planeswalker(ctx) {
+                Some(id) => Some(Target::Object(id)),
+                None => return,
+            },
             _ => None,
         };
         // CR 609.7a: a source of the controller's choice is chosen as the
@@ -16451,6 +16460,31 @@ impl GameState {
             redirect,
         });
         self.bump();
+    }
+
+    /// The controller chooses a creature or planeswalker they control (not
+    /// a target): `None` if they control none.
+    fn choose_own_creature_or_planeswalker(&mut self, ctx: &EffectCtx) -> Option<ObjId> {
+        let cands: Vec<ObjId> = self
+            .battlefield
+            .iter()
+            .copied()
+            .filter(|id| {
+                self.objects[*id].controller == ctx.controller
+                    && self
+                        .characteristics(*id)
+                        .is_some_and(|c| c.is_creature() || c.is_planeswalker())
+            })
+            .collect();
+        match cands.len() {
+            0 => None,
+            1 => Some(cands[0]),
+            _ => {
+                let options: Vec<Choice> = cands.iter().map(|id| Choice::Sacrifice(*id)).collect();
+                let k = self.choose_mid(ctx.controller, DecisionKind::ChooseCard, options);
+                cands.get(k).copied()
+            }
+        }
     }
 
     /// CR 609.7a: the controller chooses a source of damage matching `f`:

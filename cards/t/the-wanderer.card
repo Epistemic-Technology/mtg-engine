@@ -1,0 +1,8 @@
+card "The Wanderer" {
+  oracle_id 4c2196e5-6ed7-4cd2-b8e7-f01aff236569
+  cost {3}{W}
+  type Legendary Planeswalker
+  loyalty 5
+  replace noncombat damage to you and other permanent you control: prevent
+  loyalty -2: exile target creature with power 4 or greater
+}

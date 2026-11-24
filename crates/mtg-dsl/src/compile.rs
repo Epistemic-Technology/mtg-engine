@@ -859,6 +859,9 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Ascend) => {
                     b = b.marks(mtg_core::card::Marks::ASCEND);
                 }
+                Ability::KeepsDamage => {
+                    b = b.marks(mtg_core::card::Marks::KEEPS_DAMAGE);
+                }
                 Ability::Mechanic(Mechanic::Storied) => {
                     b = b.marks(mtg_core::card::Marks::STORIED);
                 }
@@ -1529,6 +1532,7 @@ impl Compiler<'_> {
                 unlabeled(a),
                 Ability::Keyword(_)
                     | Ability::DeckAnyNumber
+                    | Ability::KeepsDamage
                     | Ability::Uncounterable
                     | Ability::UncounterableIf { .. }
                     | Ability::EquipDiscount(_)
@@ -2493,7 +2497,7 @@ impl Compiler<'_> {
             StaticCond::NotCastFromHand => {
                 StaticCondition::NotCastFrom(mtg_core::state::Zone::Hand)
             }
-            StaticCond::WasCast => StaticCondition::WasCast,
+            StaticCond::WasCast | StaticCond::WasCastPassive => StaticCondition::WasCast,
             StaticCond::PutAnyCounterThisTurn => {
                 StaticCondition::happened(TurnEvent::CountersOnCreatureBy, TurnWho::You)
             }
@@ -4487,6 +4491,9 @@ impl Compiler<'_> {
                     this_turn: *this_turn,
                 });
             }
+            Effect::CreateReplacement(rep) if rep.cond.is_some() => {
+                return self.err("a replacement an effect creates takes no `while`");
+            }
             Effect::CreateReplacement(rep) => {
                 // "Prevent all damage that sources of the color of your
                 // choice would deal this turn": the color is chosen as the
@@ -5622,6 +5629,9 @@ impl Compiler<'_> {
                 return self.err("a level symbol is not an ability definition");
             }
             Ability::DeckAnyNumber => return self.err("a deck-building rule is not an ability"),
+            Ability::KeepsDamage => {
+                return self.err("\"damage isn't removed\" is a property of the card");
+            }
             Ability::BecomesChoice { .. } => {
                 return self.err("`becomes choice` is a card's ability, not a granted one");
             }
@@ -5856,6 +5866,13 @@ impl Compiler<'_> {
             {
                 let a = AbilityDef::Replacement(self.replacement(r)?);
                 return self.while_holds(a, StaticCondition::YourTurn, "during your turn");
+            }
+            // "If damage would be dealt to this creature while it has a
+            // +1/+1 counter on it, ..." (Ugin's Conjurant).
+            Ability::Replacement(r) if r.cond.is_some() => {
+                let a = AbilityDef::Replacement(self.replacement(r)?);
+                let c = self.static_cond(r.cond.as_ref().expect("checked"));
+                return self.while_holds(a, c, "a replacement's \"while\"");
             }
             Ability::Replacement(r) => AbilityDef::Replacement(self.replacement(r)?),
             // CR 701.43: modeled as an attack trigger: exerting is "it
@@ -7293,6 +7310,8 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             outcome: mtg_core::card::Replacement::PreventNext(Num::N(*n)),
             then: Vec::new(),
             token: None,
+            wording: crate::ast::ThenWording::Sentence,
+            cond: None,
         }),
         // CR 702.39a: "Whenever this creature attacks, you may have target
         // creature defending player controls untap and block this creature

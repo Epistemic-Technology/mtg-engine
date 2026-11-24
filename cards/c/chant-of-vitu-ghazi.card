@@ -1,0 +1,7 @@
+card "Chant of Vitu-Ghazi" {
+  oracle_id e245a736-5f65-4159-8e39-e279e1f8794f
+  cost {6}{W}{W}
+  type Instant
+  keywords convoke
+  spell: prevent all damage from creature this turn { you gain that much life }
+}

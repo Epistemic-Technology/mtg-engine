@@ -187,7 +187,7 @@ like the card; either half may still be cast alone.
 | `loyalty +1: <effects>` | A loyalty ability (CR 606); `-6` likewise, and `loyalty 0:` (or `+0`) prints "0:". |
 | `equip {1}`, `equip Knight {1}`, `equip {0}, once`, `equip {2}, pay 2 life`, `equip sacrifice creature`, `equip {3} or discard 1 card` | Equip (CR 702.6): "Equip {1}"; with a creature type, only onto a creature of that type you control ("Equip Knight {1}", CR 702.6c); `once` prints "Equip {0}. Activate only once each turn." Any activation cost other than mana alone prints after a dash: "Equip—{2}, Pay 2 life.", "Equip—Sacrifice a creature." (`, once` adds "Activate only once each turn."). `equip {3} or discard 1 card` prints "Equip—Pay {3} or discard a card.": two equip abilities, one for each cost (`activate "X" ability 2` in scenarios takes the second). |
 | `triggered <trigger> [if <condition>]: <effects>` | A triggered ability (CR 603). `triggered once each turn <trigger>: ...` ("This ability triggers only once each turn."), `twice each turn`, and `do once each turn` ("Do this only once each turn.") limit it each turn (below). |
-| `replace <event>: <outcome>` | A replacement or prevention effect while on the battlefield (CR 614, 615). Add `{ <effects> }` for effects that happen when it applies (Phantom Tiger); after a prevention, `that much` in them is the damage prevented this way (CR 615.5: none for damage that can't be prevented, the shield's share for a `prevent next N`) and `that creature` the damaged permanent, printed "You gain life equal to the damage prevented this way." (`you gain that much life`), "Put a +1/+1 counter on that creature for each 1 damage prevented this way." (`put that much +1/+1 counters on that creature`, Vigor). An effect a spell creates takes the block too: `prevent all damage target spell would deal this turn { you gain that much life }` (Hallow), `this turn, replace damage from chosen source to you: prevent next time { you gain that much life }` (Reverse Damage). |
+| `replace <event>: <outcome>` | A replacement or prevention effect while on the battlefield (CR 614, 615). Add `{ <effects> }` for effects that happen when it applies (Phantom Tiger); after a prevention, `that much` in them is the damage prevented this way (CR 615.5: none for damage that can't be prevented, the shield's share for a `prevent next N`) and `that creature` the damaged permanent, printed "You gain life equal to the damage prevented this way." (`you gain that much life`), "Put a +1/+1 counter on that creature for each 1 damage prevented this way." (`put that much +1/+1 counters on that creature`, Vigor). An effect a spell creates takes the block too: `prevent all damage target spell would deal this turn { you gain that much life }` (Hallow), `this turn, replace damage from chosen source to you: prevent next time { you gain that much life }` (Reverse Damage). `prevent and { ... }` joins them to the prevention, `that much` printed "that many": `replace damage to this: prevent and { put that much +1/+1 counters on this }` "If damage would be dealt to Anti-Venom, prevent that damage and put that many +1/+1 counters on him.", `replace combat damage from creature to this: prevent and { put 1 +1/+1 counters on this creature }` "If a creature would deal combat damage to this creature, prevent that damage and put a +1/+1 counter on this creature." (Ironscale Hydra). `for each { ... }` after a created prevention prints the count first: `prevent next 3 damage to target creature this turn for each { put that much +1/+1 counters on that creature }` "... For each 1 damage prevented this way, put a +1/+1 counter on that creature." (Test of Faith). `replace damage to this while this has 1 or more +1/+1 counters: prevent and { remove that much +1/+1 counters from this creature }` prints "If damage would be dealt to this creature while it has a +1/+1 counter on it, prevent that damage and remove that many +1/+1 counters from this creature." (Ugin's Conjurant): the replacement applies only while the static condition holds (static abilities only). |
 | `enters tapped` / `enters with 2 +1/+1 counters` / `enters prepared` | How this permanent enters (CR 614.1c; prepared, CR 722.3a). `enters with 2 +1/+1 counters if creature died this turn` (any static condition, judged as it enters) prints "This creature enters with two +1/+1 counters on it if a creature died this turn."; `enters with count equal graveyard creature +1/+1 counters` prints "... enters with a number of +1/+1 counters on it equal to the number of creature cards in your graveyard" (counted as it enters). Both, in that order, print as one sentence: "This land enters tapped with two depletion counters on it." (the order they apply in changes nothing, so it isn't asked). |
 | `static <filter>: <modifications>` | A static ability generating a continuous effect (CR 604, 611.3). `static each creature you control with +1/+1 counter: has trample` prints the subject one at a time: "Each creature you control with a +1/+1 counter on it has trample." |
 | `static as long as <condition>, <filter>: <modifications>` | A conditional static ability (CR 611.3a), printed "As long as <condition>, ...". Write the condition last (`static this: +2/+2 as long as metalcraft`) to print it last; `static this: has can't be blocked if cast historic spell this turn` prints "if" ("This creature can't be blocked if ..."). `static during your turn, this: has first strike` prints "During your turn, ..."; `static during turns other than yours, this: +0/+2` prints "During turns other than yours, ..." (it isn't the controller's turn). `otherwise <modifications>` after the condition is what applies to the same objects while it doesn't hold, printed "Otherwise, it ...": `static enchanted: +2/+2 as long as attached is Vampire otherwise -2/-2` ("Enchanted creature gets +2/+2 as long as it's a Vampire. Otherwise, it gets -2/-2."), `static equipped: has deathtouch during your turn otherwise has reach` ("Equipped creature has deathtouch during your turn. Otherwise, it has reach."; `during your turn` written last prints last), `static as long as you control attached, enchanted: +2/+2 otherwise has can't block` ("As long as you control enchanted creature, it gets +2/+2. Otherwise, it can't block."). The engine makes it a second static ability with the condition negated. `as long as this has 2 or fewer oil counters` prints "it has two or fewer oil counters on it". |
@@ -848,6 +848,10 @@ turn.
 power becomes count equal Town you control` ("this creature's base power
 becomes equal to the number of Towns you control", fixed as it resolves),
 both until end of turn.
+`triggered when this enters if he was cast: ...` prints "When Anti-Venom
+enters, if he was cast, ..." (`it was cast`, `she was cast`, `they were
+cast` are the same condition, printed by the card's pronoun): the
+condition of `you cast it`.
 `this spell can't be countered`: "This spell can't be countered." (CR
 101.2: a spell or ability that would counter it, ward included, does
 nothing to it). `if x 5 or more, this spell can't be countered and the
@@ -1546,10 +1550,21 @@ to you this turn, prevent that damage.": a shield for one damage event,
 CR 615.7) and redirection (CR 614.9): `redirect to this`, `redirect to
 target creature` (a new target, declared after the event's), and
 `redirect next 1 to ...` ("The next 1 damage that would be dealt to this
-creature this turn is dealt to target creature you control instead."). A
-redirection with a source prints "All damage that would be dealt this
-turn to A by S is dealt to B instead." (Kor Chant). It does nothing if
-the new recipient has left the battlefield or is no longer a creature or
+creature this turn is dealt to target creature you control instead."),
+`redirect next 1 to you` ("... is dealt to you instead.", Vassal's Duty),
+`redirect next 1 to any target` (a new target), `redirect to equipped`
+(an Equipment's `redirect to attached`: "... is dealt to equipped
+creature instead.", Pariah's Shield), and `redirect to chosen creature or
+planeswalker you control` ("Choose a creature or planeswalker you control.
+All damage that would be dealt this turn to you and permanents you control
+is dealt to the chosen permanent instead (if it's still on the
+battlefield).", Gideon's Sacrifice: chosen, not targeted, as the effect is
+created). In a `this turn, replace` effect, where "this turn" prints
+follows the event: `damage to A from S` "dealt to A by S this turn"
+(Kjeldoran Royal Guard), `damage to A this turn from S` "dealt to A this
+turn by S" (Oracle's Attendants), `damage this turn to A [from S]` "dealt
+this turn to A [by S]" (Kor Chant, Saving Grace). It does nothing if the
+new recipient has left the battlefield or is no longer a creature or
 planeswalker.
 
 ### Filters

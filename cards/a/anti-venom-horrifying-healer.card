@@ -1,0 +1,11 @@
+card "Anti-Venom, Horrifying Healer" {
+  oracle_id 3c7bafe9-80cd-48d0-bcae-e7910c9fb83b
+  cost {W}{W}{W}{W}{W}
+  type Legendary Creature — Symbiote Hero
+  pt 5/5
+  pronoun he
+  triggered when this enters if he was cast: return target creature card from your graveyard to battlefield
+  replace damage to this: prevent and {
+    put that much +1/+1 counters on this
+  }
+}

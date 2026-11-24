@@ -2634,6 +2634,11 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::AuraStays)
             }
+            "damage" if self.at_words(&["damage", "isn't", "removed", "during", "cleanup"]) => {
+                self.pos += 5;
+                self.end_stmt()?;
+                Ok(Ability::KeepsDamage)
+            }
             "deck" if self.at_words(&["deck", "any", "number"]) => {
                 self.pos += 3;
                 self.end_stmt()?;
@@ -3776,6 +3781,8 @@ impl P {
                     outcome: Outcome::EnterTappedUnlessPay(n),
                     then: Vec::new(),
                     token: None,
+                    wording: crate::ast::ThenWording::Sentence,
+                    cond: None,
                 }))
             }
             // "As this land enters, you may reveal a Mountain or Forest
@@ -3890,6 +3897,8 @@ impl P {
                     outcome,
                     then: Vec::new(),
                     token: None,
+                    wording: crate::ast::ThenWording::Sentence,
+                    cond: None,
                 }))
             }
             "label" => {
@@ -4620,6 +4629,13 @@ impl P {
         }
         if self.eat_words(&["you", "cast", "it"]) {
             return Ok(StaticCond::WasCast);
+        }
+        if self.eat_words(&["it", "was", "cast"])
+            || self.eat_words(&["he", "was", "cast"])
+            || self.eat_words(&["she", "was", "cast"])
+            || self.eat_words(&["they", "were", "cast"])
+        {
+            return Ok(StaticCond::WasCastPassive);
         }
         if self.eat_words(&["put", "any", "counter", "this", "turn"]) {
             return Ok(StaticCond::PutAnyCounterThisTurn);
@@ -7307,6 +7323,7 @@ impl P {
             }
             self.expect_word("replace")?;
             let mut r = self.replacement_inline()?;
+            r.wording = self.then_wording();
             r.then = self.created_then()?;
             return Ok(Effect::CreateReplacement(r));
         }
@@ -11212,6 +11229,7 @@ impl P {
                         wording,
                     }
                 };
+                let wording = self.then_wording();
                 let then = self.created_then()?;
                 Ok(Effect::CreateReplacement(Replacement {
                     event,
@@ -11221,6 +11239,8 @@ impl P {
                     },
                     then,
                     token: None,
+                    wording,
+                    cond: None,
                 }))
             }
             "players" => {
@@ -16298,8 +16318,23 @@ impl P {
         Ok(s)
     }
 
+    /// `and` or `for each` before a prevention's `{ ... }`: how its
+    /// effects are printed (`ThenWording`).
+    fn then_wording(&mut self) -> crate::ast::ThenWording {
+        if self.at_word("and") && self.peek_at(1) == Some(&Tok::LBrace) {
+            self.pos += 1;
+            crate::ast::ThenWording::Joined
+        } else if self.at_words(&["for", "each"]) && self.peek_at(2) == Some(&Tok::LBrace) {
+            self.pos += 2;
+            crate::ast::ThenWording::ForEachFirst
+        } else {
+            crate::ast::ThenWording::Sentence
+        }
+    }
+
     fn replacement(&mut self) -> R<Replacement> {
         let mut r = self.replacement_inline()?;
+        r.wording = self.then_wording();
         if self.peek() == Some(&Tok::LBrace) {
             r.then = self.effects_body()?;
         } else {
@@ -16310,6 +16345,12 @@ impl P {
 
     fn replacement_inline(&mut self) -> R<Replacement> {
         let event = self.replaces()?;
+        // `while this has 1 or more +1/+1 counters` (Ugin's Conjurant).
+        let cond = if self.eat_word("while") {
+            Some(self.static_cond()?)
+        } else {
+            None
+        };
         self.expect(&Tok::Colon)?;
         // `plus "1/1 green Frog creature"`, `plus that many "..."`: tokens
         // created as well (Quina, Chatterfang).
@@ -16343,6 +16384,8 @@ impl P {
             outcome,
             then: Vec::new(),
             token,
+            wording: crate::ast::ThenWording::Sentence,
+            cond,
         })
     }
 
@@ -16558,7 +16601,24 @@ impl P {
             None
         };
         self.expect_word("damage")?;
-        self.damage_event(combat)
+        // `damage this turn to A [from S]`: "that would be dealt this turn
+        // to A [by S]"; `damage to A this turn from S`: "... to A this turn
+        // by S" (in an effect's `this turn, replace`; rendering only).
+        let turn_first = self.at_words(&["this", "turn", "to"]);
+        if turn_first {
+            self.pos += 2;
+        }
+        let mut event = self.damage_event(combat)?;
+        if let Replaces::Damage { from, wording, .. } = &mut event {
+            if turn_first {
+                *wording = DamageWording::TurnFirst;
+            } else if from.is_none() && self.at_words(&["this", "turn", "from"]) {
+                self.pos += 3;
+                *from = Some(self.source()?);
+                *wording = DamageWording::DealtLate;
+            }
+        }
+        Ok(event)
     }
 
     /// The rest of a damage event after `damage`: `to and from <affects>`,
@@ -16709,14 +16769,38 @@ impl P {
                     None
                 };
                 self.expect_word("to")?;
-                if next.is_none() && (self.eat_word("attached") || self.eat_word("enchanted")) {
+                if next.is_none()
+                    && (self.eat_word("attached")
+                        || self.eat_word("enchanted")
+                        || self.eat_word("equipped"))
+                {
                     Outcome::RedirectToAttached
+                } else if self.eat_word("you") {
+                    Outcome::Redirect {
+                        to: RedirectTo::You,
+                        next,
+                    }
+                } else if self.eat_words(&[
+                    "chosen",
+                    "creature",
+                    "or",
+                    "planeswalker",
+                    "you",
+                    "control",
+                ]) {
+                    Outcome::Redirect {
+                        to: RedirectTo::ChosenCreatureOrPlaneswalker,
+                        next,
+                    }
                 } else if self.eat_word("this") {
                     Outcome::Redirect {
                         to: RedirectTo::This,
                         next,
                     }
-                } else if self.at_word("target") || self.at_words(&["another", "target"]) {
+                } else if self.at_word("target")
+                    || self.at_words(&["another", "target"])
+                    || self.at_words(&["any", "target"])
+                {
                     match self.recipient()? {
                         Recipient::Target(i) => Outcome::Redirect {
                             to: RedirectTo::Target(i),

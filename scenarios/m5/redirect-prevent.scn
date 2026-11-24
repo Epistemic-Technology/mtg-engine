@@ -183,3 +183,464 @@ scenario "Without Frenzied Baloth, Fog prevents combat damage" {
   run_to turn 1 postcombat_main
   assert life B 20
 }
+
+# ---- "prevent that damage and ..." (CR 615.5) ----
+
+scenario "Anti-Venom: damage to him becomes +1/+1 counters" {
+  battlefield A: "Anti-Venom, Horrifying Healer"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Anti-Venom, Horrifying Healer"
+  run_to turn 1 postcombat_main
+  assert damage "Anti-Venom, Horrifying Healer" 0
+  assert counters "Anti-Venom, Horrifying Healer" +1/+1 3
+  assert power "Anti-Venom, Horrifying Healer" 8
+}
+
+scenario "Anti-Venom: cast, he returns a creature card from your graveyard" {
+  battlefield A: 5 "Plains"
+  graveyard A: "Hill Giant"
+  hand A: "Anti-Venom, Horrifying Healer"
+  turn 1 A: cast "Anti-Venom, Horrifying Healer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Anti-Venom: combat damage he is dealt is prevented too" {
+  battlefield A: "Anti-Venom, Horrifying Healer"
+  battlefield B: "Craw Wurm"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Craw Wurm"
+  turn 2 A: block "Craw Wurm" with "Anti-Venom, Horrifying Healer"
+  run_to turn 2 postcombat_main
+  assert counters "Anti-Venom, Horrifying Healer" +1/+1 6
+  assert graveyard B contains "Craw Wurm"
+}
+
+scenario "Ironscale Hydra: a creature's combat damage gives one counter" {
+  battlefield A: "Ironscale Hydra"
+  battlefield B: "Craw Wurm"
+  turn 1 A: attack "Ironscale Hydra"
+  turn 1 B: block "Ironscale Hydra" with "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert damage "Ironscale Hydra" 0
+  assert counters "Ironscale Hydra" +1/+1 1
+}
+
+scenario "Ironscale Hydra: a spell's damage isn't prevented" {
+  battlefield A: "Ironscale Hydra"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Ironscale Hydra"
+  run_to turn 1 postcombat_main
+  assert damage "Ironscale Hydra" 3
+  assert counters "Ironscale Hydra" +1/+1 0
+}
+
+scenario "Ugin's Conjurant: damage removes that many counters" {
+  battlefield A: "Ugin's Conjurant" with 5 +1/+1
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Ugin's Conjurant"
+  run_to turn 1 postcombat_main
+  assert damage "Ugin's Conjurant" 0
+  assert counters "Ugin's Conjurant" +1/+1 2
+}
+
+scenario "Ugin's Conjurant: more damage than counters, it dies" {
+  battlefield A: "Ugin's Conjurant" with 2 +1/+1
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Ugin's Conjurant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ugin's Conjurant"
+}
+
+scenario "Oathsworn Knight: damage removes one counter" {
+  battlefield A: "Oathsworn Knight" with 4 +1/+1
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Oathsworn Knight"
+  run_to turn 1 postcombat_main
+  assert damage "Oathsworn Knight" 0
+  assert counters "Oathsworn Knight" +1/+1 3
+}
+
+scenario "Undergrowth Champion: without a counter, damage is dealt" {
+  battlefield A: "Undergrowth Champion"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting "Undergrowth Champion"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Undergrowth Champion"
+}
+
+scenario "Undergrowth Champion: with a counter, the damage is prevented" {
+  battlefield A: "Undergrowth Champion" with 1 +1/+1
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Undergrowth Champion"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Undergrowth Champion"
+  assert damage "Undergrowth Champion" 0
+  assert counters "Undergrowth Champion" +1/+1 0
+}
+
+scenario "Test of Faith: 3 damage prevented, three counters" {
+  battlefield A: "Plains", "Plains", "Grizzly Bears"
+  battlefield B: "Mountain", "Mountain"
+  hand A: "Test of Faith"
+  hand B: "Lightning Bolt", "Shock"
+  turn 1 A: cast "Test of Faith" targeting "Grizzly Bears"
+  turn 1 B: wait
+  turn 1 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Test of Faith: only the shield's 3 damage give counters" {
+  battlefield A: "Plains", "Plains", "Hill Giant"
+  battlefield B: "Mountain", "Mountain", "Mountain"
+  hand A: "Test of Faith"
+  hand B: "Lightning Bolt", "Shock"
+  turn 1 A: cast "Test of Faith" targeting "Hill Giant"
+  turn 1 B: wait
+  turn 1 B: cast "Lightning Bolt" targeting "Hill Giant"
+  turn 1 B: wait
+  turn 1 B: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 3
+  assert damage "Hill Giant" 2
+}
+
+scenario "Brace for Impact: damage dealt before it resolves stays" {
+  battlefield A: 5 "Plains", "Watchwolf"
+  battlefield B: "Mountain"
+  hand A: "Brace for Impact"
+  hand B: "Shock"
+  turn 1 A: cast "Brace for Impact" targeting "Watchwolf"
+  turn 1 B: cast "Shock" targeting "Watchwolf" in response to "Brace for Impact"
+  run_to turn 1 postcombat_main
+  assert damage "Watchwolf" 2
+  assert counters "Watchwolf" +1/+1 0
+}
+
+scenario "Brace for Impact: after it resolves, Bolt gives three counters" {
+  battlefield A: 5 "Plains", "Watchwolf"
+  battlefield B: "Mountain"
+  hand A: "Brace for Impact"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Brace for Impact" targeting "Watchwolf"
+  turn 1 B: wait
+  turn 1 B: cast "Lightning Bolt" targeting "Watchwolf"
+  run_to turn 1 postcombat_main
+  assert damage "Watchwolf" 0
+  assert counters "Watchwolf" +1/+1 3
+}
+
+scenario "Brace for Impact: a monocolored creature can't be targeted" {
+  battlefield A: 5 "Plains", "Grizzly Bears"
+  hand A: "Brace for Impact"
+  illegal turn 1 A: cast "Brace for Impact" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Chant of Vitu-Ghazi: creatures' damage is prevented and gained as life" {
+  battlefield A: 8 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Chant of Vitu-Ghazi"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_blockers A: cast "Chant of Vitu-Ghazi"
+  run_to turn 2 postcombat_main
+  assert life A 23
+}
+
+scenario "Combust: it can't be countered and its damage can't be prevented" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Serra Angel", 2 "Island", "Plains"
+  hand A: "Combust"
+  hand B: "Counterspell", "Mending Hands"
+  turn 1 A: cast "Combust" targeting "Serra Angel"
+  turn 1 B: cast "Counterspell" targeting "Combust" in response to "Combust"
+  turn 1 B: cast "Mending Hands" targeting "Serra Angel" in response to "Combust"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Endure: no damage to you this turn" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Endure"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  turn 1 A: cast "Endure" in response to "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+# ---- redirection (CR 614.9) ----
+
+scenario "Palisade Giant: damage to you and your other permanents is dealt to it" {
+  battlefield A: "Palisade Giant", "Grizzly Bears"
+  battlefield B: 2 "Mountain"
+  hand B: "Lightning Bolt", "Shock"
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  turn 1 B: wait
+  turn 1 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert damage "Grizzly Bears" 0
+  assert damage "Palisade Giant" 5
+}
+
+scenario "Palisade Giant: damage to itself stays" {
+  battlefield A: "Palisade Giant"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Palisade Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Palisade Giant" 3
+}
+
+scenario "Empyrial Archangel: damage to you is dealt to it" {
+  battlefield A: "Empyrial Archangel"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert damage "Empyrial Archangel" 3
+}
+
+scenario "Pariah's Shield: damage to you is dealt to equipped creature" {
+  battlefield A: "Hill Giant", "Pariah's Shield" on "Hill Giant"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert damage "Hill Giant" 2
+}
+
+scenario "Pariah's Shield: unattached, damage is dealt to you" {
+  battlefield A: "Hill Giant", "Pariah's Shield"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 18
+}
+
+scenario "Turn the Tables: the attacker's combat damage is dealt to it" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Turn the Tables"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_blockers A: cast "Turn the Tables" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Kjeldoran Royal Guard: an unblocked creature's combat damage is dealt to it" {
+  battlefield A: "Kjeldoran Royal Guard"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_blockers A: activate "Kjeldoran Royal Guard"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert damage "Kjeldoran Royal Guard" 3
+}
+
+scenario "Kjeldoran Royal Guard: a spell's damage to you isn't redirected" {
+  battlefield A: "Kjeldoran Royal Guard"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 A: activate "Kjeldoran Royal Guard"
+  turn 1 B: wait
+  turn 1 B: cast "Shock" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 18
+}
+
+scenario "Kor Dirge: the chosen source's damage goes to another creature" {
+  battlefield A: 2 "Plains", "Swamp", "Grizzly Bears"
+  battlefield B: "Mountain", "Hill Giant"
+  hand A: "Kor Dirge"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: cast "Kor Dirge" targeting "Grizzly Bears", "Hill Giant" in response to "Lightning Bolt"
+  turn 1 A: choose "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Oracle's Attendants: the chosen source's damage to the creature is dealt to it" {
+  battlefield A: "Oracle's Attendants", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 2 A: activate "Oracle's Attendants" targeting "Grizzly Bears"
+  turn 2 A: choose "Shock"
+  run_to turn 2 postcombat_main
+  assert damage "Grizzly Bears" 0
+  assert damage "Oracle's Attendants" 2
+}
+
+scenario "Outrider en-Kor: the next 1 damage goes to your other creature" {
+  battlefield A: "Outrider en-Kor", "Hill Giant"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Outrider en-Kor"
+  turn 2 A: activate "Outrider en-Kor" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert damage "Outrider en-Kor" 1
+  assert damage "Hill Giant" 1
+}
+
+scenario "Razia: the next 3 damage go to another creature" {
+  battlefield A: "Razia, Boros Archangel", "Grizzly Bears"
+  battlefield B: "Mountain", "Mountain", "Craw Wurm"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 2 A: activate "Razia, Boros Archangel" targeting "Grizzly Bears", "Craw Wurm"
+  run_to turn 2 postcombat_main
+  assert damage "Grizzly Bears" 0
+  assert damage "Craw Wurm" 3
+}
+
+scenario "Saving Grace: damage to you this turn is dealt to enchanted creature" {
+  battlefield A: 2 "Plains", "Hill Giant"
+  battlefield B: "Mountain"
+  hand A: "Saving Grace"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  turn 1 A: cast "Saving Grace" targeting "Hill Giant" in response to "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert damage "Hill Giant" 3
+  assert toughness "Hill Giant" 6
+}
+
+scenario "The Wanderer: noncombat damage to you is prevented, combat damage isn't" {
+  battlefield A: "The Wanderer"
+  battlefield B: "Mountain", "Hill Giant"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 B: attack "Hill Giant" at player A
+  run_to turn 2 postcombat_main
+  assert life A 17
+}
+
+scenario "The Wanderer: damage to The Wanderer itself is dealt" {
+  battlefield A: "The Wanderer"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "The Wanderer"
+  run_to turn 1 postcombat_main
+  assert counters "The Wanderer" loyalty 2
+}
+
+scenario "Vassal's Duty: the next 1 damage to a legendary creature is dealt to you" {
+  battlefield A: "Vassal's Duty", "Mountain", "Isamaru, Hound of Konda"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Isamaru, Hound of Konda"
+  turn 2 A: activate "Vassal's Duty" targeting "Isamaru, Hound of Konda"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Isamaru, Hound of Konda"
+  assert damage "Isamaru, Hound of Konda" 1
+  assert life A 19
+}
+
+scenario "Vassal's Duty: a nonlegendary creature can't be targeted" {
+  battlefield A: "Vassal's Duty", "Mountain", "Grizzly Bears"
+  illegal turn 1 A: activate "Vassal's Duty" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Ward of Piety: the next 1 damage to enchanted creature is dealt to any target" {
+  battlefield A: 2 "Plains", "Grizzly Bears", "Ward of Piety" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 2 A: activate "Ward of Piety" targeting player B
+  run_to turn 2 postcombat_main
+  assert damage "Grizzly Bears" 1
+  assert life B 19
+}
+
+scenario "Gideon's Sacrifice: damage to you and your permanents is dealt to the chosen creature" {
+  battlefield A: "Plains", "Hill Giant", "Grizzly Bears"
+  battlefield B: 3 "Mountain"
+  hand A: "Gideon's Sacrifice"
+  hand B: "Lightning Bolt", "Shock"
+  turn 1 A: cast "Gideon's Sacrifice"
+  turn 1 A: choose "Hill Giant"
+  turn 1 B: wait
+  turn 1 B: cast "Shock" targeting player A
+  turn 1 B: wait
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Gideon's Sacrifice: once the chosen creature is gone, damage is dealt as usual" {
+  battlefield A: "Plains", "Hill Giant"
+  battlefield B: 3 "Mountain"
+  hand A: "Gideon's Sacrifice"
+  hand B: "Lightning Bolt", "Shock"
+  turn 1 A: cast "Gideon's Sacrifice"
+  turn 1 B: wait
+  turn 1 B: cast "Lightning Bolt" targeting "Hill Giant"
+  turn 1 B: wait
+  turn 1 B: cast "Shock" targeting player A
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert life A 18
+}
+
+# ---- "Damage isn't removed from this creature during cleanup steps." ----
+
+scenario "Ancient Adamantoise: damage stays after cleanup" {
+  battlefield A: "Ancient Adamantoise"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 upkeep
+  assert life A 20
+  assert damage "Ancient Adamantoise" 3
+}
+
+scenario "Ancient Adamantoise: other creatures still heal at cleanup" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert damage "Hill Giant" 0
+}
+
+scenario "Ancient Adamantoise: when it dies, it is exiled and ten tapped Treasures are made" {
+  battlefield A: "Ancient Adamantoise"
+  battlefield B: 6 "Swamp"
+  hand B: "Murder"
+  turn 1 B: cast "Murder" targeting "Ancient Adamantoise"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Ancient Adamantoise"
+  assert battlefield A contains 10 "Treasure"
+  assert tapped A "Treasure"
+}

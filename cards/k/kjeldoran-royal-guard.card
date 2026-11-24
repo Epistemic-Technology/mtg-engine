@@ -1,0 +1,7 @@
+card "Kjeldoran Royal Guard" {
+  oracle_id 8137e765-4df9-469f-a527-dee91d58fb7e
+  cost {3}{W}{W}
+  type Creature — Human Soldier
+  pt 2/5
+  activated {T}: this turn, replace combat damage from unblocked creature to you: redirect to this
+}

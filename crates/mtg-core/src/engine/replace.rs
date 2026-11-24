@@ -1117,8 +1117,15 @@ impl GameState {
             ) => {
                 let dest = match (to, c.key) {
                     (RedirectTo::This, _) => Some(Target::Object(c.source)),
-                    (RedirectTo::Target(_), Key::Stored(i)) => self.replacements[i].redirect,
-                    (RedirectTo::Target(_), Key::Ability { .. }) => None,
+                    (RedirectTo::You, _) => Some(Target::Player(c.controller)),
+                    (
+                        RedirectTo::Target(_) | RedirectTo::ChosenCreatureOrPlaneswalker,
+                        Key::Stored(i),
+                    ) => self.replacements[i].redirect,
+                    (
+                        RedirectTo::Target(_) | RedirectTo::ChosenCreatureOrPlaneswalker,
+                        Key::Ability { .. },
+                    ) => None,
                 };
                 // CR 614.9: the effect does nothing if the new recipient has
                 // left the battlefield, is no longer a creature or
@@ -1943,12 +1950,30 @@ impl GameState {
                 ) => that_much.saturating_sub(*amount),
                 _ => that_much,
             };
+            // A spell's prevention locked to its target: "that creature"
+            // in what follows is that target (Test of Faith: "For each 1
+            // damage prevented this way, put a +1/+1 counter on that
+            // creature").
+            let targets = match (c.key, &c.ability.replaces) {
+                (
+                    Key::Stored(i),
+                    crate::card::Replaces::Damage {
+                        to: Affects::Target(n),
+                        ..
+                    },
+                ) => self.replacements[i]
+                    .target
+                    .map(|t| vec![t; n + 1])
+                    .unwrap_or_default(),
+                _ => Vec::new(),
+            };
+            let targets_len = targets.len();
             let mut ctx = EffectCtx {
                 source: c.source,
                 controller: c.controller,
-                targets: Vec::new(),
+                targets,
                 division: Vec::new(),
-                legal: Vec::new(),
+                legal: vec![true; targets_len],
                 trigger_obj: damaged,
                 trigger_player: None,
                 trigger_amount: that_much,

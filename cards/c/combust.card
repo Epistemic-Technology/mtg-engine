@@ -1,0 +1,7 @@
+card "Combust" {
+  oracle_id f1ba56e3-3d09-4610-88e7-8681b5736105
+  cost {1}{R}
+  type Instant
+  this spell can't be countered
+  spell: deal 5 damage to target white or blue creature; the damage can't be prevented
+}

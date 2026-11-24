@@ -583,6 +583,21 @@ impl Fmt {
                         }
                         let _ = write!(s, "{turn} from {}", self.affects(f, targets));
                     }
+                    // A replacement's event (`Parser::replaces`).
+                    (_, DamageWording::TurnFirst) => {
+                        let _ = write!(s, " this turn to {}", self.affects(to, targets));
+                        if let Some(f) = from {
+                            let _ = write!(s, " from {}", self.affects(f, targets));
+                        }
+                    }
+                    (Some(f), DamageWording::DealtLate) => {
+                        let _ = write!(
+                            s,
+                            " to {} this turn from {}",
+                            self.affects(to, targets),
+                            self.affects(f, targets)
+                        );
+                    }
                     _ => {
                         if let Some(f) = from {
                             let _ = write!(s, " from {}", self.affects(f, targets));
@@ -3215,7 +3230,12 @@ impl Fmt {
                     ..rep.clone()
                 };
                 let head = self.effect(&Effect::CreateReplacement(bare), t);
-                format!("{head} {{ {} }}", self.line(&rep.then, t))
+                let how = match rep.wording {
+                    crate::ast::ThenWording::Sentence => "",
+                    crate::ast::ThenWording::Joined => " and",
+                    crate::ast::ThenWording::ForEachFirst => " for each",
+                };
+                format!("{head}{how} {{ {} }}", self.line(&rep.then, t))
             }
             Effect::CreateReplacement(rep) => match (&rep.event, &rep.outcome) {
                 (Replaces::Damage { .. } | Replaces::DamageToAndBy { .. }, Outcome::Prevent)
@@ -3259,6 +3279,10 @@ impl Fmt {
                     let next = next.map_or(String::new(), |n| format!("next {n} "));
                     let to = match to {
                         mtg_core::card::RedirectTo::This => "this".to_string(),
+                        mtg_core::card::RedirectTo::You => "you".to_string(),
+                        mtg_core::card::RedirectTo::ChosenCreatureOrPlaneswalker => {
+                            "chosen creature or planeswalker you control".to_string()
+                        }
                         mtg_core::card::RedirectTo::Target(i) => {
                             self.recipient(Recipient::Target(*i), t)
                         }
@@ -3731,6 +3755,10 @@ fn outcome(o: &Outcome) -> String {
             let next = next.map_or(String::new(), |n| format!("next {n} "));
             match to {
                 mtg_core::card::RedirectTo::This => format!("redirect {next}to this"),
+                mtg_core::card::RedirectTo::You => format!("redirect {next}to you"),
+                mtg_core::card::RedirectTo::ChosenCreatureOrPlaneswalker => {
+                    format!("redirect {next}to chosen creature or planeswalker you control")
+                }
                 mtg_core::card::RedirectTo::Target(i) => {
                     format!("redirect {next}to target {}", i + 1)
                 }
@@ -5817,6 +5845,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::NotYourMainPhase => "not your main phase".to_string(),
         StaticCond::NotCastFromHand => "cast from anywhere other than hand".to_string(),
         StaticCond::WasCast => "you cast it".to_string(),
+        StaticCond::WasCastPassive => "it was cast".to_string(),
         StaticCond::PutAnyCounterThisTurn => "put any counter this turn".to_string(),
         StaticCond::AttackedWithAtLeast(f, n) => {
             format!("attacked with {n} {} this turn", filter(f))
@@ -6585,11 +6614,23 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     fmt.replaces(event, &[]),
                     rep.token.as_deref().unwrap_or_default()
                 ),
-                (event, o) => format!("replace {}: {}", fmt.replaces(event, &[]), outcome(o)),
+                (event, o) => {
+                    let cond = rep
+                        .cond
+                        .as_ref()
+                        .map(|c| format!(" while {}", static_cond(c)))
+                        .unwrap_or_default();
+                    format!("replace {}{cond}: {}", fmt.replaces(event, &[]), outcome(o))
+                }
             };
             if rep.then.is_empty() {
                 let _ = writeln!(out, "{indent}{head}");
             } else {
+                let head = match rep.wording {
+                    crate::ast::ThenWording::Sentence => head,
+                    crate::ast::ThenWording::Joined => format!("{head} and"),
+                    crate::ast::ThenWording::ForEachFirst => format!("{head} for each"),
+                };
                 let _ = writeln!(out, "{indent}{head} {{");
                 let _ = writeln!(out, "{indent}  {}", fmt.line(&rep.then, &[]));
                 let _ = writeln!(out, "{indent}}}");
@@ -7085,6 +7126,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::DeckAnyNumber => {
             let _ = writeln!(out, "{indent}deck any number");
+        }
+        Ability::KeepsDamage => {
+            let _ = writeln!(out, "{indent}damage isn't removed during cleanup");
         }
         Ability::LevelBand { min, max, pt } => {
             let range = match max {

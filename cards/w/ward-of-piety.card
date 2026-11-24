@@ -1,0 +1,7 @@
+card "Ward of Piety" {
+  oracle_id 0fe4767b-2023-49fc-bc93-b73b43f70b76
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  activated {1}{W}: this turn, replace damage to enchanted: redirect next 1 to any target
+}

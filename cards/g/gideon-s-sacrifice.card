@@ -1,0 +1,6 @@
+card "Gideon's Sacrifice" {
+  oracle_id 1af63a5e-2bec-4f8d-a373-d9ce43a7d242
+  cost {W}
+  type Instant
+  spell: this turn, replace damage this turn to you and permanent you control: redirect to chosen creature or planeswalker you control
+}

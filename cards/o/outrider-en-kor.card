@@ -1,0 +1,8 @@
+card "Outrider en-Kor" {
+  oracle_id 644b7aba-a7b8-4861-9e83-73329cf85be2
+  cost {2}{W}
+  type Creature — Kor Rebel Knight
+  pt 2/2
+  keywords flanking
+  activated {0}: this turn, replace damage to this: redirect next 1 to target creature you control
+}

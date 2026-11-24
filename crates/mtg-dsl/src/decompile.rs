@@ -2498,6 +2498,8 @@ impl Decompiler<'_> {
                 }
                 _ => None,
             },
+            wording: crate::ast::ThenWording::Sentence,
+            cond: None,
         }
     }
 

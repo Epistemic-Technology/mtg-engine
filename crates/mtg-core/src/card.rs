@@ -5876,6 +5876,14 @@ impl Effect {
                     },
                     ..
                 })
+                // "Choose a creature or planeswalker you control."
+                | Effect::CreateReplacement(ReplacementAbility {
+                    replacement: Replacement::Redirect {
+                        to: RedirectTo::ChosenCreatureOrPlaneswalker,
+                        ..
+                    },
+                    ..
+                })
                 | Effect::Vote { .. }
                 | Effect::VoteReturn { .. }
                 // Each clashing player puts their card on the top or
@@ -6297,6 +6305,14 @@ pub enum RedirectTo {
     /// The spell's `n`th chosen target, locked in when the effect is
     /// created.
     Target(usize),
+    /// The effect's controller ("is dealt to you instead", Vassal's
+    /// Duty).
+    You,
+    /// "Choose a creature or planeswalker you control. All damage ... is
+    /// dealt to the chosen permanent instead (if it's still on the
+    /// battlefield)." (Gideon's Sacrifice): chosen by the controller as
+    /// the effect is created (stored effects only).
+    ChosenCreatureOrPlaneswalker,
 }
 
 /// The event a replacement or prevention effect watches for (CR 614.1,
@@ -9228,6 +9244,10 @@ impl Marks {
     pub const NIGHTBOUND: Marks = Marks(16);
     /// Storied (CR 702.195a): its controller gets an enduring story.
     pub const STORIED: Marks = Marks(32);
+    /// "Damage isn't removed from this creature during cleanup steps."
+    /// (Ancient Adamantoise, CR 514.2): kept by the card's definition,
+    /// also while it has lost its abilities.
+    pub const KEEPS_DAMAGE: Marks = Marks(64);
 
     pub const fn has(self, m: Marks) -> bool {
         self.0 & m.0 != 0

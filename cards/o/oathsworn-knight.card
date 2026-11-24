@@ -1,0 +1,11 @@
+card "Oathsworn Knight" {
+  oracle_id 16c293c8-bd1d-4db9-b197-da14f2f37cb1
+  cost {1}{B}{B}
+  type Creature — Human Knight
+  pt 0/0
+  enters with 4 +1/+1 counters
+  keywords attacks each combat if able
+  replace damage to this while this has 1 or more +1/+1 counters: prevent and {
+    remove 1 +1/+1 counters from this
+  }
+}
