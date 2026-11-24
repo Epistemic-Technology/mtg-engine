@@ -254,6 +254,46 @@ scenario "Sedris: unearth only as a sorcery" {
   assert graveyard A contains "Hill Giant"
 }
 
+scenario "Mishra: an artifact card in the graveyard unearths for {1}{B}{R}" {
+  battlefield A: "Mishra, Tamer of Mak Fawa", "Swamp", "Mountain", "Island"
+  graveyard A: "Aeolipile"
+  turn 1 A: activate "Aeolipile"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Aeolipile"
+  run_to turn 2 upkeep
+  assert exile A contains "Aeolipile"
+}
+
+scenario "Mishra: a creature card has no unearth" {
+  battlefield A: "Mishra, Tamer of Mak Fawa", "Swamp", "Mountain", "Island"
+  graveyard A: "Grizzly Bears"
+  illegal turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Mishra: permanents you control have ward, sacrifice a permanent (declined)" {
+  battlefield A: "Mishra, Tamer of Mak Fawa", "Grizzly Bears"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  turn 1 postcombat_main B: cast "Murder" targeting "Grizzly Bears"
+  turn 1 postcombat_main B: decline "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Murder"
+  assert battlefield B contains 3 "Swamp"
+}
+
+scenario "Mishra: permanents you control have ward, sacrifice a permanent (paid)" {
+  battlefield A: "Mishra, Tamer of Mak Fawa", "Grizzly Bears"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  turn 1 postcombat_main B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield B contains 2 "Swamp"
+}
+
 scenario "Lorehold: an instant or sorcery drawn first has miracle {2}" {
   battlefield A: "Lorehold, the Historian", 2 "Mountain"
   library A: "Divination", "Island", "Forest"
