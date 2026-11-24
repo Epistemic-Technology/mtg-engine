@@ -6744,7 +6744,12 @@ impl GameState {
     /// first so that it is not also tapped for mana; sacrifices come last,
     /// so a "sacrifice ~" source is still there to be tapped.
     #[allow(clippy::too_many_lines)] // one step per kind of cost
-    pub(super) fn finish_activation(&mut self, obj: ObjId, sacrifice: Option<ObjId>, discard: Option<ObjId>) {
+    pub(super) fn finish_activation(
+        &mut self,
+        obj: ObjId,
+        sacrifice: Option<ObjId>,
+        discard: Option<ObjId>,
+    ) {
         let o = &self.objects[obj];
         let (controller, def) = (o.controller, o.def);
         let sa = o.ability.expect("ability object");
@@ -6824,7 +6829,14 @@ impl GameState {
             // The permanents tapped for the cost may have taken mana the
             // announcement counted on: then any way.
             let ps = self.player(controller);
-            if !self.payable(controller, &sources, &ps.mana_pool, &req, ps.life, Some(sa.source)) {
+            if !self.payable(
+                controller,
+                &sources,
+                &ps.mana_pool,
+                &req,
+                ps.life,
+                Some(sa.source),
+            ) {
                 req.life_symbols = None;
             }
         }

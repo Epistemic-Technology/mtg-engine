@@ -9086,9 +9086,7 @@ impl ActivatedAbility {
     /// mana; it may do other things too ("Add {G}{G}. If there are no
     /// depletion counters on this land, sacrifice it.").
     pub fn is_mana_ability(&self) -> bool {
-        self.targets.is_empty()
-            && !self.is_loyalty()
-            && self.effects.iter().any(Effect::adds_mana)
+        self.targets.is_empty() && !self.is_loyalty() && self.effects.iter().any(Effect::adds_mana)
     }
 }
 

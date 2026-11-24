@@ -2328,7 +2328,11 @@ impl GameState {
                 self.phyrexian_life
                     .push((spell, u8::try_from(k).unwrap_or(u8::MAX)));
                 // An activated ability's cost (CR 602.2b) or a spell's.
-                if self.objects.get(spell).is_some_and(|o| o.kind == ObjKind::Ability) {
+                if self
+                    .objects
+                    .get(spell)
+                    .is_some_and(|o| o.kind == ObjKind::Ability)
+                {
                     self.finish_activation(spell, sacrifice, discard);
                 } else {
                     self.finish_cast(spell, sacrifice, discard);

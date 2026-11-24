@@ -13204,7 +13204,10 @@ impl P {
             // gain; for a cast, the mana spent to cast that spell, read
             // only after a condition on it ("If eight or more mana was
             // spent to cast that spell, ... deals that much damage").
-            if self.in_trigger && !self.in_delayed && self.no_trigger_amount && !self.that_spell_spent
+            if self.in_trigger
+                && !self.in_delayed
+                && self.no_trigger_amount
+                && !self.that_spell_spent
             {
                 return self.fail("`that much`: this trigger's event has no amount");
             }
@@ -14557,9 +14560,9 @@ impl P {
             // "Sacrifice Mogg Bombers and it deals 3 damage": the source,
             // as it last existed, whatever triggered the ability.
             let after_sacrifice_this = self.pos >= 4
-                && ["sacrifice", "this", "and"].iter().enumerate().all(|(k, w)| {
-                    matches!(&self.toks[self.pos - 4 + k].tok, Tok::Word(x) if x == w)
-                });
+                && ["sacrifice", "this", "and"].iter().enumerate().all(
+                    |(k, w)| matches!(&self.toks[self.pos - 4 + k].tok, Tok::Word(x) if x == w),
+                );
             if after_sacrifice_this && self.at_word("deals") {
                 return Ok(Recipient::SourceIt);
             }
