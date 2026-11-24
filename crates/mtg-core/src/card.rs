@@ -8470,6 +8470,11 @@ pub struct Cost {
     /// loyalty counters; nonzero marks the ability as a loyalty ability
     /// (sorcery speed, one per planeswalker per turn, CR 606.3).
     pub loyalty: i32,
+    /// "−X:" (CR 606.4, 107.3): a loyalty ability removing X loyalty
+    /// counters, X announced as it is activated, at most the source's
+    /// loyalty; `loyalty` is 0.
+    #[serde(default)]
+    pub loyalty_x: bool,
     /// {T}: tap the source. A creature's {T} ability needs the source to
     /// have been under its controller's control since their most recent
     /// turn began (CR 302.6).
@@ -8672,6 +8677,7 @@ impl Cost {
             discard_filter: None,
             discard_exile: false,
             loyalty: 0,
+            loyalty_x: false,
             tap: false,
             sacrifice: None,
             count: 0,
@@ -9025,7 +9031,7 @@ impl ActivatedAbility {
     /// A loyalty ability (CR 606.3). A "0:" ability has no loyalty in its
     /// cost and isn't told apart (as with `ActivationKind::Loyalty`).
     pub fn is_loyalty(&self) -> bool {
-        self.cost.loyalty != 0
+        self.cost.loyalty != 0 || self.cost.loyalty_x
     }
 }
 
@@ -9111,6 +9117,7 @@ impl ActivatedAbility {
     pub fn is_mana_ability(&self) -> bool {
         self.targets.is_empty()
             && self.cost.loyalty == 0
+            && !self.cost.loyalty_x
             && self.effects.iter().any(Effect::adds_mana)
     }
 }

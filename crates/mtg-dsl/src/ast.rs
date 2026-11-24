@@ -852,6 +852,9 @@ pub struct Cost {
     pub discard_exile: bool,
     /// A loyalty ability's cost (CR 606).
     pub loyalty: Option<i32>,
+    /// `loyalty -X`: "−X" (with `loyalty` `Some(0)`), X announced as the
+    /// ability is activated.
+    pub loyalty_x: bool,
     pub sacrifice: Option<SacCost>,
     /// "Activate only as a sorcery."
     pub sorcery: bool,

@@ -4040,15 +4040,23 @@ impl P {
             "loyalty" => {
                 self.pos += 1;
                 // "0:" (CR 606.3) is written `loyalty 0:` or `loyalty +0:`.
+                // `loyalty -X:` (CR 606.4, 107.3).
+                let mut x = false;
                 let n = match self.next() {
                     Some(Tok::Signed(n)) => n,
                     Some(Tok::Num(0)) => 0,
-                    _ => return self.fail("expected a loyalty cost such as +1, 0, or -3"),
+                    Some(Tok::Dash) if matches!(self.peek(), Some(Tok::Word(w)) if w == "X") => {
+                        self.pos += 1;
+                        x = true;
+                        0
+                    }
+                    _ => return self.fail("expected a loyalty cost such as +1, 0, -3, or -X"),
                 };
                 let effects = self.effects_body()?;
                 Ok(Ability::Activated {
                     cost: Cost {
                         loyalty: Some(n),
+                        loyalty_x: x,
                         sorcery: true,
                         ..Default::default()
                     },

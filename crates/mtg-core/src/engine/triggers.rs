@@ -2115,7 +2115,7 @@ impl GameState {
                     crate::card::ActivationKind::Exhaust => {
                         ab.keyword == Some(crate::card::ActivatedKeyword::Exhaust)
                     }
-                    crate::card::ActivationKind::Loyalty => ab.cost.loyalty != 0,
+                    crate::card::ActivationKind::Loyalty => ab.is_loyalty(),
                     crate::card::ActivationKind::Ninjutsu => {
                         ab.keyword == Some(crate::card::ActivatedKeyword::Ninjutsu)
                     }

@@ -1,0 +1,9 @@
+card "Chandra, Flamecaller" {
+  oracle_id 0c2a9131-f3d7-4f71-8bcc-3c169574b2e3
+  cost {4}{R}{R}
+  type Legendary Planeswalker — Chandra
+  loyalty 4
+  loyalty +1: create 2 "3/1 red Elemental creature with haste"; delayed those tokens: exile them at beginning of the next end step
+  loyalty 0: discard all cards in hand then draw count that many plus 1 discarded this way cards
+  loyalty -X: deal X damage to each creature
+}

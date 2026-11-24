@@ -3004,6 +3004,7 @@ impl Compiler<'_> {
             discard_filter: c.discard_filter.as_ref().map(|f| self.filter(f)),
             discard_exile: c.discard_exile,
             loyalty: c.loyalty.unwrap_or(0),
+            loyalty_x: c.loyalty_x,
             tap: c.tap,
             sacrifice: match &c.sacrifice {
                 None => None,

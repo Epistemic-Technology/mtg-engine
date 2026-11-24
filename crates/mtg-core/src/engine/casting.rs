@@ -5252,7 +5252,7 @@ impl GameState {
                 }
                 // CR 606.3: one loyalty ability per planeswalker per turn, at
                 // sorcery speed; CR 606.5: a −N cost needs N loyalty.
-                if ab.cost.loyalty != 0 {
+                if ab.is_loyalty() {
                     if !sorcery_timing || self.loyalty_activated.contains(&id) {
                         continue;
                     }
@@ -5851,7 +5851,7 @@ impl GameState {
         self.consecutive_passes = 0;
         let def = self.objects[source].def;
         if let AbilityDef::Activated(a) = self.pool.ability(ability) {
-            if a.cost.loyalty != 0 {
+            if a.is_loyalty() {
                 self.loyalty_activated.push(source);
             }
             if a.per_turn > 0 || a.keyword == Some(ActivatedKeyword::Boast) || a.counted {
@@ -5910,6 +5910,7 @@ impl GameState {
             self.pool.ability(ability),
             AbilityDef::Activated(a) if ((a.cost.mana.has_x()
                 || a.cost.remove_x
+                || a.cost.loyalty_x
                 || a.cost.behold.as_ref().is_some_and(|b| b.x)
                 || a.cost.exile_cards.as_ref().is_some_and(|g| g.x))
                 && !a.is_mana_ability())
@@ -6083,6 +6084,17 @@ impl GameState {
                 let b = a.cost.behold.as_deref().expect("checked");
                 let n = self.behold_candidates(caster, b, source).len();
                 max_x.min(u32::try_from(n).unwrap_or(MAX_X))
+            }
+            _ => max_x,
+        };
+        // "−X": no more than its loyalty (CR 606.6).
+        let max_x = match ability {
+            Some((source, a)) if a.cost.loyalty_x => {
+                let n = self
+                    .objects
+                    .get(source)
+                    .map_or(0, |o| o.counters(CounterKind::Loyalty));
+                max_x.min(n)
             }
             _ => max_x,
         };
@@ -6850,6 +6862,7 @@ impl GameState {
             // not the source's.
             if ab.cost.life_x
                 || ab.cost.remove_x
+                || ab.cost.loyalty_x
                 || ab.cost.behold.as_ref().is_some_and(|b| b.x)
                 || ab.cost.exile_cards.as_ref().is_some_and(|g| g.x)
             {
@@ -6867,6 +6880,9 @@ impl GameState {
                     && let Some((_, n)) = &mut cost.remove_counters
                 {
                     *n = s.x_of(obj);
+                }
+                if cost.loyalty_x {
+                    cost.loyalty = -i32::try_from(s.x_of(obj)).unwrap_or(i32::MAX);
                 }
                 if let Some(b) = &mut cost.behold
                     && b.x

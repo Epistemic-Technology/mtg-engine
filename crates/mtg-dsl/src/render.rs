@@ -4266,6 +4266,9 @@ fn ward_alts_text(alts: &[crate::ast::WardAlt], ctx: &mut Ctx) -> String {
 #[allow(clippy::too_many_lines)] // one arm per cost part
 fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
     if let Some(n) = cost.loyalty {
+        if cost.loyalty_x {
+            return "−X".to_string();
+        }
         // A zero loyalty cost prints "0:" (Gideon Jura's "0: Until end of
         // turn, ...").
         return match n.cmp(&0) {

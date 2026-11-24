@@ -7383,10 +7383,15 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 return;
             }
             if let Some(n) = cost.loyalty {
+                let head = if cost.loyalty_x {
+                    "loyalty -X".to_string()
+                } else {
+                    format!("loyalty {n:+}")
+                };
                 body(
                     out,
                     indent,
-                    &format!("loyalty {n:+}"),
+                    &head,
                     effects,
                     targets,
                     groups,
