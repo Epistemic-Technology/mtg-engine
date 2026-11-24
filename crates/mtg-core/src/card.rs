@@ -2930,11 +2930,29 @@ pub enum TurnEvent {
     /// Damage dealt to the player (CR 120.3), after prevention, in damage
     /// ("an opponent was dealt 7 or more damage this turn").
     DamageTaken,
+    /// Cards put into exile from anywhere, by their owner ("if one or more
+    /// cards were put into exile this turn"; tokens are no cards).
+    Exiled,
+    /// Creatures put into exile from the battlefield under the player's
+    /// control, as they last existed ("the number of creatures that were
+    /// exiled under your opponents' control this turn").
+    CreatureExiled,
+    /// Creature cards put into the player's graveyard from anywhere, by
+    /// their types there ("three or more creature cards were put into
+    /// graveyards from anywhere this turn").
+    CreatureCardToGraveyard,
+    /// Sources the player controlled that dealt damage, each once (CR
+    /// 120.1; "three or more sources you controlled dealt damage this
+    /// turn"), counted as each first deals damage.
+    DamageSource,
+    /// Loyalty abilities the player activated (CR 606.3; "if you've
+    /// activated a loyalty ability this turn").
+    LoyaltyActivated,
 }
 
 impl TurnEvent {
     /// The number of kinds: the turn log's rows.
-    pub const COUNT: usize = 34;
+    pub const COUNT: usize = 39;
 
     /// Whether a static ability reading this kind must be refreshed as it
     /// is counted (`CardDef::history_static`), the kinds counted without a
@@ -2958,7 +2976,11 @@ impl TurnEvent {
             | TurnEvent::Crime
             | TurnEvent::PlusCountersBy
             | TurnEvent::CountersOnCreatureBy
-            | TurnEvent::Attacked => true,
+            | TurnEvent::Attacked
+            | TurnEvent::Exiled
+            | TurnEvent::CreatureCardToGraveyard
+            | TurnEvent::DamageSource
+            | TurnEvent::LoyaltyActivated => true,
             TurnEvent::CreatureEntered
             | TurnEvent::NonlandEntered
             | TurnEvent::LandEntered
@@ -2976,7 +2998,8 @@ impl TurnEvent {
             | TurnEvent::AssassinDamage
             | TurnEvent::Entered
             | TurnEvent::Cast
-            | TurnEvent::CastFromHand => false,
+            | TurnEvent::CastFromHand
+            | TurnEvent::CreatureExiled => false,
         }
     }
 
@@ -3001,6 +3024,9 @@ pub enum TurnWho {
     Opponent,
     /// Every player's together ("two or more creatures died this turn").
     Anyone,
+    /// Every opponent's together ("the number of creatures that were
+    /// exiled under your opponents' control this turn").
+    Opponents,
 }
 
 /// "Events of kind K by player P this turn": what a `StaticCondition::

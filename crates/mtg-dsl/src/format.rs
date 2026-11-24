@@ -4340,6 +4340,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::OpponentsLostLife => "opponents lost life this turn".to_string(),
         CountExpr::CreaturesEnteredThisTurn => "creatures entered this turn".to_string(),
         CountExpr::DiscardedThisTurn => "discarded this turn".to_string(),
+        CountExpr::Tally(t) => t.words().join(" "),
 
         CountExpr::OpponentsMoreCards => "opponents more cards in hand".to_string(),
         CountExpr::OpponentsHandAtMost(n) => format!("opponents hand {n} or less"),
@@ -6893,6 +6894,7 @@ fn static_cond(c: &StaticCond) -> String {
             "gained and lost life this turn".to_string()
         }
         StaticCond::DescendedThisTurn => "descended this turn".to_string(),
+        StaticCond::Tally { what, n } => format!("{n} {}", what.words().join(" ")),
         StaticCond::SpellNumber(n) => format!("spell number {n} this turn"),
         StaticCond::SurveilledThisTurn => "surveilled this turn".to_string(),
         StaticCond::ScriedOrSurveilledThisTurn => "scried or surveilled this turn".to_string(),

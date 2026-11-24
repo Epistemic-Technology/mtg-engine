@@ -2621,6 +2621,11 @@ impl Compiler<'_> {
                     gained
                 }
             }
+            StaticCond::Tally { what, n } => StaticCondition::Happened {
+                count: what.count(),
+                cmp: mtg_core::card::Cmp::AtLeast,
+                n: *n,
+            },
             StaticCond::DescendedThisTurn => {
                 StaticCondition::happened(TurnEvent::Descended, TurnWho::You)
             }
@@ -2873,6 +2878,7 @@ impl Compiler<'_> {
                 C::Happened(TurnCount::of(TurnEvent::CreatureEntered, TurnWho::You))
             }
             A::DiscardedThisTurn => C::Happened(TurnCount::of(TurnEvent::Discarded, TurnWho::You)),
+            A::Tally(t) => C::Happened(t.count()),
 
             A::OpponentsMoreCards => C::OpponentsMoreCards,
             A::OpponentsHandAtMost(n) => C::OpponentsHandAtMost(*n),

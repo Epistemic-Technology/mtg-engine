@@ -370,6 +370,18 @@ impl GameState {
             // "if a creature card was put into your graveyard from anywhere
             // this turn".
             self.log_typed(TurnEvent::CardToGraveyard, old.owner, types);
+            if types.contains(crate::card::CardType::Creature) {
+                self.log_event(TurnEvent::CreatureCardToGraveyard, old.owner, 1);
+            }
+        }
+        // "if one or more cards were put into exile this turn".
+        if to == Zone::Exile && old.zone != Zone::Exile {
+            if old.kind == crate::state::ObjKind::Card {
+                self.log_event(TurnEvent::Exiled, old.owner, 1);
+            }
+            if old.zone == Zone::Battlefield && characteristics.is_creature() {
+                self.log_event(TurnEvent::CreatureExiled, old.controller, 1);
+            }
         }
         // "if one or more cards left your graveyard this turn".
         if old.zone == Zone::Graveyard {
@@ -1941,6 +1953,16 @@ impl GameState {
     fn note_damage_source(&mut self, source: ObjId) {
         if !self.dealt_damage_this_turn.contains(&source) {
             self.dealt_damage_this_turn.push(source);
+            // "three or more sources you controlled dealt damage this
+            // turn": its controller as it dealt the damage.
+            let controller = self
+                .objects
+                .get(source)
+                .map(|o| o.controller)
+                .or_else(|| self.lki.get(&source).map(|l| l.object.controller));
+            if let Some(c) = controller {
+                self.log_event(TurnEvent::DamageSource, c, 1);
+            }
         }
     }
 

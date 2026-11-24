@@ -669,6 +669,9 @@ pub enum CountExpr {
     CreaturesEnteredThisTurn,
     /// `discarded this turn`: "for each card you've discarded this turn".
     DiscardedThisTurn,
+    /// `times descended this turn`, `lands entered this turn`, ...: a
+    /// turn-log count worded by its own phrase (`Tally`).
+    Tally(Tally),
     /// `opponents more cards in hand`: "for each opponent who has more
     /// cards in hand than you".
     OpponentsMoreCards,
@@ -2763,6 +2766,96 @@ pub enum GraveyardWording {
     AreIn,
 }
 
+/// A turn-log count (`TurnEvent`) the card language words by its own
+/// phrase, as a condition (`StaticCond::Tally`: "three or more cards left
+/// your graveyard this turn") and as a count (`CountExpr::Tally`: "the
+/// number of times you descended this turn"). One row per kind: its words
+/// in the card language, its noun phrase, and what it counts.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+pub enum Tally {
+    /// "cards left your graveyard this turn".
+    LeftGraveyard,
+    /// "times you descended this turn" (CR 700.11).
+    Descended,
+    /// "lands that entered the battlefield under your control this turn".
+    LandsEntered,
+    /// "cards were put into exile this turn" (any player's).
+    Exiled,
+    /// "creature cards were put into graveyards from anywhere this turn".
+    CreatureCardsToGraveyards,
+    /// "creatures that were exiled under your opponents' control this turn".
+    CreaturesExiledOpponents,
+    /// "sources you controlled dealt damage this turn".
+    DamageSources,
+    /// "you've activated a loyalty ability this turn".
+    LoyaltyActivated,
+    /// "creatures attacked this turn" (any player's).
+    CreaturesAttacked,
+}
+
+impl Tally {
+    pub const ALL: [Tally; 9] = [
+        Tally::LeftGraveyard,
+        Tally::Descended,
+        Tally::LandsEntered,
+        Tally::Exiled,
+        Tally::CreatureCardsToGraveyards,
+        Tally::CreaturesExiledOpponents,
+        Tally::DamageSources,
+        Tally::LoyaltyActivated,
+        Tally::CreaturesAttacked,
+    ];
+
+    /// Its words in the card language, after the number of a condition
+    /// (`3 cards left your graveyard this turn`) or as a count (`count
+    /// each times descended this turn`).
+    #[must_use]
+    pub const fn words(self) -> &'static [&'static str] {
+        match self {
+            Tally::LeftGraveyard => &["cards", "left", "your", "graveyard", "this", "turn"],
+            Tally::Descended => &["times", "descended", "this", "turn"],
+            Tally::LandsEntered => &["lands", "entered", "this", "turn"],
+            Tally::Exiled => &["cards", "exiled", "this", "turn"],
+            Tally::CreatureCardsToGraveyards => {
+                &["creature", "cards", "to", "graveyards", "this", "turn"]
+            }
+            Tally::CreaturesExiledOpponents => {
+                &["creatures", "exiled", "under", "opponents", "this", "turn"]
+            }
+            Tally::DamageSources => &["sources", "dealt", "damage", "this", "turn"],
+            Tally::LoyaltyActivated => &["loyalty", "abilities", "activated", "this", "turn"],
+            Tally::CreaturesAttacked => &["creatures", "attacked", "this", "turn"],
+        }
+    }
+
+    /// The turn count it reads.
+    #[must_use]
+    pub const fn count(self) -> mtg_core::card::TurnCount {
+        use mtg_core::card::{TurnCount, TurnEvent as E, TurnWho as W};
+        match self {
+            Tally::LeftGraveyard => TurnCount::of(E::LeftGraveyard, W::You),
+            Tally::Descended => TurnCount::of(E::Descended, W::You),
+            Tally::LandsEntered => TurnCount::of(E::LandEntered, W::You),
+            Tally::Exiled => TurnCount::of(E::Exiled, W::Anyone),
+            Tally::CreatureCardsToGraveyards => {
+                TurnCount::of(E::CreatureCardToGraveyard, W::Anyone)
+            }
+            Tally::CreaturesExiledOpponents => TurnCount::of(E::CreatureExiled, W::Opponents),
+            Tally::DamageSources => TurnCount::of(E::DamageSource, W::You),
+            Tally::LoyaltyActivated => TurnCount::of(E::LoyaltyActivated, W::You),
+            Tally::CreaturesAttacked => TurnCount::of(E::Attacked, W::Anyone),
+        }
+    }
+
+    /// The tally that reads this turn count, if one does.
+    #[must_use]
+    pub fn of(c: &mtg_core::card::TurnCount) -> Option<Tally> {
+        (c.types.is_empty() && !c.other && c.filter.is_none())
+            .then(|| Tally::ALL.into_iter().find(|t| t.count() == *c))
+            .flatten()
+    }
+}
+
 /// What a conditional static ability checks.
 #[derive(Clone, Eq, PartialEq, Debug)]
 #[allow(clippy::large_enum_variant)] // a syntax tree, not a hot structure
@@ -3087,6 +3180,12 @@ pub enum StaticCond {
     },
     /// `descended this turn`: "you descended this turn".
     DescendedThisTurn,
+    /// `3 cards left your graveyard this turn`, `1 cards exiled this
+    /// turn`: a turn-log count (`Tally`) of `n` or more.
+    Tally {
+        what: Tally,
+        n: u32,
+    },
     /// `spell number 2 this turn`: the spell being cast would be your
     /// second this turn ("The second spell you cast each turn costs {1}
     /// less to cast.").

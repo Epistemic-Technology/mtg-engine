@@ -933,7 +933,30 @@ or spell an opponent controls, or a card in an opponent's graveyard),
 graveyard this turn"), `sacrificed artifact this turn` ("you've
 sacrificed an artifact this turn"; `sacrificed permanent this turn`, "you
 sacrificed a permanent this turn", any permanent), and `creature card to your graveyard this turn` ("a
-creature card was put into your graveyard from anywhere this turn"). A
+creature card was put into your graveyard from anywhere this turn").
+A number before a turn-log phrase is "N or more" of it (`Tally`; the
+same words without the number are a count, `count where times descended
+this turn`, `count each lands entered this turn`): `3 cards left your
+graveyard this turn` ("three or more cards left your graveyard this
+turn"; a count, "cards that left your graveyard this turn"), `2 times
+descended this turn` ("you descended two or more times this turn"; "the
+number of times you descended this turn", CR 700.11), `2 lands entered
+this turn` ("lands that entered the battlefield under your control this
+turn"), `1 cards exiled this turn` ("one or more cards were put into
+exile this turn", any player's cards; "cards that were put into exile
+this turn"), `3 creature cards to graveyards this turn` ("three or more
+creature cards were put into graveyards from anywhere this turn"),
+`1 creatures exiled under opponents this turn` (from the battlefield, as
+they last existed; as a count, "the number of creatures that were exiled
+under your opponents' control this turn", all opponents' together),
+`3 sources dealt damage this turn` ("three or more sources you
+controlled dealt damage this turn", each source once, by its controller
+as it dealt damage), `1 loyalty abilities activated this turn` ("you've
+activated a loyalty ability this turn"; with 2 or more, "you've
+activated two or more loyalty abilities this turn"), and `3 creatures
+attacked this turn` ("three or more creatures attacked this turn", any
+player's; only a condition, the count being `creature attacked this
+turn`). A
 count `differently named land you control`: "the number of differently
 named lands you control" (`this spell costs {1} less count where
 differently named land you control`).

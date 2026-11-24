@@ -2717,6 +2717,12 @@ impl GameState {
             TurnWho::Anyone => self.turn_log.tally[c.kind as usize]
                 .iter()
                 .fold(0u32, |a, n| a.saturating_add(*n)),
+            TurnWho::Opponents => self
+                .players_in_game()
+                .filter(|p| *p != you)
+                .fold(0u32, |a, p| {
+                    a.saturating_add(self.turn_count_of(c, p, you, source))
+                }),
         }
     }
 

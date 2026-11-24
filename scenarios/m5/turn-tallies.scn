@@ -1,0 +1,118 @@
+# "This turn" history counted on the turn log (`TurnEvent`, `Tally`):
+# loyalty abilities activated, cards put into exile, creatures exiled
+# under the opponents' control.
+
+scenario "Kiora of Salt and Sand untaps an attacker after a loyalty ability" {
+  battlefield A: "Kiora of Salt and Sand", "Jace Beleren", "Grizzly Bears"
+  turn 1 A: activate "Jace Beleren" ability 1
+  turn 1 A: wait
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Kiora of Salt and Sand" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert life B 18
+}
+
+scenario "Kiora of Salt and Sand does nothing without a loyalty ability this turn" {
+  battlefield A: "Kiora of Salt and Sand", "Jace Beleren", "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Kiora of Salt and Sand: another player's loyalty ability doesn't count" {
+  battlefield A: "Kiora of Salt and Sand", "Grizzly Bears"
+  battlefield B: "Jace Beleren"
+  start turn 2 B precombat_main
+  turn 2 B: activate "Jace Beleren" ability 1
+  run_to turn 3 precombat_main
+  turn 3 A: attack "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Kiora of Salt and Sand gives planeswalkers a -8 Leviathan ability" {
+  battlefield A: "Kiora of Salt and Sand", "Jace Beleren" with 8 loyalty
+  turn 1 A: activate "Jace Beleren" ability 4
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Leviathan"
+  assert power "Leviathan" 8
+  assert has "Leviathan" hexproof
+  assert graveyard A contains "Jace Beleren"
+}
+
+scenario "Ennis, Debate Moderator grows after its own flicker exiles a card" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  hand A: "Ennis, Debate Moderator"
+  turn 1 A: cast "Ennis, Debate Moderator"
+  turn 1 A: wait
+  turn 1 precombat_main A: trigger "Ennis, Debate Moderator" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert counters "Ennis, Debate Moderator" +1/+1 1
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Ennis, Debate Moderator counts an opponent's card put into exile" {
+  battlefield A: "Ennis, Debate Moderator", "Swamp"
+  graveyard B: "Hill Giant"
+  hand A: "Shadowfeed"
+  turn 1 A: cast "Shadowfeed" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert exile B contains "Hill Giant"
+  assert counters "Ennis, Debate Moderator" +1/+1 1
+}
+
+scenario "Ennis, Debate Moderator doesn't grow without an exile" {
+  battlefield A: "Ennis, Debate Moderator"
+  run_to turn 2 upkeep
+  assert counters "Ennis, Debate Moderator" +1/+1 0
+}
+
+scenario "Vren, the Relentless exiles the opponent's dying creatures and makes Rats for them" {
+  battlefield A: "Vren, the Relentless", 2 "Mountain"
+  battlefield B: "Grizzly Bears", "Wind Drake"
+  hand A: "Lightning Bolt", "Shock"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Wind Drake"
+  run_to turn 2 upkeep
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Wind Drake"
+  assert battlefield A contains 2 "Rat"
+  # Each Rat gets +1/+1 for the other Rat and for Vren.
+  assert power oldest "Rat" 3
+}
+
+scenario "Vren, the Relentless doesn't count its controller's own creatures" {
+  battlefield A: "Vren, the Relentless", "Mountain", "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A lacks "Rat"
+}
+
+scenario "Bioengineered Future adds a counter for each land that entered under your control this turn" {
+  battlefield A: "Bioengineered Future", "Forest"
+  hand A: "Forest", "Grizzly Bears"
+  turn 1 A: play "Forest"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "Bioengineered Future adds nothing with no land entered this turn" {
+  battlefield A: "Bioengineered Future", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Bioengineered Future makes a Lander as it enters" {
+  battlefield A: 3 "Forest"
+  hand A: "Bioengineered Future"
+  turn 1 A: cast "Bioengineered Future"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Lander"
+}

@@ -1,0 +1,8 @@
+card "Ennis, Debate Moderator" {
+  oracle_id 97e1fcdf-04e8-40cf-b04a-8505d9b7cecc
+  cost {1}{W}
+  type Legendary Creature — Human Cleric
+  pt 1/1
+  triggered when this enters: exile up to 1 target other creature you control; delayed target 1: return that card to battlefield under its owner's control at beginning of the next end step
+  triggered at beginning of your end step if 1 cards exiled this turn: put 1 +1/+1 counter on this
+}

@@ -116,6 +116,78 @@ fn digits(n: Num) -> String {
     }
 }
 
+/// A turn-log count's noun phrase, singular and plural ("for each time you
+/// descended this turn", "the number of times you descended this turn").
+fn tally_nouns(t: crate::ast::Tally) -> (&'static str, &'static str) {
+    use crate::ast::Tally;
+    match t {
+        Tally::LeftGraveyard => (
+            "card that left your graveyard this turn",
+            "cards that left your graveyard this turn",
+        ),
+        Tally::Descended => (
+            "time you descended this turn",
+            "times you descended this turn",
+        ),
+        Tally::LandsEntered => (
+            "land that entered the battlefield under your control this turn",
+            "lands that entered the battlefield under your control this turn",
+        ),
+        Tally::Exiled => (
+            "card that was put into exile this turn",
+            "cards that were put into exile this turn",
+        ),
+        Tally::CreatureCardsToGraveyards => (
+            "creature card that was put into a graveyard from anywhere this turn",
+            "creature cards that were put into graveyards from anywhere this turn",
+        ),
+        Tally::CreaturesExiledOpponents => (
+            "creature that was exiled under your opponents' control this turn",
+            "creatures that were exiled under your opponents' control this turn",
+        ),
+        Tally::DamageSources => (
+            "source you controlled that dealt damage this turn",
+            "sources you controlled that dealt damage this turn",
+        ),
+        Tally::LoyaltyActivated => (
+            "loyalty ability you've activated this turn",
+            "loyalty abilities you've activated this turn",
+        ),
+        Tally::CreaturesAttacked => (
+            "creature that attacked this turn",
+            "creatures that attacked this turn",
+        ),
+    }
+}
+
+/// A turn-log count of `n` or more as a condition ("three or more cards
+/// left your graveyard this turn", "one or more cards were put into exile
+/// this turn").
+fn tally_cond(t: crate::ast::Tally, n: u32) -> String {
+    use crate::ast::Tally;
+    let k = format!("{} or more", number_word(n));
+    match t {
+        Tally::LeftGraveyard => format!("{k} cards left your graveyard this turn"),
+        Tally::Descended => format!("you descended {k} times this turn"),
+        Tally::LandsEntered => {
+            format!("{k} lands entered the battlefield under your control this turn")
+        }
+        Tally::Exiled => format!("{k} cards were put into exile this turn"),
+        Tally::CreatureCardsToGraveyards => {
+            format!("{k} creature cards were put into graveyards from anywhere this turn")
+        }
+        Tally::CreaturesExiledOpponents => {
+            format!("{k} creatures were exiled under your opponents' control this turn")
+        }
+        Tally::DamageSources => format!("{k} sources you controlled dealt damage this turn"),
+        Tally::LoyaltyActivated if n == 1 => {
+            "you've activated a loyalty ability this turn".to_string()
+        }
+        Tally::LoyaltyActivated => format!("you've activated {k} loyalty abilities this turn"),
+        Tally::CreaturesAttacked => format!("{k} creatures attacked this turn"),
+    }
+}
+
 /// "three" (a number in words, digits past twenty).
 fn number_word(n: u32) -> String {
     NUMBER_WORDS
@@ -5657,6 +5729,10 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "opponent who lost life this turn".to_string(),
             "opponents who lost life this turn".to_string(),
         ),
+        CountExpr::Tally(t) => {
+            let (one, many) = tally_nouns(*t);
+            (one.to_string(), many.to_string())
+        }
         CountExpr::DiscardedThisTurn => (
             "card you've discarded this turn".to_string(),
             "cards you've discarded this turn".to_string(),
@@ -17654,6 +17730,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             "you gained and lost life this turn".to_string()
         }
         StaticCond::DescendedThisTurn => "you descended this turn".to_string(),
+        StaticCond::Tally { what, n } => tally_cond(*what, *n),
         StaticCond::SpellNumber(n) => {
             format!("it's the {} spell you cast this turn", ordinal_word(*n))
         }

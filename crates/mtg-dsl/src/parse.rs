@@ -5173,6 +5173,19 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one branch per condition
     fn static_cond_one(&mut self) -> R<StaticCond> {
+        // `3 cards left your graveyard this turn` (`Tally`).
+        if let Some(Tok::Num(_)) = self.peek()
+            && let Some(what) = crate::ast::Tally::ALL.into_iter().find(|t| {
+                t.words()
+                    .iter()
+                    .enumerate()
+                    .all(|(i, w)| self.word_at(i + 1).as_deref() == Some(*w))
+            })
+        {
+            let n = self.number()?;
+            self.pos += what.words().len();
+            return Ok(StaticCond::Tally { what, n });
+        }
         // `either you control land creature else land entered this turn`:
         // either holds (`else`, where a filter's own `or` would run on).
         if self.eat_word("either") {
@@ -13551,6 +13564,16 @@ impl P {
         }
         if self.eat_words(&["discarded", "this", "turn"]) {
             return Ok(CountExpr::DiscardedThisTurn);
+        }
+        // `times descended this turn`, `lands entered this turn`, ...
+        // (`Tally`); "creatures attacked" is only a condition, the count
+        // being `creature attacked this turn`.
+        if let Some(t) = crate::ast::Tally::ALL
+            .into_iter()
+            .find(|t| *t != crate::ast::Tally::CreaturesAttacked && self.at_words(t.words()))
+        {
+            self.pos += t.words().len();
+            return Ok(CountExpr::Tally(t));
         }
 
         if self.eat_words(&["opponents", "more", "cards", "in", "hand"]) {
