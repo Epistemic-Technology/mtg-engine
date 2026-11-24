@@ -170,3 +170,17 @@ scenario "Mogg Bombers deals the damage, not the entering creature" {
   assert life A 20
   assert graveyard A contains "Mogg Bombers"
 }
+
+# The runner: a card exiled face up is known to every player (CR 406.3).
+scenario "assert known counts a card exiled face up" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Exile"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Exile" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert exile B contains "Grizzly Bears"
+  assert known A "Grizzly Bears"
+  assert known B "Grizzly Bears"
+}

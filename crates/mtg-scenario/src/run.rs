@@ -2875,12 +2875,13 @@ impl Runner {
                         .iter()
                         .flat_map(|q| q.library.iter().chain(q.hand.iter()))
                         .any(|id| st.name_of(*id) == *name && st.knows(*p, *id))
-                    // A card exiled face down (CR 406.3).
-                    || st.players.iter().flat_map(|q| q.exile.iter()).any(|id| {
-                        st.objects[*id].exiled_face_down()
-                            && st.name_of(*id) == *name
-                            && st.knows(*p, *id)
-                    });
+                    // A card in exile: face up, known to all; face down,
+                    // to those who may look (CR 406.3).
+                    || st
+                        .players
+                        .iter()
+                        .flat_map(|q| q.exile.iter())
+                        .any(|id| st.name_of(*id) == *name && st.knows(*p, *id));
                 expect(
                     line,
                     format!("whether {} knows \"{name}\"", player_name(*p)),

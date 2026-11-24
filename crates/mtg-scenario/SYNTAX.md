@@ -149,7 +149,7 @@ assert counters "Grizzly Bears" +1/+1 3     assert counters "Jace Beleren" loyal
 assert attached "Holy Strength" to "Grizzly Bears"
 assert no_abilities "Serra Angel"
 assert has newest A "Grizzly Bears" haste   # the most recent of several
-assert known A "Island"     assert unknown B "Island"   # a card in a library or hand revealed to / looked at by that player, a face-down permanent by its card name, or a card exiled face down that the player may look at (CR 406.3)
+assert known A "Island"     assert unknown B "Island"   # a card in a library or hand revealed to / looked at by that player, a face-down permanent by its card name, a card exiled face up, or a card exiled face down that the player may look at (CR 406.3)
 assert face_down "Shock"     assert face_up "Shock"   # a card of that name in exile is exiled face down (CR 406.3) / face up
 ```
 
