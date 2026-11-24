@@ -649,14 +649,18 @@ impl CastInfo {
     /// `CAST_MASK`'s unused combinations, so no bit of their own.
     const ENTERED_GRAVEYARD: u32 = Self::CAST_HAND | Self::CAST_GRAVEYARD;
     const ENTERED_EXILE: u32 = Self::CAST_HAND | Self::CAST_ELSEWHERE;
+    /// Cast from a library (the top card: "you may cast spells from the
+    /// top of your library"), another unused combination.
+    const CAST_LIBRARY: u32 = Self::CAST_GRAVEYARD | Self::CAST_ELSEWHERE;
 
     /// The zone the spell was cast from, `None` if it wasn't cast (a copy,
-    /// a permanent put onto the battlefield); exile and the library read
-    /// as `Zone::Exile`.
+    /// a permanent put onto the battlefield); zones other than the hand,
+    /// a graveyard and a library read as `Zone::Exile`.
     pub const fn cast_from(self) -> Option<Zone> {
         match self.0 & Self::CAST_MASK {
             Self::CAST_HAND => Some(Zone::Hand),
             Self::CAST_GRAVEYARD => Some(Zone::Graveyard),
+            Self::CAST_LIBRARY => Some(Zone::Library),
             Self::CAST_ELSEWHERE => Some(Zone::Exile),
             _ => None,
         }
@@ -688,6 +692,7 @@ impl CastInfo {
         let bit = match zone {
             Zone::Hand => Self::CAST_HAND,
             Zone::Graveyard => Self::CAST_GRAVEYARD,
+            Zone::Library => Self::CAST_LIBRARY,
             _ => Self::CAST_ELSEWHERE,
         };
         self.0 = (self.0 & !Self::CAST_MASK) | bit;

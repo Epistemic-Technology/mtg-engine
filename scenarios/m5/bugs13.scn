@@ -98,3 +98,16 @@ scenario "unscripted, an activated ability's Phyrexian symbol is paid with mana"
   assert tapped "Mountain"
   assert power "Immolating Souleater" 2
 }
+
+# A spell cast from the top of a library wasn't cast from exile: Future
+# Sight's Grizzly Bears doesn't draw for Extraordinary Journey, one cast
+# from the hand doesn't either, and nothing else is different.
+scenario "a spell cast from a library isn't cast from exile" {
+  battlefield A: "Future Sight", "Extraordinary Journey", 2 "Forest"
+  library A: "Grizzly Bears", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 0
+}
