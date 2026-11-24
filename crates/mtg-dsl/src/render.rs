@@ -9759,6 +9759,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 !m.slots.is_empty()
                     || m.zones != crate::ast::SearchZones::Library
                     || m.split.is_some()
+                    || m.pick.is_some()
                     || m.wording != crate::ast::SearchWording::Plain
             }) || *to == mtg_core::card::SearchTo::HandAndGraveyard
             {
@@ -9843,8 +9844,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 mtg_core::card::SearchTo::Battlefield { tapped } => {
                     let _ = write!(
                         text,
-                        "{put} {pron} onto the battlefield{}, then {shuffle}",
-                        if *tapped { " tapped" } else { "" }
+                        "{put} {pron} onto the battlefield{}{}, then {shuffle}",
+                        if *tapped { " tapped" } else { "" },
+                        search_counters_text(more.as_deref(), one)
                     );
                 }
                 mtg_core::card::SearchTo::TopOfLibrary => {
@@ -9855,7 +9857,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     let gy = hand.replace("hand", "graveyard");
                     let _ = write!(text, "{put} {pron} into {gy}, then {shuffle}");
                 }
-                mtg_core::card::SearchTo::HandAndGraveyard => {
+                mtg_core::card::SearchTo::HandAndGraveyard
+                | mtg_core::card::SearchTo::HandOrBattlefield => {
                     text.push_str("(unsupported)");
                 }
                 mtg_core::card::SearchTo::HandOrGraveyard => {
@@ -11262,10 +11265,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 InsteadWording::Lead => format!("if {cond}, instead {body}"),
                 // "search your library for up to three basic Forest cards
                 // instead of two".
-                InsteadWording::Trail if body.contains(" instead of ") => {
+                InsteadWording::Trail
+                    if body.contains(" instead of ")
+                        // "put that card onto the battlefield instead.
+                        // Then shuffle." (`put instead`).
+                        || body.ends_with(" instead")
+                        || body.ends_with(" instead. Then shuffle") =>
+                {
                     format!("if {cond}, {body}")
                 }
                 InsteadWording::Trail => format!("if {cond}, {body} instead"),
+                // "You may put that card onto the battlefield instead of
+                // putting it into your hand if a creature died this turn."
+                InsteadWording::After if body.contains(" instead of putting ") => {
+                    format!("{body} if {cond}")
+                }
                 InsteadWording::After => format!("{body} instead if {cond}"),
                 InsteadWording::AfterBare => format!(
                     "{} instead if {cond}",
@@ -19590,10 +19604,12 @@ fn search_more_text(e: &Effect, ctx: &mut Ctx) -> Clause {
         up_to,
         to,
         reveal,
+        that_card,
         who,
         may,
         graveyard,
         name,
+        old,
         more,
         ..
     } = e
@@ -19621,7 +19637,7 @@ fn search_more_text(e: &Effect, ctx: &mut Ctx) -> Clause {
         None => with_article(&cards_phrase(f, ctx.card, false)),
     };
     let plural = !m.slots.is_empty() || *count != Num::N(1) || *up_to;
-    let what = if m.slots.is_empty() {
+    let what = if m.slots.is_empty() || m.wording == SearchWording::Repeat {
         if name.is_some() {
             card_a(filter, name, ctx)
         } else {
@@ -19643,9 +19659,14 @@ fn search_more_text(e: &Effect, ctx: &mut Ctx) -> Clause {
     let head = format!("{verb} {zones} for {what}");
     let place = |to: SearchTo| match to {
         SearchTo::Hand => "into your hand",
-        SearchTo::Battlefield { tapped: false } => "onto the battlefield",
+        // `HandOrBattlefield`: "You may put that card onto the battlefield
+        // instead of putting it into your hand."
+        SearchTo::Battlefield { tapped: false } | SearchTo::HandOrBattlefield => {
+            "onto the battlefield"
+        }
         SearchTo::Battlefield { tapped: true } => "onto the battlefield tapped",
         SearchTo::Graveyard => "into your graveyard",
+        SearchTo::TopOfLibrary => "on top",
         _ => "(unsupported)",
     };
     let shuffle_sentence = if *may || maybe_library {
@@ -19658,7 +19679,109 @@ fn search_more_text(e: &Effect, ctx: &mut Ctx) -> Clause {
     } else {
         ("it", "that card")
     };
-    let text = if let Some((f, alt)) = &m.split {
+    let text = if let Some((n, by, chosen)) = &m.pick {
+        // Gifts Ungiven: "... and reveal them. Target opponent chooses two
+        // of those cards. Put the chosen cards into your graveyard and the
+        // rest into your hand. Then shuffle." Burning-Rune Demon: "you may
+        // search ... for exactly two cards .... If you do, reveal those
+        // cards. An opponent chooses one of them. Put the chosen card into
+        // your hand and the other into your graveyard, then shuffle."
+        let chooser = match by {
+            Some(r) => ctx.subj(*r),
+            None => "an opponent".to_string(),
+        };
+        let chooser = capitalize(&chooser);
+        let k = count_words(Num::N(*n), "one");
+        let chosen_cards = if *n == 1 {
+            "the chosen card"
+        } else {
+            "the chosen cards"
+        };
+        let rest = if m.exactly && *count == Num::N(n + 1) {
+            "the other"
+        } else {
+            "the rest"
+        };
+        let then = if *old {
+            ". Then shuffle"
+        } else {
+            ", then shuffle"
+        };
+        if *may {
+            format!(
+                "{head}. If you do, reveal those cards. {chooser} chooses {k} of them. Put {chosen_cards} {} and {rest} {}{then}",
+                place(*chosen),
+                place(*to)
+            )
+        } else {
+            format!(
+                "{head} and reveal them. {chooser} chooses {k} of those cards. Put {chosen_cards} {} and {rest} {}{then}",
+                place(*chosen),
+                place(*to)
+            )
+        }
+    } else if let SearchWording::PutInstead { then, of } = m.wording {
+        // "If you control a Dragon, put that card onto the battlefield
+        // tapped instead." (the search before found the card); "You may
+        // put that card onto the battlefield instead of putting it into
+        // your hand if ..." (Caravan Vigil).
+        let of = of.map_or_else(String::new, |of| {
+            format!(" of putting {pron} {}", place(of))
+        });
+        format!(
+            "{}put {those} {}{} instead{of}{}",
+            if *to == SearchTo::HandOrBattlefield {
+                "you may "
+            } else {
+                ""
+            },
+            place(*to),
+            search_counters_text(Some(m), !plural),
+            if then { ". Then shuffle" } else { "" }
+        )
+    } else if m.wording == SearchWording::Unshuffled {
+        // "Search your library for a card and put that card into your
+        // hand." (the `instead` sentence after it shuffles).
+        let it = match (*that_card, plural) {
+            (true, false) => "that card",
+            (true, true) => "those cards",
+            (false, false) => "it",
+            (false, true) => "them",
+        };
+        if *reveal {
+            format!("{head}, reveal {pron}, and put {it} {}", place(*to))
+        } else {
+            format!("{head} and put {it} {}", place(*to))
+        }
+    } else if m.wording == SearchWording::Repeat {
+        // "Then repeat this process for instant cards with mana values 2
+        // and 1."
+        let mut base = filter.clone();
+        base.mana_value = None;
+        let values: Vec<String> = m
+            .slots
+            .iter()
+            .map(|(f, _)| {
+                f.mana_value
+                    .map_or_else(String::new, |(_, n)| n.to_string())
+            })
+            .collect();
+        let values = match values.as_slice() {
+            [] => String::new(),
+            [only] => only.clone(),
+            [first, second] => format!("{first} and {second}"),
+            [rest @ .., last] => format!("{}, and {last}", rest.join(", ")),
+        };
+        let body = if *reveal {
+            format!("{head}, reveal it, and put it {}", place(*to))
+        } else {
+            format!("{head} and put it {}", place(*to))
+        };
+        format!(
+            "{body}. Then repeat this process for {} with mana values {values}. Then shuffle",
+            cards_phrase(&base, ctx.card, true)
+        )
+    } else if let Some((f, alt)) = &m.split {
         // "Put it onto the battlefield if its mana value is 2 or less.
         // Otherwise, put it into your hand."
         let cond = match f.mana_value {
@@ -19735,7 +19858,7 @@ fn search_more_text(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
         }
     };
-    if *may {
+    if *may && !matches!(m.wording, SearchWording::PutInstead { .. }) {
         Clause::with_subject(Recipient::You, "you".to_string(), text)
     } else {
         Clause::imperative(text)
@@ -19745,6 +19868,7 @@ fn search_more_text(e: &Effect, ctx: &mut Ctx) -> Clause {
 /// What a search looks for: "a basic land card", "up to two basic land
 /// cards and/or Gate cards", "any number of cards named ~" (with "with
 /// different names").
+#[allow(clippy::too_many_lines)] // one phrase per form
 fn search_what(e: &Effect, ctx: &mut Ctx) -> String {
     let Effect::Search {
         filter,
@@ -19757,7 +19881,39 @@ fn search_what(e: &Effect, ctx: &mut Ctx) -> String {
     else {
         unreachable!("a search");
     };
+    // "up to X creature cards with different names that each have mana
+    // value X": the mana value after the names.
+    if let Some(m) = more.as_deref()
+        && m.mana_value_last
+        && let Some((cmp, n)) = filter.mana_value
+    {
+        let mut inner = e.clone();
+        if let Effect::Search {
+            filter: f,
+            more: Some(m),
+            ..
+        } = &mut inner
+        {
+            f.mana_value = None;
+            f.status.mana_value_x = false;
+            m.mana_value_last = false;
+        }
+        let n = if filter.status.mana_value_x {
+            "X".to_string()
+        } else {
+            n.to_string()
+        };
+        return format!(
+            "{} that each have mana value {n}{}",
+            search_what(&inner, ctx),
+            cmp_words(cmp)
+        );
+    }
     let one = *count == Num::N(1) && !*up_to;
+    // "for exactly two cards": printed where "up to" would be.
+    let exactly = more.as_deref().is_some_and(|m| m.exactly);
+    let up_to = &(*up_to || exactly);
+    let lead = if exactly { "exactly " } else { "up to " };
     let any = *count == Num::N(crate::ast::ANY_NUMBER);
     let what = if *or_card != crate::ast::OrCard::No
         && let Some(alt) = &filter.or
@@ -19780,7 +19936,7 @@ fn search_what(e: &Effect, ctx: &mut Ctx) -> String {
         } else {
             format!(
                 "{}{} {} and/or {}",
-                if *up_to { "up to " } else { "" },
+                if *up_to { lead } else { "" },
                 count_words(*count, "a"),
                 cards_phrase(&base, ctx.card, true),
                 cards_phrase(alt, ctx.card, true)
@@ -19795,7 +19951,7 @@ fn search_what(e: &Effect, ctx: &mut Ctx) -> String {
         } else {
             format!(
                 "{}{} {}",
-                if *up_to { "up to " } else { "" },
+                if *up_to { lead } else { "" },
                 count_words(*count, "a"),
                 cards_phrase(filter, ctx.card, true)
             )
@@ -19813,7 +19969,7 @@ fn search_what(e: &Effect, ctx: &mut Ctx) -> String {
         } else {
             format!(
                 "{}{} cards",
-                if *up_to { "up to " } else { "" },
+                if *up_to { lead } else { "" },
                 count_words(*count, "a")
             )
         }
@@ -19827,22 +19983,47 @@ fn search_what(e: &Effect, ctx: &mut Ctx) -> String {
         // mana value after the noun.
         format!(
             "{}{} {}",
-            if *up_to { "up to " } else { "" },
+            if *up_to { lead } else { "" },
             count_words(*count, "a"),
             cards_phrase(filter, ctx.card, true)
         )
     } else {
         format!(
             "{}{} {} cards",
-            if *up_to { "up to " } else { "" },
+            if *up_to { lead } else { "" },
             count_words(*count, "a"),
             filter_phrase(filter, ctx.card, false)
         )
     };
-    if more.as_ref().is_some_and(|m| m.different_names) {
-        format!("{what} with different names")
-    } else {
-        what
+    match more.as_deref() {
+        Some(m) if m.different_names => format!(
+            "{what} {}",
+            match m.names {
+                crate::ast::NamesWording::With => "with different names",
+                crate::ast::NamesWording::ThatHave => "that have different names",
+                crate::ast::NamesWording::ThatEachHave => "that each have different names",
+            }
+        ),
+        _ => what,
+    }
+}
+
+/// "with a stun counter on it", "with X additional +1/+1 counters on it"
+/// (a searched card entering with counters); `one`: one card ("it").
+fn search_counters_text(more: Option<&crate::ast::SearchMore>, one: bool) -> String {
+    match more.and_then(|m| m.counters) {
+        Some((k, n, additional)) => {
+            let c = counters(n, k);
+            let c = if additional {
+                // "X additional +1/+1 counters".
+                let (head, tail) = c.split_once(' ').unwrap_or((&c, ""));
+                format!("{head} additional {tail}")
+            } else {
+                c
+            };
+            format!(" with {c} on {}", if one { "it" } else { "them" })
+        }
+        None => String::new(),
     }
 }
 

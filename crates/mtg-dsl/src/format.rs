@@ -2523,6 +2523,11 @@ impl Fmt {
                 more,
             } => {
                 let searcher = who.map(|w| self.recipient(w, t));
+                let picker = more
+                    .as_ref()
+                    .and_then(|m| m.pick)
+                    .and_then(|(_, by, _)| by)
+                    .map(|r| self.recipient(r, t));
                 let mut t = String::new();
                 if let Some(w) = &searcher {
                     let _ = write!(t, "{w} ");
@@ -2551,6 +2556,9 @@ impl Fmt {
                 if *up_to {
                     t.push_str("up to ");
                 }
+                if more.as_ref().is_some_and(|m| m.exactly) {
+                    t.push_str("exactly ");
+                }
                 if *count == Num::N(crate::ast::ANY_NUMBER) {
                     t.push_str("any number ");
                 } else if let Num::Count(_) = count {
@@ -2568,7 +2576,9 @@ impl Fmt {
                 } else {
                     g.or.take()
                 };
-                // "card with mana value 3 or less": after the noun.
+                // "card with mana value 3 or less": after the noun (after
+                // the names with `mana_value_last`).
+                let mv_last = more.as_ref().is_some_and(|m| m.mana_value_last);
                 let mut mv = None;
                 if g.or.is_none() {
                     mv = g.mana_value.take().map(|(cmp, n)| {
@@ -2598,8 +2608,8 @@ impl Fmt {
                         n.split('|').map(|n| format!("named \"{n}\"")).collect();
                     let _ = write!(t, " {}", names.join(" or "));
                 }
-                if let Some(mv) = mv {
-                    t.push_str(&mv);
+                if let Some(mv) = mv.as_ref().filter(|_| !mv_last) {
+                    t.push_str(mv);
                 }
                 if let Some(a) = alt {
                     let art = if *or_card == crate::ast::OrCard::Article {
@@ -2611,17 +2621,41 @@ impl Fmt {
                 }
                 if let Some(m) = more {
                     for (f, n) in &m.slots {
-                        if *f == Filter::default() {
+                        // `and instant card with mana value 2`: the mana
+                        // value after the noun.
+                        let mut f = f.clone();
+                        let mv = if f.or.is_none() && !f.status.mana_value_x {
+                            f.mana_value.take()
+                        } else {
+                            None
+                        };
+                        if f == Filter::default() {
                             t.push_str(" and card");
                         } else {
-                            let _ = write!(t, " and {} card", filter(f));
+                            let _ = write!(t, " and {} card", filter(&f));
+                        }
+                        if let Some((cmp, k)) = mv {
+                            let _ = write!(t, " with mana value {k}{}", cmp_suffix(cmp));
                         }
                         if let Some(n) = n {
                             let _ = write!(t, " named \"{n}\"");
                         }
                     }
                     if m.different_names {
-                        t.push_str(" with different names");
+                        t.push_str(match m.names {
+                            crate::ast::NamesWording::With => " with different names",
+                            crate::ast::NamesWording::ThatHave => " that have different names",
+                            crate::ast::NamesWording::ThatEachHave => {
+                                " that each have different names"
+                            }
+                        });
+                    }
+                    if mv_last && let Some(mv) = &mv {
+                        let _ = write!(
+                            t,
+                            " that each have{}",
+                            mv.strip_prefix(" with").unwrap_or(mv)
+                        );
                     }
                 }
                 if *reveal {
@@ -2642,6 +2676,22 @@ impl Fmt {
                         let _ = write!(t, " to {}", search_to(*to));
                     }
                 }
+                if let Some((k, n, additional)) = more.as_ref().and_then(|m| m.counters) {
+                    let _ = write!(
+                        t,
+                        " with {} {}{}",
+                        num(n),
+                        if additional { "additional " } else { "" },
+                        counter(k, n)
+                    );
+                }
+                if let Some((n, by, chosen)) = more.as_ref().and_then(|m| m.pick) {
+                    let by = match (by, &picker) {
+                        (Some(_), Some(p)) => p.as_str(),
+                        _ => "opponent",
+                    };
+                    let _ = write!(t, " except {n} chosen by {by} to {}", search_to(chosen));
+                }
                 if *that_card {
                     t.push_str(" that card");
                 }
@@ -2659,6 +2709,17 @@ impl Fmt {
                     Some(crate::ast::SearchWording::InsteadOf(n)) => {
                         let _ = write!(t, " instead of {n}");
                     }
+                    Some(crate::ast::SearchWording::Unshuffled) => t.push_str(" unshuffled"),
+                    Some(crate::ast::SearchWording::PutInstead { then, of }) => {
+                        t.push_str(" put instead");
+                        if let Some(of) = of {
+                            let _ = write!(t, " of {}", search_to(of));
+                        }
+                        if then {
+                            t.push_str(" then");
+                        }
+                    }
+                    Some(crate::ast::SearchWording::Repeat) => t.push_str(" repeat"),
                     Some(crate::ast::SearchWording::Plain) | None => {}
                 }
                 t
@@ -3309,7 +3370,13 @@ impl Fmt {
                 let body = self.line(effects, t);
                 let text = match wording {
                     crate::ast::InsteadWording::Lead => format!("if {cond}, instead {body}"),
-                    crate::ast::InsteadWording::Trail if body.contains(" instead of ") => {
+                    // `instead of 2`, `put instead [then]`: the search says
+                    // "instead" itself.
+                    crate::ast::InsteadWording::Trail
+                        if body.contains(" instead of ")
+                            || body.ends_with(" put instead")
+                            || body.ends_with(" put instead then") =>
+                    {
                         format!("if {cond}, {body}")
                     }
                     crate::ast::InsteadWording::Trail => format!("if {cond}, {body} instead"),
@@ -8163,6 +8230,7 @@ fn search_to(to: mtg_core::card::SearchTo) -> &'static str {
         SearchTo::Exile => "exile",
         SearchTo::ExileFaceDown => "exile face down",
         SearchTo::HandOrGraveyard => "hand or graveyard",
+        SearchTo::HandOrBattlefield => "hand or battlefield",
         SearchTo::HandAndGraveyard => "hand and graveyard",
     }
 }

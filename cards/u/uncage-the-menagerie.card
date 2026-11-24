@@ -1,0 +1,6 @@
+card "Uncage the Menagerie" {
+  oracle_id d2043685-f091-444f-9c35-d238afa24d7b
+  cost {X}{G}{G}
+  type Sorcery
+  spell: search up to X creature card with different names that each have mana value X reveal to hand
+}

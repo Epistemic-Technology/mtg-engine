@@ -1,0 +1,6 @@
+card "Entish Restoration" {
+  oracle_id 736017e2-bc33-49e8-812d-1639443fdb51
+  cost {2}{G}
+  type Instant
+  spell: sacrifice 1 land chosen; search up to 2 basic land card to battlefield tapped; if you control creature with power 4 or greater, instead search up to 3 basic land card to battlefield tapped
+}

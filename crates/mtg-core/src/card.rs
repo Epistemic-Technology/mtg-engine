@@ -2645,6 +2645,10 @@ pub enum SearchTo {
     /// "Put one into your hand and the other into your graveyard" (Fork
     /// in the Road): the searcher chooses the one for the hand.
     HandAndGraveyard,
+    /// "You may put that card onto the battlefield instead of putting it
+    /// into your hand" (Caravan Vigil): the searcher chooses, for each
+    /// card.
+    HandOrBattlefield,
 }
 
 /// The rarer parts of a search (`Effect::Search::more`).
@@ -2675,6 +2679,29 @@ pub struct SearchMore {
     /// instead of the search's `to`.
     #[serde(default)]
     pub split: Option<(ObjFilter, SearchTo)>,
+    /// "Target opponent chooses two of those cards. Put the chosen cards
+    /// into your graveyard and the rest into your hand." (Gifts Ungiven):
+    /// another player chooses some of the found cards for another
+    /// destination.
+    #[serde(default)]
+    pub pick: Option<SearchPick>,
+    /// "put it onto the battlefield tapped with a stun counter on it"
+    /// (Magmatic Hellkite): a found card put onto the battlefield enters
+    /// with these counters (CR 122.6).
+    #[serde(default)]
+    pub counters: Option<(CounterKind, Num)>,
+}
+
+/// `SearchMore::pick`: `by` (an opponent of the searcher's choice with
+/// `None`, which is the next opponent in turn order) chooses `n` of the
+/// found cards, which go to `chosen`; the rest go to the search's
+/// destination. With `n` or fewer cards found, all are chosen (Gifts
+/// Ungiven's ruling).
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct SearchPick {
+    pub n: u32,
+    pub by: Option<Recipient>,
+    pub chosen: SearchTo,
 }
 
 /// A static ability (CR 604) that generates a continuous effect while its

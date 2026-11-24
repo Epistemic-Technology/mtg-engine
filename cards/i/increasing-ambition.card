@@ -1,0 +1,7 @@
+card "Increasing Ambition" {
+  oracle_id 09027657-bc9a-4702-88c1-e5b3534ad188
+  cost {4}{B}
+  type Sorcery
+  spell: search card to hand that card unshuffled; if cast from graveyard, instead search 2 card to hand that card then
+  flashback {7}{B}
+}

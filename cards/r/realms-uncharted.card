@@ -1,0 +1,6 @@
+card "Realms Uncharted" {
+  oracle_id e21c8fc6-d4ef-42b6-b11e-d9c931da1387
+  cost {2}{G}
+  type Instant
+  spell: search up to 4 land card with different names reveal to hand except 2 chosen by opponent to graveyard then
+}

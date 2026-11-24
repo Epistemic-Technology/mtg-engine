@@ -1,0 +1,7 @@
+card "Embermouth Sentinel" {
+  oracle_id b5208c2c-b839-42f6-8717-ee4bbaf1385b
+  cost {2}
+  type Artifact Creature — Chimera
+  pt 2/1
+  triggered when this enters: you may search basic land card reveal to top that card; if you control Dragon, you may search basic land card reveal to battlefield tapped put instead
+}

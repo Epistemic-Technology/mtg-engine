@@ -2689,7 +2689,63 @@ has its own destination, printed once), and `instead of 2` closing a
 trailing `instead` sentence (`label "Spell mastery" if 2 instant or
 sorcery cards in your graveyard, search up to 3 basic Forest card reveal
 to battlefield tapped and hand instead of 2`: "... search your library
-for up to three basic Forest cards instead of two.");
+for up to three basic Forest cards instead of two."; `if kicked, search 2
+basic land card reveal to hand instead of 1`: "If this spell was kicked,
+search your library for two basic land cards instead of one."),
+`unshuffled` on a search an `instead` sentence follows (`search card to
+hand that card unshuffled; if cast from graveyard, instead search 2 card
+to hand that card then`: "Search your library for a card and put that
+card into your hand. If this spell was cast from a graveyard, instead
+search your library for two cards and put those cards into your hand.
+Then shuffle."; with `reveal`, "..., reveal it, and put it into your
+hand."), and `put instead` closing a trailing `instead` search that only
+changes where the card goes (`search Vehicle card reveal to hand
+unshuffled; if cast from graveyard, search Vehicle card reveal to
+battlefield put instead then`: "... If this spell was cast from a
+graveyard, put that card onto the battlefield instead. Then shuffle.";
+without `then`, nothing more: `you may search basic land card reveal to
+top that card; if you control Dragon, you may search basic land card
+reveal to battlefield tapped put instead`, "... then shuffle and put that
+card on top. If you control a Dragon, put that card onto the battlefield
+tapped instead."; the engine searches once, for the instead
+destination when the condition holds; `put instead of hand` with the
+destination `hand or battlefield` before `instead if`: `label "Morbid"
+search basic land card reveal to hand or battlefield that card put
+instead of hand instead if creature died this turn`, "Morbid — You may
+put that card onto the battlefield instead of putting it into your hand
+if a creature died this turn.", the searcher choosing `choose "1"` hand
+or `choose "2"` battlefield in a scenario);
+another player chooses among the found cards with `except N chosen by
+<player> to <destination>` after the destination (`search up to 4 card
+with different names reveal to hand except 2 chosen by target opponent
+to graveyard then`: "Search your library for up to four cards with
+different names and reveal them. Target opponent chooses two of those
+cards. Put the chosen cards into your graveyard and the rest into your
+hand. Then shuffle."; `chosen by opponent` prints "An opponent chooses",
+the next opponent in turn order; without `then`, "... and the rest onto
+the battlefield tapped, then shuffle."; inside `you may` with `exactly`:
+`you may search exactly 2 card not named this that have different names
+reveal to graveyard except 1 chosen by opponent to hand`, "you may search
+your library for exactly two cards not named Burning-Rune Demon that have
+different names. If you do, reveal those cards. An opponent chooses one
+of them. Put the chosen card into your hand and the other into your
+graveyard, then shuffle."): the found cards are revealed, the chooser
+picks N of them (`choose "X"` by that player in a scenario), and with N
+or fewer found all of them are chosen; `that have different names` and
+`that each have different names` print so ("up to five Dragon cards not
+named Tiamat that each have different names"), and `with different
+names that each have mana value X` puts the mana value after the names
+("up to X creature cards with different names that each have mana value
+X"); a found card put onto the battlefield with counters, `to battlefield
+tapped with 1 stun counter` ("puts it onto the battlefield tapped with a
+stun counter on it", CR 122.6; `with X additional +1/+1 counters` prints
+"additional"); `repeat` after slots that differ from the first card only
+by mana value (`search instant card with mana value 3 and instant card
+with mana value 2 and instant card with mana value 1 reveal to hand
+repeat`: "Search your library for an instant card with mana value 3,
+reveal it, and put it into your hand. Then repeat this process for
+instant cards with mana values 2 and 1. Then shuffle.": one card for each
+mana value, any may be left unfound);
 another player searches their own library with a subject: `its
 controller may search basic land card to battlefield tapped` ("Its
 controller may search their library for ..., put it onto the battlefield

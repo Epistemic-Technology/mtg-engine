@@ -10472,7 +10472,46 @@ impl GameState {
                 to_field = Some(id);
             }
         }
+        // Gifts Ungiven: "Target opponent chooses two of those cards. Put
+        // the chosen cards into your graveyard and the rest into your
+        // hand." The found cards are revealed, so the chooser knows them.
+        let mut picked: SmallVec<[ObjId; 4]> = SmallVec::new();
+        if let Some(pick) = &more.pick
+            && !found.is_empty()
+        {
+            let chooser = match pick.by {
+                None => Some(self.opponent(p)),
+                Some(r) => self.recipients(ctx, r).into_iter().find_map(|t| match t {
+                    Target::Player(q) => Some(q),
+                    Target::Object(_) => None,
+                }),
+            };
+            for id in &found {
+                self.reveal_in_library(*id);
+            }
+            let n = pick.n as usize;
+            if found.len() <= n {
+                picked.extend(found.iter().copied());
+            } else if let Some(chooser) = chooser {
+                let mut rest = found.clone();
+                while picked.len() < n {
+                    let options: Vec<Choice> = rest
+                        .iter()
+                        .map(|id| Choice::Target(Target::Object(*id)))
+                        .collect();
+                    let k = self.choose_mid(chooser, DecisionKind::ChooseCard, options.clone());
+                    if let Choice::Target(Target::Object(id)) = options[k] {
+                        rest.retain(|c| *c != id);
+                        picked.push(id);
+                    }
+                }
+            }
+        }
         for id in found {
+            let to = match more.pick.as_ref() {
+                Some(pick) if picked.contains(&id) => &pick.chosen,
+                _ => to,
+            };
             let to = match to {
                 SearchTo::BattlefieldAndHand if to_field == Some(id) => {
                     &SearchTo::Battlefield { tapped: true }
@@ -10510,7 +10549,8 @@ impl GameState {
                         p,
                         super::replace::Enter {
                             tapped: *tapped,
-                            counters: None,
+                            // "with a stun counter on it" (CR 122.6).
+                            counters: more.counters.map(|(k, n)| (k, self.eval_num(n, ctx))),
                             ..super::replace::Enter::default()
                         },
                     );
@@ -10531,6 +10571,30 @@ impl GameState {
                         self.link_exile(ctx.source, new, false);
                     }
                     ctx.created = Some(new);
+                }
+                SearchTo::HandOrBattlefield => {
+                    let def = self.source_def(ctx);
+                    let k = self.choose_mid(
+                        p,
+                        DecisionKind::ChooseOption { def },
+                        vec![Choice::Mode(0), Choice::Mode(1)],
+                    );
+                    if k == 0 {
+                        let new = self.move_object(id, Zone::Hand, true);
+                        if reveal {
+                            self.reveal_in_hand(new);
+                        }
+                    } else {
+                        let new = self.put_onto_battlefield_with(
+                            id,
+                            p,
+                            super::replace::Enter {
+                                counters: more.counters.map(|(k, n)| (k, self.eval_num(n, ctx))),
+                                ..super::replace::Enter::default()
+                            },
+                        );
+                        ctx.created = Some(new);
+                    }
                 }
                 SearchTo::HandOrGraveyard => {
                     let def = self

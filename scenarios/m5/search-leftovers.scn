@@ -1,0 +1,487 @@
+# Library searches of the fourteenth wave (CR 701.19): an opponent chooses
+# among the cards found (Gifts Ungiven), a searched card entering with
+# counters, "that (each) have different names", "that each have mana value
+# X", "repeat this process", and the remaining "instead" wordings.
+
+# ---- an opponent chooses among the found cards ----
+
+scenario "Gifts Ungiven: target opponent chooses two for the graveyard, the rest to hand" {
+  battlefield A: 4 "Island"
+  hand A: "Gifts Ungiven"
+  library A: "Shock", "Counterspell", "Murder", "Divination", "Grizzly Bears"
+  turn 1 A: cast "Gifts Ungiven" targeting player B
+  turn 1 A: choose "Shock"
+  turn 1 A: choose "Counterspell"
+  turn 1 A: choose "Murder"
+  turn 1 A: choose "Divination"
+  turn 1 B: choose "Shock"
+  turn 1 B: choose "Murder"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Shock"
+  assert graveyard A contains "Murder"
+  assert graveyard A contains "Gifts Ungiven"
+  assert hand A contains "Counterspell"
+  assert hand A contains "Divination"
+  assert hand A count 2
+  assert library A count 1
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "Gifts Ungiven: two cards found both go to the graveyard" {
+  battlefield A: 4 "Island"
+  hand A: "Gifts Ungiven"
+  library A: "Shock", "Counterspell", "Grizzly Bears"
+  turn 1 A: cast "Gifts Ungiven" targeting player B
+  turn 1 A: choose "Shock"
+  turn 1 A: choose "Counterspell"
+  turn 1 A: choose decline
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Shock"
+  assert graveyard A contains "Counterspell"
+  assert hand A count 0
+  assert library A count 1
+}
+
+scenario "Gifts Ungiven: three found, the opponent's two chosen, one to hand" {
+  battlefield A: 4 "Island"
+  hand A: "Gifts Ungiven"
+  library A: "Shock", "Counterspell", "Murder"
+  turn 1 A: cast "Gifts Ungiven" targeting player B
+  turn 1 A: choose "Shock"
+  turn 1 A: choose "Counterspell"
+  turn 1 A: choose "Murder"
+  turn 1 B: choose "Counterspell"
+  turn 1 B: choose "Murder"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+  assert hand A count 1
+  assert graveyard A contains "Counterspell"
+  assert graveyard A contains "Murder"
+}
+
+scenario "Gifts Ungiven: two cards with the same name can't both be found" {
+  battlefield A: 4 "Island"
+  hand A: "Gifts Ungiven"
+  library A: "Shock", "Shock", "Murder"
+  turn 1 A: cast "Gifts Ungiven" targeting player B
+  turn 1 A: choose "Shock"
+  turn 1 A: choose "Murder"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Murder"
+  assert graveyard A contains "Shock"
+  assert library A count 1
+  assert library A contains "Shock"
+}
+
+scenario "Realms Uncharted: an opponent chooses two lands for the graveyard" {
+  battlefield A: 3 "Forest"
+  hand A: "Realms Uncharted"
+  library A: "Plains", "Island", "Swamp", "Mountain", "Grizzly Bears"
+  turn 1 A: cast "Realms Uncharted"
+  turn 1 A: choose "Plains"
+  turn 1 A: choose "Island"
+  turn 1 A: choose "Swamp"
+  turn 1 A: choose "Mountain"
+  turn 1 B: choose "Island"
+  turn 1 B: choose "Swamp"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Plains"
+  assert hand A contains "Mountain"
+  assert hand A count 2
+  assert graveyard A contains "Island"
+  assert graveyard A contains "Swamp"
+  assert library A count 1
+}
+
+scenario "Realms Uncharted finds land cards only" {
+  battlefield A: 3 "Forest"
+  hand A: "Realms Uncharted"
+  library A: "Plains", "Grizzly Bears"
+  turn 1 A: cast "Realms Uncharted"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Plains"
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "Elemental Teachings: the rest enter tapped" {
+  battlefield A: 5 "Forest"
+  hand A: "Elemental Teachings"
+  library A: "Plains", "Island", "Swamp", "Mountain"
+  turn 1 A: cast "Elemental Teachings"
+  turn 1 A: choose "Plains"
+  turn 1 A: choose "Island"
+  turn 1 A: choose "Swamp"
+  turn 1 A: choose "Mountain"
+  turn 1 B: choose "Plains"
+  turn 1 B: choose "Mountain"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Island"
+  assert battlefield A contains "Swamp"
+  assert tapped "Island"
+  assert tapped "Swamp"
+  assert graveyard A contains "Plains"
+  assert graveyard A contains "Mountain"
+  assert hand A count 0
+}
+
+scenario "Burning-Rune Demon: the opponent's choice to hand, the other to graveyard" {
+  battlefield A: 6 "Swamp"
+  hand A: "Burning-Rune Demon"
+  library A: "Murder", "Doom Blade", "Grizzly Bears"
+  turn 1 A: cast "Burning-Rune Demon"
+  turn 1 A: accept "Burning-Rune Demon"
+  turn 1 A: choose "Murder"
+  turn 1 A: choose "Doom Blade"
+  turn 1 B: choose "Doom Blade"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Doom Blade"
+  assert hand A count 1
+  assert graveyard A contains "Murder"
+  assert library A count 1
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "Burning-Rune Demon can't find another Burning-Rune Demon" {
+  battlefield A: 6 "Swamp"
+  hand A: "Burning-Rune Demon"
+  library A: "Burning-Rune Demon", "Murder"
+  turn 1 A: cast "Burning-Rune Demon"
+  turn 1 A: accept "Burning-Rune Demon"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Murder"
+  assert library A contains "Burning-Rune Demon"
+}
+
+scenario "Burning-Rune Demon: declining finds nothing" {
+  battlefield A: 6 "Swamp"
+  hand A: "Burning-Rune Demon"
+  library A: "Murder", "Doom Blade"
+  turn 1 A: cast "Burning-Rune Demon"
+  turn 1 A: decline "Burning-Rune Demon"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A count 2
+}
+
+# ---- a searched card enters with counters ----
+
+scenario "Magmatic Hellkite: the land's controller fetches a basic tapped with a stun counter" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Evolving Wilds"
+  hand A: "Magmatic Hellkite"
+  library B: "Forest", "Grizzly Bears"
+  turn 1 A: cast "Magmatic Hellkite"
+  turn 1 A: trigger "Magmatic Hellkite" targeting "Evolving Wilds"
+  turn 1 B: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Evolving Wilds"
+  assert battlefield B contains "Forest"
+  assert tapped "Forest"
+  assert counters "Forest" stun 1
+  assert library B count 1
+}
+
+scenario "Magmatic Hellkite: the stun counter keeps the land tapped through its untap step" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Evolving Wilds"
+  hand A: "Magmatic Hellkite"
+  library B: "Forest", "Grizzly Bears", "Shock"
+  turn 1 A: cast "Magmatic Hellkite"
+  turn 1 A: trigger "Magmatic Hellkite" targeting "Evolving Wilds"
+  turn 1 B: choose "Forest"
+  run_to turn 2 precombat_main
+  assert tapped "Forest"
+  assert counters "Forest" stun 0
+}
+
+# ---- "that each have different names", "that each have mana value X" ----
+
+scenario "Tiamat finds Dragons not named Tiamat" {
+  battlefield A: 2 "Plains", 2 "Island", 2 "Swamp", 2 "Mountain", "Forest"
+  hand A: "Tiamat"
+  library A: "Shivan Dragon", "Thundermaw Hellkite", "Tiamat", "Grizzly Bears"
+  turn 1 A: cast "Tiamat"
+  turn 1 A: choose "Shivan Dragon"
+  turn 1 A: choose "Thundermaw Hellkite"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shivan Dragon"
+  assert hand A contains "Thundermaw Hellkite"
+  assert hand A count 2
+  assert library A contains "Tiamat"
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "Tiamat can't find another Tiamat" {
+  battlefield A: 2 "Plains", 2 "Island", 2 "Swamp", 2 "Mountain", "Forest"
+  hand A: "Tiamat"
+  library A: "Tiamat", "Shivan Dragon"
+  turn 1 A: cast "Tiamat"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shivan Dragon"
+  assert library A contains "Tiamat"
+}
+
+scenario "Tiamat: no two Dragons share a name" {
+  battlefield A: 2 "Plains", 2 "Island", 2 "Swamp", 2 "Mountain", "Forest"
+  hand A: "Tiamat"
+  library A: "Shivan Dragon", "Shivan Dragon"
+  turn 1 A: cast "Tiamat"
+  turn 1 A: choose "Shivan Dragon"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert library A count 1
+}
+
+scenario "Uncage the Menagerie: X 2 finds creatures with mana value 2 only" {
+  battlefield A: 4 "Forest"
+  hand A: "Uncage the Menagerie"
+  library A: "Grizzly Bears", "Watchwolf", "Llanowar Elves", "Hill Giant"
+  turn 1 A: cast "Uncage the Menagerie" x 2
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Watchwolf"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Watchwolf"
+  assert hand A count 2
+  assert library A count 2
+}
+
+scenario "Uncage the Menagerie: mana value 1 and 4 aren't X 2" {
+  battlefield A: 4 "Forest"
+  hand A: "Uncage the Menagerie"
+  library A: "Llanowar Elves", "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Uncage the Menagerie" x 2
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 1
+  assert library A count 2
+}
+
+scenario "Uncage the Menagerie: different names" {
+  battlefield A: 4 "Forest"
+  hand A: "Uncage the Menagerie"
+  library A: "Grizzly Bears", "Grizzly Bears", "Watchwolf"
+  turn 1 A: cast "Uncage the Menagerie" x 2
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert library A contains "Grizzly Bears"
+}
+
+# ---- repeat this process ----
+
+scenario "Firemind's Foresight finds instants with mana value 3, 2, and 1" {
+  battlefield A: 4 "Island", 3 "Mountain"
+  hand A: "Firemind's Foresight"
+  library A: "Cancel", "Counterspell", "Shock", "Lightning Bolt", "Grizzly Bears"
+  turn 1 A: cast "Firemind's Foresight"
+  turn 1 A: choose "Counterspell"
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Cancel"
+  assert hand A contains "Counterspell"
+  assert hand A contains "Shock"
+  assert hand A count 3
+  assert library A count 2
+}
+
+scenario "Firemind's Foresight: no mana value 3 instant, still finds 2 and 1" {
+  battlefield A: 4 "Island", 3 "Mountain"
+  hand A: "Firemind's Foresight"
+  library A: "Counterspell", "Shock", "Grizzly Bears"
+  turn 1 A: cast "Firemind's Foresight"
+  turn 1 A: choose "Counterspell"
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert library A contains "Grizzly Bears"
+}
+
+# ---- the remaining "instead" wordings ----
+
+scenario "Increasing Ambition from the hand finds one card" {
+  battlefield A: 5 "Swamp"
+  hand A: "Increasing Ambition"
+  library A: "Murder", "Shock", "Grizzly Bears"
+  turn 1 A: cast "Increasing Ambition"
+  turn 1 A: choose "Murder"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Murder"
+  assert hand A count 1
+  assert library A count 2
+}
+
+scenario "Increasing Ambition cast from the graveyard finds two cards" {
+  battlefield A: 8 "Swamp"
+  graveyard A: "Increasing Ambition"
+  library A: "Murder", "Shock", "Grizzly Bears"
+  turn 1 A: cast "Increasing Ambition" from graveyard
+  turn 1 A: choose "Murder"
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Murder"
+  assert hand A contains "Shock"
+  assert hand A count 2
+  assert exile A contains "Increasing Ambition"
+}
+
+scenario "From Father to Son from the hand puts the Vehicle into the hand" {
+  battlefield A: 2 "Plains"
+  hand A: "From Father to Son"
+  library A: "Smuggler's Copter", "Grizzly Bears"
+  turn 1 A: cast "From Father to Son"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Smuggler's Copter"
+  assert battlefield A lacks "Smuggler's Copter"
+}
+
+scenario "From Father to Son cast from the graveyard puts the Vehicle onto the battlefield" {
+  battlefield A: 7 "Plains"
+  graveyard A: "From Father to Son"
+  library A: "Smuggler's Copter", "Grizzly Bears"
+  turn 1 A: cast "From Father to Son" from graveyard
+  turn 1 A: choose "Smuggler's Copter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Smuggler's Copter"
+  assert hand A count 0
+}
+
+scenario "Embermouth Sentinel without a Dragon puts the land on top" {
+  battlefield A: 2 "Mountain"
+  hand A: "Embermouth Sentinel"
+  library A: "Shock", "Forest", "Grizzly Bears"
+  turn 1 A: cast "Embermouth Sentinel"
+  turn 1 A: accept "Embermouth Sentinel"
+  turn 1 A: choose "Forest"
+  run_to turn 3 precombat_main
+  assert hand A contains "Forest"
+  assert battlefield A lacks "Forest"
+}
+
+scenario "Embermouth Sentinel with a Dragon puts the land onto the battlefield tapped" {
+  battlefield A: 2 "Mountain", "Shivan Dragon"
+  hand A: "Embermouth Sentinel"
+  library A: "Shock", "Forest", "Grizzly Bears"
+  turn 1 A: cast "Embermouth Sentinel"
+  turn 1 A: accept "Embermouth Sentinel"
+  turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+  assert tapped "Forest"
+  assert library A count 2
+}
+
+scenario "Traverse the Ulvenwald without delirium finds a basic land" {
+  battlefield A: "Forest"
+  hand A: "Traverse the Ulvenwald"
+  library A: "Grizzly Bears", "Plains"
+  graveyard A: "Shock", "Island"
+  turn 1 A: cast "Traverse the Ulvenwald"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Plains"
+}
+
+scenario "Traverse the Ulvenwald with delirium finds a creature" {
+  battlefield A: "Forest"
+  hand A: "Traverse the Ulvenwald"
+  library A: "Grizzly Bears", "Shock"
+  graveyard A: "Shock", "Island", "Hill Giant", "Divination"
+  turn 1 A: cast "Traverse the Ulvenwald"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Entish Restoration: two basic lands without a power-4 creature" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  hand A: "Entish Restoration"
+  library A: "Plains", "Island", "Swamp"
+  turn 1 A: cast "Entish Restoration"
+  turn 1 A: choose "Forest"
+  turn 1 A: choose "Plains"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Plains"
+  assert battlefield A contains "Island"
+  assert tapped "Plains"
+  assert library A count 1
+  assert graveyard A contains "Forest"
+}
+
+scenario "Entish Restoration: three basic lands with a power-4 creature" {
+  battlefield A: 3 "Forest", "Serra Angel"
+  hand A: "Entish Restoration"
+  library A: "Plains", "Island", "Swamp"
+  turn 1 A: cast "Entish Restoration"
+  turn 1 A: choose "Forest"
+  turn 1 A: choose "Plains"
+  turn 1 A: choose "Island"
+  turn 1 A: choose "Swamp"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Plains"
+  assert battlefield A contains "Island"
+  assert battlefield A contains "Swamp"
+  assert library A count 0
+}
+
+scenario "Reclaim the Wastes kicked finds two basic lands" {
+  battlefield A: 4 "Forest"
+  hand A: "Reclaim the Wastes"
+  library A: "Plains", "Island", "Swamp"
+  turn 1 A: cast "Reclaim the Wastes" kicked
+  turn 1 A: choose "Plains"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Plains"
+  assert hand A contains "Island"
+  assert hand A count 2
+}
+
+scenario "Reclaim the Wastes unkicked finds one" {
+  battlefield A: "Forest"
+  hand A: "Reclaim the Wastes"
+  library A: "Plains", "Island", "Swamp"
+  turn 1 A: cast "Reclaim the Wastes"
+  turn 1 A: choose "Plains"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert library A count 2
+}
+
+scenario "Caravan Vigil without morbid puts the land into the hand" {
+  battlefield A: "Forest"
+  hand A: "Caravan Vigil"
+  library A: "Plains", "Grizzly Bears"
+  turn 1 A: cast "Caravan Vigil"
+  turn 1 A: choose "Plains"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Plains"
+  assert battlefield A lacks "Plains"
+}
+
+scenario "Caravan Vigil with morbid may put the land onto the battlefield" {
+  battlefield A: "Forest", "Mountain", "Llanowar Elves"
+  hand A: "Caravan Vigil", "Shock"
+  library A: "Plains", "Grizzly Bears"
+  turn 1 A: cast "Shock" targeting "Llanowar Elves"
+  turn 1 A: cast "Caravan Vigil"
+  turn 1 A: choose "Plains"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Llanowar Elves"
+  assert battlefield A contains "Plains"
+  assert untapped "Plains"
+  assert hand A count 0
+}
+
+scenario "Caravan Vigil with morbid may still put the land into the hand" {
+  battlefield A: "Forest", "Mountain", "Llanowar Elves"
+  hand A: "Caravan Vigil", "Shock"
+  library A: "Plains", "Grizzly Bears"
+  turn 1 A: cast "Shock" targeting "Llanowar Elves"
+  turn 1 A: cast "Caravan Vigil"
+  turn 1 A: choose "Plains"
+  turn 1 A: choose "1"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Plains"
+  assert battlefield A lacks "Plains"
+}

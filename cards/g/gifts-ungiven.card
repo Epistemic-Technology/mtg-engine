@@ -1,0 +1,6 @@
+card "Gifts Ungiven" {
+  oracle_id 58aec411-167d-4709-8560-793eaaed62c5
+  cost {3}{U}
+  type Instant
+  spell: search up to 4 card with different names reveal to hand except 2 chosen by target opponent to graveyard then
+}

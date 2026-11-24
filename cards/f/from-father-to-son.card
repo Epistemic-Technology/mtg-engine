@@ -1,0 +1,7 @@
+card "From Father to Son" {
+  oracle_id 87864421-505c-4bdb-b1e3-3e44e05f2beb
+  cost {1}{W}
+  type Sorcery
+  spell: search Vehicle card reveal to hand unshuffled; if cast from graveyard, search Vehicle card reveal to battlefield put instead then
+  flashback {4}{W}{W}{W}
+}

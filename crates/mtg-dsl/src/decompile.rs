@@ -1416,6 +1416,11 @@ impl Decompiler<'_> {
                         different_names: m.different_names,
                         split: m.split.as_ref().map(|(f, to)| (self.filter(f), *to)),
                         wording: crate::ast::SearchWording::Plain,
+                        names: crate::ast::NamesWording::With,
+                        exactly: false,
+                        mana_value_last: false,
+                        pick: m.pick.as_ref().map(|p| (p.n, p.by.map(r), p.chosen)),
+                        counters: m.counters.map(|(k, n)| (k, n, false)),
                     })
                 }),
             },

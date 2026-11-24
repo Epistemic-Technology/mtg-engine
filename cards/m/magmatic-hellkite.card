@@ -1,0 +1,8 @@
+card "Magmatic Hellkite" {
+  oracle_id 2a3b29c3-f69d-4671-8907-600d21528153
+  cost {2}{R}{R}
+  type Creature — Dragon
+  pt 4/5
+  keywords flying
+  triggered when this enters: destroy target nonbasic land an opponent controls; its controller searches basic land card to battlefield tapped with 1 stun counter
+}

@@ -1,0 +1,9 @@
+card "Caravan Vigil" {
+  oracle_id 925a3ded-b7bc-4384-8684-79c20c59ab12
+  cost {G}
+  type Sorcery
+  spell {
+    search basic land card reveal to hand
+    label "Morbid" search basic land card reveal to hand or battlefield that card put instead of hand instead if creature died this turn
+  }
+}

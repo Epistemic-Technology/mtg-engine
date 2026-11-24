@@ -1,0 +1,8 @@
+card "Burning-Rune Demon" {
+  oracle_id d551fae8-6b40-4118-b9db-29d2f5dff405
+  cost {4}{B}{B}
+  type Creature — Demon Berserker
+  pt 6/6
+  keywords flying
+  triggered when this enters: you may search exactly 2 card not named this that have different names reveal to graveyard except 1 chosen by opponent to hand
+}

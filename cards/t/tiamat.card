@@ -1,0 +1,8 @@
+card "Tiamat" {
+  oracle_id f00e4df1-13fb-4514-8abb-92954068689a
+  cost {2}{W}{U}{B}{R}{G}
+  type Legendary Creature — Dragon God
+  pt 7/7
+  keywords flying
+  triggered when this enters if you cast it: search up to 5 Dragon card not named this that each have different names reveal to hand
+}
