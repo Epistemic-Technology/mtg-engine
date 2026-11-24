@@ -1799,7 +1799,10 @@ exactly two colors"), `basic`, `legendary`, `snow`,
 `nonsnow`, `modified` (CR 700.9; `nontoken modified creature` prints
 "nontoken modified creature", and a dies trigger judges `tapped`,
 `token`/`nontoken`, counters, and `modified` as the creature last existed,
-CR 603.10a),
+CR 603.10a), `adventurer` (CR 715.2a: a card with an Adventure, used or
+not; `graveyard instant or sorcery or adventurer` counts "cards in your
+graveyard that are instant cards, sorcery cards, and/or have an
+Adventure"),
 colors joined with `or` (`red or green creature`, sharing a color), types
 joined with `or` or listed (`artifact or enchantment`, `artifact,
 enchantment, or land`: at least one), negations listed with commas

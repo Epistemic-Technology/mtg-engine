@@ -4792,6 +4792,9 @@ fn filter_one(f: &Filter) -> String {
     if f.status.modified {
         words.push("modified".to_string());
     }
+    if f.status.adventure {
+        words.push("adventurer".to_string());
+    }
     if let Some(cc) = f.color_count {
         words.push(if cc == mtg_core::card::ColorCount::Colored {
             "colored".to_string()

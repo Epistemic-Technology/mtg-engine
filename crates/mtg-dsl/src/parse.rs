@@ -16187,6 +16187,11 @@ impl P {
                     f.status.modified = true;
                     self.pos += 1;
                 }
+                // `adventurer`: "that has an Adventure" (CR 715.2a).
+                "adventurer" if !f.status.adventure => {
+                    f.status.adventure = true;
+                    self.pos += 1;
+                }
                 // CR 903.3: "commander creatures you own", "a commander".
                 "commander" if f.status.commander.is_none() => {
                     f.status.commander = Some(false);

@@ -5225,6 +5225,40 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 "card in your graveyard".to_string(),
                 "cards in your graveyard".to_string(),
             ),
+            // "cards in your graveyard that are instant cards, sorcery
+            // cards, and/or have an Adventure" (Frantic Firebolt): types
+            // and an alternative that is only "has an Adventure".
+            Some(f)
+                if f.or.as_ref().is_some_and(|a| {
+                    a.status.adventure
+                        && **a
+                            == Filter {
+                                status: mtg_core::card::StatusQuals {
+                                    adventure: true,
+                                    ..Default::default()
+                                },
+                                ..Default::default()
+                            }
+                }) && !f.any_types.is_empty()
+                    && (Filter {
+                        any_types: Vec::new(),
+                        or: None,
+                        ..f.clone()
+                    }) == Filter::default() =>
+            {
+                let mut items: Vec<String> = f
+                    .any_types
+                    .iter()
+                    .map(|t| format!("{} cards", type_noun(*t)))
+                    .collect();
+                items.push("have an Adventure".to_string());
+                let last = items.pop().unwrap_or_default();
+                let list = format!("{}, and/or {last}", items.join(", "));
+                (
+                    format!("card in your graveyard that's {list}"),
+                    format!("cards in your graveyard that are {list}"),
+                )
+            }
             Some(f) => {
                 let (mut one, mut many) =
                     (cards_phrase(f, card, false), cards_phrase(f, card, true));
