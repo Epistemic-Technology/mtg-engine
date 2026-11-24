@@ -5111,7 +5111,8 @@ impl GameState {
         if ab.cost.tap {
             cands.retain(|c| *c != source);
         }
-        let pays = |picks: &SmallVec<[ObjId; 4]>| self.tap_cost_pays(p, ab, source, sources, &req, picks);
+        let pays =
+            |picks: &SmallVec<[ObjId; 4]>| self.tap_cost_pays(p, ab, source, sources, &req, picks);
         cands
             .iter()
             .copied()

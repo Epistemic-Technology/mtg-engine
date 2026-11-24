@@ -1039,13 +1039,7 @@ fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
             // CR 613.2: characteristic-defining abilities apply before
             // other effects in their layer.
             let timestamp = if granted_cda {
-                live.iter()
-                    .filter(|l| {
-                        l.parts.contains(&Modification::AddAbility(ability))
-                            && l.affected.as_ref().is_some_and(|a| a.contains(id))
-                    })
-                    .map(|l| l.timestamp)
-                    .fold(obj.timestamp, std::cmp::max)
+                grant_timestamp(live, ability, *id, obj.timestamp)
             } else if sa.parts.iter().all(Modification::is_cda) {
                 0
             } else {
@@ -1073,50 +1067,69 @@ fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
                 }),
                 // "the chosen color" is the source's (CR 607.2a); with none
                 // chosen, that part does nothing.
-                parts: sa
-                    .parts
-                    .iter()
-                    .filter_map(|p| match p {
-                        Modification::ChosenColor => obj
-                            .chosen
-                            .color()
-                            .map(|c| Modification::SetColors(crate::mana::ColorSet::of([c]))),
-                        Modification::ProtectionFromChosen => obj.chosen.color().map(|c| {
-                            Modification::AddKeywords(crate::card::KeywordSet::of([
-                                crate::card::Keyword::protection_from(c),
-                            ]))
-                        }),
-                        // "Enchanted land is the chosen type."
-                        Modification::ChosenLandType => match obj.chosen {
-                            crate::state::Chosen::Subtype(s) => {
-                                s.basic_color().map(Modification::SetLandType)
-                            }
-                            _ => None,
-                        },
-                        // "is the chosen type in addition to its other types".
-                        Modification::AddChosenType => match obj.chosen {
-                            crate::state::Chosen::Subtype(s) => Some(Modification::AddSubtype(s)),
-                            _ => None,
-                        },
-                        Modification::CdaPt {
-                            count,
-                            sets,
-                            plus_toughness,
-                            ..
-                        } if granted_cda => Some(Modification::CdaPt {
-                            count: count.clone(),
-                            sets: *sets,
-                            plus_toughness: *plus_toughness,
-                            granted: true,
-                        }),
-                        p => Some(p.clone()),
-                    })
-                    .collect(),
+                parts: live_parts(obj.chosen, &sa.parts, granted_cda),
                 started: false,
                 dead: false,
             });
         }
     }
+}
+
+/// A static ability's parts as they apply: "the chosen color" or type is
+/// the source's `chosen`; with none chosen, that part does nothing. A
+/// granted "power is equal to ..." applies in layer 7b (`granted_cda`).
+fn live_parts(
+    chosen: crate::state::Chosen,
+    parts: &[Modification],
+    granted_cda: bool,
+) -> SmallVec<[Modification; 2]> {
+    parts
+        .iter()
+        .filter_map(|p| match p {
+            Modification::ChosenColor => chosen
+                .color()
+                .map(|c| Modification::SetColors(crate::mana::ColorSet::of([c]))),
+            Modification::ProtectionFromChosen => chosen.color().map(|c| {
+                Modification::AddKeywords(crate::card::KeywordSet::of([
+                    crate::card::Keyword::protection_from(c),
+                ]))
+            }),
+            // "Enchanted land is the chosen type."
+            Modification::ChosenLandType => match chosen {
+                crate::state::Chosen::Subtype(s) => s.basic_color().map(Modification::SetLandType),
+                _ => None,
+            },
+            // "is the chosen type in addition to its other types".
+            Modification::AddChosenType => match chosen {
+                crate::state::Chosen::Subtype(s) => Some(Modification::AddSubtype(s)),
+                _ => None,
+            },
+            Modification::CdaPt {
+                count,
+                sets,
+                plus_toughness,
+                ..
+            } if granted_cda => Some(Modification::CdaPt {
+                count: count.clone(),
+                sets: *sets,
+                plus_toughness: *plus_toughness,
+                granted: true,
+            }),
+            p => Some(p.clone()),
+        })
+        .collect()
+}
+
+/// CR 613.7a: a granted static ability's effect is timestamped as the later
+/// of its object (`own`) and the effect that granted it to `id`.
+fn grant_timestamp(live: &[Live], ability: AbilityId, id: ObjId, own: Timestamp) -> Timestamp {
+    live.iter()
+        .filter(|l| {
+            l.parts.contains(&Modification::AddAbility(ability))
+                && l.affected.as_ref().is_some_and(|a| a.contains(&id))
+        })
+        .map(|l| l.timestamp)
+        .fold(own, std::cmp::max)
 }
 
 /// CR 613.8: order `here` (already in timestamp order) so that an effect
