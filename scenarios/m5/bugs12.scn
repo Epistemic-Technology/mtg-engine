@@ -100,3 +100,15 @@ scenario "Sandwurm Convergence: a flying token put onto the battlefield attackin
   run_to turn 1 postcombat_main
   assert life B 14
 }
+
+# The creatures tapped for a cost are chosen so the mana can still be paid:
+# Birds of Paradise, first on the battlefield, is kept for {U}.
+scenario "Shared Discovery: tap four Elves and pay {U} with Birds of Paradise" {
+  battlefield A: "Birds of Paradise", 4 "Llanowar Elves"
+  hand A: "Shared Discovery"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shared Discovery"
+  run_to turn 2 postcombat_main
+  assert hand A count 3
+  assert tapped "Birds of Paradise"
+}

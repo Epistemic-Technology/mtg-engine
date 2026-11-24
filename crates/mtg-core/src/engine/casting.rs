@@ -3805,12 +3805,15 @@ impl GameState {
         }
         let ps = self.player(p);
         if let (true, Some(SacCost::Filter(f))) = (c.taps_chosen(), &c.sacrifice) {
-            let Some(picks) = self.tap_picks(p, f, id, false, c.chosen_count(), None, sources)
+            let pays = |picks: &SmallVec<[ObjId; 4]>| {
+                self.payable_tapping(p, &without(sources, picks), &req, None, picks)
+            };
+            let Some(picks) =
+                self.tap_picks_where(p, f, id, false, c.chosen_count(), None, sources, pays)
             else {
                 return false;
             };
-            let rest = without(sources, &picks);
-            return self.payable_tapping(p, &rest, &req, None, &picks);
+            return self.payable_tapping(p, &without(sources, &picks), &req, None, &picks);
         }
         self.payable(p, sources, &ps.mana_pool, &req, ps.life, None)
     }
@@ -3866,6 +3869,53 @@ impl GameState {
         (picks.len() >= n).then_some(picks)
     }
 
+    /// `tap_picks`, but where its pick fails `ok` (the mana can't be paid
+    /// with what is left, because the permanents it taps are the ones that
+    /// make the needed mana), another choice of the same number that passes
+    /// (CR 118.3: the player chooses what to tap). The search runs only
+    /// when the first pick fails, over at most twelve candidates; with none
+    /// passing, the first pick.
+    #[allow(clippy::too_many_arguments)]
+    pub(super) fn tap_picks_where(
+        &self,
+        p: PlayerId,
+        f: &crate::card::ObjFilter,
+        source: ObjId,
+        skip_source: bool,
+        n: usize,
+        first: Option<ObjId>,
+        sources: &Sources,
+        ok: impl Fn(&SmallVec<[ObjId; 4]>) -> bool,
+    ) -> Option<SmallVec<[ObjId; 4]>> {
+        let picks = self.tap_picks(p, f, source, skip_source, n, first, sources)?;
+        if ok(&picks) {
+            return Some(picks);
+        }
+        let mut cands = self.sacrifice_candidates(p, f, source);
+        cands.retain(|c| !(skip_source && *c == source) && Some(*c) != first);
+        let need = n.saturating_sub(usize::from(first.is_some()));
+        if cands.len() > 12 {
+            return Some(picks);
+        }
+        for mask in 0u32..(1u32 << cands.len()) {
+            if mask.count_ones() as usize != need {
+                continue;
+            }
+            let mut alt: SmallVec<[ObjId; 4]> = first.into_iter().collect();
+            alt.extend(
+                cands
+                    .iter()
+                    .enumerate()
+                    .filter(|(i, _)| mask >> i & 1 == 1)
+                    .map(|(_, c)| *c),
+            );
+            if ok(&alt) {
+                return Some(alt);
+            }
+        }
+        Some(picks)
+    }
+
     /// Cards in `p`'s graveyard a "exile a creature card from your
     /// graveyard" cost of `source` could exile, oldest first.
     pub(super) fn exile_candidates(
@@ -3918,10 +3968,20 @@ impl GameState {
         self.sacrifice_candidates(p, f, spell)
             .into_iter()
             .filter(|c| {
-                self.tap_picks(p, f, spell, false, add.chosen_count(), Some(*c), &sources)
-                    .is_some_and(|picks| {
-                        self.payable_tapping(p, &without(&sources, &picks), &req, None, &picks)
-                    })
+                let pays = |picks: &SmallVec<[ObjId; 4]>| {
+                    self.payable_tapping(p, &without(&sources, picks), &req, None, picks)
+                };
+                self.tap_picks_where(
+                    p,
+                    f,
+                    spell,
+                    false,
+                    add.chosen_count(),
+                    Some(*c),
+                    &sources,
+                    pays,
+                )
+                .is_some_and(|picks| pays(&picks))
             })
             .collect()
     }
@@ -5050,33 +5110,41 @@ impl GameState {
         if ab.cost.tap {
             cands.retain(|c| *c != source);
         }
+        let pays = |picks: &SmallVec<[ObjId; 4]>| self.tap_cost_pays(p, ab, source, sources, &req, picks);
         cands
             .iter()
             .copied()
             .filter(|c| {
-                self.tap_picks(p, f, source, ab.cost.tap, n, Some(*c), sources)
-                    .is_some_and(|mut picks| {
-                        // The source tapped for {T} makes no mana either
-                        // (Heap Gate: "{1}, {T}, Tap an untapped Gate you
-                        // control"); without it, the outer check stands.
-                        if ab.cost.tap {
-                            picks.push(source);
-                        }
-                        req == ManaRequirement::default()
-                            || !picks
-                                .iter()
-                                .any(|x| *x != source && sources.iter().any(|(s, _)| s == x))
-                            || self.payable_tapping(
-                                p,
-                                &without(sources, &picks),
-                                &req,
-                                Some(source),
-                                &picks,
-                            )
-                    })
+                self.tap_picks_where(p, f, source, ab.cost.tap, n, Some(*c), sources, pays)
+                    .is_some_and(|picks| pays(&picks))
             })
             .map(Some)
             .collect()
+    }
+
+    /// Whether an activated ability's mana `req` can still be paid with
+    /// `picks` tapped for its "tap two untapped Beasts you control" cost.
+    fn tap_cost_pays(
+        &self,
+        p: PlayerId,
+        ab: &ActivatedAbility,
+        source: ObjId,
+        sources: &Sources,
+        req: &ManaRequirement,
+        picks: &SmallVec<[ObjId; 4]>,
+    ) -> bool {
+        // The source tapped for {T} makes no mana either (Heap Gate: "{1},
+        // {T}, Tap an untapped Gate you control"); without it, the outer
+        // check stands.
+        let mut picks = picks.clone();
+        if ab.cost.tap {
+            picks.push(source);
+        }
+        *req == ManaRequirement::default()
+            || !picks
+                .iter()
+                .any(|x| *x != source && sources.iter().any(|(s, _)| s == x))
+            || self.payable_tapping(p, &without(sources, &picks), req, Some(source), &picks)
     }
 
     /// CR 509.1h: `p`'s unblocked attacking creatures; none until
@@ -6335,8 +6403,12 @@ impl GameState {
         if let (true, Some(SacCost::Filter(f))) = (ab.cost.taps_chosen(), &ab.cost.sacrifice) {
             let sources = self.ability_sources(controller, sa.source, ab);
             let n = ab.cost.chosen_count();
+            let req = self.activation_mana(sa.source, ab);
+            let pays = |picks: &SmallVec<[ObjId; 4]>| {
+                self.tap_cost_pays(controller, ab, sa.source, &sources, &req, picks)
+            };
             for c in self
-                .tap_picks(
+                .tap_picks_where(
                     controller,
                     f,
                     sa.source,
@@ -6344,6 +6416,7 @@ impl GameState {
                     n,
                     sacrifice,
                     &sources,
+                    pays,
                 )
                 .unwrap_or_default()
             {
@@ -7973,8 +8046,11 @@ impl GameState {
             let n = self.additional_of(spell).chosen_count();
             let sources = self.spell_sources(spell);
             let f = f.clone();
+            let pays = |picks: &SmallVec<[ObjId; 4]>| {
+                self.payable_tapping(caster, &without(&sources, picks), &req, None, picks)
+            };
             for c in self
-                .tap_picks(caster, &f, spell, false, n, sacrifice, &sources)
+                .tap_picks_where(caster, &f, spell, false, n, sacrifice, &sources, pays)
                 .unwrap_or_default()
             {
                 self.tap(c);
