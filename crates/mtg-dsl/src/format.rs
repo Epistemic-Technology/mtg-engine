@@ -2250,6 +2250,9 @@ impl Fmt {
             Effect::ChangeTarget { what } => {
                 format!("change target of {}", self.recipient(*what, t))
             }
+            Effect::NewTargets { what } => {
+                format!("choose new targets for {}", self.recipient(*what, t))
+            }
             Effect::CounterUnlessPays { to, mana, x, dest } => format!(
                 "counter {} unless its controller pays {mana}{}{}",
                 self.recipient(*to, t),

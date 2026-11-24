@@ -9640,6 +9640,66 @@ impl GameState {
 
     /// CR 707.10c: the copy's controller may change each of its targets to
     /// another one legal for its spec (judged from `source`), or keep it.
+    /// CR 115.7d: `chooser` may choose new targets for `obj` on the stack:
+    /// each target may stay or become another legal for it (judged for its
+    /// controller and source; not `obj` itself, nor a target it already
+    /// has). New targets become targeted anew (CR 115.7).
+    #[cold]
+    #[inline(never)]
+    fn choose_new_targets(&mut self, obj: ObjId, chooser: PlayerId) {
+        let Some(o) = self.objects.get(obj).filter(|o| o.zone == Zone::Stack) else {
+            return;
+        };
+        let (controller, kind) = (o.controller, o.kind);
+        let source = match (kind, o.ability) {
+            (ObjKind::Ability, Some(sa)) => sa.source,
+            _ => obj,
+        };
+        let specs: Vec<TargetSpec> = crate::state::targets_in(&self.pool, o).to_vec();
+        let mut changed = false;
+        for i in 0..self.objects[obj].targets.len() {
+            let Some(spec) = crate::card::spec_for(&specs, i) else {
+                break;
+            };
+            let current = self.objects[obj].targets[i];
+            if current.is_none() {
+                continue;
+            }
+            let mut options = vec![Choice::Target(current)];
+            options.extend(
+                self.legal_targets(controller, spec, Some(source))
+                    .into_iter()
+                    .filter(|t| {
+                        *t != current
+                            && *t != Target::Object(obj)
+                            && !self.objects[obj].targets.contains(t)
+                    })
+                    .map(Choice::Target),
+            );
+            if options.len() < 2 {
+                continue;
+            }
+            let k = self.choose_mid(
+                chooser,
+                DecisionKind::CopyTarget {
+                    spell: obj,
+                    index: i,
+                },
+                options.clone(),
+            );
+            if let Some(Choice::Target(t)) = options.get(k)
+                && *t != current
+            {
+                self.objects[obj].targets[i] = *t;
+                changed = true;
+            }
+        }
+        if changed {
+            self.cbump();
+            self.emit_targeted_objects(obj);
+        }
+    }
+
     fn choose_copy_targets(&mut self, copy: ObjId, controller: PlayerId, source: ObjId) {
         let specs: Vec<TargetSpec> =
             crate::state::targets_in(&self.pool, &self.objects[copy]).to_vec();
@@ -12024,6 +12084,13 @@ impl GameState {
                 for t in self.recipients(ctx, *what) {
                     if let Target::Object(id) = t {
                         self.change_target(id, ctx.controller);
+                    }
+                }
+            }
+            Effect::NewTargets { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t {
+                        self.choose_new_targets(id, ctx.controller);
                     }
                 }
             }

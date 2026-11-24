@@ -9453,6 +9453,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*what);
             Clause::imperative(format!("change the target of {o}"))
         }
+        Effect::NewTargets { what } => {
+            // A cast trigger's spell is "that spell" (Speedball's trigger
+            // calls the creature "it").
+            let o = if *what == Recipient::TriggeringObject {
+                "that spell".to_string()
+            } else {
+                ctx.obj(*what)
+            };
+            Clause::imperative(format!("you may choose new targets for {o}"))
+        }
         Effect::CounterUnlessPays { to, mana, .. } => {
             ctx.they_paid = true;
             let o = ctx.obj(*to);
@@ -14232,6 +14242,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             };
             let adventure = if std::mem::take(&mut base.status.adventure) {
                 " that has an Adventure"
+            } else if base.color_count == Some(mtg_core::card::ColorCount::Colored) {
+                // "a spell that's one or more colors" (Ancient Cornucopia).
+                base.color_count = None;
+                " that's one or more colors"
             } else {
                 ""
             };

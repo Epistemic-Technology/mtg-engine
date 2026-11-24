@@ -12821,6 +12821,12 @@ impl P {
             }
             // "Change the target of target spell or ability with a single
             // target" (CR 115.7a).
+            // "You may choose new targets for that spell." (CR 115.7d).
+            "choose" if self.at_words(&["new", "targets", "for"]) => {
+                self.pos += 3;
+                let what = self.recipient()?;
+                Ok(Effect::NewTargets { what })
+            }
             "change" if self.at_words(&["target", "of"]) => {
                 self.pos += 2;
                 let what = self.recipient()?;

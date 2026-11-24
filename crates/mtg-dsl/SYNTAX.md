@@ -2678,6 +2678,10 @@ CR 115.7a: the effect's controller changes it to another target legal for
 that spell or ability, judged for its controller and source; with none,
 it is unchanged; `choose "Hill Giant"` or `choose "player B"` in
 scenarios; "with a single target" is one target chosen, CR 115.9a),
+`choose new targets for that spell` ("you may choose new targets for that
+spell", CR 115.7d: the effect's controller may keep each target or change
+it to another legal for the spell, judged for its controller; `choose
+"Hill Giant"` in scenarios, unscripted they stay; new ones become targeted),
 `counter target spell, activated ability, or triggered ability` (the
 listed wording of `spell or ability`), `copy target 1 may cast [free]` (CR 707.12: "Copy it. You
 may cast the copy [without paying its mana cost]."; `copy target 1 then

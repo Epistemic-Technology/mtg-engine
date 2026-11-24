@@ -4530,6 +4530,12 @@ pub enum Effect {
     ChangeTarget {
         what: Recipient,
     },
+    /// "You may choose new targets for that spell" (CR 115.7d): the
+    /// effect's controller may change any of the recipient spell's or
+    /// ability's targets to others legal for it.
+    NewTargets {
+        what: Recipient,
+    },
     /// "Counter target spell unless its controller pays {N}" (CR 701.5?):
     /// the controller may pay; if they do not, it is countered. An {X} in
     /// `mana` is `x` as the effect resolves ("unless its controller pays
@@ -6377,6 +6383,7 @@ impl Effect {
                 | Effect::CopySpell
                 | Effect::CopySpells { .. }
                 | Effect::ChangeTarget { .. }
+                | Effect::NewTargets { .. }
                 | Effect::Discard { .. }
                 | Effect::HandToLibrary { .. }
                 | Effect::ShuffleIntoLibrary { .. }

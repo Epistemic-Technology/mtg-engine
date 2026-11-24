@@ -5071,6 +5071,11 @@ pub enum Effect {
     ChangeTarget {
         what: Recipient,
     },
+    /// `choose new targets for that spell`: "you may choose new targets for
+    /// that spell" (CR 115.7d).
+    NewTargets {
+        what: Recipient,
+    },
     /// `counter target spell unless its controller pays {X} [count ...]
     /// [to exile]`: an {X} is `x` (the spell's X when no count is given).
     CounterUnlessPays {

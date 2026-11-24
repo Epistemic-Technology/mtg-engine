@@ -1,0 +1,8 @@
+card "Speedball, New Warrior" {
+  oracle_id 53d3ef8f-8e0f-4119-8cdc-a0bf076b4e91
+  cost {2}{U/R}
+  type Legendary Creature — Human Hero
+  pt 2/2
+  pronoun he
+  triggered whenever a player casts a spell that targets this: it gets +2/+2 until end of turn; choose new targets for that spell
+}
