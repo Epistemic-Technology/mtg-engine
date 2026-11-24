@@ -326,6 +326,19 @@ fn a_static_condition_the_layers_never_hold_is_rejected() {
 }
 
 #[test]
+fn the_tapped_creatures_power_is_stations_only() {
+    // Station's count reads toughness for Tapestry Warden's creatures; a
+    // hand-written "the tapped creature's power" would too, so the card
+    // language has no such count (`ast::this_way_verb`).
+    assert!(compiles(
+        "activated {1}, tap untapped creature you control: you gain count where Bear you control life"
+    ));
+    assert!(!compiles(
+        "activated {1}, tap untapped creature you control: you gain count where power of the tapped creature life"
+    ));
+}
+
+#[test]
 fn enchanted_creature_biting_any_other_target_is_rejected() {
     // Pain for All: "other" would exclude the Aura, not the creature.
     let e = load_card(

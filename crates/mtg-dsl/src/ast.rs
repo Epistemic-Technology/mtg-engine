@@ -7275,7 +7275,10 @@ pub fn this_way_word(v: mtg_core::card::ThisWay) -> &'static str {
     }
 }
 
-/// The `ThisWay` a word names.
+/// The `ThisWay` a word names. Not `tapped`: "the tapped creature's
+/// power" is station's count only, which the engine reads as toughness
+/// for a creature that "stations permanents using its toughness"
+/// (Tapestry Warden, CR 702.184a); written by hand it would too.
 pub fn this_way_verb(w: &str) -> Option<mtg_core::card::ThisWay> {
     use mtg_core::card::ThisWay;
     [
