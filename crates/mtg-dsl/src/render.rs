@@ -6903,7 +6903,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             form,
         } => {
             use mtg_core::card::PileForm;
-            let n = count_words(*count, "one");
+            // `piles exiled` counts nothing (the cards the resolution exiled).
+            let n = if *count == Num::N(0) {
+                String::new()
+            } else {
+                count_words(*count, "one")
+            };
             match form {
                 PileForm::HandGraveyard => {}
                 // Truth or Tale.
