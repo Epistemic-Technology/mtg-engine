@@ -1,0 +1,12 @@
+card "Kastral, the Windcrested" {
+  oracle_id ced5fe9a-4237-4c89-9dd6-b133b966ebcc
+  cost {3}{W}{U}
+  type Legendary Creature — Bird Scout
+  pt 4/5
+  keywords flying
+  triggered whenever one or more Bird you control deal combat damage to a player: choose one {
+    mode: you may put 1 Bird creature card from hand or graveyard onto battlefield with 1 finality counter chosen
+    mode: put 1 +1/+1 counter on each Bird you control
+    mode: draw 1 card
+  }
+}

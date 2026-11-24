@@ -1599,6 +1599,33 @@ impl GameState {
                 .copied()
                 .filter(|id| card_ok(*id))
                 .collect(),
+            // "from your hand or graveyard": the hand's cards first.
+            ChooseAct::HandToBattlefield { graveyard, .. } => {
+                let ps = self.player(p);
+                let gy: &[ObjId] = if graveyard { &ps.graveyard } else { &[] };
+                ps.hand
+                    .iter()
+                    .chain(gy)
+                    .copied()
+                    .filter(|id| card_ok(*id))
+                    .collect()
+            }
+            // "a creature card put into your graveyard this way": the
+            // resolution's cards put into a graveyard, still there.
+            ChooseAct::ThisWayToBattlefield { any } => {
+                self.this_way.as_ref().map_or_else(Vec::new, |log| {
+                    log.moved
+                        .iter()
+                        .map(|m| m.new)
+                        .filter(|id| {
+                            self.objects
+                                .get(*id)
+                                .is_some_and(|o| o.zone == Zone::Graveyard && (any || o.owner == p))
+                                && card_ok(*id)
+                        })
+                        .collect()
+                })
+            }
             ChooseAct::ExileFromAnyGraveyard => self
                 .players_in_game()
                 .flat_map(|q| self.player(q).graveyard.iter().copied())
@@ -1934,17 +1961,35 @@ impl GameState {
                 | ChooseAct::MilledToHand => {
                     ctx.created = Some(self.move_object(id, Zone::Hand, false));
                 }
-                ChooseAct::MilledToBattlefield | ChooseAct::GraveyardToBattlefield { .. } => {
-                    let tapped = matches!(act, ChooseAct::GraveyardToBattlefield { tapped: true });
-                    let owner = self.objects[id].owner;
-                    ctx.created = Some(self.put_onto_battlefield_with(
+                ChooseAct::MilledToBattlefield
+                | ChooseAct::GraveyardToBattlefield { .. }
+                | ChooseAct::HandToBattlefield { .. }
+                | ChooseAct::ThisWayToBattlefield { .. } => {
+                    let (tapped, counter) = match act {
+                        ChooseAct::GraveyardToBattlefield { tapped, counter }
+                        | ChooseAct::HandToBattlefield {
+                            tapped, counter, ..
+                        } => (tapped, counter),
+                        _ => (false, None),
+                    };
+                    // "under your control": a card from another graveyard.
+                    let controller = match act {
+                        ChooseAct::ThisWayToBattlefield { .. } => p,
+                        _ => self.objects[id].owner,
+                    };
+                    let new = self.put_onto_battlefield_with(
                         id,
-                        owner,
+                        controller,
                         super::replace::Enter {
                             tapped,
+                            counters: counter.map(|k| (k, 1)),
                             ..super::replace::Enter::default()
                         },
-                    ));
+                    );
+                    ctx.created = Some(new);
+                    // "Put any number of ... onto the battlefield. They gain
+                    // haste": the cards put, as a group (`ThoseObjects`).
+                    picked.push((controller, new));
                 }
                 // An illegal target by now: nothing to attach to (CR
                 // 608.2b).
@@ -1962,6 +2007,13 @@ impl GameState {
                 }
             }
             done += 1;
+        }
+        if matches!(
+            act,
+            ChooseAct::HandToBattlefield { .. } | ChooseAct::ThisWayToBattlefield { .. }
+        ) && let Some(log) = self.this_way.as_mut()
+        {
+            log.group = picked.iter().map(|(_, id)| *id).collect();
         }
         // "Choose up to one creature. Destroy the rest." (Duneblast).
         if act == ChooseAct::Choose
@@ -16230,26 +16282,39 @@ impl GameState {
                 ps.combat_mana += n;
                 self.bump();
             }
-            Effect::GraveyardToBattlefield { filter, tapped } => {
+            Effect::GraveyardToBattlefield {
+                filter,
+                tapped,
+                all_graveyards,
+            } => {
                 let p = ctx.controller;
                 // "each creature card with mana value X": X of the spell.
                 let filter = &*self.chosen_filter(filter, ctx);
-                let cards: Vec<ObjId> = self
-                    .player(p)
-                    .graveyard
+                let players: SmallVec<[PlayerId; 4]> = if *all_graveyards {
+                    self.players_in_game().collect()
+                } else {
+                    smallvec::smallvec![p]
+                };
+                let cards: Vec<ObjId> = players
                     .iter()
-                    .copied()
+                    .flat_map(|q| self.player(*q).graveyard.iter().copied())
                     .filter(|id| {
                         let o = &self.objects[*id];
                         let c = self.base_characteristics(o);
                         // "with mana value 2 or less": the mana value
                         // `matches` leaves to the caller.
-                        filter.matches(*id, p, &c, Some(ctx.source), Some(ctx.controller))
+                        filter.matches(*id, o.owner, &c, Some(ctx.source), Some(ctx.controller))
                             && self.status_ok(filter, *id)
                     })
                     .collect();
+                let mut entered: Vec<ObjId> = Vec::with_capacity(cards.len());
                 for id in cards {
-                    let owner = self.objects[id].owner;
+                    // "under your control" from every graveyard.
+                    let owner = if *all_graveyards {
+                        p
+                    } else {
+                        self.objects[id].owner
+                    };
                     // CR 303.4f: an Aura put onto the battlefield this way
                     // is attached to an object its owner chooses that it
                     // could enchant; with none, it stays in the graveyard.
@@ -16293,6 +16358,11 @@ impl GameState {
                         self.cbump();
                     }
                     ctx.created = Some(new);
+                    entered.push(new);
+                }
+                // "Sacrifice them at the beginning of the next end step."
+                if let Some(log) = self.this_way.as_mut() {
+                    log.group = entered;
                 }
             }
             Effect::CloakTop { of } => {

@@ -1,0 +1,7 @@
+card "Dewdrop Cure" {
+  oracle_id 07634620-a83a-4ca0-8a60-2a21368a2661
+  cost {2}{W}
+  type Sorcery
+  gift card
+  spell: return up to 2 target creature card each with mana value 2 or less from your graveyard to battlefield; if kicked, instead return up to 3 target creature card each with mana value 2 or less from your graveyard to battlefield
+}

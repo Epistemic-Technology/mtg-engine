@@ -5865,6 +5865,11 @@ pub enum Effect {
         /// "... to the battlefield tapped" (Splendid Reclamation).
         #[serde(default)]
         tapped: bool,
+        /// "Put all creature cards from all graveyards onto the
+        /// battlefield under your control": every graveyard's matching
+        /// cards, under the controller's control.
+        #[serde(default)]
+        all_graveyards: bool,
     },
     /// Cloak (CR 701.58a): the top card of `of`'s library is put onto the
     /// battlefield face down under the controller's control as a 2/2
@@ -6614,8 +6619,28 @@ pub enum ChooseAct {
     /// battlefield under their owner's control.
     MilledToBattlefield,
     /// "return a land card from your graveyard to the battlefield
-    /// [tapped]" (cards in your graveyard).
-    GraveyardToBattlefield { tapped: bool },
+    /// [tapped]" (cards in your graveyard); with `counter`, "... with a
+    /// finality counter on it" (one such counter, CR 122.6).
+    GraveyardToBattlefield {
+        tapped: bool,
+        #[serde(default)]
+        counter: Option<CounterKind>,
+    },
+    /// "put any number of creature cards from your hand onto the
+    /// battlefield", "put a land card from your hand or graveyard onto the
+    /// battlefield" (`graveyard`: cards in your graveyard too), "... with
+    /// a finality counter on it" (`counter`). Each chosen card enters
+    /// under your control.
+    HandToBattlefield {
+        tapped: bool,
+        graveyard: bool,
+        counter: Option<CounterKind>,
+    },
+    /// "return a creature card put into your graveyard this way to the
+    /// battlefield under your control" (`any`: "put into a graveyard this
+    /// way"): cards this resolution put into a graveyard (CR 608.2c),
+    /// still there, onto the battlefield under the controller's control.
+    ThisWayToBattlefield { any: bool },
     /// "you may attach an Equipment you control to it" (permanents you
     /// control): attached to the `n`th target (CR 701.3).
     AttachToTarget(u8),

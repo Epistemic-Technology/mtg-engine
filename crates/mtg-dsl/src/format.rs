@@ -1937,7 +1937,18 @@ impl Fmt {
                 self.recipient(*to, t),
                 self.recipient(*of, t)
             ),
-            Effect::GraveyardToBattlefield { filter: f, tapped } => format!(
+            Effect::GraveyardToBattlefield {
+                filter: f,
+                tapped,
+                all_graveyards: true,
+            } => format!(
+                "put all {} card from all graveyards onto battlefield{} under your control",
+                filter(f),
+                if *tapped { " tapped" } else { "" }
+            ),
+            Effect::GraveyardToBattlefield {
+                filter: f, tapped, ..
+            } => format!(
                 "return all {} card from your graveyard to battlefield{}",
                 filter(f),
                 if *tapped { " tapped" } else { "" }
@@ -3560,9 +3571,30 @@ impl Fmt {
                             "onto battlefield"
                         }
                     ),
-                    ChooseAct::GraveyardToBattlefield { tapped } => format!(
-                        "return {n} {f} {cs} from your graveyard to battlefield{} chosen",
-                        if *tapped { " tapped" } else { "" }
+                    ChooseAct::GraveyardToBattlefield { tapped, counter: c } => format!(
+                        "return {n} {f} {cs} from your graveyard to battlefield{}{} chosen",
+                        if *tapped { " tapped" } else { "" },
+                        c.map_or_else(String::new, |k| format!(
+                            " with 1 {}",
+                            counter(k, Num::N(1))
+                        ))
+                    ),
+                    ChooseAct::HandToBattlefield {
+                        tapped,
+                        graveyard,
+                        counter: c,
+                    } => format!(
+                        "put {n} {f} {cs} from hand{} onto battlefield{}{} chosen",
+                        if *graveyard { " or graveyard" } else { "" },
+                        if *tapped { " tapped" } else { "" },
+                        c.map_or_else(String::new, |k| format!(
+                            " with 1 {}",
+                            counter(k, Num::N(1))
+                        ))
+                    ),
+                    ChooseAct::ThisWayToBattlefield { any } => format!(
+                        "return {n} {f} {cs} put into {} graveyard this way to battlefield under your control chosen",
+                        if *any { "a" } else { "your" }
                     ),
                     ChooseAct::AttachToTarget(i) => {
                         format!("attach {n} {f} to target {} chosen", i + 1)

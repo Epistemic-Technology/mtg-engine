@@ -5914,6 +5914,11 @@ pub enum Effect {
         filter: Filter,
         /// `... to battlefield tapped`: "... to the battlefield tapped".
         tapped: bool,
+        /// `put all creature card from all graveyards onto battlefield
+        /// under your control`: "Put all creature cards from all
+        /// graveyards onto the battlefield under your control." (every
+        /// graveyard, under the controller's control).
+        all_graveyards: bool,
     },
     /// `recruit` (CR 701.70a): "Recruit." `you recruit` prints "you
     /// recruit" (after a trigger naming another player).

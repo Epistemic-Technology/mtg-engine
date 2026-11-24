@@ -1,0 +1,6 @@
+card "Rise of the Dark Realms" {
+  oracle_id e5223a09-f732-4747-8914-e6546ab0ef4c
+  cost {7}{B}{B}
+  type Sorcery
+  spell: put all creature card from all graveyards onto battlefield under your control
+}

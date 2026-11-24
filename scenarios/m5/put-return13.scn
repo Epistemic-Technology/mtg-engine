@@ -1,0 +1,358 @@
+# Moving several cards at once or without a target (put-return13).
+
+# "return up to two target creature cards ... Put a +1/+1 counter on each
+# of those creatures": the returned creatures get the counters.
+scenario "Smile at Death: two small creatures return with counters" {
+  battlefield A: "Smile at Death"
+  graveyard A: "Grizzly Bears", "Savannah Lions", "Hill Giant"
+  start turn 1 A untap
+  turn 1 upkeep A: trigger "Smile at Death" targeting "Grizzly Bears", "Savannah Lions"
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Savannah Lions"
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Savannah Lions" +1/+1 1
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Smile at Death: a power 3 creature card is not a legal target" {
+  battlefield A: "Smile at Death"
+  graveyard A: "Hill Giant"
+  start turn 1 A untap
+  illegal turn 1 upkeep A: trigger "Smile at Death" targeting "Hill Giant"
+  run_to turn 1 precombat_main
+  assert graveyard A contains "Hill Giant"
+}
+
+# "Put up to two target creature cards from a single graveyard onto the
+# battlefield under your control. They gain haste until end of turn.
+# Sacrifice them at the beginning of the next end step."
+scenario "Pull: two of the opponent's creatures attack for you, then are sacrificed" {
+  battlefield A: 3 "Swamp", 3 "Mountain"
+  graveyard B: "Grizzly Bears", "Hill Giant"
+  hand A: "Push // Pull"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pull" targeting "Grizzly Bears", "Hill Giant"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert life B 15
+  run_to turn 1 cleanup
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A lacks "Hill Giant"
+}
+
+scenario "Pull: the two cards must come from a single graveyard" {
+  battlefield A: 3 "Swamp", 3 "Mountain"
+  graveyard A: "Hill Giant"
+  graveyard B: "Grizzly Bears"
+  hand A: "Push // Pull"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Pull" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+}
+
+# "Return up to two target creature cards each with mana value 2 or less
+# ... If the gift was promised, instead return up to three ...".
+scenario "Dewdrop Cure: without the gift, two cards return" {
+  battlefield A: 3 "Plains"
+  graveyard A: "Grizzly Bears", "Savannah Lions", "Memnite"
+  hand A: "Dewdrop Cure"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dewdrop Cure" targeting "Grizzly Bears", "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Savannah Lions"
+  assert graveyard A contains "Memnite"
+  assert hand B count 0
+}
+
+scenario "Dewdrop Cure: with the gift promised, three cards return and the opponent draws" {
+  battlefield A: 3 "Plains"
+  graveyard A: "Grizzly Bears", "Savannah Lions", "Memnite", "Hill Giant"
+  hand A: "Dewdrop Cure"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dewdrop Cure" gift targeting "Grizzly Bears", "Savannah Lions", "Memnite"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Savannah Lions"
+  assert battlefield A contains "Memnite"
+  assert graveyard A contains "Hill Giant"
+  assert hand B count 1
+}
+
+scenario "Dewdrop Cure: a mana value 4 card is not a legal target" {
+  battlefield A: 3 "Plains"
+  graveyard A: "Hill Giant"
+  hand A: "Dewdrop Cure"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Dewdrop Cure" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+}
+
+# "put any number of creature cards from your hand onto the battlefield"
+# (chosen as the ability resolves; not lands).
+scenario "Ghalta, Stampede Tyrant: two creatures from hand enter, the land stays" {
+  battlefield A: 8 "Forest"
+  hand A: "Ghalta, Stampede Tyrant", "Grizzly Bears", "Hill Giant", "Savannah Lions", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ghalta, Stampede Tyrant"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: choose done
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ghalta, Stampede Tyrant"
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert hand A contains "Savannah Lions"
+  assert hand A contains "Island"
+}
+
+# Level 3: "you may sacrifice three other nonland permanents. If you do,
+# return a creature card from your graveyard to the battlefield with a
+# finality counter on it."
+scenario "Scavenger's Talent: three permanents sacrificed, a creature returns with a finality counter" {
+  battlefield A: "Scavenger's Talent", 5 "Swamp", 3 "Memnite"
+  graveyard A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Scavenger's Talent"
+  turn 1 A: activate "Scavenger's Talent"
+  turn 1 end A: choose "Hill Giant"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Hill Giant"
+  assert counters "Hill Giant" finality 1
+  assert graveyard A contains 3 "Memnite"
+}
+
+scenario "Scavenger's Talent: with only two other nonland permanents nothing returns" {
+  battlefield A: "Scavenger's Talent", 5 "Swamp", 2 "Memnite"
+  graveyard A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Scavenger's Talent"
+  turn 1 A: activate "Scavenger's Talent"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains 2 "Memnite"
+}
+
+# "If the gift was promised, return a creature card put into your
+# graveyard this way to the battlefield under your control."
+scenario "Starfall Invocation: with the gift one of your destroyed creatures returns" {
+  battlefield A: 5 "Plains", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Serra Angel"
+  graveyard A: "Savannah Lions"
+  hand A: "Starfall Invocation"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Starfall Invocation" gift
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A lacks "Grizzly Bears"
+  assert graveyard A contains "Savannah Lions"
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Starfall Invocation: the opponent's destroyed creature is not offered" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Starfall Invocation"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Starfall Invocation" gift
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield A lacks "Serra Angel"
+}
+
+scenario "Starfall Invocation: without the gift nothing returns" {
+  battlefield A: 5 "Plains", "Hill Giant"
+  hand A: "Starfall Invocation"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Starfall Invocation"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+}
+
+# "If X is 6 or more, return a creature card put into a graveyard this way
+# to the battlefield under your control."
+scenario "Zero Point Ballad: X 6 takes the opponent's destroyed creature" {
+  battlefield A: 7 "Swamp", "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  hand A: "Zero Point Ballad"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Zero Point Ballad" x 6
+  turn 1 A: choose "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert graveyard A contains "Grizzly Bears"
+  assert life A 14
+}
+
+scenario "Zero Point Ballad: X 3 destroys the small creature and returns nothing" {
+  battlefield A: 4 "Swamp", "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  hand A: "Zero Point Ballad"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Zero Point Ballad" x 3
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield B contains "Serra Angel"
+  assert life A 17
+}
+
+# "You may put a Bird creature card from your hand or graveyard onto the
+# battlefield with a finality counter on it."
+scenario "Kastral, the Windcrested: a Bird from the graveyard with a finality counter" {
+  battlefield A: "Kastral, the Windcrested"
+  graveyard A: "Zephyr Falcon", "Grizzly Bears"
+  hand A: "Island"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Kastral, the Windcrested"
+  run_to turn 2 postcombat_main
+  assert life B 16
+  assert battlefield A contains "Zephyr Falcon"
+  assert counters "Zephyr Falcon" finality 1
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Kastral, the Windcrested: the Bird in hand is chosen over the one in the graveyard" {
+  battlefield A: "Kastral, the Windcrested"
+  hand A: "Zodiac Rooster"
+  graveyard A: "Zephyr Falcon"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Kastral, the Windcrested"
+  turn 2 combat_damage A: choose "Zodiac Rooster"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Zodiac Rooster"
+  assert counters "Zodiac Rooster" finality 1
+  assert graveyard A contains "Zephyr Falcon"
+}
+
+# "Put up to X land cards from your hand and/or graveyard onto the
+# battlefield tapped."
+scenario "Worldsoul's Rage: X 2 deals 2 and puts a land from each zone tapped" {
+  battlefield A: 2 "Mountain", 2 "Forest"
+  hand A: "Worldsoul's Rage", "Island", "Grizzly Bears"
+  graveyard A: "Swamp", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Worldsoul's Rage" x 2 targeting player B
+  turn 1 A: choose "Island"
+  turn 1 A: choose "Swamp"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Island"
+  assert battlefield A contains "Swamp"
+  assert tapped "Island"
+  assert tapped "Swamp"
+  assert graveyard A contains "Plains"
+  assert hand A contains "Grizzly Bears"
+}
+
+# "Put all creature cards from all graveyards onto the battlefield under
+# your control."
+scenario "Rise of the Dark Realms: every graveyard's creatures enter under your control" {
+  battlefield A: 9 "Swamp"
+  graveyard A: "Grizzly Bears", "Forest"
+  graveyard B: "Hill Giant", "Serra Angel", "Shock"
+  hand A: "Rise of the Dark Realms"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rise of the Dark Realms"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Serra Angel"
+  assert graveyard A contains "Forest"
+  assert graveyard B contains "Shock"
+}
+
+# "Return all Mount and Vehicle cards from your graveyard to the
+# battlefield. Sacrifice them at the beginning of the next end step.
+# Vehicles you control become artifact creatures until end of turn.
+# Creatures you control gain haste until end of turn."
+scenario "Push the Limit: a Mount and a Vehicle return, attack, and are sacrificed" {
+  battlefield A: 5 "Mountain", 2 "Forest"
+  graveyard A: "Alacrian Jaguar", "Smuggler's Copter", "Grizzly Bears"
+  hand A: "Push the Limit"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Push the Limit"
+  turn 1 A: attack "Alacrian Jaguar", "Smuggler's Copter"
+  run_to turn 1 postcombat_main
+  assert is "Smuggler's Copter" creature
+  assert life B 13
+  assert graveyard A contains "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Alacrian Jaguar"
+  assert graveyard A contains "Smuggler's Copter"
+}
+
+# "Then return a creature or Vehicle card from your graveyard to your hand."
+scenario "Carrion Cruiser: mills two, then a Vehicle card returns to hand" {
+  battlefield A: 3 "Swamp"
+  hand A: "Carrion Cruiser"
+  graveyard A: "Smuggler's Copter", "Shock"
+  library A: "Forest", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Carrion Cruiser"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Smuggler's Copter"
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Island"
+  assert graveyard A contains "Shock"
+}
+
+# "put target creature card with mana value 4 or less from a graveyard onto
+# the battlefield under your control with a finality counter on it. That
+# creature gains menace, deathtouch, and haste. At the beginning of your
+# next end step, exile that creature."
+scenario "Coalstoke Gearhulk: the opponent's creature fights for you, then is exiled" {
+  battlefield A: 2 "Swamp", 3 "Mountain"
+  hand A: "Coalstoke Gearhulk"
+  graveyard B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Coalstoke Gearhulk"
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert counters "Hill Giant" finality 1
+  assert has "Hill Giant" deathtouch
+  assert life B 17
+  run_to turn 1 cleanup
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Coalstoke Gearhulk: a mana value 5 card is not a legal target" {
+  battlefield A: 2 "Swamp", 3 "Mountain"
+  hand A: "Coalstoke Gearhulk"
+  graveyard B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Coalstoke Gearhulk"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+# "If you don't control a Faerie, exile a card from your hand."
+scenario "Ego Drain: the opponent discards, and you exile a card from your hand" {
+  battlefield A: "Swamp"
+  hand A: "Ego Drain", "Forest", "Grizzly Bears"
+  hand B: "Hill Giant", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ego Drain" targeting player B
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert hand B contains "Island"
+  assert exile A contains "Grizzly Bears"
+  assert hand A contains "Forest"
+}
+
+scenario "Ego Drain: with a Faerie you keep your hand" {
+  battlefield A: "Swamp", "Zephyr Sprite"
+  hand A: "Ego Drain", "Forest"
+  hand B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ego Drain" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert hand A contains "Forest"
+}

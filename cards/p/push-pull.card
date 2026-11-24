@@ -1,0 +1,14 @@
+card "Push // Pull" {
+  oracle_id 7e050495-bed7-43b9-abce-866c61beb1da
+  layout split
+  face "Push" {
+    cost {1}{W/B}
+    type Sorcery
+    spell: destroy target tapped creature
+  }
+  face "Pull" {
+    cost {4}{B/R}{B/R}
+    type Sorcery
+    spell: put up to 2 target creature card from a graveyard onto battlefield under your control; targets 1 to 2 gain haste until end of turn; delayed targets 1 to 2: sacrifice them at beginning of the next end step
+  }
+}

@@ -1,0 +1,8 @@
+card "Ghalta, Stampede Tyrant" {
+  oracle_id b8f16311-be5a-4648-b024-849a61dff0bc
+  cost {5}{G}{G}{G}
+  type Legendary Creature — Elder Dinosaur
+  pt 12/12
+  keywords trample
+  triggered when this enters: put any number creature card from hand onto battlefield chosen
+}

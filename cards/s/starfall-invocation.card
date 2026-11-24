@@ -1,0 +1,7 @@
+card "Starfall Invocation" {
+  oracle_id 7024532b-f99b-43a7-b0ed-5b3e7ec7592b
+  cost {3}{W}{W}
+  type Sorcery
+  gift card
+  spell: destroy all creatures; if kicked, return 1 creature card put into your graveyard this way to battlefield under your control chosen
+}

@@ -1,0 +1,6 @@
+card "Smile at Death" {
+  oracle_id 9228f04c-506f-4453-a335-e66876b8ce8d
+  cost {3}{W}{W}
+  type Enchantment
+  triggered at the beginning of your upkeep: return up to 2 target creature card with power 2 or less from your graveyard to battlefield; put 1 +1/+1 counter on those targets
+}

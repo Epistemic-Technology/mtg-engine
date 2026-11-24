@@ -10244,6 +10244,10 @@ impl P {
                 // `put 1 card an opponent owns from exile into graveyard
                 // chosen`: a zone, not a verb.
                 Some("exile") if self.word_at(k - 1).as_deref() == Some("from") => {}
+                // `return 1 creature card put into your graveyard this way
+                // ...`: a description, not a verb.
+                Some("put")
+                    if verb == "return" && self.word_at(k + 1).as_deref() == Some("into") => {}
                 Some(w) if VERBS.contains(&w) => return false,
                 _ => {}
             }
@@ -10383,9 +10387,31 @@ impl P {
                         (ChooseAct::MilledToHand, f)
                     } else if self.eat_words(&["from", "your", "graveyard", "to", "battlefield"]) {
                         // `return 1 land card from your graveyard to
-                        // battlefield tapped chosen`.
+                        // battlefield tapped chosen`; `... with 1 finality
+                        // counter chosen`.
                         let tapped = self.eat_word("tapped");
-                        (ChooseAct::GraveyardToBattlefield { tapped }, f)
+                        let counter = self.one_counter()?;
+                        (ChooseAct::GraveyardToBattlefield { tapped, counter }, f)
+                    } else if self.eat_words(&["put", "into"]) {
+                        // `return 1 creature card put into your graveyard
+                        // this way to battlefield under your control chosen`.
+                        let any = if self.eat_word("a") {
+                            true
+                        } else {
+                            self.expect_word("your")?;
+                            false
+                        };
+                        self.expect_words(&[
+                            "graveyard",
+                            "this",
+                            "way",
+                            "to",
+                            "battlefield",
+                            "under",
+                            "your",
+                            "control",
+                        ])?;
+                        (ChooseAct::ThisWayToBattlefield { any }, f)
                     } else {
                         self.expect_words(&["from", "your", "graveyard", "to", "hand"])?;
                         (ChooseAct::ReturnFromGraveyard, f)
@@ -10431,6 +10457,32 @@ impl P {
                 let f = card_filter(self)?;
                 self.pos += 7;
                 (ChooseAct::GraveyardToTop, f)
+            }
+            // `put any number creature card from hand onto battlefield
+            // chosen`, `put 1 land card from hand or graveyard onto
+            // battlefield tapped chosen`.
+            "put"
+                if {
+                    let at = self.pos;
+                    let hand = card_filter(self).is_ok() && self.at_words(&["from", "hand"]);
+                    self.pos = at;
+                    hand
+                } =>
+            {
+                let f = card_filter(self)?;
+                self.pos += 2;
+                let graveyard = self.eat_words(&["or", "graveyard"]);
+                self.expect_words(&["onto", "battlefield"])?;
+                let tapped = self.eat_word("tapped");
+                let counter = self.one_counter()?;
+                (
+                    ChooseAct::HandToBattlefield {
+                        tapped,
+                        graveyard,
+                        counter,
+                    },
+                    f,
+                )
             }
             // `put 1 card an opponent owns from exile into graveyard
             // chosen` (a processor).
@@ -10494,6 +10546,16 @@ impl P {
             this_way,
             returns,
         })
+    }
+
+    /// `with 1 finality counter` after a chosen card's destination: one
+    /// counter of that kind.
+    fn one_counter(&mut self) -> R<Option<mtg_core::card::CounterKind>> {
+        if !(self.at_word("with") && matches!(self.peek_at(1), Some(Tok::Num(1)))) {
+            return Ok(None);
+        }
+        self.pos += 2;
+        Ok(Some(self.counter_kind()?))
     }
 
     /// How long an impulse permission lasts: `this turn`, `next turn`,
@@ -11324,17 +11386,51 @@ impl P {
                 })
             }
             "shuffle" if self.shuffle_zone_ahead() => self.shuffle_zone(None),
+            // `put all creature card from all graveyards onto battlefield
+            // under your control`.
+            "put"
+                if self.at_word("all")
+                    && (1..24).any(|k| {
+                        self.word_at(k).as_deref() == Some("card")
+                            && self.word_at(k + 1).as_deref() == Some("from")
+                            && self.word_at(k + 2).as_deref() == Some("all")
+                            && self.word_at(k + 3).as_deref() == Some("graveyards")
+                    }) =>
+            {
+                self.pos += 1;
+                let filter = self.filter()?;
+                self.expect_words(&["card", "from", "all", "graveyards", "onto", "battlefield"])?;
+                let tapped = self.eat_word("tapped");
+                self.expect_words(&["under", "your", "control"])?;
+                self.group_named = true;
+                Ok(Effect::GraveyardToBattlefield {
+                    filter,
+                    tapped,
+                    all_graveyards: true,
+                })
+            }
             // `put that target 1 onto battlefield tapped`: "put that card
             // onto the battlefield tapped" (`return ... to battlefield`
             // otherwise).
             "put"
-                if (0..10).any(|k| {
-                    self.word_at(k).as_deref() == Some("onto")
-                        && self.word_at(k + 1).as_deref() == Some("battlefield")
-                }) && !(0..8).any(|k| {
-                    self.word_at(k).as_deref() == Some("from")
-                        && self.word_at(k + 1).as_deref() == Some("hand")
-                }) =>
+                if (0..10)
+                    .chain((10..18).take_while(|k| {
+                        // A long target filter ("target creature card with
+                        // mana value 4 or less from a graveyard"), within the
+                        // sentence.
+                        self.word_at(0).as_deref() == Some("target")
+                            && !(0..*k).any(|j| {
+                                matches!(self.peek_at(j), None | Some(Tok::Semi | Tok::Newline))
+                            })
+                    }))
+                    .any(|k| {
+                        self.word_at(k).as_deref() == Some("onto")
+                            && self.word_at(k + 1).as_deref() == Some("battlefield")
+                    })
+                    && !(0..8).any(|k| {
+                        self.word_at(k).as_deref() == Some("from")
+                            && self.word_at(k + 1).as_deref() == Some("hand")
+                    }) =>
             {
                 let what = self.recipient()?;
                 self.expect_word("onto")?;
@@ -11581,7 +11677,13 @@ impl P {
                 let filter = self.filter()?;
                 self.expect_words(&["card", "from", "your", "graveyard", "to", "battlefield"])?;
                 let tapped = self.eat_word("tapped");
-                Ok(Effect::GraveyardToBattlefield { filter, tapped })
+                // "Sacrifice them at the beginning of the next end step."
+                self.group_named = true;
+                Ok(Effect::GraveyardToBattlefield {
+                    filter,
+                    tapped,
+                    all_graveyards: false,
+                })
             }
             "return" if self.at_words(&["those", "exiled", "cards", "to", "hand"]) => {
                 self.pos += 5;
@@ -14414,8 +14516,11 @@ impl P {
             }
         }
         // `them`, `those creatures`: the objects a group named earlier in
-        // the ability denoted (CR 608.2c).
-        if let Some((t, n)) = self.at_those() {
+        // the ability denoted (CR 608.2c). Inside a delayed trigger about
+        // them, `them` is what it is about (`SameThem`).
+        if let Some((t, n)) = self.at_those()
+            && !(self.in_delayed && t == crate::ast::Those::Them)
+        {
             if self.group_named {
                 self.pos += n;
                 return Ok(Recipient::Those(t));
