@@ -288,11 +288,13 @@ fn it_after_a_target_in_a_trigger_is_that_target() {
 
 #[test]
 fn a_static_ability_rejects_a_resolution_only_count() {
-    // "the number of cards you've drawn this turn" is kept for a resolving
-    // effect; a static ability would read 0 (`CountExpr::in_static`).
+    // "the number of spells you've cast this turn" is kept for a resolving
+    // effect; a static ability would read 0 (`CountExpr::in_static`). The
+    // cards you've drawn this turn a static can read (Duelist of the Mind).
     assert!(compiles("static this: cda pt count creature you control"));
+    assert!(compiles("static this: cda power drawn this turn"));
     for line in [
-        "static this: cda pt drawn this turn",
+        "static this: cda pt spells cast this turn",
         "static this: cda power greatest power creature you control",
     ] {
         let e = creature_error(line);
