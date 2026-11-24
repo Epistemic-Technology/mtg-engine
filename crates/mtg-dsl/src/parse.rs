@@ -4482,6 +4482,8 @@ impl P {
                         BlockRule::AtMostOne
                     } else if self.eat_words(&["by", "creature", "with", "lesser", "power"]) {
                         BlockRule::NotByLesserPower
+                    } else if self.eat_words(&["by", "creature", "with", "greater", "power"]) {
+                        BlockRule::NotByGreaterPower
                     } else if self.eat_words(&["except", "by"]) {
                         // "except by three or more creatures".
                         if matches!(self.peek(), Some(Tok::Num(_)))
@@ -16202,6 +16204,17 @@ impl P {
                 }
                 "damaged" => {
                     f.damaged = true;
+                    self.pos += 1;
+                }
+                // "that aren't of the chosen type": `not of chosen type`.
+                "not"
+                    if f.chosen.is_none()
+                        && !f.status.not_chosen
+                        && (self.at_words(&["not", "of", "chosen"])
+                            || self.at_words(&["not", "of", "that", "type"])
+                            || self.at_words(&["not", "of", "that", "color"])) =>
+                {
+                    f.status.not_chosen = true;
                     self.pos += 1;
                 }
                 // "of the chosen type", "of that type", "of the color of

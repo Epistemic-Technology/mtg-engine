@@ -3697,6 +3697,14 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if let Some(c) = f.chosen
         && !chosen_first
     {
+        // "creatures that aren't of the chosen type".
+        if f.status.not_chosen {
+            s.push_str(if plural_form {
+                " that aren't"
+            } else {
+                " that isn't"
+            });
+        }
         s.push_str(of_chosen(c));
         if f.other_than_this {
             let _ = write!(s, " other than {}", this_ref(card));
@@ -3738,10 +3746,6 @@ fn of_chosen(c: OfChosen) -> &'static str {
     }
 }
 
-/// "power less than or equal to the number of creatures you control",
-/// "mana value X or less, where X is the number of Faeries you control"
-/// (`count where`), "toughness less than this creature's power": a
-/// characteristic compared with a count (`StatusQuals::bound`).
 /// "with the greatest power among creatures they control", "with the
 /// greatest mana value among creatures and planeswalkers they control";
 /// after "an opponent controls", "... that player controls" (Kraven).
@@ -3770,6 +3774,10 @@ fn greatest_phrase(f: &Filter, stat: mtg_core::card::Stat) -> String {
     format!("with the greatest {what} among {group} {who}")
 }
 
+/// "power less than or equal to the number of creatures you control",
+/// "mana value X or less, where X is the number of Faeries you control"
+/// (`count where`), "toughness less than this creature's power": a
+/// characteristic compared with a count (`StatusQuals::bound`).
 fn bound_phrase(b: mtg_core::card::StatBound, card: &Card) -> String {
     bound_words(b, card, "")
 }
@@ -16654,6 +16662,9 @@ fn block_rule_phrase(r: &crate::ast::BlockRule, card: &Card, this_turn: bool) ->
             "can't be blocked{turn} by creatures with power less than {}'s power",
             this_ref(card)
         ),
+        BlockRule::NotByGreaterPower => {
+            format!("can't be blocked{turn} by creatures with greater power")
+        }
         BlockRule::BlocksOnly(f) => format!("can block only {}{turn}", pl(f)),
         BlockRule::CantBlock(f) => format!("can't block {}{turn}", pl(f)),
         BlockRule::MinBlockers(n) => format!(

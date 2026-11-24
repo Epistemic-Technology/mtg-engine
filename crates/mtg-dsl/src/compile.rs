@@ -6534,6 +6534,9 @@ impl Compiler<'_> {
                     mtg_core::card::BlockRule::OnlyBy(self.filter(f))
                 }
                 crate::ast::BlockRule::AtMostOne => mtg_core::card::BlockRule::AtMostOne,
+                crate::ast::BlockRule::NotByGreaterPower => {
+                    mtg_core::card::BlockRule::NotByGreaterPower
+                }
                 crate::ast::BlockRule::NotByLesserPower => {
                     mtg_core::card::BlockRule::NotByLesserPower
                 }

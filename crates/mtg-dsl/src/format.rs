@@ -5023,6 +5023,9 @@ fn filter_one(f: &Filter) -> String {
         None => {}
     }
     if let Some(c) = f.chosen {
+        if f.status.not_chosen {
+            words.push("not".to_string());
+        }
         words.push(of_chosen(c).to_string());
     }
     if f.per_player {
@@ -7666,6 +7669,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 crate::ast::BlockRule::NotByLesserPower => {
                     "can't be blocked by creature with lesser power".to_string()
+                }
+                crate::ast::BlockRule::NotByGreaterPower => {
+                    "can't be blocked by creature with greater power".to_string()
                 }
                 crate::ast::BlockRule::BlocksOnly(f) => format!("can block only {}", filter(f)),
                 crate::ast::BlockRule::CantBlock(f) => format!("can't block {}", filter(f)),

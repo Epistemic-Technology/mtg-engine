@@ -1417,6 +1417,12 @@ pub struct StatusQuals {
     /// the group is the object's controller's.
     #[serde(default)]
     pub greatest: Option<Stat>,
+    /// "creatures that aren't of the chosen type" (Kindred Judgment): the
+    /// choice `ObjFilter::chosen` fills in is excluded instead of required
+    /// (a changeling is of every type, CR 702.73a). A characteristic, not
+    /// game state: `any` leaves it out.
+    #[serde(default)]
+    pub not_chosen: bool,
 }
 
 /// What a chosen number is compared with (`StatusQuals::equal_chosen`).
@@ -1682,6 +1688,11 @@ impl ObjFilter {
         let mut f = self.clone();
         f.chosen = false;
         match chosen {
+            // "that aren't of the chosen type".
+            crate::state::Chosen::Color(c) if f.status.not_chosen => {
+                f.not_colors = f.not_colors.union(ColorSet::of([c]));
+            }
+            crate::state::Chosen::Subtype(s) if f.status.not_chosen => f.not_subtypes.push(s),
             crate::state::Chosen::Color(c) => f.colors = Some(ColorSet::of([c])),
             crate::state::Chosen::Subtype(s) => f.subtypes.push(s),
             // "spell with the chosen name".
@@ -2631,6 +2642,9 @@ pub enum BlockRule {
     /// "Creatures with power less than this creature's power can't block
     /// it." (judged as blockers are declared, CR 509.1b).
     NotByLesserPower,
+    /// "This creature can't be blocked by creatures with greater power."
+    /// (Prehistoric Pet; judged as blockers are declared, CR 509.1b).
+    NotByGreaterPower,
     /// "can't be blocked except by three or more creatures" (CR 509.1b,
     /// like menace's two).
     MinBlockers(u8),

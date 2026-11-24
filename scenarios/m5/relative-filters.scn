@@ -188,6 +188,94 @@ scenario "Mind into Matter: X 2 puts a permanent card with mana value 2 or less"
   assert hand A count 3
 }
 
+scenario "Secret Tunnel: two creatures that share a creature type can't be blocked" {
+  battlefield A: "Secret Tunnel", 4 "Forest", "Grizzly Bears", "Runeclaw Bear"
+  battlefield B: "Wall of Stone"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Secret Tunnel" ability 2 targeting "Grizzly Bears", "Runeclaw Bear"
+  turn 2 A: attack "Grizzly Bears", "Runeclaw Bear"
+  illegal turn 2 B: block "Grizzly Bears" with "Wall of Stone"
+  run_to turn 2 postcombat_main
+  assert life B 16
+}
+
+scenario "Secret Tunnel: creatures that share no creature type aren't a legal pair" {
+  battlefield A: "Secret Tunnel", 4 "Forest", "Grizzly Bears", "Llanowar Elves"
+  start turn 2 A precombat_main
+  illegal turn 2 A: activate "Secret Tunnel" ability 2 targeting "Grizzly Bears", "Llanowar Elves"
+  run_to turn 2 postcombat_main
+}
+
+scenario "Spider-Man, To the Rescue: tap him, another nonattacking creature gains indestructible" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  hand A: "Spider-Man, To the Rescue", "Lightning Bolt"
+  battlefield A: "Mountain"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Spider-Man, To the Rescue"
+  turn 2 A: trigger "Spider-Man, To the Rescue" targeting "Grizzly Bears"
+  turn 2 A: wait
+  turn 2 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert tapped "Spider-Man, To the Rescue"
+  assert battlefield A contains "Grizzly Bears"
+  assert has "Grizzly Bears" indestructible
+}
+
+scenario "Spider-Man, To the Rescue: an attacking creature isn't a legal target" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  hand A: "Spider-Man, To the Rescue"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Spider-Man, To the Rescue"
+  illegal turn 2 declare_attackers A: trigger "Spider-Man, To the Rescue" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert has not "Grizzly Bears" indestructible
+}
+
+scenario "Kindred Judgment destroys every creature not of the chosen type" {
+  battlefield A: 7 "Plains", "Grizzly Bears", "Llanowar Elves"
+  battlefield B: "Runeclaw Bear", "Hill Giant"
+  hand A: "Kindred Judgment"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kindred Judgment"
+  turn 1 A: choose Bear
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield B contains "Runeclaw Bear"
+  assert graveyard A contains "Llanowar Elves"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Prehistoric Pet can't be blocked by creatures with greater power" {
+  battlefield A: "Prehistoric Pet"
+  battlefield B: "Grizzly Bears", "Llanowar Elves"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Prehistoric Pet"
+  illegal turn 2 B: block "Prehistoric Pet" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 19
+}
+
+scenario "Prehistoric Pet can be blocked by a creature with equal power" {
+  battlefield A: "Prehistoric Pet"
+  battlefield B: "Llanowar Elves"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Prehistoric Pet"
+  turn 2 B: block "Prehistoric Pet" with "Llanowar Elves"
+  run_to turn 2 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Llanowar Elves"
+}
+
+scenario "Prehistoric Pet returns another creature only during your turn" {
+  battlefield A: "Prehistoric Pet", "Grizzly Bears", 2 "Plains"
+  start turn 2 B precombat_main
+  illegal turn 2 precombat_main A: activate "Prehistoric Pet" targeting "Grizzly Bears"
+  turn 3 A: activate "Prehistoric Pet" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
 scenario "Anticausal Vestige: a permanent card with mana value up to the lands you control" {
   battlefield A: 4 "Island"
   hand A: "Anticausal Vestige", "Craw Wurm", "Hill Giant"

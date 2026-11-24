@@ -3068,6 +3068,9 @@ impl Decompiler<'_> {
                     crate::ast::BlockRule::OnlyBy(self.filter(f))
                 }
                 mtg_core::card::BlockRule::AtMostOne => crate::ast::BlockRule::AtMostOne,
+                mtg_core::card::BlockRule::NotByGreaterPower => {
+                    crate::ast::BlockRule::NotByGreaterPower
+                }
                 mtg_core::card::BlockRule::NotByLesserPower => {
                     crate::ast::BlockRule::NotByLesserPower
                 }

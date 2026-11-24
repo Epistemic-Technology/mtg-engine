@@ -2730,6 +2730,9 @@ pub enum BlockRule {
     /// `can't be blocked by creature with lesser power`: "Creatures with
     /// power less than this creature's power can't block it."
     NotByLesserPower,
+    /// `can't be blocked by creature with greater power`: "This creature
+    /// can't be blocked by creatures with greater power."
+    NotByGreaterPower,
     /// `can't be blocked except by 3 or more creatures`.
     MinBlockers(u8),
     /// `can block shadow as though had shadow` ("can block creatures with
