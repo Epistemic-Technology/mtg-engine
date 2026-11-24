@@ -1,0 +1,6 @@
+card "Ignorant Bliss" {
+  oracle_id 9cf12838-64fe-49c9-9181-e0f6118c0bf6
+  cost {1}{R}
+  type Instant
+  spell: exile hand face down; delayed this: at beginning of the next end step, return those exiled cards to hand then draw 1 card
+}

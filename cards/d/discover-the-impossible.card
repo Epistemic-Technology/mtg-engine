@@ -1,0 +1,6 @@
+card "Discover the Impossible" {
+  oracle_id 1c2a3f13-6bcb-42ad-98f6-642151ad54f1
+  cost {2}{U}
+  type Instant
+  spell: dig face down 5 them; cast free exiled card that is instant spell with mana value up to 2; put exiled card into hand if not cast
+}

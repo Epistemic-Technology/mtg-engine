@@ -124,6 +124,9 @@ impl GameState {
             // "You control" filters read the controller.
             self.cbump();
             self.emit(Event::ControlChanged { obj: id, from, to });
+            if !self.linked_exiles.is_empty() {
+                self.grant_exile_looks(id, to);
+            }
         }
     }
 

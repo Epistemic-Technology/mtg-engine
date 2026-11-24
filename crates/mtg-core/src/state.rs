@@ -3542,6 +3542,34 @@ impl GameState {
         // does not weigh on every rules query (measured at 13% of an
         // effect-free game when it was inline).
         match o.except {
+            None if o.sized == 0 && o.marks & OBJ_FACE_DOWN_EXILE == 0 => self.printed(o.def),
+            _ => self.base_characteristics_cold(o),
+        }
+    }
+
+    /// `base_characteristics` off its common path: a copy, an X/X token,
+    /// or a card exiled face down, which has no characteristics (CR
+    /// 406.3a) for every count and filter that looks at it.
+    #[cold]
+    #[inline(never)]
+    fn base_characteristics_cold(&self, o: &GameObject) -> Characteristics {
+        if o.exiled_face_down() {
+            let mut c = self.printed(self.pool.face_down(false));
+            c.types = crate::card::TypeSet::default();
+            c.subtypes = SubtypeSet::default();
+            c.power = 0;
+            c.toughness = 0;
+            return c;
+        }
+        self.printed_with_except(o.def, o.except, o.sized)
+    }
+
+    /// The characteristics of the card itself, face down in exile or not:
+    /// what a player allowed to look at a face-down exiled card casts it
+    /// as ("if it's an instant spell with mana value 2 or less", CR
+    /// 406.3b, judged on the spell it would be).
+    pub fn card_characteristics(&self, o: &GameObject) -> Characteristics {
+        match o.except {
             None if o.sized == 0 => self.printed(o.def),
             x => self.printed_with_except(o.def, x, o.sized),
         }

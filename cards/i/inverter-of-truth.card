@@ -1,0 +1,8 @@
+card "Inverter of Truth" {
+  oracle_id 941350ba-30e2-4549-865f-ca1bd7626782
+  cost {2}{B}{B}
+  type Creature — Eldrazi
+  pt 6/6
+  keywords devoid, flying
+  triggered when this enters: exile library face down then shuffle all card from graveyard into library
+}

@@ -1,0 +1,8 @@
+card "Clone Shell" {
+  oracle_id 94ab7d13-bcd7-419f-9e68-bd8e7ef66d42
+  cost {5}
+  type Artifact Creature — Shapeshifter
+  pt 2/2
+  label "Imprint" triggered when this enters: dig face down 4 then any order
+  triggered when this dies: turn face up exiled card put creature onto battlefield
+}

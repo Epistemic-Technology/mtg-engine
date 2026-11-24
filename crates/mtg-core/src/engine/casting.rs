@@ -3234,7 +3234,7 @@ impl GameState {
                 continue;
             }
             let def = self.pool.get(o.def);
-            let chars = self.base_characteristics(o);
+            let chars = self.card_characteristics(o);
             let (mut land_ok, mut spell_ok) = (false, false);
             for a in &self.pool.get(s.def).ability_ids {
                 let AbilityDef::PlayExiled {
@@ -3242,6 +3242,7 @@ impl GameState {
                     spells,
                     your_turn,
                     owned,
+                    ..
                 } = self.pool.ability(*a)
                 else {
                     continue;
@@ -10168,7 +10169,7 @@ impl GameState {
                 return false;
             }
             if let Some(f) = filter {
-                let chars = st.base_characteristics(o);
+                let chars = st.card_characteristics(o);
                 // The mana value isn't a characteristic `matches` sees.
                 if !(f
                     .mana_value
@@ -10329,6 +10330,9 @@ impl GameState {
             self.link_exile(ctx.source, new, false);
             // CR 702.75a, 406.3: face down; its controller may look at it.
             self.turn_face_down_in_exile(new, crate::card::ExileFace::Look, p);
+            // "If you don't, put that card into your hand." (Discover the
+            // Impossible): the resolution's card.
+            ctx.created = Some(new);
             ctx.did = true;
         }
         rand::seq::SliceRandom::shuffle(top.as_mut_slice(), &mut self.rng);
@@ -12291,15 +12295,51 @@ impl GameState {
                     self.note_asked(p, done < n);
                 }
             }
+            Effect::ExileLibrary { who, keep, face } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    let n = self.player(p).library.len().saturating_sub(*keep as usize);
+                    for _ in 0..n {
+                        let Some(top) = self.player(p).library.last().copied() else {
+                            break;
+                        };
+                        let new = self.move_object(top, Zone::Exile, true);
+                        self.turn_face_down_in_exile(new, *face, ctx.controller);
+                    }
+                }
+            }
             Effect::ExileFromHand {
                 count,
                 who,
                 graveyard,
+                face,
+                all,
             } => {
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
                         continue;
                     };
+                    // "Exile all cards from your hand face down." (CR
+                    // 406.3): linked to the source, "those cards".
+                    if *all {
+                        let cards = if *graveyard {
+                            self.player(p).graveyard.clone()
+                        } else {
+                            self.player(p).hand.clone()
+                        };
+                        for card in cards {
+                            let new = self.move_object(card, Zone::Exile, false);
+                            if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
+                                if *face != crate::card::ExileFace::Up {
+                                    self.link_exile(ctx.source, new, false);
+                                }
+                                self.turn_face_down_in_exile(new, *face, ctx.controller);
+                            }
+                        }
+                        continue;
+                    }
                     let ps = self.player(p);
                     if if *graveyard { &ps.graveyard } else { &ps.hand }.is_empty() {
                         ctx.did = false;
@@ -12324,6 +12364,12 @@ impl GameState {
                             // remains exiled." (Fiend of the Shadows).
                             if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
                                 ctx.created = Some(new);
+                                // "exile a card from your hand face down"
+                                // (Bane Alley Broker, CR 406.3).
+                                if *face != crate::card::ExileFace::Up {
+                                    self.link_exile(ctx.source, new, false);
+                                    self.turn_face_down_in_exile(new, *face, ctx.controller);
+                                }
                             }
                         }
                     }
@@ -14352,6 +14398,24 @@ impl GameState {
             }
             Effect::TurnFaceUp { what } => {
                 for t in self.recipients(ctx, *what) {
+                    // "Turn the exiled card face up." (Clone Shell, CR
+                    // 406.3): a face-down card in exile becomes an
+                    // ordinary face-up one, the same object.
+                    if let Target::Object(id) = t
+                        && self
+                            .objects
+                            .get(id)
+                            .is_some_and(crate::state::GameObject::exiled_face_down)
+                    {
+                        let o = &mut self.objects[id];
+                        o.marks &= !crate::state::OBJ_FACE_DOWN_EXILE;
+                        o.revealed = u8::MAX;
+                        // "If it's a creature card, put it onto the
+                        // battlefield": the resolution's card.
+                        ctx.created = Some(id);
+                        self.cbump();
+                        continue;
+                    }
                     let Some(id) = on_battlefield(self, t) else {
                         continue;
                     };

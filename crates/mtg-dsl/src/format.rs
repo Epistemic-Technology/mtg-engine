@@ -930,6 +930,21 @@ impl Fmt {
             Effect::Earthbend { count, .. } => format!("earthbend {}", num(*count)),
             Effect::Support(to) => format!("support {}", to.len()),
             Effect::Populate => "populate".to_string(),
+            Effect::TurnFaceUpExiled => {
+                "turn face up exiled card put creature onto battlefield".to_string()
+            }
+            Effect::ReturnThoseExiled => "return those exiled cards to hand".to_string(),
+            Effect::DigFaceDown {
+                count,
+                then,
+                them,
+                any_order,
+            } => format!(
+                "dig face down {count}{}{}{}",
+                if *then { " then" } else { "" },
+                if *any_order { " any order" } else { "" },
+                if *them { " them" } else { "" }
+            ),
             Effect::EndTurn => "end the turn".to_string(),
             Effect::Recruit { you: false } => "recruit".to_string(),
             Effect::CloakTop => "cloak top".to_string(),
@@ -1248,6 +1263,9 @@ impl Fmt {
                     CardWords::OtherRevealed => "all other revealed",
                     CardWords::ExiledUnlessCast => {
                         return "put exiled card into hand unless cast".to_string();
+                    }
+                    CardWords::ExiledIfNotCast => {
+                        return "put exiled card into hand if not cast".to_string();
                     }
                 };
                 let d = match to {
@@ -2194,6 +2212,10 @@ impl Fmt {
                         _ => o,
                     };
                     s.push_str(&o);
+                    // `cast free exiled card that is instant spell ...`.
+                    if let Some(f) = f {
+                        let _ = write!(s, " that is {} spell", filter(f));
+                    }
                     // `cast free exiled card with mana value up to 4`.
                     if let Some(n) = max {
                         let _ = write!(s, " with mana value up to {}", num(*n));
@@ -2336,13 +2358,42 @@ impl Fmt {
                 count,
                 who,
                 graveyard,
-            } => format!(
-                "{} exiles {} {} from {}",
-                self.recipient(*who, t),
-                num(*count),
-                cards(*count),
-                if *graveyard { "graveyard" } else { "hand" }
-            ),
+                face,
+                all,
+            } => {
+                let face = match face {
+                    mtg_core::card::ExileFace::Up => "",
+                    mtg_core::card::ExileFace::Down => " face down",
+                    mtg_core::card::ExileFace::Look => " face down look",
+                };
+                let zone = if *graveyard { "graveyard" } else { "hand" };
+                let what = if *all {
+                    zone.to_string()
+                } else {
+                    format!("{} {} from {zone}", num(*count), cards(*count))
+                };
+                if *who == Recipient::You && (*all || !face.is_empty()) {
+                    format!("exile {what}{face}")
+                } else {
+                    format!("{} exiles {what}{face}", self.recipient(*who, t))
+                }
+            }
+            Effect::ExileLibrary { who, keep, face } => {
+                let face = match face {
+                    mtg_core::card::ExileFace::Up => "",
+                    mtg_core::card::ExileFace::Down => " face down",
+                    mtg_core::card::ExileFace::Look => " face down look",
+                };
+                let keep = if *keep > 0 {
+                    format!(" but bottom {keep}")
+                } else {
+                    String::new()
+                };
+                match who {
+                    None => format!("exile library{keep}{face}"),
+                    Some(w) => format!("{} exiles library{keep}{face}", self.recipient(*w, t)),
+                }
+            }
             Effect::DrawDiscardDrawn { draw, discard } => format!(
                 "draw {} {} then discard {} of them",
                 num(*draw),
@@ -2751,7 +2802,13 @@ impl Fmt {
                     }
                 };
                 if let Some(fl) = fl {
-                    let _ = write!(s, " all {} card from", filter(fl));
+                    // `all card from graveyard`: "all cards from your
+                    // graveyard" (Inverter of Truth).
+                    if *fl == Filter::default() {
+                        s.push_str(" all card from");
+                    } else {
+                        let _ = write!(s, " all {} card from", filter(fl));
+                    }
                 } else if *cards {
                     s.push_str(" cards from");
                 }
@@ -7708,12 +7765,24 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let _ = writeln!(out, "{s}");
         }
         Ability::PlayExiled {
+            look: true,
+            lands: false,
+            spells: None,
+            ..
+        } => {
+            let _ = writeln!(out, "{indent}may look exiled");
+        }
+        Ability::PlayExiled {
             lands,
             spells,
             your_turn,
             owned,
+            look,
         } => {
             let mut s = format!("{indent}play exiled");
+            if *look {
+                s.push_str(" look");
+            }
             if *your_turn {
                 s.push_str(" your turn");
             }

@@ -4006,10 +4006,19 @@ impl Compiler<'_> {
                 count,
                 who,
                 graveyard,
+                face,
+                all,
             } => out.push(CoreEffect::ExileFromHand {
                 count: *count,
                 who: r(*who),
                 graveyard: *graveyard,
+                face: *face,
+                all: *all,
+            }),
+            Effect::ExileLibrary { who, keep, face } => out.push(CoreEffect::ExileLibrary {
+                who: who.map_or(CoreRecipient::You, r),
+                keep: *keep,
+                face: *face,
             }),
             Effect::DrawDiscardDrawn { draw, discard } => {
                 out.push(CoreEffect::DrawDiscardDrawn {
@@ -4746,6 +4755,29 @@ impl Compiler<'_> {
                 to: r(*to),
             }),
             Effect::Populate => out.push(CoreEffect::Populate),
+            Effect::TurnFaceUpExiled => {
+                out.push(CoreEffect::TurnFaceUp {
+                    what: CoreRecipient::ExiledCard,
+                });
+                out.push(CoreEffect::IfCard {
+                    filter: mtg_core::card::ObjFilter {
+                        types: TypeSet::of([mtg_core::card::CardType::Creature]),
+                        ..mtg_core::card::ObjFilter::default()
+                    },
+                    negated: false,
+                    shares_type: false,
+                    revealed: false,
+                    then: vec![CoreEffect::PutCard {
+                        what: mtg_core::card::CardSet::It,
+                        to: mtg_core::card::CardDest::Battlefield { tapped: false },
+                        random: false,
+                    }],
+                });
+            }
+            Effect::ReturnThoseExiled => out.push(CoreEffect::ReturnToHand {
+                what: CoreRecipient::ExiledCard,
+            }),
+            Effect::DigFaceDown { count, .. } => out.push(CoreEffect::Hideaway { count: *count }),
             Effect::EndTurn => out.push(CoreEffect::EndTurn),
             // CR 701.41a: one counter on each target.
             Effect::Support(to) => {
@@ -4945,7 +4977,9 @@ impl Compiler<'_> {
                             CardSet::Revealed
                         }
                         CardWords::OtherRevealed => CardSet::OtherRevealed,
-                        CardWords::ExiledUnlessCast => CardSet::ItUnlessCast,
+                        CardWords::ExiledUnlessCast | CardWords::ExiledIfNotCast => {
+                            CardSet::ItUnlessCast
+                        }
                     },
                     to: *to,
                     random: *random,
@@ -7207,11 +7241,13 @@ impl Compiler<'_> {
                 spells,
                 your_turn,
                 owned,
+                look,
             } => AbilityDef::PlayExiled {
                 lands: *lands,
                 spells: spells.as_ref().map(|f| self.filter(f)),
                 your_turn: *your_turn,
                 owned: *owned,
+                look: *look,
             },
             Ability::TopRevealed { players, hands } => AbilityDef::TopRevealed {
                 players: *players,
@@ -8238,6 +8274,20 @@ fn link_exiles(def: &mut mtg_core::card::CardDef) {
     // card its abilities exile is linked to the permanent (the engine
     // records them as the abilities resolve).
     if def.oracle_text.contains("exiled with") {
+        def.links_exile = true;
+    }
+    // "When this creature leaves the battlefield, return the exiled card
+    // to its owner's hand." (Mesmeric Fiend): what its abilities exile.
+    if def.abilities.iter().any(|a| {
+        a.all_effects().iter().any(|e| {
+            matches!(
+                e,
+                CoreEffect::ReturnToHand {
+                    what: CoreRecipient::ExiledCard
+                }
+            )
+        })
+    }) {
         def.links_exile = true;
     }
     // "This artifact has all activated abilities of the exiled card"

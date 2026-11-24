@@ -99,6 +99,9 @@ pub enum CardWords {
     /// `put exiled card into hand unless cast`: "Put the exiled card into
     /// your hand if it wasn't cast this way."
     ExiledUnlessCast,
+    /// `put exiled card into hand if not cast`: "If you don't, put that
+    /// card into your hand." (Discover the Impossible), the same.
+    ExiledIfNotCast,
 }
 
 /// How a library placement is worded (`Effect::PutInLibrary`).
@@ -1973,6 +1976,11 @@ pub enum Ability {
         spells: Option<Filter>,
         your_turn: bool,
         owned: bool,
+        /// `may look exiled`: "You may look at cards exiled with this
+        /// creature." (alone); `play exiled look lands and spells`: "You
+        /// may look at the cards exiled with this enchantment, and you may
+        /// play lands and cast spells from among those cards." (CR 406.3).
+        look: bool,
     },
     /// `top revealed`: "Play with the top card of your library
     /// revealed."; `top revealed players`: "Players play with the top card
@@ -4875,6 +4883,21 @@ pub enum Effect {
         count: Num,
         who: Recipient,
         graveyard: bool,
+        /// `... face down` (CR 406.3): "exile a card from your hand face
+        /// down" (`exile 1 card from hand face down`, the controller).
+        face: mtg_core::card::ExileFace,
+        /// `exile hand face down`: "Exile all cards from your hand face
+        /// down."; `target player exiles hand face down`.
+        all: bool,
+    },
+    /// `exile library face down`: "Exile all cards from your library face
+    /// down."; `each player exiles library but bottom 6 face down`: "each
+    /// player exiles all but the bottom six cards of their library face
+    /// down".
+    ExileLibrary {
+        who: Option<Recipient>,
+        keep: u32,
+        face: mtg_core::card::ExileFace,
     },
     /// `target opponent reveals hand exiling nonland card from graveyard
     /// or hand`: "Target opponent reveals their hand. You choose a nonland
@@ -5496,6 +5519,30 @@ pub enum Effect {
     Support(Vec<Recipient>),
     /// `populate` (CR 701.36).
     Populate,
+    /// `turn face up exiled card put creature onto battlefield`: "turn the
+    /// exiled card face up. If it's a creature card, put it onto the
+    /// battlefield under your control." (Clone Shell, Summoner's Egg; CR
+    /// 406.3, 607.2a).
+    TurnFaceUpExiled,
+    /// `return those exiled cards to hand`: "return those cards to your
+    /// hand" (Ignorant Bliss's delayed trigger): the cards the source
+    /// exiled face down, still in exile (CR 607.2a).
+    ReturnThoseExiled,
+    /// `dig face down 5 them`: "Look at the top five cards of your library.
+    /// Exile one of them face down and put the rest on the bottom of your
+    /// library in a random order." (Discover the Impossible); `dig face
+    /// down 4 then any order`: "look at the top four cards of your
+    /// library, exile one face down, then put the rest on the bottom of
+    /// your library in any order" (Clone Shell). Hideaway's body (CR
+    /// 702.75a, 406.3): the controller chooses the card and may look at it;
+    /// it is linked to the source, "the exiled card" (CR 607.2a). "In any
+    /// order" is wording only (a random order is one of its orders).
+    DigFaceDown {
+        count: u32,
+        then: bool,
+        them: bool,
+        any_order: bool,
+    },
     /// `end the turn` (CR 724.1).
     EndTurn,
     /// `incubate 2` (CR 701.53): the token is "Incubator".

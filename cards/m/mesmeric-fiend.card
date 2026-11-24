@@ -1,0 +1,8 @@
+card "Mesmeric Fiend" {
+  oracle_id fb46b300-8a39-40d2-8bc7-31b90c822e22
+  cost {1}{B}
+  type Creature — Nightmare Horror
+  pt 1/1
+  triggered when this enters: target opponent reveals hand and exiling nonland card
+  triggered when this leaves the battlefield: return exiled card to hand
+}

@@ -849,7 +849,8 @@ impl GameState {
     pub(crate) fn types_exiled_with(&self, source: ObjId) -> u32 {
         let mut types = crate::card::TypeSet::default();
         for id in self.exiled_with(source) {
-            types = types.union(self.pool.get(self.objects[id].def).types);
+            // CR 406.3a: a card exiled face down has no card types.
+            types = types.union(self.base_characteristics(&self.objects[id]).types);
         }
         types.len()
     }
@@ -1138,6 +1139,66 @@ impl GameState {
         } else {
             0
         };
+        // "You may look at cards exiled with this creature.", hideaway
+        // (CR 702.75a): the controller of the permanent it is linked to.
+        let sources: SmallVec<[ObjId; 2]> = self
+            .linked_exiles
+            .iter()
+            .filter(|l| l.card == id)
+            .map(|l| l.source)
+            .collect();
+        for s in sources {
+            if let Some(so) = self.objects.get(s)
+                && so.zone == Zone::Battlefield
+                && self.lets_look_exiled(so.def)
+            {
+                let bit = 1 << so.controller.index().min(7);
+                self.objects[id].revealed |= bit;
+            }
+        }
+        self.bump();
+    }
+
+    /// Whether a permanent with this definition lets its controller look
+    /// at the face-down cards exiled with it: "You may look at cards
+    /// exiled with this creature." (`AbilityDef::PlayExiled::look`), or
+    /// hideaway's "The player who controls the permanent that exiled this
+    /// card may look at this card in the exile zone." (CR 702.75a).
+    fn lets_look_exiled(&self, def: CardRef) -> bool {
+        self.pool.get(def).abilities.iter().any(|a| match a {
+            crate::card::AbilityDef::PlayExiled { look, .. } => *look,
+            crate::card::AbilityDef::Triggered(t) => {
+                matches!(t.effects.as_slice(), [crate::card::Effect::Hideaway { .. }])
+            }
+            _ => false,
+        })
+    }
+
+    /// CR 406.3, 702.75a: a permanent that lets its controller look at
+    /// the face-down cards exiled with it has a new controller, who may
+    /// look at them from now on (and, having looked, keeps knowing them
+    /// while they stay exiled, whoever controls it later).
+    pub(super) fn grant_exile_looks(&mut self, source: ObjId, to: PlayerId) {
+        let Some(def) = self.objects.get(source).map(|o| o.def) else {
+            return;
+        };
+        if !self.lets_look_exiled(def) {
+            return;
+        }
+        let cards: SmallVec<[ObjId; 4]> = self
+            .linked_exiles
+            .iter()
+            .filter(|l| l.source == source)
+            .map(|l| l.card)
+            .collect();
+        let bit = 1 << to.index().min(7);
+        for c in cards {
+            if let Some(o) = self.objects.get_mut(c)
+                && o.exiled_face_down()
+            {
+                o.revealed |= bit;
+            }
+        }
         self.bump();
     }
 

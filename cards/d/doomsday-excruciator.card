@@ -1,0 +1,9 @@
+card "Doomsday Excruciator" {
+  oracle_id ad0db433-a406-4ef0-8ffa-416af610c4e7
+  cost {B}{B}{B}{B}{B}{B}
+  type Creature — Demon
+  pt 6/6
+  keywords flying
+  triggered when this enters if it was cast: each player exiles library but bottom 6 face down
+  triggered at beginning of your upkeep: draw 1 card
+}
