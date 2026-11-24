@@ -1,0 +1,20 @@
+// "You don't lose unspent red mana as steps and phases end." (CR 500.4)
+
+scenario "Electro's red mana from a cast trigger lasts into the next main phase" {
+  battlefield A: "Electro, Assaulting Battery", "Mountain"
+  hand A: "Shock", "Shock"
+  turn 1 precombat_main A: cast "Shock" targeting player B
+  turn 1 postcombat_main A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 16
+  assert graveyard A contains 2 "Shock"
+}
+
+scenario "without Electro the red mana empties as the step ends" {
+  battlefield A: "Mountain"
+  hand A: "Shock", "Shock"
+  turn 1 precombat_main A: cast "Shock" targeting player B
+  illegal turn 1 postcombat_main A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 18
+}

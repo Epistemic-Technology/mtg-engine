@@ -5444,7 +5444,7 @@ impl GameState {
                 }
                 // CR 606.3: one loyalty ability per planeswalker per turn, at
                 // sorcery speed; CR 606.5: a −N cost needs N loyalty.
-                if ab.cost.loyalty != 0 {
+                if ab.is_loyalty() {
                     if !sorcery_timing || self.loyalty_activated.contains(&id) {
                         continue;
                     }
@@ -6046,7 +6046,7 @@ impl GameState {
             self.log_event(crate::card::TurnEvent::LoyaltyActivated, player, 1);
         }
         if let AbilityDef::Activated(a) = self.pool.ability(ability) {
-            if a.cost.loyalty != 0 {
+            if a.is_loyalty() {
                 self.loyalty_activated.push(source);
             }
             if a.per_turn > 0 || a.keyword == Some(ActivatedKeyword::Boast) || a.counted {
@@ -6105,6 +6105,7 @@ impl GameState {
             self.pool.ability(ability),
             AbilityDef::Activated(a) if ((a.cost.mana.has_x()
                 || a.cost.remove_x
+                || a.cost.loyalty_x
                 || a.cost.behold.as_ref().is_some_and(|b| b.x)
                 || a.cost.exile_cards.as_ref().is_some_and(|g| g.x))
                 && !a.is_mana_ability())
@@ -6282,6 +6283,17 @@ impl GameState {
                 let b = a.cost.behold.as_deref().expect("checked");
                 let n = self.behold_candidates(caster, b, source).len();
                 max_x.min(u32::try_from(n).unwrap_or(MAX_X))
+            }
+            _ => max_x,
+        };
+        // "−X": no more than its loyalty (CR 606.6).
+        let max_x = match ability {
+            Some((source, a)) if a.cost.loyalty_x => {
+                let n = self
+                    .objects
+                    .get(source)
+                    .map_or(0, |o| o.counters(CounterKind::Loyalty));
+                max_x.min(n)
             }
             _ => max_x,
         };
@@ -7065,6 +7077,7 @@ impl GameState {
             // not the source's.
             if ab.cost.life_x
                 || ab.cost.remove_x
+                || ab.cost.loyalty_x
                 || ab.cost.behold.as_ref().is_some_and(|b| b.x)
                 || ab.cost.exile_cards.as_ref().is_some_and(|g| g.x)
             {
@@ -7082,6 +7095,9 @@ impl GameState {
                     && let Some((_, n)) = &mut cost.remove_counters
                 {
                     *n = s.x_of(obj);
+                }
+                if cost.loyalty_x {
+                    cost.loyalty = -i32::try_from(s.x_of(obj)).unwrap_or(i32::MAX);
                 }
                 if let Some(b) = &mut cost.behold
                     && b.x
@@ -7111,10 +7127,26 @@ impl GameState {
         }
         // CR 605.3b: a mana ability doesn't use the stack.
         if ab.is_mana_ability() {
+            let before = (self.mana_trigger_sources > 0 && ab.cost.tap).then(|| {
+                (
+                    self.player(controller).mana_pool,
+                    self.restricted_pool.len(),
+                )
+            });
             self.resolve_top();
             // CR 605.4a: mana abilities it triggered by tapping its source
             // for mana resolve right after it.
-            if ab.cost.tap && self.mana_trigger_sources > 0 {
+            if let Some((pool, restricted)) = before {
+                let after = self.player(controller).mana_pool;
+                let mut made = crate::mana::ManaPool::default();
+                for c in 0..5 {
+                    made.colored[c] = after.colored[c].saturating_sub(pool.colored[c]);
+                }
+                made.colorless = after.colorless.saturating_sub(pool.colorless);
+                for r in self.restricted_pool.iter().skip(restricted) {
+                    made.add(r.mana);
+                }
+                self.tapped_produced = made;
                 self.fire_mana_triggers(sa.source);
                 self.emit(Event::TappedForMana { obj: sa.source });
             }
@@ -8395,6 +8427,13 @@ impl GameState {
             }
         }
         for id in boosted {
+            let mut made = crate::mana::ManaPool::default();
+            for &(src, mana) in plan {
+                if src == id {
+                    made.add(mana);
+                }
+            }
+            self.tapped_produced = made;
             self.fire_mana_triggers(id);
         }
         for obj in for_mana {
@@ -12504,6 +12543,31 @@ impl GameState {
                     self.bump();
                 }
             }
+            Effect::AddManaProduced => {
+                // CR 106.12: a kind of mana the tapped permanent made; of
+                // several, the one it made most of.
+                let made = self.tapped_produced;
+                let mut best = (made.colorless, Mana::Colorless);
+                for c in Color::ALL {
+                    if made.colored[c as usize] > best.0 {
+                        best = (made.colored[c as usize], Mana::Colored(c));
+                    }
+                }
+                if best.0 > 0 {
+                    self.player_mut(ctx.controller).mana_pool.add(best.1);
+                    self.bump();
+                }
+            }
+            Effect::AddManaColorsAmong(filter) => {
+                let p = ctx.controller;
+                let seen = self.colors_among(p, filter, ctx.source);
+                for col in seen.iter() {
+                    self.player_mut(p).mana_pool.add(Mana::Colored(col));
+                }
+                if seen.count() > 0 {
+                    self.bump();
+                }
+            }
             Effect::AddManaLandCould {
                 whose,
                 basic,
@@ -12582,6 +12646,28 @@ impl GameState {
                     self.player_mut(p).mana_pool.add(Mana::Colored(c));
                 }
                 self.bump();
+            }
+            Effect::AddManaOneOfTimes { colors, count } => {
+                // One color chosen, then that much of it.
+                let p = ctx.controller;
+                let n = self.eval_num(*count, ctx).min(1000);
+                let options: Vec<Choice> = colors.iter().map(Choice::Color).collect();
+                let c = match options.len() {
+                    0 => None,
+                    1 => options.first().cloned(),
+                    k => {
+                        let i = self.choose_mid(p, DecisionKind::ChooseColor, options.clone());
+                        options.get(i.min(k - 1)).cloned()
+                    }
+                };
+                if let Some(Choice::Color(c)) = c
+                    && n > 0
+                {
+                    for _ in 0..n {
+                        self.player_mut(p).mana_pool.add(Mana::Colored(c));
+                    }
+                    self.bump();
+                }
             }
             Effect::Surveil { count } => {
                 self.scry_or_surveil(ctx.controller, self.eval_num(*count, ctx), true);
@@ -16714,6 +16800,9 @@ impl GameState {
                     ps.turn_mana.colored[c] += after.colored[c].saturating_sub(before.colored[c]);
                 }
                 ps.turn_mana.colorless += after.colorless.saturating_sub(before.colorless);
+            }
+            Effect::KeepRedManaThisTurn => {
+                self.player_mut(ctx.controller).keep_red_turn = true;
             }
             Effect::Firebend(n) => {
                 let n = self.eval_num(*n, ctx);

@@ -1,0 +1,17 @@
+// "Remove any number of +1/+1 counters from ~: Create that many ..." (CR
+// 107.3, 602.2b): the number is the ability's X, at most its counters.
+
+scenario "The Astonishing Ant-Man makes an Insect per counter removed" {
+  battlefield A: "The Astonishing Ant-Man" with 3 +1/+1, 3 "Forest"
+  turn 1 A: activate "The Astonishing Ant-Man" x 2
+  run_to turn 1 end
+  assert battlefield A contains 2 "Insect"
+  assert counters "The Astonishing Ant-Man" +1/+1 1
+}
+
+scenario "The Astonishing Ant-Man gets a counter as you draw" {
+  battlefield A: "The Astonishing Ant-Man"
+  start turn 2 A upkeep
+  run_to turn 2 precombat_main
+  assert counters "The Astonishing Ant-Man" +1/+1 1
+}

@@ -1,43 +1,21 @@
-scenario "Scaled Nurturer's mana spent on a Dragon creature spell gains 2 life" {
-  battlefield A: "Scaled Nurturer", "Mountain", "Mountain", "Mountain"
-  hand A: "Archwing Dragon"
-  start turn 2 A precombat_main
-  turn 2 A: activate "Scaled Nurturer"
-  turn 2 A: cast "Archwing Dragon"
-  run_to turn 2 postcombat_main
-  assert battlefield A contains "Archwing Dragon"
-  assert life A 22
+// Riders on how a source's mana is spent (CR 106.6): "When that mana is
+// spent to cast ...". Payment doesn't
+// activate a rider's mana ability on its own, so each is activated first.
+
+scenario "Pyromancer's Goggles copies the red instant its mana is spent on" {
+  battlefield A: "Pyromancer's Goggles"
+  hand A: "Shock"
+  turn 1 A: activate "Pyromancer's Goggles"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 16
 }
 
-scenario "Scaled Nurturer's mana spent on another creature gains nothing" {
-  battlefield A: "Scaled Nurturer", "Mountain", "Mountain", "Mountain"
-  hand A: "Hill Giant"
-  start turn 2 A precombat_main
-  turn 2 A: activate "Scaled Nurturer"
-  turn 2 A: cast "Hill Giant"
-  run_to turn 2 postcombat_main
-  assert battlefield A contains "Hill Giant"
-  assert life A 20
-}
-
-scenario "A Dragon cast without Scaled Nurturer's mana gains nothing" {
-  battlefield A: "Scaled Nurturer", "Mountain", "Mountain", "Mountain", "Mountain"
-  hand A: "Archwing Dragon"
-  start turn 2 A precombat_main
-  turn 2 A: cast "Archwing Dragon"
-  run_to turn 2 postcombat_main
-  assert battlefield A contains "Archwing Dragon"
-  assert life A 20
-}
-
-scenario "Lapis Orb of Dragonkind's mana spent on a Dragon scries 2" {
-  battlefield A: "Lapis Orb of Dragonkind", "Mountain", "Mountain", "Mountain"
-  hand A: "Archwing Dragon"
-  library A: "Forest", "Island", "Swamp"
-  start turn 1 A precombat_main
-  turn 1 A: activate "Lapis Orb of Dragonkind"
-  turn 1 A: cast "Archwing Dragon"
-  run_to turn 1 postcombat_main
-  assert battlefield A contains "Archwing Dragon"
-  assert known A "Island"
+scenario "Pyromancer's Goggles' mana spent on a creature spell copies nothing" {
+  battlefield A: "Pyromancer's Goggles", "Mountain"
+  hand A: "Dragon Hatchling"
+  turn 1 A: activate "Pyromancer's Goggles"
+  turn 1 A: cast "Dragon Hatchling"
+  run_to turn 1 end
+  assert battlefield A contains 1 "Dragon Hatchling"
 }

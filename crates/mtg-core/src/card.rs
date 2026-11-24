@@ -4950,6 +4950,12 @@ pub enum Effect {
         colors: ColorSet,
         different: bool,
     },
+    /// "Add X {G} or X {W}, where X is ...": `count` mana of one of
+    /// `colors`, chosen once.
+    AddManaOneOfTimes {
+        colors: crate::mana::ColorSet,
+        count: Num,
+    },
     /// "Add two mana of any one color and two mana of any other color":
     /// `.0` mana of a color chosen, then `.0` of another color chosen.
     AddManaTwoColors(u8),
@@ -4976,6 +4982,16 @@ pub enum Effect {
     AddManaCommander {
         rider: u8,
     },
+    /// "That player adds one mana of any type that land produced" (Mana
+    /// Flare, CR 106.12): in a triggered mana ability
+    /// (`AbilityDef::ManaTrigger`), one mana of a kind the tapped
+    /// permanent just made (`GameState::tapped_produced`); of several
+    /// kinds, the one it made most of (the engine picks).
+    AddManaProduced,
+    /// "For each color among permanents you control, add one mana of that
+    /// color" (vivid): one mana of each color among the controller's
+    /// permanents matching the filter.
+    AddManaColorsAmong(ObjFilter),
     /// The recipient player discards N cards of their choice (CR 701.8).
     Discard {
         count: Num,
@@ -6079,6 +6095,10 @@ pub enum Effect {
     /// the controller's pool stays as steps end, until the cleanup step
     /// ends.
     KeepMana(Vec<Effect>),
+    /// "Until end of turn, you don't lose unspent red mana as steps and
+    /// phases end." (CR 500.4): the controller's red mana stays in their
+    /// pool as each step ends this turn, until the cleanup step.
+    KeepRedManaThisTurn,
     /// "[add mana]. Spend this mana only to cast creature spells." (CR
     /// 106.6): the mana these effects add goes into the controller's pool
     /// as restricted mana (`GameState::restricted_pool`), each unit
@@ -6536,6 +6556,9 @@ impl Effect {
             | Effect::AddManaTwoColors(_)
             | Effect::AddManaCombination { .. }
             | Effect::AddManaLandCould { .. }
+            | Effect::AddManaProduced
+            | Effect::AddManaColorsAmong(_)
+            | Effect::AddManaOneOfTimes { .. }
             | Effect::AddManaCommander { .. } => true,
             Effect::Instead { base, alt, .. } => base.iter().chain(alt).any(Effect::adds_mana),
             Effect::SpendOnly { effects, .. } | Effect::SpendRider { effects, .. } => {
@@ -6610,6 +6633,7 @@ impl Effect {
                 | Effect::AddManaTimes { .. }
                 | Effect::AddManaTwoColors(_)
                 | Effect::AddManaCombination { .. }
+                | Effect::AddManaOneOfTimes { .. }
                 | Effect::AddManaLandCould { .. }
                 | Effect::KeepMana(_)
                 | Effect::SpendOnly { .. }
@@ -7083,6 +7107,10 @@ pub enum PlayerStaticKind {
     /// controller may play land cards from their graveyard, using their
     /// land plays.
     LandsFromGraveyard,
+    /// "You don't lose unspent red mana as steps and phases end." (CR
+    /// 500.4, 106.4): the controller's red mana stays in their pool as
+    /// each step and phase ends, cleanup included.
+    KeepRedMana,
     /// "Your opponents can't cast spells during your turn." (CR 101.2).
     OpponentsCantCastYourTurn,
     /// "You can't lose the game and your opponents can't win the game."
@@ -8826,6 +8854,11 @@ pub struct Cost {
     /// loyalty counters; nonzero marks the ability as a loyalty ability
     /// (sorcery speed, one per planeswalker per turn, CR 606.3).
     pub loyalty: i32,
+    /// "−X:" (CR 606.4, 107.3): a loyalty ability removing X loyalty
+    /// counters, X announced as it is activated, at most the source's
+    /// loyalty; `loyalty` is 0.
+    #[serde(default)]
+    pub loyalty_x: bool,
     /// {T}: tap the source. A creature's {T} ability needs the source to
     /// have been under its controller's control since their most recent
     /// turn began (CR 302.6).
@@ -9028,6 +9061,7 @@ impl Cost {
             discard_filter: None,
             discard_exile: false,
             loyalty: 0,
+            loyalty_x: false,
             tap: false,
             sacrifice: None,
             count: 0,
@@ -9381,7 +9415,7 @@ impl ActivatedAbility {
     /// A loyalty ability (CR 606.3). A "0:" ability has no loyalty in its
     /// cost and isn't told apart (as with `ActivationKind::Loyalty`).
     pub fn is_loyalty(&self) -> bool {
-        self.cost.loyalty != 0
+        self.cost.loyalty != 0 || self.cost.loyalty_x
     }
 }
 
@@ -9467,6 +9501,7 @@ impl ActivatedAbility {
     pub fn is_mana_ability(&self) -> bool {
         self.targets.is_empty()
             && self.cost.loyalty == 0
+            && !self.cost.loyalty_x
             && self.effects.iter().any(Effect::adds_mana)
     }
 }

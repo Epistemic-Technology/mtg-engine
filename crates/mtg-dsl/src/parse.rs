@@ -1804,6 +1804,15 @@ impl P {
             }
             return Ok(Effect::AddMana(vec![Mana::Chosen]));
         }
+        // CR 106.12: "add one mana of any type that land produced".
+        if self.eat_word("produced") {
+            return Ok(Effect::AddManaProduced);
+        }
+        // "For each color among permanents you control, add one mana of
+        // that color."
+        if self.eat_words(&["each", "color", "among"]) {
+            return Ok(Effect::AddManaColorsAmong(self.filter()?));
+        }
         // CR 903.4f: "one mana of any color in your commander's color
         // identity".
         if self.eat_word("commander") {
@@ -1872,6 +1881,29 @@ impl P {
                 });
             }
             return Ok(Effect::AddMana(vec![Mana::Any]));
+        }
+        // `add x {G} or x {W} count where ...`: "Add X {G} or X {W}".
+        if self.at_word("x") && matches!(self.peek_at(1), Some(Tok::Sym(_))) {
+            let mut mana = Vec::new();
+            loop {
+                self.expect_word("x")?;
+                match self.mana_cost()?.symbols() {
+                    [mtg_core::mana::ManaSymbol::Colored(c)] => mana.push(Mana::Colored(*c)),
+                    _ => return self.unexpected("one colored mana symbol after `x`"),
+                }
+                if !self.eat_word("or") {
+                    break;
+                }
+            }
+            if mana.len() < 2 {
+                return self.unexpected("`or x {W}`");
+            }
+            let count = self.num()?;
+            return Ok(Effect::AddManaOneOfTimes {
+                mana,
+                count,
+                each: false,
+            });
         }
         let x = self.at_word("x") && self.word_at(1).as_deref() == Some("mana");
         if x || matches!(self.peek(), Some(Tok::Num(_))) {
@@ -1986,6 +2018,15 @@ impl P {
                     _ => return self.unexpected("one mana symbol after `or`"),
                 }
             }
+            // `add {R} or {G} count each Raccoon you control`.
+            if self.at_word("count") {
+                let count = self.num()?;
+                return Ok(Effect::AddManaOneOfTimes {
+                    mana: out,
+                    count,
+                    each: true,
+                });
+            }
             return Ok(Effect::AddManaOneOf(out));
         }
         // `add {R} that much` (Raphael's "add that much {R}").
@@ -2009,7 +2050,14 @@ impl P {
     fn spend_only_suffix(&mut self, e: Effect) -> R<Effect> {
         // `spent on Dragon creature spell: you gain 2 life`: "When you
         // spend this mana to cast a Dragon creature spell, ...".
-        if self.eat_words(&["spent", "on"]) {
+        let wording = if self.eat_words(&["when", "spent", "on"]) {
+            Some(1)
+        } else if self.eat_words(&["spent", "on"]) {
+            Some(0)
+        } else {
+            None
+        };
+        if let Some(wording) = wording {
             let spells = self.filter()?;
             self.expect_word("spell")?;
             self.expect(&Tok::Colon)?;
@@ -2020,6 +2068,7 @@ impl P {
                 inner: vec![Sentence::new(vec![e])],
                 spells,
                 then: vec![then],
+                wording,
             });
         }
         if self.at_words(&["only", "to"])
@@ -2659,6 +2708,10 @@ impl P {
             "you" if self.at_words(&["you", "can't", "lose", "the", "game"]) => {
                 self.pos += 5;
                 self.player_static(mtg_core::card::PlayerStaticKind::CantLose)
+            }
+            "you" if self.at_words(&["you", "don't", "lose", "unspent", "red", "mana"]) => {
+                self.pos += 6;
+                self.player_static(mtg_core::card::PlayerStaticKind::KeepRedMana)
             }
             "you" if self.at_words(&["you", "have", "shroud"]) => {
                 self.pos += 3;
@@ -4052,15 +4105,23 @@ impl P {
             "loyalty" => {
                 self.pos += 1;
                 // "0:" (CR 606.3) is written `loyalty 0:` or `loyalty +0:`.
+                // `loyalty -X:` (CR 606.4, 107.3).
+                let mut x = false;
                 let n = match self.next() {
                     Some(Tok::Signed(n)) => n,
                     Some(Tok::Num(0)) => 0,
-                    _ => return self.fail("expected a loyalty cost such as +1, 0, or -3"),
+                    Some(Tok::Dash) if matches!(self.peek(), Some(Tok::Word(w)) if w == "X") => {
+                        self.pos += 1;
+                        x = true;
+                        0
+                    }
+                    _ => return self.fail("expected a loyalty cost such as +1, 0, -3, or -X"),
                 };
                 let effects = self.effects_body()?;
                 Ok(Ability::Activated {
                     cost: Cost {
                         loyalty: Some(n),
+                        loyalty_x: x,
                         sorcery: true,
                         ..Default::default()
                     },
@@ -8376,6 +8437,10 @@ impl P {
         }
         // "Add {R}. Until end of turn, you don't lose this mana as steps
         // and phases end."
+        if self.at_words(&["keep", "red", "mana", "this", "turn"]) {
+            self.pos += 5;
+            return Ok(Effect::KeepRedManaThisTurn);
+        }
         if self.at_words(&["keep", "mana"]) {
             self.pos += 2;
             let saved = self.subject.take();
@@ -19021,15 +19086,20 @@ impl P {
                         cost.order.push(CostItem::Sacrifice);
                     }
                     "remove"
-                        if (1..5).any(|k| {
+                        if (1..6).any(|k| {
                             self.word_at(k).as_deref() == Some("from")
                                 && self.word_at(k + 1).as_deref() == Some("this")
                         }) =>
                     {
                         self.pos += 1;
-                        // `remove X ki counters from this` (X the ability's).
+                        // `remove X ki counters from this` (X the ability's);
+                        // `remove any number +1/+1 counters from this`.
                         let n = if self.eat_word("x") {
                             cost.remove_x = true;
+                            0
+                        } else if self.eat_words(&["any", "number"]) {
+                            cost.remove_x = true;
+                            cost.remove_any = true;
                             0
                         } else {
                             self.count()?

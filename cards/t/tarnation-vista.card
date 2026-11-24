@@ -1,0 +1,8 @@
+card "Tarnation Vista" {
+  oracle_id b0be3f25-edb1-4299-959c-9aad909730ca
+  type Land
+  enters tapped
+  as it enters choose color
+  mana chosen
+  activated {1}, {T}: add each color among monocolored permanent you control
+}

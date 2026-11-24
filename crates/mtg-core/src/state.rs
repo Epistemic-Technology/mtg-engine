@@ -1056,6 +1056,11 @@ pub struct PlayerState {
     /// much of each kind stays as a step ends (the player's other mana is
     /// taken to be spent first).
     pub turn_mana: crate::mana::ManaPool,
+    /// "Until end of turn, you don't lose unspent red mana as steps and
+    /// phases end." (The Last Agni Kai): red mana stays as each step ends
+    /// this turn, until the cleanup step (CR 514.2); cleared as a turn
+    /// begins.
+    pub keep_red_turn: bool,
 }
 
 impl PlayerState {
@@ -2358,6 +2363,10 @@ pub struct GameState {
     /// `DefFlags::MANA_TRIGGER`): tapping for mana and payment look for
     /// them only then.
     pub mana_trigger_sources: u32,
+    /// The mana the permanent whose triggered mana abilities are
+    /// resolving was just tapped for (`Effect::AddManaProduced`: "one
+    /// mana of any type that land produced").
+    pub tapped_produced: crate::mana::ManaPool,
     /// Battlefield permanents with a static ability reading this turn's
     /// history or step (`DefFlags::TURN_STATIC`).
     pub turn_static_sources: u32,
@@ -3378,6 +3387,15 @@ impl GameState {
             && self.player_statics().any(|(who, kind)| {
                 who == p && kind == crate::card::PlayerStaticKind::LandsFromGraveyard
             })
+    }
+
+    /// "You don't lose unspent red mana as steps and phases end." applies
+    /// to `p` by a static ability of a permanent they control.
+    pub fn keeps_red_mana(&self, p: PlayerId) -> bool {
+        self.player_static_sources > 0
+            && self
+                .player_statics()
+                .any(|(who, kind)| who == p && kind == crate::card::PlayerStaticKind::KeepRedMana)
     }
 
     /// The keywords player `p` has gained from effects (`PlayerGrant`).

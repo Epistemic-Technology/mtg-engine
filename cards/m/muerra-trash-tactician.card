@@ -1,0 +1,9 @@
+card "Muerra, Trash Tactician" {
+  oracle_id c115159c-6991-4812-b3b6-6ed80221cab4
+  cost {1}{R}{G}
+  type Legendary Creature — Raccoon Warrior
+  pt 2/4
+  triggered at beginning of your first main: add {R} or {G} count each Raccoon you control
+  triggered whenever you expend 4: you gain 3 life
+  triggered whenever you expend 8: impulse 2 next turn first
+}

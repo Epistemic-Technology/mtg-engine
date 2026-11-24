@@ -1,0 +1,46 @@
+// Cards whose forms the language already had: "the amount of mana spent
+// to cast this spell" (CR 601.2h) and restricted mana from a trigger (CR
+// 106.6).
+
+scenario "Molten Note deals damage equal to the mana spent and untaps your creatures" {
+  battlefield A: 2 "Mountain", "Plains", "Grizzly Bears" tapped
+  battlefield B: "Hill Giant"
+  hand A: "Molten Note"
+  turn 1 A: cast "Molten Note" x 1 targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Molten Note with X = 0 deals 2" {
+  battlefield A: "Mountain", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Molten Note"
+  turn 1 A: cast "Molten Note" x 0 targeting "Hill Giant"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Boommobile's four mana pays its exhaust ability" {
+  battlefield A: 4 "Mountain"
+  hand A: "Boommobile"
+  turn 1 A: cast "Boommobile"
+  turn 1 A: choose red
+  turn 1 A: wait
+  turn 1 A: activate "Boommobile" x 1 targeting player B
+  run_to turn 1 end
+  assert life B 19
+  assert counters "Boommobile" +1/+1 1
+}
+
+scenario "Boommobile's mana can't be spent to cast a spell" {
+  battlefield A: 4 "Mountain"
+  hand A: "Boommobile", "Shock"
+  turn 1 A: cast "Boommobile"
+  turn 1 A: choose red
+  turn 1 A: wait
+  illegal turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 20
+}

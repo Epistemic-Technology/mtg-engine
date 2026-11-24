@@ -1,0 +1,8 @@
+card "Lavaleaper" {
+  oracle_id a107fb84-6874-4964-a729-4425dad98330
+  cost {3}{R}
+  type Creature — Elemental
+  pt 4/4
+  static creature: has haste
+  triggered whenever basic land is tapped for mana: add produced
+}

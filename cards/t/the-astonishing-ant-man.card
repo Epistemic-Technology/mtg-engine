@@ -1,0 +1,8 @@
+card "The Astonishing Ant-Man" {
+  oracle_id 6c7e4e51-099a-4398-a4b7-e2f0ddd36429
+  cost {G}{U}
+  type Legendary Creature — Human Scientist Hero
+  pt 1/1
+  triggered whenever you draw a card: put 1 +1/+1 counter on this
+  activated {2}{G}, {T}, remove any number +1/+1 counters from this: create X "1/1 green Insect creature"
+}

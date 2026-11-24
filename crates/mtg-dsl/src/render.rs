@@ -4475,6 +4475,9 @@ fn ward_alts_text(alts: &[crate::ast::WardAlt], ctx: &mut Ctx) -> String {
 #[allow(clippy::too_many_lines)] // one arm per cost part
 fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
     if let Some(n) = cost.loyalty {
+        if cost.loyalty_x {
+            return "−X".to_string();
+        }
         // A zero loyalty cost prints "0:" (Gideon Jura's "0: Until end of
         // turn, ...").
         return match n.cmp(&0) {
@@ -4595,7 +4598,13 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 if let Some((k, n)) = cost.remove_counters {
                     let what = counters(if cost.remove_x { Num::X } else { Num::N(n) }, k);
                     let src = ctx.source();
-                    parts.push(format!("Remove {what} from {src}"));
+                    if cost.remove_any {
+                        // "Remove any number of +1/+1 counters from ~".
+                        let what = what.replacen("X ", "any number of ", 1);
+                        parts.push(format!("Remove {what} from {src}"));
+                    } else {
+                        parts.push(format!("Remove {what} from {src}"));
+                    }
                 }
             }
             CostItem::PutCounters => {
@@ -5295,6 +5304,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::DistributeCounters { count, .. }
         | Effect::AddManaTimes { count, .. }
         | Effect::AddManaCombination { count, .. }
+        | Effect::AddManaOneOfTimes { count, .. }
         | Effect::EmpowerJace { count }
         | Effect::Amass { count, .. }
         | Effect::Endure { count, .. }
@@ -6417,7 +6427,23 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             // "Add an amount of {G} equal to this creature's power."
             CountStyle::Equal if matches!(e, Effect::AddManaTimes { .. }) => {
-                c.text = c.text.replacen("add ", "add an amount of ", 1);
+                // "Choose a color. Add an amount of mana of that color
+                // equal to ..." (Three Tree City).
+                if matches!(
+                    e,
+                    Effect::AddManaTimes {
+                        mana: Mana::Any,
+                        ..
+                    }
+                ) {
+                    c.text = c.text.replacen(
+                        "add X mana of any one color",
+                        "choose a color. Add an amount of mana of that color",
+                        1,
+                    );
+                } else {
+                    c.text = c.text.replacen("add ", "add an amount of ", 1);
+                }
                 let what = match &count.expr {
                     crate::ast::CountExpr::SourcePower => {
                         format!("{}'s power", this_ref(ctx.card))
@@ -11310,6 +11336,32 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::AddMana(m) => {
             Clause::imperative(format!("add {}", mana_symbols(m, "one mana of any color")))
         }
+        // "That permanent" names the tapped permanent; the trigger's
+        // sentence puts its kind in ("that land produced").
+        // "add {R} or {G} for each Raccoon you control"; "Add X {G} or X
+        // {W}, where X is ...".
+        Effect::AddManaOneOfTimes { mana, each, .. } => {
+            let syms: Vec<String> = mana.iter().map(|m| mana_symbols(&[*m], "")).collect();
+            let syms: Vec<String> = if *each {
+                syms
+            } else {
+                syms.iter().map(|s| format!("X {s}")).collect()
+            };
+            let joined = if let [a, b] = syms.as_slice() {
+                format!("{a} or {b}")
+            } else {
+                let (last, init) = syms.split_last().expect("two or more");
+                format!("{}, or {last}", init.join(", "))
+            };
+            Clause::imperative(format!("add {joined}"))
+        }
+        Effect::AddManaProduced => Clause::imperative(
+            "add one mana of any type that permanent produced".to_string(),
+        ),
+        Effect::AddManaColorsAmong(f) => Clause::imperative(format!(
+            "for each color among {}, add one mana of that color",
+            filter_phrase(f, ctx.card, true)
+        )),
         Effect::AddManaCommander { rider } => Clause::imperative(format!(
             "add one mana of any color in your commander's color identity{}",
             match rider {
@@ -12836,11 +12888,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             inner,
             spells,
             then,
+            wording,
         } => {
             let body = sentences(inner, ctx);
             let rider = sentences(then, ctx);
+            let when = match wording {
+                1 => "When that mana is spent to cast",
+                _ => "When you spend this mana to cast",
+            };
             Clause::imperative(format!(
-                "{}. When you spend this mana to cast {}, {}",
+                "{}. {when} {}, {}",
                 lowercase_first(body.trim_end_matches('.')),
                 a_spell(spells, ctx.card),
                 lowercase_first(rider.trim_end_matches('.'))
@@ -12855,6 +12912,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 rule.trim_end_matches('.')
             ))
         }
+        Effect::KeepRedManaThisTurn => Clause::imperative(
+            "until end of turn, you don't lose unspent red mana as steps and phases end".to_string(),
+        ),
         Effect::KeepMana(inner) => {
             let body = sentences(inner, ctx);
             Clause::imperative(format!(
@@ -15133,6 +15193,16 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             format!(
                 "whenever you tap {} for mana",
                 trigger_filter_a(&g, ctx.card)
+            )
+        }
+        // "Whenever a player taps a basic land for mana" (Mana Flare):
+        // anyone's permanent.
+        Trigger::TappedForMana(TriggerObj::Filter(f))
+            if f.who.is_none() && !f.enchanted && f.relation == Relation::Any =>
+        {
+            format!(
+                "whenever a player taps {} for mana",
+                trigger_filter_a(f, ctx.card)
             )
         }
         Trigger::TappedForMana(o) => {
@@ -19643,7 +19713,13 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             ctx.current = Some(a);
             let c = cost_text(cost, &mut ctx);
             ctx.cost_named = ctx.source_mentioned;
-            let mut text = format!("{c}: {}", effects_after(effects, &mut ctx, false));
+            let mut body = effects_after(effects, &mut ctx, false);
+            // "Remove any number of +1/+1 counters from ~: Create that
+            // many ..." (the ability's X).
+            if cost.remove_any {
+                body = body.replacen(" X ", " that many ", 1);
+            }
+            let mut text = format!("{c}: {body}");
             // CR 702.142, 702.177, 702.193: the keyword prints before the
             // cost and its rules are reminder text.
             if let Some(k) = cost.keyword {
@@ -19893,11 +19969,37 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 None => {}
             }
             out.push_str(", ");
-            let text = effects_after(effects, &mut ctx, true);
+            let mut text = effects_after(effects, &mut ctx, true);
+            // "add one mana of any type that land produced": the tapped
+            // permanent named by its kind.
+            if let Trigger::TappedForMana(TriggerObj::Filter(f)) = trigger
+                && text.contains("that permanent produced")
+            {
+                let mut g = f.clone();
+                g.who = None;
+                let a = trigger_filter_a(&g, card);
+                let noun = a
+                    .strip_prefix("an ")
+                    .or_else(|| a.strip_prefix("a "))
+                    .unwrap_or(&a);
+                // A land named by its types ("a basic land", "a Mountain,
+                // Forest, or Plains") is "that land".
+                let land = !g.subtypes.is_empty() || noun.split(' ').any(|w| w == "land");
+                let noun = if land { "land" } else { noun };
+                text = text.replace("that permanent produced", &format!("that {noun} produced"));
+            }
             // A triggered mana ability's mana is for the tapped permanent's
             // controller (CR 605.1b): "its controller adds an additional
             // {G}".
             match (trigger, text.strip_prefix("add ")) {
+                // "Whenever a player taps a land for mana, that player adds
+                // one mana of any type that land produced."
+                (Trigger::TappedForMana(TriggerObj::Filter(f)), Some(rest))
+                    if f.who.is_none() && !f.enchanted && f.relation == Relation::Any =>
+                {
+                    out.push_str("that player adds ");
+                    out.push_str(rest);
+                }
                 // "Whenever you tap a land for mana, add {G}." (you are its
                 // controller).
                 (Trigger::TappedForMana(TriggerObj::Filter(f)), Some(_))
@@ -21310,6 +21412,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     }
                 ),
                 K::LandsFromGraveyard => "you may play lands from your graveyard".to_string(),
+                K::KeepRedMana => {
+                    "you don't lose unspent red mana as steps and phases end".to_string()
+                }
                 K::ChosenName(ban) => match ban {
                     mtg_core::card::NameBan::Cast => "spells with the chosen name can't be cast",
                     mtg_core::card::NameBan::ActivateNonMana => {

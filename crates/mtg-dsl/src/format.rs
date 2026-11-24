@@ -2895,6 +2895,20 @@ impl Fmt {
                 _ => "add commander".to_string(),
             },
             Effect::AddManaTwoColors(n) => format!("add any {n} and any {n} other"),
+            Effect::AddManaProduced => "add produced".to_string(),
+            Effect::AddManaOneOfTimes { mana, count, each } => {
+                let syms: Vec<String> = mana
+                    .iter()
+                    .map(|m| crate::render::mana_symbols(&[*m], "any"))
+                    .collect();
+                if *each {
+                    format!("add {} {}", syms.join(" or "), num(*count))
+                } else {
+                    let xs: Vec<String> = syms.iter().map(|s| format!("x {s}")).collect();
+                    format!("add {} {}", xs.join(" or "), num(*count))
+                }
+            }
+            Effect::AddManaColorsAmong(f) => format!("add each color among {}", filter(f)),
             Effect::AddManaLandCould {
                 whose,
                 basic,
@@ -3503,13 +3517,19 @@ impl Fmt {
             ),
             Effect::IfKicked(inner) => format!("if kicked, {}", self.line(inner, t)),
             Effect::KeepMana(inner) => format!("keep mana {}", self.line(inner, t)),
+            Effect::KeepRedManaThisTurn => "keep red mana this turn".to_string(),
             Effect::SpendRider {
                 inner,
                 spells,
                 then,
+                wording,
             } => format!(
-                "{} spent on {} spell: {}",
+                "{} {}spent on {} spell: {}",
                 self.line(inner, t),
+                match wording {
+                    1 => "when ",
+                    _ => "",
+                },
                 filter(spells),
                 self.line(then, t)
             ),
@@ -6388,7 +6408,12 @@ fn cost_text(c: &Cost) -> String {
                     } else {
                         "this"
                     };
-                    if c.remove_x {
+                    if c.remove_any {
+                        parts.push(format!(
+                            "remove any number {} from {from}",
+                            counter(k, Num::X)
+                        ));
+                    } else if c.remove_x {
                         parts.push(format!("remove X {} from {from}", counter(k, Num::X)));
                     } else {
                         parts.push(format!("remove {n} {} from {from}", counter(k, Num::N(n))));
@@ -7747,14 +7772,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 return;
             }
             if let Some(n) = cost.loyalty {
-                body(
-                    out,
-                    indent,
-                    &format!("loyalty {n:+}"),
-                    effects,
-                    targets,
-                    groups,
-                );
+                let head = if cost.loyalty_x {
+                    "loyalty -X".to_string()
+                } else {
+                    format!("loyalty {n:+}")
+                };
+                body(out, indent, &head, effects, targets, groups);
                 return;
             }
             let word = match cost.keyword {
@@ -8924,6 +8947,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     "first equip free during your turns".to_string()
                 }
                 K::LandsFromGraveyard => "you may play lands from your graveyard".to_string(),
+                K::KeepRedMana => "you don't lose unspent red mana".to_string(),
                 K::ChosenName(ban) => match ban {
                     mtg_core::card::NameBan::Cast => "spells with chosen name can't be cast",
                     mtg_core::card::NameBan::ActivateNonMana => {

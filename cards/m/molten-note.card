@@ -1,0 +1,7 @@
+card "Molten Note" {
+  oracle_id 8c179b8f-3a83-49d6-9e7f-9e17c293ccbb
+  cost {X}{R}{W}
+  type Sorcery
+  spell: deal count equal mana spent damage to target creature; untap all creature you control
+  flashback {6}{R}{W}
+}

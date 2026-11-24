@@ -580,7 +580,8 @@ impl Decompiler<'_> {
             discard_random: c.discard_random,
             discard_filter: c.discard_filter.as_ref().map(|f| self.filter(f)),
             discard_exile: c.discard_exile,
-            loyalty: (c.loyalty != 0).then_some(c.loyalty),
+            loyalty: (c.loyalty != 0 || c.loyalty_x).then_some(c.loyalty),
+            loyalty_x: c.loyalty_x,
             sacrifice: c.sacrifice.as_ref().map(|s| match s {
                 CoreSacCost::This => SacCost::This,
                 CoreSacCost::Granter => SacCost::Granter,
@@ -608,6 +609,7 @@ impl Decompiler<'_> {
             remove_from_creature: c.remove_from_creature,
             sacrifice_any: c.sacrifice_any,
             remove_x: c.remove_x,
+            remove_any: false,
             untap: c.untap,
             chosen: c.chosen,
             count: c.count,
@@ -1401,6 +1403,13 @@ impl Decompiler<'_> {
                 any_type: *any_type,
             },
             CoreEffect::AddManaCommander { rider } => Effect::AddManaCommander { rider: *rider },
+            CoreEffect::AddManaProduced => Effect::AddManaProduced,
+            CoreEffect::AddManaOneOfTimes { colors, count } => Effect::AddManaOneOfTimes {
+                mana: colors.iter().map(mtg_core::mana::Mana::Colored).collect(),
+                count: *count,
+                each: false,
+            },
+            CoreEffect::AddManaColorsAmong(f) => Effect::AddManaColorsAmong(self.filter(f)),
             CoreEffect::PumpVar {
                 power,
                 toughness,
@@ -1771,6 +1780,7 @@ impl Decompiler<'_> {
             },
             CoreEffect::IfKicked(inner) => Effect::IfKicked(self.sentences(inner)),
             CoreEffect::KeepMana(inner) => Effect::KeepMana(self.sentences(inner)),
+            CoreEffect::KeepRedManaThisTurn => Effect::KeepRedManaThisTurn,
             CoreEffect::SpendRider {
                 effects,
                 spells,
@@ -1783,6 +1793,7 @@ impl Decompiler<'_> {
                     inner: self.sentences(effects),
                     spells: self.filter(spells),
                     then: self.sentences(&t.effects),
+                    wording: 0,
                 }
             }
             CoreEffect::SpendOnly {

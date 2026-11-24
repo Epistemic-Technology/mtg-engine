@@ -948,6 +948,9 @@ pub struct Cost {
     pub discard_exile: bool,
     /// A loyalty ability's cost (CR 606).
     pub loyalty: Option<i32>,
+    /// `loyalty -X`: "−X" (with `loyalty` `Some(0)`), X announced as the
+    /// ability is activated.
+    pub loyalty_x: bool,
     pub sacrifice: Option<SacCost>,
     /// "Activate only as a sorcery."
     pub sorcery: bool,
@@ -1052,6 +1055,10 @@ pub struct Cost {
     /// `remove X ki counters from this`: "Remove X ki counters from this
     /// creature", X the ability's.
     pub remove_x: bool,
+    /// `remove any number +1/+1 counters from this` (with `remove_x`):
+    /// "Remove any number of +1/+1 counters from ~", the ability's X
+    /// called "that many" in its effects. Wording only.
+    pub remove_any: bool,
     /// `{Q}`: the untap symbol.
     pub untap: bool,
 }
@@ -5784,6 +5791,22 @@ pub enum Effect {
     AddManaCommander {
         rider: u8,
     },
+    /// `add {R} or {G} count each Raccoon you control` (`each`): "add {R}
+    /// or {G} for each Raccoon you control", each mana's color chosen;
+    /// `add x {G} or x {W} count where ...`: "Add X {G} or X {W}, where X
+    /// is ...", one color chosen for all of it.
+    AddManaOneOfTimes {
+        mana: Vec<Mana>,
+        count: Num,
+        each: bool,
+    },
+    /// `add produced`: in a triggered mana ability, "add one mana of any
+    /// type that land produced" (Mana Flare, CR 106.12): a kind of the mana
+    /// the tapped permanent made.
+    AddManaProduced,
+    /// `add each color among permanent you control`: "For each color among
+    /// permanents you control, add one mana of that color."
+    AddManaColorsAmong(Filter),
     Surveil(Num),
     /// `learn` (CR 701.48): there is no sideboard here, so "you may
     /// discard a card; if you do, draw a card" (CR 701.48a's other
@@ -6205,6 +6228,9 @@ pub enum Effect {
     /// `keep mana add {R}`: "Add {R}. Until end of turn, you don't lose
     /// this mana as steps and phases end."
     KeepMana(Vec<Sentence>),
+    /// `keep red mana this turn`: "Until end of turn, you don't lose
+    /// unspent red mana as steps and phases end."
+    KeepRedManaThisTurn,
     /// `add 2 mana any combination only to cast legendary spells`: "Add
     /// two mana in any combination of colors. Spend this mana only to
     /// cast legendary spells." (CR 106.6): the mana is restricted.
@@ -6219,6 +6245,9 @@ pub enum Effect {
         inner: Vec<Sentence>,
         spells: Filter,
         then: Vec<Sentence>,
+        /// Wording only: 0, `spent on`; 1, `when spent on`: "When that
+        /// mana is spent to cast a red instant or sorcery spell, ...".
+        wording: u8,
     },
     /// `waterbend {2}` (CR 701.67a), inside "unless" or "you may": pay
     /// the mana, artifacts and creatures tapped to help.

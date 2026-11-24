@@ -3105,6 +3105,7 @@ impl Compiler<'_> {
             discard_filter: c.discard_filter.as_ref().map(|f| self.filter(f)),
             discard_exile: c.discard_exile,
             loyalty: c.loyalty.unwrap_or(0),
+            loyalty_x: c.loyalty_x,
             tap: c.tap,
             sacrifice: match &c.sacrifice {
                 None => None,
@@ -4039,6 +4040,28 @@ impl Compiler<'_> {
                 basic: *basic,
                 any_type: *any_type,
             }),
+            Effect::AddManaProduced => out.push(CoreEffect::AddManaProduced),
+            Effect::AddManaOneOfTimes { mana, count, each } => {
+                let mut colors = mtg_core::mana::ColorSet::COLORLESS;
+                for m in mana {
+                    if let Mana::Colored(c) = m {
+                        colors = colors.with(*c);
+                    }
+                }
+                let count = *count;
+                out.push(if *each {
+                    CoreEffect::AddManaCombination {
+                        count,
+                        colors,
+                        different: false,
+                    }
+                } else {
+                    CoreEffect::AddManaOneOfTimes { colors, count }
+                });
+            }
+            Effect::AddManaColorsAmong(f) => {
+                out.push(CoreEffect::AddManaColorsAmong(self.filter(f)));
+            }
             Effect::AddManaCommander { rider } => {
                 out.push(CoreEffect::AddManaCommander { rider: *rider });
             }
@@ -4629,6 +4652,7 @@ impl Compiler<'_> {
                     negated: check.negated,
                 });
             }
+            Effect::KeepRedManaThisTurn => out.push(CoreEffect::KeepRedManaThisTurn),
             Effect::KeepMana(inner) => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::KeepMana(effects));
@@ -4637,6 +4661,7 @@ impl Compiler<'_> {
                 inner,
                 spells,
                 then,
+                ..
             } => {
                 let effects = self.sentences(inner)?;
                 if !effects.iter().any(CoreEffect::adds_mana) {
