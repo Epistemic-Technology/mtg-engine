@@ -3589,7 +3589,7 @@ fn many_prefix(min: Num, max: Option<Num>) -> String {
         None => "any number of".to_string(),
         Some(m) if m == min => num(m),
         // `up to X target card`: "up to X target cards" (CR 601.2c).
-        Some(m) if min == Num::N(0) => format!("up to {}", num(m)),
+        Some(Num::X) if min == Num::N(0) => "up to X".to_string(),
         Some(m) => format!("{} to {}", num(min), num(m)),
     }
 }
@@ -3918,6 +3918,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::GreatestToughness(f) => format!("greatest toughness {}", filter(f)),
         CountExpr::Sum(a, b) => format!("{} plus {}", count_expr_text(a), count_expr_text(b)),
         CountExpr::LifeLostThisTurn => "life you lost this turn".to_string(),
+        CountExpr::SourceLoyalty => "loyalty of this".to_string(),
         CountExpr::DamageThisWay { excess: false, .. } => "damage dealt this way".to_string(),
         CountExpr::DamageThisWay {
             excess: true,
@@ -7389,6 +7390,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Strive(c) => format!("strive {c}"),
                 crate::ast::Mechanic::Bargain => "bargain".to_string(),
                 crate::ast::Mechanic::Conspire => "conspire".to_string(),
+                crate::ast::Mechanic::Compleated => "compleated".to_string(),
                 crate::ast::Mechanic::Casualty(n) => format!("casualty {n}"),
                 crate::ast::Mechanic::Dredge(n) => format!("dredge {n}"),
                 crate::ast::Mechanic::Storm => "storm".to_string(),

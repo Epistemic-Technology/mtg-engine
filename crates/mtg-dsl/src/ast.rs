@@ -560,6 +560,10 @@ pub enum CountExpr {
     Sum(Box<CountExpr>, Box<CountExpr>),
     /// `life you lost this turn`: "the life you've lost this turn".
     LifeLostThisTurn,
+    /// `loyalty of this`: "Nissa's loyalty", the loyalty counters on
+    /// this planeswalker (CR 306.5b; `loyalty counters on this` prints
+    /// "the number of loyalty counters on Nissa").
+    SourceLoyalty,
     /// `damage dealt this way`, `excess damage dealt this way`;
     /// `excess damage dealt to that creature this way` prints "the amount
     /// of excess damage dealt to that creature this way" (wording only).
@@ -2331,6 +2335,9 @@ pub enum Mechanic {
     Bargain,
     /// Conspire (CR 702.78).
     Conspire,
+    /// CR 702.150: `compleated`: it enters with two fewer loyalty counters
+    /// for each Phyrexian mana symbol paid with life.
+    Compleated,
     /// `casualty 2` (CR 702.153): "As you cast this spell, you may
     /// sacrifice a creature with power N or greater. When you do, copy
     /// this spell."

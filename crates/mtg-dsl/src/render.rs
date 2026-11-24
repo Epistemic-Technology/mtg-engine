@@ -5240,6 +5240,8 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             );
         }
         CountExpr::LifeLostThisTurn => return "the life you've lost this turn".to_string(),
+        // CR 306.5b: "Nissa's loyalty".
+        CountExpr::SourceLoyalty => return format!("{}'s loyalty", this_ref(card)),
         // "the number of +1/+1 counters on this creature", "for each
         // scream counter on this Aura", "the number of age counters on it".
         // "for each +1/+1 counter on it" of the triggering object.
@@ -18259,6 +18261,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             ),
             crate::ast::Mechanic::Bargain => "Bargain".to_string(),
             crate::ast::Mechanic::Conspire => "Conspire".to_string(),
+            crate::ast::Mechanic::Compleated => "Compleated".to_string(),
             crate::ast::Mechanic::Casualty(n) => format!("Casualty {n}"),
             crate::ast::Mechanic::Dredge(n) => format!("Dredge {n}"),
             crate::ast::Mechanic::Storm => "Storm".to_string(),

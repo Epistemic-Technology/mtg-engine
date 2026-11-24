@@ -142,6 +142,10 @@ pub enum DecisionKind {
     /// Which attacker joins the band `leader` leads (CR 702.22c):
     /// `AddAttacker` options, or `Done` to close it.
     FormBand { leader: ObjId },
+    /// How many of `spell`'s Phyrexian mana symbols its caster pays with 2
+    /// life each (CR 601.2b, 107.4f): `X` options, the counts the rest of
+    /// the cost can then be paid with, fewest first.
+    PhyrexianLife { spell: ObjId },
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]

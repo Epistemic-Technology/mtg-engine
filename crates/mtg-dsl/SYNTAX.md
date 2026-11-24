@@ -126,7 +126,7 @@ like the card; either half may still be cast alone.
 | Line | Meaning |
 |---|---|
 | `oracle_id 2b93787d-...` | The Scryfall `oracle_id` the card was authored against. Required for cards. |
-| `cost {1}{G}` | Mana cost. Omit for lands and tokens. Hybrid `{R/G}`, monocolored hybrid `{2/W}`, and Phyrexian `{R/P}` symbols are accepted (CR 107.4e–f); the engine pays them in a canonical order and pays 2 life for a Phyrexian symbol only when mana can't. Snow `{S}` (CR 107.4h, in any cost) is paid by tapping a different snow permanent for each symbol (the rest of the cost from the other sources and the pool); mana already floating in the pool pays no `{S}`, since the pool doesn't remember where its mana came from. `protection from snow` prints "Protection from snow". |
+| `cost {1}{G}` | Mana cost. Omit for lands and tokens. Hybrid `{R/G}`, monocolored hybrid `{2/W}`, Phyrexian `{R/P}`, and hybrid Phyrexian `{G/U/P}` (either color or 2 life, both colors, CR 107.4f) symbols are accepted (CR 107.4e–f); the engine pays hybrid symbols in a canonical order. As a spell's total cost is paid its caster announces how many of its Phyrexian symbols they pay with 2 life each (CR 601.2b), offered only the numbers the rest of the cost can then be paid with and their life covers (CR 119.4); the choice is remembered for compleated. Scenarios: `cast "Dismember" paying_life 1 ...`; unscripted, the fewest. An activated ability's Phyrexian symbols are paid with mana where it can. Snow `{S}` (CR 107.4h, in any cost) is paid by tapping a different snow permanent for each symbol (the rest of the cost from the other sources and the pool); mana already floating in the pool pays no `{S}`, since the pool doesn't remember where its mana came from. `protection from snow` prints "Protection from snow". |
 | `type Legendary Creature — Goblin Shaman` | The type line: supertypes, types, then subtypes after `—` (or `-`). |
 | `pt 2/2` | Power and toughness. Omit when a characteristic-defining ability sets them (Scryfall prints `*`). When it sets one of them, write the other and `*` for it: `pt */1` with `cda power ...`, `pt 2/*` with `cda toughness ...` (`*` is 0 outside the battlefield, CR 208.2a). |
 | `loyalty 3` | A planeswalker's printed loyalty. |
@@ -266,6 +266,7 @@ like the card; either half may still be cast alone.
 | `warp {1}{U}` | Warp (CR 702.185): cast from the hand for this cost instead; the permanent is exiled at the beginning of the next end step, and its owner may cast it from exile on a later turn (paying its costs as usual). Prints `Warp {1}{U}`. |
 | `bestow {3}{W}` | Bestow (CR 702.103): cast for this cost instead as an Aura spell with enchant creature (not a creature, no creature types; the engine derives that Aura from the card). It becomes a creature again when it isn't attached, and resolves as a creature if its target is illegal. Write the creature's own abilities as usual, with `static enchanted: ...` for what the Aura grants. |
 | `overload {2}{U}` | Overload (CR 702.96): an instant or sorcery with one target may be cast for this cost instead; it then has no targets and its effects happen once for each object or player the target spec describes ("target" reads "each"), regardless of hexproof or protection. Prints `Overload {2}{U}`. |
+| `compleated` | Compleated (CR 702.150a): a planeswalker whose caster paid 2 life for some of its Phyrexian mana symbols (CR 601.2b) enters with two fewer loyalty counters for each, none at all if that leaves none (a 0-loyalty planeswalker then goes to the graveyard, CR 704.5i). Prints `Compleated`. |
 | `conspire` | Conspire (CR 702.78): as the spell is cast its caster may tap two untapped creatures they control that share a color with it (the engine picks which); a trigger then copies the spell (CR 707.10), and the copy's controller may choose new targets for it. Prints `Conspire`. |
 | `enlist` | Enlist (CR 702.154): as this creature attacks, its controller may tap a nonattacking creature they control that has haste or has been under their control since the turn began; this creature gets +X/+0 until end of turn, X that creature's power. The engine makes it an attack trigger, the creature chosen as it resolves. Prints `Enlist`. |
 | `assist` | Assist (CR 702.132): "Another player can pay up to {N} of this spell's cost." The only other player is an opponent, who here never pays, so the line has no effect. Prints `Assist`. |
@@ -3513,7 +3514,9 @@ a static ability), `colors of target 1` ("for each of its colors": the
 target's, as it last existed), `greatest toughness
 other creature you control` ("the greatest toughness among other
 creatures you control"), `life you lost this turn` ("the life you've lost
-this turn"), and `<expr> plus <expr>` ("the number of creatures on the
+this turn"), `loyalty of this` ("Nissa's loyalty": the loyalty counters
+on this planeswalker, CR 306.5b; `loyalty counters on this` prints "the
+number of loyalty counters on Nissa"), and `<expr> plus <expr>` ("the number of creatures on the
 battlefield plus the number of artifacts on the battlefield"). `toughness
 of that target 1` names a graveyard card target "that card's" and a
 target of several permanent types "that permanent's". `power of attached` is

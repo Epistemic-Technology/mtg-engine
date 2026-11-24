@@ -3374,6 +3374,11 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Conspire))
             }
+            "compleated" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Compleated))
+            }
             "awaken" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
                 self.pos += 1;
                 let n = self.number()?;
@@ -12522,6 +12527,9 @@ impl P {
         }
         if self.eat_words(&["life", "you", "lost", "this", "turn"]) {
             return Ok(CountExpr::LifeLostThisTurn);
+        }
+        if self.eat_words(&["loyalty", "of", "this"]) {
+            return Ok(CountExpr::SourceLoyalty);
         }
         if self.eat_words(&["damage", "dealt", "this", "way"]) {
             return Ok(CountExpr::DamageThisWay {

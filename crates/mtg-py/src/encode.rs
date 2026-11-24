@@ -68,10 +68,11 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::YouMay { .. } => 12,
         DecisionKind::ChooseCopy => 13,
         // Replicate shares X's slot (a number of times to pay).
-        // Multikicker too.
+        // Multikicker too, and the Phyrexian symbols paid with life.
         DecisionKind::ChooseX { .. }
         | DecisionKind::Replicate { .. }
-        | DecisionKind::Multikicker { .. } => 14,
+        | DecisionKind::Multikicker { .. }
+        | DecisionKind::PhyrexianLife { .. } => 14,
         DecisionKind::ChooseSacrifice { .. } => 15,
         DecisionKind::ChooseDiscardCost { .. } => 16,
         DecisionKind::ChooseAttackTarget { .. } => 17,

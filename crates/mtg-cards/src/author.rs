@@ -222,6 +222,7 @@ const TEMPLATED_TAGS: &[&str] = &[
     "Offspring",
     "Bargain",
     "Conspire",
+    "Compleated",
     "Casualty",
     "Dredge",
     "Storm",
@@ -8344,6 +8345,10 @@ impl Builder<'_> {
         }
         if line == "Conspire" {
             self.statements.push("conspire".to_string());
+            return Ok(());
+        }
+        if line == "Compleated" {
+            self.statements.push("compleated".to_string());
             return Ok(());
         }
         if line == "Storm" || line == "Assist" || line == "Enlist" {

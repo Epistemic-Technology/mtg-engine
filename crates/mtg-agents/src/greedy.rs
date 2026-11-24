@@ -318,6 +318,8 @@ impl GreedyAgent {
             | DecisionKind::CopyTarget { .. }
             | DecisionKind::FormBand { .. }
             | DecisionKind::ChooseAdditionalCost { .. }
+            // Phyrexian symbols paid with mana where it can.
+            | DecisionKind::PhyrexianLife { .. }
             | DecisionKind::PutFromHand => 0,
             // Keep the newest (the engine lists them oldest first).
             // The newest legend, and the largest X the mana allows.

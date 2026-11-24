@@ -1790,6 +1790,14 @@ pub enum Flow {
     ChoosingConspire {
         spell: ObjId,
     },
+    /// Choosing how many Phyrexian mana symbols of a spell to pay with
+    /// life (CR 601.2b), as its total cost is paid, with the permanent or
+    /// card its additional cost chose.
+    ChoosingPhyrexian {
+        spell: ObjId,
+        sacrifice: Option<ObjId>,
+        discard: Option<ObjId>,
+    },
     /// Choosing cards to splice onto an Arcane spell (CR 702.47a), one at
     /// a time, after bargain and before X.
     ChoosingSplice {
@@ -2071,6 +2079,11 @@ pub struct GameState {
     /// creature chosen to tap, and its power then: the generic mana the
     /// cost is reduced by.
     pub harmonized: Vec<(ObjId, ObjId, u32)>,
+    /// Spells being cast or on the stack and how many of their Phyrexian
+    /// mana symbols the caster chose to pay with life (CR 601.2b): for
+    /// compleated (CR 702.150a). Kept from the choice until the spell
+    /// leaves the stack; a spell paying none is dropped once paid.
+    pub phyrexian_life: Vec<(ObjId, u8)>,
     /// Bargained spells being cast (CR 702.166a) and the permanent to
     /// sacrifice as their costs are paid.
     pub bargains: Vec<(ObjId, ObjId)>,

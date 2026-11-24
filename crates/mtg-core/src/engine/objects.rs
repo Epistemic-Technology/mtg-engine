@@ -202,12 +202,15 @@ impl GameState {
 
     /// Counters a permanent enters the battlefield with: those the event
     /// says ("with a +1/+1 counter"), and a planeswalker's printed loyalty
-    /// (CR 306.5b). Nothing off the battlefield.
+    /// (CR 306.5b), less two for each Phyrexian symbol paid with life
+    /// (`life_symbols`) if it's compleated (CR 702.150a). Nothing off the
+    /// battlefield.
     fn entering_counters(
         &self,
         def: CardRef,
         to: Zone,
         enter: Enter,
+        life_symbols: u8,
     ) -> SmallVec<[(CounterKind, u32); 2]> {
         let mut counters = SmallVec::new();
         if to != Zone::Battlefield {
@@ -225,7 +228,17 @@ impl GameState {
         }
         let d = self.pool.get(def);
         if d.types.contains(crate::card::CardType::Planeswalker) && d.loyalty > 0 {
-            counters.push((CounterKind::Loyalty, d.loyalty));
+            // CR 702.150a: compleated, "that many loyalty counters minus
+            // two for each of those mana symbols".
+            let less = if d.compleated {
+                2 * u32::from(life_symbols)
+            } else {
+                0
+            };
+            let n = d.loyalty.saturating_sub(less);
+            if n > 0 {
+                counters.push((CounterKind::Loyalty, n));
+            }
         }
         // CR 310.4b: a battle enters with its printed defense in defense
         // counters.
@@ -387,7 +400,18 @@ impl GameState {
         } else {
             (old.card, None)
         };
-        let counters = self.entering_counters(def, to, enter);
+        // CR 601.2b: the Phyrexian symbols its caster paid with life, for
+        // compleated (CR 702.150a); forgotten as the spell leaves the
+        // stack.
+        let life_symbols = if old.zone == Zone::Stack && !self.phyrexian_life.is_empty() {
+            match self.phyrexian_life.iter().position(|(s, _)| *s == id) {
+                Some(i) => self.phyrexian_life.swap_remove(i).1,
+                None => 0,
+            }
+        } else {
+            0
+        };
+        let counters = self.entering_counters(def, to, enter, life_symbols);
         // CR 614.12: "As this enters, choose ..." is chosen before it
         // enters, by the player it enters under.
         let chosen = if to == Zone::Battlefield {

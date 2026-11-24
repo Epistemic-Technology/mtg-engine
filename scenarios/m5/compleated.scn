@@ -1,0 +1,256 @@
+# Hybrid Phyrexian mana (CR 107.4f), the announcement of how Phyrexian
+# symbols are paid (CR 601.2b), and compleated (CR 702.150).
+
+scenario "Phyrexian: with red available, Gut Shot may still be paid with 2 life" {
+  battlefield A: "Mountain"
+  hand A: "Gut Shot"
+  turn 1 A: cast "Gut Shot" paying_life 1 targeting player B
+  run_to turn 1 end
+  assert life A 18
+  assert life B 19
+  assert untapped "Mountain"
+}
+
+scenario "Phyrexian: Dismember with three Swamps, one symbol paid with life" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant", "Llanowar Elves"
+  hand A: "Dismember", "Disfigure"
+  turn 1 A: cast "Dismember" paying_life 1 targeting "Hill Giant"
+  turn 1 A: cast "Disfigure" targeting "Llanowar Elves"
+  run_to turn 1 end
+  assert life A 18
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Llanowar Elves"
+}
+
+scenario "Phyrexian: Dismember with three Swamps, both symbols paid with life" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Dismember"
+  turn 1 A: cast "Dismember" paying_life 2 targeting "Hill Giant"
+  run_to turn 1 end
+  assert life A 16
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Phyrexian: unscripted, Dismember is paid with mana" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Dismember"
+  turn 1 A: cast "Dismember" targeting "Hill Giant"
+  run_to turn 1 end
+  assert life A 20
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Phyrexian: at 3 life with one Swamp, Dismember can't be cast" {
+  life A 3
+  battlefield A: "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Dismember"
+  illegal turn 1 A: cast "Dismember" targeting "Hill Giant"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Phyrexian: at 3 life with two Swamps, one symbol must be paid with life" {
+  life A 3
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Dismember"
+  turn 1 A: cast "Dismember" targeting "Hill Giant"
+  run_to turn 1 end
+  assert life A 1
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "hybrid Phyrexian: {G/W/P} paid with green, Ajani enters with 4 loyalty" {
+  battlefield A: 3 "Forest", "Plains"
+  hand A: "Ajani, Sleeper Agent"
+  turn 1 A: cast "Ajani, Sleeper Agent"
+  run_to turn 1 end
+  assert life A 20
+  assert counters "Ajani, Sleeper Agent" loyalty 4
+}
+
+scenario "hybrid Phyrexian: {G/W/P} paid with white" {
+  battlefield A: "Forest", 3 "Plains"
+  hand A: "Ajani, Sleeper Agent"
+  turn 1 A: cast "Ajani, Sleeper Agent"
+  run_to turn 1 end
+  assert life A 20
+  assert counters "Ajani, Sleeper Agent" loyalty 4
+}
+
+scenario "hybrid Phyrexian: {G/W/P} can't be paid with blue" {
+  life A 1
+  battlefield A: "Forest", "Plains", 2 "Island"
+  hand A: "Ajani, Sleeper Agent"
+  illegal turn 1 A: cast "Ajani, Sleeper Agent"
+  run_to turn 1 end
+  assert hand A contains "Ajani, Sleeper Agent"
+}
+
+scenario "compleated: Ajani paid with 2 life enters with two fewer loyalty counters" {
+  battlefield A: "Forest", "Plains", "Island"
+  hand A: "Ajani, Sleeper Agent"
+  turn 1 A: cast "Ajani, Sleeper Agent"
+  run_to turn 1 end
+  assert life A 18
+  assert counters "Ajani, Sleeper Agent" loyalty 2
+}
+
+scenario "compleated: choosing life with the mana available also takes two counters" {
+  battlefield A: 2 "Forest", 2 "Plains"
+  hand A: "Ajani, Sleeper Agent", "Adventuring Gear"
+  turn 1 A: cast "Ajani, Sleeper Agent" paying_life 1
+  turn 1 A: cast "Adventuring Gear"
+  run_to turn 1 end
+  assert life A 18
+  assert counters "Ajani, Sleeper Agent" loyalty 2
+  assert battlefield A contains "Adventuring Gear"
+}
+
+scenario "compleated: a planeswalker without it keeps its loyalty" {
+  battlefield A: 3 "Forest", 2 "Plains"
+  hand A: "Ajani, Mentor of Heroes"
+  turn 1 A: cast "Ajani, Mentor of Heroes"
+  run_to turn 1 end
+  assert counters "Ajani, Mentor of Heroes" loyalty 4
+}
+
+scenario "compleated: Nissa with both {G/P} paid with life enters with 3 loyalty" {
+  battlefield A: 5 "Forest"
+  hand A: "Nissa, Ascended Animist"
+  turn 1 A: cast "Nissa, Ascended Animist"
+  run_to turn 1 end
+  assert life A 16
+  assert counters "Nissa, Ascended Animist" loyalty 3
+}
+
+scenario "compleated: Nissa with one {G/P} paid with life enters with 5 loyalty" {
+  battlefield A: 7 "Forest"
+  hand A: "Nissa, Ascended Animist"
+  turn 1 A: cast "Nissa, Ascended Animist" paying_life 1
+  run_to turn 1 end
+  assert life A 18
+  assert counters "Nissa, Ascended Animist" loyalty 5
+}
+
+scenario "compleated: Nissa paid with mana enters with 7 loyalty" {
+  battlefield A: 7 "Forest"
+  hand A: "Nissa, Ascended Animist"
+  turn 1 A: cast "Nissa, Ascended Animist"
+  run_to turn 1 end
+  assert life A 20
+  assert counters "Nissa, Ascended Animist" loyalty 7
+}
+
+scenario "Phyrexian: at 3 life, two symbols can't both be paid with life" {
+  life A 3
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Dismember"
+  illegal turn 1 A: cast "Dismember" paying_life 2 targeting "Hill Giant"
+  turn 1 A: cast "Dismember" paying_life 1 targeting "Hill Giant"
+  run_to turn 1 end
+  assert life A 1
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Ajani +1: a creature card revealed goes to hand" {
+  battlefield A: "Ajani, Sleeper Agent"
+  library A: "Grizzly Bears", "Island", "Island"
+  turn 1 A: activate "Ajani, Sleeper Agent" ability 1
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+  assert counters "Ajani, Sleeper Agent" loyalty 5
+}
+
+scenario "Ajani +1: a land revealed may go to the bottom" {
+  battlefield A: "Ajani, Sleeper Agent"
+  library A: "Island", "Plains", "Swamp"
+  turn 1 A: activate "Ajani, Sleeper Agent" ability 1
+  turn 1 A: accept "Ajani, Sleeper Agent"
+  run_to turn 2 upkeep
+  assert hand A lacks "Island"
+  run_to turn 3 precombat_main
+  assert hand A contains "Plains"
+  assert hand A lacks "Island"
+}
+
+scenario "Ajani +1: a land revealed may stay on top" {
+  battlefield A: "Ajani, Sleeper Agent"
+  library A: "Island", "Plains", "Swamp"
+  turn 1 A: activate "Ajani, Sleeper Agent" ability 1
+  turn 1 A: decline "Ajani, Sleeper Agent"
+  run_to turn 3 precombat_main
+  assert hand A contains "Island"
+  assert hand A lacks "Plains"
+}
+
+scenario "Ajani -3: three counters among three creatures, which gain vigilance" {
+  battlefield A: "Ajani, Sleeper Agent", "Grizzly Bears", "Llanowar Elves"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Ajani, Sleeper Agent" ability 2 targeting "Grizzly Bears", "Llanowar Elves", "Hill Giant"
+  run_to turn 1 end
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Llanowar Elves" +1/+1 1
+  assert counters "Hill Giant" +1/+1 1
+  assert has "Llanowar Elves" vigilance
+  assert has "Grizzly Bears" vigilance
+  assert has "Hill Giant" vigilance
+  assert counters "Ajani, Sleeper Agent" loyalty 1
+}
+
+scenario "Ajani's emblem: a creature spell gives the target opponent two poison counters" {
+  battlefield A: "Ajani, Sleeper Agent" with 6 loyalty, 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: activate "Ajani, Sleeper Agent" ability 3
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert poison B 2
+  assert graveyard A contains "Ajani, Sleeper Agent"
+}
+
+scenario "Ajani's emblem: a noncreature spell gives none" {
+  battlefield A: "Ajani, Sleeper Agent" with 6 loyalty, "Mountain"
+  hand A: "Shock"
+  turn 1 A: activate "Ajani, Sleeper Agent" ability 3
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert poison B 0
+  assert life B 18
+}
+
+scenario "Nissa +1: an X/X Horror, X her loyalty after the +1" {
+  battlefield A: "Nissa, Ascended Animist"
+  turn 1 A: activate "Nissa, Ascended Animist" ability 1
+  run_to turn 1 end
+  assert counters "Nissa, Ascended Animist" loyalty 8
+  assert power "Phyrexian Horror" 8
+  assert toughness "Phyrexian Horror" 8
+}
+
+scenario "Nissa -1: destroy target artifact" {
+  battlefield A: "Nissa, Ascended Animist"
+  battlefield B: "Ornithopter"
+  turn 1 A: activate "Nissa, Ascended Animist" ability 2 targeting "Ornithopter"
+  run_to turn 1 end
+  assert graveyard B contains "Ornithopter"
+  assert counters "Nissa, Ascended Animist" loyalty 6
+}
+
+scenario "Nissa -7: +1/+1 for each Forest and trample until end of turn" {
+  battlefield A: "Nissa, Ascended Animist", 3 "Forest", "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Nissa, Ascended Animist" ability 3
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert has "Grizzly Bears" trample
+  assert power "Hill Giant" 3
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" trample
+}

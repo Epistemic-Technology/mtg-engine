@@ -1,0 +1,6 @@
+token "0/0 green Phyrexian Horror creature" {
+  name "Phyrexian Horror"
+  type Creature — Phyrexian Horror
+  pt 0/0
+  color green
+}

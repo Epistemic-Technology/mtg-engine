@@ -9286,6 +9286,10 @@ pub struct CardDef {
     /// they do, the spell is copied.
     #[serde(default)]
     pub conspire: bool,
+    /// Compleated (CR 702.150a): it enters with two fewer loyalty counters
+    /// for each Phyrexian mana symbol its caster paid with life.
+    #[serde(default)]
+    pub compleated: bool,
     /// Casualty N (CR 702.153): as it is cast, its caster may sacrifice a
     /// creature with power N or greater; when they do, the spell is
     /// copied. 0: none.
@@ -11886,6 +11890,7 @@ impl Builder {
             awaken_face: None,
             goads: false,
             conspire: false,
+            compleated: false,
             casualty: 0,
             storm: false,
             dredge: 0,
@@ -12282,6 +12287,13 @@ impl Builder {
     #[must_use]
     pub fn conspire(mut self) -> Self {
         self.0.conspire = true;
+        self
+    }
+
+    /// Compleated (CR 702.150).
+    #[must_use]
+    pub fn compleated(mut self) -> Self {
+        self.0.compleated = true;
         self
     }
 

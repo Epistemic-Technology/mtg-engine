@@ -1,7 +1,7 @@
 //! Colors, mana symbols, mana costs, and the mana pool (CR 105, 106, 107,
 //! 202). Single-colored, generic, colorless, `X`, hybrid (`{R/G}`),
-//! monocolored hybrid (`{2/W}`), Phyrexian (`{R/P}`), and snow (`{S}`)
-//! symbols.
+//! monocolored hybrid (`{2/W}`), Phyrexian (`{R/P}`), hybrid Phyrexian
+//! (`{G/U/P}`), and snow (`{S}`) symbols.
 
 use std::fmt;
 
@@ -55,6 +55,15 @@ impl Color {
             'B' => Some(Color::Black),
             'R' => Some(Color::Red),
             'G' => Some(Color::Green),
+            _ => None,
+        }
+    }
+
+    /// The color a one-letter string names (`"G"`).
+    fn from_letter_str(t: &str) -> Option<Color> {
+        let mut chars = t.chars();
+        match (chars.next(), chars.next()) {
+            (Some(letter), None) => Color::from_letter(letter),
             _ => None,
         }
     }
@@ -138,6 +147,9 @@ pub enum ManaSymbol {
     TwoHybrid(Color),
     /// `{R/P}`: payable with the color or with 2 life (CR 107.4f).
     Phyrexian(Color),
+    /// `{G/U/P}`: payable with either color or with 2 life (CR 107.4f),
+    /// in its printed order.
+    HybridPhyrexian(Color, Color),
     /// `{S}`: one mana of any type produced by a snow source (CR 107.4h).
     Snow,
 }
@@ -190,6 +202,20 @@ impl ManaCost {
                 }
                 s if s.contains('/') => {
                     let unknown = || ManaCostParseError::Unknown(s.to_string());
+                    // CR 107.4f: a hybrid Phyrexian symbol, `{G/U/P}`.
+                    if let Some(two) = s.strip_suffix("/P")
+                        && let Some((x, y)) = two.split_once('/')
+                    {
+                        let (x, y) = (
+                            Color::from_letter_str(x).ok_or_else(unknown)?,
+                            Color::from_letter_str(y).ok_or_else(unknown)?,
+                        );
+                        if x == y {
+                            return Err(unknown());
+                        }
+                        symbols.push(ManaSymbol::HybridPhyrexian(x, y));
+                        continue;
+                    }
                     let (left, right) = s.split_once('/').ok_or_else(unknown)?;
                     let color = |t: &str| {
                         let mut chars = t.chars();
@@ -238,6 +264,7 @@ impl ManaCost {
                 | ManaSymbol::Colorless
                 | ManaSymbol::Hybrid(..)
                 | ManaSymbol::Phyrexian(_)
+                | ManaSymbol::HybridPhyrexian(..)
                 | ManaSymbol::Snow => 1,
                 ManaSymbol::TwoHybrid(_) => 2,
                 ManaSymbol::X => 0,
@@ -254,7 +281,9 @@ impl ManaCost {
                 ManaSymbol::Colored(c) | ManaSymbol::TwoHybrid(c) | ManaSymbol::Phyrexian(c) => {
                     set.with(*c)
                 }
-                ManaSymbol::Hybrid(a, b) => set.with(*a).with(*b),
+                ManaSymbol::Hybrid(a, b) | ManaSymbol::HybridPhyrexian(a, b) => {
+                    set.with(*a).with(*b)
+                }
                 _ => set,
             })
     }
@@ -269,7 +298,9 @@ impl ManaCost {
                 ManaSymbol::Colored(c) | ManaSymbol::TwoHybrid(c) | ManaSymbol::Phyrexian(c) => {
                     colors.contains(*c)
                 }
-                ManaSymbol::Hybrid(a, b) => colors.contains(*a) || colors.contains(*b),
+                ManaSymbol::Hybrid(a, b) | ManaSymbol::HybridPhyrexian(a, b) => {
+                    colors.contains(*a) || colors.contains(*b)
+                }
                 _ => false,
             })
             .count();
@@ -297,6 +328,9 @@ impl ManaCost {
                 ManaSymbol::Hybrid(a, b) => req.hybrid[hybrid_index(*a, *b)] += 1,
                 ManaSymbol::TwoHybrid(c) => req.two_hybrid[*c as usize] += 1,
                 ManaSymbol::Phyrexian(c) => req.phyrexian[*c as usize] += 1,
+                ManaSymbol::HybridPhyrexian(a, b) => {
+                    req.hybrid_phyrexian[hybrid_index(*a, *b)] += 1;
+                }
                 ManaSymbol::Snow => req.snow += 1,
             }
         }
@@ -321,6 +355,9 @@ impl fmt::Display for ManaCost {
                 ManaSymbol::Hybrid(a, b) => write!(f, "{{{}/{}}}", a.letter(), b.letter())?,
                 ManaSymbol::TwoHybrid(c) => write!(f, "{{2/{}}}", c.letter())?,
                 ManaSymbol::Phyrexian(c) => write!(f, "{{{}/P}}", c.letter())?,
+                ManaSymbol::HybridPhyrexian(a, b) => {
+                    write!(f, "{{{}/{}/P}}", a.letter(), b.letter())?;
+                }
                 ManaSymbol::Snow => write!(f, "{{S}}")?,
             }
         }
@@ -370,6 +407,12 @@ pub struct ManaRequirement {
     pub two_hybrid: [u8; 5],
     /// `{c/P}` symbols, indexed by color.
     pub phyrexian: [u8; 5],
+    /// `{a/b/P}` symbols, indexed like `HYBRID_PAIRS` (CR 107.4f).
+    pub hybrid_phyrexian: [u8; 10],
+    /// How many of the Phyrexian symbols are paid with 2 life each, once
+    /// the caster has announced it (CR 601.2b); `None`: any number, mana
+    /// preferred.
+    pub life_symbols: Option<u8>,
     /// `{S}` symbols (CR 107.4h): each paid with one mana from a snow
     /// source, so a plan picks the sources (see the engine's
     /// `snow_payment`).
@@ -393,7 +436,22 @@ impl ManaRequirement {
                 .map(|n| 2 * u32::from(*n))
                 .sum::<u32>()
             + self.phyrexian.iter().map(|n| u32::from(*n)).sum::<u32>()
+            + self
+                .hybrid_phyrexian
+                .iter()
+                .map(|n| u32::from(*n))
+                .sum::<u32>()
             + self.snow
+    }
+
+    /// Phyrexian symbols, hybrid ones included (CR 107.4f): those that
+    /// can be paid with 2 life.
+    pub fn phyrexian_count(&self) -> u32 {
+        self.phyrexian
+            .iter()
+            .chain(&self.hybrid_phyrexian)
+            .map(|n| u32::from(*n))
+            .sum()
     }
 
     /// No hybrid, Phyrexian, or snow symbols.
@@ -401,6 +459,7 @@ impl ManaRequirement {
         self.hybrid == [0; 10]
             && self.two_hybrid == [0; 5]
             && self.phyrexian == [0; 5]
+            && self.hybrid_phyrexian == [0; 10]
             && self.snow == 0
     }
 
@@ -437,7 +496,7 @@ impl ManaRequirement {
                         generic += 1;
                     }
                 }
-                ManaSymbol::Hybrid(a, b) => {
+                ManaSymbol::Hybrid(a, b) | ManaSymbol::HybridPhyrexian(a, b) => {
                     let c = if self.colored[b as usize] > 0 && self.colored[a as usize] == 0 {
                         b
                     } else {
@@ -474,26 +533,33 @@ impl ManaRequirement {
         for (a, b) in self.phyrexian.iter_mut().zip(other.phyrexian) {
             *a += b;
         }
+        for (a, b) in self.hybrid_phyrexian.iter_mut().zip(other.hybrid_phyrexian) {
+            *a += b;
+        }
     }
 
     /// The plain requirements this one can be paid as, each with the life
     /// it costs, in the canonical order of preference: each hybrid symbol
     /// as its first color before its second, `{2/c}` as the color before
-    /// two generic, `{c/P}` as the color before 2 life (the engine pays
-    /// mana when it can; CR 107.4e–f leave the choice to the player).
+    /// two generic, `{c/P}` as the color before 2 life, `{a/b/P}` as
+    /// either color before 2 life (the engine pays mana when it can; CR
+    /// 107.4e–f leave the choice to the player). With `life_symbols`
+    /// announced, only those paying exactly that many Phyrexian symbols
+    /// with life.
     pub fn expansions(&self) -> SmallVec<[(ManaRequirement, u32); 8]> {
+        type Way<'a> = &'a dyn Fn(&mut ManaRequirement, &mut u32);
         let mut base = *self;
         base.hybrid = [0; 10];
         base.two_hybrid = [0; 5];
         base.phyrexian = [0; 5];
+        base.hybrid_phyrexian = [0; 10];
+        base.life_symbols = None;
         let mut out: SmallVec<[(ManaRequirement, u32); 8]> = SmallVec::new();
         out.push((base, 0));
-        let branch = |out: &mut SmallVec<[(ManaRequirement, u32); 8]>,
-                      a: &dyn Fn(&mut ManaRequirement, &mut u32),
-                      b: &dyn Fn(&mut ManaRequirement, &mut u32)| {
+        let branch = |out: &mut SmallVec<[(ManaRequirement, u32); 8]>, ways: &[Way]| {
             let mut next = SmallVec::new();
             for (r, l) in out.iter() {
-                for f in [a, b] {
+                for f in ways {
                     if next.len() >= MAX_EXPANSIONS {
                         break;
                     }
@@ -509,20 +575,42 @@ impl ManaRequirement {
         for (i, n) in self.hybrid.iter().enumerate() {
             let (x, y) = HYBRID_PAIRS[i];
             for _ in 0..*n {
-                branch(&mut out, &|r, _| r.colored[x as usize] += 1, &|r, _| {
-                    r.colored[y as usize] += 1;
-                });
+                branch(
+                    &mut out,
+                    &[&|r, _| r.colored[x as usize] += 1, &|r, _| {
+                        r.colored[y as usize] += 1;
+                    }],
+                );
             }
         }
         for (i, n) in self.two_hybrid.iter().enumerate() {
             for _ in 0..*n {
-                branch(&mut out, &|r, _| r.colored[i] += 1, &|r, _| r.generic += 2);
+                branch(
+                    &mut out,
+                    &[&|r, _| r.colored[i] += 1, &|r, _| r.generic += 2],
+                );
             }
         }
         for (i, n) in self.phyrexian.iter().enumerate() {
             for _ in 0..*n {
-                branch(&mut out, &|r, _| r.colored[i] += 1, &|_, l| *l += 2);
+                branch(&mut out, &[&|r, _| r.colored[i] += 1, &|_, l| *l += 2]);
             }
+        }
+        for (i, n) in self.hybrid_phyrexian.iter().enumerate() {
+            let (x, y) = HYBRID_PAIRS[i];
+            for _ in 0..*n {
+                branch(
+                    &mut out,
+                    &[
+                        &|r, _| r.colored[x as usize] += 1,
+                        &|r, _| r.colored[y as usize] += 1,
+                        &|_, l| *l += 2,
+                    ],
+                );
+            }
+        }
+        if let Some(k) = self.life_symbols {
+            out.retain(|(_, l)| *l == 2 * u32::from(k));
         }
         out
     }
@@ -674,6 +762,31 @@ mod tests {
         pool.add(Mana::Colored(Color::Green));
         assert!(pool.can_pay(&ManaCost::parse("{R/G}").unwrap().requirements(0)));
         assert!(!pool.can_pay(&ManaCost::parse("{W/U}").unwrap().requirements(0)));
+    }
+
+    #[test]
+    fn hybrid_phyrexian() {
+        let c = ManaCost::parse("{2}{G}{G/U/P}{U}").unwrap();
+        assert_eq!(c.to_string(), "{2}{G}{G/U/P}{U}");
+        assert_eq!(c.mana_value(), 5);
+        assert_eq!(c.colors(), ColorSet::of([Color::Blue, Color::Green]));
+        assert!(ManaCost::parse("{G/G/P}").is_err());
+        assert!(ManaCost::parse("{G/Q/P}").is_err());
+        let mut req = c.requirements(0);
+        assert_eq!((req.total(), req.phyrexian_count()), (5, 1));
+        assert!(!req.is_plain());
+        let ex = req.expansions();
+        assert_eq!(ex.len(), 3);
+        assert_eq!((ex[0].0.colored, ex[0].1), ([0, 2, 0, 0, 1], 0));
+        assert_eq!((ex[1].0.colored, ex[1].1), ([0, 1, 0, 0, 2], 0));
+        assert_eq!((ex[2].0.colored, ex[2].1), ([0, 1, 0, 0, 1], 2));
+        // Announced: one symbol paid with life (CR 601.2b).
+        req.life_symbols = Some(1);
+        let ex = req.expansions();
+        assert_eq!(ex.len(), 1);
+        assert_eq!(ex[0].1, 2);
+        req.life_symbols = Some(0);
+        assert_eq!(req.expansions().len(), 2);
     }
 
     #[test]
