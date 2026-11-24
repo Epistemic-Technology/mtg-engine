@@ -1,0 +1,9 @@
+card "Giant Beaver" {
+  oracle_id 2a4b42b3-6a95-41e1-9741-b35723d8da73
+  cost {3}{G}
+  type Creature — Beaver Mount
+  pt 4/4
+  keywords vigilance
+  triggered whenever this attacks while saddled: put 1 +1/+1 counters on target creature saddled it
+  saddle 3
+}

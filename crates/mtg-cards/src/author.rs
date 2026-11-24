@@ -2443,6 +2443,21 @@ impl Templates {
                 token_block(&key)?;
                 Some(format!("create {} \"{key}\"", number(cap(c, 1))?))
             }),
+            // "Create X 1/1 green Squirrel creature tokens, where X is the
+            // number of Squirrels you control."
+            (
+                r(
+                    r"^[Cc]reate X ((?:\d+/\d+) (?:colorless|(?:white|blue|black|red|green)(?: and (?:white|blue|black|red|green))?) (?:[A-Z][a-z]+ )+(?:artifact )?creature) tokens((?: with [a-z ,]+?)?), where X is the number of (.+)$",
+                ),
+                |c, _| {
+                    let key = format!("{}{}", cap(c, 1), cap(c, 2));
+                    token_block(&key)?;
+                    Some(format!(
+                        "create count where {} \"{key}\"",
+                        count_expr(cap(c, 3))?
+                    ))
+                },
+            ),
             // "Create a 1/1 green Elf Warrior creature token for each Elf
             // you control.", "create a Treasure token for each artifact
             // you control": one token for each, counted as it resolves.
@@ -9155,6 +9170,26 @@ impl Builder<'_> {
                 return Ok(());
             }
         }
+        // "Other Spiders, Boars, ..., and Wolves you control get +1/+1."
+        // (Spider-Ham): a list of subtypes, `Spider or Boar or ...`.
+        if let Some(c) = cached_regex(
+            r"^(Other )?((?:[A-Z][a-z]+, )+and [A-Z][a-z]+) you control get ([+-]\d+/[+-]\d+)\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let types: Vec<String> = cap(&c, 2)
+                .split(", ")
+                .map(|t| singular(t.strip_prefix("and ").unwrap_or(t)))
+                .collect();
+            let other = if c.get(1).is_some() { "other " } else { "" };
+            self.statements.push(format!(
+                "static {other}{} you control: {}",
+                types.join(" or "),
+                cap(&c, 3)
+            ));
+            return Ok(());
+        }
         // "All lands have indestructible." (Terra Eternal): a card type's
         // every permanent.
         if let Some(c) = cached_regex(r"^All (lands|artifacts|enchantments|permanents) have (.+)\.$")
@@ -10281,6 +10316,16 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
         .join("\n");
     s = re(r"with an? ([+-]\d+/[+-]\d+|[a-z]+) counter on (?:it|them)")
         .replace_all(&s, "with $1 counter")
+        .into_owned();
+    // "each opponent and each creature and planeswalker they control"
+    // (Goblin Chainwhirler): one group of both types, `andlist`.
+    s = re(r"\beach (creature|artifact|enchantment) and (planeswalker|creature|artifact) (they|that player|you don't) control")
+        .replace_all(&s, "each andlist $1 or $2 $3 control")
+        .into_owned();
+    // "target creature that saddled it this turn", "that crewed it this
+    // turn": the filter words `saddled it` and `crewed it`.
+    s = re(r"\b(creature|creatures) that (saddled|crewed) it this turn")
+        .replace_all(&s, "creature $2 it")
         .into_owned();
     s = s
         .replace("with a counter on it", "with counter")

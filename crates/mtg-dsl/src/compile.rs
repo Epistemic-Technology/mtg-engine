@@ -2307,6 +2307,8 @@ impl Compiler<'_> {
                 return Ok(singles);
             }
             ModeHead::OneOrMore => n,
+            ModeHead::OneOrBoth if n == 2 => n,
+            ModeHead::OneOrBoth => return self.err("`choose one or both` takes two modes"),
             ModeHead::UpTo(k) => usize::from(k).min(n),
         };
         // The chosen mode is kept in four bits (`CastInfo`).

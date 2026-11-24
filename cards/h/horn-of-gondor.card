@@ -1,0 +1,7 @@
+card "Horn of Gondor" {
+  oracle_id 88777fc0-286d-47fc-8e94-1e289b4964c4
+  cost {3}
+  type Legendary Artifact
+  triggered when this enters: create 1 "1/1 white Human Soldier creature"
+  activated {3}, {T}: create count where Human you control "1/1 white Human Soldier creature"
+}

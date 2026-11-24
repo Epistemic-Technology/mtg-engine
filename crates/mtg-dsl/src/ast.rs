@@ -3756,6 +3756,10 @@ pub enum ModeHead {
     /// `choose up to 2`: "Choose up to two —", no mode or up to that many
     /// different modes.
     UpTo(u8),
+    /// `choose one or both` as a triggered or activated ability's effect:
+    /// "choose one or both —" over two modes, either or both (a spell's
+    /// is `Ability::ModalBoth`).
+    OneOrBoth,
     /// `choose one unchosen`, `choose one unchosen this turn`: "choose one
     /// that hasn't been chosen [this turn] —" (an ability's modes, each
     /// chosen at most once for the object, or once each turn). `stop`,

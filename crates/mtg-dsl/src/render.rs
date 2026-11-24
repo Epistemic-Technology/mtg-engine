@@ -23416,6 +23416,7 @@ fn is_instant_or_sorcery(card: &Card) -> bool {
 fn mode_head_text(head: crate::ast::ModeHead) -> String {
     match head {
         crate::ast::ModeHead::OneOrMore => "choose one or more".to_string(),
+        crate::ast::ModeHead::OneOrBoth => "choose one or both".to_string(),
         crate::ast::ModeHead::UpTo(n) => {
             format!("choose up to {}", count_words(Num::N(u32::from(n)), "one"))
         }

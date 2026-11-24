@@ -1,0 +1,8 @@
+card "The Unbeatable Squirrel Girl" {
+  oracle_id 80312910-5d53-44f1-9982-e46dc7532abb
+  cost {1}{G}{G}{G}
+  type Legendary Creature — Squirrel Human Hero
+  pt 4/4
+  label "Do You Like Squirrels?" triggered whenever this enters or attacks: create 1 "1/1 green Squirrel creature"
+  label "I LOVE Squirrels!" activated {1}{G}{G}{G}: create count where Squirrel you control "1/1 green Squirrel creature"
+}

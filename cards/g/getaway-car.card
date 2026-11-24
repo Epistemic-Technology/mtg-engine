@@ -1,0 +1,9 @@
+card "Getaway Car" {
+  oracle_id 954b30b2-b88c-4558-b06c-4518b49d7b20
+  cost {3}
+  type Artifact — Vehicle
+  pt 4/3
+  keywords haste
+  triggered whenever this attacks or blocks: return up to 1 target creature crewed it to hand
+  crew 1
+}

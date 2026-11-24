@@ -4123,10 +4123,13 @@ impl P {
                 let lone_modes = self.targets.is_empty()
                     && matches!(effects.as_slice(), [s] if s.label.is_none()
                         && matches!(s.effects.as_slice(), [Effect::Modes(_) | Effect::ModesTwo(_)
-                            | Effect::ModesOf(ModeHead::OneOrMore | ModeHead::UpTo(_), _)]));
+                            | Effect::ModesOf(ModeHead::OneOrMore | ModeHead::UpTo(_) | ModeHead::OneOrBoth, _)]));
                 if lone_modes {
                     match effects.pop().and_then(|mut s| s.effects.pop()) {
                         Some(Effect::Modes(modes)) => return Ok(Ability::Modal(modes)),
+                        Some(Effect::ModesOf(ModeHead::OneOrBoth, modes)) => {
+                            return Ok(Ability::ModalBoth(modes));
+                        }
                         Some(Effect::ModesOf(head, modes)) => {
                             return Ok(Ability::ModalOf(head, modes));
                         }
@@ -4178,7 +4181,11 @@ impl P {
                 Ok(Ability::Tiered(modes))
             }
             "choose" => {
-                if let Some((head, n)) = self.peek_mode_head() {
+                // `choose one or both {` as an ability is `ModalBoth`, below.
+                if let Some((head, n)) = self
+                    .peek_mode_head()
+                    .filter(|(h, _)| *h != ModeHead::OneOrBoth)
+                {
                     self.pos += n;
                     let modes = self.modes_block()?;
                     self.end_stmt()?;
@@ -5236,6 +5243,8 @@ impl P {
         }
         let (head, n) = if w(1, "one") && w(2, "or") && w(3, "more") {
             (ModeHead::OneOrMore, 4)
+        } else if w(1, "one") && w(2, "or") && w(3, "both") {
+            (ModeHead::OneOrBoth, 4)
         } else if w(1, "up") && w(2, "to") {
             match self.peek_at(3) {
                 Some(Tok::Num(k)) if *k > 0 => (ModeHead::UpTo(u8::try_from(*k).ok()?), 4),

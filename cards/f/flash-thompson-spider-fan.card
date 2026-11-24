@@ -1,0 +1,11 @@
+card "Flash Thompson, Spider-Fan" {
+  oracle_id f536a518-160e-4267-89da-3d34accc6d2c
+  cost {1}{W}
+  type Legendary Creature — Human Citizen
+  pt 2/2
+  keywords flash
+  triggered when this enters: choose one or both {
+    mode "Heckle": tap target creature
+    mode "Hero Worship": untap target creature
+  }
+}
