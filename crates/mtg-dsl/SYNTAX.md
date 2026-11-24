@@ -2779,7 +2779,14 @@ random` ("At the beginning of your next upkeep, ..."), `delayed that
 token: at beginning of the end step on your next turn, sacrifice that
 token` ("At the beginning of the end step on your next turn, ...": the
 controller's end step, but not in the turn it was created), and
-`at end of combat` ("destroy it at end of combat"). Inside a delayed ability `it` is the object
+`at end of combat` ("destroy it at end of combat"). A delayed trigger
+about a triggering object that has left the battlefield whose effects make
+a token copy of it is about that permanent as it last existed (`whenever
+you sacrifice this or artifact: you may pay {2}; if you do, delayed that
+creature: at beginning of the next end step, create token copy of it`:
+"... create a token that's a copy of that artifact", printed so when the
+sacrifice trigger's filter is artifacts; a token or a card works alike).
+Inside a delayed ability `it` is the object
 the ability is about, and so is `that card`, which prints so where `it`
 prints "it" (`delayed target 1: return that card to battlefield at
 beginning of the next end step`: "Return that card to the battlefield

@@ -227,3 +227,53 @@ scenario "flamerush rider: the copy can't be of itself" {
   assert life B 17
   assert battlefield A contains 1 "Flamerush Rider"
 }
+
+# A delayed token copy of a sacrificed permanent (CR 603.7, 707.2): made
+# at the next end step from the artifact as it last existed.
+
+scenario "esoteric duplicator: a sacrificed Mind Stone comes back as a token at end step" {
+  battlefield A: "Esoteric Duplicator", "Mind Stone", 4 "Island"
+  turn 1 A: activate "Mind Stone"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Mind Stone"
+  assert graveyard A contains "Mind Stone"
+  assert hand A count 1
+  run_to turn 1 cleanup
+  assert battlefield A contains "Mind Stone"
+  assert graveyard A contains "Mind Stone"
+}
+
+scenario "esoteric duplicator: sacrificing itself copies itself" {
+  battlefield A: "Esoteric Duplicator", 4 "Island"
+  turn 1 A: activate "Esoteric Duplicator"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Esoteric Duplicator"
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Esoteric Duplicator"
+}
+
+scenario "esoteric duplicator: a sacrificed token Clue is copied too" {
+  battlefield A: "Esoteric Duplicator", "Clue", 4 "Island"
+  turn 1 A: activate "Clue"
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Clue"
+  assert hand A count 1
+}
+
+scenario "esoteric duplicator: declining to pay makes no copy" {
+  battlefield A: "Esoteric Duplicator", "Mind Stone", 4 "Island"
+  turn 1 A: activate "Mind Stone"
+  turn 1 A: decline "Esoteric Duplicator"
+  run_to turn 2 upkeep
+  assert battlefield A lacks "Mind Stone"
+}
+
+scenario "esoteric duplicator: a sacrificed creature isn't copied" {
+  battlefield A: "Esoteric Duplicator", "Grizzly Bears", 4 "Swamp"
+  hand A: "Bone Splinters"
+  battlefield B: "Hill Giant"
+  turn 1 A: cast "Bone Splinters" sacrificing "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert battlefield A lacks "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}

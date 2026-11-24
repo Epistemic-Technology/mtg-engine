@@ -562,6 +562,7 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     (&["that", "creature"], Recipient::TriggeringObject),
     (&["that", "permanent"], Recipient::TriggeringObject),
     (&["that", "Vehicle"], Recipient::TriggeringObject),
+    (&["that", "artifact"], Recipient::TriggeringObject),
     (&["that", "object"], Recipient::TriggeringObject),
     (&["that", "spell"], Recipient::TriggeringObject),
     (&["that", "player"], Recipient::TriggeringPlayer),

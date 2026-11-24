@@ -1802,6 +1802,9 @@ impl<'a> Ctx<'a> {
             {
                 "that spell or ability".to_string()
             }
+            Recipient::TriggeringObject if self.trigger_sacrificed_artifact() => {
+                "that artifact".to_string()
+            }
             Recipient::TriggeringObject | Recipient::SameThat | Recipient::Manifested => {
                 "that creature".to_string()
             }
@@ -1846,6 +1849,9 @@ impl<'a> Ctx<'a> {
             Recipient::EachPermanentYouControl => {
                 self.groups_mentioned.insert(r);
                 "each permanent you control".to_string()
+            }
+            Recipient::SameObject if self.delayed_that && self.trigger_sacrificed_artifact() => {
+                "that artifact".to_string()
             }
             Recipient::SameObject if self.delayed_that => "that creature".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens | Recipient::CreatedThose => {
@@ -2056,6 +2062,19 @@ impl<'a> Ctx<'a> {
                     if f.enchanted
             )
         })
+    }
+
+    /// "Whenever you sacrifice this artifact or another artifact, ...
+    /// create a token that's a copy of that artifact": the sacrificed
+    /// object's noun when the trigger's filter is artifacts only.
+    fn trigger_sacrificed_artifact(&self) -> bool {
+        matches!(
+            self.trigger,
+            Some(Trigger::Sacrificed {
+                obj: TriggerObj::Filter(f) | TriggerObj::ThisOr(f),
+                ..
+            }) if f.types == [CardType::Artifact]
+        )
     }
 
     fn trigger_is_enchanted(&self) -> bool {

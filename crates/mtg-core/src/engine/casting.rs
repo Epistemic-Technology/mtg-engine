@@ -13556,7 +13556,33 @@ impl GameState {
                     .map(|o| o.def)
                     .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
                     .expect("a resolving spell or its last known information exists");
-                for t in self.recipients(ctx, *about) {
+                // "If you do, at the beginning of the next end step, create
+                // a token that's a copy of that artifact" (a sacrificed
+                // one): the trigger is about the permanent as it last
+                // existed on the battlefield (CR 707.2), not the card it
+                // became.
+                let lki_copy = *about == Recipient::TriggeringObject
+                    && ctx.trigger_obj.is_some_and(|o| {
+                        !self.objects.contains_key(o)
+                            && self
+                                .lki
+                                .get(&o)
+                                .is_some_and(|l| l.object.zone == Zone::Battlefield)
+                    })
+                    && self.pool.ability(*ability).effects().iter().any(|e| {
+                        matches!(
+                            e,
+                            Effect::CreateTokenCopy {
+                                of: Recipient::SameObject,
+                                ..
+                            }
+                        )
+                    });
+                let abouts: SmallVec<[Target; 2]> = match ctx.trigger_obj {
+                    Some(o) if lki_copy => smallvec::smallvec![Target::Object(o)],
+                    _ => self.recipients(ctx, *about).into_iter().collect(),
+                };
+                for t in abouts {
                     // "Target player draws a card at the beginning of the
                     // next turn's upkeep" (Sapphire Charm): a delayed
                     // trigger about a player, `that player` in its effects.
@@ -13582,7 +13608,11 @@ impl GameState {
                     };
                     // "That card": the object it became after the effect
                     // that moved it (CR 400.7 exceptions).
-                    let Some(id) = self.current_object(id) else {
+                    let Some(id) = (if lki_copy {
+                        Some(id)
+                    } else {
+                        self.current_object(id)
+                    }) else {
                         continue;
                     };
                     self.delayed_triggers.push(DelayedTrigger {
@@ -15542,7 +15572,7 @@ impl GameState {
                 // battlefield (CR 111.12, 707.2).
                 let left = match of {
                     Recipient::Source => Some(ctx.source),
-                    Recipient::TriggeringObject => ctx.trigger_obj,
+                    Recipient::TriggeringObject | Recipient::SameObject => ctx.trigger_obj,
                     _ => None,
                 }
                 .filter(|id| {
