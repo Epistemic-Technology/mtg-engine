@@ -3948,13 +3948,7 @@ impl GameState {
         {
             return false;
         }
-        // "except for tokens you control".
-        if let Some(p) = f.except_tokens_of
-            && o.kind == ObjKind::Token
-            && o.controller == p
-        {
-            return false;
-        }
+
         // "that doesn't have the same name as a token you control".
         if let Some(g) = &f.name_unlike
             && !self.name_unlike_ok(g, id, o)
@@ -5280,20 +5274,22 @@ impl GameState {
             // A relation to another target ("two target permanents that
             // share a card type") is judged with the targets
             // (`that_player_ok`).
-            Some(crate::card::Same {
-                of: crate::card::SameOf::Target(_),
-                what:
-                    crate::card::SameWhat::SharesType
-                    | crate::card::SameWhat::SharesCreatureType
-                    | crate::card::SameWhat::DifferentController
-                    | crate::card::SameWhat::SameController,
-            })
             // A relation to the triggering object is judged with the
             // stack object (`trigger_rel_ok`).
-            | Some(crate::card::Same {
-                of: crate::card::SameOf::Triggering,
-                ..
-            }) => {
+            Some(
+                crate::card::Same {
+                    of: crate::card::SameOf::Triggering,
+                    ..
+                }
+                | crate::card::Same {
+                    of: crate::card::SameOf::Target(_),
+                    what:
+                        crate::card::SameWhat::SharesType
+                        | crate::card::SameWhat::SharesCreatureType
+                        | crate::card::SameWhat::DifferentController
+                        | crate::card::SameWhat::SameController,
+                },
+            ) => {
                 let mut g = f.clone();
                 g.same = None;
                 std::borrow::Cow::Owned(g)
@@ -5500,12 +5496,6 @@ impl GameState {
         self.is_legal_target_x(caster, spec, target, source, None)
     }
 
-    /// Whether target `t` for `spec` answers its filter's "that player"
-    /// (`ObjFilter::that_player`): controlled by (a card in a graveyard,
-    /// owned by) the triggering player or an earlier target's controller,
-    /// as it last existed if it has left. With that player unknown, or no
-    /// such relation, it doesn't restrict.
-    #[allow(clippy::too_many_lines)] // one check per relation
     /// A target's relation to the object that triggered its ability
     /// (`SameOf::Triggering`): "with lesser mana value" (than it, as it is
     /// or last existed), "other than that creature". Without a triggering
@@ -5553,6 +5543,12 @@ impl GameState {
         }
     }
 
+    /// Whether target `t` for `spec` answers its filter's "that player"
+    /// (`ObjFilter::that_player`): controlled by (a card in a graveyard,
+    /// owned by) the triggering player or an earlier target's controller,
+    /// as it last existed if it has left. With that player unknown, or no
+    /// such relation, it doesn't restrict.
+    #[allow(clippy::too_many_lines)] // one check per relation
     pub fn that_player_ok(
         &self,
         spec: crate::card::TargetSpec,

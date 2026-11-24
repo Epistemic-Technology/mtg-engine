@@ -15435,7 +15435,6 @@ impl P {
 
     // ---- filters ----
 
-    #[allow(clippy::too_many_lines)]
     /// The qualities written after a card noun (`creature card with mana
     /// value 3 or less`) joined to the filter before it.
     fn merge_after_card(f: &mut Filter, g: &Filter) {
@@ -15453,6 +15452,7 @@ impl P {
         }
     }
 
+    #[allow(clippy::too_many_lines)]
     fn filter(&mut self) -> R<Filter> {
         let mut f = Filter::default();
         let mut consumed = 0;

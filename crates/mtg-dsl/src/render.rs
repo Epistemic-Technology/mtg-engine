@@ -3887,6 +3887,7 @@ fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
 
 /// "card named ~", "cards named ~", "creature card": a filter on cards
 /// (in a library or graveyard) as a noun phrase, the name after the noun.
+#[allow(clippy::too_many_lines)] // one clause per quality after the noun
 fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     // `land card or Elf card`: "land card or Elf card".
     if let Some(alt) = &f.or

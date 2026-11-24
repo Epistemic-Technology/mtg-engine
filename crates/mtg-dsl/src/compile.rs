@@ -1979,7 +1979,6 @@ impl Compiler<'_> {
             enchanted_player: f.enchanted_player,
             controlled_by: None,
             name_unlike: f.name_unlike.as_ref().map(|g| Box::new(self.filter(g))),
-            except_tokens_of: None,
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
             targeting: f.targeting.as_ref().map(|t| {
                 Box::new(mtg_core::card::SpellTargets {

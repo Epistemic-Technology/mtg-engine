@@ -1234,10 +1234,6 @@ pub struct ObjFilter {
     /// 708.2), so it shares none.
     #[serde(default)]
     pub name_unlike: Option<Box<ObjFilter>>,
-    /// Not a token this player controls: `StatusQuals::except_your_tokens`
-    /// filled in.
-    #[serde(default)]
-    pub except_tokens_of: Option<crate::ids::PlayerId>,
 }
 
 /// The player a filter's `that_player` means.
@@ -1436,8 +1432,8 @@ pub struct StatusQuals {
     pub not_chosen: bool,
     /// "each creature except for tokens you control" (Ajani Unrelenting):
     /// not a token the effect's controller controls. A placeholder the
-    /// engine fills in (`ObjFilter::except_tokens_of`) for an effect's
-    /// groups; unfilled, nothing matches.
+    /// engine fills in for an effect's groups (`chosen_filter`: a nontoken
+    /// one, or one the other player controls); unfilled, nothing matches.
     #[serde(default)]
     pub except_your_tokens: bool,
 }
@@ -1975,7 +1971,6 @@ impl ObjFilter {
             || self.mana_value.is_some()
             || self.status.any()
             || self.name_unlike.is_some()
-            || self.except_tokens_of.is_some()
     }
 }
 
@@ -7261,6 +7256,7 @@ pub enum RedirectTo {
 /// The event a replacement or prevention effect watches for (CR 614.1,
 /// 615.1).
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+#[allow(clippy::large_enum_variant)] // card definitions in the pool, not a hot structure
 pub enum Replaces {
     /// Damage a source matching `from` (any source if `None`) would deal to
     /// `to`; `combat` restricts to combat or noncombat damage. `from` is
