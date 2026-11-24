@@ -69,7 +69,19 @@ pub struct TargetCheck {
     /// target 1 is not creature` ("If it's not a creature"): the check is
     /// the filter with those types negated (`noncreature`). Wording only.
     pub not: Option<NotWording>,
+    /// `if target 1 wasnt attacking` ("If it wasn't attacking"), `if that
+    /// target 1 wasnt damaged` ("If that creature wasn't dealt damage this
+    /// turn"): the sentence happens if the target doesn't match.
+    pub negated: bool,
+    /// `if that land is Mountain` about the triggering object
+    /// (`IT_TRIGGER`): the noun printed after "that".
+    pub noun: Option<&'static str>,
 }
+
+/// `Effect::IfTarget`'s index for a check of the triggering object, not a
+/// target: `if it is Spider, ...` ("If it's a Spider, ..."), `if that land
+/// is Mountain, ...`, `draw 1 card if it was attacking`.
+pub const IT_TRIGGER: usize = usize::MAX;
 
 /// How a negated target check prints its "not".
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]

@@ -4455,12 +4455,17 @@ impl Compiler<'_> {
                     effects,
                 });
             }
-            Effect::IfTarget(n, f, inner, _) => {
+            Effect::IfTarget(n, f, inner, check) => {
                 let then = self.sentences(inner)?;
                 out.push(CoreEffect::IfTarget {
-                    n: u8::try_from(*n).unwrap_or(u8::MAX),
+                    n: if *n == crate::ast::IT_TRIGGER {
+                        mtg_core::card::IF_TRIGGER_OBJ
+                    } else {
+                        u8::try_from(*n).unwrap_or(u8::MAX)
+                    },
                     filter: Box::new(self.filter(f)),
                     then,
+                    negated: check.negated,
                 });
             }
             Effect::KeepMana(inner) => {
@@ -5989,6 +5994,7 @@ impl Compiler<'_> {
                     ..ObjFilter::default()
                 }),
                 then: grants,
+                negated: false,
             });
         }
         Ok(AbilityDef::Triggered(TriggeredAbility {

@@ -1,0 +1,8 @@
+card "Unyielding Gatekeeper" {
+  oracle_id 3c8fa799-7f30-4532-8317-f37a7ab787de
+  cost {1}{W}
+  type Creature — Elephant Cleric
+  pt 3/2
+  disguise {1}{W}
+  triggered when this is turned face up: exile another target nonland permanent; if you controlled it, return it to battlefield tapped under your control; otherwise, its controller creates 1 "2/2 white and blue Detective creature"
+}

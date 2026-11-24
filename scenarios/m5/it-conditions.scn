@@ -1,0 +1,178 @@
+# Conditions inside an effect about the object that triggered it or that
+# the effect just acted on (CR 608.2c, 608.2h): "If it's a Spider, ...",
+# "If that land is a Mountain, ...", "draw a card if it was attacking.
+# Otherwise, ...", "If it wasn't attacking, ...", "If that creature wasn't
+# dealt damage this turn, ...", "If you controlled it, ... Otherwise, ...".
+
+scenario "Aunt May: an entering Spider gets a +1/+1 counter" {
+  battlefield A: "Aunt May", "Forest", "Forest", "Forest", "Forest", "Forest"
+  hand A: "Giant Spider"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Spider"
+  run_to turn 1 postcombat_main
+  assert life A 21
+  assert counters "Giant Spider" +1/+1 1
+}
+
+scenario "Aunt May: another creature gains life but gets no counter" {
+  battlefield A: "Aunt May", "Forest", "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 21
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Koth: a Mountain entering adds {R}" {
+  battlefield A: "Koth, the Geomancer"
+  hand A: "Mountain", "Lightning Bolt", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: play "Mountain"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 13
+}
+
+scenario "Koth: another land deals damage but adds no mana" {
+  battlefield A: "Koth, the Geomancer"
+  hand A: "Forest", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "Garna: an attacking creature that dies draws a card" {
+  battlefield A: "Garna, Bloodfist of Keld", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 1
+  assert life B 20
+}
+
+scenario "Garna: a creature that wasn't attacking deals 1 damage instead" {
+  battlefield A: "Garna, Bloodfist of Keld", "Grizzly Bears"
+  hand B: "Lightning Bolt"
+  battlefield B: "Mountain"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 0
+  assert life B 19
+}
+
+scenario "Prophesied End: an attacking creature's controller draws nothing" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Plains", "Plains", "Plains"
+  hand B: "Prophesied End"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers B: cast "Prophesied End" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 0
+}
+
+scenario "Prophesied End: a creature that wasn't attacking: its controller draws" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Plains", "Plains", "Plains"
+  hand B: "Prophesied End"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Prophesied End" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 1
+  assert hand B count 0
+}
+
+scenario "Faller's Faithful: an undamaged creature's controller draws two" {
+  battlefield A: "Swamp", "Swamp", "Swamp"
+  hand A: "Faller's Faithful"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Faller's Faithful"
+  turn 1 A: trigger "Faller's Faithful" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert hand B count 2
+}
+
+scenario "Faller's Faithful: a damaged creature's controller draws nothing" {
+  battlefield A: "Swamp", "Swamp", "Swamp", "Mountain"
+  hand A: "Faller's Faithful", "Shock"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Faller's Faithful"
+  turn 1 A: trigger "Faller's Faithful" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert hand B count 0
+}
+
+scenario "Unyielding Gatekeeper: your own permanent returns tapped" {
+  battlefield A: 5 "Plains", "Grizzly Bears"
+  hand A: "Unyielding Gatekeeper"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Unyielding Gatekeeper" face_down
+  turn 1 A: wait
+  turn 1 A: unmorph "Unyielding Gatekeeper"
+  turn 1 A: trigger "Unyielding Gatekeeper" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Grizzly Bears"
+  assert battlefield A lacks "Detective"
+}
+
+scenario "Unyielding Gatekeeper: an opponent's permanent stays exiled; they get a Detective" {
+  battlefield A: 5 "Plains"
+  hand A: "Unyielding Gatekeeper"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Unyielding Gatekeeper" face_down
+  turn 1 A: wait
+  turn 1 A: unmorph "Unyielding Gatekeeper"
+  turn 1 A: trigger "Unyielding Gatekeeper" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert battlefield B contains "Detective"
+}
+
+scenario "Shackle Slinger: a tapped creature gets a stun counter" {
+  battlefield A: "Shackle Slinger", "Mountain", "Mountain"
+  hand A: "Shock", "Shock"
+  battlefield B: "Hill Giant" tapped
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: trigger "Shackle Slinger" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" stun 1
+}
+
+scenario "Shackle Slinger: an untapped creature is tapped instead" {
+  battlefield A: "Shackle Slinger", "Mountain", "Mountain"
+  hand A: "Shock", "Shock"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: trigger "Shackle Slinger" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 0
+}

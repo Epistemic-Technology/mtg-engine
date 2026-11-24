@@ -995,6 +995,23 @@ target as it resolves, or last existed); `also` after the comma prints
 "it also gains lifelink". Supertypes alone print bare ("If it's
 legendary"), a keyword prints "has" ("If that creature has infect"), and
 a graveyard card target adds "card" ("If it's a Zombie card").
+`if target 1 wasnt attacking, ...` prints "If it wasn't attacking, ..."
+and `if that target 1 wasnt damaged, ...` "If that creature wasn't dealt
+damage this turn, ..." (the sentence happens if the target doesn't match,
+as it last existed). Inside `if you controlled it, ...`, `return it to
+battlefield tapped under your control` prints "return it to the
+battlefield tapped" (Unyielding Gatekeeper).
+In a triggered ability with a triggering object and no target named yet,
+`if it is <filter>, ...`, `if it isnt ...`, `if it was ...`, `if it wasnt
+...` and `if that <noun> is ...` (`creature`, `land`, `spell`,
+`permanent`, `artifact`, `card`; also `was`) check the triggering object,
+as it is or as it last existed (CR 608.2h): "If it's a Spider, put a
++1/+1 counter on it." (Aunt May), "If that land is a Mountain, add {R}."
+(Koth, the Geomancer), "If that spell is a Lesson, ...". Written after the
+sentence, `draw 1 card if it was attacking` prints "draw a card if it was
+attacking"; `otherwise, ...` may follow either (Garna, Bloodfist of Keld).
+After a reveal or a look at the top card, `if it is ...` is about that
+card instead.
 Trigger `whenever you draw your second card each turn` (or `an opponent
 draws their second card each turn`); `card in a turn` prints "When you
 draw your third card in a turn".

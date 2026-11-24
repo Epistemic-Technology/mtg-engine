@@ -6730,12 +6730,23 @@ impl P {
                 } else {
                     crate::ast::TargetTense::Is
                 },
-                also: false,
                 after: true,
-                not: None,
+                ..crate::ast::TargetCheck::default()
             };
             return Ok(Sentence::new(vec![Effect::IfTarget(
                 n - 1,
+                filter,
+                vec![s],
+                check,
+            )]));
+        }
+        // `<sentence> if it was attacking`: "draw a card if it was
+        // attacking" about the triggering object.
+        if self.it_check_ahead().is_some() {
+            let (filter, mut check) = self.it_check()?;
+            check.after = true;
+            return Ok(Sentence::new(vec![Effect::IfTarget(
+                crate::ast::IT_TRIGGER,
                 filter,
                 vec![s],
                 check,
@@ -7431,8 +7442,8 @@ impl P {
                 let check = crate::ast::TargetCheck {
                     tense,
                     also: true,
-                    after: false,
                     not,
+                    ..crate::ast::TargetCheck::default()
                 };
                 return Ok(Effect::IfTarget(n - 1, filter, vec![s], check));
             }
@@ -7446,9 +7457,8 @@ impl P {
                 Err(s) => {
                     let check = crate::ast::TargetCheck {
                         tense,
-                        also: false,
-                        after: false,
                         not,
+                        ..crate::ast::TargetCheck::default()
                     };
                     Ok(Effect::IfTarget(n - 1, filter, vec![s], check))
                 }
@@ -7457,14 +7467,21 @@ impl P {
         if full {
             return self.fail("`if the full target N` takes `is`");
         }
-        let tense = if that {
-            self.expect_words(&["was"])?;
-            crate::ast::TargetTense::ThatWas
-        } else if self.eat_word("had") {
-            crate::ast::TargetTense::Had
+        // `if target 1 wasnt attacking, ...`: "If it wasn't attacking"
+        // (negated).
+        let (tense, negated) = if !that && self.eat_word("had") {
+            (crate::ast::TargetTense::Had, false)
         } else {
-            self.expect_words(&["was"])?;
-            crate::ast::TargetTense::Was
+            let negated = self.eat_word("wasnt");
+            if !negated {
+                self.expect_words(&["was"])?;
+            }
+            let tense = if that {
+                crate::ast::TargetTense::ThatWas
+            } else {
+                crate::ast::TargetTense::Was
+            };
+            (tense, negated)
         };
         let f = self.filter()?;
         Self::no_host_check(&f).or_else(|m| self.fail(m))?;
@@ -7478,9 +7495,61 @@ impl P {
             vec![s],
             crate::ast::TargetCheck {
                 tense,
-                also: false,
-                after: false,
-                not: None,
+                negated,
+                ..crate::ast::TargetCheck::default()
+            },
+        ))
+    }
+
+    /// Whether `if it is ...`, `if it wasnt ...` or `if that land is ...`
+    /// starts here about the triggering object: in a triggered ability
+    /// with one, before any target and outside a reveal. The number of
+    /// words before the filter, the noun after "that", and the verb.
+    fn it_check_ahead(&self) -> Option<(usize, Option<&'static str>, String)> {
+        const NOUNS: [&str; 6] = ["creature", "land", "spell", "permanent", "artifact", "card"];
+        if !self.in_trigger || self.no_trigger_obj || self.revealed || self.it_source {
+            return None;
+        }
+        if self.last_object_target().is_some() || !self.at_word("if") {
+            return None;
+        }
+        let (words, noun) = match self.word_at(1).as_deref() {
+            Some("it") => (2, None),
+            Some("that") => {
+                let w = self.word_at(2)?;
+                (3, Some(*NOUNS.iter().find(|n| **n == w)?))
+            }
+            _ => return None,
+        };
+        let verb = self.word_at(words)?;
+        matches!(verb.as_str(), "is" | "isnt" | "was" | "wasnt").then_some((words + 1, noun, verb))
+    }
+
+    /// `if it is Spider` ("If it's a Spider"), `if that land is Mountain`
+    /// ("If that land is a Mountain"), `if it wasnt attacking`: the
+    /// triggering object (`IT_TRIGGER`), as it is or as it last existed.
+    fn it_check(&mut self) -> R<(Filter, crate::ast::TargetCheck)> {
+        let Some((words, noun, verb)) = self.it_check_ahead() else {
+            return self.fail("expected `if it is ...` about the triggering object");
+        };
+        self.pos += words;
+        let negated = matches!(verb.as_str(), "isnt" | "wasnt");
+        let was = matches!(verb.as_str(), "was" | "wasnt");
+        let filter = self.filter()?;
+        Self::no_host_check(&filter).or_else(|m| self.fail(m))?;
+        let tense = match (was, noun.is_some()) {
+            (false, false) => crate::ast::TargetTense::Is,
+            (false, true) => crate::ast::TargetTense::ThatIs,
+            (true, false) => crate::ast::TargetTense::Was,
+            (true, true) => crate::ast::TargetTense::ThatWas,
+        };
+        Ok((
+            filter,
+            crate::ast::TargetCheck {
+                tense,
+                negated,
+                noun,
+                ..crate::ast::TargetCheck::default()
             },
         ))
     }
@@ -8104,6 +8173,19 @@ impl P {
             || self.at_words(&["if", "the", "full", "target"])
         {
             return self.if_target();
+        }
+        if self.it_check_ahead().is_some() {
+            let (filter, check) = self.it_check()?;
+            self.expect(&Tok::Comma)?;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfTarget(
+                crate::ast::IT_TRIGGER,
+                filter,
+                vec![s],
+                check,
+            ));
         }
         // `if you dont, ...` / `if you cant, ...` after an action.
         if (self.at_words(&["if", "you", "dont"]) || self.at_words(&["if", "you", "cant"]))

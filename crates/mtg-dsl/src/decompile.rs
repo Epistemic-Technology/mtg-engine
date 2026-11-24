@@ -1683,11 +1683,23 @@ impl Decompiler<'_> {
                 inner: self.sentences(inner),
             },
             CoreEffect::Instead { .. } => unreachable!("a sentence pair, in `sentences`"),
-            CoreEffect::IfTarget { n, filter, then } => Effect::IfTarget(
-                usize::from(*n),
+            CoreEffect::IfTarget {
+                n,
+                filter,
+                then,
+                negated,
+            } => Effect::IfTarget(
+                if *n == mtg_core::card::IF_TRIGGER_OBJ {
+                    crate::ast::IT_TRIGGER
+                } else {
+                    usize::from(*n)
+                },
                 self.filter(filter),
                 self.sentences(then),
-                crate::ast::TargetCheck::default(),
+                crate::ast::TargetCheck {
+                    negated: *negated,
+                    ..crate::ast::TargetCheck::default()
+                },
             ),
             CoreEffect::IfCondition(i, inner) => Effect::IfCondition(
                 self.static_cond(self.pool.condition(*i)),

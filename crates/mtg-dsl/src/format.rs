@@ -3321,6 +3321,24 @@ impl Fmt {
                 if *opponent { "opponent" } else { "player" },
                 self.line(inner, t)
             ),
+            // The triggering object: `if it is Spider, ...`, `if that land
+            // is Mountain, ...`, `draw 1 card if it was attacking`.
+            Effect::IfTarget(n, f, inner, check) if *n == crate::ast::IT_TRIGGER => {
+                use crate::ast::TargetTense;
+                let subject = check.noun.map_or("it".to_string(), |w| format!("that {w}"));
+                let was = matches!(check.tense, TargetTense::Was | TargetTense::ThatWas);
+                let verb = match (was, check.negated) {
+                    (true, false) => "was",
+                    (true, true) => "wasnt",
+                    (false, false) => "is",
+                    (false, true) => "isnt",
+                };
+                if check.after {
+                    format!("{} if {subject} {verb} {}", self.line(inner, t), filter(f))
+                } else {
+                    format!("if {subject} {verb} {}, {}", filter(f), self.line(inner, t))
+                }
+            }
             Effect::IfTarget(_, f, inner, check)
                 if check.tense == crate::ast::TargetTense::Is
                     && !check.after
@@ -3376,6 +3394,8 @@ impl Fmt {
             Effect::IfTarget(n, f, inner, check) => {
                 use crate::ast::TargetTense;
                 let (that, verb) = match check.tense {
+                    TargetTense::Was if check.negated => ("", "wasnt"),
+                    TargetTense::ThatWas if check.negated => ("that ", "wasnt"),
                     TargetTense::Was => ("", "was"),
                     TargetTense::Had => ("", "had"),
                     TargetTense::Is => ("", "is"),

@@ -1,0 +1,8 @@
+card "Koth, the Geomancer" {
+  oracle_id 3b17da84-ae4d-4fc1-a327-85e54e6156c6
+  cost {2}{R}
+  type Legendary Creature — Human Warrior
+  pt 3/2
+  keywords reach
+  label "Landfall" triggered whenever land you control enters: deal 1 damage to each opponent; if that land is Mountain, add {R}
+}

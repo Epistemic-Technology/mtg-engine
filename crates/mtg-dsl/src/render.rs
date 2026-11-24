@@ -11592,6 +11592,33 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             Clause::imperative(format!("if {cond}, {}", body.trim_end_matches('.')))
         }
+        // "If it's a Spider, ...", "If that land is a Mountain, ...",
+        // "draw a card if it was attacking": the triggering object.
+        Effect::IfTarget(n, f, inner, check) if *n == crate::ast::IT_TRIGGER => {
+            use crate::ast::TargetTense;
+            let body = sentences(inner, ctx);
+            let body = if starts_with_name(&body, ctx.card) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
+            let body = body.trim_end_matches('.');
+            let was = matches!(check.tense, TargetTense::Was | TargetTense::ThatWas);
+            let subject = check.noun.map_or("it".to_string(), |w| format!("that {w}"));
+            let verb = match (was, check.negated, check.noun.is_some()) {
+                (true, false, _) => " was",
+                (true, true, _) => " wasn't",
+                (false, false, true) => " is",
+                (false, false, false) => "'s",
+                (false, true, _) => " isn't",
+            };
+            let pred = status_only(f).map_or_else(|| target_predicate(f, ctx.card), str::to_string);
+            let cond = format!("{subject}{verb} {pred}");
+            if check.after {
+                return Clause::imperative(format!("{body} if {cond}"));
+            }
+            Clause::imperative(format!("if {cond}, {body}"))
+        }
         Effect::IfTarget(n, f, inner, check) => {
             use crate::ast::TargetTense;
             let noun = ctx.target_noun[*n].clone();
@@ -11611,8 +11638,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             if check.tense == TargetTense::Is && !check.after {
                 ctx.it_target = Some(*n);
             }
-            let body = sentences(inner, ctx);
+            let mut body = sentences(inner, ctx);
             ctx.it_target = it_before;
+            // "If you controlled it, return it to the battlefield tapped."
+            // (Unyielding Gatekeeper): under your control goes unsaid.
+            if *f == Filter::controlled_by_you() {
+                body = body.replacen(" under your control", "", 1);
+            }
             let mut body = if starts_with_name(&body, ctx.card) {
                 body
             } else {
@@ -11883,6 +11915,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
                 (TargetTense::Is, None) => format!("it's {pred}"),
                 (TargetTense::ThatIs, None) => format!("that {noun} is {pred}"),
+            };
+            // "If it wasn't attacking", "If that creature wasn't dealt
+            // damage this turn".
+            let cond = if check.negated {
+                let neg = cond
+                    .replacen(" was ", " wasn't ", 1)
+                    .replacen(" is ", " isn't ", 1)
+                    .replacen("'s ", " isn't ", 1);
+                if damaged_only && check.tense == TargetTense::ThatWas {
+                    format!("that {noun} wasn't dealt damage this turn")
+                } else {
+                    neg
+                }
+            } else {
+                cond
             };
             if check.after {
                 ctx.target_mentioned[*n] = true;

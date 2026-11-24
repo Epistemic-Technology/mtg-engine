@@ -14007,10 +14007,15 @@ impl GameState {
                     }
                 }
             }
-            Effect::IfTarget { n, filter, then } => {
+            Effect::IfTarget {
+                n,
+                filter,
+                then,
+                negated,
+            } => {
                 // `ctx.did` for an "Otherwise" after it ("If it's
                 // suspected, exile it. Otherwise, suspect it.").
-                if self.nth_target_matches(ctx, *n, filter) {
+                if self.nth_target_matches(ctx, *n, filter) != *negated {
                     ctx.did = true;
                     for e in then {
                         self.apply_effect(ctx, e);
@@ -17766,8 +17771,17 @@ impl GameState {
         } else {
             filter
         };
-        let Some(Target::Object(id)) = ctx.targets.get(usize::from(n)).copied() else {
-            return false;
+        // "If it's a Spider, ...": the triggering object (CR 608.2h).
+        let id = if n == crate::card::IF_TRIGGER_OBJ {
+            let Some(id) = ctx.trigger_obj else {
+                return false;
+            };
+            id
+        } else {
+            let Some(Target::Object(id)) = ctx.targets.get(usize::from(n)).copied() else {
+                return false;
+            };
+            id
         };
         // "If an opponent protects it" (CR 310.8): a battle still on the
         // battlefield, its protector judged from the effect's controller.

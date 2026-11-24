@@ -5222,11 +5222,17 @@ pub enum Effect {
     /// "If this spell was kicked, [do these]" (CR 702.33c).
     IfKicked(Vec<Effect>),
     /// "If that creature was a Human, [do these]": the `n`th target,
-    /// judged as it last existed if it has left (CR 608.2h).
+    /// judged as it last existed if it has left (CR 608.2h). `n` of
+    /// `IF_TRIGGER_OBJ` is the triggering object instead ("Whenever
+    /// another creature you control enters, ... If it's a Spider, ...").
+    /// With `negated`, `then` happens if it doesn't match ("If it wasn't
+    /// attacking", "If that creature wasn't dealt damage this turn").
     IfTarget {
         n: u8,
         filter: Box<ObjFilter>,
         then: Vec<Effect>,
+        #[serde(default)]
+        negated: bool,
     },
     /// "If you control a Treefolk, [these]": the pool's `n`th static
     /// condition, judged for the controller as the effect resolves.
@@ -6535,6 +6541,11 @@ pub enum SkipWhat {
 /// `Effect::MoveCounters::count` for "move any number of +1/+1 counters":
 /// the controller chooses how many as it resolves.
 pub const MOVE_ANY_NUMBER: u32 = u32::MAX;
+
+/// `Effect::IfTarget::n` for a check of the triggering object rather than
+/// a target ("If that land is a Mountain, add {R}."), judged as it is or
+/// as it last existed (CR 608.2h).
+pub const IF_TRIGGER_OBJ: u8 = 254;
 
 /// `Effect::ChooseFor`: what is chosen, for whom, and by whom.
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
