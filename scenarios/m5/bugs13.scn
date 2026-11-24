@@ -134,3 +134,26 @@ scenario "Ajani, Sleeper Agent's -3: they all gain vigilance" {
   assert has "Grizzly Bears" vigilance
   assert has "Hill Giant" vigilance
 }
+
+# Host of the Hereafter: "put its counters on" is the dying creature's
+# counters (one), not the Host's own (two); its own death moves its own.
+scenario "Host of the Hereafter puts the dead creature's counters on the target" {
+  battlefield A: "Host of the Hereafter" with 2 +1/+1, "Grizzly Bears" with 1 +1/+1, "Hill Giant", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: trigger "Host of the Hereafter" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Hill Giant" +1/+1 1
+  assert counters "Host of the Hereafter" +1/+1 2
+}
+
+scenario "Host of the Hereafter dying puts its own counters on the target" {
+  battlefield A: "Host of the Hereafter" with 1 +1/+1, "Hill Giant", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Host of the Hereafter"
+  turn 1 A: trigger "Host of the Hereafter" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Host of the Hereafter"
+  assert counters "Hill Giant" +1/+1 1
+}

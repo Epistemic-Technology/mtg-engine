@@ -11237,9 +11237,11 @@ impl P {
                 self.pos += 3;
                 let to = self.recipient()?;
                 // "put its counters on this creature" in a triggered
-                // ability: the triggering object's (Buzzard-Wasp Colony).
+                // ability: the triggering object's (Buzzard-Wasp Colony),
+                // "its" kept for the rendering (Host of the Hereafter: "if
+                // it had counters on it, put its counters on ...").
                 let from = if self.its_counters_triggering(to) {
-                    Recipient::TriggeringObject
+                    Recipient::TriggeringIt
                 } else {
                     Recipient::Source
                 };
