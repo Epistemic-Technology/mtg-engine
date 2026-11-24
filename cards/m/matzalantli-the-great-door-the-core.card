@@ -1,0 +1,12 @@
+card "Matzalantli, the Great Door // The Core" {
+  oracle_id 16182e01-22ff-4786-985d-919b47c4aa4d
+  layout transform
+  cost {3}
+  type Legendary Artifact
+  activated {T}: draw 1 card then discard 1 card
+  activated {4}, {T}, if count 4 permanent types in your graveyard: transform this
+  face "The Core" {
+    type Legendary Land
+    label "Fathomless descent" activated {T}: add any count where graveyard permanent card
+  }
+}

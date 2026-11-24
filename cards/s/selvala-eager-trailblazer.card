@@ -1,0 +1,9 @@
+card "Selvala, Eager Trailblazer" {
+  oracle_id 95b20721-1af9-4f3f-a39b-7cd1d4ce0b20
+  cost {2}{G}{W}
+  type Legendary Creature — Elf Scout
+  pt 4/5
+  keywords vigilance
+  triggered whenever you cast creature spell: create 1 "Mercenary"
+  activated {T}: add chosen count each different powers among creature you control
+}

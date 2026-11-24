@@ -1,0 +1,7 @@
+card "April O'Neil, Hacktivist" {
+  oracle_id d379a919-02cd-46fd-a6ce-b66a77745ae7
+  cost {3}{U}
+  type Legendary Creature — Human Scientist
+  pt 1/5
+  triggered at beginning of your end step: draw count each card types among spells cast this turn cards
+}

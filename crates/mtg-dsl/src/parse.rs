@@ -1755,6 +1755,14 @@ impl P {
                     count: Num::N(n),
                 });
             }
+            // `add chosen count each ...`: "Choose a color. Add one mana of
+            // that color for each ..." (Loot, the Nexus).
+            if self.at_word("count") {
+                return Ok(Effect::AddManaTimes {
+                    mana: Mana::Chosen,
+                    count: self.num()?,
+                });
+            }
             return Ok(Effect::AddMana(vec![Mana::Chosen]));
         }
         // CR 903.4f: "one mana of any color in your commander's color
@@ -5185,6 +5193,14 @@ impl P {
         // Goblin card".
         if self.eat_words(&["top", "card", "is"]) {
             return Ok(StaticCond::TopCard(self.filter()?));
+        }
+        // `count 5 colors among permanents`: "there are five colors among
+        // permanents you control" (a count at least N).
+        if self.at_word("count") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            self.pos += 1;
+            let n = self.number()?;
+            let c = self.count_expr()?;
+            return Ok(StaticCond::CountAtLeast(Box::new(c), n));
         }
         // `flash if pay {2} more` (Mystical Tether).
         if self.at_word("pay")
@@ -13213,6 +13229,20 @@ impl P {
             let expr = self.count_expr()?;
             return self.push_count(crate::ast::Count { expr, style });
         }
+        // `half up x`: "half X, rounded up" (The Goose Mother's Food
+        // tokens).
+        if self.half_ahead() && self.word_at(2).is_some_and(|w| w.eq_ignore_ascii_case("x")) {
+            let up = self.word_at(1).as_deref() == Some("up");
+            self.pos += 3;
+            return self.push_count(crate::ast::Count {
+                expr: crate::ast::CountExpr::Divided {
+                    by: 2,
+                    up,
+                    inner: Box::new(crate::ast::CountExpr::X),
+                },
+                style: crate::ast::CountStyle::Half,
+            });
+        }
         match self.peek() {
             // `2 times that much`: "twice that many" (Angel of Suffering).
             Some(Tok::Num(n))
@@ -13513,6 +13543,49 @@ impl P {
         if self.eat_words(&["life", "you", "lost", "this", "turn"]) {
             return Ok(CountExpr::LifeLostThisTurn);
         }
+        if self.at_words(&["colors", "among"]) && self.word_at(2).as_deref() != Some("permanents") {
+            self.pos += 2;
+            return Ok(CountExpr::ColorsAmong(self.filter()?));
+        }
+        if self.eat_words(&["card", "types", "among"]) {
+            if self.eat_words(&["spells", "cast", "this", "turn"]) {
+                return Ok(CountExpr::CardTypesCastThisTurn);
+            }
+            if let Some(verb) = self
+                .word_at(0)
+                .and_then(|w| crate::ast::this_way_verb(&w))
+                .filter(|_| self.word_at(1).as_deref() == Some("this"))
+            {
+                self.pos += 1;
+                self.expect_words(&["this", "way"])?;
+                return Ok(CountExpr::CardTypesThisWay(verb));
+            }
+            return Ok(CountExpr::CardTypesAmong(self.filter()?));
+        }
+        if self.eat_words(&["permanent", "types", "in", "your", "graveyard"]) {
+            return Ok(CountExpr::PermanentTypesInGraveyard);
+        }
+        if self.eat_words(&["graveyards", "with"]) {
+            let n = self.number()?;
+            self.expect_word("cards")?;
+            return Ok(CountExpr::GraveyardsWithAtLeast(n));
+        }
+        if self.eat_words(&["counter", "kinds", "among"]) {
+            return Ok(CountExpr::CounterKindsAmong(self.filter()?));
+        }
+        if self.eat_words(&["different", "powers", "among"]) {
+            return Ok(CountExpr::DifferentPowers(self.filter()?));
+        }
+        if self.eat_words(&["most", "sharing", "type"]) {
+            return Ok(CountExpr::SharingCreatureType(self.filter()?));
+        }
+        if self.eat_words(&["difference", "of", "power", "and", "toughness"]) {
+            return Ok(CountExpr::TriggerPtDifference);
+        }
+        if self.at_word("x") || self.at_word("X") {
+            self.pos += 1;
+            return Ok(CountExpr::X);
+        }
         if self.eat_words(&["loyalty", "of", "this"]) {
             return Ok(CountExpr::SourceLoyalty);
         }
@@ -13567,13 +13640,14 @@ impl P {
         if self.at_word("their")
             && matches!(
                 self.word_at(1).as_deref(),
-                Some("hand" | "library" | "life")
+                Some("hand" | "library" | "life" | "graveyard")
             )
         {
             use mtg_core::card::PlayerCount;
             let what = match self.word_at(1).as_deref() {
                 Some("hand") => PlayerCount::Hand,
                 Some("library") => PlayerCount::Library,
+                Some("graveyard") => PlayerCount::Graveyard,
                 _ => PlayerCount::Life,
             };
             self.pos += 2;
@@ -13606,6 +13680,10 @@ impl P {
         if self.eat_words(&["counters", "on"]) {
             if self.eat_word("this") {
                 return Ok(CountExpr::SourceAllCounters { it: false });
+            }
+            // `counters on creature you control`: every kind, on a group.
+            if !self.at_word("it") {
+                return Ok(CountExpr::CountersAmong(CounterKind::Any, self.filter()?));
             }
             self.expect_word("it")?;
             // In a triggered ability `it` is the triggering object: its
@@ -13646,6 +13724,15 @@ impl P {
                 }
                 return Ok(CountExpr::SourceCounters { kind, it: true });
             }
+            // `+1/+1 counters on land you control`: on a group.
+            let back = self.pos;
+            if !self.at_word("target")
+                && !self.at_word("that")
+                && let Ok(f) = self.filter()
+            {
+                return Ok(CountExpr::CountersAmong(kind, f));
+            }
+            self.pos = back;
         }
         self.pos = at;
         // "for each of those creatures": a group named before.
@@ -13671,6 +13758,22 @@ impl P {
         }
         if self.eat_words(&["greatest", "toughness"]) {
             return Ok(CountExpr::GreatestToughness(self.filter()?));
+        }
+        // `hand of target opponent`: declares the target.
+        if self.at_words(&["hand", "of", "target", "opponent"])
+            || self.at_words(&["hand", "of", "target", "player"])
+        {
+            let opponent = self.word_at(3).as_deref() == Some("opponent");
+            self.pos += 4;
+            self.targets.push(Target::Spec(if opponent {
+                TargetSpec::Opponent
+            } else {
+                TargetSpec::Player
+            }));
+            return Ok(CountExpr::TargetHandDeclared {
+                n: self.targets.len() - 1,
+                opponent,
+            });
         }
         if self.eat_words(&["hand", "of", "target"]) {
             let n = self.number()? as usize;
@@ -13742,7 +13845,12 @@ impl P {
             // Hire): a creature type alone.
             let subtype = matches!(self.peek(), Some(Tok::Word(w))
                 if w.chars().next().is_some_and(char::is_uppercase));
-            let f = if subtype || self.word_at(0).is_some_and(|w| card_type(&w).is_some()) {
+            // "among other creatures you control" (Prime Speaker Zegana).
+            let f = if subtype
+                || self
+                    .word_at(0)
+                    .is_some_and(|w| card_type(&w).is_some() || w == "other")
+            {
                 self.filter()?
             } else {
                 Filter {
@@ -14192,6 +14300,7 @@ impl P {
         let target = |k: usize| matches!(self.word_at(k).as_deref(), Some("target" | "targets"));
         (self.at_word("x") && target(1))
             || (self.at_words(&["up", "to", "x"]) && target(3))
+            || (self.at_words(&["up", "to", "that", "much"]) && target(4))
             || (self.at_words(&["any", "number", "of"])
                 && (target(3) || (self.word_at(3).as_deref() == Some("another") && target(4))))
             || (matches!(self.peek(), Some(Tok::Num(_)))
@@ -14207,6 +14316,13 @@ impl P {
         } else if self.eat_words(&["up", "to", "x"]) {
             // "up to X target cards" (CR 601.2c).
             (Num::N(0), Some(Num::X))
+        } else if self.eat_words(&["up", "to", "that", "much"]) {
+            // "choose up to that many target creatures you control" (the
+            // triggering event's amount, known as the targets are chosen).
+            if !self.in_trigger || self.in_delayed || self.no_trigger_amount {
+                return self.fail("`that much`: this trigger's event has no amount");
+            }
+            (Num::N(0), Some(Num::ThatMuch))
         } else if self.eat_words(&["any", "number", "of"]) {
             (Num::N(0), None)
         } else {
@@ -19367,13 +19483,14 @@ fn no_trigger_amount(t: &Trigger) -> bool {
         Trigger::When(t) | Trigger::Next(t) | Trigger::Each(t) | Trigger::OnNextTurn(t) => {
             no_trigger_amount(t)
         }
-        Trigger::Batch(_) => false,
+        // "Whenever you gain life, target opponent loses that much life":
+        // the life gained (CR 119.10).
+        Trigger::Batch(_) | Trigger::GainsLife { .. } => false,
         Trigger::Either(a, b) => no_trigger_amount(a) && no_trigger_amount(b),
         Trigger::CastsSpell { .. }
         | Trigger::CastsFiltered { .. }
         | Trigger::CastThis { .. }
         | Trigger::CastsNth { .. }
-        | Trigger::GainsLife { .. }
         | Trigger::GainsLifeFirst { .. } => true,
         t => {
             no_trigger_object(t)

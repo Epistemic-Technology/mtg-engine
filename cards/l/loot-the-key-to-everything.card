@@ -1,0 +1,8 @@
+card "Loot, the Key to Everything" {
+  oracle_id 542be13f-b9c0-4b79-b486-be576c531a82
+  cost {G}{U}{R}
+  type Legendary Creature — Beast Noble
+  pt 1/2
+  ward {1}
+  triggered at beginning of your upkeep step: impulse count where card types among other nonland permanent you control this turn
+}

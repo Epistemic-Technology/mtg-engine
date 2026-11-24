@@ -292,6 +292,14 @@ impl Decompiler<'_> {
                 inner: Box::new(self.cda_count(inner)),
             },
             C::Sum(a, b) => A::Sum(Box::new(self.cda_count(a)), Box::new(self.cda_count(b))),
+            C::ColorsAmongPermanents => A::ColorsAmongPermanents,
+            C::ColorsAmong(f) => A::ColorsAmong(self.filter(f)),
+            C::CardTypesAmong(f) => A::CardTypesAmong(self.filter(f)),
+            C::PermanentTypesInGraveyard => A::PermanentTypesInGraveyard,
+            C::GraveyardsWithAtLeast(n) => A::GraveyardsWithAtLeast(*n),
+            C::CountersAmong(k, f) => A::CountersAmong(*k, self.filter(f)),
+            C::CounterKindsAmong(f) => A::CounterKindsAmong(self.filter(f)),
+            C::SharingCreatureType(f) => A::SharingCreatureType(self.filter(f)),
             _ => A::Domain,
         }
     }
@@ -612,6 +620,9 @@ impl Decompiler<'_> {
         match c {
             StaticCondition::CardsInGraveyard(n) => StaticCond::CardsInGraveyard(*n),
             StaticCondition::TopCard(f) => StaticCond::TopCard(self.filter(f)),
+            StaticCondition::CountAtLeast(c, n) => {
+                StaticCond::CountAtLeast(Box::new(self.cda_count(c)), *n)
+            }
             StaticCondition::CardTypesInGraveyard(n) => StaticCond::CardTypesInGraveyard(*n),
             StaticCondition::YouControl { filter, at_least } => StaticCond::YouControl {
                 filter: unowned(filter),

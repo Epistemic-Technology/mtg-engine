@@ -1,0 +1,9 @@
+card "The Master of Lake-town" {
+  oracle_id 89c3c81b-8960-4f79-b2ec-f13560058071
+  cost {1}{B}{B}
+  type Legendary Creature — Human Advisor
+  pt 3/2
+  keywords deathtouch
+  triggered whenever a player loses life: that player mills that much cards
+  triggered when this dies: draw count each graveyards with 7 cards cards
+}

@@ -1,0 +1,6 @@
+card "Strength of Will" {
+  oracle_id 0389b48a-e64c-44fb-8a41-fd571cba237c
+  cost {1}{G}
+  type Instant
+  spell: until end of turn, target creature you control gains indestructible and gains ability { triggered whenever this is dealt damage: put that much +1/+1 counters on this }
+}

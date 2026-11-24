@@ -718,6 +718,48 @@ pub enum CountExpr {
     CreaturesLeftThisTurn,
     /// `colors of target 1`: "for each of its colors".
     TargetColors(usize),
+    /// `colors among Ally you control`: "for each color among Allies you
+    /// control", "the number of colors among ...".
+    ColorsAmong(Filter),
+    /// `card types among other nonland permanent you control`: "the number
+    /// of card types among other nonland permanents you control".
+    CardTypesAmong(Filter),
+    /// `card types among spells cast this turn`: "for each card type among
+    /// spells you've cast this turn".
+    CardTypesCastThisTurn,
+    /// `card types among discarded this way`: "for each card type among
+    /// cards discarded this way".
+    CardTypesThisWay(mtg_core::card::ThisWay),
+    /// `permanent types in your graveyard`: "permanent types among cards in
+    /// your graveyard".
+    PermanentTypesInGraveyard,
+    /// `graveyards with 7 cards`: "for each graveyard with seven or more
+    /// cards in it".
+    GraveyardsWithAtLeast(u32),
+    /// `+1/+1 counters on land you control`: "the number of +1/+1 counters
+    /// on lands you control".
+    CountersAmong(mtg_core::card::CounterKind, Filter),
+    /// `counter kinds among creature you control`: "different kinds of
+    /// counters among creatures you control".
+    CounterKindsAmong(Filter),
+    /// `different powers among creature you control`: "for each different
+    /// power among creatures you control".
+    DifferentPowers(Filter),
+    /// `most sharing type creature you control`: "the greatest number of
+    /// creatures you control that have a creature type in common".
+    SharingCreatureType(Filter),
+    /// `difference of power and toughness`: "the difference between its
+    /// power and toughness" (the triggering object's).
+    TriggerPtDifference,
+    /// `x`: X, under a count built on it (`half up x`: "half X, rounded
+    /// up").
+    X,
+    /// `hand of target opponent`: "the number of cards in target
+    /// opponent's hand", declaring the target (the `n`th).
+    TargetHandDeclared {
+        n: usize,
+        opponent: bool,
+    },
 }
 
 /// What a target-dependent cost's filter names: a permanent, a spell, or a
@@ -2938,6 +2980,10 @@ pub enum StaticCond {
     /// your library is a Goblin card", "... is black" (by its printed
     /// characteristics).
     TopCard(Filter),
+    /// `count 5 colors among permanents`: the count is at least N ("there
+    /// are five colors among permanents you control", "the number of ...
+    /// plus the number of ... is three or greater").
+    CountAtLeast(Box<CountExpr>, u32),
     /// `creature died this turn` (morbid).
     CreatureDiedThisTurn,
     /// `opponent damaged this turn`: "an opponent was dealt damage this

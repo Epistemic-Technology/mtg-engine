@@ -1,0 +1,7 @@
+card "Riverchurn Monument" {
+  oracle_id 71c714a2-baa9-4082-bc8e-ceadbea231e0
+  cost {1}{U}
+  type Artifact
+  activated {1}, {T}: any number of target players each mill 2 cards
+  exhaust {2}{U}{U}, {T}: any number of target players each mill count equal their graveyard cards
+}

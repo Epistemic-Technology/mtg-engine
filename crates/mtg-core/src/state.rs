@@ -3628,6 +3628,119 @@ impl GameState {
             .count()
     }
 
+    /// Permanent types (CR 110.4a) among the cards in `p`'s graveyard.
+    pub fn permanent_types_in_graveyard(&self, p: PlayerId) -> u32 {
+        use crate::card::CardType;
+        let permanent = crate::card::TypeSet::of([
+            CardType::Artifact,
+            CardType::Battle,
+            CardType::Creature,
+            CardType::Enchantment,
+            CardType::Land,
+            CardType::Planeswalker,
+        ]);
+        let mut types = crate::card::TypeSet::default();
+        for g in &self.player(p).graveyard {
+            let o = &self.objects[*g];
+            if o.kind != ObjKind::Token {
+                types = types.union(self.pool.get(o.def).types);
+            }
+        }
+        u32::try_from(permanent.iter().filter(|t| types.contains(*t)).count()).unwrap_or(u32::MAX)
+    }
+
+    /// Graveyards with at least `n` cards in them ("for each graveyard with
+    /// seven or more cards in it").
+    pub fn graveyards_with_at_least(&self, n: u32) -> u32 {
+        u32::try_from(
+            self.players_in_game()
+                .filter(|p| self.cards_in_graveyard(*p) >= n as usize)
+                .count(),
+        )
+        .unwrap_or(u32::MAX)
+    }
+
+    /// A count over a group of permanents with their characteristics
+    /// (`CountExpr::ColorsAmong` and the like): colors, card types,
+    /// counters, kinds of counters, different powers, or the most that
+    /// share a creature type. 0 for any other count.
+    pub fn group_count(
+        &self,
+        expr: &crate::card::CountExpr,
+        group: &[(ObjId, Characteristics)],
+    ) -> u32 {
+        use crate::card::CountExpr;
+        let n = match expr {
+            CountExpr::ColorsAmong(_) => {
+                let mut seen = crate::mana::ColorSet::default();
+                for (_, c) in group {
+                    for col in c.colors.iter() {
+                        seen = seen.with(col);
+                    }
+                }
+                seen.iter().count()
+            }
+            CountExpr::CardTypesAmong(_) => {
+                return group
+                    .iter()
+                    .fold(crate::card::TypeSet::default(), |acc, (_, c)| {
+                        acc.union(c.types)
+                    })
+                    .len();
+            }
+            CountExpr::CountersAmong(kind, _) => {
+                return group
+                    .iter()
+                    .map(|(id, _)| self.objects[*id].counters(*kind))
+                    .fold(0u32, u32::saturating_add);
+            }
+            CountExpr::CounterKindsAmong(_) => {
+                let mut kinds: SmallVec<[CounterKind; 8]> = SmallVec::new();
+                for (id, _) in group {
+                    for (k, n) in &self.objects[*id].counters {
+                        if *n > 0 && !kinds.contains(k) {
+                            kinds.push(*k);
+                        }
+                    }
+                }
+                kinds.len()
+            }
+            CountExpr::DifferentPowers(_) => {
+                let mut v: SmallVec<[i32; 16]> = group.iter().map(|(_, c)| c.power()).collect();
+                v.sort_unstable();
+                v.dedup();
+                v.len()
+            }
+            // CR 702.73a: a changeling (or "all creature types") shares
+            // each type; with no other types they share them all.
+            CountExpr::SharingCreatureType(_) => {
+                let all = |c: &Characteristics| {
+                    c.has(Keyword::Changeling)
+                        || c.subtypes
+                            .contains(&crate::card::Subtype::ALL_CREATURE_TYPES)
+                };
+                let every = group.iter().filter(|(_, c)| all(c)).count();
+                let mut best = every;
+                let mut seen: SmallVec<[crate::card::Subtype; 16]> = SmallVec::new();
+                for (_, c) in group.iter().filter(|(_, c)| !all(c)) {
+                    for s in &c.subtypes {
+                        if s.is_creature_type() && !seen.contains(s) {
+                            seen.push(*s);
+                            let n = group
+                                .iter()
+                                .filter(|(_, d)| !all(d) && d.subtypes.contains(s))
+                                .count();
+                            best = best.max(n + every);
+                        }
+                    }
+                }
+                best
+            }
+            _ => 0,
+        };
+        u32::try_from(n).unwrap_or(u32::MAX)
+    }
+
     /// Current characteristics of an object, computed through the layers
     /// (CR 613). Cached per `cversion`. Objects off the battlefield have
     /// their copiable values (no effect in the engine yet applies
@@ -4999,6 +5112,7 @@ impl GameState {
                 .or_else(|| self.lki.get(&source).map(|l| &l.object))
                 .is_some_and(|o| o.cast.cast_from() == Some(*zone)),
             C::Happened { count, cmp, n } => self.turn_count_holds(count, *cmp, *n, you, source),
+            C::CountAtLeast(c, n) => self.eval_count_of(c, source, you) >= *n,
             // "the top card of your library is a Goblin card": by its
             // printed characteristics.
             C::TopCard(f) => self.player(you).library.last().is_some_and(|t| {
