@@ -1,0 +1,6 @@
+card "Ebony Owl Netsuke" {
+  oracle_id dcacb717-4ca4-47c0-9b23-26e4eb4ffdc8
+  cost {2}
+  type Artifact
+  triggered at beginning of each opponent's upkeep step if that player hand 7 or more: deal 4 damage to that player
+}

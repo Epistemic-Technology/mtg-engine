@@ -1,0 +1,9 @@
+card "Guul Draz Specter" {
+  oracle_id 733cfc16-9a16-41e2-b36e-3d7a546c67f0
+  cost {2}{B}{B}
+  type Creature — Specter
+  pt 2/2
+  keywords flying
+  static this: +3/+3 as long as opponent hand 0 or less
+  triggered whenever this deals combat damage to a player: that player discards 1 card
+}

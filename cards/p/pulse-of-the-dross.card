@@ -1,0 +1,6 @@
+card "Pulse of the Dross" {
+  oracle_id 95846070-7b35-4689-a56c-5b32b6264013
+  cost {1}{B}{B}
+  type Sorcery
+  spell: target player reveals 3 cards discarding card; then if that player more cards in hand than you, return this to owner's hand
+}

@@ -1,0 +1,13 @@
+card "Reaper of Night // Harvest Fear" {
+  oracle_id d40e5a76-6c9a-47eb-b412-d3056cf36b3f
+  layout adventure
+  cost {5}{B}{B}
+  type Creature — Specter
+  pt 4/5
+  triggered whenever this attacks if defending player hand 2 or less: it gains flying until end of turn
+  face "Harvest Fear" {
+    cost {3}{B}
+    type Sorcery — Adventure
+    spell: target opponent discards 2 cards
+  }
+}

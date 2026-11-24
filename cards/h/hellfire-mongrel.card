@@ -1,0 +1,7 @@
+card "Hellfire Mongrel" {
+  oracle_id 633a0919-9ac3-4645-8f0b-3f00c198db79
+  cost {2}{R}
+  type Creature — Elemental Dog
+  pt 2/2
+  triggered at beginning of each opponent's upkeep step if that player hand 2 or less: deal 2 damage to that player
+}

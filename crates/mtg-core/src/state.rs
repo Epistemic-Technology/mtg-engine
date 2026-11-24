@@ -4323,6 +4323,78 @@ impl GameState {
         self.condition_now(cond, you, source)
     }
 
+    /// `condition_for` where "that player" is known: the player an ability
+    /// triggered for, or a resolving spell's targeted player
+    /// (`StaticCondition::PlayerHand`). Other conditions are judged as
+    /// `condition_for` judges them.
+    pub fn condition_about(
+        &self,
+        cond: &crate::card::StaticCondition,
+        you: PlayerId,
+        source: ObjId,
+        trigger_obj: Option<ObjId>,
+        that: Option<PlayerId>,
+    ) -> bool {
+        use crate::card::StaticCondition as C;
+        match cond {
+            C::PlayerHand { who, n, at_most } => {
+                self.hand_player_any(*who, you, source, that, |p| {
+                    let h = self.player(p).hand.len();
+                    if *at_most {
+                        h <= *n as usize
+                    } else {
+                        h >= *n as usize
+                    }
+                })
+            }
+            C::PlayerMoreHand(who) => self.hand_player_any(*who, you, source, that, |p| {
+                self.player(p).hand.len() > self.player(you).hand.len()
+            }),
+            C::And(a, b) if that.is_some() => {
+                self.condition_about(a, you, source, trigger_obj, that)
+                    && self.condition_about(b, you, source, trigger_obj, that)
+            }
+            C::Or(a, b) if that.is_some() => {
+                self.condition_about(a, you, source, trigger_obj, that)
+                    || self.condition_about(b, you, source, trigger_obj, that)
+            }
+            C::Not(a) if that.is_some() => !self.condition_about(a, you, source, trigger_obj, that),
+            _ => self.condition_for(cond, you, source, trigger_obj),
+        }
+    }
+
+    /// Whether a player a `HandPlayer` names passes the test: "that
+    /// player" as given; the defending player of the attacking source (CR
+    /// 506.2; a planeswalker's controller, a battle's protector); any
+    /// opponent; any player.
+    fn hand_player_any(
+        &self,
+        who: crate::card::HandPlayer,
+        you: PlayerId,
+        source: ObjId,
+        that: Option<PlayerId>,
+        test: impl Fn(PlayerId) -> bool,
+    ) -> bool {
+        use crate::card::HandPlayer as H;
+        match who {
+            H::That => that.is_some_and(test),
+            H::Defending => self
+                .combat
+                .as_ref()
+                .and_then(|c| c.attacker(source))
+                .and_then(|a| match a.attacking {
+                    Target::Player(p) => Some(p),
+                    Target::Object(o) => self
+                        .protector(o)
+                        .or_else(|| self.objects.get(o).map(|x| x.controller))
+                        .filter(|p| *p != you),
+                })
+                .is_some_and(test),
+            H::Opponent => self.players_in_game().any(|p| p != you && test(p)),
+            H::Anyone => self.players_in_game().any(test),
+        }
+    }
+
     /// The number of basic land types among lands `p` controls (domain, CR
     /// 305.6).
     pub fn basic_land_types(&self, p: PlayerId) -> usize {
@@ -4789,6 +4861,11 @@ impl GameState {
                 self.players_in_game()
                     .all(|p| p == you || self.player(p).hand.len() < mine)
             }
+            // "That player" unknown here: only the defending player.
+            C::PlayerHand { .. } | C::PlayerMoreHand(_) => {
+                self.condition_about(cond, you, source, None, None)
+            }
+            C::LibraryEmpty => self.player(you).library.is_empty(),
             C::OpponentPoison(n) => self
                 .players_in_game()
                 .any(|p| p != you && self.player(p).poison >= *n),

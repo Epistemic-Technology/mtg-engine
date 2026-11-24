@@ -1,0 +1,8 @@
+card "Hollowborn Barghest" {
+  oracle_id 6b08f344-1ff5-4d04-a435-d3a1c5e4211b
+  cost {5}{B}{B}
+  type Creature — Demon Dog
+  pt 7/6
+  triggered at beginning of your upkeep if hand 0 or less: each opponent loses 2 life
+  triggered at beginning of each opponent's upkeep step if that player hand 0 or less: they lose 2 life
+}

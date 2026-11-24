@@ -2516,6 +2516,13 @@ impl Compiler<'_> {
             ),
             StaticCond::OpponentMoreLands => StaticCondition::OpponentMoreLands,
             StaticCond::OpponentHasMore(w) => StaticCondition::OpponentHasMore(*w),
+            StaticCond::PlayerHand { who, n, at_most } => StaticCondition::PlayerHand {
+                who: *who,
+                n: *n,
+                at_most: *at_most,
+            },
+            StaticCond::PlayerMoreHand(w) => StaticCondition::PlayerMoreHand(*w),
+            StaticCond::LibraryEmpty => StaticCondition::LibraryEmpty,
             // CR 702.185: any player's.
             StaticCond::Void => StaticCondition::Or(
                 Box::new(StaticCondition::happened(
@@ -2854,6 +2861,7 @@ impl Compiler<'_> {
             A::DiscardedThisTurn => C::Happened(TurnCount::of(TurnEvent::Discarded, TurnWho::You)),
 
             A::OpponentsMoreCards => C::OpponentsMoreCards,
+            A::OpponentsHandAtMost(n) => C::OpponentsHandAtMost(*n),
             A::Total(stat, f) => C::Total(*stat, self.filter(f)),
             A::TargetLibrary(n) => C::TargetLibrary(target_index(self.tmap, *n)),
             A::GreatestManaValueOf(f) => C::GreatestManaValueOf(self.filter(f)),

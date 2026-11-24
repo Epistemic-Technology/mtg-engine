@@ -1,0 +1,7 @@
+card "Lavaborn Muse" {
+  oracle_id 2825ff5a-5340-4494-bfde-80f6f5bce5a2
+  cost {3}{R}
+  type Creature — Spirit
+  pt 3/3
+  triggered at beginning of each opponent's upkeep step if that player hand 2 or less: deal 3 damage to that player
+}

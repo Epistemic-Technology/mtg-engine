@@ -634,6 +634,9 @@ pub enum CountExpr {
     /// `opponents more cards in hand`: "for each opponent who has more
     /// cards in hand than you".
     OpponentsMoreCards,
+    /// `opponents hand 1 or less`: opponents who have one or fewer cards
+    /// in hand.
+    OpponentsHandAtMost(u32),
     /// `their hand`, `their library`, `their life`: the count of the
     /// player a per-player effect is acting on ("each player discards half
     /// the cards in their hand").
@@ -3140,6 +3143,19 @@ pub enum StaticCond {
     /// `opponent has more cards in hand`: "an opponent controls more
     /// creatures than you", ...
     OpponentHasMore(mtg_core::card::MoreWhat),
+    /// `that player hand 2 or less`, `defending player hand 2 or less`:
+    /// "that player has two or fewer cards in hand", "defending player has
+    /// two or fewer cards in hand" (`or more`: "two or more").
+    PlayerHand {
+        who: mtg_core::card::HandPlayer,
+        n: u32,
+        at_most: bool,
+    },
+    /// `that player more cards in hand than you`: "that player has more
+    /// cards in hand than you".
+    PlayerMoreHand(mtg_core::card::HandPlayer),
+    /// `library empty`: "your library has no cards in it".
+    LibraryEmpty,
     /// `void`: "a nonland permanent left the battlefield this turn or a
     /// spell was warped this turn".
     Void,

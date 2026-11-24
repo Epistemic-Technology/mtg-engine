@@ -1,0 +1,7 @@
+card "Ghirapur Orrery" {
+  oracle_id c6bb3a58-131a-4d7b-8c07-173a7de23b06
+  cost {4}
+  type Artifact
+  additional land each player
+  triggered at beginning of each upkeep if that player hand 0 or less: that player draws 3 cards
+}

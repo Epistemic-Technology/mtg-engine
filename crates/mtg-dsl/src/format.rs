@@ -3301,6 +3301,9 @@ impl Fmt {
                     ChooseAct::ExileWithThisSpell => {
                         format!("exile this spell and {n} {f} {cs} from your graveyard chosen")
                     }
+                    ChooseAct::GraveyardToTop if unfiltered => {
+                        format!("put {n} {cs} from your graveyard on top of library chosen")
+                    }
                     ChooseAct::GraveyardToTop => {
                         format!("put {n} {f} {cs} from your graveyard on top of library chosen")
                     }
@@ -4092,6 +4095,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::DiscardedThisTurn => "discarded this turn".to_string(),
 
         CountExpr::OpponentsMoreCards => "opponents more cards in hand".to_string(),
+        CountExpr::OpponentsHandAtMost(n) => format!("opponents hand {n} or less"),
         CountExpr::Their(what) => match what {
             mtg_core::card::PlayerCount::Hand => "their hand",
             mtg_core::card::PlayerCount::Library => "their library",
@@ -6193,6 +6197,16 @@ fn body(
     }
 }
 
+/// The player a `PlayerHand` condition reads.
+fn hand_player(w: mtg_core::card::HandPlayer) -> &'static str {
+    match w {
+        mtg_core::card::HandPlayer::That => "that player",
+        mtg_core::card::HandPlayer::Defending => "defending player",
+        mtg_core::card::HandPlayer::Opponent => "opponent",
+        mtg_core::card::HandPlayer::Anyone => "any player",
+    }
+}
+
 #[allow(clippy::too_many_lines)] // one arm per condition
 fn static_cond(c: &StaticCond) -> String {
     match c {
@@ -6376,6 +6390,15 @@ fn static_cond(c: &StaticCond) -> String {
             "creature died under your control this turn".to_string()
         }
         StaticCond::OpponentMoreLands => "opponent controls more lands".to_string(),
+        StaticCond::PlayerHand { who, n, at_most } => format!(
+            "{} hand {n} or {}",
+            hand_player(*who),
+            if *at_most { "less" } else { "more" }
+        ),
+        StaticCond::PlayerMoreHand(w) => {
+            format!("{} more cards in hand than you", hand_player(*w))
+        }
+        StaticCond::LibraryEmpty => "library empty".to_string(),
         StaticCond::OpponentHasMore(w) => match w {
             mtg_core::card::MoreWhat::Creatures => "opponent controls more creatures",
             mtg_core::card::MoreWhat::Life => "opponent has more life",

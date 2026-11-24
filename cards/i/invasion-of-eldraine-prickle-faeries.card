@@ -1,0 +1,15 @@
+card "Invasion of Eldraine // Prickle Faeries" {
+  oracle_id 329fcb1e-7066-46c5-ba27-20ed2b18c1ba
+  layout transform
+  cost {3}{B}
+  type Battle — Siege
+  defense 4
+  triggered when this enters: target opponent discards 2 cards
+  face "Prickle Faeries" {
+    type Creature — Faerie
+    pt 2/2
+    color black
+    keywords flying
+    triggered at beginning of each opponent's upkeep step if that player hand 2 or less: deal 2 damage to they
+  }
+}

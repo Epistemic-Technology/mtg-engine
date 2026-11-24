@@ -1367,6 +1367,10 @@ impl GameState {
                     .map_or(0, |log| if *excess { log.excess } else { log.damage });
             }
 
+            CountExpr::OpponentsHandAtMost(n) => self
+                .players_in_game()
+                .filter(|p| *p != you && self.player(*p).hand.len() <= *n as usize)
+                .count(),
             CountExpr::OpponentsMoreCards => {
                 let mine = self.player(you).hand.len();
                 self.players_in_game()
@@ -13301,7 +13305,18 @@ impl GameState {
                             ctx.x <= n
                         }
                     }
-                    _ => self.condition_for(&c, ctx.controller, ctx.source, ctx.trigger_obj),
+                    // "Then if that player has more cards in hand than
+                    // you": the player the ability triggered for, else the
+                    // spell's targeted player.
+                    _ => {
+                        let that = ctx.trigger_player.or_else(|| {
+                            ctx.targets.iter().find_map(|t| match t {
+                                Target::Player(p) => Some(*p),
+                                Target::Object(_) => None,
+                            })
+                        });
+                        self.condition_about(&c, ctx.controller, ctx.source, ctx.trigger_obj, that)
+                    }
                 };
                 if holds {
                     // For an "Otherwise" after it; optional actions inside

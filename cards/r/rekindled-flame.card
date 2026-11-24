@@ -1,0 +1,7 @@
+card "Rekindled Flame" {
+  oracle_id dd99061d-510d-4935-b44e-54721505515f
+  cost {2}{R}{R}
+  type Sorcery
+  spell: deal 4 damage to any target
+  triggered from graveyard at beginning of your upkeep if opponent hand 0 or less: you may return this to hand
+}
