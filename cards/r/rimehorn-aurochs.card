@@ -1,0 +1,9 @@
+card "Rimehorn Aurochs" {
+  oracle_id b760b1db-764b-4b40-8a84-691b5c9c1dbc
+  cost {4}{G}
+  type Snow Creature — Aurochs
+  pt 3/3
+  keywords trample
+  triggered whenever this attacks: this gets +1/+0 count each other attacking Aurochs on battlefield
+  activated {2}{S}: target creature blocks target creature if able
+}

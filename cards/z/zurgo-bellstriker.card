@@ -1,0 +1,9 @@
+card "Zurgo Bellstriker" {
+  oracle_id 46808926-d95b-4313-89d1-6bdfe13fcb77
+  cost {R}
+  type Legendary Creature — Orc Warrior
+  pt 2/2
+  short_name "Zurgo"
+  can't block creature with power 2 or greater
+  dash {1}{R}
+}

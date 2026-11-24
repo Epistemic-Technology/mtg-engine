@@ -1,0 +1,6 @@
+card "Oust" {
+  oracle_id efc12fda-054b-466a-a863-06cf54878172
+  cost {W}
+  type Sorcery
+  spell: put target creature into library 2 from top; its controller gains 3 life
+}

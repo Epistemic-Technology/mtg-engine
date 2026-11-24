@@ -1,0 +1,8 @@
+card "Angelic Captain" {
+  oracle_id ffc56a2e-f3bd-493b-9b7b-5f04fad69382
+  cost {3}{R}{W}
+  type Creature — Angel Ally
+  pt 4/3
+  keywords flying
+  triggered whenever this attacks: this gets +1/+1 count each other attacking Ally on battlefield
+}

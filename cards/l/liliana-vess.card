@@ -1,0 +1,9 @@
+card "Liliana Vess" {
+  oracle_id a6c05941-2cfb-4dac-a7c0-ab808187eb7c
+  cost {3}{B}{B}
+  type Legendary Planeswalker — Liliana
+  loyalty 5
+  loyalty +1: target player discards 1 cards
+  loyalty -2: search card to top that card
+  loyalty -8: put all creature card from all graveyards onto battlefield under your control
+}

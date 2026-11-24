@@ -1,0 +1,7 @@
+card "Harbinger of the Seas" {
+  oracle_id 84910453-e5dc-4bff-8554-86a5f4ab2746
+  cost {1}{U}{U}
+  type Creature — Merfolk Wizard
+  pt 2/2
+  static nonbasic land: set land Island
+}

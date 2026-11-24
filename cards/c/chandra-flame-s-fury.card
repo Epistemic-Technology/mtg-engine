@@ -1,0 +1,9 @@
+card "Chandra, Flame's Fury" {
+  oracle_id 408966d2-08c0-4531-a3b4-e666840ee95c
+  cost {4}{R}{R}
+  type Legendary Planeswalker — Chandra
+  loyalty 4
+  loyalty +1: deal 2 damage to any target
+  loyalty -2: deal 4 damage to target creature and deal 2 damage to controller of that target 1
+  loyalty -8: deal 10 damage to target player and each creature that player 1 controls
+}

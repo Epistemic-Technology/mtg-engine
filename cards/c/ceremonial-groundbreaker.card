@@ -1,0 +1,8 @@
+card "Ceremonial Groundbreaker" {
+  oracle_id 5bb05573-7e8f-471f-908d-04bccead79e3
+  cost {1}{G}{W}
+  type Artifact — Equipment
+  static enchanted: +2/+1, has trample
+  equip Citizen {1}
+  equip {3}
+}

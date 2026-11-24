@@ -1,0 +1,8 @@
+card "Steelclaw Lance" {
+  oracle_id bfe06fb5-83b5-4212-86f8-947dfba15b26
+  cost {B}{R}
+  type Artifact — Equipment
+  static enchanted: +2/+2
+  equip Knight {1}
+  equip {3}
+}

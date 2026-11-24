@@ -1,0 +1,8 @@
+card "Hero of Bladehold" {
+  oracle_id 454a8902-8120-4373-96ee-bbf352b04e8d
+  cost {2}{W}{W}
+  type Creature — Human Knight
+  pt 3/4
+  battle cry
+  triggered whenever this attacks: create 2 tapped and attacking "1/1 white Soldier creature"
+}

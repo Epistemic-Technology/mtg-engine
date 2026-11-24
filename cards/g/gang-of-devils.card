@@ -1,0 +1,7 @@
+card "Gang of Devils" {
+  oracle_id 62110234-690b-4498-8076-26ba910f9f92
+  cost {5}{R}
+  type Creature — Devil
+  pt 3/3
+  triggered when this dies: deal 3 damage divided among 1 to 3 targets
+}

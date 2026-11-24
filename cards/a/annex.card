@@ -1,0 +1,7 @@
+card "Annex" {
+  oracle_id 5f1f49dd-b7ce-494a-9b4b-ac702d3664c5
+  cost {2}{U}{U}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: control
+}

@@ -1,0 +1,6 @@
+card "Slag Fiend" {
+  oracle_id 4c5e38ca-39d7-4e27-8bb7-687d86fd67c4
+  cost {R}
+  type Creature — Phyrexian Construct
+  static this: cda pt all graveyards artifact
+}

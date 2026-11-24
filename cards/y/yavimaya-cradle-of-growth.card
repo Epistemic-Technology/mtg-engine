@@ -1,0 +1,5 @@
+card "Yavimaya, Cradle of Growth" {
+  oracle_id 8dd5f5af-d2d8-4356-8617-8381081b930c
+  type Legendary Land
+  static land: add land Forest
+}

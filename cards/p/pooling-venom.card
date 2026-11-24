@@ -1,0 +1,8 @@
+card "Pooling Venom" {
+  oracle_id 4933c2a9-0ef7-4b59-8c55-faa1cb3abbc2
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant land
+  triggered whenever enchanted land becomes tapped: its controller loses 2 life
+  activated {3}{B}: destroy enchanted land
+}

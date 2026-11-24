@@ -1,0 +1,8 @@
+card "Bogardan Hellkite" {
+  oracle_id 699bc130-2f1f-4bc8-a25f-9329e40efbb1
+  cost {6}{R}{R}
+  type Creature — Dragon
+  pt 5/5
+  keywords flash, flying
+  triggered when this enters: deal 5 damage divided among any number of targets
+}

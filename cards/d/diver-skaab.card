@@ -1,0 +1,8 @@
+card "Diver Skaab" {
+  oracle_id 3047ad53-1fbd-4b01-bf75-a3e633c863fe
+  cost {3}{U}{U}
+  type Creature — Zombie
+  pt 3/5
+  keywords exploit
+  triggered when this exploits a creature: owner puts target creature on top or bottom of library
+}

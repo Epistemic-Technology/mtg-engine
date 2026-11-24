@@ -1,0 +1,8 @@
+card "Banshee's Blade" {
+  oracle_id 81a770e9-adea-4799-9fed-f10e97e7e901
+  cost {2}
+  type Artifact — Equipment
+  static enchanted creature: +1/+1 count each charge counters on this
+  triggered whenever enchanted creature deals combat damage: put 1 charge counter on this
+  equip {2}
+}

@@ -1,0 +1,7 @@
+card "Magnivore" {
+  oracle_id 882da1c6-7b86-4de0-9161-ce7c50f9c90c
+  cost {2}{R}{R}
+  type Creature — Lhurgoyf
+  keywords haste
+  static this: cda pt all graveyards sorcery
+}

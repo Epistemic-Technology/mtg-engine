@@ -1,0 +1,6 @@
+card "Terra Eternal" {
+  oracle_id a5ce8125-da02-48b0-83cd-871c934352b0
+  cost {2}{W}
+  type Enchantment
+  static all land: has indestructible
+}

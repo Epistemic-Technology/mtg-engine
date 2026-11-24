@@ -1,0 +1,8 @@
+card "Palladia-Mors, the Ruiner" {
+  oracle_id 4c2b10ba-1930-4da8-9570-c89b2e239e3e
+  cost {3}{R}{G}{W}
+  type Legendary Creature — Elder Dragon
+  pt 6/6
+  keywords flying, vigilance, trample
+  static this: has hexproof as long as this not dealt damage
+}

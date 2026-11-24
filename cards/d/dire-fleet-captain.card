@@ -1,0 +1,7 @@
+card "Dire Fleet Captain" {
+  oracle_id 68f1da0d-1143-457a-b709-1da3c060a45d
+  cost {B}{R}
+  type Creature — Orc Pirate
+  pt 2/2
+  triggered whenever this attacks: this gets +1/+1 count each other attacking Pirate on battlefield
+}

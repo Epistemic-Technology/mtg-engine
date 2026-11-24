@@ -1,0 +1,8 @@
+card "Scroll of Isildur" {
+  oracle_id aa9a45a5-0250-465b-962e-f2d45dea26f9
+  cost {2}{U}
+  type Enchantment — Saga
+  triggered chapter 1: gain control of up to 1 target artifact for as long as you control this; the ring tempts you
+  triggered chapter 2: tap up to 2 target creatures; put 1 stun counters on each of them
+  triggered chapter 3: draw count each tapped creature target opponent controls cards
+}

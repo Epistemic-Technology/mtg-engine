@@ -1,0 +1,9 @@
+card "Dragonlord Ojutai" {
+  oracle_id 654ff673-4630-4068-9bcf-e88a7877eb58
+  cost {3}{W}{U}
+  type Legendary Creature — Elder Dragon
+  pt 5/4
+  keywords flying
+  static this: has hexproof as long as this is untapped permanent
+  triggered whenever this deals combat damage to a player: dig 3 take card rest bottom
+}

@@ -1,0 +1,8 @@
+card "Kumano, Master Yamabushi" {
+  oracle_id 6d776c7b-4ca1-48cd-88c7-dfbbe5a56a0b
+  cost {3}{R}{R}
+  type Legendary Creature — Human Shaman
+  pt 4/4
+  activated {1}{R}: deal 1 damage to any target
+  replace creature dealt damage by this this turn dies: exile
+}

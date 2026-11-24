@@ -1,0 +1,7 @@
+card "Synod Centurion" {
+  oracle_id fe6337dc-df02-4baa-9fe0-b14e8d34186a
+  cost {4}
+  type Artifact Creature — Construct
+  pt 4/4
+  triggered when you control no other artifact: sacrifice this
+}
