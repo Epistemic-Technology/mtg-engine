@@ -6581,6 +6581,7 @@ pub fn this_way_word(v: mtg_core::card::ThisWay) -> &'static str {
         ThisWay::Shuffled => "shuffled",
         ThisWay::Revealed => "revealed",
         ThisWay::PutInGraveyard => "graveyarded",
+        ThisWay::Damaged | ThisWay::DamagedPlayer => "damaged",
     }
 }
 
@@ -6597,6 +6598,7 @@ pub fn this_way_verb(w: &str) -> Option<mtg_core::card::ThisWay> {
         ThisWay::Shuffled,
         ThisWay::Revealed,
         ThisWay::PutInGraveyard,
+        ThisWay::Damaged,
     ]
     .into_iter()
     .find(|v| this_way_word(*v) == w)

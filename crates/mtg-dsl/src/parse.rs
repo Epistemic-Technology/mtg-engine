@@ -7682,6 +7682,17 @@ impl P {
                 wording: ThisWayWording::The(noun),
             });
         }
+        // `you put no cards into hand this way`: "If you put no cards into
+        // your hand this way" (nothing was put there).
+        if self.eat_words(&["you", "put", "no", "cards", "into", "hand", "this", "way"]) {
+            return Ok(ThisWayCond {
+                verb: mtg_core::card::ThisWay::PutInHand,
+                filter: None,
+                card: true,
+                negated: true,
+                wording: ThisWayWording::You,
+            });
+        }
         if self.eat_word("you") {
             let verb = if self.eat_word("put") {
                 mtg_core::card::ThisWay::PutInHand
@@ -7703,6 +7714,16 @@ impl P {
                 card,
                 negated: false,
                 wording: ThisWayWording::You,
+            });
+        }
+        // `player is damaged this way`: "a player is dealt damage this way".
+        if self.eat_words(&["player", "is", "damaged", "this", "way"]) {
+            return Ok(ThisWayCond {
+                verb: mtg_core::card::ThisWay::DamagedPlayer,
+                filter: None,
+                card: false,
+                negated: false,
+                wording: ThisWayWording::Is,
             });
         }
         let at_least_one = self.eat_words(&["at", "least", "one"]);

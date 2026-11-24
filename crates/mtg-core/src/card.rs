@@ -6524,6 +6524,12 @@ pub enum ThisWay {
     /// Put into a graveyard from anywhere else ("for each card put into
     /// your graveyard this way", Intrude on the Mind's pile).
     PutInGraveyard,
+    /// Dealt damage ("If a Dragon is dealt damage this way"): a permanent
+    /// in `ThisWayLog::damaged`, not a zone change; in a condition only.
+    Damaged,
+    /// A player dealt damage ("If a player is dealt damage this way"):
+    /// `ThisWayLog::damaged_players`; in a condition only, no filter.
+    DamagedPlayer,
 }
 
 /// "If a creature card was exiled this way", "If you discarded a card this

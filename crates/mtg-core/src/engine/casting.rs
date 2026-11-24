@@ -2375,6 +2375,32 @@ impl GameState {
         // ability's controller exiled it, whoever owns it; "if you
         // discarded" is about the cards you owned.
         let by_you = cond.by_you && cond.verb != crate::card::ThisWay::Exiled;
+        // "If a Dragon is dealt damage this way, destroy it.", "If a player
+        // is dealt damage this way, they discard a card.": not zone
+        // changes; a permanent as it is or last existed (CR 608.2h).
+        match cond.verb {
+            crate::card::ThisWay::DamagedPlayer => {
+                return log.damaged_players.is_empty() == cond.negated;
+            }
+            crate::card::ThisWay::Damaged => {
+                let any = log.damaged.iter().any(|id| {
+                    cond.filter.as_ref().is_none_or(|f| {
+                        let controller = self
+                            .objects
+                            .get(*id)
+                            .map(|o| o.controller)
+                            .or_else(|| self.lki.get(id).map(|l| l.object.controller));
+                        controller.is_some_and(|c| {
+                            self.characteristics_or_lki(*id).is_some_and(|ch| {
+                                f.matches(*id, c, &ch, Some(ctx.source), Some(ctx.controller))
+                            })
+                        })
+                    })
+                });
+                return any != cond.negated;
+            }
+            _ => {}
+        }
         if nothing {
             return !log
                 .moved

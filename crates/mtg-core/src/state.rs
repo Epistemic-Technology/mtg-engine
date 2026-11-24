@@ -1590,6 +1590,8 @@ pub struct ThisWayLog {
     /// The permanents dealt damage, in order ("a creature dealt damage
     /// this way").
     pub damaged: Vec<ObjId>,
+    /// The players dealt damage ("If a player is dealt damage this way").
+    pub damaged_players: Vec<PlayerId>,
     /// The objects the most recent group recipient denoted ("Untap
     /// them", `Recipient::ThoseObjects`).
     pub group: Vec<ObjId>,
@@ -1675,6 +1677,8 @@ impl Moved {
             // resolution's revealed cards (`CountExpr::ThisWay`).
             ThisWay::Revealed => self.from == Zone::Hand && self.to == Zone::Hand,
             ThisWay::PutInGraveyard => self.to == Zone::Graveyard && self.from != Zone::Graveyard,
+            // Not zone changes (`ThisWayLog::damaged`, `damaged_players`).
+            ThisWay::Damaged | ThisWay::DamagedPlayer => false,
         }
     }
 }

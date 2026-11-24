@@ -3768,7 +3768,14 @@ the objects as they last existed (CR 608.2h): `if creature card was exiled
 this way, ...`, `if artifact is destroyed this way, ...` ("If an artifact
 is destroyed this way"), `if land card is discarded this way, ...`, `if
 Saproling was sacrificed this way, ...`, `if you discarded card this way,
-...` (cards you owned), `if you put Town card into hand this way, ...`.
+...` (cards you owned), `if you put Town card into hand this way, ...`,
+`if you put no cards into hand this way, ...` ("If you put no cards into
+your hand this way", Nashi), `if Dragon is damaged this way, ...` ("If a
+Dragon is dealt damage this way": a permanent the resolution dealt damage
+to, as it is or last existed, The Black Arrow) and `if player is damaged
+this way, ...` ("If a player is dealt damage this way"; a target player
+acting in the sentence prints "they": "they discard a card", Sonic
+Shrieker).
 Verbs: `exiled`, `sacrificed`, `destroyed`, `discarded`, `milled`,
 `returned` (put into a hand), `shuffled` (put into a library), and in a
 count only `revealed` (parley: `each player reveals top card; you create

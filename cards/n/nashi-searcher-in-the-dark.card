@@ -1,0 +1,8 @@
+card "Nashi, Searcher in the Dark" {
+  oracle_id ade8fc6f-efaa-4a24-96d8-99ef5026cd74
+  cost {U}{B}
+  type Legendary Creature — Rat Ninja Wizard
+  pt 2/2
+  keywords menace
+  triggered whenever this deals combat damage to a player: you mill that much cards; you may put any number andor legendary or enchantment card from among them into hand chosen; if you put no cards into hand this way, put 1 +1/+1 counter on this creature
+}

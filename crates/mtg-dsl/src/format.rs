@@ -4102,12 +4102,16 @@ fn this_way_cond(c: &crate::ast::ThisWayCond) -> String {
     let what = match (&c.filter, c.card) {
         (Some(f), true) => format!("{} card", filter(f)),
         (Some(f), false) => filter(f),
+        (None, _) if c.verb == mtg_core::card::ThisWay::DamagedPlayer => "player".to_string(),
         (None, _) => "card".to_string(),
     };
     match &c.wording {
         ThisWayWording::Was => format!("{what} was {verb} this way"),
         ThisWayWording::AtLeastOne => format!("at least one {what} was {verb} this way"),
         ThisWayWording::Is => format!("{what} is {verb} this way"),
+        ThisWayWording::You if c.verb == mtg_core::card::ThisWay::PutInHand && c.negated => {
+            "you put no cards into hand this way".to_string()
+        }
         ThisWayWording::You if c.verb == mtg_core::card::ThisWay::PutInHand => {
             format!("you put {what} into hand this way")
         }

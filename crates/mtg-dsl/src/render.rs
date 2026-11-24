@@ -10124,8 +10124,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             ))
         }
         Effect::IfThisWay(cond, inner) => {
+            let player = cond.verb == mtg_core::card::ThisWay::DamagedPlayer;
             let cond = this_way_text(cond, ctx.card);
-            let body = sentences(inner, ctx);
+            let mut body = sentences(inner, ctx);
+            // "If a player is dealt damage this way, they discard a card."
+            // (Sonic Shrieker): the target, a player now.
+            if player && let Some(rest) = body.strip_prefix("It ") {
+                let (verb, tail) = rest.split_once(' ').unwrap_or((rest, ""));
+                let verb = verb.strip_suffix('s').unwrap_or(verb);
+                body = format!("They {verb} {tail}");
+            }
             let body = if starts_with_name(&body, ctx.card) {
                 body
             } else {
@@ -12570,8 +12578,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
 /// way", "the sacrificed creature was a Human" (after "if").
 fn this_way_text(c: &crate::ast::ThisWayCond, card: &Card) -> String {
     use crate::ast::ThisWayWording;
-    let verb = crate::ast::this_way_word(c.verb);
+    // "If a Dragon is dealt damage this way", "If a player is dealt
+    // damage this way".
+    let verb = match c.verb {
+        mtg_core::card::ThisWay::Damaged | mtg_core::card::ThisWay::DamagedPlayer => "dealt damage",
+        v => crate::ast::this_way_word(v),
+    };
     let what = match (&c.filter, c.card) {
+        (None, _) if c.verb == mtg_core::card::ThisWay::DamagedPlayer => "a player".to_string(),
         (None, _) => "a card".to_string(),
         (Some(f), true) => with_article(&cards_phrase(f, card, false)),
         (Some(f), false) => each_with_article(f, card),
@@ -12593,6 +12607,9 @@ fn this_way_text(c: &crate::ast::ThisWayCond, card: &Card) -> String {
                 (Some(f), false) => filter_phrase(f, card, false),
             };
             format!("at least one {what} was {verb} this way")
+        }
+        ThisWayWording::You if c.verb == mtg_core::card::ThisWay::PutInHand && c.negated => {
+            "you put no cards into your hand this way".to_string()
         }
         ThisWayWording::You if c.verb == mtg_core::card::ThisWay::PutInHand => {
             format!("you put {what} into your hand this way")
