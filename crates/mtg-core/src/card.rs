@@ -1404,6 +1404,19 @@ pub struct StatusQuals {
     /// was chosen for a player, then nothing shares.
     #[serde(default)]
     pub shares_chosen: Option<bool>,
+    /// "an artifact card with mana value 4 or 5": the mana value is one of
+    /// the two (judged with the mana value, `GameState::status_ok`).
+    #[serde(default)]
+    pub mana_value_range: Option<(u8, u8)>,
+    /// "a creature with the greatest power among creatures they control"
+    /// (Consumed by Greed): no other permanent its controller controls
+    /// that matches the rest of the filter has a greater power (mana
+    /// value, toughness); ties all match (the chooser picks, per the
+    /// rulings). Judged on the battlefield by `GameState::status_ok`; a
+    /// card elsewhere doesn't match. `who` is ignored for the comparison:
+    /// the group is the object's controller's.
+    #[serde(default)]
+    pub greatest: Option<Stat>,
 }
 
 /// What a chosen number is compared with (`StatusQuals::equal_chosen`).
@@ -1475,6 +1488,8 @@ impl StatusQuals {
             || self.bound.is_some()
             || self.commander.is_some()
             || self.protector.is_some()
+            || self.mana_value_range.is_some()
+            || self.greatest.is_some()
     }
 }
 

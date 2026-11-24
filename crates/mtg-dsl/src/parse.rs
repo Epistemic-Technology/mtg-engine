@@ -11331,9 +11331,10 @@ impl P {
                 if (0..10).any(|k| {
                     self.word_at(k).as_deref() == Some("onto")
                         && self.word_at(k + 1).as_deref() == Some("battlefield")
-                }) && !(0..8).any(|k| {
+                }) && !(0..16).any(|k| {
                     self.word_at(k).as_deref() == Some("from")
                         && self.word_at(k + 1).as_deref() == Some("hand")
+                        && self.word_at(k + 2).as_deref() == Some("onto")
                 }) =>
             {
                 let what = self.recipient()?;
@@ -11341,17 +11342,25 @@ impl P {
                 self.battlefield_tail(what, true)
             }
             "put"
-                if (0..8).any(|k| {
+                if (0..16).any(|k| {
                     self.word_at(k).as_deref() == Some("from")
                         && self.word_at(k + 1).as_deref() == Some("hand")
+                        && self.word_at(k + 2).as_deref() == Some("onto")
                 }) =>
             {
-                let filter = if self.at_word("card") {
+                let mut filter = if self.at_word("card") {
                     Filter::default()
                 } else {
                     self.filter()?
                 };
                 self.expect_word("card")?;
+                // "a creature card with mana value 3 or less from your
+                // hand", "with total power and toughness 5 or less": the
+                // qualities after the noun.
+                if self.at_word("with") {
+                    let g = self.filter()?;
+                    Self::merge_after_card(&mut filter, &g);
+                }
                 let also = if self.eat_word("and") {
                     let f = self.filter()?;
                     self.expect_word("card")?;
@@ -12463,6 +12472,8 @@ impl P {
                     let g = self.filter()?;
                     filter.mana_value = g.mana_value;
                     filter.status.mana_value_x = g.status.mana_value_x;
+                    // "an artifact card with mana value 4 or 5".
+                    filter.status.mana_value_range = g.status.mana_value_range;
                     if g.same == Some(SameRef::ManaValueAtMostPower) {
                         filter.same = g.same;
                     }
@@ -15403,6 +15414,23 @@ impl P {
     // ---- filters ----
 
     #[allow(clippy::too_many_lines)]
+    /// The qualities written after a card noun (`creature card with mana
+    /// value 3 or less`) joined to the filter before it.
+    fn merge_after_card(f: &mut Filter, g: &Filter) {
+        f.mana_value = f.mana_value.or(g.mana_value);
+        f.power = f.power.or(g.power);
+        f.toughness = f.toughness.or(g.toughness);
+        f.keywords.extend(g.keywords.iter().copied());
+        let s = &mut f.status;
+        s.mana_value_x |= g.status.mana_value_x;
+        s.bound = s.bound.or(g.status.bound);
+        s.pt_total = s.pt_total.or(g.status.pt_total);
+        s.mana_value_range = s.mana_value_range.or(g.status.mana_value_range);
+        if g.same == Some(SameRef::ManaValueAtMostPower) {
+            f.same = g.same;
+        }
+    }
+
     fn filter(&mut self) -> R<Filter> {
         let mut f = Filter::default();
         let mut consumed = 0;
@@ -15974,6 +16002,26 @@ impl P {
                     f.status.shares_chosen = Some(true);
                     self.pos += 6;
                 }
+                // "with the greatest power among creatures they control".
+                "with"
+                    if self.at_words(&["with", "greatest"])
+                        && f.status.greatest.is_none()
+                        && matches!(
+                            self.word_at(2).as_deref(),
+                            Some("power" | "toughness" | "mana")
+                        ) =>
+                {
+                    self.pos += 2;
+                    let w = self.word()?;
+                    f.status.greatest = Some(match w.as_str() {
+                        "power" => mtg_core::card::Stat::Power,
+                        "toughness" => mtg_core::card::Stat::Toughness,
+                        _ => {
+                            self.expect_word("value")?;
+                            mtg_core::card::Stat::ManaValue
+                        }
+                    });
+                }
                 // "with toughness greater than its power".
                 "with" if self.at_words(&["with", "toughness", "greater", "than", "power"]) => {
                     f.status.toughness_over_power = true;
@@ -16008,11 +16056,23 @@ impl P {
                                 NUMBER_WORDS.contains(&w.to_ascii_lowercase().as_str())
                             }))
                     {
-                        return self.fail(format!(
-                            "`with {what} {n} or ...`: a range of values is not supported"
-                        ));
+                        // ... except a mana value, which may be one of two
+                        // (Transit Mage).
+                        if what == "mana" && f.status.mana_value_range.is_none() {
+                            self.pos += 1;
+                            let m = self.number()?;
+                            f.status.mana_value_range = Some((
+                                u8::try_from(n).unwrap_or(u8::MAX),
+                                u8::try_from(m).unwrap_or(u8::MAX),
+                            ));
+                        } else {
+                            return self.fail(format!(
+                                "`with {what} {n} or ...`: a range of values is not supported"
+                            ));
+                        }
                     }
                     match what.as_str() {
+                        _ if f.status.mana_value_range.is_some() && what == "mana" => {}
                         "power" if either => {
                             let n = i16::try_from(n).unwrap_or(i16::MAX);
                             f.power = Some((cmp, n));

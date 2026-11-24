@@ -4840,6 +4840,19 @@ fn filter_one(f: &Filter) -> String {
             cmp_suffix(cmp)
         ));
     }
+    if let Some((lo, hi)) = f.status.mana_value_range {
+        words.push(format!("with mana value {lo} or {hi}"));
+    }
+    if let Some(stat) = f.status.greatest {
+        words.push(
+            match stat {
+                mtg_core::card::Stat::Power => "with greatest power",
+                mtg_core::card::Stat::Toughness => "with greatest toughness",
+                mtg_core::card::Stat::ManaValue => "with greatest mana value",
+            }
+            .to_string(),
+        );
+    }
     if let Some(e) = f.status.enchanted {
         words.push(
             match (e, f.enchanted_late) {

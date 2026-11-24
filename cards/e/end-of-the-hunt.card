@@ -1,0 +1,6 @@
+card "End of the Hunt" {
+  oracle_id 74b8182e-54be-444a-97b1-84fc5fd3c290
+  cost {1}{B}
+  type Sorcery
+  spell: target opponent exiles 1 creature or planeswalker they control with greatest mana value
+}

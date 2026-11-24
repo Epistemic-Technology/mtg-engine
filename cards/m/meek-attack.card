@@ -1,0 +1,6 @@
+card "Meek Attack" {
+  oracle_id b9fff42d-31cf-4edf-8353-4a3b996bb77b
+  cost {2}{R}
+  type Enchantment
+  activated {1}{R}: you may put creature card with total power and toughness 5 or less from hand onto battlefield; that creature gains haste indefinitely; delayed that creature: at beginning of the next end step, sacrifice that creature
+}

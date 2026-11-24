@@ -1,0 +1,226 @@
+# Filters that compare with something else (relative-filters13).
+
+scenario "Break Under Pressure: the greatest mana value among creatures and planeswalkers" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears", "Jace Beleren", "Hill Giant"
+  hand A: "Break Under Pressure"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Break Under Pressure" targeting player B
+  run_to turn 1 postcombat_main
+  # Jace (3) and Hill Giant (4): only the Giant can be chosen.
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Jace Beleren"
+  assert battlefield B contains "Grizzly Bears"
+  assert life A 22
+}
+
+scenario "Break Under Pressure: a planeswalker with the greatest mana value" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears", "Garruk Wildspeaker"
+  hand A: "Break Under Pressure"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Break Under Pressure" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Garruk Wildspeaker"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Consumed by Greed: the greatest power" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Serra Angel", "Grizzly Bears", "Craw Wurm"
+  hand A: "Consumed by Greed"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Consumed by Greed" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Craw Wurm"
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "Consumed by Greed: power as it is now, not as printed" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears", "Serra Angel" with 2 -1/-1, "Phantom Warrior" with 1 +1/+1
+  hand A: "Consumed by Greed"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Consumed by Greed" targeting player B
+  run_to turn 1 postcombat_main
+  # Phantom Warrior 3/3 beats a 2/2 Angel.
+  assert graveyard B contains "Phantom Warrior"
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "Consumed by Greed: two tied, the opponent picks" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant", "Grizzly Bears", "Serra Angel" with 1 -1/-1
+  hand A: "Consumed by Greed"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Consumed by Greed" targeting player B
+  run_to turn 1 postcombat_main
+  # The first of the tied 3/3s, taken by default.
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Consumed by Greed: two tied, the opponent chooses either" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant", "Grizzly Bears", "Serra Angel" with 1 -1/-1
+  hand A: "Consumed by Greed"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Consumed by Greed" targeting player B
+  turn 1 B: choose "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Consumed by Greed: the gift returns a creature card" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  hand A: "Consumed by Greed"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Consumed by Greed" gift targeting player B, "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert hand B count 1
+}
+
+scenario "End of the Hunt exiles the greatest mana value" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Craw Wurm", "Jace Beleren", "Grizzly Bears"
+  hand A: "End of the Hunt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "End of the Hunt" targeting player B
+  run_to turn 1 postcombat_main
+  assert exile B contains "Craw Wurm"
+  assert battlefield B contains "Jace Beleren"
+}
+
+scenario "Extract a Confession: with evidence, the greatest power" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Craw Wurm"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Extract a Confession"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Extract a Confession" kicked
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+  assert exile A contains "Craw Wurm"
+}
+
+scenario "Extract a Confession: without evidence, any creature" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Extract a Confession"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Extract a Confession"
+  turn 1 B: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Transit Mage finds an artifact with mana value 4 or 5" {
+  battlefield A: 3 "Island"
+  hand A: "Transit Mage"
+  library A: "Steel Overseer", "Solemn Simulacrum", "Batterskull"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Transit Mage"
+  turn 1 A: choose "Batterskull"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Batterskull"
+  assert library A contains "Steel Overseer"
+}
+
+scenario "Transit Mage: mana value 3 isn't 4 or 5" {
+  battlefield A: 3 "Island"
+  hand A: "Transit Mage"
+  library A: "Steel Overseer", "Mind Stone"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Transit Mage"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Meek Attack puts a small creature onto the battlefield, sacrificed at end of turn" {
+  battlefield A: 2 "Mountain", "Meek Attack"
+  hand A: "Hill Giant", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Meek Attack"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert life B 18
+  assert hand A contains "Hill Giant"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Origin of the Avengers: a Hero with mana value 3 or less" {
+  battlefield A: "Origin of the Avengers" with 1 lore
+  hand A: "Valkyrior Skyrider", "Agent of Atlas"
+  start turn 3 A upkeep
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Agent of Atlas"
+  assert hand A contains "Valkyrior Skyrider"
+  assert hand A count 2
+}
+
+scenario "Origin of the Avengers: none put, draw a card" {
+  battlefield A: "Origin of the Avengers" with 1 lore
+  hand A: "Valkyrior Skyrider"
+  start turn 3 A upkeep
+  run_to turn 3 postcombat_main
+  assert hand A count 3
+}
+
+scenario "Mind into Matter: X 2 puts a permanent card with mana value 2 or less" {
+  battlefield A: 2 "Forest", 2 "Island"
+  hand A: "Mind into Matter", "Hill Giant", "Mind Stone"
+  library A: "Island", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mind into Matter" x 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mind Stone"
+  assert tapped "Mind Stone"
+  assert hand A contains "Hill Giant"
+  assert hand A count 3
+}
+
+scenario "Anticausal Vestige: a permanent card with mana value up to the lands you control" {
+  battlefield A: 4 "Island"
+  hand A: "Anticausal Vestige", "Craw Wurm", "Hill Giant"
+  library A: "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Anticausal Vestige" warped
+  run_to turn 2 upkeep
+  # Exiled at the end step: draw, then Hill Giant (4) but not Craw Wurm (6).
+  assert exile A contains "Anticausal Vestige"
+  assert battlefield A contains "Hill Giant"
+  assert tapped "Hill Giant"
+  assert hand A contains "Craw Wurm"
+  assert hand A count 2
+}
+
+scenario "Kinscaer Sentry: mana value up to the number of attacking creatures" {
+  battlefield A: "Kinscaer Sentry", "Grizzly Bears"
+  hand A: "Hill Giant", "Llanowar Elves"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Kinscaer Sentry", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Llanowar Elves"
+  assert hand A contains "Hill Giant"
+  assert life B 15
+  assert life A 22
+}
+
+scenario "Kinscaer Sentry attacking alone: mana value 1 or less" {
+  battlefield A: "Kinscaer Sentry"
+  hand A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Kinscaer Sentry"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert life B 18
+}

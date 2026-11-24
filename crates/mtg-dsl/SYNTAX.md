@@ -1821,6 +1821,19 @@ value at most count equal greatest mana value`, a spell's mana value on
 the stack), and `destroy target creature if target 1 is tapped` "if it's
 tapped". `with total power and toughness 5 or less` ("target creature
 with total power and toughness 5 or less", the sum of the two, Cut Down);
+`with mana value 4 or 5` (either value: "search your library for an
+artifact card with mana value 4 or 5", Transit Mage);
+`with greatest power`, `with greatest toughness`, `with greatest mana
+value` ("a creature with the greatest power among creatures they
+control", "a creature or planeswalker with the greatest mana value among
+creatures and planeswalkers they control": no other permanent its
+controller controls that matches the rest of the filter has more, ties
+all matching; on the battlefield only; in an edict, `target opponent
+sacrifices 1 creature with greatest power` prints without "of their
+choice", and `exiles 1 creature or planeswalker they control with
+greatest mana value` prints the comparison after "they control"; with
+`an opponent controls` it prints "among creatures that player
+controls");
 `colored` ("target creature that's one or more colors", not colorless,
 CR 105.2; also written `that's one or more colors`).
 A chosen color or type comes last: `creature you control of chosen color`
@@ -3211,7 +3224,14 @@ turn, with its usual timing, and it is exiled as it leaves the stack, CR
 702.34a; `gains harmonize`: "... gains harmonize until end of turn. Its
 harmonize cost is equal to its mana cost.", cast that way this turn,
 tapping up to one creature to reduce it, CR 702.180a), `grant graveyard cast to creature cards` ("Creature cards in your graveyard gain "You may cast this card from your graveyard" until end of turn.": the controller's graveyard cards matching the filter as it resolves, CR 611.2c, may be cast from there this turn for their costs with their usual timing, and aren't exiled; a card that leaves the graveyard loses it), `put land card from hand onto battlefield [tapped]` ("put a land
-card from your hand onto the battlefield"; `put creature card and land
+card from your hand onto the battlefield"; qualities after the noun print
+there, `put Hero creature card with mana value 3 or less from hand onto
+battlefield`, `with mana value X or less` (X of the spell), `with mana
+value at most count where land you control` (counted as it resolves),
+`with total power and toughness 5 or less`; nothing put is not done, so
+`if you don't, draw 1 card` after `you may put ...` draws; in an
+activated ability as in a spell, `that creature` after it is the creature
+put there; `put creature card and land
 card from hand onto battlefield`: "put a creature card and/or a land card
 from your hand onto the battlefield", a choice of each in turn; in a
 spell, `that creature` after it is the creature put there, also as what a

@@ -6140,7 +6140,14 @@ impl Compiler<'_> {
                 ..
             } => AbilityDef::Activated(ActivatedAbility {
                 cost: self.cost(cost),
-                targets: self.targets(targets),
+                targets: {
+                    let ts = self.targets(targets);
+                    // No triggering object: "That creature gains haste"
+                    // after a put from the hand is that creature (Meek
+                    // Attack).
+                    self.tmap.spell = true;
+                    ts
+                },
                 effects: self.sentences(effects)?,
                 sorcery_speed: cost.sorcery,
                 per_turn: cost.per_turn,

@@ -12839,6 +12839,10 @@ impl GameState {
             }
             Effect::PutFromHand { filter, tapped } => {
                 let p = ctx.controller;
+                // "with mana value X or less", "... less than or equal to
+                // the number of lands you control": filled in as it
+                // happens.
+                let filter = &*self.chosen_filter(filter, ctx);
                 let mut options: Vec<Choice> = self
                     .player(p)
                     .hand
@@ -12853,6 +12857,9 @@ impl GameState {
                         def: self.objects[*id].def,
                     })
                     .collect();
+                // "You may put ... If you don't, draw a card." (Origin of
+                // the Avengers): nothing put is not done.
+                let mut put = false;
                 if !options.is_empty() {
                     options.push(Choice::Done);
                     let k = self.choose_mid(p, DecisionKind::PutFromHand, options.clone());
@@ -12863,7 +12870,11 @@ impl GameState {
                             self.tap(new);
                         }
                         ctx.created = Some(new);
+                        put = true;
                     }
+                }
+                if !put {
+                    ctx.did = false;
                 }
             }
             Effect::Strip { keywords, to } => {

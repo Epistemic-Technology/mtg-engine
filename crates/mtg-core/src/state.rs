@@ -3936,7 +3936,63 @@ impl GameState {
                 return false;
             }
         }
+        // "with mana value 4 or 5".
+        if let Some((lo, hi)) = f.status.mana_value_range {
+            let mv = self.pool.get(o.def).mana_cost.mana_value();
+            if mv != u32::from(lo) && mv != u32::from(hi) {
+                return false;
+            }
+        }
+        if let Some(stat) = f.status.greatest
+            && !self.is_greatest(f, stat, id, o)
+        {
+            return false;
+        }
         !f.status.any() || self.status_quals_ok(f.status, id, o)
+    }
+
+    /// "with the greatest power among creatures they control": `id`, on
+    /// the battlefield, has a `stat` no smaller than any other permanent
+    /// its controller controls matching `f` without the comparison.
+    fn is_greatest(
+        &self,
+        f: &crate::card::ObjFilter,
+        stat: crate::card::Stat,
+        id: ObjId,
+        o: &GameObject,
+    ) -> bool {
+        if o.zone != Zone::Battlefield {
+            return false;
+        }
+        let mut g = f.clone();
+        g.status.greatest = None;
+        g.who = None;
+        g.relation = crate::card::Relation::Any;
+        let value = |x: ObjId| -> Option<i64> {
+            let c = self.characteristics(x)?;
+            Some(match stat {
+                crate::card::Stat::Power => i64::from(c.power),
+                crate::card::Stat::Toughness => i64::from(c.toughness),
+                crate::card::Stat::ManaValue => i64::from(
+                    self.pool
+                        .get(self.objects.get(x)?.def)
+                        .mana_cost
+                        .mana_value(),
+                ),
+            })
+        };
+        let Some(mine) = value(id) else {
+            return false;
+        };
+        self.battlefield.iter().all(|&x| {
+            x == id
+                || self.objects[x].controller != o.controller
+                || !self
+                    .characteristics(x)
+                    .is_some_and(|c| g.matches(x, o.controller, &c, None, None))
+                || !self.status_ok(&g, x)
+                || value(x).is_none_or(|v| v <= mine)
+        })
     }
 
     /// The qualifiers of `StatusQuals` for `id` (`status_ok`).

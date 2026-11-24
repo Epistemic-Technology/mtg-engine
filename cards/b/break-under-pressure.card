@@ -1,0 +1,6 @@
+card "Break Under Pressure" {
+  oracle_id 8dd23c50-cc84-4064-89cd-8d52fbfbd4ab
+  cost {2}{B}
+  type Instant
+  spell: target opponent sacrifices 1 creature or planeswalker with greatest mana value; you gain 2 life
+}

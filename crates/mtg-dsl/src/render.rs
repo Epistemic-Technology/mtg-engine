@@ -3532,6 +3532,12 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if let Some((cmp, n)) = f.status.pt_total {
         let _ = write!(s, " with total power and toughness {n}{}", cmp_words(cmp));
     }
+    if let Some((lo, hi)) = f.status.mana_value_range {
+        let _ = write!(s, " with mana value {lo} or {hi}");
+    }
+    if let Some(stat) = f.status.greatest {
+        let _ = write!(s, " {}", greatest_phrase(f, stat));
+    }
     if !f.keywords.is_empty() {
         let _ = write!(s, " with {}", keywords_list(&f.keywords));
     }
@@ -3736,6 +3742,34 @@ fn of_chosen(c: OfChosen) -> &'static str {
 /// "mana value X or less, where X is the number of Faeries you control"
 /// (`count where`), "toughness less than this creature's power": a
 /// characteristic compared with a count (`StatusQuals::bound`).
+/// "with the greatest power among creatures they control", "with the
+/// greatest mana value among creatures and planeswalkers they control";
+/// after "an opponent controls", "... that player controls" (Kraven).
+fn greatest_phrase(f: &Filter, stat: mtg_core::card::Stat) -> String {
+    let what = match stat {
+        mtg_core::card::Stat::Power => "power",
+        mtg_core::card::Stat::Toughness => "toughness",
+        mtg_core::card::Stat::ManaValue => "mana value",
+    };
+    let types: Vec<String> = f
+        .types
+        .iter()
+        .chain(&f.any_types)
+        .map(|t| pluralize(&format!("{t:?}").to_lowercase()))
+        .collect();
+    let group = if types.is_empty() {
+        "permanents".to_string()
+    } else {
+        types.join(" and ")
+    };
+    let who = if f.who == Some(Who::Opponents) {
+        "that player controls"
+    } else {
+        "they control"
+    };
+    format!("with the greatest {what} among {group} {who}")
+}
+
 fn bound_phrase(b: mtg_core::card::StatBound, card: &Card) -> String {
     bound_words(b, card, "")
 }
@@ -3883,6 +3917,20 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
         && let Some(b) = g.status.bound.take()
     {
         mv = format!(" with {}", bound_phrase(b, card));
+    }
+    // "a creature card with total power and toughness 5 or less".
+    if g.or.is_none()
+        && mv.is_empty()
+        && let Some((cmp, n)) = g.status.pt_total.take()
+    {
+        mv = format!(" with total power and toughness {n}{}", cmp_words(cmp));
+    }
+    // "an artifact card with mana value 4 or 5".
+    if g.or.is_none()
+        && mv.is_empty()
+        && let Some((lo, hi)) = g.status.mana_value_range.take()
+    {
+        mv = format!(" with mana value {lo} or {hi}");
     }
     // "target card of the chosen type" (Dawn-Blessed Pennant), "all
     // creature cards of the chosen type" (Bloodline Bidding): the card
@@ -8078,7 +8126,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 if *f == Filter::default() {
                     "a card".to_string()
                 } else {
-                    with_article(&format!("{} card", card_filter_phrase(f, ctx.card)))
+                    // "a creature card with mana value 3 or less".
+                    with_article(&cards_phrase(f, ctx.card, false))
                 }
             };
             // "a creature card and/or a land card".
@@ -8086,8 +8135,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 Some(g) => format!("{} and/or {}", one(filter), one(g)),
                 None => one(filter),
             };
+            // "a creature card with mana value X or less from your hand
+            // onto the battlefield ..., where X is ...": the X last.
+            let (what, where_x) = match what.split_once(", where X is ") {
+                Some((w, x)) => (w.to_string(), format!(", where X is {x}")),
+                None => (what, String::new()),
+            };
             Clause::imperative(format!(
-                "put {what} from your hand onto the battlefield{}",
+                "put {what} from your hand onto the battlefield{}{where_x}",
                 match (*tapped, *attacking) {
                     (true, true) => " tapped and attacking",
                     (true, false) => " tapped",
@@ -9608,11 +9663,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             if *who == Recipient::You {
                 return Clause::imperative(format!("sacrifice {what}"));
             }
+            // "a creature with the greatest power among creatures they
+            // control": no "of their choice".
+            let choice = if filter.status.greatest.is_some() {
+                ""
+            } else {
+                " of their choice"
+            };
             Clause::with_subject(
                 *who,
                 s,
                 format!(
-                    "{} {what} of their choice",
+                    "{} {what}{choice}",
                     ctx.verb(*who, "sacrifices", "sacrifice")
                 ),
             )
@@ -9802,6 +9864,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             graveyard,
         } => {
             let s = ctx.subj(*who);
+            // "a creature they control with the greatest power among
+            // creatures they control": the comparison after the controller.
+            let mut filter = filter.clone();
+            let greatest = filter
+                .status
+                .greatest
+                .take()
+                .map_or_else(String::new, |st| format!(" {}", greatest_phrase(&filter, st)));
+            let filter = &filter;
             let what = if *count == Num::N(1) {
                 with_article(&filter_phrase(filter, ctx.card, false))
             } else {
@@ -9815,7 +9886,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 *who,
                 s,
                 format!(
-                    "{} {what} they control{}",
+                    "{} {what} they control{greatest}{}",
                     ctx.verb(*who, "exiles", "exile"),
                     if *graveyard {
                         " and their graveyard"
