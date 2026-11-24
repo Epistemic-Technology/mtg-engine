@@ -3433,6 +3433,10 @@ impl Fmt {
                 ),
             },
             Effect::Rule(RuleKind::NoLifeGain) => "players can't gain life this turn".to_string(),
+            Effect::Rule(RuleKind::NoDraw) => "players can't draw cards this turn".to_string(),
+            Effect::Rule(RuleKind::NoDrawOrLifeGain) => {
+                "players can't draw cards or gain life this turn".to_string()
+            }
             Effect::Rule(RuleKind::DamageCantBePrevented) => {
                 "damage can't be prevented this turn".to_string()
             }
@@ -3442,6 +3446,10 @@ impl Fmt {
             }
             Effect::DamageUnpreventable => "the damage can't be prevented".to_string(),
             Effect::ExcessToController => "excess damage to its controller instead".to_string(),
+            Effect::PlayerRule {
+                who,
+                kind: mtg_core::card::PlayerRuleKind::NoLegendRule,
+            } => format!("{} ignore legend rule this turn", self.recipient(*who, t)),
             Effect::PlayerRule { who, kind } => format!(
                 "{} can't {} this turn",
                 self.recipient(*who, t),
@@ -7617,6 +7625,21 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 filter(f)
             );
         }
+        Ability::CantAttackYou {
+            filter: f,
+            planeswalkers,
+        } => {
+            let _ = writeln!(
+                out,
+                "{indent}ban attacking you{} {}",
+                if *planeswalkers {
+                    " or planeswalkers"
+                } else {
+                    ""
+                },
+                filter(f)
+            );
+        }
         Ability::ActivationCost {
             filter: f,
             by,
@@ -7672,6 +7695,30 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 K::Rule(mtg_core::card::RuleKind::GraveyardUntargetable) => {
                     "graveyard cards can't be targeted".to_string()
                 }
+                K::Rule(mtg_core::card::RuleKind::NoDraw) => "players can't draw cards".to_string(),
+                K::Rule(mtg_core::card::RuleKind::NoDrawOrLifeGain) => {
+                    "players can't draw cards or gain life".to_string()
+                }
+                K::CastLimit(ps) => format!(
+                    "{} can't cast more than one spell each turn",
+                    rule_players_word(*ps)
+                ),
+                K::DrawLimit(ps) => format!(
+                    "{} can't draw more than one card each turn",
+                    rule_players_word(*ps)
+                ),
+                K::CantGainLife(ps) => format!("{} can't gain life", rule_players_word(*ps)),
+                K::NoLegendRule { yours: false } => "legend rule doesn't apply".to_string(),
+                K::NoLegendRule { yours: true } => {
+                    "legend rule doesn't apply to permanents you control".to_string()
+                }
+                K::FaceUpBan(mtg_core::card::FaceUpBan::Enchanted) => {
+                    "enchanted can't be turned face up".to_string()
+                }
+                K::FaceUpBan(mtg_core::card::FaceUpBan::OpponentsYourTurn) => {
+                    "opponents permanents can't be turned face up during your turn".to_string()
+                }
+                K::CantAttackYou { .. } => unreachable!("Ability::CantAttackYou"),
                 K::ExtraLands { n, each_player } => format!(
                     "additional land{}{}",
                     if *n == 1 {
@@ -7829,11 +7876,24 @@ mod tests {
     }
 }
 
+/// Whom a player-level "can't" binds, as the DSL writes it.
+pub fn rule_players_word(ps: mtg_core::card::RulePlayers) -> &'static str {
+    match ps {
+        mtg_core::card::RulePlayers::Each => "each player",
+        mtg_core::card::RulePlayers::You => "you",
+        mtg_core::card::RulePlayers::Opponents => "opponents",
+        mtg_core::card::RulePlayers::Enchanted => "enchanted player",
+    }
+}
+
 /// What a player can't do: "play lands", "cast creature spells".
 pub fn player_rule_words(kind: mtg_core::card::PlayerRuleKind) -> &'static str {
     match kind {
         mtg_core::card::PlayerRuleKind::CantPlayLands => "play lands",
         mtg_core::card::PlayerRuleKind::CantCastCreatureSpells => "cast creature spells",
+        mtg_core::card::PlayerRuleKind::CantGainLife => "gain life",
+        // Worded apart (`ignore legend rule this turn`).
+        mtg_core::card::PlayerRuleKind::NoLegendRule => "ignore the legend rule",
     }
 }
 

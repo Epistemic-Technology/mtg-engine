@@ -1,0 +1,11 @@
+card "Atarka's Command" {
+  oracle_id 1943cbb0-2b12-4450-90af-060b8c8627c3
+  cost {R}{G}
+  type Instant
+  choose two {
+    mode: each opponent can't gain life this turn
+    mode: deal 3 damage to each opponent
+    mode: you may put land card from hand onto battlefield
+    mode: creatures you control get +1/+1 and gain reach until end of turn
+  }
+}

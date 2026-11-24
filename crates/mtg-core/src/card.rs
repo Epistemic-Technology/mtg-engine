@@ -6347,6 +6347,56 @@ pub enum PlayerStaticKind {
     /// least one Flagbearer on the battlefield if able." Triggered
     /// abilities and changed or copied targets are free (rulings).
     Flagbearer,
+    /// "Each player can't cast more than one spell each turn.", "You
+    /// can't ...", "Enchanted player can't ..." (CR 101.2): those players
+    /// may cast no spell once they have cast one this turn.
+    CastLimit(RulePlayers),
+    /// "Each player can't draw more than one card each turn.", "Each
+    /// opponent can't ..." (CR 101.2, 121.1): a draw beyond the first in a
+    /// turn doesn't happen.
+    DrawLimit(RulePlayers),
+    /// "Your opponents can't gain life.", "Enchanted player can't gain
+    /// life." (CR 119.7): life those players would gain isn't gained.
+    CantGainLife(RulePlayers),
+    /// The "legend rule" (CR 704.5j) doesn't apply: to any player's
+    /// permanents, or with `yours` to its controller's ("... doesn't apply
+    /// to permanents you control.").
+    NoLegendRule { yours: bool },
+    /// "Creatures with flying can't attack you" (CR 508.1c): creatures
+    /// matching the pooled filter `attackers` can't attack its controller,
+    /// nor with `planeswalkers` the planeswalkers they control ("... you or
+    /// planeswalkers you control").
+    CantAttackYou { attackers: u16, planeswalkers: bool },
+    /// Permanents can't be turned face up (CR 702.37e, 708.7): "As long as
+    /// enchanted creature is face down, it can't be turned face up.",
+    /// "Permanents your opponents control can't be turned face up during
+    /// your turn."
+    FaceUpBan(FaceUpBan),
+}
+
+/// Which players a player-level "can't" applies to, relative to the
+/// source (`PlayerStaticKind::CastLimit` and friends).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum RulePlayers {
+    /// "Each player".
+    Each,
+    /// "You": its controller.
+    You,
+    /// "Your opponents", "Each opponent".
+    Opponents,
+    /// "Enchanted player": the player its source (a Curse) is attached to.
+    Enchanted,
+}
+
+/// Which permanents can't be turned face up (`PlayerStaticKind::FaceUpBan`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum FaceUpBan {
+    /// The permanent its source enchants ("As long as enchanted creature
+    /// is face down, it can't be turned face up.").
+    Enchanted,
+    /// Permanents its controller's opponents control, during its
+    /// controller's turn.
+    OpponentsYourTurn,
 }
 
 /// Which spells and abilities can't target a permanent
@@ -6414,6 +6464,12 @@ pub enum RuleKind {
     /// "Cards in graveyards can't be the targets of spells or abilities."
     /// (CR 115.4): no graveyard card is a legal target.
     GraveyardUntargetable,
+    /// "Players can't draw cards." (CR 121.1): no draw happens, so no
+    /// replacement of one applies (CR 614.10 by way of 101.2).
+    NoDraw,
+    /// "Players can't draw cards or gain life." (Mornsong Aria): `NoDraw`
+    /// and `NoLifeGain` both.
+    NoDrawOrLifeGain,
 }
 
 /// A "can't" effect on certain players until end of turn (CR 614.17):
@@ -6423,6 +6479,11 @@ pub enum RuleKind {
 pub enum PlayerRuleKind {
     CantPlayLands,
     CantCastCreatureSpells,
+    /// "Your opponents can't gain life this turn." (CR 119.7).
+    CantGainLife,
+    /// "The "legend rule" doesn't apply to permanents you control this
+    /// turn." (CR 704.5j).
+    NoLegendRule,
 }
 
 /// Who or what a replacement or prevention effect's event may affect.

@@ -1,0 +1,8 @@
+card "Spider-Woman, Stunning Savior" {
+  oracle_id be2b9c6d-4ecb-49ec-b276-4aa93c5dfc00
+  cost {1}{W/U}
+  type Legendary Creature — Spider Human Hero
+  pt 2/2
+  keywords flying
+  label "Venom Blast" replace andlist artifact or creature your opponents control enter: tapped
+}

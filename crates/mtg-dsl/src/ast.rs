@@ -1710,6 +1710,14 @@ pub enum Ability {
         kind: mtg_core::card::PlayerStaticKind,
         cond: Option<StaticCond>,
     },
+    /// `ban attacking you creature with flying`, `ban attacking you or
+    /// planeswalkers creature with flying`: "Creatures with flying can't
+    /// attack you [or planeswalkers you control]." (CR 508.1c;
+    /// `PlayerStaticKind::CantAttackYou`).
+    CantAttackYou {
+        filter: Filter,
+        planeswalkers: bool,
+    },
     /// `activated abilities of artifact you control cost {1} less min
     /// one`, `power-up abilities of other creature you control cost {3}
     /// less`: "Activated abilities of artifacts you control cost {1} less

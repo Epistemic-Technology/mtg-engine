@@ -1,0 +1,7 @@
+card "Authority of the Consuls" {
+  oracle_id 55f3c721-e13a-406e-bc8e-d6cdc91ac477
+  cost {W}
+  type Enchantment
+  replace creature your opponents control enter: tapped
+  triggered whenever creature an opponent controls enters: you gain 1 life
+}

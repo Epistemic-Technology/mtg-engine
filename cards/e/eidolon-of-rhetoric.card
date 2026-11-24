@@ -1,0 +1,7 @@
+card "Eidolon of Rhetoric" {
+  oracle_id 33017203-233e-498e-806e-94b1dccf5c35
+  cost {2}{W}
+  type Enchantment Creature — Spirit
+  pt 1/4
+  each player can't cast more than one spell each turn
+}

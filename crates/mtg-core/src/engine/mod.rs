@@ -795,7 +795,8 @@ impl GameState {
                         // graveyard (The Dawning Archaic).
                         if self.objects.get(card).is_some_and(|o| {
                             matches!(o.zone, Zone::Exile | Zone::Hand | Zone::Graveyard)
-                        }) {
+                        }) && !self.cast_forbidden(p)
+                        {
                             // CR 712.11a: cast transformed, back face up.
                             let face = self.exile_casts.as_mut().and_then(|e| {
                                 let i = e.transformed.iter().position(|(c, _)| *c == card)?;
@@ -1647,6 +1648,19 @@ impl GameState {
                         self.attackable_battles(defender)
                             .map(|b| Choice::AttackTarget(Target::Object(b))),
                     );
+                    // "Creatures with flying can't attack you" (CR 508.1c).
+                    // (A goaded creature left nothing to attack keeps
+                    // the player, the requirement it can't escape.)
+                    if self.player_static_sources > 0
+                        && options.iter().any(|c| {
+                            matches!(c, Choice::AttackTarget(t) if !self.attack_banned(attacker, *t))
+                        })
+                    {
+                        options.retain(|c| match c {
+                            Choice::AttackTarget(t) => !self.attack_banned(attacker, *t),
+                            _ => true,
+                        });
+                    }
                     return StepResult::Decision(Decision {
                         player,
                         kind: DecisionKind::ChooseAttackTarget { attacker },

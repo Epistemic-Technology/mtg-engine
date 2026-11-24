@@ -1,0 +1,8 @@
+card "Kinjalli's Sunwing" {
+  oracle_id b9243163-b726-432e-830f-86132aa7f34a
+  cost {2}{W}
+  type Creature — Dinosaur
+  pt 2/3
+  keywords flying
+  replace creature your opponents control enter: tapped
+}

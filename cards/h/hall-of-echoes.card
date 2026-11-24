@@ -1,0 +1,6 @@
+card "Hall of Echoes" {
+  oracle_id dc0a51d4-5b7e-4987-b1fe-349fd118a625
+  type Land
+  activated {T}: add {C}
+  activated {5}: this becomes a copy of target creature you control until end of turn; you ignore legend rule this turn
+}

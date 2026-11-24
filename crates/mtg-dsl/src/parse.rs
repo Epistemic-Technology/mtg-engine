@@ -2047,6 +2047,36 @@ impl P {
         }
     }
 
+    /// `each player can't`, `you can't`, `opponents can't`, `enchanted
+    /// player can't` before `cast more than one spell each turn`, `draw
+    /// more than one card each turn`, or `gain life`: whom the
+    /// player-level "can't" binds, and the words that say so.
+    fn rule_players_ahead(&self) -> Option<(mtg_core::card::RulePlayers, usize)> {
+        use mtg_core::card::RulePlayers as P;
+        let (players, n) = if self.at_words(&["each", "player", "can't"]) {
+            (P::Each, 3)
+        } else if self.at_words(&["enchanted", "player", "can't"]) {
+            (P::Enchanted, 3)
+        } else if self.at_words(&["you", "can't"]) {
+            (P::You, 2)
+        } else if self.at_words(&["opponents", "can't"]) {
+            (P::Opponents, 2)
+        } else {
+            return None;
+        };
+        let next = self.word_at(n)?;
+        let ok = match next.as_str() {
+            "cast" | "draw" => self.word_at(n + 1).as_deref() == Some("more"),
+            "gain" => {
+                players != P::Each
+                    && self.word_at(n + 1).as_deref() == Some("life")
+                    && self.word_at(n + 2).as_deref() != Some("this")
+            }
+            _ => false,
+        };
+        ok.then_some((players, n))
+    }
+
     /// The rest of a player-level static ability: an optional `as long as
     /// <condition>`.
     fn player_static(&mut self, kind: mtg_core::card::PlayerStaticKind) -> R<Ability> {
@@ -2276,6 +2306,82 @@ impl P {
                 self.pos += 3;
                 let your_turns = self.eat_words(&["during", "your", "turns"]);
                 self.player_static(mtg_core::card::PlayerStaticKind::FirstEquipFree { your_turns })
+            }
+            // "Players can't draw cards [or gain life]." (CR 121.1).
+            "players" if self.at_words(&["players", "can't", "draw", "cards"]) => {
+                self.pos += 4;
+                let kind = if self.eat_words(&["or", "gain", "life"]) {
+                    mtg_core::card::RuleKind::NoDrawOrLifeGain
+                } else {
+                    mtg_core::card::RuleKind::NoDraw
+                };
+                self.player_static(mtg_core::card::PlayerStaticKind::Rule(kind))
+            }
+            // "Each player can't cast more than one spell each turn.", "Your
+            // opponents can't gain life.", "Enchanted player can't gain
+            // life.", "Each opponent can't draw more than one card each
+            // turn." (CR 101.2).
+            "each" | "you" | "opponents" | "enchanted" if self.rule_players_ahead().is_some() => {
+                use mtg_core::card::PlayerStaticKind as K;
+                let (players, n) = self.rule_players_ahead().expect("checked");
+                self.pos += n;
+                let kind = if self
+                    .eat_words(&["cast", "more", "than", "one", "spell", "each", "turn"])
+                {
+                    K::CastLimit(players)
+                } else if self.eat_words(&["draw", "more", "than", "one", "card", "each", "turn"]) {
+                    K::DrawLimit(players)
+                } else {
+                    self.expect_words(&["gain", "life"])?;
+                    K::CantGainLife(players)
+                };
+                self.player_static(kind)
+            }
+            // The "legend rule" (CR 704.5j).
+            "legend" if self.at_words(&["legend", "rule", "doesn't", "apply"]) => {
+                self.pos += 4;
+                let yours = self.eat_words(&["to", "permanents", "you", "control"]);
+                self.player_static(mtg_core::card::PlayerStaticKind::NoLegendRule { yours })
+            }
+            // "As long as enchanted creature is face down, it can't be
+            // turned face up.", "Permanents your opponents control can't be
+            // turned face up during your turn." (CR 702.37e).
+            "enchanted" if self.at_words(&["enchanted", "can't", "be", "turned", "face", "up"]) => {
+                self.pos += 6;
+                self.player_static(mtg_core::card::PlayerStaticKind::FaceUpBan(
+                    mtg_core::card::FaceUpBan::Enchanted,
+                ))
+            }
+            "opponents"
+                if self.at_words(&[
+                    "opponents",
+                    "permanents",
+                    "can't",
+                    "be",
+                    "turned",
+                    "face",
+                    "up",
+                    "during",
+                    "your",
+                    "turn",
+                ]) =>
+            {
+                self.pos += 10;
+                self.player_static(mtg_core::card::PlayerStaticKind::FaceUpBan(
+                    mtg_core::card::FaceUpBan::OpponentsYourTurn,
+                ))
+            }
+            // "Creatures with flying can't attack you [or planeswalkers you
+            // control]." (CR 508.1c).
+            "ban" if self.at_words(&["ban", "attacking", "you"]) => {
+                self.pos += 3;
+                let planeswalkers = self.eat_words(&["or", "planeswalkers"]);
+                let filter = self.filter()?;
+                self.end_stmt()?;
+                Ok(Ability::CantAttackYou {
+                    filter,
+                    planeswalkers,
+                })
             }
             "players" if self.at_words(&["players", "can't", "gain", "life"]) => {
                 self.pos += 4;
@@ -8764,12 +8870,24 @@ impl P {
                     attacker,
                 })
             }
+            // "The "legend rule" doesn't apply to permanents you control
+            // this turn." (CR 704.5j; Hall of Echoes).
+            "ignore" if self.at_words(&["legend", "rule", "this", "turn"]) => {
+                self.pos += 4;
+                Ok(Effect::PlayerRule {
+                    who: subject,
+                    kind: mtg_core::card::PlayerRuleKind::NoLegendRule,
+                })
+            }
             "can't"
                 if self.at_words(&["play", "lands"])
-                    || self.at_words(&["cast", "creature", "spells"]) =>
+                    || self.at_words(&["cast", "creature", "spells"])
+                    || self.at_words(&["gain", "life", "this", "turn"]) =>
             {
                 let kind = if self.eat_words(&["play", "lands"]) {
                     mtg_core::card::PlayerRuleKind::CantPlayLands
+                } else if self.eat_words(&["gain", "life"]) {
+                    mtg_core::card::PlayerRuleKind::CantGainLife
                 } else {
                     self.expect_words(&["cast", "creature", "spells"])?;
                     mtg_core::card::PlayerRuleKind::CantCastCreatureSpells
@@ -11657,8 +11775,19 @@ impl P {
                 }))
             }
             "players" => {
-                self.expect_words(&["can't", "gain", "life", "this", "turn"])?;
-                Ok(Effect::Rule(RuleKind::NoLifeGain))
+                self.expect_word("can't")?;
+                let kind = if self.eat_words(&["draw", "cards"]) {
+                    if self.eat_words(&["or", "gain", "life"]) {
+                        RuleKind::NoDrawOrLifeGain
+                    } else {
+                        RuleKind::NoDraw
+                    }
+                } else {
+                    self.expect_words(&["gain", "life"])?;
+                    RuleKind::NoLifeGain
+                };
+                self.expect_words(&["this", "turn"])?;
+                Ok(Effect::Rule(kind))
             }
             "damage" => {
                 self.expect_words(&["can't", "be", "prevented", "this", "turn"])?;

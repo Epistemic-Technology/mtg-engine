@@ -1,0 +1,8 @@
+card "Unable to Scream" {
+  oracle_id 3d240726-5214-4493-8537-29bf65db1e4b
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: loses all abilities, add subtype Toy, add type artifact creature, base 0/2
+  enchanted can't be turned face up
+}

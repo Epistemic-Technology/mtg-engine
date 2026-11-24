@@ -1,0 +1,8 @@
+card "Blazing Archon" {
+  oracle_id 82a70e4c-01ed-4280-80e4-86cb2bf6e63d
+  cost {6}{W}{W}{W}
+  type Creature — Archon
+  pt 5/6
+  keywords flying
+  ban attacking you creature
+}

@@ -11515,6 +11515,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Rule(RuleKind::NoLifeGain) => {
             Clause::imperative("players can't gain life this turn".to_string())
         }
+        Effect::Rule(RuleKind::NoDraw) => {
+            Clause::imperative("players can't draw cards this turn".to_string())
+        }
+        Effect::Rule(RuleKind::NoDrawOrLifeGain) => {
+            Clause::imperative("players can't draw cards or gain life this turn".to_string())
+        }
         Effect::Rule(RuleKind::DamageCantBePrevented) => {
             Clause::imperative("damage can't be prevented this turn".to_string())
         }
@@ -11527,8 +11533,30 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::ExcessToController => Clause::imperative(
             "excess damage is dealt to that creature's controller instead".to_string(),
         ),
-        Effect::PlayerRule { who, kind } => {
+        // "The "legend rule" doesn't apply to permanents you control this
+        // turn." (Hall of Echoes).
+        Effect::PlayerRule {
+            who,
+            kind: mtg_core::card::PlayerRuleKind::NoLegendRule,
+        } => {
             let s = ctx.subj(*who);
+            let verb = if s == "you" || s == "they" {
+                "control"
+            } else {
+                "controls"
+            };
+            Clause::imperative(format!(
+                "the \"legend rule\" doesn't apply to permanents {s} {verb} this turn"
+            ))
+        }
+        Effect::PlayerRule { who, kind } => {
+            // "Your opponents can't gain life this turn." (Atarka's
+            // Command).
+            let s = if *who == Recipient::EachOpponent {
+                "your opponents".to_string()
+            } else {
+                ctx.subj(*who)
+            };
             Clause::with_subject(
                 *who,
                 s,
@@ -14077,6 +14105,21 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             "As {} enters, you may pay {n} life. If you don't, it enters tapped.",
             this_ref(ctx.card)
         ),
+        // "Creatures your opponents control enter tapped." (CR 614.1c),
+        // "Artifacts, creatures, and lands your opponents control ...".
+        (Replaces::OthersEnter { what, each }, Outcome::EnterTapped) => {
+            if *each {
+                format!(
+                    "Each {} enters tapped.",
+                    controller_first(what, filter_phrase(what, ctx.card, false))
+                )
+            } else {
+                format!(
+                    "{} enter tapped.",
+                    capitalize(&controller_first(what, filter_phrase(what, ctx.card, true)))
+                )
+            }
+        }
         (Replaces::Enters, Outcome::EnterPrepared) => {
             format!("{} enters prepared.", capitalize(&this_ref(ctx.card)))
         }
@@ -18329,6 +18372,20 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             };
             format!("If a triggered ability of {what} triggers, {it} triggers an additional time.")
         }
+        // "Creatures with flying can't attack you [or planeswalkers you
+        // control]." (CR 508.1c).
+        Ability::CantAttackYou {
+            filter,
+            planeswalkers,
+        } => format!(
+            "{} can't attack you{}.",
+            capitalize(&filter_phrase(filter, card, true)),
+            if *planeswalkers {
+                " or planeswalkers you control"
+            } else {
+                ""
+            }
+        ),
         // "Activated abilities of artifacts you control cost {1} less to
         // activate."
         Ability::ActivationCost {
@@ -18399,6 +18456,38 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 K::Rule(mtg_core::card::RuleKind::GraveyardUntargetable) => {
                     "cards in graveyards can't be the targets of spells or abilities".to_string()
                 }
+                K::Rule(mtg_core::card::RuleKind::NoDraw) => "players can't draw cards".to_string(),
+                K::Rule(mtg_core::card::RuleKind::NoDrawOrLifeGain) => {
+                    "players can't draw cards or gain life".to_string()
+                }
+                K::CastLimit(ps) => format!(
+                    "{} can't cast more than one spell each turn",
+                    rule_players_text(*ps, false)
+                ),
+                K::DrawLimit(ps) => format!(
+                    "{} can't draw more than one card each turn",
+                    rule_players_text(*ps, false)
+                ),
+                K::CantGainLife(ps) => {
+                    format!("{} can't gain life", rule_players_text(*ps, true))
+                }
+                K::NoLegendRule { yours } => format!(
+                    "the \"legend rule\" doesn't apply{}",
+                    if *yours {
+                        " to permanents you control"
+                    } else {
+                        ""
+                    }
+                ),
+                K::FaceUpBan(mtg_core::card::FaceUpBan::Enchanted) => {
+                    "as long as enchanted creature is face down, it can't be turned face up"
+                        .to_string()
+                }
+                K::FaceUpBan(mtg_core::card::FaceUpBan::OpponentsYourTurn) => {
+                    "permanents your opponents control can't be turned face up during your turn"
+                        .to_string()
+                }
+                K::CantAttackYou { .. } => unreachable!("Ability::CantAttackYou"),
                 K::ExtraLands {
                     n,
                     each_player: true,
@@ -19383,5 +19472,17 @@ fn search_named_text(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::with_subject(*w, s, text)
         }
         _ => Clause::imperative(text),
+    }
+}
+
+/// Whom a player-level "can't" binds: "Each player", "You", "Your
+/// opponents" (`plural`; else "Each opponent"), "Enchanted player".
+fn rule_players_text(ps: mtg_core::card::RulePlayers, plural: bool) -> &'static str {
+    match ps {
+        mtg_core::card::RulePlayers::Each => "each player",
+        mtg_core::card::RulePlayers::You => "you",
+        mtg_core::card::RulePlayers::Opponents if plural => "your opponents",
+        mtg_core::card::RulePlayers::Opponents => "each opponent",
+        mtg_core::card::RulePlayers::Enchanted => "enchanted player",
     }
 }

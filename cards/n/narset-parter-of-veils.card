@@ -1,0 +1,8 @@
+card "Narset, Parter of Veils" {
+  oracle_id ab26fbe2-e808-48b9-8d0d-3fbb6c3d554f
+  cost {1}{U}{U}
+  type Legendary Planeswalker — Narset
+  loyalty 5
+  opponents can't draw more than one card each turn
+  loyalty -2: dig 4 take noncreature, nonland card may revealing rest bottom random
+}

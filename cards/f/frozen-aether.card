@@ -1,0 +1,6 @@
+card "Frozen Aether" {
+  oracle_id 32452ccf-88c7-41d6-93e5-15d31f29726d
+  cost {3}{U}
+  type Enchantment
+  replace andlist artifact or creature or land your opponents control enter: tapped
+}

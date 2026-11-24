@@ -1,0 +1,9 @@
+card "Archon of Emeria" {
+  oracle_id ceef2d5a-77ea-4e56-9806-fd1a2d5be400
+  cost {2}{W}
+  type Creature — Archon
+  pt 2/3
+  keywords flying
+  each player can't cast more than one spell each turn
+  replace nonbasic land your opponents control enter: tapped
+}

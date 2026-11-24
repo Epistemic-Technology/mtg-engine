@@ -1,0 +1,7 @@
+card "Blind Obedience" {
+  oracle_id 5d998c09-7d89-4265-ada4-6d80cbf56dae
+  cost {1}{W}
+  type Enchantment
+  extort
+  replace andlist artifact or creature your opponents control enter: tapped
+}
