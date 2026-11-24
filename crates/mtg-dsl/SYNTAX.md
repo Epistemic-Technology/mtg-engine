@@ -3783,7 +3783,12 @@ its owner's control."; `triggering card` is the card it became). After
 those tokens at beginning of the next end step` is one delayed trigger
 about each ("Sacrifice those tokens at the beginning of the next end
 step."), and `them` prints "them" (`delayed those tokens: exile them at
-beginning of the next end step`). `those tokens gains haste` right after
+beginning of the next end step`). `delayed those tokens: exile those
+tokens when this leaves the battlefield` ("Exile those tokens when
+Mysterio leaves the battlefield.") watches the source, not the tokens: it
+triggers once when the source leaves the battlefield, and never if the
+source had already left as it was made (a token leaving first ends its
+own). `those tokens gains haste` right after
 prints "They gain haste until end of turn.". In `delayed that token: ...`, `it` prints "it" and `that token`
 "that token" ("Exile that token at the beginning of the next end
 step."); both are the token. `delayed this: at beginning of each combat this turn, <effects>` ("At

@@ -405,6 +405,31 @@ impl GameState {
         while i < self.delayed_triggers.len() {
             let dt = self.delayed_triggers[i];
             let mut gone = false;
+            // "Exile those tokens when Mysterio leaves the battlefield": a
+            // delayed trigger about another object with no duration whose
+            // event is its source leaving watches the source (CR 603.7);
+            // the object it is about leaving first ends it.
+            let source_leaves = !dt.this_turn
+                && dt.ability.trigger_obj != Some(dt.ability.source)
+                && matches!(
+                    self.pool.ability(dt.ability.ability),
+                    AbilityDef::Triggered(t) if t.trigger == TriggerSpec::Leaves(TriggerObj::This)
+                );
+            if source_leaves {
+                if dt.ability.source == old {
+                    self.delayed_triggers.remove(i);
+                    fired.push(PendingTrigger {
+                        controller: dt.controller,
+                        ability: dt.ability,
+                        timestamp: 0,
+                    });
+                } else if dt.ability.trigger_obj == Some(old) {
+                    self.delayed_triggers.remove(i);
+                } else {
+                    i += 1;
+                }
+                continue;
+            }
             let at = dt.ability.trigger_obj == Some(old)
                 && match self.pool.ability(dt.ability.ability) {
                     // CR 702.55c: the haunting card's ability triggers from

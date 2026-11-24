@@ -5187,18 +5187,12 @@ impl Compiler<'_> {
                         "a delayed `whenever` trigger needs a duration (`... this turn`, `until end of turn, ...`)",
                     );
                 }
-                // "Exile those tokens when this leaves the battlefield"
-                // about the tokens: the trigger would watch the tokens
-                // (a delayed trigger's `this` is what it is about) while
-                // printing the source. Only "... this turn" names the
-                // object it is about ("When that creature dies this
-                // turn").
-                let this_obj = |t: &Trigger| {
-                    matches!(
-                        t,
-                        Trigger::Leaves(TriggerObj::This) | Trigger::Dies(TriggerObj::This)
-                    )
-                };
+                // "Exile those tokens when Mysterio leaves the battlefield"
+                // about the tokens watches the source leave (the engine's
+                // delayed leave triggers); dying has no such form. Only
+                // "... this turn" names the object it is about ("When that
+                // creature dies this turn").
+                let this_obj = |t: &Trigger| matches!(t, Trigger::Dies(TriggerObj::This));
                 if !*this_turn
                     && !matches!(about, Recipient::Source)
                     && (this_obj(trigger) || matches!(trigger, Trigger::When(t) if this_obj(t)))
